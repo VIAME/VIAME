@@ -236,7 +236,7 @@ public:
    *
    * @return Pointer to the mask image.
    */
-  image_container_scptr mask();
+  image_container_scptr mask() const;
 
   /**
    * @brief Set mask image for this detection.
