@@ -19,7 +19,7 @@ PYBIND11_MODULE(activity, m)
     .def(py::init<kv::activity_id_t,
                   kv::activity_label_t,
                   kv::activity_confidence_t,
-                  kv::activity_type_sptr,
+                  kv::class_map_sptr,
                   kv::timestamp,
                   kv::timestamp,
                   kv::object_track_set_sptr>(),
