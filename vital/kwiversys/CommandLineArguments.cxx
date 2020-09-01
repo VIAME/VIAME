@@ -616,6 +616,8 @@ void CommandLineArguments::GenerateHelp()
       {
       str << std::endl;
       char argument[100];
+      //13 comes from longest string that is going to be concatenated
+      //the length(" opt opt ...") is 12 plus 1 for the \0 character
       if(sit->size() < 100-13)
       {
         sprintf(argument, "%s", sit->c_str());
