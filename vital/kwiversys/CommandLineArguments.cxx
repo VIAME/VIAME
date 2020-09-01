@@ -616,7 +616,17 @@ void CommandLineArguments::GenerateHelp()
       {
       str << std::endl;
       char argument[100];
-      sprintf(argument, "%s", sit->c_str());
+      if(sit->size() < 100-13)
+      {
+        sprintf(argument, "%s", sit->c_str());
+      }
+      else
+      {
+        std::cerr << "The argument is too long: \"" << sit->c_str() << "\" "
+                  << " length: " << sit->size() << " max length: " << 100-13
+                  << std::endl;
+        continue;
+      }
       switch ( this->Internals->Callbacks[*sit].ArgumentType )
         {
         case CommandLineArguments::NO_ARGUMENT: break;
@@ -625,7 +635,7 @@ void CommandLineArguments::GenerateHelp()
         case CommandLineArguments::EQUAL_ARGUMENT:  strcat(argument, "=opt"); break;
         case CommandLineArguments::MULTI_ARGUMENT:  strcat(argument, " opt opt ..."); break;
         }
-      char buffer[80];
+      char buffer[100];
       sprintf(buffer, format, argument);
       str << buffer;
       }
