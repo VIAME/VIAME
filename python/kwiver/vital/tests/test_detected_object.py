@@ -42,7 +42,7 @@ from kwiver.vital.types import (
     BoundingBox,
     descriptor,
     DetectedObject,
-    DetectedObjectType,
+    ClassMap,
     Image,
     ImageContainer,
     geodesy,
@@ -58,7 +58,7 @@ class TestVitalDetectedObject(unittest.TestCase):
 
         self.bbox = BoundingBox(10, 10, 20, 20)
         self.conf = 0.5
-        self.dot = DetectedObjectType("example_class", 0.4)
+        self.dot = ClassMap("example_class", 0.4)
         self.mask = ImageContainer(Image(1080, 720))
 
         # Values to set outside of constructor
@@ -163,31 +163,31 @@ class TestVitalDetectedObject(unittest.TestCase):
         # Test default
         do = DetectedObject(self.bbox)
         nt.assert_equal(do.__nice__(), "conf=1.0")
-        print(do.__nice__())
+        # print(do.__nice__())
 
         do.confidence = -0.5
         nt.assert_equal(do.__nice__(), "conf=-0.5")
-        print(do.__nice__())
+        # print(do.__nice__())
 
     def test_repr_format(self):
         # Test default
         do = DetectedObject(self.bbox)
         nt.assert_equal(do.__repr__(), "<DetectedObject(conf=1.0) at {}>".format(hex(id(do))))
-        print(do.__repr__())
+        # print(do.__repr__())
 
         do = DetectedObject(self.bbox, confidence=-0.5)
         nt.assert_equal(do.__repr__(), "<DetectedObject(conf=-0.5) at {}>".format(hex(id(do))))
-        print(do.__repr__())
+        # print(do.__repr__())
 
     def test_str_format(self):
         # Test default
         do = DetectedObject(self.bbox)
         nt.assert_equal(do.__str__(), "<DetectedObject(conf=1.0)>")
-        print(do.__str__())
+        # print(do.__str__())
 
         do = DetectedObject(self.bbox, confidence=-0.5)
         nt.assert_equal(do.__str__(), "<DetectedObject(conf=-0.5)>")
-        print(do.__str__())
+        # print(do.__str__())
 
     def test_clone(self):
         do = DetectedObject(self.bbox)
@@ -274,25 +274,25 @@ class TestVitalDetectedObject(unittest.TestCase):
         nt.ok_(self.check_det_obj_types_equal(do.type, self.dot))
 
         # Check setting through constructor
-        new_dot = DetectedObjectType("other_example_class", -3.14)
+        new_dot = ClassMap("other_example_class", -3.14)
         do = DetectedObject(self.bbox, classifications=new_dot)
         nt.ok_(self.check_det_obj_types_equal(do.type, new_dot))
 
     # See TODO in binding code for an explanation of why these are
     # commented out
-    # def test_get_set_mask(self):
-    #     # Check default
-    #     do = DetectedObject(self.bbox)
-    #     nt.ok_(self.check_img_containers_equal(do.mask, None))
+    def test_get_set_mask(self):
+        # Check default
+        do = DetectedObject(self.bbox)
+        nt.ok_(self.check_img_containers_equal(do.mask, None))
 
-    #     # Check setting through setter
-    #     do.mask = self.mask
-    #     nt.assert_equal(do.mask, self.mask)
+        # Check setting through setter
+        do.mask = self.mask
+        nt.ok_(self.check_img_containers_equal(do.mask, self.mask))
 
-    #     # Check setting through constructor
-    #     new_mask = ImageContainer(Image(2048, 1080))
-    #     do = DetectedObject(self.bbox, mask=new_mask)
-    #     nt.ok_(self.check_img_containers_equal(do.mask, new_mask))
+        # Check setting through constructor
+        new_mask = ImageContainer(Image(2048, 1080))
+        do = DetectedObject(self.bbox, mask=new_mask)
+        nt.ok_(self.check_img_containers_equal(do.mask, new_mask))
 
     def test_descriptor(self):
         # Check default
@@ -311,13 +311,13 @@ class TestVitalDetectedObject(unittest.TestCase):
 
         # Attempts to modify the descriptor don't work
         do.descriptor_copy()[0] += 1
-        print(do.descriptor_copy().todoublearray(), self.descriptor.todoublearray())
+        # print(do.descriptor_copy().todoublearray(), self.descriptor.todoublearray())
         nt.ok_(self.check_descriptors_equal(do.descriptor_copy(), self.descriptor))
 
         # Modify the object copied from. Changes should not be reflected in
         # the detected_objects reference
         self.descriptor[0] += 1
-        print(do.descriptor_copy().todoublearray(), self.descriptor.todoublearray())
+        # print(do.descriptor_copy().todoublearray(), self.descriptor.todoublearray())
         nt.assert_false(self.check_descriptors_equal(do.descriptor_copy(), self.descriptor))
 
         # Storing the copy in a new variable, obviously, allows for modification

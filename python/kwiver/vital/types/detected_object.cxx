@@ -78,45 +78,64 @@ det_obj_const_safe_set_descriptor(detected_object& self, descriptor_sptr desc)
 // TODO: uncomment these when rebased on latest master with metadata API changes
 // Those changes will make copying metadata objects much easier.
 // metadata_sptr
-// copy_metadata(metadata_sptr m)
-// {
-//   metadata m_cpy(m);
-// }
+metadata_sptr copy_metadata(metadata_sptr m)
+{
+  auto m_clone = std::make_shared<metadata>();
+  auto eix = m->end();
+  auto ix = m->begin();
+  for (; ix != eix; ix++)
+  {
+    m_clone->add_copy(ix->second);
+  }
+  return m_clone;
+}
 
-// image_container_sptr
-// det_obj_const_safe_mask(detected_object const& self)
-// {
-//   auto mask = self.mask();
-//   if (mask)
-//   {
-//     // Create a pointer to a copy so we don't violate const
-//     // TODO
-//   }
-//   return nullptr;
-// }
+image_container_sptr
+det_obj_const_safe_mask(detected_object const& self)
+{
+  auto mask = self.mask();
+  if (mask)
+  {
+    // image_container does not have a clone method
+    // manual copy must be made
+    auto im = image(mask->get_image());
+    auto meta = mask->get_metadata();
+    if(meta)
+    {
+      auto md = copy_metadata(meta);
+      return std::make_shared<simple_image_container>(im, md);
+    }
+    return std::make_shared<simple_image_container>(im);
 
-// void
-// det_obj_const_safe_set_mask(detected_object& self, descriptor_sptr desc)
-// {
-//   if (desc)
-//   {
-//     // Return a pointer to a copy
-//     // clone() returns pointer to base
-//     auto cloned_desc = desc->clone();
-//     auto des_dyn_sptr = std::dynamic_pointer_cast<descriptor_dynamic<double>>(cloned_desc);
 
-//     // Check conversion worked
-//     if (!des_dyn_sptr)
-//     {
-//       throw std::runtime_error("Downcasting descriptor_dynamic<double> from base pointer failed");
-//     }
-//     self.set_descriptor(des_dyn_sptr);
-//   }
-//   else
-//   {
-//     self.set_descriptor(nullptr);
-//   }
-// }
+  }
+  return nullptr;
+}
+
+void
+det_obj_const_safe_set_mask(detected_object& self, image_container_sptr mask)
+{
+  if (mask)
+  {
+    auto im = image(mask->get_image());
+    auto meta = mask->get_metadata();
+    if(meta)
+    {
+      auto md = copy_metadata(meta);
+      auto ptr = std::make_shared<simple_image_container>(im, md);
+      self.set_mask(ptr);
+    }
+    else
+    {
+      auto ptr = std::make_shared<simple_image_container>(im);
+      self.set_mask(ptr);
+    }
+  }
+  else
+  {
+    self.set_mask(nullptr);
+  }
+}
 
 }
 }
@@ -195,7 +214,7 @@ PYBIND11_MODULE(detected_object, m)
   .def("add_keypoint", &det_obj::add_keypoint)
   .def("clear_keypoints", &det_obj::clear_keypoints)
   // TODO: Uncomment after above const-safe methods are implemented for mask
-  // .def_property("mask", &det_obj::mask, &det_obj::set_mask)
+  .def_property("mask", &python::det_obj_const_safe_mask, &python::det_obj_const_safe_set_mask)
 
   // Convey that users can't access the the underlying descriptor directly.
   // Must go through the setter. This is because of the const-issue discussed above.
