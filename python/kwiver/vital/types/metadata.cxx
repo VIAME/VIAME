@@ -158,7 +158,7 @@ PYBIND11_MODULE( metadata, m )
   // TODO: resolve rvalue references in members https://github.com/pybind/pybind11/issues/1694
   .def( "add_copy", (void (metadata::*)(std::shared_ptr<metadata_item const>const &)) &metadata::add_copy)
   // usage: .add(identifier, tag)
-  .def( "add", &adder)
+  .def( "add",           &adder )
   .def( "erase",         &metadata::erase )
   .def( "has",           &metadata::has )
   .def( "find",          &metadata::find, py::return_value_policy::reference_internal )

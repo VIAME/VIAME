@@ -35,8 +35,7 @@ unknown_metadata_item, and metadata
 
 """
 
-# TODO:
-# 8.) stuff with std::string name mangling, testing .type!
+
 import nose.tools as nt
 import numpy as np
 
@@ -356,11 +355,12 @@ class TestVitalMetadata(object):
             nt.assert_false(m.has(tag))
             nt.ok_(isinstance(m.find(tag), UnknownMetadataItem))
         self.populate_metadata(m)
+        possible_types = {"int", "bool", "unsigned long", "string", "double"}
         for tag in self.small_tag:
             nt.assert_true(m.has(tag))
             nt.ok_(isinstance(m.find(tag), MetadataItem))
             found = m.find(tag)
-            found.type()
+            nt.assert_in(found.type, possible_types)
     def test_timestamp(self):
         m = Metadata()
         self.populate_metadata(m)
