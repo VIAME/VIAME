@@ -1,4 +1,3 @@
-
 /*ckwg +29
  * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
