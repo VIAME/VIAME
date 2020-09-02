@@ -1,6 +1,6 @@
 """
 ckwg +29
-Copyright 2019 by Kitware, Inc.
+Copyright 2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ from unittest import TestCase
 from kwiver.vital.tests.helpers import generate_dummy_config
 import kwiver.vital.algo
 import kwiver.vital.algo.algos
+from kwiver.vital.algo import algorithm_factory
 
 
 def _dummy_algorithm_cfg():
@@ -77,6 +78,11 @@ class TestVitalAlgorithmsCommon(object):
         algo_list = self.get_algo_list()
         for abstract_algo, simple_impl_name in algo_list:
             yield self.create_helper, abstract_algo, simple_impl_name
+
+    def test_algo_factory_create(self):
+        algo_list = self.get_algo_list()
+        for abstract_algo, simple_impl_name in algo_list:
+            yield self.algo_factory_create_helper, abstract_algo, simple_impl_name
 
     def test_impl_name(self):
         algo_list = self.get_algo_list()
@@ -117,7 +123,29 @@ class TestVitalAlgorithmsCommon(object):
                 abstract_algo.static_type_name()
             ),
         )
-        abstract_algo.create(simple_impl_name)
+        algo_out = abstract_algo.create(simple_impl_name)
+
+        nose.tools.ok_(isinstance(algo_out, abstract_algo))
+
+    def algo_factory_create_helper(self, abstract_algo, simple_impl_name):
+        nose.tools.ok_(
+            algorithm_factory.has_algorithm_impl_name(
+                abstract_algo.static_type_name(), simple_impl_name
+            ),
+            "{} not found by the factory".format(simple_impl_name),
+        )
+
+        nose.tools.ok_(
+            simple_impl_name
+            in algorithm_factory.implementations(abstract_algo.static_type_name()),
+            "{} not in implementations list for {}".format(
+                simple_impl_name, abstract_algo.static_type_name()
+            ),
+        )
+
+        algo_out = abstract_algo.create(simple_impl_name)
+
+        nose.tools.ok_(isinstance(algo_out, abstract_algo))
 
     def config_helper(self, instance):
         instance_cfg = instance.get_configuration()

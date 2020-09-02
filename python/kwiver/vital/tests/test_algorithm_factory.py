@@ -33,36 +33,57 @@ Tests for python algorithm factory class
 
 from __future__ import print_function, absolute_import
 
-import nose.tools
+import nose.tools as nt
 
-from kwiver.vital.algo import algorithm_factory
+from kwiver.vital.algo import algorithm_factory, ImageObjectDetector
+
+
+class TestImageObjectDetector(ImageObjectDetector):
+    def __init__(self):
+        ImageObjectDetector.__init__(self)
+
 
 def test_algorithm_factory():
-    from kwiver.vital.algo import ImageObjectDetector
-    class TestImageObjectDetector(ImageObjectDetector):
-        def __init__(self):
-            ImageObjectDetector.__init__(self)
 
     # Add algorithm
-    algorithm_factory.add_algorithm("test_detector", "test detector",
-                                    TestImageObjectDetector)
+    algorithm_factory.add_algorithm(
+        "TestImageObjectDetector", "test detector", TestImageObjectDetector
+    )
 
-    nose.tools.ok_(algorithm_factory.has_algorithm_impl_name("image_object_detector",
-                                                            "test_detector"),
-                    "test_detector not found by the factory")
+    nt.ok_(
+        algorithm_factory.has_algorithm_impl_name(
+            "image_object_detector", "TestImageObjectDetector"
+        ),
+        "TestImageObjectDetector not found by the factory",
+    )
 
     # Check with an empty implementation
-    nose.tools.assert_equal(algorithm_factory.has_algorithm_impl_name("image_object_detector",
-                                                            ""), False)
+    nt.assert_equal(
+        algorithm_factory.has_algorithm_impl_name("image_object_detector", ""), False
+    )
     # Check with dummy implementation
-    nose.tools.assert_equal(algorithm_factory.has_algorithm_impl_name("image_object_detector",
-                                                            "NotAnObjectDetector"), False)
+    nt.assert_equal(
+        algorithm_factory.has_algorithm_impl_name(
+            "image_object_detector", "NotAnObjectDetector"
+        ),
+        False,
+    )
 
     # Check that a registered implementation is returned by implementations
-    nose.tools.ok_("test_detector" in
-                    algorithm_factory.implementations("image_object_detector"),
-                    "Dummy example_detector not registered")
+    nt.ok_(
+        "TestImageObjectDetector"
+        in algorithm_factory.implementations("image_object_detector"),
+        "Dummy example_detector not registered",
+    )
     # Check with an empty algorithm return empty list
-    nose.tools.assert_equal(len(algorithm_factory.implementations("")), 0)
+    nt.assert_equal(len(algorithm_factory.implementations("")), 0)
     # Check with dummy algorithm returns empty list
-    nose.tools.assert_equal(len(algorithm_factory.implementations("NotAnAlgorithm")), 0)
+    nt.assert_equal(len(algorithm_factory.implementations("NotAnAlgorithm")), 0)
+
+    # Make sure creating works
+    alg_out = algorithm_factory.create_algorithm(
+        "image_object_detector", "TestImageObjectDetector"
+    )
+
+    nt.ok_(isinstance(alg_out, TestImageObjectDetector))
+    nt.ok_(isinstance(alg_out, ImageObjectDetector))
