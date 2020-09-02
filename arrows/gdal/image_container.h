@@ -65,13 +65,16 @@ public:
   virtual size_t size() const;
 
   /// The width of the image in pixels
-  virtual size_t width() const { return gdal_dataset_->GetRasterXSize(); }
+  virtual size_t width() const
+  { return static_cast<size_t>(gdal_dataset_->GetRasterXSize()); }
 
   /// The height of the image in pixels
-  virtual size_t height() const { return gdal_dataset_->GetRasterYSize(); }
+  virtual size_t height() const
+  { return static_cast<size_t>(gdal_dataset_->GetRasterYSize()); }
 
   /// The depth (or number of channels) of the image
-  virtual size_t depth() const { return gdal_dataset_->GetRasterCount(); }
+  virtual size_t depth() const
+  { return static_cast<size_t>(gdal_dataset_->GetRasterCount()); }
 
   /// Get image. Unlike other image containers must allocate memory
   virtual vital::image get_image() const;
