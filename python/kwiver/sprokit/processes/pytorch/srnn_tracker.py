@@ -427,7 +427,8 @@ class SRNNTracker(KwiverProcess):
             print( repr( e ) )
             import traceback
             print( traceback.format_exc() )
-            #sys.stdout.flush()
+            sys.stdout.flush()
+            raise
 
 
 # ==================================================================
