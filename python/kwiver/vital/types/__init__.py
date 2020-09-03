@@ -15,6 +15,7 @@ from kwiver.vital.types.detected_object_set import *
 from kwiver.vital.types.eigen import *
 from kwiver.vital.types.feature import *
 from kwiver.vital.types.homography import *
+from kwiver.vital.types.homography_f2f import *
 from kwiver.vital.types.landmark import *
 from kwiver.vital.types.rotation import *
 from kwiver.vital.types.similarity import *
