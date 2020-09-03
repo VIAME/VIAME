@@ -48,7 +48,7 @@ PYBIND11_MODULE( local_geo_cs, m )
   ;
 
   m.def( "read_local_geo_cs_from_file",      &kv::read_local_geo_cs_from_file );
-  m.def( "write_local_geo_cs_to_file",       &kv::write_local_geo_cs_to_file );
+  m.def( "write_local_geo_cs_to_file",       &kv::write_local_geo_cs_to_file, py::return_value_policy::reference );
   // m.def( "set_intrinsics_from_metadata",     &kv::set_intrinsics_from_metadata );
   // m.def( "initialize_cameras_with_metadata", &kv::initialize_cameras_with_metadata,
   //        py::arg( "md_map" ), py::arg( "base_camera" ), py::arg( "lgcs" ),
