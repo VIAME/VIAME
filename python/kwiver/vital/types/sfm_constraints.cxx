@@ -60,9 +60,23 @@ PYBIND11_MODULE( sfm_constraints, m )
         &kv::sfm_constraints::get_camera_position_prior_local )
   .def( "get_camera_position_priors", &kv::sfm_constraints::get_camera_position_priors )
   .def( "store_image_size", &kv::sfm_constraints::store_image_size )
-  .def( "get_image_width", &kv::sfm_constraints::get_image_width )
-  .def( "get_image_height", &kv::sfm_constraints::get_image_height )
-  .def( "get_focal_length_prior", &kv::sfm_constraints::get_focal_length_prior )
+  // Ints are immutable in python so simple bindings to get_image_width/height, get_focal_length_prior wont be sufficient
+  // lambda functions will return a tuple of the results as per https://pybind11.readthedocs.io/en/stable/faq.html#limitations-involving-reference-arguments
+  .def( "get_image_width", [](kv::sfm_constraints const &self, kv::frame_id_t fid, int &image_width )
+  {
+      bool found = self.get_image_width(fid, image_width);
+      return std::make_tuple(found, image_width);
+  })
+  .def( "get_image_height", [](kv::sfm_constraints const &self, kv::frame_id_t fid, int &image_height )
+  {
+      bool found = self.get_image_height(fid, image_height);
+      return std::make_tuple(found, image_height);
+  })
+  .def( "get_focal_length_prior", [](kv::sfm_constraints const &self, kv::frame_id_t fid, float &focal_length )
+  {
+      bool found = self.get_focal_length_prior(fid, focal_length);
+      return std::make_tuple(found, focal_length);
+  })
 
   ;
 }
