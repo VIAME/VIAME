@@ -230,7 +230,6 @@ class TestVitalMetadataItemSubclasses(object):
 
     def check_initial_properties(self, inst, prop_info):
         nt.assert_equals(inst.name, prop_info.name)
-        # TODO: int cast?
         nt.assert_equals(inst.tag, prop_info.tag)
 
         # A few tests on inst.data

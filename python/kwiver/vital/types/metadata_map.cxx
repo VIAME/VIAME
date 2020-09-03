@@ -33,7 +33,7 @@
 #include <python/kwiver/vital/util/pybind11.h>
 
 #include <pybind11/pybind11.h>
-
+#include <pybind11/stl.h>
 #include <memory>
 
 namespace py = pybind11;
@@ -63,7 +63,7 @@ PYBIND11_MODULE( metadata_map, m )
   .def( "size",       &kv::metadata_map::size )
   .def( "metadata",   &kv::metadata_map::metadata )
   .def( "has_item",   &kv::metadata_map::has_item )
-  .def( "get_item",   &kv::metadata_map::get_item )
+  .def( "get_item",   &kv::metadata_map::get_item, py::return_value_policy::reference )
   .def( "get_vector", &kv::metadata_map::get_vector )
   .def( "frames",     &kv::metadata_map::frames )
   // Note that we are skipping the templated has and get methods.
@@ -76,7 +76,8 @@ PYBIND11_MODULE( metadata_map, m )
 
   py::class_< kv::simple_metadata_map,
               std::shared_ptr< kv::simple_metadata_map >,
-              kv::metadata_map >( m, "SimpleMetadataMap" );
+              kv::metadata_map >( m, "SimpleMetadataMap" )
+  .def( py::init<>() );
   // Everything will be inherited from metadata_map
 }
 
