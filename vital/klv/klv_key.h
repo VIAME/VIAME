@@ -64,7 +64,7 @@ public:
   /// Access a byte of the key
   inline uint8_t operator[](unsigned int i) const
   {
-    return (i < LEN) ? key_[i] : 0;
+    return (i < LEN) ? key_[i] : 0u;
   }
 
   /// Compare keys for equality
