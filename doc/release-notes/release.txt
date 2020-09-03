@@ -43,6 +43,10 @@ Arrows: CUDA
 
 Arrows: OpenCV
 
+ * Fixed improper use of RANSAC in the OpenCV estimate_pnp algorithm.
+   This algorithm was producing a lower then expected success rate when
+   resectioning cameras.
+
  * Fixed a long standing bug with memory management when converting between
    OpenCV and Vital images.  Reference counting was not handled correctly.
    A workaround was previously added that forced a deep copy, but this created
