@@ -23,6 +23,11 @@ Arrows: Core
    parameters were also not properly preserved in this initialization
    and this has also been resolved.
 
+ * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
+   camera estimation loop would sometimes exit early without processing
+   the remaining cameras.  This is further improved to try the lists of
+   remaining cameras multiple times until no further cameras are added.
+
 Arrows: CUDA
 
  * Fixed a bug in launching the integrate_depth_maps CUDA kernel.
@@ -37,6 +42,10 @@ Arrows: CUDA
    covering a subset of voxels in each chunk.
 
 Arrows: OpenCV
+
+ * Fixed improper use of RANSAC in the OpenCV estimate_pnp algorithm.
+   This algorithm was producing a lower then expected success rate when
+   resectioning cameras.
 
  * Fixed a long standing bug with memory management when converting between
    OpenCV and Vital images.  Reference counting was not handled correctly.

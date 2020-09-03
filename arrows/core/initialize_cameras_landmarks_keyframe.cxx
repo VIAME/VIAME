@@ -3556,33 +3556,10 @@ initialize_cameras_landmarks_keyframe::priv
                        frames_to_register,
                        windowed_bundled_cams,
                        all_frames_to_register,
-                       keyframes_to_register,
-                       non_keyframes_to_register;
-  get_registered_and_non_registered_frames(cams, tracks,
-                                           already_registred_cams,
-                                           all_frames_to_register);
+                       keyframes_to_register;
 
-  // enforce registering only keyframes
-  for (auto fid : all_frames_to_register)
-  {
-    if (m_keyframes.find(fid) != m_keyframes.end())
-    {
-      keyframes_to_register.insert(fid);
-    }
-    else
-    {
-      non_keyframes_to_register.insert(fid);
-    }
-  }
-
-  if (keyframes_to_register.empty())
-  {
-    frames_to_register = non_keyframes_to_register;
-  }
-  else
-  {
-    frames_to_register = keyframes_to_register;
-  }
+  bool done_registering_keyframes = false;
+  size_t num_frames_to_register = std::numeric_limits<size_t>::max();
 
   std::set<frame_id_t> frames_since_last_local_ba;
 
@@ -3596,15 +3573,73 @@ initialize_cameras_landmarks_keyframe::priv
 
   int max_constraints_used = 0;
 
-  bool done_registering_keyframes = false;
   bool disable_windowing = true;
 
   int frames_since_last_ba = 0;
 
   std::map<frame_id_t, double> last_reproj_by_cam;
-  while(!frames_to_register.empty() &&
-        this->continue_processing)
+  while (this->continue_processing)
   {
+    if (frames_to_register.empty())
+    {
+      // Compute an updated list of frames left to register
+      get_registered_and_non_registered_frames(cams, tracks,
+                                               already_registred_cams,
+                                               all_frames_to_register);
+      if (done_registering_keyframes)
+      {
+        // If any frames were added since the last round then
+        // re-queue all the remaining frames and try again.
+        if (all_frames_to_register.size() < num_frames_to_register)
+        {
+          frames_to_register = all_frames_to_register;
+          num_frames_to_register = frames_to_register.size();
+          if (frames_to_register.empty())
+          {
+            break;
+          }
+          LOG_INFO(m_logger, "Queueing all remaining frames for processing");
+        }
+        else
+        {
+          break;
+        }
+      }
+      else
+      {
+        // find the intersection of keyframes and frames to register
+        keyframes_to_register.clear();
+        std::set_intersection(all_frames_to_register.begin(),
+                              all_frames_to_register.end(),
+                              m_keyframes.begin(), m_keyframes.end(),
+                              std::inserter(keyframes_to_register,
+                                            keyframes_to_register.begin()));
+        // If any frames were added since the last round then
+        // re-queue all the remaining key frames and try again.
+        if (keyframes_to_register.size() < num_frames_to_register)
+        {
+          frames_to_register = keyframes_to_register;
+          num_frames_to_register = frames_to_register.size();
+          LOG_INFO(m_logger, "Finished processing key frames, "
+                             "trying remaining keyframes again");
+        }
+        else
+        {
+          // No more progress on key frames, so switch to all frames
+          // to fill in the gaps
+          done_registering_keyframes = true;
+          disable_windowing = false;
+          frames_to_register = all_frames_to_register;
+          num_frames_to_register = frames_to_register.size();
+          if (frames_to_register.empty())
+          {
+            break;
+          }
+          LOG_INFO(m_logger, "Finished processing key frames, "
+                             "start filling intermediate frames ");
+        }
+      }
+    }
     if (max_constraints_used < 10)
     {
       int num_constraints_used;
@@ -3721,16 +3756,6 @@ initialize_cameras_landmarks_keyframe::priv
       LOG_DEBUG(m_logger, "continue processing is false, "
         "exiting initialize_remaining_cameras loop");
       break;
-    }
-    if ( frames_to_register.empty() &&
-         !done_registering_keyframes &&
-         !keyframes_to_register.empty())
-    {
-      done_registering_keyframes = true;
-      disable_windowing = false;
-      frames_to_register = non_keyframes_to_register;
-      LOG_INFO(m_logger, "Finished processing key frames, "
-                         "start filling intermediate frames ");
     }
   }
 
