@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2017-2018 by Kitware, Inc.
+* Copyright 2017-2020 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -96,12 +96,12 @@ void how_to_part_02_detections()
   double confidence1 = 1.0;
 
   // A Classification
-  // The detected_object_type is created by a classifier which is sometimes part of the detector.
+  // The class_map is created by a classifier which is sometimes part of the detector.
   // It is a group of name / value pairs.The name being the name of the class.
   // The score is the probability that the object is that class.
   // It is optional and not required for a detected object although most examples provide one just to be complete.
 
-  kwiver::vital::detected_object_type_sptr type1(new kwiver::vital::detected_object_type());
+  kwiver::vital::class_map_sptr type1(new kwiver::vital::class_map());
   // This can have multiple entries / scores
   type1->set_score("car", 0.03);
   type1->set_score("fish", 0.52);
@@ -114,7 +114,7 @@ void how_to_part_02_detections()
   kwiver::vital::bounding_box_d bbox2(ocv_img->width()*0.05, ocv_img->height()*0.05,
     ocv_img->width()*0.55, ocv_img->height()*0.55);
   double confidence2 = 0.50;
-  kwiver::vital::detected_object_type_sptr type2(new kwiver::vital::detected_object_type());
+  kwiver::vital::class_map_sptr type2(new kwiver::vital::class_map());
   type2->set_score("car", 0.04);
   type2->set_score("fish", 0.12);
   type2->set_score("flag pole", 0.67);
@@ -124,7 +124,7 @@ void how_to_part_02_detections()
   kwiver::vital::bounding_box_d bbox3(ocv_img->width()*0.45, ocv_img->height()*0.45,
     ocv_img->width()*0.95, ocv_img->height()*0.95);
   double confidence3 = 0.75;
-  kwiver::vital::detected_object_type_sptr type3(new kwiver::vital::detected_object_type());
+  kwiver::vital::class_map_sptr type3(new kwiver::vital::class_map());
   type3->set_score("car", 0.22);
   type3->set_score("fish", 0.08);
   type3->set_score("flag pole", 0.07);

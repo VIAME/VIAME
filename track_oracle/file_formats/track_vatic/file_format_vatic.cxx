@@ -84,7 +84,7 @@ file_format_vatic
   // detect when a new track has started
 
   bool current_external_id_valid = false;
-  unsigned current_external_id = 0;
+  dt::tracking::external_id::Type current_external_id = 0;
   //oracle_entry_handle_type track_id;
 
   unsigned line_count = 0;

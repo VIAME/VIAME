@@ -20,6 +20,8 @@
 #include <track_oracle/aries_interface/aries_interface.h>
 #include <track_oracle/event_adapter.h>
 #include <track_oracle/utils/logging_map.h>
+#include <track_oracle/data_terms/data_terms.h>
+
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -53,7 +55,7 @@ track_filter_kwe_type
   // build a local lookup map
   map< unsigned, track_handle_type > id2handle;
   typedef map< unsigned, track_handle_type >::iterator id2handle_it;
-  track_field<unsigned> id_field( "external_id" );
+  track_field< dt::tracking::external_id > id_field;
   for (size_t i=0; i<ref_tracks.size(); ++i)
   {
     pair< bool, unsigned > probe = id_field.get( ref_tracks[i].row );

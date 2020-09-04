@@ -1858,12 +1858,12 @@ pipeline::priv
     {
       kwiver::vital::config_block_sptr const conn_config = config->subblock(priv::config_edge_conn);
       kwiver::vital::config_block_sptr const up_config =
-        conn_config->subblock(upstream_name + kwiver::vital::config_block::block_sep +
-                              upstream_subblock + kwiver::vital::config_block::block_sep + upstream_port);
+        conn_config->subblock(upstream_name + kwiver::vital::config_block::block_sep() +
+          upstream_subblock + kwiver::vital::config_block::block_sep() + upstream_port);
 
       kwiver::vital::config_block_sptr const down_config =
-        conn_config->subblock(downstream_name + kwiver::vital::config_block::block_sep +
-                              downstream_subblock + kwiver::vital::config_block::block_sep + downstream_port);
+        conn_config->subblock(downstream_name + kwiver::vital::config_block::block_sep() +
+          downstream_subblock + kwiver::vital::config_block::block_sep() + downstream_port);
 
       edge_config->merge_config(up_config);
       edge_config->merge_config(down_config);
@@ -1872,14 +1872,15 @@ pipeline::priv
       {
         std::stringstream msg;
         msg << "-- Up_config for \""
-            << upstream_name + kwiver::vital::config_block::block_sep
-             + upstream_subblock + kwiver::vital::config_block::block_sep + upstream_port
+            << upstream_name + kwiver::vital::config_block::block_sep()
+             + upstream_subblock + kwiver::vital::config_block::block_sep() + upstream_port
             << "\" :\n";
         kwiver::vital::config_block_formatter up_fmt( up_config );
         up_fmt.print(msg);
         msg << "\n-- Down_config for \""
-            << downstream_name + kwiver::vital::config_block::block_sep
-             + downstream_subblock + kwiver::vital::config_block::block_sep + downstream_port
+            << downstream_name + kwiver::vital::config_block::block_sep()
+             + downstream_subblock + kwiver::vital::config_block::block_sep()
+             + downstream_port
             << "\" :\n";
         kwiver::vital::config_block_formatter down_fmt( up_config );
         down_fmt.print(msg);

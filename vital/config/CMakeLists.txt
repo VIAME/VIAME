@@ -56,7 +56,6 @@ target_link_libraries( vital_config
   PRIVATE              kwiversys
                        vital_logger
                        vital_util
-                       vital_vpm
   )
 
 kwiver_add_plugin( format_config

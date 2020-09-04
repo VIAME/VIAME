@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 TEST(config_block, block_sep_size)
 {
   // Quite a few places assume that the block separator size is 1
-  EXPECT_EQ( 1, config_block::block_sep.size() );
+  EXPECT_EQ( 1, config_block::block_sep().size() );
 }
 
 // ----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ TEST(config_block, get_value_nested)
 {
   auto const config = config_block::empty_config();
 
-  config->set_value( keya + config_block::block_sep + keyb, valuea );
+  config->set_value( keya + config_block::block_sep() + keyb, valuea );
   EXPECT_EQ(
     valuea,
     config->subblock( keya )->get_value<config_block_value_t>( keyb ) );
@@ -261,9 +261,9 @@ TEST(config_block, subblock)
 {
   auto const config = config_block::empty_config();
 
-  config->set_value( block1_name + config_block::block_sep + keya, valuea );
-  config->set_value( block1_name + config_block::block_sep + keyb, valueb );
-  config->set_value( block2_name + config_block::block_sep + keyc, valuec );
+  config->set_value( block1_name + config_block::block_sep() + keya, valuea );
+  config->set_value( block1_name + config_block::block_sep() + keyb, valueb );
+  config->set_value( block2_name + config_block::block_sep() + keyc, valuec );
 
   auto const subblock = config->subblock( block1_name );
 
@@ -286,12 +286,12 @@ TEST(config_block, subblock_nested)
   auto const config = config_block::empty_config();
 
   auto const nested_block_name =
-    block1_name + config_block::block_sep + block2_name;
+    block1_name + config_block::block_sep() + block2_name;
 
   config->set_value(
-    nested_block_name + config_block::block_sep + keya, valuea );
+    nested_block_name + config_block::block_sep() + keya, valuea );
   config->set_value(
-    nested_block_name + config_block::block_sep + keyb, valueb );
+    nested_block_name + config_block::block_sep() + keyb, valueb );
 
   auto const subblock = config->subblock( nested_block_name );
 
@@ -331,9 +331,9 @@ TEST(config_block, subblock_view)
 {
   auto const config = config_block::empty_config();
 
-  config->set_value( block1_name + config_block::block_sep + keya, valuea );
-  config->set_value( block1_name + config_block::block_sep + keyb, valueb );
-  config->set_value( block2_name + config_block::block_sep + keyc, valuec );
+  config->set_value( block1_name + config_block::block_sep() + keya, valuea );
+  config->set_value( block1_name + config_block::block_sep() + keyb, valueb );
+  config->set_value( block2_name + config_block::block_sep() + keyc, valuec );
 
   config_block_sptr const subblock = config->subblock_view( block1_name );
 
@@ -341,18 +341,18 @@ TEST(config_block, subblock_view)
   EXPECT_TRUE( subblock->has_value( keyb ) );
   EXPECT_FALSE( subblock->has_value( keyc ) );
 
-  config->set_value( block1_name + config_block::block_sep + keya, valueb );
+  config->set_value( block1_name + config_block::block_sep() + keya, valueb );
   EXPECT_EQ( valueb, subblock->get_value<config_block_value_t>( keya ) );
 
   subblock->set_value( keya, valuea );
   EXPECT_EQ( valuea, config->get_value<config_block_value_t>(
-                       block1_name + config_block::block_sep + keya ) );
+                       block1_name + config_block::block_sep() + keya ) );
 
   subblock->unset_value( keyb );
   EXPECT_FALSE(
-    config->has_value( block1_name + config_block::block_sep + keyb ) );
+    config->has_value( block1_name + config_block::block_sep() + keyb ) );
 
-  config->set_value( block1_name + config_block::block_sep + keyc, valuec );
+  config->set_value( block1_name + config_block::block_sep() + keyc, valuec );
 
   config_block_keys_t keys;
 
@@ -368,12 +368,12 @@ TEST(config_block, subblock_view_nested)
   auto const config = config_block::empty_config();
 
   auto const nested_block_name =
-    block1_name + config_block::block_sep + block2_name;
+    block1_name + config_block::block_sep() + block2_name;
 
   config->set_value(
-    nested_block_name + config_block::block_sep + keya, valuea );
+    nested_block_name + config_block::block_sep() + keya, valuea );
   config->set_value(
-    nested_block_name + config_block::block_sep + keyb, valueb );
+    nested_block_name + config_block::block_sep() + keyb, valueb );
 
   auto const subblock = config->subblock_view( nested_block_name );
 
@@ -486,7 +486,7 @@ TEST(config_block, set_value_description)
 {
   auto const config = config_block::empty_config();
 
-  auto const keyx = block1_name + config_block::block_sep + keyb;
+  auto const keyx = block1_name + config_block::block_sep() + keyb;
 
   auto const descra = config_block_description_t{ "This is config value A" };
   auto const descrx = config_block_description_t{ "This is config value X" };

@@ -19,12 +19,12 @@ Detected Object
     :project: kwiver
     :members:
     
-.. _vital_detected_object_type:
+.. _vital_class_map:
 
-Detected Object Type
+Class Map
 --------------------
 
-..  doxygenclass:: kwiver::vital::detected_object_type
+..  doxygenclass:: kwiver::vital::class_map
     :project: kwiver
     :members:
     

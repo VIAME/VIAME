@@ -1881,7 +1881,8 @@ IMPLEMENT_TEST( reconfigure )
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "new_key" );
   kwiver::vital::config_block_value_t const value = kwiver::vital::config_block_value_t( "old_value" );
 
-  new_conf->set_value( proc_name + kwiver::vital::config_block::block_sep + key, value );
+  new_conf->set_value( proc_name + kwiver::vital::config_block::block_sep()
+                       + key, value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -1936,7 +1937,8 @@ IMPLEMENT_TEST( reconfigure_only_top_level )
 
   sprokit::process::name_t const resolved_name = cluster_name + "/" + proc_name;
 
-  new_conf->set_value( resolved_name + kwiver::vital::config_block::block_sep + key, value );
+  new_conf->set_value( resolved_name +
+                       kwiver::vital::config_block::block_sep() + key, value );
 
   pipeline->reconfigure( new_conf );
 }

@@ -29,6 +29,7 @@ kwiver_add_library( track_filter_kwe
 target_link_libraries( track_filter_kwe
   PUBLIC               track_oracle_event_adapter
   PRIVATE              track_oracle
+                       data_terms
                        scoring_aries_interface
                        vital_logger
                        logging_map

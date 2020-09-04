@@ -78,12 +78,6 @@ function(algorithms_create_plugin    base_lib)
     PRIVATE  ${base_lib}
     )
 
-  set_target_properties( ${plugin_name}
-    PROPERTIES
-    OUTPUT_NAME   ${base_lib}_plugin
-    INSTALL_RPATH "\$ORIGIN/../../lib:\$ORIGIN/"
-    )
-
   add_dependencies( all-plugins ${plugin_name} )
 
   # For each library linked to the base library, add the path to the library

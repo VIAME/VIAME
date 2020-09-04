@@ -373,7 +373,7 @@ file_format_kw18
     size_t n_frames = frames.size();
 
     // clunky, but better safe than sorry
-    unsigned kw18_id = logged_get_field( kw18.external_id, t.row, warnings );
+    auto kw18_id = logged_get_field( kw18.external_id, t.row, warnings );
     for (size_t j=0; j<n_frames; ++j)
     {
       frame_handle_type f = frames[j];

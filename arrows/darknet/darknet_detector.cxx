@@ -594,7 +594,7 @@ darknet_detector::priv
 
       kwiver::vital::bounding_box_d bbox( left, top, right, bot );
 
-      auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+      auto cm = std::make_shared< kwiver::vital::class_map >();
       bool has_name = false;
 
       // Iterate over all classes and collect all names over the threshold
@@ -607,7 +607,7 @@ darknet_detector::priv
         if( prob >= m_thresh )
         {
           const std::string class_name( m_names[ class_idx ] );
-          dot->set_score( class_name, prob );
+          cm->set_score( class_name, prob );
           conf = std::max( conf, prob );
           has_name = true;
         }
@@ -617,7 +617,7 @@ darknet_detector::priv
       {
         detected_objects->add(
           std::make_shared< kwiver::vital::detected_object >(
-            bbox, conf, dot ) );
+            bbox, conf, cm ) );
       }
     }
 

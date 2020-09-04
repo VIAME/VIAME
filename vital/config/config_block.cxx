@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2019 by Kitware, Inc.
+ * Copyright 2011-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,9 +47,6 @@
 
 namespace kwiver {
 namespace vital {
-
-config_block_key_t const config_block::block_sep = config_block_key_t( ":" );
-config_block_key_t const config_block::global_value = config_block_key_t( "_global" );
 
 /// private helper method for determining key path prefixes
 static bool does_not_begin_with( config_block_key_t const&  key,
@@ -142,7 +139,7 @@ config_block
 {
   if ( m_parent )
   {
-    return m_parent->get_description( m_name + block_sep + key );
+    return m_parent->get_description( m_name + config_block::block_sep() + key );
   }
 
   store_t::const_iterator i = m_descr_store.find( key );
@@ -163,7 +160,7 @@ config_block
 {
   if ( m_parent )
   {
-    m_parent->unset_value( m_name + block_sep + key );
+    m_parent->unset_value( m_name + config_block::block_sep() + key );
   }
   else
   {
@@ -298,7 +295,7 @@ config_block
 {
   if ( m_parent )
   {
-    return m_parent->has_value( m_name + block_sep + key );
+    return m_parent->has_value( m_name + config_block::block_sep() + key );
   }
 
   return ( 0 != m_store.count( key ) );
@@ -343,7 +340,7 @@ config_block
 {
   if ( m_parent )
   {
-    return m_parent->i_get_value( m_name + block_sep + key );
+    return m_parent->i_get_value( m_name + config_block::block_sep() + key );
   }
 
   store_t::const_iterator i = m_store.find( key );
@@ -367,7 +364,7 @@ config_block
 {
   if ( m_parent )
   {
-    m_parent->set_value( m_name + block_sep + key, value, descr );
+    m_parent->set_value( m_name + config_block::block_sep() + key, value, descr );
   }
   else
   {
@@ -454,7 +451,9 @@ config_block
 {
   if (m_parent)
   {
-    location_t::const_iterator i = m_parent->m_def_store.find( m_name + block_sep + key );
+    location_t::const_iterator i = m_parent->m_def_store.find( m_name +
+                                            config_block::block_sep() +
+                                            key );
     if ( i != m_parent->m_def_store.end() )
     {
       f = i->second.file();
@@ -482,7 +481,9 @@ config_block
 {
     if (m_parent)
   {
-    location_t::const_iterator i = m_parent->m_def_store.find( m_name + block_sep + key );
+    location_t::const_iterator i = m_parent->m_def_store.find( m_name +
+                                           config_block:: block_sep() +
+                                           key );
     if ( i != m_parent->m_def_store.end() )
     {
       loc = i->second;
@@ -567,9 +568,10 @@ config_block_get_value_cast( config_block_value_t const& value )
 bool
 does_not_begin_with( config_block_key_t const& key, config_block_key_t const& name )
 {
-  static config_block_key_t const global_start = config_block::global_value + config_block::block_sep;
+  static config_block_key_t const global_start = config_block::global_value() +
+                                                 config_block::block_sep();
 
-  return ! starts_with( key, name + config_block::block_sep ) &&
+  return ! starts_with( key, name + config_block::block_sep() ) &&
          ! starts_with( key, global_start );
 }
 
@@ -588,12 +590,12 @@ does_not_begin_with( config_block_key_t const& key, config_block_key_t const& na
 config_block_key_t
 strip_block_name( config_block_key_t const& subblock, config_block_key_t const& key )
 {
-  if ( ! starts_with( key, subblock + config_block::block_sep ) )
+  if ( ! starts_with( key, subblock + config_block::block_sep() ) )
   {
     return key;
   }
 
-  return key.substr( subblock.size() + config_block::block_sep.size() );
+  return key.substr( subblock.size() + config_block::block_sep().size() );
 }
 
 } }   // end namespace

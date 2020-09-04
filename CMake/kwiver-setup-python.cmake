@@ -92,7 +92,7 @@ endfunction()
 if (PYTHON_VERSION_MAJOR)
   set(DEFAULT_PYTHON_MAJOR ${PYTHON_VERSION_MAJOR})
 else()
-  set(DEFAULT_PYTHON_MAJOR "2")
+  set(DEFAULT_PYTHON_MAJOR "3")
 endif()
 
 

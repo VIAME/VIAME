@@ -91,7 +91,6 @@ function (kwiver_build_test name libraries)
     LINK_PRIVATE
       ${${libraries}})
   kwiver_declare_test(${name})
-  
 endfunction ()
 
 # ------------------------------------------------------------------
@@ -121,9 +120,9 @@ function (kwiver_add_test name instance)
 
   # TODO: How to get CTest the full path to the test with config subdir?
   if (NOT CMAKE_CONFIGURATION_TYPES)
-#    set_tests_properties(test-${name}-${instance}
-#      PROPERTIES
-#      REQUIRED_FILES "${kwiver_test_output_path}/${CMAKE_CFG_INTDIR}/test-${name}")
+    set_tests_properties(test-${name}-${instance}
+      PROPERTIES
+      REQUIRED_FILES "${kwiver_test_output_path}/${CMAKE_CFG_INTDIR}/test-${name}")
   endif ()
 
   if (kwiver_test_environment)
