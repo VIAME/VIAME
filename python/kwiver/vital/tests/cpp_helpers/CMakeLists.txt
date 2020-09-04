@@ -8,6 +8,7 @@ set(__helper_modnames
   camera_perspective_helpers
   camera_perspective_map_helpers
   camera_rpc_helpers
+  metadata_map_helpers
   )
 
 # Add files to the vital.tests.cpp_helpers python module
