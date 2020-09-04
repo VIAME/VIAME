@@ -91,7 +91,7 @@ if( KWIVER_ENABLE_PYTHON )
   add_subdirectory( python )
 endif()
 
-# if FFMPEG is enabled
+# if FFmpeg is enabled
 if( KWIVER_ENABLE_FFMPEG)
   add_subdirectory( ffmpeg )
 endif()
