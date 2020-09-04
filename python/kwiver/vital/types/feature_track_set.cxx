@@ -15,7 +15,6 @@ namespace python {
 typedef kwiver::vital::feature_track_state feat_track_state;
 typedef kwiver::vital::feature_track_set feat_track_set;
 
-namespace py = pybind11;
 namespace kv = kwiver::vital;
 
 // std::shared_ptr<feat_track_state>
