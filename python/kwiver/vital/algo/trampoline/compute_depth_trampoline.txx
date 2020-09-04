@@ -98,6 +98,31 @@ class compute_depth_trampoline :
         mask
       );
     }
+
+    kwiver::vital::image_container_sptr
+    compute( std::vector<kwiver::vital::image_container_sptr> const& frames,
+              std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
+              double depth_min, double depth_max,
+              unsigned int reference_frame,
+              kwiver::vital::bounding_box<int> const& roi,
+              kwiver::vital::image_container_sptr& depth_uncertainty,
+              std::vector<kwiver::vital::image_container_sptr> const& mask )
+         const override
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
+        kwiver::vital::image_container_sptr,
+        kwiver::vital::algo::compute_depth,
+        compute,
+        frames,
+        cameras,
+        depth_min,
+        depth_max,
+        reference_frame,
+        roi,
+        depth_uncertainty,
+        mask
+      );
+    }
 };
 }
 }
