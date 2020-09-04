@@ -19,9 +19,12 @@ PYBIND11_MODULE(camera_map, m)
                       std::map<kwiver::vital::frame_id_t, kwiver::vital::camera_sptr> cm;
                       for( auto item : dict)
                       {
+                        auto const c = item.second.cast< kwiver::vital::camera* >();
+                        auto const cp_ptr = dynamic_cast< kwiver::vital::simple_camera_perspective& >(*c);
+                        auto c_ptr = std::make_shared<kwiver::vital::simple_camera_perspective>(cp_ptr);
                         cm.insert(std::make_pair(
                                     item.first.cast<kwiver::vital::frame_id_t>(),
-                                    item.second.cast<std::shared_ptr<kwiver::vital::simple_camera_perspective>>()));
+                                    c_ptr));
                       }
                       return kwiver::vital::simple_camera_map(cm);
                     }))
