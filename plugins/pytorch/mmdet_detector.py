@@ -32,9 +32,9 @@ from __future__ import print_function
 from vital.algo import ImageObjectDetector
 
 from vital.types import BoundingBox
+from vital.types import ClassMap
 from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
-from vital.types import DetectedObjectType
 
 from distutils.util import strtobool
 
@@ -154,7 +154,7 @@ class MMDetDetector( ImageObjectDetector ):
                                         bbox_int[2], bbox_int[3] )
 
             class_name = self._labels[ label ]
-            detected_object_type = DetectedObjectType( class_name, class_confidence )
+            detected_object_type = ClassMap( class_name, class_confidence )
 
             detected_object = DetectedObject( bounding_box,
                                               np.max( class_confidence ),

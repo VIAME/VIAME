@@ -3,12 +3,12 @@ from __future__ import print_function
 
 from vital.algo import ImageObjectDetector
 
+from vital.types import BoundingBox
+from vital.types import ClassMap
 from vital.types import Image
 from vital.types import ImageContainer
 from vital.types import DetectedObject
 from vital.types import DetectedObjectSet
-from vital.types import DetectedObjectType
-from vital.types import BoundingBox
 
 from vital.util.VitalPIL import get_pil_image
 
@@ -121,7 +121,7 @@ class TFDetector( ImageObjectDetector ):
          xmax = right_rel * image_width
          ymax = bottom_rel * image_height
 
-         dot = DetectedObjectType(self.category_name, scores[i])
+         dot = ClassMap(self.category_name, scores[i])
          obj = DetectedObject(BoundingBox(xmin, ymin, xmax, ymax), scores[i], dot)
          detections.add(obj)
 

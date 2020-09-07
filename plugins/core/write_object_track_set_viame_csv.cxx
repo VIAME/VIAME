@@ -105,7 +105,7 @@ write_object_track_set_viame_csv::priv
   }
 }
 
-kwiver::vital::detected_object_type_sptr
+kwiver::vital::class_map_sptr
 compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
 {
   std::map< std::string, double > class_map;
@@ -127,7 +127,7 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
         continue;
       }
 
-      kwiver::vital::detected_object_type_sptr dot = ts->detection()->type();
+      kwiver::vital::class_map_sptr dot = ts->detection()->type();
 
       if( dot )
       {
@@ -154,10 +154,10 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
 
   if( class_names.empty() )
   {
-    return kwiver::vital::detected_object_type_sptr();
+    return kwiver::vital::class_map_sptr();
   }
 
-  return std::make_shared< kwiver::vital::detected_object_type >( class_names, scores );
+  return std::make_shared< kwiver::vital::class_map >( class_names, scores );
 }
 
 
@@ -189,8 +189,8 @@ void write_object_track_set_viame_csv
   {
     auto trk_ptr = trk_pair.second;
 
-    const kwiver::vital::detected_object_type_sptr trk_average_tot =
-          ( d->m_tot_option == "detection" ? kwiver::vital::detected_object_type_sptr()
+    const kwiver::vital::class_map_sptr trk_average_tot =
+          ( d->m_tot_option == "detection" ? kwiver::vital::class_map_sptr()
             : compute_average_tot( trk_ptr, d->m_tot_option == "weighted_average" ) );
 
     for( auto ts_ptr : *trk_ptr )
@@ -224,7 +224,7 @@ void write_object_track_set_viame_csv
 
       if( det )
       {
-        const kwiver::vital::detected_object_type_sptr dot =
+        const kwiver::vital::class_map_sptr dot =
           ( d->m_tot_option == "detection" ? det->type() : trk_average_tot );
 
         if( dot )
@@ -384,7 +384,7 @@ write_object_track_set_viame_csv
 
       if( det )
       {
-        const kwiver::vital::detected_object_type_sptr dot =
+        const kwiver::vital::class_map_sptr dot =
           ( d->m_tot_option == "detection" ? det->type() :
             compute_average_tot( trk_ptr, d->m_tot_option == "weighted_average" ) );
 
