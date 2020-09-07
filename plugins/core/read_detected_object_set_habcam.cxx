@@ -237,8 +237,8 @@ read_detected_object_set_habcam::priv
     m_filenames.push_back( parsed_line[0] );
   }
 
-  kwiver::vital::detected_object_type_sptr dot
-    = std::make_shared< kwiver::vital::detected_object_type >();
+  kwiver::vital::class_map_sptr dot
+    = std::make_shared< kwiver::vital::class_map >();
 
   std::string class_name;
 

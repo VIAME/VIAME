@@ -215,7 +215,7 @@ extract_desc_ids_for_training_process
     for( kwiver::vital::detected_object_sptr det : *detections )
     {
       // Check type on detection, is it in our training set
-      kwiver::vital::detected_object_type_sptr type_sptr = det->type();
+      kwiver::vital::class_map_sptr type_sptr = det->type();
 
       std::string top_category;
       double top_score;
