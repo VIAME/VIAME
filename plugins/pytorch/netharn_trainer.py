@@ -35,9 +35,9 @@ from vital.algo import DetectedObjectSetOutput
 
 from vital.types import BoundingBox
 from vital.types import CategoryHierarchy
+from vital.types import ClassMap
 from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
-from vital.types import DetectedObjectType
 
 from PIL import Image
 
@@ -260,7 +260,7 @@ class NetHarnTrainer( TrainDetector ):
             elif class_lbl not in self._categories:
                 self._categories.append( class_lbl )
 
-            truth_type = DetectedObjectType( class_lbl, 1.0 )
+            truth_type = ClassMap( class_lbl, 1.0 )
             item.set_type( truth_type )
 
             if self._mode == "detector" and \

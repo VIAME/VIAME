@@ -152,7 +152,7 @@ refine( kwiver::vital::image_container_sptr image_data,
       names.push_back( std::to_string( i ) );
     }
 
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >( names, probabilities );
+    auto dot = std::make_shared< kwiver::vital::class_map >( names, probabilities );
 
     // Create detection
     output_detections->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );

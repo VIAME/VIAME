@@ -277,8 +277,8 @@ read_object_track_set_viame_csv::priv
     // Create detection object
     kwiver::vital::detected_object_sptr dob;
 
-    kwiver::vital::detected_object_type_sptr dot =
-      std::make_shared<kwiver::vital::detected_object_type>();
+    kwiver::vital::class_map_sptr dot =
+      std::make_shared<kwiver::vital::class_map>();
 
     bool found_attribute = false;
 

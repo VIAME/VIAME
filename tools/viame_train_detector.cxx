@@ -307,7 +307,7 @@ void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
 
     if( do_sptr->type() )
     {
-      kwiver::vital::detected_object_type_sptr type_sptr = do_sptr->type();
+      kwiver::vital::class_map_sptr type_sptr = do_sptr->type();
 
       std::string top_category;
       double top_score;
@@ -1263,8 +1263,8 @@ main( int argc, char* argv[] )
         for( auto det : *det_set )
         {
           det->set_type(
-            kwiver::vital::detected_object_type_sptr(
-              new kwiver::vital::detected_object_type( label, 1.0 ) ) );
+            kwiver::vital::class_map_sptr(
+              new kwiver::vital::class_map( label, 1.0 ) ) );
 
           label_counts[ label ]++;
         }
@@ -1274,8 +1274,8 @@ main( int argc, char* argv[] )
         for( auto det : *det_set )
         {
           det->set_type(
-            kwiver::vital::detected_object_type_sptr(
-              new kwiver::vital::detected_object_type( label, 1.0 ) ) );
+            kwiver::vital::class_map_sptr(
+              new kwiver::vital::class_map( label, 1.0 ) ) );
         }
       }
     }
