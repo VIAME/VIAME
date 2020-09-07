@@ -229,8 +229,8 @@ read_detected_object_set_fishnet::priv
       atof( col[ COL_MAX_Y ].c_str() ) );
 
     // Create detection
-    kwiver::vital::detected_object_type_sptr dot =
-      std::make_shared< kwiver::vital::detected_object_type >();
+    kwiver::vital::class_map_sptr dot =
+      std::make_shared< kwiver::vital::class_map >();
 
     dot->set_score( col[ COL_LABEL ], 1.0 );
 

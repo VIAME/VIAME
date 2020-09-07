@@ -48,18 +48,18 @@ try:
     from kwiver.vital.algo import ImageObjectDetector
 
     from kwiver.vital.types import BoundingBox
+    from kwiver.vital.types import ClassMap
     from kwiver.vital.types import DetectedObjectSet
     from kwiver.vital.types import DetectedObject
-    from kwiver.vital.types import DetectedObjectType
 
 except ImportError:
     # Handle old kwiver structure
     from vital.algo import ImageObjectDetector
 
     from vital.types import BoundingBox
+    from vital.types import ClassMap
     from vital.types import DetectedObjectSet
     from vital.types import DetectedObject
-    from vital.types import DetectedObjectType
 
 import numpy as np
 
@@ -311,7 +311,7 @@ def _kwimage_to_kwiver_detections(detections):
         bounding_box = BoundingBox(
             bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3])
 
-        detected_object_type = DetectedObjectType(class_name, score)
+        detected_object_type = ClassMap(class_name, score)
         detected_object = DetectedObject(
             bounding_box, score, detected_object_type)
         detected_objects.add(detected_object)
