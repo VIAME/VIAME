@@ -68,6 +68,7 @@ class camera_rpc_publicist
 public:
 
   using kv::camera_rpc::jacobian;
+
 };
 
 typedef
@@ -94,7 +95,8 @@ PYBIND11_MODULE( camera_rpc, m )
   .def( "image_height", &kv::camera_rpc::image_height )
   .def( "project",      &kv::camera_rpc::project )
   .def( "back_project", &kv::camera_rpc::back_project )
-  .def( "jacobian", static_cast< jacob_fun_ptr_t >( &camera_rpc_publicist::jacobian ) )
+  // TODO: Jacobian returns an eigen matrix by reference, both of which are things pybind does poorly.
+  .def( "jacobian",     static_cast<jacob_fun_ptr_t>(&camera_rpc_publicist::jacobian))
   ;
 
   py::class_< kv::simple_camera_rpc,
