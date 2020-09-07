@@ -106,9 +106,8 @@ class TestSimpleCameraRPC(unittest.TestCase):
         proj_3d = srpc().back_project([1.0, 2.0], 1.0)
         np.testing.assert_array_equal(np.array([1.0, 2.0 ,1.0]), proj_3d)
         ret_val = np.array([0, 0])
-        ret_jac = np.ndarray(shape=(2, 2), dtype=(float))
-        r_ret_jac = ret_jac
-
+        ret_jac = np.ndarray(shape=(2, 2), dtype=(float), order='F')
+        ret_jac.setflags(write=1)
         rpc_coeffs_buffer = [[0.006585953, -1.032582, 0.001740937, 0.03034485, 0.0008819178, -0.000167943, 0.0001519299 -0.00626254, -0.00107337, 9.099077e-06, 2.608985e-06, -2.947004e-05, 2.231277e-05, 4.587831e-06, 4.16379e-06, 0.0003464555, 3.598323e-08, -2.859541e-06, 5.159311e-06, -1.349187e-07],
          [1, 0.0003374458, 0.0008965622, -0.0003730697, -2.666499e-05, -2.711356e-06, 5.454434e-07, 4.485658e-07, 2.534922e-05, -4.546709e-06, 0, -1.056044e-07, -5.626866e-07, 2.243313e-08, -2.108053e-07, 9.199534e-07, 0, -3.887594e-08, -1.437016e-08, 0],
          [0.0002703625, 0.04284488, 1.046869, 0.004713542, -0.0001706129, -1.525177e-07, 1.255623e-05, -0.0005820134,  -0.000710512, -2.510676e-07, 3.179984e-06, 3.120413e-06, 3.19923e-05, 4.194369e-06, 7.475295e-05, 0.0003630791, 0.0001021649, 4.493725e-07, 3.156566e-06, 4.596505e-07],
@@ -125,8 +124,8 @@ class TestSimpleCameraRPC(unittest.TestCase):
         image_width = 1000
         image_height = 1000
         s = srpc(world_scale, world_offset, image_scale, image_offset, rpc_coeffs, image_height, image_width)
-        s.jacobian(np.array([-58.58940727826357, -34.49283455146763, 20.928231142319902]), ret_jac, ret_val)
-        np.testing.assert_array_almost_equal(ret_jac, r_ret_jac)
+        ret_jac, ret_val = s.jacobian(np.array([-58.58940727826357, -34.49283455146763, 20.928231142319902]), ret_jac, ret_val)
+        np.testing.assert_array_almost_equal(ret_jac, np.array([[ 0.75629416,  1.08529606], [ 0.02928365, -0.22594526]]))
 
         # test clone
         cameraRPC_2 = self.m_srpc.clone()

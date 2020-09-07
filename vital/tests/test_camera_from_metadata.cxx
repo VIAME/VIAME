@@ -102,22 +102,6 @@ TEST(camera_from_metadata, invalid_metadata)
     camera_rpc_sptr cam = std::dynamic_pointer_cast<camera_rpc>(
       camera_from_metadata( rpc_metadata ) ),
     kwiver::vital::metadata_exception );
-
-  try
-  {
-    camera_rpc_sptr cam = std::dynamic_pointer_cast<camera_rpc>(
-      camera_from_metadata( rpc_metadata ) );
-  }
-  catch(const kwiver::vital::vital_exception& e)
-  {
-    std::cerr << e.what() << '\n';
-  }
-  catch(...)
-  {
-    std::cerr << "Unknown Exception not inheriting from std exception was thrown" << std::endl;
-  }
-
-
 }
 
 // ----------------------------------------------------------------------------

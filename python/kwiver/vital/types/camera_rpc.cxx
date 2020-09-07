@@ -71,10 +71,6 @@ public:
 
 };
 
-typedef
-void ( kv::camera_rpc::*jacob_fun_ptr_t )
-( const kv::vector_3d&, kv::matrix_2x2d&, kv::vector_2d& ) const;
-
 PYBIND11_MODULE( camera_rpc, m )
 {
   py::module::import( "kwiver.vital.types.camera" );
@@ -95,8 +91,14 @@ PYBIND11_MODULE( camera_rpc, m )
   .def( "image_height", &kv::camera_rpc::image_height )
   .def( "project",      &kv::camera_rpc::project )
   .def( "back_project", &kv::camera_rpc::back_project )
-  // TODO: Jacobian returns an eigen matrix by reference, both of which are things pybind does poorly.
-  .def( "jacobian",     static_cast<jacob_fun_ptr_t>(&camera_rpc_publicist::jacobian))
+  // manual use of the publisher here due to poor pybind pass by ref handling of eigen::matrix
+  .def( "jacobian",     [](kv::camera_rpc * self, const kv::vector_3d &pt,
+                            kv::matrix_2x2d &J, kv::vector_2d &norm_pt)
+  {
+    auto pub_grab = reinterpret_cast<camera_rpc_publicist*>(self);
+    pub_grab->jacobian(pt,J,norm_pt);
+    return std::make_tuple(J, norm_pt);
+  })
   ;
 
   py::class_< kv::simple_camera_rpc,
@@ -119,6 +121,14 @@ PYBIND11_MODULE( camera_rpc, m )
   .def( "set_image_offset", &kv::simple_camera_rpc::set_image_offset )
   .def( "set_image_width",  &kv::simple_camera_rpc::set_image_width )
   .def( "set_image_height", &kv::simple_camera_rpc::set_image_height )
+  // .def( "jacobian", [](kv::simple_camera_rpc &self, const kv::vector_3d &pt,
+  //                           kv::matrix_2x2d &J, kv::vector_2d &norm_pt)
+  // {
+  //   // auto jac_ref = camera_rpc_jac(self);
+  //   void (&jac_ref)() = &camera_rpc_jac::jacobian;
+  //   self.jac_ref(pt, J, norm_pt);
+  //   return std::make_tuple(J, norm_pt);
+  // })
   ;
 }
 

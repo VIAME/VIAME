@@ -55,7 +55,7 @@ public:
    *
    * \sa metadata::find
    */
-  bool is_valid() const;
+  virtual bool is_valid() const;
 
   /// \copydoc is_valid
   operator bool() const { return this->is_valid(); }
