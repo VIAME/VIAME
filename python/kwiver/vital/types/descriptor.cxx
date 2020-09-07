@@ -100,8 +100,27 @@ get_index(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, size_t idx
 }
 }
 }
+// TODO: add clone, and rest of trampoline
+//
 
 using namespace kwiver::vital::python;
+template<typename T>
+void bind_descriptor(py::module &m, std::string && typestr)
+{
+  const std::string pyclass_name = std::string( "Descriptor" ) + typestr;
+  // Because slices need to use the raw_data function, we can't use kwiver::vital::descriptor
+  py::class_<kwiver::vital::descriptor_dynamic< T >, kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor_dynamic< T >>>( m, pyclass_name.c_str() )
+  .def("__setitem__", &set_slice<T>,
+    py::arg("slice"), py::arg("value"))
+  .def("__getitem__", &get_slice<T>,
+    py::arg("slice"))
+  .def("__setitem__", &set_index<T>,
+    py::arg("index"), py::arg("value"))
+  .def("__getitem__", &get_index<T>,
+    py::arg("index"));
+
+}
+
 PYBIND11_MODULE(descriptor, m)
 {
   // we have to use a separate function to initialize Descriptors, because it can return one of two separate types (DescriptorD or DescriptorF)
@@ -112,30 +131,48 @@ PYBIND11_MODULE(descriptor, m)
   py::class_<kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor>>(m, "Descriptor")
   .def("sum", &sum_descriptors)
   .def("todoublearray", &kwiver::vital::descriptor::as_double)
-  .def("tobytearray", &kwiver::vital::descriptor::as_bytes)
-  .def("__eq__", &kwiver::vital::descriptor::operator==)
+  // as_bytes typically returns a raw ptr to and unsigned char array, which python interprets as 0
+  // return a vector instead
+  .def("tobytearray", ([](std::shared_ptr<kwiver::vital::descriptor> self){
+    std::vector<unsigned char> ret_vec;
+    const unsigned char* data = self->as_bytes();
+    const size_t bytes = self->num_bytes();
+    size_t idx = 0;
+    for (idx; *(data+idx) != NULL ; idx++)
+    {
+      ret_vec.push_back(data[idx]);
+    }
+    if( idx < bytes )
+    {
+      for(idx; idx < bytes; idx++)
+      {
+        ret_vec.push_back(0);
+      }
+    }
+    return ret_vec;
+   }))
+  .def("__eq__", ([](std::shared_ptr<kwiver::vital::descriptor> self, std::shared_ptr<kwiver::vital::descriptor> other)
+  {
+    if(self->size() != other->size())
+    {
+      return false;
+    }
+    auto self_bytes = self->as_bytes();
+    auto other_bytes = other->as_bytes();
+    const size_t bytes = self->num_bytes();
+    for (size_t idx = 0; *(self_bytes+idx)!=NULL; idx++)
+    {
+      if(*(self_bytes+idx)!=*(other_bytes+idx))
+      {
+        return false;
+      }
+    }
+    return true;
+  }))
   .def("__ne__", &kwiver::vital::descriptor::operator!=)
   .def_property_readonly("size", &kwiver::vital::descriptor::size)
   .def_property_readonly("nbytes", &kwiver::vital::descriptor::num_bytes)
   ;
-
-  // Because slices need to use the raw_data function, we can't use kwiver::vital::descriptor
-  py::class_<kwiver::vital::descriptor_dynamic<double>, kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor_dynamic<double>>>(m, "DescriptorD")
-  .def("__setitem__", &set_slice<double>,
-    py::arg("slice"), py::arg("value"))
-  .def("__getitem__", &get_slice<double>,
-    py::arg("slice"))
-  .def("__setitem__", &set_index<double>,
-    py::arg("index"), py::arg("value"))
-  .def("__getitem__", &get_index<double>,
-    py::arg("index"));
-  py::class_<kwiver::vital::descriptor_dynamic<float>, kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor_dynamic<float>>>(m, "DescriptorF")
-  .def("__setitem__", &set_slice<float>,
-    py::arg("slice"), py::arg("value"))
-  .def("__getitem__", &get_slice<float>,
-    py::arg("slice"))
-  .def("__setitem__", &set_index<float>,
-    py::arg("index"), py::arg("value"))
-  .def("__getitem__", &get_index<float>,
-    py::arg("index"));
+  bind_descriptor< double >(m, "D");
+  bind_descriptor< float >(m, "F");
 }
