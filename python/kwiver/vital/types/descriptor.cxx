@@ -138,13 +138,13 @@ PYBIND11_MODULE(descriptor, m)
     const unsigned char* data = self->as_bytes();
     const size_t bytes = self->num_bytes();
     size_t idx = 0;
-    for (idx; *(data+idx) != NULL ; idx++)
+    for (; *(data+idx); idx++)
     {
       ret_vec.push_back(data[idx]);
     }
     if( idx < bytes )
     {
-      for(idx; idx < bytes; idx++)
+      for(; idx < bytes; idx++)
       {
         ret_vec.push_back(0);
       }
@@ -159,8 +159,7 @@ PYBIND11_MODULE(descriptor, m)
     }
     auto self_bytes = self->as_bytes();
     auto other_bytes = other->as_bytes();
-    const size_t bytes = self->num_bytes();
-    for (size_t idx = 0; *(self_bytes+idx)!=NULL; idx++)
+    for (size_t idx = 0; *(self_bytes+idx); idx++)
     {
       if(*(self_bytes+idx)!=*(other_bytes+idx))
       {
