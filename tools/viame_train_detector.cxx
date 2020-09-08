@@ -851,7 +851,7 @@ main( int argc, char* argv[] )
     kwiver::vital::config_block_keys_t keys;
   
     kwiver::vital::tokenize( setting_key, keys,
-      kwiver::vital::config_block::block_sep,
+      kwiver::vital::config_block::block_sep(),
       kwiver::vital::TokenizeTrimEmpty );
   
     if( keys.size() < 2 )
