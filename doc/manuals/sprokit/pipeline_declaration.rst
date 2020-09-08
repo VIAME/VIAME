@@ -525,29 +525,39 @@ Clusters Definition File
 
 A cluster is a collection of processes which can be treated as a
 single process for connection and configuration purposes. Clusters are
-defined in a slngle file with one cluster per file.
+defined in a slngle file with one cluster per file. Cluster definition
+files always have the `.cluster` extension.
 
-A cluster definition starts with the *cluster* keyword followed by
-the name of the cluster. A documentation section must follow the
-cluster name definition. Here is where you describe the purpose and
-function of the cluster in addition to any other important
-information about limitations or assumptions. Comments start
-with ``--`` and continue to the end of the line. These comments
-are included with the cluster definition and are displayed by the
-plugin explorer as part of the cluster documentation. The '#' style
-comments can still be used to annotate the file but are not included
-as part of the cluster documnetation.
+Clusters are loaded at the same time as the processes, but are loaded
+from the list of directories specified in the `SPROKIT_CLUSTER_PATH`
+environment variable.
 
-The body of the cluster definition is made up of three types of
-declarations that may appear multiple times and in any order. These
-are:
+A cluster definition starts with the *cluster* keyword followed by the
+name of the cluster. By convention, the name of the cluster file is
+the same as the name of the cluster. A documentation section must
+follow the cluster name definition. Here is where you describe the
+purpose and function of the cluster in addition to any other important
+information about limitations or assumptions. Comments start with
+``--`` and continue to the end of the line. These comments are
+included with the cluster definition and are displayed by the plugin
+explorer as part of the cluster documentation. The '#' style comments
+can still be used to annotate the file but are not included as part of
+the cluster documentation.
+
+The body of the cluster definition is made up of a cluster header
+which gives the cluster its name. The header is of the form::
+
+  cluster <name>
+
+Following the header are three types of declarations which may appear
+multiple times and in any order. These are:
 
   - config specifier
   - input mapping
   - output mapping
 
-A description is required after each one of these entries. The
-description starts with "--" and continues to the end of the
+A description is *required* after each one of these entries. The
+description starts with ``-``  and continues to the end of the
 line. These descriptions are different from typical comments you would
 put in a pipe file in that they are associated with the cluster
 elements and serve as user documentation for the cluster.
@@ -556,7 +566,7 @@ After the cluster has been defined, the constituent processes are
 defined. These processes are contained within the cluster and can be
 interconnected in any valid configuration.
 
-config specifier
+Config specifier
 ''''''''''''''''
 
 A configuration specification defines a configuration key with a value
@@ -564,17 +574,20 @@ that is bound to the cluster. These configuration items are available
 for use within the cluster definition file and are referenced as
 <cluster-name>:<config-key>::
 
+     # defining a config item
      cluster_key = value
      -- Describe configuration entry
 
+     # using a config item
+     proc_type = $CONFIG{cluster_name:cluster_key}
 
 Input mapping
 '''''''''''''
 
 The input mapping specification creates an input port on the cluster
-and defines how it is connected to a process (or processes) within the
-cluster. When a cluster is instantiated in a pipeline, connections can
-be made to these ports.::
+and defines how it is connected to a process (or multiple processes)
+within the cluster. When a cluster is instantiated in a pipeline,
+connections can be made to the cluster using these port names.::
 
     imap from cport
          to   proc1.port
@@ -582,11 +595,10 @@ be made to these ports.::
     -- Describe input port expected data type and
     -- all other interesting details.
 
-
 Output mapping
 ''''''''''''''
 
-The output mappinc specification creates an output port on the cluster
+The output mapping specification creates an output port on the cluster
 and defines how the data is supplied. When a cluster is instantiated,
 these output ports can be connected to downstream processes in the
 usual manner.::
@@ -595,11 +607,10 @@ usual manner.::
     -- Describe output port data type and
     -- all other interesting details.
 
-
 An example cluster definition is as follows::
 
-  cluster <name>
-    -- Description fo cluster.
+  cluster sample_cluster
+    -- Description of this cluster.
     -- May extend to multiple lines.
 
     cluster_key = value
@@ -616,7 +627,7 @@ An example cluster definition is as follows::
 
 The following is a more complicated example::
 
-  cluster configuration_provide
+  cluster multiplier
     -- Multiply a number by a constant factor.
 
     factor = 20
@@ -629,11 +640,30 @@ The following is a more complicated example::
     -- The product.
 
    # The following defines the contained processes
-  process const
-    :: const_number
-    value[ro]= $CONFIG{configuration_provide:factor}
+  process const :: const_number
+    # note fully qualified config name
+    value[ro]= $CONFIG{multiplier:factor}
 
-  process multiply
-    :: multiplication
+  process multiply :: multiplication
 
   connect from const.number        to   multiply.factor2
+
+Using a Cluster in a Pipe File
+''''''''''''''''''''''''''''''
+
+This description should be based on an example that is available in
+the installed image.::
+
+  << from file cluster_proc.cluster >>
+  cluster cluster_proc
+     <cluster definition>
+
+The cluster can be used in a pipe file in the same manner as a process.
+The cluster can not be defined in a pipe file.::
+
+  process input :: image_list_reader
+    filename = foo
+
+  # instantiate a cluster in the same manner as a process
+  process complex :: cluster_proc
+    file = bar  # configs the cluster

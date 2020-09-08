@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ namespace {
 #else
 #define PARSER_TRACE( MSG )
 #endif
+
 // ------------------------------------------------------------------
 /**
  * \brief Block context structure.
@@ -77,45 +78,41 @@ struct block_context_t
 
 } // end namespace
 
-
 // ------------------------------------------------------------------
-pipe_parser::
-pipe_parser()
+pipe_parser
+::pipe_parser()
   : m_compatibility_mode( COMPATIBILITY_ALLOW )
   , m_logger( kwiver::vital::get_logger( "sprokit.pipe_parser" ) )
 {
 }
 
-
 // ------------------------------------------------------------------
 void
-pipe_parser::
-add_search_path( kwiver::vital::config_path_t const& file_path )
+pipe_parser
+::add_search_path( kwiver::vital::config_path_t const& file_path )
 {
   m_lexer.add_search_path( file_path );
 }
 
-
+// ------------------------------------------------------------------
 void
-pipe_parser::
-add_search_path( kwiver::vital::config_path_list_t const& file_path )
+pipe_parser
+::add_search_path( kwiver::vital::config_path_list_t const& file_path )
 {
   m_lexer.add_search_path( file_path );
 }
 
-
 // ------------------------------------------------------------------
 void
-pipe_parser::
-set_compatibility_mode( compatibility_mode_t mode )
+pipe_parser
+::set_compatibility_mode( compatibility_mode_t mode )
 {
   m_compatibility_mode = mode;
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse a process pipeline file
+ * \brief Parse a process pipeline file
  *
  * Grammar:
  * process-pipe-file ::= <def-list>
@@ -130,8 +127,8 @@ set_compatibility_mode( compatibility_mode_t mode )
  *
  */
 sprokit::pipe_blocks
-pipe_parser::
-parse_pipeline( std::istream& input, const std::string& name )
+pipe_parser
+::parse_pipeline( std::istream& input, const std::string& name )
 {
   m_lexer.open_stream( input, name );
 
@@ -178,10 +175,9 @@ parse_pipeline( std::istream& input, const std::string& name )
   return m_pipe_blocks;
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Process a cluster pipe block
+ * \brief Process a cluster pipe block
  *
  * cluster <name><eol>
  *        -- description
@@ -198,8 +194,8 @@ parse_pipeline( std::istream& input, const std::string& name )
  *                | cluster_proc
  */
 sprokit::cluster_blocks
-pipe_parser::
-parse_cluster( std::istream& input, const std::string& name )
+pipe_parser
+::parse_cluster( std::istream& input, const std::string& name )
 {
   m_lexer.open_stream( input, name );
 
@@ -315,16 +311,15 @@ parse_cluster( std::istream& input, const std::string& name )
   return m_cluster_blocks;
 }
 
-
 // ==================================================================
 /**
- * @brief Handle process definition production
+ * \brief Handle process definition production
  *
  * "process" <proc_name> "::" <proc-type> <opt-config>
  */
 void
-pipe_parser::
-process_definition(process_pipe_block& ppb)
+pipe_parser
+::process_definition(process_pipe_block& ppb)
 {
   auto t = m_lexer.get_token();
 
@@ -361,16 +356,15 @@ process_definition(process_pipe_block& ppb)
   parse_config( ppb.config_values );
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse top level config block.
+ * \brief Parse top level config block.
  *
  * config-block ::= "config" <config-key><EOL> <config-entry-list>
  */
 void
-pipe_parser::
-process_config_block( config_pipe_block& cpb )
+pipe_parser
+::process_config_block( config_pipe_block& cpb )
 {
   auto t = m_lexer.get_token();
   PARSER_TRACE( "process_config_block Got " << *t );
@@ -436,10 +430,9 @@ process_config_block( config_pipe_block& cpb )
   parse_config( cpb.values );
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse old style config entries.
+ * \brief Parse old style config entries.
  *
  * ":"<key><opt-attrs><whitespace><value>
  *
@@ -453,8 +446,8 @@ process_config_block( config_pipe_block& cpb )
  *             | attr <attr_list>
  */
 void
-pipe_parser::
-old_config( sprokit::config_value_t& val )
+pipe_parser
+::old_config( sprokit::config_value_t& val )
 {
   // Note that the leading ':' has been absorbed
 
@@ -500,10 +493,9 @@ old_config( sprokit::config_value_t& val )
                 << " = " << "\"" << val.value << "\"" );
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse new style config entries.
+ * \brief Parse new style config entries.
  *
  * <opt-relativepath><key><opt-attrs> = <value>
  *
@@ -517,8 +509,8 @@ old_config( sprokit::config_value_t& val )
  *
  */
 void
-pipe_parser::
-new_config( sprokit::config_value_t& val )
+pipe_parser
+::new_config( sprokit::config_value_t& val )
 {
   token_sptr t;
 
@@ -567,10 +559,9 @@ new_config( sprokit::config_value_t& val )
                 << " = " << "\"" << val.value << "\"" );
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse attribute list.
+ * \brief Parse attribute list.
  *
  * This method parses the attribute list. The leading '[' has already
  * been absorbed. All attributes up to the closing ']' are added to
@@ -585,11 +576,11 @@ new_config( sprokit::config_value_t& val )
  * attr-list ::= attr
  *             | attr ',' attr_list
  *
- * @param[out] val Attributes are set in this parameter
+ * \param[out] val Attributes are set in this parameter
  */
 void
-pipe_parser::
-parse_attrs( sprokit::config_value_t& val )
+pipe_parser
+::parse_attrs( sprokit::config_value_t& val )
 {
   auto t = m_lexer.get_token();
 
@@ -620,16 +611,15 @@ parse_attrs( sprokit::config_value_t& val )
   } // end while
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @ bruef Connection production
+ * \brief Connection production
  *
  * process-connection ::= "connect" "from" <proc>"."<port> "to" <proc>"."<port>
  */
 void
-pipe_parser::
-process_connection( connect_pipe_block& cpb )
+pipe_parser
+::process_connection( connect_pipe_block& cpb )
 {
   auto t = m_lexer.get_token();
 
@@ -653,10 +643,9 @@ process_connection( connect_pipe_block& cpb )
   PARSER_TRACE( "Accept connect" );
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse cluster config entry
+ * \brief Parse cluster config entry
  *
  * This method processes a single cluster config entry.
  *
@@ -670,13 +659,13 @@ process_connection( connect_pipe_block& cpb )
  * <key>"["<attr-list"]" "=" <value>
  * <description>
  *
- * @return \b true if a config entry was parsed. \b false if not a
+ * \return \b true if a config entry was parsed. \b false if not a
  * valid config entry. Note that a false return does not indicate an
  * error, just not a config entry.
  */
 bool
-pipe_parser::
-cluster_config( cluster_config_t& cfg )
+pipe_parser
+::cluster_config( cluster_config_t& cfg )
 {
 
   if ( ! parse_config_line( cfg.config_value ) )
@@ -691,10 +680,9 @@ cluster_config( cluster_config_t& cfg )
   return true;
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse cluster IMAP definition
+ * \brief Parse cluster IMAP definition
  *
  * "imap" "from" <port> "to" <port_list> <description>
  *
@@ -705,8 +693,8 @@ cluster_config( cluster_config_t& cfg )
  *
  */
 void
-pipe_parser::
-cluster_input( cluster_input_t& imap )
+pipe_parser
+::cluster_input( cluster_input_t& imap )
 {
   auto t = m_lexer.get_token();
 
@@ -750,17 +738,16 @@ cluster_input( cluster_input_t& imap )
   imap.description = collect_comments();
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse cluster OMAP definition
+ * \brief Parse cluster OMAP definition
  *
  * "omap" "from" <process>"."<port> "to" <port>
  * "--" description
  */
 void
-pipe_parser::
-cluster_output( cluster_output_t& omap )
+pipe_parser
+::cluster_output( cluster_output_t& omap )
 {
   auto t = m_lexer.get_token();
 
@@ -790,10 +777,9 @@ cluster_output( cluster_output_t& omap )
   omap.description = collect_comments();
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Collect sequential cluster comment lines.
+ * \brief Collect sequential cluster comment lines.
  *
  * Cluster comments start with "--" string, sequential lines that are
  * comments will be collected. Each line is ended with a new-line character.
@@ -802,11 +788,11 @@ cluster_output( cluster_output_t& omap )
  *               | "--" rest-of-line <eol> <description>
  *
  *
- * @return Collected comment or empty string if no comments found.
+ * \return Collected comment or empty string if no comments found.
  */
 std::string
-pipe_parser::
-collect_comments()
+pipe_parser
+::collect_comments()
 {
   token_sptr t;
   std::string comments;
@@ -819,7 +805,9 @@ collect_comments()
       break;
     }
 
-    comments += t->text() + "\n";
+    // Separate text lines with a space so that all the text will wrap
+    // when displayed.
+    comments += t->text() + " ";
   } // end while
 
   m_lexer.unget_token( t );
@@ -835,20 +823,19 @@ collect_comments()
   return comments;
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse port addr specification.
+ * \brief Parse port addr specification.
  *
  * port_addr ::= <proc_name> '.' <port_name>
  * port_name ::= <id>
  *             | <id> '\' <port_name>
  *
- * @param[out] out_pa The port address parts are returned here.
+ * \param[out] out_pa The port address parts are returned here.
  */
 void
-pipe_parser::
-parse_port_addr( process::port_addr_t& out_pa)
+pipe_parser
+::parse_port_addr( process::port_addr_t& out_pa)
 {
   const std::string proc_name = parse_process_name();
 
@@ -861,10 +848,9 @@ parse_port_addr( process::port_addr_t& out_pa)
   out_pa = process::port_addr_t( proc_name, port_name );
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse extended id.
+ * \brief Parse extended id.
  *
  * This method parses an extended identifier. It is just like a
  * regular ID token but also allows some special characters.
@@ -872,17 +858,17 @@ parse_port_addr( process::port_addr_t& out_pa)
  * key-comp ::= <id>
  *            |  <id> <extra-char> <key-comp>
  *
- * @param extra_char Additional separator characters that are
+ * \param extra_char Additional separator characters that are
  * allowable in this class of identifier.
  *
- * @param expecting Semantic name of identifier being parsed. Used for
+ * \param expecting Semantic name of identifier being parsed. Used for
  * identifying errors
  *
- * @return Text of key component
+ * \return Text of key component
  */
 std::string
-pipe_parser::
-parse_extended_id( const std::string& extra_char,
+pipe_parser
+::parse_extended_id( const std::string& extra_char,
                    const std::string& expecting)
 {
   std::string comp;
@@ -918,46 +904,42 @@ parse_extended_id( const std::string& extra_char,
   return comp;
 }
 
-
 // ------------------------------------------------------------------
 std::string
-pipe_parser::
-parse_config_key()
+pipe_parser
+::parse_config_key()
 {
   return parse_extended_id( "/.", "config key component" );
 }
 
-
 // ------------------------------------------------------------------
 std::string
-pipe_parser::
-parse_port_name()
+pipe_parser
+::parse_port_name()
 {
   return parse_extended_id( "/", "port name" );
 }
 
-
 // ------------------------------------------------------------------
 std::string
-pipe_parser::
-parse_process_name()
+pipe_parser
+::parse_process_name()
 {
   return parse_extended_id( "/", "process name" );
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Parse series of config lines.
+ * \brief Parse series of config lines.
  *
  * This method parses zero or more sequential config
  * specifications. Both new and old style config entries are handled.
  *
- * @param[out] out_config Vector updated with config entries parsed.
+ * \param[out] out_config Vector updated with config entries parsed.
  */
 void
-pipe_parser::
-parse_config( config_values_t& out_config )
+pipe_parser
+::parse_config( config_values_t& out_config )
 {
   // current config context
   std::vector< std::string > current_context;
@@ -1042,23 +1024,22 @@ parse_config( config_values_t& out_config )
   }
 }
 
-
 // ------------------------------------------------------------------
 /**
- * @brief Process a single config line.
+ * \brief Process a single config line.
  *
  * This method processes a single config line of either the old or new
  * style. If the config line is valid, the output parameter is updated.
  *
- * @param[out] config_val Updated with config information.
+ * \param[out] config_val Updated with config information.
  *
- * @return \b true if valid config line processed. This means that the
+ * \return \b true if valid config line processed. This means that the
  * return parameter is valid. \b false indicates that the line was not
  * a valid config line and the output parameter is not valid.
  */
 bool
-pipe_parser::
-parse_config_line( config_value_t& config_val )
+pipe_parser
+::parse_config_line( config_value_t& config_val )
 {
   bool ret_status(true);        // assume o.k.
   auto t = m_lexer.get_token();
@@ -1116,13 +1097,10 @@ parse_config_line( config_value_t& config_val )
   return false;
 }
 
-
-
-
 // ------------------------------------------------------------------
 bool
-pipe_parser::
-expect_token( int expected_tk, token_sptr t )
+pipe_parser
+::expect_token( int expected_tk, token_sptr t )
 {
   if ( t->token_value() != expected_tk )
   {

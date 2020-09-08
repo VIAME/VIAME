@@ -62,6 +62,19 @@ kwiver_add_plugin( process_explorer_plugin
            kwiversys
            sprokit_pipeline
            explorer_plugin )
+
+kwiver_add_plugin( cluster_explorer_plugin
+  SUBDIR   ${kwiver_plugin_plugin_explorer_subdir}
+  SOURCES  cluster_explorer_plugin.cxx
+  PRIVATE  vital
+           vital_vpm
+           vital_config
+           vital_algo
+           kwiversys
+           sprokit_pipeline
+           sprokit_pipeline_util
+           explorer_plugin )
+
 endif()
 
 if (KWIVER_ENABLE_TESTS)

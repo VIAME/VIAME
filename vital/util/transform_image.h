@@ -90,9 +90,9 @@ void transform_image( image_of<T>& img, OP op )
   bool wBh = std::abs(img.w_step()) < std::abs(img.h_step()),
        dBh = std::abs(img.d_step()) < std::abs(img.h_step()),
        dBw = std::abs(img.d_step()) < std::abs(img.w_step());
-  size_t w_idx = ( ! wBh ) + dBw,
-         h_idx = wBh + dBh,
-         d_idx = ( ! dBw ) + ( ! dBh );
+  size_t w_idx = static_cast<size_t>( ! wBh ) + static_cast<size_t>(dBw),
+         h_idx = static_cast<size_t>(wBh) + static_cast<size_t>(dBh),
+         d_idx = static_cast<size_t>( ! dBw ) + static_cast<size_t>( ! dBh );
 
   side_len[w_idx] = img.width();
   side_len[h_idx] = img.height();
@@ -252,9 +252,9 @@ void foreach_pixel( image_of<T> const& img, OP op )
   bool wBh = std::abs(img.w_step()) < std::abs(img.h_step()),
        dBh = std::abs(img.d_step()) < std::abs(img.h_step()),
        dBw = std::abs(img.d_step()) < std::abs(img.w_step());
-  size_t w_idx = ( ! wBh ) + dBw,
-         h_idx = wBh + dBh,
-         d_idx = ( ! dBw ) + ( ! dBh );
+  size_t w_idx = static_cast<size_t>( ! wBh ) + static_cast<size_t>(dBw),
+         h_idx = static_cast<size_t>(wBh) + static_cast<size_t>(dBh),
+         d_idx = static_cast<size_t>( ! dBw ) + static_cast<size_t>( ! dBh );
 
   side_len[w_idx] = img.width();
   side_len[h_idx] = img.height();

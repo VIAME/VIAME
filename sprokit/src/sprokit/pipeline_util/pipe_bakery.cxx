@@ -137,19 +137,19 @@ bake_pipe_blocks( pipe_blocks const& blocks )
 cluster_info_t
 bake_cluster_blocks( cluster_blocks const& blocks )
 {
-  cluster_bakery bakery;
+  auto bakery = std::make_shared< cluster_bakery >();
 
   for ( auto b : blocks )
   {
-    kwiver::vital::visit( bakery, b );
+    kwiver::vital::visit( *bakery, b );
   }
 
-  if ( bakery.m_processes.empty() )
+  if ( bakery->m_processes.empty() )
   {
     VITAL_THROW( cluster_without_processes_exception );
   }
 
-  cluster_bakery::opt_cluster_component_info_t const& opt_cluster = bakery.m_cluster;
+  cluster_bakery::opt_cluster_component_info_t const& opt_cluster = bakery->m_cluster;
 
   if ( ! opt_cluster )
   {
@@ -164,11 +164,14 @@ bake_cluster_blocks( cluster_blocks const& blocks )
     VITAL_THROW( cluster_without_ports_exception );
   }
 
-  process::type_t const& type = bakery.m_type;
-  process::description_t const& description = bakery.m_description;
-  process_factory_func_t const ctor = cluster_creator( bakery );
+  process::type_t const& type = bakery->m_type;
+  process::description_t const& description = bakery->m_description;
+
+  // Bakery is copied into cluster_creator so it can be const.
+  process_factory_func_t const ctor = cluster_creator( *bakery );
 
   cluster_info_t const info = std::make_shared< cluster_info > ( type, description, ctor );
+  info->m_bakery = bakery;
 
   return info;
 }

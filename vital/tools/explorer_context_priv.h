@@ -55,6 +55,7 @@ public:
   bool opt_all {false};
   bool opt_algo {false};
   bool opt_process {false};
+  bool opt_cluster {false};
   bool opt_scheduler {false};
   bool opt_summary {false};
   bool opt_attrs {false};
@@ -63,6 +64,7 @@ public:
   std::ostream* m_out_stream {nullptr};
 
   std::vector< std::string > opt_path;
+  std::vector< std::string > opt_cluster_path;
 
   // Used to wrap large text blocks
   kwiver::vital::wrap_text_block m_wtb;
