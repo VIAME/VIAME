@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 
 #include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 
+#include <vital/types/activity.h>
 #include <vital/types/metadata.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/image_container.h>
@@ -43,9 +44,9 @@
 namespace kwiver {
 namespace vital {
 
+  class class_map;
   class detected_object;
   class detected_object_set;
-  class detected_object_type;
   class geo_point;
   class geo_polygon;
   class object_track_state;
@@ -57,10 +58,11 @@ namespace vital {
 namespace kwiver {
 namespace protobuf {
 
+  class activity;
   class bounding_box;
+  class class_map;
   class detected_object;
   class detected_object_set;
-  class detected_object_type;
   class geo_point;
   class geo_polygon;
   class image;
@@ -82,6 +84,15 @@ namespace kwiver {
 namespace arrows {
 namespace serialize {
 namespace protobuf {
+
+// ---- activity
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const ::kwiver::protobuf::activity& proto_act,
+                       ::kwiver::vital::activity&          act );
+
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const ::kwiver::vital::activity& act,
+                       ::kwiver::protobuf::activity&    proto_act );
 
 // ---- bounding_box
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
@@ -110,14 +121,14 @@ KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const ::kwiver::vital::detected_object_set&  dos,
                        ::kwiver::protobuf::detected_object_set&     proto_dos );
 
-// ---- detected_object_type
+// ---- class_map
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
-void convert_protobuf( const ::kwiver::protobuf::detected_object_type&  proto_bbox,
-                       ::kwiver::vital::detected_object_type&           bbox );
+void convert_protobuf( const ::kwiver::protobuf::class_map&  proto_cm,
+                       ::kwiver::vital::class_map&           cm );
 
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
-void convert_protobuf( const ::kwiver::vital::detected_object_type& bbox,
-                       ::kwiver::protobuf::detected_object_type&    proto_bbox );
+void convert_protobuf( const ::kwiver::vital::class_map& cm,
+                       ::kwiver::protobuf::class_map&    proto_cm );
 
 // ---- geo_polygon
 KWIVER_SERIALIZE_PROTOBUF_EXPORT

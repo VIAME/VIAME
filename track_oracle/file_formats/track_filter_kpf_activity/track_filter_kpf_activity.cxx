@@ -72,7 +72,7 @@ using namespace kwiver::track_oracle;
 
 bool
 build_lookup_map( const track_handle_list_type& ref_tracks,
-                  map< unsigned, track_handle_type >& lookup_map )
+                  map< dt::tracking::external_id::Type, track_handle_type >& lookup_map )
 {
   track_field< dt::tracking::external_id > id_field;
   for (size_t i=0; i<ref_tracks.size(); ++i)
@@ -132,7 +132,7 @@ track_filter_kpf_activity
     KPF::kpf_reader_t reader( parser );
     LOG_INFO( main_logger, "KPF activity YAML load end");
 
-    map< unsigned, track_handle_type > lookup_table;
+    map< dt::tracking::external_id::Type, track_handle_type > lookup_table;
     if ( ! build_lookup_map( ref_tracks, lookup_table ))
     {
       throw kpf_act_exception("id->track handle lookup failure");
@@ -169,14 +169,13 @@ track_filter_kpf_activity
       // for each actor, clone over the track and geometry within its time window
       //
 
-
-      vector< unsigned > missing;
+      vector< dt::tracking::external_id::Type > missing;
       track_handle_list_type actor_tracks;
       const KPFC::activity_t& kpf_act = activity_probe.second.activity;
 
       for (auto const& a: kpf_act.actors)
       {
-        unsigned id = a.actor_id.t.d;
+        dt::tracking::external_id::Type id = a.actor_id.t.d;
         auto id_probe = lookup_table.find( id );
 
         //

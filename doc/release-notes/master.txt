@@ -36,7 +36,7 @@ Vital Types
 
 Vital Bindings
 
-* Remove ctypes python bindings
+ * Remove ctypes python bindings
 
  * Moved python bindings associated with config from sprokit.pipeline to
    vital.config.
@@ -55,6 +55,8 @@ Arrows: FFmpeg
    allows users to inject filters in the video reader, much the same as
    is possible in the ffmpeg command line with the -vf option.  The default
    filter applies deinterlacing to any interlaced frames.
+
+ * Fixed the memory leak that occurred when a video was opened and closed.
 
 Arrows: GDAL
 

@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2018 by Kitware, Inc.
+Copyright 2018-2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import numpy
 from six.moves import range
 
 from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, BoundingBox, \
-        DetectedObjectType, DetectedObject, Track
+        ClassMap, DetectedObject, Track
 
 
 class TestObjectTrackSet (unittest.TestCase):
@@ -53,8 +53,8 @@ class TestObjectTrackSet (unittest.TestCase):
                     [0, 10)
         """
         bbox = BoundingBox(10, 10, 20, 20)
-        dot  = DetectedObjectType("test", 0.4)
-        do = DetectedObject(bbox, 0.4, dot)
+        cm  = ClassMap("test", 0.4)
+        do = DetectedObject(bbox, 0.4, cm)
         track = Track()
         for i in range(10):
             track.append(ObjectTrackState(i, i, do))

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,24 +35,16 @@
 
 #include "cluster_info.h"
 
-
 namespace sprokit {
 
 cluster_info
-::cluster_info( process::type_t const&                  type_,
-                  process::description_t const&  description_,
-                  process_factory_func_t const&  ctor_ )
+::cluster_info( process::type_t const&         type_,
+                process::description_t const&  description_,
+                process_factory_func_t const&  ctor_ )
   : type( type_ ),
-  description( description_ ),
-  ctor( ctor_ )
+    description( description_ ),
+    ctor( ctor_ )
 {
 }
-
-
-cluster_info
-::~cluster_info()
-{
-}
-
 
 } // end namespace sprokit

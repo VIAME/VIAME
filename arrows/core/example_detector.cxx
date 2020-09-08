@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,10 +141,10 @@ detect( vital::image_container_sptr image_data) const
 
   ++d->m_frame_ct;
 
-  auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-  dot->set_score( "detection", 1.0 );
+  auto cm = std::make_shared< kwiver::vital::class_map >();
+  cm->set_score( "detection", 1.0 );
 
-  detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+  detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, cm ) );
 
   return detected_set;
 }

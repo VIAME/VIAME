@@ -39,7 +39,6 @@ endif()
 
 # All python filenames_we in the vital.tests module
 set(__all_modnames
-  __init__
   helpers
   ${__testable_modnames}
   )

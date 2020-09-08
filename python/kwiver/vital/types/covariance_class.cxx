@@ -35,6 +35,9 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 class PyCovarianceBase
 {
@@ -286,4 +289,7 @@ covar_from_matrix(int N, char c_type, py::object init)
     retVal = std::shared_ptr<PyCovarianceBase>(new PyCovariance3f(mat));
   }
   return retVal;
+}
+}
+}
 }

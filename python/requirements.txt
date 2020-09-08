@@ -1,0 +1,9 @@
+numpy==1.13.0
+pillow==7.1.0
+six==1.10.0
+scipy
+
+# For Testing
+nose==1.3.7
+coverage==4.4.1
+pytest

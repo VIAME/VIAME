@@ -139,10 +139,6 @@ config_delitem( kwiver::vital::config_block_sptr self,
   }
 }
 
-}
-}
-}
-
 void
 config( py::module& m)
 {
@@ -271,4 +267,7 @@ config( py::module& m)
          , "Return list of config keys that are in reference config but not in the other config")
 ;
 
+}
+}
+}
 }

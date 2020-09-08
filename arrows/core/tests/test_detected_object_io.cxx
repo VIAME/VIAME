@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,8 @@ int main(int argc, char** argv)
 namespace {
 
 // ----------------------------------------------------------------------------
-kwiver::vital::detected_object_type_sptr
-create_dot( const char* n[], const double s[] )
+kwiver::vital::class_map_sptr
+create_cm( const char* n[], const double s[] )
 {
   std::vector< std::string > names;
   std::vector< double > scores;
@@ -68,7 +68,7 @@ create_dot( const char* n[], const double s[] )
     scores.push_back( s[i] );
   } // end for
 
-  return  std::make_shared< kwiver::vital::detected_object_type >( names, scores );
+  return  std::make_shared< kwiver::vital::class_map >( names, scores );
 }
 
 // ----------------------------------------------------------------------------
@@ -82,27 +82,27 @@ make_dos()
   const char* n[]  = { "person", "vehicle", "other", "clam", "barnacle", 0 };
   double s[] = {   .65,      .6,       .005,    .07,     .005,     0 };
 
-  auto dot = create_dot( n, s );
+  auto cm = create_cm( n, s );
 
   auto detection = std::make_shared< kwiver::vital::detected_object >( bb1 ); // using defaults
   do_set->add( detection );
 
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.65, dot  );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.65, cm  );
   do_set->add( detection );
 
   double s1[] = {   .0065,      .006,       .005,    .775,     .605,     0 };
-  dot = create_dot( n, s1 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.75, dot  );
+  cm = create_cm( n, s1 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.75, cm  );
   do_set->add( detection );
 
   double s2[] = {   .0065,      .006,       .005,    .605,     .775,     0 };
-  dot = create_dot( n, s2 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.78, dot  );
+  cm = create_cm( n, s2 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.78, cm  );
   do_set->add( detection );
 
   double s3[] = {   .5065,      .006,       .005,    .775,     .605,     0 };
-  dot = create_dot( n, s3 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.70, dot  );
+  cm = create_cm( n, s3 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.70, cm  );
   do_set->add( detection );
 
   return do_set;

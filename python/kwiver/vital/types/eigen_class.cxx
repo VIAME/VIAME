@@ -35,6 +35,9 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 class EigenArray
 {
@@ -153,4 +156,7 @@ fromArray(py::object data, char ctype = 'd')
   }
 
   return retMat;
+}
+}
+}
 }

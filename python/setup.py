@@ -3,18 +3,23 @@ import os.path as osp
 import os
 from setuptools import find_packages
 
+kwiver_install_dir = 'kwiver'
+kwiver_source_dir = '../'
+
 with open('VERSION', 'r') as f:
     version = f.read().strip()
 
-kwiver_install_dir = 'kwiver'
-kwiver_source_dir = '../'
+with open(os.path.join(kwiver_source_dir, 'README.rst'), 'r') as f:
+    long_description = f.read()
+
 setup(
         name='kwiver',
         version=version,
         description='Python and C++ toolkit that pulls together computer vision algorithms '
                      ' into highly modular run time configurable systems',
+        long_description=long_description,
         author='Kitware, Inc.',
-        author_email='http://public.kitware.com/mailman/listinfo/kwiver-users',
+        author_email='kwiver-developers@kitware.com',
         url='https://github.com/Kitware/kwiver',
         cmake_install_dir=kwiver_install_dir,
         cmake_source_dir=kwiver_source_dir,
@@ -35,7 +40,10 @@ setup(
                    'Unix'
                    ],
         cmake_minimum_required_version='3.3',
-        packages = find_packages(exclude=['test-*', 'kwiver.sprokit.util']),
+        packages = find_packages(
+            exclude=['test-*', 'kwiver.sprokit.util'],
+            include=['kwiver*', 'vital*', 'sprokit*'],
+        ),
         python_requires='>=3.5',
         setup_requires=[
                         'setuptools',
@@ -52,6 +60,7 @@ setup(
                         'mock',
                         'coverage',
                         'external_arrow',
+                        'pytest'
                       ],
         cmake_args=[
                     '-DCMAKE_BUILD_TYPE=Release',
@@ -76,12 +85,12 @@ setup(
         entry_points={
             'kwiver.python_plugin_registration': [
                 'pythread_process=kwiver.sprokit.schedulers.pythread_per_process',
-                'pythread_process_scheduler=kwiver.sprokit.schedulers.pythread_per_process_scheduler',
-                'apply_descriptor=kwiver.sprokit.processes.ApplyDescriptor',
-                'process_image=kwiver.sprokit.processes.ProcessImage',
+                'apply_descriptor=kwiver.sprokit.processes.apply_descriptor',
+                'process_image=kwiver.sprokit.processes.process_image',
                 'print_number_process=kwiver.sprokit.processes.kw_print_number_process',
                 'homography_writer=kwiver.sprokit.processes.homography_writer',
-
+                'simple_homog_tracker=kwiver.sprokit.processes.simple_homog_tracker'
+		'simple_image_object_detector=kwiver.arrows.simple_image_object_detector'
                 ],
             'kwiver.cpp_search_paths': [
                 'sprokit_process=kwiver.vital.util.entrypoint:sprokit_process_path',

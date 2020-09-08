@@ -36,6 +36,9 @@
 #include <pybind11/eigen.h>
 
 namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 typedef kwiver::vital::similarity_<float> similarity_f;
 typedef kwiver::vital::similarity_<double> similarity_d;
@@ -214,7 +217,8 @@ new_similarity_from_matrix(py::object mat_obj)
   }
   return retVal;
 }
-
+}}}
+using namespace kwiver::vital::python;
 
 PYBIND11_MODULE(similarity, m)
 {

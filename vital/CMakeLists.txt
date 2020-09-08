@@ -90,6 +90,7 @@ set( vital_public_headers
   io/metadata_io.h
   io/track_set_io.h
 
+  types/activity.h
   types/bounding_box.h
   types/camera.h
   types/camera_intrinsics.h
@@ -98,6 +99,7 @@ set( vital_public_headers
   types/camera_perspective_map.h
   types/camera_rpc.h
   types/category_hierarchy.h
+  types/class_map.h
   types/color.h
   types/covariance.h
   types/database_query.h
@@ -107,7 +109,6 @@ set( vital_public_headers
   types/detected_object.h
   types/detected_object_set.h
   types/detected_object_set_util.h
-  types/detected_object_type.h
   types/essential_matrix.h
   types/feature.h
   types/feature_set.h
@@ -171,11 +172,13 @@ set( vital_sources
   io/metadata_io.cxx
   io/track_set_io.cxx
 
+  types/activity.cxx
   types/bounding_box.cxx
   types/camera_intrinsics.cxx
   types/camera_perspective.cxx
   types/camera_rpc.cxx
   types/category_hierarchy.cxx
+  types/class_map.cxx
   types/database_query.cxx
   types/descriptor.cxx
   types/descriptor_request.cxx
@@ -183,7 +186,6 @@ set( vital_sources
   types/detected_object.cxx
   types/detected_object_set.cxx
   types/detected_object_set_util.cxx
-  types/detected_object_type.cxx
   types/essential_matrix.cxx
   types/feature.cxx
   types/feature_track_set.cxx
@@ -262,9 +264,9 @@ option(KWIVER_USE_CONFIGURATION_SUBDIRECTORY
   "Look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
 
 if (WIN32)
-  set(path_sep ";")
+  set(path_sep "\\073")
 else()  # Other Unix systems
-  set(path_sep ":")
+  set(path_sep "\\072")
 endif()
 
 # Build a default set of plugin path dirs
@@ -292,14 +294,9 @@ endif()
 get_property(plugin_path GLOBAL PROPERTY kwiver_plugin_path)
 
 # convert list to path string using the system specific path separator
-# TODO: The following has a leading ':' that should not be there
 foreach( p IN LISTS plugin_path )
   set( VITAL_MODULE_PATH "${VITAL_MODULE_PATH}${path_sep}${p}" )
 endforeach(p)
-
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/algorithm_plugin_manager_paths.h" )
 
 ###
 # configure our compiler options

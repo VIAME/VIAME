@@ -35,6 +35,8 @@
 
 namespace py = pybind11;
 
+using namespace kwiver::vital::python;
+
 PYBIND11_MODULE(rotation, m)
 {
   py::class_<PyRotation, std::shared_ptr<PyRotation> >(m, "Rotation")

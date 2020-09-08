@@ -39,7 +39,7 @@
  */
 
 using namespace pybind11;
-
+using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(stamp, m)
 {
   m.def("new_stamp", &new_stamp

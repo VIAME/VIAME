@@ -37,6 +37,9 @@ typedef kwiver::vital::object_track_state obj_track_state;
 typedef kwiver::vital::object_track_set obj_track_set;
 
 namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 std::shared_ptr<kwiver::vital::track>
 get_track(std::shared_ptr<obj_track_set> &self, uint64_t id)
@@ -50,6 +53,8 @@ get_track(std::shared_ptr<obj_track_set> &self, uint64_t id)
   return track;
 }
 
+}}}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(object_track_set, m)
 {
   py::class_<obj_track_state, kwiver::vital::track_state, std::shared_ptr<obj_track_state>>(m, "ObjectTrackState")

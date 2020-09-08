@@ -34,6 +34,7 @@
 #include <pybind11/eigen.h>
 
 namespace py = pybind11;
+
 typedef kwiver::vital::simple_camera_intrinsics cam_int;
 
 PYBIND11_MODULE(camera_intrinsics, m)

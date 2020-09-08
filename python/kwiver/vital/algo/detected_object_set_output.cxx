@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019-2020 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <pybind11/pybind11.h>
-#include <vital/bindings/python/vital/algo/trampoline/detected_object_set_output_trampoline.txx>
-#include <vital/bindings/python/vital/algo/detected_object_set_output.h>
+#include <python/kwiver/vital/algo/trampoline/detected_object_set_output_trampoline.txx>
+#include <python/kwiver/vital/algo/detected_object_set_output.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 using doso = kwiver::vital::algo::detected_object_set_output;
 
 void detected_object_set_output(py::module &m)
@@ -48,4 +50,7 @@ void detected_object_set_output(py::module &m)
     .def("open", &doso::open)
     .def("close", &doso::close)
     ;
+}
+}
+}
 }

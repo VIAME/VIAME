@@ -34,6 +34,9 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 pixel_traits::pixel_type
 kwiver::vital::python::image::pixel_type(std::shared_ptr<image_t> &self)
 {
@@ -530,7 +533,7 @@ py::object kwiver::vital::python::image::asarray(image_t img)
   }
 }
 
-void image(py::module& m)
+void kwiver::vital::python::image::image(py::module& m)
 {
   py::class_<image_t, std::shared_ptr<image_t>> img(m, "Image", py::buffer_protocol());
   /*
@@ -544,22 +547,22 @@ void image(py::module& m)
        http://pybind11.readthedocs.io/en/stable/advanced/pycpp/numpy.html#buffer-protocol
   */
 
-  img.doc() = (
-      "Python bindings for kwiver::vital::image\n"
-      "\n"
-      "Example:\n"
-      "    >>> from vital.types import Image\n"
-      "    >>> import numpy as np\n"
-      "    >>> np_img = np.arange(3 * 4, dtype=np.uint8).reshape(3, 4, 1)\n"
-      "    >>> vital_img = Image(np_img)\n"
-      "    >>> print(np_img)\n"
-      "    >>> print(vital_img.asarray())\n"
-      "    >>> assert vital_img.pixel_type_name() == 'uint8'\n"
-      "    >>> assert np.all(np_img == vital_img.asarray())\n"
-      "    >>> # Currently we never share memory\n"
-      "    >>> np_img += 1\n"
-      "    >>> assert np.all(np_img != vital_img.asarray())\n"
-  );
+  img.doc() = R"(
+      Python bindings for kwiver::vital::image
+
+      Example:
+          >>> from kwiver.vital.types import Image
+          >>> import numpy as np
+          >>> np_img = np.arange(3 * 4, dtype=np.uint8).reshape(3, 4, 1)
+          >>> vital_img = Image(np_img)
+          >>> print(np_img)
+          >>> print(vital_img.asarray())
+          >>> assert vital_img.pixel_type_name() == 'uint8'
+          >>> assert np.all(np_img == vital_img.asarray())
+          >>> # Currently we never share memory
+          >>> np_img += 1
+          >>> assert np.all(np_img != vital_img.asarray())
+      )";
 
   py::enum_<pixel_traits::pixel_type>(img, "Types") .value("PIXEL_UNKNOWN",
   pixel_traits::pixel_type::UNKNOWN) .value("PIXEL_BOOL",
@@ -615,4 +618,7 @@ void image(py::module& m)
         py::object np_arr = kwiver::vital::python::image::asarray(img);
         return np_arr;
       }, py::doc("Copy the image into a numpy array'"));
+}
+}
+}
 }

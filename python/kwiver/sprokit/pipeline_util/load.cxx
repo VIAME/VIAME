@@ -51,33 +51,41 @@
 
 using namespace pybind11;
 
-static object pipe_block_config(sprokit::pipe_block const& block);
-static void pipe_block_config_set(sprokit::pipe_block& block, sprokit::config_pipe_block const& config);
-static object pipe_block_process(sprokit::pipe_block const& block);
-static void pipe_block_process_set(sprokit::pipe_block& block, sprokit::process_pipe_block const& process);
-static object pipe_block_connect(sprokit::pipe_block const& block);
-static void pipe_block_connect_set(sprokit::pipe_block& block, sprokit::connect_pipe_block const& connect);
-static object cluster_subblock_config(sprokit::cluster_subblock_t const& subblock);
-static void cluster_subblock_config_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_config_t const& config);
-static object cluster_subblock_input(sprokit::cluster_subblock_t const& subblock);
-static void cluster_subblock_input_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_input_t const& input);
-static object cluster_subblock_output(sprokit::cluster_subblock_t const& subblock);
-static void cluster_subblock_output_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_output_t const& output);
-static object cluster_block_config(sprokit::cluster_block const& block);
-static void cluster_block_config_set(sprokit::cluster_block& block, sprokit::config_pipe_block const& config);
-static object cluster_block_process(sprokit::cluster_block const& block);
-static void cluster_block_process_set(sprokit::cluster_block& block, sprokit::process_pipe_block const& process);
-static object cluster_block_connect(sprokit::cluster_block const& block);
-static void cluster_block_connect_set(sprokit::cluster_block& block, sprokit::connect_pipe_block const& connect);
-static object cluster_block_cluster(sprokit::cluster_block const& block);
-static void cluster_block_cluster_set(sprokit::cluster_block& block, sprokit::cluster_pipe_block const& cluster);
-static sprokit::pipe_blocks load_pipe_file(std::string const& path);
-static sprokit::pipe_blocks load_pipe(object const& stream);
-static sprokit::cluster_blocks load_cluster_file(std::string const& path);
-static sprokit::cluster_blocks load_cluster(object const& stream);
-static std::vector<wrap_port_addr> get_targets(sprokit::cluster_input_t const& self);
-static void set_targets(sprokit::cluster_input_t &self, std::vector<wrap_port_addr> const& wrap_targets);
+namespace kwiver{
+namespace sprokit{
+namespace python{
 
+static object pipe_block_config(::sprokit::pipe_block const& block);
+static void pipe_block_config_set(::sprokit::pipe_block& block, ::sprokit::config_pipe_block const& config);
+static object pipe_block_process(::sprokit::pipe_block const& block);
+static void pipe_block_process_set(::sprokit::pipe_block& block, ::sprokit::process_pipe_block const& process);
+static object pipe_block_connect(::sprokit::pipe_block const& block);
+static void pipe_block_connect_set(::sprokit::pipe_block& block, ::sprokit::connect_pipe_block const& connect);
+static object cluster_subblock_config(::sprokit::cluster_subblock_t const& subblock);
+static void cluster_subblock_config_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::cluster_config_t const& config);
+static object cluster_subblock_input(::sprokit::cluster_subblock_t const& subblock);
+static void cluster_subblock_input_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::cluster_input_t const& input);
+static object cluster_subblock_output(::sprokit::cluster_subblock_t const& subblock);
+static void cluster_subblock_output_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::cluster_output_t const& output);
+static object cluster_block_config(::sprokit::cluster_block const& block);
+static void cluster_block_config_set(::sprokit::cluster_block& block, ::sprokit::config_pipe_block const& config);
+static object cluster_block_process(::sprokit::cluster_block const& block);
+static void cluster_block_process_set(::sprokit::cluster_block& block, ::sprokit::process_pipe_block const& process);
+static object cluster_block_connect(::sprokit::cluster_block const& block);
+static void cluster_block_connect_set(::sprokit::cluster_block& block, ::sprokit::connect_pipe_block const& connect);
+static object cluster_block_cluster(::sprokit::cluster_block const& block);
+static void cluster_block_cluster_set(::sprokit::cluster_block& block, ::sprokit::cluster_pipe_block const& cluster);
+static ::sprokit::pipe_blocks load_pipe_file(std::string const& path);
+static ::sprokit::pipe_blocks load_pipe(object const& stream);
+static ::sprokit::cluster_blocks load_cluster_file(std::string const& path);
+static ::sprokit::cluster_blocks load_cluster(object const& stream);
+static std::vector<wrap_port_addr> get_targets(::sprokit::cluster_input_t const& self);
+static void set_targets(::sprokit::cluster_input_t &self, std::vector<wrap_port_addr> const& wrap_targets);
+}
+}
+}
+
+using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(load, m)
 {
   bind_vector<sprokit::config_flags_t>(m, "ConfigFlags"
@@ -206,6 +214,10 @@ PYBIND11_MODULE(load, m)
 
 }
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
+
 class pipe_block_visitor
 {
   public:
@@ -222,16 +234,16 @@ class pipe_block_visitor
 
     block_t const block_type;
 
-    object operator () (sprokit::config_pipe_block const& config_block) const;
-    object operator () (sprokit::process_pipe_block const& process_block) const;
-    object operator () (sprokit::connect_pipe_block const& connect_block) const;
-    object operator () (sprokit::cluster_pipe_block const& cluster_block) const;
+    object operator () (::sprokit::config_pipe_block const& config_block) const;
+    object operator () (::sprokit::process_pipe_block const& process_block) const;
+    object operator () (::sprokit::connect_pipe_block const& connect_block) const;
+    object operator () (::sprokit::cluster_pipe_block const& cluster_block) const;
 };
 
 
 // ----------------------------------------------------------------------------
 object
-pipe_block_config(sprokit::pipe_block const& block)
+pipe_block_config(::sprokit::pipe_block const& block)
 {
   return kwiver::vital::visit( pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
 }
@@ -239,7 +251,7 @@ pipe_block_config(sprokit::pipe_block const& block)
 
 // ----------------------------------------------------------------------------
 void
-pipe_block_config_set(sprokit::pipe_block& block, sprokit::config_pipe_block const& config)
+pipe_block_config_set(::sprokit::pipe_block& block, ::sprokit::config_pipe_block const& config)
 {
   block = config;
 }
@@ -247,7 +259,7 @@ pipe_block_config_set(sprokit::pipe_block& block, sprokit::config_pipe_block con
 
 // ----------------------------------------------------------------------------
 object
-pipe_block_process(sprokit::pipe_block const& block)
+pipe_block_process(::sprokit::pipe_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
 }
@@ -255,7 +267,7 @@ pipe_block_process(sprokit::pipe_block const& block)
 
 // ----------------------------------------------------------------------------
 void
-pipe_block_process_set(sprokit::pipe_block& block, sprokit::process_pipe_block const& process)
+pipe_block_process_set(::sprokit::pipe_block& block, ::sprokit::process_pipe_block const& process)
 {
   block = process;
 }
@@ -263,7 +275,7 @@ pipe_block_process_set(sprokit::pipe_block& block, sprokit::process_pipe_block c
 
 // ----------------------------------------------------------------------------
 object
-pipe_block_connect(sprokit::pipe_block const& block)
+pipe_block_connect(::sprokit::pipe_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
 }
@@ -271,7 +283,7 @@ pipe_block_connect(sprokit::pipe_block const& block)
 
 // ----------------------------------------------------------------------------
 void
-pipe_block_connect_set(sprokit::pipe_block& block, sprokit::connect_pipe_block const& connect)
+pipe_block_connect_set(::sprokit::pipe_block& block, ::sprokit::connect_pipe_block const& connect)
 {
   block = connect;
 }
@@ -293,15 +305,15 @@ class cluster_subblock_visitor
 
     block_t const block_type;
 
-    object operator () (sprokit::cluster_config_t const& config) const;
-    object operator () (sprokit::cluster_input_t const& input) const;
-    object operator () (sprokit::cluster_output_t const& output) const;
+    object operator () (::sprokit::cluster_config_t const& config) const;
+    object operator () (::sprokit::cluster_input_t const& input) const;
+    object operator () (::sprokit::cluster_output_t const& output) const;
 };
 
 
 // ----------------------------------------------------------------------------
 object
-cluster_subblock_config(sprokit::cluster_subblock_t const& subblock)
+cluster_subblock_config(::sprokit::cluster_subblock_t const& subblock)
 {
   return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_CONFIG), subblock);
 }
@@ -309,7 +321,7 @@ cluster_subblock_config(sprokit::cluster_subblock_t const& subblock)
 
 // ----------------------------------------------------------------------------
 void
-cluster_subblock_config_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_config_t const& config)
+cluster_subblock_config_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::cluster_config_t const& config)
 {
   subblock = config;
 }
@@ -317,7 +329,7 @@ cluster_subblock_config_set(sprokit::cluster_subblock_t& subblock, sprokit::clus
 
 // ----------------------------------------------------------------------------
 object
-cluster_subblock_input(sprokit::cluster_subblock_t const& subblock)
+cluster_subblock_input(::sprokit::cluster_subblock_t const& subblock)
 {
   return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_INPUT), subblock);
 }
@@ -325,7 +337,7 @@ cluster_subblock_input(sprokit::cluster_subblock_t const& subblock)
 
 // ----------------------------------------------------------------------------
 void
-cluster_subblock_input_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_input_t const& input)
+cluster_subblock_input_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::cluster_input_t const& input)
 {
   subblock = input;
 }
@@ -333,7 +345,7 @@ cluster_subblock_input_set(sprokit::cluster_subblock_t& subblock, sprokit::clust
 
 // ----------------------------------------------------------------------------
 object
-cluster_subblock_output(sprokit::cluster_subblock_t const& subblock)
+cluster_subblock_output(::sprokit::cluster_subblock_t const& subblock)
 {
   return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_OUTPUT), subblock);
 }
@@ -341,7 +353,7 @@ cluster_subblock_output(sprokit::cluster_subblock_t const& subblock)
 
 // ----------------------------------------------------------------------------
 void
-cluster_subblock_output_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_output_t const& output)
+cluster_subblock_output_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::cluster_output_t const& output)
 {
   subblock = output;
 }
@@ -349,7 +361,7 @@ cluster_subblock_output_set(sprokit::cluster_subblock_t& subblock, sprokit::clus
 
 // ----------------------------------------------------------------------------
 object
-cluster_block_config(sprokit::cluster_block const& block)
+cluster_block_config(::sprokit::cluster_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
 }
@@ -357,7 +369,7 @@ cluster_block_config(sprokit::cluster_block const& block)
 
 // ----------------------------------------------------------------------------
 void
-cluster_block_config_set(sprokit::cluster_block& block, sprokit::config_pipe_block const& config)
+cluster_block_config_set(::sprokit::cluster_block& block, ::sprokit::config_pipe_block const& config)
 {
   block = config;
 }
@@ -365,7 +377,7 @@ cluster_block_config_set(sprokit::cluster_block& block, sprokit::config_pipe_blo
 
 // ----------------------------------------------------------------------------
 object
-cluster_block_process(sprokit::cluster_block const& block)
+cluster_block_process(::sprokit::cluster_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
 }
@@ -373,7 +385,7 @@ cluster_block_process(sprokit::cluster_block const& block)
 
 // ----------------------------------------------------------------------------
 void
-cluster_block_process_set(sprokit::cluster_block& block, sprokit::process_pipe_block const& process)
+cluster_block_process_set(::sprokit::cluster_block& block, ::sprokit::process_pipe_block const& process)
 {
   block = process;
 }
@@ -381,7 +393,7 @@ cluster_block_process_set(sprokit::cluster_block& block, sprokit::process_pipe_b
 
 // ----------------------------------------------------------------------------
 object
-cluster_block_connect(sprokit::cluster_block const& block)
+cluster_block_connect(::sprokit::cluster_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
 }
@@ -389,7 +401,7 @@ cluster_block_connect(sprokit::cluster_block const& block)
 
 // ----------------------------------------------------------------------------
 void
-cluster_block_connect_set(sprokit::cluster_block& block, sprokit::connect_pipe_block const& connect)
+cluster_block_connect_set(::sprokit::cluster_block& block, ::sprokit::connect_pipe_block const& connect)
 {
   block = connect;
 }
@@ -397,7 +409,7 @@ cluster_block_connect_set(sprokit::cluster_block& block, sprokit::connect_pipe_b
 
 // ----------------------------------------------------------------------------
 object
-cluster_block_cluster(sprokit::cluster_block const& block)
+cluster_block_cluster(::sprokit::cluster_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CLUSTER), block);
 }
@@ -405,49 +417,49 @@ cluster_block_cluster(sprokit::cluster_block const& block)
 
 // ----------------------------------------------------------------------------
 void
-cluster_block_cluster_set(sprokit::cluster_block& block, sprokit::cluster_pipe_block const& cluster)
+cluster_block_cluster_set(::sprokit::cluster_block& block, ::sprokit::cluster_pipe_block const& cluster)
 {
   block = cluster;
 }
 
 
 // ----------------------------------------------------------------------------
-sprokit::pipe_blocks
+::sprokit::pipe_blocks
 load_pipe_file(std::string const& path)
 {
-  sprokit::pipeline_builder builder;
+  ::sprokit::pipeline_builder builder;
   builder.load_pipeline( path );
   return builder.pipeline_blocks();
 }
 
 
 // ----------------------------------------------------------------------------
-sprokit::pipe_blocks
+::sprokit::pipe_blocks
 load_pipe(object const& stream)
 {
-  sprokit::python::pyistream istr(stream);
-  sprokit::pipeline_builder builder;
+  ::sprokit::python::pyistream istr(stream);
+  ::sprokit::pipeline_builder builder;
   builder.load_pipeline( istr );
   return builder.pipeline_blocks();
 }
 
 
 // ----------------------------------------------------------------------------
-sprokit::cluster_blocks
+::sprokit::cluster_blocks
 load_cluster_file(std::string const& path)
 {
-  sprokit::pipeline_builder builder;
+  ::sprokit::pipeline_builder builder;
   builder.load_cluster( path );
   return builder.cluster_blocks();
 }
 
 
 // ----------------------------------------------------------------------------
-sprokit::cluster_blocks
+::sprokit::cluster_blocks
 load_cluster(object const& stream)
 {
-  sprokit::python::pyistream istr(stream);
-  sprokit::pipeline_builder builder;
+  ::sprokit::python::pyistream istr(stream);
+  ::sprokit::pipeline_builder builder;
   builder.load_cluster( istr );
   return builder.cluster_blocks();
 }
@@ -471,7 +483,7 @@ pipe_block_visitor
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
-::operator () (sprokit::config_pipe_block const& config_block) const
+::operator () (::sprokit::config_pipe_block const& config_block) const
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
@@ -490,7 +502,7 @@ pipe_block_visitor
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
-::operator () (sprokit::process_pipe_block const& process_block) const
+::operator () (::sprokit::process_pipe_block const& process_block) const
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
@@ -509,7 +521,7 @@ pipe_block_visitor
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
-::operator () (sprokit::connect_pipe_block const& connect_block) const
+::operator () (::sprokit::connect_pipe_block const& connect_block) const
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
@@ -528,7 +540,7 @@ pipe_block_visitor
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
-::operator () (sprokit::cluster_pipe_block const& cluster_block) const
+::operator () (::sprokit::cluster_pipe_block const& cluster_block) const
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
@@ -562,7 +574,7 @@ cluster_subblock_visitor
 // ----------------------------------------------------------------------------
 object
 cluster_subblock_visitor
-::operator () (sprokit::cluster_config_t const& config) const
+::operator () (::sprokit::cluster_config_t const& config) const
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
@@ -579,7 +591,7 @@ cluster_subblock_visitor
 // ----------------------------------------------------------------------------
 object
 cluster_subblock_visitor
-::operator () (sprokit::cluster_input_t const& input) const
+::operator () (::sprokit::cluster_input_t const& input) const
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
@@ -596,7 +608,7 @@ cluster_subblock_visitor
 // ----------------------------------------------------------------------------
 object
 cluster_subblock_visitor
-::operator () (sprokit::cluster_output_t const& output) const
+::operator () (::sprokit::cluster_output_t const& output) const
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
@@ -612,7 +624,7 @@ cluster_subblock_visitor
 
 // ----------------------------------------------------------------------------
 std::vector<wrap_port_addr>
-get_targets(sprokit::cluster_input_t const& self)
+get_targets(::sprokit::cluster_input_t const& self)
 {
   std::vector<wrap_port_addr> wrap_targets;
   for( auto target : self.targets)
@@ -625,12 +637,15 @@ get_targets(sprokit::cluster_input_t const& self)
 
 // ----------------------------------------------------------------------------
 void
-set_targets(sprokit::cluster_input_t &self, std::vector<wrap_port_addr> const& wrap_targets)
+set_targets(::sprokit::cluster_input_t &self, std::vector<wrap_port_addr> const& wrap_targets)
 {
-  sprokit::process::port_addrs_t targets;
+  ::sprokit::process::port_addrs_t targets;
   for( auto wrap_target : wrap_targets)
   {
     targets.push_back(wrap_target.get_addr());
   }
   self.targets = targets;
+}
+}
+}
 }

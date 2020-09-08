@@ -78,6 +78,7 @@ using std::ifstream;
 using std::ostringstream;
 
 namespace KPF=::kwiver::vital::kpf;
+namespace dt = ::kwiver::track_oracle::dt;
 
 namespace // anon
 {
@@ -180,7 +181,7 @@ kpf_utils::add_to_row( kwiver::logging_map_type& log_map,
   {
   case KPF::packet_style::ID:
     {
-      unsigned id = p.id.d;
+      dt::tracking::external_id::Type id = p.id.d;
       switch (p.header.domain)
       {
       case KPFC::id_t::DETECTION_ID:

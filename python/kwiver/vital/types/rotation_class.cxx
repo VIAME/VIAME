@@ -35,6 +35,9 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 class PyRotation
 {
@@ -585,3 +588,4 @@ get_yaw_pitch_roll()
 
   return ypr;
 }
+}}}

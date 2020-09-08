@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,8 @@ PYBIND11_MODULE(detected_object_set, m)
    *
 
     Developer:
-        python -c "import vital.types; help(vital.types.DetectedObjectSet)"
-        python -m xdoctest vital.types DetectedObjectSet --xdoc-dynamic
+        python -c "import kwiver.vital.types; help(kwiver.vital.types.DetectedObjectSet)"
+        python -m xdoctest kwiver.vital.types DetectedObjectSet --xdoc-dynamic
 
    *
    */
@@ -53,7 +53,7 @@ PYBIND11_MODULE(detected_object_set, m)
       Collection holding a multiple detected objects
 
       Example:
-          >>> from vital.types import *
+          >>> from kwiver.vital.types import *
           >>> bbox = BoundingBox(0, 10, 100, 50)
           >>> dobj1 = DetectedObject(bbox, 0.2)
           >>> dobj2 = DetectedObject(bbox, 0.5)
@@ -92,7 +92,7 @@ PYBIND11_MODULE(detected_object_set, m)
       }
       return self.select(class_name.cast<std::string>(), threshold);
     },
-    py::arg("threshold")=kwiver::vital::detected_object_type::INVALID_SCORE, py::arg("class_name")=py::none())
+    py::arg("threshold")=kwiver::vital::class_map::INVALID_SCORE, py::arg("class_name")=py::none())
   .def("__getitem__", [](det_obj_set &self, size_t idx)
     {
       return self.at(idx);

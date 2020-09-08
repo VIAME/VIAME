@@ -36,6 +36,8 @@
 
 namespace py=pybind11;
 
+
+
 PYBIND11_MODULE(camera_map, m)
 {
   py::class_<kwiver::vital::simple_camera_map, std::shared_ptr<kwiver::vital::simple_camera_map> >(m, "CameraMap")

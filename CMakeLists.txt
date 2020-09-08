@@ -47,9 +47,11 @@ mark_as_advanced(KWIVER_DEFAULT_LIBRARY_DIR)
 
 #
 # kwiver module config file.
-set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
- if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.10)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.20)
+    set(_vcVersion vc16)
+  elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.10)
     set(_vcVersion vc15)
   elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19)
     set(_vcVersion vc14)
@@ -136,7 +138,6 @@ endif()
 include( kwiver-utils )
 
 if (KWIVER_ENABLE_PYTHON)
-  # Create an init for kwiver
   if (NOT WIN32)
     OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
   endif()

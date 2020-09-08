@@ -35,6 +35,7 @@
 
 namespace py = pybind11;
 
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(covariance, m)
 {
   py::class_<PyCovarianceBase, std::shared_ptr<PyCovarianceBase> >(m, "Covariance")

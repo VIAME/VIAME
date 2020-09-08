@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,19 @@
 #include <pybind11/embed.h>
 
 namespace py = pybind11;
-
 typedef kwiver::vital::detected_object det_obj;
+namespace kwiver {
+namespace vital  {
+namespace python {
+
+
 
 // We want to be able to add a mask in the python constructor
 // so we need a pass-through cstor
 std::shared_ptr<det_obj>
 new_detected_object(kwiver::vital::bounding_box<double> bbox,
                     double conf,
-                    kwiver::vital::detected_object_type_sptr type,
+                    kwiver::vital::class_map_sptr type,
                     kwiver::vital::image_container_sptr mask)
 {
   std::shared_ptr<det_obj> new_obj(new det_obj(bbox, conf, type));
@@ -55,6 +59,11 @@ new_detected_object(kwiver::vital::bounding_box<double> bbox,
   return new_obj;
 }
 
+}
+}
+}
+
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(detected_object, m)
 {
   /*
@@ -69,9 +78,9 @@ PYBIND11_MODULE(detected_object, m)
     Represents a detected object within an image
 
     Example:
-        >>> from vital.types import *
+        >>> from kwiver.vital.types import *
         >>> from PIL import Image as PILImage
-        >>> from vital.util import VitalPIL
+        >>> from kwiver.vital.util import VitalPIL
         >>> import numpy as np
         >>> bbox = BoundingBox(0, 10, 100, 50)
         >>> # Construct an object without a mask
@@ -88,7 +97,7 @@ PYBIND11_MODULE(detected_object, m)
     )")
   .def(py::init(&new_detected_object),
     py::arg("bbox"), py::arg("confidence")=1.0,
-    py::arg("classifications")=kwiver::vital::detected_object_type_sptr(),
+    py::arg("classifications")=kwiver::vital::class_map_sptr(),
     py::arg("mask")=kwiver::vital::image_container_sptr(), py::doc(R"(
       Args:
           bbox: coarse localization of the object in image coordinates

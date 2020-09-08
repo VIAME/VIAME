@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2019 by Kitware, Inc.
+ * Copyright 2011-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,13 +122,19 @@ public:
    * Class method that returns the block seperator for configuration
    * \returns The block separator config key
    */
-  static const config_block_key_t block_sep();
+  inline static const config_block_key_t block_sep()
+  {
+    return config_block_key_t( ":" );
+  }
 
   /**
    * Class method that returns magic group for global parameters.
    * \returns global config key
    */
-  static const config_block_key_t global_value();
+  inline static const config_block_key_t global_value()
+  {
+    return config_block_key_t( "_global" );
+  }
 
   /// Destructor
   virtual ~config_block();
