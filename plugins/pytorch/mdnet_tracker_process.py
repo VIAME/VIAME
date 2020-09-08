@@ -37,10 +37,10 @@ import numpy as np
 from kwiver.kwiver_process import KwiverProcess
 from sprokit.pipeline import process
 
-from vital.types import Image
-from vital.types import BoundingBox
-from vital.types import DetectedObject, DetectedObjectSet
-from vital.types import ObjectTrackState, Track, ObjectTrackSet
+from kwiver.vital.types import (
+    BoundingBox, DetectedObject, DetectedObjectSet,
+    Image, ObjectTrackState, ObjectTrackSet, Track,
+)
 
 import viame.arrows.pytorch.mdnet_tracker as mdnet
 

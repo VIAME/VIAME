@@ -30,14 +30,12 @@
 from __future__ import print_function
 from __future__ import division
 
-from vital.algo import TrainDetector
-from vital.algo import DetectedObjectSetOutput
+from kwiver.vital.algo import DetectedObjectSetOutput, TrainDetector
 
-from vital.types import BoundingBox
-from vital.types import CategoryHierarchy
-from vital.types import ClassMap
-from vital.types import DetectedObjectSet
-from vital.types import DetectedObject
+from kwiver.vital.types import (
+    BoundingBox, CategoryHierarchy, ClassMap,
+    DetectedObjectSet, DetectedObject,
+)
 
 from PIL import Image
 
@@ -210,7 +208,7 @@ class NetHarnTrainer( TrainDetector ):
             if not os.path.exists( self._output_directory ):
                 os.mkdir( self._output_directory )
 
-        from vital.modules.modules import load_known_modules
+        from kwiver.vital.modules import load_known_modules
         load_known_modules()
 
         if not self._no_format:
@@ -416,7 +414,7 @@ class NetHarnTrainer( TrainDetector ):
                    "there first." )
 
 def __vital_algorithm_register__():
-    from vital.algo import algorithm_factory
+    from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
     implementation_name = "netharn"
