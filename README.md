@@ -48,7 +48,7 @@ Installations
 For a full installation guide see the quick-start slide deck above, but in summary, extract the binaries
 and place them in a directory of your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame
 on Linux. If you're using packages built with GPU support, make sure to have sufficient video drivers installed,
-version 410.48 or higher. The best way to install drivers depends on your operating system, see below.
+version 418.39 or higher. The best way to install drivers depends on your operating system, see below.
 Lastly, run through some of the examples to validate the installation. It is no longer necessary
 to install any dependencies of VIAME besides video drivers, everything else is packaged inside of it. The
 binaries are quite large, in terms of disk space, due to the inclusion of multiple default model files and
