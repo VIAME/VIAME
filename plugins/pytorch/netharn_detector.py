@@ -319,7 +319,7 @@ def _kwimage_to_kwiver_detections(detections):
 
 
 def __vital_algorithm_register__():
-    from vital.algo import algorithm_factory
+    from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
     implementation_name = "netharn"
