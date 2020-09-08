@@ -58,7 +58,10 @@ void bounding_box(py::module &m, const char * typestr)
             xmax (float):  max x coord
             ymax (float):  max y coord
         )"))
-
+  .def(py::init<>(), py::doc(R"(
+    Create a new default Bounding Box
+    It is empty, and invalid.
+    )"))
   .def("is_valid", &bbox::is_valid)
   .def("center", &bbox::center)
   .def("upper_left", &bbox::upper_left)
