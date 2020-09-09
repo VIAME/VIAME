@@ -53,6 +53,7 @@ setup(
         install_requires=[
                           'numpy',
                           'pillow',
+                          'scipy',
                           'six',
                          ],
         tests_require=[
