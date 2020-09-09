@@ -163,7 +163,8 @@ class ResnetDescriptors(KwiverProcess):
             print( repr( e ) )
             import traceback
             print( traceback.format_exc() )
-            #sys.stdout.flush()
+            sys.stdout.flush()
+            raise
 
     def __del__(self):
         print('!!!!Resnet tracking Deleting python process!!!!')

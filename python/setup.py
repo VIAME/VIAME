@@ -52,8 +52,12 @@ setup(
                        ],
         install_requires=[
                           'numpy',
+                          'opencv-python',
                           'pillow',
+                          'scipy',
                           'six',
+                          'torch',
+                          'torchvision',
                          ],
         tests_require=[
                         'nose',
@@ -67,6 +71,7 @@ setup(
                     '-DKWIVER_BUILD_SHARED=OFF',
                     '-DKWIVER_ENABLE_C_BINDINGS=ON',
                     '-DKWIVER_ENABLE_PYTHON=ON',
+                    '-DKWIVER_ENABLE_PYTORCH=ON',
                     '-DKWIVER_PYTHON_MAJOR_VERSION=3',
                     '-DPYBIND11_PYTHON_VERSION=3',
                     '-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON',
