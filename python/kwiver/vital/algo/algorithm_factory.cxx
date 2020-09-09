@@ -26,7 +26,6 @@ static void add_algorithm( const std::string& impl_name, std::string const& desc
 
 void mark_algorithm_as_loaded( const std::string& module_name );
 static std::vector< std::string > implementation_names(const std::string& algorithm_name);
-void create_object();
 
 class python_algorithm_factory : public kwiver::vital::algorithm_factory
 {
