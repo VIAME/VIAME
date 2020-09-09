@@ -75,7 +75,7 @@ if( VIAME_ENABLE_PYTHON )
     )
 
   ExternalProject_Add( keypointgui
-    DEPENDS fletch msgpack wxPython
+    DEPENDS fletch python-deps wxPython
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR  ${VIAME_PACKAGES_DIR}/itk-modules/keypointgui
     BUILD_IN_SOURCE 1
