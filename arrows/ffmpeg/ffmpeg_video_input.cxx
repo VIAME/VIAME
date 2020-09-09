@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation file for video input using FFMPEG.
+ * \brief Implementation file for video input using FFmpeg.
  */
 
 #include "ffmpeg_init.h"
@@ -101,7 +101,7 @@ public:
     f_packet.data = nullptr;
   }
 
-  // f_* variables are FFMPEG specific
+  // f_* variables are FFmpeg specific
 
   AVFormatContext* f_format_context;
   int f_video_index;
