@@ -40,7 +40,7 @@ import numpy as np
 import unittest
 
 from kwiver.vital.tests.cpp_helpers import match_set_helpers as msh
-
+from kwiver.vital.tests.py_helpers import no_call_pure_virtual_method
 from kwiver.vital.types import (
     MatchVector,
     BaseMatchSet,
@@ -80,6 +80,10 @@ class TestBaseMatchSet(unittest.TestCase):
 
     def test_constructor(self):
         BaseMatchSet()
+
+    def test_pure_virts(self):
+        no_call_pure_virtual_method(BaseMatchSet().size)
+        no_call_pure_virtual_method(BaseMatchSet().matches)
 
 class MatchSetInherit(BaseMatchSet):
     def __init__(self):
