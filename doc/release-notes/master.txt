@@ -76,7 +76,16 @@ Sprokit
 
 Sprokit: Processes
 
+ * Added four new PyTorch-using Python Sprokit processes for tracking
+   (srnn_tracker), descriptor computation (alexnet_descriptors and
+   resnet_descriptors), and augmentation (resnet_augmentation).
+
 Tools
+
+Build System
+
+ * Added a new build flag, KWIVER_ENABLE_PYTORCH, to include
+   PyTorch-dependent code in the build.
 
 Unit Tests
 
@@ -90,3 +99,8 @@ Arrows: Core
 Arrows: Ceres
 
 Arrows: Super3D
+
+Sprokit: Processes
+
+ * Fixed the compute_track_descriptors process's handling of null
+   output from its nested algorithm.
