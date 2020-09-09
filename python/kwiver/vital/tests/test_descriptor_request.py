@@ -35,9 +35,10 @@ Tests for vital::descriptor_request interface
 """
 import nose.tools as nt
 import numpy.testing as npt
-
+import numpy as np
 from kwiver.vital.types import (
     BoundingBoxD as BoundingBox,
+    BoundingBoxI as bbI,
     Image,
     ImageContainer,
     DescriptorRequest,
@@ -103,8 +104,15 @@ class TestVitalDescriptorRequest(object):
         dr = DescriptorRequest()
         dr.set_temporal_bounds("string", "another_string")
 
-    # TODO: When the PR with bindings for boundingbox<int> is merged in,
-    # add test for getting and setting valid spatial regions
+    def test_get_set_spatial_regions(self):
+        dr = DescriptorRequest()
+        ul = np.array([0, 0])
+        lr = np.array([720, 1080])
+        b = bbI(ul, lr)
+        dr.spatial_regions = np.array([b])
+        b_arr = dr.spatial_regions
+        npt.assert_array_equal(b_arr[0].upper_left(), ul)
+
 
     @nt.raises(TypeError)
     def test_bad_set_spatial_regions(self):

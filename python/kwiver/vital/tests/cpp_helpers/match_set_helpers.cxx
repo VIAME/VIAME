@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_VITAL_PYTHON_MATCH_SET_H
-#define KWIVER_VITAL_PYTHON_MATCH_SET_H
-
-#include <pybind11/pybind11.h>
 #include <vital/types/match_set.h>
 
+#include <pybind11/eigen.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <memory>
 namespace py = pybind11;
+namespace kv = kwiver::vital;
 
-typedef kwiver::vital::match match_t;
-typedef kwiver::vital::match_set match_set_t;
-typedef kwiver::vital::simple_match_set s_match_set_t;
+// Helpers to call pure virtual functions from base reference.
+// We'll use these to test that these methods can be overriden in C++
+PYBIND11_MODULE( match_set_helpers, m )
+{
+  m.def( "call_size", [] ( const kv::match_set& self )
+  {
+    return self.size();
+  });
 
-void match_set(py::module &m);
-
-#endif
+  m.def( "call_matches", [] ( const kv::match_set& self )
+  {
+    return self.matches();
+  });
+}

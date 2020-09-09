@@ -452,6 +452,7 @@ if(NOT SKBUILD)
     local_cartesian
     rotation
     local_geo_cs
+    match_set
     metadata
     metadata_map
     metadata_tags

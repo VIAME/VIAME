@@ -46,6 +46,7 @@ set(__testable_modnames
   test_landmark
   test_local_cartesian
   test_local_geo_cs
+  test_match_set
   test_metadata
   test_metadata_tags
   test_metadata_traits
