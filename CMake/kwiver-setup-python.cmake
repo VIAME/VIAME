@@ -203,6 +203,22 @@ mark_as_advanced(PYTHON_ABIFLAGS)
   set(pybind11_library     python)
   find_package(pybind11)
 
+###
+# Pybind11 Bindings Test Runner - nosetests
+# find local install of nosetests executable, search for version associated with kwiver
+# first, default to v 3.4, the most recent version provided by pip install
+# alternatively users can install the version of nose specific
+# to the version of python they're running with kwiver
+#
+#
+  find_program (NOSE_RUNNER NAMES
+  "nosetests-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+  "nosetests${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+  "nosetests-${PYTHON_VERSION_MAJOR}"
+  "nosetests${PYTHON_VERSION_MAJOR}"
+  "nosetests-3.4"
+  "nosetests3.4"
+  "nosetests")
 
 ###
 # Python package build locations

@@ -2,20 +2,7 @@
 # Script to set up environment for python nosetests
 #
 
-# find local install of nosetests executable, search for version associated with kwiver
-# first, default to v 3.4, the most recent version provided by pip install
-# alternatively users can install the version of nose specific
-# to the version of python they're running with kwiver
-find_program (NOSE_RUNNER NAMES
-            "nosetests-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-            "nosetests${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-            "nosetests-${PYTHON_VERSION_MAJOR}"
-            "nosetests${PYTHON_VERSION_MAJOR}"
-            "nosetests-3.4"
-            "nosetests3.4")
 
-# set test runner to nose tools if available, if not, report that python vital tests
-# will not be run
 # results of tests being run will be exported to an Xunit xml file
 if (NOSE_RUNNER)
 
