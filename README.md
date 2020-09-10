@@ -107,7 +107,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5e8d3ad42660cbefba9dd13c/download)
 
 **Custom Distributions:** <br>
-[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](re-building) <br>
+[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5f5a332450a41e3d19795877/download) <br>
 [Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5f594a1450a41e3d197672e4/download) <br>
 [Seal Multi-View GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5f594dca50a41e3d1976743e/download) <br>
 [Seal Multi-View GUI, Generic Linux, GPU Enabled](https://data.kitware.com/api/v1/item/5f594e5650a41e3d197674e7/download)
