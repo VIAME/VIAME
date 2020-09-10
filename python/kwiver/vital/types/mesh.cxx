@@ -40,9 +40,31 @@ PYBIND11_MODULE(mesh, m)
   py::class_<kwiver::vital::mesh,
              std::shared_ptr<kwiver::vital::mesh> >(m, "Mesh")
     .def(py::init<>())
-    .def("num_verts", &kwiver::vital::mesh::num_verts)
-    .def("num_faces", &kwiver::vital::mesh::num_faces)
-    .def("num_edges", &kwiver::vital::mesh::num_edges)
+    .def("is_init",   &kwiver::vital::mesh::is_init)
+    .def("num_verts", [](kwiver::vital::mesh& self)
+    {
+      if(self.is_init())
+      {
+        return self.num_verts();
+      }
+      return (unsigned int)0;
+    })
+    .def("num_faces", [](kwiver::vital::mesh& self)
+    {
+      if(self.is_init())
+      {
+        return self.num_faces();
+      }
+      return (unsigned int)0;
+    })
+    .def("num_edges", [](kwiver::vital::mesh& self)
+    {
+      if(self.is_init())
+      {
+        return self.num_edges();
+      }
+      return (unsigned int)0;
+    })
     .def_static("from_ply_file", [](std::string path)
                                  {
                                    return kwiver::vital::read_ply(path);
