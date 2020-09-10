@@ -249,19 +249,19 @@ target_link_libraries(python-vital.types-iqr_feedback
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
-# kwiver_add_python_library(landmark
-#   vital/types
-#   landmark.cxx)
-# target_link_libraries(python-vital.types-landmark
-#   PUBLIC ${PYTHON_LIBRARIES}
-#          vital)
+kwiver_add_python_library(landmark
+  vital/types
+  landmark.cxx)
+target_link_libraries(python-vital.types-landmark
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-# kwiver_add_python_library(landmark_map
-#   vital/types
-#   landmark_map.cxx)
-# target_link_libraries(python-vital.types-landmark_map
-#   PUBLIC ${PYTHON_LIBRARIES}
-#          vital)
+kwiver_add_python_library(landmark_map
+  vital/types
+  landmark_map.cxx)
+target_link_libraries(python-vital.types-landmark_map
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
 kwiver_add_python_library(local_cartesian
   vital/types
@@ -447,8 +447,8 @@ if(NOT SKBUILD)
     homography_f2f
     homography_f2w
     iqr_feedback
-    # landmark
-    # landmark_map
+    landmark
+    landmark_map
     local_cartesian
     rotation
     local_geo_cs

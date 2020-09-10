@@ -8,6 +8,8 @@ set(__helper_modnames
   camera_perspective_helpers
   camera_perspective_map_helpers
   camera_rpc_helpers
+  landmark_helpers
+  landmark_map_helpers
   match_set_helpers
   metadata_map_helpers
   )
