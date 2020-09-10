@@ -48,6 +48,7 @@ set(__testable_modnames
   test_local_cartesian
   test_local_geo_cs
   test_match_set
+  test_mesh
   test_metadata
   test_metadata_tags
   test_metadata_traits
@@ -102,4 +103,14 @@ if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
       kwiver_add_nosetests(${test} python)
     endforeach()
 
+endif()
+
+
+if (KWIVER_ENABLE_TESTS)
+  set(_test_data
+        "data/airplane.ply")
+
+  foreach (file_name IN LISTS _test_data)
+    kwiver_python_add_test_data(${file_name} ${mod_dst})
+  endforeach()
 endif()

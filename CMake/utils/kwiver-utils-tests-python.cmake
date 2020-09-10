@@ -175,3 +175,19 @@ function (kwiver_add_nosetests name targ)
                        test-python-${name})
   endif ()
 endfunction()
+
+
+###
+# Add test data to nosetest directory
+#
+function (kwiver_python_add_test_data file_name mod_path)
+
+  if(SKBUILD)
+    set ( install_path "${mod_path}/data")
+  else()
+    set ( install_path "${mod_path}/data")
+  endif()
+
+  file(COPY ${file_name} DESTINATION ${install_path})
+
+endfunction()
