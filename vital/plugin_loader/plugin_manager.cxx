@@ -35,7 +35,7 @@
 
 #include "plugin_manager.h"
 
-#include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
+#include <vital/kwiver-include-paths.h>
 #include <vital/logger/logger.h>
 #include <vital/plugin_loader/plugin_filter_category.h>
 #include <vital/plugin_loader/plugin_filter_default.h>
