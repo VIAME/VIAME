@@ -24,7 +24,4 @@ if (NOSE_RUNNER)
                          ${mod_dst}
                          --with-xunit
                          --xunit-file=nose_results.xml  )
-else ()
-  message (STATUS "nosetests not found, Python tests will not be run.
-                  (To run install nosetests compatible with Python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})")
 endif()

@@ -210,17 +210,24 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 # sets the python dependencies defiened in python/requirements.txt
 # to be a custom command of the python libraries target
 # the user flag is required when not executing inside a venv, we always pass it
-set(PIP_COMMAND "python" "-m" "pip" "install" "--user" "-r" "${KWIVER_SOURCE_DIR}/python/requirements.txt")
+set(PIP_COMMAND "python"
+                "-m"
+                "pip"
+                "install"
+                "--user"
+                "-r"
+                "${KWIVER_SOURCE_DIR}/python/requirements.txt")
 
-message (STATUS "${PIP_COMMAND}")
 execute_process (
-                    COMMAND ${PIP_COMMAND}
-                    RESULT_VARIABLE pip_install_result
-                    ERROR_VARIABLE pip_install_error
-                    )
+                  COMMAND ${PIP_COMMAND}
+                  RESULT_VARIABLE pip_install_result
+                  ERROR_VARIABLE pip_install_error
+                )
 
 if (pip_install_result AND NOT pip_install_result EQUAL 0)
-  message (WARNING "pip install failed, python may have unmet dependencies\nError: ${pip_install_error}\nPython Executable: ${PYTHON_EXECUTABLE}")
+  message (WARNING "pip install failed, python may have unmet dependencies\n
+                    Error: ${pip_install_error}\n
+                    Python Executable: ${PYTHON_EXECUTABLE}")
 else()
   message (STATUS "pip install sucessfull")
 endif()
@@ -234,6 +241,7 @@ endif()
 # to the version of python they're running with kwiver
 #
 #
+if (KWIVER_ENABLE_TESTS)
   find_program (NOSE_RUNNER NAMES
   "nosetests-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
   "nosetests${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
@@ -243,6 +251,15 @@ endif()
   "nosetests3.4"
   "nosetests")
 
+  if (NOSE_RUNNER)
+
+    message (STATUS "Found nosetests. Python tests will be run if testing is enabled. ")
+
+  else()
+    message (STATUS "nosetests not found, Python tests will not be run.
+                    (To run install nosetests compatible with Python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})")
+  endif()
+endif()
 ###
 # Python package build locations
 #
