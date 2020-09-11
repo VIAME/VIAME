@@ -10,3 +10,6 @@ torchvision==0.5.0
 nose
 coverage
 pytest
+
+# For autopybind
+wheel
