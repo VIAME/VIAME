@@ -203,6 +203,29 @@ mark_as_advanced(PYTHON_ABIFLAGS)
   set(pybind11_library     python)
   find_package(pybind11)
 
+
+###
+# Python Dependencies
+#
+# sets the python dependencies defiened in python/requirements.txt
+# to be a custom command of the python libraries target
+# the user flag is required when not executing inside a venv, we always pass it
+set(PIP_COMMAND "${PYTHON_EXECUTABLE}" "-m" "pip" "install" "--user" "-r" "${KWIVER_SOURCE_DIR}/python/requirements.txt")
+
+
+execute_process (
+                    COMMAND ${PIP_COMMAND}
+                    RESULT_VARIABLE pip_install_result
+                    ERROR_VARIABLE pip_install_error
+                    )
+
+if (pip_install_result AND NOT pip_install_result EQUAL 0)
+  message (WARNING "pip install failed, python may have unmet dependencies\n Error: ${pip_install_error}")
+else()
+  message (STATUS "pip install sucessfull")
+endif()
+
+
 ###
 # Pybind11 Bindings Test Runner - nosetests
 # find local install of nosetests executable, search for version associated with kwiver
