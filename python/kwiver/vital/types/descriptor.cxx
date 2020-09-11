@@ -131,43 +131,21 @@ PYBIND11_MODULE(descriptor, m)
   py::class_<kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor>>(m, "Descriptor")
   .def("sum", &sum_descriptors)
   .def("todoublearray", &kwiver::vital::descriptor::as_double)
-  // as_bytes typically returns a raw ptr to and unsigned char array, which python interprets as 0
+  // as_bytes typically returns a raw ptr to an unsigned char array, which python interprets as 0
   // return a vector instead
   .def("tobytearray", ([](std::shared_ptr<kwiver::vital::descriptor> self){
     std::vector<unsigned char> ret_vec;
     const unsigned char* data = self->as_bytes();
     const size_t bytes = self->num_bytes();
     size_t idx = 0;
-    for (; *(data+idx); idx++)
+    for (; idx<bytes; idx++)
     {
       ret_vec.push_back(data[idx]);
     }
-    if( idx < bytes )
-    {
-      for(; idx < bytes; idx++)
-      {
-        ret_vec.push_back(0);
-      }
-    }
     return ret_vec;
    }))
-  .def("__eq__", ([](std::shared_ptr<kwiver::vital::descriptor> self, std::shared_ptr<kwiver::vital::descriptor> other)
-  {
-    if(self->size() != other->size())
-    {
-      return false;
-    }
-    auto self_bytes = self->as_bytes();
-    auto other_bytes = other->as_bytes();
-    for (size_t idx = 0; *(self_bytes+idx); idx++)
-    {
-      if(*(self_bytes+idx)!=*(other_bytes+idx))
-      {
-        return false;
-      }
-    }
-    return true;
-  }))
+
+  .def("__eq__", &kwiver::vital::descriptor::operator==)
   .def("__ne__", &kwiver::vital::descriptor::operator!=)
   .def_property_readonly("size", &kwiver::vital::descriptor::size)
   .def_property_readonly("nbytes", &kwiver::vital::descriptor::num_bytes)

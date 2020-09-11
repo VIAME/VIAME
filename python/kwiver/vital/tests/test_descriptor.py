@@ -104,8 +104,11 @@ class TestDescriptor (unittest.TestCase):
         nose.tools.assert_equal(sum(b), 0)
 
     def test_operators(self):
-        d = new_descriptor(64)
-        b = new_descriptor(64)
-        c = new_descriptor(10)
-        nose.tools.ok_((d==b))
+        d = new_descriptor(10)
+        b = new_descriptor(10)
+        c = new_descriptor(5)
+        d[:] = 1
+        b[:] = 1
+        nose.tools.ok_(d==b)
         nose.tools.ok_(c!=b)
+        nose.tools.ok_(not c!=c)
