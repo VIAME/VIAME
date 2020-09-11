@@ -290,7 +290,7 @@ class NetHarnTrainer( TrainDetector ):
         for i, item in enumerate( init_truth ):
             if item.type() is None:
                 continue
-            class_lbl = item.type().get_most_likely_class()
+            class_lbl = item.type.get_most_likely_class()
             if categories is not None and not categories.has_class_id( class_lbl ):
                 if self._mode == "detection_refiner":
                     class_lbl = self._negative_category

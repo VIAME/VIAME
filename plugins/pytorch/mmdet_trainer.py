@@ -264,9 +264,9 @@ class MMDetTrainer( TrainDetector ):
 
             for i, item in enumerate( groundtruth ):
 
-                class_lbl = item.type().get_most_likely_class()
+                class_lbl = item.type.get_most_likely_class()
 
-                if categories is not None and not categories.has_class_id( class_lbl ):
+                if categories is not None and not categories.has_class_name( class_lbl ):
                     continue
 
                 obj_box = [ [ item.bounding_box().min_x(),
