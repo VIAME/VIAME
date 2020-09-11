@@ -1,3 +1,6 @@
+if( KWIVER_ENABLE_PYTORCH )
+  add_subdirectory( pytorch )
+endif()
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/kwiver_process.py
   sprokit/processes

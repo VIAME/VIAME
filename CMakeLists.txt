@@ -142,7 +142,7 @@ if (KWIVER_ENABLE_PYTHON)
     OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
   endif()
 
-  if ( NOT KWIVER_ENABLE_C_BINDINGS )
+  if( NOT KWIVER_ENABLE_C_BINDINGS )
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS "
       "is also enabled." )
   endif()
