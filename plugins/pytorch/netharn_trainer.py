@@ -250,8 +250,8 @@ class NetHarnTrainer( TrainDetector ):
         for i, item in enumerate( init_truth ):
             if item.type() is None:
                 continue
-            class_lbl = item.type().get_most_likely_class()
-            if categories is not None and not categories.has_class_id( class_lbl ):
+            class_lbl = item.type.get_most_likely_class()
+            if categories is not None and not categories.has_class_name( class_lbl ):
                 continue
             if categories is not None:
                 class_lbl = categories.get_class_name( class_lbl )
