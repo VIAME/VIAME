@@ -38,6 +38,20 @@ if ( NOT TARGET python)
   add_custom_target(python)
 endif()
 
+###
+# Python Dependencies
+#
+# sets the python dependencies defiened in python/requirements.txt
+# to be a custom command of the python libraries target
+set(PIP_COMMAND ${PYTHON_EXECUTABLE} "-m" "pip" "install" "-r" "${KWIVER_SOURCE_DIR}/python/requirements.txt")
+
+
+add_custom_command (TARGET python
+                    POST_BUILD
+                    COMMAND ${PIP_COMMAND}
+                    COMMENT "pip installing requirements.txt"
+                    )
+
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py\\.in$")
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py$")
 
