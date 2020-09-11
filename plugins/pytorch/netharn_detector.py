@@ -261,13 +261,13 @@ def _kwiver_to_kwimage_detections(detected_objects):
     classes = []
     if len(detected_objects) > 0:
         obj = ub.peek(detected_objects)
-        classes = obj.type().all_class_names()
+        classes = obj.type.all_class_names()
 
     for obj in detected_objects:
-        box = obj.bounding_box()
+        box = obj.bounding_box
         tlbr = [box.min_x(), box.min_y(), box.max_x(), box.max_y()]
-        score = obj.confidence()
-        cname = obj.type().get_most_likely_class()
+        score = obj.confidence
+        cname = obj.type.get_most_likely_class()
         cidx = classes.index(cname)
         boxes.append(tlbr)
         scores.append(score)
