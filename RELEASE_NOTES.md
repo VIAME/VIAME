@@ -1,3 +1,20 @@
+v0.10.11 - 9/14/2020
+====================
+
+
+-Upgrade multiple dependencies: pytorch, cuda, nvidia driver, mmdet
+
+
+-Additional support for full frame classifiers
+
+
+-Support viame csv for polygon saveout from desktop annotator
+
+
+-Seal multi-view GUI fix zooming issue, allow scoring editing
+
+
+
 v0.10.10 - 7/30/2020
 ====================
 
