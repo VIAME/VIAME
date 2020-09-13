@@ -199,6 +199,7 @@ class NetHarnTrainer( TrainDetector ):
         self._training_data = []
         self._validation_data = []
         self._sample_count = 0
+        return True
 
     def check_configuration( self, cfg ):
         if not cfg.has_value( "identifier" ) or \

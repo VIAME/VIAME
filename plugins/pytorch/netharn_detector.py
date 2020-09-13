@@ -96,6 +96,7 @@ class NetharnDetector(ImageObjectDetector):
 
         # kwiver configuration variables
         self._kwiver_config = {
+            'mode': "detector",
             'deployed': "",
             'thresh': 0.01,
             'xpu': "0",
@@ -181,13 +182,26 @@ class NetharnDetector(ImageObjectDetector):
                 elif gpu_mem >= 7e9:
                     self._kwiver_config['batch_size'] = 3
 
-        from bioharn import detect_predict
-        pred_config = detect_predict.DetectPredictConfig()
-        pred_config['batch_size'] = self._kwiver_config['batch_size']
-        pred_config['deployed'] = self._kwiver_config['deployed']
-        pred_config['xpu'] = self._kwiver_config['xpu']
-        self.predictor = detect_predict.DetectPredictor(pred_config)
+        if self._kwiver_config['mode'] == "detector":
+            from bioharn import detect_predict
+            pred_config = detect_predict.DetectPredictConfig()
+            pred_config['batch_size'] = self._kwiver_config['batch_size']
+            pred_config['deployed'] = self._kwiver_config['deployed']
+            pred_config['xpu'] = self._kwiver_config['xpu']
+            self.predictor = detect_predict.DetectPredictor(pred_config)
+        elif self._kwiver_config['mode'] == "frame_classifier":
+            from bioharn import clf_predict
+            pred_config = clf_predict.ClfPredictConfig()
+            pred_config['batch_size'] = self._kwiver_config['batch_size']
+            pred_config['deployed'] = self._kwiver_config['deployed']
+            pred_config['xpu'] = self._kwiver_config['xpu']
+            self.predictor = clf_predict.ClftPredictor(pred_config)
+        else:
+            print( "Invalid mode string " + self._kwiver_config['mode'] )
+            return False
+
         self.predictor._ensure_model()
+        return True
 
     def check_configuration(self, cfg):
         if not cfg.has_value("deployed"):

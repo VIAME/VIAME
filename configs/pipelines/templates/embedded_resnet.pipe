@@ -1,0 +1,34 @@
+# ==============================================================================
+#
+# ResNet Classifier
+#
+# ==============================================================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+# ==============================================================================
+
+process classifier1
+  :: image_object_detector
+  :detector:type                               netharn
+
+  :mode                                        frame_classifier
+  relativepath deployed =                      [-model-file-]
+
+connect from detector_input.image
+        to   classifier1.image
+
+# ==============================================================================
+
+process detector_output
+  :: merge_detection_sets
+
+connect from classifier1.detected_object_set
+        to   detector_output.detected_object_set1
