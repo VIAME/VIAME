@@ -195,7 +195,7 @@ class NetharnDetector(ImageObjectDetector):
             pred_config['batch_size'] = self._kwiver_config['batch_size']
             pred_config['deployed'] = self._kwiver_config['deployed']
             pred_config['xpu'] = self._kwiver_config['xpu']
-            self.predictor = clf_predict.ClftPredictor(pred_config)
+            self.predictor = clf_predict.ClfPredictor(pred_config)
         else:
             print( "Invalid mode string " + self._kwiver_config['mode'] )
             return False

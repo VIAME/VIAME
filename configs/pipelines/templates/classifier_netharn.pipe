@@ -67,8 +67,10 @@ process classifier1
   :: image_object_detector
   :detector:type                               netharn
 
-  :mode                                        frame_classifier
-  relativepath deployed =                      [-model-file-]
+  block detector:netharn
+    :mode                                      frame_classifier
+    relativepath deployed =                    [-model-file-]
+  endblock
 
 connect from detector_input.image
         to   classifier1.image
