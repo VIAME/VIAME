@@ -42,7 +42,7 @@ from kwiver.vital.types import (
     BoundingBoxD as bb,
     descriptor,
     DetectedObject as do,
-    ClassMap as cm,
+    DetectedObjectType as dot,
     Image,
     ImageContainer,
     geodesy,
@@ -73,9 +73,9 @@ class TestDetectedObjectSet(unittest.TestCase):
         self.conf = 0.5
         self.conf2 = 0.4
         self.conf3 = 0.75
-        self.cm = cm("example_class", 0.4)
-        self.cm2 = cm("foo2", 3.14)
-        self.cm3 = cm("foo3", 0.11)
+        self.cm = dot("example_class", 0.4)
+        self.cm2 = dot("foo2", 3.14)
+        self.cm3 = dot("foo3", 0.11)
         self.mask = ImageContainer(Image(1080, 720))
         self.mask2 = ImageContainer(Image(1920, 1080))
         self.mask3 = ImageContainer(Image(720, 1080))

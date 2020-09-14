@@ -65,6 +65,5 @@ PYBIND11_MODULE(track, m)
   .def_property_readonly("is_empty", &kwiver::vital::track::empty)
   .def_property_readonly("first_frame", &kwiver::vital::track::first_frame)
   .def_property_readonly("last_frame", &kwiver::vital::track::last_frame)
-
   ;
 }

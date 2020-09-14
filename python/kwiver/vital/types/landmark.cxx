@@ -15,50 +15,6 @@ namespace py = pybind11;
 namespace kv = kwiver::vital;
 using namespace kwiver::vital;
 
-// std::shared_ptr<PyLandmarkBase>
-// new_landmark(py::object loc_obj, py::object scale_obj, char ctype)
-// {
-//   std::shared_ptr<PyLandmarkBase> retVal;
-//   if(ctype == 'd')
-//   {
-//     // Get our arguments, taking care of default cases
-//     Eigen::Matrix<double, 3, 1> loc = Eigen::Matrix<double, 3, 1>();
-//     loc << 0,0,0;
-//     if(!loc_obj.is(py::none()))
-//     {
-//       loc = loc_obj.cast<Eigen::Matrix<double, 3, 1>>();
-//     }
-
-//     double scale = 1.;
-//     if(!scale_obj.is(py::none()))
-//     {
-//       scale = scale_obj.cast<double>();
-//     }
-
-//     retVal = std::shared_ptr<PyLandmarkBase>(new PyLandmarkd(loc, scale));
-//   }
-//   else if(ctype == 'f')
-//   {
-//     // Get our arguments, taking care of default cases
-//     Eigen::Matrix<float, 3, 1> loc = Eigen::Matrix<float, 3, 1>();
-//     loc << 0,0,0;
-//     if(!loc_obj.is(py::none()))
-//     {
-//       loc = loc_obj.cast<Eigen::Matrix<float, 3, 1>>();
-//     }
-
-//     float scale = 1.;
-//     if(!scale_obj.is(py::none()))
-//     {
-//       scale = scale_obj.cast<float>();
-//     }
-
-//     retVal = std::shared_ptr<PyLandmarkBase>(new PyLandmarkf(loc, scale));
-//   }
-
-//   return retVal;
-// }
-
 template <typename T>
 void reg_landmark(py::module &m, std::string &&type_str)
 {

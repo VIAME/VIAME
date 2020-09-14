@@ -40,7 +40,6 @@ namespace kv=kwiver::vital;
 
 PYBIND11_MODULE(track_descriptor, m)
 {
-
   // First the history_entry class nested in track_descriptor
   py::class_<kv::track_descriptor::history_entry, std::shared_ptr<kv::track_descriptor::history_entry>>(m, "HistoryEntry")
   .def(py::init<const kv::timestamp&,

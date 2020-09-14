@@ -39,7 +39,7 @@ import numpy as np
 from kwiver.vital.types import (
     BoundingBoxD as BoundingBox,
     DetectedObject,
-    ClassMap,
+    DetectedObjectType,
     geodesy as g,
     GeoPoint,
     Image,
@@ -66,8 +66,8 @@ class TestVitalQueryResult(object):
     # See TestObjectTrackSet._create_track
     def _create_object_track_set(self):
         bbox = BoundingBox(10, 10, 20, 20)
-        cm = ClassMap("test", 0.4)
-        do = DetectedObject(bbox, 0.4, cm)
+        dot = DetectedObjectType("test", 0.4)
+        do = DetectedObject(bbox, 0.4, dot)
         track = Track()
         for i in range(10):
             track.append(ObjectTrackState(i, i, do))

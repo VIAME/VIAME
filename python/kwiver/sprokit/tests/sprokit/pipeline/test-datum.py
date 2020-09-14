@@ -215,9 +215,9 @@ def test_add_get_vital_types():
     from kwiver.sprokit.pipeline import datum
     from kwiver.vital import types as kvt
 
-    datum_inst = datum.new_bounding_box(kvt.BoundingBox(1, 1, 2, 2))
+    datum_inst = datum.new_bounding_box(kvt.BoundingBoxD(1, 1, 2, 2))
     retrieved_val = datum_inst.get_bounding_box()
-    check_same_type(retrieved_val, kvt.BoundingBox(1, 1, 2, 2))
+    check_same_type(retrieved_val, kvt.BoundingBoxD(1, 1, 2, 2))
 
     datum_inst = datum.new_timestamp(kvt.Timestamp())
     retrieved_val = datum_inst.get_timestamp()
@@ -227,7 +227,7 @@ def test_add_get_vital_types():
     retrieved_val = datum_inst.get_f2f_homography()
     check_same_type(retrieved_val, kvt.F2FHomography(1))
 
-    check_automatic_conversion(kvt.BoundingBox(1, 1, 2, 2))
+    check_automatic_conversion(kvt.BoundingBoxD(1, 1, 2, 2))
     check_automatic_conversion(kvt.Timestamp())
     check_automatic_conversion(kvt.F2FHomography(1))
 

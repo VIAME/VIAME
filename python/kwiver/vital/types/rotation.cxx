@@ -11,7 +11,6 @@
 #include <memory>
 #include <vector>
 
-
 namespace py = pybind11;
 namespace kv = kwiver::vital;
 namespace kwiver {
@@ -35,8 +34,6 @@ rot_interpolated_rotations( kv::rotation_< T > const& A, kv::rotation_< T > cons
   interpolated_rotations(A, B, n, ret);
   return ret;
 }
-
-
 
 // Easy way to automate bindings of templated classes.
 // For more information, see below link
@@ -106,7 +103,6 @@ void declare_rotation( py::module &m,
 
   m.def( "interpolate_rotation", &kv::interpolate_rotation< T > );
   m.def( "interpolated_rotations", &rot_interpolated_rotations< T > );
-
 
 }
 }

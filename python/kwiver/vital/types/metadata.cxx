@@ -171,5 +171,4 @@ PYBIND11_MODULE( metadata, m )
   m.def( "test_equal_content", &test_equal_content )
   ;
 }
-
 #undef REGISTER_TYPED_METADATA

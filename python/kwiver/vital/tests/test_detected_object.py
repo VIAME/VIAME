@@ -42,7 +42,7 @@ from kwiver.vital.types import (
     BoundingBoxD as BoundingBox,
     descriptor,
     DetectedObject,
-    ClassMap,
+    DetectedObjectType,
     Image,
     ImageContainer,
     geodesy,
@@ -58,7 +58,7 @@ class TestVitalDetectedObject(unittest.TestCase):
 
         self.bbox = BoundingBox(10, 10, 20, 20)
         self.conf = 0.5
-        self.dot = ClassMap("example_class", 0.4)
+        self.dot = DetectedObjectType("example_class", 0.4)
         self.mask = ImageContainer(Image(1080, 720))
 
         # Values to set outside of constructor
@@ -274,7 +274,7 @@ class TestVitalDetectedObject(unittest.TestCase):
         nt.ok_(self.check_det_obj_types_equal(do.type, self.dot))
 
         # Check setting through constructor
-        new_dot = ClassMap("other_example_class", -3.14)
+        new_dot = DetectedObjectType("other_example_class", -3.14)
         do = DetectedObject(self.bbox, classifications=new_dot)
         nt.ok_(self.check_det_obj_types_equal(do.type, new_dot))
 

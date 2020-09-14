@@ -44,7 +44,7 @@ PYBIND11_MODULE( landmark_helpers, m )
 {
   m.def( "call_clone", [] ( const kv::landmark& self)
   {
-      return self.clone();
+    return self.clone();
   });
   m.def( "call_get_type", [] ( const kv::landmark& self )
   {

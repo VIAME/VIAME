@@ -77,6 +77,5 @@ PYBIND11_MODULE( sfm_constraints, m )
       bool found = self.get_focal_length_prior(fid, focal_length);
       return std::make_tuple(found, focal_length);
   })
-
   ;
 }

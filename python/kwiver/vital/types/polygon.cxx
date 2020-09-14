@@ -40,9 +40,6 @@
 namespace py=pybind11;
 namespace kv=kwiver::vital;
 
-
-
-
 PYBIND11_MODULE(polygon, m)
 {
   py::class_< kv::polygon, std::shared_ptr< kv::polygon > >(m, "Polygon")

@@ -64,8 +64,6 @@ PYBIND11_MODULE(transform_2d, m)
     std::shared_ptr<kv::transform_2d>>(m, "Transform2D")
   .def(py::init<>())
   .def("map", &kv::transform_2d::map)
-  // TODO: commenting inverse out is required by the workaround in the link below, but
-  // inverse is public, so users will be expecting it in the binding code
   .def("inverse", &kv::transform_2d::inverse)
   ;
 }

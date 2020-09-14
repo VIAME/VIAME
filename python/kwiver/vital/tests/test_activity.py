@@ -38,7 +38,8 @@ import unittest
 import nose.tools as nt
 import numpy as np
 from kwiver.vital.types import ( Activity,
-            ClassMap,
+            ActivityType,
+            DetectedObjectType,
             Timestamp,
             BoundingBoxD as BoundingBox,
             DetectedObject,
@@ -51,7 +52,7 @@ class TestActivity(unittest.TestCase):
     @classmethod
     def setUp(self):
         bbox = BoundingBox(10, 10, 20, 20)
-        dot  = ClassMap("test", 0.4)
+        dot  = DetectedObjectType("test", 0.4)
         do = DetectedObject(bbox, 0.4, dot)
         track = Track()
         for i in range(10):
@@ -62,11 +63,11 @@ class TestActivity(unittest.TestCase):
         self.time_2 = Timestamp()
         self.time_2.set_time_seconds(4321)
         self.obj_ts = ObjectTrackSet([self.track_])
-        self.act_type = ClassMap("self_act", 0.87)
+        self.act_type = ActivityType("self_act", 0.87)
         self.act = Activity(1, "self_act", 0.87, self.act_type, self.time_1, self.time_2, self.obj_ts)
     def test_constructors(self):
         Activity()
-        Activity(1, "first_act", 0.87, ClassMap(), self.time_1, self.time_2)
+        Activity(1, "first_act", 0.87, ActivityType(), self.time_1, self.time_2)
     def test_id(self):
         a = self.act
         self.assertEqual(a.id, 1)
@@ -76,7 +77,7 @@ class TestActivity(unittest.TestCase):
         a.label = "second_act"
         self.assertEqual(a.label, "second_act")
         self.assertEqual(a.activity_type.score("self_act"), 0.87)
-        a.activity_type = ClassMap()
+        a.activity_type = ActivityType()
         self.assertEqual(a.confidence, 0.87)
         a.confidence = 1
         self.assertEqual(a.confidence, 1)
@@ -91,7 +92,7 @@ class TestActivity(unittest.TestCase):
         self.assertEqual(a.end_time.get_time_seconds(), 4322)
         self.assertEqual(a.participants.all_frame_ids(), set(range(10)))
         bbox = BoundingBox(10, 10, 20, 20)
-        dot  = ClassMap("test", 0.4)
+        dot  = DetectedObjectType("test", 0.4)
         do = DetectedObject(bbox, 0.4, dot)
         track = Track()
         for i in range(5):

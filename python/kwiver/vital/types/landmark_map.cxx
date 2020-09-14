@@ -44,64 +44,63 @@ class landmark_map_trampoline
 : public landmark_map
 {
 public:
-    using landmark_map::landmark_map;
-    size_t size() const override;
-    map_landmark_t landmarks() const override;
+  using landmark_map::landmark_map;
+  size_t size() const override;
+  map_landmark_t landmarks() const override;
 };
 
 
 PYBIND11_MODULE(landmark_map, m)
 {
-    py::bind_map< map_landmark_t >(m, "LandmarkDict");
+  py::bind_map< map_landmark_t >(m, "LandmarkDict");
 
-    py::class_< landmark_map, std::shared_ptr< landmark_map >, landmark_map_trampoline >(m, "LandmarkMap")
-    .def(py::init())
-    .def("size", &landmark_map::size)
-    .def("landmarks", &landmark_map::landmarks, py::return_value_policy::reference)
+  py::class_< landmark_map, std::shared_ptr< landmark_map >, landmark_map_trampoline >(m, "LandmarkMap")
+  .def(py::init())
+  .def("size", &landmark_map::size)
+  .def("landmarks", &landmark_map::landmarks, py::return_value_policy::reference)
 
-    .def("__repr__", [](py::object& self) -> std::string {
-        auto locals = py::dict(py::arg("self")=self);
-        py::exec(R"(
-            classname = self.__class__.__name__
-            retval = '<%s at %s>' % (classname, hex(id(self)))
-            )", py::globals(), locals);
-        return locals["retval"].cast<std::string>();
-    })
+  .def("__repr__", [](py::object& self) -> std::string {
+    auto locals = py::dict(py::arg("self")=self);
+    py::exec(R"(
+      classname = self.__class__.__name__
+      retval = '<%s at %s>' % (classname, hex(id(self)))
+      )", py::globals(), locals);
+    return locals["retval"].cast<std::string>();
+  })
 
-    .def("__str__", [](py::object& self) -> std::string {
-        auto locals = py::dict(py::arg("self")=self);
-        py::exec(R"(
-            classname = self.__class__.__name__
-            retval = '<%s>' % (classname)
-            )", py::globals(), locals);
-        return locals["retval"].cast<std::string>();
-    });
+  .def("__str__", [](py::object& self) -> std::string {
+    auto locals = py::dict(py::arg("self")=self);
+    py::exec(R"(
+      classname = self.__class__.__name__
+      retval = '<%s>' % (classname)
+      )", py::globals(), locals);
+    return locals["retval"].cast<std::string>();
+  });
 
 
-    py::class_< s_landmark_map, landmark_map, std::shared_ptr< s_landmark_map > >(m, "SimpleLandmarkMap")
-    .def(py::init<>())
-    .def(py::init< map_landmark_t >());
+  py::class_< s_landmark_map, landmark_map, std::shared_ptr< s_landmark_map > >(m, "SimpleLandmarkMap")
+  .def(py::init<>())
+  .def(py::init< map_landmark_t >());
 }
-
 
 size_t
 landmark_map_trampoline
 ::size() const
 {
-    PYBIND11_OVERLOAD_PURE(
-        size_t,
-        landmark_map,
-        size,
-    );
+  PYBIND11_OVERLOAD_PURE(
+    size_t,
+    landmark_map,
+    size,
+  );
 }
 
 map_landmark_t
 landmark_map_trampoline
 ::landmarks() const
 {
-    PYBIND11_OVERLOAD_PURE(
-        map_landmark_t,
-        landmark_map,
-        landmarks,
-    )
+  PYBIND11_OVERLOAD_PURE(
+    map_landmark_t,
+    landmark_map,
+    landmarks,
+  )
 }

@@ -60,23 +60,8 @@ using namespace kwiver::vital;
   .def( "tag", &vital_meta_trait<VITAL_META_ ## TAG>::tag) \
   ;
 
-
-// #define REGISTER_VITAL_META_TRAIT_OBJECTS( TAG, NAME, T, ... ) \
-//   py::class_< vital_meta_trait_object< VITAL_META_ ## TAG >, \
-//               std::shared_ptr< vital_meta_trait_object< VITAL_META_ ## TAG > >, \
-//               vital_meta_trait_base >( m, "VitalMetaTraitObject_" #TAG ) \
-//   .def( "create_metadata_item", \
-//     [] ( vital_meta_trait_object< VITAL_META_ ## TAG > const& self, const T& data ) \
-//   { \
-//     any< T > casted_data( data ); \
-//     return std::shared_ptr< metadata_item >( self.create_metadata_item( casted_data ) ); \
-//   }) \
-//   ;
-
 PYBIND11_MODULE( metadata_traits, m )
 {
-  // TODO: A few other classes need bindings here:
-  // 1.) vital_meta_trait<>?
 
   py::class_< vital_meta_trait_base,
               std::shared_ptr< vital_meta_trait_base > >( m, "VitalMetaTraitBase" )
@@ -96,28 +81,16 @@ PYBIND11_MODULE( metadata_traits, m )
   // Note that we are binding create_metadata_item in the subclasses
   ;
 
-  // TODO: May have to move the macro defining the vital_meta_trait_object
-  // instantiations into the header, since they are not defined there currently
-  // KWIVER_VITAL_METADATA_TAGS( REGISTER_VITAL_META_TRAIT_OBJECTS )
   KWIVER_VITAL_METADATA_TAGS( REGISTER_VTIAL_META_TRAITS )
 
   py::class_< metadata_traits,
               std::shared_ptr<metadata_traits> >( m, "MetadataTraits" )
   .def( py::init<>() )
   .def( "find", &metadata_traits::find, py::return_value_policy::reference_internal)
-  // .def_property_readonly( "typeid_for_tag", [] ( metadata_traits const& self, vital_metadata_tag tag )
-  // {
-  //   if ( self.typeid_for_tag( tag ) == typeid( std::string ))
-  //   {
-  //     return std::string( "string" );
-  //   }
-  //   return demangle( self.typeid_for_tag( tag ).name() );
-  // })
   .def( "tag_to_symbol",      &metadata_traits::tag_to_symbol )
   .def( "tag_to_name",        &metadata_traits::tag_to_name )
   .def( "tag_to_description", &metadata_traits::tag_to_description )
   ;
 }
 
-// #undef REGISTER_VITAL_META_TRAIT_OBJECTS
 #undef REGISTER_VITAL_META_TRAITS

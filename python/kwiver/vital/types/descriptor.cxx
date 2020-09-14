@@ -100,8 +100,6 @@ get_index(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, size_t idx
 }
 }
 }
-// TODO: add clone, and rest of trampoline
-//
 
 using namespace kwiver::vital::python;
 template<typename T>
@@ -144,7 +142,6 @@ PYBIND11_MODULE(descriptor, m)
     }
     return ret_vec;
    }))
-
   .def("__eq__", &kwiver::vital::descriptor::operator==)
   .def("__ne__", &kwiver::vital::descriptor::operator!=)
   .def_property_readonly("size", &kwiver::vital::descriptor::size)

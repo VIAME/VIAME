@@ -53,7 +53,6 @@ public:
   std::set< kv::frame_id_t > frames() override;
 };
 
-
 PYBIND11_MODULE( metadata_map, m )
 {
   py::class_< kv::metadata_map,

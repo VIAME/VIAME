@@ -38,7 +38,6 @@
 namespace py=pybind11;
 namespace kv=kwiver::vital;
 
-
 // Easy way to automate bindings of templated classes.
 // For more information, see below link
 // https://stackoverflow.com/questions/47487888/pybind11-template-class-of-many-types

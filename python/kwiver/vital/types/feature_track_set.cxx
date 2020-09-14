@@ -17,16 +17,6 @@ typedef kwiver::vital::feature_track_set feat_track_set;
 
 namespace kv = kwiver::vital;
 
-// std::shared_ptr<feat_track_state>
-// new_feat_track_state(int64_t frame,
-//                      std::shared_ptr<PyFeatureBase> py_feat,
-//                      std::shared_ptr<kwiver::vital::descriptor> d)
-// {
-//   std::shared_ptr<kwiver::vital::feature> f;
-//   f = std::shared_ptr<kwiver::vital::feature>(py_feat->get_feature());
-//   return std::shared_ptr<feat_track_state>(new feat_track_state(frame, f, d));
-// }
-
 std::shared_ptr<kwiver::vital::track>
 get_track(std::shared_ptr<feat_track_set> &self, uint64_t id)
 {
@@ -38,8 +28,6 @@ get_track(std::shared_ptr<feat_track_set> &self, uint64_t id)
 
   return track;
 }
-
-
 
 class feature_track_set_trampoline : public kv::feature_track_set
 {

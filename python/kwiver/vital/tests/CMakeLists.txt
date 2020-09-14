@@ -22,7 +22,6 @@ set(__testable_modnames
   test_covariance
   test_database_query
   test_detected_object_set
-  # test_detected_object_type
   test_descriptor
   test_descriptor_request
   test_descriptor_set

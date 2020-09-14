@@ -45,16 +45,16 @@ PYBIND11_MODULE( camera_perspective_map_helpers, m )
 {
   m.def( "call_size", [] ( const kv::camera_map_of_< kv::camera_perspective > &self )
   {
-      return self.size();
+    return self.size();
   });
 
   m.def( "call_cameras", [] ( const kv::camera_map_of_< kv::camera_perspective > &self )
   {
-      return self.cameras();
+    return self.cameras();
   });
 
   m.def( "call_get_frame_ids", [] ( const kv::camera_map_of_< kv::camera_perspective > &self )
   {
-      return self.get_frame_ids();
+    return self.get_frame_ids();
   });
 }

@@ -10,7 +10,6 @@ from kwiver.vital.types.camera_perspective import *
 from kwiver.vital.types.camera_perspective_map import *
 from kwiver.vital.types.camera_rpc import *
 from kwiver.vital.types.category_hierarchy import *
-from kwiver.vital.types.class_map import *
 from kwiver.vital.types.color import *
 from kwiver.vital.types.covariance import *
 from kwiver.vital.types.database_query import *

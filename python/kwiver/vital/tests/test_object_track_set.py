@@ -40,7 +40,7 @@ import numpy
 
 from six.moves import range
 
-from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, BoundingBox, \
+from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, BoundingBoxD as bbD, \
         DetectedObjectType as DOT, DetectedObject, Track
 
 
@@ -52,7 +52,7 @@ class TestObjectTrackSet (unittest.TestCase):
                     detected object however the fram number and time varies from
                     [0, 10)
         """
-        bbox = BoundingBox(10, 10, 20, 20)
+        bbox = bbD(10, 10, 20, 20)
         cm  = DOT("test", 0.4)
         do = DetectedObject(bbox, 0.4, cm)
         track = Track()

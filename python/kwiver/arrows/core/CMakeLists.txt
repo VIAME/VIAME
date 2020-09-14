@@ -16,11 +16,11 @@ kwiver_add_python_library( core
 )
 
 target_link_libraries( python-arrows.core-core
-  PUBLIC ${PYTHON_LIBRARIES}
+  PRIVATE ${PYTHON_LIBRARIES}
          vital
          kwiver_algo_core
 )
 
 kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-                                arrows/core
-                                __init__)
+                          arrows/core
+                          __init__)

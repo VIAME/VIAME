@@ -44,7 +44,7 @@ PYBIND11_MODULE( landmark_map_helpers, m )
 {
   m.def( "call_size", [] ( const kv::landmark_map& self)
   {
-      return self.size();
+    return self.size();
   });
   m.def( "call_landmarks", [] ( const kv::landmark_map& self )
   {

@@ -34,7 +34,6 @@
 
 namespace py=pybind11;
 
-
 PYBIND11_MODULE(uid, m)
 {
   py::class_<kwiver::vital::uid, std::shared_ptr<kwiver::vital::uid>>(m, "UID")

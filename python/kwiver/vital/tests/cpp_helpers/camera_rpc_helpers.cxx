@@ -43,12 +43,7 @@ class camera_rpc_publicist_helper : public kv::camera_rpc
 {
 public:
     using kv::camera_rpc::jacobian;
-    // static void jacobian_helper(const kv::camera_rpc &self, const kv::vector_3d &pt,
-    //                      kv::matrix_2x2d &J, kv::vector_2d &norm_pt)
-    // {
 
-    //     jacobian(pt, J, norm_pt);
-    // };
 };
 
 // Helpers to call pure virtual functions from base reference.
@@ -57,65 +52,54 @@ PYBIND11_MODULE( camera_rpc_helpers, m )
 {
   m.def( "call_clone", [] ( const kv::camera_rpc &self)
   {
-      return self.clone();
+    return self.clone();
   });
 
   m.def( "call_rpc_coeffs", [] ( const kv::camera_rpc &self )
   {
-      return self.rpc_coeffs();
+    return self.rpc_coeffs();
   });
 
   m.def( "call_world_scale", [] ( const kv::camera_rpc &self )
   {
-      return self.world_scale();
+    return self.world_scale();
   });
 
   m.def( "call_world_offset", [] ( const kv::camera_rpc &self )
   {
-      return self.world_offset();
+    return self.world_offset();
   });
 
   m.def( "call_image_scale", [] ( const kv::camera_rpc &self )
   {
-      return self.image_scale();
+    return self.image_scale();
   });
 
   m.def( "call_image_offset", [] ( const kv::camera_rpc &self )
   {
-      return self.image_offset();
+    return self.image_offset();
   });
 
   m.def( "call_image_width", [] ( const kv::camera_rpc &self )
   {
-      return self.image_width();
+    return self.image_width();
   });
 
   m.def( "call_image_height", [] ( const kv::camera_rpc &self )
   {
-      return self.image_height();
+    return self.image_height();
   });
 
   m.def( "call_project", [] ( const kv::camera_rpc &self,
                                const kv::vector_3d &pt )
-    {
-        return self.project(pt);
-    });
-
-//   m.def( "call_jacobian", [] ( const kv::camera_rpc &self,
-//                                      const kv::vector_3d &pt,
-//                                      kv::matrix_2x2d &J,
-//                                      kv::vector_2d &norm_pt )
-//   {
-
-//       ((camera_rpc_publicist_helper)(self)).jacobian(pt, J, norm_pt);
-//     //   return camera_rpc_publicist_helper::jacobian_helper(self,
-//     //                                                     pt, J, norm_pt);
-//   });
+  {
+    return self.project(pt);
+  });
 
   m.def( "call_back_project", [] ( const kv::camera_rpc &self,
                                          kv::vector_2d &pt,
                                          double elev )
   {
-      return self.back_project(pt, elev);
+    return self.back_project(pt, elev);
   });
 }
