@@ -150,7 +150,7 @@ function (kwiver_add_python_module path     modpath    module)
   # in source build this would be kwiver_python_install_path/project_name
   if(SKBUILD)
     set(pyfile_dst "${CMAKE_BINARY_DIR}/${modpath}/${module}.py")
-    set(mod_dist "${CMAKE_BINARY_DIR/${modpath}/")
+    set(mod_dist "${CMAKE_BINARY_DIR/${modpath}/" PARENT_SCOPE)
     # installation path for this module
     set(pypkg_install_path "${CMAKE_INSTALL_PREFIX}/${modpath}")
   else()
