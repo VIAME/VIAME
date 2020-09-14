@@ -16,7 +16,8 @@ file( COPY fish_no_fish.csv
 
 # Install remaining example files
 set( EXAMPLE_INSTALL_FILES
-     README.rst )
+     README.rst
+     input_list.txt )
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   if( WIN32 )
