@@ -4,7 +4,7 @@ REM Path to VIAME installation
 SET VIAME_INSTALL=.\..\..
 
 REM Processing options
-SET INPUT_DIRECTORY=training_data_mouss
+SET INPUT_DIRECTORY=training_data
 SET INITIAL_MODEL=category_models\trained_classifier.zip
 
 REM Disable warnings
