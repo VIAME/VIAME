@@ -1,5 +1,5 @@
-v0.10.11 - 9/14/2020
-====================
+v0.11.1 - 9/16/2020
+===================
 
 
 -Upgrade multiple dependencies: pytorch, cuda, nvidia driver, mmdet
