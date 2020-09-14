@@ -39,7 +39,6 @@ Notes:
 
     pip install netharn kwimage kwarray ndsampler
 
-
     git submodule add -b release git@gitlab.kitware.com:computer-vision/kwimage.git packages/kwimage
 """
 
@@ -61,18 +60,22 @@ except ImportError:
     from vital.types import DetectedObject
     from vital.types import DetectedObjectType
 
-import numpy as np
+import numpy as np  # NOQA
+import ubelt as ub
 
 
-class NetharnDetector(ImageObjectDetector):
+class NetharnClassifier(ImageObjectDetector):
     """
-    Implementation of ImageObjectDetector class
+    Full-Frame Classifier
+
+    Note: there is no kwiver base class for classifiers, so we abuse the
+    detector interface.
 
     CommandLine:
-        xdoctest -m ~/code/VIAME/plugins/pytorch/netharn_detector.py NetharnDetector --show
+        xdoctest -m ~/code/VIAME/plugins/pytorch/netharn_classifier.py NetharnClassifier --show
 
     Example:
-        >>> self = NetharnDetector()
+        >>> self = NetharnClassifier()
         >>> image_data = self.demo_image()
         >>> deployed_fpath = self.demo_deployed()
         >>> cfg_in = dict(
@@ -80,15 +83,11 @@ class NetharnDetector(ImageObjectDetector):
         >>>     xpu='0',
         >>> )
         >>> self.set_configuration(cfg_in)
-        >>> detected_objects = self.detect(image_data)
-        >>> # xdoctest: +REQUIRES(--show)
-        >>> import kwplot
-        >>> kwplot.autompl()
-        >>> full_rgb = image_data.asarray().astype('uint8')
-        >>> dets = _kwiver_to_kwimage_detections(detected_objects)
-        >>> canvas = dets.draw_on(full_rgb)
-        >>> kwplot.imshow(canvas)
-        >>> kwplot.show_if_requested()
+        >>> detected_objects = self.classify(image_data)
+        >>> object_type = detected_objects[0].type()
+        >>> class_names = object_type.all_class_names()
+        >>> cname_to_prob = {cname: object_type.score(cname) for cname in class_names}
+        >>> print('cname_to_prob = {}'.format(ub.repr2(cname_to_prob, nl=1, precision=4)))
     """
 
     def __init__(self):
@@ -97,7 +96,6 @@ class NetharnDetector(ImageObjectDetector):
         # kwiver configuration variables
         self._kwiver_config = {
             'deployed': "",
-            'thresh': 0.01,
             'xpu': "0",
             'batch_size': "auto"
         }
@@ -111,19 +109,29 @@ class NetharnDetector(ImageObjectDetector):
         Returns a path to a netharn deployed model
 
         Returns:
-            str: file path to a scallop detector
+            str: file path to a scallop classifier
         """
-        import ubelt as ub
-        url = 'https://data.kitware.com/api/v1/file/5dd3eb8eaf2e2eed3508d604/download'
-        deployed_fpath = ub.grabdata(
-            url, fname='deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix3.zip',
-            appname='viame', hash_prefix='22a1eeb18c9e5706f6578e66abda1e97',
-            hasher='sha512')
+        from bioharn import clf_fit
+        harn = clf_fit.setup_harn(cmdline=False, dataset='special:shapes128',
+                                  max_epoch=1, timeout=60)
+        harn.initialize()
+        if not harn.prev_snapshots():
+            # generate a model if needed
+            deployed_fpath = harn.run()
+        else:
+            deployed_fpath = harn.prev_snapshots()[-1]
+        # TODO: point to a pretrained model on data.kitware
+        # import ubelt as ub
+        # url = 'https://data.kitware.com/api/v1/file/<some-itemid>/download'
+        # deployed_fpath = ub.grabdata(
+        #     url, fname='some-filename.zip',
+        #     appname='viame', hash_prefix='some-hash',
+        #     hasher='sha512')
         return deployed_fpath
 
     def demo_image(self):
         """
-        Returns an image which can be run through the detector
+        Returns an image which can be run through the classifier
 
         Returns:
             ImageContainer: an image of a scallop
@@ -131,7 +139,6 @@ class NetharnDetector(ImageObjectDetector):
         from PIL import Image as PILImage
         from kwiver.vital.util import VitalPIL
         from kwiver.vital.types import ImageContainer
-        import ubelt as ub
         url = 'https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download'
         image_fpath = ub.grabdata(
             url, fname='scallop.jpg', appname='viame',
@@ -148,6 +155,8 @@ class NetharnDetector(ImageObjectDetector):
         return cfg
 
     def set_configuration(self, cfg_in):
+        import torch
+        from bioharn import clf_predict
         cfg = self.get_configuration()
 
         # HACK: merge config doesn't support dictionary input
@@ -155,13 +164,9 @@ class NetharnDetector(ImageObjectDetector):
 
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
-        self._kwiver_config['thresh'] = float(self._kwiver_config['thresh'])
-
-        self._thresh = float(self._kwiver_config['thresh'])
 
         if self._kwiver_config['batch_size'] == "auto":
             self._kwiver_config['batch_size'] = 2
-            import torch
             if torch.cuda.is_available():
                 gpu_mem = 0
                 if len(self._kwiver_config['xpu']) == 1 and \
@@ -181,12 +186,13 @@ class NetharnDetector(ImageObjectDetector):
                 elif gpu_mem >= 7e9:
                     self._kwiver_config['batch_size'] = 3
 
-        from bioharn import detect_predict
-        pred_config = detect_predict.DetectPredictConfig()
+        pred_config = clf_predict.ClfPredictConfig()
         pred_config['batch_size'] = self._kwiver_config['batch_size']
         pred_config['deployed'] = self._kwiver_config['deployed']
         pred_config['xpu'] = self._kwiver_config['xpu']
-        self.predictor = detect_predict.DetectPredictor(pred_config)
+        pred_config['input_dims'] = 'native'
+        # (256, 256)
+        self.predictor = clf_predict.ClfPredictor(pred_config)
 
         self.predictor._ensure_model()
         return True
@@ -197,20 +203,15 @@ class NetharnDetector(ImageObjectDetector):
             return False
         return True
 
-    def detect(self, image_data):
+    def classify(self, image_data):
         full_rgb = image_data.asarray().astype('uint8')
         path_or_image = full_rgb
-
         predictor = self.predictor
 
-        detections = predictor.predict(path_or_image)
-
-        # apply threshold
-        flags = detections.scores >= self._thresh
-        detections = detections.compress(flags)
-
-        # convert to kwiver format
-        output = _kwimage_to_kwiver_detections(detections)
+        classification = list(predictor.predict([path_or_image]))[0]
+        # Hack: use the image size to coerce a classification as a detection
+        h, w = full_rgb.shape[0:2]
+        output = _classification_to_kwiver_detections(classification, w, h)
         return output
 
 
@@ -234,94 +235,94 @@ def _vital_config_update(cfg, cfg_in):
     return cfg
 
 
-def _kwiver_to_kwimage_detections(detected_objects):
+def _classification_to_kwiver_detections(classification, w, h):
     """
-    Convert vital detected object sets to kwimage.Detections
+    Convert kwarray classifications to kwiver deteted object sets
 
     Args:
-        detected_objects (kwiver.vital.types.DetectedObjectSet)
-
-    Returns:
-        kwimage.Detections
-    """
-    import ubelt as ub
-    import kwimage
-    boxes = []
-    scores = []
-    class_idxs = []
-
-    classes = []
-    if len(detected_objects) > 0:
-        obj = ub.peek(detected_objects)
-        classes = obj.type().all_class_names()
-
-    for obj in detected_objects:
-        box = obj.bounding_box()
-        tlbr = [box.min_x(), box.min_y(), box.max_x(), box.max_y()]
-        score = obj.confidence()
-        cname = obj.type().get_most_likely_class()
-        cidx = classes.index(cname)
-        boxes.append(tlbr)
-        scores.append(score)
-        class_idxs.append(cidx)
-
-    dets = kwimage.Detections(
-        boxes=kwimage.Boxes(np.array(boxes), 'tlbr'),
-        scores=np.array(scores),
-        class_idxs=np.array(class_idxs),
-        classes=classes,
-    )
-    return dets
-
-
-def _kwimage_to_kwiver_detections(detections):
-    """
-    Convert kwimage detections to kwiver deteted object sets
-
-    Args:
-        detected_objects (kwimage.Detections)
+        classification (bioharn.clf_predict.Classification)
+        w (int): width of image
+        h (int): height of image
 
     Returns:
         kwiver.vital.types.DetectedObjectSet
     """
-
-    # convert segmentation masks
-    if 'segmentations' in detections.data:
-        print( "Warning: segmentations not implemented" )
-
-    boxes = detections.boxes.to_tlbr()
-    scores = detections.scores
-    class_idxs = detections.class_idxs
-
-    # convert to kwiver format, apply threshold
     detected_objects = DetectedObjectSet()
 
-    for tlbr, score, cidx in zip(boxes.data, scores, class_idxs):
-        class_name = detections.classes[cidx]
+    if classification.data.get('prob', None) is not None:
+        # If we have a probability for each class, uses that
+        class_names = list(classification.classes)
+        class_prob = classification.prob
+        detected_object_type = DetectedObjectType(class_names, class_prob)
+    else:
+        # Otherwise we only have the score for the predicted calss
+        class_name = classification.classes[classification.cidx]
+        class_score = classification.conf
+        detected_object_type = DetectedObjectType(class_name, class_score)
 
-        bbox_int = np.round(tlbr).astype(np.int32)
-        bounding_box = BoundingBox(
-            bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3])
-
-        detected_object_type = DetectedObjectType(class_name, score)
-        detected_object = DetectedObject(
-            bounding_box, score, detected_object_type)
-        detected_objects.add(detected_object)
+    bounding_box = BoundingBox(0, 0, w, h)
+    detected_object = DetectedObject(
+        bounding_box, classification.conf, detected_object_type)
+    detected_objects.add(detected_object)
     return detected_objects
 
 
 def __vital_algorithm_register__():
+    """
+    Note:
+
+        We may be able to refactor somethign like this
+
+        # In vital.py
+
+        def _register_algorithm(cls, name=None, desc=''):
+            if name is None:
+                name = cls.__name__
+            from vital.algo import algorithm_factory
+            if not algorithm_factory.has_algorithm_impl_name(cls.static_type_name(), name):
+                algorithm_factory.add_algorithm(name, desc, cls)
+                algorithm_factory.mark_algorithm_as_loaded(name)
+
+        def register_algorithm(name=None, desc=''):
+            '''
+            POC refactor of __vital_algorithm_register__ into a decorator
+            '''
+            def _wrapper(cls):
+                _register_algorithm(cls, name, desc)
+                return cls
+            return _wrapper
+
+        def lazy_register(cls, name=None, desc=''):
+            ''' Alternate Proof-of-Concept '''
+            def __vital_algorithm_register__():
+                return _register_algorithm(cls, name, desc)
+            return __vital_algorithm_register__
+
+        # Then in your class
+        import vital
+        @vial.register_algorithm(desc="PyTorch Netharn classification routine")
+        class MyAlgorithm(BaseAlgo):
+            ...
+
+        # OR if the currenty lazy structure is important
+        import vital
+        class MyAlgorithm(BaseAlgo):
+            ...
+
+        __vital_algorithm_register__ = vital.lazy_register(MyAlgorithm, desc="PyTorch Netharn classification routine")
+
+        # We could also play with adding class member variables for the lazy
+        # initialization. There is lots of room to make this better / easier.
+    """
     from vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "netharn"
+    implementation_name = "netharn-classifier"
 
-    if algorithm_factory.has_algorithm_impl_name(
-            NetharnDetector.static_type_name(), implementation_name):
-        return
+    if not algorithm_factory.has_algorithm_impl_name(
+            NetharnClassifier.static_type_name(), implementation_name):
+        algorithm_factory.add_algorithm(
+            implementation_name, "PyTorch Netharn classification routine",
+            NetharnClassifier)
 
-    algorithm_factory.add_algorithm(
-        implementation_name, "PyTorch Netharn detection routine",
-        NetharnDetector)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+        algorithm_factory.mark_algorithm_as_loaded(implementation_name)
