@@ -9,7 +9,7 @@ export CONFIG_FILE=pipelines/index_full_frame.svm.pipe
 
 # Setup VIAME Paths (no need to run multiple times if you already ran it)
 
-export VIAME_INSTALL=/opt/noaa/viame
+export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 

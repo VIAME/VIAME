@@ -47,6 +47,7 @@ Contents:
    section_links/scoring_and_roc_generation
    section_links/archive_summarization
    section_links/image_registration
+   section_links/frame_level_classification
    Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
    Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
    Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
