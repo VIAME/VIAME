@@ -268,6 +268,52 @@ def _classification_to_kwiver_detections(classification, w, h):
 
 
 def __vital_algorithm_register__():
+    """
+    Note:
+
+        We may be able to refactor somethign like this
+
+        # In vital.py
+
+        def _register_algorithm(cls, name=None, desc=''):
+            if name is None:
+                name = cls.__name__
+            from vital.algo import algorithm_factory
+            if not algorithm_factory.has_algorithm_impl_name(cls.static_type_name(), name):
+                algorithm_factory.add_algorithm(name, desc, cls)
+                algorithm_factory.mark_algorithm_as_loaded(name)
+
+        def register_algorithm(name=None, desc=''):
+            '''
+            POC refactor of __vital_algorithm_register__ into a decorator
+            '''
+            def _wrapper(cls):
+                _register_algorithm(cls, name, desc)
+                return cls
+            return _wrapper
+
+        def lazy_register(cls, name=None, desc=''):
+            ''' Alternate Proof-of-Concept '''
+            def __vital_algorithm_register__():
+                return _register_algorithm(cls, name, desc)
+            return __vital_algorithm_register__
+
+        # Then in your class
+        import vital
+        @vial.register_algorithm(desc="PyTorch Netharn classification routine")
+        class MyAlgorithm(BaseAlgo):
+            ...
+
+        # OR if the currenty lazy structure is important
+        import vital
+        class MyAlgorithm(BaseAlgo):
+            ...
+
+        __vital_algorithm_register__ = vital.lazy_register(MyAlgorithm, desc="PyTorch Netharn classification routine")
+
+        # We could also play with adding class member variables for the lazy
+        # initialization. There is lots of room to make this better / easier.
+    """
     from vital.algo import algorithm_factory
 
     # Register Algorithm
