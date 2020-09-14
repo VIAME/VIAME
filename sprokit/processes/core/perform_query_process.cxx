@@ -143,9 +143,6 @@ perform_query_process
   // Attach our logger name to process logger
   attach_logger( vital::get_logger( name() ) );
 
-  // Required for external feedback loop
-  set_data_checking_level( check_none );
-
   make_ports();
   make_config();
 }
@@ -192,20 +189,25 @@ void perform_query_process
 
   if( d->external_handler )
   {
-    if( algo::query_track_descriptor_set::check_nested_algo_configuration_using_trait(
-          descriptor_query,
-          algo_config ) )
+    algo::query_track_descriptor_set::set_nested_algo_configuration(
+      "descriptor_query",
+      algo_config,
+      d->descriptor_query );
+
+    if( !d->descriptor_query )
     {
       VITAL_THROW( sprokit::invalid_configuration_exception, name(),
                    "Configuration check failed." );
     }
 
-    algo::query_track_descriptor_set::set_nested_algo_configuration_using_trait(
-      descriptor_query,
+    algo::query_track_descriptor_set::get_nested_algo_configuration(
+      "descriptor_query"
       algo_config,
       d->descriptor_query );
 
-    if( !d->descriptor_query )
+    if( !algo::query_track_descriptor_set::check_nested_algo_configuration(
+          "descriptor_query",
+          algo_config ) )
     {
       VITAL_THROW( sprokit::invalid_configuration_exception, name(),
                    "Unable to create descriptor query." );
@@ -539,7 +541,7 @@ perform_query_process
 
         // Run seperate augmentation pipeline to get more positives and negatives
         for( auto query_image = d->query_images->begin();
-			       query_image == d->query_images->end(); query_image++ )
+             query_image == d->query_images->end(); query_image++ )
         {
           auto ids = adapter::adapter_data_set::create();
 
@@ -771,8 +773,6 @@ void perform_query_process
   declare_config_using_trait( unused_descriptors_as_negative );
   declare_config_using_trait( use_tracks_for_history );
   declare_config_using_trait( merge_duplicate_results );
-
-  declare_config_using_trait( descriptor_query );
 }
 
 
