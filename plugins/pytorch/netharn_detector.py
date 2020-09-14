@@ -195,6 +195,7 @@ class NetharnDetector(ImageObjectDetector):
             pred_config['batch_size'] = self._kwiver_config['batch_size']
             pred_config['deployed'] = self._kwiver_config['deployed']
             pred_config['xpu'] = self._kwiver_config['xpu']
+            pred_config['input_dims'] = (256, 256)
             self.predictor = clf_predict.ClfPredictor(pred_config)
         else:
             print( "Invalid mode string " + self._kwiver_config['mode'] )
@@ -214,14 +215,19 @@ class NetharnDetector(ImageObjectDetector):
         path_or_image = full_rgb
 
         predictor = self.predictor
-        detections = predictor.predict(path_or_image)
 
-        # apply threshold
-        flags = detections.scores >= self._thresh
-        detections = detections.compress(flags)
+        if self._kwiver_config['mode'] == "detector":
+            detections = predictor.predict(path_or_image)
 
-        # convert to kwiver format
-        output = _kwimage_to_kwiver_detections(detections)
+            # apply threshold
+            flags = detections.scores >= self._thresh
+            detections = detections.compress(flags)
+
+            # convert to kwiver format
+            output = _kwimage_to_kwiver_detections(detections)
+        else:
+            detections = predictor.predict(path_or_image)
+            output = _kwarray_to_kwiver_detections(detections,full_rgb)
         return output
 
 
@@ -313,6 +319,41 @@ def _kwimage_to_kwiver_detections(detections):
         bbox_int = np.round(tlbr).astype(np.int32)
         bounding_box = BoundingBox(
             bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3])
+
+        detected_object_type = DetectedObjectType(class_name, score)
+        detected_object = DetectedObject(
+            bounding_box, score, detected_object_type)
+        detected_objects.add(detected_object)
+    return detected_objects
+
+
+def _kwarray_to_kwiver_detections(detections,image):
+    """
+    Convert kwarray classifications to kwiver deteted object sets
+
+    Args:
+        detected_objects (kwarray)
+
+    Returns:
+        kwiver.vital.types.DetectedObjectSet
+    """
+
+    # extract scores
+    scores = []
+    class_idxs = []
+
+    for item in detections:
+        scores.append(item.conf)
+        class_idxs.append(item.cidx)
+
+    # convert to kwiver format, apply threshold
+    detected_objects = DetectedObjectSet()
+
+    for score, cidx in zip(scores, class_idxs):
+        class_name = detections.classes[cidx]
+
+        bbox_int = np.round(tlbr).astype(np.int32)
+        bounding_box = BoundingBox(0,0,np.shape(image)[0],np.shape(image)[1])
 
         detected_object_type = DetectedObjectType(class_name, score)
         detected_object = DetectedObject(
