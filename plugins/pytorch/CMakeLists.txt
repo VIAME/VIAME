@@ -29,6 +29,11 @@ endif()
 if( VIAME_ENABLE_PYTORCH-NETHARN )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/netharn_classifier.py
+    viame/arrows/pytorch
+    netharn_classifier )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_detector.py
     viame/arrows/pytorch
     netharn_detector )

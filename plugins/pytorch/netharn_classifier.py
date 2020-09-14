@@ -317,7 +317,7 @@ def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "netharn-classifier"
+    implementation_name = "netharn_classifier"
 
     if not algorithm_factory.has_algorithm_impl_name(
             NetharnClassifier.static_type_name(), implementation_name):

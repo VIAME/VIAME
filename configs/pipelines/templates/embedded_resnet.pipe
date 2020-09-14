@@ -17,9 +17,9 @@ process detector_input
 
 process classifier1
   :: image_object_detector
-  :detector:type                               netharn
+  :detector:type                               netharn_classifier
 
-  block detector:netharn
+  block detector:netharn_classifier
     :mode                                      frame_classifier
     relativepath deployed =                    [-MODEL-FILE-]
   endblock
