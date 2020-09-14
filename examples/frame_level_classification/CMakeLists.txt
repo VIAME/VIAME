@@ -12,7 +12,7 @@ DownloadAndExtract(
 file( COPY labels.txt
       DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/training_data )
 file( COPY fish_no_fish.csv
-      DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/training_data/small_image_example_set1 )
+      DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/training_data/small_example_image_set1 )
 
 # Install remaining example files
 set( EXAMPLE_INSTALL_FILES
