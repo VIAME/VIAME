@@ -203,7 +203,7 @@ class NetharnClassifier(ImageObjectDetector):
             return False
         return True
 
-    def classify(self, image_data):
+    def detect(self, image_data):
         full_rgb = image_data.asarray().astype('uint8')
         path_or_image = full_rgb
         predictor = self.predictor
