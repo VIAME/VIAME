@@ -201,7 +201,7 @@ void perform_query_process
     }
 
     algo::query_track_descriptor_set::get_nested_algo_configuration(
-      "descriptor_query"
+      "descriptor_query",
       algo_config,
       d->descriptor_query );
 
