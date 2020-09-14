@@ -128,3 +128,40 @@ function (kwiver_discover_python_tests group file)
     endif ()
   endforeach ()
 endfunction ()
+
+function (kwiver_add_nosetests name)
+
+  add_test(
+    NAME    test-${name}
+    COMMAND ${kwiver_test_runner}
+            ${ARGN})
+  set_tests_properties(test-${name}
+    PROPERTIES
+      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
+  if (kwiver_test_working_path)
+    set_tests_properties(test-${name}
+      PROPERTIES
+        WORKING_DIRECTORY       "${kwiver_test_working_path}")
+  endif ()
+
+  if (kwiver_test_environment)
+    set_tests_properties(test-${name}
+      PROPERTIES
+        ENVIRONMENT "${kwiver_test_environment}")
+  endif ()
+
+  if (KWIVER_TEST_ADD_TARGETS)
+    add_custom_target(test-${name})
+    add_custom_command(
+      TARGET  test-${name}
+      COMMAND ${kwiver_test_environment}
+              ${kwiver_test_runner}
+              "${kwiver_test_output_path}"
+              ${ARGN}
+      WORKING_DIRECTORY
+              "${kwiver_test_working_path}"
+      COMMENT "Running test \"${name}\" instance \"${instance}\"")
+    add_dependencies(tests-${name}
+      test-${name}-${instance})
+  endif ()
+endfunction()

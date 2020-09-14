@@ -372,7 +372,7 @@ while(NOT dashboard_done)
       if(COMMAND dashboard_hook_submit)
         dashboard_hook_submit()
       endif()
-      ctest_submit()
+      ctest_submit(FILES "${KWIVER_BINARY_DIR}/nose_results.xml")
     endif()
 
     if(COMMAND dashboard_hook_end)
