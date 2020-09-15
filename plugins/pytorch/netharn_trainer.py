@@ -270,7 +270,7 @@ class NetHarnTrainer( TrainDetector ):
             cmd += [ "bioharn.clf_fit",
                      "--name=" + self._identifier,
                      "--arch=resnet50",
-                     "--lr=1.0e-3",
+                     "--lr=0.5e-3",
                      "--schedule=ReduceLROnPlateau-p3-c3",
                      "--input_dims=" + self._chip_width + "," + self._chip_width ]
         else:
