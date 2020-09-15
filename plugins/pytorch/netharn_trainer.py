@@ -231,6 +231,10 @@ class NetHarnTrainer( TrainDetector ):
                 break
 
             filtered_truth.add( item )
+
+        if self._gt_frames_only and len( init_truth ) == 0:
+            use_frame = False
+
         return filtered_truth, use_frame
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
