@@ -141,15 +141,13 @@ function (kwiver_add_nosetests name)
   if (kwiver_test_working_path)
     set_tests_properties(test-${name}
       PROPERTIES
-        WORKING_DIRECTORY       "${kwiver_test_working_path}")
+      WORKING_DIRECTORY "${kwiver_test_working_path}")
   endif ()
-
   if (kwiver_test_environment)
     set_tests_properties(test-${name}
       PROPERTIES
-        ENVIRONMENT "${kwiver_test_environment}")
+      ENVIRONMENT "${kwiver_test_environment}")
   endif ()
-
   if (KWIVER_TEST_ADD_TARGETS)
     add_custom_target(test-${name})
     add_custom_command(
@@ -161,7 +159,7 @@ function (kwiver_add_nosetests name)
       WORKING_DIRECTORY
               "${kwiver_test_working_path}"
       COMMENT "Running test \"${name}\" instance \"${instance}\"")
-    add_dependencies(tests-${name}
+      add_dependencies(tests-${name}
       test-${name}-${instance})
   endif ()
 endfunction()

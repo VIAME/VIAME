@@ -207,7 +207,7 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 ###
 # Python Dependencies
 #
-# sets the python dependencies defiened in python/requirements.txt
+# sets the python dependencies defined in python/requirements.txt
 # to be a custom command of the python libraries target
 # the user flag is required when not executing inside a venv, we always pass it
 set(PIP_COMMAND "python"
@@ -222,14 +222,14 @@ execute_process (
                   COMMAND ${PIP_COMMAND}
                   RESULT_VARIABLE pip_install_result
                   ERROR_VARIABLE pip_install_error
+                  OUTPUT_QUIET
                 )
 
 if (pip_install_result AND NOT pip_install_result EQUAL 0)
-  message (WARNING "pip install failed, python may have unmet dependencies\n
-                    Error: ${pip_install_error}\n
-                    Python Executable: ${PYTHON_EXECUTABLE}")
+  message (WARNING "pip install failed, python may have unmet dependencies
+                    Error: ${pip_install_error}\n")
 else()
-  message (STATUS "pip install sucessfull")
+  message (STATUS "pip install successfull")
 endif()
 
 

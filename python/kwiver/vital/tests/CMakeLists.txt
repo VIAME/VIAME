@@ -57,12 +57,6 @@ endforeach()
 
 if (KWIVER_ENABLE_TESTS)
 
-  set(NOSE_RUNNER)
-  set(modpath vital/tests/)
-  set(kwiver_test_working_path)
-  set(kwiver_test_output_path)
-
-
   include(kwiver-setup-tests-python)
   if (NOSE_RUNNER)
 

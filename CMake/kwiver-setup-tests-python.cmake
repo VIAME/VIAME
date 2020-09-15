@@ -11,7 +11,7 @@ if (NOSE_RUNNER)
 
   if (WIN32)
 
-    set(kwiver_test_output_path    "${KWIVER_BINARY_DIR}/bin" )
+    set(kwiver_test_output_path    "${KWIVER_BINARY_DIR}/$<CONFIG>/bin" )
 
   else ()
 # update these to reflect nose -- output location may want to remain the same
