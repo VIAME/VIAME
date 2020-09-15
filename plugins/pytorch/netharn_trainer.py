@@ -158,11 +158,11 @@ class NetHarnTrainer( TrainDetector ):
         elif self._mode == "frame_classifier":
             if self._batch_size == "auto":
                 if gpu_memory_available > 9e9:
-                    self._batch_size = "32"
+                    self._batch_size = "64"
                 elif gpu_memory_available >= 7e9:
-                    self._batch_size = "16"
+                    self._batch_size = "32"
                 else:
-                    self._batch_size = "8"
+                    self._batch_size = "16"
         else:
             print( "Invalid mode string " + self._mode )
             return False
@@ -266,7 +266,7 @@ class NetHarnTrainer( TrainDetector ):
             cmd += [ "bioharn.clf_fit",
                      "--name=" + self._identifier,
                      "--arch=resnet50",
-                     "--lr=0.5e-3",
+                     "--lr=1.0e-3",
                      "--schedule=ReduceLROnPlateau-p3-c3",
                      "--input_dims=" + self._chip_width + "," + self._chip_width ]
         else:
