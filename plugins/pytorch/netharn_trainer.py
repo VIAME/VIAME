@@ -158,11 +158,11 @@ class NetHarnTrainer( TrainDetector ):
         elif self._mode == "frame_classifier":
             if self._batch_size == "auto":
                 if gpu_memory_available > 9e9:
-                    self._batch_size = "8"
+                    self._batch_size = "32"
                 elif gpu_memory_available >= 7e9:
-                    self._batch_size = "6"
+                    self._batch_size = "16"
                 else:
-                    self._batch_size = "4"
+                    self._batch_size = "8"
         else:
             print( "Invalid mode string " + self._mode )
             return False
