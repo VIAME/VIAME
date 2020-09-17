@@ -308,7 +308,9 @@ if( VIAME_ENABLE_SMQTK )
     pipelines/smqtk_nn_index.json
     pipelines/smqtk_postgres_ingest.json
     pipelines/smqtk_query.pipe
-    pipelines/smqtk_train_itq.json )
+    pipelines/smqtk_train_itq.json
+    pipelines/train_svm_full_frame_classifier.viame_csv.conf
+    pipelines/train_svm_over_generic_detections.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_OPENCV )

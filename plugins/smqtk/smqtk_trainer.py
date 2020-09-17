@@ -139,7 +139,6 @@ class SMQTKTrainer( TrainDetector ):
                 break
         sys.exit( 0 )
 
-
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
 
