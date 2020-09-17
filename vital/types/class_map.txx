@@ -353,6 +353,12 @@ class_map< T >
   return { s_master_name_set.begin(), s_master_name_set.end() };
 }
 
+// ----------------------------------------------------------------------------
+template < typename T >
+constexpr double
+class_map< T >
+::INVALID_SCORE;
+
 } // namespace vital
 
 } // namespace kwiver
