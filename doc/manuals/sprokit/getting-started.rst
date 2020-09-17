@@ -288,11 +288,11 @@ And the associated Arrows::
 
 				1) Select all class names with scores greater than threshold.
 
-				2) Create a new class_map object with all selected class names
+				2) Create a new detected_object_type object with all selected class names
 				from step 1. The class name can be selected individually or with the
 				keep_all_classes option.
 
-				3) The input detection_set is cloned and the class_map from
+				3) The input detection_set is cloned and the detected_object_type from
 				step 2 is attached.
 			-- Configuration --
 			"keep_all_classes" = "true"

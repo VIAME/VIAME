@@ -18,7 +18,7 @@ Detected Object
 ..  doxygenclass:: kwiver::vital::detected_object
     :project: kwiver
     :members:
-    
+
 .. _vital_class_map:
 
 Class Map
@@ -27,7 +27,25 @@ Class Map
 ..  doxygenclass:: kwiver::vital::class_map
     :project: kwiver
     :members:
-    
+
+.. _vital_activity_type:
+
+Activity Type
+--------------------
+
+..  doxygenclass:: kwiver::vital::activity_type
+    :project: kwiver
+    :members:
+
+.. _vital_detected_object_type:
+
+Detected Object Type
+--------------------
+
+..  doxygenclass:: kwiver::vital::detected_object_type
+    :project: kwiver
+    :members:
+
 .. _vital_bounding_box:
 
 Bounding Box
@@ -36,7 +54,7 @@ Bounding Box
 ..  doxygenclass:: kwiver::vital::bounding_box
     :project: kwiver
     :members:
-    
+
 .. _vital_descriptor:
 
 Descriptor
