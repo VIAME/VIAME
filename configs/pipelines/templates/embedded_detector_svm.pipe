@@ -1,8 +1,8 @@
-# ============================================================================================================
+# ========================================================================================
 #
 # ResNet Classifier on Generic Object Proposals
 #
-# ============================================================================================================
+# ========================================================================================
 
 process detector_input
   :: image_filter
@@ -33,9 +33,9 @@ process generic_detector
 
     block detector:mmdet
       # Network config, weights, and names
-      relativepath net_config  =               $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_cfrnn.py
-      relativepath weight_file =               $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_cfrnn.pth
-      relativepath class_names =               $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_cfrnn.lbl
+      :net_config         $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_cfrnn.py
+      :weight_file        $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_cfrnn.pth
+      :class_names        $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_cfrnn.lbl
 
       # Detector parameters
       :thresh                                  0.001
@@ -46,7 +46,7 @@ process generic_detector
 connect from detector_input.image
         to   generic_detector.image
 
-# ============================================================================================================
+# ========================================================================================
 
 include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
 
@@ -79,7 +79,7 @@ connect from descriptor.detected_object_set
 connect from svm_refiner.detected_object_set
         to   nms_refiner.detected_object_set
 
-# ============================================================================================================
+# ========================================================================================
 
 process detector_output
   :: merge_detection_sets
