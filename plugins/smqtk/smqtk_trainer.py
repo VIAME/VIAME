@@ -114,6 +114,7 @@ class SMQTKTrainer( TrainDetector ):
                  "--init",
                  "-d", self._root_dir,
                  "-p", self._ingest_pipeline,
+                 "-logs", "PIPE",
                  "-o", "database",
                  "--build-index",
                  "-auto-detect-gt", "viame_csv",

@@ -497,7 +497,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   # Process command, possibly with logging
   log_base = ""
-  if len( options.log_directory ) > 0 and not options.debug:
+  if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
     log_base = options.output_directory + div + options.log_directory + div + basename_no_ext
     with get_log_output_files( log_base ) as kwargs:
       res = execute_command( command, gpu=gpu, **kwargs )
