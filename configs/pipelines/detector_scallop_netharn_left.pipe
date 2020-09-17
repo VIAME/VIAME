@@ -44,6 +44,19 @@ process detector
 connect from split.left_image
         to   detector.image
 
+process detector_nms
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.90
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector.detected_object_set
+        to   detector_nms.detected_object_set
+
 # ==================================== WRITER ======================================
 process detector_writer
   :: detected_object_output
@@ -52,7 +65,7 @@ process detector_writer
   :file_name                                   scallop_netharn_detections.csv
   :writer:type                                 viame_csv
 
-connect from detector.detected_object_set
+connect from detector_nms.detected_object_set
         to   detector_writer.detected_object_set
 connect from input.file_name
         to   detector_writer.image_file_name
