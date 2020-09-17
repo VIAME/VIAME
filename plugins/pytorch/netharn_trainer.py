@@ -272,6 +272,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--arch=resnet50",
                      "--lr=0.5e-3",
                      "--schedule=ReduceLROnPlateau-p3-c3",
+                     "--augmenter=simple",
                      "--input_dims=" + self._chip_width + "," + self._chip_width ]
         else:
             cmd += [ "bioharn.detect_fit",
@@ -279,6 +280,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--arch=cascade",
                      "--lr=1e-3",
                      "--schedule=ReduceLROnPlateau-p2-c2",
+                     "--augmenter=complex",
                      "--input_dims=window",
                      "--window_dims=" + self._chip_width + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
@@ -293,7 +295,6 @@ class NetHarnTrainer( TrainDetector ):
                  "--workdir=" + self._train_directory,
                  "--xpu=" + gpu_string,
                  "--workers=4",
-                 "--augmenter=complex",
                  "--normalize_inputs=True",
                  "--init=noop",
                  "--optim=sgd",
