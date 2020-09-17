@@ -349,8 +349,14 @@ std::vector< std::string >
 class_map< T >
 ::all_class_names()
 {
-  std::lock_guard< std::mutex > lock{ s_table_mutex };
-  return { s_master_name_set.begin(), s_master_name_set.end() };
+  auto out = []() -> std::vector< std::string >
+  {
+    std::lock_guard< std::mutex > lock{ s_table_mutex };
+    return { s_master_name_set.begin(), s_master_name_set.end() };
+  }();
+
+  std::sort( out.begin(), out.end() );
+  return out;
 }
 
 // ----------------------------------------------------------------------------
