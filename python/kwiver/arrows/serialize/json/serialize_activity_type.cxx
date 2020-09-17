@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2020 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,37 +28,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_SERIALIZATION_JSON_CLASS_MAP
-#define ARROWS_SERIALIZATION_JSON_CLASS_MAP
+#include <python/kwiver/arrows/serialize/json/serialize_activity_type.h>
+#include <python/kwiver/arrows/serialize/json/serialize_utils.txx>
 
-#include <arrows/serialize/json/kwiver_serialize_json_export.h>
-#include <vital/algo/data_serializer.h>
-
-namespace cereal {
-  class JSONOutputArchive;
-  class JSONInputArchive;
-} // end namespace cereal
-
+#include <arrows/serialize/json/activity_type.h>
+#include <vital/types/activity_type.h>
+#include <vital/any.h>
 namespace kwiver {
 namespace arrows {
-namespace serialize {
-namespace json {
-
-class KWIVER_SERIALIZE_JSON_EXPORT class_map
-  : public vital::algo::data_serializer
+namespace python {
+void serialize_activity_type(py::module &m)
 {
-public:
-  PLUGIN_INFO( "kwiver:class_map",
-               "Serializes a class_map using JSON notation. "
-               "This implementation only handles a single data item." );
-
-  class_map();
-  virtual ~class_map();
-
-  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
-  vital::any deserialize( const std::string& message ) override;
-};
-
-} } } }       // end namespace kwiver
-
-#endif // ARROWS_SERIALIZATION_JSON_CLASS_MAP
+  m.def("serialize_activity_type",
+        &kwiver::python::arrows::json::serialize<
+                          kwiver::vital::activity_type,
+                          kwiver::arrows::serialize::json::activity_type > );
+  m.def("deserialize_activity_type",
+        &kwiver::python::arrows::json::deserialize<
+                          kwiver::vital::activity_type,
+                          kwiver::arrows::serialize::json::activity_type > );
+}
+}
+}
+}

@@ -28,26 +28,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <python/kwiver/arrows/serialize/json/serialize_class_map.h>
-#include <python/kwiver/arrows/serialize/json/serialize_utils.txx>
+#ifndef KWIVER_PYTHON_ARROW_SERIALIZE_JSON_SERIALIZE_DETECTED_OBJECT_TYPE_H_
+#define KWIVER_PYTHON_ARROW_SERIALIZE_JSON_SERIALIZE_DETECTED_OBJECT_TYPE_H_
 
-#include <arrows/serialize/json/class_map.h>
-#include <vital/types/class_map.h>
-#include <vital/any.h>
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
 namespace kwiver {
 namespace arrows {
 namespace python {
-void serialize_class_map(py::module &m)
-{
-  m.def("serialize_class_map",
-        &kwiver::python::arrows::json::serialize<
-                          kwiver::vital::class_map,
-                          kwiver::arrows::serialize::json::class_map > );
-  m.def("deserialize_class_map",
-        &kwiver::python::arrows::json::deserialize<
-                          kwiver::vital::class_map,
-                          kwiver::arrows::serialize::json::class_map > );
+void serialize_detected_object_type(py::module &m);
 }
 }
 }
-}
+#endif

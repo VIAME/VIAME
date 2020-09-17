@@ -7,7 +7,6 @@ set( headers_public
   activity.h
   activity_type.h
   bounding_box.h
-  class_map.h
   detected_object.h
   detected_object_set.h
   detected_object_type.h
@@ -34,7 +33,6 @@ set( sources
   activity.cxx
   activity_type.cxx
   bounding_box.cxx
-  class_map.cxx
   detected_object.cxx
   detected_object_set.cxx
   detected_object_type.cxx

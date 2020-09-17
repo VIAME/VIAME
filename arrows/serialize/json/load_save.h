@@ -33,15 +33,15 @@
 
 #include <arrows/serialize/json/kwiver_serialize_json_export.h>
 
+#include <vital/types/activity.h>
+#include <vital/types/activity_type.h>
+#include <vital/types/detected_object_type.h>
 #include <vital/types/metadata.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/image_container.h>
 
 namespace kwiver {
 namespace vital {
-  class activity;
-  class activity_type;
-  class detected_object_type;
   class detected_object;
   class detected_object_set;
   class geo_point;
@@ -54,6 +54,11 @@ namespace vital {
 namespace cereal {
   class JSONOutputArchive;
   class JSONInputArchive;
+
+KWIVER_SERIALIZE_JSON_EXPORT
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::activity_type& at );
+KWIVER_SERIALIZE_JSON_EXPORT
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::activity_type& at );
 
 KWIVER_SERIALIZE_JSON_EXPORT
 void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::bounding_box_d& bbox );
@@ -71,9 +76,9 @@ KWIVER_SERIALIZE_JSON_EXPORT
 void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::detected_object_set& obj );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::class_map& cm );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::detected_object_type& dot );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::class_map& cm );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::detected_object_type& dot );
 
 KWIVER_SERIALIZE_JSON_EXPORT
 void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::timestamp& tstamp );

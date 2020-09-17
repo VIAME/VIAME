@@ -37,7 +37,6 @@
 
 #include <vital/types/activity.h>
 #include <vital/types/bounding_box.h>
-#include <vital/types/class_map.h>
 #include <vital/types/covariance.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
@@ -76,7 +75,7 @@ int main(int argc, char** argv)
 TEST( load_save, activity_default )
 {
   // This tests the behavior when participants
-  // and class_map are set to NULL
+  // and type are set to NULL
   auto const act = kwiver::vital::activity{};
   std::stringstream msg;
   {
@@ -89,13 +88,13 @@ TEST( load_save, activity_default )
   #endif
 
   // Set some data to check that fields are overwritten
-  auto const cm_in = std::make_shared< kwiver::vital::class_map >();
+  auto const at_in = std::make_shared< kwiver::vital::activity_type >();
   auto const start_in = kwiver::vital::timestamp { 1, 1 };
   auto const end_in = kwiver::vital::timestamp { 2, 2 };
   auto const part_in = std::make_shared< kwiver::vital::object_track_set >();
 
   auto act_dser =
-    kwiver::vital::activity { 5, "label", 3.14, cm_in, start_in, end_in, part_in };
+    kwiver::vital::activity { 5, "label", 3.14, at_in, start_in, end_in, part_in };
   {
     cereal::JSONInputArchive ar( msg );
     cereal::load( ar, act_dser );
@@ -126,10 +125,10 @@ TEST( load_save, activity_default )
 // ----------------------------------------------------------------------------
 TEST( load_save, activity )
 {
-  auto cm_sptr = std::make_shared< kwiver::vital::class_map >();
-  cm_sptr->set_score( "first", 1 );
-  cm_sptr->set_score( "second", 10 );
-  cm_sptr->set_score( "third", 101 );
+  auto at_sptr = std::make_shared< kwiver::vital::activity_type >();
+  at_sptr->set_score( "first", 1 );
+  at_sptr->set_score( "second", 10 );
+  at_sptr->set_score( "third", 101 );
 
   // Create object_track_set consisting of
   // 1 track_sptr with 10 track states
@@ -140,11 +139,11 @@ TEST( load_save, activity )
     auto const bbox =
       kwiver::vital::bounding_box_d{ 10.0 + i, 10.0 + i, 20.0 + i, 20.0 + i };
 
-    auto dobj_cm_sptr = std::make_shared< kwiver::vital::class_map >();
-    dobj_cm_sptr->set_score( "key", i / 10.0 );
+    auto dobj_dot_sptr = std::make_shared< kwiver::vital::detected_object_type >();
+    dobj_dot_sptr->set_score( "key", i / 10.0 );
 
     auto const dobj_sptr =
-      std::make_shared< kwiver::vital::detected_object >( bbox, i / 10.0, dobj_cm_sptr );
+      std::make_shared< kwiver::vital::detected_object >( bbox, i / 10.0, dobj_dot_sptr );
 
     auto const ots_sptr =
       std::make_shared< kwiver::vital::object_track_state >( i, i, dobj_sptr );
@@ -162,7 +161,7 @@ TEST( load_save, activity )
 
   // Now construct activity
   auto const act =
-    kwiver::vital::activity{ 5, "test_label", 3.1415, cm_sptr, start, end, obj_trk_set_sptr };
+    kwiver::vital::activity{ 5, "test_label", 3.1415, at_sptr, start, end, obj_trk_set_sptr };
 
   std::stringstream msg;
   {
@@ -187,7 +186,7 @@ TEST( load_save, activity )
   EXPECT_EQ( act.start(), act_dser.start() );
   EXPECT_EQ( act.end(), act_dser.end() );
 
-  // Check values in the retrieved class map
+  // Check values in the retrieved activity_type
   auto const act_type = act.type();
   auto const act_type_dser = act_dser.type();
   EXPECT_EQ( act_type->size(), act_type_dser->size() );
@@ -225,13 +224,13 @@ TEST( load_save, activity )
     EXPECT_EQ( do_ser_sptr->bounding_box(), do_dser_sptr->bounding_box() );
     EXPECT_EQ( do_ser_sptr->confidence(), do_dser_sptr->confidence() );
 
-    auto const cm_ser_sptr = do_ser_sptr->type();
-    auto const cm_dser_sptr = do_dser_sptr->type();
+    auto const at_ser_sptr = do_ser_sptr->type();
+    auto const at_dser_sptr = do_dser_sptr->type();
 
-    if ( cm_ser_sptr )
+    if ( at_ser_sptr )
     {
-      EXPECT_EQ( cm_ser_sptr->size(), cm_dser_sptr->size() );
-      EXPECT_EQ( cm_ser_sptr->score( "key" ), cm_dser_sptr->score( "key" ) );
+      EXPECT_EQ( at_ser_sptr->size(), at_dser_sptr->size() );
+      EXPECT_EQ( at_ser_sptr->score( "key" ), at_dser_sptr->score( "key" ) );
     }
   }
 }
@@ -557,16 +556,16 @@ TEST( load_save, track_state)
 // ----------------------------------------------------------------------------
 TEST( load_save, object_track_state)
 {
-  auto cm = std::make_shared< kwiver::vital::class_map >();
+  auto dot = std::make_shared< kwiver::vital::detected_object_type >();
 
-  cm->set_score( "first", 1 );
-  cm->set_score( "second", 10 );
-  cm->set_score( "third", 101 );
-  cm->set_score( "last", 121 );
+  dot->set_score( "first", 1 );
+  dot->set_score( "second", 10 );
+  dot->set_score( "third", 101 );
+  dot->set_score( "last", 121 );
 
   // create detected object
   auto obj = std::make_shared< kwiver::vital::detected_object >(
-    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, cm );
+    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, dot );
   obj->set_detector_name( "test_detector" );
   obj->set_index( 1234 );
   obj->add_note( "this is a note" );
@@ -621,16 +620,16 @@ TEST( load_save, object_track_state)
   auto kpts = do_sptr_dser->keypoints();
   EXPECT_EQ( kpts.count( "keypoint-1" ), 1 );
 
-  auto cm_sptr_dser = do_sptr_dser->type();
+  auto dot_sptr_dser = do_sptr_dser->type();
 
-  if ( cm )
+  if ( dot )
   {
-    EXPECT_EQ( cm->size(), cm_sptr_dser->size() );
+    EXPECT_EQ( dot->size(), dot_sptr_dser->size() );
 
-    auto it = cm->begin();
-    auto it_dser = cm_sptr_dser->begin();
+    auto it = dot->begin();
+    auto it_dser = dot_sptr_dser->begin();
 
-    for ( size_t i = 0; i < cm->size(); ++i )
+    for ( size_t i = 0; i < dot->size(); ++i )
     {
       EXPECT_EQ( *( it->first ), *( it_dser->first ) );
       EXPECT_EQ( it->second, it_dser->second );
@@ -710,16 +709,16 @@ TEST( load_save, object_track_set )
     trk->set_id( trk_id );
     for ( int i = trk_id * 2; i < ( trk_id+1 )*2; i++ )
     {
-      auto cm = std::make_shared<kwiver::vital::class_map>();
+      auto dot = std::make_shared<kwiver::vital::detected_object_type>();
 
-      cm->set_score( "first", 1 );
-      cm->set_score( "second", 10 );
-      cm->set_score( "third", 101 );
-      cm->set_score( "last", 121 );
+      dot->set_score( "first", 1 );
+      dot->set_score( "second", 10 );
+      dot->set_score( "third", 101 );
+      dot->set_score( "last", 121 );
 
       auto dobj_sptr = std::make_shared< kwiver::vital::detected_object>(
                               kwiver::vital::bounding_box_d{ 1, 2, 3, 4 },
-                                  3.14159265, cm );
+                                  3.14159265, dot );
       dobj_sptr->set_detector_name( "test_detector" );
       dobj_sptr->set_index( 1234 );
       auto obj_trk_state_sptr = std::make_shared< kwiver::vital::object_track_state >
@@ -777,17 +776,17 @@ TEST( load_save, object_track_set )
       EXPECT_EQ( ser_do_sptr->confidence(), dser_do_sptr->confidence() );
       EXPECT_EQ( ser_do_sptr->detector_name(), dser_do_sptr->detector_name() );
 
-      auto ser_cm_sptr = ser_do_sptr->type();
-      auto dser_cm_sptr = dser_do_sptr->type();
+      auto ser_dot_sptr = ser_do_sptr->type();
+      auto dser_dot_sptr = dser_do_sptr->type();
 
-      if ( ser_cm_sptr )
+      if ( ser_dot_sptr )
       {
-        EXPECT_EQ( ser_cm_sptr->size(),dser_cm_sptr->size() );
+        EXPECT_EQ( ser_dot_sptr->size(),dser_dot_sptr->size() );
 
-        auto ser_it = ser_cm_sptr->begin();
-        auto dser_it = dser_cm_sptr->begin();
+        auto ser_it = ser_dot_sptr->begin();
+        auto dser_it = dser_dot_sptr->begin();
 
-        for ( size_t i = 0; i < ser_cm_sptr->size(); ++i )
+        for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
         {
           EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
           EXPECT_EQ( dser_it->second, dser_it->second );
