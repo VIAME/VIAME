@@ -214,8 +214,6 @@ set( CORE_PIPELINE_FILES
   pipelines/train_yolo_704.kw18.conf
   pipelines/train_yolo_704.viame_csv.conf
   pipelines/train_yolo_alt_704.viame_csv.conf
-  pipelines/train_yolo_960.habcam.conf
-  pipelines/train_yolo_960.viame_csv.conf
   pipelines/train_yolo_stereo_704.habcam.conf
   pipelines/train_yolo_wtf_704.viame_csv.conf )
 
