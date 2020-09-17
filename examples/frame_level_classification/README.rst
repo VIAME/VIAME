@@ -25,7 +25,7 @@ frame labels, the deep learning method generally yields the best performance.
 
 Training data must be supplied in a similar format to object detector training,
 that is the below directory structure (where '...' indicates a subdirectory):
-|
+
 | [root_training_dir]
 | ...labels.txt
 | ...folder1
