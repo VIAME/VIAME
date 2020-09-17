@@ -805,7 +805,7 @@ if __name__ == "__main__" :
   if args.build_index:
     log_info( lb1 + "Building searchable index" + lb2 )
 
-    if len( args.log_directory ) > 0:
+    if len( args.log_directory ) > 0 and args.log_directory != "PIPE":
       index_log_file = args.output_directory + div + args.log_directory + div + "smqtk_indexer.txt"
     else:
       index_log_file = ""
