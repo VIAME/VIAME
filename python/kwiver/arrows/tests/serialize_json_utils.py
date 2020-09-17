@@ -31,16 +31,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Utilities to support testing for json serialization of vital types
 """
 
+from kwiver.vital.types import ActivityType
 from kwiver.vital.types import BoundingBox
 from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import ClassMap
 from kwiver.vital.types import DetectedObjectSet
+from kwiver.vital.types import DetectedObjectType
 from kwiver.vital.types import ImageContainer, Image
 from kwiver.vital.types import Timestamp
 from kwiver.vital.types import TrackState
 from kwiver.vital.types import ObjectTrackState
 from kwiver.vital.types import Track
 from kwiver.vital.types import TrackSet
+
+def create_activity_type():
+    return ActivityType("Test", 0.5)
+
+def compare_activity_type(at1, at2):
+    return at1.get_most_likely_class() == at2.get_most_likely_class() and \
+            at1.get_most_likely_score() == at2.get_most_likely_score()
 
 def create_bounding_box():
     return BoundingBox(1.0, 2.0, 3.0, 4.0)
@@ -50,13 +58,6 @@ def compare_bounding_box(bbox1, bbox2):
            bbox1.min_y() == bbox2.min_y() and \
            bbox1.max_x() == bbox2.max_x() and \
            bbox2.max_y() == bbox2.max_y()
-
-def create_class_map():
-    return ClassMap("Test", 0.5)
-
-def compare_class_map(cm1, cm2):
-    return cm1.get_most_likely_class() == cm2.get_most_likely_class() and \
-            cm1.get_most_likely_score() == cm2.get_most_likely_score()
 
 def create_detected_object():
     return DetectedObject(create_bounding_box())
@@ -72,6 +73,13 @@ def create_detected_object_set():
 def compare_detected_object_set(dos1, dos2):
     return len(dos1) == len(dos2) and \
            compare_detected_object(dos1[0], dos1[0])
+
+def create_detected_object_type():
+    return DetectedObjectType("Test", 0.25)
+
+def compare_detected_object_type(dot1, dot2):
+    return dot1.get_most_likely_class() == dot2.get_most_likely_class() and \
+            dot1.get_most_likely_score() == dot2.get_most_likely_score()
 
 def create_image():
     return ImageContainer(Image(720, 480))
