@@ -15,22 +15,35 @@ process detector_input
 
 # ==============================================================================
 
-process classifier1
+process detector
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               full_frame
+  :detector:full_frame:detection_type          generic_object_proposal
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
-    relativepath deployed =                    [-MODEL-FILE-]
-  endblock
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
+
+process svm_refiner
+  :: refine_detections
+  :refiner:type                                svm_refine
+  :refiner:svm_refine:model_dir                .
 
 connect from detector_input.image
-        to   classifier1.image
+        to   detector.image
+
+connect from detector_input.image
+        to   descriptor.image
+connect from detector.detected_object_set
+        to   descriptor.detected_object_set
+
+connect from detector_input.image
+        to   svm_refiner.image
+connect from descriptor.detected_object_set
+        to   svm_refiner.detected_object_set
 
 # ==============================================================================
 
 process detector_output
   :: merge_detection_sets
 
-connect from classifier1.detected_object_set
+connect from svm_refiner.detected_object_set
         to   detector_output.detected_object_set1
