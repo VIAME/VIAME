@@ -68,6 +68,7 @@ Integrated Detection Formats
 |    (note) this is a note        [notes take no form just can't have commas]
 |    (poly) 12 455 40 515 25 480  [a polygon for the detection]
 |    (hole) 38 485 39 490 37 470  [a hole in a polygon for a detection]
+|    (mask) ./masks/mask02393.png [a reference to an external pixel mask image]
 |
 |  Throwing together all of these components, an example line might look like:
 |
