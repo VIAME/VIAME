@@ -209,51 +209,73 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 #
 # sets the python dependencies defined in python/requirements.txt
 # to be a custom command of the python libraries target
-# the user flag is required when not executing inside a venv, we always pass it
-set(PIP_COMMAND "python"
-                "-m"
-                "pip"
-                "install"
-                "--user"
-                "-r"
-                "${KWIVER_SOURCE_DIR}/python/requirements.txt")
+# a venv will be created to encapsulate the pip installed dependencies
+# from the larger system, while still providing the tests access to their dependencies
+set(CREATE_VENV "python3" "-m" "venv" "${KWIVER_BINARY_DIR}/testing_venv" )
+# ACTIVATE and DEACTIVATE venv mimic their repsective counterparts in the venv setup/takedown process
+set(ACTIVATE_VENV "${CMAKE_COMMAND}"
+                  -D "ACTIVATE=1"
+                  -P "${KWIVER_SOURCE_DIR}/CMake/utils/kwiver-config-venv.cmake")
+set(DEACTIVATE_VENV "${CMAKE_COMMAND}"
+                  -D "DEACTIVATE=1"
+                  -P "${KWIVER_SOURCE_DIR}/CMake/utils/kwiver-config-venv.cmake")
 
+message (STATUS "Python and testing enabled.\n-- Creating virtualenv @{KWIVER_BINARY_DIR}/testing_venv for testing...")
 execute_process (
-                  COMMAND ${PIP_COMMAND}
-                  RESULT_VARIABLE pip_install_result
-                  ERROR_VARIABLE pip_install_error
-                  OUTPUT_QUIET
+                  COMMAND ${CREATE_VENV}
+                  RESULT_VARIABLE create_venv_result
+                  ERROR_VARIABLE create_venv_error
                 )
 
-if (pip_install_result AND NOT pip_install_result EQUAL 0)
-  message (WARNING "pip install failed, python may have unmet dependencies
-                    Error: ${pip_install_error}\n")
+if (create_venv_result AND NOT create_venv_result EQUAL 0)
+  message (WARNING "Virtualenv creation failed, Python tests may not be run or may fail unexpectedly.
+                    Error: ${create_venv_error}\n")
 else()
-  message (STATUS "pip install successfull")
-endif()
+  message (STATUS "Virtualenv creation successfull")
+  set (ENV{VIRTUAL_ENV} "${KWIVER_BINARY_DIR}/testing_venv/bin")
+  set (Python3_FIND_VIRTUALENV ONLY)
 
+  # Find venv's python interp so we can point the pip install and nose
+  # test runner there instead of system install to isolate pip installed dependcies.
+  # may need to reset python interp type
+  find_package (Python3 COMPONENTS Interpreter Development)
+  if (NOT Python3_FOUND)
+    message (WARNING "Could not find virtualenv Python interp.\nPython tests will be run without garuntee of dependencies")
+  else()
+    set(PIP_COMMAND "${Python3_EXECUTABLE}"
+                    -m
+                    pip
+                    install
+                    -r
+                    ${KWIVER_SOURCE_DIR}/python/requirements.txt
+                    )
+  endif()
+endif()
 
 ###
 # Pybind11 Bindings Test Runner - nosetests
-# find local install of nosetests executable, search for version associated with kwiver
+# find virtualenv install of nosetests executable, search for version associated with kwiver
 # first, default to v 3.4, the most recent version provided by pip install
 # alternatively users can install the version of nose specific
 # to the version of python they're running with kwiver
 #
 #
 if (KWIVER_ENABLE_TESTS)
-  find_program (NOSE_RUNNER NAMES
-  "nosetests-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-  "nosetests${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-  "nosetests-${PYTHON_VERSION_MAJOR}"
-  "nosetests${PYTHON_VERSION_MAJOR}"
-  "nosetests-3.4"
-  "nosetests3.4"
-  "nosetests")
-
+  if (Python3_FOUND)
+    set(NOSE_RUNNER "python" "-m" "nose")
+  else()
+    find_program (NOSE_RUNNER NAMES
+    "nosetests-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+    "nosetests${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+    "nosetests-${PYTHON_VERSION_MAJOR}"
+    "nosetests${PYTHON_VERSION_MAJOR}"
+    "nosetests-3.4"
+    "nosetests3.4"
+    "nosetests")
+  endif()
   if (NOSE_RUNNER)
 
-    message (STATUS "Found nosetests. Python tests will be run if testing is enabled. ")
+    message (STATUS "Found nosetests. Python tests will be run if testing is enabled. noserunner: ${NOSE_RUNNER}")
 
   else()
     message (STATUS "nosetests not found, Python tests will not be run.

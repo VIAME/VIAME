@@ -162,4 +162,17 @@ function (kwiver_add_nosetests name)
       add_dependencies(tests-${name}
       test-${name}-${instance})
   endif ()
+  if ( PIP_COMMAND )
+    add_test(
+              NAME activate_venv
+              COMMAND ${ACTIVATE_VENV}
+            )
+    add_test(
+              NAME deactivate_venv
+              COMMAND ${DEACTIVATE_VENV}
+            )
+    set_tests_properties(activate_venv PROPERTIES FIXTURES_SETUP nosetest)
+    set_tests_properties(deactivate_venv PROPERTIES FIXTURES_CLEANUP nosetest)
+    set_tests_properties(test-${name} PROPERTIES FIXTURES_REQUIRED nosetest)
+  endif()
 endfunction()
