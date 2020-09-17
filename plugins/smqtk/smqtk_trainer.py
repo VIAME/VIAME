@@ -77,7 +77,7 @@ class SMQTKTrainer( TrainDetector ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._output_directory = str( cfg.get_value( "output_directory" ) )
 
-        if self._mode is "detector":
+        if self._mode == "detector":
             pipe_file = "index_default.svm.pipe"
         elif self._gt_frames_only:
             pipe_file = "index_full_frame.svm.annot_only.pipe"
