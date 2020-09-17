@@ -88,7 +88,7 @@ class ResnetDescriptors(KwiverProcess):
         # self.declare_input_port_using_trait('framestamp', optional)
         self.declare_input_port_using_trait('image', required)
         self.declare_input_port_using_trait('detected_object_set', required)
-        self.declare_input_port_using_trait('timestamp', required)
+        self.declare_input_port_using_trait('timestamp', optional)
 
         #  output port ( port-name,flags)
         self.declare_output_port_using_trait('detected_object_set', optional)
