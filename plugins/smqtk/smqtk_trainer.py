@@ -44,7 +44,7 @@ import subprocess
 import threading
 import time
 
-import smqtk_train_svm_models as trainer
+import viame.arrows.smqtk.smqtk_train_svm_models as trainer
 
 class SMQTKTrainer( TrainDetector ):
     """
@@ -62,7 +62,7 @@ class SMQTKTrainer( TrainDetector ):
 
     def get_configuration( self ):
         cfg = super( TrainDetector, self ).get_configuration()
-        cfg.set_value( "mode", self._gt_frames_only )
+        cfg.set_value( "mode", self._mode )
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "output_directory", self._output_directory )
