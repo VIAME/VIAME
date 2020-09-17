@@ -138,7 +138,7 @@ def log_info( msg ):
   sys.stdout.write( msg )
   sys.stdout.flush()
 
-def init( log_file="" ):
+def init( log_file="", prompt=True ):
 
   # Set new log file, flush file since this is a new database
   global status_log_file
@@ -153,7 +153,7 @@ def init( log_file="" ):
 
     # Remove directory, will be remade in next step, query user in case this was a mistake
     if os.path.exists( database_dir ):
-      if query_yes_no( lb1 + "You are about to reset \"" + database_dir + "\", continue?" ):
+      if not prompt or query_yes_no( lb1 + "You are about to reset \"" + database_dir + "\", continue?" ):
         shutil.rmtree( database_dir )
       else:
         return [ False, True ]

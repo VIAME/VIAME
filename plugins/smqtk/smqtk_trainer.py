@@ -117,6 +117,7 @@ class SMQTKTrainer( TrainDetector ):
                  "-o", "database",
                  "--build-index",
                  "-auto-detect-gt", "viame_csv",
+                 "--no-reset-prompt",
                  "-install", self._viame_install ]
 
         if threading.current_thread().__class__.__name__ == '_MainThread':
