@@ -51,40 +51,32 @@ connect from input.timestamp
 
 # ==============================================================================
 
-include $SYSENV{VIAME_INSTALL}/configs/pipelines/common_generic_detector.pipe
-include $SYSENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
+process detector
+  :: image_object_detector
+  :detector:type                               full_frame
+  :detector:full_frame:detection_type          generic_object_proposal
+
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
   :refiner:type                                svm_refine
   :refiner:svm_refine:model_dir                .
 
-process nms_refiner
-  :: refine_detections
-  :refiner:type                                nms
-  
-  block refiner:nms
-    :max_overlap                               0.50
-    :nms_scale_factor                          1.5
-    :output_scale_factor                       1.1
-  endblock
+connect from downsampler.output_1
+        to   detector.image
 
-connect from detector_input.image
+connect from downsampler.output_1
         to   descriptor.image
-connect from detector_input.image
-        to   svm_refiner.image
-connect from detector_input.image
-        to   nms_refiner.image
-
 connect from downsampler.timestamp
         to   descriptor.timestamp
-
-connect from detector_output.detected_object_set
+connect from detector.detected_object_set
         to   descriptor.detected_object_set
+
+connect from downsampler.output_1
+        to   svm_refiner.image
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
-connect from svm_refiner.detected_object_set
-        to   nms_refiner.detected_object_set
 
 # ==============================================================================
 
@@ -95,7 +87,7 @@ process detector_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
-connect from nms_refiner.detected_object_set
+connect from svm_refiner.detected_object_set
         to   detector_writer.detected_object_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name

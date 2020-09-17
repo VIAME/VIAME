@@ -51,8 +51,8 @@ connect from input.timestamp
 
 # ==============================================================================
 
-include $SYSENV{VIAME_INSTALL}/configs/pipelines/common_generic_detector.pipe
-include $SYSENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_generic_detector.pipe
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
