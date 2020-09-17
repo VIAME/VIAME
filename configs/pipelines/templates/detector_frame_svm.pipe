@@ -4,6 +4,14 @@
 #
 # ==============================================================================
 
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+   :type                                       pythread_per_process
+
+# ==============================================================================
+
 process input
   :: video_input
   :video_filename                              input_list.txt
