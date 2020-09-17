@@ -29,4 +29,9 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_SMQTK )
     viame/arrows/smqtk
     smqtk_train_svm_models )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/smqtk_trainer.py
+    viame/arrows/smqtk
+    smqtk_trainer )
+
 endif()
