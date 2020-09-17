@@ -113,7 +113,7 @@ class SMQTKTrainer( TrainDetector ):
         cmd += [ script,
                  "--init",
                  "-d", self._root_dir,
-                 "-p", self._pipeline_template,
+                 "-p", self._ingest_pipeline,
                  "-o", "database",
                  "--build-index",
                  "-auto-detect-gt", "viame_csv",
