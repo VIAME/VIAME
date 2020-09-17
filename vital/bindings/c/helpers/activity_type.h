@@ -53,4 +53,4 @@ extern SharedPointerCache< kwiver::vital::activity_type,
 } }
 
 
-#endif //VITAL_C_HELPERS_CLASS_MAP_H_
+#endif //VITAL_C_HELPERS_ACTIVTY_TYPE_H_
