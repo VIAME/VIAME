@@ -8,6 +8,7 @@
 */
 
 #include <arrows/core/depth_utils.h>
+#include <vital/math_constants.h>
 #include <iostream>
 #include <cmath>
 
@@ -51,7 +52,7 @@ compute_robust_ROI(std::vector<landmark_sptr> const& landmarks,
                    double zmax_percentile,
                    double margin)
 {
-  unsigned int num_pts = landmarks.size();
+  unsigned int num_pts = static_cast<unsigned int>(landmarks.size());
   if (num_pts < 2)
   {
     return false;
@@ -327,6 +328,51 @@ compute_pixel_to_world_scale(kwiver::vital::vector_3d const& minpt,
   }
 
   return scale / count;
+}
+
+//*****************************************************************************
+
+/// Find a subset of cameras within an angular span of a target camera
+camera_perspective_map_sptr
+find_similar_cameras_angles(camera_perspective const& ref_camera,
+                            camera_perspective_map const& cameras,
+                            double max_angle,
+                            unsigned max_count)
+{
+  const vector_3d z(0.0, 0.0, 1.0);
+  const double cos_max_angle = std::cos(max_angle * deg_to_rad);
+
+  camera_perspective_map::frame_to_T_sptr_map selected_cameras;
+
+  // reference camera principal axis
+  vector_3d ref_pa = ref_camera.rotation().inverse() * z;
+  for (auto const& item : cameras.T_cameras())
+  {
+    // current camera principal axis
+    vector_3d curr_pa = item.second->rotation().inverse() * z;
+    if (ref_pa.dot(curr_pa) < cos_max_angle)
+    {
+      continue;
+    }
+    selected_cameras.insert(item);
+  }
+  // downsample the set of camera to return no more than max_count
+  if (max_count > 0  && selected_cameras.size() > max_count)
+  {
+    camera_perspective_map::frame_to_T_sptr_map sub_selected_cameras;
+    std::vector<frame_id_t> frames;
+    for (auto const& item : selected_cameras)
+    {
+      frames.push_back(item.first);
+    }
+    for (unsigned i = 0; i < max_count; ++i)
+    {
+      size_t j = (i * selected_cameras.size()) / max_count;
+      sub_selected_cameras.insert(*selected_cameras.find(frames[j]));
+    }
+    selected_cameras = sub_selected_cameras;
+  }
+  return std::make_shared<camera_perspective_map>(selected_cameras);
 }
 
 } //end namespace core

@@ -13,6 +13,7 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 #include <vector>
 #include <vital/types/landmark.h>
+#include <vital/types/camera_perspective_map.h>
 #include <vital/types/camera_perspective.h>
 #include <vital/types/bounding_box.h>
 
@@ -176,6 +177,24 @@ double
 compute_pixel_to_world_scale(kwiver::vital::vector_3d const& minpt,
                              kwiver::vital::vector_3d const& maxpt,
                              std::vector<camera_perspective_sptr> const& cameras);
+
+/// Find a subset of cameras within an angular span of a target camera
+/**
+ * Return the subset of all cameras within the specified angle similarity bounds
+ * to the reference camera.  If \p max_count is greater than zero then uniformly
+ * subsample this many cameras from the selected set.
+ *
+ * \param  ref_camera The reference camera, find similar cameras similar to this
+ * \param  cameras The pool of cameras to select from
+ * \param  max_angle The maximum angle in degrees between camera principal rays
+ * \param  max_count The maximum number of cameras to return (if 0, return all)
+*/
+KWIVER_ALGO_CORE_EXPORT
+kwiver::vital::camera_perspective_map_sptr
+find_similar_cameras_angles(camera_perspective const& ref_camera,
+                            camera_perspective_map const& cameras,
+                            double max_angle,
+                            unsigned max_count = 0);
 } //end namespace core
 } //end namespace arrows
 } //end namespace kwiver
