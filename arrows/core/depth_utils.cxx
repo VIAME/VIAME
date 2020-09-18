@@ -13,6 +13,7 @@
 #include <cmath>
 
 using namespace kwiver::vital;
+using namespace kwiver::vital::algo;
 
 namespace kwiver {
 namespace arrows {
@@ -328,6 +329,79 @@ compute_pixel_to_world_scale(kwiver::vital::vector_3d const& minpt,
   }
 
   return scale / count;
+}
+
+//*****************************************************************************
+
+/// Gather images and masks corresponding to cameras from video sources
+int gather_depth_frames(
+  camera_perspective_map const& cameras,
+  video_input_sptr video,
+  video_input_sptr masks,
+  frame_id_t ref_frame,
+  std::vector<camera_perspective_sptr>& cameras_out,
+  std::vector<image_container_sptr>& frames_out,
+  std::vector<image_container_sptr>& masks_out,
+  gather_callback_t cb)
+{
+  auto logger = kwiver::vital::get_logger(
+    "kwiver.arrows.core.depth_utils.gather_depth_frames");
+  cameras_out.clear();
+  frames_out.clear();
+  masks_out.clear();
+  if (!video)
+  {
+    return 0;
+  }
+  int ref_index = -1;
+  kwiver::vital::timestamp currentTimestamp;
+  for (auto const& item : cameras.T_cameras())
+  {
+    if (cb && !cb(static_cast<unsigned int>(frames_out.size()),
+                  static_cast<unsigned int>(cameras.size())))
+    {
+      break;
+    }
+    // seek to the frame
+    video->seek_frame(currentTimestamp, item.first);
+    if (currentTimestamp.get_frame() != item.first)
+    {
+      LOG_WARN(logger, "Could not find video frame " << item.first);
+      continue;
+    }
+    if (masks)
+    {
+      masks->seek_frame(currentTimestamp, item.first);
+    }
+    if (currentTimestamp.get_frame() != item.first)
+    {
+      LOG_WARN(logger, "Could not find mask frame " << item.first);
+      continue;
+    }
+    auto cam = item.second;
+    auto const image = video->frame_image();
+    if (!image)
+    {
+      LOG_WARN(logger, "No image available on frame " << item.first);
+      continue;
+    }
+    auto const mdv = video->frame_metadata();
+    if (!mdv.empty())
+    {
+      image->set_metadata(mdv[0]);
+    }
+    frames_out.push_back(image);
+    cameras_out.push_back(item.second);
+    if (masks)
+    {
+      masks_out.push_back(masks->frame_image());
+    }
+    if (item.first == ref_frame)
+    {
+      ref_index = static_cast<int>(frames_out.size()-1);
+    }
+  }
+  return ref_index;
 }
 
 //*****************************************************************************
