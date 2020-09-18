@@ -64,6 +64,12 @@ def has_valid_ext( f, ext_list ):
       return True
   return False
 
+def has_file_with_extension( folder, extension ):
+  for filename in list_files_in_dir_w_ext( folder, extension ):
+    if filename.endswith( extension ):
+      return True
+  return False
+
 def list_files_in_dir_w_exts( folder, extensions ):
   ext_list = extensions.split(";")
   return [ f for f in list_files_in_dir( folder ) if has_valid_ext( f, ext_list ) ]
@@ -732,13 +738,20 @@ if __name__ == "__main__" :
     elif not args.build_index:
       log_info( lb1 )
 
-    # Get required paths
-    pipeline_loc = args.pipeline
-
     # Check for local pipelines and pre-reqs present
     if "_local.pipe" in args.pipeline:
       if not os.path.exists( "category_models/detector.pipe" ):
-        exit_with_error( "Use of this script requires training a detector first" )
+        if has_file_with_extension( "category_models", "svm" ):
+          if args.pipeline.endswith( "detector_local.pipe" ):
+            args.pipeline = os.path.join( "pipelines", "detector_svm_models.pipe" )
+          elif args.pipeline.endswith( "full_frame_classifier_local.pipe" ):
+            args.pipeline = os.path.join( "pipelines", "full_frame_classifier_svm.pipe" )
+          elif args.pipeline.endswith( "tracker_local.pipe" ):
+            args.pipeline = os.path.join( "pipelines", "tracker_svm_models.pipe" )
+          else:
+            exit_with_error( "Use of this script requires training a detector first" )
+        else:
+          exit_with_error( "Use of this script requires training a detector first" )
 
     # Process videos in parallel, one per GPU
     video_queue = queue.Queue()

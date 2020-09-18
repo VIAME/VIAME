@@ -172,6 +172,7 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_extract_left.pipe
   pipelines/filter_split_and_debayer.pipe
   pipelines/filter_to_kwa.pipe
+  pipelines/full_frame_classifier_local.pipe
   pipelines/full_frame_classifier_svm.pipe
   pipelines/generate_empty_frame_lbls_1fr.pipe
   pipelines/generate_empty_frame_lbls_10fr.pipe
