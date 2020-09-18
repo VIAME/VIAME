@@ -438,7 +438,7 @@ if( VIAME_ENABLE_CAFFE )
     pipelines/index_default.sfd.cfe.pipe )
 endif()
 
-if( VIAME_ENABLE_SEAK_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+if( VIAME_ENABLE_SEAL_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( DUAL_EMBEDDED_FILES
     pipelines/embedded_dual_stream/local_trained_eo_detector.pipe
     pipelines/embedded_dual_stream/local_trained_ir_detector.pipe )
