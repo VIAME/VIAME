@@ -51,9 +51,7 @@ PYBIND11_MODULE(activity, m)
           py::arg("id") = -1,
           py::arg("label") = kwiver::vital::UNDEFINED_ACTIVITY,
           py::arg("confidence") = -1.0,
-          py::arg("classifications") =
-           std::make_shared<kwiver::vital::activity_type>(kwiver::vital::UNDEFINED_ACTIVITY,
-                                                        -1.0),
+          py::arg("classifications") = nullptr,
           py::arg("start_time") = kwiver::vital::timestamp(-1, -1),
           py::arg("end_time") = kwiver::vital::timestamp(-1, -1),
           py::arg("participants") =
