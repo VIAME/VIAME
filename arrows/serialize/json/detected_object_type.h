@@ -28,70 +28,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "class_map.h"
+#ifndef ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
+#define ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
 
-#include "load_save.h"
-
-#include <vital/types/class_map.h>
-#include <vital/internal/cereal/cereal.hpp>
-#include <vital/internal/cereal/archives/json.hpp>
-
-#include <sstream>
-
+#include <arrows/serialize/json/kwiver_serialize_json_export.h>
+#include <vital/algo/data_serializer.h>
+namespace cereal {
+  class JSONOutputArchive;
+  class JSONInputArchive;
+} // end namespace cereal
 namespace kwiver {
 namespace arrows {
 namespace serialize {
 namespace json {
 
-// ----------------------------------------------------------------------------
-class_map::
-class_map()
-{ }
-
-
-class_map::
-~class_map()
-{ }
-
-// ----------------------------------------------------------------------------
-std::shared_ptr< std::string >
-class_map::
-serialize( const vital::any& element )
+class KWIVER_SERIALIZE_JSON_EXPORT detected_object_type
+  : public vital::algo::data_serializer
 {
-  kwiver::vital::class_map cm =
-    kwiver::vital::any_cast< kwiver::vital::class_map > ( element );
+public:
+  PLUGIN_INFO( "kwiver:detected_object_type",
+               "Serializes a detected_object_type using JSON notation. "
+               "This implementation only handles a single data item." );
 
-  std::stringstream msg;
-  msg << "class_map ";
-  {
-    cereal::JSONOutputArchive ar( msg );
-    save( ar, cm );
-  }
+  detected_object_type();
+  virtual ~detected_object_type();
 
-  return std::make_shared< std::string > ( msg.str() );
-}
-
-// ----------------------------------------------------------------------------
-vital::any class_map::
-deserialize( const std::string& message )
-{
-  std::stringstream msg(message);
-  kwiver::vital::class_map cm;
-  std::string tag;
-  msg >> tag;
-
-  if (tag != "class_map" )
-  {
-    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"class_map\", received \""
-               << tag << "\". Message dropped." );
-  }
-  else
-  {
-    cereal::JSONInputArchive ar( msg );
-    load( ar, cm );
-  }
-
-  return kwiver::vital::any(cm);
-}
+  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  vital::any deserialize( const std::string& message ) override;
+};
 
 } } } }       // end namespace kwiver
+
+#endif // ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE

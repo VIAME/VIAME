@@ -30,7 +30,6 @@
 
 #include "detected_object.h"
 
-#include "class_map.h"
 #include "bounding_box.h"
 
 #include <vital/types/detected_object.h>

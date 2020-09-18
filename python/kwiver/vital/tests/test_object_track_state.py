@@ -38,7 +38,7 @@ import unittest
 import nose.tools
 import numpy
 
-from kwiver.vital.types import ObjectTrackState, BoundingBox, ClassMap, \
+from kwiver.vital.types import ObjectTrackState, BoundingBox, DetectedObjectType as DOT, \
         DetectedObject
 
 
@@ -50,7 +50,7 @@ class TestObjectTrackState (unittest.TestCase):
                  (10, 10, 20, 20), confidence of 0.4 and "test" label
         """
         bbox = BoundingBox(10, 10, 20, 20)
-        cm  = ClassMap("test", 0.4)
+        cm  = DOT("test", 0.4)
         do = DetectedObject(bbox, 0.4, cm)
         return do
 

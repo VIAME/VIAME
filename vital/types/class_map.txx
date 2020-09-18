@@ -30,26 +30,34 @@
 
 #include "class_map.h"
 
-
 #include <stdexcept>
-#include <limits>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
 
 namespace kwiver {
+
 namespace vital {
 
-const double class_map::INVALID_SCORE = std::numeric_limits< double >::min();
-
 // Master list of all type names, and members associated with the same
-signal< std::string const& > class_map::class_name_added;
-std::set< std::string > class_map::s_master_name_set;
-std::mutex class_map::s_table_mutex;
+template < typename T >
+signal< std::string const& >
+class_map< T >
+::class_name_added;
 
-// ==================================================================
+template < typename T >
+std::unordered_set< std::string >
+class_map< T >
+::s_master_name_set;
+
+template < typename T >
+std::mutex
+class_map< T >
+::s_table_mutex;
+
 namespace {
 
+// ----------------------------------------------------------------------------
 template < typename T1, typename T2 >
 struct less_second
 {
@@ -60,7 +68,7 @@ struct less_second
   }
 };
 
-
+// ----------------------------------------------------------------------------
 template < typename T1, typename T2 >
 struct more_second
 {
@@ -71,14 +79,17 @@ struct more_second
   }
 };
 
-} // end namespace
+} // namespace <anonymous>
 
-// ------------------------------------------------------------------
-class_map
+// ----------------------------------------------------------------------------
+template < typename T >
+class_map< T >
 ::class_map()
 { }
 
-class_map
+// ----------------------------------------------------------------------------
+template < typename T >
+class_map< T >
 ::class_map( const std::vector< std::string >& class_names,
                         const std::vector< double >& scores )
 {
@@ -100,7 +111,9 @@ class_map
   }
 }
 
-class_map
+// ----------------------------------------------------------------------------
+template < typename T >
+class_map< T >
 ::class_map( const std::string& class_name, double score )
 {
   if ( class_name.empty() )
@@ -111,10 +124,10 @@ class_map
   set_score( class_name, score );
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template < typename T >
 bool
-class_map
+class_map< T >
 ::has_class_name( const std::string& class_name ) const
 {
   try
@@ -127,10 +140,10 @@ class_map
   return false;
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template < typename T >
 double
-class_map
+class_map< T >
 ::score( const std::string& class_name ) const
 {
   const std::string* str_ptr = find_string( class_name );
@@ -147,10 +160,10 @@ class_map
   return it->second; // return score
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template < typename T >
 void
-class_map
+class_map< T >
 ::get_most_likely( std::string& max_name ) const
 {
   if ( m_classes.empty() )
@@ -164,10 +177,10 @@ class_map
   max_name = std::string ( *(it->first) );
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template < typename T >
 void
-class_map
+class_map< T >
 ::get_most_likely( std::string& max_name, double& max_score ) const
 {
   if ( m_classes.empty() )
@@ -176,16 +189,17 @@ class_map
     throw std::runtime_error( "This detection has no scores." );
   }
 
-  auto it = std::max_element( m_classes.begin(), m_classes.end(), less_second< const std::string*, double > () );
+  auto it = std::max_element( m_classes.begin(), m_classes.end(),
+                              less_second< std::string const*, double > () );
 
   max_name = std::string ( *(it->first) );
   max_score = it->second;
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template < typename T >
 void
-class_map
+class_map< T >
 ::set_score( const std::string& class_name, double score )
 {
   // Check to see if class_name is in the master set.
@@ -206,10 +220,10 @@ class_map
   m_classes[str_ptr] = score;
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template < typename T >
 void
-class_map
+class_map< T >
 ::delete_score( const std::string& class_name )
 {
   auto str_ptr = find_string( class_name );
@@ -224,10 +238,10 @@ class_map
   m_classes.erase( str_ptr );
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template < typename T >
 std::vector< std::string >
-class_map
+class_map< T >
 ::class_names( double threshold ) const
 {
   std::vector< std::pair< const std::string*, double > > items( m_classes.begin(), m_classes.end() );
@@ -251,53 +265,52 @@ class_map
   return list;
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+template < typename T >
 size_t
-class_map
+class_map< T >
 ::size() const
 {
   return m_classes.size();
 }
 
-
-// ------------------------------------------------------------------
-class_map::class_const_iterator_t
-class_map
+// ----------------------------------------------------------------------------
+template < typename T >
+typename class_map< T >::class_const_iterator_t
+class_map< T >
 ::begin() const
 {
   return m_classes.begin();
 }
 
-
-// ------------------------------------------------------------------
-class_map::class_const_iterator_t
-class_map
+// ----------------------------------------------------------------------------
+template < typename T >
+typename class_map< T >::class_const_iterator_t
+class_map< T >
 ::cbegin() const
 {
   return m_classes.cbegin();
 }
 
-
-// ------------------------------------------------------------------
-class_map::class_const_iterator_t
-class_map
+// ----------------------------------------------------------------------------
+template < typename T >
+typename class_map< T >::class_const_iterator_t
+class_map< T >
 ::end() const
 {
   return m_classes.end();
 }
 
-
-// ------------------------------------------------------------------
-class_map::class_const_iterator_t
-class_map
+// ----------------------------------------------------------------------------
+template < typename T >
+typename class_map< T >::class_const_iterator_t
+class_map< T >
 ::cend() const
 {
   return m_classes.cend();
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @brief Resolve string to pointer.
  *
@@ -312,8 +325,9 @@ class_map
  *
  * @throws std::runtime_error if the string is not in the global set.
  */
+template < typename T >
 const std::string*
-class_map
+class_map< T >
 ::find_string( const std::string& str ) const
 {
   std::lock_guard< std::mutex > lock{ s_table_mutex };
@@ -329,14 +343,28 @@ class_map
   return &(*it);
 }
 
-
 // ----------------------------------------------------------------------------
+template < typename T >
 std::vector< std::string >
-class_map
+class_map< T >
 ::all_class_names()
 {
-  std::lock_guard< std::mutex > lock{ s_table_mutex };
-  return { s_master_name_set.begin(), s_master_name_set.end() };
+  auto out = []() -> std::vector< std::string >
+  {
+    std::lock_guard< std::mutex > lock{ s_table_mutex };
+    return { s_master_name_set.begin(), s_master_name_set.end() };
+  }();
+
+  std::sort( out.begin(), out.end() );
+  return out;
 }
 
-} } // end namespace
+// ----------------------------------------------------------------------------
+template < typename T >
+constexpr double
+class_map< T >
+::INVALID_SCORE;
+
+} // namespace vital
+
+} // namespace kwiver

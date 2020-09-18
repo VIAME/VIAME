@@ -1,4 +1,4 @@
-/*ckwg +29
+/*ckwg +30
  * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
@@ -12,45 +12,51 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be
+ *    used to endorse or promote products derived from this software without
+ *    specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
  */
 
 /**
  * \file
- * \brief C++ Helper utilities for C interface of vital::class_map
- *
- * Private header for use in cxx implementation files.
+ * \brief Interface for activity_type class
  */
 
-#ifndef VITAL_C_HELPERS_CLASS_MAP_H_
-#define VITAL_C_HELPERS_CLASS_MAP_H_
+#ifndef VITAL_ACTIVITY_TYPE_H_
+#define VITAL_ACTIVITY_TYPE_H_
 
 #include <vital/types/class_map.h>
 
-#include <vital/bindings/c/types/class_map.h>
-#include <vital/bindings/c/helpers/c_utils.h>
+#include <vital/vital_export.h>
 
 namespace kwiver {
-namespace vital_c {
 
-/// Declaration of C interface shared_ptr cache of vital::class_map
-extern SharedPointerCache< kwiver::vital::class_map,
-                           vital_class_map_t > CM_SPTR_CACHE;
+namespace vital {
 
-} }
+struct activity_type_tag {};
 
+extern template class VITAL_EXPORT class_map< activity_type_tag >;
 
-#endif //VITAL_C_HELPERS_CLASS_MAP_H_
+using activity_type = class_map< activity_type_tag >;
+
+// typedef for a class_map shared pointer
+using activity_type_sptr = std::shared_ptr< activity_type >;
+using activity_type_scptr = std::shared_ptr< activity_type const >;
+
+} // namespace vital
+
+} // namespace kwiver
+
+#endif

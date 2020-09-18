@@ -92,7 +92,7 @@ PYBIND11_MODULE(detected_object_set, m)
       }
       return self.select(class_name.cast<std::string>(), threshold);
     },
-    py::arg("threshold")=kwiver::vital::class_map::INVALID_SCORE, py::arg("class_name")=py::none())
+    py::arg("threshold")=kwiver::vital::detected_object_type::INVALID_SCORE, py::arg("class_name")=py::none())
   .def("__getitem__", [](det_obj_set &self, size_t idx)
     {
       return self.at(idx);

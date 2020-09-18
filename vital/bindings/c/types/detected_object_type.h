@@ -1,4 +1,5 @@
 /*ckwg +29
+ * Copyright 2016-2017 by Kitware, Inc.
  * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
@@ -30,64 +31,61 @@
 
 /**
  * \file
- * \brief Interface for class_map class
+ * \brief Interface for detected_object_type class
  */
 
-#ifndef VITAL_C_CLASS_MAP_H_
-#define VITAL_C_CLASS_MAP_H_
+#ifndef VITAL_C_DETECTED_OBJECT_TYPE_H_
+#define VITAL_C_DETECTED_OBJECT_TYPE_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
 #include <vital/bindings/c/vital_c_export.h>
-
 #include <stddef.h>
 
-/// VITAL Image opaque structure
-typedef struct vital_class_map_s vital_class_map_t;
-
-
-VITAL_C_EXPORT
-vital_class_map_t* vital_class_map_new();
+/// VITAL detected object type opaque structure
+typedef struct vital_detected_object_type_s vital_detected_object_type_t;
 
 VITAL_C_EXPORT
-void vital_class_map_destroy(vital_class_map_t* obj);
+vital_detected_object_type_t* vital_detected_object_type_new();
 
 VITAL_C_EXPORT
-vital_class_map_t* vital_class_map_new_from_list( vital_class_map_t* obj,
-                                                  size_t count,
-                                                  char** class_names,
-                                                  double* scores);
+void vital_detected_object_type_destroy(vital_detected_object_type_t* obj);
 
 VITAL_C_EXPORT
-bool vital_class_map_has_class_name( vital_class_map_t* obj, char* class_name );
+vital_detected_object_type_t* vital_detected_object_type_new_from_list( vital_detected_object_type_t* obj,
+                                                                        size_t count,
+                                                                        char** class_names,
+                                                                        double* scores);
 
 VITAL_C_EXPORT
-double vital_class_map_score( vital_class_map_t* obj, char* class_name );
+bool vital_detected_object_type_has_class_name( vital_detected_object_type_t* obj, char* class_name );
 
 VITAL_C_EXPORT
-char* vital_class_map_get_most_likely_class( vital_class_map_t* obj);
+double vital_detected_object_type_score( vital_detected_object_type_t* obj, char* class_name );
 
 VITAL_C_EXPORT
-double vital_class_map_get_most_likely_score( vital_class_map_t* obj);
+char* vital_detected_object_type_get_most_likely_class( vital_detected_object_type_t* obj);
 
 VITAL_C_EXPORT
-void vital_class_map_set_score( vital_class_map_t* obj, char* class_name, double score);
+double vital_detected_object_type_get_most_likely_score( vital_detected_object_type_t* obj);
 
 VITAL_C_EXPORT
-void vital_class_map_delete_score( vital_class_map_t* obj, char* class_name);
+void vital_detected_object_type_set_score( vital_detected_object_type_t* obj, char* class_name, double score);
 
 VITAL_C_EXPORT
-char** vital_class_map_class_names( vital_class_map_t* obj, double thresh );
+void vital_detected_object_type_delete_score( vital_detected_object_type_t* obj, char* class_name);
 
 VITAL_C_EXPORT
-char** vital_class_map_all_class_names(vital_class_map_t* obj);
+char** vital_detected_object_type_class_names( vital_detected_object_type_t* obj, double thresh );
+
+VITAL_C_EXPORT
+char** vital_detected_object_type_all_class_names(vital_detected_object_type_t* obj);
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* VITAL_C_CLASS_MAP_H_ */
+#endif

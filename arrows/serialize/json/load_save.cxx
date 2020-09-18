@@ -35,7 +35,6 @@
 #include <arrows/serialize/json/track_item.h>
 
 #include <vital/exceptions.h>
-#include <vital/types/class_map.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/geo_point.h>
@@ -45,7 +44,6 @@
 #include <vital/types/track_set.h>
 #include <vital/types/object_track_set.h>
 #include <vital/vital_types.h>
-#include <vital/types/activity.h>
 
 #include <vital/util/hex_dump.h>
 #include <vital/logger/logger.h>
@@ -61,6 +59,31 @@
 
 
 namespace cereal {
+// ============================================================================
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::activity_type& at )
+{
+
+  // recreate the class/score map so we don't break encapsulation.
+  std::map< std::string, double > activity_type_content;
+  for ( auto entry : at )
+  {
+    activity_type_content[*(entry.first)] = entry.second;
+  }
+
+  archive( CEREAL_NVP( activity_type_content ) );
+}
+
+// ----------------------------------------------------------------------------
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::activity_type& at )
+{
+  std::map< std::string, double > activity_type_content;
+  archive( CEREAL_NVP( activity_type_content ) );
+
+  for ( auto entry : activity_type_content )
+  {
+    at.set_score( entry.first, entry.second );
+  }
+}
 
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::bounding_box_d& bbox )
@@ -99,15 +122,15 @@ void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::detected
     );
 
   // This pointer may be null
-  const auto cm_ptr = const_cast< ::kwiver::vital::detected_object& >(obj).type();
-  if ( cm_ptr )
+  const auto dot_ptr = const_cast< ::kwiver::vital::detected_object& >(obj).type();
+  if ( dot_ptr )
   {
-    save( archive, *cm_ptr );
+    save( archive, *dot_ptr );
   }
   else
   {
-    ::kwiver::vital::class_map empty_cm;
-    save( archive, empty_cm );
+    ::kwiver::vital::detected_object_type empty_dot;
+    save( archive, empty_dot );
   }
 
   // Currently skipping the image chip and descriptor.
@@ -153,9 +176,9 @@ void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::detected_object
     obj.add_keypoint( kp.first, kp.second );
   }
 
-  auto new_cm = std::make_shared< ::kwiver::vital::class_map >();
-  load( archive, *new_cm );
-  obj.set_type( new_cm );
+  auto new_dot = std::make_shared< ::kwiver::vital::detected_object_type >();
+  load( archive, *new_dot );
+  obj.set_type( new_dot );
 }
 
 // ============================================================================
@@ -199,28 +222,28 @@ void load( ::cereal::JSONInputArchive&           archive,
 }
 
 // ============================================================================
-void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::class_map& cm )
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::detected_object_type& dot )
 {
 
   // recreate the class/score map so we don't break encapsulation.
-  std::map< std::string, double > class_map_content;
-  for ( auto entry : cm )
+  std::map< std::string, double > detected_object_type_content;
+  for ( auto entry : dot )
   {
-    class_map_content[*(entry.first)] = entry.second;
+    detected_object_type_content[*(entry.first)] = entry.second;
   }
 
-  archive( CEREAL_NVP( class_map_content ) );
+  archive( CEREAL_NVP( detected_object_type_content ) );
 }
 
 // ----------------------------------------------------------------------------
-void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::class_map& cm )
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::detected_object_type& dot )
 {
-  std::map< std::string, double > class_map_content;
-  archive( CEREAL_NVP( class_map_content ) );
+  std::map< std::string, double > detected_object_type_content;
+  archive( CEREAL_NVP( detected_object_type_content ) );
 
-  for ( auto entry : class_map_content )
+  for ( auto entry : detected_object_type_content )
   {
-    cm.set_score( entry.first, entry.second );
+    dot.set_score( entry.first, entry.second );
   }
 }
 
@@ -628,9 +651,9 @@ void save( cereal::JSONOutputArchive& archive,
     save( archive, activity.end());
 
     // These may be null
-    if ( activity.activity_type() )
+    if ( activity.type() )
     {
-      save( archive, *activity.activity_type());
+      save( archive, *activity.type());
     }
 
     if ( activity.participants() )
@@ -644,9 +667,9 @@ void load( cereal::JSONInputArchive& archive,
 {
   kwiver::vital::activity_id_t id;
   kwiver::vital::activity_label_t label;
-  kwiver::vital::activity_confidence_t confidence;
-  kwiver::vital::class_map_sptr act_type =
-                           std::make_shared< kwiver::vital::class_map >();
+  double confidence;
+  kwiver::vital::activity_type_sptr act_type =
+                           std::make_shared< kwiver::vital::activity_type >();
   kwiver::vital::object_track_set_sptr participants =
                            std::make_shared< kwiver::vital::object_track_set >();
   kwiver::vital::timestamp start_frame, end_frame;
@@ -683,7 +706,7 @@ void load( cereal::JSONInputArchive& archive,
     participants = nullptr;
   }
 
-  activity.set_activity_type( act_type );
+  activity.set_type( act_type );
   activity.set_participants( participants );
 }
 

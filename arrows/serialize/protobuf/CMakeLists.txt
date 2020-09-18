@@ -12,8 +12,9 @@ set( headers_public
   convert_protobuf.h
   convert_protobuf_point.h
   activity.h
+  activity_type.h
   bounding_box.h
-  class_map.h
+  detected_object_type.h
   detected_object.h
   detected_object_set.h
   metadata.h
@@ -31,8 +32,9 @@ set( sources
   convert_protobuf.cxx
   convert_protobuf_point.cxx
   activity.cxx
+  activity_type.cxx
   bounding_box.cxx
-  class_map.cxx
+  detected_object_type.cxx
   detected_object.cxx
   detected_object_set.cxx
   metadata.cxx

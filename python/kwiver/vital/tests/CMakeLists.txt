@@ -5,6 +5,7 @@
 # Define modules with tests in them
 set(__testable_modnames
   test_algorithm_factory
+  test_activity_type
   test_camera
   test_camera_intrinsics
   test_config
@@ -13,6 +14,7 @@ set(__testable_modnames
   test_covariance
   test_descriptor
   test_descriptor_set
+  test_detected_object_type
   test_eigen_numpy
   test_feature
   test_homography

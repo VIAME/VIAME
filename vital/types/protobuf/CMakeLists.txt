@@ -6,11 +6,12 @@ find_package( Protobuf REQUIRED 3 )
 
 set( proto_files
   activity.proto
+  activity_type.proto
   bounding_box.proto
   covariance.proto
+  detected_object_type.proto
   detected_object.proto
   detected_object_set.proto
-  class_map.proto
   geo_point.proto
   geo_polygon.proto
   image.proto

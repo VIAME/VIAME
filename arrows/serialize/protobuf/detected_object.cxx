@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "class_map.h"
+#include "detected_object_type.h"
 #include "detected_object.h"
 #include "bounding_box.h"
 #include "convert_protobuf.h"

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2020 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-syntax = "proto2";
+#ifndef ARROWS_SERIALIZATION_JSON_ACTIVITY_TYPE
+#define ARROWS_SERIALIZATION_JSON_ACTIVITY_TYPE
 
-package kwiver.protobuf;
+#include <arrows/serialize/json/kwiver_serialize_json_export.h>
+#include <vital/algo/data_serializer.h>
+#include "load_save.h"
 
-message class_map {
-  repeated double score = 1;
-  repeated string name = 2;
-}
+namespace cereal {
+  class JSONOutputArchive;
+  class JSONInputArchive;
+} // end namespace cereal
+
+namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace json {
+
+
+class KWIVER_SERIALIZE_JSON_EXPORT activity_type
+  : public vital::algorithm_impl< activity_type,
+           vital::algo::data_serializer >
+{
+public:
+  // Type name this class supports and description
+  PLUGIN_INFO(
+    "kwiver:activity_type",
+    "Serializes an activity_type using JSON notation. "
+    "This implementation only handles a single data item."
+  );
+
+  activity_type();
+  virtual ~activity_type();
+
+  virtual std::shared_ptr< std::string >
+    serialize( const kwiver::vital::any& element ) override;
+  virtual kwiver::vital::any deserialize( const std::string& message ) override;
+};
+
+} } } }
+
+#endif
