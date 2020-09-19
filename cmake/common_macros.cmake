@@ -55,6 +55,10 @@ function( DownloadThenExtractInstall _URL _MD5 _DL_LOC _INT_LOC )
     WORKING_DIRECTORY ${_INT_LOC} )" )
 endfunction()
 
+function( DownloadAndInstallAddOn _URL _MD5 _DL_LOC )
+  DownloadAndExtract( ${_URL} ${_MD5} ${_DL_LOC} ${CMAKE_INSTALL_PREFIX} )
+endfunction()
+
 function( RenameSubstr _fnRegex _inStr _outStr )
   file( GLOB DIR_FILES ${_fnRegex} )
   foreach( FN ${DIR_FILES} )
