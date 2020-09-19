@@ -1,5 +1,8 @@
 #! /bin/bash
 
+# Activate python environment
+source /Users/kitware/miniconda3/bin/activate
+
 # Update VIAME sub git sources
 export VIAME_SOURCE_FOLDER=/Users/kitware/Jenkins/workspace/VIAME_release_macos
 export VIAME_BUILD_FOLDER=${VIAME_SOURCE_FOLDER}/build
@@ -12,9 +15,7 @@ cd $VIAME_BUILD_FOLDER
 
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$PATH:$VIAME_INSTALL_FOLDER/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VIAME_INSTALL_FOLDER/lib:$VIAME_INSTALL_FOLDER/lib/python3.6
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:$VIAME_INSTALL_FOLDER/include/python3.6m
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$VIAME_INSTALL_FOLDER/include/python3.6m
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VIAME_INSTALL_FOLDER/lib
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -35,7 +36,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_MATLAB:BOOL=OFF \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
--DVIAME_ENABLE_PYTHON-INTERNAL:BOOL=ON \
+-DVIAME_ENABLE_PYTHON-INTERNAL:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-INTERNAL:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH-MMDET:BOOL=OFF \
@@ -68,3 +69,6 @@ cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 # Should be removed when this issue is fixed
 rm install/lib/libsvm.so
 cp install/lib/libsvm.so.2 install/lib/libsvm.so
+
+# HACK: Copy mac python environment to installer
+cp -r /Users/kitware/miniconda3 install
