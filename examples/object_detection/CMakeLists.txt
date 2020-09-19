@@ -18,60 +18,6 @@ else()
        run_generic.sh )
 endif()
 
-if( VIAME_DOWNLOAD_MODELS-HABCAM AND VIAME_ENABLE_YOLO )
-  if( WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_and_fish.bat
-         run_scallop_and_fish_left.bat )
-  else()
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_and_fish.sh
-         run_scallop_and_fish_left.sh )
-  endif()
-endif()
-
-if( VIAME_DOWNLOAD_MODELS-HABCAM AND VIAME_ENABLE_PYTORCH-NETHARN )
-  if( WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_netharn.bat
-         run_scallop_netharn_left.bat )
-  else()
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_netharn.sh
-         run_scallop_netharn_left.sh )
-  endif()
-endif()
-
-if( VIAME_DOWNLOAD_MODELS-HABCAM AND VIAME_ENABLE_SCALLOP_TK )
-  if( WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_tk.bat
-         run_scallop_tk_left.bat )
-  else()
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_tk.sh
-         run_scallop_tk_left.sh )
-  endif()
-endif()
-
-if( VIAME_ENABLE_MATLAB )
-  if( WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_lanl.bat )
-  else()
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_lanl.sh )
-  endif()
-endif()
-
 if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
 
   set( EXAMPLE_INSTALL_FILES

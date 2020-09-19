@@ -65,6 +65,10 @@ if( VIAME_DOWNLOAD_MODELS )
         bd54af8887fb2d4263eee4131acddba1
         ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v1.1.zip )
     endif()
+  else()
+    if( VIAME_DOWNLOAD_MODELS-SEA-LION )
+      message( FATAL_ERROR "Sea Lion models require pytorch" )
+    endif()
   endif()
 
   # Caffe Model Files
@@ -261,14 +265,6 @@ if( VIAME_ENABLE_VIVIA )
       pipelines/embedded_single_stream/mouss_tracker.pipe )
   endif()
 
-  if( VIAME_DOWNLOAD_MODELS-HABCAM )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/embedded_single_stream/scallop_and_fish.pipe
-      pipelines/embedded_single_stream/scallop_and_fish_left.pipe
-      pipelines/embedded_single_stream/scallop_netharn.pipe
-      pipelines/embedded_single_stream/scallop_netharn_left.pipe )
-  endif()
-
   if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       pipelines/embedded_single_stream/arctic_seal_eo_tf_detector.pipe
@@ -388,24 +384,9 @@ if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-MOUSS )
     pipelines/tracker_mouss.pipe )
 endif()
 
-if( VIAME_DOWNLOAD_MODELS-HABCAM )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/detector_scallop_and_fish.pipe
-    pipelines/detector_scallop_and_fish_left.pipe
-    pipelines/detector_scallop_netharn.pipe
-    pipelines/detector_scallop_netharn_left.pipe )
-endif()
-
 if( VIAME_ENABLE_MATLAB )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/detector_lanl_scallop_finder.pipe
     pipelines/detector_matlab_camtrawl.pipe )
-endif()
-
-if( VIAME_ENABLE_SCALLOP_TK )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/detector_scallop_tk.pipe
-    pipelines/detector_scallop_tk_left.pipe )
 endif()
 
 if( VIAME_ENABLE_CAFFE )
