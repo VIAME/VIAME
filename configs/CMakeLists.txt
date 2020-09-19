@@ -222,18 +222,18 @@ if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
     pipelines/embedded_single_stream/default_detector.pipe
     pipelines/embedded_single_stream/default_tracker.pipe
-    pipelines/embedded_single_stream/generate_empty_frame_lbls_1fr.pipe
-    pipelines/embedded_single_stream/generate_empty_frame_lbls_10fr.pipe
-    pipelines/embedded_single_stream/generate_empty_frame_lbls_100fr.pipe
+    pipelines/embedded_single_stream/generate_empty_frame_lbls_0001fr.pipe
+    pipelines/embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
+    pipelines/embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_1000fr.pipe
     pipelines/embedded_single_stream/generic_detector.pipe
     pipelines/embedded_single_stream/generic_tracker.pipe
     pipelines/embedded_single_stream/local_deep_detector.pipe
-    pipelines/embedded_single_stream/local_deep_tracker.pipe
-    pipelines/embedded_single_stream/local_detector_with_stab_tracker.pipe
-    pipelines/embedded_single_stream/local_svm_frame_classifier.pipe
+    pipelines/embedded_single_stream/local_deep_detector_with_def_tracker.pipe
+    pipelines/embedded_single_stream/local_deep_detector_with_stab_tracker.pipe
     pipelines/embedded_single_stream/local_svm_detector.pipe
-    pipelines/embedded_single_stream/local_svm_tracker.pipe )
+    pipelines/embedded_single_stream/local_svm_detector_with_def_tracker.pipe
+    pipelines/embedded_single_stream/local_svm_frame_classifier.pipe )
 
   if( VIAME_ENABLE_YOLO )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
