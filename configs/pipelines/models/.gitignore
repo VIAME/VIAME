@@ -4,3 +4,5 @@
 !generic_cfrnn.py
 !generic_cfrnn.lbl
 !cfrnn_train.py
+!yolo_v2_train.cfg
+!yolo_v3_train.cfg
