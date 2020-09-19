@@ -57,6 +57,9 @@ make -j$(nproc) -k || true
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 
+# HACK: Copy mac python environment to installer
+cp -r /Users/kitware/miniconda3 install
+
 # HACK: Double tap the build tree
 # Should be removed when non-determinism in kwiver python build fixed
 make -j$(nproc)
@@ -70,5 +73,3 @@ cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 rm install/lib/libsvm.so
 cp install/lib/libsvm.so.2 install/lib/libsvm.so
 
-# HACK: Copy mac python environment to installer
-cp -r /Users/kitware/miniconda3 install
