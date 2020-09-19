@@ -20,13 +20,17 @@ function( DownloadFile _URL _OutputLoc _MD5 )
   file( DOWNLOAD ${_URL} ${_OutputLoc} EXPECTED_MD5 ${_MD5} )
 endfunction()
 
-function( DownloadAndExtract _URL _MD5 _DL_LOC _EXT_LOC )
-  DownloadFile( ${_URL} ${_DL_LOC} ${_MD5} )
-  message( STATUS "Extracting data file from ${_URL}" )
+function( ExtractFile _FILE_LOC _EXT_LOC )
+  message( STATUS "Extracting data from ${_FILE_LOC}" )
   file( MAKE_DIRECTORY ${_EXT_LOC} )
   execute_process(
-    COMMAND ${CMAKE_COMMAND} -E tar xzf ${_DL_LOC}
+    COMMAND ${CMAKE_COMMAND} -E tar xzf ${_FILE_LOC}
     WORKING_DIRECTORY ${_EXT_LOC} )
+endfunction()
+
+function( DownloadAndExtract _URL _MD5 _DL_LOC _EXT_LOC )
+  DownloadFile( ${_URL} ${_DL_LOC} ${_MD5} )
+  ExtractFile( ${_DL_LOC} ${_EXT_LOC} )
 endfunction()
 
 function( DownloadExtractAndInstall _URL _MD5 _DL_LOC _EXT_LOC _INT_LOC )
@@ -42,6 +46,13 @@ function( DownloadExtractAndInstall _URL _MD5 _DL_LOC _EXT_LOC _INT_LOC )
       install( FILES ${ARGN} DESTINATION ${_INT_LOC} )
     endif()
   endforeach()
+endfunction()
+
+function( DownloadThenExtractInstall _URL _MD5 _DL_LOC _INT_LOC )
+  DownloadFile( ${_URL} ${_DL_LOC} ${_MD5} )
+  install( CODE "execute_process( \
+    COMMAND ${CMAKE_COMMAND} -E tar xzf ${_DL_LOC} \
+    WORKING_DIRECTORY ${_INT_LOC} )" )
 endfunction()
 
 function( RenameSubstr _fnRegex _inStr _outStr )
