@@ -222,6 +222,9 @@ if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
     pipelines/embedded_single_stream/default_detector.pipe
     pipelines/embedded_single_stream/default_tracker.pipe
+    pipelines/embedded_single_stream/filter_debayer.pipe
+    pipelines/embedded_single_stream/filter_debayer_and_enhance.pipe
+    pipelines/embedded_single_stream/filter_enhance.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_0001fr.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe

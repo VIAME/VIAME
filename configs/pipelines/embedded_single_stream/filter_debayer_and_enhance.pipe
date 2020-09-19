@@ -1,0 +1,56 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   5
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter                             5
+
+# =================================== DEBAYER ======================================
+
+process debayer
+  :: image_filter
+  :filter:type                                 ocv_debayer
+  :filter:ocv_debayer:pattern                  BG
+  :filter:ocv_debayer:force_8bit               true
+
+connect from in_adapt.image
+        to   debayer.image
+
+# =================================== FILTERS ======================================
+
+process filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+  :filter:ocv_enhancer:apply_smoothing         false
+  :filter:ocv_enhancer:smooth_kernel           3
+  :filter:ocv_enhancer:apply_denoising         false
+  :filter:ocv_enhancer:denoise_kernel          3
+  :filter:ocv_enhancer:denoise_coeff           2
+  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:force_8bit              false
+  :filter:ocv_enhancer:apply_clahe             true
+  :filter:ocv_enhancer:clip_limit              3
+  :filter:ocv_enhancer:saturation              1.20
+
+connect from debayer.image
+        to   filter.image
+
+# ==================================== OUTPUT ======================================
+
+process output
+  :: image_writer
+  :file_name_template                          output/frame%06d.png
+  :image_writer:type                           vxl
+
+connect from filter.image
+        to   output.image
+connect from in_adapt.file_name
+        to   output.image_file_name
+
+# -- end of file --
