@@ -124,11 +124,17 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # Mixed Models
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5f6630de50a41e3d199a3ba5/download
-      7ae9f9582750262c17e601cc5781d381
-      ${VIAME_DOWNLOAD_DIR}/models-habcam-v2.3.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    if( WIN32 )
+      DownloadAndInstallAddOn(
+        https://data.kitware.com/api/v1/item/5f66731150a41e3d199a8953/download
+        5d81c1e462378803a78295b6f1e00b75
+        ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5-Win.zip )
+    else()
+      DownloadAndInstallAddOn(
+        https://data.kitware.com/api/v1/item/5f6672f750a41e3d199a8934/download
+        c8f39d73de3ca6492df83715025f8917
+        ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5-Linux.zip )
+    endif()
   endif()
 
   # Transformation Models
