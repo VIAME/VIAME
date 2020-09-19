@@ -1,0 +1,91 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+process random_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :random_greyscale                          0.25
+    :force_three_channel                       true
+  endblock
+
+connect from in_adapt.image
+        to   random_grey.image
+
+process random_hue
+  :: image_filter
+  :filter:type                                 ocv_random_hue_shift
+
+  block filter:ocv_random_hue_shift
+    :trigger_percent                           0.40
+    :hue_range                                 10.0
+    :rgb_shift_range                           25.0
+  endblock
+
+connect from random_grey.image
+        to   random_hue.image
+
+# ==============================================================================
+
+process tracks_to_detections
+  :: convert_tracks_to_detections
+
+process detector_trainer
+  :: train_detector
+  #  Algorithm to use for 'detector_trainer'.
+  #  Must be one of the following options: darket, scallop_tk, mmdet, ocv_windowed
+  trainer:type = ocv_windowed
+
+  block trainer:ocv_windowed
+    :train_directory                            deep_training
+    :mode                                       chip_and_original
+    :scale                                      1.0
+    :chip_width                                 640
+    :chip_height                                640
+    :chip_step_height                           600
+    :chip_step_width                            600
+    :chip_adaptive_thresh                       2000000
+    :random_validation                          0.10
+    :image_reader:type                          vxl
+  endblock
+
+  block trainer:ocv_windowed:trainer
+    :type                                       netharn
+    :netharn:config_file                        bioharn-det-v14-cascade
+    :netharn:train_directory                    deep_training
+    :netharn:gpu_count                          -1
+    :netharn:chip_width                         640
+    :netharn:timeout                            1209600
+    :netharn:batch_size                         auto
+    relativepath netharn:backbone =             ../models/pytorch_resnext101.pth
+    relativepath netharn:pipeline_template =    ../templates/embedded_netharn.pipe
+  endblock
+
+connect from in_adapt.object_track_set
+        to   tracks_to_detections.object_track_set
+connect from in_adapt.timestamp
+        to   tracks_to_detections.timestamp
+
+connect from in_adapt.image
+        to   detector_trainer.image
+connect from tracks_to_detections.detected_object_set
+        to   detector_trainer.detected_object_set
+
+connect from detector_trainer.object_track_set
+        to   out_adapt.object_track_set
+
+# -- end of file --

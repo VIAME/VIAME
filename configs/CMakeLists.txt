@@ -242,7 +242,14 @@ if( VIAME_ENABLE_VIVIA )
 
   if( VIAME_ENABLE_PYTORCH )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/embedded_single_stream/train_deep_detector_cfrnn.pipe )
+      pipelines/embedded_single_stream/train_deep_detector_cfrnn.pipe
+      pipelines/embedded_single_stream/train_deep_frame_classifier_resnet.pipe )
+  endif()
+
+  if( VIAME_ENABLE_SMQTK )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/embedded_single_stream/train_svm_detector_over_generic_dets.pipe
+      pipelines/embedded_single_stream/train_svm_frame_classifier.pipe )
   endif()
 
   if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-MOUSS )
@@ -419,6 +426,12 @@ if( VIAME_ENABLE_SEAK_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
       pipelines/embedded_dual_stream/train_yolo_eo.pipe
       pipelines/embedded_dual_stream/train_yolo_ir.pipe )
+  endif()
+
+  if( VIAME_ENABLE_SMQTK )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/embedded_dual_stream/train_svm_detector_eo.pipe
+      pipelines/embedded_dual_stream/train_svm_detector_ir.pipe )
   endif()
 
   if( VIAME_ENABLE_PYTORCH-PYSOT )

@@ -1,0 +1,40 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+process tracks_to_detections
+  :: convert_tracks_to_detections
+
+process detector_trainer
+  :: train_detector
+  :trainer:type                               smqtk
+
+  block trainer:smqtk
+    relativepath net_config =                 ../models/yolo_v3_train.cfg
+  endblock
+
+connect from in_adapt.object_track_set
+        to   tracks_to_detections.object_track_set
+connect from in_adapt.timestamp
+        to   tracks_to_detections.timestamp
+
+connect from in_adapt.image
+        to   detector_trainer.image
+connect from tracks_to_detections.detected_object_set
+        to   detector_trainer.detected_object_set
+
+connect from detector_trainer.object_track_set
+        to   out_adapt.object_track_set
+
+# -- end of file --
