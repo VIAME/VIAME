@@ -48,7 +48,7 @@ function( DownloadExtractAndInstall _URL _MD5 _DL_LOC _EXT_LOC _INT_LOC )
   endforeach()
 endfunction()
 
-function( DownloadThenExtractInstall _URL _MD5 _DL_LOC _INT_LOC )
+function( DownloadAndExtractAtInstall _URL _MD5 _DL_LOC _INT_LOC )
   DownloadFile( ${_URL} ${_DL_LOC} ${_MD5} )
   install( CODE "execute_process( \
     COMMAND ${CMAKE_COMMAND} -E tar xzf ${_DL_LOC} \
@@ -56,7 +56,11 @@ function( DownloadThenExtractInstall _URL _MD5 _DL_LOC _INT_LOC )
 endfunction()
 
 function( DownloadAndInstallAddOn _URL _MD5 _DL_LOC )
-  DownloadAndExtract( ${_URL} ${_MD5} ${_DL_LOC} ${CMAKE_INSTALL_PREFIX} )
+  if( VIAME_IN_SUPERBUILD )
+    DownloadAndExtract( ${_URL} ${_MD5} ${_DL_LOC} ${CMAKE_INSTALL_PREFIX} )
+  else()
+    DownloadAndExtractAtInstall( ${_URL} ${_MD5} ${_DL_LOC} ${CMAKE_INSTALL_PREFIX} )
+  endif()
 endfunction()
 
 function( RenameSubstr _fnRegex _inStr _outStr )
