@@ -9,7 +9,7 @@ process in_adapt
  :: input_adapter
 
 process out_adapt
- :: output_adapter                             5
+ :: output_adapter
 
 # =================================== FILTERS ======================================
 
@@ -34,10 +34,13 @@ connect from in_adapt.image
 
 process output
   :: image_writer
-  :file_name_template                          output/frame%06d.png
+  :file_name_template                          output%06d.png
   :image_writer:type                           vxl
 
 connect from filter.image
         to   output.image
+
+connect from filter.image
+        to   out_adapt.image
 
 # -- end of file --
