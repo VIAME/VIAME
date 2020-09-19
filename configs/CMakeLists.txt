@@ -18,9 +18,9 @@ if( VIAME_DOWNLOAD_MODELS )
     # Default default and generic detection models
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5eaa2cff9014a6d84e3dc9a3/download
-        0326e714ede2d91c6ea79d530e98ce7b
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_detection-v1.0.2.tar.gz
+        https://data.kitware.com/api/v1/item/5f6589e750a41e3d19994297/download
+        a8232101e4a8b4d4b54ac56c56d3cde7
+        ${VIAME_DOWNLOAD_DIR}/models-netharn_detection-v1.0.3.zip
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     elseif( VIAME_ENABLE_PYTORCH-MMDET )
       DownloadAndExtract(
@@ -72,15 +72,15 @@ if( VIAME_DOWNLOAD_MODELS )
   # YOLO Model Files
   if( VIAME_ENABLE_YOLO )
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5c423a5f8d777f072b0ba58f/download
-      d568eab97562b39500d774bc072726c0
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v2_seed_model-v1.2.0.tar.gz
+      https://data.kitware.com/api/v1/item/5f6589e850a41e3d199942a2/download
+      8d5e963d14ce5f717f149277710c2dc6
+      ${VIAME_DOWNLOAD_DIR}/models-yolo_v2_seed_model-v1.3.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5c423a608d777f072b0ba599/download
-      1142628e15d6dbe70157a925bbe0e1f2
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v3_seed_model-v1.2.0.tar.gz
+      https://data.kitware.com/api/v1/item/5f6589eb50a41e3d199942ae/download
+      a30f0a5fbc8dc729b3ee2fe38f888357
+      ${VIAME_DOWNLOAD_DIR}/models-yolo_v3_seed_model-v1.3.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     if( VIAME_DOWNLOAD_MODELS-MOUSS )
