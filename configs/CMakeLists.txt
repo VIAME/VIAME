@@ -58,6 +58,14 @@ if( VIAME_DOWNLOAD_MODELS )
       3fe6c43e8bf6ab49cb8f6687f38bdbd6
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+
+    if( VIAME_DOWNLOAD_MODELS-SEA-LION )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5f6639dd50a41e3d199a4153/download
+        bd54af8887fb2d4263eee4131acddba1
+        ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v1.1.zip
+        ${VIAME_BUILD_INSTALL_PREFIX} )
+    endif()
   endif()
 
   # Caffe Model Files
