@@ -57,7 +57,7 @@ class KWIVER_PROCESSES_NO_EXPORT merge_images_process
   : public sprokit::process
 {
 public:
-  PLUGIN_INFO( "merge_image",
+  PLUGIN_INFO( "merge_images",
                "Merge multiple images into one.\n\n"
                "This process merges all the channels in two input "
                "images into a single output image based on the "
