@@ -7,6 +7,8 @@ export INPUT_IMAGE_PATTERN=/path/to/images/*.png
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 
+export KWIVER_DEFAULT_LOG_LEVEL=error
+
 # Run pipelines
 
 ls ${INPUT_IMAGE_PATTERN} > input_list.txt

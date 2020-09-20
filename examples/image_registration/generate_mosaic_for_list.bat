@@ -7,6 +7,8 @@ SET INPUT_IMAGE_PATTERN=C:\path\to\some\images\*.png
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
+SET KWIVER_DEFAULT_LOG_LEVEL=error
+
 REM Run Pipeline
 
 dir /s/b/o "%INPUT_IMAGE_PATTERN%" > input_list.txt
