@@ -15,13 +15,11 @@ if( VIAME_ENABLE_OPENCV )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}
-      generate_mosaic_for_list.bat
-      register_eo_ir_per_frame_ocv.bat )
+      generate_mosaic_for_list.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}
-      generate_mosaic_for_list.sh
-      register_eo_ir_per_frame_ocv.sh )
+      generate_mosaic_for_list.sh )
   endif()
 endif()
 
@@ -38,6 +36,18 @@ if( VIAME_ENABLE_ITK )
       register_eo_ir_per_frame_itk.sh
       launch_point_alignment_interface.sh
       generate_transform_from_points.sh )
+  endif()
+
+  if( VIAME_ENABLE_OPENCV )
+    if( WIN32 )
+      set( EXAMPLE_INSTALL_FILES
+        ${EXAMPLE_INSTALL_FILES}
+        register_eo_ir_per_frame_ocv.bat )
+    else()
+      set( EXAMPLE_INSTALL_FILES
+        ${EXAMPLE_INSTALL_FILES}
+        register_eo_ir_per_frame_ocv.sh )
+    endif()
   endif()
 endif()
 

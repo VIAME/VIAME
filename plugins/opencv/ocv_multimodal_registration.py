@@ -271,9 +271,9 @@ class register_frames_process( KwiverProcess ):
             #   Homography.from_matrix( inv_transform, 'd' )
 
             self.push_to_port_using_trait( 'warped_thermal_image',
-              ImageContainer( from_pil( pil_image.fromarray( thermal_warped ) ) ) )
+              ImageContainer.fromarray( thermal_warped ) )
             self.push_to_port_using_trait( 'warped_optical_image',
-              ImageContainer( from_pil( pil_image.fromarray( optical_warped ) ) ) )
+              ImageContainer.fromarray( optical_warped ) )
         else:
             print( 'alignment failed!' )
 
