@@ -38,6 +38,7 @@
 
 #include "add_timestamp_from_filename.h"
 #include "auto_detect_transform.h"
+#include "empty_detector.h"
 #include "read_detected_object_set_fishnet.h"
 #include "read_detected_object_set_habcam.h"
 #include "read_detected_object_set_viame_csv.h"
@@ -74,13 +75,14 @@ VIAME_CORE_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  if (vpm.is_module_loaded( module_name ) )
+  if( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
   register_algorithm< add_timestamp_from_filename >( vpm );
   register_algorithm< auto_detect_transform_io >( vpm );
+  register_algorithm< empty_detector >( vpm );
   register_algorithm< read_detected_object_set_fishnet >( vpm );
   register_algorithm< read_detected_object_set_habcam >( vpm );
   register_algorithm< read_detected_object_set_viame_csv >( vpm );
