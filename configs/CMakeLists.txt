@@ -195,6 +195,7 @@ set( CORE_PIPELINE_FILES
   pipelines/generate_empty_frame_lbls_10fr.pipe
   pipelines/generate_empty_frame_lbls_100fr.pipe
   pipelines/generate_empty_frame_lbls_1000fr.pipe
+  pipelines/generate_reset_detections.pipe
   pipelines/index_default.pipe
   pipelines/index_default.svm.pipe
   pipelines/index_default.trk.pipe
