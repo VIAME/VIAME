@@ -31,6 +31,7 @@
 #include <arrows/burnout/kwiver_algo_burnout_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
+#include <arrows/burnout/burnout_detector.h>
 #include <arrows/burnout/burnout_image_enhancer.h>
 #include <arrows/burnout/burnout_pixel_classification.h>
 #include <arrows/burnout/burnout_track_descriptors.h>
@@ -52,6 +53,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   // add factory               implementation-name       type-to-create
   auto fact = vpm.ADD_ALGORITHM( "burnout",
+    kwiver::arrows::burnout::burnout_detector );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Detect objects using burnout" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+  
+  fact = vpm.ADD_ALGORITHM( "burnout",
     kwiver::arrows::burnout::burnout_track_descriptors );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Track descriptors using burnout" )
