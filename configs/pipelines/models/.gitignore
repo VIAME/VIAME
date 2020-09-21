@@ -1,4 +1,5 @@
 *
+!burnout_default_classifier.adb
 !default_cfrnn.py
 !default_cfrnn.lbl
 !generic_cfrnn.py
