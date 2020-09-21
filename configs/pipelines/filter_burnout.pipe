@@ -17,8 +17,8 @@ process filter
   :filter:type                                 burnout_classifier
 
   block filter:burnout_classifier
-    :output_type                               mask
-    relativepath :config_file =                burnout_pixel_classification.conf
+    :output_type                               inpainted_image
+    relativepath config_file =                 burnout_pixel_classification.conf
   endblock
 
 connect from input.image
