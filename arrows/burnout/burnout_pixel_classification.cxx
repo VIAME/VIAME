@@ -114,9 +114,6 @@ burnout_pixel_classification
   vidtk::config_block vidtk_config = d->m_process.params();
   vidtk_config.parse( d->m_config_file );
 
-  // Run async currently not supported by these wrappers
-  vidtk_config.set( "classifier:run_async", false );
-
   if( !d->m_process.set_params( vidtk_config ) )
   {
     std::string reason = "Failed to set pipeline parameters";
