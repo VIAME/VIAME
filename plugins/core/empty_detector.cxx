@@ -52,7 +52,7 @@ kwiver::vital::config_block_sptr
 empty_detector
 ::get_configuration() const
 {
-  return kwiver::vital::algo::object_detector::get_configuration();
+  return kwiver::vital::algo::image_object_detector::get_configuration();
 }
 
 
