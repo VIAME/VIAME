@@ -16,6 +16,7 @@ process filter
   :: image_filter
   :filter:type                                 burnout
   relativepath filter:burnout:config_file =    burnout_pixel_classification.conf
+  :filter:burnout:output_type                  mask
 
 connect from input.image
         to   filter.image
