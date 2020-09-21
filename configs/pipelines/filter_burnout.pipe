@@ -14,9 +14,12 @@ include common_default_input.pipe
 
 process filter
   :: image_filter
-  :filter:type                                 burnout
-  relativepath filter:burnout:config_file =    burnout_pixel_classification.conf
-  :filter:burnout:output_type                  mask
+  :filter:type                                 burnout_classifier
+
+  block filter:burnout_classifier
+    :output_type                               mask
+    relativepath :config_file =                burnout_pixel_classification.conf
+  endblock
 
 connect from input.image
         to   filter.image
