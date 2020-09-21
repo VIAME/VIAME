@@ -308,7 +308,10 @@ if( VIAME_ENABLE_BURNOUT )
     pipelines/burnout_det_descriptors.conf
     pipelines/burnout_enhancement.conf
     pipelines/burnout_trk_descriptor.cfe.conf
-    pipelines/burnout_trk_descriptors.conf )
+    pipelines/burnout_trk_descriptors.conf
+    pipelines/burnout_pixel_classification.conf
+    pipelines/burnout_pixel_detection.conf
+    pipelines/burnout_default_classifier.adb )
 endif()
 
 if( VIAME_ENABLE_SMQTK )
