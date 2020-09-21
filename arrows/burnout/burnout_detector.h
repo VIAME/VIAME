@@ -59,8 +59,8 @@ public:
   virtual void set_configuration( vital::config_block_sptr config );
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  virtual kwiver::vital::image_container_sptr detect(
-    kwiver::vital::image_container_sptr image_data );
+  virtual kwiver::vital::detected_object_set_sptr detect(
+    kwiver::vital::image_container_sptr image_data ) const;
 
 private:
 

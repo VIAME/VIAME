@@ -40,6 +40,8 @@
 
 #include <pipelines/remove_burnin_pipeline.h>
 
+#include <object_detectors/conn_comp_super_process.h>
+
 
 namespace kwiver {
 namespace arrows {
@@ -51,19 +53,22 @@ class burnout_detector::priv
 {
 public:
   priv()
-    : m_config_file( "burnout_classification.conf" )
-    , m_output_type( "mask" )
-    , m_process( "classifier" )
+    : m_clf_config( "burnout_classification.conf" )
+    , m_det_config( "burnout_detector.conf" )
+    , m_clf_process( "classifier" )
+    , m_det_process( "detector" )
   {}
 
   ~priv()
   {}
 
   // Items from the config
-  std::string m_config_file;
-  std::string m_output_type;
+  std::string m_clf_config;
+  std::string m_det_config;
 
-  vidtk::remove_burnin_pipeline< vxl_byte > m_process;
+  vidtk::remove_burnin_pipeline< vxl_byte > m_clf_process;
+  vidtk::conn_comp_super_process< vxl_byte > m_det_process;
+
   vital::logger_handle_t m_logger;
 };
 
@@ -89,12 +94,8 @@ burnout_detector
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
 
-  config->set_value( "config_file", d->m_config_file,  "Name of config file." );
-
-  config->set_value( "output_type", d->m_output_type,  "Type of output."
-    "Can be set to either \"inpainted_image\" or \"mask\" depending on if you want "
-    "a mask showing pixel level detections, or an inpainted output image with "
-    "all masked pixels filled in with other values." );
+  config->set_value( "clf_config", d->m_clf_config,  "Name of config file." );
+  config->set_value( "det_config", d->m_det_config,  "Name of config file." );
 
   return config;
 }
@@ -108,19 +109,34 @@ burnout_detector
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( config_in );
 
-  d->m_config_file = config->get_value< std::string >( "config_file" );
-  d->m_output_type = config->get_value< std::string >( "output_type" );
+  d->m_clf_config = config->get_value< std::string >( "clf_config" );
+  d->m_det_config = config->get_value< std::string >( "det_config" );
 
-  vidtk::config_block vidtk_config = d->m_process.params();
-  vidtk_config.parse( d->m_config_file );
+  vidtk::config_block vidtk_clf_config = d->m_clf_process.params();
+  vidtk_clf_config.parse( d->m_clf_config );
 
-  if( !d->m_process.set_params( vidtk_config ) )
+  if( !d->m_clf_process.set_params( vidtk_clf_config ) )
   {
     std::string reason = "Failed to set pipeline parameters";
     VITAL_THROW( vital::algorithm_configuration_exception, type_name(), impl_name(), reason );
   }
 
-  if( !d->m_process.initialize() )
+  if( !d->m_clf_process.initialize() )
+  {
+    std::string reason = "Failed to initialize pipeline";
+    VITAL_THROW( vital::algorithm_configuration_exception, type_name(), impl_name(), reason );
+  }
+
+  vidtk::config_block vidtk_det_config = d->m_det_process.params();
+  vidtk_det_config.parse( d->m_det_config );
+
+  if( !d->m_det_process.set_params( vidtk_det_config ) )
+  {
+    std::string reason = "Failed to set pipeline parameters";
+    VITAL_THROW( vital::algorithm_configuration_exception, type_name(), impl_name(), reason );
+  }
+
+  if( !d->m_det_process.initialize() )
   {
     std::string reason = "Failed to initialize pipeline";
     VITAL_THROW( vital::algorithm_configuration_exception, type_name(), impl_name(), reason );
@@ -133,16 +149,16 @@ bool
 burnout_detector
 ::check_configuration( vital::config_block_sptr config ) const
 {
-  std::string config_fn = config->get_value< std::string >( "config_file" );
+  std::string config_fn = config->get_value< std::string >( "clf_config" );
 
   if( config_fn.empty() )
   {
     return false;
   }
 
-  std::string output_type = config->get_value< std::string >( "output_type" );
+  config_fn = config->get_value< std::string >( "det_config" );
 
-  if( output_type != "mask" && output_type != "inpainted_image" )
+  if( config_fn.empty() )
   {
     return false;
   }
@@ -152,12 +168,13 @@ burnout_detector
 
 
 // ----------------------------------------------------------------------------------
-vital::image_container_sptr
+kwiver::vital::detected_object_set_sptr
 burnout_detector
-::filter( vital::image_container_sptr image_data )
+::detect( kwiver::vital::image_container_sptr image_data ) const
 {
   // Convert inputs to burnout style inputs
   vil_image_view< vxl_byte > input_image;
+  auto output = std::make_shared< kwiver::vital::detected_object_set >();
 
   if( image_data )
   {
@@ -165,26 +182,73 @@ burnout_detector
   }
   else
   {
-    return vital::image_container_sptr();
+    return output;
   }
 
   // Process imagery
-  d->m_process.set_image( input_image );
+  d->m_clf_process.set_image( input_image );
 
-  if( !d->m_process.step() )
+  if( !d->m_clf_process.step() )
   {
     throw std::runtime_error( "Unable to step burnout filter process" );
   }
 
-  // Return output in KWIVER wrapper
-  if( d->m_output_type == "mask" )
+  d->m_det_process.set_source_image( input_image );
+  d->m_det_process.set_fg_image( d->m_clf_process.detected_mask() );
+  d->m_det_process.set_world_units_per_pixel( 0.05 );
+
+  if( !d->m_det_process.step() )
   {
-    return kwiver::vital::image_container_sptr(
-      new arrows::vxl::image_container( d->m_process.detected_mask() ) );
+    throw std::runtime_error( "Unable to step burnout detect process" );
   }
 
-  return kwiver::vital::image_container_sptr(
-    new arrows::vxl::image_container( d->m_process.inpainted_image() ) );
+  // Read outputs and convert
+  auto vidtk_detections = d->m_det_process.output_objects();
+
+  for( auto det : vidtk_detections )
+  {
+    if( !det )
+    {
+      continue;
+    }
+
+    // Create kwiver style bounding box
+    kwiver::vital::bounding_box_d bbox(
+      kwiver::vital::bounding_box_d::vector_type(
+        det->get_bbox().min_x(),
+        det->get_bbox().min_y() ),
+      det->get_bbox().width(),
+      det->get_bbox().height() );
+
+    double conf = 0.5;
+
+    if( det->get_confidence() > 0.0 && det->get_confidence() < 1.0 )
+    {
+      conf = det->get_confidence();
+    }
+
+    // Create possible object types.
+    auto dot = std::make_shared< kwiver::vital::detected_object_type >(
+      "detection", conf );
+
+    auto dop = std::make_shared< kwiver::vital::detected_object >(
+      bbox, conf, dot );
+
+    vil_image_view< bool > mask;
+    vidtk::image_object::image_point_type origin;
+
+    if( det->get_object_mask( mask, origin ) )
+    {
+      dop->set_mask(
+        kwiver::vital::image_container_sptr(
+          new arrows::vxl::image_container( mask ) ) );
+    }
+
+    // Create detection
+    output->add( dop );
+  }
+
+  return output;
 }
 
 
