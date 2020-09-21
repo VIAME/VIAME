@@ -311,6 +311,7 @@ if( VIAME_ENABLE_BURNOUT )
     pipelines/burnout_trk_descriptors.conf
     pipelines/burnout_pixel_classification.conf
     pipelines/burnout_pixel_detection.conf
+    pipelines/burnout_train_classifier.conf
     pipelines/burnout_default_classifier.adb )
 endif()
 
