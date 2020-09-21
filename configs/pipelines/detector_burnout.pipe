@@ -13,6 +13,7 @@ include common_default_input_with_downsampler.pipe
 process detector
   :: image_object_detector
   :detector:type                               burnout
+  relativepath detector:burnout:config_file =  burnout_pixel_detection.conf
 
 process detector_writer
   :: detected_object_output

@@ -15,7 +15,7 @@ include common_default_input.pipe
 process filter
   :: image_filter
   :filter:type                                 burnout
-  relativepath filter:burnout:conf =           false
+  relativepath filter:burnout:config_file =    burnout_pixel_classification.conf
 
 connect from input.image
         to   filter.image
