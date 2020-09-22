@@ -243,11 +243,13 @@ else()
     message (WARNING "Could not find virtualenv Python interp.\nPython tests will be run without garuntee of dependencies")
   else()
     set(PIP_COMMAND "${Python3_EXECUTABLE}"
-                    -m
-                    pip
-                    install
-                    -r
-                    ${KWIVER_SOURCE_DIR}/python/requirements.txt
+                    "-m"
+                    "pip"
+                    "install"
+                    "-r"
+                    "${KWIVER_SOURCE_DIR}/python/requirements.txt"
+                    "||"
+                    "${CMAKE_COMMAND}" "-E" "echo" "Pip install failed, consult build output for reason. Python dependencies may not be met"
                     )
   endif()
 endif()

@@ -259,8 +259,12 @@ function (kwiver_create_python_init    modpath)
     COMPONENT   runtime)
 endfunction ()
 
-function (python_target_add_command cust_command cust_args )
-  add_custom_target(pip ALL
+###
+# wrapper around add_custom_target eventually implementing python specific logic
+#
+#
+function (python_target_add_command cmnd_name cust_command cust_args comment_)
+  add_custom_target(${cmnd_name} ALL
                     COMMAND ${cust_command} ${cust_args}
-                    COMMENT "pip installing python test dependencies into virtualenv...")
+                    COMMENT ${comment_})
 endfunction()
