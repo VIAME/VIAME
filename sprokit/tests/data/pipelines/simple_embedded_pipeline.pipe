@@ -1,0 +1,5 @@
+process ia  :: input_adapter
+process oa  :: output_adapter
+connect from ia.port1  to  oa.port1
+connect from ia.port2  to  oa.port3
+connect from ia.port3  to  oa.port2

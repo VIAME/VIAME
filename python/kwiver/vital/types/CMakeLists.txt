@@ -212,6 +212,7 @@ if(NOT SKBUILD)
     eigen
     feature
     homography
+    homography_f2f
     landmark
     rotation
     similarity

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #ckwg +28
-# Copyright 2012-2013 by Kitware, Inc.
+# Copyright 2012-2020 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from kwiver.sprokit.util.test import find_tests, run_test, test_error
 
 def test_import():
     try:
@@ -71,19 +72,12 @@ def test_api_calls():
 
 
 if __name__ == '__main__':
-    import os
     import sys
 
-    if not len(sys.argv) == 4:
-        test_error("Expected three arguments")
+    if len(sys.argv) != 2:
+        test_error("Expected two arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
-
-    os.chdir(sys.argv[2])
-
-    sys.path.append(sys.argv[3])
-
-    from kwiver.sprokit.util.test import *
 
     run_test(testname, find_tests(locals()))

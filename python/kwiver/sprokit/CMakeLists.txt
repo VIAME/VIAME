@@ -11,6 +11,7 @@ add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
 add_subdirectory(schedulers)
 add_subdirectory(processes)
+add_subdirectory(adapters)
 
 if(NOT WIN32)
   add_subdirectory(util)
