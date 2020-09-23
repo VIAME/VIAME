@@ -126,13 +126,13 @@ if( VIAME_DOWNLOAD_MODELS )
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     if( WIN32 )
       DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/5f66e42450a41e3d199be4c0/download
-        c9483862764f4146a0ae48ba45fb56f2
+        https://data.kitware.com/api/v1/item/5f6bb7e850a41e3d19a63047/download
+        57f9818870f8c43036e4b4ce082cd96d
         ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5-Win.zip )
     else()
       DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/5f66e40850a41e3d199be48c/download
-        36e4f5d13e40118e96452ff60e3b9190
+        https://data.kitware.com/api/v1/item/5f6bb80950a41e3d19a630e9/download
+        67f1e38350faba785b51cf207aa4dc18
         ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5-Linux.zip )
     endif()
   endif()
