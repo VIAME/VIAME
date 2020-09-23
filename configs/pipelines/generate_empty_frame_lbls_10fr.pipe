@@ -24,7 +24,7 @@ process full_frame_tracker
   :: full_frame_tracker
   :fixed_frame_count                           10
 
-connect from in_adapt.timestamp
+connect from downsampler.timestamp
         to   full_frame_tracker.timestamp
 connect from detector.detected_object_set
         to   full_frame_tracker.detected_object_set
