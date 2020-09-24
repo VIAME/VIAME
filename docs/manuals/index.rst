@@ -34,6 +34,7 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
+   section_links/documentation_overview
    section_links/building_and_installing_viame
    section_links/example_capabilities
    section_links/image_enhancement
