@@ -214,13 +214,12 @@ def create_file(ncams, *, embedded):
         *map(connect_homog_tracker, rncams), '\n',
         *map(connect_det_tracker, rncams), '\n',
         connect_ts_track, '\n',
-        *([] if embedded else [
-            *map(write_homogs, rncams),
-            *map(connect_stab_write, rncams), '\n',
-            *map(write_tracks, rncams),
-            *map(connect_track_write, rncams),
-        ]),
+        *map(write_homogs, rncams),
+        *map(connect_stab_write, rncams), '\n',
+        *map(write_tracks, rncams),
+        *map(connect_track_write, rncams),
         *([
+            '\n',
             outadapt,
             *map(connect_track_outadapt, rncams), '\n',
             *map(connect_ts_outadapt, rncams), '\n',
