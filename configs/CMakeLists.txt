@@ -443,6 +443,14 @@ if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     pipelines/detector_arctic_seal_ir_yolo.pipe )
 endif()
 
+if( VIAME_DOWNLOAD_MODELS-SEA-LION )
+  # XXX We also have a netharn dependency, though that's not declared
+  # for the pipeline files in the sea lion model download
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/tracker_sea_lion_2-cam.pipe
+    pipelines/tracker_sea_lion_3-cam.pipe )
+endif()
+
 if( VIAME_ENABLE_MATLAB )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/detector_matlab_camtrawl.pipe )
@@ -490,6 +498,13 @@ if( VIAME_ENABLE_SEAL_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_frame_trigger.pipe
       pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_region_trigger.pipe
       pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_tiny_eo_region_tigger.pipe )
+  endif()
+
+  if( VIAME_DOWNLOAD_MODELS-SEA-LION )
+    # XXX See above regarding possible missing guards
+    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
+      pipelines/embedded_dual_stream/tracker_sea_lion_2-cam.pipe
+      pipelines/embedded_dual_stream/tracker_sea_lion_3-cam.pipe )
   endif()
 
   install( FILES       ${DUAL_EMBEDDED_FILES}
