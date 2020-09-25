@@ -2,12 +2,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2020/02/viame_summary.png
-   :scale: 30 %
-   :align: center
-   :target: http://viame.readthedocs.io/en/latest/index.html
-
-|
 Summary
 =======
 

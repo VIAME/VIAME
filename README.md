@@ -10,9 +10,6 @@ system components is currently the KWIVER library, which can connect C/C++, pyth
 together in a graph-like pipeline architecture. Alongside the pipelined image processing system are a
 number of standalone tools for accomplishing the above. Both a desktop and web version exists for
 deployments in different types of environments.
-<br>
-<br>
-<img src="https://www.viametoolkit.org/wp-content/uploads/2020/02/viame_summary_no_label.png" alt="Capabilities">
 
 Documentation
 -------------
