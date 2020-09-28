@@ -94,8 +94,8 @@ def register_image_set(estimate_single_homography):
       or similar callable
 
     The .step call expects one argument:
-    - a list of kvt.FeatureSet--kvt.DescriptorSet pairs (adjacent
-      images should overlap)
+    - a non-empty list of kvt.FeatureSet--kvt.DescriptorSet pairs
+      (adjacent images should overlap)
     and returns a tuple of:
     - a list of kvt.BaseHomography objects, one for each input image,
       that map them to some common coordinate space
