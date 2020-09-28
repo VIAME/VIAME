@@ -73,6 +73,7 @@ def stabilize_many_images(
         images, = yield output
         fds = list(map(compute_features_and_descriptors, images))
         spatial_homogs, spatial_matches = ris.step(fds)
+        if None in spatial_homogs: raise NotImplementedError
         all_features, all_descs = merge_feature_and_descriptor_sets([
             warp_features_and_descriptors(h, *fd)
             for h, fd in zip(spatial_homogs, fds)
@@ -98,17 +99,24 @@ def register_image_set(estimate_single_homography):
       (adjacent images should overlap)
     and returns a tuple of:
     - a list of kvt.BaseHomography objects, one for each input image,
-      that map them to some common coordinate space
+      that map them to some common coordinate space, or None for an
+      unmappable image.  At least one element will not be None.
     - a list of lists, each with one index for each input image,
       indicating corresponding features across images.  (A value of
       None indicates a lack of a matching feature in the corresponding
       image)
 
     """
+    def comp(x, y):
+        """compose_homographies but returning None if either argument is"""
+        return None if x is None or y is None else compose_homographies(x, y)
+    prev_homogs = None
     output = None
     while True:
-        # The returned homographies will be relative to the "middle" one
         fds, = yield output
+        if prev_homogs is None:
+            prev_homogs = len(fds) * [None]
+        # The returned homographies will be relative to the "middle" one
         hl = len(fds) // 2
         # Compute homographies between adjacent images
         homogs, matches = [], []
@@ -119,15 +127,15 @@ def register_image_set(estimate_single_homography):
             if hm is None:
                 # XXX It might be better to exclude features from
                 # across a bad match entirely.
-                # Reuse the estimate from last frame
+                # Reuse the estimate from last frame, if any
                 hm = prev_homogs[i], kvt.MatchSet()
             h, m = hm
             homogs.append(h)
             matches.append(m)
         # Compute homographies to center
         l2c, r2c = homogs[:hl], homogs[hl:]
-        l2c = list(itertools.accumulate(reversed(l2c), compose_homographies))[::-1]
-        r2c = itertools.accumulate(r2c, compose_homographies)
+        l2c = list(itertools.accumulate(reversed(l2c), comp))[::-1]
+        r2c = itertools.accumulate(r2c, comp)
         # Merge matches
         matches = combine_matches(itertools.chain(
             (m.matches() for m in matches[:hl]),
