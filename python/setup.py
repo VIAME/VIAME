@@ -125,6 +125,7 @@ setup(
                 'print_number_process=kwiver.sprokit.processes.kw_print_number_process',
                 'homography_reader=kwiver.sprokit.processes.homography_reader',
                 'homography_writer=kwiver.sprokit.processes.homography_writer',
+                'multicam_homog_det_suppressor=kwiver.sprokit.processes.multicam_homog_det_suppressor',
                 'multicam_homog_tracker=kwiver.sprokit.processes.multicam_homog_tracker',
                 'simple_homog_tracker=kwiver.sprokit.processes.simple_homog_tracker',
                 'alexnet_descriptors=kwiver.sprokit.processes.pytorch.alexnet_descriptors',
