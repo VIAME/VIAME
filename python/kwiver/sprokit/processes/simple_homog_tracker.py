@@ -121,6 +121,16 @@ class BBox(_BBox):
         """Return a 2x4 numpy.ndarray of the corner points (row order x, y)"""
         return self.matrix_corners(self.matrix)
 
+    @staticmethod
+    def matrix_center(array):
+        """Like BBox.from_matrix(array).center, but broadcasts"""
+        return array.mean(-1)
+
+    @property
+    def center(self):
+        """Return a length-2 numpy.ndarray of the center point (order x, y)"""
+        return self.matrix_center(self.matrix)
+
 class Transformer(object):
     """A Transformer is a stateful object that receives one tuple of
     values at a time and produces one value at a time in response.
