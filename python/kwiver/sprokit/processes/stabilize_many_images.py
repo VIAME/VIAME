@@ -73,17 +73,16 @@ def stabilize_many_images(
         images, = yield output
         fds = list(map(compute_features_and_descriptors, images))
         spatial_homogs, spatial_matches = ris.step(fds)
-        if None in spatial_homogs: raise NotImplementedError
-        all_features, all_descs = merge_feature_and_descriptor_sets([
+        valid = [i for i, h in enumerate(spatial_homogs) if h is not None]
+        val_features, val_descs = merge_feature_and_descriptor_sets([
             warp_features_and_descriptors(h, *fd)
             for h, fd in zip(spatial_homogs, fds)
-            # XXX Maybe we want to support something like this to
-            # handle questionable matches:
-            #   if h is not None
-        ], spatial_matches)
-        temporal_homog = eh.step(all_features, all_descs)
-        output = [compose_homographies(temporal_homog, sh)
-                  for sh in spatial_homogs]
+            if h is not None
+        ], [[m[i] for i in valid] for m in spatial_matches])
+        temporal_homog = eh.step(val_features, val_descs)
+        # Default unknown cameras to be the same as their neighbors
+        output = list(fill_nones(h and compose_homographies(temporal_homog, h)
+                                 for h in spatial_homogs))
 
 @Transformer.decorate
 def register_image_set(estimate_single_homography):
@@ -125,8 +124,6 @@ def register_image_set(estimate_single_homography):
             sfd, tfd = lrfd if i < hl else lrfd[::-1]
             hm = estimate_single_homography(*sfd, *tfd)
             if hm is None:
-                # XXX It might be better to exclude features from
-                # across a bad match entirely.
                 # Reuse the estimate from last frame, if any
                 hm = prev_homogs[i], kvt.MatchSet()
             h, m = hm
@@ -322,6 +319,18 @@ def merge_feature_and_descriptor_sets(fd_pairs, matches):
                 features.append(f)
                 descriptors.append(d)
     return kvt.SimpleFeatureSet(features), kvt.DescriptorSet(descriptors)
+
+def fill_nones(it):
+    """Flood-fill Nones in the provided iterable"""
+    it = iter(it)
+    for i, val in enumerate(it, 1):
+        if val is not None:
+            break
+    yield from itertools.repeat(val, i)
+    for x in it:
+        if x is not None:
+            val = x
+        yield val
 
 def compose_homographies(second, first):
     """Return a homography corresponding to applying the first, then the
