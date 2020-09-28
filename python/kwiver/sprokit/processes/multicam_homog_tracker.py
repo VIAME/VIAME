@@ -257,6 +257,16 @@ def reblock_multiboxes(array, blocks, lengths, axis=None):
         slice_ = (slice(None),) * axis + (slice(start, stop),)
         yield array[slice_].reshape(shape)
 
+def diff_homogs(source, dest):
+    """Given a length-M source and length-N dest Homography list, return
+    an MxN ndarray of array-format homographies
+
+    """
+    # Compute the transformations between current and previous cameras
+    s = np.array([h.matrix for h in source])
+    d = np.array([h.matrix for h in dest])
+    return np.matmul(np.linalg.inv(d), s[:, np.newaxis])
+
 def match_multiboxes_multihomog(
         multihomog, multiboxes, prev_multihomog, prev_multiboxes, min_iou,
 ):
@@ -284,12 +294,9 @@ def match_multiboxes_multihomog(
     if not (multiboxes and prev_multiboxes):
         return [None] * len(multiboxes)
 
-    # Compute the transformations between current and previous cameras
-    mh = np.array([h.matrix for h in multihomog.homogs])
-    pmh = np.array([h.matrix for h in prev_multihomog.homogs])
     # homogs[i, j] is a transformation from current camera i
     # coordinates to previous camera j coordinates
-    homogs = np.matmul(np.linalg.inv(pmh), mh[:, np.newaxis])
+    homogs = diff_homogs(multihomog.homogs, prev_multihomog.homogs)
 
     # Compute IOUs between current and previous multiboxes
     boxes, cams, blocks, lengths, indices = arrayify_multiboxes(multiboxes)
