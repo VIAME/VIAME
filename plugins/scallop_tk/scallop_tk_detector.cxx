@@ -138,7 +138,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
     kwiver::vital::bounding_box_d bbox( kwiver::vital::bounding_box_d::vector_type( x, y ), width, height );
 
     // Create possible object types.
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >( det.classIDs, det.classProbabilities );
+    auto dot = std::make_shared< kwiver::vital::class_map >( det.classIDs, det.classProbabilities );
 
     // Create detection
     detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
