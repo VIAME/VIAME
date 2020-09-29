@@ -63,6 +63,9 @@ process detector1
     relativepath deployed = ../models/sea_lion_multi_class.zip
   endblock
 
+connect from in_adapt.image
+        to detector1.image
+
 process detector2
   :: image_object_detector
   :detector:type            netharn
@@ -71,8 +74,6 @@ process detector2
     relativepath deployed = ../models/sea_lion_multi_class.zip
   endblock
 
-connect from in_adapt.image
-        to detector1.image
 connect from in_adapt.image2
         to detector2.image
 
@@ -96,12 +97,13 @@ process write_homogs_1
   :: kw_write_homography
   output = homogs1.txt
 
+connect from stabilizer.homog1
+        to write_homogs_1.homography
+
 process write_homogs_2
   :: kw_write_homography
   output = homogs2.txt
 
-connect from stabilizer.homog1
-        to write_homogs_1.homography
 connect from stabilizer.homog2
         to write_homogs_2.homography
 
@@ -109,12 +111,13 @@ process write_tracks_1 :: write_object_track
   file_name = tracks1.csv
   writer:type = viame_csv
 
+connect from tracker.obj_tracks_1
+        to write_tracks_1.object_track_set
+
 process write_tracks_2 :: write_object_track
   file_name = tracks2.csv
   writer:type = viame_csv
 
-connect from tracker.obj_tracks_1
-        to write_tracks_1.object_track_set
 connect from tracker.obj_tracks_2
         to write_tracks_2.object_track_set
 
