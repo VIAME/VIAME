@@ -4,6 +4,7 @@ from textwrap import dedent
 PIPELINE_DIR = Path(__file__).parent
 
 def enum1(it): return enumerate(it, 1)
+def range1(x): return range(1, x + 1)
 
 python_scheduler = dedent("""\
     config _scheduler
@@ -18,10 +19,15 @@ def make_input_creator():
         text = (default_input
                 .replace('process input', f'process input{i}')
                 .replace('input_list.txt', f'input_list_{i}.txt'))
-        return text, f'input{i}'
+        ports = [f'input{i}.{p}' for p in ['image', 'file_name', 'timestamp']]
+        return text, ports
     return create_input
 
-inadapt = 'process in_adapt :: input_adapter\n\n', 'in_adapt'
+def inadapt(ncams):
+    process = 'process in_adapt :: input_adapter\n\n'
+    return process, [[
+        f'in_adapt.{prefix}{adapt_suffix(i)}' for i in range1(ncams)
+    ] for prefix in ['image', 'file_name', 'timestamp']]
 
 def make_detector_creator(embedded):
     model_dir = '../models' if embedded else 'models'
@@ -38,7 +44,7 @@ def make_detector_creator(embedded):
             connect from {image_port}
                     to detector{i}.image
 
-        """), f'detector{i}'
+        """), f'detector{i}.detected_object_set'
     return create_detector
 
 def adapt_suffix(i):
@@ -98,7 +104,8 @@ def stabilize_images(image_ports):
         connect from {ip}
                 to stabilizer.image{i}
     """) for i, ip in enum1(image_ports))
-    return process + conns + '\n', 'stabilizer'
+    out_ports = [f'stabilizer.homog{i}' for i in range1(len(image_ports))]
+    return process + conns + '\n', out_ports
 
 def multitrack(homogs, objects, timestamp):
     ncam, = {len(homogs), len(objects)}
@@ -125,7 +132,7 @@ def multitrack(homogs, objects, timestamp):
                 to tracker.timestamp
 
     """))
-    return ''.join(result), 'tracker'
+    return ''.join(result), [f'tracker.obj_tracks_{i}' for i in range1(ncam)]
 
 def write_tracks(i, track_port):
     return dedent(f"""\
@@ -136,7 +143,7 @@ def write_tracks(i, track_port):
         connect from {track_port}
                 to write_tracks_{i}.object_track_set
 
-    """), f'write_tracks_{i}'
+    """), None
 
 def outadapt(track_sets, timestamps, file_names):
     result = []
@@ -150,7 +157,7 @@ def outadapt(track_sets, timestamps, file_names):
                         to out_adapt.{prefix}{adapt_suffix(i)}
             """))
         result.append('\n')
-    return ''.join(result), 'out_adapt'
+    return ''.join(result), None
 
 def write_homogs(i, homog_port):
     return dedent(f"""\
@@ -161,7 +168,7 @@ def write_homogs(i, homog_port):
         connect from {homog_port}
                 to write_homogs_{i}.homography
 
-     """), f'write_homogs_{i}'
+     """), None
 
 def create_file(ncams, *, embedded):
     result = []
@@ -170,42 +177,24 @@ def create_file(ncams, *, embedded):
         text, val = x
         append(text)
         return val
-
+    rncams = range1(ncams)
     append(python_scheduler)
-
-    rncams = range(1, ncams + 1)
-
     if embedded:
-        in_ = do(inadapt)
-        images, file_names, timestamps = ([
-            f'{in_}.{prefix}{adapt_suffix(i)}' for i in rncams
-        ] for prefix in ['image', 'file_name', 'timestamp'])
+        images, file_names, timestamps = do(inadapt(ncams))
     else:
         create_input = make_input_creator()
-        ins = [do(create_input(i)) for i in rncams]
-        images, file_names, timestamps = ([
-            f'{in_}.{port}' for in_ in ins
-        ] for port in ['image', 'file_name', 'timestamp'])
-
-    stab = do(stabilize_images(images))
-    homogs = [f'{stab}.homog{i}' for i in rncams]
-
+        ports = (do(create_input(i)) for i in rncams)
+        images, file_names, timestamps = zip(*ports)
+    homogs = do(stabilize_images(images))
     create_detector = make_detector_creator(embedded)
-    detectors = [do(create_detector(i, im)) for i, im in enum1(images)]
-    objects = [f'{d}.detected_object_set' for d in detectors]
-
-    tracker = do(multitrack(homogs, objects, timestamps[0]))
-    track_sets = [f'{tracker}.obj_tracks_{i}' for i in rncams]
-
+    objects = [do(create_detector(i, im)) for i, im in enum1(images)]
+    track_sets = do(multitrack(homogs, objects, timestamps[0]))
     for i, h in enum1(homogs):
         do(write_homogs(i, h))
-
     for i, ts in enum1(track_sets):
         do(write_tracks(i, ts))
-
     if embedded:
         do(outadapt(track_sets, timestamps, file_names))
-
     return ''.join(result).rstrip('\n') + '\n'
 
 def main():
