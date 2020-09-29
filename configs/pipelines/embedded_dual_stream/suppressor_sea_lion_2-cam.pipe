@@ -155,17 +155,27 @@ connect from stabilizer.homog2
 
 process write_tracks_1 :: write_object_track
   file_name = tracks1.csv
+  frame_list_output = track_images_1.txt
   writer:type = viame_csv
 
 connect from track_initializer_1.object_track_set
         to write_tracks_1.object_track_set
+connect from in_adapt.timestamp
+        to write_tracks_1.timestamp
+connect from in_adapt.file_name
+        to write_tracks_1.image_file_name
 
 process write_tracks_2 :: write_object_track
   file_name = tracks2.csv
+  frame_list_output = track_images_2.txt
   writer:type = viame_csv
 
 connect from track_initializer_2.object_track_set
         to write_tracks_2.object_track_set
+connect from in_adapt.timestamp2
+        to write_tracks_2.timestamp
+connect from in_adapt.file_name2
+        to write_tracks_2.image_file_name
 
 process out_adapt :: output_adapter
 
