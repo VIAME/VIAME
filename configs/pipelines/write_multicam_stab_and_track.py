@@ -168,14 +168,19 @@ def make_track_initializer():
         """), f'{name}.object_track_set'
     return initialize_tracks
 
-def write_tracks(i, track_port):
+def write_tracks(i, track_port, timestamp, file_name):
     return dedent(f"""\
         process write_tracks_{i} :: write_object_track
           file_name = tracks{i}.csv
+          frame_list_output = track_images_{i}.txt
           writer:type = viame_csv
 
         connect from {track_port}
                 to write_tracks_{i}.object_track_set
+        connect from {timestamp}
+                to write_tracks_{i}.timestamp
+        connect from {file_name}
+                to write_tracks_{i}.image_file_name
 
     """), None
 
@@ -233,8 +238,8 @@ def create_file(type_, ncams, *, embedded):
         raise ValueError
     for i, h in enum1(homogs):
         do(write_homogs(i, h))
-    for i, ts in enum1(track_sets):
-        do(write_tracks(i, ts))
+    for i, ts, t, fn in zip(rncams, track_sets, timestamps, file_names):
+        do(write_tracks(i, ts, t, fn))
     if embedded:
         do(outadapt(track_sets, timestamps, file_names))
     return ''.join(result).rstrip('\n') + '\n'
