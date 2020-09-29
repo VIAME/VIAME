@@ -72,6 +72,7 @@ class NetHarnTrainer( TrainDetector ):
         self._gpu_count = -1
         self._tmp_training_file = "training_truth.json"
         self._tmp_validation_file = "validation_truth.json"
+        self._augmentation = "complex"
         self._gt_frames_only = False
         self._chip_width = "640"
         self._chip_overlap = "0.20"
@@ -98,6 +99,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
+        cfg.set_value( "augmentation", str( self._augmentation ) )
         cfg.set_value( "chip_width", str( self._chip_width ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
         cfg.set_value( "max_epochs", str( self._max_epochs ) )
@@ -124,6 +126,7 @@ class NetHarnTrainer( TrainDetector ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
+        self._augmentation = str( cfg.get_value( "augmentation" ) )
         self._chip_width = str( cfg.get_value( "chip_width" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
         self._max_epochs = str( cfg.get_value( "max_epochs" ) )
@@ -272,7 +275,6 @@ class NetHarnTrainer( TrainDetector ):
                      "--arch=resnet50",
                      "--lr=0.5e-3",
                      "--schedule=ReduceLROnPlateau-p3-c3",
-                     "--augmenter=simple",
                      "--input_dims=" + self._chip_width + "," + self._chip_width ]
         else:
             cmd += [ "bioharn.detect_fit",
@@ -280,7 +282,6 @@ class NetHarnTrainer( TrainDetector ):
                      "--arch=cascade",
                      "--lr=1e-3",
                      "--schedule=ReduceLROnPlateau-p2-c2",
-                     "--augmenter=complex",
                      "--input_dims=window",
                      "--window_dims=" + self._chip_width + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
@@ -298,6 +299,7 @@ class NetHarnTrainer( TrainDetector ):
                  "--normalize_inputs=True",
                  "--init=noop",
                  "--optim=sgd",
+                 "--augmenter=" + self._augmentation,
                  "--max_epoch=" + self._max_epochs,
                  "--batch_size=" + self._batch_size,
                  "--timeout=" + self._timeout,
