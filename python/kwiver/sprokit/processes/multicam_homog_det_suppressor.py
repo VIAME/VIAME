@@ -52,16 +52,13 @@ def arg_suppress_boxes(
     BBox should have been in the previous frame.
 
     """
-    if prev_multihomog and multihomog.to_id != prev_multihomog.to_id:
-        logger.debug("No suppression due to break in homography stream")
-        return [(True for _ in boxes) for boxes in box_lists]
     def in_bounds(centers, sizes):
         """Signature (n, m), (n, m) -> ()"""
         return ((0 <= centers) & (centers < sizes)).all(-1).any(-1)
     def trans_center(homog, box):
         transform = Homography.matrix_transform
         return np.squeeze(transform(homog, box.center[:, np.newaxis]), -1)
-    if prev_multihomog is None:
+    if prev_multihomog is None or multihomog.to_id != prev_multihomog.to_id:
         def in_prev(cam, box):
             return False
     else:
