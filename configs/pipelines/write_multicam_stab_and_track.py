@@ -134,6 +134,40 @@ def multitrack(homogs, objects, timestamp):
     """))
     return ''.join(result), [f'tracker.obj_tracks_{i}' for i in range1(ncam)]
 
+def suppressor(homogs, objects, images):
+    ncams, = {len(homogs), len(objects), len(images)}
+    result = []
+    result.append(dedent(f"""\
+        process suppressor :: multicam_homog_det_suppressor
+          n_input = {ncams}
+
+    """))
+    for prefix, ports in [('homog', homogs),
+                          ('det_objs_', objects),
+                          ('image', images)]:
+        for i, p in enum1(ports):
+            result.append(dedent(f"""\
+                connect from {p}
+                        to suppressor.{prefix}{i}
+            """))
+        result.append('\n')
+    return ''.join(result), [f'suppressor.det_objs_{i}' for i in range1(ncams)]
+
+def make_track_initializer():
+    template = (PIPELINE_DIR / 'common_default_initializer.pipe').read_text()
+    template += '\n'
+    def initialize_tracks(i, object_port, timestamp):
+        name = f'track_initializer_{i}'
+        process = template.replace('track_initializer\n', f'{name}\n')
+        return process + dedent(f"""\
+            connect from {object_port}
+                    to {name}.detected_object_set
+            connect from {timestamp}
+                    to {name}.timestamp
+
+        """), f'{name}.object_track_set'
+    return initialize_tracks
+
 def write_tracks(i, track_port):
     return dedent(f"""\
         process write_tracks_{i} :: write_object_track
@@ -170,7 +204,7 @@ def write_homogs(i, homog_port):
 
      """), None
 
-def create_file(ncams, *, embedded):
+def create_file(type_, ncams, *, embedded):
     result = []
     append = result.append
     def do(x):
@@ -188,7 +222,15 @@ def create_file(ncams, *, embedded):
     homogs = do(stabilize_images(images))
     create_detector = make_detector_creator(embedded)
     objects = [do(create_detector(i, im)) for i, im in enum1(images)]
-    track_sets = do(multitrack(homogs, objects, timestamps[0]))
+    if type_ == 'tracker':
+        track_sets = do(multitrack(homogs, objects, timestamps[0]))
+    elif type_ == 'suppressor':
+        objects_supp = do(suppressor(homogs, objects, images))
+        initialize_tracks = make_track_initializer()
+        track_sets = [do(initialize_tracks(i, o, t)) for i, o, t
+                      in zip(rncams, objects_supp, timestamps)]
+    else:
+        raise ValueError
     for i, h in enum1(homogs):
         do(write_homogs(i, h))
     for i, ts in enum1(track_sets):
@@ -198,12 +240,13 @@ def create_file(ncams, *, embedded):
     return ''.join(result).rstrip('\n') + '\n'
 
 def main():
-    for embedded in [False, True]:
-        for ncams in [2, 3]:
-            emb = 'embedded_dual_stream' if embedded else ''
-            mst = f'tracker_sea_lion_{ncams}-cam.pipe'
-            out = PIPELINE_DIR / emb / mst
-            out.write_text(create_file(ncams, embedded=embedded))
+    for type_ in ['tracker', 'suppressor']:
+        for embedded in [False, True]:
+            for ncams in [2, 3]:
+                emb = 'embedded_dual_stream' if embedded else ''
+                mst = f'{type_}_sea_lion_{ncams}-cam.pipe'
+                out = PIPELINE_DIR / emb / mst
+                out.write_text(create_file(type_, ncams, embedded=embedded))
 
 if __name__ == '__main__':
     main()
