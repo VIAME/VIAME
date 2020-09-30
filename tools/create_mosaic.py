@@ -1,5 +1,4 @@
 import argparse
-import glob
 import itertools as itt
 
 import numpy as np
@@ -151,17 +150,20 @@ def peek_iterable(it):
     x = next(it)
     return x, itt.chain([x], it)
 
-def main(out_file, homog_file, image_glob, **kwargs):
-    main_multi(out_file, [(homog_file, image_glob)], **kwargs)
+def main(out_file, homog_file, image_list, **kwargs):
+    main_multi(out_file, [(homog_file, image_list)], **kwargs)
 
 def main_multi(
-        out_file, homogs_and_globs, *, optimize_fit=None, zoom=None,
+        out_file, homogs_and_lists, *, optimize_fit=None, zoom=None,
         frames=None, start=None, stop=None, step=None, reverse=None,
 ):
+    def read_image_list(path):
+        with open(path) as f:
+            return [l.rstrip('\n') for l in f]
     images_homogs_refs = ((
-        sorted(glob.iglob(image_glob)),
+        read_image_list(image_list),
         *read_homog_file(homog_file),
-    ) for homog_file, image_glob in homogs_and_globs)
+    ) for homog_file, image_list in homogs_and_lists)
     images_homogs_refs = [tuple(
         x[start:stop] for x in ihr
     ) for ihr in images_homogs_refs]
@@ -201,7 +203,7 @@ def create_parser():
     p = argparse.ArgumentParser()
     p.add_argument('out_file', help='Path to output file')
     p.add_argument('homog_file', help='Path to homography file')
-    p.add_argument('image_glob', help='(Quoted) glob for input images')
+    p.add_argument('image_list', help='Path to file with newline-separated image paths')
     p.add_argument('--frames', type=int, help='Number of frames represented in output')
     p.add_argument('--start', type=int, metavar='N', help='Ignore first N frames')
     p.add_argument('--stop', type=int, metavar='N', help='Ignore frames after the Nth')
