@@ -102,7 +102,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Model Set 2 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5e8d3ad42660cbefba9dd13c/download) <br>
-[Sea Lion Models Add-On, All OS](https://data.kitware.com/api/v1/item/5f6639dd50a41e3d199a4153/download)
+[Sea Lion Models Add-On, All OS](https://data.kitware.com/api/v1/item/5f750f1c50a41e3d19bc97bb/download)
 
 **Custom Distributions:** <br>
 [Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5f750d3950a41e3d19bc9290/download) <br>
