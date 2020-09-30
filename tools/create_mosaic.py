@@ -150,8 +150,12 @@ def peek_iterable(it):
     x = next(it)
     return x, itt.chain([x], it)
 
-def main(out_file, homog_file, image_list, **kwargs):
-    main_multi(out_file, [(homog_file, image_list)], **kwargs)
+def main(out_file, homogs_and_image_lists, **kwargs):
+    if len(homogs_and_image_lists) % 2:
+        raise ValueError("Expected an even-length list of"
+                         " alternating homographies and image lists")
+    hil = iter(homogs_and_image_lists)
+    main_multi(out_file, zip(hil, hil), **kwargs)
 
 def main_multi(
         out_file, homogs_and_lists, *, optimize_fit=None, zoom=None,
@@ -202,8 +206,10 @@ def main_multi(
 def create_parser():
     p = argparse.ArgumentParser()
     p.add_argument('out_file', help='Path to output file')
-    p.add_argument('homog_file', help='Path to homography file')
-    p.add_argument('image_list', help='Path to file with newline-separated image paths')
+    p.add_argument('homogs_and_image_lists', nargs='+', metavar='homog/image_list',
+                   help='Even-length list of alternating paths to'
+                   ' homography files and paths to files with'
+                   ' newline-separated image paths, one pair per camera')
     p.add_argument('--frames', type=int, help='Number of frames represented in output')
     p.add_argument('--start', type=int, metavar='N', help='Ignore first N frames')
     p.add_argument('--stop', type=int, metavar='N', help='Ignore frames after the Nth')
