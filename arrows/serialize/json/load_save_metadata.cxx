@@ -91,10 +91,13 @@ struct meta_item
     {
       // bool metadata passes the is_integral() check but cannot be cast
       // to uint64_t
-      if ( trait.tag_type() == typeid( bool ) ) {
+      if ( trait.tag_type() == typeid( bool ) )
+      {
         const bool value = kwiver::vital::any_cast< bool > ( this->item_value );
         archive( CEREAL_NVP( value ) );
-      } else {
+      }
+      else
+      {
         const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
         archive( CEREAL_NVP( value ) );
       }
