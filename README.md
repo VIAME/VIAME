@@ -105,10 +105,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Sea Lion Models Add-On, All OS](https://data.kitware.com/api/v1/item/5f6639dd50a41e3d199a4153/download)
 
 **Custom Distributions:** <br>
-[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5f5a332450a41e3d19795877/download) <br>
-[Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5f594a1450a41e3d197672e4/download) <br>
-[Seal Multi-View GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5f594dca50a41e3d1976743e/download) <br>
-[Seal Multi-View GUI, Generic Linux, GPU Enabled](https://data.kitware.com/api/v1/item/5f594e5650a41e3d197674e7/download)
+[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5f750d3950a41e3d19bc9290/download) <br>
+[Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5f750da950a41e3d19bc9323/download) <br>
+[Seal Multi-View GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5f750ecf50a41e3d19bc970a/download) <br>
+[Seal Multi-View GUI, Generic Linux, GPU Enabled](https://data.kitware.com/api/v1/item/5f750e4a50a41e3d19bc9459/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom Applications
