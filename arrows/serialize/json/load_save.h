@@ -11,6 +11,7 @@
 #include <vital/types/activity_type.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/image_container.h>
 
@@ -62,6 +63,11 @@ KWIVER_SERIALIZE_JSON_EXPORT
 void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::image_container_sptr obj );
 KWIVER_SERIALIZE_JSON_EXPORT
 void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::image_container_sptr& obj );
+
+KWIVER_SERIALIZE_JSON_EXPORT
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::metadata_map::map_metadata_t& meta );
+KWIVER_SERIALIZE_JSON_EXPORT
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::metadata_map::map_metadata_t& meta );
 
 KWIVER_SERIALIZE_JSON_EXPORT
 void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::metadata_vector& meta );

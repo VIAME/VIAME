@@ -22,7 +22,10 @@
 
 #include <vital/types/metadata.h>
 #include <vital/types/metadata_traits.h>
+#include <vital/types/metadata_map.h>
 #include <vital/plugin_loader/plugin_manager.h>
+
+#include <arrows/serialize/json/metadata.h>
 
 namespace kwiver {
 namespace arrows {
@@ -44,7 +47,9 @@ add_command_options()
     ( "h,help", "Display applet usage" )
     ( "c,config", "Configuration file for tool", cxxopts::value<std::string>() )
     ( "o,output", "Dump configuration to file and exit", cxxopts::value<std::string>() )
+    ( "l,log", "Log metadata to a .json file.", cxxopts::value<std::string>() )
     ( "d,detail", "Display a detailed description of the metadata" )
+    ( "q,quiet", "Do not show metadata. Overrides -d/--detail." )
 
     // positional parameters
     ( "video-file", "Video input file", cxxopts::value<std::string>())
@@ -151,45 +156,80 @@ run()
   kwiver::vital::image_container_sptr frame;
   kwiver::vital::timestamp ts;
   kwiver::vital::wrap_text_block wtb;
+  kwiver::arrows::serialize::json::metadata metadata_serializer;
+  kwiver::vital::metadata_map::map_metadata_t frame_metadata;
+
   wtb.set_indent_string( "    " );
+
+  // Avoid repeated dictionary access
+  bool detail = cmd_args["detail"].as<bool>();
+  bool quiet = cmd_args["quiet"].as<bool>();
+  bool log = cmd_args.count("log");
 
   while ( video_reader->next_frame( ts ) )
   {
-    std::cout << "========== Read frame " << ts.get_frame()
-              << " (index " << count << ") ==========" << std::endl;
+    if ( !quiet )
+    {
+      std::cout << "========== Read frame " << ts.get_frame()
+                << " (index " << count << ") ==========" << std::endl;
+    }
 
     kwiver::vital::metadata_vector metadata = video_reader->frame_metadata();
-    for( auto meta : metadata )
+
+    if ( log )
     {
-      std::cout << "\n\n---------------- Metadata from: " << meta->timestamp() << std::endl;
+      // Add the (frame number, vector of metadata packets) item
+      frame_metadata.insert( { count-1, metadata } );
+    }
 
-      if ( cmd_args["detail"].as<bool>() )
+    if ( !quiet )
+    {
+      for ( auto meta : metadata )
       {
-        for (const auto ix : *meta)
+        std::cout << "\n\n---------------- Metadata from: " << meta->timestamp() << std::endl;
+
+        if ( detail )
         {
-          // process metada items
-          const std::string name = ix.second->name();
-          const kwiver::vital::any data = ix.second->data();
-          const auto tag = ix.second->tag();
-          const auto descrip = md_traits.tag_to_description( tag );
+          for (const auto ix : *meta)
+          {
+            // process metada items
+            const std::string name = ix.second->name();
+            const kwiver::vital::any data = ix.second->data();
+            const auto tag = ix.second->tag();
+            const auto descrip = md_traits.tag_to_description( tag );
 
-          std::cout
-              << "Metadata item: " << name << std::endl
-              << wtb.wrap_text( descrip )
-              << "Data: <" << ix.second->type().name() << ">: "
-              << kwiver::vital::metadata::format_string(ix.second->as_string())
-              << std::endl;
-        } // end for
-      }
-      else
-      {
-        print_metadata( std::cout, *meta );
-      }
-
-      ++count;
-    } // end for over metadata collection vector
-
+            std::cout
+                << "Metadata item: " << name << std::endl
+                << wtb.wrap_text( descrip )
+                << "Data: <" << ix.second->type().name() << ">: "
+                << kwiver::vital::metadata::format_string(ix.second->as_string())
+                << std::endl;
+          } // end for
+        }
+        else
+        {
+          print_metadata( std::cout, *meta );
+        }
+      } // end for over metadata collection vector
+    } // The end of not quiet
+    ++count;
   } // end while over video
+
+  if ( log )
+  {
+    const std::string out_file = cmd_args["log"].as<std::string>();
+    std::ofstream fout( out_file.c_str() );
+    if( ! fout )
+    {
+      std::cout << "Couldn't open \"" << out_file << "\" for writing.\n";
+      return EXIT_FAILURE;
+    }
+
+    std::shared_ptr< std::string > json =
+      metadata_serializer.serialize_map( frame_metadata );
+    fout << *json << std::endl;
+    std::cout << "Wrote KLV log to \"" << out_file << "\".\n";
+  }
 
   std::cout << "-- End of video --\n";
 

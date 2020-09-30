@@ -28,6 +28,38 @@ metadata::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 metadata::
+serialize_meta( const kwiver::vital::metadata_vector& meta )
+{
+  std::cout << "Serializing metadata" << std::endl;
+  std::stringstream msg;
+  msg << "metadata "; // add type tag
+  {
+    cereal::JSONOutputArchive ar( msg );
+    std::cout << "About to save" << std::endl;
+    save( ar, meta );
+  }
+
+  return std::make_shared< std::string > ( msg.str() );
+}
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+metadata::
+serialize_map( const vital::metadata_map::map_metadata_t& frame_map )
+{
+  std::stringstream msg;
+  {
+    cereal::JSONOutputArchive ar( msg );
+    save( ar, frame_map );
+  }
+
+  return std::make_shared< std::string > ( msg.str() );
+}
+
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+metadata::
 serialize( const vital::any& element )
 {
   const kwiver::vital::metadata_vector meta =

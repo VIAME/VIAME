@@ -7,6 +7,8 @@
 
 #include <arrows/serialize/json/kwiver_serialize_json_export.h>
 #include <vital/algo/data_serializer.h>
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
 
 namespace cereal {
   class JSONOutputArchive;
@@ -27,7 +29,8 @@ public:
 
   metadata();
   virtual ~metadata();
-
+  std::shared_ptr< std::string > serialize_meta( const vital::metadata_vector& elements );
+  std::shared_ptr< std::string > serialize_map( const vital::metadata_map::map_metadata_t& frame_map );
   std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
   vital::any deserialize( const std::string& message ) override;
 };
