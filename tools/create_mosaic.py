@@ -176,6 +176,7 @@ def main_multi(
         frame_numbers = range(0, length, step)
     if reverse:
         frame_numbers = frame_numbers[::-1]
+        images_homogs_refs = images_homogs_refs[::-1]
     if len({
             x for _, _, refs in images_homogs_refs
             for x in np.unique(refs[frame_numbers])
@@ -185,12 +186,11 @@ def main_multi(
               for i in tqdm.tqdm(frame_numbers)
               for image_files, _, _ in images_homogs_refs)
     im0, images = peek_iterable(images)
-    rel_homogs_4d = np.stack([
+    rel_homogs = np.stack([
         homogs[frame_numbers] for _, homogs, _ in images_homogs_refs
-    ], axis=1)
-    rel_homogs = rel_homogs_4d.reshape((-1, 3, 3))
+    ], axis=1).reshape((-1, 3, 3))
     if optimize_fit:
-        rel_homog_0 = rel_homogs_4d[-1 if reverse else 0, 0]
+        rel_homog_0 = rel_homogs[-1 if reverse else 0]
         rel_homogs = np.linalg.inv(rel_homog_0) @ rel_homogs
         fit_homog = optimize_homog_fit(rel_homogs, im0.shape[:2])
         rel_homogs = fit_homog @ rel_homogs
