@@ -37,7 +37,7 @@
 
 #include <vital/algo/algorithm_factory.h>
 
-#include <arrows/sfm/initialize_cameras_landmarks.h>
+#include <arrows/sfm/algo/initialize_cameras_landmarks.h>
 
 // TODO: These are files that should move to SFM from Core
 //#include <arrows/sfm/close_loops_bad_frames_only.h>
