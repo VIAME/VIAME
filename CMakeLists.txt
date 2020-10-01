@@ -112,7 +112,7 @@ OPTION(KWIVER_ENABLE_SPROKIT              "Enable building sprokit" OFF )
 
 if(KWIVER_ENABLE_ARROWS)
   OPTION(KWIVER_ENABLE_SFM                "Enable Structure-from-Motion Arrow" ON )
-end()
+endif()
 
 CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES
   "Should the KWIVER Sprokit Processes Be Built?" OFF

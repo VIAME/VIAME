@@ -26,7 +26,8 @@ kwiver_add_library( kwiver_algo_sfm
 
 target_link_libraries( kwiver_algo_sfm
   PUBLIC               vital_algo
-  PRIVATE              kwiversys
+  PRIVATE              kwiver_algo_core
+                       kwiversys
                        vital_config
   )
 
@@ -35,9 +36,9 @@ algorithms_create_plugin( kwiver_algo_sfm
   )
 
 if (KWIVER_ENABLE_TESTS)
-  add_subdirectory(tests)
+#  add_subdirectory(tests)
 endif()
 
 if (KWIVER_ENABLE_TOOLS)
-  add_subdirectory(applets)
+#  add_subdirectory(applets)
 endif()
