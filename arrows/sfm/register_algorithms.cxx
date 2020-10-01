@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,27 +37,28 @@
 
 #include <vital/algo/algorithm_factory.h>
 
-//#include <arrows/core/close_loops_bad_frames_only.h>
-//#include <arrows/core/close_loops_appearance_indexed.h>
-//#include <arrows/core/close_loops_exhaustive.h>
-//#include <arrows/core/close_loops_keyframe.h>
-//#include <arrows/core/close_loops_multi_method.h>
-//#include <arrows/core/compute_ref_homography_core.h>
-//#include <arrows/core/estimate_canonical_transform.h>
-//#include <arrows/core/feature_descriptor_io.h>
-//#include <arrows/core/filter_features_magnitude.h>
-//#include <arrows/core/filter_features_scale.h>
-//#include <arrows/core/filter_tracks.h>
-//#include <arrows/core/hierarchical_bundle_adjust.h>
-//#include <arrows/core/initialize_cameras_landmarks.h>
-//#include <arrows/core/initialize_cameras_landmarks_keyframe.h>
-//#include <arrows/core/initialize_object_tracks_threshold.h>
-//#include <arrows/core/keyframe_selector_basic.h>
-//#include <arrows/core/match_features_fundamental_matrix.h>
-//#include <arrows/core/match_features_homography.h>
-//#include <arrows/core/track_features_augment_keyframes.h>
-//#include <arrows/core/track_features_core.h>
-//#include <arrows/core/triangulate_landmarks.h>
+// TODO: These are files that should move to SFM from Core
+//#include <arrows/sfm/close_loops_bad_frames_only.h>
+//#include <arrows/sfm/close_loops_appearance_indexed.h>
+//#include <arrows/sfm/close_loops_exhaustive.h>
+//#include <arrows/sfm/close_loops_keyframe.h>
+//#include <arrows/sfm/close_loops_multi_method.h>
+//#include <arrows/sfm/compute_ref_homography_core.h>
+//#include <arrows/sfm/estimate_canonical_transform.h>
+//#include <arrows/sfm/feature_descriptor_io.h>
+//#include <arrows/sfm/filter_features_magnitude.h>
+//#include <arrows/sfm/filter_features_scale.h>
+//#include <arrows/sfm/filter_tracks.h>
+//#include <arrows/sfm/hierarchical_bundle_adjust.h>
+//#include <arrows/sfm/initialize_cameras_landmarks.h>
+//#include <arrows/sfm/initialize_cameras_landmarks_keyframe.h>
+//#include <arrows/sfm/initialize_object_tracks_threshold.h>
+//#include <arrows/sfm/keyframe_selector_basic.h>
+//#include <arrows/sfm/match_features_fundamental_matrix.h>
+//#include <arrows/sfm/match_features_homography.h>
+//#include <arrows/sfm/track_features_augment_keyframes.h>
+//#include <arrows/sfm/track_features_core.h>
+//#include <arrows/sfm/triangulate_landmarks.h>
 
 
 namespace kwiver {
@@ -77,6 +78,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   {
     return;
   }
+
+  // reg.register_algorithm< initialize_cameras_landmarks >();
 
   reg.mark_module_as_loaded();
 }
