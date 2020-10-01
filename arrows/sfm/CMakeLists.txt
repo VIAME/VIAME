@@ -1,6 +1,7 @@
 # Build / Install Structure-from-Motion arrow
 
 set( plugin_sfm_headers
+  initialize_cameras_landmarks.h
   sfm_utils.h
   )
 
@@ -15,6 +16,7 @@ kwiver_install_headers(
   )
 
 set( plugin_sfm_sources
+  initialize_cameras_landmarks.cxx
   sfm_utils.cxx
   )
 

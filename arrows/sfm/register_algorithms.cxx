@@ -37,6 +37,8 @@
 
 #include <vital/algo/algorithm_factory.h>
 
+#include <arrows/sfm/initialize_cameras_landmarks.h>
+
 // TODO: These are files that should move to SFM from Core
 //#include <arrows/sfm/close_loops_bad_frames_only.h>
 //#include <arrows/sfm/close_loops_appearance_indexed.h>
@@ -50,8 +52,6 @@
 //#include <arrows/sfm/filter_features_scale.h>
 //#include <arrows/sfm/filter_tracks.h>
 //#include <arrows/sfm/hierarchical_bundle_adjust.h>
-//#include <arrows/sfm/initialize_cameras_landmarks.h>
-//#include <arrows/sfm/initialize_cameras_landmarks_keyframe.h>
 //#include <arrows/sfm/initialize_object_tracks_threshold.h>
 //#include <arrows/sfm/keyframe_selector_basic.h>
 //#include <arrows/sfm/match_features_fundamental_matrix.h>
@@ -79,7 +79,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
-  // reg.register_algorithm< initialize_cameras_landmarks >();
+  reg.register_algorithm< initialize_cameras_landmarks >();
 
   reg.mark_module_as_loaded();
 }

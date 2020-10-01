@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of keyframe camera and landmark initialization algorithm
+ * \brief Implementation of SFM camera and landmark initialization algorithm
  */
 
-#include "initialize_cameras_landmarks_keyframe.h"
+#include "initialize_cameras_landmarks.h"
 
 #include <random>
 #include <unordered_map>
@@ -62,13 +62,14 @@
 #include <arrows/core/triangulate.h>
 #include <arrows/core/transform.h>
 #include <vital/algo/estimate_pnp.h>
-#include <arrows/core/sfm_utils.h>
+#include <arrows/sfm/sfm_utils.h>
 
 using namespace kwiver::vital;
+using namespace kwiver::arrows::core;
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace sfm {
 
 typedef std::map< frame_id_t, simple_camera_perspective_sptr >               map_cam_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::iterator       cam_map_itr_t;
@@ -166,7 +167,7 @@ operator >> (std::istream& s, rel_pose & rp)
 }
 
 /// Private implementation class
-class initialize_cameras_landmarks_keyframe::priv
+class initialize_cameras_landmarks::priv
 {
 public:
   /// Constructor
@@ -418,7 +419,7 @@ public:
   std::set<landmark_id_t> m_already_merged_landmarks;
 };
 
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::priv()
   : verbose(false),
   continue_processing(true),
@@ -433,7 +434,7 @@ initialize_cameras_landmarks_keyframe::priv
   lm_triangulator(new core::triangulate_landmarks()),
   bundle_adjuster(),
   global_bundle_adjuster(),
-  m_logger(vital::get_logger("arrows.core.initialize_cameras_landmarks_keyframe")),
+  m_logger(vital::get_logger("arrows.sfm.initialize_cameras_landmarks")),
   m_thresh_triang_cos_ang(cos(deg_to_rad * 2.0)),
   m_rng(m_rd()),
   m_reverse_ba_error_ratio(0.0),
@@ -449,13 +450,13 @@ initialize_cameras_landmarks_keyframe::priv
 
   }
 
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::~priv()
 {
 }
 
 map_landmark_t
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::get_sub_landmark_map(map_landmark_t &lmks, const std::set<landmark_id_t> &lm_ids) const
 {
   map_landmark_t sub_lmks;
@@ -473,7 +474,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 landmark_map_sptr
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::store_landmarks(map_landmark_t &store_lms, map_landmark_t &to_store) const
 {
   for (auto lm : to_store)
@@ -484,7 +485,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 vector_3d
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::get_velocity(
   simple_camera_perspective_map_sptr cams,
   frame_id_t vel_frame) const
@@ -556,7 +557,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::check_inputs(feature_track_set_sptr tracks)
 {
   if (!tracks)
@@ -576,7 +577,7 @@ initialize_cameras_landmarks_keyframe::priv
 
 /// Pass through this callback to another callback but cache the return value
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::pass_through_callback(callback_t cb,
   camera_map_sptr cams,
   landmark_map_sptr lms,
@@ -589,7 +590,7 @@ initialize_cameras_landmarks_keyframe::priv
 
 /// Re-triangulate all landmarks for provided tracks
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::retriangulate(landmark_map::map_landmark_t& lms,
   simple_camera_perspective_map_sptr cams,
   const std::vector<track_sptr>& trks,
@@ -653,7 +654,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::triangulate_landmarks_visible_in_frames(
   landmark_map::map_landmark_t& lmks,
   simple_camera_perspective_map_sptr cams,
@@ -748,7 +749,7 @@ typedef std::shared_ptr<gridded_mask> gridded_mask_sptr;
 
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::down_select_landmarks(
   landmark_map::map_landmark_t &lmks,
   simple_camera_perspective_map_sptr cams,
@@ -886,7 +887,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 rel_pose
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::calc_rel_pose(frame_id_t frame_0, frame_id_t frame_1,
   const std::vector<track_sptr>& trks) const
 {
@@ -1005,7 +1006,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::write_rel_poses(std::string file_path) const
 {
   std::ofstream pose_stream;
@@ -1030,7 +1031,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::read_rel_poses(std::string file_path)
 {
   m_rel_poses.clear();
@@ -1052,7 +1053,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::calc_rel_poses(
   const std::set<frame_id_t> &frames,
   feature_track_set_sptr tracks)
@@ -1149,7 +1150,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 frame_id_t
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::select_next_camera(
   std::set<frame_id_t> &frames_to_resection,
   simple_camera_perspective_map_sptr cams,
@@ -1295,7 +1296,7 @@ initialize_cameras_landmarks_keyframe::priv
 */
 
 float
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::image_coverage(
   simple_camera_perspective_map_sptr cams,
   const std::vector<track_sptr>& trks,
@@ -1312,7 +1313,7 @@ initialize_cameras_landmarks_keyframe::priv
 
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::three_point_pose(frame_id_t frame,
   vital::simple_camera_perspective_sptr &cam,
   feature_track_set_sptr tracks,
@@ -1421,7 +1422,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::resection_camera(
   simple_camera_perspective_map_sptr cams,
   map_landmark_t lms,
@@ -1472,7 +1473,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::fit_reconstruction_to_constraints(
   simple_camera_perspective_map_sptr cams,
   map_landmark_t &lms,
@@ -1633,7 +1634,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::initialize_reconstruction(
   simple_camera_perspective_map_sptr cams,
   map_landmark_t &lms,
@@ -1858,7 +1859,7 @@ private:
   std::unordered_multimap<size_t,std::set<T>> m_map;
 };
 
-void initialize_cameras_landmarks_keyframe::priv
+void initialize_cameras_landmarks::priv
 ::remove_redundant_keyframe(
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
@@ -1947,7 +1948,7 @@ void initialize_cameras_landmarks_keyframe::priv
   }
 }
 
-void initialize_cameras_landmarks_keyframe::priv
+void initialize_cameras_landmarks::priv
 ::remove_redundant_keyframes(
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
@@ -1988,7 +1989,7 @@ void initialize_cameras_landmarks_keyframe::priv
 }
 
 std::set<frame_id_t>
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::select_begining_frames_for_initialization(
   feature_track_set_sptr tracks ) const
 {
@@ -2067,7 +2068,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 feature_track_set_changes_sptr
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::get_feature_track_changes(
   feature_track_set_sptr tracks,
   const simple_camera_perspective_map &cams) const
@@ -2098,7 +2099,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::vision_centric_keyframe_initialization(
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
@@ -2473,7 +2474,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::metadata_centric_keyframe_initialization(
   simple_camera_perspective_map_sptr cams,
   bool use_existing_cams,
@@ -2672,7 +2673,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::initialize_keyframes(
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
@@ -2714,7 +2715,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 int
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::get_inlier_count(frame_id_t fid,
                    landmark_map_sptr landmarks,
                    feature_track_set_sptr tracks)
@@ -2748,7 +2749,7 @@ initialize_cameras_landmarks_keyframe::priv
   return inlier_count;
 }
 
-int initialize_cameras_landmarks_keyframe::priv
+int initialize_cameras_landmarks::priv
 ::set_inlier_flags(
     frame_id_t fid,
     simple_camera_perspective_sptr cam,
@@ -2797,7 +2798,7 @@ int initialize_cameras_landmarks_keyframe::priv
 }
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::cleanup_necker_reversals(
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr landmarks,
@@ -2907,7 +2908,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 std::set<landmark_id_t>
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::find_visible_landmarks_in_frames(
   const map_landmark_t &lmks,
   feature_track_set_sptr tracks,
@@ -2928,7 +2929,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::get_registered_and_non_registered_frames(
   simple_camera_perspective_map_sptr cams,
   feature_track_set_sptr tracks,
@@ -2948,7 +2949,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::get_next_fid_to_register_and_its_closest_registered_cam(
   simple_camera_perspective_map_sptr cams,
   std::set<frame_id_t> &frames_to_register,
@@ -2990,7 +2991,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::initialize_next_camera(
   simple_camera_perspective_map_sptr cams,
   map_landmark_t& lmks,
@@ -3160,7 +3161,7 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::windowed_clean_and_bundle(
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
@@ -3256,7 +3257,7 @@ std::set<uint32_t> hash_point(vector_3d const& X_min,
 
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::merge_landmarks(map_landmark_t &lmks,
                   simple_camera_perspective_map_sptr const &cams,
                   feature_track_set_sptr &tracks)
@@ -3534,7 +3535,7 @@ initialize_cameras_landmarks_keyframe::priv
 
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::initialize_remaining_cameras(
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
@@ -3779,14 +3780,14 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 bool
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::bundle_adjust()
 {
   return true;
 }
 
 void
-initialize_cameras_landmarks_keyframe::priv
+initialize_cameras_landmarks::priv
 ::init_base_camera_from_metadata(
   sfm_constraints_sptr constraints)
 {
@@ -3829,21 +3830,21 @@ initialize_cameras_landmarks_keyframe::priv
 // start: initialize_cameras_landmarks_keyframe
 
 /// Constructor
-initialize_cameras_landmarks_keyframe
-::initialize_cameras_landmarks_keyframe()
+initialize_cameras_landmarks
+::initialize_cameras_landmarks()
 : m_priv(new priv)
 {
 }
 
 /// Destructor
-initialize_cameras_landmarks_keyframe
-::~initialize_cameras_landmarks_keyframe()
+initialize_cameras_landmarks
+::~initialize_cameras_landmarks()
 {
 }
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
-initialize_cameras_landmarks_keyframe
+initialize_cameras_landmarks
 ::get_configuration() const
 {
   // get base config from base class
@@ -3963,7 +3964,7 @@ initialize_cameras_landmarks_keyframe
 
 /// Set this algorithm's properties via a config block
 void
-initialize_cameras_landmarks_keyframe
+initialize_cameras_landmarks
 ::set_configuration(vital::config_block_sptr config)
 {
   const camera_intrinsics_sptr K = m_priv->m_base_camera.get_intrinsics();
@@ -4082,7 +4083,7 @@ initialize_cameras_landmarks_keyframe
 
 /// Check that the algorithm's currently configuration is valid
 bool
-initialize_cameras_landmarks_keyframe
+initialize_cameras_landmarks
 ::check_configuration(vital::config_block_sptr config) const
 {
   if (config->get_value<std::string>("camera_optimizer", "") != ""
@@ -4116,7 +4117,7 @@ initialize_cameras_landmarks_keyframe
 
 /// Initialize the camera and landmark parameters given a set of tracks
 void
-initialize_cameras_landmarks_keyframe
+initialize_cameras_landmarks
 ::initialize(camera_map_sptr& cameras,
              landmark_map_sptr& landmarks,
              feature_track_set_sptr tracks,
@@ -4163,7 +4164,7 @@ initialize_cameras_landmarks_keyframe
 
 /// Set a callback function to report intermediate progress
 void
-initialize_cameras_landmarks_keyframe
+initialize_cameras_landmarks
 ::set_callback(callback_t cb)
 {
   vital::algo::initialize_cameras_landmarks::set_callback(cb);
@@ -4175,7 +4176,7 @@ initialize_cameras_landmarks_keyframe
     using std::placeholders::_2;
     using std::placeholders::_3;
     callback_t pcb =
-      std::bind(&initialize_cameras_landmarks_keyframe::priv
+      std::bind(&initialize_cameras_landmarks::priv
         ::pass_through_callback,
         m_priv.get(), this->m_callback, _1, _2, _3);
     if (m_priv->bundle_adjuster)
@@ -4189,6 +4190,6 @@ initialize_cameras_landmarks_keyframe
   }
 }
 
-} // end namespace core
+} // end namespace sfm
 } // end namespace arrows
 } // end namespace kwiver
