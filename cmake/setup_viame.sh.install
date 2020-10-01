@@ -21,6 +21,7 @@ export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/processes:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/plugins:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/processes:$KWIVER_PLUGIN_PATH
