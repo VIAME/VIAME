@@ -64,6 +64,19 @@ Arrows: KPF
 
 Arrows: OpenCV
 
+Arrows: SfM
+
+ * Created new SfM arrow to make a new home for structure-from-motion and
+   other 3D vision code.  Much of this code will move from the "core" arrow
+   which had grown too large.
+
+ * Moved track_features applet from core into sfm.
+
+ * Moved sfm_utils.h from core into sfm.
+
+ * Moved initialize_cameras_landmarks_keyframe from core into sfm and renamed
+   to sfm::initialize_cameras_landmarks.
+
 Arrows: Serialization
 
 Arrows: Super3d
