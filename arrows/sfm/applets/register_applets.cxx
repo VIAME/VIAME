@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,26 @@
 
 /**
  * \file
- * \brief register core applets into a plugin
+ * \brief register sfm applets into a plugin
  */
 
-#include <arrows/core/applets/kwiver_algo_core_applets_export.h>
+#include <arrows/sfm/applets/kwiver_algo_sfm_applets_export.h>
 #include <vital/plugin_loader/plugin_loader.h>
 #include <vital/applets/applet_registrar.h>
 
-#include <arrows/core/applets/dump_klv.h>
-#include <arrows/core/applets/render_mesh.h>
+#include <arrows/sfm/applets/track_features.h>
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace sfm {
 
 // ----------------------------------------------------------------------------
 extern "C"
-KWIVER_ALGO_CORE_APPLETS_EXPORT
+KWIVER_ALGO_SFM_APPLETS_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  kwiver::applet_registrar reg( vpm, "arrows.core.applets" );
+  kwiver::applet_registrar reg( vpm, "arrows.sfm.applets" );
 
   if (reg.is_module_loaded())
   {
@@ -58,12 +57,11 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // -- register applets --
-  reg.register_tool< dump_klv >();
-  reg.register_tool< render_mesh >();
+  reg.register_tool< track_features >();
 
   reg.mark_module_as_loaded();
 }
 
-} // end namespace core
+} // end namespace sfm
 } // end namespace arrows
 } // end namespace kwiver

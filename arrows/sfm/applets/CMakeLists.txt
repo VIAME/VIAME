@@ -1,17 +1,15 @@
 #
-# CMake file for the arrows.core.applets
+# CMake file for the arrows.sfm.applets
 #
 
 set( sources
   register_applets.cxx
 
-  dump_klv.cxx
-  render_mesh.cxx
+  track_features.cxx
   )
 
 set( headers
-  dump_klv.h
-  render_mesh.h
+  track_features.h
   )
 
 ###
@@ -25,10 +23,11 @@ if(NOT SKBUILD)
   kwiver_add_module_path( ${kwiver_module_path_result} )
 endif()
 # Add applet plugin
-kwiver_add_plugin( kwiver_algo_core_applets
+kwiver_add_plugin( kwiver_algo_sfm_applets
   SUBDIR       ${kwiver_plugin_applets_subdir}
   SOURCES      ${sources} ${headers}
   PRIVATE      kwiver_algo_core
+               kwiver_algo_sfm
                kwiver_tools_applet
                kwiversys
 )
