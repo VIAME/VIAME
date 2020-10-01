@@ -28,17 +28,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_SFM_APPLETS_TRACK_FEATURES_H
-#define KWIVER_ARROWS_SFM_APPLETS_TRACK_FEATURES_H
+#ifndef KWIVER_ARROWS_MVG_APPLETS_TRACK_FEATURES_H
+#define KWIVER_ARROWS_MVG_APPLETS_TRACK_FEATURES_H
 
 #include <vital/applets/kwiver_applet.h>
-#include <arrows/sfm/applets/kwiver_algo_sfm_applets_export.h>
+#include <arrows/mvg/applets/kwiver_algo_mvg_applets_export.h>
 
 namespace kwiver {
 namespace arrows {
-namespace sfm {
+namespace mvg {
 
-class KWIVER_ALGO_SFM_APPLETS_EXPORT track_features
+class KWIVER_ALGO_MVG_APPLETS_EXPORT track_features
   : public kwiver::tools::kwiver_applet
 {
 public:

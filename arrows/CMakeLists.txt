@@ -8,9 +8,9 @@ set(ARROWS_BINARY_DIR           "${CMAKE_CURRENT_BINARY_DIR}")
 # Base plug-in with default implementations
 add_subdirectory( core )
 
-# Add SFM plugin if enabled
-if( KWIVER_ENABLE_SFM )
-  add_subdirectory( sfm )
+# Add MVG plugin if enabled
+if( KWIVER_ENABLE_MVG )
+  add_subdirectory( mvg )
 endif()
 
 # Add Ceres plugin if enabled

@@ -62,20 +62,20 @@ Arrows: GDAL
 
 Arrows: KPF
 
-Arrows: OpenCV
+Arrows: MVG
 
-Arrows: SfM
-
- * Created new SfM arrow to make a new home for structure-from-motion and
+ * Created new MVG arrow to make a new home for Multi-View Geometry and
    other 3D vision code.  Much of this code will move from the "core" arrow
    which had grown too large.
 
- * Moved track_features applet from core into sfm.
+ * Moved track_features applet from core into mvg.
 
- * Moved sfm_utils.h from core into sfm.
+ * Moved sfm_utils.h from core into mvg.
 
- * Moved initialize_cameras_landmarks_keyframe from core into sfm and renamed
-   to sfm::initialize_cameras_landmarks.
+ * Moved initialize_cameras_landmarks_keyframe from core into mvg and renamed
+   to mvg::initialize_cameras_landmarks.
+
+Arrows: OpenCV
 
 Arrows: Serialization
 

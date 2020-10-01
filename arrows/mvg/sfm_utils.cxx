@@ -44,7 +44,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-namespace sfm {
+namespace mvg {
 
 
 /// Detect tracks which remain stationary in the image
@@ -493,7 +493,7 @@ detect_bad_landmarks(
   double median_distance_multiple)
 {
   //returns a set of un-constrained landmarks to be removed from the solution
-  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.sfm.sfm_utils"));
+  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.mvg.sfm_utils"));
   std::set<landmark_id_t> landmarks_to_remove;
 
   double ets = error_tol * error_tol;
@@ -746,7 +746,7 @@ clean_cameras_and_landmarks(
   }
 
 
-  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.sfm.sfm_utils"));
+  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.mvg.sfm_utils"));
 
   removed_cams.clear();
   //loop until no changes are done to further clean up the solution

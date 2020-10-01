@@ -111,7 +111,7 @@ OPTION(KWIVER_ENABLE_SERIALIZE_JSON       "Enable json serialization" OFF )
 OPTION(KWIVER_ENABLE_SPROKIT              "Enable building sprokit" OFF )
 
 if(KWIVER_ENABLE_ARROWS)
-  OPTION(KWIVER_ENABLE_SFM                "Enable Structure-from-Motion Arrow" ON )
+  OPTION(KWIVER_ENABLE_MVG                "Enable Multi-View Geometry Arrow" ON )
 endif()
 
 CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES

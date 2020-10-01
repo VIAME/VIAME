@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of SFM camera and landmark initialization algorithm
+ * \brief Implementation of MVG camera and landmark initialization algorithm
  */
 
 #include "initialize_cameras_landmarks.h"
@@ -62,14 +62,14 @@
 #include <arrows/core/triangulate.h>
 #include <arrows/core/transform.h>
 #include <vital/algo/estimate_pnp.h>
-#include <arrows/sfm/sfm_utils.h>
+#include <arrows/mvg/sfm_utils.h>
 
 using namespace kwiver::vital;
 using namespace kwiver::arrows::core;
 
 namespace kwiver {
 namespace arrows {
-namespace sfm {
+namespace mvg {
 
 typedef std::map< frame_id_t, simple_camera_perspective_sptr >               map_cam_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::iterator       cam_map_itr_t;
@@ -434,7 +434,7 @@ initialize_cameras_landmarks::priv
   lm_triangulator(new core::triangulate_landmarks()),
   bundle_adjuster(),
   global_bundle_adjuster(),
-  m_logger(vital::get_logger("arrows.sfm.initialize_cameras_landmarks")),
+  m_logger(vital::get_logger("arrows.mvg.initialize_cameras_landmarks")),
   m_thresh_triang_cos_ang(cos(deg_to_rad * 2.0)),
   m_rng(m_rd()),
   m_reverse_ba_error_ratio(0.0),
@@ -4190,6 +4190,6 @@ initialize_cameras_landmarks
   }
 }
 
-} // end namespace sfm
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

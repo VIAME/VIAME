@@ -30,26 +30,26 @@
 
 /**
  * \file
- * \brief register sfm applets into a plugin
+ * \brief register mvg applets into a plugin
  */
 
-#include <arrows/sfm/applets/kwiver_algo_sfm_applets_export.h>
+#include <arrows/mvg/applets/kwiver_algo_mvg_applets_export.h>
 #include <vital/plugin_loader/plugin_loader.h>
 #include <vital/applets/applet_registrar.h>
 
-#include <arrows/sfm/applets/track_features.h>
+#include <arrows/mvg/applets/track_features.h>
 
 namespace kwiver {
 namespace arrows {
-namespace sfm {
+namespace mvg {
 
 // ----------------------------------------------------------------------------
 extern "C"
-KWIVER_ALGO_SFM_APPLETS_EXPORT
+KWIVER_ALGO_MVG_APPLETS_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  kwiver::applet_registrar reg( vpm, "arrows.sfm.applets" );
+  kwiver::applet_registrar reg( vpm, "arrows.mvg.applets" );
 
   if (reg.is_module_loaded())
   {
@@ -62,6 +62,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.mark_module_as_loaded();
 }
 
-} // end namespace sfm
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

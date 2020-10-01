@@ -1,5 +1,5 @@
 #
-# CMake file for the arrows.sfm.applets
+# CMake file for the arrows.mvg.applets
 #
 
 set( sources
@@ -23,11 +23,11 @@ if(NOT SKBUILD)
   kwiver_add_module_path( ${kwiver_module_path_result} )
 endif()
 # Add applet plugin
-kwiver_add_plugin( kwiver_algo_sfm_applets
+kwiver_add_plugin( kwiver_algo_mvg_applets
   SUBDIR       ${kwiver_plugin_applets_subdir}
   SOURCES      ${sources} ${headers}
   PRIVATE      kwiver_algo_core
-               kwiver_algo_sfm
+               kwiver_algo_mvg
                kwiver_tools_applet
                kwiversys
 )

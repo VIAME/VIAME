@@ -56,7 +56,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace sfm {
+namespace mvg {
 
 
 namespace {
