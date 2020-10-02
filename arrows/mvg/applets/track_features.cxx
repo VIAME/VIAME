@@ -56,7 +56,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 
 namespace {

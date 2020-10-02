@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018-2019 by Kitware, Inc.
+* Copyright 2018-2020 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,9 @@
 */
 
 /**
-* \file
-* \brief Implementation of kwiver::arrows::sfm_utils utiltiy functions for
-* structure from motion.
-*/
+ * \file
+ * \brief Implementation of utility functions for structure from motion.
+ */
 
 #include "sfm_utils.h"
 
@@ -45,7 +44,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 
 /// Detect tracks which remain stationary in the image
@@ -336,7 +335,7 @@ image_coverages(
   return ret;
 }
 
-/// remove landmarks with IDs in the set
+/// Remove landmarks with IDs in the set
 void
 remove_landmarks(const std::set<track_id_t>& to_remove,
   landmark_map::map_landmark_t& lms)
@@ -352,7 +351,7 @@ remove_landmarks(const std::set<track_id_t>& to_remove,
 }
 
 
-/// find connected components of cameras
+/// Find connected components of cameras
 camera_components
 connected_camera_components(
   vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
@@ -494,7 +493,7 @@ detect_bad_landmarks(
   double median_distance_multiple)
 {
   //returns a set of un-constrained landmarks to be removed from the solution
-  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.core.sfm_utils"));
+  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.mvg.sfm_utils"));
   std::set<landmark_id_t> landmarks_to_remove;
 
   double ets = error_tol * error_tol;
@@ -671,7 +670,7 @@ detect_bad_landmarks(
   return landmarks_to_remove;
 }
 
-/// detect bad cameras in sfm solution
+/// Detect bad cameras in sfm solution
 std::set<frame_id_t>
 detect_bad_cameras(
   vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
@@ -693,7 +692,7 @@ detect_bad_cameras(
   return rem_frames;
 }
 
-/// clean structure from motion solution
+/// Clean structure from motion solution
 void
 clean_cameras_and_landmarks(
   vital::simple_camera_perspective_map& cams_persp,
@@ -747,8 +746,7 @@ clean_cameras_and_landmarks(
   }
 
 
-
-  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.core.sfm_utils"));
+  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.mvg.sfm_utils"));
 
   removed_cams.clear();
   //loop until no changes are done to further clean up the solution
@@ -842,7 +840,7 @@ cameras_above_plane(
   return out_cams;
 }
 
-// Compute the ground center of a collection of landmarks
+/// Compute the ground center of a collection of landmarks
 vital::vector_3d
 landmarks_ground_center(vital::landmark_map const& landmarks,
                         double ground_frac)

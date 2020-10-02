@@ -65,7 +65,6 @@
 #include <arrows/core/handle_descriptor_request_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
-#include <arrows/core/initialize_cameras_landmarks_keyframe.h>
 #include <arrows/core/initialize_object_tracks_threshold.h>
 #include <arrows/core/interpolate_track_spline.h>
 #include <arrows/core/keyframe_selector_basic.h>
@@ -134,7 +133,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< handle_descriptor_request_core >();
   reg.register_algorithm< hierarchical_bundle_adjust >();
   reg.register_algorithm< initialize_cameras_landmarks >();
-  reg.register_algorithm< initialize_cameras_landmarks_keyframe >();
   reg.register_algorithm< initialize_object_tracks_threshold >();
   reg.register_algorithm< interpolate_track_spline >();
   reg.register_algorithm< keyframe_selector_basic >();

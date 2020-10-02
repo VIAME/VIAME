@@ -110,6 +110,10 @@ OPTION(KWIVER_ENABLE_SERIALIZE_JSON       "Enable json serialization" OFF )
 # if sprokit enabled
 OPTION(KWIVER_ENABLE_SPROKIT              "Enable building sprokit" OFF )
 
+if(KWIVER_ENABLE_ARROWS)
+  OPTION(KWIVER_ENABLE_MVG                "Enable Multi-View Geometry Arrow" ON )
+endif()
+
 CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES
   "Should the KWIVER Sprokit Processes Be Built?" OFF
   "KWIVER_ENABLE_ARROWS AND KWIVER_ENABLE_SPROKIT" OFF )

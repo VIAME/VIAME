@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018-2019 by Kitware, Inc.
+* Copyright 2018-2020 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,18 @@
 
 /**
 * \file
-* \brief Header for kwiver::arrows::sfm_utils utility functions for structure
-* from motion
+* \brief Header for utility functions for structure from motion
 */
 
-#ifndef KWIVER_ARROWS_CORE_SFM_UTILS_H_
-#define KWIVER_ARROWS_CORE_SFM_UTILS_H_
+#ifndef KWIVER_ARROWS_MVG_SFM_UTILS_H_
+#define KWIVER_ARROWS_MVG_SFM_UTILS_H_
 
 #include <vector>
 #include <unordered_set>
 
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vital/types/feature_track_set.h>
 #include <vital/types/landmark_map.h>
@@ -53,7 +52,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace core{
+namespace mvg{
 
 
 /// Detect tracks which remain stationary in the image
@@ -68,7 +67,7 @@ namespace core{
  * \param [in] threshold  The threshold on pixel distance to the mean
  * \return                The set of stationary tracks
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 std::set<vital::track_sptr>
 detect_stationary_tracks(vital::feature_track_set_sptr tracks,
                          double threshold = 10.0);
@@ -87,7 +86,7 @@ detect_stationary_tracks(vital::feature_track_set_sptr tracks,
  *                        adjacent key frames and adjacent frames
  * \return                The set of selected frame numbers
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 std::set<vital::frame_id_t>
 keyframes_for_sfm(vital::feature_track_set_sptr tracks,
                   const vital::frame_id_t radius = 10,
@@ -98,16 +97,16 @@ typedef std::vector<coverage_pair> frame_coverage_vec;
 
 /// Calculate fraction of each image that is covered by landmark projections
 /**
-* For each frame find landmarks that project into that frame.  Mark the
-* associated feature projection locations as occupied in a mask.  After all
-* masks have been accumulated for all frames calculate the fraction of each
-* mask that is occupied.  Return this fraction in a frame coverage vector.
-* \param [in] tracks the set of feature tracks
-* \param [in] lms landmarks to check coverage on
-* \param [in] cams the set of frames to have coverage calculated on
-* \return     the image coverages
-*/
-KWIVER_ALGO_CORE_EXPORT
+ * For each frame find landmarks that project into that frame.  Mark the
+ * associated feature projection locations as occupied in a mask.  After all
+ * masks have been accumulated for all frames calculate the fraction of each
+ * mask that is occupied.  Return this fraction in a frame coverage vector.
+ * \param [in] tracks the set of feature tracks
+ * \param [in] lms landmarks to check coverage on
+ * \param [in] cams the set of frames to have coverage calculated on
+ * \return     the image coverages
+ */
+KWIVER_ALGO_MVG_EXPORT
 frame_coverage_vec
 image_coverages(
   std::vector<vital::track_sptr> const& trks,
@@ -118,15 +117,15 @@ typedef std::vector<std::unordered_set<vital::frame_id_t>> camera_components;
 
 /// find connected components of cameras
 /**
-* Find connected components in the view graph.  Cameras that view the same
-* landmark are connected in the graph.
-* \param [in] cams the cameras in the view graph.
-* \param [in] lms the landmarks in the view graph.
-* \param [in] tracks the track set
-* \return camera_components vector.  Each set in the vector represents a
-* different connected component.
-*/
-KWIVER_ALGO_CORE_EXPORT
+ * Find connected components in the view graph.  Cameras that view the same
+ * landmark are connected in the graph.
+ * \param [in] cams the cameras in the view graph.
+ * \param [in] lms the landmarks in the view graph.
+ * \param [in] tracks the track set
+ * \return camera_components vector.  Each set in the vector represents a
+ * different connected component.
+ */
+KWIVER_ALGO_MVG_EXPORT
 camera_components
 connected_camera_components(
   vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
@@ -143,11 +142,12 @@ connected_camera_components(
  * \param [in] tracks  The set of tracks
  * \returns            A vector of all critical tracks
  */
+KWIVER_ALGO_MVG_EXPORT
 std::vector<vital::track_sptr>
 detect_critical_tracks(camera_components const& cc,
                        vital::feature_track_set_sptr tracks);
 
-/// detect bad landmarks
+/// Detect bad landmarks
 /**
 * Checks landmark reprojection errors, triangulation angles and whether or not
 * landmark is adequately constrained (2+ rays).  If not it is returned as a
@@ -165,7 +165,7 @@ detect_critical_tracks(camera_components const& cc,
               to disable
 * \return set of landmark ids (track_ids) that were bad and should be removed
 */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 std::set<vital::landmark_id_t>
 detect_bad_landmarks(
   vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
@@ -176,28 +176,28 @@ detect_bad_landmarks(
   int min_landmark_inliers = -1,
   double median_distance_multiple = 10);
 
-/// remove landmarks with IDs in the set
+/// Remove landmarks with IDs in the set
 /**
-* Erases the landmarks with the associated ids from lms
-* \param [in] to_remove track ids for landmarks to set null
-* \param [in,out] lms landmark map to remove landmarks from
-*/
-KWIVER_ALGO_CORE_EXPORT
+ * Erases the landmarks with the associated ids from lms
+ * \param [in] to_remove track ids for landmarks to set null
+ * \param [in,out] lms landmark map to remove landmarks from
+ */
+KWIVER_ALGO_MVG_EXPORT
 void
 remove_landmarks(const std::set<vital::track_id_t>& to_remove,
   vital::landmark_map::map_landmark_t& lms);
 
-/// detect bad cameras in sfm solution
+/// Detect bad cameras in sfm solution
 /**
-* Find cameras that don't meet the minimum required coverage and return them
-* \param [in] cams the cameras in the view graph.
-* \param [in] lms the landmarks in the view graph.
-* \param [in] tracks the track set
-* \param [in] coverage_thresh images that have less than this  fraction [0 - 1]
-*             of coverage are included in the return set
-* \return set of frames that do not meet the coverage requirement
-*/
-KWIVER_ALGO_CORE_EXPORT
+ * Find cameras that don't meet the minimum required coverage and return them
+ * \param [in] cams the cameras in the view graph.
+ * \param [in] lms the landmarks in the view graph.
+ * \param [in] tracks the track set
+ * \param [in] coverage_thresh images that have less than this  fraction [0 - 1]
+ *             of coverage are included in the return set
+ * \return set of frames that do not meet the coverage requirement
+ */
+KWIVER_ALGO_MVG_EXPORT
 std::set<vital::frame_id_t>
 detect_bad_cameras(
   vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
@@ -205,27 +205,27 @@ detect_bad_cameras(
   vital::feature_track_set_sptr tracks,
   float coverage_thresh);
 
-/// clean structure from motion solution
+/// Clean structure from motion solution
 /**
-* Clean up the structure from motion solution by checking landmark
-* reprojection errors, removing under-constrained landmarks, removing
-* under-constrained cameras and keeping only the largest connected component
-* of cameras.
-* \param [in,out] cams the cameras in the view graph.  Removed cameras are set to null.
-* \param [in,out] lms the landmarks in the view graph.  Removed landmarks are set to null.
-* \param [in] tracks the track set
-* \param [in] triang_cos_ang_thresh largest angle rays intersecting landmark must
-*             have less than this cos angle for landmkark to be kept.
-* \param [out] removed_cams frame ids of cameras that are removed while cleaning
-* \param [in] active_cams if non-empty only these cameras will be cleaned
-* \param [in] active_lms if non-empty only these landmarks will be cleaned
-* \param [in] image_coverage_threshold images must have this fraction [0 - 1] of
-*             coverage to be kept in the solution
-* \param [in] error_tol maximum reprojection error to keep features
-* \param [in] min_landmark_inliers minimum number of inlier measurements to keep a landmark.
-              Set to -1 to ignore.
-*/
-KWIVER_ALGO_CORE_EXPORT
+ * Clean up the structure from motion solution by checking landmark
+ * reprojection errors, removing under-constrained landmarks, removing
+ * under-constrained cameras and keeping only the largest connected component
+ * of cameras.
+ * \param [in,out] cams the cameras in the view graph.  Removed cameras are set to null.
+ * \param [in,out] lms the landmarks in the view graph.  Removed landmarks are set to null.
+ * \param [in] tracks the track set
+ * \param [in] triang_cos_ang_thresh largest angle rays intersecting landmark must
+ *             have less than this cos angle for landmkark to be kept.
+ * \param [out] removed_cams frame ids of cameras that are removed while cleaning
+ * \param [in] active_cams if non-empty only these cameras will be cleaned
+ * \param [in] active_lms if non-empty only these landmarks will be cleaned
+ * \param [in] image_coverage_threshold images must have this fraction [0 - 1] of
+ *             coverage to be kept in the solution
+ * \param [in] error_tol maximum reprojection error to keep features
+ * \param [in] min_landmark_inliers minimum number of inlier measurements to keep a landmark.
+ *             Set to -1 to ignore.
+ */
+KWIVER_ALGO_MVG_EXPORT
 void
 clean_cameras_and_landmarks(
   vital::simple_camera_perspective_map& cams,
@@ -247,7 +247,7 @@ clean_cameras_and_landmarks(
  * Up in the image is the negative Y-axis.  Up in the world defaults to
  * the postive Z-axis, but this is configurable by specifying \p up.
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 bool
 camera_upright(vital::camera_perspective const& camera,
                vital::vector_3d const& up = vital::vector_3d(0, 0, 1));
@@ -256,7 +256,7 @@ camera_upright(vital::camera_perspective const& camera,
 /*
  * \sa camera_upright
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 bool
 majority_upright(
   vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
@@ -275,7 +275,7 @@ cameras_above_plane(
  * with the ground normal vector aligned with the Z-axis.  It returns the
  * median location in X and Y, and a small percentile (5%) of the height in Z.
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 vital::vector_3d
 landmarks_ground_center(vital::landmark_map const& landmarks,
                         double ground_frac = 0.05);

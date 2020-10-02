@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,60 @@
 
 /**
  * \file
- * \brief register core applets into a plugin
+ * \brief Plugin algorithm registration for MVG Arrow
  */
 
-#include <arrows/core/applets/kwiver_algo_core_applets_export.h>
-#include <vital/plugin_loader/plugin_loader.h>
-#include <vital/applets/applet_registrar.h>
+#include <arrows/mvg/kwiver_algo_mvg_plugin_export.h>
 
-#include <arrows/core/applets/dump_klv.h>
-#include <arrows/core/applets/render_mesh.h>
+#include <vital/algo/algorithm_factory.h>
+
+#include <arrows/mvg/algo/initialize_cameras_landmarks.h>
+
+// TODO: These are files that should move to MVG from Core
+//#include <arrows/mvg/close_loops_bad_frames_only.h>
+//#include <arrows/mvg/close_loops_appearance_indexed.h>
+//#include <arrows/mvg/close_loops_exhaustive.h>
+//#include <arrows/mvg/close_loops_keyframe.h>
+//#include <arrows/mvg/close_loops_multi_method.h>
+//#include <arrows/mvg/compute_ref_homography_core.h>
+//#include <arrows/mvg/estimate_canonical_transform.h>
+//#include <arrows/mvg/feature_descriptor_io.h>
+//#include <arrows/mvg/filter_features_magnitude.h>
+//#include <arrows/mvg/filter_features_scale.h>
+//#include <arrows/mvg/filter_tracks.h>
+//#include <arrows/mvg/hierarchical_bundle_adjust.h>
+//#include <arrows/mvg/initialize_object_tracks_threshold.h>
+//#include <arrows/mvg/keyframe_selector_basic.h>
+//#include <arrows/mvg/match_features_fundamental_matrix.h>
+//#include <arrows/mvg/match_features_homography.h>
+//#include <arrows/mvg/track_features_augment_keyframes.h>
+//#include <arrows/mvg/track_features_core.h>
+//#include <arrows/mvg/triangulate_landmarks.h>
+
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
+
 
 // ----------------------------------------------------------------------------
 extern "C"
-KWIVER_ALGO_CORE_APPLETS_EXPORT
+KWIVER_ALGO_MVG_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  kwiver::applet_registrar reg( vpm, "arrows.core.applets" );
+  kwiver::vital::algorithm_registrar reg( vpm, "arrows.mvg" );
 
   if (reg.is_module_loaded())
   {
     return;
   }
 
-  // -- register applets --
-  reg.register_tool< dump_klv >();
-  reg.register_tool< render_mesh >();
+  reg.register_algorithm< initialize_cameras_landmarks >();
 
   reg.mark_module_as_loaded();
 }
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
