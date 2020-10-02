@@ -145,9 +145,19 @@ struct meta_item
     }
     else if ( trait.is_integral() )
     {
-      uint64_t value;
-      archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      // is_integral() returns true for a bool, which needs to be handled differently
+      if ( trait.tag_type() == typeid( bool ) )
+      {
+        bool value;
+        archive( CEREAL_NVP( value ) );
+        this->item_value = kwiver::vital::any( value );
+      }
+      else
+      {
+        uint64_t value;
+        archive( CEREAL_NVP( value ) );
+        this->item_value = kwiver::vital::any( value );
+      }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
