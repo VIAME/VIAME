@@ -74,6 +74,10 @@ void compute_g(const vil_image_view<double> &ref_img,
          double beta,
          vil_image_view<bool> *mask = NULL);
 
+/// Compute the number of depth slices needed to properly sample the data
+double compute_depth_sampling(world_space const& ws,
+                              std::vector<vpgl_perspective_camera<double> > const& cameras);
+
 void save_cost_volume(const vil_image_view<double> &cost_volume,
                       const vil_image_view<double> &g_weight,
                       const char *file_name);

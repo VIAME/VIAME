@@ -78,6 +78,18 @@ void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
                              const vil_image_view<double>& height_map,
                              vil_image_view<double>& depth_map);
 
+/// Convert a height map into a depth map and scale uncertainty
+/**
+ * \param [in]  camera         the camera corresponding to the height map
+ * \param [in]  height_map     input height map
+ * \param [out] depth_map      output depth map
+ * \param [in,out] uncertainty uncertainty map to scale in place
+ */
+void height_map_to_depth_map(vpgl_perspective_camera<double> const& camera,
+                             vil_image_view<double> const& height_map,
+                             vil_image_view<double>& depth_map,
+                             vil_image_view<double>& uncertainty);
+
 
 } // end namespace super3d
 } // end namespace arrows

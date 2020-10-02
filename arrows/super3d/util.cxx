@@ -127,6 +127,35 @@ void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
 
 //*****************************************************************************
 
+/// Convert a height map into a depth map
+void height_map_to_depth_map(vpgl_perspective_camera<double> const& camera,
+                             vil_image_view<double> const& height_map,
+                             vil_image_view<double>& depth_map,
+                             vil_image_view<double>& uncertainty)
+{
+  const vnl_matrix_fixed<double, 3, 4>& P = camera.get_matrix();
+  const vnl_vector_fixed<double, 3> v = vnl_inverse(P.extract(3, 3)).get_row(2);
+  const double o = dot_product(v, -P.get_column(3));
+  assert(height_map.nplanes() == 1);
+  assert(uncertainty.nplanes() == 1);
+  assert(uncertainty.ni() == height_map.ni());
+  assert(uncertainty.nj() == height_map.nj());
+  depth_map.set_size(height_map.ni(), height_map.nj(), 1);
+  for (unsigned j = 0; j < height_map.nj(); ++j)
+  {
+    for (unsigned i = 0; i < height_map.ni(); ++i)
+    {
+      const double& h = height_map(i, j);
+      vnl_vector_fixed<double, 3> pt(i, j, 1);
+      const double s = 1.0 / dot_product(v, pt);
+      depth_map(i, j) = (h - o) * s;
+      uncertainty(i, j) *= std::abs(s);
+    }
+  }
+}
+
+//*****************************************************************************
+
 } // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver

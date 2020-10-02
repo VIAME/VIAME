@@ -46,8 +46,25 @@ void compute_depth(py::module &m)
     .def(py::init())
     .def_static("static_type_name",
                 &kwiver::vital::algo::compute_depth::static_type_name)
-    .def("compute",
-         &kwiver::vital::algo::compute_depth::compute)
+    .def("compute", static_cast<kwiver::vital::image_container_sptr
+                                (kwiver::vital::algo::compute_depth::*)
+                                (std::vector<kwiver::vital::image_container_sptr> const&,
+                                 std::vector<kwiver::vital::camera_perspective_sptr> const&,
+                                 double, double,
+                                 unsigned int,
+                                 vital::bounding_box<int> const&,
+                                 std::vector<kwiver::vital::image_container_sptr> const&) const>
+                    (&kwiver::vital::algo::compute_depth::compute))
+    .def("compute", static_cast<kwiver::vital::image_container_sptr
+                                (kwiver::vital::algo::compute_depth::*)
+                                (std::vector<kwiver::vital::image_container_sptr> const&,
+                                 std::vector<kwiver::vital::camera_perspective_sptr> const&,
+                                 double, double,
+                                 unsigned int,
+                                 vital::bounding_box<int> const&,
+                                 kwiver::vital::image_container_sptr&,
+                                 std::vector<kwiver::vital::image_container_sptr> const&) const>
+                    (&kwiver::vital::algo::compute_depth::compute))
     .def("set_callback",
         &kwiver::vital::algo::compute_depth::set_callback);
 }

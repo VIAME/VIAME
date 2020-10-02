@@ -64,7 +64,7 @@ public:
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /// Compute a depth map from an image sequence
+  /// Compute a depth map from an image sequence and return uncertainty by ref
   /**
   * Implementations of this function should not modify the underlying objects
   * contained in the input structures. Output references should either be new
@@ -76,6 +76,7 @@ public:
   * \param [in] depth_max maximum depth expected
   * \param [in] reference_frame index into image sequence denoting the frame that depth is computed on
   * \param [in] roi region of interest within reference image (can be entire image)
+  * \param [out] depth_uncertainty reference which will contain depth uncertainty
   * \param [in] masks optional masks corresponding to the image sequence
   */
   virtual kwiver::vital::image_container_sptr
@@ -84,6 +85,7 @@ public:
           double depth_min, double depth_max,
           unsigned int reference_frame,
           vital::bounding_box<int> const& roi,
+          kwiver::vital::image_container_sptr& depth_uncertainty,
           std::vector<kwiver::vital::image_container_sptr> const& masks =
           std::vector<kwiver::vital::image_container_sptr>()) const;
 

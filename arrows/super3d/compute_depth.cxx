@@ -36,6 +36,7 @@
 #include <arrows/super3d/compute_depth.h>
 #include <arrows/vxl/image_container.h>
 #include <vital/types/landmark.h>
+#include <vital/util/transform_image.h>
 #include <arrows/vxl/camera.h>
 #include <vnl/vnl_double_3.h>
 #include <vil/algo/vil_threshold.h>
@@ -68,14 +69,14 @@ class compute_depth::priv
 public:
   /// Constructor
   priv()
-    : S(30),
-      theta0(1.0),
+    : theta0(1.0),
       theta_end(0.001),
       lambda(0.65),
       gw_alpha(20),
       epsilon(0.01),
       iterations(2000),
       world_plane_normal(0.0, 0.0, 1.0),
+      depth_sample_rate(0.5),
       callback_interval(-1),    //default is no callback
       callback(NULL),
       m_logger(vital::get_logger("arrows.super3d.compute_depth"))
@@ -90,7 +91,6 @@ public:
                                                        double depth_min, double depth_max,
                                                        vital::bounding_box<int> const& roi);
 
-  unsigned int S;
   double theta0;
   double theta_end;
   double lambda;
@@ -98,11 +98,15 @@ public:
   double epsilon;
   unsigned int iterations;
   vnl_double_3 world_plane_normal;
+  double depth_sample_rate;
   int callback_interval;
 
   double depth_min, depth_max;
+  unsigned int num_slices;
 
   vpgl_perspective_camera<double> ref_cam;
+
+  vil_image_view<double> cost_volume;
 
   compute_depth::callback_t callback;
 
@@ -149,7 +153,11 @@ compute_depth::get_configuration() const
                     "up direction in world space");
   config->set_value("callback_interval", d_->callback_interval,
                     "number of iterations between updates (-1 turns off updates)");
-  config->set_value("num_slices", d_->S, "Number of depth slices");
+  config->set_value("depth_sample_rate", d_->depth_sample_rate,
+                    "Specifies the maximum sampling rate, in pixels, of the "
+                    "depth steps projected into support views.  This rate "
+                    "determines the number of depth slices in the cost "
+                    "volume.  Smaller values create more depth slices.");
 
   return config;
 }
@@ -174,7 +182,8 @@ compute_depth::set_configuration(vital::config_block_sptr in_config)
   d_->epsilon = config->get_value<double>("epsilon", d_->epsilon);
   d_->callback_interval = config->get_value<double>("callback_interval",
                                                     d_->callback_interval);
-  d_->S = config->get_value<unsigned int>("num_slices", d_->S);
+  d_->depth_sample_rate = config->get_value<double>("depth_sample_rate",
+                                                    d_->depth_sample_rate);
 
   std::istringstream ss(config->get_value<std::string>("world_plane_normal",
                                                        "0 0 1"));
@@ -210,6 +219,39 @@ compute_depth::priv
 
 //*****************************************************************************
 
+vil_image_view<double>
+compute_uncertainty(vil_image_view<double> const& height_map,
+                    vil_image_view<double> const& cost_volume)
+{
+  const int S = static_cast<int>(cost_volume.nplanes());
+  vil_image_view<double> uncertainty(height_map.ni(), height_map.nj(), 1);
+  // This scale is 1/(2*sigma) converted from [0,255] to [0,1]
+  const double cost_scale = 255.0 / (2.0 * 5.0);
+
+  for (unsigned int j = 0; j < cost_volume.nj(); j++)
+  {
+    for (unsigned int i = 0; i < cost_volume.ni(); i++)
+    {
+      double const& dij = height_map(i, j);
+      double sum_w = 0.0;
+      double var = 0.0;
+      for (unsigned int k = 0; k < cost_volume.nplanes(); k++)
+      {
+        const double d_k = (static_cast<double>(k) + 0.5) / S;
+        const double diff = d_k - dij;
+        const double w = std::exp(-cost_volume(i, j, k) * cost_scale);
+        sum_w += w;
+        var += w * diff * diff;
+      }
+      uncertainty(i, j) = std::sqrt(var / sum_w);
+    }
+  }
+  return uncertainty;
+}
+
+//*****************************************************************************
+
+//Compute the depth and return the uncertainty by reference
 image_container_sptr
 compute_depth
 ::compute(std::vector<kwiver::vital::image_container_sptr> const& frames_in,
@@ -217,8 +259,10 @@ compute_depth
           double depth_min, double depth_max,
           unsigned int ref_frame,
           vital::bounding_box<int> const& roi,
+          kwiver::vital::image_container_sptr& depth_uncertainty,
           std::vector<kwiver::vital::image_container_sptr> const& masks_in) const
 {
+
   //convert frames
   std::vector<vil_image_view<double> > frames(frames_in.size());
 #pragma omp parallel for schedule(static, 1)
@@ -279,14 +323,17 @@ compute_depth
 
   std::unique_ptr<world_space> ws = d_->compute_world_space_roi(cameras[ref_frame], frames[ref_frame], depth_min, depth_max, roi);
 
+  double depth_sampling = compute_depth_sampling(*ws, cameras) /
+                            d_->depth_sample_rate;
+  d_->num_slices = static_cast<unsigned int>(depth_sampling);
+
   d_->ref_cam = cameras[ref_frame];
   vil_image_view<double> g;
-  vil_image_view<double> cost_volume;
 
   cost_volume_callback_t cv_callback = std::bind1st(std::mem_fun(
     &compute_depth::priv::cost_volume_update_callback), this->d_.get());
   if (!compute_world_cost_volume(frames, cameras, ws.get(), ref_frame,
-                                 d_->S, cost_volume,
+                                 d_->num_slices, d_->cost_volume,
                                  cv_callback, masks))
   {
     // user terminated processing early through the callback
@@ -297,11 +344,11 @@ compute_depth
   compute_g(frames[ref_frame], g, d_->gw_alpha, 1.0, ref_mask);
 
   LOG_DEBUG(d_->m_logger, "Refining Depth");
-  vil_image_view<double> height_map(cost_volume.ni(), cost_volume.nj(), 1);
+  vil_image_view<double> height_map(d_->cost_volume.ni(), d_->cost_volume.nj(), 1);
 
   if (!d_->callback)
   {
-    refine_depth(cost_volume, g, height_map, d_->iterations,
+    refine_depth(d_->cost_volume, g, height_map, d_->iterations,
                  d_->theta0, d_->theta_end, d_->lambda, d_->epsilon);
   }
   else
@@ -311,17 +358,23 @@ compute_depth
                      this->d_.get());
     depth_refinement_monitor *drm =
       new depth_refinement_monitor(f, d_->callback_interval);
-    refine_depth(cost_volume, g, height_map, d_->iterations,
+    refine_depth(d_->cost_volume, g, height_map, d_->iterations,
                  d_->theta0, d_->theta_end, d_->lambda, d_->epsilon, drm);
     delete drm;
   }
 
+  auto uncertainty = compute_uncertainty(height_map, d_->cost_volume);
+
   // map depth from normalized range back into true depth
   double scale = depth_max - depth_min;
   vil_math_scale_and_offset_values(height_map, scale, depth_min);
+  vil_math_scale_values(uncertainty, scale);
 
   vil_image_view<double> depth;
-  height_map_to_depth_map(d_->ref_cam, height_map, depth);
+  height_map_to_depth_map(d_->ref_cam, height_map, depth, uncertainty);
+
+  // Setting the value by reference
+  depth_uncertainty = std::make_shared<vxl::image_container>(uncertainty);
 
   return vital::image_container_sptr(new vxl::image_container(depth));
 }
@@ -344,22 +397,30 @@ compute_depth::priv
   if (this->callback)
   {
     image_container_sptr result = nullptr;
+    image_container_sptr result_u = nullptr;
     if (data.current_result)
     {
+      auto uncertainty = compute_uncertainty(data.current_result,
+                                             this->cost_volume);
       double depth_scale = this->depth_max - this->depth_min;
       vil_math_scale_and_offset_values(data.current_result,
-        depth_scale, this->depth_min);
+                                       depth_scale, this->depth_min);
+      vil_math_scale_values(uncertainty, depth_scale);
       vil_image_view<double> depth;
-      height_map_to_depth_map(this->ref_cam, data.current_result, depth);
+      height_map_to_depth_map(this->ref_cam, data.current_result,
+                              depth, uncertainty);
       result = std::make_shared<vxl::image_container>(
                  vxl::image_container::vxl_to_vital(depth));
+      result_u = std::make_shared<vxl::image_container>(
+                  vxl::image_container::vxl_to_vital(uncertainty));
     }
     unsigned percent_complete = 50 + (50 * data.num_iterations)
                                      / this->iterations;
     std::stringstream ss;
     ss << "Depth refinement iteration " << data.num_iterations
        << " of " << this->iterations;
-    return this->callback(result, ss.str(), percent_complete);
+
+    return this->callback(result, ss.str(), percent_complete, result_u);
   }
   return true;
 }
@@ -371,10 +432,11 @@ compute_depth::priv
 {
   if (this->callback)
   {
-    unsigned percent_complete = (50 * slice_num) / this->S;
+    unsigned percent_complete = (50 * slice_num) / this->num_slices;
     std::stringstream ss;
-    ss << "Computing cost volume slice " << slice_num << " of " << this->S;
-    return this->callback(nullptr, ss.str(), percent_complete);
+    ss << "Computing cost volume slice " << slice_num << " of " << this->num_slices;
+    // TODO Check if this can be the real uncertainty
+    return this->callback(nullptr, ss.str(), percent_complete, nullptr);
   }
   return true;
 }
