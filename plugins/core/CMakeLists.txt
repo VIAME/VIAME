@@ -1,5 +1,20 @@
 # Build / Install Plugin containing core algorithm implementations
 
+# Find VXL
+find_package( VXL REQUIRED )
+include( ${VXL_CMAKE_DIR}/UseVXL.cmake )
+include_directories( SYSTEM ${VXL_CORE_INCLUDE_DIR} )
+include_directories( SYSTEM ${VXL_VCL_INCLUDE_DIR} )
+include_directories( SYSTEM ${VXL_VGL_INCLUDE_DIR} )
+include_directories( SYSTEM ${VXL_RPL_INCLUDE_DIR} )
+link_directories( ${VXL_LIBRARY_DIR} )
+
+# Find OpenCV
+find_package( OpenCV REQUIRED )
+
+include_directories( "${OpenCV_INCLUDE_DIRS}" )
+link_directories( "${OpenCV_LIBRARY_DIR}" )
+
 set( plugin_headers
   add_timestamp_from_filename.h
   auto_detect_transform.h
@@ -45,12 +60,16 @@ kwiver_add_library( viame_core
 
 target_link_libraries( viame_core
   PUBLIC               kwiver::vital
+                       vgl
+                       ${OpenCV_LIBRARIES}
+                       kwiver::vital
                        kwiver::vital_algo
                        kwiver::vital_config
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
                        kwiver::kwiversys
+                       kwiver::kwiver_algo_ocv
   )
 
 set_target_properties( viame_core PROPERTIES
@@ -60,7 +79,7 @@ set_target_properties( viame_core PROPERTIES
 algorithms_create_plugin( viame_core
   register_algorithms.cxx
   )
-  
+
 target_link_libraries( viame_core_plugin
   PUBLIC               kwiver::vital_vpm
   )
@@ -73,6 +92,7 @@ find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
 
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
+
 
 # Add process library
 set( process_headers
