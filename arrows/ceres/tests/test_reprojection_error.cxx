@@ -38,15 +38,15 @@
 #include <arrows/ceres/reprojection_error.h>
 #include <arrows/ceres/types.h>
 
-#include <arrows/core/metrics.h>
-#include <arrows/core/projected_track_set.h>
+#include <arrows/mvg/metrics.h>
+#include <arrows/mvg/projected_track_set.h>
 
 #include <gtest/gtest.h>
 
 using namespace kwiver::vital;
 
-using kwiver::arrows::reprojection_rmse;
-using kwiver::arrows::projected_tracks;
+using kwiver::arrows::mvg::reprojection_rmse;
+using kwiver::arrows::mvg::projected_tracks;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)

@@ -30,8 +30,8 @@
 
 #include <test_scene.h>
 
-#include <arrows/core/projected_track_set.h>
-#include <arrows/core/epipolar_geometry.h>
+#include <arrows/mvg/projected_track_set.h>
+#include <arrows/mvg/epipolar_geometry.h>
 
 #include <gtest/gtest.h>
 
@@ -99,7 +99,7 @@ void print_epipolar_distances(
 // Test essential matrix estimation with ideal points
 TEST(epipolar_geometry, ideal_points)
 {
-  using namespace kwiver::arrows;
+  using namespace kwiver::arrows::mvg;
 
   // create landmarks at the random locations
   auto landmarks = kwiver::testing::init_landmarks( 100 );
@@ -109,7 +109,7 @@ TEST(epipolar_geometry, ideal_points)
   auto const& cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  auto const& tracks = kwiver::arrows::projected_tracks( landmarks, cameras );
+  auto const& tracks = projected_tracks( landmarks, cameras );
 
   const frame_id_t frame1 = 0;
   const frame_id_t frame2 = 10;
@@ -121,8 +121,8 @@ TEST(epipolar_geometry, ideal_points)
   camera_intrinsics_sptr cal2 = cam2->intrinsics();
 
   // compute the true essential matrix from the cameras
-  auto const& em = kwiver::arrows::essential_matrix_from_cameras( *cam1, *cam2 );
-  auto const& fm = kwiver::arrows::fundamental_matrix_from_cameras( *cam1, *cam2 );
+  auto const& em = essential_matrix_from_cameras( *cam1, *cam2 );
+  auto const& fm = fundamental_matrix_from_cameras( *cam1, *cam2 );
 
   // Extract corresponding image points
   std::vector<vector_2d> pts1, pts2;
@@ -145,13 +145,12 @@ TEST(epipolar_geometry, ideal_points)
   print_epipolar_distances( fm->matrix(), pts1, pts2 );
 
   // Compute the inliers with a small scale
-  auto const& inliers =
-    kwiver::arrows::mark_fm_inliers( *fm, pts1, pts2, 1e-8 );
+  auto const& inliers = mark_fm_inliers( *fm, pts1, pts2, 1e-8 );
   EXPECT_EQ( pts1.size(), inliers.size() );
 
   // Compute the inliers with a small scale
   auto const& norm_inliers =
-    kwiver::arrows::mark_fm_inliers( fundamental_matrix_d( em->matrix() ),
-                                     norm_pts1, norm_pts2, 1e-8 );
+    mark_fm_inliers( fundamental_matrix_d( em->matrix() ),
+                     norm_pts1, norm_pts2, 1e-8 );
   EXPECT_EQ( norm_pts1.size(), norm_inliers.size() );
 }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of core triangulate landmarks algorithm
+ * \brief Implementation of MVG triangulate landmarks algorithm
  */
 
 #include "triangulate_landmarks.h"
@@ -39,14 +39,14 @@
 #include <random>
 #include <ctime>
 
-#include <arrows/core/triangulate.h>
-#include <arrows/core/metrics.h>
+#include <arrows/mvg/metrics.h>
+#include <arrows/mvg/triangulate.h>
 
 #include <vital/math_constants.h>
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 // Private implementation class
 class triangulate_landmarks::priv
@@ -105,7 +105,7 @@ triangulate_landmarks
 ::triangulate_landmarks()
 : d_(new priv)
 {
-  attach_logger( "arrows.core.triangulate_landmarks" );
+  attach_logger( "arrows.mvg.triangulate_landmarks" );
 }
 
 
@@ -217,7 +217,7 @@ triangulate_landmarks::priv
 {
   if (m_homogeneous)
   {
-    vital::vector_4d pt4d = kwiver::arrows::triangulate_homog(lm_cams, lm_image_pts);
+    vital::vector_4d pt4d = triangulate_homog(lm_cams, lm_image_pts);
     if (std::abs(pt4d[3]) < 1e-6)
     {
       pt3d.setZero();
@@ -227,7 +227,7 @@ triangulate_landmarks::priv
   }
   else
   {
-    pt3d = kwiver::arrows::triangulate_inhomog(lm_cams, lm_image_pts);
+    pt3d = triangulate_inhomog(lm_cams, lm_image_pts);
   }
 
   return true;
@@ -512,7 +512,7 @@ triangulate_landmarks
         continue;
       }
 
-      double triang_cos_ang = kwiver::arrows::bundle_angle_max(lm_cams, pt3d);
+      double triang_cos_ang = bundle_angle_max(lm_cams, pt3d);
       bool bad_triangulation = triang_cos_ang > thresh_triang_cos_ang;
       if (bad_triangulation)
       {
@@ -545,7 +545,7 @@ triangulate_landmarks
     else if ( lm_cams_rpc.size() > 1 )
     {
       vital::vector_3d pt3d =
-        kwiver::arrows::triangulate_rpc(lm_cams_rpc, lm_image_pts);
+        triangulate_rpc(lm_cams_rpc, lm_image_pts);
 
       // TODO: is there a way to check for bad triangulations for RPC cameras?
       auto lm = std::make_shared<vital::landmark_d>(*p.second);
@@ -564,6 +564,6 @@ triangulate_landmarks
   landmarks = vital::landmark_map_sptr(new vital::simple_landmark_map(triangulated_lms));
 }
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

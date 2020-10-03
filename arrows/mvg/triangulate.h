@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,14 +30,14 @@
 
 /**
  * \file
- * \brief Header for core triangulation function
+ * \brief Header for MVG triangulation function
  */
 
-#ifndef ALGORITHMS_TRIANGULATE_H_
-#define ALGORITHMS_TRIANGULATE_H_
+#ifndef KWIVER_ARROWS_MVG_TRIANGULATE_H_
+#define KWIVER_ARROWS_MVG_TRIANGULATE_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vital/types/camera_perspective.h>
 #include <vital/types/camera_rpc.h>
@@ -45,6 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
+namespace mvg {
 
 
 /// Triangulate a 3D point from a set of cameras and 2D image points
@@ -59,7 +60,7 @@ namespace arrows {
  *  \return a 3D triangulated point location
  */
 template <typename T>
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 Eigen::Matrix<T,3,1>
 triangulate_inhomog(const std::vector<vital::simple_camera_perspective >& cameras,
                     const std::vector<Eigen::Matrix<T,2,1> >& points);
@@ -79,7 +80,7 @@ triangulate_inhomog(const std::vector<vital::simple_camera_perspective >& camera
 *  \return a 3D triangulated point location
 */
 template <typename T>
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 Eigen::Matrix<T, 3, 1>
 triangulate_fast_two_view(const vital::simple_camera_perspective &camera0,
                           const vital::simple_camera_perspective &camera1,
@@ -98,7 +99,7 @@ triangulate_fast_two_view(const vital::simple_camera_perspective &camera0,
  *  \return a homogeneous 3D triangulated point location
  */
 template <typename T>
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 Eigen::Matrix<T,4,1>
 triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
                   const std::vector<Eigen::Matrix<T,2,1> >& points);
@@ -114,13 +115,14 @@ triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
  *  \return a 3D triangulated point location
  */
 template <typename T>
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 Eigen::Matrix<T,3,1>
 triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
                 const std::vector<Eigen::Matrix<T,2,1> >& points);
 
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // ALGORITHMS_TRIANGULATE_H_
+#endif

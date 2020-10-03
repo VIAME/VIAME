@@ -61,9 +61,9 @@ kwiver_add_library( kwiver_algo_vxl
   ${vxl_sources}
   )
 target_link_libraries( kwiver_algo_vxl
-  PUBLIC               kwiver_algo_core
-                       vil vpgl vgl
-  PRIVATE              vital_klv
+  PUBLIC               vil vpgl vgl vital_algo
+  PRIVATE              kwiver_algo_mvg
+                       vital_klv
                        rrel rsdl
                        vnl
                        vidl

@@ -40,7 +40,7 @@
 #include <vital/types/feature.h>
 
 #include <arrows/vxl/camera.h>
-#include <arrows/core/epipolar_geometry.h>
+#include <arrows/mvg/epipolar_geometry.h>
 
 #include <vgl/vgl_point_2d.h>
 #include <Eigen/LU>
@@ -183,7 +183,7 @@ estimate_fundamental_matrix
   F.transposeInPlace();
 
   fundamental_matrix_sptr fm(new fundamental_matrix_d(F));
-  inliers = arrows::mark_fm_inliers(*fm, pts1, pts2, inlier_scale);
+  inliers = mvg::mark_fm_inliers(*fm, pts1, pts2, inlier_scale);
   return fm;
 }
 

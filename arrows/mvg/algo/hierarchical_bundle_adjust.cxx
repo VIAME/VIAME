@@ -47,7 +47,7 @@
 
 #include <vital/algo/optimize_cameras.h>
 #include <vital/algo/triangulate_landmarks.h>
-#include <arrows/core/metrics.h>
+#include <arrows/mvg/metrics.h>
 #include <arrows/core/interpolate_camera.h>
 
 #include <vital/types/camera_perspective.h>
@@ -58,7 +58,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 namespace // anonymous
 {
@@ -138,7 +138,7 @@ hierarchical_bundle_adjust
 ::hierarchical_bundle_adjust()
   : d_(new priv)
 {
-  attach_logger( "arrows.core.hierarchical_bundle_adjust" );
+  attach_logger( "arrows.mvg.hierarchical_bundle_adjust" );
 }
 
 
@@ -328,7 +328,7 @@ hierarchical_bundle_adjust
       d_->sba->optimize(active_cam_map, landmarks, tracks, constraints);
     }
 
-    double rmse = kwiver::arrows::reprojection_rmse(active_cam_map->cameras(),
+    double rmse = reprojection_rmse(active_cam_map->cameras(),
                                     landmarks->landmarks(),
                                     tracks->tracks());
     LOG_DEBUG(logger(), "current RMSE: " << rmse);
@@ -481,6 +481,6 @@ hierarchical_bundle_adjust
   cameras = active_cam_map;
 }
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

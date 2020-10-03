@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 
 namespace kwiver {
 namespace arrows {
+namespace mvg {
 
 using namespace kwiver::vital;
 
@@ -70,5 +71,6 @@ projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
 }
 
 
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

@@ -30,26 +30,26 @@
 
 /**
  * \file
- * \brief Header for core triangulate_landmarks algorithm
+ * \brief Header for MVG triangulate_landmarks algorithm
  */
 
-#ifndef KWIVER_ARROWS_CORE_TRIANGULATE_LANDMARKS_H_
-#define KWIVER_ARROWS_CORE_TRIANGULATE_LANDMARKS_H_
+#ifndef KWIVER_ARROWS_MVG_TRIANGULATE_LANDMARKS_H_
+#define KWIVER_ARROWS_MVG_TRIANGULATE_LANDMARKS_H_
 
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vital/algo/triangulate_landmarks.h>
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 /// A class for triangulating landmarks from feature tracks and cameras using Eigen
-class KWIVER_ALGO_CORE_EXPORT triangulate_landmarks
+class KWIVER_ALGO_MVG_EXPORT triangulate_landmarks
 : public vital::algo::triangulate_landmarks
 {
 public:
-  PLUGIN_INFO( "core",
+  PLUGIN_INFO( "mvg",
                "Triangulate landmarks from tracks and cameras"
                " using a simple least squares solver." )
 
@@ -112,7 +112,7 @@ private:
 
 typedef std::shared_ptr<triangulate_landmarks> triangulate_landmarks_sptr;
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
 

@@ -33,8 +33,8 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <arrows/core/projected_track_set.h>
-#include <arrows/core/epipolar_geometry.h>
+#include <arrows/mvg/projected_track_set.h>
+#include <arrows/mvg/epipolar_geometry.h>
 #include <arrows/vxl/estimate_essential_matrix.h>
 
 #include <Eigen/LU>
@@ -63,6 +63,7 @@ void print_epipolar_distances(const kwiver::vital::matrix_3x3d& F,
                               const std::vector<kwiver::vital::vector_2d> left_pts)
 {
   using namespace kwiver::arrows;
+  using namespace kwiver::arrows::mvg;
   matrix_3x3d Ft = F.transpose();
   for(unsigned i=0; i<right_pts.size(); ++i)
   {
@@ -85,6 +86,7 @@ void print_epipolar_distances(const kwiver::vital::matrix_3x3d& F,
 TEST(estimate_essential_matrix, ideal_points)
 {
   using namespace kwiver::arrows;
+  using namespace kwiver::arrows::mvg;
   vxl::estimate_essential_matrix est_e;
 
   // create landmarks at the random locations
@@ -143,6 +145,7 @@ TEST(estimate_essential_matrix, ideal_points)
 TEST(estimate_essential_matrix, noisy_points)
 {
   using namespace kwiver::arrows;
+  using namespace kwiver::arrows::mvg;
   vxl::estimate_essential_matrix est_e;
 
   // create landmarks at the random locations

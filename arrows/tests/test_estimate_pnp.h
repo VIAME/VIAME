@@ -33,16 +33,16 @@
 #include <test_eigen.h>
 #include <test_scene.h>
 
-#include <arrows/core/projected_track_set.h>
-#include <arrows/core/metrics.h>
-#include <arrows/core/epipolar_geometry.h>
+#include <arrows/mvg/projected_track_set.h>
+#include <arrows/mvg/metrics.h>
+#include <arrows/mvg/epipolar_geometry.h>
 
 #include <Eigen/LU>
 
 static constexpr double pi = 3.14159265358979323846;
 
 using namespace kwiver::vital;
-using namespace kwiver::arrows;
+using namespace kwiver::arrows::mvg;
 
 
 // ----------------------------------------------------------------------------

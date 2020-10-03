@@ -37,7 +37,7 @@
 
 #include <vital/vital_types.h>
 #include <vital/types/feature_track_set.h>
-#include <arrows/core/metrics.h>
+#include <arrows/mvg/metrics.h>
 #include <arrows/core/match_matrix.h>
 
 using namespace kwiver::vital;
@@ -555,7 +555,7 @@ detect_bad_landmarks(
         continue;
       }
 
-      double sq_err = kwiver::arrows::reprojection_error_sqr(*cam, *lm, feat);
+      double sq_err = reprojection_error_sqr(*cam, *lm, feat);
       if (sq_err <= ets || error_tol < 0)
       {
         observing_cams.push_back(*cam);
@@ -571,7 +571,7 @@ detect_bad_landmarks(
     }
     else
     {
-      if (!kwiver::arrows::bundle_angle_is_at_least(observing_cams,lm->loc(),triang_cos_ang_thresh))
+      if (!bundle_angle_is_at_least(observing_cams,lm->loc(),triang_cos_ang_thresh))
       {
         ++num_lm_removed_bad_angle;
         landmarks_to_remove.insert(lm_it.first);

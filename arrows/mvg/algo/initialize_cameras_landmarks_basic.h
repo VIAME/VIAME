@@ -30,37 +30,37 @@
 
 /**
  * \file
- * \brief Header for core camera and landmark initialization algorithm
+ * \brief Header for older basic camera and landmark initialization algorithm
  */
 
-#ifndef KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
-#define KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
+#ifndef KWIVER_ARROWS_MVG_INITIALIZE_CAMERAS_LANDMARKS_BASIC_H_
+#define KWIVER_ARROWS_MVG_INITIALIZE_CAMERAS_LANDMARKS_BASIC_H_
 
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vital/algo/initialize_cameras_landmarks.h>
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 /// A class for initialization of cameras and landmarks
-class KWIVER_ALGO_CORE_EXPORT initialize_cameras_landmarks
+class KWIVER_ALGO_MVG_EXPORT initialize_cameras_landmarks_basic
 : public vital::algo::initialize_cameras_landmarks
 {
 public:
-  PLUGIN_INFO( "core",
+  PLUGIN_INFO( "mvg-basic",
                "Run SfM to iteratively estimate new cameras and landmarks"
                " using feature tracks." )
 
   /// Constructor
-  initialize_cameras_landmarks();
+  initialize_cameras_landmarks_basic();
 
   /// Destructor
-  virtual ~initialize_cameras_landmarks();
+  virtual ~initialize_cameras_landmarks_basic();
 
   /// Copy Constructor
-  initialize_cameras_landmarks(const initialize_cameras_landmarks& other);
+  initialize_cameras_landmarks_basic(const initialize_cameras_landmarks_basic& other);
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -105,7 +105,7 @@ private:
   const std::unique_ptr<priv> d_;
 };
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
 
