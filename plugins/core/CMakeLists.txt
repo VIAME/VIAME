@@ -1,20 +1,5 @@
 # Build / Install Plugin containing core algorithm implementations
 
-# Find VXL
-find_package( VXL REQUIRED )
-include( ${VXL_CMAKE_DIR}/UseVXL.cmake )
-include_directories( SYSTEM ${VXL_CORE_INCLUDE_DIR} )
-include_directories( SYSTEM ${VXL_VCL_INCLUDE_DIR} )
-include_directories( SYSTEM ${VXL_VGL_INCLUDE_DIR} )
-include_directories( SYSTEM ${VXL_RPL_INCLUDE_DIR} )
-link_directories( ${VXL_LIBRARY_DIR} )
-
-# Find OpenCV
-find_package( OpenCV REQUIRED )
-
-include_directories( "${OpenCV_INCLUDE_DIRS}" )
-link_directories( "${OpenCV_LIBRARY_DIR}" )
-
 set( plugin_headers
   add_timestamp_from_filename.h
   auto_detect_transform.h
@@ -58,18 +43,41 @@ kwiver_add_library( viame_core
   ${plugin_sources}
   )
 
+set( CORE_LINK_LIBRARIES
+  kwiver::vital
+  kwiver::vital_algo
+  kwiver::vital_config
+  kwiver::vital_exceptions
+  kwiver::vital_logger
+  kwiver::vital_util
+  kwiver::kwiversys )
+
+# VXL is used in some parsers for aux functionality if enabled
+if( VIAME_ENABLE_VXL )
+  find_package( VXL REQUIRED )
+  include( ${VXL_CMAKE_DIR}/UseVXL.cmake )
+  include_directories( SYSTEM ${VXL_CORE_INCLUDE_DIR} )
+  include_directories( SYSTEM ${VXL_VGL_INCLUDE_DIR} )
+  link_directories( ${VXL_LIBRARY_DIR} )
+  add_definitions( -DVIAME_ENABLE_VXL )
+  set( AUX_LINK_LIBRARIES vgl ${AUX_LINK_LIBRARIES} )
+endif()
+
+# OpenCV is used in some parsers for aux functionality if enabled
+if( VIAME_ENABLE_OPENCV )
+  find_package( OpenCV REQUIRED )
+  include_directories( "${OpenCV_INCLUDE_DIRS}" )
+  link_directories( "${OpenCV_LIBRARY_DIR}" )
+  add_definitions( -DVIAME_ENABLE_OPENCV )
+  set( AUX_LINK_LIBRARIES
+       ${OpenCV_LIBRARIES}
+       kwiver::kwiver_algo_ocv
+       ${AUX_LINK_LIBRARIES} )
+endif()
+
 target_link_libraries( viame_core
-  PUBLIC               kwiver::vital
-                       vgl
-                       ${OpenCV_LIBRARIES}
-                       kwiver::vital
-                       kwiver::vital_algo
-                       kwiver::vital_config
-                       kwiver::vital_exceptions
-                       kwiver::vital_logger
-                       kwiver::vital_util
-                       kwiver::kwiversys
-                       kwiver::kwiver_algo_ocv
+  PUBLIC               ${CORE_LINK_LIBRARIES}
+                       ${AUX_LINK_LIBRARIES}
   )
 
 set_target_properties( viame_core PROPERTIES
@@ -92,7 +100,6 @@ find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
 
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
-
 
 # Add process library
 set( process_headers
@@ -118,16 +125,11 @@ kwiver_add_plugin( viame_processes_core
   SUBDIR           ${viame_plugin_process_subdir}
   SOURCES          ${process_sources}
                    ${private_headers}
-  PRIVATE          kwiver::sprokit_pipeline
+  PRIVATE          ${CORE_LINK_LIBRARIES}
+                   kwiver::sprokit_pipeline
                    kwiver::kwiver_algo_core
-                   kwiver::kwiversys
                    kwiver::kwiver_adapter
-                   kwiver::vital
                    kwiver::vital_vpm
-                   kwiver::vital_logger
-                   kwiver::vital_config
-                   kwiver::vital_util
-                   kwiver::vital_exceptions
                    ${Boost_SYSTEM_LIBRARY}
                    ${Boost_FILESYSTEM_LIBRARY}
  )

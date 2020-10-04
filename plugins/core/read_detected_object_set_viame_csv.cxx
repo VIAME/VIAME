@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,23 +36,25 @@
 #include "read_detected_object_set_viame_csv.h"
 #include "notes_to_attributes.h"
 
-#include <vital/types/image_container.h>
-#include <vital/types/image.h>
 #include <vital/util/transform_image.h>
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
+#include <vital/types/image.h>
+#include <vital/types/image_container.h>
 #include <vital/exceptions.h>
 
 #include <kwiversys/SystemTools.hxx>
-
-#include <vgl/vgl_polygon.h>
-#include <vgl/vgl_polygon_scan_iterator.h>
-#include <vgl/vgl_point_2d.h>
 
 #include <map>
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
+
+#ifdef VIAME_ENABLE_VXL
+#include <vgl/vgl_polygon.h>
+#include <vgl/vgl_polygon_scan_iterator.h>
+#include <vgl/vgl_point_2d.h>
+#endif
 
 namespace viame {
 
@@ -78,9 +80,9 @@ public:
     : m_parent( parent )
     , m_first( true )
     , m_confidence_override( -1.0 )
+    , m_poly_to_mask( false )
     , m_current_idx( 0 )
     , m_last_idx( 0 )
-    , m_read_poly( false )
   { }
 
   ~priv() { }
@@ -90,11 +92,10 @@ public:
   read_detected_object_set_viame_csv* m_parent;
   bool m_first;
   double m_confidence_override;
+  bool m_poly_to_mask;
 
   int m_current_idx;
   int m_last_idx;
-
-  bool m_read_poly;
 
   // Map of detected objects indexed by frame number. Each set
   // contains all detections for a single frame.
@@ -128,7 +129,8 @@ read_detected_object_set_viame_csv
 {
   d->m_confidence_override =
     config->get_value< double >( "confidence_override", d->m_confidence_override );
-  d->m_read_poly = config->get_value< bool >( "read_poly", d->m_read_poly);
+  d->m_poly_to_mask =
+    config->get_value< bool >( "poly_to_mask", d->m_poly_to_mask );
 }
 
 
@@ -197,7 +199,7 @@ read_detected_object_set_viame_csv
   else
   {
     // Return detections for this frame.
-    set = d->m_detection_by_id[d->m_current_idx];
+    set = d->m_detection_by_id[ d->m_current_idx ];
   }
 
   ++d->m_current_idx;
@@ -294,17 +296,15 @@ read_detected_object_set_viame_csv::priv
     kwiver::vital::detected_object_sptr dob;
 
     kwiver::vital::detected_object_type_sptr dot =
-      std::make_shared<kwiver::vital::detected_object_type>();
+      std::make_shared< kwiver::vital::detected_object_type >();
 
-    bool found_attribute = false;
+    bool found_optional_field = false;
 
-    unsigned i;
-
-    for( i = COL_TOT; i < col.size(); i+=2 )
+    for( unsigned i = COL_TOT; i < col.size(); i+=2 )
     {
       if( col[i].empty() || col[i][0] == '(' )
       {
-        found_attribute = true;
+        found_optional_field = true;
         break;
       }
 
@@ -337,57 +337,91 @@ read_detected_object_set_viame_csv::priv
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
     }
 
-    if ( m_read_poly && col[i][0] == '(' ){
-      // Get the box coordinates for later use
-      int bbox_min_x = atoi( col[COL_MIN_X].c_str() );
-      int bbox_max_x = atoi( col[COL_MAX_X].c_str() );
-      int bbox_min_y = atoi( col[COL_MIN_Y].c_str() );
-      int bbox_max_y = atoi( col[COL_MAX_Y].c_str() );
-      size_t bbox_width = bbox_max_x - bbox_min_x;
-      size_t bbox_height = bbox_max_y - bbox_min_y;
+#ifdef VIAME_ENABLE_VXL
+    if( m_poly_to_mask && found_optional_field )
+    {
+      std::vector< std::string > poly_strings;
 
-      // Create the mask as the size of the detection
-      kwiver::vital::image_of<uint8_t> mask_data(bbox_width, bbox_height, 1);
-      // Set all the the data to 0
-      transform_image(mask_data, [](uint8_t){ return 0; } );
-
-      // Split the last field by spaces
-      std::vector< std::string > poly_elements;
-      kwiver::vital::tokenize(col[i], poly_elements, " ", true);
-      // Extract the x, y points from the split text, skipping the first '(poly)' value
-      std::vector< vgl_point_2d<double> > pts;
-      for(unsigned j = 1; j < poly_elements.size(); j+=2){
-        // Shift these points so they are in the coordinates of the detection box
-        pts.push_back( vgl_point_2d<double>( std::stoi(poly_elements[j]) - bbox_min_x, std::stoi(poly_elements[j+1]) - bbox_min_y));
-      }
-      // Create the polygon of the boundary
-      vgl_polygon<double> poly = vgl_polygon<double>(pts.data(), (int)pts.size());
-      // Create a scan iterator
-      // x_min, x_max, y_min, y_max
-      // Don't provide points outside this box
-      vgl_box_2d<double> window(0, bbox_width, 0, bbox_height);
-      vgl_polygon_scan_iterator<double> psi(poly);
-
-      for (psi.reset(); psi.next(); ) {
-        int y = psi.scany();
-        //Make sure this is within the image
-        if (y < 0 || y >= static_cast<int>(mask_data.height()))
-          continue;
-
-        int min_x = std::max(0, psi.startx());
-        int max_x = std::min(static_cast<int>(mask_data.width()) - 1, psi.endx());
-        for (int x = min_x; x <= max_x; ++x)
+      for( unsigned i = COL_TOT; i < col.size(); i++ )
+      {
+        if( ( col[i].size() >= 6 && col[i].substr( 0, 6 ) == "(poly)" ) ||
+            ( col[i].size() >= 7 && col[i].substr( 0, 7 ) == "(+poly)" ) )
         {
-          // TODO determine if there's a better value to set here
-          mask_data(x, y) = 1;
+          poly_strings.push_back( col[i] );
         }
       }
-      kwiver::vital::image_container_scptr mask = std::make_shared<kwiver::vital::simple_image_container>(mask_data);
-      dob->set_mask(mask);
+
+      if( !poly_strings.empty() )
+      {
+        // Get the box coordinates for later use
+        int bbox_min_x = static_cast< int >( bbox.min_x() );
+        int bbox_max_x = static_cast< int >( bbox.max_x() );
+        int bbox_min_y = static_cast< int >( bbox.min_y() );
+        int bbox_max_y = static_cast< int >( bbox.max_y() );
+
+        size_t bbox_width = bbox_max_x - bbox_min_x;
+        size_t bbox_height = bbox_max_y - bbox_min_y;
+
+        // Create the mask as the size of the detection
+        kwiver::vital::image_of< uint8_t > mask_data( bbox_width, bbox_height, 1 );
+
+        // Set all the the data to 0
+        transform_image( mask_data, []( uint8_t ){ return 0; } );
+
+        for( unsigned i = 0; i < poly_strings.size(); i++ )
+        {
+          // Split the last field by spaces
+          std::vector< std::string > poly_elements;
+          kwiver::vital::tokenize( poly_strings[i], poly_elements, " ", true );
+
+          // Extract the x, y points from the split text, skipping the first '(poly)' value
+          std::vector< vgl_point_2d< double > > pts;
+          for( unsigned j = 1; j < poly_elements.size(); j+=2 )
+          {
+            // Shift these points so they are in the coordinates of the detection box
+            pts.push_back( vgl_point_2d< double >( std::stoi(poly_elements[j] ) -
+              bbox_min_x, std::stoi( poly_elements[j+1]) - bbox_min_y ) );
+          }
+          // Create the polygon of the boundary
+          vgl_polygon< double > poly = vgl_polygon< double >(
+            pts.data(), static_cast< int >( pts.size() ) );
+
+          // Create a scan iterator
+          // x_min, x_max, y_min, y_max
+          // Don't provide points outside this box
+          vgl_box_2d< double > window( 0, bbox_width, 0, bbox_height );
+          vgl_polygon_scan_iterator< double > psi( poly );
+
+          for( psi.reset(); psi.next(); )
+          {
+            int y = psi.scany();
+
+            // Make sure this is within the image
+            if( y < 0 || y >= static_cast< int >( mask_data.height() ) )
+            {
+              continue;
+            }
+
+            int min_x = std::max( 0, psi.startx() );
+            int max_x = std::min( static_cast< int >( mask_data.width() ) - 1, psi.endx() );
+
+            for( int x = min_x; x <= max_x; ++x )
+            {
+              // TODO determine if there's a better value to set here
+              mask_data( x, y ) = 1;
+            }
+          }
+        }
+
+        kwiver::vital::image_container_scptr computed_mask =
+          std::make_shared< kwiver::vital::simple_image_container >( mask_data );
+
+        dob->set_mask( computed_mask );
+      }
     }
+#endif
 
-
-    if( found_attribute )
+    if( found_optional_field )
     {
       add_attributes_to_detection( *dob, col );
     }
