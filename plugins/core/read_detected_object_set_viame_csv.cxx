@@ -427,11 +427,11 @@ read_detected_object_set_viame_csv::priv
     }
 
     // Add detection to set for the frame
-    m_detection_by_id[frame_id]->add( dob );
+    m_detection_by_id[ frame_id ]->add( dob );
 
     if( !str_id.empty() )
     {
-      m_detection_by_str[str_id]->add( dob );
+      m_detection_by_str[ str_id ]->add( dob );
     }
   } // ...while !eof
 } // read_all
