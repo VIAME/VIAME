@@ -426,7 +426,7 @@ std::string add_aux_ext( std::string file_name, unsigned id )
 {
   std::size_t last_index = file_name.find_last_of( "." );
   std::string file_name_no_ext = file_name.substr( 0, last_index );
-  std::string aux_addition = "_aug";
+  std::string aux_addition = "_aux";
 
   if( id > 1 )
   {
