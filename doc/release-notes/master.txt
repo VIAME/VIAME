@@ -45,6 +45,9 @@ Vital Bindings
 
 Arrows
 
+ * Cleaned up arrows library links.  Many arrows linked to the core arrow
+   when really only needed to link directly to vital libraries.
+
 Arrows: Core
 
 Arrows: Ceres
