@@ -72,10 +72,21 @@ Arrows: MVG
 
  * Moved track_features applet from core into mvg.
 
- * Moved sfm_utils.h from core into mvg.
+ * Moved the following algorithms from core into mvg:
+   - hierarchical_bundle_adjust
+   - initialize_cameras_landmarks_keyframe (renamed to initialize_cameras_landmarks)
+   - initialize_cameras_landmarks (renamed to initialize_cameras_landmarks_basic)
+   - triangulate_landmarks
 
- * Moved initialize_cameras_landmarks_keyframe from core into mvg and renamed
-   to mvg::initialize_cameras_landmarks.
+ * Moved the following utility headers from core into mvg:
+   - epipolar_geometry.h
+   - interpolate_camera.h
+   - necker_reverse.h
+   - metrics.h
+   - projected_track_set.h
+   - sfm_utils.h
+   - transform.h
+   - triangulate.h
 
 Arrows: OpenCV
 
