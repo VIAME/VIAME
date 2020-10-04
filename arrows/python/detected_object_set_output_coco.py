@@ -29,6 +29,7 @@
 
 import datetime
 import json
+import os
 
 from vital.algo import DetectedObjectSetOutput
 
@@ -50,18 +51,32 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
         # The first ID to be assigned to a category (and then counting
         # up from there)
         self.category_start_id = 1
+        # Optional auxiliary image information to write out to json file
+        self.aux_image_labels = ""
+        self.aux_image_extensions = ""
         # The current file object or None
         self.file = None
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetOutput, self).get_configuration()
         cfg.set_value("category_start_id", str(self.category_start_id))
+        cfg.set_value("aux_image_labels", ','.join(self.aux_image_labels))
+        cfg.set_value("aux_image_extensions", ','.join(self.aux_image_extensions))
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
         self.category_start_id = int(cfg.get_value("category_start_id"))
+        self.aux_image_labels = str(cfg.get_value("aux_image_labels"))
+        self.aux_image_extensions = str(cfg.get_value("aux_image_extensions"))
+
+        self.aux_image_labels = self.aux_image_labels.rstrip().split(',')
+        self.aux_image_extensions = self.aux_image_extensions.rstrip().split(',')
+
+        if len(self.aux_image_labels) != len(self.aux_image_extensions):
+            print("Auxiliary image labels and extensions must be same size")
+            return False
 
     def check_configuration(self, cfg):
         return True
@@ -94,8 +109,22 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
             self.detections.append(d)
         self.images.append(file_name)
 
+    def fill_aux(self,file_name):
+        output = []
+        for label, aug_ext in zip(self.aux_image_labels, self.aux_image_extensions):
+            file_name, file_ext = os.path.splitext(file_name)
+            adj_file_name = file_name + aug_ext + file_ext
+            output.append(dict(file_name=adj_file_name, channels=label))
+        return output
+
     def complete(self):
         now = datetime.datetime.now(datetime.timezone.utc).astimezone()
+        if len(self.aux_image_extensions) > 0:
+            image_dict = [dict(id=i, file_name=im, auxillary=self.fill_aux(im))
+                          for i, im in enumerate(self.images)]
+        else:
+            image_dict = [dict(id=i, file_name=im)
+                          for i, im in enumerate(self.images)]
         json.dump(dict(
             info=dict(
                 year=now.year,
@@ -105,8 +134,7 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
             annotations=[dict(d, id=i)
                          for i, d in enumerate(self.detections)],
             categories=[dict(id=i, name=c) for c, i in self.categories.items()],
-            images=[dict(id=i, file_name=im)
-                    for i, im in enumerate(self.images)],
+            images=image_dict,
         ), self.file)
         self.file.flush()
 
@@ -115,8 +143,7 @@ def __vital_algorithm_register__():
     implementation_name = 'coco'
     if algorithm_factory.has_algorithm_impl_name(
             DetectedObjectSetOutputCoco.static_type_name(),
-            implementation_name,
-    ):
+            implementation_name):
         return
     algorithm_factory.add_algorithm(
         implementation_name,
