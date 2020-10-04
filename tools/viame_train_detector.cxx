@@ -422,6 +422,20 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
   return external_pipeline;
 }
 
+std::string add_aux_ext( std::string file_name, unsigned id )
+{
+  std::size_t last_index = file_name.find_last_of( "." );
+  std::string file_name_no_ext = file_name.substr( 0, last_index );
+  std::string aux_addition = "_aug";
+
+  if( id > 1 )
+  {
+    aux_addition += std::to_string( id );
+  }
+
+  return file_name_no_ext + aux_addition + file_name.substr( last_index );
+}
+
 bool run_pipeline_on_image( pipeline_t& pipe,
                             std::string input_name,
                             std::string output_name )
@@ -430,7 +444,10 @@ bool run_pipeline_on_image( pipeline_t& pipe,
     kwiver::adapter::adapter_data_set::create();
 
   ids->add_value( "input_file_name", input_name );
+
   ids->add_value( "output_file_name", output_name );
+  ids->add_value( "output_file_name2", add_aux_ext( output_name, 1 ) );
+  ids->add_value( "output_file_name3", add_aux_ext( output_name, 2 ) );
 
   pipe->send( ids );
 
