@@ -1,3 +1,14 @@
+v0.11.2 - 10/4/2020
+===================
+
+
+-Do not write out polygons when just rectangles drawn in GUI
+
+
+-Support polys in annotation csv in model training tool
+
+
+
 v0.11.1 - 9/16/2020
 ===================
 
