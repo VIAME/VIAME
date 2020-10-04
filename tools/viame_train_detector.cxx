@@ -436,7 +436,26 @@ std::string add_aux_ext( std::string file_name, unsigned id )
   return file_name_no_ext + aux_addition + file_name.substr( last_index );
 }
 
+bool file_contains_string( const std::string& file, std::string key )
+{
+  std::ifstream fin( file );
+  while( !fin.eof() )
+  {
+    std::string line;
+    std::getline( fin, line );
+
+    if( line.find( key ) != std::string::npos )
+    {
+      fin.close();
+      return true;
+    }
+  }
+  fin.close();
+  return false;
+}
+
 bool run_pipeline_on_image( pipeline_t& pipe,
+                            std::string pipe_file,
                             std::string input_name,
                             std::string output_name )
 {
@@ -446,8 +465,16 @@ bool run_pipeline_on_image( pipeline_t& pipe,
   ids->add_value( "input_file_name", input_name );
 
   ids->add_value( "output_file_name", output_name );
-  ids->add_value( "output_file_name2", add_aux_ext( output_name, 1 ) );
-  ids->add_value( "output_file_name3", add_aux_ext( output_name, 2 ) );
+
+  if( file_contains_string( pipe_file, "output_file_name2" ) )
+  {
+    ids->add_value( "output_file_name2", add_aux_ext( output_name, 1 ) );
+  }
+
+  if( file_contains_string( pipe_file, "output_file_name3" ) )
+  {
+    ids->add_value( "output_file_name3", add_aux_ext( output_name, 2 ) );
+  }
 
   pipe->send( ids );
 
@@ -1033,7 +1060,8 @@ main( int argc, char* argv[] )
 
         if( regenerate_cache )
         {
-          if( !run_pipeline_on_image( augmentation_pipe, image_file, filtered_image_file ) )
+          if( !run_pipeline_on_image( augmentation_pipe, pipeline_file,
+                image_file, filtered_image_file ) )
           {
             use_image = false;
           }

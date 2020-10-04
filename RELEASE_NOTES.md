@@ -8,6 +8,12 @@ v0.11.2 - 10/4/2020
 -Support polys in annotation csv in model training tool
 
 
+-Support training on folders with no labels.txt present
+
+
+-Improved CFRNN WTF training pipeline with improved features
+
+
 
 v0.11.1 - 9/16/2020
 ===================

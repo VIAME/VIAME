@@ -20,19 +20,6 @@ connect from in_adapt.input_file_name
 
 # ==============================================================================
 
-process ensure_color
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :random_greyscale                          0.20
-    :force_three_channel                       true
-  endblock
-
-connect from image_reader.image
-        to   ensure_color.image
-
 process enhancer
   :: image_filter
   :filter:type                                 ocv_enhancer
@@ -49,8 +36,21 @@ process enhancer
     :clip_limit                                3
   endblock
 
-connect from input.image
+connect from image_reader.image
         to   enhancer.image
+
+process ensure_color
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :random_greyscale                          0.20
+    :force_three_channel                       true
+  endblock
+
+connect from enhancer.image
+        to   ensure_color.image
 
 # ==============================================================================
 
@@ -101,7 +101,7 @@ process rgb_writer
  
 connect from in_adapt.output_file_name
         to   rgb_writer.image_file_name
-connect from enhancer.image
+connect from ensure_color.image
         to   rgb_writer.image
 
 process motion_writer

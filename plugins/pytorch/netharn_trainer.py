@@ -85,6 +85,8 @@ class NetHarnTrainer( TrainDetector ):
         self._resize_option = "original_and_resized"
         self._max_scale_wrt_chip = 2.0
         self._no_format = False
+        self._aux_image_labels = ""
+        self._aux_image_extensions = ""
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -109,6 +111,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "max_scale_wrt_chip", str( self._max_scale_wrt_chip ) )
         cfg.set_value( "no_format", str( self._no_format ) )
+        cfg.set_value( "aux_image_labels", str( self._aux_image_labels ) )
+        cfg.set_value( "aux_image_extensions", str( self._aux_image_extensions ) )
 
         return cfg
 
@@ -136,6 +140,8 @@ class NetHarnTrainer( TrainDetector ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._max_scale_wrt_chip = float( cfg.get_value( "max_scale_wrt_chip" ) )
         self._no_format = strtobool( cfg.get_value( "no_format" ) )
+        self._aux_image_labels = str( cfg.get_value("aux_image_labels") )
+        self._aux_image_extensions = str( cfg.get_value("aux_image_extensions") )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -194,6 +200,16 @@ class NetHarnTrainer( TrainDetector ):
               DetectedObjectSetOutput.create( "coco" )
             self._validation_writer = \
               DetectedObjectSetOutput.create( "coco" )
+
+            writer_conf = self._training_writer.get_configuration()
+            writer_conf.set_value( "aux_image_labels", self._aux_image_labels )
+            writer_conf.set_value( "aux_image_extensions", self._aux_image_extensions )
+            self._training_writer.set_configuration( writer_conf )
+
+            writer_conf = self._validation_writer.get_configuration()
+            writer_conf.set_value( "aux_image_labels", self._aux_image_labels )
+            writer_conf.set_value( "aux_image_extensions", self._aux_image_extensions )
+            self._validation_writer.set_configuration( writer_conf )
 
             self._training_writer.open( self._training_file )
             self._validation_writer.open( self._validation_file )
@@ -303,11 +319,16 @@ class NetHarnTrainer( TrainDetector ):
                  "--max_epoch=" + self._max_epochs,
                  "--batch_size=" + self._batch_size,
                  "--timeout=" + self._timeout,
-                 "--channels=rgb",
                  "--sampler_backend=none" ]
 
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )
+
+        channel_str = "rgb"
+        if len( self._aux_image_labels ) > 0:
+            for label in self._aux_image_labels.rstrip().split(','):
+                channel_str = channel_str + "|" + label
+        cmd.append( "--channels=" + channel_str )
 
         if threading.current_thread().__class__.__name__ == '_MainThread':
             signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
