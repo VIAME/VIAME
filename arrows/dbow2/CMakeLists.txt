@@ -49,7 +49,7 @@ kwiver_add_library( kwiver_algo_dbow2
   ${dbow2_sources}
   )
 target_link_libraries( kwiver_algo_dbow2
-  PUBLIC               kwiver_algo_core
+  PUBLIC               vital_algo
                        ${OpenCV_LIBS}
   PRIVATE              kwiversys
   )

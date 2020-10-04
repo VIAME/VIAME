@@ -30,9 +30,15 @@ kwiver_install_headers(
   NOPATH   SUBDIR     arrows/super3d
   )
 
-kwiver_add_library(kwiver_algo_super3d ${header_files} ${cxx_files})
-target_link_libraries(kwiver_algo_super3d kwiver_algo_core kwiver_algo_vxl
-  vil vpgl vnl vul vil_algo vgl_algo vbl
+kwiver_add_library(kwiver_algo_super3d
+  ${header_files}
+  ${cxx_files}
+  )
+target_link_libraries(kwiver_algo_super3d
+  PUBLIC              vital_algo
+                      vil vpgl vnl vgl_algo
+  PRIVATE             kwiver_algo_vxl
+                      vil_algo vbl
   )
 
 algorithms_create_plugin( kwiver_algo_super3d
