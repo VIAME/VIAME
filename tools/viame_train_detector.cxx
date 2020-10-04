@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -329,8 +329,8 @@ static kwiver::vital::config_block_sptr default_config()
     = kwiver::vital::config_block::empty_config( "detector_trainer_tool" );
 
   config->set_value( "groundtruth_extensions", ".csv",
-                     "Groundtruth file extensions (csv, kw18, txt, etc...). Note: this is "
-                     "independent of the format that's stored in the file" );
+                     "Groundtruth file extensions (csv, kw18, txt, etc...). Note: this "
+                     "is independent of the format that's stored in the file" );
   config->set_value( "groundtruth_style", "one_per_folder",
                      "Can be either: \"one_per_file\" or \"one_per_folder\"" );
   config->set_value( "augmentation_pipeline", "",
@@ -355,7 +355,7 @@ static kwiver::vital::config_block_sptr default_config()
                      "images without this extension will not be included." );
   config->set_value( "threshold", "0.00",
                      "Optional threshold to provide on top of input groundtruth. This is "
-                     "useful if the groundtruth is derived from some automated detector." );
+                     "useful if the truth is derived from some automated detector." );
   config->set_value( "check_override", "false",
                      "Over-ride and ignore data safety checks." );
 
@@ -626,22 +626,31 @@ main( int argc, char* argv[] )
   // Load labels.txt file
   const std::string label_fn = append_path( input_dir, "labels.txt" );
 
-  kwiver::vital::category_hierarchy_sptr classes;
+  kwiver::vital::category_hierarchy_sptr model_labels;
+  bool detection_without_label = false;
 
   if( !does_file_exist( label_fn ) && g_params.opt_out_config.empty() )
   {
-    std::cerr << "Label file (labels.txt) does not exist in data folder" << std::endl;
-    exit( 0 );
+    std::cout << "Label file (labels.txt) does not exist in input folder" << std::endl;
+    std::cout << std::endl << "Would you like to train over all category labels? (y/n) ";
+    std::string response;
+    std::cin >> response;
+
+    if( response != "y" && response != "Y" && response != "yes" && response != "Yes" )
+    {
+      std::cout << std::endl << "Exiting training due to no labels.txt" << std::endl;
+      exit( 0 );
+    }
   }
   else if( g_params.opt_out_config.empty() )
   {
     try
     {
-      classes.reset( new kwiver::vital::category_hierarchy( label_fn ) );
+      model_labels.reset( new kwiver::vital::category_hierarchy( label_fn ) );
     }
     catch( const std::exception& e )
     {
-      std::cerr << "ERROR: " << e.what() << std::endl;
+      std::cerr << "Error reading labels.txt: " << e.what() << std::endl;
       exit( 0 );
     }
   }
@@ -700,7 +709,7 @@ main( int argc, char* argv[] )
   else if( train_files.empty() != test_files.empty() )
   {
     std::cerr << "If one of either train.txt or test.txt is specified, "
-      "then they must both be." << std::endl;
+              << "then they must both be." << std::endl;
     exit( 0 );
   }
   else
@@ -752,12 +761,13 @@ main( int argc, char* argv[] )
   {
     try
     {
-      config->merge_config(kwiver::vital::read_config_file(g_params.opt_config));
+      config->merge_config( kwiver::vital::read_config_file( g_params.opt_config ) );
     }
     catch( const std::exception& e )
     {
-      std::cerr << "Received exception: " << e.what() << std::endl;
-      std::cerr << "Unable to load configuration file: " << g_params.opt_config << std::endl;
+      std::cerr << "Received exception: " << e.what() << std::endl
+                << "Unable to load configuration file: "
+                << g_params.opt_config << std::endl;
       exit( 0 );
     }
   }
@@ -797,7 +807,7 @@ main( int argc, char* argv[] )
         "\'" + setting + "\' does not contain at least two keys in its "
         "keypath which is invalid. (e.g. must be at least a:b)";
   
-      throw std::runtime_error(reason);
+      throw std::runtime_error( reason );
     }
 
     config->set_value( setting_key, setting_value );
@@ -919,7 +929,7 @@ main( int argc, char* argv[] )
   }
 
   // Retain class counts for error checking
-  std::map< std::string, int > class_count;
+  std::map< std::string, int > label_counts;
 
   for( std::string folder : subdirs )
   {
@@ -955,7 +965,8 @@ main( int argc, char* argv[] )
     {
       if( gt_files.size() != 1 )
       {
-        std::cout << "Error: folder " << folder << " must contain only 1 groundtruth file" << std::endl;
+        std::cout << "Error: folder " << folder
+                  << " must contain only 1 groundtruth file" << std::endl;
         exit( 0 );
       }
 
@@ -1054,8 +1065,8 @@ main( int argc, char* argv[] )
         }
         catch( const std::exception& e )
         {
-          std::cerr << "Received exception: " << e.what() << std::endl;
-          std::cerr << "Unable to load groundtruth file: " << read_fn << std::endl;
+          std::cerr << "Received exception: " << e.what() << std::endl
+                    << "Unable to load groundtruth file: " << read_fn << std::endl;
           exit( 0 );
         }
       }
@@ -1063,7 +1074,9 @@ main( int argc, char* argv[] )
       // Apply threshold to frame detections
       if( use_image )
       {
-        std::cout << "Read " << frame_dets->size() << " detections for " << image_file << std::endl;
+        std::cout << "Read " << frame_dets->size()
+                  << " detections for "
+                  << image_file << std::endl;
 
         kwiver::vital::detected_object_set_sptr filtered_dets =
           std::make_shared< kwiver::vital::detected_object_set>();
@@ -1078,11 +1091,16 @@ main( int argc, char* argv[] )
             {
               std::string gt_class = *(t.first);
 
-              if( classes->has_class_name( gt_class ) )
+              if( !model_labels || model_labels->has_class_name( gt_class ) )
               {
                 if( t.second > threshold )
                 {
-                  class_count[classes->get_class_name( gt_class )]++;
+                  if( model_labels )
+                  {
+                    gt_class = model_labels->get_class_name( gt_class );
+                  }
+
+                  label_counts[ gt_class ]++;
                   add_detection = true;
                 }
               }
@@ -1092,9 +1110,10 @@ main( int argc, char* argv[] )
               }
             }
           }
-          else if( classes->size() == 1 )
+          else if( !model_labels || model_labels->size() == 1 )
           {
             add_detection = true; // single class problem, doesn't need dot
+            detection_without_label = true; // at least 1 detection lacks a label
           }
 
           if( add_detection )
@@ -1120,7 +1139,7 @@ main( int argc, char* argv[] )
     }
   }
 
-  if( class_count.empty() )
+  if( label_counts.empty() )
   {
     for( auto det_set : train_gt )
     {
@@ -1131,27 +1150,36 @@ main( int argc, char* argv[] )
           std::string gt_class;
           det->type()->get_most_likely( gt_class );
 
-          if( classes->has_class_name( gt_class ) )
+          if( !model_labels || model_labels->has_class_name( gt_class ) )
           {
-            class_count[ classes->get_class_name( gt_class ) ]++;
+            if( model_labels )
+            {
+              gt_class = model_labels->get_class_name( gt_class );
+            }
+
+            label_counts[ gt_class ]++;
           }
         }
       }
     }
   }
 
-  if( class_count.empty() ) // groundtruth has no classification labels
+  if( label_counts.empty() ) // groundtruth has no classification labels
   {
     // Only 1 class, is okay but inject the classification into the groundtruth
-    if( classes->size() == 1 )
+    if( !model_labels || model_labels->size() == 1 )
     {
+      std::string label = model_labels ? model_labels->all_class_names()[0] : "object";
+
       for( auto det_set : train_gt )
       {
         for( auto det : *det_set )
         {
           det->set_type(
             kwiver::vital::detected_object_type_sptr(
-              new kwiver::vital::detected_object_type( classes->all_class_names()[0], 1.0 ) ) );
+              new kwiver::vital::detected_object_type( label, 1.0 ) ) );
+
+          label_counts[ label ]++;
         }
       }
       for( auto det_set : test_gt )
@@ -1160,28 +1188,48 @@ main( int argc, char* argv[] )
         {
           det->set_type(
             kwiver::vital::detected_object_type_sptr(
-              new kwiver::vital::detected_object_type( classes->all_class_names()[0], 1.0 ) ) );
+              new kwiver::vital::detected_object_type( label, 1.0 ) ) );
         }
       }
     }
     else // Not okay
     {
-      std::cout << "Error: input labels.txt contains multiple classes, but supplied truth files "
-                   "do not contain the training classes of interest, or there was an error "
-                   "reading them from the input annotations." << std::endl;
+      std::cout << "Error: input labels.txt contains multiple classes, but supplied "
+                << "truth files do not contain the training classes of interest, or "
+                << "there was an error reading them from the input annotations."
+                << std::endl;
       return 0;
     }
   }
-  else if( !check_override )
+  else if( !check_override && model_labels )
   {
-    for( auto cls : classes->all_class_names() )
+    for( auto cls : model_labels->all_class_names() )
     {
-      if( class_count[ cls ] == 0 )
+      if( label_counts[ cls ] == 0 )
       {
-        std::cout << "Error: no entries in groundtruth of class " << cls << std::endl << std::endl;
-        std::cout << "Optionally set \"check_override\" parameter to ignore this check." << std::endl;
+        std::cout << "Error: no entries in groundtruth of class " << cls << std::endl
+                  << std::endl
+                  << "Optionally set \"check_override\" parameter to ignore this check."
+                  << std::endl;
         exit( 0 );
       }
+    }
+  }
+  else if( detection_without_label )
+  {
+    std::cout << "Warning: one or more annotations contain no class label specified"
+              << std::endl
+              << "Consider checking your groundtruth for consisitency"
+              << std::endl;
+  }
+
+  if( !model_labels )
+  {
+    model_labels.reset( new kwiver::vital::category_hierarchy() );
+
+    for( auto label : label_counts )
+    {
+      model_labels->add_class( label.first );
     }
   }
 
@@ -1228,7 +1276,7 @@ main( int argc, char* argv[] )
   // Run training algorithm
   std::cout << "Beginning Training Process" << std::endl;
 
-  detector_trainer->add_data_from_disk( classes,
+  detector_trainer->add_data_from_disk( model_labels,
                                         train_image_fn, train_gt,
                                         test_image_fn, test_gt );
 
