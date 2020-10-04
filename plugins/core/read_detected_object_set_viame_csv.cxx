@@ -131,6 +131,13 @@ read_detected_object_set_viame_csv
     config->get_value< double >( "confidence_override", d->m_confidence_override );
   d->m_poly_to_mask =
     config->get_value< bool >( "poly_to_mask", d->m_poly_to_mask );
+
+#ifndef VIAME_ENABLE_VXL
+  if( d->m_poly_to_mask )
+  {
+    throw std::runtime_error( "Must have VXL turned on to use poly_to_mask" );
+  }
+#endif
 }
 
 
