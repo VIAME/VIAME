@@ -374,11 +374,11 @@ read_detected_object_set_viame_csv::priv
           std::vector< std::string > poly_elements;
           kwiver::vital::tokenize( poly_strings[i], poly_elements, " ", true );
 
-          // Extract the x, y points from the split text, skipping the first '(poly)' value
+          // Extract the x, y points from the split text, skipping '(poly)'
           std::vector< vgl_point_2d< double > > pts;
           for( unsigned j = 1; j < poly_elements.size(); j+=2 )
           {
-            // Shift these points so they are in the coordinates of the detection box
+            // Shift these points so they are in the coordinates of the box
             pts.push_back( vgl_point_2d< double >( std::stoi(poly_elements[j] ) -
               bbox_min_x, std::stoi( poly_elements[j+1]) - bbox_min_y ) );
           }
