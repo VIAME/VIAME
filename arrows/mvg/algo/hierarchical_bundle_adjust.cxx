@@ -48,7 +48,7 @@
 #include <vital/algo/optimize_cameras.h>
 #include <vital/algo/triangulate_landmarks.h>
 #include <arrows/mvg/metrics.h>
-#include <arrows/core/interpolate_camera.h>
+#include <arrows/mvg/interpolate_camera.h>
 
 #include <vital/types/camera_perspective.h>
 #include <vital/exceptions.h>
@@ -394,7 +394,7 @@ hierarchical_bundle_adjust
               // fraction position of interpoated integer
               f = static_cast<double>(i2 - cur_frm) / (next_frm - cur_frm);
 
-              interped_cams[i2] = kwiver::arrows::interpolate_camera(cur_cam, next_cam, f);
+              interped_cams[i2] = interpolate_camera(cur_cam, next_cam, f);
             }
 
           }

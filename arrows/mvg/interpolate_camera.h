@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,12 @@
  * \brief Header for camera interpolation functions
  */
 
-#ifndef ALGORITHMS_INTERPOLATE_CAMERA_H_
-#define ALGORITHMS_INTERPOLATE_CAMERA_H_
+#ifndef KWIVER_ARROWS_MVG_INTERPOLATE_CAMERA_H_
+#define KWIVER_ARROWS_MVG_INTERPOLATE_CAMERA_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vector>
 #include <vital/types/camera_perspective.h>
@@ -46,6 +46,7 @@
 
 namespace kwiver {
 namespace arrows {
+namespace mvg {
 
 
 /// Generate an interpolated camera between \c A and \c B by a given fraction \c f
@@ -57,7 +58,7 @@ namespace arrows {
  * \param B Camera to interpolate to.
  * \param f Decimal fraction in between A and B for the returned camera to represent.
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 vital::simple_camera_perspective
 interpolate_camera(vital::simple_camera_perspective const& A,
                    vital::simple_camera_perspective const& B, double f);
@@ -68,7 +69,7 @@ interpolate_camera(vital::simple_camera_perspective const& A,
  * \relatesalso interpolate_camera
  *
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 vital::camera_perspective_sptr
 interpolate_camera(vital::camera_perspective_sptr A,
                    vital::camera_perspective_sptr B, double f);
@@ -78,13 +79,14 @@ interpolate_camera(vital::camera_perspective_sptr A,
 /**
  * \c n must be >= 1.
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 void interpolated_cameras(vital::simple_camera_perspective const& A,
                           vital::simple_camera_perspective const& B,
                           size_t n,
                           std::vector< vital::simple_camera_perspective > & interp_cams);
 
 
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
 

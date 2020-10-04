@@ -51,7 +51,7 @@
 #include <arrows/mvg/epipolar_geometry.h>
 #include <arrows/mvg/metrics.h>
 #include <arrows/core/match_matrix.h>
-#include <arrows/core/necker_reverse.h>
+#include <arrows/mvg/necker_reverse.h>
 #include <arrows/mvg/triangulate.h>
 #include <arrows/mvg/transform.h>
 
@@ -1155,7 +1155,7 @@ initialize_cameras_landmarks_basic
         // reverse cameras and optimize again
         camera_map_sptr ba_cams2(new simple_camera_map(cams));
         landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
-        core::necker_reverse(ba_cams2, ba_lms2);
+        necker_reverse(ba_cams2, ba_lms2);
         d_->lm_triangulator->triangulate(ba_cams2, tracks, ba_lms2);
         init_rmse = reprojection_rmse(ba_cams2->cameras(), ba_lms2->landmarks(), trks);
         LOG_DEBUG(logger(), "Necker reversed initial reprojection RMSE: " << init_rmse);

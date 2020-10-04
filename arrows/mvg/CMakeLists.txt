@@ -7,6 +7,8 @@ set( plugin_mvg_headers
   algo/triangulate_landmarks.h
 
   epipolar_geometry.h
+  interpolate_camera.h
+  necker_reverse.h
   metrics.h
   projected_track_set.h
   sfm_utils.h
@@ -31,6 +33,8 @@ set( plugin_mvg_sources
   algo/triangulate_landmarks.cxx
 
   epipolar_geometry.cxx
+  interpolate_camera.cxx
+  necker_reverse.cxx
   metrics.cxx
   projected_track_set.cxx
   sfm_utils.cxx

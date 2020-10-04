@@ -59,13 +59,12 @@
 #include <arrows/mvg/epipolar_geometry.h>
 #include <arrows/mvg/metrics.h>
 #include <arrows/core/match_matrix.h>
-#include <arrows/core/necker_reverse.h>
+#include <arrows/mvg/necker_reverse.h>
 #include <arrows/mvg/triangulate.h>
 #include <arrows/mvg/transform.h>
 #include <arrows/mvg/sfm_utils.h>
 
 using namespace kwiver::vital;
-using namespace kwiver::arrows::core;
 
 namespace kwiver {
 namespace arrows {

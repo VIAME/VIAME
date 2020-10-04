@@ -35,7 +35,6 @@ set( plugin_core_headers
   match_features_homography.h
   match_tracks.h
   mesh_operations.h
-  necker_reverse.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
   render_mesh_depth_map.h
@@ -53,7 +52,6 @@ set( plugin_core_headers
   write_object_track_set_kw18.h
   write_track_descriptor_set_csv.h
 
-  interpolate_camera.h
   interpolate_track_spline.h
   match_features_homography.h
   match_matrix.h
@@ -105,7 +103,6 @@ set( plugin_core_sources
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   match_tracks.cxx
-  necker_reverse.cxx
   mesh_operations.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
@@ -124,7 +121,6 @@ set( plugin_core_sources
   write_object_track_set_kw18.cxx
   write_track_descriptor_set_csv.cxx
 
-  interpolate_camera.cxx
   interpolate_track_spline.cxx
   match_features_homography.cxx
   match_matrix.cxx

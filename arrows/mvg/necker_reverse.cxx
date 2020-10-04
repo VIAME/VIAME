@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 
 /// Compute a plane passing through the landmarks
@@ -161,6 +161,6 @@ necker_reverse(vital::camera_map_sptr& cameras,
 }
 
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

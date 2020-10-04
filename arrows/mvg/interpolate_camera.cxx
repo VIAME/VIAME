@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 
 namespace kwiver {
 namespace arrows {
+namespace mvg {
 
 
 /// Generate an interpolated camera between \c A and \c B by a given fraction \c f
@@ -102,5 +103,6 @@ interpolate_camera(vital::camera_perspective_sptr A,
 }
 
 
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
