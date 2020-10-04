@@ -220,6 +220,7 @@ set( CORE_PIPELINE_FILES
   pipelines/tracker_stabilized_iou.pipe
   pipelines/tracker_svm_models.pipe
   pipelines/train_color_freq_aug.pipe
+  pipelines/train_enhance_and_motion_aug.pipe
   pipelines/train_hue_shifting_only_aug.pipe
   pipelines/train_intensity_color_freq_motion_aug.pipe
   pipelines/train_intensity_hue_motion_aug.pipe
