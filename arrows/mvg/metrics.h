@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,14 +30,14 @@
 
 /**
  * \file
- * \brief Header for evaluation metric functions.
+ * \brief Header for MVG evaluation metric functions.
  */
 
-#ifndef ALGORITHMS_METRICS_H_
-#define ALGORITHMS_METRICS_H_
+#ifndef KWIVER_ARROWS_MVG_METRICS_H_
+#define KWIVER_ARROWS_MVG_METRICS_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vital/types/camera.h>
 #include <vital/types/camera_map.h>
@@ -52,6 +52,7 @@
 
 namespace kwiver {
 namespace arrows {
+namespace mvg {
 
 /// Compute the reprojection error vector of lm projected by cam compared to f
 /**
@@ -60,7 +61,7 @@ namespace arrows {
  * \param [in] f is the measured feature point location
  * \returns the vector between the projected lm and f in image space
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 vital::vector_2d reprojection_error_vec(const vital::camera& cam,
                                         const vital::landmark& lm,
                                         const vital::feature& f);
@@ -90,7 +91,7 @@ reprojection_error_sqr(const vital::camera& cam,
  * \returns cos of the maximum angle pair of rays intersecting at lm from the
  *          cameras observing lm
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 double
 bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
                  const vital::vector_3d &X);
@@ -103,7 +104,7 @@ bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
  * \param[in] cos_ang_thresh cosine of the angle threshold
  * \returns true if at least one pair of rays has cos(angle) <= cos_ang_thresh
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 bool
 bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &cameras,
                          const vital::vector_3d &X,
@@ -135,7 +136,7 @@ reprojection_error(const vital::camera& cam,
  * \returns a vector containing one reprojection error for each observation
  *          (i.e. track state) that has a corresponding camera and landmark
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 std::vector<double>
 reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                     const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
@@ -150,7 +151,7 @@ reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& camer
  * \returns a map containing one reprojection error rms value per camera mapped by the
  *          the cameras' frame ids
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 std::map<vital::frame_id_t, double>
 reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
                          const vital::landmark_map::map_landmark_t& landmarks,
@@ -165,7 +166,7 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
  * \returns the RMSE between all landmarks projected by all cameras that have
  *          corresponding image measurements provided by the tracks
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 double
 reprojection_rmse(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                   const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
@@ -181,7 +182,7 @@ reprojection_rmse(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras
  *          all cameras that have corresponding image measurements provided
  *          by the tracks
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 double
 reprojection_median_error(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                           const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
@@ -197,15 +198,15 @@ reprojection_median_error(const std::map<vital::frame_id_t, vital::camera_sptr>&
  *          all cameras that have corresponding image measurements provided
  *          by the tracks
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 double
 reprojection_median_error(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                           const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
                           const std::vector<vital::track_sptr>& tracks);
 
-
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // ALGORITHMS_METRICS_H_
+#endif

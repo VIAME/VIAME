@@ -16,6 +16,12 @@ endif()
 ##############################
 # Algorithms Ceres tests
 ##############################
-kwiver_discover_gtests(ceres bundle_adjust      LIBRARIES ${test_libraries})
-kwiver_discover_gtests(ceres optimize_cameras   LIBRARIES ${test_libraries})
-kwiver_discover_gtests(ceres reprojection_error LIBRARIES ${test_libraries})
+
+# tests that also require the MVG arrow
+if(KWIVER_ENABLE_MVG)
+  list(APPEND test_libraries kwiver_algo_mvg)
+
+  kwiver_discover_gtests(ceres bundle_adjust      LIBRARIES ${test_libraries})
+  kwiver_discover_gtests(ceres optimize_cameras   LIBRARIES ${test_libraries})
+  kwiver_discover_gtests(ceres reprojection_error LIBRARIES ${test_libraries})
+endif()

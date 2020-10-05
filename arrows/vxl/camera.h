@@ -37,7 +37,6 @@
 #define KWIVER_ARROWS_VXL_CAMERA_H_
 
 
-#include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/types/camera_perspective.h>

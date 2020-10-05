@@ -31,7 +31,7 @@
 #include <test_eigen.h>
 #include <test_scene.h>
 
-#include <arrows/core/projected_track_set.h>
+#include <arrows/mvg/projected_track_set.h>
 
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
@@ -39,7 +39,7 @@
 #include <iostream>
 
 using namespace kwiver::vital;
-using namespace kwiver::arrows;
+using namespace kwiver::arrows::mvg;
 
 // ----------------------------------------------------------------------------
 TEST(optimize_cameras, uninitialized)

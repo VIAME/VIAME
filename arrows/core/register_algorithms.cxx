@@ -63,8 +63,6 @@
 #include <arrows/core/filter_features_scale.h>
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/handle_descriptor_request_core.h>
-#include <arrows/core/hierarchical_bundle_adjust.h>
-#include <arrows/core/initialize_cameras_landmarks.h>
 #include <arrows/core/initialize_object_tracks_threshold.h>
 #include <arrows/core/interpolate_track_spline.h>
 #include <arrows/core/keyframe_selector_basic.h>
@@ -76,7 +74,6 @@
 #include <arrows/core/track_features_core.h>
 #include <arrows/core/transfer_bbox_with_depth_map.h>
 #include <arrows/core/transform_detected_object_set.h>
-#include <arrows/core/triangulate_landmarks.h>
 #include <arrows/core/uv_unwrap_mesh.h>
 #include <arrows/core/video_input_filter.h>
 #include <arrows/core/video_input_image_list.h>
@@ -131,8 +128,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< filter_features_scale >();
   reg.register_algorithm< filter_tracks >();
   reg.register_algorithm< handle_descriptor_request_core >();
-  reg.register_algorithm< hierarchical_bundle_adjust >();
-  reg.register_algorithm< initialize_cameras_landmarks >();
   reg.register_algorithm< initialize_object_tracks_threshold >();
   reg.register_algorithm< interpolate_track_spline >();
   reg.register_algorithm< keyframe_selector_basic >();
@@ -144,7 +139,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< track_features_core >();
   reg.register_algorithm< transfer_bbox_with_depth_map >();
   reg.register_algorithm< transform_detected_object_set >();
-  reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< uv_unwrap_mesh >();
   reg.register_algorithm< video_input_filter >();
   reg.register_algorithm< video_input_image_list >();

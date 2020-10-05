@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,12 @@
  */
 
 #include "epipolar_geometry.h"
-#include <arrows/core/triangulate.h>
+#include <arrows/mvg/triangulate.h>
 
 
 namespace kwiver {
 namespace arrows {
+namespace mvg {
 
 
 /// Test corresponding points against a fundamental matrix and mark inliers
@@ -170,5 +171,6 @@ essential_matrix_to_fundamental(kwiver::vital::essential_matrix const & E,
 }
 
 
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

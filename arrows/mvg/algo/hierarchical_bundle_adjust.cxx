@@ -47,8 +47,8 @@
 
 #include <vital/algo/optimize_cameras.h>
 #include <vital/algo/triangulate_landmarks.h>
-#include <arrows/core/metrics.h>
-#include <arrows/core/interpolate_camera.h>
+#include <arrows/mvg/metrics.h>
+#include <arrows/mvg/interpolate_camera.h>
 
 #include <vital/types/camera_perspective.h>
 #include <vital/exceptions.h>
@@ -58,7 +58,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 namespace // anonymous
 {
@@ -138,7 +138,7 @@ hierarchical_bundle_adjust
 ::hierarchical_bundle_adjust()
   : d_(new priv)
 {
-  attach_logger( "arrows.core.hierarchical_bundle_adjust" );
+  attach_logger( "arrows.mvg.hierarchical_bundle_adjust" );
 }
 
 
@@ -328,7 +328,7 @@ hierarchical_bundle_adjust
       d_->sba->optimize(active_cam_map, landmarks, tracks, constraints);
     }
 
-    double rmse = kwiver::arrows::reprojection_rmse(active_cam_map->cameras(),
+    double rmse = reprojection_rmse(active_cam_map->cameras(),
                                     landmarks->landmarks(),
                                     tracks->tracks());
     LOG_DEBUG(logger(), "current RMSE: " << rmse);
@@ -394,7 +394,7 @@ hierarchical_bundle_adjust
               // fraction position of interpoated integer
               f = static_cast<double>(i2 - cur_frm) / (next_frm - cur_frm);
 
-              interped_cams[i2] = kwiver::arrows::interpolate_camera(cur_cam, next_cam, f);
+              interped_cams[i2] = interpolate_camera(cur_cam, next_cam, f);
             }
 
           }
@@ -481,6 +481,6 @@ hierarchical_bundle_adjust
   cameras = active_cam_map;
 }
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

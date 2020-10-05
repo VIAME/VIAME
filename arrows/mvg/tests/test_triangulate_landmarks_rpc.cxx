@@ -30,15 +30,16 @@
 
 #include <test_scene.h>
 
-#include <arrows/core/metrics.h>
-#include <arrows/core/projected_track_set.h>
-#include <arrows/core/triangulate_landmarks.h>
+#include <arrows/mvg/metrics.h>
+#include <arrows/mvg/projected_track_set.h>
+#include <arrows/mvg/algo/triangulate_landmarks.h>
 #include <vital/tests/rpc_reader.h>
 #include <tests/test_gtest.h>
 
 kwiver::vital::path_t g_data_dir;
 
 using namespace kwiver::vital;
+using namespace kwiver::arrows::mvg;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -86,7 +87,7 @@ class triangulate_landmarks_rpc : public ::testing::Test
 // ----------------------------------------------------------------------------
 TEST_F(triangulate_landmarks_rpc, from_data)
 {
-  kwiver::arrows::core::triangulate_landmarks tri_lm;
+  triangulate_landmarks tri_lm;
   config_block_sptr cfg = tri_lm.get_configuration();
 
   landmark_map_sptr landmarks =
@@ -94,9 +95,9 @@ TEST_F(triangulate_landmarks_rpc, from_data)
 
   camera_map_sptr cameras = std::make_shared< simple_camera_map >( camera_map );
 
-  auto tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  auto tracks = projected_tracks(landmarks, cameras);
 
-  double init_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
+  double init_rmse = reprojection_rmse( cameras->cameras(),
                                                         landmarks->landmarks(),
                                                         tracks->tracks() );
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -105,7 +106,7 @@ TEST_F(triangulate_landmarks_rpc, from_data)
 
   tri_lm.triangulate(cameras, tracks, landmarks);
 
-  double end_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
+  double end_rmse = reprojection_rmse( cameras->cameras(),
                                                        landmarks->landmarks(),
                                                        tracks->tracks() );
   EXPECT_NEAR(0.0, end_rmse, 0.05) << "RMSE after triangulation";
@@ -114,7 +115,7 @@ TEST_F(triangulate_landmarks_rpc, from_data)
 // ----------------------------------------------------------------------------
 TEST_F(triangulate_landmarks_rpc, noisy_tracks)
 {
-  kwiver::arrows::core::triangulate_landmarks tri_lm;
+  triangulate_landmarks tri_lm;
   config_block_sptr cfg = tri_lm.get_configuration();
 
   landmark_map_sptr landmarks =
@@ -122,14 +123,14 @@ TEST_F(triangulate_landmarks_rpc, noisy_tracks)
 
   camera_map_sptr cameras = std::make_shared< simple_camera_map >( camera_map );
 
-  auto tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  auto tracks = projected_tracks(landmarks, cameras);
 
   // remove some tracks/track_states and add Gaussian noise
   const double track_stdev = 1.0;
   feature_track_set_sptr tracks0 = kwiver::testing::noisy_tracks(
     kwiver::testing::subset_tracks(tracks, 0.5), track_stdev);
 
-  double init_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
+  double init_rmse = reprojection_rmse( cameras->cameras(),
                                                         landmarks->landmarks(),
                                                         tracks0->tracks() );
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -139,7 +140,7 @@ TEST_F(triangulate_landmarks_rpc, noisy_tracks)
 
   tri_lm.triangulate(cameras, tracks0, landmarks);
 
-  double end_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
+  double end_rmse = reprojection_rmse( cameras->cameras(),
                                                        landmarks->landmarks(),
                                                        tracks0->tracks() );
   EXPECT_NEAR(0.0, end_rmse, 2.0*track_stdev) << "RMSE after triangulation";

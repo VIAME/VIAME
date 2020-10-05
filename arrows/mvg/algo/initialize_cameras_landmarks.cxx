@@ -52,20 +52,19 @@
 #include <vital/algo/bundle_adjust.h>
 #include <vital/algo/optimize_cameras.h>
 #include <vital/algo/estimate_canonical_transform.h>
+#include <vital/algo/estimate_pnp.h>
 #include <vital/algo/estimate_similarity_transform.h>
 
-#include <arrows/core/triangulate_landmarks.h>
-#include <arrows/core/epipolar_geometry.h>
-#include <arrows/core/metrics.h>
+#include <arrows/mvg/algo/triangulate_landmarks.h>
+#include <arrows/mvg/epipolar_geometry.h>
+#include <arrows/mvg/metrics.h>
 #include <arrows/core/match_matrix.h>
-#include <arrows/core/necker_reverse.h>
-#include <arrows/core/triangulate.h>
-#include <arrows/core/transform.h>
-#include <vital/algo/estimate_pnp.h>
+#include <arrows/mvg/necker_reverse.h>
+#include <arrows/mvg/triangulate.h>
+#include <arrows/mvg/transform.h>
 #include <arrows/mvg/sfm_utils.h>
 
 using namespace kwiver::vital;
-using namespace kwiver::arrows::core;
 
 namespace kwiver {
 namespace arrows {
@@ -431,7 +430,7 @@ initialize_cameras_landmarks::priv
   e_estimator(),
   camera_optimizer(),
   // use the core triangulation as the default, users can change it
-  lm_triangulator(new core::triangulate_landmarks()),
+  lm_triangulator(new mvg::triangulate_landmarks()),
   bundle_adjuster(),
   global_bundle_adjuster(),
   m_logger(vital::get_logger("arrows.mvg.initialize_cameras_landmarks")),
@@ -946,7 +945,7 @@ initialize_cameras_landmarks::priv
 
   // compute the corresponding camera rotation and translation (up to scale)
   vital::simple_camera_perspective cam =
-    kwiver::arrows::extract_valid_left_camera(E, left_pt, right_pt);
+    extract_valid_left_camera(E, left_pt, right_pt);
   cam.set_intrinsics(base_intrinsics);
 
   map_landmark_t lms;
@@ -1719,14 +1718,13 @@ initialize_cameras_landmarks::priv
         << lms.size() << " landmarks");
 
 
-      double init_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(),
+      double init_rmse = reprojection_rmse(cams->cameras(),
                                                            lms, trks);
       LOG_DEBUG(m_logger, "initial reprojection RMSE: " << init_rmse);
 
       bundle_adjuster->optimize(*cams, lms, tracks,
                                 fixed_cams_empty, fixed_lms_empty);
-      double optimized_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(),
-                                                                lms, trks);
+      double optimized_rmse = reprojection_rmse(cams->cameras(), lms, trks);
 
       inlier_lm_ids.clear();
       retriangulate(rev_lms, rev_cams, trks, inlier_lm_ids, 2, 5.0);
@@ -1744,8 +1742,8 @@ initialize_cameras_landmarks::priv
         {
           bundle_adjuster->optimize(*rev_cams, rev_lms, tracks,
                                     fixed_cams_empty, fixed_lms_empty);
-          rev_optimized_rmse = kwiver::arrows::reprojection_rmse(rev_cams->cameras(),
-                                                                 rev_lms, trks);
+          rev_optimized_rmse = reprojection_rmse(rev_cams->cameras(),
+                                                 rev_lms, trks);
         }
       }
 
@@ -2223,7 +2221,7 @@ initialize_cameras_landmarks::priv
       auto cameras = cams->cameras();
 
       double before_new_cam_rmse =
-        kwiver::arrows::reprojection_rmse(cameras, lms, trks);
+        reprojection_rmse(cameras, lms, trks);
       LOG_DEBUG(m_logger, "before new camera reprojection RMSE: "
                          << before_new_cam_rmse);
 
@@ -2251,7 +2249,7 @@ initialize_cameras_landmarks::priv
       bundle_adjuster->set_configuration(ba_config);
 
       double after_new_cam_rmse =
-        kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
+        reprojection_rmse(cams->cameras(), lms, trks);
       LOG_DEBUG(m_logger, "after new camera reprojection RMSE: "
                          << after_new_cam_rmse);
 
@@ -2304,7 +2302,7 @@ initialize_cameras_landmarks::priv
       if (bundle_adjuster)
       {
         double before_clean_rmse =
-          kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
+          reprojection_rmse(cams->cameras(), lms, trks);
         LOG_DEBUG(m_logger, "before clean reprojection RMSE: "
                             << before_clean_rmse);
 
@@ -2322,7 +2320,7 @@ initialize_cameras_landmarks::priv
         }
 
         double init_rmse =
-          kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
+          reprojection_rmse(cams->cameras(), lms, trks);
         LOG_DEBUG(m_logger, "initial reprojection RMSE: " << init_rmse);
 
         // first a BA fixing all landmarks to correct the cameras
@@ -2341,7 +2339,7 @@ initialize_cameras_landmarks::priv
                                   ba_constraints);
 
         double optimized_rmse =
-          kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
+          reprojection_rmse(cams->cameras(), lms, trks);
         LOG_DEBUG(m_logger, "optimized reprojection RMSE: "
                             << optimized_rmse);
         std::set<landmark_id_t> inlier_lm_ids;
@@ -2387,7 +2385,7 @@ initialize_cameras_landmarks::priv
                                             tracks, ba_constraints,
                                             rev_num_constraints_used);
 
-          init_rmse = kwiver::arrows::reprojection_rmse(nr_cams_perspec->cameras(),
+          init_rmse = reprojection_rmse(nr_cams_perspec->cameras(),
                                                         nr_landmarks, trks);
           LOG_DEBUG(m_logger, "Necker reversed initial reprojection RMSE: "
                               << init_rmse);
@@ -2399,9 +2397,9 @@ initialize_cameras_landmarks::priv
             LOG_INFO(m_logger, "Running Necker reversed bundle adjustment for comparison");
 
             double before_final_ba_rmse2 =
-              kwiver::arrows::reprojection_rmse(nr_cams->cameras(),
-                                                nr_landmark_map->landmarks(),
-                                                trks);
+              reprojection_rmse(nr_cams->cameras(),
+                                nr_landmark_map->landmarks(),
+                                trks);
             LOG_DEBUG(m_logger, "Necker reversed before final reprojection RMSE: "
                                 << before_final_ba_rmse2);
 
@@ -2410,8 +2408,8 @@ initialize_cameras_landmarks::priv
                                              ba_constraints);
 
             double final_rmse2 =
-              kwiver::arrows::reprojection_rmse(nr_cams->cameras(),
-                                                nr_landmarks, trks);
+              reprojection_rmse(nr_cams->cameras(),
+                                nr_landmarks, trks);
             LOG_DEBUG(m_logger, "Necker reversed final reprojection RMSE: "
                                 << final_rmse2);
 
@@ -2591,8 +2589,7 @@ initialize_cameras_landmarks::priv
     }
     global_bundle_adjuster->set_configuration(ba_config);
 
-    double init_rmse =
-      kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
+    double init_rmse = reprojection_rmse(cams->cameras(), lms, trks);
     LOG_DEBUG(m_logger, "initial reprojection RMSE: " << init_rmse);
 
     std::set<frame_id_t> fixed_cameras;
@@ -2601,8 +2598,7 @@ initialize_cameras_landmarks::priv
                                      fixed_cameras, fixed_landmarks,
                                      constraints);
 
-    double optimized_rmse =
-      kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
+    double optimized_rmse = reprojection_rmse(cams->cameras(), lms, trks);
     LOG_DEBUG(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
 
     std::vector<frame_id_t> removed_cams;
@@ -3685,9 +3681,8 @@ initialize_cameras_landmarks::priv
 
     frames_since_last_local_ba.insert(fid_to_register);
 
-    auto reporj_by_cam =
-      kwiver::arrows::reprojection_rmse_by_cam(cams->cameras(),
-                                               lmks, tracks->tracks());
+    auto reporj_by_cam = reprojection_rmse_by_cam(cams->cameras(),
+                                                  lmks, tracks->tracks());
 
     double rebundle_thresh = final_reproj_thresh * 4.0;
     bool bundle_because_of_reproj = false;
@@ -3734,9 +3729,8 @@ initialize_cameras_landmarks::priv
         frames_since_last_local_ba.clear();
       }
 
-      last_reproj_by_cam =
-        kwiver::arrows::reprojection_rmse_by_cam(cams->cameras(),
-                                                 lmks, tracks->tracks());
+      last_reproj_by_cam = reprojection_rmse_by_cam(cams->cameras(),
+                                                    lmks, tracks->tracks());
     }
 
     already_registred_cams.insert(fid_to_register);

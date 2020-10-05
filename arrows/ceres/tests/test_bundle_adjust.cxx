@@ -36,15 +36,17 @@
 #include <test_eigen.h>
 #include <test_scene.h>
 
-#include <arrows/core/metrics.h>
 #include <arrows/ceres/bundle_adjust.h>
-#include <arrows/core/projected_track_set.h>
+
+#include <arrows/mvg/metrics.h>
+#include <arrows/mvg/projected_track_set.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/math_constants.h>
 
 using namespace kwiver::vital;
 using namespace kwiver::arrows;
+using namespace kwiver::arrows::mvg;
 
 using kwiver::arrows::ceres::bundle_adjust;
 

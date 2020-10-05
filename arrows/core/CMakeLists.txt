@@ -29,25 +29,20 @@ set( plugin_core_headers
   filter_features_scale.h
   filter_tracks.h
   handle_descriptor_request_core.h
-  hierarchical_bundle_adjust.h
-  initialize_cameras_landmarks.h
   initialize_object_tracks_threshold.h
   keyframe_selector_basic.h
   match_features_fundamental_matrix.h
   match_features_homography.h
   match_tracks.h
   mesh_operations.h
-  necker_reverse.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
   render_mesh_depth_map.h
   track_features_augment_keyframes.h
   track_features_core.h
   transfer_bbox_with_depth_map.h
-  transform.h
   transform_detected_object_set.h
   triangle_scan_iterator.h
-  triangulate_landmarks.h
   uv_unwrap_mesh.h
   video_input_filter.h
   video_input_image_list.h
@@ -57,18 +52,11 @@ set( plugin_core_headers
   write_object_track_set_kw18.h
   write_track_descriptor_set_csv.h
 
-  epipolar_geometry.h
-  interpolate_camera.h
   interpolate_track_spline.h
   match_features_homography.h
   match_matrix.h
-  metrics.h
-  projected_track_set.h
   track_features_core.h
   track_set_impl.h
-  transform.h
-  triangulate.h
-  triangulate_landmarks.h
   )
 
 kwiver_install_headers(
@@ -110,14 +98,11 @@ set( plugin_core_sources
   filter_features_scale.cxx
   filter_tracks.cxx
   handle_descriptor_request_core.cxx
-  hierarchical_bundle_adjust.cxx
-  initialize_cameras_landmarks.cxx
   initialize_object_tracks_threshold.cxx
   keyframe_selector_basic.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   match_tracks.cxx
-  necker_reverse.cxx
   mesh_operations.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
@@ -125,10 +110,8 @@ set( plugin_core_sources
   track_features_augment_keyframes.cxx
   track_features_core.cxx
   transfer_bbox_with_depth_map.cxx
-  transform.cxx
   transform_detected_object_set.cxx
   triangle_scan_iterator.cxx
-  triangulate_landmarks.cxx
   uv_unwrap_mesh.cxx
   video_input_filter.cxx
   video_input_image_list.cxx
@@ -138,28 +121,12 @@ set( plugin_core_sources
   write_object_track_set_kw18.cxx
   write_track_descriptor_set_csv.cxx
 
-  epipolar_geometry.cxx
-  interpolate_camera.cxx
   interpolate_track_spline.cxx
   match_features_homography.cxx
   match_matrix.cxx
-  metrics.cxx
-  projected_track_set.cxx
   track_features_core.cxx
   track_set_impl.cxx
-  transform.cxx
-  triangulate.cxx
-  triangulate_landmarks.cxx
   )
-
-# Address MSVC fatal error C1128:
-# number of sections exceeded object file format limit
-if(MSVC)
-  set_source_files_properties(
-    triangulate.cxx
-    PROPERTIES COMPILE_FLAGS "/bigobj"
-    )
-endif()
 
 kwiver_add_library( kwiver_algo_core
   ${plugin_core_headers}

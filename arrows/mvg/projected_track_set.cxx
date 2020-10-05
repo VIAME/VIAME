@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,62 +30,47 @@
 
 /**
  * \file
- * \brief Header for camera interpolation functions
+ * \brief projected_track_set implementation
  */
 
-#ifndef ALGORITHMS_INTERPOLATE_CAMERA_H_
-#define ALGORITHMS_INTERPOLATE_CAMERA_H_
+#include "projected_track_set.h"
 
-
-#include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
-
-#include <vector>
-#include <vital/types/camera_perspective.h>
-
+#include <vital/types/feature.h>
 
 namespace kwiver {
 namespace arrows {
+namespace mvg {
+
+using namespace kwiver::vital;
+
+/// Use the cameras to project the landmarks back into their images.
+feature_track_set_sptr
+projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
+{
+  std::vector<track_sptr> tracks;
+
+  camera_map::map_camera_t cam_map = cameras->cameras();
+  landmark_map::map_landmark_t lm_map = landmarks->landmarks();
+
+  for( landmark_map::map_landmark_t::iterator l = lm_map.begin(); l != lm_map.end(); l++ )
+  {
+    track_sptr t = track::create();
+    t->set_id( l->first );
+    tracks.push_back( t );
+
+    for( const camera_map::map_camera_t::value_type& p : cam_map )
+    {
+      const camera_sptr cam = p.second;
+      auto fts = std::make_shared<feature_track_state>(p.first);
+      fts->feature = std::make_shared<feature_d>( cam->project( l->second->loc() ) );
+      fts->inlier = true;
+      t->append( fts );
+    }
+  }
+  return std::make_shared<feature_track_set>( tracks );
+}
 
 
-/// Generate an interpolated camera between \c A and \c B by a given fraction \c f
-/**
- * \c f should be 0 < \c f < 1. A value outside this range is valid, but \c f
- * must not be 0.
- *
- * \param A Camera to interpolate from.
- * \param B Camera to interpolate to.
- * \param f Decimal fraction in between A and B for the returned camera to represent.
- */
-KWIVER_ALGO_CORE_EXPORT
-vital::simple_camera_perspective
-interpolate_camera(vital::simple_camera_perspective const& A,
-                   vital::simple_camera_perspective const& B, double f);
-
-
-/// Genreate an interpolated camera from sptrs
-/**
- * \relatesalso interpolate_camera
- *
- */
-KWIVER_ALGO_CORE_EXPORT
-vital::camera_perspective_sptr
-interpolate_camera(vital::camera_perspective_sptr A,
-                   vital::camera_perspective_sptr B, double f);
-
-
-/// Generate N evenly interpolated cameras in between \c A and \c B
-/**
- * \c n must be >= 1.
- */
-KWIVER_ALGO_CORE_EXPORT
-void interpolated_cameras(vital::simple_camera_perspective const& A,
-                          vital::simple_camera_perspective const& B,
-                          size_t n,
-                          std::vector< vital::simple_camera_perspective > & interp_cams);
-
-
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
-
-#endif // ALGORITHMS_INTERPOLATE_CAMERA_H_

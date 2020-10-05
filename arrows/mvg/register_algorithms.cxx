@@ -37,7 +37,10 @@
 
 #include <vital/algo/algorithm_factory.h>
 
+#include <arrows/mvg/algo/hierarchical_bundle_adjust.h>
 #include <arrows/mvg/algo/initialize_cameras_landmarks.h>
+#include <arrows/mvg/algo/initialize_cameras_landmarks_basic.h>
+#include <arrows/mvg/algo/triangulate_landmarks.h>
 
 // TODO: These are files that should move to MVG from Core
 //#include <arrows/mvg/close_loops_bad_frames_only.h>
@@ -51,14 +54,11 @@
 //#include <arrows/mvg/filter_features_magnitude.h>
 //#include <arrows/mvg/filter_features_scale.h>
 //#include <arrows/mvg/filter_tracks.h>
-//#include <arrows/mvg/hierarchical_bundle_adjust.h>
-//#include <arrows/mvg/initialize_object_tracks_threshold.h>
 //#include <arrows/mvg/keyframe_selector_basic.h>
 //#include <arrows/mvg/match_features_fundamental_matrix.h>
 //#include <arrows/mvg/match_features_homography.h>
 //#include <arrows/mvg/track_features_augment_keyframes.h>
 //#include <arrows/mvg/track_features_core.h>
-//#include <arrows/mvg/triangulate_landmarks.h>
 
 
 namespace kwiver {
@@ -79,7 +79,10 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
+  reg.register_algorithm< hierarchical_bundle_adjust >();
   reg.register_algorithm< initialize_cameras_landmarks >();
+  reg.register_algorithm< initialize_cameras_landmarks_basic >();
+  reg.register_algorithm< triangulate_landmarks >();
 
   reg.mark_module_as_loaded();
 }

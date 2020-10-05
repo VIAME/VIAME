@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of evaluation metric functions.
+ * \brief Implementation of MVG evaluation metric functions.
  */
 
 #include "metrics.h"
@@ -39,6 +39,7 @@
 
 namespace kwiver {
 namespace arrows {
+namespace mvg {
 
 using namespace kwiver::vital;
 
@@ -298,5 +299,6 @@ reprojection_median_error(const std::map<frame_id_t, camera_sptr>& cameras,
 }
 
 
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

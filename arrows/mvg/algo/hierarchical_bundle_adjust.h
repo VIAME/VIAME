@@ -33,10 +33,10 @@
  * \brief Header defining the hierarchical_bundle_adjust algorithm
  */
 
-#ifndef KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
-#define KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#ifndef KWIVER_ARROWS_MVG_HIERARCHICAL_BUNDLE_ADJUST_H_
+#define KWIVER_ARROWS_MVG_HIERARCHICAL_BUNDLE_ADJUST_H_
 
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/bundle_adjust.h>
@@ -45,10 +45,10 @@
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 
-class KWIVER_ALGO_CORE_EXPORT hierarchical_bundle_adjust
+class KWIVER_ALGO_MVG_EXPORT hierarchical_bundle_adjust
   : public vital::algo::bundle_adjust
 {
 public:
@@ -86,7 +86,7 @@ private:
 /// Type definition for shared pointer for hierarchical_bundle_adjust algorithm
 typedef std::shared_ptr<hierarchical_bundle_adjust> hierarchical_bundle_adjust_sptr;
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
 

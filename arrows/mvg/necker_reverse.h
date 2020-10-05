@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016, 2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_CORE_NECKER_REVERSE_H_
 
 
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vital/types/camera_perspective.h>
 #include <vital/types/camera_map.h>
@@ -46,7 +46,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 
 /// Compute a plane passing through the landmarks
@@ -55,13 +55,13 @@ namespace core {
  * the centroid of the landmarks.  The plane is [nx, ny, nz, d] where
  * [nx, ny, nz] is a unit normal and d is the offset.
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 vital::vector_4d
 landmark_plane(const vital::landmark_map::map_landmark_t& landmarks);
 
 
 /// Mirror landmarks about the specified plane
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 vital::landmark_map_sptr
 mirror_landmarks(vital::landmark_map const& landmarks,
                  vital::vector_4d const& plane);
@@ -76,7 +76,7 @@ mirror_landmarks(vital::landmark_map const& landmarks,
  * principal.  The resulting camera provides a similar projection of points
  * near the specified plane, espcially for very long focal lengths.
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 void
 necker_reverse_inplace(vital::simple_camera_perspective& camera,
                        vital::vector_4d const& plane);
@@ -91,7 +91,7 @@ necker_reverse_inplace(vital::simple_camera_perspective& camera,
 * principal.  The resulting camera provides a similar projection of points
 * near the specified plane, espcially for very long focal lengths.
 */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 vital::camera_map_sptr
 necker_reverse(vital::camera_map const& cameras,
                vital::vector_4d const& plane);
@@ -113,13 +113,13 @@ necker_reverse(vital::camera_map const& cameras,
  * in this case.
  *
  */
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_MVG_EXPORT
 void
 necker_reverse(vital::camera_map_sptr& cameras,
                vital::landmark_map_sptr& landmarks,
                bool reverse_landmarks = true);
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver
 

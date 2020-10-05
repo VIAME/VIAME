@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of kwiver::arrows::core::transform functions to apply
- * similarity transformations
+ * \brief Implementation of 3D tranformation functions
  */
 
 #include "transform.h"
@@ -40,7 +39,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace mvg {
 
 
 /// Transform the camera by applying a similarity transformation in place
@@ -262,16 +261,16 @@ void translate_inplace(vital::camera_map& cameras,
 {
   vital::simple_camera_perspective_map pcameras;
   pcameras.set_from_base_camera_map(cameras.cameras());
-  kwiver::arrows::core::translate_inplace(pcameras, offset);
+  kwiver::arrows::mvg::translate_inplace(pcameras, offset);
 }
 
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRANSFORM(T) \
-template KWIVER_ALGO_CORE_EXPORT vital::covariance_<3,T> \
+template KWIVER_ALGO_MVG_EXPORT vital::covariance_<3,T> \
 transform(const vital::covariance_<3,T>& covar, \
           const vital::similarity_<T>& xform); \
-template KWIVER_ALGO_CORE_EXPORT void \
+template KWIVER_ALGO_MVG_EXPORT void \
 transform_inplace(vital::landmark_<T>& cam, \
                   const vital::similarity_<T>& xform);
 
@@ -282,6 +281,6 @@ INSTANTIATE_TRANSFORM(float);
 /// \endcond
 
 
-} // end namespace core
+} // end namespace mvg
 } // end namespace arrows
 } // end namespace kwiver

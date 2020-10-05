@@ -15,14 +15,16 @@ kwiver_discover_gtests(vxl image                       LIBRARIES ${test_librarie
 kwiver_discover_gtests(vxl polygon                     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl vidl_ffmpeg_video_input     LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
 
-# additional tests that also depend on the core arrow
-list(APPEND test_libraries kwiver_algo_core)
+
+# Additional tests that depend on the MVG arrow
+list(APPEND test_libraries kwiver_algo_mvg)
+
 kwiver_discover_gtests(vxl bundle_adjust               LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl estimate_essential_matrix   LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl estimate_fundamental_matrix LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl optimize_cameras            LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl triangulate_landmarks       LIBRARIES ${test_libraries})
 
-# This test is really for an algorithm in core, but it's here
+# This test is really for an algorithm in MVG, but it's here
 # because the test depends on availability of VXL sub-algorithms
 kwiver_discover_gtests(vxl initialize_cameras_landmarks LIBRARIES ${test_libraries})
