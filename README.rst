@@ -54,7 +54,7 @@ The Dockerfile used to build the image can be found `here <dockerfile>`_.
 
 Pull the image from Dockerhub::
 
- "docker pull kitware/kwiver:master" (latest master)
+ "docker pull kitware/kwiver:latest" (latest master)
 
  "docker pull kitware/kwiver:release" (latest release)
 
