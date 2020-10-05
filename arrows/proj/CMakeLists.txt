@@ -24,7 +24,7 @@ kwiver_add_library( kwiver_algo_proj
   )
 
 target_link_libraries( kwiver_algo_proj
-  PUBLIC               kwiver_algo_core
+  PUBLIC               vital_algo
                        ${PROJ_LIBRARY}
   )
 

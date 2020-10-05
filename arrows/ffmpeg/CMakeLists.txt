@@ -50,7 +50,7 @@ if(fletch_ENABLED_ZLib)
 endif()
 
 target_link_libraries( kwiver_algo_ffmpeg
-  PUBLIC               kwiver_algo_core
+  PUBLIC               vital_algo
   PRIVATE              vital_klv kwiversys
                        ${FFMPEG_LIBRARIES}
                        ${ZLIB_LIBRARIES}

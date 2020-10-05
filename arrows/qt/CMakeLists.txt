@@ -37,7 +37,7 @@ kwiver_add_library( kwiver_algo_qt
   ${qt_sources}
   )
 target_link_libraries( kwiver_algo_qt
-  PUBLIC  kwiver_algo_core
+  PUBLIC  vital_algo
           Qt5::Gui
           Qt5::Core
   )

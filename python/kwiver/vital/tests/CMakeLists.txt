@@ -35,6 +35,7 @@ if(KWIVER_ENABLE_SPROKIT AND KWIVER_ENABLE_ARROWS)
   # ImageObjectDetector test requires config bindings in sprokit
   list(APPEND
       __testable_modnames
+      test_detected_object_set_input
       test_image_object_detector
     )
 endif()

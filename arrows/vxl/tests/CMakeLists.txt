@@ -16,8 +16,8 @@ kwiver_discover_gtests(vxl polygon                     LIBRARIES ${test_librarie
 kwiver_discover_gtests(vxl vidl_ffmpeg_video_input     LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
 
 
-# Additional tests that depend of the MVG arrow
-set(test_libraries     kwiver_algo_vxl kwiver_algo_mvg)
+# Additional tests that depend on the MVG arrow
+list(APPEND test_libraries kwiver_algo_mvg)
 
 kwiver_discover_gtests(vxl bundle_adjust               LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl estimate_essential_matrix   LIBRARIES ${test_libraries})

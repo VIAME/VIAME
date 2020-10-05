@@ -18,9 +18,9 @@ kwiver_discover_gtests(ocv match_set                   LIBRARIES ${test_librarie
 
 # Additional tests that depend on the MVG arrow
 if (KWIVER_ENABLE_MVG)
-  set(test_libraries      vital vital_vpm kwiver_algo_ocv kwiver_algo_mvg)
+  list(APPEND test_libraries kwiver_algo_mvg)
 
   kwiver_discover_gtests(ocv estimate_fundamental_matrix LIBRARIES ${test_libraries})
-  kwiver_discover_gtests(ocv estimate_pnp                LIBRARIES ${test_libraries})
   kwiver_discover_gtests(ocv estimate_homography         LIBRARIES ${test_libraries})
+  kwiver_discover_gtests(ocv estimate_pnp                LIBRARIES ${test_libraries})
 endif()

@@ -2,7 +2,7 @@ project(arrows_test_ceres)
 
 include(kwiver-test-setup)
 
-set(test_libraries    kwiver_algo_ceres)
+set(test_libraries    kwiver_algo_ceres kwiver_algo_core)
 
 # we need to link tests to GLog becuase they instantiate Ceres templates which
 # use GLog.  If Ceres was built with MiniGlog, link to ceres instead to get

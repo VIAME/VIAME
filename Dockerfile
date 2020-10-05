@@ -1,12 +1,15 @@
 # Install KWIVER to /opt/kitware/kwiver
 # Use latest Fletch as base image (Ubuntu 18.04)
 
-FROM kitware/fletch:latest-ubuntu16.04-py2-cuda8.0-cudnn5-devel
+FROM kitware/fletch:latest-ubuntu18.04-py3-cuda10.0-cudnn7-devel
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-                          python3-dev \
-                          python3-pip
+ && apt-get install -y --no-install-recommends \
+                    python3-dev \
+                    python3-pip \
+ && pip3 install setuptools \
+                 scipy \
+                 six
 
 #
 # Build KWIVER
@@ -37,6 +40,13 @@ RUN cd /kwiver \
     -DKWIVER_PYTHON_MAJOR_VERSION=3 \
     -DKWIVER_USE_BUILD_TREE=ON \
   && make -j$(nproc) -k \
-  && make install
+  && make install \
+  && chmod +x setup_KWIVER.sh
 
-CMD [ "bash" ]
+# Configure entrypoint
+RUN echo 'source /kwiver/build/setup_KWIVER.sh' >> entrypoint.sh \
+ && echo 'kwiver $@' >> entrypoint.sh \
+ && chmod +x entrypoint.sh
+
+ENTRYPOINT [ "bash", "/entrypoint.sh" ]
+CMD [ "help" ]

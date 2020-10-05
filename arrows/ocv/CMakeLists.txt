@@ -108,9 +108,10 @@ kwiver_add_library( kwiver_algo_ocv
   ${ocv_sources}
   )
 target_link_libraries( kwiver_algo_ocv
-  PUBLIC               kwiver_algo_core
+  PUBLIC               vital_algo
                        ${OpenCV_LIBS}
   PRIVATE              kwiversys
+                       kwiver_algo_core
   )
 
 algorithms_create_plugin( kwiver_algo_ocv

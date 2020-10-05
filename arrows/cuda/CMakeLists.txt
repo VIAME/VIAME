@@ -25,8 +25,17 @@ kwiver_install_headers(
   NOPATH   SUBDIR     arrows/cuda
   )
 
-kwiver_add_library(kwiver_algo_cuda ${header_files} ${private_header_files} ${cxx_files} ${CUDA_COMPILE_O})
-target_link_libraries(kwiver_algo_cuda kwiver_algo_core ${CUDA_LIBRARIES}
+kwiver_add_library( kwiver_algo_cuda
+  ${header_files}
+  ${private_header_files}
+  ${cxx_files}
+  ${CUDA_COMPILE_O}
+  )
+
+target_link_libraries( kwiver_algo_cuda
+  PUBLIC               vital_algo
+  PRIVATE              kwiver_algo_core
+                       ${CUDA_LIBRARIES}
 )
 
 algorithms_create_plugin( kwiver_algo_cuda
