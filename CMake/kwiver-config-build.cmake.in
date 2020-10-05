@@ -1,3 +1,14 @@
+# Handle our dependencies
+set(fletch_DIR "@fletch_DIR@" CACHE PATH
+  "The directory containing a CMake configuration file for fletch."
+  )
+set(Eigen3_DIR "@Eigen3_DIR@" CACHE PATH
+  "The directory containing a CMake configuration file for Eigen3."
+  )
+
+include(CMakeFindDependencyMacro)
+find_dependency(Eigen3 NO_MODULE)
+
 # Export definitions for kwiver to be used from find_package
 include("${CMAKE_CURRENT_LIST_DIR}/kwiver-config-targets.cmake")
 
@@ -50,4 +61,3 @@ set(KWIVER_DOCUMENTATION_DIR   "@KWIVER_BINARY_DIR@/doc")
 set(KWIVER_CMAKE_DIR           "@KWIVER_CMAKE_DIR@")
 
 set(KWIVER_DIR "@KWIVER_BINARY_DIR@")
-set(fletch_DIR "@fletch_DIR@" CACHE PATH "Path to fletch package")
