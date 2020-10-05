@@ -2,7 +2,7 @@ project(arrows_test_ffmpeg)
 
 include(kwiver-test-setup)
 
-set(test_libraries     kwiver_algo_ffmpeg)
+set(test_libraries     kwiver_algo_ffmpeg kwiver_algo_core)
 
 ##############################
 # Algorithms ffmpeg tests
