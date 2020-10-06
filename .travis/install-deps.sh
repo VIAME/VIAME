@@ -34,3 +34,7 @@ else
   tar -xzf fletch.tgz -C /opt/kitware
   cp fletch.sha512 $HASH_FILE
 fi
+
+wget https://cmake.org/files/v3.15/cmake-3.15.7-Linux-x86_64.sh
+chmod +x cmake-3.15.7-Linux-x86_64.sh
+./cmake-3.15.7-Linux-x86_64.sh
