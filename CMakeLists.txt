@@ -377,6 +377,10 @@ else()  # Other Unix systems
   set(path_sep "\\072")
 endif()
 
+set(KWIVER_DEFAULT_MODULE_PATHS ""
+  CACHE STRING "The default paths for module scanning. Separate paths with ';' character." FORCE)
+mark_as_advanced( KWIVER_DEFAULT_MODULE_PATHS )
+
 # add all user supplied paths to the property
 foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
   kwiver_add_module_path( ${p} )
