@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -129,7 +129,8 @@ public:
        << "features); FAST_SCORE (value=" << cv::ORB::FAST_SCORE << ") is "
        << "alternative value of the parameter that produces slightly less "
        << "stable key-points, but it is a little faster to compute.";
-    config->set_value( "score_type", score_type, ss.str() );
+    config->set_value( "score_type", static_cast< int >( score_type ),
+                       ss.str() );
     config->set_value( "patch_size", patch_size,
                        "Size of the patch used by the oriented BRIEF "
                            "descriptor. Of course, on smaller pyramid layers "
@@ -149,7 +150,9 @@ public:
     edge_threshold = config->get_value<int>("edge_threshold");
     first_level = config->get_value<int>("first_level");
     wta_k = config->get_value<int>("wta_k");
-    score_type = config->get_value<int>("score_type");
+    score_type =
+      static_cast< decltype( score_type ) >(
+        config->get_value<int>("score_type") );
     patch_size = config->get_value<int>("patch_size");
 #ifdef KWIVER_HAS_OPENCV_VER_3
     fast_threshold = config->get_value<int>("fast_threshold");
@@ -207,7 +210,11 @@ public:
   int edge_threshold;
   int first_level;
   int wta_k;
+#ifdef KWIVER_HAS_OPENCV_VER_4
+  cv::ORB::ScoreType score_type;
+#else
   int score_type;
+#endif
   int patch_size;
 #ifdef KWIVER_HAS_OPENCV_VER_3
   int fast_threshold;

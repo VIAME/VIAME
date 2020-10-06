@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -621,7 +621,7 @@ public:
     mask.col(0) = 0;
     mask.row(mask.rows-1) = 0;
     mask.col(mask.cols-1) = 0;
-    cv::findContours(mask, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE,
+    cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE,
                      cv::Point(0, 0) );
 
     auto dot = std::make_shared< detected_object_type >();

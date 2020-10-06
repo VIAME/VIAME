@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ image_container
         cv::Mat new_color;
         new_color.create( d.rows, d.cols, d.type() );
 
-        cv::cvtColor(data_, new_color, (data_.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        cv::cvtColor(data_, new_color, (data_.channels() == 3)?cv::COLOR_BGR2RGB:cv::COLOR_BGRA2RGBA);
         data_ = new_color;
         break;
       }
@@ -215,7 +215,7 @@ image_container
         case CV_32F:
         {
           cv::Mat bgr;
-          cv::cvtColor(out, bgr, (out.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+          cv::cvtColor(out, bgr, (out.channels() == 3)?cv::COLOR_BGR2RGB:cv::COLOR_BGRA2RGBA);
           return bgr;
         }
         case CV_8S:
@@ -251,7 +251,7 @@ image_container
       case CV_32F:
       {
         cv::Mat bgr;
-        cv::cvtColor(out, bgr, (out.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        cv::cvtColor(out, bgr, (out.channels() == 3)?cv::COLOR_BGR2RGB:cv::COLOR_BGRA2RGBA);
         return bgr;
       }
       case CV_8S:
@@ -332,7 +332,7 @@ image_container_to_ocv_matrix(const vital::image_container& img, image_container
   if(const ocv::image_container* c =
           dynamic_cast<const ocv::image_container*>(&img))
   {
-    if(cm != image_container::BGR_COLOR || 
+    if(cm != image_container::BGR_COLOR ||
       result.channels() < 3 || result.channels() > 4)
     {
       //Want something other than a BGR(A) image
@@ -352,7 +352,7 @@ image_container_to_ocv_matrix(const vital::image_container& img, image_container
       case CV_8U:
       case CV_16U:
       case CV_32F:
-        cv::cvtColor(result, result, (result.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        cv::cvtColor(result, result, (result.channels() == 3)?cv::COLOR_BGR2RGB:cv::COLOR_BGRA2RGBA);
         break;
       case CV_8S:
       case CV_16S:

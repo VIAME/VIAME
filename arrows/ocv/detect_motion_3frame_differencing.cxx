@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ rms_over_channels( const cv::Mat &src, cv::Mat &dst)
 {
   cv::Mat *src_split = new cv::Mat[src.channels()];
   cv::split(src, src_split);
-  cv::Mat accum = cv::Mat(src.rows, src.cols, CV_32F, cvScalar(0));
+  cv::Mat accum = cv::Mat(src.rows, src.cols, CV_32F, cv::Scalar(0));
   for( int i=0; i<src.channels(); ++i)
   {
     cv::Mat temp;
@@ -178,7 +178,7 @@ public:
     {
       LOG_TRACE( m_logger, "Haven't collected enough frames yet, so setting "
                            "foreground mask to all zeros.");
-      fgmask = cv::Mat(cv_src.rows, cv_src.cols, CV_8UC1, cvScalar(0));
+      fgmask = cv::Mat(cv_src.rows, cv_src.cols, CV_8UC1, cv::Scalar(0));
       return;
     }
 

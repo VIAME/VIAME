@@ -99,6 +99,9 @@ set( ocv_sources
   track_features_klt.cxx
   )
 
+if( KWIVER_HAS_OPENCV_VER_4 )
+  add_definitions(-DKWIVER_HAS_OPENCV_VER_4)
+endif()
 if( KWIVER_HAS_OPENCV_VER_3 )
   add_definitions(-DKWIVER_HAS_OPENCV_VER_3)
 endif()

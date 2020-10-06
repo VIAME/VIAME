@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016, 2019 by Kitware, Inc.
+ * Copyright 2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -177,7 +177,7 @@ detect( vital::image_container_sptr image_data) const
   cv::Mat src_gray;
 
   // Convert it to gray
-  cvtColor( src, src_gray, CV_BGR2GRAY );
+  cvtColor( src, src_gray, cv::COLOR_BGR2GRAY );
 
   // Reduce the noise so we avoid false circle detection
   cv::GaussianBlur( src_gray, src_gray, cv::Size( 9, 9 ), 2, 2 );
@@ -187,7 +187,7 @@ detect( vital::image_container_sptr image_data) const
   // Apply the Hough Transform to find the circles
   cv::HoughCircles( src_gray, // i: source image
                     circles, // o: detected circles
-                    CV_HOUGH_GRADIENT, // i: method
+                    cv::HOUGH_GRADIENT, // i: method
                     d->m_dp, // i: dp
                     d->m_min_dist, //+ src_gray.rows / 8, // i: minDist
                     d->m_param1, // i: param1 for canny edge detector

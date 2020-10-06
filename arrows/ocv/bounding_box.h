@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,7 @@
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/types/bounding_box.h>
-#ifndef KWIVER_HAS_OPENCV_VER_3
-#include <opencv2/core/types_c.h>      // OCV rect
-#else
-#include <opencv2/core.hpp>            // OCV rect
-#endif
-
+#include <opencv2/core.hpp>
 
 namespace kwiver {
 namespace arrows {
@@ -60,7 +55,7 @@ namespace ocv {
  * @return Equivalent bounding box.
  */
 template <typename T>
-kwiver::vital::bounding_box<T> convert( const CvRect& vbox )
+kwiver::vital::bounding_box<T> convert( const cv::Rect& vbox )
 {
   typename kwiver::vital::bounding_box<T>::vector_type bb_tl( vbox.x, vbox.y );
   return kwiver::vital::bounding_box<T>( bb_tl, vbox.width, vbox.height );
@@ -76,14 +71,14 @@ kwiver::vital::bounding_box<T> convert( const CvRect& vbox )
  * @return Equivalent CvRect
  */
 template <typename T>
-CvRect convert(const kwiver::vital::bounding_box<T>& bbox )
+cv::Rect convert(const kwiver::vital::bounding_box<T>& bbox )
 {
   // Note that CvRect has integer values. If T is a floating type. the
   // fractions are turncated.
-  return cvRect( static_cast<int>(bbox.min_x()),
-                 static_cast<int>(bbox.min_y()),
-                 static_cast<int>(bbox.width()),
-                 static_cast<int>(bbox.height()));
+  return { static_cast< int >( bbox.min_x() ),
+           static_cast< int >( bbox.min_y() ),
+           static_cast< int >( bbox.width() ),
+           static_cast< int >( bbox.height() ) };
 }
 
 

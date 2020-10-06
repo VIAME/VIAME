@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ TEST(bounding_box, convert_bb2ocv)
 // ----------------------------------------------------------------------------
 TEST(bounding_box, convert_ocv2bb)
 {
-  CvRect vbox= cvRect( 1, 3, 10, 34 );
+  auto vbox= cv::Rect( 1, 3, 10, 34 );
   auto const& bbox = kwiver::arrows::ocv::convert<double>( vbox );
 
   EXPECT_EQ( vbox.x, bbox.min_x() );

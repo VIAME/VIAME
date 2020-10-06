@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,7 +102,8 @@ public:
       "TYPE_5_8=" << cv::FastFeatureDetector::TYPE_5_8 << ", "
       "TYPE_7_12=" << cv::FastFeatureDetector::TYPE_7_12 << ", "
       "TYPE_9_16=" << cv::FastFeatureDetector::TYPE_9_16 << ".";
-    config->set_value( "neighborhood_type", neighborhood_type , ss.str());
+    config->set_value( "neighborhood_type",
+                       static_cast< int >( neighborhood_type ), ss.str());
 #endif
 
     config->set_value("target_num_features_detected", targetNumDetections,
@@ -118,7 +119,9 @@ public:
     nonmaxSuppression = config->get_value<bool>( "nonmaxSuppression" );
 
 #ifdef KWIVER_HAS_OPENCV_VER_3
-    neighborhood_type = config->get_value<int>( "neighborhood_type" );
+    neighborhood_type =
+      static_cast< decltype( neighborhood_type ) >(
+        config->get_value<int>( "neighborhood_type" ) );
 #endif
     targetNumDetections = config->get_value<int>("target_num_features_detected");
   }
@@ -150,7 +153,11 @@ public:
   mutable int threshold;
   bool nonmaxSuppression;
 #ifdef KWIVER_HAS_OPENCV_VER_3
+#ifdef KWIVER_HAS_OPENCV_VER_4
+  cv::FastFeatureDetector::DetectorType neighborhood_type;
+#else
   int neighborhood_type;
+#endif
 #endif
   int targetNumDetections;
 };
