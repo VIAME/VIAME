@@ -129,50 +129,50 @@ function (kwiver_discover_python_tests group file)
   endforeach ()
 endfunction ()
 
-function (kwiver_add_nosetests name)
+###
+#   Adds a python module testing suite run by nosetests
+#
 
-  add_test(
-    NAME    test-${name}
-    COMMAND ${kwiver_test_runner}
-            ${ARGN})
-  set_tests_properties(test-${name}
+function (kwiver_add_nosetests name targ)
+  if (WIN32)
+    add_test(
+      NAME    test-python-${name}
+      COMMAND cmd //C "${NOSE_COM} ${kwiver_test_runner}${name}.py' '--with-xunit'\
+                                '--xunit-file=nose_results.xml'"
+              ${ARGN})
+  else()
+    add_test(
+      NAME    test-python-${name}
+      COMMAND bash -c "${NOSE_COM} ${kwiver_test_runner}${name}.py' '--with-xunit'\
+                                '--xunit-file=nose_results.xml'"
+              ${ARGN})
+  endif()
+
+  set_tests_properties(test-python-${name}
     PROPERTIES
       FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
   if (kwiver_test_working_path)
-    set_tests_properties(test-${name}
+    set_tests_properties(test-python-${name}
       PROPERTIES
       WORKING_DIRECTORY "${kwiver_test_working_path}")
   endif ()
   if (kwiver_test_environment)
-    set_tests_properties(test-${name}
+    set_tests_properties(test-python-${name}
       PROPERTIES
       ENVIRONMENT "${kwiver_test_environment}")
   endif ()
   if (KWIVER_TEST_ADD_TARGETS)
-    add_custom_target(test-${name})
+    add_custom_target(test-python-${name})
     add_custom_command(
-      TARGET  test-${name}
+      TARGET  test-python-${name}
       COMMAND ${kwiver_test_environment}
               ${kwiver_test_runner}
               "${kwiver_test_output_path}"
               ${ARGN}
       WORKING_DIRECTORY
               "${kwiver_test_working_path}"
-      COMMENT "Running test \"${name}\" instance \"${instance}\"")
-      add_dependencies(tests-${name}
-      test-${name}-${instance})
+      COMMENT "Running test \"${name}\"")
+      add_dependencies(${targ}
+      test-python-${name})
   endif ()
-  if ( PIP_COMMAND )
-    add_test(
-              NAME activate_venv
-              COMMAND ${ACTIVATE_VENV}
-            )
-    add_test(
-              NAME deactivate_venv
-              COMMAND ${DEACTIVATE_VENV}
-            )
-    set_tests_properties(activate_venv PROPERTIES FIXTURES_SETUP nosetest)
-    set_tests_properties(deactivate_venv PROPERTIES FIXTURES_CLEANUP nosetest)
-    set_tests_properties(test-${name} PROPERTIES FIXTURES_REQUIRED nosetest)
-  endif()
 endfunction()

@@ -1,0 +1,12 @@
+::
+:: Script to source to setup the KWIVER environment
+::
+
+@ECHO OFF
+setlocal EnableExtensions EnableDelayedExpansion
+set "OLDPATH=%PATH%"
+activate @VENV_DIR@
+set "outpath=!PATH:%OLDPATH%=!"
+ECHO !outpath! > @KWIVER_BINARY_DIR@/conda_venv_path.txt
+ECHO %CONDA_PREFIX% > @KWIVER_BINARY_DIR@/conda_prefix.txt
+endlocal

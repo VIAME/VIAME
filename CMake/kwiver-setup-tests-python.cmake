@@ -10,18 +10,21 @@ if (NOSE_RUNNER)
   string(TOLOWER "${CMAKE_PROJECT_NAME}" project_name)
 
   if (WIN32)
-
+    if(VENV_CREATED)
+      set(NOSE_COM "conda' 'activate' 'testing_venv' && ")
+    else()
+      set(NOSE_COM)
+    endif()
     set(kwiver_test_output_path    "${KWIVER_BINARY_DIR}/$<CONFIG>/bin" )
-
   else ()
-# update these to reflect nose -- output location may want to remain the same
-# to make dashboard submission easier
+    if(VENV_CREATED)
+      set(NOSE_COM "'source' '${KWIVER_BINARY_DIR}/testing_venv/bin/activate' && ")
+    else()
+      set(NOSE_COM)
+    endif()
     set(kwiver_test_output_path    "${KWIVER_BINARY_DIR}/tests/bin" )
-
   endif ()
   set(kwiver_test_working_path    "${CTEST_BINARY_DIRECTORY}" )
-  set(kwiver_test_runner ${NOSE_RUNNER}
-                         ${mod_dst}
-                         --with-xunit
-                         --xunit-file=nose_results.xml  )
+
+  set(kwiver_test_runner "${NOSE_RUNNER} '${mod_dst}")
 endif()

@@ -12,7 +12,7 @@ set(__testable_modnames
   test_camera_map
   test_color
   test_covariance
-  test_descriptor
+  # test_descriptor
   test_descriptor_set
   test_detected_object_type
   test_eigen_numpy
@@ -55,13 +55,11 @@ foreach (modname IN LISTS __all_modnames)
 endforeach()
 
 
-if (KWIVER_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
 
   include(kwiver-setup-tests-python)
-  if (NOSE_RUNNER)
-
-    kwiver_add_nosetests(py_vital_types)
-
-  endif()
+    foreach (test IN LISTS __testable_modnames)
+      kwiver_add_nosetests(${test} vital-type-)
+    endforeach()
 
 endif()
