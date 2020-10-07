@@ -15,7 +15,6 @@ include_directories( ${sprokit_source_dir}/src
                      )
 
 add_subdirectory( adapters )
-add_subdirectory( bindings )
 add_subdirectory( core )
 add_subdirectory( examples )
 add_subdirectory( flow )
