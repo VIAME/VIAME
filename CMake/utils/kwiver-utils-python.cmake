@@ -263,8 +263,11 @@ endfunction ()
 # wrapper around add_custom_target eventually implementing python specific logic
 #
 #
-function (python_target_add_command cmnd_name cust_command cust_args comment_)
-  add_custom_target(${cmnd_name} ALL
+function (python_target_add_command cmd_name cust_command cust_args comment_)
+  add_custom_target(${cmd_name} ALL
                     COMMAND ${cust_command} ${cust_args}
                     COMMENT ${comment_})
+  if(${ARGC} GREATER 4)
+    add_dependencies(${cmd_name} ${ARGN})
+  endif()
 endfunction()
