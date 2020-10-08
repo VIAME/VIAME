@@ -18,6 +18,9 @@ kwiver_install_headers(
   )
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --gpu-architecture sm_30)
+if (UNIX AND NOT APPLE)
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --compiler-options '-fPIC')
+endif ()
 cuda_compile( CUDA_COMPILE_O integrate_depth_maps.cu OPTIONS -G)
 
 kwiver_install_headers(
