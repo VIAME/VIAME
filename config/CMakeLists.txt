@@ -4,19 +4,19 @@ set(config_files
   core_feature_tracker.conf
   core_fmatrix_guided_feature_matcher.conf
   core_homography_guided_feature_matcher.conf
-  core_initializer.conf
   core_nonmax_detector.conf
   core_output_homography_generator.conf
   core_pca_canonical_tfm.conf
   core_track_filter.conf
   core_video_input_image_list.conf
   core_video_input_image_pos_list.conf
-  hierarchical_bundle_adjuster.conf
-  keyframe_initializer.conf
   loop_closer_bad_frames.conf
   loop_closer_homography.conf
   loop_closer_keyframe.conf
   loop_closer_multi_method.conf
+  mvg_hierarchical_bundle_adjuster.conf
+  mvg_initialize_cameras_landmarks.conf
+  mvg_initialize_cameras_landmarks_basic.conf
   ocv_klt_tracker.conf
   ocv_ORB_detector_descriptor.conf
   ocv_SURF_detector_descriptor.conf
