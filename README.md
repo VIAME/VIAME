@@ -90,6 +90,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Web Applications**: <br>
 [VIAME Online Web Annotator and Public Annotations](https://viame.kitware.com/) <br>
+[VIAME Web Local Installation Instructions](https://github.com/VIAME/VIAME-Web/blob/master/docker/README.md) <br>
 [VIAME Web Source Repository](https://github.com/VIAME/VIAME-Web)
 
 **Optional Patches:** <br>
