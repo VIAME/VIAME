@@ -28,6 +28,9 @@ Vital Plugin-loader
    groups of plugins to be loaded. In addition the build/install
    directory structure for the plugins was reorganized.
 
+ * Internal change to consolidate determining and configuring the
+   build-time plugin search paths.
+
 Vital Util
 
 Vital Logger
