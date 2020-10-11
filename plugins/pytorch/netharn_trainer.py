@@ -159,7 +159,10 @@ class NetHarnTrainer( TrainDetector ):
         if self._mode == "detector":
             if self._batch_size == "auto":
                 if len( self._aux_image_labels ) > 0:
-                    self._batch_size = "1"
+                    if gpu_memory_available >= 14e9:
+                        self._batch_size = "2"
+                    else:
+                        self._batch_size = "1"
                 elif gpu_memory_available > 9e9:
                     self._batch_size = "4"
                 elif gpu_memory_available >= 7e9:
