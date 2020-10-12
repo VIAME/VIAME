@@ -4132,7 +4132,10 @@ initialize_cameras_landmarks
   m_priv->check_inputs(tracks);
 
   auto cams = std::make_shared<simple_camera_perspective_map>();
-  cams->set_from_base_cams(cameras);
+  if(cameras)
+  {
+    cams->set_from_base_cams(cameras);
+  }
 
   if (m_priv->m_init_intrinsics_from_metadata)
   {
