@@ -32,8 +32,13 @@
 
 #include "applet_context.h"
 
+#include <vital/config/config_block_io.h>
+#include <vital/util/get_paths.h>
+
 namespace kwiver {
 namespace tools {
+
+namespace kv = ::kwiver::vital;
 
 // ----------------------------------------------------------------------------
 kwiver_applet::
@@ -45,6 +50,17 @@ kwiver_applet()
 kwiver_applet::
 ~kwiver_applet()
 {
+}
+
+// ----------------------------------------------------------------------------
+kv::config_block_sptr
+kwiver_applet::
+find_configuration( std::string const& file_name )
+{
+  std::string prefix = kv::get_executable_path() + "/..";
+  // empty application name and version means search only
+  // KWIVER configuration paths
+  return kv::read_config_file(file_name, "", "", prefix);
 }
 
 

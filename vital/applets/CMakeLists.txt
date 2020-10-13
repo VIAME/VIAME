@@ -28,6 +28,7 @@ kwiver_add_library( kwiver_tools_applet
 target_link_libraries( kwiver_tools_applet
   PUBLIC      ${VITAL_BOOST_REGEX}
               vital_util
+              vital_config
                 )
 
 
