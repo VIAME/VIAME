@@ -220,7 +220,7 @@ if (KWIVER_ENABLE_TESTS)
   # locate the python3 install to gather info for venv creation
   find_package(Python3 COMPONENTS Interpreter)
   # determine if the package is conda
-  if(Python3_INTERPRETER_ID EQUAL "Anaconda")
+  if(Python3_INTERPRETER_ID STREQUAL "Anaconda")
     # conda venvs are managed by conda package manager
     # require conda specific command
     set(CONDA 1)
