@@ -17,7 +17,6 @@ set(__testable_modnames
   test_eigen_numpy
   test_feature
   test_homography
-  test_image
   test_image_container
   test_landmark
   test_object_track_state
