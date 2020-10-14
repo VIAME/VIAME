@@ -50,6 +50,8 @@ Arrows
 
 Arrows: Core
 
+ * Updated dump-klv applet to load default configuration from a file.
+
 Arrows: Ceres
 
 Arrows: CUDA
