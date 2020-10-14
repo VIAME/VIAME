@@ -421,7 +421,6 @@ if(NOT SKBUILD)
   kwiver_create_python_init(vital/types
     types
     activity_type
-    activity
     bounding_box
     category_hierarchy
     camera
@@ -477,5 +476,7 @@ if(NOT SKBUILD)
     track_set
     uid
     object_track_set
+    # activity depends on timestamp, which must be loaded first
+    activity
   )
 endif()
