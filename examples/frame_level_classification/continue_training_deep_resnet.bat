@@ -13,6 +13,9 @@ SET KWIMAGE_DISABLE_C_EXTENSIONS=1
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
+REM Adjust log level
+SET KWIVER_DEFAULT_LOG_LEVEL=info
+
 IF EXIST "%INITIAL_MODEL%" (
   viame_train_detector.exe ^
     -i "%INPUT_DIRECTORY%" ^

@@ -5,6 +5,9 @@ SET VIAME_INSTALL=.\..\..
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
+REM Adjust log level
+SET KWIVER_DEFAULT_LOG_LEVEL=info
+
 REM Run pipeline
 viame_train_detector.exe ^
   -i training_data_habcam ^
