@@ -9,7 +9,7 @@ HASH_DIR=/opt/kitware/hashes
 mkdir -p $FLETCH_DIR
 mkdir -p $HASH_DIR
 mkdir -p $INSTALL_DIR
-
+mkdir -p $CMAKE_INSTALL_DIR
 # Make a directory to test installation of KWIVER into
 mkdir -p $HOME/install
 
@@ -35,5 +35,6 @@ else
   tar -xzf fletch.tgz -C /opt/kitware
   cp fletch.sha512 $HASH_FILE
 fi
+
 
 wget -qO- "https://cmake.org/files/v3.15/cmake-3.15.7-Linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C $CMAKE_INSTALL_DIR
