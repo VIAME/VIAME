@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,13 +52,38 @@ std::vector< std::string > split( const std::string &s, char delim )
 {
   std::stringstream ss( s );
   std::string item;
-  std::vector<std::string> elems;
+  std::vector< std::string > elems;
 
   while( std::getline( ss, item, delim ) )
   {
     elems.push_back(item);
   }
   return elems;
+}
+
+// ----------------------------------------------------------------------------
+std::vector< std::string > split( const std::string &s, std::string delims )
+{
+  std::vector< std::string > output( 1, s );
+
+  for( unsigned c = 0; c < s.size(); c++ )
+  {
+    char delim = delims[c];
+
+    std::vector< std::string > new_output;
+
+    for( auto old_string : output )
+    {
+      for( auto to_add : split( old_string, delim ) )
+      {
+        new_output.push_back( to_add );
+      }
+    }
+
+    output = new_output;
+  }
+
+  return output;
 }
 
 // ----------------------------------------------------------------------------
@@ -211,6 +236,8 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
       }
       else if( auto_discover ) // Match known formats first then rely on auto
       {
+        parts = split( name_only, "._+-" );
+
         // Okay we have not seen this timestamp type before. Can we autodetect
         // a new timestamp variant given a couple heuristics.
         std::vector< std::string > parsed_digits( 1 );
@@ -262,7 +289,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
           }
 
           // Top choice, maybe we have a date code or seconds string
-          if( eight_position > 0 )
+          if( eight_position >= 0 )
           {
             const std::string& digit8 = parsed_digits[ eight_position ];
 
@@ -274,7 +301,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
 
             kwiver::vital::time_usec_t usec = 0;
 
-            if( six_position > 0 )
+            if( six_position >= 0 )
             {
               // This might actually be a legit timestamp and not a crapshoot
               const std::string& digit6 = parsed_digits[ six_position ];
@@ -311,6 +338,11 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
           else
           {
             // Last choice, use all numbers, likely incorrect but likely unique
+            if( full_joint_number.size() > 9 )
+            {
+              full_joint_number = full_joint_number.substr( full_joint_number.size() - 9 );
+            }
+
             utc_time_usec = std::stoi( full_joint_number );
           }
         }
