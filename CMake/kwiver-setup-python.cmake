@@ -265,10 +265,11 @@ if (KWIVER_ENABLE_TESTS)
               Python tests may be run without garuntee of dependencies")
     else()
       # conda comes with a pip install so this should be flavor agnostic
-      set(PIP_UPGRADE_COMMAND "-m" "pip" "install" "--upgrade" "pip")
+      set(PIP_UPGRADE_COMMAND "-m" "pip" "-q" "install" "--upgrade" "pip")
       set(PIP_COMMAND "${Python3_EXECUTABLE}"
                       "-m"
                       "pip"
+                      "-q"
                       "install"
                       "-r"
                       "${KWIVER_SOURCE_DIR}/python/requirements.txt"
