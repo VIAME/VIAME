@@ -130,9 +130,8 @@ function (kwiver_discover_python_tests group file)
 endfunction ()
 
 ###
-#   Adds a python module testing suite run by nosetests
+# Adds a python module testing suite run by nosetests
 #
-
 function (kwiver_add_nosetests name targ)
   if (WIN32)
     add_test(

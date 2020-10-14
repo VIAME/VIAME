@@ -1,13 +1,13 @@
 # script to mimic the effects of activating a python virtualenv
 # handles two flavors of python virtualenv
 # Anaconda and Python
-function(ACTIVATE_VENV path_to_venv )
-  if( CONDA )
+function (ACTIVATE_VENV path_to_venv)
+  if (CONDA)
       # conda venv path stuff here, may need to actually call conda things
       # in the background and grab the output/info because of conda path
       # prefixing and the many different possible conda versions
       set (ENV{OLD_PATH} $ENV{PATH})
-      if( WIN32 )
+      if (WIN32)
         configure_file(
           ${KWIVER_CMAKE_DIR}/activate_venv.bat.in
           ${KWIVER_BINARY_DIR}/activate_venv.bat

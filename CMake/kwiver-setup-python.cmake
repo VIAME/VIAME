@@ -220,7 +220,7 @@ if (KWIVER_ENABLE_TESTS)
   # locate the python3 install to gather info for venv creation
   find_package(Python3 COMPONENTS Interpreter)
   # determine if the package is conda
-  if(Python3_INTERPRETER_ID STREQUAL "Anaconda")
+  if (Python3_INTERPRETER_ID STREQUAL "Anaconda")
     # conda venvs are managed by conda package manager
     # require conda specific command
     set(CONDA 1)
@@ -237,7 +237,7 @@ if (KWIVER_ENABLE_TESTS)
                     ERROR_VARIABLE create_venv_error
                   )
 
-  if(create_venv_result AND NOT create_venv_result EQUAL 0)
+  if (create_venv_result AND NOT create_venv_result EQUAL 0)
       # could not create venv, report to that effect, Nose may still be found and tests may still be run
       # but dependencies (including nose) to be met by a pip install are not garunteed
       message (WARNING "Virtualenv creation failed, Python tests may not be run or may fail unexpectedly.\
@@ -247,19 +247,19 @@ if (KWIVER_ENABLE_TESTS)
   endif()
   message(STATUS "Virtualenv creation exited with status: ${create_venv_result}")
   unset(Python3_FOUND)
-  if(VENV_CREATED)
-    if( APPLE )
+  if (VENV_CREATED)
+    if (APPLE)
       set(CMAKE_FIND_FRAMEWORK "NEVER")
-    elseif( WIN32 )
+    elseif (WIN32)
       set(Python3_FIND_REGISTRY "NEVER")
     endif()
     include("${KWIVER_SOURCE_DIR}/CMake/utils/kwiver-config-venv.cmake")
     ACTIVATE_VENV(${VENV_DIR})
     set(ENV{VIRTUAL_ENV} ${VENV_DIR})
     set(Python3_FIND_VIRTUALENV ONLY)
-    unset( Python3_EXECUTABLE)
+    unset(Python3_EXECUTABLE)
     find_package(Python3 COMPONENTS Interpreter Development)
-    if( NOT Python3_FOUND)
+    if (NOT Python3_FOUND)
       message(WARNING
               "Could not find virtualenv Python interp.\
               Python tests may be run without garuntee of dependencies")
@@ -292,9 +292,7 @@ if (KWIVER_ENABLE_TESTS)
   #
   #
 
-  if(Python3_FOUND)
-    #TODO: if this point is executed, venv is created. Need to add sourcing
-    #command to set it up
+  if (Python3_FOUND)
     set(NOSE_RUNNER "'${Python3_EXECUTABLE}' '-m' 'nose'")
     set(NOSE_LOC "${VENV_DIR}/nose")
   else()
@@ -308,7 +306,7 @@ if (KWIVER_ENABLE_TESTS)
     "nosetests")
     set(NOSE_LOC NOSE_RUNNER)
   endif()
-  if(NOSE_RUNNER)
+  if (NOSE_RUNNER)
 
     message(STATUS "Found nosetests at ${NOSE_LOC}.\n"
             "Python tests will be run if testing is enabled. noserunner: ${NOSE_RUNNER}")

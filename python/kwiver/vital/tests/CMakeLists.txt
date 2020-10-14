@@ -12,7 +12,6 @@ set(__testable_modnames
   test_camera_map
   test_color
   test_covariance
-  # test_descriptor
   test_descriptor_set
   test_detected_object_type
   test_eigen_numpy
@@ -47,7 +46,6 @@ set(__all_modnames
   )
 
 
-set(mod_dst)
 foreach (modname IN LISTS __all_modnames)
   kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/${modname}.py
     vital/tests
