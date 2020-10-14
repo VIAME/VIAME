@@ -1,3 +1,14 @@
+v0.11.3 - 10/14/2020
+====================
+
+
+-Add extra log comments to training log for verifying image reads
+
+
+-Fix filename parsing in seal-tk GUI for unknown filename types
+
+
+
 v0.11.2 - 10/4/2020
 ===================
 
