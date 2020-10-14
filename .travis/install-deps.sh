@@ -36,5 +36,5 @@ else
   cp fletch.sha512 $HASH_FILE
 fi
 
-
+echo "Downloading and installing cmake 3.15 binaries into: " $CMAKE_INSTALL_DIR
 wget -qO- "https://cmake.org/files/v3.15/cmake-3.15.7-Linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C $CMAKE_INSTALL_DIR
