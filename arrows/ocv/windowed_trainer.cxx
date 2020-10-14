@@ -496,6 +496,8 @@ windowed_trainer::priv
 
     try
     {
+      LOG_INFO( m_logger, "Loading image: " << image_fn );
+
       vital_image = m_image_io->load( image_fn );
 
       original_image = arrows::ocv::image_container::vital_to_ocv(
