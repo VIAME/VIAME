@@ -30,8 +30,6 @@
 
 #include "track_features.h"
 
-#include <vital/algo/image_io.h>
-#include <vital/algo/convert_image.h>
 #include <vital/algo/track_features.h>
 #include <vital/algo/compute_ref_homography.h>
 #include <vital/algo/video_input.h>
@@ -76,9 +74,13 @@ kwiver::vital::config_block_sptr default_config()
                     "This could be either a video file or a text file "
                     "containing new-line separated paths to sequential "
                     "image files.");
-  config->set_value("mask_list_file", "",
-                    "Optional path to an input file containing new-line "
-                    "separated paths to mask images. This list should be "
+  config->set_value("mask_source", "",
+                    "Optional path to an mask input file to be opened "
+                    "as a video. "
+                    "This could be either a video file or a text file "
+                    "containing new-line separated paths to sequential "
+                    "image files. "
+                    "This list should be "
                     "parallel in association to frames provided by the "
                     "``video_source`` video. Mask images must be the same size "
                     "as the image they are associated with.\n"
@@ -89,6 +91,8 @@ kwiver::vital::config_block_sptr default_config()
                     "This is useful if mask images read in use positive "
                     "values to indicated masked areas instead of non-masked "
                     "areas.");
+  config->set_value("use_video_metadata", true,
+                    "If true, extract metadata from the video");
   config->set_value("expect_multichannel_masks", false,
                     "A majority of the time, mask images are a single channel, "
                     "however it is feasibly possible that certain "
@@ -108,12 +112,10 @@ kwiver::vital::config_block_sptr default_config()
 
   kwiver::vital::algo::video_input::get_nested_algo_configuration("video_reader", config,
                                       kwiver::vital::algo::video_input_sptr());
+  kwiver::vital::algo::video_input::get_nested_algo_configuration("mask_reader", config,
+                                      kwiver::vital::algo::video_input_sptr());
   kwiver::vital::algo::track_features::get_nested_algo_configuration("feature_tracker", config,
                                       kwiver::vital::algo::track_features_sptr());
-  kwiver::vital::algo::image_io::get_nested_algo_configuration("image_reader", config,
-                                      kwiver::vital::algo::image_io_sptr());
-  kwiver::vital::algo::convert_image::get_nested_algo_configuration("convert_image", config,
-                                      kwiver::vital::algo::convert_image_sptr());
   kwiver::vital::algo::compute_ref_homography::get_nested_algo_configuration("output_homography_generator",
                               config, kwiver::vital::algo::compute_ref_homography_sptr());
   return config;
@@ -140,7 +142,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
       KWIVER_CONFIG_FAIL("Given output homography file is a directory! "
                         << "(Given: " << fp << ")");
     }
-    else if ( ST::GetFilenamePath( fp ) != "" &&
+    else if ( ST::GetFilenamePath( fp ) != std::string("") &&
               ! ST::FileIsDirectory( ST::GetFilenamePath( fp ) ))
     {
       KWIVER_CONFIG_FAIL("Given output homography file does not have a valid "
@@ -170,16 +172,6 @@ bool check_config(kwiver::vital::config_block_sptr config)
     }
   }
 
-  // If given an mask image list file, check that the file exists and is a file
-  if (config->has_value("mask_list_file") && config->get_value<std::string>("mask_list_file") != "" )
-  {
-    std::string mask_list_file = config->get_value<std::string>("mask_list_file");
-    if (mask_list_file != "" && ! ST::FileExists( kwiver::vital::path_t(mask_list_file), true ))
-    {
-      KWIVER_CONFIG_FAIL("mask_list_file path, " << mask_list_file << ", does not exist");
-    }
-  }
-
   if (!config->has_value("output_tracks_file") ||
       config->get_value<std::string>("output_tracks_file") == "" )
   {
@@ -195,26 +187,113 @@ bool check_config(kwiver::vital::config_block_sptr config)
   {
     KWIVER_CONFIG_FAIL("video_reader configuration check failed");
   }
+  if (!kwiver::vital::algo::video_input::check_nested_algo_configuration("mask_reader", config))
+  {
+    KWIVER_CONFIG_FAIL("mask_reader configuration check failed");
+  }
 
   if (!kwiver::vital::algo::track_features::check_nested_algo_configuration("feature_tracker", config))
   {
     KWIVER_CONFIG_FAIL("feature_tracker configuration check failed");
   }
 
-  if (!kwiver::vital::algo::image_io::check_nested_algo_configuration("image_reader", config))
-  {
-    KWIVER_CONFIG_FAIL("image_reader configuration check failed");
-  }
-
-  if (!kwiver::vital::algo::convert_image::check_nested_algo_configuration("convert_image", config))
-  {
-    KWIVER_CONFIG_FAIL("convert_image configuration check failed");
-  }
-
 #undef KWIVER_CONFIG_FAIL
 
   return config_valid;
 }
+
+// uniformly sample max_num items from in_data and add to out_data
+template <typename T>
+void uniform_subsample(std::vector<T> const& in_data,
+                       std::vector<T>& out_data, size_t max_num)
+{
+  const size_t data_size = in_data.size();
+  if (data_size <= max_num)
+  {
+    // append all the data
+    out_data.insert(out_data.end(), in_data.begin(), in_data.end());
+    return;
+  }
+
+  // select max_num distributed throughout the vector
+  for (unsigned i = 0; i < max_num; ++i)
+  {
+    size_t idx = (i * data_size) / max_num;
+    out_data.push_back(in_data[idx]);
+  }
+}
+
+// select which frames to use for tracking
+std::vector<kwiver::vital::frame_id_t>
+select_frames(std::vector<kwiver::vital::frame_id_t> const& valid_frames,
+              std::vector<kwiver::vital::frame_id_t> const& camera_frames,
+              size_t max_frames)
+{
+  std::vector<kwiver::vital::frame_id_t> selected_frames;
+  uniform_subsample(valid_frames, selected_frames, max_frames);
+
+  if (valid_frames.size() > selected_frames.size() &&
+      !camera_frames.empty())
+  {
+    auto c_itr = camera_frames.begin();
+    auto s_itr = selected_frames.begin();
+
+    // Step through each selected frame and if there is no camera data
+    // on the frame look at the frames between this selected frame and
+    // its neighbor selected frames and see if one of those frames has
+    // a camera.  If so, pick the frame with the camera data instead.
+    // This retains roughly uniformily distributed frames but gives
+    // priority to frames with camera data when nearby.
+    for (; s_itr != selected_frames.end(); ++s_itr)
+    {
+      // Find the next camera frame that is equal or greater.
+      // This is done such that *(c_itr - 1) < *s_itr and *c_itr >= *s_itr
+      for (; c_itr != camera_frames.end() && *c_itr < *s_itr; ++c_itr);
+      if (c_itr != camera_frames.end() && *c_itr == *s_itr)
+      {
+        // This selected frame already has a camera, so move on
+        continue;
+      }
+      kwiver::vital::frame_id_t new_s = -1;
+      kwiver::vital::frame_id_t diff =
+        std::numeric_limits<kwiver::vital::frame_id_t>::max();
+      // Check the previous selected frame if not at the start
+      if (s_itr != selected_frames.begin() &&
+          c_itr != camera_frames.begin() )
+      {
+        // Set a search limit half way to the previous keyframe
+        auto prev_lim = (*s_itr + *(s_itr - 1) + 1) / 2;
+        if (prev_lim <= *(c_itr - 1))
+        {
+          new_s = *(c_itr - 1);
+          diff = (*s_itr - new_s);
+        }
+      }
+      // Check the next selected frame if not at the end
+      if ((s_itr+1) != selected_frames.end() &&
+          c_itr != camera_frames.end() )
+      {
+        // Set a search limit half way to the next keyframe
+        auto next_lim = (*s_itr + *(s_itr + 1)) / 2;
+        // Use this camera frame only if within the limit and
+        // closer than the camera found above
+        if (next_lim >= *c_itr && (*c_itr - *s_itr) < diff )
+        {
+          new_s = *c_itr;
+          diff = *c_itr - *s_itr;
+        }
+      }
+      // Update the selection of a new selection was found
+      if (new_s >=0)
+      {
+        *s_itr = new_s;
+      }
+    }
+  }
+
+  return selected_frames;
+}
+
 } // end namespace
 
 // ----------------------------------------------------------------------------
@@ -255,9 +334,8 @@ run()
     // Set up top level configuration w/ defaults where applicable.
     kv::config_block_sptr config = default_config();
     kva::video_input_sptr video_reader;
+    kva::video_input_sptr mask_reader;
     kva::track_features_sptr feature_tracker;
-    kva::image_io_sptr image_reader;
-    kva::convert_image_sptr image_converter;
     kva::compute_ref_homography_sptr out_homog_generator;
 
     // If -c/--config given, read in confg file, merge in with default just generated
@@ -268,12 +346,10 @@ run()
 
     kva::video_input::set_nested_algo_configuration("video_reader", config, video_reader);
     kva::video_input::get_nested_algo_configuration("video_reader", config, video_reader);
+    kva::video_input::set_nested_algo_configuration("mask_reader", config, mask_reader);
+    kva::video_input::get_nested_algo_configuration("mask_reader", config, mask_reader);
     kva::track_features::set_nested_algo_configuration("feature_tracker", config, feature_tracker);
     kva::track_features::get_nested_algo_configuration("feature_tracker", config, feature_tracker);
-    kva::image_io::set_nested_algo_configuration("image_reader", config, image_reader);
-    kva::image_io::get_nested_algo_configuration("image_reader", config, image_reader);
-    kva::convert_image::set_nested_algo_configuration("convert_image", config, image_converter);
-    kva::convert_image::get_nested_algo_configuration("convert_image", config, image_converter);
     kva::compute_ref_homography::set_nested_algo_configuration("output_homography_generator", config, out_homog_generator);
     kva::compute_ref_homography::get_nested_algo_configuration("output_homography_generator", config, out_homog_generator);
 
@@ -301,62 +377,47 @@ run()
     // Attempt opening input and output files.
     //  - filepath validity checked above
     auto const video_source = config->get_value<std::string>("video_source");
-    auto const mask_list_file = config->get_value<std::string>("mask_list_file");
+    auto const mask_source = config->get_value<std::string>("mask_source");
     auto const invert_masks = config->get_value<bool>("invert_masks");
+    auto const use_video_metadata = config->get_value<bool>("use_video_metadata");
     auto const expect_multichannel_masks = config->get_value<bool>("expect_multichannel_masks");
     auto const output_tracks_file = config->get_value<std::string>("output_tracks_file");
+    auto const max_frames = config->get_value<unsigned int>("feature_tracker:max_frames",
+                                                              500);
 
-
+    bool hasMask = ! mask_source.empty();
     LOG_INFO( main_logger, "Reading Video" );
     video_reader->open(video_source);
-
-    // Pre-scan the video to get an accurate frame count
-    // We may wish to remove this later if we start operating on live streams
-    kv::timestamp ts;
-    std::vector<kv::timestamp> timestamps;
-    while( video_reader->next_frame(ts) )
+    if (hasMask)
     {
-      timestamps.push_back(ts);
+      mask_reader->open(mask_source);
     }
-    // close and re-open to return to the video start
-    video_reader->close();
-    video_reader->open(video_source);
 
-
-    // Create mask image list if a list file was given, else fill list with empty
-    // images. Files vector will only be populated if the use_masks bool is true
-    bool use_masks = false;
-    std::vector<kv::path_t> mask_files;
-    if( mask_list_file != "" )
+    kv::metadata_map_sptr md_map;
+    std::vector<kv::frame_id_t> valid_frames;
+    std::vector<kv::frame_id_t> camera_frames;
+    if (use_video_metadata && (md_map = video_reader->metadata_map()) &&
+        md_map->size() > 0)
     {
-      LOG_DEBUG( main_logger, "Checking paired mask images from list file" );
-
-      use_masks = true;
-      // Load file stream
-      std::ifstream mask_ifs(mask_list_file.c_str());
-      if( !mask_ifs )
-      {
-        VITAL_THROW( kv::path_not_exists, mask_list_file );
-      }
-      // load filepaths from file
-      for( std::string line; std::getline(mask_ifs, line); )
-      {
-        mask_files.push_back(line);
-        if( ! ST::FileExists( mask_files[mask_files.size()-1], true ) )
-        {
-          VITAL_THROW( kv::path_not_exists, mask_files[mask_files.size()-1] );
-        }
-      }
-      // Check that image/mask list sizes are the same
-      if( timestamps.size() != mask_files.size() )
-      {
-        VITAL_THROW( kv::invalid_value,
-                     "video and mask file lists have "
-                     "different frame counts");
-      }
-      LOG_DEBUG( main_logger,
-                 "Validated " << mask_files.size() << " mask image files." );
+      auto fs = md_map->frames();
+      valid_frames = std::vector<kwiver::vital::frame_id_t>(fs.begin(), fs.end());
+      camera_frames = valid_frames;
     }
+    else
+    {
+      auto const num_frames = static_cast<kwiver::vital::frame_id_t>(
+        video_reader->num_frames());
+      valid_frames.reserve(num_frames);
+      for (kwiver::vital::frame_id_t f = 1; f <= num_frames; ++f)
+      {
+        valid_frames.push_back(f);
+      }
+    }
+
+    std::vector<kwiver::vital::frame_id_t> selected_frames =
+      select_frames(valid_frames, camera_frames, max_frames);
+
+    kwiver::vital::timestamp currentTimestamp;
 
     // verify that we can open the output file for writing
     // so that we don't find a problem only after spending
@@ -388,23 +449,32 @@ run()
 
     // Track features on each frame sequentially
     kv::feature_track_set_sptr tracks;
-    while( video_reader->next_frame(ts) )
+    for (auto target_frame : selected_frames)
     {
-      LOG_INFO(main_logger, "processing frame "<<ts.get_frame() );
+      bool valid = true;
+      kv::frame_id_t frame = 0;
 
-      auto const image = video_reader->frame_image();
-      auto const mdv = video_reader->frame_metadata();
-      auto converted_image = image_converter->convert( image );
-      if( !mdv.empty() )
+      // step to find the next target frame
+      do
       {
-        converted_image->set_metadata( mdv[0] );
+        valid = video_reader->next_frame(currentTimestamp);
+        if (hasMask)
+        {
+          kv::timestamp dummyTimestamp;
+          valid = valid && mask_reader->next_frame(dummyTimestamp);
+        }
+        frame = currentTimestamp.get_frame();
+      } while (valid && frame < target_frame);
+      if (!valid)
+      {
+        break;
       }
 
-      // Load the mask for this image if we were given a mask image list
-      kv::image_container_sptr mask, converted_mask;
-      if( use_masks )
+      auto const image = video_reader->frame_image();
+      kv::image_container_sptr mask;
+      if( hasMask )
       {
-        mask = image_reader->load( mask_files[ts.get_frame()] );
+        mask = mask_reader->frame_image();
 
         // error out if we are not expecting a multi-channel mask
         if( !expect_multichannel_masks && mask->depth() > 1 )
@@ -432,14 +502,17 @@ run()
           mask = std::make_shared<kv::simple_image_container>( mask_image );
         }
 
-        converted_mask = image_converter->convert( mask );
+      }
+      auto const mdv = video_reader->frame_metadata();
+      if (!mdv.empty())
+      {
+        image->set_metadata(mdv[0]);
       }
 
-      tracks = feature_tracker->track(tracks, ts.get_frame(),
-                                      converted_image, converted_mask);
+      tracks = feature_tracker->track(tracks, frame, image, mask);
       if (tracks)
       {
-        tracks = kwiver::arrows::core::extract_feature_colors(tracks, *image, ts.get_frame());
+        tracks = kwiver::arrows::core::extract_feature_colors(tracks, *image, frame);
       }
 
       // Compute ref homography for current frame with current track set + write to file
@@ -447,8 +520,13 @@ run()
       if ( homog_ofs.is_open() )
       {
         LOG_DEBUG(main_logger, "writing homography");
-        homog_ofs << *(out_homog_generator->estimate(ts.get_frame(), tracks)) << std::endl;
+        homog_ofs << *(out_homog_generator->estimate(frame, tracks)) << std::endl;
       }
+    }
+    video_reader->close();
+    if (hasMask)
+    {
+      mask_reader->close();
     }
 
     if ( homog_ofs.is_open() )
