@@ -3,6 +3,7 @@ set -e
 
 INSTALL_DIR=$HOME/deps
 FLETCH_DIR=/opt/kitware/fletch
+CMAKE_INSTALL_DIR=$HOME/cmake-install
 export PATH=$INSTALL_DIR/bin:$FLETCH_DIR/bin:$PATH
 HASH_DIR=/opt/kitware/hashes
 mkdir -p $FLETCH_DIR
@@ -34,3 +35,5 @@ else
   tar -xzf fletch.tgz -C /opt/kitware
   cp fletch.sha512 $HASH_FILE
 fi
+
+wget -qO- "https://cmake.org/files/v3.15/cmake-3.15.7-Linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C $CMAKE_INSTALL_DIR
