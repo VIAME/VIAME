@@ -44,7 +44,7 @@ class KWIVER_ALGO_MVG_APPLETS_EXPORT track_features
 public:
   track_features();
 
-  PLUGIN_INFO( "track_features",
+  PLUGIN_INFO( "track-features",
                "Feature tracking utility");
 
   int run() override;
