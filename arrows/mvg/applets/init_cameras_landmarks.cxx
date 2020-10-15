@@ -75,31 +75,6 @@ typedef kwiversys::CommandLineArguments argT;
 
 kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( "init_cameras_landmarks" ) );
 
-//-------------------------------------------------------------------
-std::string
-frameName(kwiver::vital::frame_id_t frame,
-          kwiver::vital::metadata_vector const& mdv)
-{
-  using kwiver::vital::basename_from_metadata;
-  for (auto const& md : mdv)
-  {
-    if (md->has(kwiver::vital::VITAL_META_IMAGE_URI) ||
-      md->has(kwiver::vital::VITAL_META_VIDEO_URI))
-    {
-      return basename_from_metadata(md, frame);
-    }
-  }
-  return basename_from_metadata(nullptr, frame);
-}
-
-std::string
-frameName(kwiver::vital::frame_id_t frame,
-          kwiver::vital::metadata_sptr md)
-{
-  return kwiver::vital::basename_from_metadata(md, frame);
-}
-
-
 // ------------------------------------------------------------------
 kwiver::vital::config_block_sptr default_config()
 {
@@ -243,7 +218,7 @@ public:
     {
       return HELP;
     }
-    if ( cmd_args.count("config") )
+    if ( cmd_args.count("config") > 0 )
     {
       opt_config = cmd_args["config"].as<std::string>();
     }
@@ -330,6 +305,10 @@ public:
 
   void load_tracks( )
   {
+    if(config == nullptr)
+    {
+      return;
+    }
     kwiver::vital::path_t in_tracks_path =
       config->get_value<kwiver::vital::path_t>("input_tracks_file");
     feature_track_set_ptr =
@@ -391,18 +370,17 @@ public:
       GET_K_CONFIG(double, aspect_ratio),
       GET_K_CONFIG(double, skew));
 
-    auto baseCamera = simple_camera_perspective();
-    baseCamera.set_intrinsics(K);
+    auto base_camera = simple_camera_perspective();
+    base_camera.set_intrinsics(K);
     auto md = sfm_constraint_ptr->get_metadata()->metadata();
-    kwiver::vital::camera_map::map_camera_t camMap;
     if (!md.empty())
     {
-      std::map<frame_id_t, metadata_sptr> mdMap;
+      std::map<frame_id_t, metadata_sptr> md_map;
 
-      for (auto const& mdIter : md)
+      for (auto const& md_iter : md)
       {
         // TODO: just using first element of metadata vector for now
-        mdMap[mdIter.first] = mdIter.second[0];
+        md_map[md_iter.first] = md_iter.second[0];
       }
 
       bool init_cams_with_metadata =
@@ -413,7 +391,7 @@ public:
         auto im = first_frame;
         K->set_image_width(static_cast<unsigned>(im->width()));
         K->set_image_height(static_cast<unsigned>(im->height()));
-        baseCamera.set_intrinsics(K);
+        base_camera.set_intrinsics(K);
 
         bool init_intrinsics_with_metadata =
         config->get_value<bool>("initialize_intrinsics_with_metadata", true);
@@ -422,7 +400,7 @@ public:
           // find the first metadata that gives valid intrinsics
           // and put this in baseCamera as a backup for when
           // a particular metadata packet is missing data
-          for (auto mdp : mdMap)
+          for (auto mdp : md_map)
           {
             auto md_K =
               intrinsics_from_metadata(*mdp.second,
@@ -430,16 +408,18 @@ public:
                                        static_cast<unsigned>(im->height()));
             if (md_K != nullptr)
             {
-              baseCamera.set_intrinsics(md_K);
+              base_camera.set_intrinsics(md_K);
               break;
             }
           }
         }
 
         local_geo_cs lgcs = sfm_constraint_ptr->get_local_geo_cs();
-        camMap =
-          initialize_cameras_with_metadata(mdMap, baseCamera, lgcs,
+        kwiver::vital::camera_map::map_camera_t cam_map =
+          initialize_cameras_with_metadata(md_map, base_camera, lgcs,
                                            init_intrinsics_with_metadata);
+        camera_map_ptr =
+          std::make_shared<kwiver::vital::simple_camera_map>(cam_map);
 
         sfm_constraint_ptr->set_local_geo_cs(lgcs);
       }
@@ -448,7 +428,7 @@ public:
 
   bool write_cameras()
   {
-    std::string output_cameras_director =
+    std::string output_cameras_directory =
     config->get_value<std::string>("output_cameras_directory");
 
     for( auto iter: camera_map_ptr->cameras())
@@ -456,7 +436,7 @@ public:
       int fn = iter.first;
       camera_sptr cam = iter.second;
       std::string out_fname =
-        output_cameras_director + "/" + get_filename(fn) + ".krtd";
+        output_cameras_directory + "/" + get_filename(fn) + ".krtd";
       kwiver::vital::path_t out_path(out_fname);
       auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(cam);
       write_krtd_file( *cam_ptr, out_path );
@@ -532,12 +512,12 @@ public:
       auto mdv = videoMetadataMap->get_vector(frame_id);
       if (!mdv.empty())
       {
-        return frameName(frame_id, mdv);
+        return basename_from_metadata(mdv, frame_id);
       }
     }
     auto dummy_md = std::make_shared<kwiver::vital::metadata>();
     dummy_md->add<kwiver::vital::VITAL_META_VIDEO_URI>(std::string(video_name));
-    return frameName(frame_id, dummy_md);
+    return basename_from_metadata(dummy_md, frame_id);
   }
 };
 
@@ -630,9 +610,12 @@ add_command_options()
     cxxopts::value<std::string>() )
   ( "v,video", "Input video", cxxopts::value<std::string>() )
   ( "t,tracks", "Input tracks", cxxopts::value<std::string>() )
-  ( "a,carmera", "Output directory for cameras", cxxopts::value<std::string>() )
+  ( "k,camera", "Output directory for cameras", cxxopts::value<std::string>() )
   ( "l,landmarks", "Output landmarks file", cxxopts::value<std::string>() )
   ;
+
+  //If we want to remove tracks reading from the config, we should then add this
+  //m_cmd_options->parse_positional("tracks");
 }
 
 // ============================================================================
