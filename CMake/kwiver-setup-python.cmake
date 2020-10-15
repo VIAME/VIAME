@@ -225,24 +225,25 @@ if (KWIVER_ENABLE_TESTS)
     # require conda specific command
     set(CONDA 1)
     set(VENV_DIR "testing_venv")
-    set(CREATE_VENV "conda" "create" "-n" ${VENV_DIR} "pip")
+    set(CREATE_VENV "conda" "create" "-n" "${VENV_DIR}" "pip" "--yes")
   else()
     set(VENV_DIR "${KWIVER_BINARY_DIR}/testing_venv")
-    set(CREATE_VENV "python3" "-m" "venv" ${VENV_DIR} )
+    set(CREATE_VENV "python3" "-m" "venv" "${VENV_DIR}" )
   endif()
   message(STATUS "Creating virtualenv @${VENV_DIR} for testing...")
   execute_process (
                     COMMAND ${CREATE_VENV}
                     RESULT_VARIABLE create_venv_result
+                    OUTPUT_VARIABLE create_venv_error
                     ERROR_VARIABLE create_venv_error
+                    COMMAND_ECHO STDOUT
                   )
-
   if (create_venv_result AND NOT create_venv_result EQUAL 0)
       # could not create venv, report to that effect, Nose may still be found and tests may still be run
       # but dependencies (including nose) to be met by a pip install are not garunteed
-      message (WARNING "Virtualenv creation failed, Python tests may not be run or may fail unexpectedly.\
+      message (WARNING "Virtualenv creation failed. Python tests may not be run or may fail unexpectedly.\
                         Python Error: ${create_venv_error}")
-      message (WARNING "Virtualenv creation command: ${CREATE_VENV}")
+      message (WARNING "Virtualenv creation command: " ${CREATE_VENV})
   else()
     set(VENV_CREATED 1)
   endif()
