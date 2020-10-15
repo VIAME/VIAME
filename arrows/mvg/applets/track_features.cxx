@@ -309,6 +309,10 @@ run()
     auto& cmd_args = command_args();
     std::string opt_config;
     std::string opt_out_config;
+    std::string video_file;
+    std::string mask_file;
+    std::string homography_file;
+    std::string track_file;
 
     if ( cmd_args["help"].as<bool>() )
     {
@@ -319,9 +323,36 @@ run()
     {
       opt_config = cmd_args["config"].as<std::string>();
     }
-    if ( cmd_args.count("output-config") > 0 )
+    if ( cmd_args.count("output-config"))
     {
       opt_out_config = cmd_args["output-config"].as<std::string>();
+    }
+
+    if (cmd_args.count("video-file"))
+    {
+      video_file = cmd_args["video-file"].as<std::string>();
+    }
+    else
+    {
+      std::cout << "Missing video file name.\n"
+        << m_cmd_options->help();
+
+      return EXIT_FAILURE;
+    }
+
+    if (cmd_args.count("mask-file"))
+    {
+      mask_file = cmd_args["mask-file"].as<std::string>();
+    }
+
+    if (cmd_args.count("homography-file"))
+    {
+      homography_file = cmd_args["homograpahy-file"].as<std::string>();
+    }
+
+    if (cmd_args.count("track-file"))
+    {
+      track_file = cmd_args["track-file"].as<std::string>();
     }
 
     // Set config to algo chain
@@ -331,8 +362,64 @@ run()
     // If -o/--output-config given, output config result and notify of current (in)validity
     // Else error if provided config not valid.
 
-    // Set up top level configuration w/ defaults where applicable.
-    kv::config_block_sptr config = default_config();
+    // Set up top level configuration with defaults
+    auto config = this->find_configuration("applets/track_features.conf");
+
+    // choose video or image list reader based on file extension
+    auto vr_config = config->subblock_view("video_reader");
+    if (ST::GetFilenameLastExtension(video_file) == ".txt")
+    {
+      vr_config->merge_config(
+        this->find_configuration("core_image_list_video_input.conf"));
+    }
+    else
+    {
+      vr_config->merge_config(
+        this->find_configuration("ffmpeg_video_input.conf"));
+    }
+
+    // choose video or image list reader for masks based on file extension
+    auto mr_config = config->subblock_view("mask_reader");
+    if (ST::GetFilenameLastExtension(mask_file) == ".txt")
+    {
+      mr_config->merge_config(
+        this->find_configuration("core_image_list_video_input.conf"));
+    }
+    else
+    {
+      mr_config->merge_config(
+        this->find_configuration("ffmpeg_video_input.conf"));
+    }
+
+    config->set_value("video_source", video_file,
+      "Path to an input file to be opened as a video. "
+      "This could be either a video file or a text file "
+      "containing new-line separated paths to sequential "
+      "image files.");
+
+    config->set_value("output_tracks_file", track_file,
+      "Path to a file to write output tracks to. If this "
+      "file exists, it will be overwritten.");
+
+    config->set_value("mask_source", mask_file,
+      "Optional path to an mask input file to be opened "
+      "as a video. "
+      "This could be either a video file or a text file "
+      "containing new-line separated paths to sequential "
+      "image files. "
+      "This list should be "
+      "parallel in association to frames provided by the "
+      "``video_source`` video. Mask images must be the same size "
+      "as the image they are associated with.\n"
+      "\n"
+      "Leave this blank if no image masking is desired.");
+
+    config->set_value("output_homography_file", homography_file,
+      "Optional path to a file to write source-to-reference "
+      "homographies for each frame. Leave blank to disable this "
+      "output. The output_homography_generator algorithm type "
+      "only needs to be set if this is set.");
+
     kva::video_input_sptr video_reader;
     kva::video_input_sptr mask_reader;
     kva::track_features_sptr feature_tracker;
@@ -558,7 +645,14 @@ void
 track_features::
 add_command_options()
 {
-  m_cmd_options->custom_help( wrap_text( "[options]\n" ) );
+  m_cmd_options->custom_help( wrap_text(
+    "[options] video-file [track-file]\n"
+    "This program tracks feature point through a video or list of images and "
+    "produces a track file and optional homography sequence.") );
+
+  m_cmd_options->positional_help("\n  video-file  - name of input video file."
+                                 "\n  track-file  - name of output track file "
+                                 "(default: results/tracks.txt)");
 
   m_cmd_options->add_options()
     ( "h,help",     "Display applet usage" )
@@ -567,7 +661,22 @@ add_command_options()
       "Output a configuration. This may be seeded with a "
       "configuration file from -c/--config.",
       cxxopts::value<std::string>() )
+    ( "g,homography-file",
+      "An output homography file containing a sequence of homographies "
+      "aligning one frame to another estimated from the tracks.",
+      cxxopts::value<std::string>())
+    ( "m,mask-file",
+      "An input mask video or list of mask images to indicate "
+      "which pixels to ignore.",
+      cxxopts::value<std::string>())
+
+    // positional parameters
+    ("video-file", "Video input file", cxxopts::value<std::string>())
+    ("track-file", "Tracks output file", cxxopts::value<std::string>()
+                                         ->default_value("results/tracks.txt"))
     ;
+
+  m_cmd_options->parse_positional({ "video-file", "track-file" });
 }
 
 // ============================================================================
