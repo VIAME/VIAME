@@ -50,3 +50,5 @@ kwiver_install(
   COMPONENT runtime
   DESTINATION share/kwiver/${KWIVER_VERSION}/config
   )
+
+add_subdirectory(applets)

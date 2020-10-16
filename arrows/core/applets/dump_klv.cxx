@@ -54,28 +54,6 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-namespace {
-
-//+ maybe not needed
-// ------------------------------------------------------------------
-static kwiver::vital::config_block_sptr default_config()
-{
-  kwiver::vital::config_block_sptr config =
-    kwiver::vital::config_block::empty_config( "dump_klv_tool" );
-
-  config->set_value( "video_reader:type", "ffmpeg",
-                     "Implementation for video reader." );
-  config->set_value( "video_reader:vidl_ffmpeg:time_source",  "misp",
-                     "Time source for reader." );
-
-  kwiver::vital::algo::video_input::get_nested_algo_configuration(
-    "video_reader", config, kwiver::vital::algo::video_input_sptr() );
-
-  return config;
-}
-
-} // end namespace
-
 
 // ----------------------------------------------------------------------------
 void
@@ -138,12 +116,9 @@ run()
     return EXIT_FAILURE;
   }
 
-  // register the algorithm implementations
-  const std::string rel_plugin_path = kwiver::vital::get_executable_path() + "/../lib/modules";
-  kwiver::vital::plugin_manager::instance().add_search_path(rel_plugin_path);
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   kwiver::vital::algo::video_input_sptr video_reader;
-  kwiver::vital::config_block_sptr config = default_config();
+  auto config = this->find_configuration("applets/dump_klv.conf");
 
   // If --config given, read in config file, merge in with default just generated
   if( cmd_args.count("config") )

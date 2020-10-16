@@ -35,6 +35,7 @@
 #include <vital/plugin_loader/plugin_info.h>
 
 #include <vital/applets/cxxopts.hpp>
+#include <vital/config/config_block.h>
 
 #include <ostream>
 #include <memory>
@@ -70,6 +71,16 @@ public:
    * @return Application return code.
    */
   virtual int run() = 0;
+
+  /**
+   * @brief find and read a config file on the KWIVER config path
+   *
+   * Searches for a configuration file with the given file name in the current
+   * directory and on the KWIVER config search path relative to the kwiver
+   * executable location.
+   */
+  kwiver::vital::config_block_sptr
+    find_configuration(std::string const& file_name );
 
   /**
    * @brief Add command line options to parser.
