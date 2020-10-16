@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -361,11 +361,11 @@
         "Security Local Metadata Set",                                  \
         std::string,                                                    \
         "Refer to std 0102 lds" )                                       \
-  CALL( 0601_WEAPON_LOAD,                                               \
+  CALL( WEAPON_LOAD_0601,                                               \
         "Weapon Load",                                                  \
         uint64_t,                                                       \
         "Current weapons stored on aircraft" )                          \
-  CALL( 0601_WEAPON_FIRED,                                              \
+  CALL( WEAPON_FIRED_0601,                                              \
         "Weapon Fired",                                                 \
         uint64_t,                                                       \
         "Indication when a particular weapon is released. "             \

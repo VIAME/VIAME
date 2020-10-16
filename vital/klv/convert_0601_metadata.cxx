@@ -268,9 +268,9 @@ convert_metadata
 
       // Source specific metadata tags
 
-      // These are prefixed with the spec. number because the data format is specification specific.
-      CASE2( WEAPON_LOAD, 0601_WEAPON_LOAD );
-      CASE2( WEAPON_FIRED, 0601_WEAPON_FIRED );
+      // These are suffixed with the spec. number because the data format is specification specific.
+      CASE2( WEAPON_LOAD, WEAPON_LOAD_0601 );
+      CASE2( WEAPON_FIRED, WEAPON_FIRED_0601 );
 
 #undef CASE
 #undef CASE2
