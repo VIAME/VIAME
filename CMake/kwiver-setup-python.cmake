@@ -220,30 +220,45 @@ if (KWIVER_ENABLE_TESTS)
   # locate the python3 install to gather info for venv creation
   find_package(Python3 COMPONENTS Interpreter)
   # determine if the package is conda
+  set(CREATE_VENV 1)
   if (Python3_INTERPRETER_ID STREQUAL "Anaconda")
     # conda venvs are managed by conda package manager
     # require conda specific command
+    message(STATUS "Python found is: Anaconda")
     set(CONDA 1)
     set(VENV_DIR "testing_venv")
-    set(CREATE_VENV "conda" "create" "-n" "${VENV_DIR}" "pip" "--yes")
+    set(CREATE_VENV_ARG create -n ${VENV_DIR} pip --yes)
+    if (WIN32)
+      string(REPLACE "python.exe" "" CONDA_PREFIX ${Python3_EXECUTABLE})
+    else()
+      string(FIND ${Python3_EXECUTABLE} "python3" PY_EX_LOC REVERSE)
+      string(SUBSTRING ${Python3_EXECUTABLE} 0 9 CONDA_PREFIX)
+    endif()
+    find_program(CONDA_EXECUTABLE NAMES "conda" "_conda" NAMES_PER_DIR
+                 HINTS CONDA_PREFIX)
+    if (CONDA_EXECUTABLE)
+      set(CREATE_VENV_CMD CONDA_EXECUTABLE)
+    else()
+      message(WARNING "Could not find conda executable, conda env will NOT be created.")
+      unset(CREATE_VENV)
+    endif()
   else()
     set(VENV_DIR "${KWIVER_BINARY_DIR}/testing_venv")
-    set(CREATE_VENV "python3" "-m" "venv" "${VENV_DIR}" )
+    set(CREATE_VENV_CMD ${Python3_EXECUTABLE})
+    set(CREATE_VENV_ARG -m venv "${VENV_DIR}" )
   endif()
-  message(STATUS "Creating virtualenv @${VENV_DIR} for testing...")
-  execute_process (
-                    COMMAND ${CREATE_VENV}
-                    RESULT_VARIABLE create_venv_result
-                    OUTPUT_VARIABLE create_venv_error
-                    ERROR_VARIABLE create_venv_error
-                    COMMAND_ECHO STDOUT
-                  )
+  if (CREATE_VENV)
+    message(STATUS "Creating virtualenv @${VENV_DIR} for testing...")
+    execute_process (
+                      COMMAND ${CREATE_VENV_CMD} ${CREATE_VENV_ARG}
+                      RESULT_VARIABLE create_venv_result
+                      COMMAND_ECHO STDOUT
+                    )
+  endif()
   if (create_venv_result AND NOT create_venv_result EQUAL 0)
       # could not create venv, report to that effect, Nose may still be found and tests may still be run
       # but dependencies (including nose) to be met by a pip install are not garunteed
-      message (WARNING "Virtualenv creation failed. Python tests may not be run or may fail unexpectedly.\
-                        Python Error: ${create_venv_error}")
-      message (WARNING "Virtualenv creation command: " ${CREATE_VENV})
+      message (WARNING "Virtualenv creation failed. Python tests may not be run or may fail unexpectedly.")
   else()
     set(VENV_CREATED 1)
   endif()
@@ -295,7 +310,7 @@ if (KWIVER_ENABLE_TESTS)
   #
 
   if (Python3_FOUND)
-    set(NOSE_RUNNER "'${Python3_EXECUTABLE}' '-m' 'nose'")
+    set(NOSE_RUNNER "${Python3_EXECUTABLE} -m nose")
     set(NOSE_LOC "${VENV_DIR}/nose")
   else()
     find_program(NOSE_RUNNER NAMES

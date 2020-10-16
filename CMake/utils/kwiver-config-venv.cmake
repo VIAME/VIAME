@@ -6,14 +6,14 @@ function (ACTIVATE_VENV path_to_venv)
       # conda venv path stuff here, may need to actually call conda things
       # in the background and grab the output/info because of conda path
       # prefixing and the many different possible conda versions
-      set (ENV{OLD_PATH} $ENV{PATH})
+      set (ENV{OLD_PATH} "$ENV{PATH}")
       if (WIN32)
         configure_file(
           ${KWIVER_CMAKE_DIR}/activate_venv.bat.in
           ${KWIVER_BINARY_DIR}/activate_venv.bat
           @ONLY
         )
-        execute_process(COMMAND "cmd" "/c" "${KWIVER_BINARY_DIR}/activate_venv.bat")
+        execute_process(COMMAND "cmd" "/C" "${KWIVER_BINARY_DIR}/activate_venv.bat")
       else()
         configure_file(
           ${KWIVER_CMAKE_DIR}/activate_venv.sh.in
@@ -29,7 +29,7 @@ function (ACTIVATE_VENV path_to_venv)
       set(ENV{CONDA_PREFIX} "${conda_prefix}")
 
   else()
-    set (ENV{OLD_PATH} $ENV{PATH})
+    set (ENV{OLD_PATH} "$ENV{PATH}")
     if (WIN32)
         set (ENV{PATH} "${path_to_venv}/bin;$ENV{PATH}")
     else()
@@ -39,7 +39,7 @@ function (ACTIVATE_VENV path_to_venv)
 endfunction()
 
 function(DEACTIVATE_VENV)
-    set (ENV{PATH} $ENV{OLD_PATH})
+    set (ENV{PATH} "$ENV{OLD_PATH}")
     unset (ENV{OLD_PATH})
     unset (ENV{VIRTUAL_ENV})
 endfunction()
