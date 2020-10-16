@@ -59,6 +59,7 @@ script:
           -DKWIVER_ENABLE_VISCL=OFF
           -DKWIVER_ENABLE_VXL=ON
           -DKWIVER_USE_BUILD_TREE=ON
+          -DPython3_EXECUTABLE=/opt/pyenv/shims/python3
           ../
   - make -j2
   - make install
