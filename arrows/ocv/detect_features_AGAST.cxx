@@ -36,7 +36,7 @@
 #include "detect_features_AGAST.h"
 
 // Only available in OpenCV 3.x
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
 
 using namespace kwiver::vital;
 
@@ -150,7 +150,7 @@ public:
   // Parameters
   int threshold;
   bool nonmax_suppression;
-#ifdef KWIVER_HAS_OPENCV_VER_4
+#if KWIVER_OPENCV_VERSION_MAJOR >= 4
   cv::AgastFeatureDetector::DetectorType type;
 #else
   int type;
@@ -208,4 +208,4 @@ detect_features_AGAST
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif //KWIVER_HAS_OPENCV_VER_3
+#endif //KWIVER_OPENCV_VERSION_MAJOR >= 3

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,7 @@ public:
   void reset()
   {
     m_frame_count = 0;
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     bg_model = cv::createBackgroundSubtractorMOG2( m_history, m_var_threshold, false );
     bg_model->setNMixtures( m_nmixtures );
 #else
@@ -226,7 +226,7 @@ detect_motion_mog2
   }
 
   cv::Mat fgmask;
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
   d_->bg_model->apply( cv_src, fgmask, d_->m_learning_rate );
 #else
   d_->bg_model->operator()(cv_src, fgmask, d_->m_learning_rate);

@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_DETECT_FEATURES_AGAST_H_
 
 // Only available in OpenCV 3.x
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
 
 #include <arrows/ocv/detect_features.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
@@ -83,6 +83,6 @@ private:
 } // end namespace kwiver
 
 
-#endif //KWIVER_HAS_OPENCV_VER_3
+#endif //KWIVER_OPENCV_VERSION_MAJOR >= 3
 
 #endif //KWIVER_ARROWS_DETECT_FEATURES_AGAST_H_

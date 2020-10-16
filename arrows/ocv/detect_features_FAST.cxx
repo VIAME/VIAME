@@ -51,7 +51,7 @@ public:
       nonmaxSuppression(true),
       targetNumDetections(2500)
   {
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     neighborhood_type = cv::FastFeatureDetector::TYPE_9_16;
 #endif
   }
@@ -59,7 +59,7 @@ public:
   /// Create a new FAST detector instance with the current parameter values
   cv::Ptr<cv::FastFeatureDetector> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     // 2.4.x version constructor
     return cv::Ptr<cv::FastFeatureDetector>(
         new cv::FastFeatureDetector(threshold, nonmaxSuppression)
@@ -74,7 +74,7 @@ public:
   /// Update the parameters of the given detector with the currently set values
   void update(cv::Ptr<cv::FeatureDetector> detector) const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     detector->set("threshold", threshold);
     detector->set("nonmaxSuppression", nonmaxSuppression);
 #else
@@ -96,7 +96,7 @@ public:
                        "if true, non-maximum suppression is applied to "
                        "detected corners (keypoints)" );
 
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     std::stringstream ss;
     ss << "one of the three neighborhoods as defined in the paper: "
       "TYPE_5_8=" << cv::FastFeatureDetector::TYPE_5_8 << ", "
@@ -118,7 +118,7 @@ public:
     threshold = config->get_value<int>( "threshold" );
     nonmaxSuppression = config->get_value<bool>( "nonmaxSuppression" );
 
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     neighborhood_type =
       static_cast< decltype( neighborhood_type ) >(
         config->get_value<int>( "neighborhood_type" ) );
@@ -132,7 +132,7 @@ public:
   {
     bool valid = true;
 
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     // Check that the input integer is one of the valid enum values
     int nt = config->get_value<int>( "neighborhood_type" );
     if( ! ( nt == cv::FastFeatureDetector::TYPE_5_8 ||
@@ -152,8 +152,8 @@ public:
 
   mutable int threshold;
   bool nonmaxSuppression;
-#ifdef KWIVER_HAS_OPENCV_VER_3
-#ifdef KWIVER_HAS_OPENCV_VER_4
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 4
   cv::FastFeatureDetector::DetectorType neighborhood_type;
 #else
   int neighborhood_type;

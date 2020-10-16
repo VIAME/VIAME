@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,13 +56,13 @@ public:
       min_margin( 0.003 ),
       edge_blur_size( 5 )
   {
-    #ifdef KWIVER_HAS_OPENCV_VER_3
+    #if KWIVER_OPENCV_VERSION_MAJOR >= 3
     pass2only = false;
     #endif
   }
 
   cv::Ptr<cv::MSER> create() const {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     // 2.4.x version constructor
     return cv::Ptr<cv::MSER>(
         new cv::MSER( delta, min_area, max_area, max_variation,
@@ -106,7 +106,7 @@ public:
                        "For color images, ignore too-small regions." );
     config->set_value( "edge_blur_size", edge_blur_size,
                        "For color images, the aperture size for edge blur" );
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     config->set_value( "pass2only", pass2only, "Undocumented" );
 #endif
   }
@@ -123,7 +123,7 @@ public:
     area_threshold = c->get_value<double>("area_threshold");
     min_margin = c->get_value<double>("min_margin");
     edge_blur_size = c->get_value<int>("edge_blur_size");
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     pass2only = c->get_value<bool>("pass2only");
 #endif
   }
@@ -156,7 +156,7 @@ public:
   double area_threshold;
   double min_margin;
   int edge_blur_size;
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
   bool pass2only;
 #endif
 };

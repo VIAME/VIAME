@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016, 2019 by Kitware, Inc.
+ * Copyright 2013-2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ public:
   virtual void* data() { return this->mat_data_; }
 
   /// Return the OpenCV reference counter
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   int* get_ref_counter() const { return this->mat_refcount_; }
 #else
   cv::UMatData* get_umatdata() const { return this->u_; }
@@ -74,7 +74,7 @@ protected:
   unsigned char* mat_data_;
 
   /// The ref count shared with cv::Mat
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   int* mat_refcount_;
 #else
   cv::UMatData *u_;

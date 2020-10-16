@@ -116,7 +116,7 @@ image_container
   // counted reference too it.  If it doesn't own its memory, then the
   // vital image won't take ownership either
   image_memory_sptr memory;
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   if ( img.refcount )
 #else
   if ( img.u )
@@ -192,7 +192,7 @@ image_container
           dynamic_cast<mat_image_memory*>(memory.get()) )
     {
       // extract the existing reference counter from the VITAL wrapper
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
       out.refcount = mat_memory->get_ref_counter();
 #else
       out.u = mat_memory->get_umatdata();

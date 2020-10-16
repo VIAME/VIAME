@@ -15,12 +15,14 @@ if( KWIVER_ENABLE_OPENCV )
     if( OpenCV_VERSION VERSION_GREATER "4.0" OR
         OpenCV_VERSION VERSION_EQUAL "4.0")
       message(STATUS "Found OPENCV 4.x")
-      set (KWIVER_HAS_OPENCV_VER_3 True)
-      set (KWIVER_HAS_OPENCV_VER_4 True)
+      set (KWIVER_OPENCV_VERSION_MAJOR 4)
     elseif( OpenCV_VERSION VERSION_GREATER "3.0" OR
-        OpenCV_VERSION VERSION_EQUAL "3.0")
+            OpenCV_VERSION VERSION_EQUAL "3.0")
       message(STATUS "Found OPENCV 3.x")
-      set (KWIVER_HAS_OPENCV_VER_3 True)
+      set (KWIVER_OPENCV_VERSION_MAJOR 3)
+    else()
+      message(STATUS "Found OPENCV 2.x")
+      set (KWIVER_OPENCV_VERSION_MAJOR 2)
     endif()
 
   else()

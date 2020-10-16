@@ -99,16 +99,12 @@ set( ocv_sources
   track_features_klt.cxx
   )
 
-if( KWIVER_HAS_OPENCV_VER_4 )
-  add_definitions(-DKWIVER_HAS_OPENCV_VER_4)
-endif()
-if( KWIVER_HAS_OPENCV_VER_3 )
-  add_definitions(-DKWIVER_HAS_OPENCV_VER_3)
-endif()
-
 kwiver_add_library( kwiver_algo_ocv
   ${ocv_headers_public}
   ${ocv_sources}
+  )
+target_compile_definitions( kwiver_algo_ocv
+  PUBLIC KWIVER_OPENCV_VERSION_MAJOR=${KWIVER_OPENCV_VERSION_MAJOR}
   )
 target_link_libraries( kwiver_algo_ocv
   PUBLIC               kwiver_algo_core

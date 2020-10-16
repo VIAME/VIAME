@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2015, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,13 +53,13 @@ namespace ocv
 mat_image_memory
 ::mat_image_memory(const cv::Mat& m)
 : mat_data_( const_cast<unsigned char*>(m.datastart) ),
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   mat_refcount_(m.refcount)
 #else
   u_( m.u )
 #endif
 {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   if ( this->mat_refcount_ )
   {
     CV_XADD(this->mat_refcount_, 1);
@@ -78,7 +78,7 @@ mat_image_memory
 mat_image_memory
 ::~mat_image_memory()
 {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   if( this->mat_refcount_ && CV_XADD(this->mat_refcount_, -1) == 1 )
 #else
   if( u_ && CV_XADD( &u_->refcount, -1 ) == 1 )
