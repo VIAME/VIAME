@@ -45,7 +45,7 @@ public:
   init_cameras_landmarks();
   virtual ~init_cameras_landmarks();
 
-  PLUGIN_INFO( "init_cameras_landmarks",
+  PLUGIN_INFO( "init-cameras-landmarks",
                "Estimate cameras and landmarks from a set of feature tracks");
 
   virtual int run() override;
