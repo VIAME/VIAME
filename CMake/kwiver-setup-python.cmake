@@ -276,7 +276,7 @@ if (KWIVER_ENABLE_TESTS)
         # conda comes with a pip install so this should be flavor agnostic
         set(PIP_COMMAND "${Python3_EXECUTABLE}" "-m" "pip" "-q")
         set(PIP_UPGRADE_COMMAND ${PIP_COMMAND} "install" "--upgrade" "pip")
-        set(PIP_INSTALL_COMMAND ${PIP_COMMAND}
+        set(PIP_INSTALL_TEST_DEPS_COMMAND ${PIP_COMMAND}
                         "install"
                         "-r"
                         "${KWIVER_SOURCE_DIR}/python/requirements.txt"
