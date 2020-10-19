@@ -4,7 +4,7 @@ if (KWIVER_ENABLE_TESTS)
         python_target_add_command( "pip-install-upgrade"
                                    "${PIP_UPGRADE_COMMAND}"
                                    "Upgrading pip...")
-        python_target_add_command( "pip"
+        python_target_add_command( "pip-install-test-deps"
                                    "${PIP_INSTALL_COMMAND}"
                                    "Pip installing Python dependencies..."
                                    "pip-install-upgrade")
