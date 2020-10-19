@@ -624,4 +624,8 @@ init_cameras_landmarks()
  : d(new priv)
 { }
 
+init_cameras_landmarks::
+~init_cameras_landmarks() = default;
+
+
 } } } // end namespace

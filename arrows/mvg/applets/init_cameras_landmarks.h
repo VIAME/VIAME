@@ -43,6 +43,7 @@ class KWIVER_ALGO_MVG_APPLETS_EXPORT init_cameras_landmarks
 {
 public:
   init_cameras_landmarks();
+  virtual ~init_cameras_landmarks();
 
   PLUGIN_INFO( "init_cameras_landmarks",
                "Estimate cameras and landmarks from a set of feature tracks");
