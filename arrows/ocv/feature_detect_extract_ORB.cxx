@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public:
      , wta_k( 2 )
      , score_type( cv::ORB::HARRIS_SCORE )
      , patch_size( 31 )
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
      , fast_threshold( 20 )
 #endif
   {
@@ -67,7 +67,7 @@ public:
   /// Create new impl instance based on current parameters
   cv::Ptr<cv::ORB> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv::ORB>(
        new cv::ORB( n_features, scale_factor, n_levels, edge_threshold,
                             first_level, wta_k, score_type, patch_size )
@@ -129,13 +129,14 @@ public:
        << "features); FAST_SCORE (value=" << cv::ORB::FAST_SCORE << ") is "
        << "alternative value of the parameter that produces slightly less "
        << "stable key-points, but it is a little faster to compute.";
-    config->set_value( "score_type", score_type, ss.str() );
+    config->set_value( "score_type", static_cast< int >( score_type ),
+                       ss.str() );
     config->set_value( "patch_size", patch_size,
                        "Size of the patch used by the oriented BRIEF "
                            "descriptor. Of course, on smaller pyramid layers "
                            "the perceived image area covered by a feature will "
                            "be larger." );
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     config->set_value( "fast_threshold", fast_threshold, "Undocumented" );
 #endif
   }
@@ -149,9 +150,11 @@ public:
     edge_threshold = config->get_value<int>("edge_threshold");
     first_level = config->get_value<int>("first_level");
     wta_k = config->get_value<int>("wta_k");
-    score_type = config->get_value<int>("score_type");
+    score_type =
+      static_cast< decltype( score_type ) >(
+        config->get_value<int>("score_type") );
     patch_size = config->get_value<int>("patch_size");
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     fast_threshold = config->get_value<int>("fast_threshold");
 #endif
   }
@@ -178,7 +181,7 @@ public:
   /// Update algo with current parameter values
   void update_algo(cv::Ptr<cv::ORB> orb) const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     orb->set( "nFeatures", n_features );
     orb->set( "scaleFactor", scale_factor );
     orb->set( "nLevels", n_levels );
@@ -207,9 +210,13 @@ public:
   int edge_threshold;
   int first_level;
   int wta_k;
+#if KWIVER_OPENCV_VERSION_MAJOR >= 4
+  cv::ORB::ScoreType score_type;
+#else
   int score_type;
+#endif
   int patch_size;
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
   int fast_threshold;
 #endif
 };
@@ -261,7 +268,7 @@ detect_features_ORB
   config_block_sptr c = get_configuration();
   c->merge_config(config);
   p_->set_configuration(c);
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update_algo( detector );
 #else
   p_->update_algo( detector.dynamicCast<cv::ORB>() );
@@ -311,7 +318,7 @@ extract_descriptors_ORB
   config_block_sptr c = get_configuration();
   c->merge_config(config);
   p_->set_configuration(c);
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update_algo( extractor );
 #else
   p_->update_algo( extractor.dynamicCast<cv::ORB>() );

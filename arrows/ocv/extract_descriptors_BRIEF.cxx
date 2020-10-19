@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,11 @@
 
 #include "extract_descriptors_BRIEF.h"
 
-#if ! defined(KWIVER_HAS_OPENCV_VER_3) || defined(HAVE_OPENCV_XFEATURES2D)
+#if KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)
 
 #include <sstream>
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
 typedef cv::BriefDescriptorExtractor cv_BRIEF_t;
 #else
 #include <opencv2/xfeatures2d.hpp>
@@ -59,7 +59,7 @@ public:
   /// Constructor
   priv()
     : bytes( 32 )
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     , use_orientation( false )
 #endif
   {
@@ -68,14 +68,14 @@ public:
   /// Create new algorithm instance using current parameter values
   cv::Ptr<cv_BRIEF_t> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv_BRIEF_t>( new cv_BRIEF_t(bytes) );
 #else
     return cv_BRIEF_t::create( bytes, use_orientation );
 #endif
   }
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   /// Update given algorithm using current parameter values
   void update(cv::Ptr<cv_BRIEF_t> descriptor) const
   {
@@ -88,7 +88,7 @@ public:
     config->set_value( "bytes", bytes,
                        "Length of descriptor in bytes. It can be equal 16, 32 "
                        "or 64 bytes." );
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     config->set_value( "use_orientation", use_orientation,
                        "sample patterns using keypoints orientation, disabled "
                        "by default." );
@@ -98,7 +98,7 @@ public:
   void set_config( config_block_sptr config )
   {
     bytes = config->get_value<int>( "bytes" );
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     use_orientation = config->get_value<bool>( "use_orientation" );
 #endif
   }
@@ -121,7 +121,7 @@ public:
 
   // Parameters
   int bytes;
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
   bool use_orientation;
 #endif
 };
@@ -163,7 +163,7 @@ extract_descriptors_BRIEF
   c->merge_config( config );
   p_->set_config( c );
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( extractor );
 #else
   extractor = p_->create();

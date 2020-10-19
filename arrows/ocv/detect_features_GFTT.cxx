@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public:
   /// Create a new GFTT detector instance with the current parameter values
   cv::Ptr<cv::GFTTDetector> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv::GFTTDetector>(
       new cv::GFTTDetector( max_corners, quality_level, min_distance,
                             block_size, use_harris_detector, k )
@@ -70,7 +70,7 @@ public:
 #endif
   }
 
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
   /// Update the parameters of the given detector with the currently set values
   /**
    * Returns false if the algo could not be updating, requiring recreation.
@@ -151,7 +151,7 @@ detect_features_GFTT
   config_block_sptr c = get_configuration();
   c->merge_config( config );
   p_->set_config( c );
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   // since 2.4.x does not have params set for everything that's given to the
   // constructor, lets just remake the algo instance.
   detector = p_->create();

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 
 // Include the correct file and unify different namespace locations of SURF type
 // across versions
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
 // 2.4.x header location
 #include <opencv2/nonfree/features2d.hpp>
 typedef cv::SURF cv_SURF_t;
@@ -77,7 +77,7 @@ public:
   // Create new algorithm instance from current parameters
   cv::Ptr<cv_SURF_t> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv_SURF_t>(
       new cv_SURF_t( hessian_threshold, n_octaves, n_octave_layers,
                      extended, upright  )
@@ -88,7 +88,7 @@ public:
 #endif
   }
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   // Update algorithm with current parameter
   void update( cv::Ptr<cv_SURF_t> a ) const
   {
@@ -186,7 +186,7 @@ detect_features_SURF
   c->merge_config( config );
   p_->set_config( c );
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( detector );
 #else
   // Create a new detector rather than update on version 3.
@@ -237,7 +237,7 @@ extract_descriptors_SURF
   c->merge_config( config );
   p_->set_config( c );
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( extractor );
 #else
   // Create a new detector rather than update on version 3.

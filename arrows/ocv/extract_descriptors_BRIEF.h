@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_EXTRACT_DESCRIPTORS_BRIEF_H_
 
 #include <opencv2/opencv_modules.hpp>
-#if ! defined(KWIVER_HAS_OPENCV_VER_3) || defined(HAVE_OPENCV_XFEATURES2D)
+#if KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)
 
 #include <vital/algo/extract_descriptors.h>
 

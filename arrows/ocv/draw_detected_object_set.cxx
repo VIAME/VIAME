@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -194,7 +194,7 @@ public:
 
       cv::Size text = cv::getTextSize( txt, fontface, scale, thickness, &baseline );
       cv::rectangle( overlay, pt + cv::Point( 0, baseline ), pt +
-                     cv::Point( text.width, -text.height ), cv::Scalar( 0, 0, 0 ), CV_FILLED );
+                     cv::Point( text.width, -text.height ), cv::Scalar( 0, 0, 0 ), cv::FILLED );
 
       cv::putText( overlay, txt, pt, fontface, scale, cv::Scalar( 255, 255, 255 ), thickness, 8 );
     }

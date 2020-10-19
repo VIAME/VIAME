@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,7 +149,7 @@ estimate_fundamental_matrix
 
   cv::Mat inliers_mat;
   cv::Mat F = cv::findFundamentalMat( cv::Mat(points1), cv::Mat(points2),
-                                      CV_FM_RANSAC,
+                                      cv::FM_RANSAC,
                                       inlier_scale,
                                       d_->confidence_threshold,
                                       inliers_mat );

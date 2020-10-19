@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,9 @@
 
 #include "detect_features_STAR.h"
 
-#if ! defined(KWIVER_HAS_OPENCV_VER_3) || defined(HAVE_OPENCV_XFEATURES2D)
+#if KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
 typedef cv::StarDetector cv_STAR_t;
 #else
 #include <opencv2/xfeatures2d.hpp>
@@ -65,7 +65,7 @@ public:
 
   cv::Ptr<cv_STAR_t> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv_STAR_t>(
       new cv_STAR_t( max_size, response_threshold, line_threshold_projected,
                      line_threshold_binarized, suppress_nonmax_size )
@@ -77,7 +77,7 @@ public:
 #endif
   }
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   void update( cv::Ptr<cv_STAR_t> a ) const
   {
     a->set( "maxSize", max_size );
@@ -147,7 +147,7 @@ detect_features_STAR
   config_block_sptr c = get_configuration();
   c->merge_config( config );
   p_->set_config( c );
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( detector );
 #else
   detector = p_->create();

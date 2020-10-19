@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 #include "detect_features_AGAST.h"
 
 // Only available in OpenCV 3.x
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
 
 using namespace kwiver::vital;
 
@@ -116,7 +116,7 @@ public:
     config->set_value( "nonmax_suppression", nonmax_suppression,
                        "if true, non-maximum suppression is applied to "
                        "detected corners (keypoints)" );
-    config->set_value( "type", type,
+    config->set_value( "type", static_cast< int >( type ),
                        "Neighborhood pattern type. Should be one of the "
                        "following enumeration type values:\n"
                        + list_agast_types() + " (default)" );
@@ -127,7 +127,7 @@ public:
   {
     threshold = config->get_value<int>( "threshold" );
     nonmax_suppression = config->get_value<bool>( "nonmax_suppression" );
-    type = config->get_value<int>( "type" );
+    type = static_cast< decltype( type ) >( config->get_value<int>( "type" ) );
   }
 
   /// Check config parameter values
@@ -150,7 +150,11 @@ public:
   // Parameters
   int threshold;
   bool nonmax_suppression;
+#if KWIVER_OPENCV_VERSION_MAJOR >= 4
+  cv::AgastFeatureDetector::DetectorType type;
+#else
   int type;
+#endif
 };
 
 
@@ -204,4 +208,4 @@ detect_features_AGAST
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif //KWIVER_HAS_OPENCV_VER_3
+#endif //KWIVER_OPENCV_VERSION_MAJOR >= 3

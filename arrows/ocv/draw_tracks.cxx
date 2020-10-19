@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -370,7 +370,7 @@ draw_tracks
     // Convert to 3 channel image if not one already
     if( img.channels() == 1 )
     {
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
       cv::cvtColor( img, img, cv::COLOR_GRAY2BGR );
 #else
       cv::cvtColor( img, img, CV_GRAY2BGR );

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,10 +35,10 @@
 
 #include "extract_descriptors_FREAK.h"
 
-#if ! defined(KWIVER_HAS_OPENCV_VER_3) || defined(HAVE_OPENCV_XFEATURES2D)
+#if KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)
 
 // typedef FREAK into a common symbol
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
 typedef cv::FREAK cv_FREAK_t;
 #else
 #include <opencv2/xfeatures2d.hpp>
@@ -65,7 +65,7 @@ public:
   /// Create new cv::Ptr algo instance
   cv::Ptr<cv_FREAK_t> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv_FREAK_t>(
         new cv_FREAK_t( orientation_normalized, scale_normalized, pattern_scale,
                         n_octaves )
@@ -76,7 +76,7 @@ public:
 #endif
   }
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   /// Update algorithm instance with current parameter values
   void update( cv::Ptr<cv_FREAK_t> freak ) const
   {
@@ -151,7 +151,7 @@ extract_descriptors_FREAK
   vital::config_block_sptr c = get_configuration();
   c->merge_config( config );
   p_->set_config( c );
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( extractor );
 #else
   extractor = p_->create();
@@ -171,4 +171,4 @@ extract_descriptors_FREAK
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif //! defined(KWIVER_HAS_OPENCV_VER_3) || defined(HAVE_OPENCV_XFEATURES2D)
+#endif //KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 
 // Include the correct file and unify different namespace locations of SIFT type
 // across versions
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
 // 2.4.x header location
 #include <opencv2/nonfree/features2d.hpp>
 typedef cv::SIFT cv_SIFT_t;
@@ -77,7 +77,7 @@ public:
   // Create new algorithm instance from current parameters
   cv::Ptr<cv_SIFT_t> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv_SIFT_t>(
       new cv_SIFT_t( n_features, n_octave_layers, contrast_threshold,
                      edge_threshold, sigma )
@@ -88,7 +88,7 @@ public:
 #endif
   }
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   // Update algorithm with current parameter, 2.4.x only
   void update( cv::Ptr<cv_SIFT_t> a ) const
   {
@@ -195,7 +195,7 @@ detect_features_SIFT
   c->merge_config( config );
   p_->set_config( c );
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( detector );
 #else
   // version 3.x doesn't have parameter update methods
@@ -244,7 +244,7 @@ extract_descriptors_SIFT
   config_block_sptr c = get_configuration();
   c->merge_config(config);
   p_->set_config(c);
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( extractor );
 #else
   extractor = p_->create();
