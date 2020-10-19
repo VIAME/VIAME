@@ -4,12 +4,14 @@ set(config_files
   core_feature_tracker.conf
   core_fmatrix_guided_feature_matcher.conf
   core_homography_guided_feature_matcher.conf
+  core_image_list_video_input.conf
   core_nonmax_detector.conf
   core_output_homography_generator.conf
   core_pca_canonical_tfm.conf
   core_track_filter.conf
   core_video_input_image_list.conf
   core_video_input_image_pos_list.conf
+  ffmpeg_video_input.conf
   loop_closer_bad_frames.conf
   loop_closer_homography.conf
   loop_closer_keyframe.conf

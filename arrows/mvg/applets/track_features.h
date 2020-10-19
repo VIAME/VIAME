@@ -43,12 +43,17 @@ class KWIVER_ALGO_MVG_APPLETS_EXPORT track_features
 {
 public:
   track_features();
+  virtual ~track_features();
 
-  PLUGIN_INFO( "track_features",
+  PLUGIN_INFO( "track-features",
                "Feature tracking utility");
 
   int run() override;
   void add_command_options() override;
+
+private:
+  class priv;
+  const std::unique_ptr<priv> d;
 
 }; // end of class
 

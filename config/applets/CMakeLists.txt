@@ -1,5 +1,6 @@
 set(config_files
   dump_klv.conf
+  track_features.conf
   )
 
 # Ensure target directory exists

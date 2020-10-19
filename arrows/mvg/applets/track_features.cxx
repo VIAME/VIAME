@@ -56,74 +56,22 @@ namespace kwiver {
 namespace arrows {
 namespace mvg {
 
+namespace kv = ::kwiver::vital;
+namespace kva = ::kwiver::vital::algo;
+
 
 namespace {
 
 typedef kwiversys::SystemTools ST;
 typedef kwiversys::CommandLineArguments argT;
 
-kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( "track_features_tool" ) );
+kv::logger_handle_t main_logger( kv::get_logger( "track_features_applet" ) );
 
-// ------------------------------------------------------------------
-kwiver::vital::config_block_sptr default_config()
-{
-  kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config("feature_tracker_tool");
 
-  config->set_value("video_source", "",
-                    "Path to an input file to be opened as a video. "
-                    "This could be either a video file or a text file "
-                    "containing new-line separated paths to sequential "
-                    "image files.");
-  config->set_value("mask_source", "",
-                    "Optional path to an mask input file to be opened "
-                    "as a video. "
-                    "This could be either a video file or a text file "
-                    "containing new-line separated paths to sequential "
-                    "image files. "
-                    "This list should be "
-                    "parallel in association to frames provided by the "
-                    "``video_source`` video. Mask images must be the same size "
-                    "as the image they are associated with.\n"
-                    "\n"
-                    "Leave this blank if no image masking is desired.");
-  config->set_value("invert_masks", false,
-                    "If true, all mask images will be inverted after loading. "
-                    "This is useful if mask images read in use positive "
-                    "values to indicated masked areas instead of non-masked "
-                    "areas.");
-  config->set_value("use_video_metadata", true,
-                    "If true, extract metadata from the video");
-  config->set_value("expect_multichannel_masks", false,
-                    "A majority of the time, mask images are a single channel, "
-                    "however it is feasibly possible that certain "
-                    "implementations may use multi-channel masks. If this is "
-                    "true we will expect multiple-channel mask images, "
-                    "warning when a single-channel mask is provided. If this "
-                    "is false we error upon seeing a multi-channel mask "
-                    "image.");
-  config->set_value("output_tracks_file", "",
-                    "Path to a file to write output tracks to. If this "
-                    "file exists, it will be overwritten.");
-  config->set_value("output_homography_file", "",
-                    "Optional path to a file to write source-to-reference "
-                    "homographies for each frame. Leave blank to disable this "
-                    "output. The output_homography_generator algorithm type "
-                    "only needs to be set if this is set.");
-
-  kwiver::vital::algo::video_input::get_nested_algo_configuration("video_reader", config,
-                                      kwiver::vital::algo::video_input_sptr());
-  kwiver::vital::algo::video_input::get_nested_algo_configuration("mask_reader", config,
-                                      kwiver::vital::algo::video_input_sptr());
-  kwiver::vital::algo::track_features::get_nested_algo_configuration("feature_tracker", config,
-                                      kwiver::vital::algo::track_features_sptr());
-  kwiver::vital::algo::compute_ref_homography::get_nested_algo_configuration("output_homography_generator",
-                              config, kwiver::vital::algo::compute_ref_homography_sptr());
-  return config;
-}
 
 
 // ------------------------------------------------------------------
-bool check_config(kwiver::vital::config_block_sptr config)
+bool check_config(kv::config_block_sptr config)
 {
   bool config_valid = true;
 
@@ -136,7 +84,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
   if ( config->has_value("output_homography_file")
     && config->get_value<std::string>("output_homography_file") != "" )
   {
-    kwiver::vital::config_path_t fp = config->get_value<kwiver::vital::config_path_t>("output_homography_file");
+    kv::config_path_t fp = config->get_value<kv::config_path_t>("output_homography_file");
     if ( kwiversys::SystemTools::FileIsDirectory( fp ) )
     {
       KWIVER_CONFIG_FAIL("Given output homography file is a directory! "
@@ -150,7 +98,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
     }
 
     // Check that compute_ref_homography algo is correctly configured
-    if( !kwiver::vital::algo::compute_ref_homography
+    if( !kv::algo::compute_ref_homography
              ::check_nested_algo_configuration("output_homography_generator",
                                                config) )
     {
@@ -166,7 +114,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
   else
   {
     std::string path = config->get_value<std::string>("video_source");
-    if ( ! ST::FileExists( kwiver::vital::path_t(path), true ) )
+    if ( ! ST::FileExists( kv::path_t(path), true ) )
     {
       KWIVER_CONFIG_FAIL("video_source path, " << path << ", does not exist or is not a regular file");
     }
@@ -178,21 +126,21 @@ bool check_config(kwiver::vital::config_block_sptr config)
     KWIVER_CONFIG_FAIL("Config needs value output_tracks_file");
   }
   else if ( ! ST::FileIsDirectory( ST::CollapseFullPath( ST::GetFilenamePath(
-              config->get_value<kwiver::vital::path_t>("output_tracks_file") ) ) ) )
+              config->get_value<kv::path_t>("output_tracks_file") ) ) ) )
   {
     KWIVER_CONFIG_FAIL("output_tracks_file is not in a valid directory");
   }
 
-  if (!kwiver::vital::algo::video_input::check_nested_algo_configuration("video_reader", config))
+  if (!kv::algo::video_input::check_nested_algo_configuration("video_reader", config))
   {
     KWIVER_CONFIG_FAIL("video_reader configuration check failed");
   }
-  if (!kwiver::vital::algo::video_input::check_nested_algo_configuration("mask_reader", config))
+  if (!kv::algo::video_input::check_nested_algo_configuration("mask_reader", config))
   {
     KWIVER_CONFIG_FAIL("mask_reader configuration check failed");
   }
 
-  if (!kwiver::vital::algo::track_features::check_nested_algo_configuration("feature_tracker", config))
+  if (!kv::algo::track_features::check_nested_algo_configuration("feature_tracker", config))
   {
     KWIVER_CONFIG_FAIL("feature_tracker configuration check failed");
   }
@@ -224,12 +172,12 @@ void uniform_subsample(std::vector<T> const& in_data,
 }
 
 // select which frames to use for tracking
-std::vector<kwiver::vital::frame_id_t>
-select_frames(std::vector<kwiver::vital::frame_id_t> const& valid_frames,
-              std::vector<kwiver::vital::frame_id_t> const& camera_frames,
+std::vector<kv::frame_id_t>
+select_frames(std::vector<kv::frame_id_t> const& valid_frames,
+              std::vector<kv::frame_id_t> const& camera_frames,
               size_t max_frames)
 {
-  std::vector<kwiver::vital::frame_id_t> selected_frames;
+  std::vector<kv::frame_id_t> selected_frames;
   uniform_subsample(valid_frames, selected_frames, max_frames);
 
   if (valid_frames.size() > selected_frames.size() &&
@@ -254,9 +202,9 @@ select_frames(std::vector<kwiver::vital::frame_id_t> const& valid_frames,
         // This selected frame already has a camera, so move on
         continue;
       }
-      kwiver::vital::frame_id_t new_s = -1;
-      kwiver::vital::frame_id_t diff =
-        std::numeric_limits<kwiver::vital::frame_id_t>::max();
+      kv::frame_id_t new_s = -1;
+      kv::frame_id_t diff =
+        std::numeric_limits<kv::frame_id_t>::max();
       // Check the previous selected frame if not at the start
       if (s_itr != selected_frames.begin() &&
           c_itr != camera_frames.begin() )
@@ -296,101 +244,225 @@ select_frames(std::vector<kwiver::vital::frame_id_t> const& valid_frames,
 
 } // end namespace
 
-// ----------------------------------------------------------------------------
-int
-track_features::
-run()
+class track_features::priv
 {
-  namespace kv = ::kwiver::vital;
-  namespace kva = ::kwiver::vital::algo;
+public:
+  priv(track_features* parent) : p(parent) {}
 
-  try
+  track_features* p;
+  kva::video_input_sptr video_reader = nullptr;
+  kva::video_input_sptr mask_reader = nullptr;
+  kva::track_features_sptr feature_tracker = nullptr;
+  kva::compute_ref_homography_sptr out_homog_generator = nullptr;
+  kv::config_block_sptr config = nullptr;
+  std::string video_file;
+  std::string mask_file;
+  std::string homography_file;
+  std::string track_file = "results/tracks.txt";
+
+  enum commandline_mode { SUCCESS, HELP, WRITE, FAIL };
+
+  commandline_mode process_command_line(cxxopts::ParseResult& cmd_args)
   {
-    auto& cmd_args = command_args();
     std::string opt_config;
     std::string opt_out_config;
 
-    if ( cmd_args["help"].as<bool>() )
+    if (cmd_args["help"].as<bool>())
     {
-      std::cout << m_cmd_options->help();
-      return EXIT_SUCCESS;
+      return HELP;
     }
-    if ( cmd_args.count("config") )
+    if (cmd_args.count("config"))
     {
       opt_config = cmd_args["config"].as<std::string>();
     }
-    if ( cmd_args.count("output-config") > 0 )
+    if (cmd_args.count("output-config") > 0)
     {
       opt_out_config = cmd_args["output-config"].as<std::string>();
     }
 
-    // Set config to algo chain
-    // Get config from algo chain after set
-    // Check config validity, store result
-    //
-    // If -o/--output-config given, output config result and notify of current (in)validity
-    // Else error if provided config not valid.
-
     // Set up top level configuration w/ defaults where applicable.
-    kv::config_block_sptr config = default_config();
-    kva::video_input_sptr video_reader;
-    kva::video_input_sptr mask_reader;
-    kva::track_features_sptr feature_tracker;
-    kva::compute_ref_homography_sptr out_homog_generator;
+    config = default_config();
 
-    // If -c/--config given, read in confg file, merge in with default just generated
-    if( ! opt_config.empty() )
+    // If -c/--config given, read in confg file, merge in with default just
+    // generated
+    if (!opt_config.empty())
     {
       config->merge_config(kv::read_config_file(opt_config));
     }
 
-    kva::video_input::set_nested_algo_configuration("video_reader", config, video_reader);
-    kva::video_input::get_nested_algo_configuration("video_reader", config, video_reader);
-    kva::video_input::set_nested_algo_configuration("mask_reader", config, mask_reader);
-    kva::video_input::get_nested_algo_configuration("mask_reader", config, mask_reader);
-    kva::track_features::set_nested_algo_configuration("feature_tracker", config, feature_tracker);
-    kva::track_features::get_nested_algo_configuration("feature_tracker", config, feature_tracker);
-    kva::compute_ref_homography::set_nested_algo_configuration("output_homography_generator", config, out_homog_generator);
-    kva::compute_ref_homography::get_nested_algo_configuration("output_homography_generator", config, out_homog_generator);
+    if (cmd_args.count("video-file"))
+    {
+      video_file = cmd_args["video-file"].as<std::string>();
+      config->set_value("video_source", video_file);
+    }
+
+    if (cmd_args.count("mask-file"))
+    {
+      mask_file = cmd_args["mask-file"].as<std::string>();
+      config->set_value("mask_source", mask_file);
+    }
+
+    if (cmd_args.count("homography-file"))
+    {
+      homography_file = cmd_args["homography-file"].as<std::string>();
+      config->set_value("output_homography_file", homography_file);
+    }
+
+    if (cmd_args.count("track-file"))
+    {
+      track_file = cmd_args["track-file"].as<std::string>();
+      config->set_value("output_tracks_file", track_file);
+    }
 
     bool valid_config = check_config(config);
 
-    if( ! opt_out_config.empty() )
+    if (!opt_out_config.empty())
     {
-      write_config_file(config, opt_out_config );
-      if(valid_config)
+      write_config_file(config, opt_out_config);
+      if (valid_config)
       {
-        LOG_INFO(main_logger, "Configuration file contained valid parameters and may be used for running");
+        LOG_INFO(main_logger,
+          "Configuration file contained valid parameters and may be "
+          "used for running");
       }
       else
       {
         LOG_WARN(main_logger, "Configuration deemed not valid.");
       }
-      return EXIT_SUCCESS;
+      config = nullptr;
+      return WRITE;
     }
-    else if(!valid_config)
+    else if (!valid_config)
     {
       LOG_ERROR(main_logger, "Configuration not valid.");
-      return EXIT_FAILURE;
+      config = nullptr;
+      return FAIL;
     }
 
+    return SUCCESS;
+  }
+
+  // ------------------------------------------------------------------
+  kv::config_block_sptr default_config()
+  {
+    auto config = p->find_configuration("applets/track_features.conf");
+
+    // choose video or image list reader based on file extension
+    auto vr_config = config->subblock_view("video_reader");
+    if (ST::GetFilenameLastExtension(video_file) == ".txt")
+    {
+      vr_config->merge_config(
+        p->find_configuration("core_image_list_video_input.conf"));
+    }
+    else
+    {
+      vr_config->merge_config(
+        p->find_configuration("ffmpeg_video_input.conf"));
+    }
+
+    // choose video or image list reader for masks based on file extension
+    auto mr_config = config->subblock_view("mask_reader");
+    if (ST::GetFilenameLastExtension(mask_file) == ".txt")
+    {
+      mr_config->merge_config(
+        p->find_configuration("core_image_list_video_input.conf"));
+    }
+    else
+    {
+      mr_config->merge_config(
+        p->find_configuration("ffmpeg_video_input.conf"));
+    }
+
+    config->set_value("video_source", video_file,
+      "Path to an input file to be opened as a video. "
+      "This could be either a video file or a text file "
+      "containing new-line separated paths to sequential "
+      "image files.");
+
+    config->set_value("output_tracks_file", track_file,
+      "Path to a file to write output tracks to. If this "
+      "file exists, it will be overwritten.");
+
+    config->set_value("mask_source", mask_file,
+      "Optional path to an mask input file to be opened "
+      "as a video. "
+      "This could be either a video file or a text file "
+      "containing new-line separated paths to sequential "
+      "image files. "
+      "This list should be "
+      "parallel in association to frames provided by the "
+      "``video_source`` video. Mask images must be the same size "
+      "as the image they are associated with.\n"
+      "\n"
+      "Leave this blank if no image masking is desired.");
+
+    config->set_value("output_homography_file", homography_file,
+      "Optional path to a file to write source-to-reference "
+      "homographies for each frame. Leave blank to disable this "
+      "output. The output_homography_generator algorithm type "
+      "only needs to be set if this is set.");
+
+    config->set_value("invert_masks", false,
+      "If true, all mask images will be inverted after loading. "
+      "This is useful if mask images read in use positive "
+      "values to indicated masked areas instead of non-masked "
+      "areas.");
+
+    config->set_value("use_video_metadata", true,
+      "If true, extract metadata from the video");
+
+    config->set_value("expect_multichannel_masks", false,
+      "A majority of the time, mask images are a single channel, "
+      "however it is feasibly possible that certain "
+      "implementations may use multi-channel masks. If this is "
+      "true we will expect multiple-channel mask images, "
+      "warning when a single-channel mask is provided. If this "
+      "is false we error upon seeing a multi-channel mask "
+      "image.");
+
+    kva::video_input::get_nested_algo_configuration("video_reader", config,
+      kva::video_input_sptr());
+    kva::video_input::get_nested_algo_configuration("mask_reader", config,
+      kva::video_input_sptr());
+    kva::track_features::get_nested_algo_configuration("feature_tracker", config,
+      kva::track_features_sptr());
+    kva::compute_ref_homography::get_nested_algo_configuration("output_homography_generator",
+      config, kva::compute_ref_homography_sptr());
+
+    return config;
+  }
+
+  void initialize()
+  {
+    kva::video_input::set_nested_algo_configuration(
+      "video_reader", config, video_reader);
+    kva::video_input::set_nested_algo_configuration(
+      "mask_reader", config, mask_reader);
+    kva::track_features::set_nested_algo_configuration(
+      "feature_tracker", config, feature_tracker);
+    kva::compute_ref_homography::set_nested_algo_configuration(
+      "output_homography_generator", config, out_homog_generator);
+  }
+
+  bool run_algorithm()
+  {
     // Attempt opening input and output files.
     //  - filepath validity checked above
-    auto const video_source = config->get_value<std::string>("video_source");
-    auto const mask_source = config->get_value<std::string>("mask_source");
+    video_file = config->get_value<std::string>("video_source");
+    mask_file = config->get_value<std::string>("mask_source");
+    track_file = config->get_value<std::string>("output_tracks_file");
+
     auto const invert_masks = config->get_value<bool>("invert_masks");
     auto const use_video_metadata = config->get_value<bool>("use_video_metadata");
     auto const expect_multichannel_masks = config->get_value<bool>("expect_multichannel_masks");
-    auto const output_tracks_file = config->get_value<std::string>("output_tracks_file");
-    auto const max_frames = config->get_value<unsigned int>("feature_tracker:max_frames",
-                                                              500);
+    auto const max_frames = config->get_value<unsigned int>("feature_tracker:max_frames");
 
-    bool hasMask = ! mask_source.empty();
-    LOG_INFO( main_logger, "Reading Video" );
-    video_reader->open(video_source);
+    bool hasMask = !mask_file.empty();
+    LOG_INFO(main_logger, "Reading Video");
+    video_reader->open(video_file);
     if (hasMask)
     {
-      mask_reader->open(mask_source);
+      mask_reader->open(mask_file);
     }
 
     kv::metadata_map_sptr md_map;
@@ -400,50 +472,50 @@ run()
         md_map->size() > 0)
     {
       auto fs = md_map->frames();
-      valid_frames = std::vector<kwiver::vital::frame_id_t>(fs.begin(), fs.end());
+      valid_frames = std::vector<kv::frame_id_t>(fs.begin(), fs.end());
       camera_frames = valid_frames;
     }
     else
     {
-      auto const num_frames = static_cast<kwiver::vital::frame_id_t>(
+      auto const num_frames = static_cast<kv::frame_id_t>(
         video_reader->num_frames());
       valid_frames.reserve(num_frames);
-      for (kwiver::vital::frame_id_t f = 1; f <= num_frames; ++f)
+      for (kv::frame_id_t f = 1; f <= num_frames; ++f)
       {
         valid_frames.push_back(f);
       }
     }
 
-    std::vector<kwiver::vital::frame_id_t> selected_frames =
+    std::vector<kv::frame_id_t> selected_frames =
       select_frames(valid_frames, camera_frames, max_frames);
 
-    kwiver::vital::timestamp currentTimestamp;
+    kv::timestamp currentTimestamp;
 
     // verify that we can open the output file for writing
     // so that we don't find a problem only after spending
     // hours of computation time.
-    std::ofstream ofs(output_tracks_file.c_str());
+    std::ofstream ofs(track_file.c_str());
     if (!ofs)
     {
       LOG_ERROR(main_logger, "Could not open track file for writing: \""
-                << output_tracks_file << "\"");
-      return EXIT_FAILURE;
+                             << track_file << "\"");
+      return false;
     }
     ofs.close();
 
     // Create the output homography file stream if specified
     // Validity of file path checked during configuration file validity check.
     std::ofstream homog_ofs;
-    if ( config->has_value("output_homography_file") &&
-         config->get_value<std::string>("output_homography_file") != "" )
+    if (config->has_value("output_homography_file") &&
+        config->get_value<std::string>("output_homography_file") != "")
     {
       kv::path_t homog_fp = config->get_value<kv::path_t>("output_homography_file");
-      homog_ofs.open( homog_fp.c_str() );
-      if ( !homog_ofs )
+      homog_ofs.open(homog_fp.c_str());
+      if (!homog_ofs)
       {
         LOG_ERROR(main_logger, "Could not open homography file for writing: "
-                  << homog_fp);
-        return EXIT_FAILURE;
+                               << homog_fp);
+        return false;
       }
     }
 
@@ -472,34 +544,31 @@ run()
 
       auto const image = video_reader->frame_image();
       kv::image_container_sptr mask;
-      if( hasMask )
+      if (hasMask)
       {
         mask = mask_reader->frame_image();
 
         // error out if we are not expecting a multi-channel mask
-        if( !expect_multichannel_masks && mask->depth() > 1 )
+        if (!expect_multichannel_masks && mask->depth() > 1)
         {
-          LOG_ERROR( main_logger,
-                     "Encounted multi-channel mask image!" );
-          return EXIT_FAILURE;
+          LOG_ERROR(main_logger, "Encounted multi-channel mask image!");
+          return false;
         }
-        else if( expect_multichannel_masks && mask->depth() == 1 )
+        else if (expect_multichannel_masks && mask->depth() == 1)
         {
-          LOG_WARN( main_logger,
-                    "Expecting multi-channel masks but received one that was "
-                    "single-channel." );
+          LOG_WARN(main_logger,
+            "Expecting multi-channel masks but received one that was "
+            "single-channel.");
         }
 
-        if( invert_masks )
+        if (invert_masks)
         {
-          LOG_DEBUG( main_logger,
-                     "Inverting mask image pixels" );
+          LOG_DEBUG(main_logger, "Inverting mask image pixels");
           kv::image_of<bool> mask_image;
-          kv::cast_image( mask->get_image(), mask_image );
-          kv::transform_image( mask_image, [] (bool b) { return !b; } );
-          LOG_DEBUG( main_logger,
-                     "Inverting mask image pixels -- Done" );
-          mask = std::make_shared<kv::simple_image_container>( mask_image );
+          kv::cast_image(mask->get_image(), mask_image);
+          kv::transform_image(mask_image, [](bool b) { return !b; });
+          LOG_DEBUG(main_logger, "Inverting mask image pixels -- Done");
+          mask = std::make_shared<kv::simple_image_container>(mask_image);
         }
 
       }
@@ -517,7 +586,7 @@ run()
 
       // Compute ref homography for current frame with current track set + write to file
       // -> still doesn't take into account a full shotbreak, which would incur a track reset
-      if ( homog_ofs.is_open() )
+      if (homog_ofs.is_open())
       {
         LOG_DEBUG(main_logger, "writing homography");
         homog_ofs << *(out_homog_generator->estimate(frame, tracks)) << std::endl;
@@ -529,13 +598,50 @@ run()
       mask_reader->close();
     }
 
-    if ( homog_ofs.is_open() )
+    if (homog_ofs.is_open())
     {
       homog_ofs.close();
     }
 
     // Writing out tracks to file
-    kv::write_feature_track_file(tracks, output_tracks_file);
+    kv::write_feature_track_file(tracks, track_file);
+
+    return true;
+  }
+};
+
+// ----------------------------------------------------------------------------
+int
+track_features::
+run()
+{
+
+  try
+  {
+    switch (d->process_command_line(command_args()))
+    {
+    case priv::HELP:
+      std::cout << m_cmd_options->help();
+      return EXIT_SUCCESS;
+    case priv::WRITE:
+      return EXIT_SUCCESS;
+    case priv::FAIL:
+      return EXIT_FAILURE;
+    case priv::SUCCESS:
+      ;
+    }
+
+    if (d->config == nullptr)
+    {
+      return EXIT_FAILURE;
+    }
+
+    d->initialize();
+
+    if (!d->run_algorithm())
+    {
+      return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
   }
@@ -558,7 +664,14 @@ void
 track_features::
 add_command_options()
 {
-  m_cmd_options->custom_help( wrap_text( "[options]\n" ) );
+  m_cmd_options->custom_help( wrap_text(
+    "[options] video-file [track-file]\n"
+    "This program tracks feature point through a video or list of images and "
+    "produces a track file and optional homography sequence.") );
+
+  m_cmd_options->positional_help("\n  video-file  - name of input video file."
+                                 "\n  track-file  - name of output track file "
+                                 "(default: " + d->track_file + ")");
 
   m_cmd_options->add_options()
     ( "h,help",     "Display applet usage" )
@@ -567,12 +680,31 @@ add_command_options()
       "Output a configuration. This may be seeded with a "
       "configuration file from -c/--config.",
       cxxopts::value<std::string>() )
+    ( "g,homography-file",
+      "An output homography file containing a sequence of homographies "
+      "aligning one frame to another estimated from the tracks.",
+      cxxopts::value<std::string>())
+    ( "m,mask-file",
+      "An input mask video or list of mask images to indicate "
+      "which pixels to ignore.",
+      cxxopts::value<std::string>())
+
+    // positional parameters
+    ("video-file", "Video input file", cxxopts::value<std::string>())
+    ("track-file", "Tracks output file", cxxopts::value<std::string>())
     ;
+
+  m_cmd_options->parse_positional({ "video-file", "track-file" });
 }
 
 // ============================================================================
 track_features::
 track_features()
+  : d(new priv(this))
 { }
+
+track_features::
+~track_features() = default;
+
 
 } } } // end namespace
