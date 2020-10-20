@@ -129,8 +129,8 @@ config_block_get_value_cast( config_block_value_t const& value )
   }
 
   // Set up helper lambda to check for errors
-  auto try_or_die = [&value]( std::istream& s ) {
-    if ( s.fail() ) {
+  auto try_or_die = [&value]( std::istream& s_ ) {
+    if ( s_.fail() ) {
       VITAL_THROW( bad_config_block_cast,
                    "failed to convert from string representation \"" + value + "\"" );
     }

@@ -131,10 +131,10 @@ public:
   {
     bool valid = true;
 
-    int norm = config->get_value<int>( "norm" );
-    if( ! check_norm_type( norm ) )
+    int n = config->get_value<int>( "norm" );
+    if( ! check_norm_type( n ) )
     {
-      LOG_ERROR( log, "Invalid norm option '" << norm << "'. Valid choices "
+      LOG_ERROR( log, "Invalid norm option '" << n << "'. Valid choices "
                       "are: " << list_norm_options() );
       valid = false;
     }

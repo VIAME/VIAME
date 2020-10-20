@@ -137,8 +137,8 @@ void write_object_track_process
 void write_object_track_process
 ::_step()
 {
-  auto const& port_info = peek_at_port_using_trait( object_track_set );
-  if( port_info.datum->type() == sprokit::datum::complete )
+  auto const& p_info = peek_at_port_using_trait( object_track_set );
+  if( p_info.datum->type() == sprokit::datum::complete )
   {
     grab_edge_datum_using_trait( object_track_set );
     d->m_writer->close();

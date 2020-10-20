@@ -34,20 +34,23 @@
 */
 
 #include <arrows/super3d/compute_depth.h>
-#include <arrows/vxl/image_container.h>
-#include <vital/types/landmark.h>
-#include <vital/util/transform_image.h>
+
 #include <arrows/vxl/camera.h>
-#include <vnl/vnl_double_3.h>
+#include <arrows/vxl/image_container.h>
 #include <vil/algo/vil_threshold.h>
-#include <vil/vil_image_view.h>
-#include <vil/vil_math.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_crop.h>
+#include <vil/vil_image_view.h>
+#include <vil/vil_math.h>
 #include <vil/vil_plane.h>
-#include <vpgl/vpgl_perspective_camera.h>
 #include <vital/types/bounding_box.h>
 #include <vital/vital_config.h>
+
+//#include <vital/types/landmark.h>
+//#include <vital/vital_config.h>
+//#include <vnl/vnl_double_3.h>
+//#include <vpgl/vpgl_perspective_camera.h>
+
 
 #include <sstream>
 #include <memory>
@@ -89,7 +92,7 @@ public:
 
   std::unique_ptr<world_space> compute_world_space_roi(vpgl_perspective_camera<double> &cam,
                                                        vil_image_view<double> &frame,
-                                                       double depth_min, double depth_max,
+                                                       double d_min, double d_max,
                                                        vital::bounding_box<int> const& roi);
 
   double theta0;
@@ -208,14 +211,14 @@ std::unique_ptr<world_space>
 compute_depth::priv
 ::compute_world_space_roi(vpgl_perspective_camera<double> &cam,
                           vil_image_view<double> &frame,
-                          double depth_min, double depth_max,
+                          double d_min, double d_max,
                           vital::bounding_box<int> const& roi)
 {
   frame = vil_crop(frame, roi.min_x(), roi.width(), roi.min_y(), roi.height());
   cam = crop_camera(cam, roi.min_x(), roi.min_y());
 
   return std::unique_ptr<world_space>(new world_angled_frustum(cam, world_plane_normal,
-                                                                depth_min, depth_max, roi.width(), roi.height()));
+                                                                d_min, d_max, roi.width(), roi.height()));
 }
 
 //*****************************************************************************

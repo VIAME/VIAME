@@ -113,11 +113,11 @@ serializer_base
       elem_spec.m_serializer = std::dynamic_pointer_cast< vital::algo::data_serializer > ( base_nested_algo );
       if ( ! elem_spec.m_serializer )
       {
-        std::stringstream str;
-        str << "Unable to create serializer for type \""
+        std::stringstream sstr;
+        sstr << "Unable to create serializer for type \""
             << elem_spec.m_algo_name << "\" for " << m_serialization_type;
 
-        VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), str.str() );
+        VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), sstr.str() );
       }
 
       if ( ! vital::algorithm::check_nested_algo_configuration( ser_algo_type,

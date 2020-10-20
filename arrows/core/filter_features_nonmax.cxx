@@ -208,10 +208,10 @@ public:
     Eigen::AlignedBox<double, 1> scale_box;
     for (unsigned int i = 0; i < feat_vec.size(); i++)
     {
-      auto const& feat = feat_vec[i];
-      indices.push_back(std::make_pair(i, feat->magnitude()));
-      bbox.extend(feat->loc());
-      scale_box.extend(Eigen::Matrix<double,1,1>(feat->scale()));
+      auto const& l_feat = feat_vec[i];
+      indices.push_back(std::make_pair(i, l_feat->magnitude()));
+      bbox.extend(l_feat->loc());
+      scale_box.extend(Eigen::Matrix<double,1,1>(l_feat->scale()));
     }
 
     const double scale_min = std::log2(scale_box.min()[0]);
@@ -269,12 +269,12 @@ public:
       for (auto const& p : indices)
       {
         unsigned int index = p.first;
-        auto const& feat = feat_vec[index];
-        if (suppressor.cover(*feat))
+        auto const& f = feat_vec[index];
+        if (suppressor.cover(*f))
         {
           // add this feature to the accepted list
           ind.push_back(index);
-          filtered.push_back(feat);
+          filtered.push_back(f);
         }
       }
       // if not using a target number of features, keep this result

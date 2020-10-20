@@ -165,9 +165,9 @@ public:
     bool valid = true;
 
     // Must be one of the enumeration values
-    int score_type = config->get_value<int>( "score_type" );
-    if( ! ( score_type == cv::ORB::HARRIS_SCORE ||
-            score_type == cv::ORB::FAST_SCORE ) )
+    int temp = config->get_value<int>( "score_type" );
+    if( ! ( temp == cv::ORB::HARRIS_SCORE ||
+            temp == cv::ORB::FAST_SCORE ) )
     {
       LOG_ERROR( logger, "Score type not a valid enumeration value. Must be "
         "either " << cv::ORB::HARRIS_SCORE << " for cv::ORB::HARRIS_SCORE or "

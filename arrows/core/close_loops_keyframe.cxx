@@ -272,14 +272,14 @@ close_loops_keyframe
     all_matches[*f] = pool.enqueue(match_func, *f);
   }
   // stitch with all previous keyframes
-  for(auto kitr = keyframes.rbegin(); kitr != keyframes.rend(); ++kitr)
+  for(auto k_itr = keyframes.rbegin(); k_itr != keyframes.rend(); ++k_itr)
   {
     // if this frame was already matched above then skip it
-    if(last_frame_itr == frames.rend() || *kitr >= *last_frame_itr)
+    if(last_frame_itr == frames.rend() || *k_itr >= *last_frame_itr)
     {
       continue;
     }
-    all_matches[*kitr] = pool.enqueue(match_func, *kitr);
+    all_matches[*k_itr] = pool.enqueue(match_func, *k_itr);
   }
 
 
@@ -331,20 +331,20 @@ close_loops_keyframe
     static_cast<unsigned int>(last_frame_itr - frames.rbegin() - 2);
 
   // stitch with all previous keyframes
-  for(auto kitr = keyframes.rbegin(); kitr != keyframes.rend(); ++kitr)
+  for(auto k_itr = keyframes.rbegin(); k_itr != keyframes.rend(); ++k_itr)
   {
     // if this frame was already matched above then skip it
-    if(last_frame_itr == frames.rend() || *kitr >= *last_frame_itr)
+    if(last_frame_itr == frames.rend() || *k_itr >= *last_frame_itr)
     {
       continue;
     }
-    if (!all_matches[*kitr].valid())
+    if (!all_matches[*k_itr].valid())
     {
       LOG_WARN(logger(), "keyframe match from "<< frame_number << " to "
-                         << *kitr << " not available");
+                         << *k_itr << " not available");
       continue;
     }
-    auto const& matches = all_matches[*kitr].get();
+    auto const& matches = all_matches[*k_itr].get();
     int num_matched = static_cast<int>(matches.size());
     int num_linked = 0;
     if( num_matched >= d_->match_req )
@@ -357,7 +357,7 @@ close_loops_keyframe
         }
       }
     }
-    LOG_INFO(logger(), "Matching frame " << frame_number << " to keyframe "<< *kitr
+    LOG_INFO(logger(), "Matching frame " << frame_number << " to keyframe "<< *k_itr
                        << " has "<< num_matched << " matches and "
                        << num_linked << " joined tracks");
     if( num_matched > max_keyframe_matched )
@@ -373,7 +373,7 @@ close_loops_keyframe
     {
       break;
     }
-  }
+  } // end for
 
 
   // keep track of frames that matched no keyframes

@@ -216,7 +216,7 @@ read_descriptors(Archive & ar, size_t num_desc)
 
   std::vector<descriptor_sptr> descriptors;
   descriptors.reserve(num_desc);
-  for( size_t i=0; i<num_desc; ++i )
+  for( size_t i = 0; i < num_desc; ++i )
   {
     std::shared_ptr<descriptor_array_of<T> > d;
     // allocate fixed vectors for common dimensions
@@ -232,7 +232,7 @@ read_descriptors(Archive & ar, size_t num_desc)
         d = std::make_shared<descriptor_dynamic<T> >(dim);
     }
     T* data = d->raw_data();
-    for(unsigned i=0; i<dim; ++i, ++data)
+    for(unsigned x = 0; x < dim; ++x, ++data)
     {
       ar( *data );
     }

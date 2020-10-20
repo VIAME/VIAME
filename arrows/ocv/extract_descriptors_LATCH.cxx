@@ -81,17 +81,17 @@ public:
     bool valid = true;
 
     // Bytes can only be one of the following values
-    int bytes = config->get_value<int>( "bytes" );
-    if( ! ( bytes == 1 ||
-            bytes == 2 ||
-            bytes == 4 ||
-            bytes == 8 ||
-            bytes == 16 ||
-            bytes == 32 ||
-            bytes == 64 ) )
+    int bytes_ = config->get_value<int>( "bytes" );
+    if( ! ( bytes_ == 1 ||
+            bytes_ == 2 ||
+            bytes_ == 4 ||
+            bytes_ == 8 ||
+            bytes_ == 16 ||
+            bytes_ == 32 ||
+            bytes_ == 64 ) )
     {
       LOG_ERROR( log, "bytes value must be one of [1, 2, 4, 8, 16, 32, 64]. "
-                      "Given: " << bytes );
+                      "Given: " << bytes_ );
       valid = false;
     }
 

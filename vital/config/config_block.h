@@ -703,8 +703,8 @@ config_block
   // iterate over all strings and convert to target type
   for (std::string str : sv )
   {
-    T val = config_block_get_value_cast<T>( str );
-    val_vector.push_back( val );
+    T l_val = config_block_get_value_cast<T>( str );
+    val_vector.push_back( l_val );
   }
 
   return val_vector;

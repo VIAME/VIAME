@@ -414,10 +414,10 @@ lex_processor
       // look for "::"
       if ( c == ':' && n == ':' )
       {
-        token_sptr t = std::make_shared< token > ( m_priv->find_res_word( "::" ), "::" );
-        t->set_location( current_location() );
+        token_sptr tt = std::make_shared< token > ( m_priv->find_res_word( "::" ), "::" );
+        tt->set_location( current_location() );
 
-        return t;
+        return tt;
       }
 
       if ( c == ':' && n == '=' )
@@ -425,11 +425,11 @@ lex_processor
         // Collect rest of line as text
         std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
         kwiver::vital::string_trim( text );
-        token_sptr t = std::make_shared< token > ( m_priv->find_res_word( ":=" ), text );
-        t->set_location( current_location() );
+        token_sptr tt = std::make_shared< token > ( m_priv->find_res_word( ":=" ), text );
+        tt->set_location( current_location() );
 
         m_priv->flush_line();
-        return t;
+        return tt;
       }
 
       // Reset pointer to restore our second character

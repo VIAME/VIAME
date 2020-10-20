@@ -1028,8 +1028,8 @@ initialize_cameras_landmarks_basic
 
     // find existing landmarks for tracks also having features on the other frame
     map_landmark_t flms;
-    std::vector<track_sptr> trks = ftracks->active_tracks(static_cast<int>(other_frame));
-    for(const track_sptr& t : trks)
+    std::vector<track_sptr> ftrks = ftracks->active_tracks(static_cast<int>(other_frame));
+    for(const track_sptr& t : ftrks)
     {
       map_landmark_t::const_iterator li = lms.find(t->id());
       if( li != lms.end() )
@@ -1087,9 +1087,9 @@ initialize_cameras_landmarks_basic
       camera_map::map_camera_t opt_cam_map;
       opt_cam_map[f] = cams[f];
       camera_map_sptr opt_cams = std::make_shared<simple_camera_map>(opt_cam_map);
-      landmark_map_sptr landmarks = std::make_shared<simple_landmark_map>(flms);
-      auto tracks = std::make_shared<feature_track_set>(trks);
-      d_->camera_optimizer->optimize(opt_cams, tracks, landmarks, constraints);
+      landmark_map_sptr landmarks_map = std::make_shared<simple_landmark_map>(flms);
+      auto f_tracks = std::make_shared<feature_track_set>(trks);
+      d_->camera_optimizer->optimize(opt_cams, f_tracks, landmarks_map, constraints);
       cams[f] = opt_cams->cameras()[f];
     }
 

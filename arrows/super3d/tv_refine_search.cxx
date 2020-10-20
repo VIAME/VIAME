@@ -265,8 +265,8 @@ min_search_bound(vil_image_view<double> &a,
         {
           continue;
         }
-        const double diff = dij - k;
-        const double e = coeff*diff*diff + (*cost);
+        const double dd = dij - k;
+        const double e = coeff * dd * dd + (*cost);
         if (e < best_e)
         {
           best_e = e;

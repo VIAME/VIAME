@@ -692,7 +692,7 @@ TEST(serialize , track )
       auto ser_it = ser_dot_sptr->begin();
       auto dser_it = dser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+      for ( size_t ii = 0; ii < ser_dot_sptr->size(); ++ii )
       {
         EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
         EXPECT_EQ( dser_it->second, dser_it->second );
@@ -848,7 +848,7 @@ TEST( serialize, object_track_set )
         auto ser_it = ser_dot_sptr->begin();
         auto dser_it = dser_dot_sptr->begin();
 
-        for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+        for ( size_t ii = 0; ii < ser_dot_sptr->size(); ++ii )
         {
           EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
           EXPECT_EQ( dser_it->second, dser_it->second );

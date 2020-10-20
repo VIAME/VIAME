@@ -395,7 +395,7 @@ TEST( convert_protobuf, detected_object_set )
       auto ser_it = ser_dot_sptr->begin();
       auto dser_it = dser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+      for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
       {
         EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
         EXPECT_EQ( dser_it->second, dser_it->second );
@@ -745,7 +745,7 @@ TEST( convert_protobuf, track )
       auto ser_it = ser_dot_sptr->begin();
       auto dser_it = dser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+      for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
       {
         EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
         EXPECT_EQ( dser_it->second, dser_it->second );
@@ -895,7 +895,7 @@ TEST( convert_protobuf, object_track_set )
         auto ser_it = ser_dot_sptr->begin();
         auto dser_it = dser_dot_sptr->begin();
 
-        for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+        for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
         {
           EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
           EXPECT_EQ( dser_it->second, dser_it->second );

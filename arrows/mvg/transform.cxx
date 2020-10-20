@@ -92,13 +92,13 @@ void transform_inplace(vital::landmark_map::map_landmark_t& landmarks,
 {
   for (vital::landmark_map::map_landmark_t::value_type& p : landmarks)
   {
-    if (vital::landmark_d* vlm = dynamic_cast<vital::landmark_d*>(p.second.get()))
+    if (vital::landmark_d* vlm_d = dynamic_cast<vital::landmark_d*>(p.second.get()))
     {
-      transform_inplace(*vlm, xform);
+      transform_inplace(*vlm_d, xform);
     }
-    else if (vital::landmark_f* vlm = dynamic_cast<vital::landmark_f*>(p.second.get()))
+    else if (vital::landmark_f* vlm_f = dynamic_cast<vital::landmark_f*>(p.second.get()))
     {
-      transform_inplace(*vlm, vital::similarity_f(xform));
+      transform_inplace(*vlm_f, vital::similarity_f(xform));
     }
   }
 }
@@ -184,13 +184,13 @@ vital::landmark_sptr transform(vital::landmark_sptr lm,
     return vital::landmark_sptr();
   }
   lm = lm->clone();
-  if( vital::landmark_d* vlm = dynamic_cast<vital::landmark_d*>(lm.get()) )
+  if( vital::landmark_d* vlm_d = dynamic_cast<vital::landmark_d*>(lm.get()) )
   {
-    transform_inplace(*vlm, xform);
+    transform_inplace(*vlm_d, xform);
   }
-  else if( vital::landmark_f* vlm = dynamic_cast<vital::landmark_f*>(lm.get()) )
+  else if( vital::landmark_f* vlm_f = dynamic_cast<vital::landmark_f*>(lm.get()) )
   {
-    transform_inplace(*vlm, vital::similarity_f(xform));
+    transform_inplace(*vlm_f, vital::similarity_f(xform));
   }
   else
   {

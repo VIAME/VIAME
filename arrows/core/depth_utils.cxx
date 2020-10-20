@@ -159,8 +159,8 @@ project_3d_bounds(kwiver::vital::vector_3d const& minpt,
 
   for (vector_3d const& p : points)
   {
-    vector_2d pp = cam.project(p);
-    int ui = static_cast<int>(pp[0]), vi = static_cast<int>(pp[1]);
+    const vector_2d p_p = cam.project(p);
+    int ui = static_cast<int>(pp[0]), vi = static_cast<int>(p_p[1]);
     i0 = std::min(i0, ui);
     j0 = std::min(j0, vi);
     i1 = std::max(i1, ui);

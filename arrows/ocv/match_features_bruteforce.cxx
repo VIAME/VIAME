@@ -43,10 +43,10 @@ namespace ocv {
 class match_features_bruteforce::priv
 {
 public:
-  priv(int norm_type=cv::NORM_L2, bool cross_check=false)
-      : norm_type( norm_type ),
-        cross_check( cross_check ),
-        matcher( new cv::BFMatcher(norm_type, cross_check) )
+  priv(int n_type = cv::NORM_L2, bool c_check = false)
+      : norm_type( n_type ),
+        cross_check( c_check ),
+        matcher( new cv::BFMatcher(n_type, cross_check) )
   {
   }
 

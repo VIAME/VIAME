@@ -157,9 +157,9 @@ class embedded_pipeline_extension_registrar
   : public plugin_registrar
 {
 public:
-  embedded_pipeline_extension_registrar( kwiver::vital::plugin_loader& vpl,
-                    const std::string& mod_name )
-    : plugin_registrar( vpl, mod_name )
+  embedded_pipeline_extension_registrar( kwiver::vital::plugin_loader& vpl_,
+                    const std::string& mod_name_ )
+    : plugin_registrar( vpl_, mod_name_ )
   {
   }
 

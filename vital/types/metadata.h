@@ -253,24 +253,24 @@ class typed_metadata
   : public metadata_item
 {
 public:
-  typed_metadata( std::string const& name, TYPE const& data )
-    : metadata_item( name, data, TAG )
+  typed_metadata( std::string const& p_name, TYPE const& p_data )
+    : metadata_item( p_name, p_data, TAG )
   {
   }
 
-  typed_metadata( std::string const& name, TYPE&& data )
-    : metadata_item( name, std::move( data ), TAG )
+  typed_metadata( std::string const& p_name, TYPE&& p_data )
+    : metadata_item( p_name, std::move( p_data ), TAG )
   {
   }
 
-  typed_metadata( std::string const& name, kwiver::vital::any const& data )
-    : metadata_item( name, data, TAG )
+  typed_metadata( std::string const& p_name, kwiver::vital::any const& p_data )
+    : metadata_item( p_name, p_data, TAG )
   {
-    if ( data.type() != typeid(TYPE) )
+    if ( p_data.type() != typeid(TYPE) )
     {
       std::stringstream msg;
       msg << "Creating typed_metadata object with data type ("
-          << demangle( data.type().name() )
+          << demangle( p_data.type().name() )
           << ") different from type object was created with ("
           << demangle( typeid(TYPE).name() ) << ")";
       VITAL_THROW( metadata_exception, msg.str() );

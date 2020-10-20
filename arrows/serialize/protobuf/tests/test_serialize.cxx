@@ -424,7 +424,7 @@ TEST( serialize, detected_object_set )
       auto ser_it = ser_dot_sptr->begin();
       auto deser_it = deser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+      for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
       {
         EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
         EXPECT_EQ( deser_it->second, deser_it->second );
@@ -676,7 +676,7 @@ TEST( serialize, track )
       auto ser_it = ser_dot_sptr->begin();
       auto dser_it = dser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+      for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
       {
         EXPECT_EQ( *( ser_it->first ), *( ser_it->first ) );
         EXPECT_EQ( dser_it->second, dser_it->second );
@@ -689,9 +689,9 @@ TEST( serialize, track )
   // test track with track state
   auto trk = kwiver::vital::track::create();
   trk->set_id( 2 );
-  for ( int i=0; i<10; i++ )
+  for ( int ii = 0; ii < 10; ii++ )
   {
-    auto trk_state_sptr = std::make_shared< kwiver::vital::track_state>( i );
+    auto trk_state_sptr = std::make_shared< kwiver::vital::track_state>( ii );
     bool insert_success = trk->insert( trk_state_sptr );
     if ( !insert_success )
     {
@@ -840,7 +840,7 @@ TEST( serialize, object_track_set )
         auto ser_it = ser_dot_sptr->begin();
         auto dser_it = dser_dot_sptr->begin();
 
-        for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+        for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
         {
           EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
           EXPECT_EQ( dser_it->second, dser_it->second );
