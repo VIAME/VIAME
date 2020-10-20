@@ -90,10 +90,14 @@ if( KWIVER_ENABLE_UUID )
   add_subdirectory( uuid )
 endif()
 
-
 # if FFmpeg is enabled
 if( KWIVER_ENABLE_FFMPEG)
   add_subdirectory( ffmpeg )
+endif()
+
+# if VTK is enabled
+if( KWIVER_ENABLE_VTK)
+  add_subdirectory( vtk )
 endif()
 
 add_subdirectory( serialize )
