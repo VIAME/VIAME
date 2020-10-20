@@ -53,17 +53,18 @@ namespace kwiver {
 namespace arrows {
 namespace mvg {
 
-using kwiver::vital::feature_track_set_sptr;
-using kwiver::vital::algo::initialize_cameras_landmarks;
-using kwiver::vital::algo::initialize_cameras_landmarks_sptr;
-using kwiver::vital::algo::video_input;
-using kwiver::vital::algo::video_input_sptr;
-using kwiver::vital::camera_map_sptr;
-using kwiver::vital::camera_perspective;
-using kwiver::vital::camera_sptr;
-using kwiver::vital::landmark_map_sptr;
-using kwiver::vital::sfm_constraints;
-using kwiver::vital::sfm_constraints_sptr;
+namespace kv = kwiver::vital;
+using kv::feature_track_set_sptr;
+using kv::algo::initialize_cameras_landmarks;
+using kv::algo::initialize_cameras_landmarks_sptr;
+using kv::algo::video_input;
+using kv::algo::video_input_sptr;
+using kv::camera_map_sptr;
+using kv::camera_perspective;
+using kv::camera_sptr;
+using kv::landmark_map_sptr;
+using kv::sfm_constraints;
+using kv::sfm_constraints_sptr;
 
 
 
@@ -73,11 +74,11 @@ namespace {
 typedef kwiversys::SystemTools ST;
 typedef kwiversys::CommandLineArguments argT;
 
-kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( "init_cameras_landmarks" ) );
+kv::logger_handle_t main_logger( kv::get_logger( "init_cameras_landmarks" ) );
 
 
 // ------------------------------------------------------------------
-bool check_config(kwiver::vital::config_block_sptr config)
+bool check_config(kv::config_block_sptr config)
 {
   bool config_valid = true;
 
@@ -89,7 +90,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
     config->get_value<std::string>("video_source") != "")
   {
     std::string path = config->get_value<std::string>("video_source");
-    if ( ! ST::FileExists( kwiver::vital::path_t(path), true ) )
+    if ( ! ST::FileExists( kv::path_t(path), true ) )
     {
       KWIVER_CONFIG_FAIL("video_source path, " << path
                          << ", does not exist or is not a regular file");
@@ -108,7 +109,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
   else
   {
     std::string path = config->get_value<std::string>("input_tracks_file");
-    if ( ! ST::FileExists( kwiver::vital::path_t(path), true ) )
+    if ( ! ST::FileExists( kv::path_t(path), true ) )
     {
       KWIVER_CONFIG_FAIL("input_tracks_file path, " << path
                          << ", does not exist or is not a regular file");
@@ -122,7 +123,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
   }
   else
   {
-    auto cam_dir = config->get_value<kwiver::vital::path_t>("output_cameras_directory");
+    auto cam_dir = config->get_value<kv::path_t>("output_cameras_directory");
     if (!ST::FileIsDirectory(cam_dir))
     {
       if (ST::FileExists(cam_dir))
@@ -144,7 +145,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
   else
   {
     auto parent_dir = ST::GetFilenamePath(ST::CollapseFullPath(
-      config->get_value<kwiver::vital::path_t>("output_landmarks_filename")));
+      config->get_value<kv::path_t>("output_landmarks_filename")));
     if (!ST::FileIsDirectory(parent_dir))
     {
       if (!ST::MakeDirectory(parent_dir))
@@ -155,8 +156,8 @@ bool check_config(kwiver::vital::config_block_sptr config)
   }
 
   {
-    kwiver::vital::path_t out_landmarks_path =
-      config->get_value<kwiver::vital::path_t>("output_landmarks_filename");
+    kv::path_t out_landmarks_path =
+      config->get_value<kv::path_t>("output_landmarks_filename");
 
     // verify that we can open the output file for writing
     // so that we don't find a problem only after spending
@@ -187,12 +188,12 @@ public:
   feature_track_set_sptr feature_track_set_ptr;
   sfm_constraints_sptr sfm_constraint_ptr;
   initialize_cameras_landmarks_sptr algorithm;
-  kwiver::vital::config_block_sptr config;
+  kv::config_block_sptr config;
   size_t num_frames = 0;
-  kwiver::vital::path_t  video_file;
-  kwiver::vital::path_t  tracks_file;
-  kwiver::vital::path_t  camera_directory = "results/krtd";
-  kwiver::vital::path_t  landmarks_file = "results/landmarks.ply";
+  kv::path_t  video_file;
+  kv::path_t  tracks_file;
+  kv::path_t  camera_directory = "results/krtd";
+  kv::path_t  landmarks_file = "results/landmarks.ply";
 
   enum commandline_mode {SUCCESS, HELP, WRITE, FAIL};
 
@@ -221,7 +222,7 @@ public:
     // generated
     if( ! opt_config.empty() )
     {
-      config->merge_config(kwiver::vital::read_config_file(opt_config));
+      config->merge_config(kv::read_config_file(opt_config));
     }
 
     if ( cmd_args.count("tracks") > 0 )
@@ -274,7 +275,7 @@ public:
     return SUCCESS;
   }
 
-  kwiver::vital::config_block_sptr default_config()
+  kv::config_block_sptr default_config()
   {
     auto config = p->find_configuration("applets/init_cameras_landmarks.conf");
 
@@ -337,9 +338,9 @@ public:
       return;
     }
     tracks_file =
-      config->get_value<kwiver::vital::path_t>("input_tracks_file");
+      config->get_value<kv::path_t>("input_tracks_file");
     feature_track_set_ptr =
-      kwiver::vital::read_feature_track_file(tracks_file);
+      kv::read_feature_track_file(tracks_file);
   }
 
   void load_sfm_constraint( )
@@ -350,7 +351,7 @@ public:
     }
 
     sfm_constraint_ptr = std::make_shared<sfm_constraints>();
-    kwiver::vital::image_container_sptr first_frame;
+    kv::image_container_sptr first_frame;
     if(config->has_value("video_source") &&
        config->get_value<std::string>("video_source") != "")
     {
@@ -363,7 +364,7 @@ public:
         .has_capability(video_input::HAS_METADATA))
       {
         sfm_constraint_ptr->set_metadata(video_reader->metadata_map());
-        kwiver::vital::timestamp ts;
+        kv::timestamp ts;
         video_reader->next_frame( ts );
         first_frame = video_reader->frame_image();
       }
@@ -377,12 +378,12 @@ public:
       return;
     }
 
-    using kwiver::vital::simple_camera_intrinsics;
-    using kwiver::vital::simple_camera_perspective;
-    using kwiver::vital::frame_id_t;
-    using kwiver::vital::metadata_sptr;
-    using kwiver::vital::intrinsics_from_metadata;
-    using kwiver::vital::local_geo_cs;
+    using kv::simple_camera_intrinsics;
+    using kv::simple_camera_perspective;
+    using kv::frame_id_t;
+    using kv::metadata_sptr;
+    using kv::intrinsics_from_metadata;
+    using kv::local_geo_cs;
 
     #define GET_K_CONFIG(type, name) \
     config->get_value<type>(bc + #name, K_def.name())
@@ -391,7 +392,7 @@ public:
     const std::string bc = "video_reader:base_camera:";
     auto K = std::make_shared<simple_camera_intrinsics>(
       GET_K_CONFIG(double, focal_length),
-      GET_K_CONFIG(kwiver::vital::vector_2d, principal_point),
+      GET_K_CONFIG(kv::vector_2d, principal_point),
       GET_K_CONFIG(double, aspect_ratio),
       GET_K_CONFIG(double, skew));
 
@@ -440,11 +441,11 @@ public:
         }
 
         local_geo_cs lgcs = sfm_constraint_ptr->get_local_geo_cs();
-        kwiver::vital::camera_map::map_camera_t cam_map =
+        kv::camera_map::map_camera_t cam_map =
           initialize_cameras_with_metadata(md_map, base_camera, lgcs,
                                            init_intrinsics_with_metadata);
         camera_map_ptr =
-          std::make_shared<kwiver::vital::simple_camera_map>(cam_map);
+          std::make_shared<kv::simple_camera_map>(cam_map);
 
         sfm_constraint_ptr->set_local_geo_cs(lgcs);
       }
@@ -462,7 +463,7 @@ public:
       camera_sptr cam = iter.second;
       std::string out_fname =
         output_cameras_directory + "/" + get_filename(fn) + ".krtd";
-      kwiver::vital::path_t out_path(out_fname);
+      kv::path_t out_path(out_fname);
       auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(cam);
       write_krtd_file( *cam_ptr, out_path );
     }
@@ -472,8 +473,8 @@ public:
 
   bool write_landmarks()
   {
-    kwiver::vital::path_t out_landmarks_path =
-      config->get_value<kwiver::vital::path_t>("output_landmarks_filename");
+    kv::path_t out_landmarks_path =
+      config->get_value<kv::path_t>("output_landmarks_filename");
 
     write_ply_file( landmark_map_ptr, out_landmarks_path );
     return true;
@@ -486,8 +487,8 @@ public:
     // but Null.  So we need to add placeholders for missing cameras to the map
     if (camera_map_ptr)
     {
-      using kwiver::vital::frame_id_t;
-      using kwiver::vital::camera_map;
+      using kv::frame_id_t;
+      using kv::camera_map;
       std::set<frame_id_t> frame_ids = feature_track_set_ptr->all_frame_ids();
       num_frames = frame_ids.size();
       camera_map::map_camera_t all_cams = camera_map_ptr->cameras();
@@ -496,10 +497,10 @@ public:
       {
         if (all_cams.find(id) == all_cams.end())
         {
-          all_cams[id] = kwiver::vital::camera_sptr();
+          all_cams[id] = kv::camera_sptr();
         }
       }
-      camera_map_ptr = std::make_shared<kwiver::vital::simple_camera_map>(all_cams);
+      camera_map_ptr = std::make_shared<kv::simple_camera_map>(all_cams);
     }
 
     // If landmark_map_ptr is Null the initialize algorithm will create all
@@ -508,8 +509,8 @@ public:
     // the map.
     if (landmark_map_ptr)
     {
-      using kwiver::vital::track_id_t;
-      using kwiver::vital::landmark_map;
+      using kv::track_id_t;
+      using kv::landmark_map;
       std::set<track_id_t> track_ids = feature_track_set_ptr->all_track_ids();
       landmark_map::map_landmark_t all_lms = landmark_map_ptr->landmarks();
 
@@ -517,18 +518,18 @@ public:
       {
         if (all_lms.find(id) == all_lms.end())
         {
-          all_lms[id] = kwiver::vital::landmark_sptr();
+          all_lms[id] = kv::landmark_sptr();
         }
       }
       landmark_map_ptr =
-        std::make_shared<kwiver::vital::simple_landmark_map>(all_lms);
+        std::make_shared<kv::simple_landmark_map>(all_lms);
     }
 
     algorithm->initialize(camera_map_ptr, landmark_map_ptr,
                           feature_track_set_ptr, sfm_constraint_ptr);
   }
 
-  std::string get_filename( kwiver::vital::frame_id_t frame_id )
+  std::string get_filename( kv::frame_id_t frame_id )
   {
 
     if (sfm_constraint_ptr && sfm_constraint_ptr->get_metadata())
@@ -540,8 +541,8 @@ public:
         return basename_from_metadata(mdv, frame_id);
       }
     }
-    auto dummy_md = std::make_shared<kwiver::vital::metadata>();
-    dummy_md->add<kwiver::vital::VITAL_META_VIDEO_URI>(std::string(video_file));
+    auto dummy_md = std::make_shared<kv::metadata>();
+    dummy_md->add<kv::VITAL_META_VIDEO_URI>(std::string(video_file));
     return basename_from_metadata(dummy_md, frame_id);
   }
 };
