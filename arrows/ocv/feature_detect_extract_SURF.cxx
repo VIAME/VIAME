@@ -35,6 +35,8 @@
 
 #include "feature_detect_extract_SURF.h"
 
+#include <vital/vital_config.h>
+
 #if defined(HAVE_OPENCV_NONFREE) || defined(HAVE_OPENCV_XFEATURES2D)
 
 // Include the correct file and unify different namespace locations of SURF type
@@ -198,7 +200,7 @@ detect_features_SURF
 
 bool
 detect_features_SURF
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }
@@ -249,7 +251,7 @@ extract_descriptors_SURF
 
 bool
 extract_descriptors_SURF
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

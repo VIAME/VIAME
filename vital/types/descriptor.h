@@ -127,7 +127,7 @@ public:
    * to store the node_id.  Derived classes that do store the node_id
    * should return true if it successfully stored.
   */
-  virtual bool set_node_id(unsigned int node_id) { return false; }
+  virtual bool set_node_id( VITAL_UNUSED unsigned int node_id ) { return false; }
 
 };
 

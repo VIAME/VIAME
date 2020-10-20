@@ -39,7 +39,9 @@
 #include <iostream>
 #include <numeric>
 #include <Eigen/Dense>
+
 #include <vital/exceptions.h>
+#include <vital/vital_config.h>
 
 using namespace kwiver::vital;
 
@@ -66,13 +68,12 @@ class uv_unwrap_mesh::priv
 {
 public:
   /// Constructor
-  priv() : spacing(0.005)
+  priv()
+    : spacing(0.005)
   {
   }
 
-  priv(const priv& other)
-  {
-  }
+  ~priv() = default;
 
   double spacing;
 };
@@ -83,14 +84,6 @@ uv_unwrap_mesh::uv_unwrap_mesh()
 {
   attach_logger( "arrows.core.uv_unwrap_mesh" );
 }
-
-// Copy constructor
-uv_unwrap_mesh
-::uv_unwrap_mesh(const uv_unwrap_mesh& other)
-  : d_(new priv(*other.d_))
-{
-}
-
 
 // Destructor
 uv_unwrap_mesh

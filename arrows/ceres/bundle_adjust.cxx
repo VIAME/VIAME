@@ -40,6 +40,8 @@
 #include <unordered_set>
 
 #include <vital/io/eigen_io.h>
+#include <vital/vital_config.h>
+
 #include <arrows/ceres/reprojection_error.h>
 #include <arrows/ceres/types.h>
 #include <arrows/ceres/options.h>
@@ -63,7 +65,7 @@ public:
   explicit StateCallback(bundle_adjust* b = NULL)
     : bap(b) {}
 
-  ::ceres::CallbackReturnType operator() (const ::ceres::IterationSummary& summary)
+  ::ceres::CallbackReturnType operator() ( VITAL_UNUSED const ::ceres::IterationSummary& summary)
   {
     return ( bap && !bap->trigger_callback() )
            ? ::ceres::SOLVER_TERMINATE_SUCCESSFULLY
@@ -208,7 +210,7 @@ bundle_adjust
 // Check that the algorithm's currently configuration is valid
 bool
 bundle_adjust
-::check_configuration(config_block_sptr config) const
+::check_configuration( VITAL_UNUSED config_block_sptr config ) const
 {
   std::string msg;
   if( !d_->options.IsValid(&msg) )

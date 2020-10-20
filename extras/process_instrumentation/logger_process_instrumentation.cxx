@@ -31,6 +31,7 @@
 #include "logger_process_instrumentation.h"
 
 #include <sprokit/pipeline/process.h>
+#include <vital/vital_config.h>
 #include <vital/config/config_difference.h>
 #include <vital/util/enum_converter.h>
 #include <vital/util/string.h>
@@ -58,7 +59,7 @@ logger_process_instrumentation()
 // ------------------------------------------------------------------
 void
 logger_process_instrumentation::
-  start_init_processing( std::string const& data )
+  start_init_processing( VITAL_UNUSED std::string const& data )
 {
   log_message( process()->name() + ": start_init_processing" );
 }
@@ -76,7 +77,7 @@ stop_init_processing()
 // ------------------------------------------------------------------
 void
 logger_process_instrumentation::
-  start_finalize_processing( std::string const& data )
+  start_finalize_processing( VITAL_UNUSED std::string const& data )
 {
   log_message( process()->name() + ": start_finalize_processing" );
 }
@@ -94,7 +95,7 @@ stop_finalize_processing()
 // ------------------------------------------------------------------
 void
 logger_process_instrumentation::
-start_reset_processing( std::string const& data )
+start_reset_processing( VITAL_UNUSED std::string const& data )
 {
   log_message( process()->name() + ": stop_init_processing" );
 }
@@ -112,7 +113,7 @@ stop_reset_processing()
 // ------------------------------------------------------------------
 void
 logger_process_instrumentation::
-start_flush_processing( std::string const& data )
+start_flush_processing( VITAL_UNUSED std::string const& data )
 {
   log_message( process()->name() + ": start_reset_processing" );
 }
@@ -130,7 +131,7 @@ stop_flush_processing()
 // ------------------------------------------------------------------
 void
 logger_process_instrumentation::
-start_step_processing( std::string const& data )
+start_step_processing( VITAL_UNUSED std::string const& data )
 {
   log_message( process()->name() + ": start_step_processing" );
 }
@@ -148,7 +149,7 @@ stop_step_processing()
 // ------------------------------------------------------------------
 void
 logger_process_instrumentation::
-start_configure_processing( std::string const& data )
+start_configure_processing( VITAL_UNUSED std::string const& data )
 {
   log_message( process()->name() + ": start_configure_processing" );
 }
@@ -166,7 +167,7 @@ stop_configure_processing()
 // ------------------------------------------------------------------
 void
 logger_process_instrumentation::
-start_reconfigure_processing( std::string const& data )
+start_reconfigure_processing( VITAL_UNUSED std::string const& data )
 {
   log_message( process()->name() + ": start_reconfigure_processing" );
 }

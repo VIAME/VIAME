@@ -47,6 +47,7 @@
 #include <vil/vil_plane.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vital/types/bounding_box.h>
+#include <vital/vital_config.h>
 
 #include <sstream>
 #include <memory>
@@ -195,7 +196,7 @@ compute_depth::set_configuration(vital::config_block_sptr in_config)
 
 /// Check that the algorithm's currently configuration is valid
 bool
-compute_depth::check_configuration(vital::config_block_sptr config) const
+compute_depth::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

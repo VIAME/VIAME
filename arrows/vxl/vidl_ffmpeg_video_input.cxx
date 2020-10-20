@@ -43,6 +43,7 @@
 #include <vital/klv/convert_metadata.h>
 #include <vital/klv/misp_time.h>
 #include <vital/klv/klv_data.h>
+#include <vital/vital_config.h>
 
 #include <arrows/vxl/image_container.h>
 
@@ -788,7 +789,7 @@ vidl_ffmpeg_video_input
 bool
 vidl_ffmpeg_video_input
 ::next_frame( kwiver::vital::timestamp& ts,
-              uint32_t timeout )
+              VITAL_UNUSED uint32_t timeout )
 {
   if (d->d_at_eov)
   {
@@ -843,7 +844,7 @@ bool
 vidl_ffmpeg_video_input
 ::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               kwiver::vital::timestamp::frame_t frame_number,
-              uint32_t                  timeout )
+              VITAL_UNUSED uint32_t                  timeout )
 {
   // is stream open?
   if ( ! d->d_video_stream.is_open() )

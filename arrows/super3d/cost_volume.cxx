@@ -50,6 +50,7 @@
 #include <limits>
 
 #include <vital/logger/logger.h>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace arrows {
@@ -164,10 +165,10 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
 //Compute gradient weighting
 void
 compute_g(const vil_image_view<double> &ref_img,
-  vil_image_view<double> &g,
-  double alpha,
-  double beta,
-  vil_image_view<bool> *mask)
+          vil_image_view<double> &g,
+          double alpha,
+          VITAL_UNUSED double beta,
+          vil_image_view<bool> *mask)
 {
   g.set_size(ref_img.ni(), ref_img.nj(), 1);
 

@@ -37,10 +37,11 @@
 
 #include "pipe_bakery_exception.h"
 
-#include <vital/util/string.h>
-#include <vital/util/token_type_sysenv.h>
-#include <vital/util/token_type_env.h>
 #include <vital/config/token_type_config.h>
+#include <vital/util/string.h>
+#include <vital/util/token_type_env.h>
+#include <vital/util/token_type_sysenv.h>
+#include <vital/vital_config.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -70,7 +71,8 @@ protected:
   }
 
 
-  virtual bool handle_missing_provider( const std::string& provider, const std::string& entry )
+  virtual bool handle_missing_provider( const std::string& provider,
+                                        VITAL_UNUSED const std::string& entry )
   {
     std::stringstream str;
     str << "Provider \"" << provider << "\" is not available";

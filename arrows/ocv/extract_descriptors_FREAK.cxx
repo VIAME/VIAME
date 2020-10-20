@@ -37,6 +37,8 @@
 
 #if KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)
 
+#include <vital/vital_config.h>
+
 // typedef FREAK into a common symbol
 #if KWIVER_OPENCV_VERSION_MAJOR < 3
 typedef cv::FREAK cv_FREAK_t;
@@ -48,7 +50,6 @@ typedef cv::xfeatures2d::FREAK cv_FREAK_t;
 namespace kwiver {
 namespace arrows {
 namespace ocv {
-
 
 class extract_descriptors_FREAK::priv
 {
@@ -161,7 +162,7 @@ extract_descriptors_FREAK
 
 bool
 extract_descriptors_FREAK
-::check_configuration(vital::config_block_sptr in_config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr in_config ) const
 {
   return true;
 }

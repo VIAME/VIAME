@@ -137,7 +137,7 @@ refine_detections_write_to_disk
 // Check that the algorithm's currently configuration is valid
 bool
 refine_detections_write_to_disk
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

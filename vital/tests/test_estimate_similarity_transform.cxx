@@ -74,8 +74,8 @@ public:
 
   virtual ~dummy_est() = default;
 
-  void set_configuration(kwiver::vital::config_block_sptr config) {}
-  bool check_configuration(kwiver::vital::config_block_sptr config) const {return true;}
+  void set_configuration( VITAL_UNUSED kwiver::vital::config_block_sptr config) {}
+  bool check_configuration( VITAL_UNUSED kwiver::vital::config_block_sptr config) const {return true;}
 
   using kwiver::vital::algo::estimate_similarity_transform::estimate_transform;
 

@@ -39,6 +39,7 @@
 #include <vital/types/vector.h>
 #include <vital/exceptions/image.h>
 #include <vital/types/metadata_traits.h>
+#include <vital/vital_config.h>
 
 #include <arrows/vxl/image_container.h>
 
@@ -157,8 +158,10 @@ convert_image_helper(const vil_image_view<bool>& src,
 void
 convert_image_helper(const vil_image_view<bool>& src,
                      vil_image_view<bool>& dest,
-                     bool force_byte, bool auto_stretch,
-                     bool manual_stretch, const vector_2d& intensity_range)
+                     VITAL_UNUSED bool force_byte,
+                     VITAL_UNUSED bool auto_stretch,
+                     VITAL_UNUSED bool manual_stretch,
+                     VITAL_UNUSED const vector_2d& intensity_range)
 {
   // special case for bool because stretch does not make sense for bool to bool conversion
   dest = src;

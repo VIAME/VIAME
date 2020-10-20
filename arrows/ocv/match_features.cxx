@@ -37,6 +37,8 @@
 
 #include <vector>
 
+#include <vital/vital_config.h>
+
 #include <arrows/ocv/descriptor_set.h>
 #include <arrows/ocv/match_set.h>
 
@@ -50,8 +52,10 @@ namespace ocv {
 /// Match one set of features and corresponding descriptors to another
 vital::match_set_sptr
 match_features
-::match(vital::feature_set_sptr feat1, vital::descriptor_set_sptr desc1,
-        vital::feature_set_sptr feat2, vital::descriptor_set_sptr desc2) const
+::match( VITAL_UNUSED vital::feature_set_sptr feat1,
+         vital::descriptor_set_sptr desc1,
+         VITAL_UNUSED vital::feature_set_sptr feat2,
+         vital::descriptor_set_sptr desc2) const
 {
   // Return empty match set pointer if either of the input sets were empty
   // pointers

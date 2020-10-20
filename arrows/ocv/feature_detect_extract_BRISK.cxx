@@ -35,6 +35,8 @@
 
 #include "feature_detect_extract_BRISK.h"
 
+#include <vital/vital_config.h>
+
 using namespace kwiver::vital;
 
 namespace kwiver {
@@ -151,7 +153,7 @@ detect_features_BRISK
 
 bool
 detect_features_BRISK
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -195,7 +197,7 @@ extract_descriptors_BRISK
 
 bool
 extract_descriptors_BRISK
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

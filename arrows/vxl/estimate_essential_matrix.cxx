@@ -38,6 +38,8 @@
 
 
 #include <vital/types/feature.h>
+#include <vital/vital_config.h>
+
 #include <arrows/vxl/camera.h>
 #include <arrows/mvg/epipolar_geometry.h>
 
@@ -119,7 +121,7 @@ estimate_essential_matrix
 /// Check that the algorithm's currently configuration is valid
 bool
 estimate_essential_matrix
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

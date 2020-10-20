@@ -37,6 +37,7 @@
 
 #include <set>
 
+#include <vital/vital_config.h>
 
 #include <arrows/vxl/camera_map.h>
 
@@ -94,7 +95,7 @@ triangulate_landmarks
 // Set this algorithm's properties via a config block
 void
 triangulate_landmarks
-::set_configuration(vital::config_block_sptr in_config)
+::set_configuration( VITAL_UNUSED vital::config_block_sptr in_config)
 {
 }
 
@@ -103,7 +104,7 @@ triangulate_landmarks
 // Check that the algorithm's currently configuration is valid
 bool
 triangulate_landmarks
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

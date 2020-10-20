@@ -279,7 +279,7 @@ vital::feature_track_set_sptr
 keyframe_selection_process::priv
 ::remove_non_keyframes_between_keyframes(
   vital::feature_track_set_sptr input_tracks,
-  vital::frame_id_t current_frame_number)
+  VITAL_UNUSED vital::frame_id_t current_frame_number)
 {
   bool passed_a_keyframe = false;
   auto afd = input_tracks->all_frame_data();
@@ -344,7 +344,7 @@ vital::feature_track_set_sptr
 keyframe_selection_process::priv
 ::merge_next_tracks_into_loop_back_track(
   vital::feature_track_set_sptr next_tracks,
-  vital::frame_id_t next_tracks_frame_num,
+  VITAL_UNUSED vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
   vital::feature_track_set_sptr curr_tracks = loop_back_tracks;

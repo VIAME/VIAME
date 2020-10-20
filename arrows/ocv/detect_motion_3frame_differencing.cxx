@@ -40,6 +40,7 @@
 #include <kwiversys/SystemTools.hxx>
 #include <vital/exceptions.h>
 #include <vital/types/matrix.h>
+#include <vital/vital_config.h>
 
 #include <arrows/ocv/image_container.h>
 
@@ -397,7 +398,7 @@ detect_motion_3frame_differencing
 
 bool
 detect_motion_3frame_differencing
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -406,7 +407,7 @@ detect_motion_3frame_differencing
 /// Detect motion from a sequence of images
 image_container_sptr
 detect_motion_3frame_differencing
-::process_image( const timestamp& ts,
+::process_image( VITAL_UNUSED const timestamp& ts,
                  const image_container_sptr image,
                  bool reset_model)
 {

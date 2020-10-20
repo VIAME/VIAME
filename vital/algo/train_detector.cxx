@@ -36,6 +36,7 @@
 #include "train_detector.h"
 
 #include <vital/algo/algorithm.txx>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace vital {
@@ -50,11 +51,11 @@ train_detector
 void
 train_detector
 ::train_from_disk(
-  vital::category_hierarchy_sptr object_labels,
-  std::vector< std::string > train_image_names,
-  std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-  std::vector< std::string > test_image_names,
-  std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
+  VITAL_UNUSED vital::category_hierarchy_sptr object_labels,
+  VITAL_UNUSED std::vector< std::string > train_image_names,
+  VITAL_UNUSED std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+  VITAL_UNUSED std::vector< std::string > test_image_names,
+  VITAL_UNUSED std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
 {
   throw std::runtime_error( "Method not implemented" );
 }
@@ -63,11 +64,11 @@ train_detector
 void
 train_detector
 ::train_from_memory(
-  vital::category_hierarchy_sptr object_labels,
-  std::vector< kwiver::vital::image_container_sptr > train_images,
-  std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-  std::vector< kwiver::vital::image_container_sptr > test_images,
-  std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
+  VITAL_UNUSED vital::category_hierarchy_sptr object_labels,
+  VITAL_UNUSED std::vector< kwiver::vital::image_container_sptr > train_images,
+  VITAL_UNUSED std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+  VITAL_UNUSED std::vector< kwiver::vital::image_container_sptr > test_images,
+  VITAL_UNUSED std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
 {
   throw std::runtime_error( "Method not implemented" );
 }

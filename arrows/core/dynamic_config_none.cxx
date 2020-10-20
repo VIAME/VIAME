@@ -35,6 +35,8 @@
 
 #include "dynamic_config_none.h"
 
+#include <vital/vital_config.h>
+
 namespace kwiver {
 namespace arrows {
 namespace core {
@@ -49,14 +51,14 @@ dynamic_config_none()
 // ------------------------------------------------------------------
 void
 dynamic_config_none::
-set_configuration( kwiver::vital::config_block_sptr config )
+set_configuration( VITAL_UNUSED kwiver::vital::config_block_sptr config )
 { }
 
 
 // ------------------------------------------------------------------
 bool
 dynamic_config_none::
-check_configuration( kwiver::vital::config_block_sptr config ) const
+check_configuration( VITAL_UNUSED kwiver::vital::config_block_sptr config ) const
 {
   return true;
 }

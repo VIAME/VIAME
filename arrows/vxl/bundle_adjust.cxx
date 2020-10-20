@@ -38,10 +38,10 @@
 #include <iostream>
 #include <set>
 
-#include <vital/util/cpu_timer.h>
-
 #include <arrows/vxl/camera_map.h>
 #include <vital/io/eigen_io.h>
+#include <vital/util/cpu_timer.h>
+#include <vital/vital_config.h>
 
 #include <vpgl/algo/vpgl_bundle_adjust.h>
 
@@ -183,7 +183,7 @@ bundle_adjust
 /// Check that the algorithm's currently configuration is valid
 bool
 bundle_adjust
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

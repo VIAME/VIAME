@@ -38,6 +38,7 @@
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/exceptions.h>
+#include <vital/vital_config.h>
 
 #include <map>
 #include <sstream>
@@ -113,7 +114,7 @@ detected_object_set_input_kw18::
 // ------------------------------------------------------------------
 void
 detected_object_set_input_kw18::
-set_configuration(vital::config_block_sptr config)
+set_configuration( VITAL_UNUSED vital::config_block_sptr config )
 {
 }
 
@@ -121,7 +122,7 @@ set_configuration(vital::config_block_sptr config)
 // ------------------------------------------------------------------
 bool
 detected_object_set_input_kw18::
-check_configuration(vital::config_block_sptr config) const
+check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -130,7 +131,8 @@ check_configuration(vital::config_block_sptr config) const
 // ------------------------------------------------------------------
 bool
 detected_object_set_input_kw18::
-read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name )
+read_set( kwiver::vital::detected_object_set_sptr & set,
+          VITAL_UNUSED std::string& image_name )
 {
   if ( d->m_first )
   {

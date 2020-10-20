@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2018 by Kitware, Inc.
+ * Copyright 2015-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -133,7 +133,7 @@ estimate_canonical_transform
 // Check that the algorithm's configuration vital::config_block is valid
 bool
 estimate_canonical_transform
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
  return true;
 }

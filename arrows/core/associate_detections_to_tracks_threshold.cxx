@@ -38,6 +38,7 @@
 #include <vital/algo/detected_object_filter.h>
 #include <vital/types/object_track_set.h>
 #include <vital/exceptions/algorithm.h>
+#include <vital/vital_config.h>
 
 #include <string>
 #include <vector>
@@ -125,7 +126,7 @@ associate_detections_to_tracks_threshold
 
 bool
 associate_detections_to_tracks_threshold
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
