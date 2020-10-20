@@ -46,8 +46,7 @@ namespace serialize {
 namespace json {
 
 class KWIVER_SERIALIZE_JSON_EXPORT activity
-  : public vital::algorithm_impl< activity,
-           vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   // Type name this class supports and description
