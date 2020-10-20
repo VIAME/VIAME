@@ -75,33 +75,6 @@ typedef kwiversys::CommandLineArguments argT;
 
 kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( "init_cameras_landmarks" ) );
 
-// ------------------------------------------------------------------
-kwiver::vital::config_block_sptr default_config()
-{
-  kwiver::vital::config_block_sptr config =
-    kwiver::vital::config_block::empty_config("init_cameras_landmarks");
-
-  config->set_value("video_source", "",
-                    "(optional) Path to an input file to be opened as a video. "
-                    "This could be either a video file or a text file "
-                    "containing new-line separated paths to sequential "
-                    "image files.");
-  config->set_value("input_tracks_file", "",
-                    "Path to a file to read input tracks from.");
-  config->set_value("output_cameras_directory", "",
-                    "Directory to write cameras to.");
-  config->set_value("output_landmarks_filename", "",
-                    "Path to a file to write output landmarks to. If this "
-                    "file exists, it will be overwritten.");
-
-
-  initialize_cameras_landmarks::get_nested_algo_configuration("initializer",
-                                                              config,
-                                                              initialize_cameras_landmarks_sptr());
-  video_input::get_nested_algo_configuration("video_reader", config,
-                                             video_input_sptr());
-  return config;
-}
 
 // ------------------------------------------------------------------
 bool check_config(kwiver::vital::config_block_sptr config)
@@ -206,23 +179,20 @@ bool check_config(kwiver::vital::config_block_sptr config)
 class init_cameras_landmarks::priv
 {
 public:
-  priv()
-  : camera_map_ptr(nullptr),
-    landmark_map_ptr(nullptr),
-    feature_track_set_ptr(nullptr),
-    sfm_constraint_ptr(nullptr),
-    config(nullptr),
-    num_frames(0)
-  {}
+  priv(init_cameras_landmarks* parent) : p(parent) {}
 
+  init_cameras_landmarks* p = nullptr;
   camera_map_sptr camera_map_ptr;
   landmark_map_sptr landmark_map_ptr;
   feature_track_set_sptr feature_track_set_ptr;
   sfm_constraints_sptr sfm_constraint_ptr;
   initialize_cameras_landmarks_sptr algorithm;
   kwiver::vital::config_block_sptr config;
-  size_t num_frames;
-  std::string video_name;
+  size_t num_frames = 0;
+  kwiver::vital::path_t  video_file;
+  kwiver::vital::path_t  tracks_file;
+  kwiver::vital::path_t  camera_directory = "results/krtd";
+  kwiver::vital::path_t  landmarks_file = "results/landmarks.ply";
 
   enum commandline_mode {SUCCESS, HELP, WRITE, FAIL};
 
@@ -304,12 +274,52 @@ public:
     return SUCCESS;
   }
 
+  kwiver::vital::config_block_sptr default_config()
+  {
+    auto config = p->find_configuration("applets/init_cameras_landmarks.conf");
+
+    // choose video or image list reader based on file extension
+    auto vr_config = config->subblock_view("video_reader");
+    if (ST::GetFilenameLastExtension(video_file) == ".txt")
+    {
+      vr_config->merge_config(
+        p->find_configuration("core_image_list_video_input.conf"));
+    }
+    else
+    {
+      vr_config->merge_config(
+        p->find_configuration("ffmpeg_video_input.conf"));
+    }
+
+    config->set_value("video_source", video_file,
+      "(optional) Path to an input file to be opened as a video. "
+      "This could be either a video file or a text file "
+      "containing new-line separated paths to sequential "
+      "image files.");
+
+    config->set_value("input_tracks_file", tracks_file,
+      "Path to a file to read input tracks from.");
+
+    config->set_value("output_cameras_directory", camera_directory,
+      "Directory to write cameras to.");
+
+    config->set_value("output_landmarks_filename", landmarks_file,
+      "Path to a file to write output landmarks to. If this "
+      "file exists, it will be overwritten.");
+
+
+    initialize_cameras_landmarks::get_nested_algo_configuration(
+      "initializer", config, nullptr);
+    video_input::get_nested_algo_configuration(
+      "video_reader", config, nullptr);
+    return config;
+  }
+
   void initialize()
   {
     // Create algorithm from configuration
-    initialize_cameras_landmarks::set_nested_algo_configuration( "initializer",
-                                                                 config,
-                                                                 algorithm );
+    initialize_cameras_landmarks::set_nested_algo_configuration(
+      "initializer", config, algorithm );
   }
 
   void clear_ptrs()
@@ -326,10 +336,10 @@ public:
     {
       return;
     }
-    kwiver::vital::path_t in_tracks_path =
+    tracks_file =
       config->get_value<kwiver::vital::path_t>("input_tracks_file");
     feature_track_set_ptr =
-      kwiver::vital::read_feature_track_file(in_tracks_path);
+      kwiver::vital::read_feature_track_file(tracks_file);
   }
 
   void load_sfm_constraint( )
@@ -345,12 +355,10 @@ public:
        config->get_value<std::string>("video_source") != "")
     {
       video_input_sptr video_reader;
-      video_name = config->get_value<std::string>("video_source");
-      video_input::set_nested_algo_configuration("video_reader", config,
-                                                 video_reader);
-      video_input::get_nested_algo_configuration("video_reader", config,
-                                                 video_reader);
-      video_reader->open( config->get_value<std::string>("video_source") );
+      video_file = config->get_value<std::string>("video_source");
+      video_input::set_nested_algo_configuration(
+        "video_reader", config, video_reader);
+      video_reader->open( video_file );
       if (video_reader->get_implementation_capabilities()
         .has_capability(video_input::HAS_METADATA))
       {
@@ -533,7 +541,7 @@ public:
       }
     }
     auto dummy_md = std::make_shared<kwiver::vital::metadata>();
-    dummy_md->add<kwiver::vital::VITAL_META_VIDEO_URI>(std::string(video_name));
+    dummy_md->add<kwiver::vital::VITAL_META_VIDEO_URI>(std::string(video_file));
     return basename_from_metadata(dummy_md, frame_id);
   }
 };
@@ -638,7 +646,7 @@ add_command_options()
 // ============================================================================
 init_cameras_landmarks::
 init_cameras_landmarks()
- : d(new priv)
+ : d(new priv(this))
 { }
 
 init_cameras_landmarks::
