@@ -147,10 +147,20 @@ bool check_config(kwiver::vital::config_block_sptr config)
   {
     KWIVER_CONFIG_FAIL("Config needs value output_cameras_directory");
   }
-  else if ( ! ST::FileIsDirectory(
-    config->get_value<kwiver::vital::path_t>("output_cameras_directory") ) )
+  else
   {
-    KWIVER_CONFIG_FAIL("output_cameras_director is not a valid directory");
+    auto cam_dir = config->get_value<kwiver::vital::path_t>("output_cameras_directory");
+    if (!ST::FileIsDirectory(cam_dir))
+    {
+      if (ST::FileExists(cam_dir))
+      {
+        KWIVER_CONFIG_FAIL("output_cameras_directory is a file, not a valid directory");
+      }
+      else if (!ST::MakeDirectory(cam_dir))
+      {
+        KWIVER_CONFIG_FAIL("unable to create output_cameras_directory");
+      }
+    }
   }
 
   if (!config->has_value("output_landmarks_filename") ||
@@ -158,10 +168,17 @@ bool check_config(kwiver::vital::config_block_sptr config)
   {
     KWIVER_CONFIG_FAIL("Config needs value output_landmarks_filename");
   }
-  else if ( ! ST::FileIsDirectory( ST::CollapseFullPath( ST::GetFilenamePath(
-    config->get_value<kwiver::vital::path_t>("output_landmarks_filename") ))))
+  else
   {
-    KWIVER_CONFIG_FAIL("output_landmarks_filename is not in a valid directory");
+    auto parent_dir = ST::GetFilenamePath(ST::CollapseFullPath(
+      config->get_value<kwiver::vital::path_t>("output_landmarks_filename")));
+    if (!ST::FileIsDirectory(parent_dir))
+    {
+      if (!ST::MakeDirectory(parent_dir))
+      {
+        KWIVER_CONFIG_FAIL("unable to create output directory for output_landmarks_filename");
+      }
+    }
   }
 
   {
