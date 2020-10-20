@@ -64,6 +64,9 @@ out(std::ostream& str, point< N, T >const& p)
   case 4:
     str << "[ " << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << " ]\n";
     break;
+  default:
+    str << "Unexpected dimension for point.\n";
+    break;
   }
 
   str << " - covariance : ";
@@ -84,6 +87,9 @@ out(std::ostream& str, point< N, T >const& p)
                 << c(1, 0) << ", " << c(1, 1) << ", " << c(1, 2) << ", " << c(1, 3) << "\n                  "
                 << c(2, 0) << ", " << c(2, 1) << ", " << c(2, 2) << ", " << c(2, 3) << "\n                  "
                 << c(3, 0) << ", " << c(3, 1) << ", " << c(3, 2) << ", " << c(3, 3) << " ]\n";
+    break;
+  default:
+    str << "Unexpected dimension for point.\n";
     break;
   }
 

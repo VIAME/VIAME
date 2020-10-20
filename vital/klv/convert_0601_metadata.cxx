@@ -399,6 +399,11 @@ convert_metadata
       raw_target_location[0] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LONG, data );
       break;
 
+      // And all the others
+    case KLV_0601_UNKNOWN:
+    case KLV_0601_CHECKSUM:
+    case KLV_0601_ENUM_END:
+    case KLV_0601_GENERIC_FLAG_DATA_01:
     default:
       LOG_DEBUG( logger, "KLV 0601 key: " << int(itr->first) << " is not supported." );
       break;
