@@ -1,5 +1,6 @@
 set(config_files
   dump_klv.conf
+  init_cameras_landmarks.conf
   track_features.conf
   )
 

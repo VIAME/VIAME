@@ -11,6 +11,7 @@ set(config_files
   core_track_filter.conf
   core_video_input_image_list.conf
   core_video_input_image_pos_list.conf
+  default_camera_intrinsics.conf
   ffmpeg_video_input.conf
   loop_closer_bad_frames.conf
   loop_closer_homography.conf
