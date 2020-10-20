@@ -52,44 +52,6 @@ set(pipeline_util_private_headers
   token.h
   )
 
-if (WIN32)
-  set(path_sep "//073")
-else ()
-  set(path_sep "//072")
-endif ()
-
-set(sprokit_default_pipe_include_paths   "${CMAKE_INSTALL_PREFIX}/share/sprokit/pipelines/include")
-
-if (KWIVER_USE_BUILD_TREE)
-  set(sprokit_default_pipe_include_paths
-    "${sprokit_default_pipe_include_paths}${path_sep}${KWIVER_SOURCE_DIR}/config/pipelines")
-endif ()
-
-set(SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS "${sprokit_default_pipe_include_paths}"
-  CACHE STRING "The default paths to search for pipe includes in")
-
-set(sprokit_pipe_include_options  "DEFAULT_PIPE_INCLUDE_PATHS=\"${SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS}\"")
-
-set(load_pipe_build_options)
-
-# It is not clear why windows is treated differently here
-# Maybe the build options do not work the same.
-if (WIN32)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include-paths.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/include-paths.h")
-
-  list(APPEND pipeline_util_private_headers
-    include-paths.h.in)
-else ()
-  list(APPEND load_pipe_build_options
-    ${sprokit_pipe_include_options})
-endif ()
-
-set_source_files_properties(pipeline_builder.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${load_pipe_build_options}")
-
 kwiver_private_header_group(${pipeline_util_private_headers})
 
 kwiver_add_library(sprokit_pipeline_util

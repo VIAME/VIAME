@@ -36,8 +36,6 @@
 
 #include "processes_clusters_export.h"
 
-#include <processes/clusters/cluster-paths.h>
-
 #include <kwiversys/Directory.hxx>
 #include <kwiversys/SystemTools.hxx>
 #include <sprokit/pipeline/process_factory.h>
@@ -49,6 +47,7 @@
 #include <sprokit/pipeline_util/pipeline_builder.h>
 #include <vital/logger/logger.h>
 #include <vital/util/tokenize.h>
+#include <vital/kwiver-include-paths.h>
 
 #include <algorithm>
 #include <iostream>

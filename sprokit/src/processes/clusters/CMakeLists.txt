@@ -4,40 +4,11 @@ set(clusters_srcs
   registration.cxx
   )
 
-set(clusters_private_headers
-  cluster-paths.h.in
-  )
-
-set(sprokit_default_cluster_paths
-  "${CMAKE_INSTALL_PREFIX}/share/sprokit/pipelines/clusters")
-
-set(path_prefix)
-
-if (WIN32)
-  set(path_sep "\\073")
-else()  # Other Unix systems
-  set(path_sep "\\072")
-endif()
-
-if (KWIVER_USE_BUILD_TREE)
-  set(sprokit_default_cluster_paths
-    "${sprokit_default_cluster_paths}")
-endif ()
-
-set(SPROKIT_DEFAULT_CLUSTER_PATHS "${sprokit_default_cluster_paths}"
-  CACHE STRING "The default paths to search for clusters in" FORCE)
-
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cluster-paths.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cluster-paths.h" )
-
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-kwiver_private_header_group(${clusters_private_headers})
 kwiver_add_plugin(processes_clusters
   SUBDIR       ${kwiver_plugin_process_subdir}
   SOURCES      ${clusters_srcs}
-               ${clusters_private_headers}
   PUBLIC       vital_logger
   PRIVATE      sprokit_pipeline_util
                sprokit_pipeline

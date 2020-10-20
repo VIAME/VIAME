@@ -47,7 +47,8 @@ mark_as_advanced(KWIVER_DEFAULT_LIBRARY_DIR)
 
 #
 # kwiver module config file.
-set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.20)
     set(_vcVersion vc16)
@@ -165,6 +166,9 @@ set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/module
 set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/plugin_explorer )
 set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/logger )
 set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
+
+# other well known subdirs
+set( kwiver_config_subdir                         share/kwiver/${KWIVER_VERSION}/config)
 
 ##
 # System specific compiler flags
@@ -373,6 +377,10 @@ else()  # Other Unix systems
   set(path_sep "\\072")
 endif()
 
+set(KWIVER_DEFAULT_MODULE_PATHS ""
+  CACHE STRING "The default paths for module scanning. Separate paths with ';' character." FORCE)
+mark_as_advanced( KWIVER_DEFAULT_MODULE_PATHS )
+
 # add all user supplied paths to the property
 foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
   kwiver_add_module_path( ${p} )
@@ -381,10 +389,28 @@ endforeach(p)
 kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_subdir} )
 kwiver_add_module_path(  "${kwiver_module_path_result}" )
 
+set(sprokit_default_pipe_include_paths
+  "${CMAKE_INSTALL_PREFIX}/${kwiver_config_subdir}/pipelines/include")
+
+set(sprokit_default_cluster_paths
+  "${CMAKE_INSTALL_PREFIX}/${kwiver_config_subdir}/pipelines/clusters")
+
 if (KWIVER_USE_BUILD_TREE)
   kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_subdir} )
   kwiver_add_module_path(  "${kwiver_module_path_result}" )
+
+  set(sprokit_default_pipe_include_paths
+    "${sprokit_default_pipe_include_paths}${path_sep}${KWIVER_SOURCE_DIR}/config/pipelines")
+
+  set(sprokit_default_cluster_paths
+    "${sprokit_default_cluster_paths}${path_sep}${KWIVER_SOURCE_DIR}/config/clusters")
 endif()
+
+set(SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS "${sprokit_default_pipe_include_paths}"
+  CACHE STRING "The default paths to search for pipe includes in" FORCE)
+
+set(SPROKIT_DEFAULT_CLUSTER_PATHS "${sprokit_default_cluster_paths}"
+  CACHE STRING "The default paths to search for clusters in" FORCE)
 
 # need to retrieve the GLOBAL PROPERTY kwiver_plugin_path and
 # formulate the default module path
@@ -400,8 +426,8 @@ foreach( p IN LISTS plugin_path )
 endforeach(p)
 
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/vital/algorithm_plugin_manager_paths.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/vital/algorithm_plugin_manager_paths.h" )
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/kwiver-include-paths.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/kwiver-include-paths.h" )
 
 
 # ===========================================================================================

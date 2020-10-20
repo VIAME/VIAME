@@ -30,10 +30,6 @@
 
 #include "pipeline_builder.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <sprokit/pipeline_util/include-paths.h>
-#endif
-
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 #include <sprokit/pipeline_util/pipe_parser.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
@@ -42,8 +38,7 @@
 #include <vital/config/config_block.h>
 #include <vital/util/tokenize.h>
 #include <vital/util/string.h>
-
-#include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
+#include <vital/kwiver-include-paths.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -62,6 +57,7 @@ namespace {
 static std::string const default_include_dirs = std::string( DEFAULT_PIPE_INCLUDE_PATHS );
 static std::string const sprokit_include_envvar = std::string( "SPROKIT_PIPE_INCLUDE_PATH" );
 static std::string const split_str = "=";
+static std::string const path_separator( 1, PATH_SEPARATOR_CHAR );
 
 }
 
@@ -291,8 +287,8 @@ pipeline_builder
   kwiversys::SystemTools::GetPath( path_list, sprokit_include_envvar.c_str() );
 
   // Add the default search path
-  ST::Split( default_include_dirs, path_list, PATH_SEPARATOR_CHAR );
-
+  ::kwiver::vital::tokenize( default_include_dirs, path_list, path_separator,
+                             kwiver::vital::TokenizeTrimEmpty );
   if ( ! path_list.empty() )
   {
     add_search_path( path_list );

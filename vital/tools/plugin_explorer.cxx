@@ -31,8 +31,7 @@
 #include "explorer_plugin.h"
 #include "explorer_context_priv.h"
 
-#include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
-#include <processes/clusters/cluster-paths.h> // cluster default path
+#include <vital/kwiver-include-paths.h>
 
 #include <vital/algo/algorithm_factory.h>
 #include <vital/applets/cxxopts.hpp>
