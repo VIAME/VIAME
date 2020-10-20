@@ -61,9 +61,9 @@ public:
   activity_type();
   virtual ~activity_type();
 
-  virtual std::shared_ptr< std::string >
+  std::shared_ptr< std::string >
     serialize( const kwiver::vital::any& element ) override;
-  virtual kwiver::vital::any deserialize( const std::string& message ) override;
+  kwiver::vital::any deserialize( const std::string& message ) override;
 };
 
 } } } }
