@@ -251,6 +251,7 @@ target_link_libraries( vital
                   vital_exceptions
                   vital_logger
                   vital_util
+                  Eigen3::Eigen
   )
 
 ###

@@ -20,7 +20,6 @@ if(NOT SKBUILD)
           "${utils_dir}/kwiver-cmake-future.cmake"
           "${utils_dir}/kwiver-setup-python.cmake"
           "${utils_dir}/CommonFindMacros.cmake"
-          "${utils_dir}/FindEigen3.cmake"
           "${utils_dir}/FindFFMPEG.cmake"
           "${utils_dir}/FindLog4cxx.cmake"
           "${utils_dir}/FindPROJ.cmake"
