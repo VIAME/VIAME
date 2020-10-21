@@ -141,6 +141,13 @@ Arrows: Ceres
 
 Arrows: Super3D
 
+Arrows: VTK
+
+ * Created new VTK arrow.
+
+ * Added utility function to convert depth images to vtkImageData.
+   This function was ported from TeleSculptor.
+
 Sprokit: Processes
 
  * Fixed the compute_track_descriptors process's handling of null
