@@ -227,7 +227,7 @@ kwiver::vital::metadata create_meta_collection()
   }
 
   {
-    const auto& info = traits.find( kwiver::vital::VIDEO_KEY_FRAME );
+    const auto& info = traits.find( kwiver::vital::VITAL_VIDEO_KEY_FRAME );
     auto* item = info.create_metadata_item( kwiver::vital::any(true ) );
     meta.add( item );
   }
