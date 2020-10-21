@@ -175,27 +175,24 @@ namespace cereal {
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta )
 {
-  archive( ::cereal::make_nvp( "size", meta.size() ) );
-
+  std::vector<kwiver::vital::metadata> meta_dereferenced;
   for ( const auto& element : meta )
   {
-    save( archive, *element );
+    meta_dereferenced.push_back( *element );
   }
 
+  save( archive, meta_dereferenced );
 }
 
 // ----------------------------------------------------------------------------
 void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata_vector& meta )
 {
-  ::cereal::size_type size;
-  archive( CEREAL_NVP( size ) );
+  std::vector< kwiver::vital::metadata > meta_dereferenced;
+  load( archive, meta_dereferenced );
 
-  for ( ::cereal::size_type i = 0; i < size; ++i )
+  for ( const auto& packet : meta_dereferenced )
   {
-    auto new_obj = std::make_shared< kwiver::vital::metadata > ();
-    load( archive, *new_obj );
-
-    meta.push_back( new_obj );
+    meta.push_back( std::make_shared< kwiver::vital::metadata > ( packet ) );
   }
 
 }
@@ -218,7 +215,7 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& 
 
   } // end for
 
-  archive( ::cereal::make_nvp( "items", meta_vect ) );
+  save( archive, meta_vect );
 }
 
 // ----------------------------------------------------------------------------
@@ -227,14 +224,13 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
   meta_vect_t meta_vect; // intermediate form
 
   // Deserialize the list of elements for one metadata collection
-  archive( ::cereal::make_nvp( "items", meta_vect ) );
+  load( archive, meta_vect );
 
   // Convert the intermediate form back to a real metadata collection
   for ( const auto & it : meta_vect )
   {
     const auto& trait = meta_traits.find( it.tag );
-    auto* item = trait.create_metadata_item( it.item_value );
-    meta.add( item );
+    meta.add( trait.create_metadata_item( it.item_value ) );
   } // end for
 }
 
