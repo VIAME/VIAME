@@ -7,6 +7,8 @@ over the previous v1.5.0 release.
 Updates since v1.5.0
 --------------------
 
+ * Renamed symbols or other approaches to reduce "shadowing" warnings.
+
 Vital
 
 Vital Algo

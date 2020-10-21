@@ -1028,8 +1028,8 @@ initialize_cameras_landmarks_basic
 
     // find existing landmarks for tracks also having features on the other frame
     map_landmark_t flms;
-    std::vector<track_sptr> ftrks = ftracks->active_tracks(static_cast<int>(other_frame));
-    for(const track_sptr& t : ftrks)
+    std::vector<track_sptr> aftracks = ftracks->active_tracks(static_cast<int>(other_frame));
+    for(const track_sptr& t : aftracks)
     {
       map_landmark_t::const_iterator li = lms.find(t->id());
       if( li != lms.end() )

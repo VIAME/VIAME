@@ -191,13 +191,13 @@ public:
 
   // --------------------------------------------------------------------------
   feature_set_sptr
-  filter(feature_set_sptr feat, std::vector<unsigned int> &ind) const
+  filter(feature_set_sptr feat_set, std::vector<unsigned int> &ind) const
   {
-    const std::vector<feature_sptr> &feat_vec = feat->features();
+    const std::vector<feature_sptr> &feat_vec = feat_set->features();
 
     if (feat_vec.size() <= num_features_target)
     {
-      return feat;
+      return feat_set;
     }
 
     //  Create a new vector with the index and magnitude for faster sorting
@@ -208,10 +208,10 @@ public:
     Eigen::AlignedBox<double, 1> scale_box;
     for (unsigned int i = 0; i < feat_vec.size(); i++)
     {
-      auto const& l_feat = feat_vec[i];
-      indices.push_back(std::make_pair(i, l_feat->magnitude()));
-      bbox.extend(l_feat->loc());
-      scale_box.extend(Eigen::Matrix<double,1,1>(l_feat->scale()));
+      auto const& feat = feat_vec[i];
+      indices.push_back(std::make_pair(i, feat->magnitude()));
+      bbox.extend(feat->loc());
+      scale_box.extend(Eigen::Matrix<double,1,1>(feat->scale()));
     }
 
     const double scale_min = std::log2(scale_box.min()[0]);

@@ -208,15 +208,15 @@ public:
    * \brief Constructor for serializer registrar
    *
    * \param vpl Plugin loader reference.
-   * \param mod_name  name of module to register.
+   * \param module_name  name of module to register.
    * \param ser_method short serialization method. This specifies the
    * string that is used in the pipe config file to select the
    * serializer method. Typical entries could be "protobuf" or "json".
    */
   serializer_registrar( kwiver::vital::plugin_loader& vpl,
-                       const std::string& mod,
+                       const std::string& module_name,
                        const std::string& ser_method)
-    : plugin_registrar( vpl, mod ),
+    : plugin_registrar( vpl, module_name ),
       m_serialize_method( "serialize-" + ser_method )
   { }
 

@@ -424,7 +424,7 @@ TEST( serialize, detected_object_set )
       auto ser_it = ser_dot_sptr->begin();
       auto deser_it = deser_dot_sptr->begin();
 
-      for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
+      for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
       {
         EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
         EXPECT_EQ( deser_it->second, deser_it->second );
@@ -676,7 +676,7 @@ TEST( serialize, track )
       auto ser_it = ser_dot_sptr->begin();
       auto dser_it = dser_dot_sptr->begin();
 
-      for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
+      for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
       {
         EXPECT_EQ( *( ser_it->first ), *( ser_it->first ) );
         EXPECT_EQ( dser_it->second, dser_it->second );
@@ -840,7 +840,7 @@ TEST( serialize, object_track_set )
         auto ser_it = ser_dot_sptr->begin();
         auto dser_it = dser_dot_sptr->begin();
 
-        for ( size_t idx = 0; idx < ser_dot_sptr->size(); ++idx )
+        for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
         {
           EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
           EXPECT_EQ( dser_it->second, dser_it->second );

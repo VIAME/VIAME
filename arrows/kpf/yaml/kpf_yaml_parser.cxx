@@ -461,9 +461,9 @@ parse_activity( const YAML::Node& n, KPF::packet_buffer_t& local_packet_buffer )
       }
       else if (h.style == KPF::packet_style::EVAL)
       {
-        KPF::packet_t pp(h);
-        if ( ! parse_packet( i, pp )) return false;
-        act.evals.push_back ( {p.eval, pp.header.domain} );
+        KPF::packet_t packet(h);
+        if ( ! parse_packet( i, packet )) return false;
+        act.evals.push_back ( {p.eval, packet.header.domain} );
       }
       else if (h.style == KPF::packet_style::ACT)
       {

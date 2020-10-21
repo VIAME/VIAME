@@ -46,12 +46,6 @@
 #include <vital/types/bounding_box.h>
 #include <vital/vital_config.h>
 
-//#include <vital/types/landmark.h>
-//#include <vital/vital_config.h>
-//#include <vnl/vnl_double_3.h>
-//#include <vpgl/vpgl_perspective_camera.h>
-
-
 #include <sstream>
 #include <memory>
 #include <functional>

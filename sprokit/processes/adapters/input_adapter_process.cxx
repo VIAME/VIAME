@@ -77,16 +77,16 @@ kwiver::adapter::ports_info_t
 input_adapter_process
 ::get_ports()
 {
-  kwiver::adapter::ports_info_t l_port_info;
+  kwiver::adapter::ports_info_t p_info;
 
   // formulate list of current input ports
   auto ports = this->output_ports();
   for( auto port : ports )
   {
-    l_port_info[port] = this->input_port_info( port );
+    p_info[port] = this->input_port_info( port );
   }
 
-  return l_port_info;
+  return p_info;
 }
 
 

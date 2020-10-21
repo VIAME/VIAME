@@ -1,4 +1,4 @@
-/*cOAkwg +29
+/*ckwg +29
  * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
@@ -2126,9 +2126,9 @@ initialize_cameras_landmarks::priv
     return false;
   }
 
-  int l_num_constraints_used;
+  int constraints_used;
   if (fit_reconstruction_to_constraints(cams, lms, tracks,
-                                        constraints, l_num_constraints_used))
+                                        constraints, constraints_used))
   {
     std::set<frame_id_t> fixed_cams_empty;
     std::set<landmark_id_t> fixed_lms_empty;
@@ -2253,7 +2253,7 @@ initialize_cameras_landmarks::priv
                          << after_new_cam_rmse);
 
     }
-    int constraints_used;
+
     ba_constraints = nullptr;
     m_solution_was_fit_to_constraints = false;
     if (fit_reconstruction_to_constraints(cams, lms, tracks,
