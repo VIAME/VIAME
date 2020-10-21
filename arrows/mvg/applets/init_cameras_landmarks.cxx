@@ -30,7 +30,6 @@
 
 #include "init_cameras_landmarks.h"
 
-#include <kwiversys/CommandLineArguments.hxx>
 #include <kwiversys/SystemTools.hxx>
 
 #include <vital/algo/initialize_cameras_landmarks.h>
@@ -72,7 +71,6 @@ using kv::sfm_constraints_sptr;
 namespace {
 
 typedef kwiversys::SystemTools ST;
-typedef kwiversys::CommandLineArguments argT;
 
 kv::logger_handle_t main_logger( kv::get_logger( "init_cameras_landmarks" ) );
 
