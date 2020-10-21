@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,42 +28,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief register mvg applets into a plugin
- */
+#ifndef KWIVER_ARROWS_MVG_APPLETS_INIT_CAMERAS_LANDMARKS_H
+#define KWIVER_ARROWS_MVG_APPLETS_INIT_CAMERAS_LANDMARKS_H
 
+#include <vital/applets/kwiver_applet.h>
 #include <arrows/mvg/applets/kwiver_algo_mvg_applets_export.h>
-#include <vital/plugin_loader/plugin_loader.h>
-#include <vital/applets/applet_registrar.h>
-
-#include <arrows/mvg/applets/init_cameras_landmarks.h>
-#include <arrows/mvg/applets/track_features.h>
 
 namespace kwiver {
 namespace arrows {
 namespace mvg {
 
-// ----------------------------------------------------------------------------
-extern "C"
-KWIVER_ALGO_MVG_APPLETS_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+class KWIVER_ALGO_MVG_APPLETS_EXPORT init_cameras_landmarks
+  : public kwiver::tools::kwiver_applet
 {
-  kwiver::applet_registrar reg( vpm, "arrows.mvg.applets" );
+public:
+  init_cameras_landmarks();
+  virtual ~init_cameras_landmarks();
 
-  if (reg.is_module_loaded())
-  {
-    return;
-  }
+  PLUGIN_INFO( "init-cameras-landmarks",
+               "Estimate cameras and landmarks from a set of feature tracks");
 
-  // -- register applets --
-  reg.register_tool< init_cameras_landmarks >();
-  reg.register_tool< track_features >();
+  virtual int run() override;
+  virtual void add_command_options() override;
 
-  reg.mark_module_as_loaded();
-}
+private:
+  class priv;
+  std::unique_ptr<priv> d;
 
-} // end namespace mvg
-} // end namespace arrows
-} // end namespace kwiver
+
+}; // end of class
+
+} } } // end namespace
+
+#endif
