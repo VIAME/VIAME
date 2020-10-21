@@ -83,7 +83,8 @@ class SiameseFeatureExtractor(object):
             self._siamese_model.load_state_dict(snapshot['state_dict'])
         else:
             snapshot = torch.load(siamese_model_path, map_location='cpu')
-            tmp = {_strip_prefix(k, 'module.'): v for k, v in snapshot['state_dict'].items()}
+            tmp = {self._strip_prefix(k, 'module.'): v
+                   for k, v in snapshot['state_dict'].items()}
             self._siamese_model.load_state_dict( tmp )
 
         print('Model loaded from {}'.format(siamese_model_path))
@@ -97,7 +98,8 @@ class SiameseFeatureExtractor(object):
         self._img_size = img_size
         self._b_size = batch_size
 
-    def _strip_prefix(string, prefix):
+    @classmethod
+    def _strip_prefix(_cls, string, prefix):
         if not string.startswith(prefix):
             raise ValueError("{!r} was supposed to start with {!r} but does not".\
                     format(string, prefix))
