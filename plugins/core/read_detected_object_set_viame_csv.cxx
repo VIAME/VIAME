@@ -111,6 +111,9 @@ public:
   // Map of detected objects indexed by frame name. Each set
   // contains all detections for a single frame.
   std::map< std::string, kwiver::vital::detected_object_set_sptr > m_detection_by_str;
+
+  // A list of all input filename strings used for error checking.
+  std::vector< std::string > m_searched_filenames;
 };
 
 
@@ -126,6 +129,20 @@ read_detected_object_set_viame_csv
 read_detected_object_set_viame_csv
 ::~read_detected_object_set_viame_csv()
 {
+  if( d->m_error_writer )
+  {
+    for( auto itr : d->m_detection_by_str )
+    {
+      if( std::find( d->m_searched_filenames.begin(),
+                     d->m_searched_filenames.end(),
+                     itr.first ) == d->m_searched_filenames.end() )
+      {
+        *d->m_error_writer << "Possible misnamed file: " << itr.first << std::endl;
+      }
+    }
+
+    d->m_error_writer->close();
+  }
 }
 
 
@@ -206,6 +223,11 @@ read_detected_object_set_viame_csv
     {
       // Return detections for this frame.
       set = d->m_detection_by_str[ image_name ];
+    }
+
+    if( d->m_error_writer )
+    {
+      d->m_searched_filenames.push_back( image_name );
     }
     return true;
   }
