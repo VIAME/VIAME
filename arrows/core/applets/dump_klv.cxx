@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,7 +115,6 @@ run()
 
     return EXIT_FAILURE;
   }
-
 
   kwiver::vital::algo::video_input_sptr video_reader;
   auto config = this->find_configuration("applets/dump_klv.conf");
