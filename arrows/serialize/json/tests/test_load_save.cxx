@@ -391,6 +391,12 @@ kwiver::vital::metadata create_meta_collection()
   }
 
   {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_VIDEO_KEY_FRAME );
+    auto item = info.create_metadata_item( kwiver::vital::any(true ) );
+    meta.add( std::move( item ) );
+  }
+
+  {
     const auto& info = traits.find( kwiver::vital::VITAL_META_UNIX_TIMESTAMP );
     auto item = info.create_metadata_item( kwiver::vital::any((uint64_t)12345678) );
     meta.add( std::move( item ) );
