@@ -137,7 +137,7 @@ read_detected_object_set_viame_csv
                      d->m_searched_filenames.end(),
                      itr.first ) == d->m_searched_filenames.end() )
       {
-        *d->m_error_writer << "Possible misnamed file: " << itr.first << std::endl;
+        *d->m_error_writer << "Image not found: " << itr.first << std::endl;
       }
     }
 
