@@ -60,8 +60,9 @@ And on CentOS 7:
      mesa-libGLU-devel lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel \
      curl curl-devel atlas-devel file which
 
-If using VIAME_ENABLE_PYTHON, you also may need to install python3.6, python3.6-dev, and numpy (or
-alternatively whatever python distribution you want to use, we installing Anaconda3),
+If using VIAME_ENABLE_PYTHON, [Anaconda3 5.2.0](https://repo.anaconda.com/archive/) is
+recommended, though you also try using native python, e.g. install python3, python3-dev,
+and numpy (or alternatively whatever python distribution you want to use),
 e.g.:
 
 .. code-block:: bash
@@ -69,8 +70,8 @@ e.g.:
    sudo apt-get install python3.6 python3.6-dev && sudo pip install numpy
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 9.0 or above
-is recommended, 9.2 or 10.1 being the tested versions. Other versions may work depending
-on your build settings but are not officially supported):
+is required, 9.2 or 10.1 being the tested versions. Other versions may work depending
+on your build settings but are not officially supported yet):
 
 .. code-block:: bash
 
