@@ -355,6 +355,8 @@ static kwiver::vital::config_block_sptr default_config()
     "truth is derived from some automated detector." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
+  config->set_value( "data_warning_file", "",
+    "Optional file for storing possible data errors and warning." );
 
   kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
     ( "groundtruth_reader", config, kwiver::vital::algo::detected_object_set_input_sptr() );
@@ -910,6 +912,8 @@ main( int argc, char* argv[] )
     config->get_value< bool >( "check_override" );
   double threshold =
     config->get_value< double >( "threshold" );
+  std::string data_warning_file =
+    config->get_value< std::string >( "data_warning_file" );
 
   if( !g_params.opt_threshold.empty() )
   {
@@ -925,6 +929,14 @@ main( int argc, char* argv[] )
   if( !augmented_cache.empty() && create_folder( augmented_cache ) )
   {
     regenerate_cache = true;
+  }
+
+  std::unique_ptr< std::ofstream > data_warning_writer;
+  std::vector< std::string > mentioned_warnings;
+
+  if( !data_warning_file.empty() )
+  {
+    data_warning_writer.reset( new std::ofstream( data_warning_file.c_str() ) );
   }
 
   std::vector< std::string > image_extensions, groundtruth_extensions;
@@ -1149,6 +1161,18 @@ main( int argc, char* argv[] )
               else
               {
                 det->type()->delete_score( gt_class );
+
+                if( data_warning_writer &&
+                    std::find(
+                      mentioned_warnings.begin(),
+                      mentioned_warnings.end(),
+                      gt_class ) == mentioned_warnings.end() )
+                {
+                  *data_warning_writer << "Observed class: "
+                    << gt_class << " not in input labels.txt" << std::endl;
+
+                  mentioned_warnings.push_back( gt_class );
+                }
               }
             }
           }
@@ -1200,6 +1224,17 @@ main( int argc, char* argv[] )
             }
 
             label_counts[ gt_class ]++;
+          }
+          else if( data_warning_writer &&
+                  std::find(
+                    mentioned_warnings.begin(),
+                    mentioned_warnings.end(),
+                    gt_class ) == mentioned_warnings.end() )
+          {
+            *data_warning_writer << "Observed class: "
+               << gt_class << " not in input labels.txt" << std::endl;
+
+            mentioned_warnings.push_back( gt_class );
           }
         }
       }
