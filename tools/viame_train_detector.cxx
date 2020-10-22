@@ -329,33 +329,30 @@ static kwiver::vital::config_block_sptr default_config()
     = kwiver::vital::config_block::empty_config( "detector_trainer_tool" );
 
   config->set_value( "groundtruth_extensions", ".csv",
-    "Groundtruth file extensions (csv, kw18, txt, etc...). Note: this "
-    "is independent of the format that's stored in the file" );
+    "Groundtruth file extensions (csv, kw18, txt, etc...). Note: this is independent of "
+    "the format that's stored in the file" );
   config->set_value( "groundtruth_style", "one_per_folder",
     "Can be either: \"one_per_file\" or \"one_per_folder\"" );
   config->set_value( "augmentation_pipeline", "",
     "Optional embedded pipeline for performing assorted augmentations" );
   config->set_value( "augmentation_cache", "",
-    "Directory to store augmented samples, a temp directiry is used "
-    "if not specified." );
+    "Directory to store augmented samples, a temp directiry is used if not specified." );
   config->set_value( "regenerate_cache", "true",
-    "If an augmentation cache already exists, should we regenerate it "
-    "or use it as-is?" );
+    "If an augmentation cache already exists, should we regenerate it or use it as-is?" );
   config->set_value( "augmented_ext_override", ".png",
     "Optional image extension over-ride for augmented images." );
   config->set_value( "default_percent_test", "0.05",
-    "Percent [0.0, 1.0] of test samples to use if no manual files "
-    "specified." );
+    "Percent [0.0, 1.0] of test samples to use if no manual files specified." );
   config->set_value( "test_burst_frame_count", "500",
-    "Number of sequential frames to use in test set to avoid it "
-    "being too similar to train." );
+    "Number of sequential frames to use in test set to avoid it being too similar to "
+    "train." );
   config->set_value( "image_extensions",
     ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG;.bmp;.BMP",
-    "Semicolon list of seperated image extensions to use in training, "
-    "images without this extension will not be included." );
+    "Semicolon list of seperated image extensions to use in training, images without "
+    "this extension will not be included." );
   config->set_value( "threshold", "0.00",
-    "Optional threshold to provide on top of input groundtruth. This is "
-    "useful if the truth is derived from some automated detector." );
+    "Optional threshold to provide on top of input groundtruth. This is useful if the "
+    "truth is derived from some automated detector." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
 
