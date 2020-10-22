@@ -30,6 +30,9 @@ Arrows: Core
 
 Arrows: CUDA
 
+ * Fixed a linking error on Linux with some versions of CUDA requiring
+   to "recompile with -fPIC".
+
  * Fixed a bug in launching the integrate_depth_maps CUDA kernel.
    Previously, the kernel would fail to launch if the size of the volume
    along the X direction was greater than 1024.
@@ -57,3 +60,7 @@ Arrows: Serialize
 
  * Fixed a bug in the JSON serializer for metadata where bool fields caused a
    runtime error.
+
+ * Fixed a bug in JSON serialization of metadata maps which caused name
+   collisions for multiple metadata packets associated the same frame. This
+   made the output unusable by applications other than KWIVER.
