@@ -35,6 +35,7 @@
 
 #include <vital/algo/initialize_cameras_landmarks.h>
 #include <vital/algo/video_input.h>
+#include <vital/applets/config_validation.h>
 #include <vital/config/config_block_io.h>
 #include <vital/config/config_block.h>
 #include <vital/config/config_parser.h>
@@ -106,78 +107,37 @@ kwiver::vital::config_block_sptr default_config()
 // ------------------------------------------------------------------
 bool check_config(kwiver::vital::config_block_sptr config)
 {
+  using namespace kwiver::tools;
   bool config_valid = true;
 
 #define KWIVER_CONFIG_FAIL(msg) \
   LOG_ERROR(main_logger, "Config Check Fail: " << msg); \
   config_valid = false
 
-  if(config->has_value("video_source") &&
-    config->get_value<std::string>("video_source") != "")
+  config_valid =
+    validate_required_input_file("input_tracks_file", *config, main_logger)
+    && config_valid;
+
+  config_valid =
+    validate_optional_input_file("video_source", *config, main_logger)
+    && config_valid;
+
+  config_valid =
+    validate_required_output_dir("output_cameras_directory", *config, main_logger)
+    && config_valid;
+
+  config_valid =
+    validate_required_output_file("output_landmarks_filename", *config, main_logger)
+    && config_valid;
+
+  if (!video_input::check_nested_algo_configuration("video_reader", config))
   {
-    std::string path = config->get_value<std::string>("video_source");
-    if ( ! ST::FileExists( kwiver::vital::path_t(path), true ) )
-    {
-      KWIVER_CONFIG_FAIL("video_source path, " << path
-                         << ", does not exist or is not a regular file");
-    }
-    if ( !video_input::check_nested_algo_configuration("video_reader", config) )
-    {
-      KWIVER_CONFIG_FAIL("video_reader configuration check failed");
-    }
+    KWIVER_CONFIG_FAIL("video_reader configuration check failed");
   }
 
-  if ( ! config->has_value("input_tracks_file") ||
-    config->get_value<std::string>("input_tracks_file") == "")
+  if (!initialize_cameras_landmarks::check_nested_algo_configuration("initializer", config))
   {
-    KWIVER_CONFIG_FAIL("Config needs value input_tracks_file");
-  }
-  else
-  {
-    std::string path = config->get_value<std::string>("input_tracks_file");
-    if ( ! ST::FileExists( kwiver::vital::path_t(path), true ) )
-    {
-      KWIVER_CONFIG_FAIL("input_tracks_file path, " << path
-                         << ", does not exist or is not a regular file");
-    }
-  }
-
-  if (!config->has_value("output_cameras_directory") ||
-    config->get_value<std::string>("output_cameras_directory") == "" )
-  {
-    KWIVER_CONFIG_FAIL("Config needs value output_cameras_directory");
-  }
-  else if ( ! ST::FileIsDirectory(
-    config->get_value<kwiver::vital::path_t>("output_cameras_directory") ) )
-  {
-    KWIVER_CONFIG_FAIL("output_cameras_director is not a valid directory");
-  }
-
-  if (!config->has_value("output_landmarks_filename") ||
-    config->get_value<std::string>("output_landmarks_filename") == "" )
-  {
-    KWIVER_CONFIG_FAIL("Config needs value output_landmarks_filename");
-  }
-  else if ( ! ST::FileIsDirectory( ST::CollapseFullPath( ST::GetFilenamePath(
-    config->get_value<kwiver::vital::path_t>("output_landmarks_filename") ))))
-  {
-    KWIVER_CONFIG_FAIL("output_landmarks_filename is not in a valid directory");
-  }
-
-  {
-    kwiver::vital::path_t out_landmarks_path =
-      config->get_value<kwiver::vital::path_t>("output_landmarks_filename");
-
-    // verify that we can open the output file for writing
-    // so that we don't find a problem only after spending
-    // hours of computation time.
-    std::ofstream ofs(out_landmarks_path.c_str());
-    if (!ofs)
-    {
-      KWIVER_CONFIG_FAIL("Could not open landmark file for writing: \""
-                         + out_landmarks_path + "\"");
-    }
-    ofs.close();
+    KWIVER_CONFIG_FAIL("initializer configuration check failed");
   }
 
 #undef KWIVER_CONFIG_FAIL
