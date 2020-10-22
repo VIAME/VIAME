@@ -81,7 +81,7 @@ struct meta_item
     archive(  ::cereal::make_nvp( "type", item_value.type_name() ) );
     archive(  ::cereal::make_nvp( "name", trait.name() ) );
 
-    // This si a switch on the item data type
+    // This is a switch on the item data type
     if ( trait.is_floating_point() )
     {
       const double value = kwiver::vital::any_cast< double > ( this->item_value );
@@ -89,8 +89,18 @@ struct meta_item
     }
     else if ( trait.is_integral() )
     {
-      const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
-      archive( CEREAL_NVP( value ) );
+      // bool metadata passes the is_integral() check but cannot be cast
+      // to uint64_t
+      if ( trait.tag_type() == typeid( bool ) )
+      {
+        const bool value = kwiver::vital::any_cast< bool > ( this->item_value );
+        archive( CEREAL_NVP( value ) );
+      }
+      else
+      {
+        const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
+        archive( CEREAL_NVP( value ) );
+      }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
@@ -135,9 +145,19 @@ struct meta_item
     }
     else if ( trait.is_integral() )
     {
-      uint64_t value;
-      archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      // is_integral() returns true for a bool, which needs to be handled differently
+      if ( trait.tag_type() == typeid( bool ) )
+      {
+        bool value;
+        archive( CEREAL_NVP( value ) );
+        this->item_value = kwiver::vital::any( value );
+      }
+      else
+      {
+        uint64_t value;
+        archive( CEREAL_NVP( value ) );
+        this->item_value = kwiver::vital::any( value );
+      }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
@@ -175,27 +195,24 @@ namespace cereal {
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta )
 {
-  archive( ::cereal::make_nvp( "size", meta.size() ) );
-
+  std::vector<kwiver::vital::metadata> meta_dereferenced;
   for ( const auto& element : meta )
   {
-    save( archive, *element );
+    meta_dereferenced.push_back( *element );
   }
 
+  save( archive, meta_dereferenced );
 }
 
 // ----------------------------------------------------------------------------
 void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata_vector& meta )
 {
-  ::cereal::size_type size;
-  archive( CEREAL_NVP( size ) );
+  std::vector< kwiver::vital::metadata > meta_dereferenced;
+  load( archive, meta_dereferenced );
 
-  for ( ::cereal::size_type i = 0; i < size; ++i )
+  for ( const auto& packet : meta_dereferenced )
   {
-    auto new_obj = std::make_shared< kwiver::vital::metadata > ();
-    load( archive, *new_obj );
-
-    meta.push_back( new_obj );
+    meta.push_back( std::make_shared< kwiver::vital::metadata > ( packet ) );
   }
 
 }
@@ -218,7 +235,7 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& 
 
   } // end for
 
-  archive( ::cereal::make_nvp( "items", meta_vect ) );
+  save( archive, meta_vect );
 }
 
 // ----------------------------------------------------------------------------
@@ -227,7 +244,7 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
   meta_vect_t meta_vect; // intermediate form
 
   // Deserialize the list of elements for one metadata collection
-  archive( ::cereal::make_nvp( "items", meta_vect ) );
+  load( archive, meta_vect );
 
   // Convert the intermediate form back to a real metadata collection
   for ( const auto & it : meta_vect )

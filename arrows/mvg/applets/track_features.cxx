@@ -34,6 +34,7 @@
 #include <vital/algo/compute_ref_homography.h>
 #include <vital/algo/video_input.h>
 #include <vital/applets/applet_config.h>
+#include <vital/applets/config_validation.h>
 #include <vital/io/track_set_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/config/config_block_io.h>
@@ -74,63 +75,28 @@ kv::logger_handle_t main_logger( kv::get_logger( "track_features_applet" ) );
 // ------------------------------------------------------------------
 bool check_config(kv::config_block_sptr config)
 {
+  using namespace kwiver::tools;
   bool config_valid = true;
 
 #define KWIVER_CONFIG_FAIL(msg) \
   LOG_ERROR(main_logger, "Config Check Fail: " << msg); \
   config_valid = false
 
-  // A given homography file is invalid if it names a directory, or if its
-  // parent path either doesn't exist or names a regular file.
-  if ( config->has_value("output_homography_file")
-    && config->get_value<std::string>("output_homography_file") != "" )
-  {
-    kv::config_path_t fp = config->get_value<kv::config_path_t>("output_homography_file");
-    if ( kwiversys::SystemTools::FileIsDirectory( fp ) )
-    {
-      KWIVER_CONFIG_FAIL("Given output homography file is a directory! "
-                        << "(Given: " << fp << ")");
-    }
-    else if ( ST::GetFilenamePath( fp ) != std::string("") &&
-              ! ST::FileIsDirectory( ST::GetFilenamePath( fp ) ))
-    {
-      KWIVER_CONFIG_FAIL("Given output homography file does not have a valid "
-                        << "parent path! (Given: " << fp << ")");
-    }
+  config_valid =
+    validate_required_input_file("video_source", *config, main_logger)
+    && config_valid;
 
-    // Check that compute_ref_homography algo is correctly configured
-    if( !kv::algo::compute_ref_homography
-             ::check_nested_algo_configuration("output_homography_generator",
-                                               config) )
-    {
-      KWIVER_CONFIG_FAIL("output_homography_generator configuration check failed");
-    }
-  }
+  config_valid =
+    validate_optional_input_file("mask_source", *config, main_logger)
+    && config_valid;
 
-  if ( ! config->has_value("video_source") ||
-      config->get_value<std::string>("video_source") == "")
-  {
-    KWIVER_CONFIG_FAIL("Config needs value video_source");
-  }
-  else
-  {
-    std::string path = config->get_value<std::string>("video_source");
-    if ( ! ST::FileExists( kv::path_t(path), true ) )
-    {
-      KWIVER_CONFIG_FAIL("video_source path, " << path << ", does not exist or is not a regular file");
-    }
-  }
+  config_valid =
+    validate_required_output_file("output_tracks_file", *config, main_logger)
+    && config_valid;
 
-  if (!config->has_value("output_tracks_file") ||
-      config->get_value<std::string>("output_tracks_file") == "" )
-  {
-    KWIVER_CONFIG_FAIL("Config needs value output_tracks_file");
-  }
-  else if ( ! ST::FileIsDirectory( ST::CollapseFullPath( ST::GetFilenamePath(
-              config->get_value<kv::path_t>("output_tracks_file") ) ) ) )
-  {
-    KWIVER_CONFIG_FAIL("output_tracks_file is not in a valid directory");
-  }
+  config_valid =
+    validate_optional_output_file("output_homography_file", *config, main_logger)
+    && config_valid;
 
   if (!kv::algo::video_input::check_nested_algo_configuration("video_reader", config))
   {

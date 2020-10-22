@@ -55,3 +55,12 @@ Arrows: OpenCV
    A workaround was previously added that forced a deep copy, but this created
    another bug resulting in images with invalid first_pixel() values.
    Both of these issues have been addressed.
+
+Arrows: Serialize
+
+ * Fixed a bug in the JSON serializer for metadata where bool fields caused a
+   runtime error.
+
+ * Fixed a bug in JSON serialization of metadata maps which caused name
+   collisions for multiple metadata packets associated the same frame. This
+   made the output unusable by applications other than KWIVER.
