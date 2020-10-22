@@ -345,7 +345,7 @@ static kwiver::vital::config_block_sptr default_config()
     "Percent [0.0, 1.0] of test samples to use if no manual files specified." );
   config->set_value( "test_burst_frame_count", "500",
     "Number of sequential frames to use in test set to avoid it being too similar to "
-    "train." );
+    "the training set." );
   config->set_value( "image_extensions",
     ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG;.bmp;.BMP",
     "Semicolon list of seperated image extensions to use in training, images without "
