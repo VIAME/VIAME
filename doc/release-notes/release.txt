@@ -58,6 +58,9 @@ Arrows: OpenCV
 
 Arrows: Serialize
 
+ * Fixed a bug in the JSON serializer for metadata where bool fields caused a
+   runtime error.
+
  * Fixed a bug in JSON serialization of metadata maps which caused name
    collisions for multiple metadata packets associated the same frame. This
    made the output unusable by applications other than KWIVER.

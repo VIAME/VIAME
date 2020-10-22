@@ -81,7 +81,7 @@ struct meta_item
     archive(  ::cereal::make_nvp( "type", item_value.type_name() ) );
     archive(  ::cereal::make_nvp( "name", trait.name() ) );
 
-    // This si a switch on the item data type
+    // This is a switch on the item data type
     if ( trait.is_floating_point() )
     {
       const double value = kwiver::vital::any_cast< double > ( this->item_value );
@@ -89,8 +89,18 @@ struct meta_item
     }
     else if ( trait.is_integral() )
     {
-      const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
-      archive( CEREAL_NVP( value ) );
+      // bool metadata passes the is_integral() check but cannot be cast
+      // to uint64_t
+      if ( trait.tag_type() == typeid( bool ) )
+      {
+        const bool value = kwiver::vital::any_cast< bool > ( this->item_value );
+        archive( CEREAL_NVP( value ) );
+      }
+      else
+      {
+        const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
+        archive( CEREAL_NVP( value ) );
+      }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
@@ -135,9 +145,19 @@ struct meta_item
     }
     else if ( trait.is_integral() )
     {
-      uint64_t value;
-      archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      // is_integral() returns true for a bool, which needs to be handled differently
+      if ( trait.tag_type() == typeid( bool ) )
+      {
+        bool value;
+        archive( CEREAL_NVP( value ) );
+        this->item_value = kwiver::vital::any( value );
+      }
+      else
+      {
+        uint64_t value;
+        archive( CEREAL_NVP( value ) );
+        this->item_value = kwiver::vital::any( value );
+      }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
