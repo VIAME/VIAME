@@ -33,6 +33,7 @@
 #include <vital/algo/track_features.h>
 #include <vital/algo/compute_ref_homography.h>
 #include <vital/algo/video_input.h>
+#include <vital/applets/applet_config.h>
 #include <vital/io/track_set_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/config/config_block_io.h>
@@ -264,6 +265,7 @@ public:
 
   commandline_mode process_command_line(cxxopts::ParseResult& cmd_args)
   {
+    using kwiver::tools::load_default_video_input_config;
     std::string opt_config;
     std::string opt_out_config;
 
@@ -294,12 +296,18 @@ public:
     {
       video_file = cmd_args["video-file"].as<std::string>();
       config->set_value("video_source", video_file);
+      // choose video or image list reader based on file extension
+      config->subblock_view("video_reader")->merge_config(
+        load_default_video_input_config(video_file));
     }
 
     if (cmd_args.count("mask-file"))
     {
       mask_file = cmd_args["mask-file"].as<std::string>();
       config->set_value("mask_source", mask_file);
+      // choose video or image list reader for masks based on file extension
+      config->subblock_view("mask_reader")->merge_config(
+        load_default_video_input_config(mask_file));
     }
 
     if (cmd_args.count("homography-file"))
@@ -345,33 +353,17 @@ public:
   // ------------------------------------------------------------------
   kv::config_block_sptr default_config()
   {
-    auto config = p->find_configuration("applets/track_features.conf");
+    using kwiver::tools::load_default_video_input_config;
+    typedef kwiver::tools::kwiver_applet kvt;
+    auto config = kvt::find_configuration("applets/track_features.conf");
 
     // choose video or image list reader based on file extension
-    auto vr_config = config->subblock_view("video_reader");
-    if (ST::GetFilenameLastExtension(video_file) == ".txt")
-    {
-      vr_config->merge_config(
-        p->find_configuration("core_image_list_video_input.conf"));
-    }
-    else
-    {
-      vr_config->merge_config(
-        p->find_configuration("ffmpeg_video_input.conf"));
-    }
+    config->subblock_view("video_reader")->merge_config(
+      load_default_video_input_config(video_file));
 
     // choose video or image list reader for masks based on file extension
-    auto mr_config = config->subblock_view("mask_reader");
-    if (ST::GetFilenameLastExtension(mask_file) == ".txt")
-    {
-      mr_config->merge_config(
-        p->find_configuration("core_image_list_video_input.conf"));
-    }
-    else
-    {
-      mr_config->merge_config(
-        p->find_configuration("ffmpeg_video_input.conf"));
-    }
+    config->subblock_view("mask_reader")->merge_config(
+      load_default_video_input_config(mask_file));
 
     config->set_value("video_source", video_file,
       "Path to an input file to be opened as a video. "

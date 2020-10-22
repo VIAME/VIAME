@@ -79,6 +79,7 @@ public:
    * directory and on the KWIVER config search path relative to the kwiver
    * executable location.
    */
+  static
   kwiver::vital::config_block_sptr
     find_configuration(std::string const& file_name );
 

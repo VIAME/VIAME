@@ -34,6 +34,7 @@
 
 #include <vital/algo/initialize_cameras_landmarks.h>
 #include <vital/algo/video_input.h>
+#include <vital/applets/applet_config.h>
 #include <vital/config/config_block_io.h>
 #include <vital/config/config_block.h>
 #include <vital/config/config_parser.h>
@@ -197,6 +198,7 @@ public:
 
   commandline_mode process_command_line(cxxopts::ParseResult& cmd_args)
   {
+    using kwiver::tools::load_default_video_input_config;
     static std::string opt_config;
     static std::string opt_out_config;
 
@@ -225,24 +227,27 @@ public:
 
     if ( cmd_args.count("tracks") > 0 )
     {
-      std::string tfname = cmd_args["tracks"].as<std::string>();
-      config->set_value("input_tracks_file", tfname);
+      tracks_file = cmd_args["tracks"].as<std::string>();
+      config->set_value("input_tracks_file", tracks_file);
 
     }
     if ( cmd_args.count("video") > 0 )
     {
-      std::string vfname = cmd_args["video"].as<std::string>();
-      config->set_value("video_source", vfname);
+      video_file = cmd_args["video"].as<std::string>();
+      config->set_value("video_source", video_file);
+      // choose video or image list reader based on file extension
+      config->subblock_view("video_reader")->merge_config(
+        load_default_video_input_config(video_file));
     }
     if ( cmd_args.count("carmera") > 0 )
     {
-      std::string cam_dir = cmd_args["carmera"].as<std::string>();
-      config->set_value("output_cameras_directory", cam_dir);
+      camera_directory = cmd_args["carmera"].as<std::string>();
+      config->set_value("output_cameras_directory", camera_directory);
     }
     if ( cmd_args.count("landmarks") > 0 )
     {
-      std::string lfname = cmd_args["landmarks"].as<std::string>();
-      config->set_value("output_landmarks_filename", lfname);
+      landmarks_file = cmd_args["landmarks"].as<std::string>();
+      config->set_value("output_landmarks_filename", landmarks_file);
     }
 
     bool valid_config = check_config(config);
@@ -275,20 +280,13 @@ public:
 
   kv::config_block_sptr default_config()
   {
-    auto config = p->find_configuration("applets/init_cameras_landmarks.conf");
+    using kwiver::tools::load_default_video_input_config;
+    typedef kwiver::tools::kwiver_applet kvt;
+    auto config = kvt::find_configuration("applets/init_cameras_landmarks.conf");
 
     // choose video or image list reader based on file extension
-    auto vr_config = config->subblock_view("video_reader");
-    if (ST::GetFilenameLastExtension(video_file) == ".txt")
-    {
-      vr_config->merge_config(
-        p->find_configuration("core_image_list_video_input.conf"));
-    }
-    else
-    {
-      vr_config->merge_config(
-        p->find_configuration("ffmpeg_video_input.conf"));
-    }
+    config->subblock_view("video_reader")->merge_config(
+      load_default_video_input_config(video_file));
 
     config->set_value("video_source", video_file,
       "(optional) Path to an input file to be opened as a video. "

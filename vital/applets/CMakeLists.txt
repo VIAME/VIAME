@@ -21,6 +21,7 @@ include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 ###
 # tools applet support library
 kwiver_add_library( kwiver_tools_applet
+               applet_config.h
                kwiver_applet.h
                kwiver_applet.cxx
 )
@@ -49,6 +50,7 @@ kwiver_add_plugin( vital_applets
 ###
 # Install header files
 kwiver_install_headers(
+  applet_config.h
   kwiver_applet.h
   cxxopts.hpp
   SUBDIR      vital/applets
