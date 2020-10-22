@@ -185,10 +185,6 @@ if( VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"   FORCE )
 endif()
 
-if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_ENABLE_FFMPEG  ON CACHE BOOL "FFmpeg required for other projects"   FORCE )
-endif()
-
 if( VIAME_ENABLE_MATLAB )
   find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
 endif()
