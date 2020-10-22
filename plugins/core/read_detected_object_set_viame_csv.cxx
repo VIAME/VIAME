@@ -81,8 +81,10 @@ public:
     , m_first( true )
     , m_confidence_override( -1.0 )
     , m_poly_to_mask( false )
+    , m_error_file()
     , m_current_idx( 0 )
     , m_last_idx( 0 )
+    , m_error_writer()
   { }
 
   ~priv() { }
@@ -93,9 +95,13 @@ public:
   bool m_first;
   double m_confidence_override;
   bool m_poly_to_mask;
+  std::string m_error_file;
 
   int m_current_idx;
   int m_last_idx;
+
+  // Optional error writer
+  std::unique_ptr< std::ofstream > m_error_writer;
 
   // Map of detected objects indexed by frame number. Each set
   // contains all detections for a single frame.
@@ -131,6 +137,13 @@ read_detected_object_set_viame_csv
     config->get_value< double >( "confidence_override", d->m_confidence_override );
   d->m_poly_to_mask =
     config->get_value< bool >( "poly_to_mask", d->m_poly_to_mask );
+  d->m_error_file =
+    config->get_value< std::string >( "error_file", d->m_error_file );
+
+  if( !d->m_error_file.empty() )
+  {
+    d->m_error_writer.reset( new std::ofstream( d->m_error_file, "w" ) );
+  }
 
 #ifndef VIAME_ENABLE_VXL
   if( d->m_poly_to_mask )
