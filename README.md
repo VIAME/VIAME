@@ -5,7 +5,7 @@ VIAME is a computer vision application designed for do-it-yourself artificial in
 object detection, object tracking, image/video annotation, image/video search, image mosaicing,
 stereo measurement, rapid model generation, and tools for the evaluation of different algorithms.
 Originally targetting marine species analytics, it now contains many common algorithms and libraries,
-and is also useful as a generic computer vision library. The core infrastructure connecting different
+and is also useful as a generic computer vision toolkit. The core infrastructure connecting different
 system components is currently the KWIVER library, which can connect C/C++, python, and matlab nodes
 together in a graph-like pipeline architecture. Alongside the pipelined image processing system are a
 number of standalone tools for accomplishing the above. Both a desktop and web version exists for
@@ -137,9 +137,10 @@ branch. More in-depth build instructions can be found [here](examples/building_a
 but the software can be built either as a super-build, which builds most of its dependencies
 alongside itself, or standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
-If using the command line, run the following commands, only replacing [source-directory] and
-[build-directory] with locations of your choice. While these directories can be the same, it's good
-practice to have a 'src' checkout then a seperate 'build' directory:
+Installing Python3.6 or above is also recommended. If using the command line, run the following
+commands, only replacing [source-directory] and [build-directory] with locations of your choice.
+While these directories can be the same, it's good practice to have a 'src' checkout then a
+seperate 'build' directory alongside it:
 
 	git clone https://github.com/VIAME/VIAME.git [source-directory]
 
@@ -162,10 +163,11 @@ Windows. On Linux, '-j8' tells the build to run multi-threaded using 8 threads, 
 is useful for a faster build though if you get an error it can be difficult to see
 it, in which case running just 'make' might be more helpful. For Windows,
 currently VS2017 is the desired compiler, though select versions of 2015 and 2019
-also work. If using CUDA, version 9.0 and above, with CUDNN 7.0 and above is desired,
-in particular we recommend CUDA 10. On both Windows and Linux it can also be
-beneficial to use Anaconda to get multiple standard python packages. Having numpy
-installed, at a minimum, is necessary for python.
+also work. If using CUDA, version 9.2 or 10.1 are preferred, with CUDNN 7.0 and above.
+Other CUDA versions may or may not work. On both Windows and Linux it is also recommended
+to use the python version provided in [Anaconda3 5.2.0](https://repo.anaconda.com/archive/)
+which is the most tested python distribution used by developers. If using other python
+distributions, having numpy installed, at a minimum, is necessary.
 
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency

@@ -61,7 +61,7 @@ And on CentOS 7:
      curl curl-devel atlas-devel file which
 
 If using VIAME_ENABLE_PYTHON, you also may need to install python3.6, python3.6-dev, and numpy (or
-alternatively whatever python distribution you want to use, we reccomend 3.5+ or installing Anaconda3),
+alternatively whatever python distribution you want to use, we installing Anaconda3),
 e.g.:
 
 .. code-block:: bash
@@ -69,7 +69,8 @@ e.g.:
    sudo apt-get install python3.6 python3.6-dev && sudo pip install numpy
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 9.0 or above
-is recommended, other versions may work depending on your build settings but are untested):
+is recommended, 9.2 or 10.1 being the tested versions. Other versions may work depending
+on your build settings but are not officially supported):
 
 .. code-block:: bash
 
