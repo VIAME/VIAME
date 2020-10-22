@@ -46,6 +46,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 #include <map>
+#include <memory>
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
@@ -81,7 +82,7 @@ public:
     , m_first( true )
     , m_confidence_override( -1.0 )
     , m_poly_to_mask( false )
-    , m_error_file()
+    , m_error_file( "" )
     , m_current_idx( 0 )
     , m_last_idx( 0 )
     , m_error_writer()
@@ -142,7 +143,7 @@ read_detected_object_set_viame_csv
 
   if( !d->m_error_file.empty() )
   {
-    d->m_error_writer.reset( new std::ofstream( d->m_error_file, "w" ) );
+    d->m_error_writer.reset( new std::ofstream( d->m_error_file.c_str(), std::ios::app ) );
   }
 
 #ifndef VIAME_ENABLE_VXL
@@ -195,6 +196,11 @@ read_detected_object_set_viame_csv
     {
       // return empty set
       set = std::make_shared< kwiver::vital::detected_object_set>();
+
+      if( d->m_error_writer )
+      {
+        *d->m_error_writer << "No annotations for file: " << image_name << std::endl;
+      }
     }
     else
     {
