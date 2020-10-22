@@ -13,6 +13,11 @@ Vital Algo
 
  * Extended the API for compute_depth to also return an uncertainty image.
 
+Vital Applets
+
+ * Added utility functions to help validate config file entries for input
+   and output files and directories.
+
 Vital Types
 
  * Add new method to metadata class to add a metadata item being
