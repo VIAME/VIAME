@@ -78,6 +78,7 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_overlap = "0.20"
         self._max_epochs = "50"
         self._batch_size = "auto"
+        self._learning_rate = "auto"
         self._timeout = "1209600"
         self._backbone = ""
         self._pipeline_template = ""
@@ -106,6 +107,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
         cfg.set_value( "max_epochs", str( self._max_epochs ) )
         cfg.set_value( "batch_size", self._batch_size )
+        cfg.set_value( "learning_rate", self._learning_rate )
         cfg.set_value( "timeout", self._timeout )
         cfg.set_value( "backbone", self._backbone )
         cfg.set_value( "pipeline_template", self._pipeline_template )
@@ -135,6 +137,7 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
         self._max_epochs = str( cfg.get_value( "max_epochs" ) )
         self._batch_size = str( cfg.get_value( "batch_size" ) )
+        self._learning_rate = str( cfg.get_value( "learning_rate" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
         self._backbone = str( cfg.get_value( "backbone" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
@@ -145,10 +148,12 @@ class NetHarnTrainer( TrainDetector ):
 
         # Check GPU-related variables
         gpu_memory_available = 0
+        gpu_param_adj = 1
 
         if torch.cuda.is_available():
             if self._gpu_count < 0:
                 self._gpu_count = torch.cuda.device_count()
+                gpu_param_adj = self._gpu_count
             for i in range( self._gpu_count ):
                 single_gpu_mem = torch.cuda.get_device_properties( i ).total_memory
                 if gpu_memory_available == 0:
@@ -160,23 +165,27 @@ class NetHarnTrainer( TrainDetector ):
             if self._batch_size == "auto":
                 if len( self._aux_image_labels ) > 0:
                     if gpu_memory_available >= 14e9:
-                        self._batch_size = "2"
+                        self._batch_size = str( 2 * gpu_param_adj )
                     else:
-                        self._batch_size = "1"
+                        self._batch_size = str( 1 * gpu_param_adj )
                 elif gpu_memory_available > 9e9:
-                    self._batch_size = "4"
+                    self._batch_size = str( 4 * gpu_param_adj )
                 elif gpu_memory_available >= 7e9:
-                    self._batch_size = "3"
+                    self._batch_size = str( 3 * gpu_param_adj )
                 else:
-                    self._batch_size = "2"
+                    self._batch_size = str( 2 * gpu_param_adj )
+            if self._learning_rate == "auto":
+                self._learning_rate = str( 1e-3 * gpu_param_adj )
         elif self._mode == "frame_classifier":
             if self._batch_size == "auto":
                 if gpu_memory_available > 9e9:
-                    self._batch_size = "64"
+                    self._batch_size = str( 64 * gpu_param_adj )
                 elif gpu_memory_available >= 7e9:
-                    self._batch_size = "32"
+                    self._batch_size = str( 32 * gpu_param_adj )
                 else:
-                    self._batch_size = "16"
+                    self._batch_size = str( 16 * gpu_param_adj )
+            if self._learning_rate == "auto":
+                self._learning_rate = str( 0.5e-3 * gpu_param_adj )
         else:
             print( "Invalid mode string " + self._mode )
             return False
@@ -294,14 +303,12 @@ class NetHarnTrainer( TrainDetector ):
             cmd += [ "bioharn.clf_fit",
                      "--name=" + self._identifier,
                      "--arch=resnet50",
-                     "--lr=0.5e-3",
                      "--schedule=ReduceLROnPlateau-p3-c3",
                      "--input_dims=" + self._chip_width + "," + self._chip_width ]
         else:
             cmd += [ "bioharn.detect_fit",
                      "--nice=" + self._identifier,
                      "--arch=cascade",
-                     "--lr=1e-3",
                      "--schedule=ReduceLROnPlateau-p2-c2",
                      "--input_dims=window",
                      "--window_dims=" + self._chip_width + "," + self._chip_width,
@@ -323,6 +330,7 @@ class NetHarnTrainer( TrainDetector ):
                  "--augmenter=" + self._augmentation,
                  "--max_epoch=" + self._max_epochs,
                  "--batch_size=" + self._batch_size,
+                 "--lr=" + self._learning_rate,
                  "--timeout=" + self._timeout,
                  "--sampler_backend=none" ]
 
