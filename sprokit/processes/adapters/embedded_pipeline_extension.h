@@ -38,6 +38,7 @@
 #include <vital/logger/logger.h>
 #include <vital/plugin_loader/plugin_info.h>
 #include <vital/plugin_loader/plugin_registrar.h>
+#include <vital/vital_config.h>
 
 #include <memory>
 
@@ -84,7 +85,7 @@ public:
    *
    * @param ctxt The calling context.
    */
-  virtual void pre_setup( context& ctxt ) { };
+  virtual void pre_setup( VITAL_UNUSED context& ctxt ) { };
 
   /**
    * @brief pipeline post-setup hook
@@ -94,7 +95,7 @@ public:
    *
    * @param ctxt The calling context.
    */
-  virtual void post_setup( context& ctxt ) { };
+  virtual void post_setup( VITAL_UNUSED context& ctxt ) { };
 
   /**
    * @brief End of data received from pipeline.
@@ -106,7 +107,7 @@ public:
    *
    * @param ctxt The calling context
    */
-  virtual void end_of_output( context& ctxt ) { };
+  virtual void end_of_output( VITAL_UNUSED context& ctxt ) { };
 
   /**
    * @brief Configure provider.
@@ -119,7 +120,7 @@ public:
    *
    * @param conf Configuration block.
    */
-  virtual void configure( kwiver::vital::config_block_sptr const conf );
+  virtual void configure( VITAL_UNUSED kwiver::vital::config_block_sptr const conf );
 
   /**
    * @brief Get default configuration block.

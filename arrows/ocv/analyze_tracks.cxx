@@ -43,6 +43,7 @@
 #include <vector>
 
 #include <arrows/core/track_set_impl.h>
+#include <vital/vital_config.h>
 
 #include <opencv2/core/core.hpp>
 using namespace kwiver::vital;
@@ -157,7 +158,7 @@ analyze_tracks
 /// Check that the algorithm's currently configuration is valid
 bool
 analyze_tracks
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

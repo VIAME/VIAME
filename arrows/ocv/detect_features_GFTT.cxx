@@ -35,6 +35,8 @@
 
 #include "detect_features_GFTT.h"
 
+#include <vital/vital_config.h>
+
 using namespace kwiver::vital;
 
 namespace kwiver {
@@ -163,7 +165,7 @@ detect_features_GFTT
 
 bool
 detect_features_GFTT
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   // Nothing to explicitly check
   return true;

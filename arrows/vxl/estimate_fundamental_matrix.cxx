@@ -38,6 +38,7 @@
 
 #include <vital/util/enum_converter.h>
 #include <vital/types/feature.h>
+#include <vital/vital_config.h>
 
 #include <arrows/vxl/camera.h>
 #include <arrows/mvg/epipolar_geometry.h>
@@ -135,7 +136,7 @@ estimate_fundamental_matrix
 /// Check that the algorithm's current configuration is valid
 bool
 estimate_fundamental_matrix
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

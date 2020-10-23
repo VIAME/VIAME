@@ -44,6 +44,7 @@
 #include <vital/klv/klv_data.h>
 #include <vital/util/tokenize.h>
 #include <vital/types/image_container.h>
+#include <vital/vital_config.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -955,7 +956,7 @@ ffmpeg_video_input
 // ------------------------------------------------------------------
 bool
 ffmpeg_video_input
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   bool retcode(true); // assume success
 
@@ -1013,7 +1014,7 @@ ffmpeg_video_input
 bool
 ffmpeg_video_input
 ::next_frame( kwiver::vital::timestamp& ts,
-              uint32_t timeout )
+              VITAL_UNUSED uint32_t timeout )
 {
   if (!d->is_opened())
   {

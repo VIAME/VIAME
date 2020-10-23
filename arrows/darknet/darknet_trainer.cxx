@@ -33,6 +33,7 @@
 
 #include <vital/util/cpu_timer.h>
 #include <vital/types/detected_object_set_util.h>
+#include <vital/vital_config.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -521,7 +522,8 @@ print_detections(
 void
 darknet_trainer::priv::
 generate_fn( std::string image_folder, std::string gt_folder,
-  std::string& image, std::string& gt, const int len )
+             std::string& image, std::string& gt,
+             VITAL_UNUSED const int len )
 {
   static int sample_counter = 0;
 

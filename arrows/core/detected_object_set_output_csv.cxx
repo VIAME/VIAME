@@ -89,7 +89,7 @@ set_configuration(vital::config_block_sptr config)
 // ------------------------------------------------------------------
 bool
 detected_object_set_output_csv::
-check_configuration(vital::config_block_sptr config) const
+check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

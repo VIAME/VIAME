@@ -38,6 +38,7 @@
 #include <vital/algo/detected_object_filter.h>
 #include <vital/types/object_track_set.h>
 #include <vital/exceptions/algorithm.h>
+#include <vital/vital_config.h>
 
 #include <string>
 #include <vector>
@@ -139,8 +140,8 @@ compute_association_matrix_from_features
 /// Compute an association matrix given detections and tracks
 bool
 compute_association_matrix_from_features
-::compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image,
+::compute( VITAL_UNUSED kwiver::vital::timestamp ts,
+           VITAL_UNUSED kwiver::vital::image_container_sptr image,
            kwiver::vital::object_track_set_sptr tracks,
            kwiver::vital::detected_object_set_sptr detections,
            kwiver::vital::matrix_d& matrix,

@@ -37,14 +37,13 @@
 #include <arrows/ceres/options.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <vital/exceptions.h>
-
+#include <vital/vital_config.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
 namespace ceres {
-
 
 // Private implementation class
 class optimize_cameras::priv
@@ -157,7 +156,7 @@ optimize_cameras
 // Check that the algorithm's currently configuration is valid
 bool
 optimize_cameras
-::check_configuration(config_block_sptr config) const
+::check_configuration( VITAL_UNUSED config_block_sptr config) const
 {
   std::string msg;
   if( !d_->options.IsValid(&msg) )
@@ -334,7 +333,7 @@ optimize_cameras
 ::optimize(vital::camera_perspective_sptr& camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
-           kwiver::vital::sfm_constraints_sptr constraints) const
+           VITAL_UNUSED kwiver::vital::sfm_constraints_sptr constraints) const
 {
   // extract camera parameters to optimize
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);

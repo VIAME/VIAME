@@ -38,6 +38,7 @@
 #include <vital/exceptions/io.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/util/string.h>
+#include <vital/vital_config.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -220,7 +221,7 @@ draw_tracks
 /// Check that the algorithm's currently configuration is valid
 bool
 draw_tracks
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

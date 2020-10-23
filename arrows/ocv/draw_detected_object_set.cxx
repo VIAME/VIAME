@@ -35,6 +35,7 @@
 
 #include "draw_detected_object_set.h"
 
+#include <vital/vital_config.h>
 #include <vital/vital_types.h>
 #include <vital/util/tokenize.h>
 #include <vital/util/string.h>
@@ -438,7 +439,7 @@ set_configuration(vital::config_block_sptr config_in)
 // ------------------------------------------------------------------
 bool
 draw_detected_object_set::
-check_configuration(vital::config_block_sptr config) const
+check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   // This can be called before the config is "set". A more robust way
   // of determining validity should be used.

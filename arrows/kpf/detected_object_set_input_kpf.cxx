@@ -42,6 +42,7 @@
 #include "vital_kpf_adapters.h"
 
 #include <vital/util/data_stream_reader.h>
+#include <vital/vital_config.h>
 #include <vital/exceptions.h>
 
 #include <map>
@@ -95,14 +96,14 @@ detected_object_set_input_kpf::
 // ------------------------------------------------------------------
 void
 detected_object_set_input_kpf::
-set_configuration(vital::config_block_sptr config)
+set_configuration( VITAL_UNUSED vital::config_block_sptr config)
 { }
 
 
 // ------------------------------------------------------------------
 bool
 detected_object_set_input_kpf::
-check_configuration(vital::config_block_sptr config) const
+check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

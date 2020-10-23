@@ -31,6 +31,7 @@
 #include "detected_object_set_output_kw18.h"
 
 #include <vital/util/tokenize.h>
+#include <vital/vital_config.h>
 
 #include <memory>
 #include <vector>
@@ -148,7 +149,7 @@ get_configuration() const
 // ------------------------------------------------------------------
 bool
 detected_object_set_output_kw18::
-check_configuration( vital::config_block_sptr config ) const
+check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   if( d->m_write_tot && d->m_tot_field1_ids.empty() )
   {
@@ -167,7 +168,8 @@ check_configuration( vital::config_block_sptr config ) const
 // ------------------------------------------------------------------
 void
 detected_object_set_output_kw18::
-write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name )
+write_set( const kwiver::vital::detected_object_set_sptr set,
+           VITAL_UNUSED std::string const& image_name )
 {
 
   if (d->m_first)

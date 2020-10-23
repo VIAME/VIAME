@@ -35,6 +35,8 @@
 
 #include "image_container.h"
 
+#include <vital/vital_config.h>
+
 #include <arrows/ocv/mat_image_memory.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -110,7 +112,8 @@ image_container
 /// Convert an OpenCV cv::Mat to a VITAL image
 image
 image_container
-::ocv_to_vital(const cv::Mat& img, ColorMode cm)
+::ocv_to_vital(const cv::Mat& img,
+               VITAL_UNUSED ColorMode cm)
 {
   // if the cv::Mat has reference counted memory then wrap it to keep a
   // counted reference too it.  If it doesn't own its memory, then the

@@ -29,6 +29,7 @@
  */
 
 #include "embedded_pipeline_extension.h"
+#include <vital/vital_config.h>
 
 namespace kwiver {
 
@@ -40,7 +41,7 @@ embedded_pipeline_extension()
 // ----------------------------------------------------------------------------
 void
 embedded_pipeline_extension::
-configure( kwiver::vital::config_block_sptr const conf )
+configure( VITAL_UNUSED kwiver::vital::config_block_sptr const conf )
 { }
 
 

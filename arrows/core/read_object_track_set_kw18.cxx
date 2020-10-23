@@ -37,7 +37,7 @@
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
-
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace arrows {
@@ -119,7 +119,7 @@ read_object_track_set_kw18
 // -------------------------------------------------------------------------------
 void
 read_object_track_set_kw18
-::set_configuration(vital::config_block_sptr config)
+::set_configuration( vital::config_block_sptr config )
 {
   d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
   d->m_batch_load = config->get_value<bool>( "batch_load", d->m_batch_load );
@@ -129,7 +129,7 @@ read_object_track_set_kw18
 // -------------------------------------------------------------------------------
 bool
 read_object_track_set_kw18
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

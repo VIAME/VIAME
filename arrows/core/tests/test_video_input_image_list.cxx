@@ -39,6 +39,7 @@
 #include <arrows/tests/test_video_input.h>
 #include <vital/algo/algorithm_factory.h>
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/vital_config.h>
 
 #include <memory>
 #include <string>
@@ -78,7 +79,8 @@ TEST_F(video_input_image_list, create)
 // ----------------------------------------------------------------------------
 static
 bool
-set_config(kwiver::vital::config_block_sptr config, std::string const& data_dir)
+set_config(kwiver::vital::config_block_sptr config,
+           VITAL_UNUSED std::string const& data_dir)
 {
   if ( kwiver::vital::has_algorithm_impl_name( "image_io", "ocv" ) )
   {

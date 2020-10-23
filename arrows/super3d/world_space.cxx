@@ -33,7 +33,6 @@
  * \brief Source file for world_space
  */
 
-
 #include "world_space.h"
 
 #include <vgl/algo/vgl_h_matrix_2d_compute_4point.h>
@@ -42,6 +41,7 @@
 #include <vil/vil_math.h>
 #include <vgl/vgl_box_2d.h>
 
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace arrows {
@@ -59,7 +59,7 @@ world_space::world_space(unsigned int pixel_width, unsigned int pixel_height)
 std::vector<vpgl_perspective_camera<double> >
 world_space
 ::warp_cams(const std::vector<vpgl_perspective_camera<double> > &cameras,
-            int ref_frame) const
+            VITAL_UNUSED int ref_frame) const
 {
   return cameras;
 }
@@ -72,7 +72,9 @@ template<typename PixT>
 void world_space::warp_image_to_depth(const vil_image_view<PixT> &in,
                                       vil_image_view<PixT> &out,
                                       const vpgl_perspective_camera<double> &cam,
-                                      double depth_slice, int f, PixT fill)
+                                      double depth_slice,
+                                      VITAL_UNUSED int f,
+                                      PixT fill)
 {
   wip.set_unmapped_value(fill);
   std::vector<vnl_double_3> wpts = this->get_slice(depth_slice);
@@ -133,5 +135,3 @@ template void world_space::warp_image_to_depth(const vil_image_view<bool> &in,
 } // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver
-
-

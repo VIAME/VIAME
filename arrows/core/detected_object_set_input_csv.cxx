@@ -38,6 +38,7 @@
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/exceptions.h>
+#include <vital/vital_config.h>
 
 #include <sstream>
 #include <cstdlib>
@@ -121,7 +122,7 @@ set_configuration(vital::config_block_sptr config)
 // ------------------------------------------------------------------
 bool
 detected_object_set_input_csv::
-check_configuration(vital::config_block_sptr config) const
+check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

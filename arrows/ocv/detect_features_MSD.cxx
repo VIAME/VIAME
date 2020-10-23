@@ -35,6 +35,8 @@
 
 #include "detect_features_MSD.h"
 
+#include <vital/vital_config.h>
+
 // Only available in OpenCV 3.x xfeatures2d
 #ifdef HAVE_OPENCV_XFEATURES2D
 
@@ -102,8 +104,8 @@ public:
   }
 
   /// Check config parameter values
-  bool check_config( vital::config_block_sptr const &config,
-                     logger_handle_t const &logger ) const
+  bool check_config( VITAL_UNUSED vital::config_block_sptr const &config,
+                     VITAL_UNUSED logger_handle_t const &logger ) const
   {
     return true;
   }

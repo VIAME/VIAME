@@ -39,6 +39,7 @@
 #include <vital/klv/vital_klv_export.h>
 #include <vital/klv/klv_key.h>
 #include <vital/any.h>
+#include <vital/vital_config.h>
 
 #include <vector>
 #include <string>
@@ -138,7 +139,7 @@ public:
       : m_name( name )
     { }
 
-    traits_base( std::string const& name, bool set )
+    traits_base( std::string const& name, VITAL_UNUSED bool set )
       : m_name( name )
     { }
 

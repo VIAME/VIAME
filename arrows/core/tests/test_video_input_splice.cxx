@@ -37,9 +37,11 @@
 
 #include <arrows/core/video_input_splice.h>
 #include <arrows/tests/test_video_input.h>
+
 #include <vital/algo/algorithm_factory.h>
 #include <vital/io/metadata_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/vital_config.h>
 
 #include <memory>
 #include <string>
@@ -79,7 +81,8 @@ TEST_F(video_input_splice, create)
 // ----------------------------------------------------------------------------
 static
 bool
-set_config(kwiver::vital::config_block_sptr config, std::string const& data_dir)
+set_config(kwiver::vital::config_block_sptr config,
+           VITAL_UNUSED std::string const& data_dir)
 {
   for ( int n = 1; n < 4; ++n )
   {

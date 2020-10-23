@@ -119,7 +119,7 @@ track_set_implementation
 /// Notify the container that a new state has been added to an existing track
 void
 track_set_implementation
-::notify_new_state( track_state_sptr ts )
+::notify_new_state( VITAL_UNUSED track_state_sptr ts )
 {
   // by default, notification does nothing
 }
@@ -127,7 +127,7 @@ track_set_implementation
 /// Notify the container that a state has been removed from an existing track
 void
 track_set_implementation
-::notify_removed_state(track_state_sptr ts)
+::notify_removed_state( VITAL_UNUSED track_state_sptr ts)
 {
   //by default, notification does nothing
 }

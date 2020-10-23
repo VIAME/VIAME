@@ -37,6 +37,7 @@
 
 #include <vital/math_constants.h>
 #include <vital/types/metadata_traits.h>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace vital {
@@ -301,7 +302,7 @@ bool
 update_camera_from_metadata(metadata const& md,
                             local_geo_cs const& lgcs,
                             simple_camera_perspective& cam,
-                            rotation_d const& rot_offset)
+               VITAL_UNUSED rotation_d const& rot_offset)
 {
   bool rotation_set = false;
   bool translation_set = false;

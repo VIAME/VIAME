@@ -30,6 +30,7 @@
 
 #include "video_input_splice.h"
 
+#include <vital/vital_config.h>
 #include <vital/vital_types.h>
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
@@ -392,7 +393,7 @@ bool
 video_input_splice
 ::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               kwiver::vital::timestamp::frame_t frame_number,
-              uint32_t                  timeout )
+              VITAL_UNUSED uint32_t             timeout )
 {
   using frame_t = kwiver::vital::timestamp::frame_t;
   bool status = false;

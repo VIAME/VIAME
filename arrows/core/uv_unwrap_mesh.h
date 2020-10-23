@@ -56,13 +56,13 @@ public:
                "Unwrap a mesh and generate texture coordinates" )
 
   /// Get configuration
-  virtual vital::config_block_sptr get_configuration() const;
+  vital::config_block_sptr get_configuration() const override;
 
   /// Set configuration
-  virtual void set_configuration(vital::config_block_sptr in_config);
+  void set_configuration(vital::config_block_sptr in_config) override;
 
   /// Check configuration
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  bool check_configuration(vital::config_block_sptr config) const override;
 
   /// Constructor
   uv_unwrap_mesh();
@@ -70,14 +70,11 @@ public:
   /// Destructor
   virtual ~uv_unwrap_mesh();
 
-  /// Copy Constructor
-  uv_unwrap_mesh(const uv_unwrap_mesh& other);
-
   /// Unwrap a mesh and generate texture coordinate
   /**
    * \param mesh [in/out]
    */
-  virtual void unwrap(kwiver::vital::mesh_sptr mesh) const;
+  void unwrap(kwiver::vital::mesh_sptr mesh) const override;
 
 private:
   /// private implementation class

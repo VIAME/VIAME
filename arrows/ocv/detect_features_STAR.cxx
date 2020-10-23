@@ -37,6 +37,8 @@
 
 #if KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)
 
+#include <vital/vital_config.h>
+
 #if KWIVER_OPENCV_VERSION_MAJOR < 3
 typedef cv::StarDetector cv_STAR_t;
 #else
@@ -157,7 +159,7 @@ detect_features_STAR
 
 bool
 detect_features_STAR
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

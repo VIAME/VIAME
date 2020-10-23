@@ -45,6 +45,8 @@
 
 #include <vital/algo/compute_ref_homography.h>
 #include <vital/algo/match_features.h>
+#include <vital/vital_config.h>
+
 #include <arrows/vxl/compute_homography_overlap.h>
 
 using namespace kwiver::vital;
@@ -255,7 +257,7 @@ close_loops_homography_guided
 ::stitch( frame_id_t frame_number,
           feature_track_set_sptr input,
           image_container_sptr image,
-          image_container_sptr mask ) const
+          VITAL_UNUSED image_container_sptr mask ) const
 {
   if( !d_->enabled_ )
   {

@@ -30,14 +30,14 @@
 
 #include "video_input_pos.h"
 
-#include <vital/vital_types.h>
+#include <vital/exceptions.h>
+#include <vital/io/metadata_io.h>
 #include <vital/types/metadata.h>
 #include <vital/types/metadata_traits.h>
 #include <vital/types/timestamp.h>
-#include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
-
-#include <vital/io/metadata_io.h>
+#include <vital/vital_config.h>
+#include <vital/vital_types.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -177,7 +177,7 @@ video_input_pos
 // ------------------------------------------------------------------
 bool
 video_input_pos
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -274,7 +274,7 @@ video_input_pos
 bool
 video_input_pos
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
-              uint32_t                  timeout ) // not supported
+              VITAL_UNUSED uint32_t     timeout ) // not supported
 {
   // reset current metadata packet and timestamp
   d->d_metadata = nullptr;
@@ -324,7 +324,7 @@ bool
 video_input_pos
 ::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               kwiver::vital::timestamp::frame_t frame_number,
-              uint32_t                  timeout )
+              VITAL_UNUSED uint32_t             timeout )
 {
   // reset current metadata packet and timestamp
   d->d_metadata = nullptr;

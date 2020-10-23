@@ -33,6 +33,7 @@
 #include <kwiver_type_traits.h>
 
 #include <vital/types/timestamp.h>
+#include <vital/vital_config.h>
 
 namespace kwiver
 {
@@ -50,7 +51,7 @@ public:
   explicit priv( downsample_process* p );
   ~priv();
 
-  bool skip_frame( vital::timestamp const& ts, double frame_rate );
+  bool skip_frame( VITAL_UNUSED vital::timestamp const& ts, double frame_rate );
 
   downsample_process* parent;
 
@@ -210,7 +211,8 @@ int downsample_process::priv
 
 
 bool downsample_process::priv
-::skip_frame( vital::timestamp const& ts, double frame_rate )
+::skip_frame( VITAL_UNUSED vital::timestamp const& ts,
+              double frame_rate )
 {
   ds_frame_time_ = ts.has_valid_time() ?
     ts.get_time_seconds() : ds_frame_time_ + 1 / frame_rate;

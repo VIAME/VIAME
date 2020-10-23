@@ -35,6 +35,8 @@
 
 #include "feature_detect_extract_SIFT.h"
 
+#include <vital/vital_config.h>
+
 #if defined(HAVE_OPENCV_NONFREE) || defined(HAVE_OPENCV_XFEATURES2D)
 
 // Include the correct file and unify different namespace locations of SIFT type
@@ -206,7 +208,7 @@ detect_features_SIFT
 
 bool
 detect_features_SIFT
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }
@@ -254,7 +256,7 @@ extract_descriptors_SIFT
 
 bool
 extract_descriptors_SIFT
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }

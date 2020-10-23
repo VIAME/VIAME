@@ -30,6 +30,7 @@
 
 #include "timing_process_instrumentation.h"
 
+#include <vital/vital_config.h>
 #include <vital/util/enum_converter.h>
 
 #include <sprokit/pipeline/process.h>
@@ -79,7 +80,7 @@ timing_process_instrumentation::
 // ------------------------------------------------------------------
 void
 timing_process_instrumentation::
-start_init_processing( std::string const& data )
+start_init_processing( VITAL_UNUSED std::string const& data )
 {
   m_timer->start();
 }
@@ -101,7 +102,7 @@ stop_init_processing()
 // ------------------------------------------------------------------
 void
 timing_process_instrumentation::
-start_finalize_processing( std::string const& data )
+start_finalize_processing( VITAL_UNUSED std::string const& data )
 {
   m_timer->start();
 }
@@ -123,7 +124,7 @@ stop_finalize_processing()
 // ------------------------------------------------------------------
 void
 timing_process_instrumentation::
-start_reset_processing( std::string const& data )
+start_reset_processing( VITAL_UNUSED std::string const& data )
 {
   m_timer->start();
 }
@@ -142,7 +143,7 @@ stop_reset_processing()
 // ------------------------------------------------------------------
 void
 timing_process_instrumentation::
-start_flush_processing( std::string const& data )
+start_flush_processing( VITAL_UNUSED std::string const& data )
 {
   m_timer->start();
 }
@@ -161,7 +162,7 @@ stop_flush_processing()
 // ------------------------------------------------------------------
 void
 timing_process_instrumentation::
-start_step_processing( std::string const& data )
+start_step_processing( VITAL_UNUSED std::string const& data )
 {
   m_timer->start();
 }
@@ -182,7 +183,7 @@ stop_step_processing()
 // ------------------------------------------------------------------
 void
 timing_process_instrumentation::
-start_configure_processing( std::string const& data )
+start_configure_processing( VITAL_UNUSED std::string const& data )
 {
   m_timer->start();
 }
@@ -201,7 +202,7 @@ stop_configure_processing()
 // ------------------------------------------------------------------
 void
 timing_process_instrumentation::
-start_reconfigure_processing( std::string const& data )
+start_reconfigure_processing( VITAL_UNUSED std::string const& data )
 {
   m_timer->start();
 }

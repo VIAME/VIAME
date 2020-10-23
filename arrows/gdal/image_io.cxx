@@ -38,6 +38,7 @@
 #include <arrows/gdal/image_container.h>
 
 #include <vital/exceptions/algorithm.h>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace arrows {
@@ -63,8 +64,8 @@ image_io
  */
 void
 image_io
-::save_(const std::string& filename,
-       vital::image_container_sptr data) const
+::save_( VITAL_UNUSED const std::string& filename,
+         VITAL_UNUSED vital::image_container_sptr data) const
 {
   VITAL_THROW( vital::algorithm_exception, this->type_name(), this->impl_name(),
                "Saving to file not supported." );

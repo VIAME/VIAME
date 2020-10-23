@@ -35,6 +35,8 @@
 
 #include "detect_features_simple_blob.h"
 
+#include <vital/vital_config.h>
+
 using namespace kwiver::vital;
 
 namespace kwiver {
@@ -188,7 +190,7 @@ detect_features_simple_blob
 
 bool
 detect_features_simple_blob
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

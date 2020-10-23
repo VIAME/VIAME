@@ -35,6 +35,8 @@
 
 #include "extract_descriptors_LUCID.h"
 
+#include <vital/vital_config.h>
+
 #ifdef HAVE_OPENCV_XFEATURES2D
 
 #include <opencv2/xfeatures2d.hpp>
@@ -118,11 +120,10 @@ void extract_descriptors_LUCID
 
 bool
 extract_descriptors_LUCID
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

@@ -40,6 +40,8 @@
 
 #include <vital/algo/split_image.h>
 
+#include <vital/vital_config.h>
+
 namespace kwiver {
 namespace arrows {
 namespace vxl {
@@ -58,8 +60,8 @@ public:
   /// Destructor
   virtual ~split_image();
 
-  virtual void set_configuration( kwiver::vital::config_block_sptr ) { }
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config) const { return true; }
+  virtual void set_configuration( VITAL_UNUSED kwiver::vital::config_block_sptr ) { }
+  virtual bool check_configuration( VITAL_UNUSED kwiver::vital::config_block_sptr config) const { return true; }
 
   /// Split image
   virtual std::vector< kwiver::vital::image_container_sptr >

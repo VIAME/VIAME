@@ -37,6 +37,7 @@
 
 #include <vital/exceptions.h>
 #include <vital/types/matrix.h>
+#include <vital/vital_config.h>
 
 #include <arrows/ocv/image_container.h>
 
@@ -193,7 +194,7 @@ detect_motion_mog2
 
 bool
 detect_motion_mog2
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

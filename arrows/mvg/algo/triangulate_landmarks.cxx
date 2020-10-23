@@ -43,6 +43,7 @@
 #include <arrows/mvg/triangulate.h>
 
 #include <vital/math_constants.h>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace arrows {
@@ -204,7 +205,7 @@ triangulate_landmarks
 // Check that the algorithm's currently configuration is valid
 bool
 triangulate_landmarks
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
