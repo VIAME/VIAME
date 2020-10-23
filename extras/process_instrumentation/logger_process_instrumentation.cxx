@@ -230,6 +230,7 @@ void logger_process_instrumentation
     break;
 
   default:
+  case kvll::LEVEL_NONE:
   case kvll::LEVEL_INFO:
     LOG_INFO( m_logger, data );
     break;
@@ -239,6 +240,7 @@ void logger_process_instrumentation
     break;
 
   case kvll::LEVEL_ERROR:
+  case kvll::LEVEL_FATAL:
     LOG_ERROR( m_logger, data );
     break;
 

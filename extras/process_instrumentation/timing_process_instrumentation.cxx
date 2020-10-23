@@ -241,6 +241,9 @@ configure( kwiver::vital::config_block_sptr const conf )
     m_timer = std::make_shared<kwiver::vital::cpu_timer>();
     type_name = "cpu_clock_duration";
     break;
+
+  default:
+    break;
   } // end switch
 
   // Get file name and create output file.

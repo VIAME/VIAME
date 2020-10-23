@@ -135,7 +135,8 @@ metadata_traits
     KWIVER_VITAL_METADATA_TAGS( TAG_CASE )
 
   default:
-    return "-- unknown tag code --";
+  case VITAL_META_LAST_TAG:
+      return "-- unknown tag code --";
     break;
   } // end switch
 
