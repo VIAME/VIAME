@@ -325,7 +325,7 @@ read_obj(std::istream& is)
     {
       case 'v': // read a vertex
       {
-        char c2 = (char)is.peek();
+        char c2 = static_cast<char>(is.peek());
         switch (c2)
         {
           case 'n': // read a normal
