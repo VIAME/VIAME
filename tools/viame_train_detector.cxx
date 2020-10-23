@@ -76,6 +76,7 @@ public:
   // Config options
   bool opt_help;
   bool opt_list;
+  bool opt_no_query;
 
   std::string opt_config;
   std::string opt_input;
@@ -89,6 +90,7 @@ public:
   {
     opt_help = false;
     opt_list = false;
+    opt_no_query = false;
   }
 
   virtual ~trainer_vars()
@@ -550,6 +552,10 @@ main( int argc, char* argv[] )
     &g_params.opt_list, "Display list of all trainable algorithms" );
   g_params.m_args.AddArgument( "-l",          argT::NO_ARGUMENT,
     &g_params.opt_list, "Display list of all trainable algorithms" );
+  g_params.m_args.AddArgument( "--no-query",  argT::NO_ARGUMENT,
+    &g_params.opt_no_query, "Do not query the user for anything" );
+  g_params.m_args.AddArgument( "-nq",         argT::NO_ARGUMENT,
+    &g_params.opt_no_query, "Do not query the user for anything" );
   g_params.m_args.AddArgument( "--config",    argT::SPACE_ARGUMENT,
     &g_params.opt_config, "Input configuration file with parameters" );
   g_params.m_args.AddArgument( "-c",          argT::SPACE_ARGUMENT,
@@ -676,13 +682,17 @@ main( int argc, char* argv[] )
   {
     std::cout << "Label file (labels.txt) does not exist in input folder" << std::endl;
     std::cout << std::endl << "Would you like to train over all category labels? (y/n) ";
-    std::string response;
-    std::cin >> response;
 
-    if( response != "y" && response != "Y" && response != "yes" && response != "Yes" )
+    if( !g_params.opt_no_query )
     {
-      std::cout << std::endl << "Exiting training due to no labels.txt" << std::endl;
-      exit( 0 );
+      std::string response;
+      std::cin >> response;
+
+      if( response != "y" && response != "Y" && response != "yes" && response != "Yes" )
+      {
+        std::cout << std::endl << "Exiting training due to no labels.txt" << std::endl;
+        exit( 0 );
+      }
     }
   }
   else if( g_params.opt_out_config.empty() )
