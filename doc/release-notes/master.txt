@@ -101,6 +101,9 @@ Arrows: MVG
    - transform.h
    - triangulate.h
 
+ * Added a new applet, init_cameras_landmarks, to run the estimate cameras
+   and landmarks from feature tracks produced by the track_features applet.
+
 Arrows: OpenCV
 
 Arrows: Serialization
