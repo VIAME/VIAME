@@ -1,5 +1,5 @@
 # Python cmake, if testing enabled set pip to install test dependencies in venv
-if (KWIVER_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS AND VENV_CREATED)
     if (PIP_COMMAND)
         python_target_add_command( "pip-install-upgrade"
                                    "${PIP_UPGRADE_COMMAND}"

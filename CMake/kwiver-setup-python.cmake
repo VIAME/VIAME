@@ -233,7 +233,6 @@ if (KWIVER_ENABLE_TESTS)
       message(WARNING "Could not find conda executable, conda env will NOT be created."
                       "Python tests may not be run.")
       unset(CREATE_VENV)
-      unset(Python3_FOUND)
     endif()
   else()
     set(VENV_DIR "${KWIVER_BINARY_DIR}/testing_venv")
@@ -300,7 +299,7 @@ if (KWIVER_ENABLE_TESTS)
   # to the version of python they're building the kwiver-python against
   #
   #
-  if (Python3_FOUND)
+  if (VENV_CREATED)
     set(NOSE_RUNNER "${Python3_EXECUTABLE} -m nose")
     set(NOSE_LOC "${VENV_DIR}/nose")
   else()
