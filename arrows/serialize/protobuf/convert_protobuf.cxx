@@ -134,7 +134,6 @@ void convert_protobuf( const ::kwiver::vital::activity& act,
   *proto_act.mutable_start_frame() = proto_start_frame;
   *proto_act.mutable_end_frame() = proto_end_frame;
 
-  auto at_sptr = act.type();
   // Now check if optional fields can be set
   if ( auto at_sptr = act.type() )
   {
