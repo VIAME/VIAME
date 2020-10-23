@@ -143,7 +143,7 @@ is also recommended to use [Anaconda3 5.2.0](https://repo.anaconda.com/archive/)
 which is the most tested distribution used by developers. If using other python distributions
 having numpy installed, at a minimum, is necessary.
 
-To build on the command line in linux, use the following commands, only replacing [source-directory]
+To build on the command line in Linux, use the following commands, only replacing [source-directory]
 and [build-directory] with locations of your choice. While these directories can be the same,
 it's good practice to have a 'src' checkout then a seperate 'build' directory alongside it:
 
