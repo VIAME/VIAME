@@ -175,7 +175,7 @@ class NetHarnTrainer( TrainDetector ):
                 else:
                     self._batch_size = str( 2 * gpu_param_adj )
             if self._learning_rate == "auto":
-                self._learning_rate = str( 1e-3 * gpu_param_adj )
+                self._learning_rate = str( 1e-5 * gpu_param_adj )
         elif self._mode == "frame_classifier":
             if self._batch_size == "auto":
                 if gpu_memory_available > 9e9:
@@ -185,7 +185,7 @@ class NetHarnTrainer( TrainDetector ):
                 else:
                     self._batch_size = str( 16 * gpu_param_adj )
             if self._learning_rate == "auto":
-                self._learning_rate = str( 0.5e-3 * gpu_param_adj )
+                self._learning_rate = str( 5e-5 * gpu_param_adj )
         else:
             print( "Invalid mode string " + self._mode )
             return False
