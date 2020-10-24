@@ -1,3 +1,23 @@
+v0.11.4 - 10/28/2020
+====================
+
+
+-Improved CFRNN with motion train and test proceedures
+
+
+-Update NetHarn version
+
+
+-Improved CFRNN initial learning rate estimations
+
+
+-Extra support for VIAME-Web train
+
+
+-Extra warning printouts when training models for possible corner cases
+
+
+
 v0.11.3 - 10/14/2020
 ====================
 
