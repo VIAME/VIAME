@@ -1396,7 +1396,7 @@ main( int argc, char* argv[] )
     {
       std::cout << "Received exception: " << error << std::endl;
       std::cout << std::endl;
-      std::cout << "Shutting down" << std::endl;
+      std::cout << "Shutting down" << std::endl << std::endl;
     }
   }
 
