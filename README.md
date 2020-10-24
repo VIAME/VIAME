@@ -47,7 +47,7 @@ quick-start guide, above. In summary, VIAME Desktop is currently provided as eit
 .tar file. Alternatively, docker files are available for both VIAME Desktop and Web (below).
 A sample instance of VIAME Web is also online, hosted at [viame.kitware.com](viame.kitware.com).
 For desktop installs, extract the binaries and place them in a directory of your choosing,
-for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux. If you're using
+for example /opt/noaa/viame on Linux or C:\Program Files\VIAME on Windows. If you're using
 packages built with GPU support, make sure to have sufficient video drivers installed,
 version 418.39 or higher. The best way to install drivers depends on your operating system,
 see below. Lastly, run through some of the examples to validate the installation. The binaries
