@@ -42,14 +42,18 @@ but select entries are also listed below broken down by individual functionality
 Installations
 -------------
 
-For a full installation guide see the quick-start slide deck above, but in summary, extract the binaries
-and place them in a directory of your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame
-on Linux. If you're using packages built with GPU support, make sure to have sufficient video drivers installed,
-version 418.39 or higher. The best way to install drivers depends on your operating system, see below.
-Lastly, run through some of the examples to validate the installation. It is no longer necessary
-to install any dependencies of VIAME besides video drivers, everything else is packaged inside of it. The
-binaries are quite large, in terms of disk space, due to the inclusion of multiple default model files and
-programs, but if just building your desired features from source (e.g. for embedded apps) they are much smaller.
+For a full installation guide and differences between different flavors of VIAME, see the
+quick-start guide, above. In summary, VIAME Desktop is currently provided as either a .zip or
+a .tar file. Alternatively, docker files are available for both VIAME Desktop (without GUIs)
+and VIAME Web (below). A sample instance of VIAME Web is also online, hosted at
+[viame.kitware.com](viame.kitware.com). For desktop installs, extract the binaries and place
+them in a directory of your choosing, for example C:\Program Files\VIAME on Windows or
+/opt/noaa/viame on Linux. If you're using packages built with GPU support, make sure to
+have sufficient video drivers installed, version 418.39 or higher. The best way to install
+drivers depends on your operating system, see below. Lastly, run through some of the examples
+to validate the installation. The binaries are quite large, in terms of disk space, due to
+the inclusion of multiple default model files and programs, but if just building your
+desired features from source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04/18.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
