@@ -1387,9 +1387,16 @@ main( int argc, char* argv[] )
 
   if( !error.empty() )
   {
-    std::cout << "Received exception: " << error << std::endl;
-    std::cout << std::endl;
-    std::cout << "Shutting down" << std::endl;
+    if( error.find( "interupt_handler" ) != std::string::npos )
+    {
+      std::cout << "Spooling down training run" << std::endl;
+    }
+    else
+    {
+      std::cout << "Received exception: " << error << std::endl;
+      std::cout << std::endl;
+      std::cout << "Shutting down" << std::endl;
+    }
   }
 
   return 0;
