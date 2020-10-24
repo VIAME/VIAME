@@ -70,7 +70,7 @@ Ubuntu
 CentOS 
 [\[1\]](https://developer.nvidia.com/cuda-downloads)
 [\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)) <br>
-An NVIDIA CUDA-enabled GPU with 8 Gb or more VRAM <br>
+An NVIDIA [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
 [VIAME v0.11.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5f7b32f850a41e3d19ca03b0/download) <br>
