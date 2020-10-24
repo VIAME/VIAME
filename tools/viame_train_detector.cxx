@@ -1362,11 +1362,35 @@ main( int argc, char* argv[] )
 
   // Run training algorithm
   std::cout << "Beginning Training Process" << std::endl;
+  std::string error;
 
-  detector_trainer->add_data_from_disk( model_labels,
-                                        train_image_fn, train_gt,
-                                        test_image_fn, test_gt );
+  try
+  {
+    detector_trainer->add_data_from_disk( model_labels,
+                                          train_image_fn, train_gt,
+                                          test_image_fn, test_gt );
 
-  detector_trainer->update_model();
+    detector_trainer->update_model();
+  }
+  catch( const std::exception& e )
+  {
+    error = e.what();
+  }
+  catch( const std::string& str )
+  {
+    error = str;
+  }
+  catch( ... )
+  {
+    error = "unknown fault";
+  }
+
+  if( !error.empty() )
+  {
+    std::cout << "Received exception: " << error << std::endl;
+    std::cout << std::endl;
+    std::cout << "Shutting down" << std::endl;
+  }
+
   return 0;
 }
