@@ -62,7 +62,7 @@ class NetHarnTrainer( TrainDetector ):
     def __init__( self ):
         TrainDetector.__init__( self )
 
-        self._identifier = "bioharn-det-v14-cascade"
+        self._identifier = "viame-netharn-detector"
         self._mode = "detector"
         self._seed_model = ""
         self._train_directory = "deep_training"

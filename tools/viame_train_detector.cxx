@@ -1389,7 +1389,7 @@ main( int argc, char* argv[] )
   {
     if( error.find( "interupt_handler" ) != std::string::npos )
     {
-      std::cout << "Spooling down training run" << std::endl;
+      std::cout << "Spooling down training run" << std::endl << std::endl;
     }
     else
     {
