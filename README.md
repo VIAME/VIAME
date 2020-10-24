@@ -123,7 +123,7 @@ into existing installations because they are a full installation and bad things 
 Docker Images
 -------------
 
-Docker images are available on: https://hub.docker.com with the label
+Docker images for the desktop version are available on: https://hub.docker.com with the label
 
 kitware/viame:gpu-all-models-latest
 
