@@ -1387,9 +1387,10 @@ main( int argc, char* argv[] )
 
   if( !error.empty() )
   {
-    if( error.find( "interupt_handler" ) != std::string::npos )
+    if( error.find( "interupt_handler" ) != std::string::npos ||
+        error.find( "KeyboardInterrupt" ) != std::string::npos )
     {
-      std::cout << "Spooling down training run" << std::endl << std::endl;
+      std::cout << "Finished spooling down run after interrupt" << std::endl << std::endl;
     }
     else
     {
