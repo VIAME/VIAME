@@ -16,6 +16,11 @@ SET "PYTHONPATH=%VIAME_BUILD_DIR%\install\lib\python3.6;%VIAME_BUILD_DIR%\instal
 SET "INCLUDE=C:\Program Files (x86)\Windows Kits\10\Include\10.0.17134.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.17134.0\shared;%INCLUDE%"
 SET "LIB=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\ucrt\x64;%LIB%"
 
+REM Hack around some internal python enabled issues
+SET "PATH=%VIAME_BUILD_DIR%\install\bin;%PATH%"
+SET "INCLUDE=%VIAME_BUILD_DIR%\install\include;%INCLUDE%"
+SET "LIB=%VIAME_BUILD_DIR%\install\lib;%LIB%"
+
 git submodule update --init --recursive
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
