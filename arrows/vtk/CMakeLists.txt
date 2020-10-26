@@ -2,6 +2,8 @@
 
 set( plugin_vtk_headers
   depth_utils.h
+  mesh_coloration.h
+  vtkKwiverCamera.h
   )
 
 kwiver_install_headers(
@@ -16,6 +18,8 @@ kwiver_install_headers(
 
 set( plugin_vtk_sources
   depth_utils.cxx
+  mesh_coloration.cxx
+  vtkKwiverCamera.cxx
   )
 
 kwiver_add_library( kwiver_algo_vtk
@@ -25,9 +29,12 @@ kwiver_add_library( kwiver_algo_vtk
 
 target_link_libraries( kwiver_algo_vtk
   PUBLIC               vital
+                       vtkRenderingCore
+                       vtkRenderingOpenGL2
+  PRIVATE              vital_algo
                        vtkCommonCore
                        vtkCommonDataModel
-  )
+                       )
 
 #algorithms_create_plugin( kwiver_algo_vtk
 #  register_algorithms.cxx

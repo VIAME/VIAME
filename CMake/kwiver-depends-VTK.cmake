@@ -10,6 +10,11 @@ if( KWIVER_ENABLE_VTK )
         COMPONENTS
         vtkCommonCore
         vtkCommonDataModel
+        vtkIOXML
+        vtkIOPLY
+        vtkIOGeometry
+        vtkRenderingCore
+        vtkRenderingOpenGL2
         )
     if(VTK_VERSION VERSION_LESS 8.2)
         message(FATAL_ERROR "${PROJECT_NAME} supports VTK >= v8.2 "
