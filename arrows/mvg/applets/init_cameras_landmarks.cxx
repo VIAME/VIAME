@@ -30,6 +30,9 @@
 
 #include "init_cameras_landmarks.h"
 
+#include <arrows/mvg/sfm_utils.h>
+#include <arrows/mvg/transform.h>
+
 #include <kwiversys/SystemTools.hxx>
 
 #include <vital/algo/initialize_cameras_landmarks.h>
@@ -103,6 +106,10 @@ bool check_config(kv::config_block_sptr config)
     validate_required_output_file("output_landmarks_filename", *config, main_logger)
     && config_valid;
 
+  config_valid =
+    validate_optional_output_file("geo_origin_filename", *config, main_logger)
+    && config_valid;
+
   if (!video_input::check_nested_algo_configuration("video_reader", config))
   {
     KWIVER_CONFIG_FAIL("video_reader configuration check failed");
@@ -136,6 +143,7 @@ public:
   kv::path_t  tracks_file;
   kv::path_t  camera_directory = "results/krtd";
   kv::path_t  landmarks_file = "results/landmarks.ply";
+  kv::path_t  geo_origin_file = "results/geo_origin.txt";
 
   enum commandline_mode {SUCCESS, HELP, WRITE, FAIL};
 
@@ -192,6 +200,11 @@ public:
       landmarks_file = cmd_args["landmarks"].as<std::string>();
       config->set_value("output_landmarks_filename", landmarks_file);
     }
+    if (cmd_args.count("geo-origin") > 0)
+    {
+      geo_origin_file = cmd_args["geo-origin"].as<std::string>();
+      config->set_value("geo_origin_filename", geo_origin_file);
+    }
 
     bool valid_config = check_config(config);
 
@@ -235,7 +248,8 @@ public:
       "(optional) Path to an input file to be opened as a video. "
       "This could be either a video file or a text file "
       "containing new-line separated paths to sequential "
-      "image files.");
+      "image files. In this tool, video is only used to extract "
+      "metadata such as geospatial tags.");
 
     config->set_value("input_tracks_file", tracks_file,
       "Path to a file to read input tracks from.");
@@ -245,6 +259,12 @@ public:
 
     config->set_value("output_landmarks_filename", landmarks_file,
       "Path to a file to write output landmarks to. If this "
+      "file exists, it will be overwritten.");
+
+    config->set_value("geo_origin_filename", geo_origin_file,
+      "Path to a file to write the geographic origin. "
+      "This file is only written if the geospatial metadata is "
+      "provided as input (e.g. in the input video).  If this "
       "file exists, it will be overwritten.");
 
 
@@ -419,6 +439,17 @@ public:
     return true;
   }
 
+  bool write_geo_origin()
+  {
+    auto lgcs = sfm_constraint_ptr->get_local_geo_cs();
+    if (!lgcs.origin().is_empty())
+    {
+      kv::write_local_geo_cs_to_file(lgcs, geo_origin_file);
+      return true;
+    }
+    return false;
+  }
+
   void run_algorithm()
   {
     // If camera_map_ptr is Null the initialize algorithm will create all
@@ -484,6 +515,22 @@ public:
     dummy_md->add<kv::VITAL_META_VIDEO_URI>(std::string(video_file));
     return basename_from_metadata(dummy_md, frame_id);
   }
+
+  void recenter_to_landmarks()
+  {
+    kv::vector_3d offset = landmarks_ground_center(*landmark_map_ptr);
+
+    auto lgcs = sfm_constraint_ptr->get_local_geo_cs();
+    if (!lgcs.origin().is_empty())
+    {
+      kwiver::vital::vector_3d new_origin = lgcs.origin().location() + offset;
+      lgcs.set_origin(kv::geo_point(new_origin, lgcs.origin().crs()));
+      sfm_constraint_ptr->set_local_geo_cs(lgcs);
+    }
+
+    translate_inplace(*landmark_map_ptr, -offset);
+    translate_inplace(*camera_map_ptr, -offset);
+  }
 };
 
 // ----------------------------------------------------------------------------
@@ -533,6 +580,8 @@ run()
 
     d->run_algorithm();
 
+    d->recenter_to_landmarks();
+
     if(!d->write_cameras())
     {
       return EXIT_FAILURE;
@@ -541,6 +590,11 @@ run()
     if(!d->write_landmarks())
     {
       return EXIT_FAILURE;
+    }
+
+    if (d->write_geo_origin())
+    {
+      LOG_INFO(main_logger, "Saved geo-origin to " << d->geo_origin_file);
     }
 
     return EXIT_SUCCESS;
@@ -577,6 +631,7 @@ add_command_options()
   ( "t,tracks", "Input tracks", cxxopts::value<std::string>() )
   ( "k,camera", "Output directory for cameras", cxxopts::value<std::string>() )
   ( "l,landmarks", "Output landmarks file", cxxopts::value<std::string>() )
+  ( "g,geo-origin", "Output geographic origin file", cxxopts::value<std::string>())
   ;
 
   //If we want to remove tracks reading from the config, we should then add this
