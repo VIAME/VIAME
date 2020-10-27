@@ -48,10 +48,10 @@ validate_required_input_file(std::string const& name,
                              kv::logger_handle_t logger)
 {
   if (!config.has_value(name) ||
-      config.get_value<std::string>(name) != "")
+      config.get_value<std::string>(name) == "")
   {
     LOG_ERROR(logger, "Configuration value for " << name
-                     << " is missing but required");
+                      << " is missing but required");
     return false;
   }
 
@@ -71,7 +71,7 @@ validate_optional_input_file(std::string const& name,
     if (!ST::FileExists(path, true))
     {
       LOG_ERROR(logger, name << " path, " << path
-        << ", does not exist or is not a regular file");
+                        << ", does not exist or is not a regular file");
       return false;
     }
   }
@@ -87,10 +87,10 @@ validate_required_output_file(std::string const& name,
                               bool test_write)
 {
   if (!config.has_value(name) ||
-      config.get_value<std::string>(name) != "")
+      config.get_value<std::string>(name) == "")
   {
     LOG_ERROR(logger, "Configuration value for " << name
-                     << " is missing but required");
+                      << " is missing but required");
     return false;
   }
 
@@ -113,15 +113,21 @@ validate_optional_output_file(std::string const& name,
     auto parent_dir = ST::GetFilenamePath(ST::CollapseFullPath(path));
     if (!ST::FileIsDirectory(parent_dir))
     {
-      if (make_directory && !ST::MakeDirectory(parent_dir))
+      if (make_directory)
       {
-        LOG_ERROR(logger, "unable to create directory " << parent_dir
+        if (!ST::MakeDirectory(parent_dir))
+        {
+          LOG_ERROR(logger, "unable to create directory " << parent_dir
+                            << " for configuration option " << name);
+          return false;
+        }
+      }
+      else
+      {
+        LOG_ERROR(logger, "directory " << parent_dir << " does not exist"
                           << " for configuration option " << name);
         return false;
       }
-      LOG_ERROR(logger, "directory " << parent_dir << " does not exist"
-                        << " for configuration option " << name);
-      return false;
     }
 
     if (test_write)
@@ -146,10 +152,10 @@ validate_required_output_dir(std::string const& name,
                              bool make_directory)
 {
   if (!config.has_value(name) ||
-      config.get_value<std::string>(name) != "")
+      config.get_value<std::string>(name) == "")
   {
     LOG_ERROR(logger, "Configuration value for " << name
-                     << " is missing but required");
+                      << " is missing but required");
     return false;
   }
   return validate_optional_output_dir(name, config, logger, make_directory);
@@ -174,16 +180,20 @@ validate_optional_output_dir(std::string const& name,
                           << " and is a file, not a valid directory");
         return false;
       }
-      if (make_directory && !ST::MakeDirectory(path))
+      if (make_directory)
       {
-        LOG_ERROR(logger, "unable to create directory " << path
-                          << " for configuration option " << name);
-        return false;
+        if (!ST::MakeDirectory(path))
+        {
+          LOG_ERROR(logger, "unable to create directory " << path
+                            << " for configuration option " << name);
+          return false;
+        }
+        return true;
       }
+      LOG_ERROR(logger, path << " is not a valid directory for "
+                        << "configuration option " << name);
+      return false;
     }
-    LOG_ERROR(logger, path << " is not a valid directory for "
-                      << "configuration option " << name);
-    return false;
   }
   return true;
 }
