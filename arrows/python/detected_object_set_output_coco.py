@@ -34,6 +34,12 @@ import os
 from vital.algo import DetectedObjectSetOutput
 
 class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
+
+    # ID mappings of categories such that they're shared across all
+    # DetectedObjectSetOutput class instantiations in the running
+    # instance
+    categories = {}
+
     """COCO-formatted output for DetectedObjectSets
 
     See DetectedObjectSetOutput for method information.
@@ -46,8 +52,6 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
         self.detections = []
         # List of image paths
         self.images = []
-        # Dict mapping category names to numerical IDs
-        self.categories = {}
         # The first ID to be assigned to a category (and then counting
         # up from there)
         self.category_start_id = 1
@@ -102,9 +106,9 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
                 score=det.confidence(),
             )
             if det.type() is not None:
-                d['category_id'] = self.categories.setdefault(
+                d['category_id'] = type(self).categories.setdefault(
                     det.type().get_most_likely_class(),
-                    len(self.categories) + self.category_start_id,
+                    len(type(self).categories) + self.category_start_id,
                 )
             self.detections.append(d)
         self.images.append(file_name)
@@ -133,7 +137,7 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
             ),
             annotations=[dict(d, id=i)
                          for i, d in enumerate(self.detections)],
-            categories=[dict(id=i, name=c) for c, i in self.categories.items()],
+            categories=[dict(id=i, name=c) for c, i in type(self).categories.items()],
             images=image_dict,
         ), self.file)
         self.file.flush()
