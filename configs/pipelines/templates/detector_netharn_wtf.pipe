@@ -1,6 +1,6 @@
 # ==============================================================================
 #
-# Cascade Faster R-CNN Detector with Intensity, Hue, and Motion
+# Cascade Faster R-CNN Detector with Motion Infusion
 #
 # ==============================================================================
 
@@ -55,7 +55,6 @@ process detector_input
 
   block filter:vxl_convert_image
     :format                                    byte
-    :force_three_channel                       true
   endblock
 
 connect from downsampler.output_1
@@ -63,24 +62,38 @@ connect from downsampler.output_1
 
 # ==============================================================================
 
-process color_convert
+process enhancer
   :: image_filter
-  :filter:type                                 ocv_convert_color
+  :filter:type                                 ocv_enhancer
 
-  block filter:ocv_convert_color
-    :input_color_space                         rgb
-    :output_color_space                        hls
+  block filter:ocv_enhancer
+    :apply_smoothing                           false
+    :smooth_kernel                             3
+    :apply_denoising                           false
+    :denoise_kernel                            3
+    :denoise_coeff                             2
+    :auto_balance                              true
+    :force_8bit                                false
+    :apply_clahe                               true
+    :clip_limit                                3
   endblock
 
 connect from detector_input.image
-        to   color_convert.image
+        to   enhancer.image
 
-process split_channels
-  :: split_image
-  :split_image:type                            ocv_channels
+process ensure_color
+  :: image_filter
+  :filter:type                                 vxl_convert_image
 
-connect from color_convert.image
-        to   split_channels.image
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from enhancer.image
+        to   ensure_color.image
+
+# ==============================================================================
 
 process ensure_grey
   :: image_filter
@@ -126,12 +139,10 @@ process image_merger
   :: merge_images
   :merge_images:type                           ocv
 
-connect from split_channels.right_image
+connect from ensure_color.image
         to   image_merger.image1
-connect from split_channels.left_image
-        to   image_merger.image2
 connect from float_to_byte.image
-        to   image_merger.image3
+        to   image_merger.image2
 
 # ==============================================================================
 
@@ -148,6 +159,7 @@ process detector1
     :chip_adaptive_thresh                      1600000
 
     block detector:netharn
+      :input_string                            rgb|disparity
       relativepath deployed =                  [-MODEL-FILE-]
     endblock
   endblock
