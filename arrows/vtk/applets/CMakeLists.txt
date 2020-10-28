@@ -4,11 +4,14 @@
 
 set( sources
   register_applets.cxx
+
   color_mesh.cxx
+  estimate_depth.cxx
   )
 
 set( headers
   color_mesh.h
+  estimate_depth.h
   )
 
 # Add applet plugin
@@ -22,5 +25,4 @@ kwiver_add_plugin( kwiver_algo_vtk_applets
                vtkIOGeometry
                vtkIOPLY
                vtkIOXML
-
-)
+  )
