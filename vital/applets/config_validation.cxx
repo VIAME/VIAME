@@ -146,6 +146,49 @@ validate_optional_output_file(std::string const& name,
 
 //=============================================================================
 bool
+validate_required_input_dir(std::string const& name,
+                            kv::config_block const& config,
+                            kv::logger_handle_t logger)
+{
+  if (!config.has_value(name) ||
+      config.get_value<std::string>(name) == "")
+  {
+    LOG_ERROR(logger, "Configuration value for " << name
+                      << " is missing but required");
+    return false;
+  }
+
+  return validate_optional_input_dir(name, config, logger);
+}
+
+//=============================================================================
+bool
+validate_optional_input_dir(std::string const& name,
+                            kv::config_block const& config,
+                            kv::logger_handle_t logger)
+{
+  if (config.has_value(name) &&
+      config.get_value<std::string>(name) != "")
+  {
+    std::string path = config.get_value<std::string>(name);
+    if (!ST::FileIsDirectory(path))
+    {
+      if (ST::FileExists(path))
+      {
+        LOG_ERROR(logger, name << " is set to " << path
+                          << " and is a file, not a valid directory");
+        return false;
+      }
+      LOG_ERROR(logger, name << " path, " << path
+                        << ", does not exist");
+      return false;
+    }
+  }
+  return true;
+}
+
+//=============================================================================
+bool
 validate_required_output_dir(std::string const& name,
                              kv::config_block const& config,
                              kv::logger_handle_t logger,

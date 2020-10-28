@@ -123,6 +123,40 @@ validate_optional_output_file(std::string const& name,
                               bool make_directory = true,
                               bool test_write = true);
 
+/// Validate a required input directory for a key name in the given config block
+/**
+ * Verify that the config block contains the key \a name, that the value is
+ * not the empty string, and that it refers to a valid directory on disk
+ *
+ * \param name   The key name to look for in the configuration block
+ * \param config The configuration block to check for the key
+ * \param logger The logger handle to log error messages to
+ *
+ * \returns true if sucessfully validated
+ */
+KWIVER_TOOLS_APPLET_EXPORT
+bool
+validate_required_input_dir(std::string const& name,
+                            kwiver::vital::config_block const& config,
+                            kwiver::vital::logger_handle_t logger);
+
+/// Validate an optional input directory for a key name in the given config block
+/**
+ * If the config block contains the key \a name and the value is not empty
+ * then verify that it refers to a valid directory on disk
+ *
+ * \param name   The key name to look for in the configuration block
+ * \param config The configuration block to check for the key
+ * \param logger The logger handle to log error messages
+ *
+ * \returns true if directory not set or if set and sucessfully validated
+ */
+KWIVER_TOOLS_APPLET_EXPORT
+bool
+validate_optional_input_dir(std::string const& name,
+                            kwiver::vital::config_block const& config,
+                            kwiver::vital::logger_handle_t logger);
+
 /// Validate a required output directory for a key name in the given config block
 /**
  * Verify that the config block contains the key \a name, that the value is
