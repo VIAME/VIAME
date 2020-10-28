@@ -172,8 +172,10 @@ class NetHarnTrainer( TrainDetector ):
                     self._batch_size = str( 4 * gpu_param_adj )
                 elif gpu_memory_available >= 7e9:
                     self._batch_size = str( 3 * gpu_param_adj )
-                else:
+                elif gpu_memory_available >= 4e9:
                     self._batch_size = str( 2 * gpu_param_adj )
+                else:
+                    self._batch_size = str( 1 * gpu_param_adj )
             if self._learning_rate == "auto":
                 self._learning_rate = str( 1e-3 )
         elif self._mode == "frame_classifier":
@@ -182,8 +184,10 @@ class NetHarnTrainer( TrainDetector ):
                     self._batch_size = str( 64 * gpu_param_adj )
                 elif gpu_memory_available >= 7e9:
                     self._batch_size = str( 32 * gpu_param_adj )
-                else:
+                elif gpu_memory_available >= 4e9:
                     self._batch_size = str( 16 * gpu_param_adj )
+                else:
+                    self._batch_size = str( 8 * gpu_param_adj )
             if self._learning_rate == "auto":
                 self._learning_rate = str( 5e-3 )
         else:
