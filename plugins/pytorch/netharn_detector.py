@@ -99,7 +99,8 @@ class NetharnDetector(ImageObjectDetector):
             'deployed': "",
             'thresh': 0.01,
             'xpu': "0",
-            'batch_size': "auto"
+            'batch_size': "auto",
+            'input_string': ""
         }
 
         # netharn variables
@@ -199,11 +200,14 @@ class NetharnDetector(ImageObjectDetector):
 
     def detect(self, image_data):
         full_rgb = image_data.asarray().astype('uint8')
-        path_or_image = full_rgb
+
+        if len(self._kwiver_config['input_string']) > 0:
+            dict_or_image = {self._kwiver_config['input_string']:full_rgb}
+        else:
+            dict_or_image = full_rgb
 
         predictor = self.predictor
-
-        detections = predictor.predict(path_or_image)
+        detections = predictor.predict(dict_or_image)
 
         # apply threshold
         flags = detections.scores >= self._thresh
