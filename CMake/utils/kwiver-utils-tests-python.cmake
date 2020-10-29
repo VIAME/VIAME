@@ -172,6 +172,6 @@ function (kwiver_add_nosetests name targ)
               "${kwiver_test_working_path}"
       COMMENT "Running test \"${name}\"")
       add_dependencies(${targ}
-      test-python-${name})
+                       test-python-${name})
   endif ()
 endfunction()

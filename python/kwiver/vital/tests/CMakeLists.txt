@@ -55,7 +55,7 @@ if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
 
   include(kwiver-setup-tests-python)
     foreach (test IN LISTS __testable_modnames)
-      kwiver_add_nosetests(${test} vital-type-)
+      kwiver_add_nosetests(${test} python)
     endforeach()
 
 endif()
