@@ -89,7 +89,8 @@ kwiver_io_base<tag2index_t>
 
 bool
 kwiver_io_base<tag2index_t>
-::from_csv( VITAL_UNUSED const std::map< std::string, std::string >& header_value_map,
+::from_csv( VITAL_UNUSED const std::map< std::string,
+            std::string >& header_value_map,
             VITAL_UNUSED tag2index_t& val ) const
 {
   return false;

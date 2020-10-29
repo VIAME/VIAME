@@ -46,7 +46,7 @@ namespace vital_c {
 
 // Allocate our shared pointer cache object
 SharedPointerCache< kwiver::vital::activity_type, vital_activity_type_t >
-  AT_SPTR_CACHE( "activity_type" );
+AT_SPTR_CACHE( "activity_type" );
 
 } }
 
@@ -60,7 +60,7 @@ vital_activity_type_t* vital_activity_type_new()
 
     kwiver::vital_c::AT_SPTR_CACHE.store( cm_sptr );
     return reinterpret_cast<vital_activity_type_t*>( cm_sptr.get() );
-  );
+    );
   return 0;
 }
 
@@ -72,15 +72,16 @@ void vital_activity_type_destroy(vital_activity_type_t* obj)
     "C::activity_type:::destroy", 0,
     kwiver::vital_c::AT_SPTR_CACHE.erase( obj );
 
-  );
+    );
 }
 
 
 // ------------------------------------------------------------------
-vital_activity_type_t* vital_activity_type_new_from_list( VITAL_UNUSED vital_activity_type_t* obj,
-                                                  size_t count,
-                                                  char** class_names,
-                                                  VITAL_UNUSED double* scores )
+vital_activity_type_t*
+vital_activity_type_new_from_list( VITAL_UNUSED vital_activity_type_t* obj,
+                                   size_t count,
+                                   char** class_names,
+                                   VITAL_UNUSED double* scores )
 {
   STANDARD_CATCH(
     "C::activity_type::new_from_list", 0,
@@ -94,13 +95,14 @@ vital_activity_type_t* vital_activity_type_new_from_list( VITAL_UNUSED vital_act
     auto cm_sptr = std::make_shared< kwiver::vital::activity_type > ( names, scores );
     kwiver::vital_c::AT_SPTR_CACHE.store( cm_sptr );
     return reinterpret_cast<vital_activity_type_t*>( cm_sptr.get() );
-  );
+    );
   return 0;
 }
 
 
 // ------------------------------------------------------------------
-bool vital_activity_type_has_class_name( vital_activity_type_t* obj, char* class_name )
+bool
+vital_activity_type_has_class_name( vital_activity_type_t* obj, char* class_name )
 {
   STANDARD_CATCH(
     "C::activity_type::has_class_name", 0,
@@ -155,8 +157,8 @@ double vital_activity_type_get_most_likely_score( vital_activity_type_t* obj )
 
 // ------------------------------------------------------------------
 void vital_activity_type_set_score( vital_activity_type_t* obj,
-                                char* class_name,
-                                double score )
+                                    char* class_name,
+                                    double score )
 {
   STANDARD_CATCH(
     "C::activity_type::set_score", 0,
@@ -167,7 +169,7 @@ void vital_activity_type_set_score( vital_activity_type_t* obj,
 
 // ------------------------------------------------------------------
 void vital_activity_type_delete_score( vital_activity_type_t* obj,
-                                   char* class_name)
+                                       char* class_name)
 {
   STANDARD_CATCH(
     "C::activity_type::delete_score", 0,
@@ -178,7 +180,7 @@ void vital_activity_type_delete_score( vital_activity_type_t* obj,
 
 // ------------------------------------------------------------------
 char** vital_activity_type_class_names( vital_activity_type_t* obj,
-                                    VITAL_UNUSED double thresh )
+                                        VITAL_UNUSED double thresh )
 {
   STANDARD_CATCH(
     "C::activity_type::class_names", 0,
