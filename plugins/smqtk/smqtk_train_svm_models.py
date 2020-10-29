@@ -58,12 +58,12 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     smqtk_params['descriptor_index_config_file'] = default_desc_index
   if not 'neighbor_index_config_file' in smqtk_params:
     smqtk_params['neighbor_index_config_file'] = default_nn_index
-  if not 'maximum_sample_count' in smqtk_params:
-    smqtk_params['maximum_sample_count'] = 50000
+  if not 'maximum_positive_count' in smqtk_params:
+    smqtk_params['maximum_positive_count'] = 75
+  if not 'maximum_negative_count' in smqtk_params:
+    smqtk_params['maximum_negative_count'] = 750
   if not 'train_on_neighbors_only' in smqtk_params:
-    smqtk_params['train_on_neighbors_only'] = True
-  if not smqtk_params['train_on_neighbors_only']:
-    smqtk_params['pos_seed_neighbors'] = 1
+    smqtk_params['train_on_neighbors_only'] = False
 
   # Load indices
   print( " - Loading descriptor indices" )
@@ -112,75 +112,63 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     smqtk.algorithms.get_nn_index_impls()
   )
 
-  # IQR session state object
-  if not 'pos_seed_neighbors' in smqtk_params:
-    if len( pos_uuids ) > 10:
-      pos_seed_neighbors = 100
-    else:
-      pos_seed_neighbors = math.ceil( 1000 / len( pos_uuids ) )
-  else:
-    pos_seed_neighbors = smqtk_params['pos_seed_neighbors']
-
-  iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
-
   # Max count threshold
-  max_samples = smqtk_params['maximum_sample_count']
+  max_pos_samples = int( smqtk_params['maximum_positive_count'] )
+  max_neg_samples = int( smqtk_params['maximum_negative_count'] )
 
-  if len( pos_uuids ) > max_samples:
-    pos_uuids = random.sample( pos_uuids, max_samples )
+  if len( pos_uuids ) > max_pos_samples:
+    pos_uuids = random.sample( pos_uuids, max_pos_samples )
+
+  pos_seed_neighbors = ( max_neg_samples / max_pos_samples )
+
+  if smqtk_params['train_on_neighbors_only']:
+    pos_seed_neighbors = pos_seed_neighbors * 2
+  else:
+    max_neg_samples = max_neg_samples / 2
+
+  if pos_seed_neighbors < 2:
+    pos_seed_neighbors = 2
 
   # Reset index on new query, a new query is one without IQR feedback
   iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
   pos_descrs = descriptor_set.get_many_descriptors( pos_uuids )
 
-  if smqtk_params['train_on_neighbors_only']:
-    print( " - Formatting data for initial search" )
-    iqr_session.adjudicate( set( pos_descrs ) )
-    print( " - Performing initial search" )
-    print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
-  else:
-    print( " - Formatting data for SVM model train" )
-    if len( neg_uuids ) > max_samples:
-      neg_uuids = [
-        neg_uuids[i] for i in random.sample( range( len( neg_uuids ) ), max_samples )
-      ]
-    neg_descrs = descriptor_set.get_many_descriptors( neg_uuids )
-    iqr_session.adjudicate( set( pos_descrs ), set( neg_descrs ) )
-    print( " - Training SVM model" )
-    print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
-    print( "     + Negative sample count: " + str( len( neg_uuids ) ) )
+  print( " - Formatting data for initial search" )
+  iqr_session.adjudicate( set( pos_descrs ) )
 
   iqr_session.update_working_index( neighbor_index )
   iqr_session.refine()
 
   # Perform 2nd round training on negatives from NN search
-  if smqtk_params['train_on_neighbors_only']:
-    print( " - Formatting data for SVM model train" )
-    ordered_results = iqr_session.ordered_results()
-    if ordered_results is None:
-      ordered_results = []
-    ordered_feedback = iqr_session.ordered_feedback()
-    if ordered_feedback is None:
-      ordered_feedback = []
-    top_elems, top_dists = zip( *ordered_results )
-    top_uuids = [ e.uuid() for e in top_elems ]
-    feedback_uuids = [ e[0].uuid() for e in ordered_feedback ]
+  print( " - Formatting data for SVM model train" )
+  ordered_results = iqr_session.ordered_results()
+  if ordered_results is None:
+    ordered_results = []
+  ordered_feedback = iqr_session.ordered_feedback()
+  if ordered_feedback is None:
+    ordered_feedback = []
+  top_elems, top_dists = zip( *ordered_results )
+  top_uuids = [ e.uuid() for e in top_elems ]
+  feedback_uuids = [ e[0].uuid() for e in ordered_feedback ]
 
-    best_neg_uuids = set( top_uuids ).intersection( neg_uuids )
-    best_neg_uuids.update( set( feedback_uuids ).intersection( neg_uuids ) )
+  best_neg_uuids = set( top_uuids ).intersection( neg_uuids )
+  best_neg_uuids.update( set( feedback_uuids ).intersection( neg_uuids ) )
 
-    if len( best_neg_uuids ) > max_samples:
-      best_neg_uuids = random.sample( best_neg_uuids, max_samples ) 
+  if len( best_neg_uuids ) > max_neg_samples:
+    best_neg_uuids = random.sample( best_neg_uuids, max_neg_samples )
 
-    best_neg_descrs = descriptor_set.get_many_descriptors( best_neg_uuids )
+  if not smqtk_params['train_on_neighbors_only']:
+    best_net_uuids.update( set( random.sample( neg_uuis, max_neg_samples ) ) )
 
-    iqr_session.adjudicate( set( pos_descrs ), set( best_neg_descrs ) )
+  best_neg_descrs = descriptor_set.get_many_descriptors( best_neg_uuids )
 
-    print( " - Training SVM model" )
-    print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
-    print( "     + Negative sample count: " + str( len( best_neg_uuids ) ) )
-    iqr_session.update_working_index( neighbor_index )
-    iqr_session.refine()
+  iqr_session.adjudicate( set( pos_descrs ), set( best_neg_descrs ) )
+
+  print( " - Training SVM model" )
+  print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
+  print( "     + Negative sample count: " + str( len( best_neg_uuids ) ) )
+  iqr_session.update_working_index( neighbor_index )
+  iqr_session.refine()
 
   try:
     svm_model = iqr_session.rel_index.get_model()
