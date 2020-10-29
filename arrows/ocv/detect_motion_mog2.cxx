@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2020 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -203,7 +203,7 @@ detect_motion_mog2
 /// Detect motion from a sequence of images
 image_container_sptr
 detect_motion_mog2
-::process_image( const timestamp& ts,
+::process_image( VITAL_UNUSED const timestamp& ts,
                  const image_container_sptr image,
                  bool reset_model)
 {

@@ -35,6 +35,7 @@
 
 #include "activity_type.h"
 
+#include <vital/vital_config.h>
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/activity_type.h>
 
@@ -76,10 +77,10 @@ void vital_activity_type_destroy(vital_activity_type_t* obj)
 
 
 // ------------------------------------------------------------------
-vital_activity_type_t* vital_activity_type_new_from_list( vital_activity_type_t* obj,
+vital_activity_type_t* vital_activity_type_new_from_list( VITAL_UNUSED vital_activity_type_t* obj,
                                                   size_t count,
                                                   char** class_names,
-                                                  double* scores )
+                                                  VITAL_UNUSED double* scores )
 {
   STANDARD_CATCH(
     "C::activity_type::new_from_list", 0,
@@ -177,7 +178,7 @@ void vital_activity_type_delete_score( vital_activity_type_t* obj,
 
 // ------------------------------------------------------------------
 char** vital_activity_type_class_names( vital_activity_type_t* obj,
-                                    double thresh )
+                                    VITAL_UNUSED double thresh )
 {
   STANDARD_CATCH(
     "C::activity_type::class_names", 0,
@@ -197,7 +198,7 @@ char** vital_activity_type_class_names( vital_activity_type_t* obj,
 
 
 // ------------------------------------------------------------------
-char** vital_activity_type_all_class_names(vital_activity_type_t* obj)
+char** vital_activity_type_all_class_names( VITAL_UNUSED vital_activity_type_t* obj )
 {
   STANDARD_CATCH(
     "C::activity_type::all_class_names", 0,
