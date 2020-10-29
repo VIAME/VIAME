@@ -51,7 +51,7 @@ set( SMQTK_PYTHON_INSTALL
   )
 
 ExternalProject_Add( smqtk
-  DEPENDS fletch
+  DEPENDS fletch python-deps
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/smqtk
   USES_TERMINAL_BUILD 1

@@ -394,6 +394,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_burnout )
   endif()
 
+  if( VIAME_ENABLE_PYTHON )
+    include( add_project_python_deps )
+  endif()
+
   if( VIAME_ENABLE_SMQTK )
     include( add_project_smqtk )
   endif()
@@ -418,10 +422,6 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_KWANT )
     include( add_project_kwant )
-  endif()
-
-  if( VIAME_ENABLE_PYTHON )
-    include( add_project_python_deps )
   endif()
 
   if( VIAME_ENABLE_PYTORCH )
