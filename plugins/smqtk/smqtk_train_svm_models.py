@@ -124,7 +124,7 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
   if smqtk_params['train_on_neighbors_only']:
     pos_seed_neighbors = pos_seed_neighbors * 2
   else:
-    max_neg_samples = max_neg_samples / 2
+    max_neg_samples = int( max_neg_samples / 2 )
 
   if pos_seed_neighbors < 2:
     pos_seed_neighbors = 2
@@ -158,7 +158,10 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     best_neg_uuids = random.sample( best_neg_uuids, max_neg_samples )
 
   if not smqtk_params['train_on_neighbors_only']:
-    best_net_uuids.update( set( random.sample( neg_uuids, max_neg_samples ) ) )
+    if len( neg_uuids ) > max_neg_samples:
+      best_neg_uuids.update( set( random.sample( neg_uuids, max_neg_samples ) ) )
+    else:
+      best_neg_uuids.update( set( neg_uuids ) )
 
   best_neg_descrs = descriptor_set.get_many_descriptors( best_neg_uuids )
 
