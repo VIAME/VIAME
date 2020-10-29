@@ -143,8 +143,8 @@ class NetHarnTrainer( TrainDetector ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._max_scale_wrt_chip = float( cfg.get_value( "max_scale_wrt_chip" ) )
         self._no_format = strtobool( cfg.get_value( "no_format" ) )
-        self._aux_image_labels = str( cfg.get_value("aux_image_labels") )
-        self._aux_image_extensions = str( cfg.get_value("aux_image_extensions") )
+        self._aux_image_labels = str( cfg.get_value( "aux_image_labels" ) )
+        self._aux_image_extensions = str( cfg.get_value( "aux_image_extensions" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -407,7 +407,9 @@ class NetHarnTrainer( TrainDetector ):
 
             # Output additional completion text
             print( "\nWrote finalized model to " + output_model )
-            print( "\nThe " + self._train_directory + "directory can now be deleted." )
+
+            print( "\nThe " + self._train_directory + " directory can now be deleted, " \
+                   "unless you view train metrics or generated plots in there first." )
 
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
