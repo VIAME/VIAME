@@ -409,7 +409,8 @@ class NetHarnTrainer( TrainDetector ):
             print( "\nWrote finalized model to " + output_model )
 
             print( "\nThe " + self._train_directory + " directory can now be deleted, " \
-                   "unless you view train metrics or generated plots in there first." )
+                   "unless you want to review training metrics or generated plots in " \
+                   "there first." )
 
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
