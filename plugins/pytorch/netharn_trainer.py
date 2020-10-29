@@ -405,6 +405,10 @@ class NetHarnTrainer( TrainDetector ):
             fout.close()
             fin.close()
 
+            # Output additional completion text
+            print( "\nWrote finalized model to " + output_model )
+            print( "\nThe " + self._train_directory + "directory can now be deleted." )
+
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
 
