@@ -73,10 +73,10 @@ CentOS
 A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.11.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5f7b32f850a41e3d19ca03b0/download) <br>
-[VIAME v0.11.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/file/d/1pDW3rwvjlG_a6aa4CAvoymcRa9ov-591/view?usp=sharing) <br>
-[VIAME v0.11.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5f7b332650a41e3d19ca0482/download) <br>
-[VIAME v0.11.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/file/d/15hB4pUtnS4-Z5doCZDWC09btCa6jsF1p/view?usp=sharing)
+[VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5f9b668850a41e3d191e311b/download) <br>
+[VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/file/d/1Hny4bxdqGkpf6gESR96KhX8KE_eZ1UQE/view?usp=sharing) <br>
+[VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5f9b663d50a41e3d191e306c/download) <br>
+[VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/file/d/1eY4DkgiruSiuGFZGK2PdUJairhBwfbPF/view?usp=sharing)
 
 **Ubuntu Desktop Binaries:** <br>
 [VIAME v0.11.1 Ubuntu 18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5f6836a850a41e3d199d327b/download) <br>
