@@ -146,6 +146,28 @@ validate_optional_output_file(std::string const& name,
 
 //=============================================================================
 bool
+validate_required_input_dir(std::string const& name,
+                            kv::config_block const& config,
+                            kv::logger_handle_t logger)
+{
+  // validation for input directories is the same as output directories except
+  // that we never create missing directories for inputs
+  return validate_required_output_dir(name, config, logger, false);
+}
+
+//=============================================================================
+bool
+validate_optional_input_dir(std::string const& name,
+                            kv::config_block const& config,
+                            kv::logger_handle_t logger)
+{
+  // validation for input directories is the same as output directories except
+  // that we never create missing directories for inputs
+  return validate_optional_output_dir(name, config, logger, false);
+}
+
+//=============================================================================
+bool
 validate_required_output_dir(std::string const& name,
                              kv::config_block const& config,
                              kv::logger_handle_t logger,
