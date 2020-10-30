@@ -52,6 +52,9 @@ endforeach()
 
 # Add python vital.tests to CTest if python test runner is available
 if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
+  if (WIN32)
+    set(WIN_TEST_CONFIG_TYPE "$<CONFIG>/")
+  endif()
 
   include(kwiver-setup-tests-python)
     foreach (test IN LISTS __testable_modnames)
