@@ -17,7 +17,14 @@ def _configure_logging():
     """
     # Use the C++ logging level by default, but allow python to be different
     cxx_level = os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'DEBUG')
-    py_level = os.environ.get('KWIVER_PYTHON_DEFAULT_LOG_LEVEL', cxx_level)
+
+    # C++ logging supports trace as it's lowest level but python doesn't
+    if "KWIVER_PYTHON_DEFAULT_LOG_LEVEL" in os.environ:
+        py_level = os.environ.get('KWIVER_PYTHON_DEFAULT_LOG_LEVEL')
+    elif cxx_level.upper() == "TRACE":
+        py_level = "DEBUG"
+    else:
+        py_level = cxx_level
 
     # Option to colorize the python logs (must pip install coloredlogs)
     truthy_values = {'true', 'on', 'yes', '1'}
