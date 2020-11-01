@@ -547,7 +547,6 @@ else()
     endif()
   else()
     set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
-    set( VIAME_TMP_DOWNLOAD_FILE    "${VIAME_BINARY_DIR}/download_all_viame_addons.sh" )
 
     configure_file(
       ${VIAME_CMAKE_DIR}/setup_viame.sh.in
@@ -556,13 +555,7 @@ else()
 
     install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
-
-    configure_file(
-      ${VIAME_CMAKE_DIR}/download_all_viame_addons.sh.in
-      ${VIAME_TMP_DOWNLOAD_FILE}
-    )
-
-    install( PROGRAMS      ${VIAME_TMP_DOWNLOAD_FILE}
+    install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_all_viame_addons.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
     if( VIAME_ENABLE_SEAL_TK )
