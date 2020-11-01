@@ -322,6 +322,9 @@ class NetHarnTrainer( TrainDetector ):
                      "--multiscale=True",
                      "--bstep=4" ]
 
+            if os.name == 'nt':
+                cmd.append( "--test_on_finish=False" )
+
             if len( self._backbone ) > 0:
                 cmd.append( "--backbone_init=" + self._backbone )
 
