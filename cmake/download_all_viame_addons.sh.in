@@ -1,0 +1,13 @@
+
+export DOWNLOAD_LOCATION=~/VIAME-Addons
+
+mkdir -p ${DOWNLOAD_LOCATION}
+
+wget
+tar -xvf
+
+wget
+tar -xvf
+
+wget
+tar -xvf

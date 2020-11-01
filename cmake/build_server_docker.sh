@@ -8,6 +8,7 @@ apt-get update
 apt-get install -y zip \
 git \
 wget \
+tar \
 curl \
 libcurl4-openssl-dev \
 libgl1-mesa-dev \
