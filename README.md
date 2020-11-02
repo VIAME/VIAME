@@ -123,12 +123,12 @@ into existing installations because they are a full installation and bad things 
 Docker Images
 -------------
 
-Docker images are available on: https://hub.docker.com. For a default container with just the
-algorithms within VIAME, runnable via command-line, see:
+Docker images are available on: https://hub.docker.com. For a default container with just core
+algorithms, runnable via command-line, see:
 
 kitware/viame:gpu-algorithms-latest
 
-This image is headless (ie it contains no GUI) and contains a VIAME desktop (not web)
+This image is headless (ie, it contains no GUI) and contains a VIAME desktop (not web)
 installation in the folder /opt/noaa/viame. For links to the VIAME-Web docker containers see the
 above section in installation. Most add-on models are not included in the instance but can be
 downloaded via running /opt/noaa/viame/bin/download_viame_addons.sh
