@@ -123,15 +123,19 @@ into existing installations because they are a full installation and bad things 
 Docker Images
 -------------
 
-Docker images for the desktop version are available on: https://hub.docker.com with the label
+Docker images for just the algorithms in the system, built without a graphical interface, are
+available on: https://hub.docker.com with the label
 
-kitware/viame:gpu-all-models-latest
+kitware/viame:gpu-algorithms-latest
 
 This is the image used in the web server, and is compiled every week. Within the container, it
-contains a VIAME desktop (not web) installation in the folder /opt/noaa/viame with most models
-turned on (so it is quite large, 10 Gb).
+contains a VIAME desktop (not web) installation in the folder /opt/noaa/viame just with GUIs
+turned off. Most add-on models are not included in the container by default (only default 
+models used to initialize training) but can be downloaded via running:
 
-Additional images will be available in the future besides a version with all models.
+/opt/noaa/viame/bin/download_viame_addons.sh
+
+within the container. For links to the VIAME-Web docker containers see the section in installation.
 
 Quick Build Instructions
 ------------------------
