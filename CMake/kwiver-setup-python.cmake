@@ -205,6 +205,127 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 
 
 ###
+# Python Dependencies
+#
+# sets the python dependencies defined in python/requirements.txt
+# to be a custom command of the python libraries target
+# a venv will be created to encapsulate the pip installed dependencies
+# from the larger system, while still providing the tests access to their dependencies
+#
+if (KWIVER_ENABLE_TESTS)
+
+  message(STATUS "Python and testing enabled.")
+  message(STATUS "Searching for Python3 Interp...")
+  # locate the python3 install to gather info for venv creation
+  # determine if the package is conda
+  find_package(Python3 COMPONENTS Interpreter)
+  set(CREATE_VENV 1)
+  set(VENV_NAME "testing_venv")
+  if (Python3_INTERPRETER_ID STREQUAL "Anaconda")
+    # conda venvs are managed by conda package manager
+    # require conda specific command
+    message(STATUS "Python found is: Anaconda")
+    set(CONDA 1)
+    set(VENV_DIR ${VENV_NAME})
+    set(CREATE_VENV_ARG create -n ${VENV_DIR} pip --yes)
+    if(DEFINED ENV{CONDA_EXE})
+      set(CREATE_VENV_CMD $ENV{CONDA_EXE})
+    else()
+      message(WARNING "Could not find conda executable, conda env will NOT be created."
+                      "Python tests may not be run.")
+      unset(CREATE_VENV)
+    endif()
+  else()
+    set(VENV_DIR "${KWIVER_BINARY_DIR}/${VENV_NAME}")
+    set(CREATE_VENV_CMD ${Python3_EXECUTABLE})
+    set(CREATE_VENV_ARG -m venv "${VENV_DIR}" )
+  endif()
+  if (CREATE_VENV)
+    message(STATUS "Creating virtualenv @${VENV_DIR} for testing...")
+    execute_process (
+                      COMMAND ${CREATE_VENV_CMD} ${CREATE_VENV_ARG}
+                      RESULT_VARIABLE create_venv_result
+                      COMMAND_ECHO STDOUT
+                    )
+    if (create_venv_result AND NOT create_venv_result EQUAL 0)
+        # could not create venv, report to that effect, Nose may still be found and tests may still be run
+        # but dependencies (including nose) to be met by a pip install are not garunteed
+        message (WARNING "Virtualenv creation failed. Python tests may not be run or may fail unexpectedly.")
+    else()
+      set(VENV_CREATED 1)
+    endif()
+    message(STATUS "Virtualenv creation exited with status: ${create_venv_result}")
+    unset(Python3_FOUND)
+    if (VENV_CREATED)
+      if (APPLE)
+        set(CMAKE_FIND_FRAMEWORK "NEVER")
+      elseif (WIN32)
+        set(Python3_FIND_REGISTRY "NEVER")
+      endif()
+      include("${KWIVER_CMAKE_DIR}/utils/kwiver-config-venv.cmake")
+      ACTIVATE_VENV(${VENV_DIR})
+      set(ENV{VIRTUAL_ENV} ${VENV_DIR})
+      set(Python3_FIND_VIRTUALENV ONLY)
+      unset(Python3_EXECUTABLE CACHE)
+      unset(Python3_EXECUTABLE)
+      find_package(Python3 COMPONENTS Interpreter Development)
+      if (NOT Python3_FOUND)
+        message(WARNING
+                "Could not find virtualenv Python interp.\
+                Python tests may be run without garuntee of dependencies")
+      else()
+        # conda comes with a pip install so this should be flavor agnostic
+        set(PIP_COMMAND "${Python3_EXECUTABLE}" "-m" "pip" "-q")
+        set(PIP_UPGRADE_COMMAND ${PIP_COMMAND} "install" "--upgrade" "pip")
+        set(PIP_INSTALL_TEST_DEPS_COMMAND ${PIP_COMMAND}
+                        "install"
+                        "-r"
+                        "${KWIVER_SOURCE_DIR}/python/requirements.txt"
+                        "||"
+                        "${CMAKE_COMMAND}" "-E" "echo"
+                        "Pip install failed, consult build output. Python dependencies may not be met"
+                        )
+        message(STATUS "Test dependencies will be installed via pip to: ${VENV_DIR}")
+
+      endif()
+      DEACTIVATE_VENV()
+    endif()
+  endif()
+
+  ###
+  # Pybind11 Bindings Test Runner - nosetests
+  # find virtualenv install of nosetests executable, search for version associated with kwiver
+  # first, default to v 3.4, the most recent version provided by pip install
+  # alternatively users can install the version of nose specific
+  # to the version of python they're building the kwiver-python against
+  #
+  #
+  if (VENV_CREATED)
+    set(NOSE_RUNNER "${Python3_EXECUTABLE} -m nose")
+    set(NOSE_LOC "${VENV_DIR}/nose")
+  else()
+    find_program(NOSE_RUNNER NAMES
+    "nosetests-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+    "nosetests${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+    "nosetests-${PYTHON_VERSION_MAJOR}"
+    "nosetests${PYTHON_VERSION_MAJOR}"
+    "nosetests-3.4"
+    "nosetests3.4"
+    "nosetests")
+    set(NOSE_LOC NOSE_RUNNER)
+  endif()
+  if (NOSE_RUNNER)
+
+    message(STATUS "Found nosetests at ${NOSE_LOC}.\n"
+            "Python tests will be run if testing is enabled. noserunner: ${NOSE_RUNNER}")
+
+  else()
+    message(STATUS "nosetests not found, Python tests will not be run.\
+           (To run install nosetests compatible with Python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})")
+  endif()
+endif()
+
+###
 # Python package build locations
 #
 # defines paths used to determine where the kwiver/sprokit/vital python

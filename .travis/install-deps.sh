@@ -3,12 +3,13 @@ set -e
 
 INSTALL_DIR=$HOME/deps
 FLETCH_DIR=/opt/kitware/fletch
+CMAKE_INSTALL_DIR=$HOME/cmake-install
 export PATH=$INSTALL_DIR/bin:$FLETCH_DIR/bin:$PATH
 HASH_DIR=/opt/kitware/hashes
 mkdir -p $FLETCH_DIR
 mkdir -p $HASH_DIR
 mkdir -p $INSTALL_DIR
-
+mkdir -p $CMAKE_INSTALL_DIR
 # Make a directory to test installation of KWIVER into
 mkdir -p $HOME/install
 
@@ -34,3 +35,6 @@ else
   tar -xzf fletch.tgz -C /opt/kitware
   cp fletch.sha512 $HASH_FILE
 fi
+
+echo "Downloading and installing cmake 3.15 binaries into: " $CMAKE_INSTALL_DIR
+wget -qO- "https://cmake.org/files/v3.15/cmake-3.15.7-Linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C $CMAKE_INSTALL_DIR

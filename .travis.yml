@@ -21,9 +21,10 @@ cache:
   - /opt/kitware
 
 before_script:
-  - sudo apt-get install -y libproj-dev libgl1-mesa-dev libxt-dev libatlas-base-dev
+  - sudo apt-get install -y libproj-dev libgl1-mesa-dev libxt-dev libatlas-base-dev python3-venv
   - bash .travis/install-deps.sh
   - sudo apt install python3-pip
+  - python3 -m pip install --upgrade pip
   - pip3 install -q -U setuptools
   - pip3 install -q -r python/requirements.txt
 
@@ -34,7 +35,7 @@ script:
   # Travis needs help finding libomp (OpenMP) with Clang builds
   - export LD_LIBRARY_PATH=$(if [[ $CXX == "clang++" ]]; then echo -n '/usr/local/clang/lib'; fi)
   - export LD_LIBRARY_PATH=/opt/kitware/fletch/lib:$LD_LIBRARY_PATH
-  - cmake -DCMAKE_C_COMPILER=$C_COMPILER
+  - $HOME/cmake-install/bin/cmake -DCMAKE_C_COMPILER=$C_COMPILER
           -DCMAKE_CXX_COMPILER=$CXX_COMPILER
           -DCMAKE_INSTALL_PREFIX=$HOME/install
           -Dfletch_DIR=/opt/kitware/fletch/share/cmake/
@@ -59,8 +60,9 @@ script:
           -DKWIVER_ENABLE_VISCL=OFF
           -DKWIVER_ENABLE_VXL=ON
           -DKWIVER_USE_BUILD_TREE=ON
+          -DPython3_EXECUTABLE=/opt/pyenv/shims/python3
           ../
   - make -j2
   - make install
   - . ./setup_KWIVER.sh
-  - ctest
+  - $HOME/cmake-install/bin/ctest
