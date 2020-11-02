@@ -555,7 +555,7 @@ else()
 
     install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
-    install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_all_viame_addons.sh
+    install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
     if( VIAME_ENABLE_SEAL_TK )
