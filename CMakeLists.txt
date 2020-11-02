@@ -557,6 +557,8 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+    install( PROGRAMS      ${VIAME_CMAKE_DIR}/filter_non_web_pipelines.sh
+             DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
     if( VIAME_ENABLE_SEAL_TK )
       install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
