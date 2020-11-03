@@ -110,6 +110,6 @@ if (KWIVER_ENABLE_TESTS)
         "data/airplane.ply")
 
   foreach (file_name IN LISTS _test_data)
-    kwiver_python_add_test_data(${file_name} ${mod_dst})
+    kwiver_python_add_test_data(${file_name} ${kwiver_test_working_path})
   endforeach()
 endif()
