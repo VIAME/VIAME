@@ -98,18 +98,14 @@ if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
   endif()
 
   include(kwiver-setup-tests-python)
-    foreach (test IN LISTS __testable_modnames)
-      kwiver_add_nosetests(${test} python)
-    endforeach()
+  foreach (test IN LISTS __testable_modnames)
+    kwiver_add_nosetests(${test} python)
+  endforeach()
 
-endif()
-
-
-if (KWIVER_ENABLE_TESTS)
   set(_test_data
         "data/airplane.ply")
-
   foreach (file_name IN LISTS _test_data)
     kwiver_python_add_test_data(${file_name} ${kwiver_test_working_path})
   endforeach()
+
 endif()

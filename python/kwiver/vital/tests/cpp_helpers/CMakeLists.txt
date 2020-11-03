@@ -12,6 +12,7 @@ set(__helper_modnames
   landmark_map_helpers
   match_set_helpers
   metadata_map_helpers
+  type_check
   )
 
 # Add files to the vital.tests.cpp_helpers python module

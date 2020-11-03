@@ -38,7 +38,7 @@ unknown_metadata_item, and metadata
 
 import nose.tools as nt
 import numpy as np
-
+import sys
 from kwiver.vital.types.metadata_traits import *
 from kwiver.vital.types.metadata import *
 from kwiver.vital.types import (
@@ -49,7 +49,7 @@ from kwiver.vital.types import (
     Polygon,
     Timestamp,
 )
-
+from kwiver.vital.tests.cpp_helpers import type_check as tc
 # Helper class that stores a typed_metadata object's
 # name, tag, and data properties
 class PropInfo(object):
@@ -127,11 +127,12 @@ class TestVitalMetadataItemSubclasses(object):
         inst2 = TypedMetadata_UNIX_TIMESTAMP("UNIX_TIMESTAMP_NAME2", 0)
         prop_info1 = PropInfo("UNIX_TIMESTAMP_NAME1", tag, 5)
         prop_info2 = PropInfo("UNIX_TIMESTAMP_NAME2", tag, 0)
+        type_impl = tc.get_uint64_rep()
         type_info1 = TypeInfo(
-            "unsigned long", has_uint64=True, as_uint64=5, as_string="5"
+            type_impl, has_uint64=True, as_uint64=5, as_string="5"
         )
         type_info2 = TypeInfo(
-            "unsigned long", has_uint64=True, as_uint64=0, as_string="0"
+            type_impl, has_uint64=True, as_uint64=0, as_string="0"
         )
         self.check_instance(inst1, prop_info1, type_info1)
         self.check_instance(inst2, prop_info2, type_info2)
@@ -354,7 +355,8 @@ class TestVitalMetadata(object):
             nt.assert_false(m.has(tag))
             nt.ok_(isinstance(m.find(tag), UnknownMetadataItem))
         self.populate_metadata(m)
-        possible_types = {"int", "bool", "unsigned long", "string", "double"}
+        uint64_type_impl = tc.get_uint64_rep()
+        possible_types = {"int", "bool", uint64_type_impl, "string", "double"}
         for tag in self.small_tag:
             nt.assert_true(m.has(tag))
             nt.ok_(isinstance(m.find(tag), MetadataItem))

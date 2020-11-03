@@ -43,7 +43,7 @@ from kwiver.vital.types.metadata_traits import *
 from kwiver.vital.types import (
     metadata_tags as mt,
 )
-
+from kwiver.vital.tests.cpp_helpers import type_check as tc
 
 
 class TestVitalMetaTraits(unittest.TestCase):
@@ -168,13 +168,13 @@ class TestVitalMetaTraits(unittest.TestCase):
                                     VitalMetaTrait_METADATA_ORIGIN.is_integral(), False,
                                     VitalMetaTrait_METADATA_ORIGIN.is_floating_point(), False,
                                     VitalMetaTrait_METADATA_ORIGIN.tag_type(), "string")
-
+        type_impl = tc.get_uint64_rep()
         self.check_are_valid_traits(VitalMetaTrait_UNIX_TIMESTAMP.name(), "Unix Time Stamp",
                                     VitalMetaTrait_UNIX_TIMESTAMP.description(), "",
                                     VitalMetaTrait_UNIX_TIMESTAMP.tag(), self.tags[2],
                                     VitalMetaTrait_UNIX_TIMESTAMP.is_integral(), True,
                                     VitalMetaTrait_UNIX_TIMESTAMP.is_floating_point(), False,
-                                    VitalMetaTrait_UNIX_TIMESTAMP.tag_type(), "unsigned long")
+                                    VitalMetaTrait_UNIX_TIMESTAMP.tag_type(), type_impl)
 
         self.check_are_valid_traits(VitalMetaTrait_SLANT_RANGE.name(), "Slant Range (meters)",
                                     VitalMetaTrait_SLANT_RANGE.description(), "Distance to target.",
