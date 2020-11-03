@@ -73,8 +73,8 @@ CentOS
 A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5fa04d1e50a41e3d1929bfb6/download) <br>
-[VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/file/d/1eotK4oyFOQ41HtiPUryLjg6zR7REW3Pt/view?usp=sharing) <br>
+[VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5fa1a34d50a41e3d192d8a05/download) <br>
+[VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/file/d/1qy-ysStswM4XXksX7M7EQDKF4926gNgB/view?usp=sharing) <br>
 [VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5f9b663d50a41e3d191e306c/download) <br>
 [VIAME v0.12.0 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/file/d/1eY4DkgiruSiuGFZGK2PdUJairhBwfbPF/view?usp=sharing)
 
