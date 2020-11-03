@@ -65,7 +65,7 @@ process detector_trainer
 
   block trainer:ocv_windowed:trainer
     :type                                       netharn
-    :netharn:config_file                        bioharn-det-v14-cascade
+    :netharn:identifier                         viame-netharn-detector
     :netharn:train_directory                    deep_training
     :netharn:gpu_count                          -1
     :netharn:chip_width                         640
