@@ -131,7 +131,7 @@ kitware/viame:gpu-algorithms-latest
 This image is headless (ie, it contains no GUI) and contains a VIAME desktop (not web)
 installation in the folder /opt/noaa/viame. For links to the VIAME-Web docker containers see the
 above section in the installation documentation. Most add-on models are not included in the
-instance but can be downloaded via running /opt/noaa/viame/bin/download_viame_addons.sh
+instance but can be downloaded via running the script download_viame_addons.sh in the bin folder.
 
 Quick Build Instructions
 ------------------------
