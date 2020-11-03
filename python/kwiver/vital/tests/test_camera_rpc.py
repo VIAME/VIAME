@@ -124,8 +124,10 @@ class TestSimpleCameraRPC(unittest.TestCase):
         image_width = 1000
         image_height = 1000
         s = srpc(world_scale, world_offset, image_scale, image_offset, rpc_coeffs, image_height, image_width)
-        ret_jac, ret_val = s.jacobian(np.array([-58.58940727826357, -34.49283455146763, 20.928231142319902]), ret_jac, ret_val)
-        np.testing.assert_array_almost_equal(ret_jac, np.array([[ 0.75629416,  1.08529606], [ 0.02928365, -0.22594526]]))
+        ret_jac, ret_val = s.jacobian(np.array([-58.58, -34.49, 20.92]), ret_jac, ret_val)
+
+        self.assertFalse(ret_jac.flags.owndata)
+        np.testing.assert_array_almost_equal(ret_jac[1], np.array([ 2.92836539e-002, -2.25968e-001]))
 
         # test clone
         cameraRPC_2 = self.m_srpc.clone()
@@ -190,13 +192,16 @@ class InheritedRPC(crpc):
 class TestInheritedRPC(unittest.TestCase):
     def test_construct(self):
         InheritedRPC()
+
     def test_inheritance(self):
         nt.ok_(issubclass(InheritedRPC, crpc))
+
     def test_clone(self):
         irpc = InheritedRPC()
         cloned_ = crpch.call_clone(irpc)
         self.assertIsInstance(cloned_, InheritedRPC)
         self.assertEqual(cloned_.image_width(), InheritedRPC().image_width())
+
     def test_methods(self):
         irpc = InheritedRPC()
         self.assertEqual(crpch.call_rpc_coeffs(irpc).shape, np.ndarray(shape=(4, 20), dtype=float).shape)
