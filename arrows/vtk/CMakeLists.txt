@@ -45,5 +45,5 @@ if (KWIVER_ENABLE_TESTS)
 endif()
 
 if (KWIVER_ENABLE_TOOLS)
-#  add_subdirectory(applets)
+  add_subdirectory(applets)
 endif()

@@ -52,11 +52,15 @@ namespace kwiver {
 namespace arrows {
 namespace vtk {
 
-/// Color a mesh from video, mask and cameras.
+/// Color a mesh from a video and cameras.
 class KWIVER_ALGO_VTK_EXPORT mesh_coloration : public kwiver::vital::noncopyable
 {
 
 public:
+  /// Construct object to color a mesh
+  /**
+   * Video[, mask] and cameras need to be set separately.
+   */
   mesh_coloration();
   /// Construct object to color a mesh
   /**
@@ -71,27 +75,41 @@ public:
                   kwiver::vital::config_block_sptr& mask_config,
                   std::string const& mask_path,
                   kwiver::vital::camera_map_sptr& cameras);
-
+  /// Set video input
+  void set_video(kwiver::vital::config_block_sptr& video_config,
+                 std::string const& video_path);
+  /// Set mask to restrict area to be colored. Optional.
+  void set_mask(kwiver::vital::config_block_sptr& mask_config,
+                std::string const& mask_path);
+  /// Set cameras (and frames) to be used for coloring.
+  void set_cameras(kwiver::vital::camera_map_sptr& cameras);
   /// Input mesh to be colored
   void set_input(vtkSmartPointer<vtkPolyData> input);
   /// Input mesh to be colored
   vtkSmartPointer<vtkPolyData> get_input();
-  /// Output mesh. Can be the same as the `input'
+  /// Output mesh. Can be the same as the input
   void set_output(vtkSmartPointer<vtkPolyData> mesh);
-  /// Output mesh. Can be the same as the `input'
+  /// Output mesh. Can be the same as the input
   vtkSmartPointer<vtkPolyData> get_output();
-  /// Average color from frames that satisfy frameIndex mod `sampling' == 0
-  void set_frame_sampling(int sampling);
-  /// Set color from `frameIndex'
-  void set_frame(int frameIndex)
-  { this->frame_ = frameIndex;}
-  /// Compute the average color or use the color from a frame
+  /// Used to choose frames for coloring.
   /**
-   * The frames used for the average are chosen using the `sampling'
+   * A frame is chosen if frame mod sampling == 0
+   */
+  void set_frame_sampling(int sampling);
+  /// Set color from frame
+  void set_frame(int frame)
+  {
+    frame_ = frame;
+  }
+  /// Compute the average color or save color for each frame
+  /**
+   * The frames used for the average are chosen using the sampling
    * parameter.
    */
   void set_average_color(bool average_color)
-  { this->average_color_ = average_color;}
+  {
+    average_color_ = average_color;
+  }
   /// We compare the depth buffer value with the depth of the mesh point.
   /**
    * We use threshold >= 0 to fix floating point inaccuracies
@@ -99,21 +117,21 @@ public:
    */
   void set_occlusion_threshold(float threshold)
   {
-    this->occlusion_threshold_ = threshold;
+    occlusion_threshold_ = threshold;
   }
   /// Remove occluded points if parameter is true.
   void set_remove_occluded(bool remove_occluded)
   {
-    this->remove_occluded_ = remove_occluded;
+    remove_occluded_ = remove_occluded;
   }
   /// Remove masked points if parameter is true.
   void set_remove_masked(bool remove_masked)
   {
-    this->remove_masked_ = remove_masked;
+    remove_masked_ = remove_masked;
   }
   /// Color the mesh
   /**
-   * Adds mean and median colors to `output_' if `average_color' or
+   * Adds mean and median colors to output_ if average_color or
    * adds an array of colors for each camera (frame) otherwise.
    * returns true for success or false for an error.
    */
