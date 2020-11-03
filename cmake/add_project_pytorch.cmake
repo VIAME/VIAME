@@ -196,6 +196,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS fletch python-deps pytorch )
   endif()
 
+  if( VIAME_ENABLE_SMQTK )
+    set( PROJECT_DEPS ${PROJECT_DEPS} smqtk )
+  endif()
+
   ExternalProject_Add( ${LIB}
     DEPENDS ${PROJECT_DEPS}
     PREFIX ${VIAME_BUILD_PREFIX}
