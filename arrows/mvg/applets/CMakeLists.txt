@@ -4,7 +4,6 @@
 
 set( sources
   register_applets.cxx
-
   init_cameras_landmarks.cxx
   track_features.cxx
   )
