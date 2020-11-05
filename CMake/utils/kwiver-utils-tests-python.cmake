@@ -136,12 +136,13 @@ function (kwiver_add_nosetests name targ)
   if (WIN32)
     add_test(
       NAME    test-python-${name}
-      COMMAND cmd /C "${NOSE_COMMAND} ${kwiver_test_runner}${name}.py"
+      COMMAND cmd /C "${PYTEST_COMMAND} ${kwiver_test_runner}${name}.py"
               ${ARGN})
   else()
     add_test(
       NAME    test-python-${name}
-      COMMAND bash -c "${NOSE_COMMAND} ${kwiver_test_runner}${name}.py"
+      COMMAND bash -c "${PYTEST_COMMAND} ${kwiver_test_runner}${name}.py\
+                                --junitxml=PYTEST_results.xml"
               ${ARGN})
   endif()
 
