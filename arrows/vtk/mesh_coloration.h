@@ -101,14 +101,14 @@ public:
   {
     frame_ = frame;
   }
-  /// Compute the average color or save color for each frame
+  /// Compute the average color (false) or save colors for all frames
   /**
-   * The frames used for the average are chosen using the sampling
+   * The frames selected are chosen using the sampling
    * parameter.
    */
-  void set_average_color(bool average_color)
+  void set_all_frames(bool all_frames)
   {
-    average_color_ = average_color;
+    all_frames_ = all_frames;
   }
   /// We compare the depth buffer value with the depth of the mesh point.
   /**
@@ -131,7 +131,7 @@ public:
   }
   /// Color the mesh
   /**
-   * Adds mean and median colors to output_ if average_color or
+   * Adds mean and median colors to output_ if ! all_frames or
    * adds an array of colors for each camera (frame) otherwise.
    * returns true for success or false for an error.
    */
@@ -156,7 +156,7 @@ protected:
   vtkSmartPointer<vtkPolyData> output_;
   int sampling_;
   int frame_;
-  bool average_color_;
+  bool all_frames_;
   float occlusion_threshold_;
   bool remove_occluded_;
   bool remove_masked_;

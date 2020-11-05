@@ -98,7 +98,7 @@ mesh_coloration::mesh_coloration()
   output_ = nullptr;
   sampling_ = 1;
   frame_ = -1;
-  average_color_ = true;
+  all_frames_ = false;
   occlusion_threshold_ = 0.0;
   remove_occluded_ = true;
   remove_masked_ = true;
@@ -269,7 +269,7 @@ bool mesh_coloration::colorize()
       ++i;
     }
   }
-  if (average_color_)
+  if (! all_frames_)
   {
     // Contains rgb values
     meanValues->SetNumberOfComponents(3);
@@ -277,14 +277,14 @@ bool mesh_coloration::colorize()
     meanValues->FillComponent(0, 0);
     meanValues->FillComponent(1, 0);
     meanValues->FillComponent(2, 0);
-    meanValues->SetName("MeanColoration");
+    meanValues->SetName("mean");
 
     medianValues->SetNumberOfComponents(3);
     medianValues->SetNumberOfTuples(nbMeshPoint);
     medianValues->FillComponent(0, 0);
     medianValues->FillComponent(1, 0);
     medianValues->FillComponent(2, 0);
-    medianValues->SetName("MedianColoration");
+    medianValues->SetName("median");
 
     projectedDMValue->SetNumberOfComponents(1);
     projectedDMValue->SetNumberOfTuples(nbMeshPoint);
@@ -323,7 +323,7 @@ bool mesh_coloration::colorize()
     {
       report_progress_changed("Coloring Mesh Points", (100 * id) / nbMeshPoint);
     }
-    if (average_color_)
+    if (! all_frames_)
     {
       list0.reserve(numFrames);
       list1.reserve(numFrames);
@@ -399,7 +399,7 @@ bool mesh_coloration::colorize()
              depthBufferValue + occlusion_threshold_ > depth) &&
             (! remove_masked_ || showPoint))
         {
-          if (average_color_)
+          if (! all_frames_)
           {
             list0.push_back(rgb.r);
             list1.push_back(rgb.g);
@@ -418,7 +418,7 @@ bool mesh_coloration::colorize()
       }
     }
 
-    if (average_color_)
+    if (! all_frames_)
     {
       // If we get elements
       if (list0.size() != 0)
@@ -441,7 +441,7 @@ bool mesh_coloration::colorize()
       list2.clear();
     }
   }
-  if (average_color_)
+  if (! all_frames_)
   {
     output_->GetPointData()->AddArray(meanValues);
     output_->GetPointData()->AddArray(medianValues);

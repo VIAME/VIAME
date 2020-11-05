@@ -94,12 +94,12 @@ bool check_config(kv::config_block_sptr config)
   {
     KWIVER_CONFIG_FAIL("video_reader configuration check failed");
   }
-  std::string output_mesh_file = config->get_value<std::string>("output_mesh");
-  std::string ext = ST::GetFilenameExtension(output_mesh_file);
-  bool average_color = config->get_value<bool>("average_color");
-  if (! average_color && ext == ".ply")
+  std::string output_mesh = config->get_value<std::string>("output_mesh");
+  std::string ext = ST::GetFilenameExtension(output_mesh);
+  bool all_frames = config->get_value<bool>("all_frames");
+  if (all_frames && ext == ".ply")
   {
-    KWIVER_CONFIG_FAIL("Please use the VTP format to save colors for each frame");
+    KWIVER_CONFIG_FAIL("Please use the VTP format to save colors for all frame");
   }
 
 #undef KWIVER_CONFIG_FAIL
@@ -116,14 +116,15 @@ public:
   kva::video_input_sptr video_reader_ = nullptr;
   kva::video_input_sptr mask_reader_ = nullptr;
   kv::config_block_sptr config_ = nullptr;
-  std::string input_mesh_file_;
-  std::string video_file_;
+  std::string input_mesh_;
+  std::string video_source_;
   std::string cameras_dir_;
   std::string mask_file_;
-  std::string output_mesh_file_;
+  std::string output_mesh_;
+  std::string ply_color_ = "mean";
   int frame_ = -1;
   int frame_sampling_ = 1;
-  bool average_color_ = false;
+  bool all_frames_ = false;
 
   enum commandline_mode { SUCCESS, HELP, WRITE, FAIL };
 
@@ -158,16 +159,16 @@ public:
 
     if (cmd_args.count("input-mesh"))
     {
-      input_mesh_file_ = cmd_args["input-mesh"].as<std::string>();
-      config_->set_value("input_mesh", input_mesh_file_);
+      input_mesh_ = cmd_args["input-mesh"].as<std::string>();
+      config_->set_value("input_mesh", input_mesh_);
     }
     if (cmd_args.count("video-file"))
     {
-      video_file_ = cmd_args["video-file"].as<std::string>();
-      config_->set_value("video_source", video_file_);
+      video_source_ = cmd_args["video-file"].as<std::string>();
+      config_->set_value("video_source", video_source_);
       // choose video or image list reader based on file extension
       config_->subblock_view("video_reader")->merge_config(
-        load_default_video_input_config(video_file_));
+        load_default_video_input_config(video_source_));
     }
     if (cmd_args.count("cameras-dir"))
     {
@@ -176,8 +177,8 @@ public:
     }
     if (cmd_args.count("output-mesh"))
     {
-      output_mesh_file_ = cmd_args["output-mesh"].as<std::string>();
-      config_->set_value("output_mesh", output_mesh_file_);
+      output_mesh_ = cmd_args["output-mesh"].as<std::string>();
+      config_->set_value("output_mesh", output_mesh_);
     }
     if (cmd_args.count("mask-file"))
     {
@@ -197,10 +198,15 @@ public:
       frame_sampling_ = cmd_args["frame-sampling"].as<int>();
       config_->set_value("frame_sampling", frame_sampling_);
     }
-    if (cmd_args.count("average-color"))
+    if (cmd_args.count("all-frames"))
     {
-      average_color_ = cmd_args["average-color"].as<bool>();
-      config_->set_value("average_color", average_color_);
+      all_frames_ = cmd_args["all-frames"].as<bool>();
+      config_->set_value("all_frames", all_frames_);
+    }
+    if (cmd_args.count("ply-color"))
+    {
+      ply_color_ = cmd_args["ply-color"].as<std::string>();
+      config_->set_value("ply_color", ply_color_);
     }
 
     bool valid_config = check_config(config_);
@@ -240,14 +246,14 @@ public:
 
     // choose video or image list reader based on file extension
     config->subblock_view("video_reader")->merge_config(
-      load_default_video_input_config(video_file_));
+      load_default_video_input_config(video_source_));
     // choose video or image list reader for masks based on file extension
     config->subblock_view("mask_reader")->merge_config(
       load_default_video_input_config(mask_file_));
 
-    config->set_value("input_mesh", input_mesh_file_,
+    config->set_value("input_mesh", input_mesh_,
       "Path to an input mesh file in PLY, OBJ or VTP formats.");
-    config->set_value("video_source", video_file_,
+    config->set_value("video_source", video_source_,
       "Path to an input file to be opened as a video. "
       "This could be either a video file or a text file "
       "containing new-line separated paths to sequential "
@@ -255,7 +261,7 @@ public:
     config->set_value("cameras_dir", cameras_dir_,
       "Directory containing cameras files (.krtd)");
     config->set_value(
-      "output_mesh", output_mesh_file_,
+      "output_mesh", output_mesh_,
       "Where to save the output mesh file in PLY or VTP formats."
       "Note that saving colors for several frames only works with the VTP format");
     config->set_value("mask_source", mask_file_,
@@ -278,9 +284,9 @@ public:
       "frame", 1,
       "Set color from frame");
     config->set_value(
-      "average_color", false,
-      "Compute the average color or save color for each frame"
-      "The frames used for the average are chosen using frame_sampling");
+      "all_frames", false,
+      "Compute the average color or colors for all frames"
+      "The selected frames are chosen using frame_sampling");
     config->set_value(
       "occlusion_threshold", 0.0,
       "We compare the depth buffer value with the depth of the mesh point. "
@@ -289,6 +295,9 @@ public:
     config->set_value(
       "remove_occluded", true,
       "Remove occluded points if parameter is true.");
+    config->set_value(
+      "ply_color", ply_color_,
+      "What is saved in a PLY file, mean or median.");
     config->set_value(
       "remove_masked", true,
       "Remove masked points if parameter is true.");
@@ -309,7 +318,7 @@ public:
   }
 
   static kv::camera_map_sptr load_camera_map(
-    kva::video_input_sptr video_reader, std::string const& video_file,
+    kva::video_input_sptr video_reader, std::string const& video_source,
     std::string const& cameras_dir)
   {
     if ( video_reader == nullptr )
@@ -317,7 +326,7 @@ public:
       return nullptr;
     }
 
-    video_reader->open(video_file);
+    video_reader->open(video_source);
 
     kv::metadata_map_sptr metadata_map = video_reader->metadata_map();
     vital::camera_map::map_camera_t cameras;
@@ -346,13 +355,13 @@ public:
     return vital::camera_map_sptr( new vital::simple_camera_map( cameras ) );
   }
 
-  static vtkSmartPointer<vtkPolyData> load_mesh(std::string const& input_mesh_file)
+  static vtkSmartPointer<vtkPolyData> load_mesh(std::string const& input_mesh)
   {
-    std::string ext = ST::GetFilenameExtension(input_mesh_file);
+    std::string ext = ST::GetFilenameExtension(input_mesh);
     if (ext == ".ply")
     {
       vtkNew<vtkPLYReader> reader;
-      reader->SetFileName(input_mesh_file.c_str());
+      reader->SetFileName(input_mesh.c_str());
       reader->Update();
       vtkSmartPointer<vtkPolyData> mesh = reader->GetOutput();
       return mesh;
@@ -360,7 +369,7 @@ public:
     else if (ext ==  ".obj")
     {
       vtkNew<vtkOBJReader> reader;
-      reader->SetFileName(input_mesh_file.c_str());
+      reader->SetFileName(input_mesh.c_str());
       reader->Update();
       vtkSmartPointer<vtkPolyData> mesh = reader->GetOutput();
       return mesh;
@@ -368,7 +377,7 @@ public:
     else if (ext == ".vtp")
     {
       vtkNew<vtkXMLPolyDataReader> reader;
-      reader->SetFileName(input_mesh_file.c_str());
+      reader->SetFileName(input_mesh.c_str());
       reader->Update();
       vtkSmartPointer<vtkPolyData> mesh = reader->GetOutput();
       return mesh;
@@ -379,7 +388,8 @@ public:
     }
   }
 
-  bool save_mesh(vtkSmartPointer<vtkPolyData> mesh, const char* output_path)
+  bool save_mesh(vtkSmartPointer<vtkPolyData> mesh,
+                 char const * output_path, char const* ply_color)
   {
     std::string ext = ST::GetFilenameExtension(output_path);
     std::string filename_noext = ST::GetFilenameWithoutExtension(output_path);
@@ -396,6 +406,7 @@ public:
     {
       vtkNew<vtkPLYWriter> writer;
       writer->SetFileName(output_path);
+      writer->SetArrayName(ply_color);
       writer->AddInputDataObject(mesh);
       writer->Write();
       return true;
@@ -411,21 +422,19 @@ public:
   {
     // Attempt opening input and output files.
     //  - filepath validity checked above
-    video_file_ = config_->get_value<std::string>("video_source");
-    mask_file_ = config_->get_value<std::string>("mask_source");
 
     LOG_INFO(main_logger, "Reading video...");
-    set_video(config_, video_file_);
+    set_video(config_, video_source_);
     bool hasMask = !mask_file_.empty();
     if (hasMask)
     {
       set_mask(config_, mask_file_);
     }
     LOG_INFO(main_logger, "Load camera map...");
-    auto cameras = load_camera_map(video_reader_, video_file_, cameras_dir_);
+    auto cameras = load_camera_map(video_reader_, video_source_, cameras_dir_);
     set_cameras(cameras);
     LOG_INFO(main_logger, "Load mesh file...");
-    auto mesh = load_mesh(input_mesh_file_);
+    auto mesh = load_mesh(input_mesh_);
     if (! mesh)
     {
       LOG_ERROR(main_logger, "Error loading the mesh");
@@ -435,10 +444,10 @@ public:
     set_output(mesh);
     set_frame(frame_);
     set_frame_sampling(frame_sampling_);
-    set_average_color(average_color_);
+    set_all_frames(all_frames_);
     colorize();
     LOG_INFO(main_logger, "Save mesh file...");
-    if (! save_mesh(mesh, output_mesh_file_.c_str()))
+    if (! save_mesh(mesh, output_mesh_.c_str(), ply_color_.c_str()))
     {
       return false;
     }
@@ -519,7 +528,7 @@ add_command_options()
   );
 
   m_cmd_options->add_options()
-    ( "a,average-color",
+    ( "a,all-frames",
       "Compute average color or save each frame color",
       cxxopts::value<bool>()->default_value("false") )
     ( "c,config",
@@ -538,6 +547,10 @@ add_command_options()
       "Output a configuration. This may be seeded with a "
       "configuration file from -c/--config.",
       cxxopts::value<std::string>() )
+    ( "p,ply-color",
+      "Choose between mean and median when saving "
+      "a composite color (all-frames is false) and using the PLY format. "
+      "For the VTP format, both mean and median are saved.")
     ( "s,frame-sampling",
       "Use for coloring only frames that satisfy frame mod sampling == 0",
       cxxopts::value<int>()->default_value( "1"))
