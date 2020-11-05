@@ -248,8 +248,8 @@ if (KWIVER_ENABLE_TESTS)
                       COMMAND_ECHO STDOUT
                     )
     if (create_venv_result AND NOT create_venv_result EQUAL 0)
-        # could not create venv, report to that effect, Nose may still be found and tests may still be run
-        # but dependencies (including nose) to be met by a pip install are not garunteed
+        # could not create venv, report to that effect, pytest may still be found and tests may still be run
+        # but dependencies (including pytest) to be met by a pip install are not garunteed
         message (WARNING "Virtualenv creation failed. Python tests may not be run or may fail unexpectedly.")
     else()
       set(VENV_CREATED 1)
@@ -293,35 +293,29 @@ if (KWIVER_ENABLE_TESTS)
   endif()
 
   ###
-  # Pybind11 Bindings Test Runner - nosetests
-  # find virtualenv install of nosetests executable, search for version associated with kwiver
+  # Pybind11 Bindings Test Runner - pytest
+  # find virtualenv install of pytest executable, search for version associated with kwiver
   # first, default to v 3.4, the most recent version provided by pip install
-  # alternatively users can install the version of nose specific
+  # alternatively users can install the version of pytest specific
   # to the version of python they're building the kwiver-python against
   #
   #
   if (VENV_CREATED)
-    set(NOSE_RUNNER "${Python3_EXECUTABLE} -m nose")
-    set(NOSE_LOC "${VENV_DIR}/nose")
+    set(PYTEST_RUNNER "${Python3_EXECUTABLE} -m pytest")
+    set(PYTEST_LOC "${VENV_DIR}/pytest")
   else()
-    find_program(NOSE_RUNNER NAMES
-    "nosetests-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-    "nosetests${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-    "nosetests-${PYTHON_VERSION_MAJOR}"
-    "nosetests${PYTHON_VERSION_MAJOR}"
-    "nosetests-3.4"
-    "nosetests3.4"
-    "nosetests")
-    set(NOSE_LOC NOSE_RUNNER)
+    find_program(PYTEST_RUNNER NAMES
+    "pytest")
+    set(PYTEST_LOC PYTEST_RUNNER)
   endif()
-  if (NOSE_RUNNER)
+  if (PYTEST_RUNNER)
 
-    message(STATUS "Found nosetests at ${NOSE_LOC}.\n"
-            "Python tests will be run if testing is enabled. noserunner: ${NOSE_RUNNER}")
+    message(STATUS "Found pytest at ${PYTEST_LOC}.\n"
+            "Python tests will be run if testing is enabled. pytest runner: ${PYTEST_RUNNER}")
 
   else()
-    message(STATUS "nosetests not found, Python tests will not be run.\
-           (To run install nosetests compatible with Python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})")
+    message(STATUS "pytest not found, Python tests will not be run.\
+           (To run install pytest compatible with Python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})")
   endif()
 endif()
 

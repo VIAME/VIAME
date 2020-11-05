@@ -130,9 +130,9 @@ function (kwiver_discover_python_tests group file)
 endfunction ()
 
 ###
-# Adds a python module testing suite run by nosetests
+# Adds a python module testing suite run by pytest
 #
-function (kwiver_add_nosetests name targ)
+function (kwiver_add_pytest name targ)
   if (WIN32)
     add_test(
       NAME    test-python-${name}
@@ -141,8 +141,7 @@ function (kwiver_add_nosetests name targ)
   else()
     add_test(
       NAME    test-python-${name}
-      COMMAND bash -c "${PYTEST_COMMAND} ${kwiver_test_runner}${name}.py\
-                                --junitxml=PYTEST_results.xml"
+      COMMAND bash -c "${PYTEST_COMMAND} ${kwiver_test_runner}${name}.py"
               ${ARGN})
   endif()
 
