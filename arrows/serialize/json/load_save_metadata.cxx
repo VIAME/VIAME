@@ -224,7 +224,7 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& 
 }
 
 // ----------------------------------------------------------------------------
-void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& packet_map )
 {
   meta_vect_t meta_vect; // intermediate form
 
@@ -235,7 +235,7 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
   for ( const auto & it : meta_vect )
   {
     const auto& trait = meta_traits.find( it.tag );
-    meta.add( trait.create_metadata_item( it.item_value ) );
+    packet_map.add( trait.create_metadata_item( it.item_value ) );
   }
 }
 
@@ -246,13 +246,14 @@ void save( ::cereal::JSONOutputArchive& archive,
   for ( auto const &meta_vec : meta_map) {
     archive( cereal::make_nvp( std::to_string( meta_vec.first ), meta_vec.second ) );
   }
+  // TODO see whether `archive( meta_map );` produces the same result
 }
 
 // ----------------------------------------------------------------------------
 void load( ::cereal::JSONInputArchive& archive,
-           const kwiver::vital::metadata_map::map_metadata_t& meta_map )
+           kwiver::vital::metadata_map::map_metadata_t& meta_map )
 {
-  // TODO
+  archive( meta_map );
 }
 
 } // end namespace

@@ -18,6 +18,7 @@
 #include "detected_object_type.h"
 #include "timestamp.h"
 #include "image.h"
+#include "serialize_metadata.h"
 #include "string.h"
 #include "track_state.h"
 #include "object_track_state.h"
@@ -66,6 +67,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< string >( "kwiver:video_name" );
 
   reg.mark_module_as_loaded();
+
+  // register the algo which writes metadata maps to disk
+  vpm.ADD_ALGORITHM("json", serialize_metadata);
 }
 
 } // end namespace json

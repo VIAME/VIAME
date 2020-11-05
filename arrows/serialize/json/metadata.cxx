@@ -30,12 +30,10 @@ std::shared_ptr< std::string >
 metadata::
 serialize_meta( const kwiver::vital::metadata_vector& meta )
 {
-  std::cout << "Serializing metadata" << std::endl;
   std::stringstream msg;
   msg << "metadata "; // add type tag
   {
     cereal::JSONOutputArchive ar( msg );
-    std::cout << "About to save" << std::endl;
     save( ar, meta );
   }
 
