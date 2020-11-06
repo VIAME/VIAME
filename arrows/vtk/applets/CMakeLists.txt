@@ -1,5 +1,5 @@
 #
-# CMake file for the arrows.mvg.applets
+# CMake file for the arrows.vtk.applets
 #
 
 set( sources
@@ -10,10 +10,6 @@ set( sources
 set( headers
   color_mesh.h
   )
-
-###
-# Add our plugin path to the default list
-include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 # Add applet plugin
 kwiver_add_plugin( kwiver_algo_vtk_applets

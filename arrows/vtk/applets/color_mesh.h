@@ -28,17 +28,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_MVG_APPLETS_COLOR_MESH_H
-#define KWIVER_ARROWS_MVG_APPLETS_COLOR_MESH_H
+#ifndef KWIVER_ARROWS_VTK_APPLETS_COLOR_MESH_H
+#define KWIVER_ARROWS_VTK_APPLETS_COLOR_MESH_H
 
 #include <vital/applets/kwiver_applet.h>
-#include <arrows/mvg/applets/kwiver_algo_mvg_applets_export.h>
+#include <arrows/vtk/applets/kwiver_algo_vtk_applets_export.h>
 
 namespace kwiver {
 namespace arrows {
-namespace mvg {
+namespace vtk {
 
-class KWIVER_ALGO_MVG_APPLETS_EXPORT color_mesh
+class KWIVER_ALGO_VTK_APPLETS_EXPORT color_mesh
   : public kwiver::tools::kwiver_applet
 {
 public:

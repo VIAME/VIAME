@@ -62,7 +62,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace mvg {
+namespace vtk {
 
 namespace kv = ::kwiver::vital;
 namespace kva = ::kwiver::vital::algo;

@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief register mvg applets into a plugin
+ * \brief register vtk applets into a plugin
  */
 
 #include <arrows/vtk/applets/kwiver_algo_vtk_applets_export.h>
@@ -41,11 +41,11 @@
 
 namespace kwiver {
 namespace arrows {
-namespace mvg {
+namespace vtk {
 
 // ----------------------------------------------------------------------------
 extern "C"
-KWIVER_ALGO_MVG_APPLETS_EXPORT
+KWIVER_ALGO_VTK_APPLETS_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
@@ -62,6 +62,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.mark_module_as_loaded();
 }
 
-} // end namespace mvg
+} // end namespace vtk
 } // end namespace arrows
 } // end namespace kwiver
