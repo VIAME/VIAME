@@ -48,6 +48,7 @@
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/CommandLineArguments.hxx>
 
+#include <vtkLookupTable.h>
 #include <vtkOBJReader.h>
 #include <vtkPLYReader.h>
 #include <vtkPLYWriter.h>
@@ -95,12 +96,11 @@ bool check_config(kv::config_block_sptr config)
   {
     KWIVER_CONFIG_FAIL("video_reader configuration check failed");
   }
-  std::string output_mesh = config->get_value<std::string>("output_mesh");
-  std::string ext = ST::GetFilenameExtension(output_mesh);
+  std::string active_attribute = config->get_value<std::string>("active_attribute");
   bool all_frames = config->get_value<bool>("all_frames");
-  if (all_frames && ext == ".ply")
+  if (all_frames && active_attribute.size() > 0)
   {
-    KWIVER_CONFIG_FAIL("Please use the VTP format to save colors for all frame");
+    KWIVER_CONFIG_FAIL("active_attribute only applies for composite color");
   }
 
 #undef KWIVER_CONFIG_FAIL
@@ -298,7 +298,10 @@ public:
       "Remove occluded points if parameter is true.");
     config->set_value(
       "active_attribute", active_attribute_,
-      "What is saved in a PLY file, mean or median.");
+      "Choose the active attribute between mean, median and count when saving "
+      "a composite color (all-frames is false). "
+      "For the VTP format, all attributes are saved, for PLY only the "
+      "active attribute is saved.");
     config->set_value(
       "remove_masked", true,
       "Remove masked points if parameter is true.");
@@ -405,9 +408,20 @@ public:
     }
     else if (ext == ".ply")
     {
+      vtkDataArray* scalars = mesh->GetPointData()->GetScalars();
       vtkNew<vtkPLYWriter> writer;
       writer->SetFileName(output_path);
-      writer->SetArrayName(mesh->GetPointData()->GetScalars()->GetName());
+      writer->SetArrayName(scalars->GetName());
+      if (! vtkUnsignedCharArray::SafeDownCast(scalars))
+      {
+        // this is not a color, we have to use a lookup table to make it a color
+        vtkNew<vtkLookupTable> lut;
+        lut->SetHueRange(0.6, 0);
+        lut->SetSaturationRange(1.0, 0);
+        lut->SetValueRange(0.5, 1.0);
+        lut->SetTableRange(scalars->GetRange());
+        writer->SetLookupTable(lut);
+      }
       writer->AddInputDataObject(mesh);
       writer->Write();
       return true;
@@ -448,7 +462,15 @@ public:
     set_all_frames(all_frames_);
     colorize();
     LOG_INFO(main_logger, "Save mesh file...");
-    mesh->GetPointData()->SetActiveScalars(active_attribute_.c_str());
+    if (! all_frames_)
+    {
+      vtkDataArray* active = mesh->GetPointData()->GetArray(active_attribute_.c_str());
+      if (! active)
+      {
+        active = mesh->GetPointData()->GetArray("mean");
+      }
+      mesh->GetPointData()->SetScalars(active);
+    }
     if (! save_mesh(mesh, output_mesh_.c_str()))
     {
       return false;
@@ -553,7 +575,8 @@ add_command_options()
       "Choose the active attribute between mean, median and count when saving "
       "a composite color (all-frames is false). "
       "For the VTP format, all attributes are saved, for PLY only the "
-      "active attribute is saved.")
+      "active attribute is saved.",
+      cxxopts::value<std::string>())
     ( "s,frame-sampling",
       "Use for coloring only frames that satisfy frame mod sampling == 0",
       cxxopts::value<int>()->default_value( "1"))
