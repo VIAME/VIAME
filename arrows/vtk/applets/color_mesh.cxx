@@ -51,6 +51,7 @@
 #include <vtkOBJReader.h>
 #include <vtkPLYReader.h>
 #include <vtkPLYWriter.h>
+#include <vtkPointData.h>
 #include <vtkXMLPolyDataReader.h>
 #include <vtkXMLPolyDataWriter.h>
 
@@ -121,7 +122,7 @@ public:
   std::string cameras_dir_;
   std::string mask_file_;
   std::string output_mesh_;
-  std::string ply_color_ = "mean";
+  std::string active_attribute_ = "mean";
   int frame_ = -1;
   int frame_sampling_ = 1;
   bool all_frames_ = false;
@@ -203,10 +204,10 @@ public:
       all_frames_ = cmd_args["all-frames"].as<bool>();
       config_->set_value("all_frames", all_frames_);
     }
-    if (cmd_args.count("ply-color"))
+    if (cmd_args.count("active-attribute"))
     {
-      ply_color_ = cmd_args["ply-color"].as<std::string>();
-      config_->set_value("ply_color", ply_color_);
+      active_attribute_ = cmd_args["active-attribute"].as<std::string>();
+      config_->set_value("active_attribute", active_attribute_);
     }
 
     bool valid_config = check_config(config_);
@@ -296,7 +297,7 @@ public:
       "remove_occluded", true,
       "Remove occluded points if parameter is true.");
     config->set_value(
-      "ply_color", ply_color_,
+      "active_attribute", active_attribute_,
       "What is saved in a PLY file, mean or median.");
     config->set_value(
       "remove_masked", true,
@@ -389,7 +390,7 @@ public:
   }
 
   bool save_mesh(vtkSmartPointer<vtkPolyData> mesh,
-                 char const * output_path, char const* ply_color)
+                 char const * output_path)
   {
     std::string ext = ST::GetFilenameExtension(output_path);
     std::string filename_noext = ST::GetFilenameWithoutExtension(output_path);
@@ -406,7 +407,7 @@ public:
     {
       vtkNew<vtkPLYWriter> writer;
       writer->SetFileName(output_path);
-      writer->SetArrayName(ply_color);
+      writer->SetArrayName(mesh->GetPointData()->GetScalars()->GetName());
       writer->AddInputDataObject(mesh);
       writer->Write();
       return true;
@@ -447,7 +448,8 @@ public:
     set_all_frames(all_frames_);
     colorize();
     LOG_INFO(main_logger, "Save mesh file...");
-    if (! save_mesh(mesh, output_mesh_.c_str(), ply_color_.c_str()))
+    mesh->GetPointData()->SetActiveScalars(active_attribute_.c_str());
+    if (! save_mesh(mesh, output_mesh_.c_str()))
     {
       return false;
     }
@@ -547,10 +549,11 @@ add_command_options()
       "Output a configuration. This may be seeded with a "
       "configuration file from -c/--config.",
       cxxopts::value<std::string>() )
-    ( "p,ply-color",
-      "Choose between mean and median when saving "
-      "a composite color (all-frames is false) and using the PLY format. "
-      "For the VTP format, both mean and median are saved.")
+    ( "v,active-attribute",
+      "Choose the active attribute between mean, median and count when saving "
+      "a composite color (all-frames is false). "
+      "For the VTP format, all attributes are saved, for PLY only the "
+      "active attribute is saved.")
     ( "s,frame-sampling",
       "Use for coloring only frames that satisfy frame mod sampling == 0",
       cxxopts::value<int>()->default_value( "1"))

@@ -228,7 +228,7 @@ bool mesh_coloration::colorize()
   // average colors
   vtkNew<vtkUnsignedCharArray> meanValues;
   vtkNew<vtkUnsignedCharArray> medianValues;
-  vtkNew<vtkIntArray> projectedDMValue;
+  vtkNew<vtkIntArray> countValues;
   // Store each rgb value for each depth map
   std::vector<double> list0;
   std::vector<double> list1;
@@ -286,10 +286,10 @@ bool mesh_coloration::colorize()
     medianValues->FillComponent(2, 0);
     medianValues->SetName("median");
 
-    projectedDMValue->SetNumberOfComponents(1);
-    projectedDMValue->SetNumberOfTuples(nbMeshPoint);
-    projectedDMValue->FillComponent(0, 0);
-    projectedDMValue->SetName("NbProjectedDepthMap");
+    countValues->SetNumberOfComponents(1);
+    countValues->SetNumberOfTuples(nbMeshPoint);
+    countValues->FillComponent(0, 0);
+    countValues->SetName("count");
   }
   else
   {
@@ -433,7 +433,7 @@ bool mesh_coloration::colorize()
         ComputeMedian<double>(list1, median1);
         ComputeMedian<double>(list2, median2);
         medianValues->SetTuple3(id, median0, median1, median2);
-        projectedDMValue->SetTuple1(id, list0.size());
+        countValues->SetTuple1(id, list0.size());
       }
 
       list0.clear();
@@ -445,7 +445,7 @@ bool mesh_coloration::colorize()
   {
     output_->GetPointData()->AddArray(meanValues);
     output_->GetPointData()->AddArray(medianValues);
-    output_->GetPointData()->AddArray(projectedDMValue);
+    output_->GetPointData()->AddArray(countValues);
   }
   report_progress_changed("Done", 100);
   return true;
