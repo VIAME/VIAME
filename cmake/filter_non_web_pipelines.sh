@@ -17,6 +17,6 @@ rm -rf ${VIAME_PIPELINES}/tracker_short_term.pipe
 rm -rf ${VIAME_PIPELINES}/tracker_stabilized_iou.pipe
 
 # Remove seal and sea lion specialized pipelines un-runnable in web
-rm -rf ${VIAME_PIPELINES}/arctic*fusion*.pipe
+rm -rf ${VIAME_PIPELINES}/detector_arctic_*fusion*.pipe
 rm -rf ${VIAME_PIPELINES}/*2-cam.pipe
 rm -rf ${VIAME_PIPELINES}/*3-cam.pipe
