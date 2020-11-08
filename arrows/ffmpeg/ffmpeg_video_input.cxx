@@ -25,6 +25,7 @@
 #include <deque>
 #include <mutex>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 #include <sstream>
 
@@ -52,7 +53,6 @@ public:
   priv() :
     f_format_context(avformat_alloc_context()),
     f_video_index(-1),
-    f_data_index(-1),
     f_video_encoding(nullptr),
     f_video_stream(nullptr),
     f_frame(nullptr),
@@ -79,7 +79,7 @@ public:
 
   AVFormatContext* f_format_context;
   int f_video_index;
-  int f_data_index;
+  std::unordered_set<int> f_data_indices;
   AVCodecContext* f_video_encoding;
   AVStream* f_video_stream;
   AVFrame* f_frame;
@@ -174,7 +174,6 @@ public:
     // Find a video stream, and optionally a data stream.
     // Use the first ones we find.
     this->f_video_index = -1;
-    this->f_data_index = -1;
     AVCodecParameters* codec_param_origin = NULL;
     for (unsigned i = 0; i < this->f_format_context->nb_streams; ++i)
     {
@@ -184,9 +183,9 @@ public:
         this->f_video_index = i;
         codec_param_origin = params;
       }
-      else if (params->codec_type == AVMEDIA_TYPE_DATA && this->f_data_index < 0)
+      else if (params->codec_type == AVMEDIA_TYPE_DATA)
       {
-        this->f_data_index = i;
+        this->f_data_indices.insert(i);
       }
     }
 
@@ -196,7 +195,7 @@ public:
       return false;
     }
 
-    if (this->f_data_index < 0)
+    if (this->f_data_indices.size() == 0)
     {
       LOG_INFO(this->logger, "No data stream available");
       // Fallback for the DATA stream if incorrectly coded as UNKNOWN.
@@ -205,7 +204,7 @@ public:
         AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
         if (params->codec_type == AVMEDIA_TYPE_UNKNOWN)
         {
-          this->f_data_index = i;
+          this->f_data_indices.insert(i);
           LOG_INFO(this->logger, "Using AVMEDIA_TYPE_UNKNOWN stream as a data stream");
         }
       }
@@ -309,7 +308,7 @@ public:
   void close()
   {
     this->f_video_index = -1;
-    this->f_data_index = -1;
+    this->f_data_indices.clear();
     this->f_start_time = -1;
 
     if (this->f_video_stream)
@@ -485,7 +484,8 @@ public:
       }
 
       // grab the metadata from this packet if from the metadata stream
-      else if (this->f_packet->stream_index == this->f_data_index)
+      else if (this->f_data_indices.find(this->f_packet->stream_index) !=
+               this->f_data_indices.end())
       {
         this->metadata.insert(this->metadata.end(), this->f_packet->data,
           this->f_packet->data + this->f_packet->size);
@@ -906,7 +906,7 @@ ffmpeg_video_input
       VITAL_THROW( kwiver::vital::video_runtime_exception, "Video stream open failed for unknown reasons");
     }
     this->set_capability(vital::algo::video_input::HAS_METADATA,
-                         d->f_data_index >= 0);
+                         d->f_data_indices.size() != 0);
     d->end_of_video = false;
   }
 }
