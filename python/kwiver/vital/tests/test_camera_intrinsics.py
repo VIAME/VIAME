@@ -36,7 +36,6 @@ Test Python interface to vital::camera_intrinsics
 
 import unittest
 
-import nose.tools as nt
 import numpy as np
 
 from kwiver.vital.tests.cpp_helpers import camera_intrinsics_helpers
@@ -65,6 +64,36 @@ class TestCameraInstrinsicsBase(unittest.TestCase):
         np.testing.assert_array_almost_equal(np.array([3, 2]), ci.distort(np.array([3, 2])))
         np.testing.assert_array_almost_equal(np.array([3, 2]), ci.undistort(np.array([3 ,2])))
 
+    def test_equal(self):
+        ci1 = CameraIntrinsics()
+        ci2 = CameraIntrinsics()
+        assert (ci1 == ci2)
+        assert not (ci1 != ci2)
+
+        ci1 = CameraIntrinsics(2, (10, 10), 3, 1)
+        ci2 = CameraIntrinsics(2, (11, 10), 3, 0.1)
+        assert not (ci1 == ci2)
+        assert (ci1 != ci2)
+
+    def test_get_focal_length(self):
+        assert(CameraIntrinsics().focal_length == 1.)
+        assert(CameraIntrinsics(5.2).focal_length == 5.2)
+
+    def test_get_aspect_ratio(self):
+        assert(
+            CameraIntrinsics().aspect_ratio == 1.
+        )
+        assert(
+            CameraIntrinsics(aspect_ratio=2.1).aspect_ratio == 2.1
+        )
+
+    def test_get_skew(self):
+        assert(
+            CameraIntrinsics().skew == 0.
+        )
+        assert(
+            CameraIntrinsics(skew=1.).skew == 1.
+        )
 
 class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
     def setUp(self):
@@ -75,8 +104,6 @@ class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
         self.dist_coeffs = [4.5, 5.2, 6.8]
         self.image_width = 1080
         self.image_height = 720
-
-        # Calibration matrix constructed so that resulting
         # camera_intrinsics properties should be equal to one constructed using above
         # parameters directly. Also matches format of .matrix()
         self.K = np.array(

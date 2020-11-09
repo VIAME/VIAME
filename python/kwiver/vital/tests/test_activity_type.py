@@ -34,7 +34,6 @@ Tests for ActivityType interface class.
 
 """
 import unittest
-import nose.tools as nt
 import numpy as np
 
 
