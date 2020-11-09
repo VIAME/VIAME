@@ -83,8 +83,11 @@ public:
     , m_max_neg_ratio( 0.0 )
     , m_random_validation( 0.0 )
     , m_ignore_category( "false_alarm" )
-    , m_min_train_box_length( 5 )
+    , m_min_train_box_length( 0 )
+    , m_small_box_area( 0 )
+    , m_small_action( "" )
     , m_synthetic_labels( true )
+    , m_detect_small( false )
   {}
 
   ~priv()
@@ -113,6 +116,8 @@ public:
   double m_random_validation;
   std::string m_ignore_category;
   int m_min_train_box_length;
+  int m_small_box_area;
+  std::string m_small_action;
 
   // Helper functions
   void format_images_from_disk(
@@ -138,6 +143,7 @@ public:
   void write_chip_to_disk( const std::string& filename, const cv::Mat& image );
 
   bool m_synthetic_labels;
+  bool m_detect_small;
   vital::category_hierarchy_sptr m_labels;
   std::map< std::string, int > m_category_map;
   vital::algo::image_io_sptr m_image_io;
@@ -220,6 +226,13 @@ windowed_trainer
   config->set_value( "min_train_box_length", d->m_min_train_box_length,
     "If a box resizes to smaller than this during training, the input frame " 
     "will not be used in training." );
+  config->set_value( "small_box_area", d->m_small_box_area,
+    "If a box resizes to smaller than this during training, consider it a small "
+    "detection which might lead to several modifications to it." );
+  config->set_value( "small_action", d->m_small_action,
+    "Action to take in the event that a detection is considered small. Can "
+    "either be none, remove, or any other string which will over-ride the "
+    "detection type to be that string." );
 
   vital::algo::image_io::get_nested_algo_configuration( "image_reader",
     config, d->m_image_io );
@@ -262,6 +275,8 @@ windowed_trainer
   this->d->m_random_validation = config->get_value< double >( "random_validation" );
   this->d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
   this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
+  this->d->m_small_box_area = config->get_value< int >( "small_box_area" );
+  this->d->m_small_action = config->get_value< std::string >( "small_action" );
 
   if( !d->m_skip_format )
   {
@@ -288,6 +303,8 @@ windowed_trainer
       kwiversys::SystemTools::MakeDirectory( folder );
     }
   }
+
+  d->m_detect_small = ( !d->m_small_action.empty() && d->m_small_action != "none" );
 
   vital::algo::image_io_sptr io;
   vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
@@ -754,15 +771,28 @@ windowed_trainer::priv
         continue;
       }
 
-      double min_x = overlap.min_x() - region.min_x();
-      double min_y = overlap.min_y() - region.min_y();
-      double max_x = overlap.max_x() - region.min_x();
-      double max_y = overlap.max_y() - region.min_y();
+      double min_x = det_box.min_x() - region.min_x();
+      double min_y = det_box.min_y() - region.min_y();
+      double max_x = det_box.max_x() - region.min_x();
+      double max_y = det_box.max_y() - region.min_y();
 
       vital::bounding_box_d bbox( min_x, min_y, max_x, max_y );
 
       auto odet = (*detection)->clone();
       odet->set_bounding_box( bbox );
+
+      if( m_detect_small && det_box.area() < m_small_box_area )
+      {
+        if( m_small_action == "remove" )
+        {
+          continue;
+        }
+
+        auto dot_ovr = std::make_shared< kwiver::vital::detected_object_type >(
+          m_small_action, 1.0 );
+
+        odet->set_type( dot_ovr );
+      }
 
       filtered_detections->add( odet );
     }
