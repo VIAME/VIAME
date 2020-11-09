@@ -507,7 +507,10 @@ windowed_trainer::priv
 
     // Scale and break up image according to settings
     vital::image_container_sptr vital_image;
+    vital::bounding_box_d image_dims;
     cv::Mat original_image;
+    vital::detected_object_set_sptr filtered_truth;
+
     std::string format_mode = m_mode;
     std::string ext = image_fn.substr( image_fn.find_last_of( "." ) + 1 );
 
@@ -519,6 +522,9 @@ windowed_trainer::priv
 
       original_image = arrows::ocv::image_container::vital_to_ocv(
         vital_image->get_image(), arrows::ocv::image_container::RGB_COLOR );
+
+      image_dims = vital::bounding_box_d( 0, 0,
+        original_image.cols, original_image.rows );
     }
     catch( const vital::vital_exception& e )
     {
@@ -543,8 +549,11 @@ windowed_trainer::priv
         }
         else
         {
-          formatted_names.push_back( image_fn );
-          formatted_truth.push_back( groundtruth[fid] );
+          if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
+          {
+            formatted_names.push_back( image_fn );
+            formatted_truth.push_back( filtered_truth );
+          }
           continue;
         }
       }
@@ -558,8 +567,11 @@ windowed_trainer::priv
       if( original_image.rows <= m_chip_height &&
           original_image.cols <= m_chip_width )
       {
-        formatted_names.push_back( image_fn );
-        formatted_truth.push_back( groundtruth[fid] );
+        if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
+        {
+          formatted_names.push_back( image_fn );
+          formatted_truth.push_back( filtered_truth );
+        }
         continue;
       }
 
@@ -567,8 +579,11 @@ windowed_trainer::priv
 
       if( ( original_image.rows * original_image.cols ) >= m_chip_adaptive_thresh )
       {
-        formatted_names.push_back( image_fn );
-        formatted_truth.push_back( groundtruth[fid] );
+        if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
+        {
+          formatted_names.push_back( image_fn );
+          formatted_truth.push_back( filtered_truth );
+        }
       }
     }
 
