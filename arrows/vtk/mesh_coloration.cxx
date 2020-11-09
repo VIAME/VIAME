@@ -44,6 +44,7 @@
 #include "vtkPointDataToCellData.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkPolyDataNormals.h"
 #include "vtkRenderer.h"
 #include "vtkRendererCollection.h"
 #include "vtkRenderWindow.h"
@@ -97,10 +98,13 @@ mesh_coloration::mesh_coloration()
   output_ = nullptr;
   sampling_ = 1;
   frame_ = -1;
-  average_color_ = true;
+  all_frames_ = false;
   occlusion_threshold_ = 0.0;
   remove_occluded_ = true;
   remove_masked_ = true;
+  video_reader_ = nullptr;
+  mask_reader_ = nullptr;
+  cameras_ = nullptr;
 }
 
 mesh_coloration::mesh_coloration(
@@ -111,9 +115,23 @@ mesh_coloration::mesh_coloration(
   kwiver::vital::camera_map_sptr& cameras)
   : mesh_coloration()
 {
+  set_video(video_config, video_path);
+  set_mask(mask_config, mask_path);
+  set_cameras(cameras);
+}
+
+
+void mesh_coloration::set_video(kwiver::vital::config_block_sptr& video_config,
+                                std::string const& video_path)
+{
   video_path_ = video_path;
   kwiver::vital::algo::video_input::set_nested_algo_configuration(
     BLOCK_VR, video_config, video_reader_);
+}
+
+void mesh_coloration::set_mask(kwiver::vital::config_block_sptr& mask_config,
+                               std::string const& mask_path)
+{
   mask_path_ = mask_path;
   auto const has_mask = !mask_path_.empty();
   if (has_mask && ! kwiver::vital::algo::video_input::check_nested_algo_configuration(
@@ -128,6 +146,10 @@ mesh_coloration::mesh_coloration(
     kwiver::vital::algo::video_input::set_nested_algo_configuration(
       BLOCK_MR, mask_config, mask_reader_);
   }
+}
+
+void mesh_coloration::set_cameras(kwiver::vital::camera_map_sptr& cameras)
+{
   cameras_ = cameras;
 }
 
@@ -182,7 +204,16 @@ bool mesh_coloration::colorize()
     LOG_INFO(main_logger, "Done: frame " << frame_);
     return false;
   }
-
+  vtkDataArray* normals = input_->GetPointData()->GetNormals();
+  if (! normals)
+  {
+    LOG_INFO(main_logger, "Generating normals ...");
+    vtkNew<vtkPolyDataNormals> compute_normals;
+    compute_normals->SetInputDataObject(input_);
+    compute_normals->Update();
+    input_ = compute_normals->GetOutput();
+    normals = input_->GetPointData()->GetNormals();
+  }
   vtkPoints* meshPointList = input_->GetPoints();
   if (meshPointList == 0)
   {
@@ -197,7 +228,7 @@ bool mesh_coloration::colorize()
   // average colors
   vtkNew<vtkUnsignedCharArray> meanValues;
   vtkNew<vtkUnsignedCharArray> medianValues;
-  vtkNew<vtkIntArray> projectedDMValue;
+  vtkNew<vtkIntArray> countValues;
   // Store each rgb value for each depth map
   std::vector<double> list0;
   std::vector<double> list1;
@@ -218,6 +249,12 @@ bool mesh_coloration::colorize()
     report_progress_changed("Creating depth buffers", 0);
 
     auto ren_win = create_depth_buffer_pipeline();
+    if (! ren_win)
+    {
+      LOG_ERROR(main_logger, "Fail to create the render window");
+      return false;
+    }
+
 
     int i = 0;
     for (auto it = depthBuffer.begin(); it != depthBuffer.end(); ++it)
@@ -232,7 +269,7 @@ bool mesh_coloration::colorize()
       ++i;
     }
   }
-  if (average_color_)
+  if (! all_frames_)
   {
     // Contains rgb values
     meanValues->SetNumberOfComponents(3);
@@ -240,19 +277,19 @@ bool mesh_coloration::colorize()
     meanValues->FillComponent(0, 0);
     meanValues->FillComponent(1, 0);
     meanValues->FillComponent(2, 0);
-    meanValues->SetName("MeanColoration");
+    meanValues->SetName("mean");
 
     medianValues->SetNumberOfComponents(3);
     medianValues->SetNumberOfTuples(nbMeshPoint);
     medianValues->FillComponent(0, 0);
     medianValues->FillComponent(1, 0);
     medianValues->FillComponent(2, 0);
-    medianValues->SetName("MedianColoration");
+    medianValues->SetName("median");
 
-    projectedDMValue->SetNumberOfComponents(1);
-    projectedDMValue->SetNumberOfTuples(nbMeshPoint);
-    projectedDMValue->FillComponent(0, 0);
-    projectedDMValue->SetName("NbProjectedDepthMap");
+    countValues->SetNumberOfComponents(1);
+    countValues->SetNumberOfTuples(nbMeshPoint);
+    countValues->FillComponent(0, 0);
+    countValues->SetName("count");
   }
   else
   {
@@ -286,7 +323,7 @@ bool mesh_coloration::colorize()
     {
       report_progress_changed("Coloring Mesh Points", (100 * id) / nbMeshPoint);
     }
-    if (average_color_)
+    if (! all_frames_)
     {
       list0.reserve(numFrames);
       list1.reserve(numFrames);
@@ -297,7 +334,7 @@ bool mesh_coloration::colorize()
     kwiver::vital::vector_3d position;
     meshPointList->GetPoint(id, position.data());
     kwiver::vital::vector_3d pointNormal;
-    input_->GetPointData()->GetArray("Normals")->GetTuple(id, pointNormal.data());
+    normals->GetTuple(id, pointNormal.data());
 
     for (int idData = 0; idData < numFrames; idData++)
     {
@@ -362,7 +399,7 @@ bool mesh_coloration::colorize()
              depthBufferValue + occlusion_threshold_ > depth) &&
             (! remove_masked_ || showPoint))
         {
-          if (average_color_)
+          if (! all_frames_)
           {
             list0.push_back(rgb.r);
             list1.push_back(rgb.g);
@@ -381,7 +418,7 @@ bool mesh_coloration::colorize()
       }
     }
 
-    if (average_color_)
+    if (! all_frames_)
     {
       // If we get elements
       if (list0.size() != 0)
@@ -396,7 +433,7 @@ bool mesh_coloration::colorize()
         ComputeMedian<double>(list1, median1);
         ComputeMedian<double>(list2, median2);
         medianValues->SetTuple3(id, median0, median1, median2);
-        projectedDMValue->SetTuple1(id, list0.size());
+        countValues->SetTuple1(id, list0.size());
       }
 
       list0.clear();
@@ -404,11 +441,11 @@ bool mesh_coloration::colorize()
       list2.clear();
     }
   }
-  if (average_color_)
+  if (! all_frames_)
   {
-    input_->GetPointData()->AddArray(meanValues);
-    input_->GetPointData()->AddArray(medianValues);
-    input_->GetPointData()->AddArray(projectedDMValue);
+    output_->GetPointData()->AddArray(meanValues);
+    output_->GetPointData()->AddArray(medianValues);
+    output_->GetPointData()->AddArray(countValues);
   }
   report_progress_changed("Done", 100);
   return true;
@@ -504,14 +541,17 @@ vtkSmartPointer<vtkRenderWindow> mesh_coloration::create_depth_buffer_pipeline()
 {
   vtkNew<vtkRenderer> ren;
   auto ren_win = vtkSmartPointer<vtkRenderWindow>::New();
-  ren_win->OffScreenRenderingOn();
-  ren_win->SetMultiSamples(0);
-  ren_win->AddRenderer(ren);
-  vtkNew<vtkPolyDataMapper> mapper;
-  mapper->SetInputDataObject(input_);
-  vtkNew<vtkActor> actor;
-  actor->SetMapper(mapper);
-  ren->AddActor(actor);
+  if (ren_win)
+  {
+    ren_win->OffScreenRenderingOn();
+    ren_win->SetMultiSamples(0);
+    ren_win->AddRenderer(ren);
+    vtkNew<vtkPolyDataMapper> mapper;
+    mapper->SetInputDataObject(input_);
+    vtkNew<vtkActor> actor;
+    actor->SetMapper(mapper);
+    ren->AddActor(actor);
+  }
   return ren_win;
 }
 
