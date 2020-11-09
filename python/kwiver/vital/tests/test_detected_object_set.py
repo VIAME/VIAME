@@ -160,7 +160,6 @@ class TestDetectedObjectSet(unittest.TestCase):
         self.assertIsInstance(do_at_clone, do)
         self.assertEqual(do_at_clone.__nice__(), "conf=0.75")
 
-
     def test_PyFunc(self):
         t = dos(self.set)
         self.assertIsInstance(str(t), str)

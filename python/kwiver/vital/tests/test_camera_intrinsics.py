@@ -165,7 +165,6 @@ class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
         no_call_pure_virtual_method(SimpleCameraIntrinsics, CameraIntrinsics())
         SimpleCameraIntrinsics(SimpleCameraIntrinsics())
 
-    # TODO
     def test_init_from_string(self):
         ret_str = "0.09 1 1 0.83 2 3 4 2 9"
         ret_intr = SimpleCameraIntrinsics.from_string(ret_str)

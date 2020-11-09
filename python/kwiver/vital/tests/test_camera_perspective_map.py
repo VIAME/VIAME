@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

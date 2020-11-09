@@ -22,7 +22,7 @@ foreach (modname IN LISTS __helper_modnames)
     ${modname}.cxx)
 
   target_link_libraries(python-vital.tests.cpp_helpers-${modname}
-    PUBLIC ${PYTHON_LIBRARIES}
+    PRIVATE ${PYTHON_LIBRARIES}
            vital)
 
   if(NOT SKBUILD)

@@ -37,7 +37,6 @@
 #include <string>
 
 namespace py = pybind11;
-// namespace kv = kwiver::vital;
 using namespace kwiver::vital;
 
 #define REGISTER_VTIAL_META_TRAITS( TAG, NAME, T, ...) \
