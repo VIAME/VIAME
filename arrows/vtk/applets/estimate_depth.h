@@ -21,6 +21,7 @@ class KWIVER_ALGO_VTK_APPLETS_EXPORT estimate_depth
 {
 public:
   estimate_depth();
+  virtual ~estimate_depth();
 
   PLUGIN_INFO( "estimate-depth",
                "Depth estimation utility");

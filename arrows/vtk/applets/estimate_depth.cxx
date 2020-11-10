@@ -664,4 +664,7 @@ estimate_depth()
   : d(new priv())
 { }
 
+estimate_depth::
+~estimate_depth() = default;
+
 } } } // end namespace
