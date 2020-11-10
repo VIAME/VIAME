@@ -231,6 +231,9 @@ public:
     config->subblock_view("video_reader")->merge_config(
       kwiver::tools::load_default_video_input_config(video_source));
 
+    config->subblock_view("mask_reader")->merge_config(
+      kwiver::tools::load_default_video_input_config(mask_source));
+
     config->set_value("video_source", video_source,
       "Path to an input file to be opened as a video. "
       "This could be either a video file or a text file "
