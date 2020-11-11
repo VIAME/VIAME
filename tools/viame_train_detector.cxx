@@ -1151,13 +1151,13 @@ main( int argc, char* argv[] )
 
           if( det->type() )
           {
-            for( auto t : *det->type() )
+            for( std::string gt_class : det->type()->all_class_names() )
             {
-              std::string gt_class = *(t.first);
+              std::cout << "~~ " << gt_class << std::endl;
 
               if( !model_labels || model_labels->has_class_name( gt_class ) )
               {
-                if( t.second > threshold )
+                if( det->type()->score( gt_class ) > threshold )
                 {
                   if( model_labels )
                   {
