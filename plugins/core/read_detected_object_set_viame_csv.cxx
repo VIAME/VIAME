@@ -348,6 +348,8 @@ read_detected_object_set_viame_csv::priv
 
     bool found_optional_field = false;
 
+    std::cout << std::endl << "PARSED TYPES: ";
+
     for( unsigned i = COL_TOT; i < col.size(); i+=2 )
     {
       if( col[i].empty() || col[i][0] == '(' )
@@ -355,6 +357,8 @@ read_detected_object_set_viame_csv::priv
         found_optional_field = true;
         break;
       }
+
+      std::cout << col[i] << " ";
 
       if( col.size() < i + 2 )
       {
