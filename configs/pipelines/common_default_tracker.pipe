@@ -23,4 +23,5 @@ process tracker
 
   relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
   relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
+  :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
