@@ -1149,15 +1149,17 @@ main( int argc, char* argv[] )
         {
           bool add_detection = false;
 
-          if( det->type() )
+          auto det_type = det->type();
+
+          if( det_type )
           {
-            for( std::string gt_class : det->type()->all_class_names() )
+            for( std::string gt_class : det_type->all_class_names() )
             {
               std::cout << "~~ " << gt_class << std::endl;
 
               if( !model_labels || model_labels->has_class_name( gt_class ) )
               {
-                if( det->type()->score( gt_class ) > threshold )
+                if( det_type->score( gt_class ) > threshold )
                 {
                   if( model_labels )
                   {
@@ -1170,7 +1172,7 @@ main( int argc, char* argv[] )
               }
               else
               {
-                det->type()->delete_score( gt_class );
+                det_type->delete_score( gt_class );
 
                 if( data_warning_writer &&
                     std::find(
