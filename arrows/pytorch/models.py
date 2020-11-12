@@ -73,15 +73,18 @@ class Siamese(nn.Module):
         return output1
 
 
-# Appearance LSTM
+# LSTMs
 # ==================================================================
-class AppearanceLSTM(nn.Module):
-    def __init__(self):
-        super(AppearanceLSTM, self).__init__()
+class BaseLSTM(nn.Module):
+    def __init__(self, f_in_num, normalized):
+        super(BaseLSTM, self).__init__()
 
-        self.target_fc = nn.Linear(g_config.A_F_num, g_config.H)
+        self.normalized = normalized
+        if normalized:
+            self.bn = nn.BatchNorm1d(f_in_num)
+        self.target_fc = nn.Linear(f_in_num, g_config.H)
         self.lstm = nn.LSTM(
-            input_size=g_config.A_F_num,
+            input_size=f_in_num,
             hidden_size=g_config.H,
             num_layers=1,
             batch_first=True
@@ -92,40 +95,11 @@ class AppearanceLSTM(nn.Module):
 
     # TODO: we may need to add hidden status from previous
     def forward(self, track_input, target_input):
-        target_out = self.target_fc(target_input)
-        r_out, (h_t, c_t) = self.lstm(track_input, None)
-
-        outs = []
-        relu_outs = []
-        for i in range(g_config.timeStep):
-            h_t = r_out[:, i, :]
-            combined_out = torch.cat((h_t, target_out), 1)
-            fc1_output = self.fc1(combined_out)
-            relu_output = self.relu(fc1_output)
-            relu_outs.append(relu_output)
-            outs.append(self.fc2(relu_output))
-
-        return torch.stack(outs, dim=1), torch.stack(relu_outs, dim=1)
-
-
-# Interaction LSTM
-# ==================================================================
-class InteractionLSTM(nn.Module):
-    def __init__(self):
-        super(InteractionLSTM, self).__init__()
-
-        self.target_fc = nn.Linear(g_config.I_F_num, g_config.H)
-        self.lstm = nn.LSTM(
-            input_size=g_config.I_F_num,
-            hidden_size=g_config.H,
-            num_layers=1,
-            batch_first=True
-        )
-        self.fc1 = nn.Linear(g_config.H * 2, g_config.K)
-        self.fc2 = nn.Linear(g_config.K, 2)
-        self.relu = nn.ReLU()
-
-    def forward(self, track_input, target_input):
+        if self.normalized:
+            # Put all input into one batch and normalize it
+            all_input = torch.cat((track_input, target_input.unsqueeze(1)), 1)
+            all_input_norm = self.bn(all_input.transpose(1, 2)).transpose(1, 2)
+            track_input, target_input = all_input_norm[:, :-1], all_input_norm[:, -1]
 
         target_out = self.target_fc(target_input)
         r_out, (h_t, c_t) = self.lstm(track_input, None)
@@ -143,73 +117,24 @@ class InteractionLSTM(nn.Module):
         return torch.stack(outs, dim=1), torch.stack(relu_outs, dim=1)
 
 
-# Motion LSTM
-# ==================================================================
-class MotionLSTM(nn.Module):
-    def __init__(self):
-        super(MotionLSTM, self).__init__()
-
-        self.target_fc = nn.Linear(g_config.M_F_num, g_config.H)
-        self.lstm = nn.LSTM(
-            input_size=g_config.M_F_num,
-            hidden_size=g_config.H,
-            num_layers=1,
-            batch_first=True
-        )
-        self.fc1 = nn.Linear(g_config.H * 2, g_config.K)
-        self.fc2 = nn.Linear(g_config.K, 2)
-        self.relu = nn.ReLU()
-
-    def forward(self, track_input, target_input):
-        target_out = self.target_fc(target_input)
-        r_out, (h_t, c_t) = self.lstm(track_input, None)
-
-        outs = []
-        relu_outs = []
-        for i in range(g_config.timeStep):
-            h_t = r_out[:, i, :]
-            combined_out = torch.cat((h_t, target_out), 1)
-            fc1_output = self.fc1(combined_out)
-            relu_output = self.relu(fc1_output)
-
-            relu_outs.append(relu_output)
-            outs.append(self.fc2(relu_output))
-
-        return torch.stack(outs, dim=1), torch.stack(relu_outs, dim=1)
+class AppearanceLSTM(BaseLSTM):
+    def __init__(self, normalized):
+        super(AppearanceLSTM, self).__init__(g_config.A_F_num, normalized)
 
 
-# BBox area and w to h ratio LSTM
-# ==================================================================
-class BBoxLSTM(nn.Module):
-    def __init__(self):
-        super(BBoxLSTM, self).__init__()
+class InteractionLSTM(BaseLSTM):
+    def __init__(self, normalized):
+        super(InteractionLSTM, self).__init__(g_config.I_F_num, normalized)
 
-        self.target_fc = nn.Linear(g_config.B_F_num, g_config.H)
-        self.lstm = nn.LSTM(
-            input_size=g_config.B_F_num,
-            hidden_size=g_config.H,
-            num_layers=1,
-            batch_first=True
-        )
-        self.fc1 = nn.Linear(g_config.H * 2, g_config.K)
-        self.fc2 = nn.Linear(g_config.K, 2)
-        self.relu = nn.ReLU()
 
-    def forward(self, track_input, target_input):
-        target_out = self.target_fc(target_input)
-        r_out, (h_t, c_t) = self.lstm(track_input, None)
+class MotionLSTM(BaseLSTM):
+    def __init__(self, normalized):
+        super(MotionLSTM, self).__init__(g_config.M_F_num, normalized)
 
-        outs = []
-        relu_outs = []
-        for i in range(g_config.timeStep):
-            h_t = r_out[:, i, :]
-            combined_out = torch.cat((h_t, target_out), 1)
-            fc1_output = self.fc1(combined_out)
-            relu_output = self.relu(fc1_output)
-            relu_outs.append(relu_output)
-            outs.append(self.fc2(relu_output))
 
-        return torch.stack(outs, dim=1), torch.stack(relu_outs, dim=1)
+class BBoxLSTM(BaseLSTM):
+    def __init__(self, normalized):
+        super(BBoxLSTM, self).__init__(g_config.B_F_num, normalized)
 
 
 # Target LSTM
@@ -217,52 +142,41 @@ class BBoxLSTM(nn.Module):
 class TargetLSTM(nn.Module):
     def __init__(self, app_model='', motion_model='', interaction_model='', bbox_model='',
                  model_list=(RnnType.Appearance, RnnType.Motion, RnnType.Interaction),
-                 use_gpu_flag=True):
+                 normalized=False, use_gpu_flag=True):
         super(TargetLSTM, self).__init__()
 
         self.model_list = model_list
 
-        if RnnType.Appearance in self.model_list:
+        def load_model(make_model, model_path):
+            """Call make_model and move the resulting model to GPU if use_gpu_flag
+            is true and initialize it from model_path if truthy.
+
+            """
+            model = make_model(normalized=normalized)
             if use_gpu_flag:
-                self.appearance = AppearanceLSTM().cuda()
-            else:
-                self.appearance = AppearanceLSTM()
-            if app_model:
-                snapshot = torch.load(app_model)
-                self.appearance.load_state_dict(snapshot['state_dict'])
+                model = model.cuda()
+            if model_path:
+                snapshot = torch.load(model_path)
+                model.load_state_dict(snapshot['state_dict'])
+            return model
+
+        if RnnType.Appearance in self.model_list:
+            self.appearance = load_model(AppearanceLSTM, app_model)
 
         if RnnType.Motion in self.model_list:
-            if use_gpu_flag:
-                self.motion = MotionLSTM().cuda()
-            else:
-                self.motion = MotionLSTM()
-            if motion_model:
-                snapshot = torch.load(motion_model)
-                self.motion.load_state_dict(snapshot['state_dict'])
+            self.motion = load_model(MotionLSTM, motion_model)
 
         if RnnType.Interaction in self.model_list:
-            if use_gpu_flag:
-                self.interaction = InteractionLSTM().cuda()
-            else:
-                self.interaction = InteractionLSTM()
-            if interaction_model:
-                snapshot = torch.load(interaction_model)
-                self.interaction.load_state_dict(snapshot['state_dict'])
+            self.interaction = load_model(InteractionLSTM, interaction_model)
 
         if RnnType.BBox in self.model_list:
-            if use_gpu_flag:
-                self.bbar = BBoxLSTM().cuda()
-            else:
-                self.bbar = BBoxLSTM()
-            if bbox_model:
-                snapshot = torch.load(bbox_model)
-                self.bbar.load_state_dict(snapshot['state_dict'])
+            self.bbar = load_model(BBoxLSTM, bbox_model)
 
         self.lstm = nn.LSTM(
             input_size=g_config.K * len(model_list),
             hidden_size=g_config.H,
             num_layers=1,
-            batch_first=True
+            batch_first=True,
         )
 
         self.fc1 = nn.Linear(g_config.H, 2)

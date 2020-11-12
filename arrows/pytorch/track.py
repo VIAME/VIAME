@@ -89,12 +89,11 @@ class track(object):
 
     def duplicate_track_state(self, timestep_len = 6):
         du_track = track(self.track_id)
-        du_track.track_state_list = list(self.track_state_list)
+        tsl = self.track_state_list
+        tsl = [tsl[0]] * (timestep_len - len(tsl)) + tsl
+        du_track.track_state_list = tsl
         du_track.updated_flag = self.updated_flag
         du_track.max_conf = self.max_conf
-
-        for _ in range(timestep_len - len(du_track)):
-            du_track.append(du_track[-1])
 
         return du_track
 
