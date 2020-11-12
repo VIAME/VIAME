@@ -176,7 +176,7 @@ set( CORE_PIPELINE_FILES
   pipelines/database_apply_svm_models.pipe
   pipelines/detector_default.pipe
   pipelines/detector_extract_chips.pipe
-  pipelines/detector_generic.pipe
+  pipelines/detector_generic_proposals.pipe
   pipelines/detector_local.pipe
   pipelines/detector_local_left.pipe
   pipelines/detector_simple_hough.pipe
