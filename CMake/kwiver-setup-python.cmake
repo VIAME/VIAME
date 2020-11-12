@@ -216,6 +216,7 @@ if (KWIVER_ENABLE_TESTS)
 
   message(STATUS "Python and testing enabled.")
   message(STATUS "Searching for Python3 Interp...")
+  set(PYTHON_TEST_EXE "${PYTHON_EXECUTABLE}")
   # locate the python3 install to gather info for venv creation
   # determine if the package is conda
   find_package(Python3 COMPONENTS Interpreter)
@@ -275,7 +276,8 @@ if (KWIVER_ENABLE_TESTS)
                 Python tests may be run without garuntee of dependencies")
       else()
         # conda comes with a pip install so this should be flavor agnostic
-        set(PIP_COMMAND "${Python3_EXECUTABLE}" "-m" "pip" "-q")
+        set(PYTHON_TEST_EXE "${Python3_EXECUTABLE}")
+        set(PIP_COMMAND "${PYTHON_TEST_EXE}" "-m" "pip" "-q")
         set(PIP_UPGRADE_COMMAND ${PIP_COMMAND} "install" "--upgrade" "pip")
         set(PIP_INSTALL_TEST_DEPS_COMMAND ${PIP_COMMAND}
                         "install"
@@ -301,18 +303,18 @@ if (KWIVER_ENABLE_TESTS)
   #
   #
   if (VENV_CREATED)
-    set(PYTEST_RUNNER "${Python3_EXECUTABLE} -m pytest")
     set(PYTEST_LOC "${VENV_DIR}/pytest")
   else()
-    find_program(PYTEST_RUNNER NAMES
+    find_program(PYTEST_EXECUTABLE NAMES
     "pytest")
-    set(PYTEST_LOC PYTEST_RUNNER)
+    if(PYTEST_EXECUTABLE)
+      set(PYTEST_LOC PYTEST_EXECUTABLE)
+    endif()
   endif()
-  if (PYTEST_RUNNER)
-
+  if (PYTEST_LOC)
+    set(PYTEST_RUNNER "${PYTHON_TEST_EXE} -m pytest")
     message(STATUS "Found pytest at ${PYTEST_LOC}.\n"
             "Python tests will be run if testing is enabled. pytest runner: ${PYTEST_RUNNER}")
-
   else()
     message(STATUS "pytest not found, Python tests will not be run.\
            (To run install pytest compatible with Python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})")
