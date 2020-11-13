@@ -305,10 +305,12 @@ if (KWIVER_ENABLE_TESTS)
   if (VENV_CREATED)
     set(PYTEST_LOC "${VENV_DIR}/pytest")
   else()
-    find_program(PYTEST_EXECUTABLE NAMES
-    "pytest")
-    if(PYTEST_EXECUTABLE)
-      set(PYTEST_LOC PYTEST_EXECUTABLE)
+    # TODO: once the issue with pytest on the CI machines is resolved, remove import sys and print statement
+    execute_process(COMMAND ${PYTHON_TEST_EXE} "-c" "import pytest; import sys; print(sys.modules['pytest']"
+                    RESULT_VARIABLE PYTEST_FOUND
+                    OUTPUT_VARIABLE PYTEST_EXE)
+    if(PYTEST_FOUND AND NOT PYTEST_FOUND GREATER 0)
+      set(PYTEST_LOC ${PYTEST_EXE})
     endif()
   endif()
   if (PYTEST_LOC)
