@@ -1,7 +1,6 @@
 # ==================================================================================
-# Commonly used default detector when the user hasn't specified one.
-#
-# Classifies vertebrate vs invertebrate vs background.
+# Default fish detector.
+# ==================================================================================
 
 process detector_input
   :: image_filter
@@ -11,6 +10,23 @@ process detector_input
     :format                                    byte
     :force_three_channel                       true
   endblock
+
+process detector_image_filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+
+  block filter:ocv_enhancer
+    :auto_balance                              true
+    :apply_smoothing                           false
+    :apply_denoising                           false
+    :force_8bit                                false
+    :apply_clahe                               false
+    :clip_limit                                3
+    :saturation                                1.0
+  endblock
+
+connect from detector_input.image
+        to   detector_image_filter.image
 
 process detector1
   :: image_object_detector
@@ -29,7 +45,7 @@ process detector1
     endblock
   endblock
 
-connect from detector_input.image
+connect from detector_image_filter.image
         to   detector1.image
 
 process detector_output
