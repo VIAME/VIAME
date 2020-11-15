@@ -269,11 +269,11 @@ set( CORE_PIPELINE_FILES
 
 if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
-    pipelines/embedded_single_stream/fish_detector_without_motion.pipe
-    pipelines/embedded_single_stream/fish_tracker.pipe
     pipelines/embedded_single_stream/filter_debayer.pipe
     pipelines/embedded_single_stream/filter_debayer_and_enhance.pipe
     pipelines/embedded_single_stream/filter_enhance.pipe
+    pipelines/embedded_single_stream/fish_detector_without_motion.pipe
+    pipelines/embedded_single_stream/fish_tracker.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_0001fr.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe
