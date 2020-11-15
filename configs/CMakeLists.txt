@@ -269,7 +269,7 @@ set( CORE_PIPELINE_FILES
 
 if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
-    pipelines/embedded_single_stream/fish_detector.pipe
+    pipelines/embedded_single_stream/fish_without_motion_detector.pipe
     pipelines/embedded_single_stream/fish_tracker.pipe
     pipelines/embedded_single_stream/filter_debayer.pipe
     pipelines/embedded_single_stream/filter_debayer_and_enhance.pipe
