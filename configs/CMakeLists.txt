@@ -3,7 +3,7 @@
 ##
 if( VIAME_DOWNLOAD_MODELS )
 
-  # GUI Background Context View
+  # GUI background context view
   if( VIAME_ENABLE_VIVIA )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5afe6c018d777f15ebe1d6f2/download
@@ -12,7 +12,7 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/gui-params )
   endif()
 
-  # PyTorch Detection, Tracking And Rapid Model Generation Models
+  # PyTorch detection, tracking, and training models
   if( VIAME_ENABLE_PYTORCH )
 
     # Default default and generic detection models
@@ -74,18 +74,21 @@ if( VIAME_DOWNLOAD_MODELS )
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
 
+    # Default multi-target tracking models
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5facb1bb50a41e3d194d2af6/download
       eb66d389e7fd58529b5cd4b00d6b5058
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.2.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
+    # Default descriptor models
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5bad56178d777f06b908c47c/download
       3fe6c43e8bf6ab49cb8f6687f38bdbd6
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
+    # Project specific pytorch models
     if( VIAME_DOWNLOAD_MODELS-SEA-LION )
       DownloadAndInstallAddOn(
         https://data.kitware.com/api/v1/item/5f750f1c50a41e3d19bc97bb/download
@@ -149,7 +152,7 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
-  # Mixed Models
+  # Mixed pipelines and models provided by add-on packages
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     if( WIN32 )
       DownloadAndInstallAddOn(
