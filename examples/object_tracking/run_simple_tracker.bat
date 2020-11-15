@@ -8,7 +8,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\tracker_default.sfd.desc.pipe" ^
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\tracker_fish.sfd.pipe" ^
                   -s input:video_filename=input_list.txt
 
 pause
