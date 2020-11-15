@@ -27,7 +27,7 @@ elseif( APPLE )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_default_tracker.sh
+       run_fish_tracker.sh
        run_generic_tracker.sh
        run_mouss_tracker.sh
        run_pysot_tracker.sh
