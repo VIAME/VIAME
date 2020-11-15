@@ -1,0 +1,75 @@
+# ========================================================================================
+#
+# ResNet Classifier on Fish Detections
+#
+# ========================================================================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process fish_detector
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                640
+    :chip_height                               640
+    :chip_adaptive_thresh                      1200000
+
+    block detector:netharn
+      relativepath deployed = $ENV{VIAME_INSTALL}/configs/pipelines/models/fish_no_motion_detector.zip
+    endblock
+  endblock
+
+connect from detector_input.image
+        to   fish_detector.image
+
+# ========================================================================================
+
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
+
+process svm_refiner
+  :: refine_detections
+  :refiner:type                                svm_refine
+  relativepath refiner:svm_refine:model_dir =  .
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                                nms
+  
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.5
+    :output_scale_factor                       1.1
+  endblock
+
+connect from detector_input.image
+        to   descriptor.image
+connect from detector_input.image
+        to   svm_refiner.image
+connect from detector_input.image
+        to   nms_refiner.image
+
+connect from fish_detector.detected_object_set
+        to   descriptor.detected_object_set
+connect from descriptor.detected_object_set
+        to   svm_refiner.detected_object_set
+connect from svm_refiner.detected_object_set
+        to   nms_refiner.detected_object_set
+
+# ========================================================================================
+
+process detector_output
+  :: merge_detection_sets
+
+connect from nms_refiner.detected_object_set
+        to   detector_output.detected_object_set1
