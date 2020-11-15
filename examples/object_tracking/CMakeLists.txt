@@ -9,7 +9,7 @@ set( EXAMPLE_INSTALL_FILES
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_default_tracker.bat
+       run_fish_tracker.bat
        run_generic_tracker.bat
        run_mouss_tracker.bat
        run_pysot_tracker.bat
@@ -18,7 +18,7 @@ if( WIN32 )
 elseif( APPLE )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_default_tracker.sh
+       run_fish_tracker.sh
        run_generic_tracker.sh
        run_mouss_tracker.sh
        run_pysot_tracker.sh
