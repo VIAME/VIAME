@@ -26,7 +26,7 @@ process fish_detector
     :chip_adaptive_thresh                      1200000
 
     block detector:netharn
-      relativepath deployed = $ENV{VIAME_INSTALL}/configs/pipelines/models/fish_no_motion_detector.zip
+      :deployed $ENV{VIAME_INSTALL}/configs/pipelines/models/fish_no_motion_detector.zip
     endblock
   endblock
 
