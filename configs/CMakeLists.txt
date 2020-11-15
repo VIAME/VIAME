@@ -359,6 +359,7 @@ if( VIAME_ENABLE_SMQTK )
     pipelines/smqtk_query.pipe
     pipelines/smqtk_train_itq.json
     pipelines/train_svm_full_frame_classifier.viame_csv.conf
+    pipelines/train_svm_over_fish_detections.viame_csv.conf
     pipelines/train_svm_over_generic_detections.viame_csv.conf )
 endif()
 
