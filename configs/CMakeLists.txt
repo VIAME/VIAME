@@ -18,15 +18,34 @@ if( VIAME_DOWNLOAD_MODELS )
     # Default default and generic detection models
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5facbbce50a41e3d194d6b4f/download
-        f405a233df188f8558527faeb1f5112f
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_detection-v1.0.4.tar.gz
+        https://data.kitware.com/api/v1/item/5fb1924a50a41e3d1956a3b3/download
+        b2b8406cb14bf1c890fdd79e269404d1
+        ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5fb1926250a41e3d1956a3c5/download
+        f4349546a7618366ec75a46291f052a1
+        ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     elseif( VIAME_ENABLE_PYTORCH-MMDET )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5cdda0b78d777f072bb09919/download
-        63848830dd40b9b1ae9e3a589d4dc8f4
-        ${VIAME_DOWNLOAD_DIR}/models-mmdet_detection-v1.1.0.tar.gz
+        https://data.kitware.com/api/v1/item/5fb196f250a41e3d1956a407/download
+        c6e0cdf1e903dbe3e261977378a97223
+        ${VIAME_DOWNLOAD_DIR}/models-mmdet_default-v1.4.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5fb1922650a41e3d1956a389/download
+        bf2df19944c55e8a7dc757520c607893
+        ${VIAME_DOWNLOAD_DIR}/models-mmdet_generic-v1.4.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
+
+    # Seed models for model training
+    if( VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_PYTORCH-MMDET )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5fb1922d50a41e3d1956a396/download
+        d1befaf3b64c185f40a29ed2fca87929
+        ${VIAME_DOWNLOAD_DIR}/models-mmdet_primitives-v1.4.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
 
