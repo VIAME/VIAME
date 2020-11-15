@@ -9,13 +9,13 @@ set( EXAMPLE_INSTALL_FILES
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_default.bat
-       run_generic.bat )
+       run_fish_without_motion.bat
+       run_generic_proposals.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_default.sh
-       run_generic.sh )
+       run_fish_without_motion.sh
+       run_generic_proposals.sh )
 endif()
 
 if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
