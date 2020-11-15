@@ -13,7 +13,7 @@ if( VIAME_DOWNLOAD_MODELS )
   endif()
 
   # PyTorch Detection, Tracking And Rapid Model Generation Models
-  if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
+  if( VIAME_ENABLE_PYTORCH )
 
     # Default default and generic detection models
     if( VIAME_ENABLE_PYTORCH-NETHARN )
