@@ -59,11 +59,13 @@ if( VIAME_ENABLE_SMQTK )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_svm_viame_csv.bat )
+         train_fish_svm_viame_csv.bat
+         train_generic_svm_viame_csv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_svm_viame_csv.sh )
+         train_fish_svm_viame_csv.sh
+         train_generic_svm_viame_csv.sh )
   endif()
 endif()
 
