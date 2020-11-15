@@ -8,7 +8,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\detector_default.pipe" ^
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\detector_fish_without_motion.pipe" ^
                   -s input:video_filename=input_image_list_small_set.txt
 
 pause
