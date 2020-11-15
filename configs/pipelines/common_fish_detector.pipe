@@ -25,7 +25,7 @@ process detector1
     :chip_adaptive_thresh                      1200000
 
     block detector:netharn
-      relativepath deployed =                  models/default_detector.zip
+      relativepath deployed =                  models/fish_no_motion_detector.zip
     endblock
   endblock
 

@@ -17,7 +17,7 @@ include common_default_input_with_downsampler.pipe
 
 # ================================== DETECTOR ======================================
 
-include common_default_detector_with_filter.pipe
+include common_fish_detector_with_filter.pipe
 
 connect from downsampler.output_1
         to   detector_input.image

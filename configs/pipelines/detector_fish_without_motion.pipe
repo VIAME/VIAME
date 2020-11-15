@@ -14,7 +14,7 @@ include common_default_input_with_downsampler.pipe
 
 # =================================== DETECTOR =====================================
 
-include common_default_detector_with_filter.pipe
+include common_fish_detector_with_filter.pipe
 
 process detector_writer
   :: detected_object_output

@@ -3,7 +3,7 @@
 #
 # Classifies vertebrate vs invertebrate vs inorganic.
 
-include common_default_detector.pipe
+include common_fish_detector.pipe
 
 process nms_refiner
   :: refine_detections

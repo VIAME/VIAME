@@ -2,7 +2,7 @@ config _scheduler
   type = pythread_per_process
 
 include common_default_input_with_downsampler.pipe
-include common_default_detector_with_filter.pipe
+include common_fish_detector_with_filter.pipe
 include common_stabilized_iou_tracker.pipe
 
 connect from downsampler.output_1
