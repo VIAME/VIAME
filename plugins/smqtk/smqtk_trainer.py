@@ -57,6 +57,7 @@ class SMQTKTrainer( TrainDetector ):
 
         self._mode = "detector"
         self._gt_frames_only = False
+        self._ingest_pipeline = ""
         self._pipeline_template = ""
         self._output_directory = "category_models"
 
@@ -64,6 +65,7 @@ class SMQTKTrainer( TrainDetector ):
         cfg = super( TrainDetector, self ).get_configuration()
         cfg.set_value( "mode", self._mode )
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
+        cfg.set_value( "ingest_pipeline", self._ingest_pipeline )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "output_directory", self._output_directory )
         return cfg
@@ -74,17 +76,18 @@ class SMQTKTrainer( TrainDetector ):
 
         self._mode = str( cfg.get_value( "mode" ) )
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
+        self._ingest_pipeline = str( cfg.get_value( "ingest_pipeline" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._output_directory = str( cfg.get_value( "output_directory" ) )
 
-        if self._mode == "detector":
-            pipe_file = "index_default.svm.pipe"
-        elif self._gt_frames_only:
-            pipe_file = "index_full_frame.svm.annot_only.pipe"
-        else:
-            pipe_file = "index_full_frame.svm.pipe"
-
-        self._ingest_pipeline = os.path.join( "pipelines", pipe_file )
+        if not self._ingest_pipeline:
+            if self._mode == "detector":
+                pipe_file = "index_default.svm.pipe"
+            elif self._gt_frames_only:
+                pipe_file = "index_full_frame.svm.annot_only.pipe"
+            else:
+                pipe_file = "index_full_frame.svm.pipe"
+            self._ingest_pipeline = os.path.join( "pipelines", pipe_file )
 
         self._viame_install = os.environ['VIAME_INSTALL']
 

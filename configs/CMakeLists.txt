@@ -230,6 +230,7 @@ set( CORE_PIPELINE_FILES
   pipelines/index_default.svm.pipe
   pipelines/index_default.trk.pipe
   pipelines/index_existing.pipe
+  pipelines/index_fish.svm.pipe
   pipelines/index_full_frame.pipe
   pipelines/index_full_frame.svm.pipe
   pipelines/index_full_frame.svm.annot_only.pipe

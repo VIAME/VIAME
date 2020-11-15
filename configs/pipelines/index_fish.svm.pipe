@@ -1,0 +1,159 @@
+# Ingest video pipeline using pytorch descriptors
+#
+# Runs a multi-node object tracking, descriptor generation, and indexing pipeline
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+config _scheduler
+   :type                                       pythread_per_process
+
+# ================================== VIDEO INPUT ===================================
+
+include common_default_input_with_downsampler.pipe
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+  :reader:viame_csv:confidence_override        0.15
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
+# =================================== DETECTOR =====================================
+
+include common_fish_detector.pipe
+
+connect from downsampler.output_1
+        to   detector_input.image
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detection_reader.detected_object_set
+        to   detector_merger.detected_object_set1
+connect from detector_output.detected_object_set
+        to   detector_merger.detected_object_set2
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.65
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+process detector_filter
+  :: detected_object_filter
+  :filter:type                                 class_probablity_filter
+
+  block filter:class_probablity_filter
+    :threshold                                 0.001
+    :keep_all_classes                          true
+    :keep_classes                              generic_object_proposal
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   nms_refiner.detected_object_set
+connect from nms_refiner.detected_object_set
+        to   detector_filter.detected_object_set
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   [INSERT_ME]
+  :writer:type                                 viame_csv
+
+connect from detector_filter.detected_object_set
+        to   detector_writer.detected_object_set
+
+# ================================= CORE TRACKER ===================================
+#
+# In this case no tracking is performed due to having single frame detections, we
+# just link them into short 1-frame tracks for database indexing purposes.
+
+include common_default_descriptor.pipe
+
+connect from downsampler.output_1
+        to   descriptor.image
+connect from downsampler.timestamp
+        to   descriptor.timestamp
+connect from detector_filter.detected_object_set
+        to   descriptor.detected_object_set
+
+include common_default_initializer.pipe
+
+connect from downsampler.output_1
+        to   track_initializer.image
+connect from downsampler.timestamp
+        to   track_initializer.timestamp
+connect from descriptor.detected_object_set
+        to   track_initializer.detected_object_set
+
+# ============================ ANALYZE AND INDEX DATA ==============================
+
+process track_descriptor
+ :: compute_track_descriptors
+  :add_custom_uid                             true
+  :uid_basename                               [INSERT_ME]
+  :computer:type                              average
+
+connect from downsampler.output_1
+        to   track_descriptor.image
+connect from downsampler.timestamp
+        to   track_descriptor.timestamp
+connect from track_initializer.object_track_set
+        to   track_descriptor.object_track_set
+
+process write_descriptor_ids
+ :: extract_desc_ids_for_training
+  :category_file                              [INSERT_ME]
+  :output_folder                              [INSERT_ME]
+  :positive_min_overlap                       0.65
+  :negative_max_overlap                       0.10
+
+connect from detection_reader.detected_object_set
+        to   write_descriptor_ids.detected_object_set
+connect from track_descriptor.track_descriptor_set
+        to   write_descriptor_ids.track_descriptor_set
+
+process track_writer_db
+  :: write_object_track
+  :file_name                                  none
+  :writer:type                                db
+  :writer:db:conn_str                         postgresql:host=localhost;user=postgres
+  :writer:db:video_name                       [INSERT_ME]
+
+connect from downsampler.timestamp
+        to   track_writer_db.timestamp
+connect from track_initializer.object_track_set
+        to   track_writer_db.object_track_set
+
+process descriptor_writer_db
+  :: write_track_descriptor
+  :file_name                                  none
+  :writer:type                                db
+  :writer:db:conn_str                         postgresql:host=localhost;user=postgres
+  :writer:db:video_name                       [INSERT_ME]
+
+connect from track_descriptor.track_descriptor_set
+        to   descriptor_writer_db.track_descriptor_set
+
+process smqtk_indexer
+  :: smqtk_ingest_descriptors
+  relativepath config_file =                  smqtk_postgres_ingest.json
+
+connect from track_descriptor.descriptor_set
+        to   smqtk_indexer.descriptor_set
+
+connect from track_descriptor.string_vector
+        to   smqtk_indexer.string_vector
+
+# -- end of file --
