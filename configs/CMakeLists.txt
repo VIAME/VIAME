@@ -190,19 +190,19 @@ install( DIRECTORY prj-windows
 set( CORE_PIPELINE_FILES
   pipelines/classify_detections_svm.pipe
   pipelines/common_default_descriptor.pipe
-  pipelines/common_default_detector.pipe
-  pipelines/common_default_detector_with_filter.pipe
   pipelines/common_default_initializer.pipe
   pipelines/common_default_input.pipe
   pipelines/common_default_input_with_downsampler.pipe
   pipelines/common_default_tracker.pipe
+  pipelines/common_fish_detector.pipe
+  pipelines/common_fish_detector_with_filter.pipe
   pipelines/common_generic_detector.pipe
   pipelines/common_generic_detector_with_filter.pipe
   pipelines/common_image_stabilizer.pipe
   pipelines/common_stabilized_iou_tracker.pipe
   pipelines/database_apply_svm_models.pipe
-  pipelines/detector_default.pipe
   pipelines/detector_extract_chips.pipe
+  pipelines/detector_fish_without_motion.pipe
   pipelines/detector_generic_proposals.pipe
   pipelines/detector_local.pipe
   pipelines/detector_local_left.pipe
@@ -240,8 +240,8 @@ set( CORE_PIPELINE_FILES
   pipelines/query_retrieval_and_iqr.pipe
   pipelines/query_video_exemplar.pipe
   pipelines/sql_init_table.sql
-  pipelines/tracker_default.pipe
-  pipelines/tracker_default.sfd.pipe
+  pipelines/tracker_fish.pipe
+  pipelines/tracker_fish.sfd.pipe
   pipelines/tracker_generic.pipe
   pipelines/tracker_local.pipe
   pipelines/tracker_stabilized_iou.pipe
@@ -266,8 +266,8 @@ set( CORE_PIPELINE_FILES
 
 if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
-    pipelines/embedded_single_stream/default_detector.pipe
-    pipelines/embedded_single_stream/default_tracker.pipe
+    pipelines/embedded_single_stream/fish_detector.pipe
+    pipelines/embedded_single_stream/fish_tracker.pipe
     pipelines/embedded_single_stream/filter_debayer.pipe
     pipelines/embedded_single_stream/filter_debayer_and_enhance.pipe
     pipelines/embedded_single_stream/filter_enhance.pipe
@@ -429,7 +429,7 @@ endif()
 
 if( VIAME_ENABLE_CAFFE )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/tracker_default.sfd.cfe.pipe
+    pipelines/tracker_fish.sfd.cfe.pipe
     pipelines/index_default.sfd.cfe.pipe )
 endif()
 
