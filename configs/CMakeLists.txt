@@ -17,27 +17,35 @@ if( VIAME_DOWNLOAD_MODELS )
 
     # Default default and generic detection models
     if( VIAME_ENABLE_PYTORCH-NETHARN )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb1924a50a41e3d1956a3b3/download
-        b2b8406cb14bf1c890fdd79e269404d1
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb1926250a41e3d1956a3c5/download
-        f4349546a7618366ec75a46291f052a1
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      if( VIAME_DOWNLOAD_MODELS-GENERIC )
+        DownloadAndExtract(
+          https://data.kitware.com/api/v1/item/5fb1926250a41e3d1956a3c5/download
+          f4349546a7618366ec75a46291f052a1
+          ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.tar.gz
+          ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      endif()
+      if( VIAME_DOWNLOAD_MODELS-FISH )
+        DownloadAndExtract(
+          https://data.kitware.com/api/v1/item/5fb1924a50a41e3d1956a3b3/download
+          b2b8406cb14bf1c890fdd79e269404d1
+          ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.tar.gz
+          ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      endif()
     elseif( VIAME_ENABLE_PYTORCH-MMDET )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb196f250a41e3d1956a407/download
-        c6e0cdf1e903dbe3e261977378a97223
-        ${VIAME_DOWNLOAD_DIR}/models-mmdet_default-v1.4.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb1922650a41e3d1956a389/download
-        bf2df19944c55e8a7dc757520c607893
-        ${VIAME_DOWNLOAD_DIR}/models-mmdet_generic-v1.4.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      if( VIAME_DOWNLOAD_MODELS-GENERIC )
+        DownloadAndExtract(
+          https://data.kitware.com/api/v1/item/5fb1922650a41e3d1956a389/download
+          bf2df19944c55e8a7dc757520c607893
+          ${VIAME_DOWNLOAD_DIR}/models-mmdet_generic-v1.4.tar.gz
+          ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      endif()
+      if( VIAME_DOWNLOAD_MODELS-FISH )
+        DownloadAndExtract(
+          https://data.kitware.com/api/v1/item/5fb196f250a41e3d1956a407/download
+          c6e0cdf1e903dbe3e261977378a97223
+          ${VIAME_DOWNLOAD_DIR}/models-mmdet_default-v1.4.tar.gz
+          ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      endif()
     endif()
 
     # Seed models for model training
