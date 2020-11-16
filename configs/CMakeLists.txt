@@ -279,8 +279,8 @@ if( VIAME_ENABLE_VIVIA )
     pipelines/embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe
     pipelines/embedded_single_stream/generate_empty_frame_lbls_1000fr.pipe
-    pipelines/embedded_single_stream/generic_object_detector.pipe
-    pipelines/embedded_single_stream/generic_object_tracker.pipe
+    pipelines/embedded_single_stream/generic_proposal_detector.pipe
+    pipelines/embedded_single_stream/generic_proposal_tracker.pipe
     pipelines/embedded_single_stream/local_deep_detector.pipe
     pipelines/embedded_single_stream/local_deep_detector_with_def_tracker.pipe
     pipelines/embedded_single_stream/local_deep_detector_with_stab_tracker.pipe
