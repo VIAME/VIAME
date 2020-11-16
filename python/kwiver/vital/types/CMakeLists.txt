@@ -158,6 +158,13 @@ target_link_libraries(python-vital.types-detected_object_type
   PRIVATE ${PYTHON_LIBRARIES}
   vital)
 
+kwiver_add_python_library(essential_matrix
+  vital/types
+  essential_matrix.cxx)
+target_link_libraries(python-vital.types-essential_matrix
+  PRIVATE ${PYTHON_LIBRARIES}
+  vital)
+
 kwiver_add_python_library(feature
   vital/types
   feature.cxx)
@@ -439,6 +446,7 @@ if(NOT SKBUILD)
     detected_object_type
     detected_object
     detected_object_set
+    essential_matrix
     feature
     feature_set
     feature_track_set

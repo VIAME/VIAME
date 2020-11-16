@@ -27,6 +27,7 @@ set(__testable_modnames
   test_descriptor_set
   test_detected_object_type
   test_detected_object
+  test_essential_matrix
   test_feature
   test_feature_set
   test_feature_track_set
@@ -49,6 +50,7 @@ set(__testable_modnames
   test_match_set
   test_mesh
   test_metadata
+  test_metadata_map
   test_metadata_tags
   test_metadata_traits
   test_object_track_state
@@ -57,6 +59,7 @@ set(__testable_modnames
   test_rotation
   test_point
   test_polygon
+  test_sfm_constraints
   test_similarity
   test_timestamp
   test_track
