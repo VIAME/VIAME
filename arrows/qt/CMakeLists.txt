@@ -5,14 +5,12 @@ set( CMAKE_AUTOMOC ON )
 set( qt_sources
   image_container.cxx
   image_io.cxx
-  MetadataView.cxx
   )
 
 set( qt_headers_public
   image_container.h
   image_io.h
   kq_global.h
-  MetadataView.h
   )
 
 set( qt_libraries_public
@@ -55,6 +53,10 @@ kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_qt_export.h
   NOPATH   SUBDIR     arrows/qt
   )
+
+if( KWIVER_ENABLE_QT_EXT )
+  add_subdirectory( widgets )
+endif()
 
 if( KWIVER_ENABLE_TESTS )
   add_subdirectory( tests )

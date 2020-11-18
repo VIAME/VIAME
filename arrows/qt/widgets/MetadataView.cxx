@@ -34,9 +34,9 @@
 
 #include <vital/range/filter.h>
 #include <vital/range/valid.h>
+#include <vital/range/iota.h>
 
 #include <qtColorUtil.h>
-#include <qtIndexRange.h>
 #include <qtSqueezedLabel.h>
 #include <qtStlUtil.h>
 
@@ -51,6 +51,11 @@
 
 namespace kv = kwiver::vital;
 namespace kvr = kwiver::vital::range;
+namespace kaq = kwiver::arrows::qt;
+
+using kaq::MetadataView;
+using kaq::MetadataViewPrivate;
+
 
 QTE_IMPLEMENT_D_FUNC(MetadataView)
 
@@ -265,7 +270,7 @@ void MetadataView::updateMetadata(
   using md_tag_type_t = std::underlying_type<kv::vital_metadata_tag>::type;
   constexpr auto lastMetadataTag =
     static_cast<md_tag_type_t>(kv::VITAL_META_LAST_TAG);
-  for (auto const k : qtIndexRange(lastMetadataTag))
+  for (auto const k : vital::range::iota(lastMetadataTag))
   {
     auto const tag = static_cast<kv::vital_metadata_tag>(k);
     if (mdKeys.contains(tag))

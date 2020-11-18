@@ -28,14 +28,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_QT_METADATAVIEW_H_
-#define KWIVER_ARROWS_QT_METADATAVIEW_H_
+#ifndef KWIVER_ARROWS_QT_WIDGETS_METADATAVIEW_H_
+#define KWIVER_ARROWS_QT_WIDGETS_METADATAVIEW_H_
 
 #include <vital/types/metadata_map.h>
 
 #include <qtGlobal.h>
 
 #include <QScrollArea>
+
+namespace kwiver {
+namespace arrows {
+namespace qt {
 
 class MetadataViewPrivate;
 
@@ -63,5 +67,9 @@ private:
 
   QTE_DISABLE_COPY(MetadataView)
 };
+
+} // namespace qt
+} // namespace arrows
+} // namespace kwiver
 
 #endif
