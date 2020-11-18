@@ -51,10 +51,10 @@
 
 namespace kv = kwiver::vital;
 namespace kvr = kwiver::vital::range;
-namespace kaq = kwiver::arrows::qt;
 
-using kaq::MetadataView;
-using kaq::MetadataViewPrivate;
+namespace kwiver {
+namespace arrows {
+namespace qt {
 
 
 QTE_IMPLEMENT_D_FUNC(MetadataView)
@@ -319,3 +319,7 @@ void MetadataView::updateMetadata(kv::metadata_vector const& mdVec)
 }
 
 //END MetadataView
+
+} // namespace qt
+} // namespace arrows
+} // namespace kwiver
