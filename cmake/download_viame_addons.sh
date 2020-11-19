@@ -8,10 +8,13 @@ export DOWNLOAD_LOCATION=~/VIAME-Addons
 mkdir -p ${DOWNLOAD_LOCATION}
 
 # Download All Optional Packages
+
+# Habcam -
 wget -O ${DOWNLOAD_LOCATION}/download1.zip https://data.kitware.com/api/v1/item/5f9e115f50a41e3d19253c84/download
 unzip -o ${DOWNLOAD_LOCATION}/download1.zip -d ${VIAME_INSTALL}
 
-wget -O ${DOWNLOAD_LOCATION}/download2.zip https://data.kitware.com/api/v1/item/5fad8a9750a41e3d194f4961/download
+# SEFSC -
+wget -O ${DOWNLOAD_LOCATION}/download2.zip https://data.kitware.com/api/v1/item/5fb5f44050a41e3d195fb970/download
 unzip -o ${DOWNLOAD_LOCATION}/download2.zip -d ${VIAME_INSTALL}
 
 # Ensure Download Location is Removed
