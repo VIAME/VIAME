@@ -67,7 +67,6 @@ public:
     f_frame_number_offset(0),
     video_path(""),
     filter_desc("yadif=deint=1"),
-    metadata(0),
     frame_advanced(false),
     end_of_video(true),
     number_of_frames(0),
@@ -111,8 +110,8 @@ public:
   // What you put after -vf in the ffmpeg command line tool
   std::string filter_desc;
 
-  // the buffer of metadata from the data stream
-  std::deque<uint8_t> metadata;
+  // the buffers of metadata from the data streams
+  std::map<int, std::deque<uint8_t>> metadata;
 
   // metadata converter object
   kwiver::vital::convert_metadata converter;
@@ -487,8 +486,21 @@ public:
       else if (this->f_data_indices.find(this->f_packet->stream_index) !=
                this->f_data_indices.end())
       {
-        this->metadata.insert(this->metadata.end(), this->f_packet->data,
-          this->f_packet->data + this->f_packet->size);
+        if (this->metadata.find(this->f_packet->stream_index) != this->metadata.end() )
+        {
+          auto& md = this->metadata[this->f_packet->stream_index];
+          md.insert(md.end(), this->f_packet->data,
+                    this->f_packet->data + this->f_packet->size);
+        }
+        else
+        {
+          std::deque<uint8_t> md;
+          md.insert(md.end(), this->f_packet->data,
+                    this->f_packet->data + this->f_packet->size);
+          this->metadata.insert(
+            std::make_pair(this->f_packet->stream_index, md) );
+        }
+
       }
 
       // De-reference previous packet
@@ -636,34 +648,37 @@ public:
   {
     kwiver::vital::metadata_vector retval;
 
-    // Copy the current raw metadata
-    std::deque<uint8_t> md_buffer = this->metadata;
-
-    kwiver::vital::klv_data klv_packet;
-
-    // If we have collected enough of the stream to make a KLV packet
-    while ( klv_pop_next_packet( md_buffer, klv_packet ) )
+    for (auto md : this->metadata)
     {
-      auto meta = std::make_shared<kwiver::vital::metadata>();
+      // Copy the current raw metadata
+      std::deque<uint8_t> md_buffer = md.second;
 
-      try
-      {
-        converter.convert( klv_packet, *(meta) );
-      }
-      catch ( kwiver::vital::metadata_exception const& e )
-      {
-        LOG_WARN( this->logger, "Metadata exception: " << e.what() );
-        continue;
-      }
+      kwiver::vital::klv_data klv_packet;
 
-      // If the metadata was even partially decided, then add to the list.
-      if ( ! meta->empty() )
+      // If we have collected enough of the stream to make a KLV packet
+      while ( klv_pop_next_packet( md_buffer, klv_packet ) )
       {
-        set_default_metadata( meta );
+        auto meta = std::make_shared<kwiver::vital::metadata>();
 
-        retval.push_back( meta );
-      } // end valid metadata packet.
-    } // end while
+        try
+        {
+          converter.convert( klv_packet, *(meta) );
+        }
+        catch ( kwiver::vital::metadata_exception const& e )
+        {
+          LOG_WARN( this->logger, "Metadata exception: " << e.what() );
+          continue;
+        }
+
+        // If the metadata was even partially decided, then add to the list.
+        if ( ! meta->empty() )
+        {
+          set_default_metadata( meta );
+
+          retval.push_back( meta );
+        } // end valid metadata packet.
+      } // end while
+    }
 
     // if no metadata from the stream, add a basic metadata item
     if ( retval.empty() )
