@@ -29,3 +29,8 @@ kwiver_install_headers(
   SUBDIR     arrows/qt/widgets
   ${qt_headers_public}
   )
+
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_qt_widgets_export.h
+  NOPATH   SUBDIR     arrows/qt/widgets
+  )

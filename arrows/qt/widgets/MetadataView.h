@@ -31,6 +31,7 @@
 #ifndef KWIVER_ARROWS_QT_WIDGETS_METADATAVIEW_H_
 #define KWIVER_ARROWS_QT_WIDGETS_METADATAVIEW_H_
 
+#include <arrows/qt/widgets/kwiver_algo_qt_widgets_export.h>
 #include <vital/types/metadata_map.h>
 
 #include <qtGlobal.h>
@@ -43,7 +44,7 @@ namespace qt {
 
 class MetadataViewPrivate;
 
-class MetadataView : public QScrollArea
+class KWIVER_ALGO_QT_WIDGETS_EXPORT MetadataView : public QScrollArea
 {
   Q_OBJECT
 
