@@ -65,9 +65,6 @@ protected:
   virtual void _step();
 
 private:
-  void sync_step();
-  void async_step();
-
   void make_ports();
   void make_config();
 
