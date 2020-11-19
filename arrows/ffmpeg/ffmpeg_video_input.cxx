@@ -673,6 +673,9 @@ public:
         // If the metadata was even partially decided, then add to the list.
         if ( ! meta->empty() )
         {
+          // Add the data stream index
+          meta->add< vital::VITAL_META_VIDEO_DATA_STREAM_INDEX >( md.first );
+
           set_default_metadata( meta );
 
           retval.push_back( meta );
