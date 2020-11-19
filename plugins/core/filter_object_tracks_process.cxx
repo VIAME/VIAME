@@ -171,7 +171,7 @@ filter_object_tracks_process
 
   for( auto trk : input_tracks->tracks() )
   {
-    if( trk && trk->size() > d->m_required_states )
+    if( trk && trk->size() >= d->m_required_states )
     {
       filtered_tracks.push_back( trk );
     }
