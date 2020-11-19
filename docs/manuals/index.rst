@@ -8,7 +8,7 @@ Summary
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence
 including object detection, object tracking, image mosaicing, stereo measurement,
 image/video search, image/video annotation, rapid model generation, and tools for the
-evaluation of different algorithms. Originally targetting marine species analytics, it now
+evaluation of different algorithms. Originally targeting marine species analytics, it now
 contains many common algorithms and libraries, and is also useful as a generic computer vision
 library. The core infrastructure connecting different system components is currently the
 KWIVER library, which can connect C/C++, python, and matlab nodes together in a graph-like
