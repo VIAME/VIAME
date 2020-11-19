@@ -35,6 +35,7 @@
 #include "align_multimodal_imagery_process.h"
 #include "extract_desc_ids_for_training_process.h"
 #include "filter_frame_process.h"
+#include "filter_object_tracks_process.h"
 #include "full_frame_tracker_process.h"
 #include "track_conductor_process.h"
 #include "write_homography_list_process.h"
@@ -84,6 +85,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Filter frames based on some property" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::filter_object_tracks_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "filter_object_tracks" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Filter object tracks based on different filters" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
