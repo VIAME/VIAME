@@ -1,3 +1,11 @@
+v0.12.1 - 11/19/2020
+====================
+
+
+-Add new default fish detectors, pipeline renames
+
+
+
 v0.12.0 - 10/28/2020
 ====================
 
