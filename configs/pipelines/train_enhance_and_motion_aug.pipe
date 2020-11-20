@@ -80,17 +80,17 @@ process motion_filter
 connect from ensure_grey.image
         to   motion_filter.image
 
-process scale_float
+process float_to_byte
   :: image_filter
   :filter:type                                 vxl_convert_image
 
   block filter:vxl_convert_image
-    :format                                    float
-    :scale_factor                              0.000016
+    :format                                    byte
+    :scale_factor                              0.50
   endblock
 
 connect from motion_filter.image
-        to   scale_float.image
+        to   float_to_byte.image
 
 # ==============================================================================
 
@@ -111,7 +111,7 @@ process motion_writer
 
 connect from in_adapt.output_file_name2
         to   motion_writer.image_file_name
-connect from scale_float.image
+connect from float_to_byte.image
         to   motion_writer.image
 
 connect from motion_writer.success_flag
