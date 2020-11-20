@@ -86,7 +86,7 @@ process scale_float
 
   block filter:vxl_convert_image
     :format                                    float
-    :scale_factor                              0.000015
+    :scale_factor                              0.000016
   endblock
 
 connect from motion_filter.image
