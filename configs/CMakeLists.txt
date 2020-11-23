@@ -346,7 +346,8 @@ if( VIAME_ENABLE_BURNOUT )
     pipelines/burnout_pixel_detection.conf
     pipelines/burnout_train_classifier.conf
     pipelines/detector_burnout.pipe
-    pipelines/filter_burnout.pipe )
+    pipelines/filter_burnout.pipe
+    pipelines/train_adaboost_pixel_classifier.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_SMQTK )
