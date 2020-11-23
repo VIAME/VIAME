@@ -32,6 +32,9 @@ public:
   std::shared_ptr< std::string > serialize_meta( const vital::metadata_vector& elements );
   std::shared_ptr< std::string > serialize_map( const vital::metadata_map::map_metadata_t& frame_map );
   std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
+
+  vital::metadata_map::map_metadata_t deserialize_map(
+      const std::string& message );
   vital::any deserialize( const std::string& message ) override;
 };
 

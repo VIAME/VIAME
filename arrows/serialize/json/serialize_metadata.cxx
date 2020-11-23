@@ -56,49 +56,69 @@ public:
 };
 
 /// Constructor
-serialize_metadata::serialize_metadata() {}
+serialize_metadata
+::serialize_metadata()
+{ }
 
 /// Destructor
-serialize_metadata::~serialize_metadata() {}
+serialize_metadata
+::~serialize_metadata()
+{ }
 
-/// Implementation specific load functionality.
+/// Load in the data from a filename. This file is assumed to exist
 /**
- * Concrete implementations of serialize_metadata class must provide an
- * implementation for this method.
  *
  * \param filename the path to the file the load
- * \returns an image container refering to the loaded image
+ * \returns the metadata map for a video
  */
 kwiver::vital::metadata_map_sptr
 serialize_metadata::load_(std::string const& filename) const
 {
-  return kwiver::vital::metadata_map_sptr();
+  kwiver::vital::metadata_map::map_metadata_t metadata_map;
+
+  std::ifstream fin(filename);
+
+  if ( fin )
+  {
+    std::stringstream buffer;
+    buffer << fin.rdbuf();
+    std::string input_string = buffer.str();
+
+    metadata_map = d_->serializer.deserialize_map(input_string);
+  }
+  else
+  {
+    std::cout << "Couldn't open \"" << filename << "\" for reading.\n";
+  }
+
+  auto metadata_map_ptr = std::make_shared< kwiver::vital::simple_metadata_map >(
+      kwiver::vital::simple_metadata_map( metadata_map ) );
+  return metadata_map_ptr;
 }
 
-/// Implementation specific save functionality.
+/// Save metadata to a file. The containing directory is assumed to exist
 /**
- * Concrete implementations of serialize_metadata class must provide an
- * implementation for this method.
- *
  * \param filename the path to the file to save
- * \param data the image container refering to the image to write
+ * \param data the metadata map for a video
  */
 // TODO see if this should throw something
 void
 serialize_metadata::save_(std::string const& filename,
                           kwiver::vital::metadata_map_sptr data) const
 {
-  auto metadata = data->metadata();
-  std::shared_ptr< std::string > serialized =
-    d_->serializer.serialize_map(metadata);
   std::ofstream fout( filename.c_str() );
 
-  if( ! fout )
+  if( fout )
+  {
+    auto metadata = data->metadata();
+    std::shared_ptr< std::string > serialized =
+      d_->serializer.serialize_map(metadata);
+    fout << *serialized << std::endl;
+  }
+  else
   {
     std::cout << "Couldn't open \"" << filename << "\" for writing.\n";
   }
-
-  fout << *serialized << std::endl;
 }
 
 } } } } // end namespace

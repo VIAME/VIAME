@@ -6,6 +6,7 @@
 #include "load_save.h"
 
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
 #include <vital/internal/cereal/cereal.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
@@ -52,6 +53,20 @@ serialize_map( const vital::metadata_map::map_metadata_t& frame_map )
   }
 
   return std::make_shared< std::string > ( msg.str() );
+}
+
+// ----------------------------------------------------------------------------
+vital::metadata_map::map_metadata_t
+metadata::
+deserialize_map( const std::string& message )
+{
+  std::stringstream msg(message);
+  kwiver::vital::metadata_map::map_metadata_t metadata;
+
+  cereal::JSONInputArchive ar( msg );
+  load( ar, metadata );
+
+  return metadata;
 }
 
 
