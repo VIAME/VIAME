@@ -76,23 +76,23 @@ class TestCameraInstrinsicsBase(unittest.TestCase):
         assert (ci1 != ci2)
 
     def test_get_focal_length(self):
-        assert(CameraIntrinsics().focal_length == 1.)
-        assert(CameraIntrinsics(5.2).focal_length == 5.2)
+        self.assertEqual(CameraIntrinsics().focal_length, 1.)
+        self.assertEqual(CameraIntrinsics(5.2).focal_length, 5.2)
 
     def test_get_aspect_ratio(self):
-        assert(
-            CameraIntrinsics().aspect_ratio == 1.
+        self.assertEqual(
+            CameraIntrinsics().aspect_ratio, 1.
         )
-        assert(
-            CameraIntrinsics(aspect_ratio=2.1).aspect_ratio == 2.1
+        self.assertEqual(
+            CameraIntrinsics(aspect_ratio=2.1).aspect_ratio, 2.1
         )
 
     def test_get_skew(self):
-        assert(
-            CameraIntrinsics().skew == 0.
+        self.assertEqual(
+            CameraIntrinsics().skew, 0.
         )
-        assert(
-            CameraIntrinsics(skew=1.).skew == 1.
+        self.assertEqual(
+            CameraIntrinsics(skew=1.).skew, 1.
         )
 
 class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
