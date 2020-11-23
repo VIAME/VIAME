@@ -322,7 +322,6 @@ class TestVitalCategoryHierarchy(object):
         nt.assert_equals(ch.get_class_parents("class1_0_syn0"), ["class0"])
         nt.assert_equals(ch.get_class_parents("class1_0_syn1"), ["class0"])
 
-
     def test_add_synonym_already_exists(self):
         ch = CategoryHierarchy()
         ch.add_class("class0")

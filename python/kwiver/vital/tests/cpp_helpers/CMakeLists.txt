@@ -8,9 +8,6 @@ set(__helper_modnames
   camera_perspective_helpers
   camera_perspective_map_helpers
   camera_rpc_helpers
-  landmark_helpers
-  landmark_map_helpers
-  match_set_helpers
   metadata_map_helpers
   type_check
   )
@@ -25,9 +22,10 @@ foreach (modname IN LISTS __helper_modnames)
     PRIVATE ${PYTHON_LIBRARIES}
            vital)
 
-  if(NOT SKBUILD)
-    kwiver_create_python_init(vital/tests/cpp_helpers
-      ${modname}
-    )
-  endif()
 endforeach()
+
+if(NOT SKBUILD)
+    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+                              vital/tests/cpp_helpers
+                              __init__)
+endif()

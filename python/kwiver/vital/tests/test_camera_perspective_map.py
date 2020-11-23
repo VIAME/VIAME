@@ -50,58 +50,69 @@ class CameraPerspectiveMapTest(unittest.TestCase):
         self.a3 = scap()
         self.b = {1:self.a,2:self.a2,3:self.a3}
         self.ca = cam(self.b)
+
     def test_constructors(self):
         cam()
         a = scap()
         b = {1:a}
         cam(b)
+
     def test_size(self):
         # size()
         self.assertEqual(self.ca.size(),3)
+
     def test_cameras(self):
         # cameras()
         ret_dict = self.ca.cameras()
         self.assertIsInstance(ret_dict, dict)
         self.assertEqual(len(ret_dict),3)
         nt.assert_equal(ret_dict[1],self.a)
+
     def test_frame_ids(self):
         # get_frame_ids()
         ret_set = self.ca.get_frame_ids()
         self.assertIsInstance(ret_set, set)
         self.assertEqual(len(ret_set), 3)
         self.assertSetEqual(ret_set,{1,2,3})
+
     def test_find(self):
         # find
         ret_persp = self.ca.find(2)
         self.assertIsInstance(ret_persp, scap)
         nt.assert_equal(ret_persp, self.a2)
+
     def test_erase(self):
         # erase
         self.ca.erase(1)
         self.assertEqual(self.ca.size(), 2)
         self.assertEqual(len(self.ca.cameras()), 2)
         self.assertDictEqual(self.ca.cameras(), {2:self.a2, 3:self.a3})
+
     def test_insert(self):
         # insert
         self.ca.insert(1, self.a)
         self.assertDictEqual(self.b, self.ca.cameras())
         self.assertEqual(self.ca.size(), 3)
+
     def test_clone(self):
         # clone
         new_ca = self.ca.clone()
         self.assertIsInstance(new_ca, cam)
         self.assertEqual(new_ca.size(), 3)
         nt.assert_equal(new_ca.cameras().keys(), self.ca.cameras().keys())
+
     def test_clear(self):
         # clear
         self.ca.clear()
         self.assertEqual(self.ca.size(), 0)
         self.assertEqual(len(self.ca.cameras()), 0)
+
     def test_set_from_base_camera_map(self):
         # set_from_base_camera_map
         self.ca.set_from_base_camera_map(self.b)
         self.assertEqual(self.ca.size(), 3)
         self.assertDictEqual(self.ca.cameras(), self.b)
+
 
 class CameraPerspectiveInheritance(cam):
     def __init__(self, cam_dict_):
@@ -110,10 +121,13 @@ class CameraPerspectiveInheritance(cam):
 
     def size(self):
         return len(self.cam_dict)
+
     def cameras(self):
         return self.cam_dict
+
     def get_frame_ids(self):
         return set(self.cam_dict.keys())
+
 
 class TestCamPerspectiveInheritance(unittest.TestCase):
     def test_construct(self):
@@ -121,12 +135,14 @@ class TestCamPerspectiveInheritance(unittest.TestCase):
         a2 = scap()
         cam_dict = {1:a1, 2:a2}
         CameraPerspectiveInheritance(cam_dict)
+
     def test_inheritance(self):
         a1 = scap()
         a2 = scap()
         cam_dct = {1:a1, 2:a2}
         CameraPerspectiveInheritance(cam_dct)
         nt.ok_(issubclass(CameraPerspectiveInheritance, cam))
+
     def test_methods(self):
         a1 = scap()
         a2 = scap()

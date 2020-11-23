@@ -39,20 +39,10 @@ typedef kwiver::vital::match match_t;
 typedef kwiver::vital::match_set match_set_t;
 typedef kwiver::vital::simple_match_set s_match_set_t;
 
-class match_set_trampoline
-: public kv::match_set
-{
-public:
-    using kv::match_set::match_set;
-    size_t size() const override;
-    std::vector< match_t > matches() const override;
-};
-
 PYBIND11_MODULE(match_set, m)
 {
   py::bind_vector<std::vector<match_t>>(m, "MatchVector");
-  py::class_< match_set_t, std::shared_ptr<match_set_t>, match_set_trampoline >(m, "BaseMatchSet")
-  .def(py::init<>())
+  py::class_< match_set_t, std::shared_ptr<match_set_t> >(m, "BaseMatchSet")
   .def("size", &match_set_t::size)
   .def("matches", &match_set_t::matches, py::return_value_policy::reference_internal)
 
@@ -79,28 +69,4 @@ PYBIND11_MODULE(match_set, m)
   .def(py::init<>())
   .def(py::init<const std::vector<match_t>& >());
 
-}
-
-size_t
-match_set_trampoline
-::size() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    size_t,
-    kv::match_set,
-    size,
-
-  );
-}
-
-std::vector< match_t >
-match_set_trampoline
-::matches() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    std::vector< match_t >,
-    kv::match_set,
-    matches,
-
-  );
 }

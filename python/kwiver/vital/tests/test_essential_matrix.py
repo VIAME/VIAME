@@ -34,7 +34,8 @@ Tests for Python interface to vital::essential_matrix
 
 """
 
-from kwiver.vital.types.essential_matrix import *
+from kwiver.vital.types.essential_matrix import BaseEssentialMatrix, \
+                                                EssentialMatrixD, EssentialMatrixF
 from kwiver.vital.types import RotationD, RotationF
 
 import nose.tools as nt

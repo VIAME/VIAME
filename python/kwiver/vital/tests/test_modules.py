@@ -34,7 +34,6 @@ class TestVitalModules(object):
     def test_import(self):
         import kwiver.vital.modules.modules
 
-
     def test_load(self):
         from kwiver.vital.modules import modules
         modules.load_known_modules()

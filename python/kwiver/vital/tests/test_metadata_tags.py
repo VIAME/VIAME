@@ -143,7 +143,6 @@ class TestVitalMetadataTags(object):
             mt.tags.VITAL_META_LAST_TAG,
         ]
 
-
     def test_generated_enums(self):
         expected_val = 0
         for t in self.tags:

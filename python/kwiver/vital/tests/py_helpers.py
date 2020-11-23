@@ -59,8 +59,14 @@ from kwiver.vital.types import (
 
 
 def random_point_3d(stddev):
+    """
+    Construct a 3d array-like with values selected from a
+    normal distribution centered around 0 and with a range
+    of stddev
+    :param stddev: standard deviation of normal distribution
+    :return: numpy.ndarray of shape 3
+    """
     return np.random.normal(loc=0., scale=stddev, size=3)
-
 
 
 def camera_seq(num_cams=20, k=None):
@@ -178,6 +184,13 @@ def reprojection_error_sqr(cam, lm, feat):
 
 
 def create_numpy_image(dtype_name, nchannels, order='c'):
+    """
+    Create a numpy image with 'nchannels' channels of major ordering
+    of 'order'
+    :param: nchannels: The number of channels the created image is to have
+    :param: order: major ordering of created image. Default: column major ordering
+    :return: A numpy image with 'nchannels' channels and of ordering 'order'
+    """
     if nchannels is None:
         shape = (5, 4)
     else:
@@ -203,7 +216,15 @@ def create_numpy_image(dtype_name, nchannels, order='c'):
 
     return np_img
 
+
 def map_dtype_name_to_pixel_type(dtype_name):
+    """
+    Performs mapping of ndarray underlying data type to
+    proper pixel data type
+    :param: dtype_name: name of data type representation
+    of underlying np.ndarray
+    :return: String representing the correct pixel data type
+    """
     if dtype_name == 'float16':
         want = 'float16'
     if dtype_name == 'float32':
@@ -218,6 +239,14 @@ def map_dtype_name_to_pixel_type(dtype_name):
 # Just gets a list of num_desc track_descriptors, each with td_size random entries
 # Returns a track_descriptor_set and a copy of the lists used to set each track_descriptor
 def create_track_descriptor_set(td_size=5, num_desc=3):
+    """
+    Constructs a set of track_descriptors and the comprizing
+    lists
+    :param: td_size: track descriptor set size, default=5
+    :param: num_desc: number of track descriptor sets to be
+    created
+    :return: set of track descriptors and the arrays that compose them
+    """
     ret_track_descriptor_set = []
     lists_used = []
     for i in range(num_desc):
@@ -231,11 +260,15 @@ def create_track_descriptor_set(td_size=5, num_desc=3):
     return (ret_track_descriptor_set, lists_used)
 
 
-
-
 # Creates a geo_polygon with the provided pts and crs
 # Default uses many decimal places to test double roundtrips
 def create_geo_poly(crs=geodesy.SRID.lat_lon_NAD83, pts=None):
+    """
+    Create a geo_polygon
+    :param: crs: The formatting describing the geo_polygon
+    :param: pts: The points defining the shape of the geo_polygon
+    :return: A new GeoPolygon object
+    """
     if pts is None:
         loc1 = np.array([-77.397577193572642, 38.17996907564275])
         loc2 = np.array([-77.329127515765311, 38.18134786411568])
@@ -246,6 +279,16 @@ def create_geo_poly(crs=geodesy.SRID.lat_lon_NAD83, pts=None):
 
 # Makes sure that a pure virtual method cannot be called
 def no_call_pure_virtual_method(mthd, *args, **kwargs):
+    """
+    Catches a RuntimeError raised by attempting to call a bound method
+    with an interface implementation. Used to test that a pybind11
+    trampoline pattern applied to an interface class behaves correctly
+    Will raise exception if not virtual method
+    :param: mthd: The method to be called
+    :param: *args: Args forwarded to method call
+    :param: **kwargs: Kwargs forwarded to method call
+    :return:
+    """
     with nt.assert_raises_regexp(
                 RuntimeError, "Tried to call pure virtual function",
             ):

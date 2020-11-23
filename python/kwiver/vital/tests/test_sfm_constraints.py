@@ -70,10 +70,12 @@ class TestSFMConstraints(unittest.TestCase):
       self.crs_ll = geodesy.SRID.lat_lon_WGS84
       self.geo_pt1_ = GeoPoint(self.loc1, self.crs_ll)
       self.geo_.geo_origin = self.geo_pt1_
+
     def test_init(self):
       s = SFMConstraints()
       SFMConstraints(s)
       SFMConstraints(self.meta_, self.geo_)
+
     def test_properties(self):
       # modules.load_known_modules()
       # metadata property
@@ -98,9 +100,11 @@ class TestSFMConstraints(unittest.TestCase):
       s = SFMConstraints(self.meta_, self.geo_)
       nt.assert_false(s.get_camera_position_prior_local(0, np.array([0, 1, 3])))
       nt.assert_false(s.get_camera_position_prior_local(0, RotationD([1, 2, 3, 4])))
+
     def test_camera_position_priors(self):
       s = SFMConstraints(self.meta_, self.geo_)
       nt.assert_dict_equal(s.get_camera_position_priors(), {})
+
     def test_image_properties(self):
       s = SFMConstraints(self.meta_, self.geo_)
       s.store_image_size(0, 1080, 720)

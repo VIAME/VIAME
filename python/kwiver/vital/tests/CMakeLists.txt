@@ -106,7 +106,7 @@ if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
   endforeach()
 
   set(_test_data
-        "data/airplane.ply")
+        "data/cube.ply")
   foreach (file_name IN LISTS _test_data)
     kwiver_python_add_test_data(${file_name} ${kwiver_test_working_path})
   endforeach()

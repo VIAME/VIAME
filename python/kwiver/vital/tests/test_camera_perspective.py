@@ -48,7 +48,7 @@ from kwiver.vital.types import (
     rotation,
     RotationD,
 )
-from kwiver.vital.types.covariance import *
+from kwiver.vital.types.covariance import Covar3d
 
 # Test python classes inherited from C++ w/ virtual methods overridden
 class CameraPerspectiveImpl(cap):
@@ -60,32 +60,44 @@ class CameraPerspectiveImpl(cap):
 
     def clone(self):
         return CameraPerspectiveImpl(self.rot, self.center, self.intrins)
+
     def get_center(self):
         return self.center
+
     def translation(self):
         return -(self.rot.inverse() * self.center)
+
     def center_covar(self):
         return Covar3d()
+
     def rotation(self):
         return self.rot
+
     def intrinsics(self):
         return self.intrins
+
     def image_width(self):
         return self.intrins.image_width()
+
     def image_height(self):
         return self.intrins.image_height()
+
     def as_matrix(self):
         return np.array([[1, 0, 0],
                          [0, 1, 0],
                          [0, 0, 1]])
+
     def clone_look_at(self, stare_point, up):
         return CameraPerspectiveImpl(RotationD(0, [0, 1, 0]), self.center, self.intrins)
+
     def pose_matrix(self):
         return np.array([[1, 0, 0],
                          [0, 1, 0],
                          [0, 0, 1]])
+
     def project(self, pt):
         return pt[:2]
+
     def depth(self, pt):
         return pt[2:]
 
@@ -104,6 +116,7 @@ class TestCameraPerspective(unittest.TestCase):
         no_call_pure_virtual_method(cap().center_covar)
         no_call_pure_virtual_method(cap().rotation)
         no_call_pure_virtual_method(cap().intrinsics)
+
     # Test that the virtual methods with default impls
     # dependent on pure virtual methods also cannot be called
     def test_non_pure_virtual_methods(self):
@@ -175,8 +188,6 @@ class TestSimpleCameraPerspective(unittest.TestCase):
                                                         [0, 0, 1, -5.67]]
                                                         ))
 
-
-
     def test_not_overidden(self):
         # Test getters
         scap_ = scap(center=self.vec, rotation=self.rot, intrinsics=self.intrins)
@@ -225,6 +236,7 @@ class TestCameraPerspectiveImpl(unittest.TestCase):
 
         cent = np.array([4, 3.14, 5.67])
         CameraPerspectiveImpl(rot_, cent, intrins_)
+
     def test_inheritance(self):
         nt.ok_(issubclass(CameraPerspectiveImpl,cap))
 

@@ -87,7 +87,6 @@ class TestVitalDatabaseQuery(object):
         dq = self._create_database_query()
         dq.id = "string, not uid"
 
-
     def _check_enum_helper(self, expected, enum_value, enum_str):
         enum_value = int(enum_value)
         nt.assert_equals(
@@ -117,7 +116,6 @@ class TestVitalDatabaseQuery(object):
         self._check_enum_helper(1, database_query.query_type.RETRIEVAL,
             "query_type.RETRIEVAL")
 
-
     def test_set_and_get_type(self):
         dq = self._create_database_query()
         # First check default
@@ -141,7 +139,6 @@ class TestVitalDatabaseQuery(object):
         dq = self._create_database_query()
         dq.type = int(database_query.query_type.RETRIEVAL) + 1
 
-
     def test_set_and_get_temporal_filter(self):
         dq = self._create_database_query()
         test_filters = [database_query.query_filter.IGNORE_FILTER,
@@ -155,7 +152,6 @@ class TestVitalDatabaseQuery(object):
         for f in test_filters:
             dq.temporal_filter = f
             nt.assert_equals(dq.temporal_filter, f)
-
 
     @nt.raises(TypeError)
     def test_bad_set_temporal_filter(self):
@@ -182,7 +178,6 @@ class TestVitalDatabaseQuery(object):
             dq.spatial_filter = f
             nt.assert_equals(dq.spatial_filter, f)
 
-
     @nt.raises(TypeError)
     def test_bad_set_spatial_filter_wrong_type(self):
         dq = self._create_database_query()
@@ -192,7 +187,6 @@ class TestVitalDatabaseQuery(object):
     def test_bad_set_spatial_filter_outside_enum(self):
         dq = self._create_database_query()
         dq.spatial_filter = int(database_query.query_filter.DOES_NOT_CONTAIN) + 1
-
 
     def test_set_and_get_spatial_region(self):
         dq = self._create_database_query()
@@ -212,7 +206,6 @@ class TestVitalDatabaseQuery(object):
         dq.spatial_region = GeoPolygon()
         nt.ok_(dq.spatial_region.is_empty())
 
-
     @nt.raises(TypeError)
     def test_bad_set_spatial_region(self):
         dq = self._create_database_query()
@@ -229,12 +222,10 @@ class TestVitalDatabaseQuery(object):
             dq.stream_filter = s
             nt.assert_equals(dq.stream_filter, s, "Setting stream_filter to {} failed".format(s))
 
-
     @nt.raises(TypeError)
     def test_bad_set_stream_filter(self):
         dq = self._create_database_query()
         dq.stream_filter = 10
-
 
     def test_set_and_get_descriptors(self):
         dq = self._create_database_query()
@@ -263,12 +254,10 @@ class TestVitalDatabaseQuery(object):
         dq.descriptors = []
         nt.assert_equals(dq.descriptors, [])
 
-
     @nt.raises(TypeError)
     def test_bad_set_descriptors(self):
         dq = self._create_database_query()
         dq.descriptors = "string, not track_descriptor_set"
-
 
     def test_set_and_get_threshold(self):
         dq = self._create_database_query()
@@ -285,7 +274,6 @@ class TestVitalDatabaseQuery(object):
     def test_bad_set_threshold(self):
         dq = self._create_database_query()
         dq.threshold = "string, not double"
-
 
     def test_set_and_get_temporal_bounds(self):
         dq = self._create_database_query()
@@ -306,7 +294,6 @@ class TestVitalDatabaseQuery(object):
         dq.set_temporal_bounds(Timestamp(), Timestamp())
         nt.assert_false(dq.temporal_lower_bound().is_valid())
         nt.assert_false(dq.temporal_upper_bound().is_valid())
-
 
     @nt.raises(RuntimeError)
     def test_bad_set_bounds_logic_error(self):

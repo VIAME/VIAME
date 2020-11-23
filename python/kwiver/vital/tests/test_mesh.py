@@ -46,17 +46,18 @@ class TestMesh(unittest.TestCase):
     @classmethod
     def setUp(self):
         pass
+
     def test_constructor(self):
         Mesh()
-        Mesh.from_ply_file("tests/data/airplane.ply")
+        Mesh.from_ply_file("tests/data/cube.ply")
 
     def test_object_properties(self):
         import os
         print(os.getcwd())
-        m = Mesh.from_ply_file("tests/data/airplane.ply")
+        m = Mesh.from_ply_file("tests/data/cube.ply")
         nt.ok_(m.is_init())
-        nt.assert_equal(m.num_verts(), 1335)
-        nt.assert_equal(m.num_faces(), 2452)
+        nt.assert_equal(m.num_verts(), 8)
+        nt.assert_equal(m.num_faces(), 6)
         nt.assert_equal(m.num_edges(), 0)
 
     def test_bad_mesh(self):

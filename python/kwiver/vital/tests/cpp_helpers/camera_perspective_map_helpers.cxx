@@ -28,9 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/types/camera_perspective.h>
-#include <vital/types/camera_map.h>
-#include <pybind11/eigen.h>
+#include <vital/types/camera_perspective_map.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -48,7 +46,7 @@ PYBIND11_MODULE( camera_perspective_map_helpers, m )
     return self.size();
   });
 
-  m.def( "call_cameras", [] ( const kv::camera_map_of_< kv::camera_perspective > &self )
+  m.def( "call_cameras", [] ( const kv::camera_perspective_map &self )
   {
     return self.cameras();
   });

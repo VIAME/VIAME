@@ -157,37 +157,29 @@ class TestVitalDetectedObject(unittest.TestCase):
                indices_equal and detector_names_equal and types_equal and \
                masks_equal and descriptors_equal and notes_equal and keypoints_equal
 
-    # TODO: Formatting fxns
-
     def test_nice_format(self):
         # Test default
         do = DetectedObject(self.bbox)
         nt.assert_equal(do.__nice__(), "conf=1.0")
-        # print(do.__nice__())
 
         do.confidence = -0.5
         nt.assert_equal(do.__nice__(), "conf=-0.5")
-        # print(do.__nice__())
 
     def test_repr_format(self):
         # Test default
         do = DetectedObject(self.bbox)
         nt.assert_equal(do.__repr__(), "<DetectedObject(conf=1.0) at {}>".format(hex(id(do))))
-        # print(do.__repr__())
 
         do = DetectedObject(self.bbox, confidence=-0.5)
         nt.assert_equal(do.__repr__(), "<DetectedObject(conf=-0.5) at {}>".format(hex(id(do))))
-        # print(do.__repr__())
 
     def test_str_format(self):
         # Test default
         do = DetectedObject(self.bbox)
         nt.assert_equal(do.__str__(), "<DetectedObject(conf=1.0)>")
-        # print(do.__str__())
 
         do = DetectedObject(self.bbox, confidence=-0.5)
         nt.assert_equal(do.__str__(), "<DetectedObject(conf=-0.5)>")
-        # print(do.__str__())
 
     def test_clone(self):
         do = DetectedObject(self.bbox)

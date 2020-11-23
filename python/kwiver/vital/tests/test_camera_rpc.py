@@ -47,6 +47,7 @@ from kwiver.vital.types import CameraRPC as crpc, SimpleCameraRPC as srpc
 class TestCameraRPC(unittest.TestCase):
     def test_construct(self):
         crpc()
+
     def test_pure_virts(self):
         no_call_pure_virtual_method(crpc().project, np.array([1.0, 2.0, 10.0]))
         no_call_pure_virtual_method(crpc().back_project, np.array([1.0, 2.0]), 1.0)
@@ -72,6 +73,7 @@ class TestSimpleCameraRPC(unittest.TestCase):
         self.m_srpc = srpc(self.m_world_scale, self.m_world_offset, self.m_image_scale,
                                  self.m_image_offset, self.m_coeffs,
                                  self.m_image_width, self.m_image_height)
+
     def test_constructors(self):
         srpc()
         srpc(self.m_world_scale, self.m_world_offset, self.m_image_scale,
@@ -81,6 +83,7 @@ class TestSimpleCameraRPC(unittest.TestCase):
         srpc(srpc(self.m_world_scale, self.m_world_offset, self.m_image_scale,
                                  self.m_image_offset, self.m_coeffs,
                                  self.m_image_width, self.m_image_height))
+
     def test_methods(self):
         cameraRPC = srpc()
 
@@ -168,26 +171,37 @@ class TestSimpleCameraRPC(unittest.TestCase):
 class InheritedRPC(crpc):
     def __init__(self):
         crpc.__init__(self)
+
     def clone(self):
         return InheritedRPC()
+
     def rpc_coeffs(self):
         return np.ndarray(shape=(4, 20), dtype=float)
+
     def world_offset(self):
         return np.array([1, 8, 9])
+
     def world_scale(self):
         return np.array([8, 9, 10])
+
     def image_scale(self):
         return np.array([0.5, 2.9])
+
     def image_offset(self):
         return np.array([1.0, 0.75])
+
     def image_width(self):
         return 3840
+
     def image_height(self):
         return 2160
+
     def project(self, pt):
         return np.array([99, 100])
+
     def back_project(self, pt, elev):
         return np.array([1, 2, 3])
+
 
 class TestInheritedRPC(unittest.TestCase):
     def test_construct(self):

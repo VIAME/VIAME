@@ -39,13 +39,6 @@ namespace py = pybind11;
 namespace kv = kwiver::vital;
 typedef kwiver::vital::camera_rpc crpc;
 
-class camera_rpc_publicist_helper : public kv::camera_rpc
-{
-public:
-    using kv::camera_rpc::jacobian;
-
-};
-
 // Helpers to call pure virtual functions from base reference.
 // We'll use these to test that these camera methods can be overriden in C++
 PYBIND11_MODULE( camera_rpc_helpers, m )

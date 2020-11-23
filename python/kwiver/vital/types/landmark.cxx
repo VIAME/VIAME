@@ -5,7 +5,6 @@
 #include <vital/types/landmark.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
-#include <pybind11/stl.h>
 #include <vital/util/demangle.h>
 
 #include <string>
@@ -39,27 +38,9 @@ void reg_landmark(py::module &m, std::string &&type_str)
 
 }
 
-class landmark_trampoline
-: public kv::landmark
-{
-public:
-  using kv::landmark::landmark;
-  kv::landmark_sptr clone() const override;
-  std::type_info const& data_type() const override;
-  kv::vector_3d loc() const override;
-  double scale() const override;
-  kv::vector_3d normal() const override;
-  kv::covariance_3d covar() const override;
-  kv::rgb_color color() const override;
-  unsigned observations() const override;
-  double cos_obs_angle() const override;
-};
-
-
 PYBIND11_MODULE(landmark, m)
 {
-  py::class_<kv::landmark, std::shared_ptr< kv::landmark >, landmark_trampoline >(m, "Landmark")
-  .def(py::init<>())
+  py::class_<kv::landmark, std::shared_ptr< kv::landmark > >(m, "Landmark")
   .def("data_type",     &kv::landmark::data_type)
   .def("loc",           &kv::landmark::loc)
   .def("scale",         &kv::landmark::scale)
@@ -72,107 +53,4 @@ PYBIND11_MODULE(landmark, m)
 
   reg_landmark<double>(m, "D");
   reg_landmark<float>(m, "F");
-}
-
-kv::landmark_sptr
-landmark_trampoline
-::clone() const
-{
-  auto self = py::cast(this);
-
-  auto cloned = self.attr("clone")();
-
-  auto python_keep_alive = std::make_shared<py::object>(cloned);
-
-  auto ptr = cloned.cast<landmark_trampoline*>();
-
-  return std::shared_ptr<kv::landmark>(python_keep_alive, ptr);
-}
-
-std::type_info const &
-landmark_trampoline
-::data_type() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    std::type_info const &,
-    kv::landmark,
-    data_type,
-  );
-}
-
-kv::vector_3d
-landmark_trampoline
-::loc() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    kv::vector_3d,
-    kv::landmark,
-    loc,
-  );
-}
-
-double
-landmark_trampoline
-::scale() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    double,
-    kv::landmark,
-    scale,
-  );
-}
-
-kv::vector_3d
-landmark_trampoline
-::normal() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    kv::vector_3d,
-    kv::landmark,
-    normal,
-  );
-}
-
-kv::covariance_3d
-landmark_trampoline
-::covar() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    kv::covariance_3d,
-    kv::landmark,
-    covar,
-  );
-}
-
-kv::rgb_color
-landmark_trampoline
-::color() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    kv::rgb_color,
-    kv::landmark,
-    color,
-  );
-}
-
-unsigned
-landmark_trampoline
-::observations() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    unsigned,
-    kv::landmark,
-    observations,
-  );
-}
-
-double
-landmark_trampoline
-::cos_obs_angle() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    double,
-    kv::landmark,
-    cos_obs_angle,
-  );
 }

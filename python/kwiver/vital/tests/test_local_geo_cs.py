@@ -54,12 +54,15 @@ class TestLocalGeoCS(unittest.TestCase):
         self.wgs = geodesy.SRID.lat_lon_WGS84
         self.geo1 = GeoPoint(np.array([-73.75898515, 42.85012609, 0]), self.wgs)
         self.geo2 = GeoPoint(np.array([-73.75623008, 42.89913984, 52.381]), self.wgs)
+
     def test_init(self):
         LocalGeoCS()
+
     def test_origin(self):
         g = LocalGeoCS()
         g.geo_origin = self.geo1
         np.testing.assert_array_almost_equal(g.geo_origin.location(self.wgs), self.geo1.location())
+
     def test_read_write_localgeocs(self):
         g = LocalGeoCS()
         g.geo_origin = self.geo1

@@ -39,60 +39,7 @@ import unittest
 import nose.tools
 import numpy
 import numpy.testing as npt
-from kwiver.vital.tests.py_helpers import no_call_pure_virtual_method
-from kwiver.vital.tests.cpp_helpers import landmark_helpers as lh
 from kwiver.vital.types import Landmark, LandmarkF, LandmarkD, Covar3f, Covar3d, RGBColor
-
-class TestBaseLandmark(unittest.TestCase):
-    def test_init(self):
-        Landmark()
-    def test_methods(self):
-        no_call_pure_virtual_method(Landmark().data_type)
-        no_call_pure_virtual_method(Landmark().loc)
-        no_call_pure_virtual_method(Landmark().scale)
-        no_call_pure_virtual_method(Landmark().normal)
-        no_call_pure_virtual_method(Landmark().covar)
-        no_call_pure_virtual_method(Landmark().color)
-        no_call_pure_virtual_method(Landmark().observations)
-        no_call_pure_virtual_method(Landmark().cos_obs_angle)
-
-class SubLandmark(Landmark):
-    def __init__(self):
-        Landmark.__init__(self)
-    def clone(self):
-        return SubLandmark()
-    def data_type(self):
-        return "sub"
-    def loc(self):
-        return [2, 5, 7]
-    def scale(self):
-        return 0.2
-    def normal(self):
-        return [9, 21, 13]
-    def covar(self):
-        return Covar3d(7)
-    def color(self):
-        return RGBColor(12, 240, 120)
-    def observations(self):
-        return 3
-    def cos_obs_angle(self):
-        return 0.02
-
-class TestSubLandmark(unittest.TestCase):
-    def test_inheritance(self):
-        nose.tools.ok_(issubclass(SubLandmark, Landmark))
-
-    def test_overrides(self):
-        sl = SubLandmark()
-        sl_clone = lh.call_clone(sl)
-        nose.tools.ok_(isinstance(sl_clone, SubLandmark))
-        nose.tools.assert_equal(sl_clone.data_type(), sl.data_type())
-        nose.tools.assert_equal(lh.call_scale(sl), 0.2)
-        nose.tools.assert_equal(lh.call_cos_obs_angle(sl), 0.02)
-        npt.assert_equal(lh.call_loc(sl), [2, 5, 7])
-        npt.assert_equal(lh.call_normal(sl), [9, 21, 13])
-        npt.assert_equal(lh.call_covar(sl).matrix(), Covar3d(7).matrix())
-
 
 class TestLandmarks (unittest.TestCase):
 

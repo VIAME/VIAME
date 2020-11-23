@@ -66,6 +66,7 @@ class TestBoundingBox(unittest.TestCase):
         self.check_dimensions(m)
         self.check_has_points(m)
         self.check_py_overloads(m)
+
     def check_points(self, bbox):
         nt.assert_almost_equal(bbox.min_x(), self.ul_d[0])
         nt.assert_almost_equal(bbox.min_y(), self.ul_d[1])
@@ -104,18 +105,21 @@ class TestBoundingBox(unittest.TestCase):
         bbI(self.ul_i, self.lr_i)
         bbI(self.ul_i, self.width_i, self.height_i)
         bbI(self.min_x_i, self.min_y_i, self.width_i, self.height_i)
+
     def test_constructorF(self):
         bbF()
         self.check_is_not_valid(bbF())
         bbF(self.ul_d, self.lr_d)
         bbF(self.ul_d, self.width_d, self.height_d)
         bbF(self.min_x_d, self.min_y_d, self.width_d, self.height_d)
+
     def test_constructorD(self):
         bbD()
         self.check_is_not_valid(bbD())
         bbD(self.ul_d, self.lr_d)
         bbD(self.ul_d, self.width_d, self.height_d)
         bbD(self.min_x_d, self.min_y_d, self.width_d, self.height_d)
+
     def test_bounding_boxes(self):
         self.runner(bbI, int)
         self.runner(bbF, float)

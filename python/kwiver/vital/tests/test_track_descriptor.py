@@ -208,7 +208,6 @@ class TestVitalTrackDescriptorAndHistoryEntry(object):
         for td in tds:
             nt.assert_raises(TypeError, td.set_descriptor, descriptor.new_descriptor(5, 'f'))
 
-
     def test_resize_descriptor_with_value(self):
         tds = self._create_track_descriptors()
         for td in tds:
@@ -229,7 +228,6 @@ class TestVitalTrackDescriptorAndHistoryEntry(object):
             np.testing.assert_array_equal(td.get_descriptor().todoublearray(), [])
             nt.assert_equals(td.descriptor_size(), 0)
 
-
     def test_resize_descriptor_no_value(self):
         tds = self._create_track_descriptors()
         sizes = [5, 2, 29, 100, 0]
@@ -237,8 +235,6 @@ class TestVitalTrackDescriptorAndHistoryEntry(object):
             for s in sizes:
                 td.resize_descriptor(s)
                 nt.assert_equals(td.descriptor_size(), s)
-
-
 
     def test_get_and_set_item(self):
         tds = self._create_track_descriptors()

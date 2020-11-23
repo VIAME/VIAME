@@ -214,7 +214,6 @@ class TestVitalConfig(object):
         nose.tools.assert_equal(valueb, get_valueb, "Conflicting key was not overwritten")
         nose.tools.assert_equal(valuec, get_valuec, "New key did not appear")
 
-
     def test_getitem(self):
         c = config.empty_config()
         key = 'key'
@@ -296,7 +295,6 @@ class TestVitalConfig(object):
         get_valueb = c.get_value_geo_poly(keyb, valueb)
 
         self.check_pts_equal(valueb, get_valueb)
-
 
     @nose.tools.raises(RuntimeError)
     def test_get_value_geo_poly_no_exist(self):

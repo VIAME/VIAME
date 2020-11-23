@@ -65,16 +65,22 @@ class MetadataMapSub(MetadataMap):
     def __init__(self, data):
         MetadataMap.__init__(self)
         self.data_ = data
+
     def size(self):
         return len(self.data_)
+
     def metadata(self):
         return self.data_
+
     def has_item(self, tag, fid):
         return True
+
     def get_item(self, tag, fid):
         return self.data_[1][0].find(tag)
+
     def get_vector(self, fid):
         return []
+
     def frames(self):
         return set(self.data_.keys())
 
@@ -85,6 +91,7 @@ class TestMetadataMapSub(object):
         m.add(2, self.tags[1])
         m.add(True, self.tags[4])
         m.add(1.1, self.tags[2])
+
     @classmethod
     def setUp(self):
         self.tags = [
@@ -98,17 +105,22 @@ class TestMetadataMapSub(object):
         self.populate_metadata(self, meta)
         self.small_items = np.array([meta])
         self.map = dict(zip([1],[self.small_items]))
+
     def test_init(self):
         MetadataMapSub(self.map)
+
     def test_inheritance(self):
         nt.ok_(issubclass(MetadataMapSub, MetadataMap))
+
     def test_size(self):
         mms = MetadataMapSub(self.map)
         nt.assert_equal(mmh.size(mms), 1)
+
     def test_metadata(self):
         mms = MetadataMapSub(self.map)
         ret_val = mmh.metadata(mms)
         np.testing.assert_array_equal(self.map[1], ret_val[1])
+
     def test_has_get_item(self):
         mms = MetadataMapSub(self.map)
         nt.ok_(mmh.has_item(mms, self.tags[1], 1))
@@ -118,6 +130,7 @@ class TestMetadataMapSub(object):
     def test_get_vector(self):
         mms = MetadataMapSub(self.map)
         nt.assert_list_equal(mmh.get_vector(mms, 1), [])
+
     def test_frames(self):
         mms = MetadataMapSub(self.map)
         ret_set = mmh.frames(mms)
@@ -135,15 +148,19 @@ class TestSimpleMetadataMap(object):
             mt.tags.VITAL_META_MISSION_ID,
             mt.tags.VITAL_META_VIDEO_KEY_FRAME,
         ]
+
     def test_init(self):
         SimpleMetadataMap()
+
     def test_size(self):
         sm = SimpleMetadataMap()
         nt.assert_equal(sm.size(), 0)
+
     def test_metadata(self):
         sm = SimpleMetadataMap()
         m = sm.metadata()
         nt.ok_(isinstance(m, dict))
+
     def test_has_get_item(self):
         sm = SimpleMetadataMap()
         nt.assert_false(sm.has_item(self.small_tag[1], 1))
@@ -151,6 +168,7 @@ class TestSimpleMetadataMap(object):
             RuntimeError, "Metadata map does not contain frame 1",
         ):
             sm.get_item(self.small_tag[1], 1)
+
     def test_get_vector(self):
         sm = SimpleMetadataMap()
         vm = sm.get_vector(1)

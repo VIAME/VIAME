@@ -32,3 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 vital.tests.cpp_helpers module
 """
+from __future__ import absolute_import
+
+from kwiver.vital.tests.cpp_helpers import *

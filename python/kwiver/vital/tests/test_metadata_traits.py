@@ -305,16 +305,20 @@ class TestMetadataTraits(unittest.TestCase):
         ]
     def test_constructor(self):
         MetadataTraits()
+
     def test_find(self):
         s = MetadataTraits()
         meta_trait_found = s.find(self.tags[1])
         self.assertEqual(meta_trait_found.name, "Origin of metadata")
+
     def test_tag_to_symbol(self):
         s = MetadataTraits()
         self.assertEqual(s.tag_to_symbol(self.tags[1]), "VITAL_META_METADATA_ORIGIN")
+
     def test_tag_to_name(self):
         s = MetadataTraits()
         self.assertEqual(s.tag_to_name(self.tags[1]), "Origin of metadata")
+
     def test_tag_to_description(self):
         s = MetadataTraits()
         self.assertEqual(s.tag_to_description(self.tags[0]), "Undefined entry")

@@ -40,22 +40,11 @@ typedef kv::simple_landmark_map s_landmark_map;
 typedef std::map< kv::landmark_id_t, kv::landmark_sptr > map_landmark_t;
 using namespace kwiver::vital;
 
-class landmark_map_trampoline
-: public landmark_map
-{
-public:
-  using landmark_map::landmark_map;
-  size_t size() const override;
-  map_landmark_t landmarks() const override;
-};
-
-
 PYBIND11_MODULE(landmark_map, m)
 {
   py::bind_map< map_landmark_t >(m, "LandmarkDict");
 
-  py::class_< landmark_map, std::shared_ptr< landmark_map >, landmark_map_trampoline >(m, "LandmarkMap")
-  .def(py::init())
+  py::class_< landmark_map, std::shared_ptr< landmark_map > >(m, "LandmarkMap")
   .def("size", &landmark_map::size)
   .def("landmarks", &landmark_map::landmarks, py::return_value_policy::reference)
 
@@ -81,26 +70,4 @@ PYBIND11_MODULE(landmark_map, m)
   py::class_< s_landmark_map, landmark_map, std::shared_ptr< s_landmark_map > >(m, "SimpleLandmarkMap")
   .def(py::init<>())
   .def(py::init< map_landmark_t >());
-}
-
-size_t
-landmark_map_trampoline
-::size() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    size_t,
-    landmark_map,
-    size,
-  );
-}
-
-map_landmark_t
-landmark_map_trampoline
-::landmarks() const
-{
-  PYBIND11_OVERLOAD_PURE(
-    map_landmark_t,
-    landmark_map,
-    landmarks,
-  )
 }

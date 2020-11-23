@@ -93,9 +93,11 @@ class TestFeatureTrackSet(unittest.TestCase):
         self._track_arr = [Track(15), Track(1),
                                     Track(150), Track(9),
                                     self.track]
+
     def test_construct(self):
       ftset()
       ftset(self._track_arr)
+
     def test_methods(self):
       test_feat_set = ftset(self._track_arr)
       self.assertEqual(test_feat_set.all_frame_ids(), {1, 15})
@@ -114,6 +116,8 @@ class TestFeatureTrackSet(unittest.TestCase):
       track_state_list = test_feat_set.frame_feature_track_states(15)
       self.assertListEqual(track_state_list, [])
       self.assertEqual(test_feat_set.keyframes(), set())
+
+
 """
 Implement and Test Class Inheriting from Feature Track Set
 """
@@ -121,26 +125,35 @@ class SubFeatureTrackSet(ftset):
   def __init__(self):
     ftset.__init__(self)
     self.tracks = [15, 1, 18, 9]
+
   def last_frame_features(self):
     return sfs()
+
   def last_frame_descriptors(self):
     return DescriptorSet()
+
   def frame_features(self, offset):
     return sfs()
+
   def frame_descriptors(self, offset):
     return DescriptorSet()
+
   def frame_feature_track_states(self, offset):
     return []
+
   def keyframes(self):
     return set()
+
   def clone(self):
     return SubFeatureTrackSet()
+
   def size(self):
     return len(self.tracks)
 
 class TestSubFeatureTrackSet(unittest.TestCase):
   def test_constructors(self):
     SubFeatureTrackSet()
+
   def test_overridden_methods(self):
     tst = SubFeatureTrackSet()
     self.assertIsInstance(tst.last_frame_features(), sfs)
@@ -149,6 +162,7 @@ class TestSubFeatureTrackSet(unittest.TestCase):
     self.assertEqual(set(), tst.keyframes())
     self.assertIsInstance(tst.frame_features(0), sfs)
     self.assertIsInstance(tst.frame_descriptors(0), DescriptorSet)
+
   def test_inherited_methods(self):
     tst = SubFeatureTrackSet()
     cloned = tst.clone()

@@ -37,7 +37,7 @@ import nose.tools as nt
 import numpy.testing as npt
 import numpy as np
 from kwiver.vital.types import (
-    BoundingBoxD as BoundingBox,
+    BoundingBoxD as bbD,
     BoundingBoxI as bbI,
     Image,
     ImageContainer,
@@ -112,7 +112,6 @@ class TestVitalDescriptorRequest(object):
         dr.spatial_regions = np.array([b])
         b_arr = dr.spatial_regions
         npt.assert_array_equal(b_arr[0].upper_left(), ul)
-
 
     @nt.raises(TypeError)
     def test_bad_set_spatial_regions(self):

@@ -88,7 +88,6 @@ class TestVitalMetadataItem(object):
         with nt.assert_raises_regexp(TypeError, err_msg):
             MetadataItem()
 
-
 # There are 2 subclasses (although one is templated),
 # typed_metadata and unknown_metadata. typed_metadata has 2 templated parameters.
 # Because of pybind's inability to handle template types, there is a separate class for
@@ -321,8 +320,6 @@ class TestVitalMetadata(object):
         m.add(True, self.tags[4])
         m.add(1.1, self.tags[2])
 
-
-
     def test_init(self):
         Metadata()
 
@@ -336,7 +333,6 @@ class TestVitalMetadata(object):
         m.add(True, self.tags[4])
         nt.assert_equals(m.size(), 4)
 
-
     def test_erase(self):
         m = Metadata()
         for tag in self.tags:
@@ -344,8 +340,6 @@ class TestVitalMetadata(object):
         self.populate_metadata(m)
         for tag in self.small_tag:
             nt.assert_true(m.erase(tag))
-
-
 
     # Tests for has and find
     def test_retrieve(self):
@@ -362,6 +356,7 @@ class TestVitalMetadata(object):
             nt.ok_(isinstance(m.find(tag), MetadataItem))
             found = m.find(tag)
             nt.assert_in(found.type, possible_types)
+
     def test_timestamp(self):
         m = Metadata()
         self.populate_metadata(m)

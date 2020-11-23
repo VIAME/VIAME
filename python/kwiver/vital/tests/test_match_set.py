@@ -39,8 +39,6 @@ import numpy.testing as npt
 import numpy as np
 import unittest
 
-from kwiver.vital.tests.cpp_helpers import match_set_helpers as msh
-from kwiver.vital.tests.py_helpers import no_call_pure_virtual_method
 from kwiver.vital.types import (
     MatchVector,
     BaseMatchSet,
@@ -72,47 +70,3 @@ class TestSimpleMatchSet(unittest.TestCase):
         m = MatchSet(self.match_set)
         nt.assert_equal(str(m), "<MatchSet>")
         nt.assert_equal(repr(m)[1:9], "MatchSet")
-
-class TestBaseMatchSet(unittest.TestCase):
-    @classmethod
-    def setUp(self):
-        pass
-
-    def test_constructor(self):
-        BaseMatchSet()
-
-    def test_pure_virts(self):
-        no_call_pure_virtual_method(BaseMatchSet().size)
-        no_call_pure_virtual_method(BaseMatchSet().matches)
-
-class MatchSetInherit(BaseMatchSet):
-    def __init__(self):
-        BaseMatchSet.__init__(self)
-        self.match_a = (3, 1)
-        self.match_b = (4, 1)
-        self.match_c = (5, 9)
-        self.match_set = [self.match_a, self.match_b, self.match_c]
-    def size(self):
-        return 299
-    def matches(self):
-        return self.match_set
-    def __str__(self):
-        return "{} {} {}".format(self.match_a, self.match_b, self.match_c)
-    def __repr__(self):
-        return "{} {} {}".format(self.match_a, self.match_b, self.match_c)
-
-class TestMatchSetInherit(unittest.TestCase):
-    @classmethod
-    def setUp(self):
-        self.match_a = (3, 1)
-        self.match_b = (4, 1)
-        self.match_c = (5, 9)
-        self.match_set = [self.match_a, self.match_b, self.match_c]
-
-    def test_init(self):
-        MatchSetInherit()
-
-    def test_inherited_virts(self):
-        b = MatchSetInherit()
-        nt.assert_equal(msh.call_size(b), 299)
-        npt.assert_array_equal(msh.call_matches(b), self.match_set)

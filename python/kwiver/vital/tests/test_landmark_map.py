@@ -39,42 +39,12 @@ import numpy.testing as npt
 import nose.tools as nt
 import unittest
 
-from kwiver.vital.tests.cpp_helpers import landmark_map_helpers as lmh
-from kwiver.vital.tests.py_helpers import no_call_pure_virtual_method
 from kwiver.vital.types import (
     LandmarkF,
     LandmarkD,
     LandmarkMap,
     SimpleLandmarkMap,
 )
-
-class SubLandmarkMap(LandmarkMap):
-    def __init__(self):
-        LandmarkMap.__init__(self)
-        self.landmark1 = LandmarkF([0, 1, 2])
-        self.landmark2 = LandmarkF([0, 1, 3])
-        self.landmarks_dict = {0:self.landmark1, 1:self.landmark2}
-    def size(self):
-        return 2
-    def landmarks(self):
-        return self.landmarks_dict
-
-class TestLandmarkMapWithSub(unittest.TestCase):
-    def test_construct(self):
-        LandmarkMap()
-        SubLandmarkMap()
-
-    def test_inherits(self):
-        nt.ok_(issubclass(SubLandmarkMap, LandmarkMap))
-
-    def test_pure_virts(self):
-        no_call_pure_virtual_method(LandmarkMap().size)
-        no_call_pure_virtual_method(LandmarkMap().landmarks)
-
-    def test_overrides(self):
-        lm = SubLandmarkMap()
-        nt.assert_equal(lmh.call_size(lm), 2)
-        nt.assert_dict_equal(lmh.call_landmarks(lm), lm.landmarks_dict)
 
 class TestSimpleLandmarkMap(unittest.TestCase):
     @classmethod

@@ -1,1 +1,1 @@
-from .core import *
+from kwiver.arrows.core import *

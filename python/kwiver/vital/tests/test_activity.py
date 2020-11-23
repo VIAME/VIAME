@@ -65,9 +65,11 @@ class TestActivity(unittest.TestCase):
         self.obj_ts = ObjectTrackSet([self.track_])
         self.act_type = ActivityType("self_act", 0.87)
         self.act = Activity(1, "self_act", 0.87, self.act_type, self.time_1, self.time_2, self.obj_ts)
+
     def test_constructors(self):
         Activity()
         Activity(1, "first_act", 0.87, ActivityType(), self.time_1, self.time_2)
+
     def test_id(self):
         a = self.act
         self.assertEqual(a.id, 1)

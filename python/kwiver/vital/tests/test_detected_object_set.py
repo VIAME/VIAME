@@ -53,10 +53,13 @@ class SimpleDetectedSet(dos):
     def __init__(self,do_):
         dos.__init__(self)
         self.det_objs = do_
+
     def size(self):
         return 1
+
     def empty(self):
         return False
+
     def at(self,loc):
         return do(bb(10, 10, 20, 20))
 
