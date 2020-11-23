@@ -25,7 +25,6 @@
 #include <deque>
 #include <mutex>
 #include <memory>
-#include <unordered_set>
 #include <vector>
 #include <sstream>
 
@@ -78,7 +77,6 @@ public:
 
   AVFormatContext* f_format_context;
   int f_video_index;
-  std::unordered_set<int> f_data_indices;
   AVCodecContext* f_video_encoding;
   AVStream* f_video_stream;
   AVFrame* f_frame;
@@ -184,7 +182,7 @@ public:
       }
       else if (params->codec_type == AVMEDIA_TYPE_DATA)
       {
-        this->f_data_indices.insert(i);
+        this->metadata.insert(std::make_pair(i, std::deque<uint8_t>() ) );
       }
     }
 
@@ -194,7 +192,7 @@ public:
       return false;
     }
 
-    if (this->f_data_indices.size() == 0)
+    if (this->metadata.empty() )
     {
       LOG_INFO(this->logger, "No data stream available");
       // Fallback for the DATA stream if incorrectly coded as UNKNOWN.
@@ -203,7 +201,7 @@ public:
         AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
         if (params->codec_type == AVMEDIA_TYPE_UNKNOWN)
         {
-          this->f_data_indices.insert(i);
+          this->metadata.insert(std::make_pair(i, std::deque<uint8_t>() ) );
           LOG_INFO(this->logger, "Using AVMEDIA_TYPE_UNKNOWN stream as a data stream");
         }
       }
@@ -307,7 +305,7 @@ public:
   void close()
   {
     this->f_video_index = -1;
-    this->f_data_indices.clear();
+    this->metadata.clear();
     this->f_start_time = -1;
 
     if (this->f_video_stream)
@@ -483,24 +481,11 @@ public:
       }
 
       // grab the metadata from this packet if from the metadata stream
-      else if (this->f_data_indices.find(this->f_packet->stream_index) !=
-               this->f_data_indices.end())
+      auto md_iter = this->metadata.find(this->f_packet->stream_index);
+      if (md_iter != this->metadata.end() )
       {
-        if (this->metadata.find(this->f_packet->stream_index) != this->metadata.end() )
-        {
-          auto& md = this->metadata[this->f_packet->stream_index];
-          md.insert(md.end(), this->f_packet->data,
-                    this->f_packet->data + this->f_packet->size);
-        }
-        else
-        {
-          std::deque<uint8_t> md;
-          md.insert(md.end(), this->f_packet->data,
-                    this->f_packet->data + this->f_packet->size);
-          this->metadata.insert(
-            std::make_pair(this->f_packet->stream_index, md) );
-        }
-
+        md_iter->second.insert(md_iter->second.end(), this->f_packet->data,
+                               this->f_packet->data + this->f_packet->size);
       }
 
       // De-reference previous packet
@@ -924,7 +909,7 @@ ffmpeg_video_input
       VITAL_THROW( kwiver::vital::video_runtime_exception, "Video stream open failed for unknown reasons");
     }
     this->set_capability(vital::algo::video_input::HAS_METADATA,
-                         d->f_data_indices.size() != 0);
+                         d->metadata.empty() );
     d->end_of_video = false;
   }
 }
