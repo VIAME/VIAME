@@ -243,17 +243,35 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& packet_
 void save( ::cereal::JSONOutputArchive& archive,
            const kwiver::vital::metadata_map::map_metadata_t& meta_map )
 {
+  archive( make_size_tag( static_cast<size_type>(meta_map.size()) ) );
+
   for ( auto const &meta_vec : meta_map) {
-    archive( cereal::make_nvp( std::to_string( meta_vec.first ), meta_vec.second ) );
+    archive( make_map_item( meta_vec.first, meta_vec.second ) );
   }
-  // TODO see whether `archive( meta_map );` produces the same result
 }
 
 // ----------------------------------------------------------------------------
 void load( ::cereal::JSONInputArchive& archive,
            kwiver::vital::metadata_map::map_metadata_t& meta_map )
 {
-  archive( meta_map );
+  size_type size;
+  archive( make_size_tag( size ) );
+
+  meta_map.clear();
+
+  auto hint = meta_map.begin();
+  for( size_t i = 0; i < size; ++i )
+  {
+    kwiver::vital::frame_id_t key;
+    kwiver::vital::metadata_vector value;
+
+    archive( make_map_item(key, value) );
+    #ifdef CEREAL_OLDER_GCC
+    hint = meta_map.insert( hint, std::make_pair(std::move(key), std::move(value)) );
+    #else // NOT CEREAL_OLDER_GCC
+    hint = meta_map.emplace_hint( hint, std::move( key ), std::move( value ) );
+    #endif // NOT CEREAL_OLDER_GCC
+  }
 }
 
 } // end namespace
