@@ -388,7 +388,7 @@ convert_metadata
       break;
 
     case KLV_0601_TARGET_LOCATION_ELEV:
-      raw_target_location[2] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LAT, data );
+      raw_target_location[2] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_ELEV, data );
       break;
 
     case KLV_0601_TARGET_LOCATION_LAT:
