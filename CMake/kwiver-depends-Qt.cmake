@@ -12,7 +12,7 @@ option( KWIVER_ENABLE_QT
   )
 
 if( KWIVER_ENABLE_QT )
-  find_package( Qt5 5.10 REQUIRED COMPONENTS Core Gui Widgets Xml)
+  set(Qt_components Core Gui)
 
   option( KWIVER_ENABLE_QT_EXT
     "Enable Qt Extensions dependent code"
@@ -20,8 +20,11 @@ if( KWIVER_ENABLE_QT )
     )
 
   if( KWIVER_ENABLE_QT_EXT )
+    list(APPEND Qt_components Widgets Xml)
     find_package(qtExtensions REQUIRED)
     include(${qtExtensions_USE_FILE})
   endif()
+
+  find_package( Qt5 5.10 REQUIRED COMPONENTS ${Qt_components})
 
 endif( KWIVER_ENABLE_QT )
