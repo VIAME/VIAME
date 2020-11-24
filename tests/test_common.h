@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2011-2015, 2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -40,7 +14,6 @@
 #ifndef KWIVER_TEST_TEST_COMMON_H_
 #define KWIVER_TEST_TEST_COMMON_H_
 
-
 #include <functional>
 #include <exception>
 #include <iostream>
@@ -53,7 +26,6 @@
 
 typedef std::string testname_t;
 
-
 // ------------------------------------------------------------------
 /// Report an error to stderr.
 /**
@@ -64,7 +36,6 @@ typedef std::string testname_t;
   {                                             \
     std::cerr << "Error: " << msg << std::endl; \
   } while (false)
-
 
 // ------------------------------------------------------------------
 /// Attempt a code block that should throw some exception
@@ -114,7 +85,6 @@ typedef std::string testname_t;
     }                                       \
   } while (false)
 
-
 // ------------------------------------------------------------------
 /// Set-up macro defining the test case function map for the current file
 /**
@@ -146,7 +116,6 @@ typedef std::string testname_t;
     }                                                         \
   }                                                           \
 
-
 // ------------------------------------------------------------------
 /// Macro for displaying tests available
 #define DISPLAY_AVAILABLE_TESTS()                                       \
@@ -158,7 +127,6 @@ typedef std::string testname_t;
       std::cerr << "\t" << p.first << std::endl;                        \
     }                                                                   \
   } while (false)
-
 
 // ------------------------------------------------------------------
 /// Add a CMake property to the next test declared
@@ -176,7 +144,6 @@ typedef std::string testname_t;
  */
 #define TEST_PROPERTY(property, value, ...)
 
-
 // ------------------------------------------------------------------
 /// Define a test case
 /**
@@ -190,7 +157,6 @@ typedef std::string testname_t;
     __add_test_##testname(#testname, test_##testname); \
   void                                                 \
   test_##testname TEST_ARGS
-
 
 // ------------------------------------------------------------------
 /// Check the number of positional arguments given to the top level executable
@@ -214,7 +180,6 @@ typedef std::string testname_t;
       return EXIT_FAILURE;      \
     }                           \
   } while (false)
-
 
 // ------------------------------------------------------------------
 /// Run the a test case by a given name
@@ -261,7 +226,6 @@ typedef std::string testname_t;
     return EXIT_SUCCESS;                        \
   } while (false)
 
-
 // ------------------------------------------------------------------
 //
 // Testing helper macros/methods
@@ -282,7 +246,6 @@ inline bool is_almost(double const &value,
 {
   return fabs(value - target) <= epsilon;
 }
-
 
 // ------------------------------------------------------------------
 /// \copydoc kwiver::testing::test_equal
@@ -322,7 +285,6 @@ test_equal( char const* name, ActualType const& value,
   return true;
 }
 
-
 // ------------------------------------------------------------------
 /// General range test with message generation on out of range
 /**
@@ -348,7 +310,6 @@ test_bound( char const* name, ValueType const& value,
   }
   return true;
 }
-
 
 // ------------------------------------------------------------------
 /// Test double/float approximate equality to a given epsilon
