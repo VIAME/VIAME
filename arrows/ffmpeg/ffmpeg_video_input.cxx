@@ -441,7 +441,10 @@ public:
     this->frame_advanced = false;
 
     // clear the metadata from the previous frame
-    this->metadata.clear();
+    for (auto& md : this->metadata)
+    {
+      md.second.clear();
+    }
 
     while (!this->frame_advanced &&
            av_read_frame(this->f_format_context, this->f_packet) >= 0)
