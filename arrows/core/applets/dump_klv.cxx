@@ -26,8 +26,6 @@
 #include <vital/types/metadata_map.h>
 #include <vital/types/metadata_traits.h>
 
-#include <arrows/serialize/json/metadata.h>
-
 namespace kv =
   kwiver::vital;
 namespace kva =
@@ -164,6 +162,13 @@ dump_klv
     return EXIT_FAILURE;
   }
 
+  if ( !kva::serialize_metadata::check_nested_algo_configuration( "metadata_serializer",
+                                                                  config ) )
+  {
+    std::cerr << "Invalid metadata_serializer config" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   // instantiate a video reader
   try
   {
@@ -195,7 +200,6 @@ dump_klv
   kv::image_container_sptr frame;
   kv::timestamp ts;
   kv::wrap_text_block wtb;
-  kwiver::arrows::serialize::json::metadata metadata_serializer;
   kv::metadata_map::map_metadata_t frame_metadata;
 
   wtb.set_indent_string( "    " );

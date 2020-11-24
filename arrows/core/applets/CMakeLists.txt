@@ -23,7 +23,6 @@ kwiver_add_plugin( kwiver_algo_core_applets
   SUBDIR       ${kwiver_plugin_applets_subdir}
   SOURCES      ${sources} ${headers}
   PRIVATE      kwiver_algo_core
-               kwiver_serialize_json
                kwiver_tools_applet
                kwiversys
 )
