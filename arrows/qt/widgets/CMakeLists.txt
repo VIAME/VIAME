@@ -1,7 +1,5 @@
 # Build / Install plugin containing Qt widgets
 
-set( CMAKE_AUTOMOC ON )
-
 set( qt_sources
   MetadataView.cxx
   )
