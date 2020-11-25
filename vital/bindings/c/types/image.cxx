@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,11 @@
 
 #include "image.h"
 
+#include <vital/vital_config.h>
+#include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/types/image.h>
 
-#include <vital/bindings/c/helpers/c_utils.h>
 #include <iostream>
-
 
 /// Create a new, empty image
 vital_image_t* vital_image_new()
@@ -153,7 +153,8 @@ TYPE vital_image_get_pixel2_ ## NAME( vital_image_t *image,                 \
   return static_cast<TYPE>(0);                                              \
 }                                                                           \
 TYPE vital_image_get_pixel3_ ## NAME( vital_image_t *image,                 \
-                                      unsigned i, unsigned j, unsigned k )  \
+                                      unsigned i, unsigned j,               \
+                                      VITAL_UNUSED unsigned k )             \
 {                                                                           \
   STANDARD_CATCH(                                                           \
     "C::image::get_pixel2_" # NAME, 0,                                      \

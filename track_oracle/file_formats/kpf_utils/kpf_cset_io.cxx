@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@
 #include <vector>
 #include <string>
 
+#include <vital/vital_config.h>
+
 using std::vector;
 using std::string;
 
@@ -49,29 +51,32 @@ using index2val_t = std::map< std::size_t, double >;
 
 std::ostream&
 kwiver_io_base<tag2index_t>
-::to_stream( std::ostream& os, const tag2index_t& val ) const
+::to_stream( std::ostream& os, VITAL_UNUSED const tag2index_t& val ) const
 {
   return os;
 }
 
 bool
 kwiver_io_base<tag2index_t>
-::from_str( const std::string& s,
-            tag2index_t& val ) const
+::from_str( VITAL_UNUSED const std::string& s,
+            VITAL_UNUSED tag2index_t& val ) const
 {
   return false;
 }
 
 bool
 kwiver_io_base<tag2index_t>
-::read_xml( const TiXmlElement* e,  tag2index_t& val ) const
+::read_xml( VITAL_UNUSED const TiXmlElement* e,
+            VITAL_UNUSED tag2index_t& val ) const
 {
   return false;
 }
 
 void
 kwiver_io_base<tag2index_t>
-::write_xml( std::ostream& os, const std::string& indent, const tag2index_t& val ) const
+::write_xml( VITAL_UNUSED std::ostream& os,
+             VITAL_UNUSED const std::string& indent,
+             VITAL_UNUSED const tag2index_t& val ) const
 {
 }
 
@@ -84,42 +89,50 @@ kwiver_io_base<tag2index_t>
 
 bool
 kwiver_io_base<tag2index_t>
-::from_csv( const std::map< std::string, std::string >& header_value_map, tag2index_t& val ) const
+::from_csv( VITAL_UNUSED const std::map< std::string,
+            std::string >& header_value_map,
+            VITAL_UNUSED tag2index_t& val ) const
 {
   return false;
 }
 
 std::ostream&
 kwiver_io_base<tag2index_t>
-::to_csv( std::ostream& os, const tag2index_t& val ) const
+::to_csv( std::ostream& os,
+          VITAL_UNUSED const tag2index_t& val ) const
 {
   return os;
 }
 
 std::ostream&
 kwiver_io_base<index2val_t>
-::to_stream( std::ostream& os, const index2val_t& val ) const
+::to_stream( std::ostream& os,
+             VITAL_UNUSED const index2val_t& val ) const
 {
   return os;
 }
 
 bool
 kwiver_io_base<index2val_t>
-::from_str( const std::string& s, index2val_t& val ) const
+::from_str( VITAL_UNUSED const std::string& s,
+            VITAL_UNUSED index2val_t& val ) const
 {
   return false;
 }
 
 bool
 kwiver_io_base<index2val_t>
-::read_xml( const TiXmlElement* e, index2val_t& val ) const
+::read_xml( VITAL_UNUSED const TiXmlElement* e,
+            VITAL_UNUSED index2val_t& val ) const
 {
   return false;
 }
 
 void
 kwiver_io_base<index2val_t>
-::write_xml( std::ostream& os, const std::string& indent, const index2val_t& val ) const
+::write_xml( VITAL_UNUSED std::ostream& os,
+             VITAL_UNUSED const std::string& indent,
+             VITAL_UNUSED const index2val_t& val ) const
 {
 }
 
@@ -132,14 +145,17 @@ kwiver_io_base<index2val_t>
 
 bool
 kwiver_io_base<index2val_t>
-::from_csv( const std::map< std::string, std::string >& header_value_map, index2val_t& val ) const
+::from_csv(
+  VITAL_UNUSED const std::map< std::string, std::string >& header_value_map,
+  VITAL_UNUSED index2val_t& val ) const
 {
   return false;
 }
 
 std::ostream&
 kwiver_io_base<index2val_t>
-::to_csv( std::ostream& os, const index2val_t& val ) const
+::to_csv( std::ostream& os,
+          VITAL_UNUSED const index2val_t& val ) const
 {
   return os;
 }

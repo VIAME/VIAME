@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2010-2019 by Kitware, Inc.
+ * Copyright 2010-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@
 
 #include <limits>
 
+#include <vital/vital_config.h>
 #include <vital/logger/logger.h>
 
 
@@ -395,7 +396,7 @@ warp_image( vil_image_view<T> const& src,
 
 template <>
 bool
-safe_cast<bool, float>(float const& value)
+VITAL_UNUSED safe_cast<bool, float>(float const& value)
 {
   return fuzzy_cmp(value, float(0));
 }

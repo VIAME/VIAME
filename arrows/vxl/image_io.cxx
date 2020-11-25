@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018, 2020 by Kitware, Inc.
+ * Copyright 2013-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ template <typename inP, typename outP>
 void
 convert_image_helper(const vil_image_view<inP>& src,
                      vil_image_view<outP>& dest,
-                     bool force_byte, bool auto_stretch,
+                     VITAL_UNUSED bool force_byte, bool auto_stretch,
                      bool manual_stretch, const vector_2d& intensity_range)
 {
   vil_image_view<double> temp;
@@ -102,7 +102,7 @@ template <typename inP>
 void
 convert_image_helper(const vil_image_view<inP>& src,
                      vil_image_view<vxl_byte>& dest,
-                     bool force_byte, bool auto_stretch,
+                     VITAL_UNUSED bool force_byte, bool auto_stretch,
                      bool manual_stretch, const vector_2d& intensity_range)
 {
   if( auto_stretch )
@@ -127,8 +127,9 @@ template <typename outP>
 void
 convert_image_helper(const vil_image_view<bool>& src,
                      vil_image_view<outP>& dest,
-                     bool force_byte, bool auto_stretch,
-                     bool manual_stretch, const vector_2d& intensity_range)
+                     VITAL_UNUSED bool force_byte, bool auto_stretch,
+                     bool manual_stretch,
+                     VITAL_UNUSED const vector_2d& intensity_range)
 {
   // special case for bool because manual stretching limits do not
   // make sense and trigger compiler warnings on some platforms.

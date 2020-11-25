@@ -35,6 +35,7 @@
 
 #include "detected_object_type.h"
 
+#include <vital/vital_config.h>
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/detected_object_type.h>
 
@@ -45,8 +46,9 @@ namespace kwiver {
 namespace vital_c {
 
 // Allocate our shared pointer cache object
-SharedPointerCache< kwiver::vital::detected_object_type, vital_detected_object_type_t >
-  DOT_SPTR_CACHE( "detected_object_type" );
+SharedPointerCache< kwiver::vital::detected_object_type,
+                    vital_detected_object_type_t >
+DOT_SPTR_CACHE( "detected_object_type" );
 
 } }
 
@@ -77,10 +79,11 @@ void vital_detected_object_type_destroy(vital_detected_object_type_t* obj)
 
 
 // ------------------------------------------------------------------
-vital_detected_object_type_t* vital_detected_object_type_new_from_list( vital_detected_object_type_t* obj,
-                                                                        size_t count,
-                                                                        char** class_names,
-                                                                        double* scores)
+vital_detected_object_type_t*
+vital_detected_object_type_new_from_list( VITAL_UNUSED vital_detected_object_type_t* obj,
+                                          size_t count,
+                                          char** class_names,
+                                          VITAL_UNUSED double* scores)
 {
   STANDARD_CATCH(
     "C::detected_object_type:new_from_list", 0,
@@ -100,7 +103,8 @@ vital_detected_object_type_t* vital_detected_object_type_new_from_list( vital_de
 
 
 // ------------------------------------------------------------------
-bool vital_detected_object_type_has_class_name( vital_detected_object_type_t* obj, char* class_name )
+bool
+vital_detected_object_type_has_class_name( vital_detected_object_type_t* obj, char* class_name )
 {
   STANDARD_CATCH(
     "C::detected_object_type:has_class_name", 0,
@@ -178,7 +182,7 @@ void vital_detected_object_type_delete_score( vital_detected_object_type_t* obj,
 
 // ------------------------------------------------------------------
 char** vital_detected_object_type_class_names( vital_detected_object_type_t* obj,
-                                               double thresh )
+                                               VITAL_UNUSED double thresh )
 {
   STANDARD_CATCH(
     "C::detected_object_type:class_names", 0,
@@ -197,7 +201,8 @@ char** vital_detected_object_type_class_names( vital_detected_object_type_t* obj
 
 
 // ------------------------------------------------------------------
-char** vital_detected_object_type_all_class_names(vital_detected_object_type_t* obj)
+char** vital_detected_object_type_all_class_names(
+  VITAL_UNUSED vital_detected_object_type_t* obj )
 {
   STANDARD_CATCH(
     "C::detected_object_type:all_class_names", 0,
