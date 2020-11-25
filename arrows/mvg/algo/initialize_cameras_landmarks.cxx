@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -574,7 +548,6 @@ initialize_cameras_landmarks::priv
   }
 }
 
-
 /// Pass through this callback to another callback but cache the return value
 bool
 initialize_cameras_landmarks::priv
@@ -586,7 +559,6 @@ initialize_cameras_landmarks::priv
   this->continue_processing = cb(cams, lms, track_changes);
   return this->continue_processing;
 }
-
 
 /// Re-triangulate all landmarks for provided tracks
 void
@@ -746,7 +718,6 @@ private:
 };
 
 typedef std::shared_ptr<gridded_mask> gridded_mask_sptr;
-
 
 void
 initialize_cameras_landmarks::priv
@@ -1208,7 +1179,6 @@ initialize_cameras_landmarks::priv
     }
   }
 
-
   if (selected_frame == -1)
   {
     int max_existing_spacing = -1;
@@ -1311,7 +1281,6 @@ initialize_cameras_landmarks::priv
   return coverages[0].second;
 }
 
-
 void
 initialize_cameras_landmarks::priv
 ::three_point_pose(frame_id_t frame,
@@ -1396,7 +1365,6 @@ initialize_cameras_landmarks::priv
   cams->insert(frame, cam);
   coverage = image_coverage(cams, tks, inlier_lms, frame);
 
-
   LOG_DEBUG(m_logger, "for frame " << frame << " P3P found " << num_inliers <<
     " inliers out of " << inliers.size() <<
     " feature projections with coverage " << coverage);
@@ -1453,7 +1421,6 @@ initialize_cameras_landmarks::priv
   }
   auto nc = std::make_shared<vital::simple_camera_perspective>();
   nc->set_intrinsics(model_intrinsics);
-
 
   // do 3PT algorithm here
   three_point_pose(fid_to_resection, nc, tracks, lms,
@@ -1718,7 +1685,6 @@ initialize_cameras_landmarks::priv
         << cams->size() << " cameras and "
         << lms.size() << " landmarks");
 
-
       double init_rmse = reprojection_rmse(cams->cameras(),
                                                            lms, trks);
       LOG_DEBUG(m_logger, "initial reprojection RMSE: " << init_rmse);
@@ -1747,7 +1713,6 @@ initialize_cameras_landmarks::priv
                                                  rev_lms, trks);
         }
       }
-
 
       LOG_DEBUG(m_logger, "optimized reprojection RMSE: " << optimized_rmse
                           << " focal len: "
@@ -2556,7 +2521,6 @@ initialize_cameras_landmarks::priv
       retriangulate(lms, cams, trks, inlier_lm_ids, 3);
     }
 
-
     if (iterations < num_permissive_triangulation_iterations)
     {
       // set all tracks to inliers
@@ -2653,7 +2617,6 @@ initialize_cameras_landmarks::priv
         break;
       }
     }
-
 
   } while (cur_inlier_lm_count > prev_inlier_lm_count ||
            iterations < (num_permissive_triangulation_iterations +
@@ -3222,7 +3185,6 @@ initialize_cameras_landmarks::priv
   landmarks = store_landmarks(lmks, variable_landmarks);
 }
 
-
 std::set<uint32_t> hash_point(vector_3d const& X_min,
                               vector_3d const& X,
                               double volume_unit_size)
@@ -3252,7 +3214,6 @@ std::set<uint32_t> hash_point(vector_3d const& X_min,
   return hash_bins;
 }
 
-
 void
 initialize_cameras_landmarks::priv
 ::merge_landmarks(map_landmark_t &lmks,
@@ -3275,7 +3236,6 @@ initialize_cameras_landmarks::priv
     LOG_WARN(m_logger, "beginning num landmarks without tracks "
                        << num_landmarks_without_tracks);
   }
-
 
   // get bounding box of landmarks
   vector_3d X_min, X_max;
@@ -3527,9 +3487,7 @@ initialize_cameras_landmarks::priv
                        << num_landmarks_without_tracks);
   }
 
-
 }
-
 
 bool
 initialize_cameras_landmarks::priv
@@ -3956,7 +3914,6 @@ initialize_cameras_landmarks
   return config;
 }
 
-
 /// Set this algorithm's properties via a config block
 void
 initialize_cameras_landmarks
@@ -4032,7 +3989,6 @@ initialize_cameras_landmarks
     config->get_value<bool>("do_final_sfm_cleaning",
                             m_priv->m_do_final_sfm_cleaning);
 
-
   vital::config_block_sptr bc = config->subblock("base_camera");
 
   m_priv->m_config_defines_base_intrinsics =
@@ -4069,12 +4025,9 @@ initialize_cameras_landmarks
 
   m_priv->m_thresh_triang_cos_ang = cos(deg_to_rad * ang_thresh_config);
 
-
-
   vital::algo::estimate_pnp::set_nested_algo_configuration(
     "estimate_pnp", config, m_priv->m_pnp);
 }
-
 
 /// Check that the algorithm's currently configuration is valid
 bool
@@ -4158,7 +4111,6 @@ initialize_cameras_landmarks
 
   cameras = std::make_shared<simple_camera_map>(cams->cameras());
 }
-
 
 /// Set a callback function to report intermediate progress
 void

@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -100,7 +74,6 @@ public:
   double m_conf_thresh;
 };
 
-
 // Constructor
 triangulate_landmarks
 ::triangulate_landmarks()
@@ -109,7 +82,6 @@ triangulate_landmarks
   attach_logger( "arrows.mvg.triangulate_landmarks" );
 }
 
-
 // Copy Constructor
 triangulate_landmarks
 ::triangulate_landmarks(const triangulate_landmarks& other)
@@ -117,13 +89,11 @@ triangulate_landmarks
 {
 }
 
-
 // Destructor
 triangulate_landmarks
 ::~triangulate_landmarks()
 {
 }
-
 
 // Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
@@ -145,7 +115,6 @@ triangulate_landmarks
   config->set_value("min_angle_deg", d_->m_min_angle_deg,
                     "minimum angle required to triangulate a point.");
 
-
   config->set_value("inlier_threshold_pixels", d_->m_inlier_threshold_pixels,
                    "reprojection error threshold in pixels.");
 
@@ -165,7 +134,6 @@ triangulate_landmarks
 
   return config;
 }
-
 
 // Set this algorithm's properties via a config block
 void
@@ -201,7 +169,6 @@ triangulate_landmarks
     config->get_value<double>("ransac_confidence_threshold", d_->m_conf_thresh);
 }
 
-
 // Check that the algorithm's currently configuration is valid
 bool
 triangulate_landmarks
@@ -233,7 +200,6 @@ triangulate_landmarks::priv
 
   return true;
 }
-
 
 /// Triangulate the landmark with RANSAC robust estimation
 vital::vector_3d
@@ -333,7 +299,6 @@ triangulate_landmarks::priv
   return best_pt3d;
 }
 
-
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
@@ -373,7 +338,6 @@ triangulate_landmarks
   // the set of landmark ids which failed to triangulate
   std::set<vital::landmark_id_t> failed_landmarks;
   std::set<vital::landmark_id_t> failed_outlier, failed_angle;
-
 
   //minimum triangulation angle
   double thresh_triang_cos_ang = cos(vital::deg_to_rad * d_->m_min_angle_deg);
@@ -525,7 +489,6 @@ triangulate_landmarks
         }
         continue;
       }
-
 
       std::shared_ptr<vital::landmark_d> lm;
       // if the landmark already exists, copy it

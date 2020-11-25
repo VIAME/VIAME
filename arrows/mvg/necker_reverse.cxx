@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -37,11 +11,9 @@
 #include <Eigen/Geometry>
 #include <Eigen/SVD>
 
-
 namespace kwiver {
 namespace arrows {
 namespace mvg {
-
 
 /// Compute a plane passing through the landmarks
 vital::vector_4d
@@ -69,7 +41,6 @@ landmark_plane(const vital::landmark_map::map_landmark_t& landmarks)
   return vector_4d(axis.x(), axis.y(), axis.z(), -(lc.dot(axis)));
 }
 
-
 /// Mirror landmarks about the specified plane
 vital::landmark_map_sptr
 mirror_landmarks(vital::landmark_map const& landmarks,
@@ -90,7 +61,6 @@ mirror_landmarks(vital::landmark_map const& landmarks,
   }
   return std::make_shared<simple_landmark_map>(new_lms);
 }
-
 
 /// Compute the Necker reversal of a camera in place
 void
@@ -119,7 +89,6 @@ necker_reverse_inplace(vital::simple_camera_perspective& camera,
   camera.set_rotation(Rz180 * camera.rotation() * Ra180);
 }
 
-
 /// Compute the Necker reversal of the cameras
 vital::camera_map_sptr
 necker_reverse(vital::camera_map const& cameras,
@@ -140,7 +109,6 @@ necker_reverse(vital::camera_map const& cameras,
   return std::make_shared<simple_camera_map>(cams);
 }
 
-
 /// Compute an approximate Necker reversal of cameras and landmarks
 void
 necker_reverse(vital::camera_map_sptr& cameras,
@@ -159,7 +127,6 @@ necker_reverse(vital::camera_map_sptr& cameras,
     landmarks = mirror_landmarks(*landmarks, plane);
   }
 }
-
 
 } // end namespace mvg
 } // end namespace arrows

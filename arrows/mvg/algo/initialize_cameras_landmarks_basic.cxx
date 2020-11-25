@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -37,7 +11,6 @@
 
 #include <deque>
 #include <iterator>
-
 
 #include <vital/exceptions.h>
 #include <vital/io/eigen_io.h>
@@ -91,7 +64,6 @@ remove_landmarks(const std::set<track_id_t>& to_remove,
   }
 }
 
-
 // remove landmarks with IDs in the set
 void
 remove_tracks(const std::set<track_id_t>& to_remove,
@@ -111,11 +83,9 @@ remove_tracks(const std::set<track_id_t>& to_remove,
 
 }
 
-
 namespace kwiver {
 namespace arrows {
 namespace mvg {
-
 
 // Private implementation class
 class initialize_cameras_landmarks_basic::priv
@@ -188,7 +158,6 @@ public:
   // Logger handle
   vital::logger_handle_t m_logger;
 };
-
 
 // ----------------------------------------------------------------------------
 // Construct and initialized camera for \a frame
@@ -308,7 +277,6 @@ initialize_cameras_landmarks_basic::priv
   return cam.clone();
 }
 
-
 // ----------------------------------------------------------------------------
 // Re-triangulate all landmarks for provided tracks
 void
@@ -360,7 +328,6 @@ initialize_cameras_landmarks_basic::priv
   remove_landmarks(to_remove, lms);
 }
 
-
 // Estimate the translation scale using a 2d-3d correspondence
 double
 initialize_cameras_landmarks_basic::priv
@@ -379,7 +346,6 @@ initialize_cameras_landmarks_basic::priv
   return (a.x()*cx + a.y()*cy) / -(b.x()*cx + b.y()*cy);
 }
 
-
 // Pass through this callback to another callback but cache the return value
 bool
 initialize_cameras_landmarks_basic::priv
@@ -392,7 +358,6 @@ initialize_cameras_landmarks_basic::priv
   return this->continue_processing;
 }
 
-
 // Constructor
 initialize_cameras_landmarks_basic
 ::initialize_cameras_landmarks_basic()
@@ -402,13 +367,11 @@ initialize_cameras_landmarks_basic
   d_->m_logger = logger();
 }
 
-
 // Destructor
 initialize_cameras_landmarks_basic
 ::~initialize_cameras_landmarks_basic()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 // Get this algorithm's \link vital::config_block configuration block \endlink
@@ -497,7 +460,6 @@ initialize_cameras_landmarks_basic
   return config;
 }
 
-
 // ----------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
 void
@@ -574,7 +536,6 @@ initialize_cameras_landmarks_basic
   d_->base_camera.set_intrinsics(K2.clone());
 }
 
-
 // ----------------------------------------------------------------------------
 // Check that the algorithm's currently configuration is valid
 bool
@@ -641,7 +602,6 @@ void extract_cameras(const camera_map_sptr& cameras,
   frame_ids = new_frames;
 }
 
-
 // ----------------------------------------------------------------------------
 // Extract valid landmarks and landmarks to initialize.
 /**
@@ -682,7 +642,6 @@ void extract_landmarks(const landmark_map_sptr& landmarks,
   track_ids = new_landmarks;
 }
 
-
 // ----------------------------------------------------------------------------
 // Find the closest frame number with an existing camera
 frame_id_t
@@ -708,7 +667,6 @@ find_closest_camera(const frame_id_t& frame,
   return other_frame;
 }
 
-
 // Find the subset of new_frames within dist frames of a camera in cams
 std::set<frame_id_t>
 find_nearby_new_frames(const std::set<frame_id_t>& new_frames,
@@ -730,7 +688,6 @@ find_nearby_new_frames(const std::set<frame_id_t>& new_frames,
                         std::inserter(new_nearby, new_nearby.begin()));
   return new_nearby;
 }
-
 
 // ----------------------------------------------------------------------------
 // find the best pair of camera indices to start with
@@ -783,7 +740,6 @@ find_best_initial_pair(const Eigen::SparseMatrix<unsigned int>& mm,
     j = max_j;
   }
 }
-
 
 // ----------------------------------------------------------------------------
 // find the frame in the set \p new_frame_ids that sees the most
@@ -842,7 +798,6 @@ next_best_frame(const track_set_sptr tracks,
   return best_frame;
 }
 
-
 // ----------------------------------------------------------------------------
 double
 estimate_gsd(const frame_id_t frame,
@@ -891,9 +846,7 @@ estimate_gsd(const frame_id_t frame,
   return gsds[gsds.size() / 2];
 }
 
-
 } // end anonymous namespace
-
 
 // ----------------------------------------------------------------------------
 // Initialize the camera and landmark parameters given a set of tracks
@@ -1093,7 +1046,6 @@ initialize_cameras_landmarks_basic
       cams[f] = opt_cams->cameras()[f];
     }
 
-
     // triangulate (or re-triangulate) points seen by the new camera
     d_->retriangulate(lms, cams, trks, new_lm_ids);
 
@@ -1232,7 +1184,6 @@ initialize_cameras_landmarks_basic
   cameras = camera_map_sptr(new simple_camera_map(cams));
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 }
-
 
 // ----------------------------------------------------------------------------
 // Set a callback function to report intermediate progress

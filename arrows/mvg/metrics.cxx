@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -53,7 +27,6 @@ reprojection_error_vec(const camera& cam,
   pt = cam.project(lm.loc());
   return pt - f.loc();
 }
-
 
 /// Compute the maximum angle between the rays from X to each camera center
 double
@@ -83,7 +56,6 @@ bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
   return min_cos_ang;
 }
 
-
 /// Check that at least one pair of rays has cos(angle) less than or equal to cos_ang_thresh
 bool
 bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &cameras,
@@ -111,7 +83,6 @@ bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &ca
   }
   return false;
 }
-
 
 /// Compute a vector of all reprojection errors in the data
 std::vector<double>
@@ -156,7 +127,6 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
   }
   return errors;
 }
-
 
 /// Compute the per camera Root-Mean-Square-Error (RMSE) of the reprojections
 std::map<frame_id_t, double>
@@ -237,7 +207,6 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
   return ret_errs;
 }
 
-
 /// Compute the Root-Mean-Square-Error (RMSE) of the reprojections
 double
 reprojection_rmse(const std::map<frame_id_t, camera_sptr>& cameras,
@@ -284,7 +253,6 @@ reprojection_rmse(const std::map<frame_id_t, camera_sptr>& cameras,
   return std::sqrt(error_sum / num_obs);
 }
 
-
 /// Compute the median of the reprojection errors
 double
 reprojection_median_error(const std::map<frame_id_t, camera_sptr>& cameras,
@@ -297,7 +265,6 @@ reprojection_median_error(const std::map<frame_id_t, camera_sptr>& cameras,
                    errors.end());
   return errors[errors.size()/2];
 }
-
 
 } // end namespace mvg
 } // end namespace arrows
