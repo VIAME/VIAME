@@ -51,6 +51,9 @@ Vital Bindings
  * Moved python bindings associated with config from sprokit.pipeline to
    vital.config.
 
+ * Force logging level of TRACE to be DEBUG in bindings because Python logging
+   does not support the TRACE level.
+
 Arrows
 
  * Cleaned up arrows library links.  Many arrows linked to the core arrow
@@ -128,6 +131,10 @@ Sprokit: Processes
  * Added four new PyTorch-using Python Sprokit processes for tracking
    (srnn_tracker), descriptor computation (alexnet_descriptors and
    resnet_descriptors), and augmentation (resnet_augmentation).
+
+Sprokit: Bindings
+
+ * Removed redundant logger support sprokit.sprokit_logging module.
 
 Tools
 

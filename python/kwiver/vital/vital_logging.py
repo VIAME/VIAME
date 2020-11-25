@@ -111,8 +111,8 @@ def getLogger(name):
         name (str): Logger name, which should be the module __name__ attribute
 
     Example:
-        >>> from sprokit import sprokit_logging
-        >>> logger = sprokit_logging.getLogger(__name__)
+        >>> from kwiver.vital import vital_logging
+        >>> logger = vital_logging.getLogger(__name__)
         >>> logger.info('Hello World')
 
     This really should get a vital logger rather than a python logger.
