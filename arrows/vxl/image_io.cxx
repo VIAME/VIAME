@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -96,7 +70,6 @@ convert_image_helper(const vil_image_view<inP>& src,
   }
 }
 
-
 // Helper function to convert images based on configuration - specialized for byte output
 template <typename inP>
 void
@@ -121,7 +94,6 @@ convert_image_helper(const vil_image_view<inP>& src,
   }
 }
 
-
 // Helper function to convert images based on configuration - specialization for bool
 template <typename outP>
 void
@@ -143,7 +115,6 @@ convert_image_helper(const vil_image_view<bool>& src,
   }
 }
 
-
 // Helper function to convert images based on configuration - resolve specialization ambiguity
 void
 convert_image_helper(const vil_image_view<bool>& src,
@@ -153,7 +124,6 @@ convert_image_helper(const vil_image_view<bool>& src,
 {
   convert_image_helper<vxl_byte>(src, dest, force_byte, auto_stretch, manual_stretch, intensity_range);
 }
-
 
 // Helper function to convert images based on configuration - specialization for bool/bool
 void
@@ -168,10 +138,7 @@ convert_image_helper(const vil_image_view<bool>& src,
   dest = src;
 }
 
-
 }
-
-
 
 // Private implementation class
 class image_io::priv
@@ -203,7 +170,6 @@ public:
   vector_2d intensity_range;
 };
 
-
 // ----------------------------------------------------------------------------
 // Constructor
 image_io
@@ -213,13 +179,11 @@ image_io
   attach_logger( "arrows.vxl.image_io" );
 }
 
-
 // Destructor
 image_io
 ::~image_io()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 // Get this algorithm's \link vital::config_block configuration block \endlink
@@ -260,7 +224,6 @@ image_io
   return config;
 }
 
-
 // ----------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
 void
@@ -281,7 +244,6 @@ image_io
   d_->intensity_range = config->get_value<vector_2d>("intensity_range",
                                         d_->intensity_range.transpose());
 }
-
 
 // ----------------------------------------------------------------------------
 // Check that the algorithm's currently configuration is valid
@@ -311,7 +273,6 @@ image_io
   }
   return true;
 }
-
 
 // ----------------------------------------------------------------------------
 // Load image image from the file
@@ -397,7 +358,6 @@ image_io
   return image_container_sptr();
 }
 
-
 // ----------------------------------------------------------------------------
 // Save image image to a file
 void
@@ -471,7 +431,6 @@ image_io
     }
   }
 }
-
 
 // ----------------------------------------------------------------------------
 /// Load image metadata from the file
