@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -42,7 +16,6 @@
 #include <vital/math_constants.h>
 
 using namespace kwiver::vital;
-
 
 namespace kwiver {
 namespace arrows {
@@ -61,7 +34,6 @@ solver_options
   : options( other.options )
 {
 }
-
 
 /// populate the config block with options
 void
@@ -102,7 +74,6 @@ solver_options
                     "optimization but can be useful for debugging.");
 }
 
-
 /// set the member variables from the config block
 void
 solver_options
@@ -125,8 +96,6 @@ solver_options
 
 #undef GET_VALUE
 }
-
-
 
 /// Constructor
 camera_options
@@ -167,7 +136,6 @@ camera_options
     minimum_hfov(other.minimum_hfov)
 {
 }
-
 
 /// populate the config block with options
 void
@@ -223,7 +191,6 @@ camera_options
                     "penalty.");
 }
 
-
 /// set the member variables from the config block
 void
 camera_options
@@ -248,7 +215,6 @@ camera_options
   GET_VALUE(double, minimum_hfov);
 #undef GET_VALUE
 }
-
 
 /// Return true if any options to optimize intrinsic parameters are set
 bool
@@ -284,7 +250,6 @@ camera_options
   }
   return false;
 }
-
 
 /// enumerate the intrinsics held constant
 std::vector<int>
@@ -339,7 +304,6 @@ camera_options
   return constant_intrinsics;
 }
 
-
 /// extract the extrinsic paramters from a camera into the parameter array
 void
 camera_options
@@ -352,7 +316,6 @@ camera_options
   std::copy(center.data(), center.data()+3, params+3);
 }
 
-
 /// Update a camera object to use extrinsic parameters from an array
 void
 camera_options
@@ -362,7 +325,6 @@ camera_options
   camera->set_rotation(rotation_d(vector_3d(Eigen::Map<const vector_3d>(params))));
   camera->set_center(Eigen::Map<const vector_3d>(&params[3]));
 }
-
 
 /// extract the paramters from camera intrinsics into the parameter array
 void
@@ -386,7 +348,6 @@ camera_options
   }
 }
 
-
 /// update the camera intrinsics from a parameter array
 void
 camera_options
@@ -408,7 +369,6 @@ camera_options
     K->set_dist_coeffs(dc);
   }
 }
-
 
 /// extract the set of all unique intrinsic and extrinsic parameters from a camera map
 void
@@ -461,7 +421,6 @@ camera_options
     }
   }
 }
-
 
 /// update the camera objects using the extracted camera parameters
 void
@@ -638,7 +597,6 @@ camera_options
     }
   }
 }
-
 
 /// Add the camera forward motion damping costs to the Ceres problem
 void
