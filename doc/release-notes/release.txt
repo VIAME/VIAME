@@ -14,6 +14,8 @@ Config
 Vital
 
  * Added a missing include file in track.cxx required to build on MSVC 2019.
+ * Changed incorrect metadata tag in convert_0601_metadata.cxx from
+   KLV_0601_TARGET_LOCATION_LAT to KLV_0601_TARGET_LOCATION_ELEV.
 
 Arrows: Core
 
