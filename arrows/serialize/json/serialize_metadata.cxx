@@ -1,37 +1,12 @@
-/*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
  * \brief Implementation of load/save functionality.
  */
+#include <vital/exceptions/io.h>
 #include <vital/types/metadata_map.h>
 
 #include <arrows/serialize/json/metadata.h>
@@ -65,8 +40,11 @@ serialize_metadata
 ::~serialize_metadata()
 { }
 
-/// Load in the data from a filename. This file is assumed to exist
+/// Load in the data from a filename.
 /**
+ * \throws file_not_read_exception
+ *    Thrown if the file can't be opened for reading, likely due to
+ *    permissions or not being present.
  *
  * \param filename the path to the file the load
  * \returns the metadata map for a video
@@ -88,7 +66,8 @@ serialize_metadata::load_(std::string const& filename) const
   }
   else
   {
-    std::cout << "Couldn't open \"" << filename << "\" for reading.\n";
+    VITAL_THROW(kwiver::vital::file_not_read_exception, filename,
+                "Insufficient permissions or moved file");
   }
 
   auto metadata_map_ptr = std::make_shared< kwiver::vital::simple_metadata_map >(
@@ -96,12 +75,15 @@ serialize_metadata::load_(std::string const& filename) const
   return metadata_map_ptr;
 }
 
-/// Save metadata to a file. The containing directory is assumed to exist
+/// Save metadata to a file.
 /**
+ * \throws file_write_exception
+ *    Thrown if the file can't be opened, likely due to permissions
+ *    or a missing containing directory
+ *
  * \param filename the path to the file to save
  * \param data the metadata map for a video
  */
-// TODO see if this should throw something
 void
 serialize_metadata::save_(std::string const& filename,
                           kwiver::vital::metadata_map_sptr data) const
@@ -117,7 +99,8 @@ serialize_metadata::save_(std::string const& filename,
   }
   else
   {
-    std::cout << "Couldn't open \"" << filename << "\" for writing.\n";
+    VITAL_THROW(kwiver::vital::file_write_exception, filename,
+                "Insufficient permissions or moved file");
   }
 }
 

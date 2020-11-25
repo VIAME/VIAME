@@ -17,6 +17,7 @@
 #include <vital/internal/cereal/types/map.hpp>
 #include <vital/internal/cereal/types/utility.hpp>
 
+
 namespace {
 
 // ---- STATIC DATA ----
@@ -69,7 +70,7 @@ struct meta_item
       }
       // We don't want negative ints to be serialized as large postive unsigned
       // values since this would be confusing for external applications
-      else if ( trait.tag_type() == typeid( int ) )
+      else if ( trait.is_signed() )
       {
         const int value = kwiver::vital::any_cast< int > ( this->item_value );
         archive( CEREAL_NVP( value ) );
@@ -183,8 +184,6 @@ namespace cereal {
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta_packets )
 {
-  // archive( ::cereal::make_nvp( "size", meta_packets.size() ) );
-
   std::vector<kwiver::vital::metadata> meta_packets_dereferenced;
   for ( const auto& packet : meta_packets )
   {
