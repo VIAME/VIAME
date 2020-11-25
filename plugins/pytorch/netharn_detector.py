@@ -182,6 +182,10 @@ class NetharnDetector(ImageObjectDetector):
                 elif gpu_mem >= 7e9:
                     self._kwiver_config['batch_size'] = 3
 
+        import os
+        if os.name == 'nt':
+            os.environ["KWIMAGE_DISABLE_TORCHVISION_NMS"] = "1"
+
         from bioharn import detect_predict
         pred_config = detect_predict.DetectPredictConfig()
         pred_config['batch_size'] = self._kwiver_config['batch_size']
