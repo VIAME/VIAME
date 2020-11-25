@@ -10,8 +10,15 @@
 # --------------------- ADD ANY BASIC PYTHON DEPS HERE -------------------------
 # Basic dependencies are installed jointly in one local pip installation call
 
-set( VIAME_PYTHON_BASIC_DEPS "numpy" "kiwisolver==1.2.0" "matplotlib==3.1.1" )
 set( PYTHON_DEP_ENV_VARS )
+
+if( VIAME_CREATE_PACKAGE )
+  set( VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
+else()
+  set( VIAME_PYTHON_BASIC_DEPS "numpy" )
+endif()
+
+list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.1.1" )
 
 if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "humanfriendly" )
