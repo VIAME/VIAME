@@ -1148,16 +1148,15 @@ main( int argc, char* argv[] )
         for( auto det : *frame_dets )
         {
           bool add_detection = false;
+          auto class_scores = det->type();
 
-          if( det->type() )
+          if( class_scores )
           {
-            for( auto t : *det->type() )
+            for( auto gt_class : class_scores->class_names() )
             {
-              std::string gt_class = *(t.first);
-
               if( !model_labels || model_labels->has_class_name( gt_class ) )
               {
-                if( t.second > threshold )
+                if( class_scores->score( gt_class ) >= threshold )
                 {
                   if( model_labels )
                   {
@@ -1170,7 +1169,7 @@ main( int argc, char* argv[] )
               }
               else
               {
-                det->type()->delete_score( gt_class );
+                class_scores->delete_score( gt_class );
 
                 if( data_warning_writer &&
                     std::find(
