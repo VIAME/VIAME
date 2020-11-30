@@ -47,30 +47,28 @@ public:
   void removeItem(int id);
   void clear();
 
-  QSet<int> itemIds() const { return this->keyLabels.keys().toSet(); }
+  QSet<int> itemIds() const { return this->m_keyLabels.keys().toSet(); }
   void updateLabelColors();
 
-  QWidget* contentWidget;
+  QWidget* m_contentWidget;
 
 protected:
   static void setKeyLabelColor(QLabel* label);
 
-  static QString const valueTextTemplate;
-
-  QHash<int, QLabel*> keyLabels;
-  QHash<int, qtSqueezedLabel*> valueLabels;
+  QHash<int, QLabel*> m_keyLabels;
+  QHash<int, qtSqueezedLabel*> m_valueLabels;
 };
 
 //-----------------------------------------------------------------------------
 void MetadataViewPrivate::addItem(int id, QString const& keyText)
 {
-  if (auto* const l = this->keyLabels.value(id, nullptr))
+  if (auto* const l = this->m_keyLabels.value(id, nullptr))
   {
     l->setText(keyText);
   }
   else
   {
-    auto* const q = this->contentWidget;
+    auto* const q = this->m_contentWidget;
 
     auto* const keyLabel = new QLabel{keyText, q};
     auto* const valueLabel = new qtSqueezedLabel{q};
@@ -93,8 +91,8 @@ void MetadataViewPrivate::addItem(int id, QString const& keyText)
 
     q->resize(q->sizeHint());
 
-    this->keyLabels.insert(id, keyLabel);
-    this->valueLabels.insert(id, valueLabel);
+    this->m_keyLabels.insert(id, keyLabel);
+    this->m_valueLabels.insert(id, valueLabel);
     this->clearItemValue(id);
   }
 }
@@ -102,7 +100,7 @@ void MetadataViewPrivate::addItem(int id, QString const& keyText)
 //-----------------------------------------------------------------------------
 void MetadataViewPrivate::setItemValue(int id, QString const& valueText)
 {
-  if (auto* const l = this->valueLabels.value(id, nullptr))
+  if (auto* const l = this->m_valueLabels.value(id, nullptr))
   {
     if (valueText.isEmpty())
     {
@@ -121,7 +119,7 @@ void MetadataViewPrivate::setItemValue(int id, QString const& valueText)
 //-----------------------------------------------------------------------------
 void MetadataViewPrivate::clearItemValue(int id)
 {
-  if (auto* const l = this->valueLabels.value(id, nullptr))
+  if (auto* const l = this->m_valueLabels.value(id, nullptr))
   {
     l->setText("(not available)");
     l->setToolTip({});
@@ -132,17 +130,17 @@ void MetadataViewPrivate::clearItemValue(int id)
 //-----------------------------------------------------------------------------
 void MetadataViewPrivate::removeItem(int id)
 {
-  delete this->keyLabels.take(id);
-  delete this->valueLabels.take(id);
+  delete this->m_keyLabels.take(id);
+  delete this->m_valueLabels.take(id);
 }
 
 //-----------------------------------------------------------------------------
 void MetadataViewPrivate::clear()
 {
-  qDeleteAll(this->keyLabels);
-  qDeleteAll(this->valueLabels);
-  this->keyLabels.clear();
-  this->valueLabels.clear();
+  qDeleteAll(this->m_keyLabels);
+  qDeleteAll(this->m_valueLabels);
+  this->m_keyLabels.clear();
+  this->m_valueLabels.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -158,7 +156,7 @@ void MetadataViewPrivate::setKeyLabelColor(QLabel* label)
 //-----------------------------------------------------------------------------
 void MetadataViewPrivate::updateLabelColors()
 {
-  for (auto* const l : this->keyLabels)
+  for (auto* const l : this->m_keyLabels)
   {
     this->setKeyLabelColor(l);
   }
@@ -176,11 +174,11 @@ MetadataView::MetadataView(QWidget* parent)
 {
   QTE_D();
 
-  d->contentWidget = new QWidget{this};
-  d->contentWidget->setLayout(new QVBoxLayout);
-  d->contentWidget->installEventFilter(this);
+  d->m_contentWidget = new QWidget{this};
+  d->m_contentWidget->setLayout(new QVBoxLayout);
+  d->m_contentWidget->installEventFilter(this);
 
-  this->setWidget(d->contentWidget);
+  this->setWidget(d->m_contentWidget);
 }
 
 //-----------------------------------------------------------------------------
@@ -193,10 +191,10 @@ bool MetadataView::eventFilter(QObject* sender, QEvent* e)
 {
   QTE_D();
 
-  if (sender == d->contentWidget && e && e->type() == QEvent::Resize)
+  if (sender == d->m_contentWidget && e && e->type() == QEvent::Resize)
   {
     this->setMinimumWidth(
-      d->contentWidget->minimumSizeHint().width() +
+      d->m_contentWidget->minimumSizeHint().width() +
       this->verticalScrollBar()->width());
   }
 
