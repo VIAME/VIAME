@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -47,7 +21,6 @@
 
 #include <Eigen/LU>
 
-
 using namespace kwiver::vital;
 
 namespace kwiver {
@@ -56,7 +29,6 @@ namespace core {
 
 namespace
 {
-
 
 // Extra data stored for every active track
 struct track_info_t
@@ -95,13 +67,11 @@ struct track_info_t
   {}
 };
 
-
 // Buffer type for storing the extra track info for all tracks
 typedef std::vector< track_info_t > track_info_buffer_t;
 
 // Pointer to a track info buffer
 typedef std::shared_ptr< track_info_buffer_t > track_info_buffer_sptr;
-
 
 // ----------------------------------------------------------------------------
 // Helper function for sorting tis
@@ -110,7 +80,6 @@ compare_ti( const track_info_t& c1, const track_info_t& c2 )
 {
   return ( c1.tid < c2.tid );
 }
-
 
 // ----------------------------------------------------------------------------
 // Find a track in a given buffer
@@ -121,7 +90,6 @@ find_track( const track_sptr& trk, track_info_buffer_sptr buffer )
   ti.tid = trk->id();
   return std::lower_bound( buffer->begin(), buffer->end(), ti, compare_ti );
 }
-
 
 // ----------------------------------------------------------------------------
 // Reset all is found flags
@@ -134,9 +102,7 @@ reset_active_flags( track_info_buffer_sptr buffer )
   }
 }
 
-
 } // end namespace anonymous
-
 
 // Private implementation class
 class compute_ref_homography_core::priv
@@ -283,7 +249,6 @@ public:
 
 };
 
-
 // ----------------------------------------------------------------------------
 compute_ref_homography_core
 ::compute_ref_homography_core()
@@ -293,12 +258,10 @@ compute_ref_homography_core
   d_->m_logger = this->logger();
 }
 
-
 compute_ref_homography_core
 ::~compute_ref_homography_core()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 vital::config_block_sptr
@@ -338,7 +301,6 @@ compute_ref_homography_core
   return config;
 }
 
-
 // ----------------------------------------------------------------------------
 void
 compute_ref_homography_core
@@ -367,7 +329,6 @@ compute_ref_homography_core
                                   d_->backproject_threshold_sqr;
 }
 
-
 // ----------------------------------------------------------------------------
 bool
 compute_ref_homography_core
@@ -378,7 +339,6 @@ compute_ref_homography_core
     algo::estimate_homography::check_nested_algo_configuration( "estimator", config )
   );
 }
-
 
 // ----------------------------------------------------------------------------
 // Perform actual current to reference frame estimation

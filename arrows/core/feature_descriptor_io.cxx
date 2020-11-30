@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -41,13 +15,11 @@
 #include <vital/vital_config.h>
 #include <cereal/archives/portable_binary.hpp>
 
-
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
 namespace core {
-
 
 // Private implementation class
 class feature_descriptor_io::priv
@@ -62,8 +34,6 @@ public:
   bool write_float_features;
 };
 
-
-
 // Constructor
 feature_descriptor_io
 ::feature_descriptor_io()
@@ -72,13 +42,11 @@ feature_descriptor_io
   attach_logger( "arrows.core.feature_descriptor_io" );
 }
 
-
 // Destructor
 feature_descriptor_io
 ::~feature_descriptor_io()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 // Get this algorithm's \link vital::config_block configuration block \endlink
@@ -96,7 +64,6 @@ feature_descriptor_io
   return config;
 }
 
-
 // ----------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
 void
@@ -111,7 +78,6 @@ feature_descriptor_io
   d_->write_float_features = config->get_value<bool>("write_float_features",
                                                      d_->write_float_features);
 }
-
 
 // ----------------------------------------------------------------------------
 // Check that the algorithm's currently configuration is valid
@@ -146,7 +112,6 @@ save_features(Archive & ar, std::vector<feature_sptr> const& features)
   }
 }
 
-
 // ----------------------------------------------------------------------------
 // Helper function to unserialized a vector of N features of known type
 template <typename Archive, typename T>
@@ -163,7 +128,6 @@ read_features(Archive & ar, size_t num_feat)
   }
   return std::make_shared<vital::simple_feature_set>(features);
 }
-
 
 // ----------------------------------------------------------------------------
 // Helper function to serialized a vector of descriptors of known type
@@ -203,7 +167,6 @@ save_descriptors(Archive & ar, descriptor_set_sptr const& descriptors)
   }
 }
 
-
 // ----------------------------------------------------------------------------
 // Helper function to unserialized a vector of N descriptors of known type
 template <typename Archive, typename T>
@@ -241,14 +204,12 @@ read_descriptors(Archive & ar, size_t num_desc)
   return std::make_shared<vital::simple_descriptor_set>(descriptors);
 }
 
-
 // ----------------------------------------------------------------------------
 // compute base 2 log of integers at compile time
 constexpr size_t log2(size_t n)
 {
   return ( (n<2) ? 0 : 1+log2(n/2));
 }
-
 
 // ----------------------------------------------------------------------------
 // compute a unique byte code for built-in types
@@ -260,7 +221,6 @@ struct type_traits
     (std::numeric_limits<T>::is_signed << 4) +
     log2(sizeof(T)));
 };
-
 
 // ----------------------------------------------------------------------------
 uint8_t code_from_typeid(std::type_info const& tid)
@@ -287,7 +247,6 @@ uint8_t code_from_typeid(std::type_info const& tid)
 }
 
 }
-
 
 // ----------------------------------------------------------------------------
 // Implementation specific load functionality.
@@ -380,7 +339,6 @@ feature_descriptor_io
     desc = descriptor_set_sptr();
   }
 }
-
 
 // ----------------------------------------------------------------------------
 // Implementation specific save functionality.
