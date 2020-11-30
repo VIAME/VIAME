@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2018, 2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -79,7 +53,6 @@ image_container
   }
 }
 
-
 // ----------------------------------------------------------------------------
 /// Constructor - convert base image container to cv::Mat
 image_container
@@ -98,7 +71,6 @@ image_container
   }
 }
 
-
 /// The size of the image data in bytes
 size_t
 image_container
@@ -106,7 +78,6 @@ image_container
 {
   return data_.rows * data_.step;
 }
-
 
 // ----------------------------------------------------------------------------
 /// Convert an OpenCV cv::Mat to a VITAL image
@@ -133,7 +104,6 @@ image_container
                img.channels(), img.step1(), 1,
                ocv_to_vital(img.type()));
 }
-
 
 // ----------------------------------------------------------------------------
 /// Convert an OpenCV cv::Mat type value to a vital::image_pixel_traits
@@ -163,7 +133,6 @@ image_container
                    "kwiver::arrows::ocv::image_container::ocv_to_vital(int)");
   }
 }
-
 
 // ----------------------------------------------------------------------------
 /// Convert a VITAL image to an OpenCV cv::Mat
@@ -269,7 +238,6 @@ image_container
   return out;
 }
 
-
 // ----------------------------------------------------------------------------
 /// Convert a vital::image_pixel_traits to an OpenCV cv::Mat type integer
 int
@@ -324,7 +292,6 @@ image_container
   VITAL_THROW( image_type_mismatch_exception,
                "kwiver::arrows::ocv::image_container::vital_to_ocv(pixel_traits_t)");
 }
-
 
 // ----------------------------------------------------------------------------
 /// Extract a cv::Mat from any image container

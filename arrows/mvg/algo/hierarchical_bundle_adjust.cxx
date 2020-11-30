@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -95,7 +69,6 @@ subsample_cameras(camera_map::map_camera_t const& cameras, unsigned n)
   return subsample;
 }
 
-
 // ----------------------------------------------------------------------------
 // Integer interpolation -- used with indices, so can assume positive
 frame_id_t
@@ -106,7 +79,6 @@ int_interp(frame_id_t a, frame_id_t b, double p)
 }
 
 } // end anonymous namespace
-
 
 // ============================================================================
 // private implementation / data container for hierarchical_bundle_adjust
@@ -131,7 +103,6 @@ public:
   vital::algo::triangulate_landmarks_sptr lm_triangulator;
 };
 
-
 // ----------------------------------------------------------------------------
 // Constructor
 hierarchical_bundle_adjust
@@ -141,13 +112,11 @@ hierarchical_bundle_adjust
   attach_logger( "arrows.mvg.hierarchical_bundle_adjust" );
 }
 
-
 // Destructor
 hierarchical_bundle_adjust
 ::~hierarchical_bundle_adjust() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 // Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
@@ -184,7 +153,6 @@ hierarchical_bundle_adjust
   return config;
 }
 
-
 // ----------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
 void
@@ -205,7 +173,6 @@ hierarchical_bundle_adjust
       "lm_triangulator", config, d_->lm_triangulator
       );
 }
-
 
 // ----------------------------------------------------------------------------
 // Check that the algorithm's configuration vital::config_block is valid
@@ -266,7 +233,6 @@ hierarchical_bundle_adjust
 
   return valid;
 }
-
 
 // ----------------------------------------------------------------------------
 // Optimize the camera and landmark parameters given a set of feature tracks
