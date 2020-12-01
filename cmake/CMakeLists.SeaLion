@@ -1,0 +1,13 @@
+project(SeaLionData NONE)
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/SeaLion.zip)
+  file(DOWNLOAD https://data.kitware.com/api/v1/item/5f750f1c50a41e3d19bc97bb/download
+    ${CMAKE_BINARY_DIR}/SeaLion.zip
+    SHOW_PROGRESS)
+endif()
+
+install(FILES ${CMAKE_BINARY_DIR}/SeaLion.zip
+  DESTINATION data)
+
+set(CPACK_BINARY_WIX ON)
+include(CPack)
