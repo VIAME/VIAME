@@ -1,6 +1,8 @@
 # Build / Install plugin containing Qt support structures
 
 set( CMAKE_AUTOMOC ON )
+set( CMAKE_AUTOUIC ON )
+set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 set( qt_sources
   image_container.cxx

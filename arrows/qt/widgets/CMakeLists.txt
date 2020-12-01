@@ -1,10 +1,12 @@
 # Build / Install plugin containing Qt widgets
 
 set( qt_sources
+  LoggerView.cxx
   MetadataView.cxx
   )
 
 set( qt_headers_public
+  LoggerView.h
   MetadataView.h
   )
 
