@@ -90,17 +90,20 @@ if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
   install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
 endif()
 
-install( DIRECTORY ${VIAME_INSTALL_DIR}/ DESTINATION . )
+install( DIRECTORY ${VIAME_INSTALL_DIR}/ DESTINATION .
+         COMPONENT VIAME )
 
 if( WIN32 )
   install( FILES ${VIAME_CMAKE_DIR}/setup_viame.bat.install
     DESTINATION .
     RENAME setup_viame.bat
+    COMPONENT VIAME 
     )
 else()
   install( FILES ${VIAME_CMAKE_DIR}/setup_viame.sh.install
     DESTINATION .
     RENAME setup_viame.sh
+    COMPONENT VIAME 
     )
 endif()
 

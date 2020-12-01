@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" 
+	  xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
+    RequiredVersion="3.6.3303.0">
+  <Bundle
+        Name="Network VIAME"
+        Version="0.0.1"
+        UpgradeCode="91A46E15-EE49-4411-9836-583499D9C12F">
+
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense" >
+      <bal:WixStandardBootstrapperApplication LicenseUrl="" ThemeFile="VIAME_options.xml" />
+    </BootstrapperApplicationRef>
+
+    <Chain>
+      <MsiPackage
+        SourceFile="VIAME-1.0.0-win64.msi"
+        Name="VIAME-1.0.0-win64.msi"
+        Id="VIAME"
+        DisplayInternalUI="yes">
+      </MsiPackage>
+      <MsiPackage Id="SL_Data"
+                  Name="SeaLionData-0.1.1-win32.msi"
+                  Compressed="no"
+                  DisplayInternalUI="yes"
+                  DownloadUrl="https://data.kitware.com/api/v1/file/5fc55f3a50a41e3d197aaee7/download"
+                  DisplayName="Downloading VIAME Seal Data"
+                  InstallCondition="SeaLionModelsCheckbox=1">
+      </MsiPackage>
+    </Chain>
+  </Bundle>
+</Wix>
