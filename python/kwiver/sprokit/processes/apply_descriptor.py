@@ -30,9 +30,9 @@ from __future__ import print_function
 from kwiver.sprokit.pipeline import process
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.vital.util.VitalPIL import from_pil, get_pil_image
-from kwiver.sprokit import sprokit_logging
+from kwiver.vital import vital_logging
 
-logger = sprokit_logging.getLogger(__name__)
+logger = vital_logging.getLogger(__name__)
 
 apply_descriptor_test_mode = False
 try:

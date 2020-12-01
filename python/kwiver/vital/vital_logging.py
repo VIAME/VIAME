@@ -17,7 +17,14 @@ def _configure_logging():
     """
     # Use the C++ logging level by default, but allow python to be different
     cxx_level = os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'DEBUG')
-    py_level = os.environ.get('KWIVER_PYTHON_DEFAULT_LOG_LEVEL', cxx_level)
+
+    # C++ logging supports trace as it's lowest level but python doesn't
+    if "KWIVER_PYTHON_DEFAULT_LOG_LEVEL" in os.environ:
+        py_level = os.environ.get('KWIVER_PYTHON_DEFAULT_LOG_LEVEL')
+    elif cxx_level.upper() == "TRACE":
+        py_level = "DEBUG"
+    else:
+        py_level = cxx_level
 
     # Option to colorize the python logs (must pip install coloredlogs)
     truthy_values = {'true', 'on', 'yes', '1'}
@@ -104,8 +111,8 @@ def getLogger(name):
         name (str): Logger name, which should be the module __name__ attribute
 
     Example:
-        >>> from sprokit import sprokit_logging
-        >>> logger = sprokit_logging.getLogger(__name__)
+        >>> from kwiver.vital import vital_logging
+        >>> logger = vital_logging.getLogger(__name__)
         >>> logger.info('Hello World')
 
     This really should get a vital logger rather than a python logger.
