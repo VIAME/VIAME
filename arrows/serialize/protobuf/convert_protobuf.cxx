@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "convert_protobuf.h"
 #include "convert_protobuf_point.h"
@@ -194,7 +168,6 @@ void convert_protobuf( const ::kwiver::protobuf::detected_object&  proto_det_obj
     det_object.set_index( proto_det_object.index() ) ;
   }
 
-
   if ( proto_det_object.has_detector_name() )
   {
     det_object.set_detector_name( proto_det_object.detector_name() );
@@ -231,7 +204,6 @@ void convert_protobuf( const ::kwiver::vital::detected_object& det_object,
 
   auto* proto_bbox = proto_det_object.mutable_bbox();
   convert_protobuf( det_object.bounding_box(), *proto_bbox );
-
 
   // We're using type() in "const" (read only) way here.  There's utility
   // in having the source object parameter be const, but type() isn't because
@@ -430,7 +402,6 @@ void convert_protobuf( const ::kwiver::protobuf::image&      proto_img,
   }
 }
 
-
 // ----------------------------------------------------------------------------
 void convert_protobuf( const ::kwiver::vital::image_container_sptr img,
                        ::kwiver::protobuf::image&                  proto_img )
@@ -521,7 +492,6 @@ void convert_protobuf( const ::kwiver::protobuf::timestamp& proto_tstamp,
     static_cast< ::kwiver::vital::frame_id_t > ( proto_tstamp.frame() ) );
 }
 
-
 // ----------------------------------------------------------------------------
 void convert_protobuf( const ::kwiver::vital::timestamp&  tstamp,
                        ::kwiver::protobuf::timestamp&     proto_tstamp )
@@ -529,7 +499,6 @@ void convert_protobuf( const ::kwiver::vital::timestamp&  tstamp,
   proto_tstamp.set_time( static_cast< int64_t > ( tstamp.get_time_usec() ) );
   proto_tstamp.set_frame( static_cast< int64_t > ( tstamp.get_frame() ) );
 }
-
 
 // ----------------------------------------------------------------------------
 void convert_protobuf( const ::kwiver::protobuf::metadata_vector&  proto_mvec,
@@ -835,7 +804,6 @@ void convert_protobuf( const ::kwiver::protobuf::track& proto_trk,
     }
   }
 }
-
 
 // ----------------------------------------------------------------------------
 void convert_protobuf( const ::kwiver::vital::track_set_sptr& trk_set_sptr,

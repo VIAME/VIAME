@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
 ///
@@ -80,7 +54,6 @@ static kwiver::vital::config_block_sptr default_config()
 
 } // end namespace
 
-
 // ----------------------------------------------------------------------------
 template <typename T>
 kwiver::vital::image_of<uint8_t>
@@ -115,7 +88,6 @@ stretch_to_byte_image(kwiver::vital::image_of<T> const& in_image)
   return byte_image;
 }
 
-
 // ----------------------------------------------------------------------------
 void
 render_mesh::
@@ -148,7 +120,6 @@ add_command_options()
 
     m_cmd_options->parse_positional({"mesh-file", "camera-file", "output-image"});
 }
-
 
 // ----------------------------------------------------------------
 /** Main entry. */
@@ -215,7 +186,6 @@ run()
     return EXIT_FAILURE;
   }
 
-
   const std::string mesh_file = cmd_args["mesh-file"].as<std::string>();
   const std::string camera_file = cmd_args["camera-file"].as<std::string>();
   const std::string image_file = cmd_args["output-image"].as<std::string>();
@@ -231,7 +201,6 @@ run()
   K->set_image_width(opt_width);
   K->set_image_height(opt_height);
   std::dynamic_pointer_cast<kwiver::vital::simple_camera_perspective>(camera)->set_intrinsics(K);
-
 
   if ( mesh->faces().regularity() != 3 )
   {
