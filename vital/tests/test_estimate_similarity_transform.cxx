@@ -68,8 +68,8 @@ public:
     : expected_size(0)
   {}
 
-  dummy_est(size_t expected_size)
-    : expected_size(expected_size)
+  dummy_est(size_t expected_size_)
+    : expected_size(expected_size_)
   {}
 
   virtual ~dummy_est() = default;

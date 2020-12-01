@@ -395,7 +395,7 @@ TEST( convert_protobuf, detected_object_set )
       auto ser_it = ser_dot_sptr->begin();
       auto dser_it = dser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+      for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
       {
         EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
         EXPECT_EQ( dser_it->second, dser_it->second );
@@ -745,7 +745,7 @@ TEST( convert_protobuf, track )
       auto ser_it = ser_dot_sptr->begin();
       auto dser_it = dser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+      for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
       {
         EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
         EXPECT_EQ( dser_it->second, dser_it->second );
@@ -758,7 +758,7 @@ TEST( convert_protobuf, track )
   trk = kwiver::vital::track::create();
   trk_dser = kwiver::vital::track::create();
   trk->set_id( 2 );
-  for ( int i=0; i<10; i++ )
+  for ( int i = 0; i < 10; i++ )
   {
     auto trk_state_sptr = std::make_shared< kwiver::vital::track_state>( i );
     bool insert_success = trk->insert( trk_state_sptr );
@@ -895,7 +895,7 @@ TEST( convert_protobuf, object_track_set )
         auto ser_it = ser_dot_sptr->begin();
         auto dser_it = dser_dot_sptr->begin();
 
-        for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+        for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
         {
           EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
           EXPECT_EQ( dser_it->second, dser_it->second );

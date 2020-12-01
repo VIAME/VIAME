@@ -16,10 +16,10 @@ namespace ocv {
 class match_features_bruteforce::priv
 {
 public:
-  priv(int norm_type=cv::NORM_L2, bool cross_check=false)
-      : norm_type( norm_type ),
-        cross_check( cross_check ),
-        matcher( new cv::BFMatcher(norm_type, cross_check) )
+  priv(int p_norm_type = cv::NORM_L2, bool p_cross_check = false)
+      : norm_type( p_norm_type ),
+        cross_check( p_cross_check ),
+        matcher( new cv::BFMatcher( norm_type, cross_check ) )
   {
   }
 

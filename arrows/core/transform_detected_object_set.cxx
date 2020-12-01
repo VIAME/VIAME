@@ -221,14 +221,14 @@ box_around_box3d( kwiver::vital::camera_perspective_sptr const camera,
 // ---------------------------------------------------------------------------
 vital::bounding_box<double>
 transform_detected_object_set::
-view_to_view( kwiver::vital::camera_perspective_sptr const src_camera,
-              kwiver::vital::camera_perspective_sptr const dest_camera,
+view_to_view( kwiver::vital::camera_perspective_sptr const src_camera_,
+              kwiver::vital::camera_perspective_sptr const dest_camera_,
               vital::bounding_box<double> const& bbox ) const
 {
   Eigen::Matrix<double, 8, 3> box3d =
-    this->backproject_bbox( src_camera, bbox );
+    this->backproject_bbox( src_camera_, bbox );
 
-  return this->box_around_box3d( dest_camera, box3d );
+  return this->box_around_box3d( dest_camera_, box3d );
 }
 
 // ---------------------------------------------------------------------------

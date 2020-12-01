@@ -636,17 +636,17 @@ camera_options
     const double scale = constraints.size() / sum_dist;
     auto scaled_loss = new ::ceres::ScaledLoss(NULL, weight,
                            ::ceres::Ownership::TAKE_OWNERSHIP);
-    for (auto curr_cam : constraints)
+    for (auto curr_constraint : constraints)
     {
-      auto prev_cam = curr_cam - 1;
-      double inv_dist = 1.0 / static_cast<double>(curr_cam->first -
-                                                  prev_cam->first);
+      auto prev_constraint = curr_constraint - 1;
+      double inv_dist = 1.0 / static_cast<double>(curr_constraint->first -
+                                                  prev_constraint->first);
       ::ceres::CostFunction* fwd_mo_cost =
         camera_limit_forward_motion::create(scale * inv_dist);
       problem.AddResidualBlock(fwd_mo_cost,
                                scaled_loss,
-                               prev_cam->second,
-                               curr_cam->second);
+                               prev_constraint->second,
+                               curr_constraint->second);
     }
   }
 }

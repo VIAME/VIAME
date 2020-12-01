@@ -59,14 +59,14 @@ std::shared_ptr< std::string >
 activity::
 serialize( const kwiver::vital::any& element )
 {
-  kwiver::vital::activity activity =
+  kwiver::vital::activity l_activity =
     kwiver::vital::any_cast< kwiver::vital::activity > ( element );
 
   std::stringstream msg;
   msg << "activity ";
   {
     cereal::JSONOutputArchive ar( msg );
-    save( ar, activity );
+    save( ar, l_activity );
   }
 
   return std::make_shared< std::string > ( msg.str() );
@@ -77,7 +77,7 @@ kwiver::vital::any activity::
 deserialize( const std::string& message )
 {
   std::stringstream msg(message);
-  kwiver::vital::activity activity;
+  kwiver::vital::activity l_activity;
   std::string tag;
   msg >> tag;
 
@@ -89,10 +89,10 @@ deserialize( const std::string& message )
   else
   {
     cereal::JSONInputArchive ar( msg );
-    load( ar, activity );
+    load( ar, l_activity );
   }
 
-  return kwiver::vital::any( activity );
+  return kwiver::vital::any( l_activity );
 }
 
 } } } }

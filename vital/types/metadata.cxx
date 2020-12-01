@@ -68,23 +68,23 @@ namespace vital {
 
 // ----------------------------------------------------------------------------
 metadata_item
-::metadata_item( std::string const& name,
-                 kwiver::vital::any const& data,
-                 vital_metadata_tag tag )
-    : m_name{ name },
-      m_data{ data },
-      m_tag{ tag }
+::metadata_item( std::string const& p_name,
+                 kwiver::vital::any const& p_data,
+                 vital_metadata_tag p_tag )
+    : m_name{ p_name },
+      m_data{ p_data },
+      m_tag{ p_tag }
 {
 }
 
 // ----------------------------------------------------------------------------
 metadata_item
-::metadata_item( std::string const& name,
-                 kwiver::vital::any&& data,
-                 vital_metadata_tag tag )
-    : m_name{ name },
-      m_data{ std::move( data ) },
-      m_tag{ tag }
+::metadata_item( std::string const& p_name,
+                 kwiver::vital::any&& p_data,
+                 vital_metadata_tag p_tag )
+    : m_name{ p_name },
+      m_data{ std::move( p_data ) },
+      m_tag{ p_tag }
 {
 }
 
@@ -291,15 +291,15 @@ metadata
 
   for (size_t i = 0; i < len; i++)
   {
-    char const byte = val[i];
-    if ( ! isprint( byte ) )
+    char const l_byte = val[i];
+    if ( ! isprint( l_byte ) )
     {
       ascii.append( 1, '.' );
       unprintable_found = true;
     }
     else
     {
-      ascii.append( 1, byte );
+      ascii.append( 1, l_byte );
     }
 
     // format as hex
@@ -308,8 +308,8 @@ metadata
       hex += " ";
     }
 
-    hex += hex_chars[ ( byte & 0xF0 ) >> 4 ];
-    hex += hex_chars[ ( byte & 0x0F ) >> 0 ];
+    hex += hex_chars[ ( l_byte & 0xF0 ) >> 4 ];
+    hex += hex_chars[ ( l_byte & 0x0F ) >> 0 ];
 
   } // end for
 

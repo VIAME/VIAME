@@ -144,7 +144,7 @@ rotation_< T >
 ::angle() const
 {
   static const T _pi = static_cast< T > ( pi );
-  static const T two_pi = static_cast< T > ( 2.0 * pi );
+  static const T _two_pi = static_cast< T > ( 2.0 * pi );
 
   const double i = Eigen::Matrix< T, 3, 1 > ( q_.x(), q_.y(), q_.z() ).norm();
   const double r = q_.w();
@@ -154,11 +154,11 @@ rotation_< T >
   // i.e. -pi/2 < a < pi/2
   if ( a >= _pi )
   {
-    a -= two_pi;
+    a -= _two_pi;
   }
   if ( a <= -_pi )
   {
-    a += two_pi;
+    a += _two_pi;
   }
   return a;
 }

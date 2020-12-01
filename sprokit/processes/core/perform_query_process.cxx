@@ -214,9 +214,9 @@ perform_query_process
 ::_step()
 {
   // Check for termination since we are in manual mode
-  auto port_info = peek_at_port_using_trait( database_query );
+  auto p_info = peek_at_port_using_trait( database_query );
 
-  if( port_info.datum->type() == sprokit::datum::complete )
+  if( p_info.datum->type() == sprokit::datum::complete )
   {
     grab_edge_datum_using_trait( database_query );
     grab_edge_datum_using_trait( iqr_feedback );

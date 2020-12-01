@@ -153,13 +153,15 @@ project_3d_bounds(kwiver::vital::vector_3d const& minpt,
   std::vector<vector_3d> points = points_of_box(minpt, maxpt);
 
   int i0, j0, i1, j1;
-  vector_2d pp = cam.project(points[0]);
-  i0 = i1 = static_cast<int>(pp[0]);
-  j0 = j1 = static_cast<int>(pp[1]);
+  {
+    vector_2d pp = cam.project(points[0]);
+    i0 = i1 = static_cast<int>(pp[0]);
+    j0 = j1 = static_cast<int>(pp[1]);
+  }
 
   for (vector_3d const& p : points)
   {
-    vector_2d pp = cam.project(p);
+    const vector_2d pp = cam.project(p);
     int ui = static_cast<int>(pp[0]), vi = static_cast<int>(pp[1]);
     i0 = std::min(i0, ui);
     j0 = std::min(j0, vi);

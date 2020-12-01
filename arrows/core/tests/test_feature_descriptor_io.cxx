@@ -126,11 +126,11 @@ make_n_descriptors(size_t num_desc, size_t dim)
                     ? static_cast<double>(std::numeric_limits<T>::max()) : 1.0;
   const double scale = (tmax - tmin) / rmax;
 
-  for(unsigned i=0; i<num_desc; ++i)
+  for(unsigned i = 0; i < num_desc; ++i)
   {
     auto d = std::make_shared<descriptor_dynamic<T> >(dim);
     T* data = d->raw_data();
-    for(unsigned i=0; i<dim; ++i, ++data)
+    for(unsigned j = 0; j < dim; ++j, ++data)
     {
       *data = static_cast<T>(rand() * scale + tmin );
     }

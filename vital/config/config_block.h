@@ -693,13 +693,15 @@ std::vector< T >
 config_block
 ::get_value_as_vector( config_block_key_t const& key, const std::string& delim ) const
 {
-  config_block_value_t val = get_value< std::string >( key );
-
   std::vector< std::string> sv;
-  // Split string by delimeter into vector of strings
-  tokenize( val, sv, delim, kwiver::vital::TokenizeTrimEmpty );
-
   std::vector< T > val_vector;
+
+  {
+    config_block_value_t val = get_value< std::string >( key );
+    // Split string by delimeter into vector of strings
+    tokenize( val, sv, delim, kwiver::vital::TokenizeTrimEmpty );
+  }
+
   // iterate over all strings and convert to target type
   for (std::string str : sv )
   {

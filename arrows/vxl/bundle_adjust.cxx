@@ -224,15 +224,15 @@ bundle_adjust
       }
       super_map_inner_t frame_lm2feature_map;
 
-      for(const track_sptr& t : ftracks)
+      for(const track_sptr& ft : ftracks)
       {
-        const track_id_t id = t->id();
+        const track_id_t id = ft->id();
         // make sure the track id has an associated landmark
 
         if( lms.find(id) != lms.end() )
         {
           auto fts = std::dynamic_pointer_cast<feature_track_state>(
-                          *t->find(frame) );
+                          *ft->find(frame) );
           if( fts && fts->feature )
           {
             frame_lm2feature_map[id] = fts->feature;

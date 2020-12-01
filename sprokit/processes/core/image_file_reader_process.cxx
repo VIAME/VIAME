@@ -190,7 +190,7 @@ void image_file_reader_process
   if ( ! kwiversys::SystemTools::FileExists( file ) )
   {
     // Resolve against specified path
-    std::string resolved_file = kwiversys::SystemTools::FindFile( file, d->m_config_path, true );
+    resolved_file = kwiversys::SystemTools::FindFile( file, d->m_config_path, true );
     if ( resolved_file.empty() )
     {
       switch (d->m_config_error_mode)

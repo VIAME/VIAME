@@ -191,13 +191,13 @@ public:
 
   // --------------------------------------------------------------------------
   feature_set_sptr
-  filter(feature_set_sptr feat, std::vector<unsigned int> &ind) const
+  filter(feature_set_sptr feat_set, std::vector<unsigned int> &ind) const
   {
-    const std::vector<feature_sptr> &feat_vec = feat->features();
+    const std::vector<feature_sptr> &feat_vec = feat_set->features();
 
     if (feat_vec.size() <= num_features_target)
     {
-      return feat;
+      return feat_set;
     }
 
     //  Create a new vector with the index and magnitude for faster sorting
@@ -269,12 +269,12 @@ public:
       for (auto const& p : indices)
       {
         unsigned int index = p.first;
-        auto const& feat = feat_vec[index];
-        if (suppressor.cover(*feat))
+        auto const& f = feat_vec[index];
+        if (suppressor.cover(*f))
         {
           // add this feature to the accepted list
           ind.push_back(index);
-          filtered.push_back(feat);
+          filtered.push_back(f);
         }
       }
       // if not using a target number of features, keep this result

@@ -251,9 +251,9 @@ match_features_fundamental_matrix
   auto f2 = feat2->features();
   std::vector<double> dists;
   dists.reserve(inlier_m.size());
-  for (auto const& m : inlier_m)
+  for (auto const& i_m : inlier_m)
   {
-    vector_2d dist = f1[m.first]->loc() - f2[m.second]->loc();
+    vector_2d dist = f1[i_m.first]->loc() - f2[i_m.second]->loc();
     dists.push_back(dist.norm());
   }
   double max_dist = 2.0 * percentile(dists, d_->motion_filter_percentile);
