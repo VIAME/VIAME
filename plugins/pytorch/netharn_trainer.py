@@ -359,7 +359,7 @@ class NetHarnTrainer( TrainDetector ):
         channel_str = "rgb"
         if len( self._aux_image_labels ) > 0:
             for label in self._aux_image_labels.rstrip().split(','):
-                channel_str = channel_str + "|" + label
+                channel_str = channel_str + "," + label
         cmd.append( "--channels=" + channel_str )
 
         if threading.current_thread().__class__.__name__ == '_MainThread':
