@@ -161,8 +161,8 @@ if( VIAME_DOWNLOAD_MODELS )
         ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5-Win.zip )
     else()
       DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/5f9e115f50a41e3d19253c84/download
-        67f1e38350faba785b51cf207aa4dc18
+        https://data.kitware.com/api/v1/item/5fc92e3250a41e3d19828ffc/download
+        1e856a1fd2a74b1a35c910d6b6559c4a
         ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5-Linux.zip )
     endif()
   endif()
