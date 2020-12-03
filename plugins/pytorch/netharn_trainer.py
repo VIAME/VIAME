@@ -64,6 +64,7 @@ class NetHarnTrainer( TrainDetector ):
 
         self._identifier = "viame-netharn-detector"
         self._mode = "detector"
+        self._arch = ""
         self._seed_model = ""
         self._train_directory = "deep_training"
         self._output_directory = "category_models"
@@ -95,6 +96,7 @@ class NetHarnTrainer( TrainDetector ):
 
         cfg.set_value( "identifier", self._identifier )
         cfg.set_value( "mode", self._mode )
+        cfg.set_value( "arch", self._arch )
         cfg.set_value( "seed_model", self._seed_model )
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "output_directory", self._output_directory )
@@ -125,6 +127,7 @@ class NetHarnTrainer( TrainDetector ):
         # Read configs from file
         self._identifier = str( cfg.get_value( "identifier" ) )
         self._mode = str( cfg.get_value( "mode" ) )
+        self._arch = str( cfg.get_value( "arch" ) )
         self._seed_model = str( cfg.get_value( "seed_model" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._output_directory = str( cfg.get_value( "output_directory" ) )
@@ -232,6 +235,13 @@ class NetHarnTrainer( TrainDetector ):
             self._training_writer.open( self._training_file )
             self._validation_writer.open( self._validation_file )
 
+        # Set default architecture if unset
+        if not self._arch:
+            if self._mode == "frame_classifier":
+                self._arch = "resnet50"
+            else:
+                self._arch = "cascade"
+
         # Initialize persistent variables
         self._training_data = []
         self._validation_data = []
@@ -308,13 +318,13 @@ class NetHarnTrainer( TrainDetector ):
         if self._mode == "frame_classifier":
             cmd += [ "bioharn.clf_fit",
                      "--name=" + self._identifier,
-                     "--arch=resnet50",
+                     "--arch=" + self._arch,
                      "--schedule=ReduceLROnPlateau-p3-c3",
                      "--input_dims=" + self._chip_width + "," + self._chip_width ]
         else:
             cmd += [ "bioharn.detect_fit",
                      "--nice=" + self._identifier,
-                     "--arch=cascade",
+                     "--arch=" + self._arch,
                      "--schedule=ReduceLROnPlateau-p2-c2",
                      "--input_dims=window",
                      "--window_dims=" + self._chip_width + "," + self._chip_width,
