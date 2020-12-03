@@ -999,7 +999,6 @@ ffmpeg_video_input
 
     if (d->f_filter_src_context && d->f_filter_sink_context)
     {
-      // We are not yet using the more modern FFMPEG streaming API.
       // Since we are only reading one frame at a time we need to push this
       // frame into the filter pipeline repeatedly until the same frame comes
       // out the other side.
@@ -1009,7 +1008,7 @@ ffmpeg_video_input
       {
         // Push the decoded frame into the filter graph
         if (av_buffersrc_add_frame_flags(d->f_filter_src_context, d->f_frame,
-          AV_BUFFERSRC_FLAG_PUSH) < 0)
+          AV_BUFFERSRC_FLAG_KEEP_REF) < 0)
         {
           LOG_ERROR(this->logger(), "Error while feeding the filter graph");
           return nullptr;
