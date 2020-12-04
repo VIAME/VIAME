@@ -23,24 +23,24 @@ class KWIVER_ALGO_QT_WIDGETS_EXPORT MetadataView : public QScrollArea
   Q_OBJECT
 
 public:
-  explicit MetadataView(QWidget* parent = 0);
+  explicit MetadataView( QWidget* parent = 0 );
   ~MetadataView() override;
 
-  bool eventFilter(QObject* sender, QEvent* e) override;
+  bool eventFilter( QObject* sender, QEvent* e ) override;
 
 public slots:
   void updateMetadata(
-    std::shared_ptr<kwiver::vital::metadata_map::map_metadata_t>);
-  void updateMetadata(kwiver::vital::metadata_vector const&);
+    std::shared_ptr< kwiver::vital::metadata_map::map_metadata_t > );
+  void updateMetadata( kwiver::vital::metadata_vector const& );
 
 protected:
-  void changeEvent(QEvent* e) override;
+  void changeEvent( QEvent* e ) override;
 
 private:
-  QTE_DECLARE_PRIVATE_RPTR(MetadataView)
-  QTE_DECLARE_PRIVATE(MetadataView)
+  QTE_DECLARE_PRIVATE_RPTR( MetadataView )
+  QTE_DECLARE_PRIVATE( MetadataView )
 
-  QTE_DISABLE_COPY(MetadataView)
+  QTE_DISABLE_COPY( MetadataView )
 };
 
 } // namespace qt
