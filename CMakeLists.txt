@@ -127,6 +127,14 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
+
+  set( VIAME_PYTORCH_VERSION 1.4.0 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.4.0" "1.5.1" )
+  mark_as_advanced( VIAME_PYTORCH_VERSION )
+
+  if( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.5.1" AND VIAME_ENABLE_PYTORCH-INTERNAL )
+    message( FATAL_ERROR "Cannot use pytorch 1.5.1 with internal flag set" )
+  endif()
 endif()
 
 # ##
