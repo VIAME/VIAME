@@ -50,6 +50,7 @@ class ffmpeg_video_input::priv
 public:
   /// Constructor
   priv() :
+    f_format_context(avformat_alloc_context()),
     f_video_index(-1),
     f_data_index(-1),
     f_video_encoding(nullptr),
@@ -72,10 +73,7 @@ public:
     number_of_frames(0),
     collected_all_metadata(false),
     estimated_num_frames(false)
-  {
-    // Allocate data
-    f_format_context = avformat_alloc_context();
-  }
+  { }
 
   // f_* variables are FFmpeg specific
 
@@ -314,12 +312,18 @@ public:
     this->f_data_index = -1;
     this->f_start_time = -1;
 
+    if (this->f_video_stream)
+    {
+      this->f_video_stream = nullptr;
+    }
+
     av_frame_free(&this->f_frame);
     av_frame_free(&this->f_filtered_frame);
     av_packet_free(&this->f_packet);
     avformat_close_input(&this->f_format_context);
     avformat_free_context(this->f_format_context);
     avcodec_free_context(&this->f_video_encoding);
+    avfilter_graph_free(&this->f_filter_graph);
   }
 
   // ==================================================================
@@ -1073,6 +1077,7 @@ ffmpeg_video_input
                     pix_fmt, width, height);
     }
     else
+    // If the pixel format is not recognized by then convert the data into RGB_24
     {
       int size = width * height * depth;
       d->current_image_memory = std::make_shared<vital::image_memory>(size);
