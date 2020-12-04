@@ -589,7 +589,7 @@ main( int argc, char* argv[] )
   if( !g_params.m_args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Print help
@@ -598,7 +598,7 @@ main( int argc, char* argv[] )
     std::cout << "Usage: " << argv[0] << "[options]\n"
               << "\nTrain one of several object detectors in the system.\n"
               << g_params.m_args.GetHelp() << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // List option
@@ -637,21 +637,21 @@ main( int argc, char* argv[] )
         std::cout << name << std::endl;
       }
     }
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Test for presence of two configs
   if( !g_params.opt_config.empty() && !g_params.opt_detector.empty() )
   {
     std::cerr << "Only one of --config and --detector allowed." << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Test for presence of two configs
   if( g_params.opt_config.empty() && g_params.opt_detector.empty() )
   {
     std::cerr << "One of --config and --detector must be set." << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Run tool:
@@ -669,7 +669,7 @@ main( int argc, char* argv[] )
   if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
   {
     std::cerr << "Input directory does not exist, exiting." << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Load labels.txt file
@@ -691,7 +691,7 @@ main( int argc, char* argv[] )
       if( response != "y" && response != "Y" && response != "yes" && response != "Yes" )
       {
         std::cout << std::endl << "Exiting training due to no labels.txt" << std::endl;
-        exit( 0 );
+        return EXIT_FAILURE;
       }
     }
   }
@@ -704,7 +704,7 @@ main( int argc, char* argv[] )
     catch( const std::exception& e )
     {
       std::cerr << "Error reading labels.txt: " << e.what() << std::endl;
-      exit( 0 );
+      return EXIT_FAILURE;
     }
   }
 
@@ -715,7 +715,7 @@ main( int argc, char* argv[] )
   if( does_file_exist( train_fn ) && !file_to_vector( train_fn, train_files ) )
   {
     std::cerr << "Unable to open " << train_fn << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Special use case for multiple overlapping streams
@@ -727,13 +727,13 @@ main( int argc, char* argv[] )
     if( does_file_exist( train_fn ) )
     {
       std::cerr << "Folder cannot contain both train.txt and train1.txt" << std::endl;
-      exit( 0 );
+      return EXIT_FAILURE;
     }
 
     if( !file_to_vector( train1_fn, train_files ) )
     {
       std::cerr << "Unable to open " << label_fn << std::endl;
-      exit( 0 );
+      return EXIT_FAILURE;
     }
   }
 
@@ -741,7 +741,7 @@ main( int argc, char* argv[] )
   if( does_file_exist( train2_fn ) && !file_to_vector( train2_fn, train2_files ) )
   {
     std::cerr << "Unable to open " << train2_fn << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Load test.txt, if available
@@ -751,7 +751,7 @@ main( int argc, char* argv[] )
   if( does_file_exist( test_fn ) && !file_to_vector( test_fn, test_files ) )
   {
     std::cerr << "Unable to open " << test_fn << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Append path to all test and train files, test to see if they all exist
@@ -763,7 +763,7 @@ main( int argc, char* argv[] )
   {
     std::cerr << "If one of either train.txt or test.txt is specified, "
               << "then they must both be." << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
   else
   {
@@ -821,7 +821,8 @@ main( int argc, char* argv[] )
       std::cerr << "Received exception: " << e.what() << std::endl
                 << "Unable to load configuration file: "
                 << g_params.opt_config << std::endl;
-      exit( 0 );
+
+      return EXIT_FAILURE;
     }
   }
   else
@@ -886,12 +887,13 @@ main( int argc, char* argv[] )
     {
       std::cout << "Configuration file contained valid parameters "
         "and may be used for running" << std::endl;
+      return EXIT_SUCCESS;
     }
     else
     {
       std::cout << "Configuration deemed not valid." << std::endl;
+      return EXIT_FAILURE;
     }
-    return EXIT_SUCCESS;
   }
   else if( !valid_config )
   {
@@ -963,13 +965,13 @@ main( int argc, char* argv[] )
   else
   {
     std::cerr << "Invalid groundtruth style: " << groundtruth_style << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   if( percent_test < 0.0 || percent_test > 1.0 )
   {
     std::cerr << "Percent test must be [0.0,1.0]" << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   string_to_vector( image_extensions_str, image_extensions, "\n\t\v,; " );
@@ -988,7 +990,7 @@ main( int argc, char* argv[] )
   if( subdirs.empty() )
   {
     std::cout << "Error: training folder contains no sub-folders" << std::endl;
-    exit( 0 );
+    return EXIT_FAILURE;
   }
 
   // Retain class counts for error checking
@@ -1014,12 +1016,12 @@ main( int argc, char* argv[] )
       std::cout << "Error: folder " << folder << " contains unequal truth and "
                 << "image file counts" << std::endl << " - Consider turning on "
                 << "the one_per_folder groundtruth style" << std::endl;
-      exit( 0 );
+      return EXIT_FAILURE;
     }
     else if( gt_files.size() < 1 )
     {
       std::cout << "Error reading folder " << folder << ", no groundtruth." << std::endl;
-      exit( 0 );
+      return EXIT_FAILURE;
     }
 
     kwiver::vital::algo::detected_object_set_input_sptr gt_reader;
@@ -1030,7 +1032,7 @@ main( int argc, char* argv[] )
       {
         std::cout << "Error: folder " << folder
                   << " must contain only 1 groundtruth file" << std::endl;
-        exit( 0 );
+        return EXIT_FAILURE;
       }
 
       kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
@@ -1131,7 +1133,7 @@ main( int argc, char* argv[] )
         {
           std::cerr << "Received exception: " << e.what() << std::endl
                     << "Unable to load groundtruth file: " << read_fn << std::endl;
-          exit( 0 );
+          return EXIT_FAILURE;
         }
       }
 
@@ -1284,7 +1286,8 @@ main( int argc, char* argv[] )
                 << "truth files do not contain the training classes of interest, or "
                 << "there was an error reading them from the input annotations."
                 << std::endl;
-      return 0;
+
+      return EXIT_FAILURE;
     }
   }
   else if( !check_override && model_labels )
@@ -1297,7 +1300,8 @@ main( int argc, char* argv[] )
                   << std::endl
                   << "Optionally set \"check_override\" parameter to ignore this check."
                   << std::endl;
-        exit( 0 );
+
+        return EXIT_FAILURE;
       }
     }
   }
@@ -1399,5 +1403,5 @@ main( int argc, char* argv[] )
     }
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
