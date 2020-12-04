@@ -127,7 +127,7 @@
         bool,                                                           \
         "" )                                                            \
   CALL( SENSOR_LOCATION,                                                \
-        "Sensor Geodetic Location (lon/lat/meters)",                    \
+        "Sensor Geodetic Location (lon/lat/alt)",                       \
         geo_point,                                                      \
         "Contains the 3D coordinate of the sensor. "                    \
         "The location is ordered lon, lat. "                            \
@@ -183,11 +183,11 @@
         double,                                                         \
         "Target Width within sensor field of view." )                   \
   CALL( FRAME_CENTER,                                                   \
-        "Geodetic Frame Center, (lon/lat/meters)",                      \
+        "Geodetic Frame Center, (lon/lat/elev)",                        \
         geo_point,                                                      \
         "Contains the 3D coordinate of the frame center. "              \
-        "The location is ordered lon, lat, and altitude in meters. "    \
-        "Altitude is not always set." )                                 \
+        "The location is ordered lon, lat, and elevation in meters. "   \
+        "Elevation is not always set." )                                \
   CALL( CORNER_POINTS,                                                  \
         "Corner points (lon/lat)",                                      \
         geo_polygon,                                                    \
@@ -222,11 +222,11 @@
         double,                                                         \
         "Temperature outside aircraft." )                               \
   CALL( TARGET_LOCATION,                                                \
-        "Target Geodetic Locationq (lon/lat/meters)",                   \
+        "Target Geodetic Location (lon/lat/elev)",                      \
         geo_point,                                                      \
         "Contains the 3D coordinate of the target. "                    \
         "The location is ordered lon, lat. "                            \
-        "The altitude is optional and is in meters." )                  \
+        "The elevation is optional and is in meters." )                 \
   CALL( TARGET_TRK_GATE_WIDTH,                                          \
         "Target Track Gate Width (pixels)",                             \
         double,                                                         \

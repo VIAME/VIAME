@@ -16,6 +16,9 @@ Vital
  * Added a missing include file in track.cxx required to build on MSVC 2019.
  * Changed incorrect metadata tag in convert_0601_metadata.cxx from
    KLV_0601_TARGET_LOCATION_LAT to KLV_0601_TARGET_LOCATION_ELEV.
+ * Fixed a typo in the TARGET_LOCATION metadata field name.
+ * Updated metadata field names for kv::geo_point types to be more
+   descriptive. Made the distinction between elevation and altitude.
 
 Arrows: Core
 
