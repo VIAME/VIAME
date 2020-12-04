@@ -133,7 +133,7 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   if( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.5.1" AND VIAME_ENABLE_PYTORCH-INTERNAL )
-    message( FATAL_ERROR "Cannot use pytorch 1.5.1 with internal flag set" )
+    message( FATAL_ERROR "Cannot use PyTorch 1.5.1 with VIAME_ENABLE_PYTORCH-INTERNAL set" )
   endif()
 endif()
 
