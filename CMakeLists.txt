@@ -113,9 +113,13 @@ else()
 endif()
 
 ###
-# Additional libraries built on pytorch
+# Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
+  set( VIAME_PYTORCH_VERSION 1.4.0 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.4.0" "1.6.0" "1.7.0" )
+  mark_as_advanced( VIAME_PYTORCH_VERSION )
+
   option( VIAME_ENABLE_PYTORCH-INTERNAL "Enable internal PyTorch build"  OFF )
   option( VIAME_ENABLE_PYTORCH-MMDET    "Enable mmdet PyTorch code"      ON )
   option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"      ON )
@@ -127,14 +131,6 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
-
-  set( VIAME_PYTORCH_VERSION 1.4.0 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.4.0" "1.5.1" "1.6.0" "1.7.0" )
-  mark_as_advanced( VIAME_PYTORCH_VERSION )
-
-  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.4.0" AND VIAME_ENABLE_PYTORCH-INTERNAL )
-    message( FATAL_ERROR "Only PyTorch v1.4.0 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
-  endif()
 endif()
 
 # ##
@@ -243,6 +239,15 @@ endif()
 
 if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
   message( FATAL_ERROR "Building core VIAME plugins require KWIVER" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH )
+  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.4.0" AND VIAME_ENABLE_PYTORCH-INTERNAL )
+    message( FATAL_ERROR "Only PyTorch v1.4.0 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
+  endif()
+  if( NOT VIAME_ENABLE_FFMPEG )
+    message( FATAL_ERROR "VIAME_ENABLE_FFMPEG is typically for PyTorch Torchvision" )
+  endif()
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
