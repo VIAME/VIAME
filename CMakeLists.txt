@@ -128,7 +128,7 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
 
-  set( VIAME_PYTORCH_VERSION "1.4.0" CACHE STRING "PyTorch version to use" )
+  set( VIAME_PYTORCH_VERSION 1.4.0 CACHE STRING "PyTorch version to use" )
   set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.4.0" "1.5.1" "1.6.0" "1.7.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
