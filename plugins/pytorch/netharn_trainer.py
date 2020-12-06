@@ -331,7 +331,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--input_dims=window",
                      "--window_dims=" + self._chip_width + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
-                     "--multiscale=True",
+                     "--multiscale=False",
                      "--bstep=4" ]
 
             if os.name == 'nt':
