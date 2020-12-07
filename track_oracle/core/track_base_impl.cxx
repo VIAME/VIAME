@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2010-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "track_base_impl.h"
 
@@ -10,7 +8,6 @@
 
 #include <track_oracle/core/track_oracle_core.h>
 #include <track_oracle/core/element_descriptor.h>
-
 
 using std::make_pair;
 using std::map;
@@ -26,7 +23,6 @@ track_base_impl
   : Track(), Frame( Track )
 {
 }
-
 
 track_handle_type
 track_base_impl
@@ -66,7 +62,6 @@ track_base_impl
   // but we do need to remove the __frame_list and __parent_track fields
   // ...can a frame have multiple parents?
 
-
   vector<frame_handle_type> frames = track_oracle_core::get_frames( track_handle_type( this->Track.get_cursor() ) );
   for (unsigned i=0; i<frames.size(); ++i)
   {
@@ -77,7 +72,6 @@ track_base_impl
 
   // all done
 }
-
 
 void
 track_base_impl
