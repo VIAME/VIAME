@@ -7,11 +7,13 @@ set( EXAMPLE_INSTALL_FILES
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       train_adaboost_pixel_classifier.bat )
+       train_adaboost_pixel_classifier.bat
+	   train_adaboost_pixel_classifier_masks.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       train_adaboost_pixel_classifier.sh )
+       train_adaboost_pixel_classifier.sh
+	   train_adaboost_pixel_classifier_masks.sh )
 endif()
 
 install( FILES       ${EXAMPLE_INSTALL_FILES}
