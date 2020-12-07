@@ -166,10 +166,8 @@ class NetHarnTrainer( TrainDetector ):
 
         if self._mode == "detector":
             if self._batch_size == "auto":
-                if self._arch and "HRNet" in self._arch:
-                    self._batch_size = str( 1 )
-                elif len( self._aux_image_labels ) > 0:
-                    if gpu_memory_available >= 14e9:
+                if len( self._aux_image_labels ) > 0:
+                    if gpu_memory_available >= 22e9:
                         self._batch_size = str( 2 * gpu_param_adj )
                     else:
                         self._batch_size = str( 1 * gpu_param_adj )
