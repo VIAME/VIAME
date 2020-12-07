@@ -128,6 +128,15 @@ Arrows: Super3d
 
  * Updated the Super3D compute_depth algorithm to compute uncertainty.
 
+Arrows: VTK
+
+ * Created new VTK arrow.
+
+ * Added utility function to convert depth images to vtkImageData.
+   This function was ported from TeleSculptor.
+
+ * Added an applet to estimate depth maps from multple views.
+
 Arrows: VXL
 
 Arrows: Python
@@ -163,13 +172,6 @@ Arrows: Core
 Arrows: Ceres
 
 Arrows: Super3D
-
-Arrows: VTK
-
- * Created new VTK arrow.
-
- * Added utility function to convert depth images to vtkImageData.
-   This function was ported from TeleSculptor.
 
 Sprokit: Processes
 
