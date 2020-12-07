@@ -245,9 +245,6 @@ if( VIAME_ENABLE_PYTORCH )
   if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.4.0" AND VIAME_ENABLE_PYTORCH-INTERNAL )
     message( FATAL_ERROR "Only PyTorch v1.4.0 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
   endif()
-  if( NOT VIAME_ENABLE_FFMPEG )
-    message( FATAL_ERROR "VIAME_ENABLE_FFMPEG is typically for PyTorch Torchvision" )
-  endif()
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
