@@ -1,9 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
-
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <vital/vital_config.h>
 #include <track_oracle/vibrant_descriptors/vibrant_descriptors_export.h>
@@ -21,13 +18,11 @@
 #define ELEMENT_STORE_EXPORT VIBRANT_DESCRIPTORS_EXPORT
 #define TRACK_ORACLE_ROW_VIEW_EXPORT VIBRANT_DESCRIPTORS_EXPORT
 
-
 #include <track_oracle/core/track_oracle_instantiation.h>
 #include <track_oracle/core/track_field_instantiation.h>
 #include <track_oracle/core/track_oracle_row_view_instantiation.h>
 #include <track_oracle/core/element_store_instantiation.h>
 #include <track_oracle/core/kwiver_io_base_instantiation.h>
-
 
 /// Shouldn't need to distinguish between these, but VS9 has a bug:
 /// http://connect.microsoft.com/VisualStudio/feedback/details/753981

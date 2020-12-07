@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2018 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "data_terms.h"
 
@@ -77,7 +75,6 @@ vector_unsigned_from_str( const string& s, vector<unsigned>& d )
   }
 }
 
-
 } // anon
 
 namespace kwiver {
@@ -144,7 +141,6 @@ bool track_location::from_csv( const map<string, string>& header_value_map, vgl_
 {
   return kwiver_csv_read( track_location::csv_headers(), header_value_map, d );
 }
-
 
 //
 // obj_location I/O overrides
@@ -220,11 +216,9 @@ void bounding_box::write_xml( ostream& os,
   os << " </" << name << ">\n";
 }
 
-
 //
 // world x/y/z output overrides (increase precision)
 //
-
 
 ostream& world_x::to_stream( ostream& os, const double& d ) const
 {
@@ -543,7 +537,6 @@ bool source_track_ids::from_str( const string& s, vector<unsigned>& d ) const
 // actor track rows (hmm, not really PORTABLE)
 //
 
-
 ostream& actor_track_rows::to_stream( ostream& os, const track_handle_list_type& d ) const
 {
   vector<unsigned> tmp;
@@ -565,7 +558,6 @@ bool actor_track_rows::from_str( const string& s, track_handle_list_type& d ) co
   }
   return true;
 }
-
 
 } // ...events
 
@@ -670,7 +662,6 @@ bool descriptor_classifier::read_xml( const TiXmlElement* const_e, vector<double
   }
   return true;
 }
-
 
 } // ...virat
 
