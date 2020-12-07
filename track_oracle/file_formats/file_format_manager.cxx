@@ -1,11 +1,8 @@
-/*ckwg +5
- * Copyright 2012-2015 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #undef TRACK_4676_ENABLED
-
 
 #include "file_format_manager.h"
 #include <fstream>
@@ -290,7 +287,6 @@ file_format_manager
   return get_instance().formats;
 }
 
-
 file_format_base*
 file_format_manager
 ::get_format( file_format_enum fmt )
@@ -319,7 +315,6 @@ file_format_manager
 {
   return file_format_manager::options( fmt ).reset();
 }
-
 
 map< file_format_enum, vector< string > >
 file_format_manager
@@ -458,7 +453,6 @@ file_format_manager
   return formats;
 }
 
-
 pair< track_field_base*, track_base_impl::schema_position_type >
 file_format_manager
 ::clone_field_from_element( const element_descriptor& e )
@@ -574,8 +568,6 @@ file_format_manager
 
   LOG_INFO( main_logger, "Test tracks contain " << track_elements.size() << " track-level elements and "
             << frame_elements.size() << " frame elements" );
-
-
 
   // use track_csv as our proxy schema for convenience
   track_handle_list_type tracks;

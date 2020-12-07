@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2012-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "file_format_vatic.h"
 
@@ -54,7 +52,6 @@ file_format_vatic
     }
   }
 
-
   return true; // Looks enough like a vatic to try and read it.
 }
 
@@ -72,7 +69,6 @@ file_format_vatic
 
   return this->read( is, tracks );
 }
-
 
 bool
 file_format_vatic
