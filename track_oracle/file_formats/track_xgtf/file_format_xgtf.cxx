@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2012-2014 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "file_format_xgtf.h"
 
@@ -46,7 +44,6 @@ typedef TiXmlNode xml_node_t;
 typedef TiXmlElement xml_element_t;
 typedef TiXmlDocument xml_document_t;
 typedef TiXmlHandle xml_handle_t;
-
 
 //
 // local structs for viper's activity maps
@@ -241,7 +238,6 @@ extract_occlusion( xml_node_t* xml_node,
   }
   return true;
 }
-
 
 //
 // named_nodes is a map of the XML nodes which are children of
@@ -558,9 +554,7 @@ doc_to_source_node( const string& filename, xml_document_t& doc )
   return xml_source;
 }
 
-
 } // anon
-
 
 namespace kwiver {
 namespace track_oracle {
@@ -765,7 +759,6 @@ file_format_xgtf
     // =====
     // 6) For each activity, create a track
     // =====
-
 
     ::kwiver::track_oracle::track_xgtf_type dst_schema;
     for ( viper_activity_list_c_it act_it = activities.begin(); act_it != activities.end(); ++act_it )

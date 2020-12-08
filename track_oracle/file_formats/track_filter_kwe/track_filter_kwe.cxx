@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "track_filter_kwe.h"
 
@@ -21,7 +19,6 @@
 #include <track_oracle/event_adapter.h>
 #include <track_oracle/utils/logging_map.h>
 #include <track_oracle/data_terms/data_terms.h>
-
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );

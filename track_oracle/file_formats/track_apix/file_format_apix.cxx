@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2012-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "file_format_apix.h"
 
@@ -13,7 +11,6 @@
 
 #include <shapefil.h>
 #include <geographic/geo_coords.h>
-
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -39,7 +36,6 @@ struct shp_handle_type
 };
 
 } // anon
-
 
 namespace kwiver {
 namespace track_oracle {

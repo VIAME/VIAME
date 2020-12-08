@@ -1,9 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2020 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
-
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "kwiver_io_helpers.h"
 
@@ -62,7 +59,6 @@ vector<string> kwiver_csv_header_pair( const string& n, const string& p1, const 
   r.push_back( n+p2 );
   return r;
 }
-
 
 //
 // vgl_box_2d<double>
@@ -156,7 +152,6 @@ kwiver_ts_to_strings( const vital::timestamp& ts )
   }
   return make_pair( f_str, t_str );
 }
-
 
 bool
 kwiver_ts_string_read( const string& frame_str,

@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2011-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef INCL_ARIES_INTERFACE_H
 #define INCL_ARIES_INTERFACE_H
@@ -65,7 +63,6 @@ public:
   // Map activity strings to their indices, and vice versa.
   // Return const ref to map, which precludes using operator[],
   // but communicates read-only semantics to the user.
-
 
   static size_t activity_to_index( const std::string& s );
   static const std::map< size_t, std::string >& index_to_activity_map();

@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2012-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "file_format_kst.h"
 
@@ -53,7 +51,6 @@ get_next_nonblank_line( istream& is, string& line )
   }
   return false;
 }
-
 
 // each node in the KST parse tree is a vector of elements;
 // each element is either a string or a pointer to another node.
@@ -427,7 +424,6 @@ parse_kst_tree( istream& is )
   return this_node;
 }
 
-
 } // anon namespace
 
 namespace kwiver {
@@ -467,7 +463,6 @@ file_format_kst
   LOG_INFO( main_logger, "KST: reading '" << fn << "'" );
   return this->read( is, tracks );
 }
-
 
 bool
 file_format_kst
@@ -536,7 +531,6 @@ file_format_kst
     if ( ! kst_tree->e_is_vector( index+7, scores )) return false;
     rank = static_cast<unsigned>(scores[0]);
     relevancy = scores[1];
-
 
     kst_node* n;
     //if ( ! kst_tree->e_is_node( index+11, n )) return false;

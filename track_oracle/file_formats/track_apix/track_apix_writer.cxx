@@ -1,9 +1,6 @@
-/*ckwg +5
- * Copyright 2010-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
-
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "track_apix_writer.h"
 #include <iostream>
@@ -15,7 +12,6 @@
 #include <track_oracle/track_apix/track_apix.h>
 #include <geographic/geo_coords.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
-
 
 using std::floor;
 using std::string;
@@ -56,7 +52,6 @@ public:
   void emit_record( int row, ::kwiver::track_oracle::frame_handle_type frame, const string& time_format_string );
 };
 
-
 shp_record_type
 ::shp_record_type( const string& prefix )
 {
@@ -78,8 +73,6 @@ shp_record_type
   SHPWriteObject( this->fh, /* new shape = */ -1, obj );
   SHPDestroyObject( obj );
 }
-
-
 
 dbf_record_type
 ::dbf_record_type( const string& prefix )
@@ -120,7 +113,6 @@ dbf_record_type
                  utc_time_secs,
                  utc_time_ms,
                  time_string );
-
 
   DBFWriteDoubleAttribute( this->fh, row, this->latField, trk[frame].lat() );
   DBFWriteDoubleAttribute( this->fh, row, this->lonField, trk[frame].lon() );

@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2011-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef INCL_TRACK_KWXML_H
 #define INCL_TRACK_KWXML_H
@@ -84,7 +82,6 @@ struct TRACK_KWXML_EXPORT track_kwxml_type: public track_base< track_kwxml_type 
   track_field< std::string >& augmented_annotation;
   track_field< double >& latitude;
   track_field< double >& longitude;
-
 
   track_kwxml_type():
     video_id( Track.add_field< unsigned >("video_id")),
