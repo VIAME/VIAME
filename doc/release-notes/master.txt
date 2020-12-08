@@ -65,6 +65,12 @@ Arrows: Core
 
  * Updated dump-klv applet to load default configuration from a file.
 
+ * Added a utility function to depth_utils.h to find similar cameras by view
+   angle.
+
+ * Added a utility funciton to depth_utils.h to gather corresponding cameras,
+   images, and masks from video sources for use in depth map estimation.
+
 Arrows: Ceres
 
 Arrows: CUDA

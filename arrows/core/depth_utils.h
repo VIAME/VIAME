@@ -11,8 +11,13 @@
 #define DEPTH_UTILS_H_
 
 #include <arrows/core/kwiver_algo_core_export.h>
+
 #include <vector>
+#include <functional>
+
+#include <vital/algo/video_input.h>
 #include <vital/types/landmark.h>
+#include <vital/types/camera_perspective_map.h>
 #include <vital/types/camera_perspective.h>
 #include <vital/types/bounding_box.h>
 
@@ -176,6 +181,72 @@ double
 compute_pixel_to_world_scale(kwiver::vital::vector_3d const& minpt,
                              kwiver::vital::vector_3d const& maxpt,
                              std::vector<camera_perspective_sptr> const& cameras);
+
+/// The callback function signature used in gather_depth_frames
+/**
+ * This function is called with two values.  The first is the current loop
+ * iteration.  The second is the number of total iterations.  The function
+ * must return true or the loop will terminate early.
+ */
+using gather_callback_t = std::function<bool(unsigned int, unsigned int)>;
+
+/// Gather images and masks corresponding to cameras from video sources
+/**
+ * This function is used to create parallel vectors of cameras, frames, and
+ * masks which are used as input to the compute_depth algorithm.  This function
+ * seeks through the videos finding frames corresponding to frames in the
+ * camera map.  If a camera, video frame, and mask are all found they are
+ * pushed into the corresponding output vectors.  The provided \a ref_frame
+ * is the frame number of a frame to be used as a reference.  It should
+ * also be included in \cameras.  The return value of this function is the
+ * index into the output vectors of this reference frame.
+ *
+ * The masks video input is optional and can be set to nullptr to skip mask
+ * collection.  In this case, \a mask_out will also be empty.
+ *
+ * The optional callback \a cb is called at the start of each loop
+ * iteration to report progress as number of cameras processed out of the
+ * total camera map size.  if the callback returns false the loop will
+ * terminate early.
+ *
+ * \param  cameras The map of frame numbers to cameras
+ * \param  video The video from which to extract frames matching the cameras
+ * \param  masks The video of masks from which to extract mask images
+ * \param  ref_frame The video frame which will be the reference for depth
+ * \param  cameras_out The output vector containing cameras
+ * \param  frames_out The output vector containing frames
+ * \param  masks_out The output vector containing masks
+ * \param  cb The optional callback to report progress
+ * \returns the index into the output vectors of the ref_frame data
+ */
+KWIVER_ALGO_CORE_EXPORT
+int gather_depth_frames(
+  kwiver::vital::camera_perspective_map const& cameras,
+  kwiver::vital::algo::video_input_sptr video,
+  kwiver::vital::algo::video_input_sptr masks,
+  kwiver::vital::frame_id_t ref_frame,
+  std::vector<kwiver::vital::camera_perspective_sptr>& cameras_out,
+  std::vector<kwiver::vital::image_container_sptr>& frames_out,
+  std::vector<kwiver::vital::image_container_sptr>& masks_out,
+  gather_callback_t cb = nullptr);
+
+/// Find a subset of cameras within an angular span of a target camera
+/**
+ * Return the subset of all cameras within the specified angle similarity bounds
+ * to the reference camera.  If \p max_count is greater than zero then uniformly
+ * subsample this many cameras from the selected set.
+ *
+ * \param  ref_camera The reference camera, find similar cameras similar to this
+ * \param  cameras The pool of cameras to select from
+ * \param  max_angle The maximum angle in degrees between camera principal rays
+ * \param  max_count The maximum number of cameras to return (if 0, return all)
+ */
+KWIVER_ALGO_CORE_EXPORT
+kwiver::vital::camera_perspective_map_sptr
+find_similar_cameras_angles(camera_perspective const& ref_camera,
+                            camera_perspective_map const& cameras,
+                            double max_angle,
+                            unsigned max_count = 0);
 } //end namespace core
 } //end namespace arrows
 } //end namespace kwiver
