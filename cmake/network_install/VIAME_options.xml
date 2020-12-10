@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Theme xmlns="http://wixtoolset.org/schemas/thmutil/2010">
-    <Window Width="485" Height="300" HexStyle="100a0000" FontId="0">#(loc.Caption)</Window>
+    <Window Width="485" Height="500" HexStyle="100a0000" FontId="0">#(loc.Caption)</Window>
     <Font Id="0" Height="-12" Weight="500" Foreground="000000" Background="FFFFFF">Segoe UI</Font>
     <Font Id="1" Height="-24" Weight="500" Foreground="000000">Segoe UI</Font>
     <Font Id="2" Height="-22" Weight="500" Foreground="666666">Segoe UI</Font>
@@ -14,15 +14,24 @@
         <Hypertext Name="EulaHyperlink" X="11" Y="121" Width="-11" Height="51" TabStop="yes" FontId="3" HideWhenDisabled="yes">#(loc.InstallLicenseLinkText)</Hypertext>
         <Checkbox Name="EulaAcceptCheckbox" X="-11" Y="-41" Width="246" Height="17" TabStop="yes" FontId="3" HideWhenDisabled="yes">#(loc.InstallAcceptCheckbox)</Checkbox>
         <Button Name="OptionsButton" X="-171" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0" HideWhenDisabled="yes">#(loc.InstallOptionsButton)</Button>
+        <Button Name="OptionsButton" X="-171" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0" HideWhenDisabled="yes">Data Options</Button>
         <Button Name="InstallButton" X="-91" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.InstallInstallButton)</Button>
         <Button Name="WelcomeCancelButton" X="-11" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.InstallCloseButton)</Button>
     </Page>
     <Page Name="Options">
         <Text X="11" Y="80" Width="-11" Height="30" FontId="2" DisablePrefix="yes">#(loc.OptionsHeader)</Text>
         <!-- this line right here -->
-        <Checkbox Name="SeaLionModelsCheckbox" X="0" Y="130" Width="-100" Height="15" TabStop="yes" FontId="3">Install VIAME Sea Lion Data?</Checkbox>
-        <!--Checkbox Name="SealGUICheckbox" X="0" Y="180" Width="-100" Height="15" TabStop="yes" FontId="3">Install SEAL GUI?</Checkbox-->
+            <Text X="0" Y="110" Width="-100" Height="15" TabStop="yes" FontId="3">Select model data to install: </Text>
+            <Checkbox Name="SeaLion1_1DataModelsCheckbox" X="10" Y="125" Width="-100" Height="15" TabStop="yes" FontId="3">Install Sea Lion 1.1 Data?</Checkbox>
+            <Checkbox Name="SeaLion1_2DataModelsCheckbox" X="10" Y="140" Width="-100" Height="15" TabStop="yes" FontId="3">Install Sea Lion 1.2 Data?</Checkbox>
+            <Checkbox Name="MOUSSDataModelsCheckbox" X="10" Y="155" Width="-100" Height="15" TabStop="yes" FontId="3">Install MOUSS Data?</Checkbox>
+            <Checkbox Name="MOUSSAltDataModelsCheckbox" X="10" Y="170" Width="-100" Height="15" TabStop="yes" FontId="3">Install Alternate MOUSS Data?</Checkbox>
+            <Checkbox Name="SEFSC1_1DataModelsCheckbox" X="10" Y="185" Width="-100" Height="15" TabStop="yes" FontId="3">Install SEFSC 1.1 Data?</Checkbox>
+            <Checkbox Name="SEFSC1_2DataModelsCheckbox" X="10" Y="200" Width="-100" Height="15" TabStop="yes" FontId="3">Install SEFSC 1.2 Data?</Checkbox>
+            <Checkbox Name="ArcticSealsDataModelsCheckbox" X="10" Y="215" Width="-100" Height="15" TabStop="yes" FontId="3">Install Arctic Seal Data?</Checkbox>
 
+        <Text X="0" Y="250" Width="-100" Height="15" TabStop="yes" FontId="3">Select GUI to install: </Text>
+        <Checkbox Name="VIAME_DiveCheckbox" X="10" Y="265" Width="-100" Height="15" TabStop="yes" FontId="3">Install VIAME-Dive GUI?</Checkbox>
         <Button Name="OptionsOkButton" X="-91" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.OptionsOkButton)</Button>
         <Button Name="OptionsCancelButton" X="-11" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.OptionsCancelButton)</Button>
     </Page>
