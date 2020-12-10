@@ -55,7 +55,7 @@ EmbeddedPipeline
 ::connect_input_adapter()
 {
   this->inputConnected_ = embedded_pipeline::connect_input_adapter();
-  if ( this->endcaps_.testFlag( EmbeddedPipelineWorker::RequiresInput ) )
+  if( this->endcaps_.testFlag( EmbeddedPipelineWorker::RequiresInput ) )
   {
     return this->inputConnected_;
   }
@@ -68,7 +68,7 @@ EmbeddedPipeline
 ::connect_output_adapter()
 {
   this->outputConnected_ = embedded_pipeline::connect_output_adapter();
-  if ( this->endcaps_.testFlag( EmbeddedPipelineWorker::RequiresOutput ) )
+  if( this->endcaps_.testFlag( EmbeddedPipelineWorker::RequiresOutput ) )
   {
     return this->outputConnected_;
   }
@@ -124,24 +124,24 @@ EmbeddedPipelineWorkerPrivate
 {
   KQ_Q();
 
-  if ( this->pipeline.hasInput() )
+  if( this->pipeline.hasInput() )
   {
     q->initializeInput( this->pipeline );
   }
 
-  if ( this->pipeline.hasOutput() )
+  if( this->pipeline.hasOutput() )
   {
     this->endcap.start();
   }
 
-  if ( this->pipeline.hasInput() )
+  if( this->pipeline.hasInput() )
   {
     q->sendInput( this->pipeline );
   }
 
   this->pipeline.wait();
 
-  if ( this->pipeline.hasOutput() )
+  if( this->pipeline.hasOutput() )
   {
     this->endcap.wait();
   }
@@ -164,11 +164,11 @@ Endcap
 {
   KQ_Q();
 
-  for ( int currentFrame = 0;; ++currentFrame )
+  for( int currentFrame = 0;; ++currentFrame )
   {
     const auto& ods = q->pipeline.receive();
 
-    if ( ods->is_end_of_data() )
+    if( ods->is_end_of_data() )
     {
       return;
     }
@@ -204,7 +204,7 @@ EmbeddedPipelineWorker
 
     std::ifstream pipelineStream;
     pipelineStream.open( stdString( pipelineFile ), std::ifstream::in );
-    if ( !pipelineStream )
+    if( !pipelineStream )
     {
       this->reportError( "Failed to initialize pipeline: pipeline file '" +
                          pipelineFile + "' could not be read",
@@ -214,7 +214,7 @@ EmbeddedPipelineWorker
 
     d->pipeline.build_pipeline( pipelineStream, stdString( pipelineDir ) );
 
-    if ( !this->initializePipeline( d->pipeline ) )
+    if( !this->initializePipeline( d->pipeline ) )
     {
       return false;
     }
