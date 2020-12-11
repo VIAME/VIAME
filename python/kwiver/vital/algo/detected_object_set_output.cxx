@@ -37,6 +37,14 @@ namespace vital  {
 namespace python {
 using doso = kwiver::vital::algo::detected_object_set_output;
 
+class doso_publicist
+: public doso
+{
+public:
+  using doso::doso;
+  using doso::filename;
+};
+
 void detected_object_set_output(py::module &m)
 {
   py::class_< doso,
@@ -49,6 +57,7 @@ void detected_object_set_output(py::module &m)
     .def("complete", &doso::complete)
     .def("open", &doso::open)
     .def("close", &doso::close)
+    .def("filename", &doso_publicist::filename)
     ;
 }
 }
