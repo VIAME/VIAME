@@ -6,10 +6,10 @@ object detection, object tracking, image/video annotation, image/video search, i
 stereo measurement, rapid model generation, and tools for the evaluation of different algorithms.
 Originally targetting marine species analytics, it now contains many common algorithms and libraries,
 and is also useful as a generic computer vision toolkit. The core infrastructure connecting different
-system components is currently the KWIVER library, which can connect C/C++, python, and matlab nodes
-together in a graph-like pipeline architecture. Alongside the pipelined image processing system are a
-number of standalone tools for accomplishing the above. Both a desktop and web version exists for
-deployments in different types of environments.
+system components is a pipeline framework which can connect C/C++, python, and matlab nodes together
+in a graph-like pipeline architecture. Alongside the pipelined image processing system, and the
+algorithms resting on top of it, are a number of standalone tools for accomplishing the above. Both a
+desktop and web version exists for deployments in different types of environments.
 
 Documentation
 -------------
