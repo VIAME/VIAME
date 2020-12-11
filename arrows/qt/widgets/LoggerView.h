@@ -25,23 +25,24 @@ class KWIVER_ALGO_QT_WIDGETS_EXPORT LoggerView : public QWidget
 
 public:
   explicit LoggerView(
-    QWidget* parent = nullptr, Qt::WindowFlags flags = {});
+    QWidget* parent = nullptr, Qt::WindowFlags flags = {} );
   ~LoggerView();
 
-  void logHandler(kwiver::vital::kwiver_logger::log_level_t,
-                  std::string const& name, std::string const& msg,
-                  kwiver::vital::logger_ns::location_info const& loc);
+  void logHandler( kwiver::vital::kwiver_logger::log_level_t,
+                   std::string const& name, std::string const& msg,
+                   kwiver::vital::logger_ns::location_info const& loc );
+
 signals:
-  void messageLogged(QString const& msg);
+  void messageLogged( QString const& msg );
 
 public slots:
-  void appendMessage(QString const& msg);
+  void appendMessage( QString const& msg );
 
 private:
-  QTE_DECLARE_PRIVATE_RPTR(LoggerView)
-  QTE_DECLARE_PRIVATE(LoggerView)
+  QTE_DECLARE_PRIVATE_RPTR( LoggerView )
+  QTE_DECLARE_PRIVATE( LoggerView )
 
-  QTE_DISABLE_COPY(LoggerView)
+  QTE_DISABLE_COPY( LoggerView )
 };
 
 } // namespace qt
