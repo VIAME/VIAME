@@ -5,7 +5,6 @@
 #ifndef KWIVER_ARROWS_VTK_APPLETS_ESTIMATE_DEPTH_H
 #define KWIVER_ARROWS_VTK_APPLETS_ESTIMATE_DEPTH_H
 
-// TODO
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 
