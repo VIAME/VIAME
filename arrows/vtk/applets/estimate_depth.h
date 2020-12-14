@@ -20,16 +20,16 @@ class KWIVER_ALGO_VTK_APPLETS_EXPORT estimate_depth
 {
 public:
   estimate_depth();
-  virtual ~estimate_depth();
+  ~estimate_depth() override;
 
   PLUGIN_INFO( "estimate-depth",
                "Depth estimation utility");
 
-  virtual int run() override;
+  int run() override;
   int run_frame(int frame, const kwiver::vital::camera_map::map_camera_t &cm,
                 kwiver::vital::landmark_map_sptr lm, std::string mask_path,
                 double angle_span, int num_support, bool hasMask);
-  virtual void add_command_options() override;
+  void add_command_options() override;
 
 private:
   class priv;
