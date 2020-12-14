@@ -1,5 +1,6 @@
 set(config_files
   dump_klv.conf
+  fuse_depth.conf
   init_cameras_landmarks.conf
   track_features.conf
   color_mesh.conf

@@ -34,7 +34,9 @@ target_link_libraries( kwiver_algo_vtk
   PRIVATE              vital_algo
                        vtkCommonCore
                        vtkCommonDataModel
-                       )
+                       vtkIOImage
+                       vtkIOXML
+  )
 
 #algorithms_create_plugin( kwiver_algo_vtk
 #  register_algorithms.cxx

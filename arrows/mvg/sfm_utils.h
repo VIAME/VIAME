@@ -15,6 +15,7 @@
 
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
+#include <vital/types/bounding_box.h>
 #include <arrows/mvg/kwiver_algo_mvg_export.h>
 
 #include <vital/types/feature_track_set.h>
@@ -27,6 +28,18 @@
 namespace kwiver {
 namespace arrows {
 namespace mvg{
+
+/// Generate camera based on crop
+/**
+ * Change the parameters of the camera appropriately to account for the cropping
+ * \param [in] cam   The camera to crop.
+ * \param [in] crop  The region of the image to use
+ * \return           The cropped camera, with shifted principal point
+ */
+KWIVER_ALGO_MVG_EXPORT
+kwiver::vital::camera_perspective_sptr
+crop_camera(const kwiver::vital::camera_perspective_sptr& cam,
+            vital::bounding_box<int> crop);
 
 /// Detect tracks which remain stationary in the image
 /**
