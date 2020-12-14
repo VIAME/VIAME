@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2010-2018 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "track_oracle_core_impl.h"
 #include <mutex>
@@ -79,7 +77,6 @@ public:
 // not in the set of current_csv_headers.  (For example, if your CSV
 // had world_x and world_y, but no world_z, we need to force world_z here.)
 //
-
 
 map<kwiver::track_oracle::field_handle_type, vector<string> >
 csv_v1_mapping_type
@@ -221,7 +218,6 @@ track_oracle_core_impl
     ? probe->second
     : 0;
 }
-
 
 bool
 track_oracle_core_impl
@@ -456,7 +452,6 @@ track_oracle_core_impl
   return true;
 }
 
-
 bool
 track_oracle_core_impl
 ::add_to_domain( const handle_list_type& handles, const domain_handle_type& domain )
@@ -628,7 +623,6 @@ track_oracle_core_impl
   os << "\n";
 }
 
-
 bool
 track_oracle_core_impl
 ::write_kwiver( ostream& os, const track_handle_list_type& tracks )
@@ -689,7 +683,6 @@ track_oracle_core_impl
     m[ i->first ] = i->second->csv_headers();
   }
 }
-
 
 bool
 track_oracle_core_impl
@@ -937,7 +930,6 @@ track_oracle_core_impl
 {
   std::lock_guard< std::mutex > lock( this->api_lock );
 
-
   map< string, field_handle_type > header_map;
   map< size_t, size_t > header_claimed_map;
   csv_handler_map_type m;
@@ -960,7 +952,6 @@ track_oracle_core_impl
 
     // skip the system headers
     if ( this_ed.role == element_descriptor::SYSTEM ) continue;
-
 
     vector< string > element_headers = i->second->csv_headers();
     if ( local_debug ) LOG_DEBUG(main_logger, "gchm: " << local_debug_name << " has " << element_headers.size() << " headers");
@@ -1001,7 +992,6 @@ track_oracle_core_impl
     // data element.  Move along.
 
     if ( header_indices.empty() ) continue;
-
 
     // If all has gone well, header_indices now lists indices for the
     // element's CSV headers in the caller's headers vector, in order.

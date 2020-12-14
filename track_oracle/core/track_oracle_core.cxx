@@ -1,19 +1,15 @@
-/*ckwg +5
- * Copyright 2010-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "track_oracle_core.h"
 #include <track_oracle/core/element_descriptor.h>
 #include <track_oracle/core/track_oracle_core_impl.h>
 #include <mutex>
 
-
 using std::ostream;
 using std::string;
 using std::vector;
-
 
 namespace // anon
 {
@@ -263,7 +259,6 @@ track_oracle_core
 {
   return track_oracle_core::get_instance().write_kwiver( os, tracks );
 }
-
 
 bool
 track_oracle_core

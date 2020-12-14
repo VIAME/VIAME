@@ -1,9 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2018 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
-
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <string>
 #include <set>
@@ -31,7 +28,6 @@
 #include <track_oracle/core/track_oracle_row_view_instantiation.h>
 #include <track_oracle/core/element_store_instantiation.h>
 #include <track_oracle/core/kwiver_io_base_instantiation.h>
-
 
 #define TRACK_ORACLE_INSTANTIATE_DEBUG(T) \
   TRACK_ORACLE_INSTANCES(T) \
@@ -79,7 +75,6 @@ TRACK_ORACLE_INSTANTIATE_OLD_STYLE_DEFAULT_OUTPUT(kwiver::vital::uid);
   ELEMENT_STORE_INSTANCES(T) \
   KWIVER_IO_BASE_INSTANCES(T)
 
-
 #define TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT_COMMA(T, T2)     \
   TRACK_ORACLE_INSTANCES(T MACRO_COMMA T2) \
   TRACK_FIELD_INSTANCES_OLD_STYLE_SPECIAL_OUTPUT_COMMA(T, T2)           \
@@ -87,7 +82,6 @@ TRACK_ORACLE_INSTANTIATE_OLD_STYLE_DEFAULT_OUTPUT(kwiver::vital::uid);
   TRACK_ORACLE_ROW_VIEW_INSTANCES(T MACRO_COMMA T2) \
   ELEMENT_STORE_INSTANCES(T MACRO_COMMA T2) \
   KWIVER_IO_BASE_INSTANCES(T MACRO_COMMA T2)
-
 
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(kwiver::track_oracle::frame_handle_list_type);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(kwiver::track_oracle::track_handle_list_type);
@@ -99,7 +93,6 @@ TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(std::set< std::string >);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(kwiver::track_oracle::kpf_cset_type);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(kwiver::track_oracle::kpf_cset_sys_type);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(kwiver::track_oracle::kpf_cset_s2i_type);
-
 
 #ifdef WIN32
 TRACK_ORACLE_INSTANCES(std::pair<unsigned MACRO_COMMA unsigned >);

@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "tokenizers.h"
 
@@ -71,7 +69,6 @@ xml_stream_buffer
 
 } // ...anon
 
-
 namespace kwiver {
 namespace track_oracle {
 
@@ -87,7 +84,6 @@ first_n_tokens( const string& fn, size_t n )
   }
 
   xml_stream_buffer xmlbuf( fp );
-
 
   vector< string > tokens;
   string this_token = "";
@@ -203,7 +199,6 @@ first_n_tokens( const string& fn, size_t n )
 }
 
 } //...xml_tokenizer
-
 
 namespace csv_tokenizer {
 

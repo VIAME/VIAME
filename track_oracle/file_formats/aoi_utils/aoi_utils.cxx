@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "aoi_utils.h"
 
@@ -18,7 +16,6 @@
 #include <vgl/vgl_convex.h>
 
 #include <track_oracle/track_scorable_mgrs/scorable_mgrs.h>
-
 
 using std::vector;
 using std::map;
@@ -42,7 +39,6 @@ struct pixel_aoi_t
 {
   vgl_polygon<double> poly;
 };
-
 
 //
 // Parse the string into a list of doubles and an aoi flavor.
@@ -201,7 +197,6 @@ public:
   virtual bool in_aoi( double x, double y ) const = 0;
 };
 
-
 // pixel AOI
 
 struct pixel_aoi_impl: public aoi_impl
@@ -229,7 +224,6 @@ struct pixel_aoi_impl: public aoi_impl
     return this->pixel_aoi.poly.contains( x, y );
   }
 };
-
 
 // geo AOI
 
@@ -295,7 +289,6 @@ struct geo_aoi_impl: public aoi_impl
   }
 };
 
-
 //
 // construct an invalid, empty AOI
 //
@@ -327,7 +320,6 @@ aoi_t
 {
   delete this->p;
 }
-
 
 //
 // Given a string as described in help_text(), set this AOI

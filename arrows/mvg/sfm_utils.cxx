@@ -10,6 +10,7 @@
 #include "sfm_utils.h"
 
 #include <vital/vital_types.h>
+#include <vital/types/bounding_box.h>
 #include <vital/types/feature_track_set.h>
 #include <arrows/mvg/metrics.h>
 #include <arrows/core/match_matrix.h>
@@ -19,6 +20,28 @@ using namespace kwiver::vital;
 namespace kwiver {
 namespace arrows {
 namespace mvg {
+
+//-----------------------------------------------------------------------------
+kwiver::vital::camera_perspective_sptr
+crop_camera(const kwiver::vital::camera_perspective_sptr& cam,
+            vital::bounding_box<int> crop)
+{
+  kwiver::vital::simple_camera_intrinsics new_intrinsics(*cam->intrinsics());
+  kwiver::vital::vector_2d pp = new_intrinsics.principal_point();
+  auto const tl = crop.upper_left();
+
+  pp[0] -= tl.y(); // i
+  pp[1] -= tl.x(); // j
+
+  new_intrinsics.set_principal_point(pp);
+
+  kwiver::vital::simple_camera_perspective crop_cam(cam->center(),
+                                                   cam->rotation(),
+                                                   new_intrinsics);
+
+  return std::dynamic_pointer_cast<kwiver::vital::camera_perspective>(
+    crop_cam.clone());
+}
 
 /// Detect tracks which remain stationary in the image
 std::set<vital::track_sptr>

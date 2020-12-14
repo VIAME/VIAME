@@ -12,6 +12,8 @@
 
 #include <arrows/vtk/kwiver_algo_vtk_export.h>
 
+#include <vital/algo/image_io.h>
+#include <vital/io/camera_io.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/image.h>
 
@@ -47,6 +49,38 @@ depth_to_vtk(kwiver::vital::image_of<double> const& depth_img,
              kwiver::vital::bounding_box<int> const& crop_box = {},
              kwiver::vital::image_of<double> const& uncertainty_img = {},
              kwiver::vital::image_of<unsigned char> const& mask_img = {});
+
+/// Load the depth map saved as a VTK array
+/**
+ * Read in the information stored in a single output file
+ *
+ * \param [in] filename         The file to load from
+ * \param [out] crop            The bounds that the data should be cropped to
+ * \param [out] depth_out       Depth values
+ * \param [out] weight_out      Weights for each pixel (mask)
+ * \param [out] uncertainty_out Uncertainty for each pixel
+ * \param [out] color_out       Color for each pixel
+ */
+KWIVER_ALGO_VTK_EXPORT
+void
+load_depth_map(const std::string& filename,
+               vital::bounding_box<int>& crop,
+               kwiver::vital::image_container_sptr& depth_out,
+               kwiver::vital::image_container_sptr& weight_out,
+               kwiver::vital::image_container_sptr& uncertainty_out,
+               kwiver::vital::image_container_sptr& color_out);
+
+/// Convert a volume and metadata to the VTK format
+/**
+ * \param [in] volume   The volumetric data to convert
+ * \param [in] origin   The local coordinate system origin of the data
+ * \param [in] spacing  The voxel spacing per axis
+ */
+KWIVER_ALGO_VTK_EXPORT
+vtkSmartPointer<vtkImageData>
+volume_to_vtk(kwiver::vital::image_container_sptr volume,
+              kwiver::vital::vector_3d const& origin,
+              kwiver::vital::vector_3d const& spacing);
 
 } //end namespace vtk
 } //end namespace arrows

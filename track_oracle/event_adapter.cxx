@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "event_adapter.h"
 
@@ -70,8 +68,6 @@ event_data_block
   }
   return ret;
 }
-
-
 
 bool
 event_adapter
@@ -187,7 +183,6 @@ event_adapter
   }
 }
 
-
 bool
 event_adapter
 ::clone_geometry( track_handle_type src_track,
@@ -241,7 +236,6 @@ event_adapter
 
   return true;
 }
-
 
 } // ...track_oracle
 } // ...kwiver

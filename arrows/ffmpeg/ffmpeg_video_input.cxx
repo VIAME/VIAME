@@ -50,13 +50,14 @@ class ffmpeg_video_input::priv
 public:
   /// Constructor
   priv() :
-    f_format_context(nullptr),
+    f_format_context(avformat_alloc_context()),
     f_video_index(-1),
     f_data_index(-1),
     f_video_encoding(nullptr),
     f_video_stream(nullptr),
     f_frame(nullptr),
     f_filtered_frame(nullptr),
+    f_packet(nullptr),
     f_software_context(nullptr),
     f_filter_graph(nullptr),
     f_filter_sink_context(nullptr),
@@ -67,14 +68,12 @@ public:
     video_path(""),
     filter_desc("yadif=deint=1"),
     metadata(0),
-    frame_advanced(0),
+    frame_advanced(false),
     end_of_video(true),
     number_of_frames(0),
     collected_all_metadata(false),
     estimated_num_frames(false)
-  {
-    f_packet.data = nullptr;
-  }
+  { }
 
   // f_* variables are FFmpeg specific
 
@@ -85,7 +84,7 @@ public:
   AVStream* f_video_stream;
   AVFrame* f_frame;
   AVFrame* f_filtered_frame;
-  AVPacket f_packet;
+  AVPacket* f_packet;
   SwsContext* f_software_context;
   AVFilterGraph* f_filter_graph;
   AVFilterContext *f_filter_sink_context;
@@ -133,7 +132,7 @@ public:
   kwiver::vital::image_container_sptr current_image;
 
   // local state
-  int frame_advanced; // This is a boolean check value really
+  bool frame_advanced;
   bool end_of_video;
   size_t number_of_frames;
   bool collected_all_metadata;
@@ -176,16 +175,16 @@ public:
     // Use the first ones we find.
     this->f_video_index = -1;
     this->f_data_index = -1;
-    AVCodecContext* codec_context_origin = NULL;
+    AVCodecParameters* codec_param_origin = NULL;
     for (unsigned i = 0; i < this->f_format_context->nb_streams; ++i)
     {
-      AVCodecContext *const enc = this->f_format_context->streams[i]->codec;
-      if (enc->codec_type == AVMEDIA_TYPE_VIDEO && this->f_video_index < 0)
+      AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
+      if (params->codec_type == AVMEDIA_TYPE_VIDEO && this->f_video_index < 0)
       {
         this->f_video_index = i;
-        codec_context_origin = enc;
+        codec_param_origin = params;
       }
-      else if (enc->codec_type == AVMEDIA_TYPE_DATA && this->f_data_index < 0)
+      else if (params->codec_type == AVMEDIA_TYPE_DATA && this->f_data_index < 0)
       {
         this->f_data_index = i;
       }
@@ -203,8 +202,8 @@ public:
       // Fallback for the DATA stream if incorrectly coded as UNKNOWN.
       for (unsigned i = 0; i < this->f_format_context->nb_streams; ++i)
       {
-        AVCodecContext *enc = this->f_format_context->streams[i]->codec;
-        if (enc->codec_type == AVMEDIA_TYPE_UNKNOWN)
+        AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
+        if (params->codec_type == AVMEDIA_TYPE_UNKNOWN)
         {
           this->f_data_index = i;
           LOG_INFO(this->logger, "Using AVMEDIA_TYPE_UNKNOWN stream as a data stream");
@@ -215,20 +214,21 @@ public:
     av_dump_format(this->f_format_context, 0, this->video_path.c_str(), 0);
 
     // Open the stream
-    AVCodec* codec = avcodec_find_decoder(codec_context_origin->codec_id);
+    AVCodec* codec = avcodec_find_decoder(codec_param_origin->codec_id);
     if (!codec)
     {
       LOG_ERROR(this->logger,
-        "Error: Codec " << codec_context_origin->codec_descriptor
-        << " (" << codec_context_origin->codec_id << ") not found");
+        "Error: Codec " << avcodec_descriptor_get(codec_param_origin->codec_id)
+        << " (" << codec_param_origin->codec_id << ") not found");
       return false;
     }
 
     // Copy context
     this->f_video_encoding = avcodec_alloc_context3(codec);
-    if (avcodec_copy_context(this->f_video_encoding, codec_context_origin) != 0)
+    if (avcodec_parameters_to_context(this->f_video_encoding, codec_param_origin) > 0)
     {
-      LOG_ERROR(this->logger, "Error: Could not copy codec " << this->f_video_encoding->codec_id);
+      LOG_ERROR(this->logger,
+        "Error: Could not fill codec context " << this->f_video_encoding->codec_id);
       return false;
     }
 
@@ -261,20 +261,16 @@ public:
     this->f_video_stream = this->f_format_context->streams[this->f_video_index];
     this->f_frame = av_frame_alloc();
     this->f_filtered_frame = av_frame_alloc();
+    this->f_packet = av_packet_alloc();
 
     // The MPEG 2 codec has a latency of 1 frame when encoded in an AVI
     // stream, so the pts of the last packet (stored in pts) is
     // actually the next frame's pts.
-    if (this->f_video_stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO &&
+    if (this->f_video_stream->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO &&
       std::string("avi") == this->f_format_context->iformat->name)
     {
       this->f_frame_number_offset = 1;
     }
-
-    // Not sure if this does anything, but no harm either
-    av_init_packet(&this->f_packet);
-    this->f_packet.data = nullptr;
-    this->f_packet.size = 0;
 
     // Advance to first valid frame to get start time
     this->f_start_time = 0;
@@ -301,7 +297,7 @@ public:
                   "Error: failed to return to start after setting start time");
         return false;
     }
-    this->frame_advanced = 0;
+    this->frame_advanced = false;
     this->f_frame->data[0] = NULL;
     return true;
   }
@@ -312,51 +308,22 @@ public:
   */
   void close()
   {
-    if (this->f_packet.data) {
-      av_free_packet(&this->f_packet);  // free last packet
-    }
-
-    if (this->f_frame)
-    {
-      av_frame_free(&this->f_frame);
-    }
-    this->f_frame = nullptr;
-    if (this->f_filtered_frame)
-    {
-      av_frame_free(&this->f_filtered_frame);
-    }
-    this->f_filtered_frame = nullptr;
-
-    if (this->f_video_encoding && this->f_video_encoding->opaque)
-    {
-      av_freep(&this->f_video_encoding->opaque);
-    }
-
     this->f_video_index = -1;
     this->f_data_index = -1;
     this->f_start_time = -1;
 
     if (this->f_video_stream)
     {
-      avcodec_close(this->f_video_stream->codec);
       this->f_video_stream = nullptr;
     }
-    if (this->f_format_context)
-    {
-      avformat_close_input(&this->f_format_context);
-      this->f_format_context = nullptr;
-    }
-    if (this->f_video_encoding)
-    {
-      avcodec_close(this->f_video_encoding);
-      avcodec_free_context(&this->f_video_encoding);
-      this->f_video_encoding = nullptr;
-    }
-    if (this->f_filter_graph)
-    {
-      avfilter_graph_free(&this->f_filter_graph);
-      this->f_filter_graph = nullptr;
-    }
+
+    av_frame_free(&this->f_frame);
+    av_frame_free(&this->f_filtered_frame);
+    av_packet_free(&this->f_packet);
+    avformat_close_input(&this->f_format_context);
+    avformat_free_context(this->f_format_context);
+    avcodec_free_context(&this->f_video_encoding);
+    avfilter_graph_free(&this->f_filter_graph);
   }
 
   // ==================================================================
@@ -471,36 +438,40 @@ public:
     // Quick return if the file isn't open.
     if (!this->is_opened())
     {
-      this->frame_advanced = 0;
+      this->frame_advanced = false;
       return false;
     }
 
-    if (this->f_packet.data)
-    {
-      av_free_packet(&this->f_packet);  // free previous packet
-    }
-    this->frame_advanced = 0;
+    this->frame_advanced = false;
 
     // clear the metadata from the previous frame
     this->metadata.clear();
 
-    while (this->frame_advanced == 0 && av_read_frame(this->f_format_context, &this->f_packet) >= 0)
+    while (!this->frame_advanced &&
+           av_read_frame(this->f_format_context, this->f_packet) >= 0)
     {
       // Make sure that the packet is from the actual video stream.
-      if (this->f_packet.stream_index == this->f_video_index)
+      if (this->f_packet->stream_index == this->f_video_index)
       {
-        int err = avcodec_decode_video2(this->f_video_encoding,
-          this->f_frame, &this->frame_advanced,
-          &this->f_packet);
+        int err = avcodec_send_packet(this->f_video_encoding, this->f_packet);
+        if (err < 0)
+        {
+          LOG_ERROR(this->logger, "Error sending packet to decoder");
+          return false;
+        }
+
+        err = avcodec_receive_frame(this->f_video_encoding, this->f_frame);
+
+        // Ignore the frame and move to the next
         if (err == AVERROR_INVALIDDATA)
-        {// Ignore the frame and move to the next
-          av_free_packet(&this->f_packet);
+        {
+          av_packet_unref(this->f_packet);
           continue;
         }
         if (err < 0)
         {
           LOG_ERROR(this->logger, "Error decoding packet");
-          av_free_packet(&this->f_packet);
+          av_packet_unref(this->f_packet);
           return false;
         }
 
@@ -509,37 +480,19 @@ public:
         {
           this->f_pts = 0;
         }
+
+        this->frame_advanced = true;
       }
 
       // grab the metadata from this packet if from the metadata stream
-      else if (this->f_packet.stream_index == this->f_data_index)
+      else if (this->f_packet->stream_index == this->f_data_index)
       {
-        this->metadata.insert(this->metadata.end(), this->f_packet.data,
-          this->f_packet.data + this->f_packet.size);
+        this->metadata.insert(this->metadata.end(), this->f_packet->data,
+          this->f_packet->data + this->f_packet->size);
       }
 
-      if (!this->frame_advanced)
-      {
-        av_free_packet(&this->f_packet);
-      }
-    }
-
-    // From ffmpeg apiexample.c: some codecs, such as MPEG, transmit the
-    // I and P frame with a latency of one frame. You must do the
-    // following to have a chance to get the last frame of the video.
-    if (!this->frame_advanced)
-    {
-      av_init_packet(&this->f_packet);
-      this->f_packet.data = nullptr;
-      this->f_packet.size = 0;
-
-      int err = avcodec_decode_video2(this->f_video_encoding,
-        this->f_frame, &this->frame_advanced,
-        &this->f_packet);
-      if (err >= 0)
-      {
-        this->f_pts += static_cast<int64_t>(this->stream_time_base_to_frame());
-      }
+      // De-reference previous packet
+      av_packet_unref(this->f_packet);
     }
 
     // The cached frame is out of date, whether we managed to get a new
@@ -551,7 +504,7 @@ public:
       this->f_frame->data[0] = NULL;
     }
 
-    return static_cast<bool>(this->frame_advanced);
+    return this->frame_advanced;
   }
 
   // ==================================================================
@@ -966,7 +919,7 @@ ffmpeg_video_input
   d->close();
 
   d->video_path = "";
-  d->frame_advanced = 0;
+  d->frame_advanced = false;
   d->end_of_video = true;
   d->number_of_frames = 0;
   d->collected_all_metadata = false;
@@ -1036,13 +989,13 @@ ffmpeg_video_input
     return nullptr;
   }
 
-  AVCodecContext* enc = d->f_format_context->streams[d->f_video_index]->codec;
+  AVCodecParameters* params = d->f_format_context->streams[d->f_video_index]->codecpar;
 
   // If we have not already converted this frame, try to convert it
   if (!d->current_image_memory && d->f_frame->data[0] != 0)
   {
-    int width = enc->width;
-    int height = enc->height;
+    int width = params->width;
+    int height = params->height;
     int depth = 3;
     vital::image_pixel_traits pixel_trait = vital::image_pixel_traits_of<unsigned char>();
     bool direct_copy;
@@ -1050,7 +1003,6 @@ ffmpeg_video_input
 
     if (d->f_filter_src_context && d->f_filter_sink_context)
     {
-      // We are not yet using the more modern FFMPEG streaming API.
       // Since we are only reading one frame at a time we need to push this
       // frame into the filter pipeline repeatedly until the same frame comes
       // out the other side.
@@ -1060,7 +1012,7 @@ ffmpeg_video_input
       {
         // Push the decoded frame into the filter graph
         if (av_buffersrc_add_frame_flags(d->f_filter_src_context, d->f_frame,
-          AV_BUFFERSRC_FLAG_PUSH) < 0)
+          AV_BUFFERSRC_FLAG_KEEP_REF) < 0)
         {
           LOG_ERROR(this->logger(), "Error while feeding the filter graph");
           return nullptr;
@@ -1076,7 +1028,6 @@ ffmpeg_video_input
     }
 
     AVPixelFormat pix_fmt = static_cast<AVPixelFormat>(frame->format);
-    // If the pixel format is not recognized by then convert the data into RGB_24
     switch (pix_fmt)
     {
       case AV_PIX_FMT_GRAY8:
@@ -1126,6 +1077,7 @@ ffmpeg_video_input
                     pix_fmt, width, height);
     }
     else
+    // If the pixel format is not recognized by then convert the data into RGB_24
     {
       int size = width * height * depth;
       d->current_image_memory = std::make_shared<vital::image_memory>(size);
