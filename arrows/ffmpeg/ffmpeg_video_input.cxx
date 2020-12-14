@@ -463,7 +463,7 @@ public:
         err = avcodec_receive_frame(this->f_video_encoding, this->f_frame);
 
         // Ignore the frame and move to the next
-        if (err == AVERROR_INVALIDDATA)
+        if (err == AVERROR_INVALIDDATA || err == AVERROR(EAGAIN))
         {
           av_packet_unref(this->f_packet);
           continue;
