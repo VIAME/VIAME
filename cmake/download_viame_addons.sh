@@ -14,7 +14,7 @@ wget -O ${DOWNLOAD_LOCATION}/download1.zip https://data.kitware.com/api/v1/item/
 unzip -o ${DOWNLOAD_LOCATION}/download1.zip -d ${VIAME_INSTALL}
 
 # SEFSC -
-wget -O ${DOWNLOAD_LOCATION}/download2.zip https://data.kitware.com/api/v1/item/5fcdb5f150a41e3d198fa856/download
+wget -O ${DOWNLOAD_LOCATION}/download2.zip https://data.kitware.com/api/v1/item/5fd7bb892fa25629b98f3d7f/download
 unzip -o ${DOWNLOAD_LOCATION}/download2.zip -d ${VIAME_INSTALL}
 
 # Ensure Download Location is Removed
