@@ -228,6 +228,28 @@ TEST_F(ffmpeg_video_input, end_of_video)
 }
 
 // ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, read_video_aphill)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+
+  kwiver::vital::path_t correct_file = data_dir + "/aphill_short.ts";
+
+  input.open(correct_file);
+
+  kwiver::vital::timestamp ts;
+
+  int num_frames = 0;
+  while (input.next_frame(ts))
+  {
+    ++num_frames;
+    EXPECT_EQ(num_frames, ts.get_frame())
+      << "Frame numbers should be sequential";
+  }
+
+  input.close();
+}
+
+// ----------------------------------------------------------------------------
 TEST_F(ffmpeg_video_input, read_video)
 {
   // make config block
