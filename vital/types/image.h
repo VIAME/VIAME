@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -50,7 +24,6 @@
 
 namespace kwiver {
 namespace vital {
-
 
 /// A struct containing traits of the data type stored at each pixel
 struct VITAL_EXPORT image_pixel_traits
@@ -84,7 +57,6 @@ VITAL_EXPORT std::ostream& operator<<(std::ostream& os, image_pixel_traits::pixe
 
 /// Output stream operator for image_pixel_traits
 VITAL_EXPORT std::ostream& operator<<(std::ostream& os, image_pixel_traits const& pt);
-
 
 /// Helper struct to determine pixel type at compile time using std::numeric_limits
 /*
@@ -124,7 +96,6 @@ struct image_pixel_traits_helper<true, false, true>
   const static image_pixel_traits::pixel_type type = image_pixel_traits::FLOAT;
 };
 
-
 /// This class is used to instantiate an image_pixel_traits class based on type
 /*
  * This class also contains \p static_type for compile-time look-up of the pixel_type
@@ -151,7 +122,6 @@ struct image_pixel_traits_of<bool> : public image_pixel_traits
   image_pixel_traits_of<bool>()
   : image_pixel_traits(static_type, sizeof(bool)) {}
 };
-
 
 // ==================================================================
 /// Provide compile-time look-up of data type from pixel_type enum and size
@@ -180,7 +150,6 @@ image_pixel_from_traits_macro( double );
 image_pixel_from_traits_macro( bool );
 
 #undef image_pixel_from_traits_macro
-
 
 // ==================================================================
 /// Basic in memory image.
@@ -229,7 +198,6 @@ public:
   /// The number of bytes allocated
   size_t size() const { return size_; }
 
-
 protected:
   /// The image data
   void* data_;
@@ -240,7 +208,6 @@ protected:
 
 /// Shared pointer for base image_memory type
 typedef std::shared_ptr< image_memory > image_memory_sptr;
-
 
 // ===========================================================================
 /// The representation of an in-memory image.
@@ -487,7 +454,6 @@ public:
     return reinterpret_cast<T*>(first_pixel_)[w_step_ * i + h_step_ * j];
   }
 
-
   /// Const access pixels in the first channel of the image
   template <typename T>
   inline const T& at( size_t i, size_t j ) const
@@ -498,7 +464,6 @@ public:
     }
     return reinterpret_cast<const T*>(first_pixel_)[w_step_ * i + h_step_ * j];
   }
-
 
   /// Access pixels in the image (width, height, channel)
   template <typename T>
@@ -511,7 +476,6 @@ public:
     return reinterpret_cast<T*>(first_pixel_)[w_step_ * i + h_step_ * j + d_step_ * k];
   }
 
-
   /// Const access pixels in the image (width, height, channel)
   template <typename T>
   inline const T& at( size_t i, size_t j, size_t k ) const
@@ -522,7 +486,6 @@ public:
     }
     return reinterpret_cast<const T*>(first_pixel_)[w_step_ * i + h_step_ * j + d_step_ * k];
   }
-
 
   /// Deep copy the image data from another image into this one
   void copy_from( const image& other );
@@ -568,7 +531,6 @@ protected:
   /// Increment to move to the next pixel along the depth direction
   ptrdiff_t d_step_;
 };
-
 
 // ===========================================================================
 /// The representation of a type-specific in-memory image.
@@ -782,7 +744,6 @@ public:
 
 };
 
-
 /// Compare to images to see if the pixels have the same values.
 /**
  * This does not require that the images have the same memory layout,
@@ -793,6 +754,5 @@ public:
 VITAL_EXPORT bool equal_content( const image& img1, const image& img2 );
 
 } }   // end namespace vital
-
 
 #endif // VITAL_IMAGE_H_

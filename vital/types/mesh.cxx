@@ -1,38 +1,11 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
  * \brief Implementation of \link kwiver::vital::mesh mesh \endlink class
  */
-
 
 #include <vital/types/mesh.h>
 #include <vital/logger/logger.h>
@@ -42,7 +15,6 @@
 
 namespace kwiver {
 namespace vital {
-
 
 /// compute the vector normal to the plane defined by 3 vertices
 vector_3d
@@ -54,8 +26,6 @@ mesh_tri_normal(const vector_3d& a,
   vector_3d ab(b-a);
   return ab.cross(ac);
 }
-
-
 
 //-----------------------------------------------------------------------------
 // Mesh faces
@@ -83,7 +53,6 @@ mesh_face_array_base
   return groups_[i].first;
 }
 
-
 /// Return a set of all faces in a group
 std::set<unsigned int>
 mesh_face_array_base
@@ -106,7 +75,6 @@ mesh_face_array_base
   return face_set;
 }
 
-
 /// Assign a group name to all faces currently unnamed
 unsigned int
 mesh_face_array_base
@@ -125,7 +93,6 @@ mesh_face_array_base
 
   return this->size() - start_idx;
 }
-
 
 /// Append this array of faces (must be the same type)
 void
@@ -153,7 +120,6 @@ mesh_face_array_base
     }
   }
 }
-
 
 /// Append this array of faces
 void
@@ -195,7 +161,6 @@ mesh_face_array
   }
 }
 
-
 /// Merge the two face arrays
 std::unique_ptr<mesh_face_array_base>
 merge_face_arrays(const mesh_face_array_base& f1,
@@ -216,10 +181,8 @@ merge_face_arrays(const mesh_face_array_base& f1,
   return f;
 }
 
-
 //-----------------------------------------------------------------------------
 // Mesh edges
-
 
 /// Construct from a face index list
 mesh_half_edge_set
@@ -227,7 +190,6 @@ mesh_half_edge_set
 {
   build_from_ifs(face_list);
 }
-
 
 /// Build the half edges from an indexed face set
 void
@@ -325,7 +287,6 @@ mesh_half_edge_set
   }
 }
 
-
 /// Count the number of vertices pointed to by these edges
 unsigned int
 mesh_half_edge_set
@@ -341,7 +302,6 @@ mesh_half_edge_set
   }
   return count;
 }
-
 
 /// Count the number of faces pointed to by these edges
 unsigned int
@@ -359,10 +319,8 @@ mesh_half_edge_set
   return count;
 }
 
-
 //-----------------------------------------------------------------------------
 // Mesh
-
 
 /// Copy Constructor
 mesh
@@ -376,7 +334,6 @@ mesh
     tex_coord_status_(other.tex_coord_status_)
 {
 }
-
 
 /// Assignment operator
 mesh&
@@ -396,7 +353,6 @@ mesh
   }
   return *this;
 }
-
 
 /// Merge the data from another mesh into this one
 void
@@ -447,7 +403,6 @@ mesh
   }
 }
 
-
 /// Set the texture coordinates
 void
 mesh
@@ -478,7 +433,6 @@ mesh
   tex_coords_ = tc;
 }
 
-
 /// Construct the half edges graph structure
 void
 mesh
@@ -497,7 +451,6 @@ mesh
 
   half_edges_.build_from_ifs(face_list);
 }
-
 
 /// Compute vertex normals
 void
@@ -534,7 +487,6 @@ mesh
 
   verts.set_normals(normals);
 }
-
 
 /// Compute vertex normals using face normals
 void
@@ -577,7 +529,6 @@ mesh
   verts.set_normals(normals);
 }
 
-
 /// Compute face normals
 void
 mesh
@@ -607,7 +558,6 @@ mesh
   faces.set_normals(normals);
 }
 
-
 /// Map a barycentric coordinate (u,v) on triangle \param tri into texture space
 vector_2d
 mesh
@@ -635,7 +585,6 @@ mesh
   return tex;
 }
 
-
 /// Set the vector indicating which faces have texture
 void
 mesh
@@ -646,7 +595,6 @@ mesh
     valid_tex_faces_ = valid;
   }
 }
-
 
 /// Label all faces with positive (counter clockwise orientation) area as valid
 void

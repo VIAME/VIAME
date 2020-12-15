@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -46,7 +20,6 @@
 namespace kwiver {
 namespace vital {
 
-
 /// Convert to a 3x3 calibration matrix
 matrix_3x3d
 camera_intrinsics
@@ -60,7 +33,6 @@ camera_intrinsics
     0, 0, 1;
   return K;
 }
-
 
 /// Map normalized image coordinates into actual image coordinates
 vector_2d
@@ -76,7 +48,6 @@ camera_intrinsics
                     pt.y() * f / this->aspect_ratio() + pp.y() );
 }
 
-
 /// Map a 3D point in camera coordinates into actual image coordinates
 vector_2d
 camera_intrinsics
@@ -85,7 +56,6 @@ camera_intrinsics
   return this->map( vector_2d( norm_hpt[0] / norm_hpt[2],
                                norm_hpt[1] / norm_hpt[2] ) );
 }
-
 
 /// Unmap actual image coordinates back into normalized image coordinates
 vector_2d
@@ -100,7 +70,6 @@ camera_intrinsics
   return this->undistort( vector_2d( x, y ) );
 }
 
-
 /// Check if a 3D point in camera coordinates can map into image coordinates
 bool
 camera_intrinsics
@@ -110,10 +79,8 @@ camera_intrinsics
                                       norm_hpt[1] / norm_hpt[2]));
 }
 
-
 namespace // anonymous namespace
 {
-
 
 /// Compute the radial distortion scaling
 /** Distortion scaling is a function of the squared radius \p r2
@@ -147,7 +114,6 @@ radial_distortion_scale( const T                r2,
   return scale;
 }
 
-
 /// Compute radial distortion as a scaling and offset
 /** For a point \p pt and distortion coefficients \p d compute
  *  a scale and offset such that distortion can be applied as
@@ -174,7 +140,6 @@ distortion_scale_offset( const Eigen::Matrix< T, 2, 1 >& pt,
                                         d[3] * two_xy + d[2] * ( r2 + 2 * y2 ) );
   }
 }
-
 
 /// Compute the derivative of the radial distortion as a function of \p r2
 template < typename T >
@@ -208,7 +173,6 @@ radial_distortion_deriv( const T                r2,
   return deriv;
 }
 
-
 /// Compute the Jacobian of the distortion at a point
 template < typename T >
 Eigen::Matrix< T, 2, 2 >
@@ -239,9 +203,7 @@ distortion_jacobian( const Eigen::Matrix< T, 2, 1 >& pt,
   return J;
 }
 
-
 } // end anonymous namespace
-
 
 /// Constructor - from a calibration matrix
 simple_camera_intrinsics
@@ -256,7 +218,6 @@ simple_camera_intrinsics
 {
 }
 
-
 /// Map normalized image coordinates into distorted coordinates
 vector_2d
 simple_camera_intrinsics
@@ -268,7 +229,6 @@ simple_camera_intrinsics
   distortion_scale_offset( norm_pt, dist_coeffs_, scale, offset );
   return scale * norm_pt + offset;
 }
-
 
 /// Unnap distorted normalized coordinates into normalized coordinates
 vector_2d
@@ -307,7 +267,6 @@ simple_camera_intrinsics
   return norm_pt.squaredNorm() < this->max_distort_radius_sq_;
 }
 
-
 /// Compute the maximum distortion radius from dist_coeffs_
 double
 simple_camera_intrinsics
@@ -335,7 +294,6 @@ simple_camera_intrinsics
   }
   return max_distort_radius_sq(a, b, c);
 }
-
 
 /// Compute the maximum radius for radial distortion given coefficients
 double
@@ -424,7 +382,6 @@ simple_camera_intrinsics
   return inf;
 }
 
-
 /// output stream operator for a base class camera_intrinsics
 std::ostream&
 operator<<( std::ostream& s, const camera_intrinsics& k )
@@ -446,7 +403,6 @@ operator<<( std::ostream& s, const camera_intrinsics& k )
   return s;
 }
 
-
 /// input stream operator for a camera intrinsics
 std::istream&
 operator>>( std::istream& s, simple_camera_intrinsics& k )
@@ -464,6 +420,5 @@ operator>>( std::istream& s, simple_camera_intrinsics& k )
   k = simple_camera_intrinsics( K, d );
   return s;
 }
-
 
 } } // end namespace

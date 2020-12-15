@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2017, 2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -38,7 +12,6 @@
 
 #include <algorithm>
 #include <limits>
-
 
 namespace kwiver {
 namespace vital {
@@ -106,7 +79,6 @@ track_set_implementation
   return this->tracks().size();
 }
 
-
 /// Return whether or not there are any tracks in the set
 bool
 track_set_implementation
@@ -114,7 +86,6 @@ track_set_implementation
 {
   return this->tracks().empty();
 }
-
 
 /// Notify the container that a new state has been added to an existing track
 void
@@ -163,7 +134,6 @@ track_set_implementation
   return true;
 }
 
-
 /// Return the set of all frame IDs covered by these tracks
 std::set<frame_id_t>
 track_set_implementation
@@ -181,7 +151,6 @@ track_set_implementation
   return ids;
 }
 
-
 /// Return the set of all track IDs in this track set
 std::set<track_id_t>
 track_set_implementation
@@ -197,7 +166,6 @@ track_set_implementation
 
   return ids;
 }
-
 
 /// Return the last (largest) frame number containing tracks
 frame_id_t
@@ -219,7 +187,6 @@ track_set_implementation
   // we are returning the default of 0.
   return last_frame;
 }
-
 
 /// Return the first (smallest) frame number containing tracks
 frame_id_t
@@ -248,7 +215,6 @@ track_set_implementation
     return 0;
   }
 }
-
 
 /// Return the track in the set with the specified id.
 track_sptr const
@@ -342,7 +308,6 @@ track_set_implementation
   return inactive_tracks;
 }
 
-
 /// Return all new tracks on a given frame.
 std::vector< track_sptr >
 track_set_implementation
@@ -363,7 +328,6 @@ track_set_implementation
   return new_tracks;
 }
 
-
 /// Return all new tracks on a given frame.
 std::vector< track_sptr >
 track_set_implementation
@@ -383,7 +347,6 @@ track_set_implementation
 
   return terminated_tracks;
 }
-
 
 /// Return the percentage of tracks successfully tracked to the next frame.
 double
@@ -412,7 +375,6 @@ track_set_implementation
   return static_cast<double>(tracks_both) / total_tracks;
 }
 
-
 /// Return a vector of state data corresponding to the tracks on the given frame.
 std::vector<track_state_sptr>
 track_set_implementation
@@ -433,7 +395,6 @@ track_set_implementation
 
   return vdata;
 }
-
 
 /// Convert an offset number to an absolute frame number
 frame_id_t
@@ -463,14 +424,12 @@ track_set
 {
 }
 
-
 /// Constructor specifying the implementation
 track_set
 ::track_set(std::unique_ptr<track_set_implementation> impl)
   : impl_(std::move(impl))
 {
 }
-
 
 /// Constructor from a vector of tracks
 track_set
@@ -491,8 +450,6 @@ track_set
   return ts;
 }
 
-
-
 //===================================================================
 
 /// Constructor from a vector of tracks
@@ -512,7 +469,6 @@ simple_track_set_implementation
   return std::find(data_.begin(), data_.end(), t) != data_.end();
 }
 
-
 /// Remove a track from the set and return true if successful
 bool
 simple_track_set_implementation
@@ -526,7 +482,6 @@ simple_track_set_implementation
   data_.erase(itr);
   return true;
 }
-
 
 /// Return the additional data associated with all tracks on the given frame
 track_set_frame_data_sptr
@@ -557,7 +512,6 @@ simple_track_set_implementation
   return false;
 }
 
-
 /// Set additional data associated with all tracks on the given frame
 bool
 simple_track_set_implementation
@@ -582,7 +536,6 @@ simple_track_set_implementation
   return true;
 }
 
-
 track_set_implementation_uptr
 simple_track_set_implementation
 ::clone( clone_type ct ) const
@@ -606,6 +559,5 @@ simple_track_set_implementation
 
   return new_tsi;
 }
-
 
 } } // end namespace vital
