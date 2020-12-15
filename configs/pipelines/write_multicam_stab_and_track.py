@@ -247,7 +247,7 @@ def create_file(type_, ncams, *, embedded):
 def main():
     for type_ in ['tracker', 'suppressor']:
         for embedded in [False, True]:
-            for ncams in [2, 3]:
+            for ncams in range(1, 4):
                 emb = 'embedded_dual_stream' if embedded else ''
                 mst = f'{type_}_sea_lion_{ncams}-cam.pipe'
                 out = PIPELINE_DIR / emb / mst
