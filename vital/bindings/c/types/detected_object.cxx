@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -53,7 +27,6 @@ SharedPointerCache< kwiver::vital::detected_object, vital_detected_object_t >
 
 } }
 
-
 vital_detected_object_t* vital_detected_object_new_with_bbox( vital_bounding_box_t* bbox,
                                                               double confidence,
                                                               vital_detected_object_type_t* dot)
@@ -79,7 +52,6 @@ vital_detected_object_t* vital_detected_object_new_with_bbox( vital_bounding_box
   return 0;
 }
 
-
 vital_detected_object_t* vital_detected_object_copy(vital_detected_object_t * obj)
 {
   STANDARD_CATCH(
@@ -93,7 +65,6 @@ vital_detected_object_t* vital_detected_object_copy(vital_detected_object_t * ob
   return 0;
 }
 
-
 void vital_detected_object_destroy( vital_detected_object_t * obj )
 {
   STANDARD_CATCH(
@@ -101,7 +72,6 @@ void vital_detected_object_destroy( vital_detected_object_t * obj )
     kwiver::vital_c::DOBJ_SPTR_CACHE.erase( obj );
   );
 }
-
 
 vital_bounding_box_t* vital_detected_object_bounding_box( vital_detected_object_t * obj )
 {
@@ -114,14 +84,12 @@ vital_bounding_box_t* vital_detected_object_bounding_box( vital_detected_object_
   return 0;
 }
 
-
 void vital_detected_object_set_bounding_box( vital_detected_object_t * obj,
                                              vital_bounding_box_t* bbox )
 {
   kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_bounding_box(
     *reinterpret_cast<kwiver::vital::bounding_box_d*>( bbox ) );
 }
-
 
 double vital_detected_object_confidence( vital_detected_object_t * obj )
 {
@@ -132,7 +100,6 @@ double vital_detected_object_confidence( vital_detected_object_t * obj )
   return 0;
 }
 
-
 void vital_detected_object_set_confidence( vital_detected_object_t * obj,
                                            double conf )
 {
@@ -141,7 +108,6 @@ void vital_detected_object_set_confidence( vital_detected_object_t * obj,
     kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_confidence( conf );
   );
 }
-
 
 vital_detected_object_type_t* vital_detected_object_get_type( vital_detected_object_t * obj )
 {
@@ -152,7 +118,6 @@ vital_detected_object_type_t* vital_detected_object_get_type( vital_detected_obj
   );
   return 0;
 }
-
 
 void vital_detected_object_set_type( vital_detected_object_t *      obj,
                                      vital_detected_object_type_t * dot )
@@ -166,7 +131,6 @@ void vital_detected_object_set_type( vital_detected_object_t *      obj,
   );
 }
 
-
 int64_t vital_detected_object_index( vital_detected_object_t * obj )
 {
   STANDARD_CATCH(
@@ -176,13 +140,11 @@ int64_t vital_detected_object_index( vital_detected_object_t * obj )
   return 0;
 }
 
-
 void vital_detected_object_set_index(vital_detected_object_t * obj,
                                      int64_t idx)
 {
   kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_index(idx);
 }
-
 
 char* vital_detected_object_detector_name(vital_detected_object_t * obj)
 {
@@ -191,7 +153,6 @@ char* vital_detected_object_detector_name(vital_detected_object_t * obj)
   return 0;
 }
 
-
 void vital_detected_object_detector_set_name(vital_detected_object_t * obj,
                                             char* name )
 {
@@ -199,13 +160,11 @@ void vital_detected_object_detector_set_name(vital_detected_object_t * obj,
   kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_detector_name( sname );
 }
 
-
 vital_image_t* vital_detected_object_mask(vital_detected_object_t * obj)
 {
   //+ TBD need to look up image_sptr in cache
   return 0;
 }
-
 
 void vital_detected_object_set_mask(vital_detected_object_t * obj,
                                     vital_image_t* mask)

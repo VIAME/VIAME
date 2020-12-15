@@ -1,38 +1,11 @@
-/*ckwg +29
- * Copyright 2015 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
  * \brief C Interface to \p config_block object implementation
  */
-
 
 #include "config_block.h"
 
@@ -60,7 +33,6 @@ CONFIG_BLOCK_SPTR_CACHE( "config_block" );
 
 } }
 
-
 // Static Constant getters
 
 /// Separator between blocks within the config
@@ -80,7 +52,6 @@ vital_config_block_block_sep()
   return static_bs;
 }
 
-
 /// The magic group for global parameters
 char const*
 vital_config_block_global_value()
@@ -98,7 +69,6 @@ vital_config_block_global_value()
   return static_gv;
 }
 
-
 /// Create a new, empty \p config_block object
 vital_config_block_t*
 vital_config_block_new()
@@ -111,7 +81,6 @@ vital_config_block_new()
   );
   return 0;
 }
-
 
 /// Create a new, empty \p config_block object with a name
 vital_config_block_t*
@@ -126,7 +95,6 @@ vital_config_block_new_named( char const* name )
   return 0;
 }
 
-
 /// Destroy a config block object
 void
 vital_config_block_destroy( vital_config_block_t* cb,
@@ -137,7 +105,6 @@ vital_config_block_destroy( vital_config_block_t* cb,
     kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.erase( cb );
   );
 }
-
 
 /// Get the name of the \p config_block instance
 char const*
@@ -152,7 +119,6 @@ vital_config_block_get_name( vital_config_block_t* cb,
   );
   return 0;
 }
-
 
 /// Get a copy of a sub-block of the configuration
 vital_config_block_t*
@@ -170,7 +136,6 @@ vital_config_block_subblock( vital_config_block_t* cb,
   return 0;
 }
 
-
 /// Get a mutable view of a sub-block within a configuration
 vital_config_block_t*
 vital_config_block_subblock_view( vital_config_block_t* cb,
@@ -186,7 +151,6 @@ vital_config_block_subblock_view( vital_config_block_t* cb,
   );
   return 0;
 }
-
 
 /// Get the string value for a key
 char const*
@@ -212,7 +176,6 @@ vital_config_block_get_value( vital_config_block_t* cb,
   return 0;
 }
 
-
 /// Get the boolean value for a key
 bool
 vital_config_block_get_value_bool( vital_config_block_t*  cb,
@@ -234,7 +197,6 @@ vital_config_block_get_value_bool( vital_config_block_t*  cb,
   return false;
 }
 
-
 /// Get the string value for a key if it exists, else the default
 char const*
 vital_config_block_get_value_default( vital_config_block_t* cb,
@@ -253,7 +215,6 @@ vital_config_block_get_value_default( vital_config_block_t* cb,
   return 0;
 }
 
-
 /// Get the boolean value for a key if it exists, else the default
 bool
 vital_config_block_get_value_default_bool( vital_config_block_t*  cb,
@@ -268,7 +229,6 @@ vital_config_block_get_value_default_bool( vital_config_block_t*  cb,
   );
   return false;
 }
-
 
 /// Get the description string for a given key
 char const*
@@ -294,7 +254,6 @@ vital_config_block_get_description( vital_config_block_t* cb,
   return 0;
 }
 
-
 /// Set the string value for a key
 void
 vital_config_block_set_value( vital_config_block_t* cb,
@@ -315,7 +274,6 @@ vital_config_block_set_value( vital_config_block_t* cb,
     }
   );
 }
-
 
 /// Set a string value with an associated description
 void
@@ -338,7 +296,6 @@ vital_config_block_set_value_descr( vital_config_block_t* cb,
     }
   );
 }
-
 
 /// Remove a key/value pair from the configuration.
 void
@@ -363,7 +320,6 @@ vital_config_block_unset_value( vital_config_block_t* cb,
   );
 }
 
-
 /// Query if a value is read-only
 bool
 vital_config_block_is_read_only( vital_config_block_t* cb,
@@ -377,7 +333,6 @@ vital_config_block_is_read_only( vital_config_block_t* cb,
   return false;
 }
 
-
 /// Mark the given key as read-only
 void
 vital_config_block_mark_read_only( vital_config_block_t* cb,
@@ -389,7 +344,6 @@ vital_config_block_mark_read_only( vital_config_block_t* cb,
     kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )->mark_read_only( key );
   );
 }
-
 
 /// Merge another \p config_block's entries into this \p config_block
 void
@@ -412,7 +366,6 @@ vital_config_block_merge_config( vital_config_block_t*  cb,
   );
 }
 
-
 /// Check if a value exists for the given key
 bool
 vital_config_block_has_value( vital_config_block_t* cb,
@@ -425,7 +378,6 @@ vital_config_block_has_value( vital_config_block_t* cb,
   );
   return false;
 }
-
 
 /// Return the values available in the configuration.
 void
@@ -447,7 +399,6 @@ vital_config_block_available_values( vital_config_block_t*  cb,
     kwiver::vital_c::make_string_list( cb_keys, *length, *keys );
   );
 }
-
 
 namespace {
 
@@ -480,7 +431,6 @@ read_config_file_helper( vital_error_handle_t* eh, Args... args )
 
 }
 
-
 /// Read in a configuration file, producing a config_block object
 vital_config_block_t*
 vital_config_block_file_read( char const*           filepath,
@@ -496,7 +446,6 @@ vital_config_block_file_read( char const*           filepath,
   );
   return 0;
 }
-
 
 /// Read in a configuration file, producing a named config_block object
 vital_config_block_t*
@@ -519,7 +468,6 @@ vital_config_block_file_read_from_standard_location(
   );
   return 0;
 }
-
 
 /// Output to file the given \c config_block object to the specified file path
 void

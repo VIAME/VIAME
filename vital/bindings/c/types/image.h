@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -59,7 +33,6 @@ enum vital_image_pixel_type_t {VITAL_PIXEL_UNKNOWN = 0,
                                VITAL_PIXEL_FLOAT = 3,
                                VITAL_PIXEL_BOOL = 4};
 
-
 /// Create a new, empty image
 VITAL_C_EXPORT
 vital_image_t* vital_image_new();
@@ -80,7 +53,6 @@ vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
                                          size_t depth, bool interleave,
                                          vital_image_pixel_type_t pixel_type,
                                          size_t pixel_num_bytes);
-
 
 /// Create a new image wrapping existing data
 /**
@@ -106,14 +78,12 @@ vital_image_t* vital_image_new_from_data( void const* first_pixel,
                                           vital_image_pixel_type_t pixel_type,
                                           size_t pixel_num_bytes);
 
-
 /// Create a new image from an existing image, sharing the same memory
 /**
  * The new image will share the same memory as the old image
  */
 VITAL_C_EXPORT
 vital_image_t* vital_image_new_from_image( vital_image_t *other_image );
-
 
 /// Destroy an image instance
 VITAL_C_EXPORT
@@ -178,7 +148,6 @@ bool vital_image_is_contiguous( vital_image_t* image );
 /// Return true if two images have equal content (deep equality)
 VITAL_C_EXPORT
 bool vital_image_equal_content( vital_image_t* image1, vital_image_t* image2 );
-
 
 /// Get pixel value at location (i,j) assuming a single channel unsigned 8-bit image
 VITAL_C_EXPORT
@@ -267,7 +236,6 @@ bool vital_image_get_pixel2_bool( vital_image_t *image, unsigned i, unsigned j )
 /// Get pixel value at location (i,j,k) assuming a bool image
 VITAL_C_EXPORT
 bool vital_image_get_pixel3_bool( vital_image_t *image, unsigned i, unsigned j, unsigned k );
-
 
 #ifdef __cplusplus
 }

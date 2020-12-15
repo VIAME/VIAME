@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -40,7 +14,6 @@
 
 #include <vital/types/color.h>
 
-
 namespace kwiver {
 namespace vital_c {
 
@@ -50,9 +23,7 @@ SharedPointerCache< vital::feature, vital_feature_t >
 }
 }
 
-
 using namespace kwiver;
-
 
 /// Destroy a feature instance
 void
@@ -63,7 +34,6 @@ vital_feature_destroy( vital_feature_t *f, vital_error_handle_t *eh )
     vital_c::FEATURE_SPTR_CACHE.erase( f );
   );
 }
-
 
 /// Get 2D image location
 vital_eigen_matrix2x1d_t*
@@ -79,7 +49,6 @@ vital_feature_loc( vital_feature_t *f, vital_error_handle_t *eh )
   return 0;
 }
 
-
 /// Get feature magnitude
 double
 vital_feature_magnitude( vital_feature_t *f, vital_error_handle_t *eh )
@@ -90,7 +59,6 @@ vital_feature_magnitude( vital_feature_t *f, vital_error_handle_t *eh )
   );
   return 0;
 }
-
 
 /// Get feature scale
 double
@@ -103,7 +71,6 @@ vital_feature_scale( vital_feature_t *f, vital_error_handle_t *eh )
   return 0;
 }
 
-
 /// Get feature angle
 double
 vital_feature_angle( vital_feature_t *f, vital_error_handle_t *eh )
@@ -114,7 +81,6 @@ vital_feature_angle( vital_feature_t *f, vital_error_handle_t *eh )
   );
   return 0;
 }
-
 
 /// Get feature 2D covariance
 vital_covariance_2d_t*
@@ -130,7 +96,6 @@ vital_feature_covar( vital_feature_t *f, vital_error_handle_t *eh )
   return 0;
 }
 
-
 /// Get Feature location's pixel color
 vital_rgb_color_t*
 vital_feature_color( vital_feature_t *f, vital_error_handle_t *eh )
@@ -144,7 +109,6 @@ vital_feature_color( vital_feature_t *f, vital_error_handle_t *eh )
   return 0;
 }
 
-
 /// Get the name of the instance's data type
 char const*
 vital_feature_type_name( vital_feature_t const *f,
@@ -157,7 +121,6 @@ vital_feature_type_name( vital_feature_t const *f,
   );
   return 0;
 }
-
 
 /// Define type-specific feature functions
 /**
@@ -317,7 +280,6 @@ vital_feature_##S##_set_color( vital_feature_t *f, \
     f_ptr->set_color( *c_ptr ); \
   ); \
 }
-
 
 DEFINE_FEATURE_OPERATIONS( double, d )
 DEFINE_FEATURE_OPERATIONS( float,  f )

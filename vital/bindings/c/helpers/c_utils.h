@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -83,7 +57,6 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
     }                                                                               \
   } while(0)
 
-
 /// Standardized try/catch for general use.
 /**
  * If the provided code block contains a return, make sure to provide a
@@ -120,7 +93,6 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
       }                                                         \
     } while( 0 )
 
-
 /// Wrap an optional string parameter.
 /**
  * This converts a potentially null character array pointer ("string") to an
@@ -130,7 +102,6 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
  * pointer.
  */
 #define MAYBE_EMPTY_STRING(s) (s?s:"")
-
 
 /// Convenience macro for reinterpret cast pointer to a different type
 /**
@@ -154,7 +125,6 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
     }                                                   \
   } while(0)
 
-
 /**
  * Convenience macro for dynamic casting a pointer to a different type with
  * error checking. This macro expects a {} block after its invocations that is
@@ -172,7 +142,6 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
 
 namespace kwiver {
 namespace vital_c {
-
 
 /// Common shared pointer cache object
 template < typename vital_t,  // VITAL type
@@ -326,7 +295,6 @@ private:
     return ss.str();
   }
 };
-
 
 /// Helper function to create a char** list of strings given a vector of strings
 void make_string_list( std::vector<std::string> const &list,

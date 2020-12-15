@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -47,10 +21,8 @@ extern "C"
 #include <vital/bindings/c/types/eigen.h>
 #include <vital/bindings/c/types/color.h>
 
-
 /// VITAL Landmark opaque structure
 typedef struct vital_landmark_s vital_landmark_t;
-
 
 // Type independent functions //////////////////////////////////////////////////
 
@@ -63,7 +35,6 @@ VITAL_C_EXPORT
 void
 vital_landmark_destroy( vital_landmark_t *l, vital_error_handle_t *eh );
 
-
 /// Clone the given landmark, returning a new instance.
 /**
  * \param l Landmark instance to clone
@@ -73,7 +44,6 @@ vital_landmark_destroy( vital_landmark_t *l, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 vital_landmark_t*
 vital_landmark_clone( vital_landmark_t *l, vital_error_handle_t *eh );
-
 
 /// Get the name of the stored data type
 /**
@@ -85,7 +55,6 @@ VITAL_C_EXPORT
 char const*
 vital_landmark_type_name( vital_landmark_t const *l, vital_error_handle_t *eh );
 
-
 /// Get the world location of a landmark as a new 3x1 matrix
 /**
  * \param l landmark instance
@@ -95,7 +64,6 @@ vital_landmark_type_name( vital_landmark_t const *l, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 vital_eigen_matrix3x1d_t*
 vital_landmark_loc( vital_landmark_t const *l, vital_error_handle_t *eh );
-
 
 /// Get the scale or a landmark
 /**
@@ -107,7 +75,6 @@ VITAL_C_EXPORT
 double
 vital_landmark_scale( vital_landmark_t const *l, vital_error_handle_t *eh );
 
-
 /// Get the normal vector for a landmark as a new 3x1 matrix
 /**
  * \param l landmark instance
@@ -117,7 +84,6 @@ vital_landmark_scale( vital_landmark_t const *l, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 vital_eigen_matrix3x1d_t*
 vital_landmark_normal( vital_landmark_t const *l, vital_error_handle_t *eh );
-
 
 /// Get the covariance of a landmark
 /**
@@ -129,7 +95,6 @@ VITAL_C_EXPORT
 vital_covariance_3d_t*
 vital_landmark_covariance( vital_landmark_t const *l, vital_error_handle_t *eh );
 
-
 /// Get the RGB color of a landmark
 /**
  * \param l landmark instance
@@ -140,7 +105,6 @@ VITAL_C_EXPORT
 vital_rgb_color_t*
 vital_landmark_color( vital_landmark_t const *l, vital_error_handle_t *eh );
 
-
 /// Get the observations of a landmark
 /**
  * \param l landmark instance
@@ -150,7 +114,6 @@ vital_landmark_color( vital_landmark_t const *l, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 unsigned
 vital_landmark_observations( vital_landmark_t const *l, vital_error_handle_t *eh );
-
 
 // Type-dependent functions ////////////////////////////////////////////////////
 
@@ -290,12 +253,10 @@ vital_landmark_##S##_set_observations( vital_landmark_t *l, \
                                        unsigned observations, \
                                        vital_error_handle_t *eh );
 
-
 DECLARE_TYPED_OPERATIONS( double, d )
 DECLARE_TYPED_OPERATIONS( float,  f )
 
 #undef DECLARE_TYPED_OPERATIONS
-
 
 #ifdef __cplusplus
 }
