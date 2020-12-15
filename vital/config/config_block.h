@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2011-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * @file
@@ -142,7 +116,6 @@ public:
   /// Get the name of this \c config_block instance.
   config_block_key_t get_name();
 
-
   /// Get a subblock from the configuration.
   /**
    * Retrieve an unlinked configuration subblock from the current
@@ -153,7 +126,6 @@ public:
    */
   config_block_sptr subblock( config_block_key_t const& key ) const;
 
-
   /// Get a subblock view into the configuration.
   /**
    * Retrieve a view into the current configuration. Changes made to \c *this
@@ -163,7 +135,6 @@ public:
    * \returns A subblock which links to the \c *this.
    */
   config_block_sptr subblock_view( config_block_key_t const& key );
-
 
   /// Internally cast the value.
   /**
@@ -178,7 +149,6 @@ public:
    */
   template < typename T >
   T get_value( config_block_key_t const& key ) const;
-
 
   /// Cast the value, returning a default value in case of an error.
   /**
@@ -196,7 +166,6 @@ public:
   template < typename T >
   T get_value( config_block_key_t const& key, T const& def ) const noexcept;
 
-
   /// Convert string to enum value.
   /**
    * \param key The index of the configuration value to retrieve.
@@ -207,7 +176,6 @@ public:
    */
   template < typename C>
   typename C::enum_type get_enum_value( const config_block_key_t& key ) const;
-
 
   /// Cast the value as an enum, returning a default value in case of an error.
   /**
@@ -229,7 +197,6 @@ public:
   get_enum_value(config_block_key_t const& key,
                  typename C::enum_type const& def) const noexcept;
 
-
   /// Convert string to vector of values.
   /**
    * Convert config string into a vector of values of the same type. This method
@@ -244,7 +211,6 @@ public:
   template< typename T >
   std::vector< T > get_value_as_vector( config_block_key_t const& key, const std::string& delim = " " ) const;
 
-
   /// Get the description associated to a value
   /**
    * If the provided key has no description associated with it, an empty
@@ -257,7 +223,6 @@ public:
    * \returns The description of the requested key.
    */
   config_block_description_t get_description( config_block_key_t const& key ) const;
-
 
   /// Set a value within the configuration.
   /**
@@ -323,7 +288,6 @@ public:
    */
   void unset_value( config_block_key_t const& key );
 
-
   /// Query if a value is read-only.
   /**
    *
@@ -331,7 +295,6 @@ public:
    * \returns True if \p key is read-only, false otherwise.
    */
   bool is_read_only( config_block_key_t const& key ) const;
-
 
   /// Set the value within the configuration as read-only.
   /**
@@ -347,7 +310,6 @@ public:
    * \param key The key of the value to mark as read-only.
    */
   void mark_read_only( config_block_key_t const& key );
-
 
   /// Merge the values in \p config into the current config.
   /**
@@ -375,7 +337,6 @@ public:
    */
   void merge_config( config_block_sptr const& config );
 
-
   /// Get difference between this and other config block.
   /**
    * This method determines the difference between two config blocks
@@ -385,7 +346,6 @@ public:
    * \param other The config block to be differenced with.
    */
   config_block_sptr difference_config( const config_block_sptr other ) const;
-
 
   ///Return the values available in the configuration.
   /**
@@ -397,7 +357,6 @@ public:
    */
   config_block_keys_t available_values() const;
 
-
   /// Check if a value exists for \p key.
   /**
    * The existence of a key is checked in the config block.
@@ -406,7 +365,6 @@ public:
    * \returns Whether the key exists.
    */
   bool has_value( config_block_key_t const& key ) const;
-
 
   /// Set source file location where entry is defined.
   /**
@@ -419,7 +377,6 @@ public:
    */
   void set_location( config_block_key_t const& key, std::shared_ptr< std::string > file, int line );
   void set_location( config_block_key_t const& key, const kwiver::vital::source_location& loc );
-
 
   /// Get file location where config key was defined.
   /**
@@ -436,7 +393,6 @@ public:
   bool get_location( config_block_key_t const& key,
                      std::string& file,
                      int& line) const;
-
 
   /// Get file location where config key was defined.
   /**
@@ -517,7 +473,6 @@ private:
   // list of keys that are read-only
   ro_list_t m_ro_list;
 
-
   typedef std::map< config_block_key_t, kwiver::vital::source_location > location_t;
 
   // location where key was defined.
@@ -575,7 +530,6 @@ config_block_get_value_cast_default( config_block_value_t const& value )
   }
 }
 
-
 // ------------------------------------------------------------------
 /// Cast a configuration value to the requested type.
 /**
@@ -620,7 +574,6 @@ config_block_get_value_cast( config_block_value_t const& value )
   return config_block_get_value_cast_default< R > ( value );
 }
 
-
 // ------------------------------------------------------------------
 /// Type-specific casting handling for config_block_value_t->bool specialization
 /**
@@ -635,7 +588,6 @@ template < >
 VITAL_CONFIG_EXPORT
 bool config_block_get_value_cast( config_block_value_t const& value );
 
-
 // ------------------------------------------------------------------
 /// Type-specific cast handling for config_block_value_t->string specialization
 /**
@@ -648,7 +600,6 @@ bool config_block_get_value_cast( config_block_value_t const& value );
 template < >
 VITAL_CONFIG_EXPORT
 std::string config_block_get_value_cast( config_block_value_t const& value );
-
 
 // ------------------------------------------------------------------
 // Internally cast the value.
@@ -676,7 +627,6 @@ config_block
   }
 }
 
-
 // ------------------------------------------------------------------
 template < typename C >
 typename C::enum_type
@@ -685,7 +635,6 @@ config_block
 {
   return C().from_string( get_value < std::string >( key ) );
 }
-
 
 // ------------------------------------------------------------------
 template< typename T >
@@ -712,7 +661,6 @@ config_block
   return val_vector;
 }
 
-
 // ------------------------------------------------------------------
 // Cast the value, returning a default value in case of an error.
 template < typename T >
@@ -729,7 +677,6 @@ config_block
     return def;
   }
 }
-
 
 // ------------------------------------------------------------------
 // Cast the value as an enum, returning a default value in case of an error.
@@ -800,7 +747,6 @@ config_block_set_value_cast_default( T const& value )
   }
 }
 
-
 // ------------------------------------------------------------------
 /// Cast a configuration value to the requested type.
 /**
@@ -838,7 +784,6 @@ config_block_set_value_cast( T const& value )
   return config_block_set_value_cast_default< T > ( value );
 }
 
-
 // ------------------------------------------------------------------
 // Set a value within the configuration.
 template < typename T >
@@ -853,7 +798,6 @@ config_block
 
   this->i_set_value( key,  val_str, config_block_description_t() ); // we know that the value is a string
 }
-
 
 // ------------------------------------------------------------------
 // Set a value within the configuration.
@@ -870,7 +814,6 @@ config_block
 
   this->i_set_value( key,  val_str, descr ); // we know that the value is a string
 }
-
 
 // ------------------------------------------------------------------
 /// Type-specific handling, bool->config_block_value_t specialization
@@ -892,7 +835,6 @@ config_block
 {
   this->i_set_value( key, (value ? "true" : "false"), descr );
 }
-
 
 // ------------------------------------------------------------------
 /// Type-specific handling, string->config_block_value_t specialization
