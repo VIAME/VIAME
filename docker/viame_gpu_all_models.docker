@@ -6,7 +6,7 @@ WORKDIR /home
 
 RUN apt-get update \
   && apt-get install -y git \
-  && git clone https://github.com/VIAME/VIAME.git /viame \ 
+  && git clone https://github.com/VIAME/VIAME.git /viame \
   && cd /viame \
   && git checkout origin/web-release \
   && cd /viame/cmake \
