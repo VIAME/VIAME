@@ -67,7 +67,7 @@ function(algorithms_create_plugin    base_lib)
   set( plugin_name   "${base_lib}_plugin" )
 
   # create module library given generated source, linked to given library
-  set(library_subdir /${kwiver_plugin_module_subdir})
+  set(library_subdir /${kwiver_plugin_algorithm_subdir})
   set(no_version ON)
 
   kwiver_add_plugin( ${plugin_name}
@@ -76,12 +76,6 @@ function(algorithms_create_plugin    base_lib)
     # linking against it, its either doing something really complex or doing
     # something wrong (most likely the wrong).
     PRIVATE  ${base_lib}
-    )
-
-  set_target_properties( ${plugin_name}
-    PROPERTIES
-    OUTPUT_NAME   ${base_lib}_plugin
-    INSTALL_RPATH "\$ORIGIN/../../lib:\$ORIGIN/"
     )
 
   add_dependencies( all-plugins ${plugin_name} )

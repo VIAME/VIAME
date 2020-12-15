@@ -273,19 +273,19 @@ read_all()
     }
     else
     {
-      kwiver::vital::detected_object_type_sptr dot =
-        std::make_shared<kwiver::vital::detected_object_type>();
+      kwiver::vital::class_map_sptr cm =
+        std::make_shared<kwiver::vital::class_map>();
 
       if( m_detection_ids.find( id ) != m_detection_ids.end() )
       {
-        dot->set_score( m_detection_ids[id], ( conf == -1.0 ? 1.0 : conf ) );
+        cm->set_score( m_detection_ids[id], ( conf == -1.0 ? 1.0 : conf ) );
       }
       else
       {
-        dot->set_score( m_default_type, conf );
+        cm->set_score( m_default_type, conf );
       }
 
-      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, cm );
     }
 
     // Add detection to set for the frame

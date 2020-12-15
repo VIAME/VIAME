@@ -54,13 +54,16 @@ public:
   burnout_detector();
   virtual ~burnout_detector();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  PLUGIN_INFO( "burnout",
+               "Detect objects using burnout" )
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  vital::config_block_sptr get_configuration() const override;
 
-  virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const;
+  void set_configuration( vital::config_block_sptr config ) override;
+  bool check_configuration( vital::config_block_sptr config ) const override;
+
+  kwiver::vital::detected_object_set_sptr detect(
+    kwiver::vital::image_container_sptr image_data ) const override;
 
 private:
 

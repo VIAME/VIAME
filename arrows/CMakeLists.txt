@@ -95,15 +95,6 @@ if( KWIVER_ENABLE_UUID )
   add_subdirectory( uuid )
 endif()
 
-# if python is enabled
-if( KWIVER_ENABLE_PYTHON )
-  kwiver_create_python_init( kwiver/arrows )
-  add_subdirectory( python )
-
-  if( KWIVER_ENABLE_PYTORCH )
-    add_subdirectory( pytorch )
-  endif()
-endif()
 
 # if FFMPEG is enabled
 if( KWIVER_ENABLE_FFMPEG)

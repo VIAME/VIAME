@@ -13,7 +13,18 @@ Vital Algo
 
 Vital Types
 
+ * Add new method to metadata class to add a metadata item being
+   passed by shared_ptr
+
 Vital Plugin-loader
+
+ * Added support for filtering plugins when they are loaded. Filter
+   objects can be added to the plugin loader at run time to select or
+   exclude specific plugins.
+
+ * Added optional bit mask to load_all_plugins() which allows selected
+   groups of plugins to be loaded. In addition the build/install
+   directory structure for the plugins was reorganized.
 
 Vital Util
 
@@ -25,6 +36,11 @@ Vital Types
 
 Vital Bindings
 
+ * Remove ctypes python bindings
+
+ * Moved python bindings associated with config from sprokit.pipeline to
+   vital.config.
+
 Arrows
 
 Arrows: Core
@@ -34,6 +50,13 @@ Arrows: Ceres
 Arrows: CUDA
 
 Arrows: FFmpeg
+
+ * Added a libavfilter pipeline into the ffmpeg_video_input reader. This
+   allows users to inject filters in the video reader, much the same as
+   is possible in the ffmpeg command line with the -vf option.  The default
+   filter applies deinterlacing to any interlaced frames.
+
+ * Fixed the memory leak that occurred when a video was opened and closed.
 
 Arrows: GDAL
 
@@ -67,4 +90,3 @@ Arrows: Core
 Arrows: Ceres
 
 Arrows: Super3D
-

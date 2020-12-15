@@ -45,7 +45,7 @@ namespace serialize {
 namespace json {
 
 class KWIVER_SERIALIZE_JSON_EXPORT timestamp
-  : public vital::algorithm_impl< timestamp, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   PLUGIN_INFO( "kwiver:timestamp",

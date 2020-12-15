@@ -176,6 +176,8 @@ void test_seek_frame( kwiver::vital::algo::video_input& vi )
 
     auto img = vi.frame_image();
 
+    ASSERT_TRUE( !! img );
+
     EXPECT_EQ( requested_frame, ts.get_frame() )
       << "Frame number should match seek request";
     EXPECT_EQ( requested_frame, decode_barcode( *img ) )
@@ -322,6 +324,8 @@ void test_seek_nth_frame( kwiver::vital::algo::video_input& vi )
     EXPECT_TRUE( vi.seek_frame( ts, requested_frame) );
 
     auto img = vi.frame_image();
+
+    ASSERT_TRUE( !! img );
 
     EXPECT_EQ( requested_frame, ts.get_frame() )
       << "Frame number should match seek request";

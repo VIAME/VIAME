@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -277,7 +277,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     // optionally write tot to corresponding file
     if( d->m_write_tot )
     {
-      vital::detected_object_type_sptr clf = (*det)->type();
+      vital::class_map_sptr clf = (*det)->type();
 
       double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
@@ -304,7 +304,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     // optionally write type to corresponding file
     if( d->m_write_types )
     {
-      vital::detected_object_type_sptr clf = (*det)->type();
+      vital::class_map_sptr clf = (*det)->type();
 
       if( !clf->size() == 0 )
       {

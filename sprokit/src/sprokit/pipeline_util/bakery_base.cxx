@@ -173,7 +173,8 @@ bakery_base
                         config_value_t const& value)
 {
   kwiver::vital::config_block_key_t const subkey = flatten_keys(value.key_path);
-  kwiver::vital::config_block_key_t const full_key = root_key + kwiver::vital::config_block::block_sep + subkey;
+  kwiver::vital::config_block_key_t const full_key = root_key +
+     kwiver::vital::config_block::block_sep() + subkey;
   bool is_readonly = false;
   bool is_relativepath = false;
   bool is_local_assign = false;
@@ -277,7 +278,7 @@ kwiver::vital::config_block_key_t
 bakery_base::
 flatten_keys(kwiver::vital::config_block_keys_t const& keys)
 {
-  return kwiver::vital::join(keys, kwiver::vital::config_block::block_sep);
+  return kwiver::vital::join(keys, kwiver::vital::config_block::block_sep());
 }
 
 

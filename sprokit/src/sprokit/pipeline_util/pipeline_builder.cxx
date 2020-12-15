@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
+ * Copyright 2011-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -166,6 +166,7 @@ void
 pipeline_builder
 ::add_setting( std::string const& setting )
 {
+  static auto command_line_src = std::make_shared< std::string >( "Command Line" );
   size_t const split_pos = setting.find(split_str);
 
   if (split_pos == std::string::npos)
@@ -181,7 +182,9 @@ pipeline_builder
 
   kwiver::vital::config_block_keys_t keys;
 
-  kwiver::vital::tokenize( setting_key, keys, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
+  kwiver::vital::tokenize( setting_key, keys,
+                 kwiver::vital::config_block::block_sep(),
+                 kwiver::vital::TokenizeTrimEmpty );
 
   if (keys.size() < 2)
   {
@@ -194,13 +197,15 @@ pipeline_builder
   sprokit::config_value_t value;
   value.key_path.push_back(keys.back());
   value.value = setting_value;
-
+  value.loc = ::kwiver::vital::source_location( command_line_src, 1 );
   keys.pop_back();
 
   sprokit::config_pipe_block block;
   block.key = keys;
   block.values.push_back(value);
+  block.loc = ::kwiver::vital::source_location( command_line_src, 1 );
 
+  // Add to pipe blocks
   m_blocks.push_back(block);
 }
 

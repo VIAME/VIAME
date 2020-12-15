@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017.2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,9 @@
 
 #include "detect_heat_map.h"
 
+#include <vital/types/class_map.h>
 #include <vital/exceptions.h>
 #include <vital/types/detected_object.h>
-#include <vital/types/detected_object_type.h>
 #include <vital/util/wall_timer.h>
 #include <vital/config/config_difference.h>
 
@@ -404,9 +404,9 @@ public:
                      std::to_string(bbox.min_y()) << ", " <<
                      std::to_string(bbox.max_y()) << ")" );
 
-          auto dot = std::make_shared< detected_object_type >();
-          dot->set_score( m_class_name, val );
-          detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, val, dot ) );
+          auto cm = std::make_shared< class_map >();
+          cm->set_score( m_class_name, val );
+          detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, val, cm ) );
         }
       }
     }
@@ -584,9 +584,9 @@ public:
                  std::to_string(bbox.min_y()) << ", " <<
                  std::to_string(bbox.max_y()) << ")" );
 
-      auto dot = std::make_shared< detected_object_type >();
-      dot->set_score( m_class_name, max_val );
-      detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, max_val, dot ) );
+      auto cm = std::make_shared< class_map >();
+      cm->set_score( m_class_name, max_val );
+      detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, max_val, cm ) );
 
       // Make CV rect for bbox so that we can remove it from consideration
       // during next iteration.
@@ -624,8 +624,8 @@ public:
     cv::findContours(mask, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE,
                      cv::Point(0, 0) );
 
-    auto dot = std::make_shared< detected_object_type >();
-    dot->set_score( m_class_name, m_fixed_score );
+    auto cm = std::make_shared< class_map >();
+    cm->set_score( m_class_name, m_fixed_score );
 
     for(unsigned j=0; j < contours.size(); ++j)
     {
@@ -643,7 +643,7 @@ public:
           detected_objects->add(
             std::make_shared< kwiver::vital::detected_object >( bbox,
                                                                 m_fixed_score,
-                                                                dot ) );
+                                                                cm ) );
         }
       }
     }

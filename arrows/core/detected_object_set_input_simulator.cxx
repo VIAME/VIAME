@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018, 2020 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -183,10 +183,10 @@ read_set( kwiver::vital::detected_object_set_sptr & detected_set, std::string& i
       d->m_center_x + ct_adj*d->m_dx + d->m_width/2.0,
       d->m_center_y + ct_adj*d->m_dy + d->m_height/2.0);
 
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-    dot->set_score( d->m_detection_class, 1.0 );
+    auto cm = std::make_shared< kwiver::vital::class_map >();
+    cm->set_score( d->m_detection_class, 1.0 );
 
-    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, cm ) );
   }
 
   ++d->m_frame_ct;

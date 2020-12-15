@@ -303,19 +303,19 @@ read_object_track_set_kw18::priv
     }
     else
     {
-      kwiver::vital::detected_object_type_sptr dot =
-        std::make_shared<kwiver::vital::detected_object_type>();
+      kwiver::vital::class_map_sptr cm =
+        std::make_shared<kwiver::vital::class_map>();
 
       if( m_track_ids.find( track_index ) != m_track_ids.end() )
       {
-        dot->set_score( m_track_ids[track_index], conf );
+        cm->set_score( m_track_ids[track_index], conf );
       }
       else
       {
-        dot->set_score( m_default_type, conf );
+        cm->set_score( m_default_type, conf );
       }
 
-      det = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+      det = std::make_shared< kwiver::vital::detected_object>( bbox, conf, cm );
     }
 
     // Create new object track state

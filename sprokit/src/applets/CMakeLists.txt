@@ -26,7 +26,7 @@ include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 ###
 # Add applet for tools plugin
 kwiver_add_plugin( sprokit_applets
-  SUBDIR       ${kwiver_plugin_applets}
+  SUBDIR       ${kwiver_plugin_applets_subdir}
   SOURCES      ${sources} ${headers}
   PRIVATE      vital
                vital_vpm

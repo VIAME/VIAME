@@ -315,7 +315,7 @@ filter( vital::detected_object_set_sptr const input_set ) const
       out_det->set_bounding_box( new_out_bbox );
       ret_set->add( out_det );
     }
-    catch (std::invalid_argument e)
+    catch (const std::invalid_argument& e)
     {
       std::ostringstream strs;
       strs << "Bounding box ("

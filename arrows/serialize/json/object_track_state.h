@@ -46,7 +46,7 @@ namespace json {
 
 
 class KWIVER_SERIALIZE_JSON_EXPORT object_track_state
-  : public vital::algorithm_impl< object_track_state, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   PLUGIN_INFO( "kwiver:track_state",

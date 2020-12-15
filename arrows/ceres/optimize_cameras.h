@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ namespace ceres {
 
 /// A class for optimization of camera paramters using Ceres
 class KWIVER_ALGO_CERES_EXPORT optimize_cameras
-: public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
+: public vital::algo::optimize_cameras
 {
 public:
   /// Constructor

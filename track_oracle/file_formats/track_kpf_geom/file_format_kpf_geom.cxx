@@ -68,6 +68,7 @@ using std::vector;
 using std::stoi;
 
 namespace KPF=::kwiver::vital::kpf;
+namespace dt = ::kwiver::track_oracle::dt;
 
 namespace // anon
 {
@@ -170,7 +171,7 @@ file_format_kpf_geom
   track_kpf_geom_type entry;
 
   size_t rc = 0;
-  map< unsigned, track_handle_type > track_map;
+  map< dt::tracking::external_id::Type, track_handle_type > track_map;
   logging_map_type wmsgs( main_logger, KWIVER_LOGGER_SITE );
 
   //
@@ -182,6 +183,7 @@ file_format_kpf_geom
     //
     // Where to store meta packets? Are they associated with the source
     // file? Particular tracks? TBD!
+
 #if 0
     for (auto m: reader.get_meta_packets() )
     {

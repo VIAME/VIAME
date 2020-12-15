@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016, 2019 by Kitware, Inc.
+ * Copyright 2013-2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace vxl {
 
 /// A class that uses RREL in VXL to estimate a homography from matching 2D points
 class KWIVER_ALGO_VXL_EXPORT estimate_homography
-  : public vital::algorithm_impl<estimate_homography, vital::algo::estimate_homography>
+  : public vital::algo::estimate_homography
 {
 public:
   PLUGIN_INFO( "vxl",

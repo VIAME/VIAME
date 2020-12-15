@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,7 @@ namespace core {
 
 /// A class for initialization of cameras and landmarks
 class KWIVER_ALGO_CORE_EXPORT initialize_cameras_landmarks
-: public vital::algorithm_impl<initialize_cameras_landmarks,
-                              vital::algo::initialize_cameras_landmarks>
+: public vital::algo::initialize_cameras_landmarks
 {
 public:
   PLUGIN_INFO( "core",

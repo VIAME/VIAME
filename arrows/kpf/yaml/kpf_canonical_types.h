@@ -76,8 +76,8 @@ struct KPF_YAML_EXPORT bbox_t
 struct KPF_YAML_EXPORT id_t
 {
   enum {DETECTION_ID=0, TRACK_ID, EVENT_ID };
-  size_t d;
-  explicit id_t( size_t i ): d(i) {}
+  uint64_t d;
+  explicit id_t( uint64_t i ): d(i) {}
   id_t(): d(0) {}
 };
 

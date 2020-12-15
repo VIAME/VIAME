@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2019 by Kitware, Inc.
+ * Copyright 2013-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ namespace core {
  *  in the image is now known approximately.
  */
 class KWIVER_ALGO_CORE_EXPORT match_features_homography
-  : public vital::algorithm_impl<match_features_homography, vital::algo::match_features>
+  : public vital::algo::match_features
 {
 public:
   PLUGIN_INFO( "homography_guided",

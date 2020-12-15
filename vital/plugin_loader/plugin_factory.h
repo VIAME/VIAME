@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,6 +90,7 @@ public:
   static const std::string APPLET_CATEGORY;
   static const std::string PROCESS_CATEGORY;
   static const std::string ALGORITHM_CATEGORY;
+  static const std::string CLUSTER_CATEGORY;
 
   /**
    * @brief Get attribute from factory

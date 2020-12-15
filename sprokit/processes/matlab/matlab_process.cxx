@@ -132,7 +132,7 @@ void
 matlab_process
 ::_configure()
 {
-  scoped_configure_instrumentation()
+  scoped_configure_instrumentation();
 
   // Need to delay creating engine because it is heavyweight
   d->m_matlab_engine = std::make_shared< kwiver::arrows::matlab::matlab_engine >();

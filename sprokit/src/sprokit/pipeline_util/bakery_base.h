@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,10 +71,9 @@ public:
   class config_info_t
   {
   public:
-
-    config_info_t( const kwiver::vital::config_block_value_t&           val,
-                   bool                                  ro,
-                   bool                                  relative_path,
+    config_info_t( const kwiver::vital::config_block_value_t& val,
+                   bool ro,
+                   bool relative_path,
                    const kwiver::vital::source_location& loc );
     ~config_info_t();
 
@@ -84,21 +83,20 @@ public:
     kwiver::vital::source_location defined_loc;
   };
 
-  typedef std::pair< kwiver::vital::config_block_key_t, config_info_t > config_decl_t;
-  typedef std::vector< config_decl_t > config_decls_t;
+  using config_decl_t = std::pair< kwiver::vital::config_block_key_t, config_info_t >;
+  using config_decls_t = std::vector< config_decl_t >;
 
-  typedef std::pair< process::name_t, process::type_t > process_decl_t;
-  typedef std::vector< process_decl_t > process_decls_t;
+  using process_decl_t = std::pair< process::name_t, process::type_t >;
+  using process_decls_t =  std::vector< process_decl_t >;
 
+  // The pipeline definition data items.
   config_decls_t m_configs;
   process_decls_t m_processes;
   process::connections_t m_connections;
 
-
   // Static methods
   static kwiver::vital::config_block_key_t flatten_keys(kwiver::vital::config_block_keys_t const& keys);
   static kwiver::vital::config_block_sptr extract_configuration_from_decls( bakery_base::config_decls_t& configs );
-
 
   // static data
   static config_flag_t const flag_read_only;
@@ -111,7 +109,6 @@ protected:
                               config_value_t const&                     value );
 
 private:
-
   // macro provider
   std::shared_ptr< kwiver::vital::token_expander > m_token_expander;
   kwiver::vital::token_type_symtab* m_symtab;
@@ -119,6 +116,7 @@ private:
 
   kwiver::vital::logger_handle_t m_logger;
 };
+
 
 } // end namespace
 

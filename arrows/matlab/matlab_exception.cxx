@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ namespace matlab {
 
 matlab_exception::
 matlab_exception(const std::string& msg) noexcept
-  : vital_core_base_exception()
+  : vital_exception()
 {
     m_what = msg;
 }

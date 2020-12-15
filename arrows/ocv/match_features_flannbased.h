@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,9 +49,7 @@ namespace ocv {
 
 /// Feature matcher implementation using OpenCV's FLANN-based feature matcher
 class KWIVER_ALGO_OCV_EXPORT match_features_flannbased
-  : public vital::algorithm_impl< ocv::match_features_flannbased,
-                                  ocv::match_features,
-                                  vital::algo::match_features >
+  : public ocv::match_features
 {
 public:
   PLUGIN_INFO( "ocv_flann_based",

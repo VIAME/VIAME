@@ -50,6 +50,9 @@
 
 namespace sprokit {
 
+class cluster_info;
+using cluster_info_t =  std::shared_ptr<cluster_info>;
+
 // returns: process_t - shared_ptr<process>
 typedef std::function< process_t( kwiver::vital::config_block_sptr const& config ) > process_factory_func_t;
 
@@ -92,9 +95,9 @@ class SPROKIT_PIPELINE_EXPORT process_factory
 {
 public:
   /**
-   * \brief CTOR for factory object
+   * \brief constructor for factory object
    *
-   * This CTOR also takes a factory function so it can support
+   * This constructor also takes a factory function so it can support
    * creating processes and clusters.
    *
    * \param type Type name of the process
@@ -110,10 +113,14 @@ public:
   void copy_attributes( sprokit::process_t proc );
 };
 
-
 // ----------------------------------------------------------------------------
+/**
+ * \brief factory for CPP processes.
+ *
+ * This class represents the factory for a CPP process.
+ */
 class SPROKIT_PIPELINE_EXPORT cpp_process_factory
-: public sprokit::process_factory
+: public process_factory
 {
 public:
   /**
@@ -122,8 +129,8 @@ public:
    * This CTOR also takes a factory function so it can support
    * creating processes and clusters.
    *
-   * \param type Type name of the process
-   * \param itype Type name of interface type.
+   * \param type Type name of the process class.
+   * \param itype Type name of interface type (usually "process").
    * \param factory The Factory function
    */
   cpp_process_factory( const std::string& type,
@@ -132,13 +139,33 @@ public:
 
   virtual ~cpp_process_factory() = default;
 
-  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config);
+  sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config) override;
 
 private:
   process_factory_func_t m_factory;
 };
 
+// ----------------------------------------------------------------------------
+/**
+ * \brief Factory class for clusters
+ *
+ * This class represents a factory for clusters of processes.
+ * The description for the cluster is in the cluster info element.
+ */
+class SPROKIT_PIPELINE_EXPORT cluster_process_factory
+: public process_factory
+{
+public:
+  cluster_process_factory( cluster_info_t info );
 
+  virtual ~cluster_process_factory() = default;
+
+  sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config) override;
+
+  cluster_info_t m_cluster_info;
+};
+
+// ----------------------------------------------------------------------------
 /**
  * \brief Create process of a specific type.
  *

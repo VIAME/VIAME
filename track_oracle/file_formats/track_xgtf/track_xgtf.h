@@ -12,6 +12,7 @@
 
 #include <track_oracle/core/track_base.h>
 #include <track_oracle/core/track_field.h>
+#include <track_oracle/data_terms/data_terms.h>
 
 #include <vgl/vgl_box_2d.h>
 
@@ -30,7 +31,7 @@ struct TRACK_XGTF_EXPORT track_xgtf_type: public track_base< track_xgtf_type >
 {
 
   //track level data
-  track_field< unsigned >& external_id; //attribute id in phase one
+  track_field< dt::tracking::external_id > external_id; //attribute id in phase one
   track_field< std::string >& type; // 'name' in phase one. could be pvo as well.
   track_field< std::pair< unsigned int, unsigned int > >& frame_span;
 
@@ -39,14 +40,13 @@ struct TRACK_XGTF_EXPORT track_xgtf_type: public track_base< track_xgtf_type >
   track_field< double >& activity_probability;
 
   //frame level data
-  track_field< vgl_box_2d< double > >& bounding_box;
-  track_field< unsigned >& frame_number;
+  track_field< dt::tracking::bounding_box > bounding_box;
+  track_field< dt::tracking::frame_number > frame_number;
   track_field< double >& occlusion;
 
   track_xgtf_type():
 
     /// track-level data
-    external_id( Track.add_field< unsigned >("external_id") ),
     type(Track.add_field< std::string >( "type") ),
     frame_span( Track.add_field< std::pair< unsigned int, unsigned int > >("frame_span") ),
 
@@ -58,10 +58,11 @@ struct TRACK_XGTF_EXPORT track_xgtf_type: public track_base< track_xgtf_type >
     activity_probability( Track.add_field< double >("activity_probability") ),
 
     /// frame-level data
-    bounding_box( Frame.add_field< vgl_box_2d< double > >("bounding_box") ),
-    frame_number( Frame.add_field< unsigned >("frame_number") ),
     occlusion( Frame.add_field< double >("occlusion") )
   {
+    Track.add_field( external_id );
+    Frame.add_field( bounding_box );
+    Frame.add_field( frame_number );
   }
 };
 

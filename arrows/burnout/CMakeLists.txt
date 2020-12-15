@@ -6,7 +6,7 @@ set( headers
   burnout_image_enhancer.h
   burnout_pixel_classification.h
   burnout_track_descriptors.h
-)
+  )
 
 set( sources
   burnout_detector.cxx

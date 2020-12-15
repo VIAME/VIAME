@@ -23,10 +23,11 @@ set(vital_vpm_headers_private
   plugin_loader_filter.h
   plugin_filter_default.h
   plugin_filter_category.h
+  plugin_manager_internal.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_vpm_export.h
   )
 
-kwiver_add_library(vital_vpm
+kwiver_add_library(vital_vpm SHARED
   ${vital_vpm_headers}
   ${vital_vpm_headers_private}
   ${vital_vpm_sources}

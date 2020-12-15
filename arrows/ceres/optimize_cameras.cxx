@@ -302,8 +302,7 @@ optimize_cameras
   }
 
   // add costs for priors
-  int num_position_priors_applied =
-    d_->add_position_prior_cost(problem, camera_params, constraints);
+  d_->add_position_prior_cost(problem, camera_params, constraints);
 
   d_->add_intrinsic_priors_cost(problem, camera_intr_params);
 

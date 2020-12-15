@@ -92,7 +92,7 @@ endfunction()
 if (PYTHON_VERSION_MAJOR)
   set(DEFAULT_PYTHON_MAJOR ${PYTHON_VERSION_MAJOR})
 else()
-  set(DEFAULT_PYTHON_MAJOR "2")
+  set(DEFAULT_PYTHON_MAJOR "3")
 endif()
 
 
@@ -222,6 +222,9 @@ set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/${python_lib_subdir}")
 # Currently needs to be separate because sprokit may have CONFIGURATIONS that
 # are placed between lib and `kwiver_python_subdir`
 set(sprokit_python_output_path "${KWIVER_BINARY_DIR}/lib")
+
+set(KWIVER_PYTHON_VERSION "${PYTHON_VERSION}" CACHE STRING "" )
+mark_as_advanced(KWIVER_PYTHON_VERSION)
 
 ###
 # Status string for debugging

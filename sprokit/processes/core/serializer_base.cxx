@@ -91,7 +91,9 @@ serializer_base
       auto algo_config = vital::config_block::empty_config();
 
       const std::string ser_algo_type( "serialize-" + m_serialization_type );
-      const std::string ser_type( ser_algo_type + vital::config_block::block_sep + "type" );
+      const std::string ser_type( ser_algo_type +
+                                  vital::config_block::block_sep() +
+                                  "type" );
 
       algo_config->set_value( ser_type, elem_spec.m_algo_name );
 

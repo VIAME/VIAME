@@ -40,7 +40,7 @@ namespace serialize {
 namespace protobuf {
 
 class KWIVER_SERIALIZE_PROTOBUF_EXPORT geo_polygon
-  : public vital::algorithm_impl< geo_polygon, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   PLUGIN_INFO( "kwiver:corner_points",

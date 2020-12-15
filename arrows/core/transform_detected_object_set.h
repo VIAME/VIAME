@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,7 @@ namespace core {
 
 /// Transforms detections based on source and destination cameras.
 class KWIVER_ALGO_CORE_EXPORT transform_detected_object_set
-  : public vital::algorithm_impl<transform_detected_object_set,
-                                 vital::algo::detected_object_filter>
+  : public vital::algo::detected_object_filter
 {
 public:
   PLUGIN_INFO( "transform_detected_object_set",

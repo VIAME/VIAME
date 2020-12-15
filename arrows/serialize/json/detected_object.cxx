@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 #include "detected_object.h"
 
-#include "detected_object_type.h"
+#include "class_map.h"
 #include "bounding_box.h"
 
 #include <vital/types/detected_object.h>

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 #include <vital/util/cpu_timer.h>
 #include <vital/exceptions/io.h>
 #include <vital/config/config_block_formatter.h>
+#include <vital/types/detected_object_set_util.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -593,7 +594,7 @@ darknet_detector::priv
 
       kwiver::vital::bounding_box_d bbox( left, top, right, bot );
 
-      auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+      auto cm = std::make_shared< kwiver::vital::class_map >();
       bool has_name = false;
 
       // Iterate over all classes and collect all names over the threshold
@@ -606,7 +607,7 @@ darknet_detector::priv
         if( prob >= m_thresh )
         {
           const std::string class_name( m_names[ class_idx ] );
-          dot->set_score( class_name, prob );
+          cm->set_score( class_name, prob );
           conf = std::max( conf, prob );
           has_name = true;
         }
@@ -616,7 +617,7 @@ darknet_detector::priv
       {
         detected_objects->add(
           std::make_shared< kwiver::vital::detected_object >(
-            bbox, conf, dot ) );
+            bbox, conf, cm ) );
       }
     }
 
@@ -718,17 +719,17 @@ darknet_detector::priv
 {
   if( info.scale1 != 1.0 )
   {
-    dets->scale( info.scale1 );
+    vital::scale_detections( dets, info.scale1 );
   }
 
   if( info.shiftx != 0 || info.shifty != 0 )
   {
-    dets->shift( info.shiftx, info.shifty );
+    vital::shift_detections( dets, info.shiftx, info.shifty );
   }
 
   if( info.scale2 != 1.0 )
   {
-    dets->scale( info.scale2 );
+    vital::scale_detections( dets, info.scale2 );
   }
 
   const int dist = info.edge_filter;

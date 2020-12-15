@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace core {
 
 /// A class for bypassing image conversion
 class KWIVER_ALGO_CORE_EXPORT dynamic_config_none
-  : public vital::algorithm_impl<dynamic_config_none, vital::algo::dynamic_configuration>
+  : public vital::algo::dynamic_configuration
 {
 public:
   PLUGIN_INFO( "none",

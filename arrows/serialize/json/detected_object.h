@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018, 20020 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace serialize {
 namespace json {
 
 class KWIVER_SERIALIZE_JSON_EXPORT detected_object
-  : public vital::algorithm_impl< detected_object, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   PLUGIN_INFO( "kwiver:detected_object",

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2019 by Kitware, Inc.
+ * Copyright 2011-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,6 +117,24 @@ public:
    * \returns An empty configuration block.
    */
   static config_block_sptr empty_config( config_block_key_t const& name = config_block_key_t() );
+
+  /**
+   * Class method that returns the block seperator for configuration
+   * \returns The block separator config key
+   */
+  inline static const config_block_key_t block_sep()
+  {
+    return config_block_key_t( ":" );
+  }
+
+  /**
+   * Class method that returns magic group for global parameters.
+   * \returns global config key
+   */
+  inline static const config_block_key_t global_value()
+  {
+    return config_block_key_t( "_global" );
+  }
 
   /// Destructor
   virtual ~config_block();
@@ -389,12 +407,6 @@ public:
    */
   bool has_value( config_block_key_t const& key ) const;
 
-
-  /// The separator between blocks.
-  static config_block_key_t const block_sep;
-
-  /// The magic group for global parameters.
-  static config_block_key_t const global_value;
 
   /// Set source file location where entry is defined.
   /**

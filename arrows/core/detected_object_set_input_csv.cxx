@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -236,18 +236,18 @@ void
 detected_object_set_input_csv::priv::
 add_detection()
 {
-  kwiver::vital::detected_object_type_sptr dot;
+  kwiver::vital::class_map_sptr cm;
 
-  // Create DOT object if classifiers are present
+  // Create CM object if classifiers are present
   if ( m_input_buffer.size() > 7 )
   {
-    dot = std::make_shared<kwiver::vital::detected_object_type>();
+    cm = std::make_shared<kwiver::vital::class_map>();
     const size_t limit( m_input_buffer.size() );
 
     for (size_t i = 7; i < limit; i += 2 )
     {
       double score = atof( m_input_buffer[i+1].c_str() );
-      dot->set_score( m_input_buffer[i], score );
+      cm->set_score( m_input_buffer[i], score );
     }
   } // end classes
 
@@ -259,7 +259,7 @@ add_detection()
 
   const double confid( atof( m_input_buffer[6].c_str() ) );
 
-  m_current_set->add( std::make_shared<kwiver::vital::detected_object>( bbox, confid, dot ) );
+  m_current_set->add( std::make_shared<kwiver::vital::detected_object>( bbox, confid, cm ) );
 
   m_image_name = m_input_buffer[1];
 }

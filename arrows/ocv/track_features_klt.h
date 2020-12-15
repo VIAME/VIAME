@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017, 2019 by Kitware, Inc.
+ * Copyright 2013-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ namespace ocv {
 
 /// A basic feature tracker
 class KWIVER_ALGO_OCV_EXPORT track_features_klt
-  : public vital::algorithm_impl<track_features_klt, vital::algo::track_features>
+  : public vital::algo::track_features
 {
 public:
   PLUGIN_INFO( "ocv_KLT",

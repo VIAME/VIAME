@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,22 +67,22 @@ detected_object_set_sptr make_do_set()
 
   bounding_box_d bb{ 10, 20, 30, 40 };
 
-  auto dot = std::make_shared<detected_object_type>( names, scores );
+  auto cm = std::make_shared<class_map>( names, scores );
 
   do_set->add( std::make_shared<detected_object>( bb ) ); // using defaults
 
   EXPECT_EQ( 1, do_set->size() );
 
-  do_set->add( std::make_shared<detected_object>( bb, 0.65, dot ) );
+  do_set->add( std::make_shared<detected_object>( bb, 0.65, cm ) );
 
-  auto dot1 = std::make_shared<detected_object_type>( names, scores1 );
-  do_set->add( std::make_shared<detected_object>( bb, 0.75, dot1 ) );
+  auto cm1 = std::make_shared<class_map>( names, scores1 );
+  do_set->add( std::make_shared<detected_object>( bb, 0.75, cm1 ) );
 
-  auto dot2 = std::make_shared<detected_object_type>( names, scores2 );
-  do_set->add( std::make_shared<detected_object>( bb, 0.78, dot2 ) );
+  auto cm2 = std::make_shared<class_map>( names, scores2 );
+  do_set->add( std::make_shared<detected_object>( bb, 0.78, cm2 ) );
 
-  auto dot3 = std::make_shared<detected_object_type>( names, scores3 );
-  do_set->add( std::make_shared<detected_object>( bb, 0.70, dot3 ) );
+  auto cm3 = std::make_shared<class_map>( names, scores3 );
+  do_set->add( std::make_shared<detected_object>( bb, 0.70, cm3 ) );
 
   EXPECT_EQ( 5, do_set->size() );
 
@@ -163,7 +163,7 @@ TEST(detected_object_set, clone_2)
 
   bounding_box_d bb{ 10, 20, 30, 40 };
 
-  auto dot = std::make_shared<detected_object_type>( names, scores );
+  auto cm = std::make_shared<class_map>( names, scores );
 
   auto detection = std::make_shared<detected_object>( bb ); // using defaults
   do_set.add( detection );

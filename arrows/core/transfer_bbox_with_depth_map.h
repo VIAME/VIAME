@@ -74,8 +74,7 @@ vital::bounding_box<double>
 
 /// Transforms detections based on source and destination cameras.
 class KWIVER_ALGO_CORE_EXPORT transfer_bbox_with_depth_map
-  : public vital::algorithm_impl<transfer_bbox_with_depth_map,
-                                 vital::algo::detected_object_filter>
+  : public vital::algo::detected_object_filter
 {
 public:
   PLUGIN_INFO( "transfer_bbox_with_depth_map",

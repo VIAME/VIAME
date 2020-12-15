@@ -35,6 +35,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 using std::string;
 using std::ifstream;
@@ -64,7 +65,9 @@ file_md5( const string& fn )
     while ( is )
     {
       is.read( reinterpret_cast< char* >( buf ), bufsize );
-      if ( is.gcount() )
+      //gcount() should never be negative, but fortify does not seem to
+      //know that.  And read never fills in a /0 value at the end.
+      if ( is.gcount() > 0)
       {
         kwiversysMD5_Append( md5, buf, is.gcount() );
       }
@@ -76,12 +79,9 @@ file_md5( const string& fn )
 
   ostringstream oss;
   {
-    const size_t bufsize = 5;
-    char buf[ bufsize ];
     for ( size_t i = 0; i < digest_size; ++i )
     {
-      snprintf( buf, bufsize, "%x", digest[ i ] );
-      oss << buf;
+      oss << std::hex << static_cast<unsigned int>(digest[ i ]);
     }
   }
   return oss.str();

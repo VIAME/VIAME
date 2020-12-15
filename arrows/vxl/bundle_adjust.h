@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace vxl {
 
 /// A class for bundle adjustment of feature tracks using VXL
 class KWIVER_ALGO_VXL_EXPORT bundle_adjust
-: public vital::algorithm_impl<bundle_adjust, vital::algo::bundle_adjust>
+: public vital::algo::bundle_adjust
 {
 public:
   PLUGIN_INFO( "vxl",

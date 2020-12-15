@@ -53,6 +53,9 @@ set(fixes_macro_vars
   sprokit_fixes)
 
 function (sprokit_install_macro_file path)
+  if(SKBUILD)
+    return()
+  endif()
   sprokit_install(
     FILES       "${path}"
     DESTINATION "${cmakedir}"
@@ -76,9 +79,10 @@ foreach (macro_file IN LISTS configured_macro_files)
 endforeach ()
 
 # Configure the CMake EXPORT file during installation
+if(NOT SKBUILD)
 sprokit_install(
   FILES       "${sprokit_macros_file}"
   DESTINATION "${cmakedir}"
   COMPONENT   development)
-
+endif()
 ## sprokit_configure_pkgconfig(sprokit)

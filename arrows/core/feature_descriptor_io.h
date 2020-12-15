@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,7 @@ namespace core {
 
 /// A class for reading and writing feature and desriptor sets
 class KWIVER_ALGO_CORE_EXPORT feature_descriptor_io
-  : public vital::algorithm_impl<feature_descriptor_io,
-                                 vital::algo::feature_descriptor_io>
+  : public vital::algo::feature_descriptor_io
 {
 public:
   PLUGIN_INFO( "core",

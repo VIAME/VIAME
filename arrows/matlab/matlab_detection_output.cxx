@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -156,8 +156,6 @@ matlab_detection_output::
 matlab_detection_output()
   : d( new matlab_detection_output::priv( this ) )
 {
-  attach_logger( "arrows.matlab.matlab_detection_output" );
-  d->m_logger = logger;
 }
 
 
@@ -206,21 +204,18 @@ check_configuration( vital::config_block_sptr config ) const
 // ------------------------------------------------------------------
 void
 matlab_detection_output::
-write_set( const kwiver::vital::detected_object_set_sptr set,
+write_set( const kwiver::vital::detected_object_set_sptr detections,
            std::string const&                            image_name )
 {
   d->initialize_once();
 
-  // Get detections from set
-  const auto detections = set->select();
-
   MxArraySptr mx_image_name = std::make_shared<MxArray>( MxArray::Cell() );
   mx_image_name->set( 0, image_name );
   MxArraySptr mx_detections = std::make_shared<MxArray>();
-  MxArraySptr mx_class =  std::make_shared<MxArray>( MxArray::Cell(detections.size(), 2) );
+  MxArraySptr mx_class =  std::make_shared<MxArray>( MxArray::Cell(detections->size(), 2) );
   unsigned det_index(0);
 
-  for( const auto det : detections )
+  for( const auto det : *detections )
   {
     const kwiver::vital::bounding_box_d bbox( det->bounding_box() );
 
@@ -232,15 +227,15 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
     mx_detections->set( det_index, 4, det->confidence() );
 
     // Process classifications if there are any
-    const auto dot( det->type() );
-    if ( dot )
+    const auto cm( det->type() );
+    if ( cm )
     {
-      const auto name_list( dot->class_names() );
+      const auto name_list( cm->class_names() );
       for( auto name : name_list )
       {
         // Add classification entry to cell array
         mx_class->set( det_index, 0, name.c_str() );
-        mx_class->set( det_index, 1, dot->score(name) );
+        mx_class->set( det_index, 1, cm->score(name) );
       } // end foreach
     }
 

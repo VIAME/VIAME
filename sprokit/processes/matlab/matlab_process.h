@@ -54,6 +54,9 @@ class KWIVER_PROCESSES_MATLAB_NO_EXPORT matlab_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "matlab_bridge",
+               "Bridge to process written in matlab." )
+
   matlab_process( kwiver::vital::config_block_sptr const& config );
   virtual ~matlab_process();
 

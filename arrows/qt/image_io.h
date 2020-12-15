@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,7 @@
 #include <vital/algo/image_io.h>
 
 namespace kwiver {
-
 namespace arrows {
-
 namespace qt {
 
 /// A class for using Qt to read and write images.
@@ -53,19 +51,17 @@ namespace qt {
 /// are supported, and offers no configuration. It is intended more as a proof
 /// of concept.
 class KWIVER_ALGO_QT_EXPORT image_io
-  : public vital::algorithm_impl< image_io, vital::algo::image_io >
+  : public vital::algo::image_io
 {
 public:
-  static constexpr char const* name = "qt";
-
-  static constexpr char const* description =
-    "Use Qt to load and save image files.";
-
   /// Constructor
   image_io();
 
   /// Destructor
   virtual ~image_io();
+
+  PLUGIN_INFO( "qt",
+               "Use Qt to load and save image files." )
 
   /// \copydoc vital::algo::image_io::set_configuration
   virtual void set_configuration(
@@ -85,9 +81,7 @@ private:
 };
 
 } // end namespace qt
-
 } // end namespace arrows
-
 } // end namespace kwiver
 
 #endif
