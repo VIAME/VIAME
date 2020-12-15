@@ -1,0 +1,107 @@
+config _scheduler
+  type = pythread_per_process
+
+process in_adapt :: input_adapter
+
+process stabilizer
+  :: many_image_stabilizer
+  n_input = 1
+
+  feature_detector:type = filtered
+  block feature_detector:filtered
+    detector:type = ocv_SURF
+    block detector:ocv_SURF
+      extended           = false
+      hessian_threshold  = 400
+      n_octave_layers    = 3
+      n_octaves          = 4
+      upright            = false
+    endblock
+
+    filter:type = nonmax
+    block filter:nonmax
+      num_features_target = 5000
+      num_features_range = 500
+    endblock
+  endblock
+
+  descriptor_extractor:type = ocv_SURF
+  block descriptor_extractor:ocv_SURF
+    extended           = false
+    hessian_threshold  = 400 # 5000
+    n_octave_layers    = 3
+    n_octaves          = 4
+    upright            = false
+  endblock
+
+  feature_matcher:type = ocv_flann_based
+
+  homography_estimator:type = vxl
+
+  ref_homography_computer:type = core
+  block ref_homography_computer:core
+    backproject_threshold = 4
+    allow_ref_frame_regression = false
+    min_matches_threshold = 50
+    estimator:type = vxl
+    forget_track_threshold = 5
+    inlier_scale = 10
+    min_track_length = 1
+    use_backproject_error = false
+  endblock
+
+connect from in_adapt.image
+        to stabilizer.image1
+
+process detector1
+  :: image_object_detector
+  :detector:type            netharn
+
+  block detector:netharn
+    relativepath deployed = ../models/sea_lion_multi_class.zip
+  endblock
+
+connect from in_adapt.image
+        to detector1.image
+
+process tracker :: multicam_homog_tracker
+  n_input = 1
+
+connect from stabilizer.homog1
+        to tracker.homog1
+
+connect from detector1.detected_object_set
+        to tracker.det_objs_1
+
+connect from in_adapt.timestamp
+        to tracker.timestamp
+
+process write_homogs_1
+  :: kw_write_homography
+  output = homogs1.txt
+
+connect from stabilizer.homog1
+        to write_homogs_1.homography
+
+process write_tracks_1 :: write_object_track
+  file_name = tracks1.csv
+  frame_list_output = track_images_1.txt
+  writer:type = viame_csv
+
+connect from tracker.obj_tracks_1
+        to write_tracks_1.object_track_set
+connect from in_adapt.timestamp
+        to write_tracks_1.timestamp
+connect from in_adapt.file_name
+        to write_tracks_1.image_file_name
+
+process out_adapt :: output_adapter
+
+connect from tracker.obj_tracks_1
+        to out_adapt.object_track_set
+
+connect from in_adapt.timestamp
+        to out_adapt.timestamp
+
+connect from in_adapt.file_name
+        to out_adapt.file_name
