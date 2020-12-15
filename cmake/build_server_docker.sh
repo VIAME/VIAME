@@ -37,8 +37,6 @@ rm -rf cmake-3.17.0.tar.gz
 
 # Update VIAME sub git deps
 cd /viame/
-git fetch -p
-git reset --hard origin/web-release
 git submodule update --init --recursive
 mkdir build
 cd build
