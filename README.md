@@ -99,10 +99,10 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [VIAME Web Source Repository](https://github.com/VIAME/VIAME-Web)
 
 **Custom Desktop Distributions:** <br>
-[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/5fbea91550a41e3d19705409/download) <br>
-[Seal Multi-View GUI, Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/5f87103650a41e3d19ea6c66/download) <br>
-[Seal Multi-View GUI, CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f7764cd50a41e3d19c2e35f/download) <br>
-[Seal Multi-View GUI, Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f77645650a41e3d19c2e26b/download)
+[SEAL Multi-View GUI, Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/5fbea91550a41e3d19705409/download) <br>
+[SEAL Multi-View GUI, Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/5f87103650a41e3d19ea6c66/download) <br>
+[SEAL Multi-View GUI, CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f7764cd50a41e3d19c2e35f/download) <br>
+[SEAL Multi-View GUI, Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f77645650a41e3d19c2e26b/download)
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
