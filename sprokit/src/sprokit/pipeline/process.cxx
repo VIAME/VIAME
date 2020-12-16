@@ -37,6 +37,7 @@
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/util/string.h>
 #include <vital/optional.h>
+#include <vital/vital_config.h>
 
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
@@ -65,7 +66,7 @@ static kwiver::vital::config_block_key_t const instrumentation_block_key =
   kwiver::vital::config_block_key_t("_instrumentation");
 static kwiver::vital::config_block_key_t const instrumentation_type_key =
   kwiver::vital::config_block_key_t(instrumentation_block_key
-                                    + kwiver::vital::config_block::block_sep + "type" );
+                              + kwiver::vital::config_block::block_sep() + "type" );
 
 process::property_t const process::property_no_threads = property_t("_no_thread");
 process::property_t const process::property_no_reentrancy = property_t("_no_reentrant");
@@ -688,8 +689,9 @@ process
     if (instr_prov != "none" )
     {
       // Get instrumentation interface
-      kwiver::vital::config_block_sptr instr_block = d->conf->subblock_view( instrumentation_block_key
-                                    + kwiver::vital::config_block::block_sep + instr_prov );
+      kwiver::vital::config_block_sptr instr_block =
+        d->conf->subblock_view( instrumentation_block_key
+                    + kwiver::vital::config_block::block_sep() + instr_prov );
 
       instrumentation_factory ifact;
       d->m_proc_instrumentation.reset( ifact.create( instr_prov ) );
@@ -831,7 +833,7 @@ process
 // ------------------------------------------------------------------
 void
 process
-::input_port_undefined( port_t const& port )
+::input_port_undefined( VITAL_UNUSED port_t const& port )
 {
 }
 
@@ -865,7 +867,7 @@ process
 // ------------------------------------------------------------------
 void
 process
-::output_port_undefined( port_t const& port )
+::output_port_undefined( VITAL_UNUSED port_t const& port )
 {
 }
 

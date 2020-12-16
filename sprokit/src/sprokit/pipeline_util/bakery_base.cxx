@@ -37,10 +37,11 @@
 
 #include "pipe_bakery_exception.h"
 
-#include <vital/util/string.h>
-#include <vital/util/token_type_sysenv.h>
-#include <vital/util/token_type_env.h>
 #include <vital/config/token_type_config.h>
+#include <vital/util/string.h>
+#include <vital/util/token_type_env.h>
+#include <vital/util/token_type_sysenv.h>
+#include <vital/vital_config.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -70,7 +71,8 @@ protected:
   }
 
 
-  virtual bool handle_missing_provider( const std::string& provider, const std::string& entry )
+  virtual bool handle_missing_provider( const std::string& provider,
+                                        VITAL_UNUSED const std::string& entry )
   {
     std::stringstream str;
     str << "Provider \"" << provider << "\" is not available";
@@ -173,7 +175,8 @@ bakery_base
                         config_value_t const& value)
 {
   kwiver::vital::config_block_key_t const subkey = flatten_keys(value.key_path);
-  kwiver::vital::config_block_key_t const full_key = root_key + kwiver::vital::config_block::block_sep + subkey;
+  kwiver::vital::config_block_key_t const full_key = root_key +
+     kwiver::vital::config_block::block_sep() + subkey;
   bool is_readonly = false;
   bool is_relativepath = false;
   bool is_local_assign = false;
@@ -277,7 +280,7 @@ kwiver::vital::config_block_key_t
 bakery_base::
 flatten_keys(kwiver::vital::config_block_keys_t const& keys)
 {
-  return kwiver::vital::join(keys, kwiver::vital::config_block::block_sep);
+  return kwiver::vital::join(keys, kwiver::vital::config_block::block_sep());
 }
 
 

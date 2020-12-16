@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -35,11 +9,11 @@
 
 #include "extract_descriptors_BRIEF.h"
 
-#if ! defined(KWIVER_HAS_OPENCV_VER_3) || defined(HAVE_OPENCV_XFEATURES2D)
+#if KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)
 
 #include <sstream>
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
 typedef cv::BriefDescriptorExtractor cv_BRIEF_t;
 #else
 #include <opencv2/xfeatures2d.hpp>
@@ -52,14 +26,13 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-
 class extract_descriptors_BRIEF::priv
 {
 public:
   /// Constructor
   priv()
     : bytes( 32 )
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     , use_orientation( false )
 #endif
   {
@@ -68,14 +41,14 @@ public:
   /// Create new algorithm instance using current parameter values
   cv::Ptr<cv_BRIEF_t> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv_BRIEF_t>( new cv_BRIEF_t(bytes) );
 #else
     return cv_BRIEF_t::create( bytes, use_orientation );
 #endif
   }
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   /// Update given algorithm using current parameter values
   void update(cv::Ptr<cv_BRIEF_t> descriptor) const
   {
@@ -88,7 +61,7 @@ public:
     config->set_value( "bytes", bytes,
                        "Length of descriptor in bytes. It can be equal 16, 32 "
                        "or 64 bytes." );
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     config->set_value( "use_orientation", use_orientation,
                        "sample patterns using keypoints orientation, disabled "
                        "by default." );
@@ -98,7 +71,7 @@ public:
   void set_config( config_block_sptr config )
   {
     bytes = config->get_value<int>( "bytes" );
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     use_orientation = config->get_value<bool>( "use_orientation" );
 #endif
   }
@@ -121,11 +94,10 @@ public:
 
   // Parameters
   int bytes;
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
   bool use_orientation;
 #endif
 };
-
 
 /// Constructor
 extract_descriptors_BRIEF
@@ -136,13 +108,11 @@ extract_descriptors_BRIEF
   extractor = p_->create();
 }
 
-
 /// Destructor
 extract_descriptors_BRIEF
 ::~extract_descriptors_BRIEF()
 {
 }
-
 
 vital::config_block_sptr
 extract_descriptors_BRIEF
@@ -154,7 +124,6 @@ extract_descriptors_BRIEF
   return config;
 }
 
-
 void
 extract_descriptors_BRIEF
 ::set_configuration(vital::config_block_sptr config)
@@ -163,13 +132,12 @@ extract_descriptors_BRIEF
   c->merge_config( config );
   p_->set_config( c );
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( extractor );
 #else
   extractor = p_->create();
 #endif
 }
-
 
 bool
 extract_descriptors_BRIEF
@@ -179,7 +147,6 @@ extract_descriptors_BRIEF
   config->merge_config(in_config);
   return p_->check_config( config, logger() );
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

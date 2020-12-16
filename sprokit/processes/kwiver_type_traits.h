@@ -44,6 +44,7 @@
 #include <vital/types/detected_object_set.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/feature_track_set.h>
+#include <vital/types/homography_f2f.h>
 #include <vital/types/geo_polygon.h>
 #include <vital/types/homography.h>
 #include <vital/types/image_container.h>
@@ -53,6 +54,7 @@
 #include <vital/types/image_container_set.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/query_result_set.h>
+#include <vital/types/timestamp.h>
 #include <vital/types/track_descriptor_set.h>
 #include <vital/types/uid.h>
 
@@ -64,9 +66,6 @@
 
 namespace kwiver {
 namespace vital {
-
-  class timestamp;
-  class f2f_homography;
 
   typedef std::vector< double >  double_vector;
   typedef std::shared_ptr< double_vector > double_vector_sptr;
@@ -167,21 +166,5 @@ create_port_trait( serialized_message, serialized_message, "serialized data type
 
 create_port_trait( coordinate_system_updated, kwiver_logical, "Set to true if new reference frame is established." );
 create_port_trait( motion_heat_map, image, "Motion heat map." );
-
-// ============================================================================
-// Common configuration traits
-//
-create_config_trait( algorithm, std::string, "", "Name of algorithm config sub-block.\n\n"
-                     "Typical usage is:\n"
-                     "algorithm = <algo-name>\n"
-                     "block <algo-name>\n"
-                     "  type = foo\n"
-                     "  block foo\n"
-                     "    param = val\n"
-                     "  endblock  # foo\n"
-                     "endblock  # <algo-name>\n"
-  );
-
-
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

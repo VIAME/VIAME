@@ -306,13 +306,12 @@ int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length)
 
             if (dirname_length)
             {
-              int i;
-
-              for (i = length - 1; i >= 0; --i)
+              int ii;
+              for (ii = length - 1; ii >= 0; --ii)
               {
-                if (out[i] == '/')
+                if (out[ii] == '/')
                 {
-                  *dirname_length = i;
+                  *dirname_length = ii;
                   break;
                 }
               }

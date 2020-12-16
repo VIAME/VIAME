@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,8 +106,9 @@ cluster_creator
                                                                         false, // relative path
                                                                         loc );
 
-    kwiver::vital::config_block_key_t const full_key = kwiver::vital::config_block_key_t( type ) +
-                                                       kwiver::vital::config_block::block_sep + key;
+    kwiver::vital::config_block_key_t const full_key =
+            kwiver::vital::config_block_key_t( type ) +
+             kwiver::vital::config_block::block_sep() + key;
     bakery_base::config_decl_t const decl = bakery_base::config_decl_t( full_key, info );
 
     all_configs.push_back( decl );
@@ -172,12 +173,11 @@ cluster_creator
 
     /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
     kwiver::vital::tokenize( key, mapped_key_path,
-                             kwiver::vital::config_block::block_sep,
+                             kwiver::vital::config_block::block_sep(),
                              kwiver::vital::TokenizeTrimEmpty );
-
     /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
     kwiver::vital::tokenize( value, source_key_path,
-                             kwiver::vital::config_block::block_sep,
+                             kwiver::vital::config_block::block_sep(),
                              kwiver::vital::TokenizeTrimEmpty );
 
     if ( mapped_key_path.size() < 2 )

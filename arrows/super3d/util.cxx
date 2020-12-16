@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2012-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
  /**
  * \file
@@ -121,6 +95,35 @@ void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
       const double& h = height_map(i, j);
       vnl_vector_fixed<double, 3> pt(i, j, 1);
       depth_map(i, j) = (h - o) / dot_product(v, pt);
+    }
+  }
+}
+
+//*****************************************************************************
+
+/// Convert a height map into a depth map
+void height_map_to_depth_map(vpgl_perspective_camera<double> const& camera,
+                             vil_image_view<double> const& height_map,
+                             vil_image_view<double>& depth_map,
+                             vil_image_view<double>& uncertainty)
+{
+  const vnl_matrix_fixed<double, 3, 4>& P = camera.get_matrix();
+  const vnl_vector_fixed<double, 3> v = vnl_inverse(P.extract(3, 3)).get_row(2);
+  const double o = dot_product(v, -P.get_column(3));
+  assert(height_map.nplanes() == 1);
+  assert(uncertainty.nplanes() == 1);
+  assert(uncertainty.ni() == height_map.ni());
+  assert(uncertainty.nj() == height_map.nj());
+  depth_map.set_size(height_map.ni(), height_map.nj(), 1);
+  for (unsigned j = 0; j < height_map.nj(); ++j)
+  {
+    for (unsigned i = 0; i < height_map.ni(); ++i)
+    {
+      const double& h = height_map(i, j);
+      vnl_vector_fixed<double, 3> pt(i, j, 1);
+      const double s = 1.0 / dot_product(v, pt);
+      depth_map(i, j) = (h - o) * s;
+      uncertainty(i, j) *= std::abs(s);
     }
   }
 }

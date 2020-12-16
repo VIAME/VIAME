@@ -32,6 +32,7 @@
 
 #include <vital/config/config_block.h>
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/vital_config.h>
 
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
@@ -181,7 +182,8 @@ IMPLEMENT_TEST(unknown_types)
 
 // ------------------------------------------------------------------
 sprokit::scheduler_t
-null_scheduler(sprokit::pipeline_t const& /*pipeline*/, kwiver::vital::config_block_sptr const& /*config*/)
+null_scheduler_ptr( VITAL_UNUSED sprokit::pipeline_t const& pipeline,
+                    VITAL_UNUSED kwiver::vital::config_block_sptr const& config )
 {
   return sprokit::scheduler_t();
 }

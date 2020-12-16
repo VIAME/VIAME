@@ -37,6 +37,7 @@
 #include <vital/algo/bundle_adjust.h>
 #include <vital/algo/algorithm.txx>
 #include <vital/logger/logger.h>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace vital {
@@ -62,8 +63,8 @@ bundle_adjust
   kwiver::vital::simple_camera_perspective_map &cameras,
   kwiver::vital::landmark_map::map_landmark_t &landmarks,
   vital::feature_track_set_sptr tracks,
-  const std::set<vital::frame_id_t>& fixed_cameras,
-  const std::set<vital::landmark_id_t>& fixed_landmarks,
+  VITAL_UNUSED const std::set<vital::frame_id_t>& fixed_cameras,
+  VITAL_UNUSED const std::set<vital::landmark_id_t>& fixed_landmarks,
   kwiver::vital::sfm_constraints_sptr constraints) const
 {
   auto cam_map = std::static_pointer_cast<vital::camera_map>(

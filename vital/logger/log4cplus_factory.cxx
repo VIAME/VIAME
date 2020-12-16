@@ -107,6 +107,7 @@ virtual void set_level( log_level_t level )
     break;
 
   default:
+  case LEVEL_NONE:
     // log or throw
     break;
   } // end switch
@@ -281,22 +282,29 @@ virtual void log_message ( log_level_t level, std::string const& msg)
   case LEVEL_TRACE:
     log_trace(msg);
     break;
+
   case LEVEL_DEBUG:
     log_debug(msg);
     break;
+
   case LEVEL_INFO:
     log_info(msg);
     break;
+
   case LEVEL_WARN:
     log_warn(msg);
     break;
+
   case LEVEL_ERROR:
     log_error(msg);
     break;
+
   case LEVEL_FATAL:
     log_fatal(msg);
     break;
+
   default:
+  case LEVEL_NONE:
     break;
   } // end switch
 }
@@ -333,6 +341,7 @@ virtual void log_message ( log_level_t level, std::string const& msg,
     break;
 
   default:
+  case LEVEL_NONE:
     break;
   } // end switch
 }

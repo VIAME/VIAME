@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef INCL_TRACK_TMP_UTILS_H
 #define INCL_TRACK_TMP_UTILS_H
@@ -21,11 +19,9 @@ namespace track_oracle {
 //
 //
 
-
 struct data_term_base
 {
 };
-
 
 //
 // value is true if the template parameter is derived from
@@ -47,7 +43,6 @@ struct is_data_term
 public:
   static const bool value = ( sizeof(test( PhonyMakeT() )) == sizeof(yes_type));
 };
-
 
 //
 // data_term_traits exposes the type and name, either from the data

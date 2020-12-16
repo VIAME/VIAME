@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <arrows/serialize/json/load_save.h>
 #include <arrows/serialize/json/load_save_point.h>
@@ -37,7 +11,6 @@
 #include <vital/exceptions.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
-#include <vital/types/detected_object_type.h>
 #include <vital/types/geo_point.h>
 #include <vital/types/geo_polygon.h>
 #include <vital/types/polygon.h>
@@ -45,8 +18,8 @@
 #include <vital/types/track_set.h>
 #include <vital/types/object_track_set.h>
 #include <vital/vital_types.h>
-#include <vital/util/hex_dump.h>
 
+#include <vital/util/hex_dump.h>
 #include <vital/logger/logger.h>
 
 #include <vital/internal/cereal/cereal.hpp>
@@ -58,8 +31,32 @@
 #include <zlib.h>
 #include <iostream>
 
-
 namespace cereal {
+// ============================================================================
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::activity_type& at )
+{
+
+  // recreate the class/score map so we don't break encapsulation.
+  std::map< std::string, double > activity_type_content;
+  for ( auto entry : at )
+  {
+    activity_type_content[*(entry.first)] = entry.second;
+  }
+
+  archive( CEREAL_NVP( activity_type_content ) );
+}
+
+// ----------------------------------------------------------------------------
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::activity_type& at )
+{
+  std::map< std::string, double > activity_type_content;
+  archive( CEREAL_NVP( activity_type_content ) );
+
+  for ( auto entry : activity_type_content )
+  {
+    at.set_score( entry.first, entry.second );
+  }
+}
 
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::bounding_box_d& bbox )
@@ -202,22 +199,22 @@ void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::detected
 {
 
   // recreate the class/score map so we don't break encapsulation.
-  std::map< std::string, double > class_map;
+  std::map< std::string, double > detected_object_type_content;
   for ( auto entry : dot )
   {
-    class_map[*(entry.first)] = entry.second;
+    detected_object_type_content[*(entry.first)] = entry.second;
   }
 
-  archive( CEREAL_NVP( class_map ) );
+  archive( CEREAL_NVP( detected_object_type_content ) );
 }
 
 // ----------------------------------------------------------------------------
 void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::detected_object_type& dot )
 {
-  std::map< std::string, double > class_map;
-  archive( CEREAL_NVP( class_map ) );
+  std::map< std::string, double > detected_object_type_content;
+  archive( CEREAL_NVP( detected_object_type_content ) );
 
-  for ( auto entry : class_map )
+  for ( auto entry : detected_object_type_content )
   {
     dot.set_score( entry.first, entry.second );
   }
@@ -356,7 +353,6 @@ void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::image_container
            CEREAL_NVP( img_data )  // compressed image
     );
 
-
   auto img_mem = std::make_shared< ::kwiver::vital::image_memory >( img_size );
 
   const ::kwiver::vital::image_pixel_traits pix_trait(
@@ -447,7 +443,6 @@ void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::geo_polygon& po
   load( archive, raw_poly ); // load raw polygon
   poly.set_polygon( raw_poly, crs );
 }
-
 
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::geo_point& point )
@@ -561,7 +556,6 @@ void load( ::cereal::JSONInputArchive& archive,
   obj_trk_state.set_detection(detection);
 }
 
-
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::track_set& trk_set )
 {
@@ -615,6 +609,75 @@ void load( ::cereal::JSONInputArchive& archive,
     object_tracks.push_back(object_trk_item.get_track());
   }
   obj_trk_set.set_tracks(object_tracks);
+}
+
+void save( cereal::JSONOutputArchive& archive,
+         const kwiver::vital::activity& activity )
+{
+    archive( ::cereal::make_nvp( "id", activity.id() ),
+             ::cereal::make_nvp( "label", activity.label() ),
+             ::cereal::make_nvp( "confidence", activity.confidence() ) );
+    save( archive, activity.start());
+    save( archive, activity.end());
+
+    // These may be null
+    if ( activity.type() )
+    {
+      save( archive, *activity.type());
+    }
+
+    if ( activity.participants() )
+    {
+      save( archive, *activity.participants() );
+    }
+}
+
+void load( cereal::JSONInputArchive& archive,
+         kwiver::vital::activity& activity )
+{
+  kwiver::vital::activity_id_t id;
+  kwiver::vital::activity_label_t label;
+  double confidence;
+  kwiver::vital::activity_type_sptr act_type =
+                           std::make_shared< kwiver::vital::activity_type >();
+  kwiver::vital::object_track_set_sptr participants =
+                           std::make_shared< kwiver::vital::object_track_set >();
+  kwiver::vital::timestamp start_frame, end_frame;
+  archive( CEREAL_NVP( id ),
+           CEREAL_NVP( label ),
+           CEREAL_NVP( confidence ) );
+  load( archive, start_frame );
+  load( archive, end_frame );
+  activity.set_id( id );
+  activity.set_label( label );
+  activity.set_confidence( confidence );
+  activity.set_start( start_frame );
+  activity.set_end( end_frame );
+
+  // Optional parameters aren't supported
+  // for JSON. activity_type and participants may or may not exist,
+  // so we check if an exception is thrown when we look for them.
+  // If an exception is thrown, we set those fields to null.
+  try
+  {
+    load( archive, *act_type );
+  }
+  catch( cereal::Exception const& )
+  {
+    act_type = nullptr;
+  }
+
+  try
+  {
+    load( archive, *participants );
+  }
+  catch( cereal::Exception const& )
+  {
+    participants = nullptr;
+  }
+
+  activity.set_type( act_type );
+  activity.set_participants( participants );
 }
 
 } // end namespace

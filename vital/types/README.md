@@ -1,3 +1,5 @@
+**activity_type** - An instance of a class_map (see below).
+
 **bounding_box** - 
 
 **camera** - Defines the interface base class camera and the subclass simple_camera, which capture all of the intrinsic and extrinsic parameters (e.g., position and orientation) of a camera. The intrinsic parameters are represented with an instance of the intrinsic_camera class.
@@ -5,6 +7,8 @@
 **camera_intrinsics** - Defines the interface base class camera_intrinsics and the subclass simple_camera_intrinsics, which capture all of the internal details of a camera (e.g., focal length, principal point, distortion). The methods of the class allow ray vectors in the camera to camera coordinate system to be moved to image coordinates, and image coordinates to be unprojected into a ray in the camera coordinate system.
 
 **camera_map** - Defines the interface base class camera_map and the subclass simple_camera_map, which allow representation of a group of camera instances.
+
+**class_map** - Represents a map of classifications to confidence scores for an object.
 
 **color** - Defines the rgb_color struct, which captures the red, green, and blue values of a single pixel.
 
@@ -18,7 +22,7 @@
 
 **detected_object_set** - 
 
-**detected_object_type** - 
+**detected_object_type** - An instance of a class_map.
 
 **essential_matrix** - 
 

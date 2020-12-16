@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2018 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef INCL_DATA_TERMS_H
 #define INCL_DATA_TERMS_H
@@ -76,7 +74,7 @@ namespace detection {
 
 namespace tracking {
 
-  DECL_DT( external_id, unsigned, "track ID; unique within a session but not a UUID" );
+  DECL_DT( external_id, uint64_t, "track ID; unique within a session but not a UUID" );
   DECL_DT( timestamp_usecs, unsigned long long, "timestamp of a frame, in usecs; epoch is data-dependent" );
   DECL_DT( frame_number, unsigned, "frame number; relationship to any downsampling is unspecified" );
   DECL_DT( fg_mask_area, double, "area of foreground mask; in pixels?" );
@@ -101,7 +99,7 @@ namespace tracking {
 } // ...tracking
 
 namespace events {
-  DECL_DT( event_id, unsigned, "event ID; unique within a session but not a UUID" );
+  DECL_DT( event_id, uint64_t, "event ID; unique within a session but not a UUID" );
   DECL_DT_RW_STRXMLCSV( event_type, int, "event type: currently always in the VIRAT domain" );
   DECL_DT( event_probability, double, "event probability" );
   DECL_DT_RW_STR( source_track_ids, std::vector<unsigned>, "Track IDs contributing to the event" );

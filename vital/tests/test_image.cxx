@@ -38,6 +38,7 @@
 #include <vital/types/image.h>
 #include <vital/types/image_container.h>
 #include <vital/util/transform_image.h>
+#include <vital/vital_config.h>
 
 #include <gtest/gtest.h>
 
@@ -78,7 +79,7 @@ struct val_zero_op
 // ----------------------------------------------------------------------------
 struct val_incr_op
 {
-  byte operator()( byte const &b )
+  byte operator()( VITAL_UNUSED byte const &b )
   {
     return val_incr_op_i++;
   }

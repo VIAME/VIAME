@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
 ///
@@ -54,29 +28,6 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-namespace {
-
-//+ maybe not needed
-// ------------------------------------------------------------------
-static kwiver::vital::config_block_sptr default_config()
-{
-  kwiver::vital::config_block_sptr config =
-    kwiver::vital::config_block::empty_config( "dump_klv_tool" );
-
-  config->set_value( "video_reader:type", "ffmpeg",
-                     "Implementation for video reader." );
-  config->set_value( "video_reader:vidl_ffmpeg:time_source",  "misp",
-                     "Time source for reader." );
-
-  kwiver::vital::algo::video_input::get_nested_algo_configuration(
-    "video_reader", config, kwiver::vital::algo::video_input_sptr() );
-
-  return config;
-}
-
-} // end namespace
-
-
 // ----------------------------------------------------------------------------
 void
 dump_klv::
@@ -101,7 +52,6 @@ add_command_options()
 
   m_cmd_options->parse_positional("video-file");
 }
-
 
 // ============================================================================
 dump_klv::
@@ -138,12 +88,8 @@ run()
     return EXIT_FAILURE;
   }
 
-  // register the algorithm implementations
-  const std::string rel_plugin_path = kwiver::vital::get_executable_path() + "/../lib/modules";
-  kwiver::vital::plugin_manager::instance().add_search_path(rel_plugin_path);
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
   kwiver::vital::algo::video_input_sptr video_reader;
-  kwiver::vital::config_block_sptr config = default_config();
+  auto config = this->find_configuration("applets/dump_klv.conf");
 
   // If --config given, read in config file, merge in with default just generated
   if( cmd_args.count("config") )

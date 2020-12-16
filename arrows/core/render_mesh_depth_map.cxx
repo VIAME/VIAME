@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018 by Kitware, SAS., 2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -44,7 +18,6 @@
 namespace kwiver {
 namespace arrows {
 namespace core {
-
 
 /// This function renders a depth map of a triangular mesh seen by a camera
 vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::camera_perspective_sptr camera)
@@ -94,7 +67,6 @@ vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::
   }
   return std::make_shared<vital::simple_image_container>(zbuffer);
 }
-
 
 /// This function renders a height map of a triangular mesh
 vital::image_container_sptr render_mesh_height_map(vital::mesh_sptr mesh, vital::camera_sptr camera)
@@ -147,7 +119,6 @@ vital::image_container_sptr render_mesh_height_map(vital::mesh_sptr mesh, vital:
   return std::make_shared<vital::simple_image_container>(height_map);
 }
 
-
 /// This function converts a depth map into a height map obtained with a perspective camera
 void depth_map_to_height_map(vital::camera_perspective_sptr const& camera,
                              vital::image_of<double>& depth_map,
@@ -169,7 +140,6 @@ void depth_map_to_height_map(vital::camera_perspective_sptr const& camera,
   }
 }
 
-
 /// Compute a triangle attribute linear interpolation vector
 vital::vector_3d
 triangle_attribute_vector(vital::vector_2d const& v1,
@@ -184,7 +154,6 @@ triangle_attribute_vector(vital::vector_2d const& v1,
            -n.y()/n.z(),
            (v1.x() * n.x() + v1.y() * n.y() + a1 * n.z()) / n.z() };
 }
-
 
 /// This functions renders a triangle and fills it with depth
 void render_triangle(const vital::vector_2d& v1, const vital::vector_2d& v2, const vital::vector_2d& v3,

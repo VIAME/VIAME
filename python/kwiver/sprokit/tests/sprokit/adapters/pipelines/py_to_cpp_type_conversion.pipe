@@ -1,0 +1,18 @@
+# ==================================================================
+process ia :: input_adapter
+
+# ==================================================================
+process shift
+  :: shift_detected_object_set
+
+# ==================================================================
+process oa :: output_adapter
+
+# ==================================================================
+# Connections
+
+connect from ia.detected_object_set
+  to shift.detected_object_set
+
+connect from shift.detected_object_set
+  to oa.detected_object_set

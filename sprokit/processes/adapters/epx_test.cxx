@@ -33,6 +33,7 @@
 #include <vital/plugin_loader/plugin_loader.h>
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/config/config_block_formatter.h>
+#include <vital/vital_config.h>
 
 #include <sstream>
 #include <iostream>
@@ -63,7 +64,7 @@ pre_setup( context& ctxt )
 // ----------------------------------------------------------------------------
 void
 epx_test::
-end_of_output( context& ctxt )
+end_of_output( VITAL_UNUSED context& ctxt )
 {
   std::cout << "exp_test End_Of_Output called\n";
 }

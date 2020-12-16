@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2012-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef INCL_FILE_FORMAT_COMMS_XML_H
 #define INCL_FILE_FORMAT_COMMS_XML_H
@@ -28,7 +26,6 @@ struct TRACK_COMMS_XML_EXPORT comms_xml_reader_opts: public file_format_reader_o
   virtual comms_xml_reader_opts& reset() { set_comms_qid( "" ); return *this; }
   comms_xml_reader_opts() { reset(); }
 };
-
 
 class TRACK_COMMS_XML_EXPORT file_format_comms_xml: public file_format_base
 {

@@ -58,7 +58,7 @@ class cluster_bakery
 {
 public:
   cluster_bakery();
-  ~cluster_bakery();
+  ~cluster_bakery() = default;
 
   using bakery_base::operator();
   void operator()( cluster_pipe_block const& cluster_block_ );
@@ -80,10 +80,16 @@ public:
   };
   typedef kwiver::vital::optional< cluster_component_info_t > opt_cluster_component_info_t;
 
+  /// Name of the cluster.
   process::type_t m_type;
+
+  /// Description of the cluster.
   process::description_t m_description;
+
   opt_cluster_component_info_t m_cluster;
 };
+
+using cluster_bakery_sptr = std::shared_ptr< cluster_bakery >;
 
 } // end namespace sprokit
 

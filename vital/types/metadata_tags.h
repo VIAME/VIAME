@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,7 +127,7 @@
         bool,                                                           \
         "" )                                                            \
   CALL( SENSOR_LOCATION,                                                \
-        "Sensor Geodetic Location (lon/lat/meters)",                    \
+        "Sensor Geodetic Location (lon/lat/alt)",                       \
         geo_point,                                                      \
         "Contains the 3D coordinate of the sensor. "                    \
         "The location is ordered lon, lat. "                            \
@@ -183,11 +183,11 @@
         double,                                                         \
         "Target Width within sensor field of view." )                   \
   CALL( FRAME_CENTER,                                                   \
-        "Geodetic Frame Center, (lon/lat/meters)",                      \
+        "Geodetic Frame Center, (lon/lat/elev)",                        \
         geo_point,                                                      \
         "Contains the 3D coordinate of the frame center. "              \
-        "The location is ordered lon, lat, and altitude in meters. "    \
-        "Altitude is not always set." )                                 \
+        "The location is ordered lon, lat, and elevation in meters. "   \
+        "Elevation is not always set." )                                \
   CALL( CORNER_POINTS,                                                  \
         "Corner points (lon/lat)",                                      \
         geo_polygon,                                                    \
@@ -222,11 +222,11 @@
         double,                                                         \
         "Temperature outside aircraft." )                               \
   CALL( TARGET_LOCATION,                                                \
-        "Target Geodetic Locationq (lon/lat/meters)",                   \
+        "Target Geodetic Location (lon/lat/elev)",                      \
         geo_point,                                                      \
         "Contains the 3D coordinate of the target. "                    \
         "The location is ordered lon, lat. "                            \
-        "The altitude is optional and is in meters." )                  \
+        "The elevation is optional and is in meters." )                 \
   CALL( TARGET_TRK_GATE_WIDTH,                                          \
         "Target Track Gate Width (pixels)",                             \
         double,                                                         \
@@ -361,11 +361,11 @@
         "Security Local Metadata Set",                                  \
         std::string,                                                    \
         "Refer to std 0102 lds" )                                       \
-  CALL( 0601_WEAPON_LOAD,                                               \
+  CALL( WEAPON_LOAD_0601,                                               \
         "Weapon Load",                                                  \
         uint64_t,                                                       \
         "Current weapons stored on aircraft" )                          \
-  CALL( 0601_WEAPON_FIRED,                                              \
+  CALL( WEAPON_FIRED_0601,                                              \
         "Weapon Fired",                                                 \
         uint64_t,                                                       \
         "Indication when a particular weapon is released. "             \

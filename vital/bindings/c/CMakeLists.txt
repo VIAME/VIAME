@@ -16,6 +16,7 @@ set(vital_c_public_headers
   algo_def/track_features.h
   algo_def/triangulate_landmarks.h
 
+  types/activity_type.h
   types/bounding_box.h
   types/camera.h
   types/camera_intrinsics.h
@@ -26,9 +27,9 @@ set(vital_c_public_headers
   types/descriptor_set.h
   types/descriptor_set.hxx
   types/detected_object.h
-  types/detected_object_type.h
   types/detected_object_set.h
   types/detected_object_set.hxx
+  types/detected_object_type.h
   types/eigen.h
   types/feature.h
   types/feature_track_set.h
@@ -49,6 +50,7 @@ set(vital_c_public_headers
 set(vital_c_private_headers
   # Created by CMake during configuration
   ${CMAKE_CURRENT_BINARY_DIR}/vital_c_export.h
+  helpers/activity_type.h
   helpers/algorithm.h
   helpers/c_utils.h
   helpers/camera.h
@@ -58,8 +60,8 @@ set(vital_c_private_headers
   helpers/descriptor.h
   helpers/descriptor_set.h
   helpers/detected_object.h
-  helpers/detected_object_type.h
   helpers/detected_object_set.h
+  helpers/detected_object_type.h
   helpers/feature.h
   helpers/image_container.h
   helpers/landmark.h
@@ -85,6 +87,7 @@ set(vital_c_sources
 
   helpers/c_utils.cxx
 
+  types/activity_type.cxx
   types/bounding_box.cxx
   types/camera.cxx
   types/camera_intrinsics.cxx
@@ -94,8 +97,8 @@ set(vital_c_sources
   types/descriptor.cxx
   types/descriptor_set.cxx
   types/detected_object.cxx
-  types/detected_object_type.cxx
   types/detected_object_set.cxx
+  types/detected_object_type.cxx
   types/eigen.cxx
   types/feature.cxx
   types/feature_track_set.cxx

@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -39,6 +13,7 @@
 #include <arrows/ffmpeg/ffmpeg_video_input.h>
 #include <arrows/tests/test_video_input.h>
 #include <vital/exceptions/io.h>
+#include <vital/exceptions/video.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
@@ -64,7 +39,6 @@ main(int argc, char* argv[])
 
   return RUN_ALL_TESTS();
 }
-
 
 // ----------------------------------------------------------------------------
 class ffmpeg_video_input : public ::testing::Test
@@ -251,6 +225,28 @@ TEST_F(ffmpeg_video_input, end_of_video)
 
   EXPECT_EQ(ts.get_frame(), TOTAL_NUMBER_OF_FRAMES) << "Last frame";
   EXPECT_TRUE(input.end_of_video()) << "End of video after last frame";
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, read_video_aphill)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+
+  kwiver::vital::path_t correct_file = data_dir + "/aphill_short.ts";
+
+  input.open(correct_file);
+
+  kwiver::vital::timestamp ts;
+
+  int num_frames = 0;
+  while (input.next_frame(ts))
+  {
+    ++num_frames;
+    EXPECT_EQ(num_frames, ts.get_frame())
+      << "Frame numbers should be sequential";
+  }
+
+  input.close();
 }
 
 // ----------------------------------------------------------------------------
@@ -456,4 +452,118 @@ TEST_F(ffmpeg_video_input, metadata_map)
     }
     std::cout << std::endl;
   }
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, empty_filter_desc)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
+  auto config = vif.get_configuration();
+  // make the avfilter pipeline empty
+  config->set_value("filter_desc", "");
+  vif.set_configuration(config);
+
+  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
+
+  // Open the video
+  vif.open(video_file);
+
+  // Get the next frame
+  kwiver::vital::timestamp ts;
+  vif.next_frame(ts);
+  EXPECT_EQ(ts.get_frame(), 1);
+
+  kwiver::vital::image_container_sptr frame = vif.frame_image();
+  EXPECT_EQ(frame->depth(), 3);
+  EXPECT_EQ(frame->get_image().width(), 80);
+  EXPECT_EQ(frame->get_image().height(), 54);
+  EXPECT_EQ(frame->get_image().d_step(), 1);
+  EXPECT_EQ(frame->get_image().h_step(), 80 * 3);
+  EXPECT_EQ(frame->get_image().w_step(), 3);
+  EXPECT_TRUE(frame->get_image().is_contiguous());
+
+  EXPECT_EQ(decode_barcode(*frame), 1);
+
+  vif.next_frame(ts);
+  frame = vif.frame_image();
+  EXPECT_EQ(ts.get_frame(), 2);
+  EXPECT_EQ(decode_barcode(*frame), 2);
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, invalid_filter_desc)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
+  auto config = vif.get_configuration();
+  // set an invalid avfilter pipeline in the filter description
+  config->set_value("filter_desc", "_invalid_filter_");
+  vif.set_configuration(config);
+
+  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
+
+  // Open the video
+  EXPECT_THROW(
+    vif.open(video_file),
+    kwiver::vital::video_runtime_exception);
+}
+
+// ----------------------------------------------------------------------------
+// helper function to make a horizontally flipped image view
+// TODO: make this a more general function within KWIVER
+kwiver::vital::image
+hflip_image(kwiver::vital::image const& image)
+{
+  const auto w = image.width();
+  const auto h = image.height();
+  const auto d = image.depth();
+  const auto ws = image.w_step();
+  const auto hs = image.h_step();
+  const auto ds = image.d_step();
+  return kwiver::vital::image(image.memory(),
+    static_cast<const uint8_t*>(image.first_pixel()) + ws * (w - 1),
+    w, h, d, -ws, hs + ws*w, ds, image.pixel_traits());
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, hflip_filter_desc)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
+  auto config = vif.get_configuration();
+  // use the hflip filter for horizontal flipping
+  config->set_value("filter_desc", "hflip");
+  vif.set_configuration(config);
+
+  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
+
+  // Open the video
+  vif.open(video_file);
+
+  // Get the next frame
+  kwiver::vital::timestamp ts;
+  vif.next_frame(ts);
+  EXPECT_EQ(ts.get_frame(), 1);
+
+  kwiver::vital::image_container_sptr frame = vif.frame_image();
+  EXPECT_EQ(frame->depth(), 3);
+  EXPECT_EQ(frame->get_image().width(), 80);
+  EXPECT_EQ(frame->get_image().height(), 54);
+  EXPECT_EQ(frame->get_image().d_step(), 1);
+  EXPECT_EQ(frame->get_image().h_step(), 80 * 3);
+  EXPECT_EQ(frame->get_image().w_step(), 3);
+  EXPECT_TRUE(frame->get_image().is_contiguous());
+
+  EXPECT_NE(decode_barcode(*frame), 1);
+
+  // undo horizontal flipping and confirm that the frame is now correct
+  kwiver::vital::simple_image_container hflip_frame(hflip_image(frame->get_image()));
+  EXPECT_EQ(decode_barcode(hflip_frame), 1);
+
+  vif.next_frame(ts);
+  frame = vif.frame_image();
+  EXPECT_EQ(ts.get_frame(), 2);
+  EXPECT_NE(decode_barcode(*frame), 2);
+
+  // undo horizontal flipping and confirm that the frame is now correct
+  hflip_frame = kwiver::vital::simple_image_container(hflip_image(frame->get_image()));
+  EXPECT_EQ(decode_barcode(hflip_frame), 2);
 }

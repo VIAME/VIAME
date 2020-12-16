@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -46,7 +20,6 @@ using namespace kwiver::vital;
 namespace kwiver {
 namespace arrows {
 namespace core {
-
 
 class nonmax_suppressor
 {
@@ -191,13 +164,13 @@ public:
 
   // --------------------------------------------------------------------------
   feature_set_sptr
-  filter(feature_set_sptr feat, std::vector<unsigned int> &ind) const
+  filter(feature_set_sptr feat_set, std::vector<unsigned int> &ind) const
   {
-    const std::vector<feature_sptr> &feat_vec = feat->features();
+    const std::vector<feature_sptr> &feat_vec = feat_set->features();
 
     if (feat_vec.size() <= num_features_target)
     {
-      return feat;
+      return feat_set;
     }
 
     //  Create a new vector with the index and magnitude for faster sorting
@@ -269,12 +242,12 @@ public:
       for (auto const& p : indices)
       {
         unsigned int index = p.first;
-        auto const& feat = feat_vec[index];
-        if (suppressor.cover(*feat))
+        auto const& f = feat_vec[index];
+        if (suppressor.cover(*f))
         {
           // add this feature to the accepted list
           ind.push_back(index);
-          filtered.push_back(feat);
+          filtered.push_back(f);
         }
       }
       // if not using a target number of features, keep this result
@@ -319,7 +292,6 @@ public:
       vital::simple_feature_set(filtered));
   }
 
-
   // configuration paramters
   mutable double suppression_radius;
   unsigned int resolution;
@@ -331,7 +303,6 @@ private:
 
 };
 
-
 // ----------------------------------------------------------------------------
 // Constructor
 filter_features_nonmax
@@ -342,13 +313,11 @@ filter_features_nonmax
   d_->m_logger = logger();
 }
 
-
 // Destructor
 filter_features_nonmax
 ::~filter_features_nonmax()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 // Get this algorithm's \link vital::config_block configuration block \endlink
@@ -387,7 +356,6 @@ filter_features_nonmax
   return config;
 }
 
-
 // ----------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
 void
@@ -405,7 +373,6 @@ filter_features_nonmax
 #undef GET_VALUE
 }
 
-
 // ----------------------------------------------------------------------------
 // Check that the algorithm's configuration vital::config_block is valid
 bool
@@ -422,7 +389,6 @@ filter_features_nonmax
 
   return true;
 }
-
 
 // ----------------------------------------------------------------------------
 // Filter feature set

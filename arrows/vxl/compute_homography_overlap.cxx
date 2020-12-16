@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -48,7 +22,6 @@
 
 #include <vnl/vnl_double_3.h>
 
-
 namespace kwiver {
 namespace arrows {
 namespace vxl {
@@ -56,14 +29,12 @@ namespace vxl {
 namespace
 {
 
-
 // Does a given point occur inside a polygon?
 bool does_intersect( const std::vector< vgl_point_2d<double> >& poly, const vgl_point_2d<double>& pt )
 {
   vgl_polygon<double> pol( &poly[0], static_cast<int>(poly.size()) );
   return pol.contains( pt );
 }
-
 
 // Compute intersection points
 void intersecting_points( const unsigned ni, const unsigned nj,
@@ -105,13 +76,11 @@ void intersecting_points( const unsigned ni, const unsigned nj,
   }
 }
 
-
 // Return area of a set of points
 double convex_area( const std::vector< vgl_point_2d<double> >& poly )
 {
   return vgl_area( vgl_convex_hull( poly ) );
 }
-
 
 // Compare two points, used for sorting.
 bool compare_poly_pts( const vgl_point_2d<double>& p1, const vgl_point_2d<double>& p2 )
@@ -127,7 +96,6 @@ bool compare_poly_pts( const vgl_point_2d<double>& p1, const vgl_point_2d<double
 
   return ( p1.y() < p2.y() );
 }
-
 
 // Remove duplicates from the array while sorting it
 void
@@ -157,9 +125,7 @@ sort_and_remove_duplicates( std::vector< vgl_point_2d<double> >& poly )
   }
 }
 
-
 } // end namespace anonymous
-
 
 // Calculate percent overlap.
 double
@@ -230,7 +196,6 @@ overlap( const vnl_double_3x3& h, const unsigned ni, const unsigned nj )
   // 4. Return area overlap
   return ( frame_area > 0 ? intersection_area / frame_area : 0 );
 }
-
 
 } // end namespace vxl
 } // end namespace arrows

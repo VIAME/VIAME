@@ -256,7 +256,7 @@ sprokit::process::type_t const PN ## _port_trait::type_name = sprokit::process::
 sprokit::process::port_t const PN ## _port_trait::port_name = sprokit::process::port_t( # PN ); \
 sprokit::process::port_description_t const PN ## _port_trait::description = sprokit::process::port_description_t( DESCRIP ); }
 
-#if VITAL_VARIADAC_MACRO
+#ifdef VITAL_VARIADAC_MACRO
 
 //
 // Substantial macro magic

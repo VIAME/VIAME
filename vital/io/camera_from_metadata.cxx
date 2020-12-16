@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@
 
 #include <vital/math_constants.h>
 #include <vital/types/metadata_traits.h>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace vital {
@@ -301,7 +302,7 @@ bool
 update_camera_from_metadata(metadata const& md,
                             local_geo_cs const& lgcs,
                             simple_camera_perspective& cam,
-                            rotation_d const& rot_offset)
+               VITAL_UNUSED rotation_d const& rot_offset)
 {
   bool rotation_set = false;
   bool translation_set = false;
@@ -430,9 +431,9 @@ update_metadata_from_camera(simple_camera_perspective const& cam,
     yaw *= rad_to_deg;
     pitch *= rad_to_deg;
     roll *= rad_to_deg;
-    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_YAW_ANGLE, yaw));
-    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_PITCH_ANGLE, pitch));
-    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ROLL_ANGLE, roll));
+    md.add<VITAL_META_SENSOR_YAW_ANGLE>(yaw);
+    md.add<VITAL_META_SENSOR_PITCH_ANGLE>(pitch);
+    md.add<VITAL_META_SENSOR_ROLL_ANGLE>(roll);
   }
 
   if (md.has(VITAL_META_SENSOR_LOCATION))
@@ -441,7 +442,7 @@ update_metadata_from_camera(simple_camera_perspective const& cam,
     const vector_3d loc = cam.get_center() + lgcs.origin().location();
     geo_point gc(loc, lgcs.origin().crs());
 
-    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_LOCATION, gc));
+    md.add<VITAL_META_SENSOR_LOCATION>(gc);
   }
 }
 

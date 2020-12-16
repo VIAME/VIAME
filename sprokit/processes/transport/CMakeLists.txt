@@ -10,8 +10,7 @@ if ( KWIVER_ENABLE_ZeroMQ )
     zmq_transport_receive_process.h
     zmq_transport_send_process.h
     )
-
-  find_package( ZeroMQ REQUIRED)
+  include(kwiver-depends-ZeroMQ)
 endif ( KWIVER_ENABLE_ZeroMQ )
 
 set(sources

@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -65,9 +39,6 @@
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/full_frame_detector.h>
 #include <arrows/core/handle_descriptor_request_core.h>
-#include <arrows/core/hierarchical_bundle_adjust.h>
-#include <arrows/core/initialize_cameras_landmarks.h>
-#include <arrows/core/initialize_cameras_landmarks_keyframe.h>
 #include <arrows/core/initialize_object_tracks_threshold.h>
 #include <arrows/core/interpolate_track_spline.h>
 #include <arrows/core/keyframe_selector_basic.h>
@@ -81,7 +52,6 @@
 #include <arrows/core/track_features_core.h>
 #include <arrows/core/transfer_bbox_with_depth_map.h>
 #include <arrows/core/transform_detected_object_set.h>
-#include <arrows/core/triangulate_landmarks.h>
 #include <arrows/core/uv_unwrap_mesh.h>
 #include <arrows/core/video_input_filter.h>
 #include <arrows/core/video_input_image_list.h>
@@ -91,11 +61,9 @@
 #include <arrows/core/write_object_track_set_kw18.h>
 #include <arrows/core/write_track_descriptor_set_csv.h>
 
-
 namespace kwiver {
 namespace arrows {
 namespace core {
-
 
 // ----------------------------------------------------------------------------
 extern "C"
@@ -138,9 +106,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< filter_tracks >();
   reg.register_algorithm< full_frame_detector >();
   reg.register_algorithm< handle_descriptor_request_core >();
-  reg.register_algorithm< hierarchical_bundle_adjust >();
-  reg.register_algorithm< initialize_cameras_landmarks >();
-  reg.register_algorithm< initialize_cameras_landmarks_keyframe >();
   reg.register_algorithm< initialize_object_tracks_threshold >();
   reg.register_algorithm< interpolate_track_spline >();
   reg.register_algorithm< keyframe_selector_basic >();
@@ -154,7 +119,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< track_features_core >();
   reg.register_algorithm< transfer_bbox_with_depth_map >();
   reg.register_algorithm< transform_detected_object_set >();
-  reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< uv_unwrap_mesh >();
   reg.register_algorithm< video_input_filter >();
   reg.register_algorithm< video_input_image_list >();

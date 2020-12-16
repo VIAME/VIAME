@@ -757,7 +757,8 @@ IMPLEMENT_TEST( cluster_map_config )
   const auto key = kwiver::vital::config_block_key_t( "tunable" );
   const auto tuned_value = kwiver::vital::config_block_key_t( "expected" );
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -785,7 +786,8 @@ IMPLEMENT_TEST( cluster_map_config_tunable )
   const auto key = kwiver::vital::config_block_key_t( "tunable" );
   const auto tuned_value = kwiver::vital::config_block_key_t( "expected" );
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -892,15 +894,17 @@ IMPLEMENT_TEST( cluster_map_config_not_read_only )
   const auto key = kwiver::vital::config_block_key_t( "tunable" );
   const auto tuned_value = kwiver::vital::config_block_key_t( "unexpected" );
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t( "expect" );
   const auto new_key = kwiver::vital::config_block_key_t( "new_key" );
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + proc_name + kwiver::vital::config_block::block_sep + new_key,
-                       tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       proc_name + kwiver::vital::config_block::block_sep() +
+                       new_key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -928,15 +932,17 @@ IMPLEMENT_TEST( cluster_map_config_only_provided )
   const auto key = kwiver::vital::config_block_key_t( "tunable" );
   const auto tuned_value = kwiver::vital::config_block_key_t( "unexpected" );
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t( "expect" );
   const auto new_key = kwiver::vital::config_block_key_t( "new_key" );
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + proc_name + kwiver::vital::config_block::block_sep + new_key,
-                       tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       proc_name + kwiver::vital::config_block::block_sep() +
+                       new_key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -965,15 +971,17 @@ IMPLEMENT_TEST( cluster_map_config_only_conf_provided )
   const auto key = kwiver::vital::config_block_key_t( "tunable" );
   const auto tuned_value = kwiver::vital::config_block_key_t( "unexpected" );
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t( "expect" );
   const auto new_key = kwiver::vital::config_block_key_t( "new_key" );
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + proc_name + kwiver::vital::config_block::block_sep + new_key,
-                       tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       proc_name + kwiver::vital::config_block::block_sep() +
+                       new_key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -1004,15 +1012,17 @@ IMPLEMENT_TEST( cluster_map_config_to_non_process )
   const auto key = kwiver::vital::config_block_key_t( "tunable" );
   const auto tuned_value = kwiver::vital::config_block_key_t( "expected" );
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t( "expect" );
   const auto new_key = kwiver::vital::config_block_key_t( "new_key" );
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + proc_name + kwiver::vital::config_block::block_sep + new_key,
-                       tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       proc_name + kwiver::vital::config_block::block_sep() +
+                       new_key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -1043,8 +1053,9 @@ IMPLEMENT_TEST( cluster_map_config_not_from_cluster )
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + proc_name + kwiver::vital::config_block::block_sep + new_key,
-                       tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       proc_name + kwiver::vital::config_block::block_sep() +
+                       new_key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -1058,7 +1069,8 @@ IMPLEMENT_TEST( cluster_override_mapped )
   const auto proc_name = sprokit::process::name_t( "expect" );
   const auto key = kwiver::vital::config_block_key_t( "tunable" );
 
-  const auto full_key = proc_name + kwiver::vital::config_block::block_sep + key;
+  const auto full_key = proc_name + kwiver::vital::config_block::block_sep() +
+                        key;
   const auto value = kwiver::vital::config_block_value_t( "unexpected" );
 
   // The problem here is that the expect:tunable parameter is meant to be mapped

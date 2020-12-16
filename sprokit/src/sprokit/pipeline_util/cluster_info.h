@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@
 #include "pipe_declaration_types.h"
 #include <sprokit/pipeline/types.h>
 #include <sprokit/pipeline/process_factory.h>
+#include <sprokit/pipeline_util/cluster_bakery.h>
 
 
 namespace sprokit {
@@ -57,17 +58,17 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
     /**
      * \brief Constructor.
      *
-     * \param type_ The type of the cluster.
-     * \param description_ A description of the cluster.
-     * \param ctor_ A function to create an instance of the cluster.
+     * \param type The type of the cluster.
+     * \param description A description of the cluster.
+     * \param ctor A function to create an instance of the cluster.
      */
-    cluster_info(process::type_t const& type_,
-                 process::description_t const& description_,
-                 process_factory_func_t const& ctor_);
+    cluster_info(process::type_t const& type,
+                 process::description_t const& description,
+                 process_factory_func_t const& ctor );
     /**
      * \brief Destructor.
      */
-    ~cluster_info();
+    ~cluster_info() = default;
 
     /// The type of the cluster.
     process::type_t const type;
@@ -76,11 +77,13 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
     process::description_t const description;
 
     /// A factory function to create an instance of the cluster.
-    process_factory_func_t const ctor;
+    sprokit::process_factory_func_t const ctor;
+
+    sprokit::cluster_bakery_sptr m_bakery;
 };
 
 /// A handle to information about a cluster.
-typedef std::shared_ptr<cluster_info> cluster_info_t;
+using cluster_info_t =  std::shared_ptr<cluster_info>;
 
 } // end namespace sprokit
 

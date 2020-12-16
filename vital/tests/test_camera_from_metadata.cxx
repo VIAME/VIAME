@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,22 +93,22 @@ metadata_sptr generate_metadata()
 
   // sample RPC metadata read by GDAL from the following 2016 MVS Benchmark image
   // 01SEP15WV031000015SEP01135603-P1BS-500497284040_01_P001_________AAE_0AAAAABPABP0.NTF
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_HEIGHT_OFFSET, HEIGHT_OFFSET ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_HEIGHT_SCALE, HEIGHT_SCALE ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_LAT_OFFSET, LAT_OFFSET ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_LAT_SCALE, LAT_SCALE ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_LONG_OFFSET, LONG_OFFSET ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_LONG_SCALE, LONG_SCALE ) );
+  md->add< VITAL_META_RPC_HEIGHT_OFFSET >( HEIGHT_OFFSET );
+  md->add< VITAL_META_RPC_HEIGHT_SCALE >( HEIGHT_SCALE );
+  md->add< VITAL_META_RPC_LAT_OFFSET >( LAT_OFFSET );
+  md->add< VITAL_META_RPC_LAT_SCALE >( LAT_SCALE );
+  md->add< VITAL_META_RPC_LONG_OFFSET >( LONG_OFFSET );
+  md->add< VITAL_META_RPC_LONG_SCALE >( LONG_SCALE );
 
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_ROW_OFFSET, ROW_OFFSET ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_ROW_SCALE, ROW_SCALE ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_COL_OFFSET, COL_OFFSET ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_COL_SCALE, COL_SCALE ) );
+  md->add< VITAL_META_RPC_ROW_OFFSET >( ROW_OFFSET );
+  md->add< VITAL_META_RPC_ROW_SCALE >( ROW_SCALE );
+  md->add< VITAL_META_RPC_COL_OFFSET >( COL_OFFSET );
+  md->add< VITAL_META_RPC_COL_SCALE >( COL_SCALE );
 
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_ROW_NUM_COEFF, row_num_coeff ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_ROW_DEN_COEFF, row_den_coeff ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_COL_NUM_COEFF, col_num_coeff ) );
-  md->add( NEW_METADATA_ITEM( VITAL_META_RPC_COL_DEN_COEFF, col_den_coeff ) );
+  md->add< VITAL_META_RPC_ROW_NUM_COEFF >( row_num_coeff );
+  md->add< VITAL_META_RPC_ROW_DEN_COEFF >( row_den_coeff );
+  md->add< VITAL_META_RPC_COL_NUM_COEFF >( col_num_coeff );
+  md->add< VITAL_META_RPC_COL_DEN_COEFF >( col_den_coeff );
 
   return md;
 }

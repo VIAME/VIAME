@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,5 +52,4 @@ extern SharedPointerCache< kwiver::vital::detected_object_type,
 
 } }
 
-
-#endif //VITAL_C_HELPERS_DETECTED_OBJECT_TYPE_H_
+#endif

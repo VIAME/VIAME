@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -34,6 +8,8 @@
  */
 
 #include "image_container.h"
+
+#include <vital/vital_config.h>
 
 #include <arrows/ocv/mat_image_memory.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -62,7 +38,7 @@ image_container
         cv::Mat new_color;
         new_color.create( d.rows, d.cols, d.type() );
 
-        cv::cvtColor(data_, new_color, (data_.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        cv::cvtColor(data_, new_color, (data_.channels() == 3)?cv::COLOR_BGR2RGB:cv::COLOR_BGRA2RGBA);
         data_ = new_color;
         break;
       }
@@ -76,7 +52,6 @@ image_container
     }
   }
 }
-
 
 // ----------------------------------------------------------------------------
 /// Constructor - convert base image container to cv::Mat
@@ -96,7 +71,6 @@ image_container
   }
 }
 
-
 /// The size of the image data in bytes
 size_t
 image_container
@@ -105,20 +79,30 @@ image_container
   return data_.rows * data_.step;
 }
 
-
 // ----------------------------------------------------------------------------
 /// Convert an OpenCV cv::Mat to a VITAL image
 image
 image_container
-::ocv_to_vital(const cv::Mat& img, ColorMode cm)
+::ocv_to_vital(const cv::Mat& img,
+               VITAL_UNUSED ColorMode cm)
 {
-  image_memory_sptr memory = std::make_shared<mat_image_memory>(img);
+  // if the cv::Mat has reference counted memory then wrap it to keep a
+  // counted reference too it.  If it doesn't own its memory, then the
+  // vital image won't take ownership either
+  image_memory_sptr memory;
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
+  if ( img.refcount )
+#else
+  if ( img.u )
+#endif
+  {
+    memory = std::make_shared<mat_image_memory>(img);
+  }
 
   return image(memory, img.data, img.cols, img.rows, img.channels(),
                img.channels(), img.step1(), 1,
                ocv_to_vital(img.type()));
 }
-
 
 // ----------------------------------------------------------------------------
 /// Convert an OpenCV cv::Mat type value to a vital::image_pixel_traits
@@ -148,7 +132,6 @@ image_container
                    "kwiver::arrows::ocv::image_container::ocv_to_vital(int)");
   }
 }
-
 
 // ----------------------------------------------------------------------------
 /// Convert a VITAL image to an OpenCV cv::Mat
@@ -180,7 +163,7 @@ image_container
           dynamic_cast<mat_image_memory*>(memory.get()) )
     {
       // extract the existing reference counter from the VITAL wrapper
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
       out.refcount = mat_memory->get_ref_counter();
 #else
       out.u = mat_memory->get_umatdata();
@@ -203,7 +186,7 @@ image_container
         case CV_32F:
         {
           cv::Mat bgr;
-          cv::cvtColor(out, bgr, (out.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+          cv::cvtColor(out, bgr, (out.channels() == 3)?cv::COLOR_BGR2RGB:cv::COLOR_BGRA2RGBA);
           return bgr;
         }
         case CV_8S:
@@ -239,7 +222,7 @@ image_container
       case CV_32F:
       {
         cv::Mat bgr;
-        cv::cvtColor(out, bgr, (out.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        cv::cvtColor(out, bgr, (out.channels() == 3)?cv::COLOR_BGR2RGB:cv::COLOR_BGRA2RGBA);
         return bgr;
       }
       case CV_8S:
@@ -253,7 +236,6 @@ image_container
   }
   return out;
 }
-
 
 // ----------------------------------------------------------------------------
 /// Convert a vital::image_pixel_traits to an OpenCV cv::Mat type integer
@@ -310,7 +292,6 @@ image_container
                "kwiver::arrows::ocv::image_container::vital_to_ocv(pixel_traits_t)");
 }
 
-
 // ----------------------------------------------------------------------------
 /// Extract a cv::Mat from any image container
 cv::Mat
@@ -320,7 +301,7 @@ image_container_to_ocv_matrix(const vital::image_container& img, image_container
   if(const ocv::image_container* c =
           dynamic_cast<const ocv::image_container*>(&img))
   {
-    if(cm != image_container::BGR_COLOR || 
+    if(cm != image_container::BGR_COLOR ||
       result.channels() < 3 || result.channels() > 4)
     {
       //Want something other than a BGR(A) image
@@ -340,7 +321,7 @@ image_container_to_ocv_matrix(const vital::image_container& img, image_container
       case CV_8U:
       case CV_16U:
       case CV_32F:
-        cv::cvtColor(result, result, (result.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        cv::cvtColor(result, result, (result.channels() == 3)?cv::COLOR_BGR2RGB:cv::COLOR_BGRA2RGBA);
         break;
       case CV_8S:
       case CV_16S:

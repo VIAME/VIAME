@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -63,19 +37,17 @@ void add_rpc_metadata(char* raw_md, vital::metadata_sptr md)
     return;
   }
 
-#define MAP_METADATA_SCALAR( GN, KN )                       \
-if ( key == #GN)                                            \
-{                                                           \
-  md->add( NEW_METADATA_ITEM(                               \
-    vital::VITAL_META_RPC_ ## KN, std::stod( value ) ) ) ;  \
-}                                                           \
+#define MAP_METADATA_SCALAR( GN, KN )                             \
+if ( key == #GN )                                                 \
+{                                                                 \
+  md->add< vital::VITAL_META_RPC_ ## KN >( std::stod( value ) );  \
+}
 
-#define MAP_METADATA_COEFF( GN, KN )          \
-if ( key == #GN)                              \
-{                                             \
-  md->add( NEW_METADATA_ITEM(                 \
-    vital::VITAL_META_RPC_ ## KN, value ) );  \
-}                                             \
+#define MAP_METADATA_COEFF( GN, KN )                \
+if ( key == #GN )                                   \
+{                                                   \
+  md->add< vital::VITAL_META_RPC_ ## KN >( value ); \
+}
 
   MAP_METADATA_SCALAR( HEIGHT_OFF,   HEIGHT_OFFSET )
   MAP_METADATA_SCALAR( HEIGHT_SCALE, HEIGHT_SCALE )
@@ -115,12 +87,11 @@ void add_nitf_metadata(char* raw_md, vital::metadata_sptr md)
     return;
   }
 
-#define MAP_METADATA_COEFF( GN, KN )          \
-if ( key == #GN)                              \
-{                                             \
-  md->add( NEW_METADATA_ITEM(                 \
-    vital::VITAL_META_NITF_ ## KN, value ) );  \
-}                                             \
+#define MAP_METADATA_COEFF( GN, KN )                  \
+if ( key == #GN )                                     \
+{                                                     \
+  md->add< vital::VITAL_META_NITF_ ## KN >( value );  \
+}
 
   MAP_METADATA_COEFF( NITF_IDATIM, IDATIM )
   MAP_METADATA_COEFF( NITF_BLOCKA_FRFC_LOC_01, BLOCKA_FRFC_LOC_01 )
@@ -208,8 +179,7 @@ image_container
 
   vital::metadata_sptr md = std::make_shared<vital::metadata>();
 
-  md->add( NEW_METADATA_ITEM(
-    kwiver::vital::VITAL_META_IMAGE_URI, filename ) );
+  md->add< kwiver::vital::VITAL_META_IMAGE_URI >( filename );
 
   // Get geotransform and calculate corner points
   double geo_transform[6];
@@ -229,8 +199,8 @@ image_container
     points.push_back( apply_geo_transform(geo_transform, w, 0) );
     points.push_back( apply_geo_transform(geo_transform, w, h ) );
 
-    md->add( NEW_METADATA_ITEM( vital::VITAL_META_CORNER_POINTS,
-      vital::geo_polygon( points, atoi( osrs.GetAuthorityCode("GEOGCS") ) ) ) );
+    md->add< vital::VITAL_META_CORNER_POINTS >(
+      vital::geo_polygon( points, atoi( osrs.GetAuthorityCode("GEOGCS") ) ) );
   }
 
   // Get RPC metadata

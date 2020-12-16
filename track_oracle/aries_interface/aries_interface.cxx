@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2011-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "aries_interface.h"
 #include <iostream>
@@ -73,7 +71,6 @@ struct aries_interface_impl
   }
 
 };
-
 
 /*
   initialize the map of activity names to their positions
@@ -376,7 +373,6 @@ aries_interface_impl
   }
 }
 
-
 bool
 aries_interface
 ::promote_to_PERSON_MOVING( size_t index )
@@ -398,7 +394,6 @@ aries_interface
   return (probe != p->activity_to_PV_promotion_map.end()) &&
     (probe->second == aries_interface_impl::PROMOTE_TO_V);
 }
-
 
 size_t
 aries_interface
@@ -482,7 +477,6 @@ aries_interface
 const string
 aries_interface
 ::PVO_NULL = "null";
-
 
 } // ...track_oracle
 } // ...kwiver

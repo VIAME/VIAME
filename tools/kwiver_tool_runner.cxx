@@ -1,33 +1,6 @@
-/*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <vital/applets/kwiver_applet.h>
 #include <vital/applets/applet_context.h>
@@ -37,7 +10,7 @@
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/plugin_loader/plugin_filter_category.h>
 #include <vital/plugin_loader/plugin_filter_default.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/plugin_loader/plugin_manager_internal.h>
 #include <vital/util/get_paths.h>
 
 #include <cstdlib>
@@ -104,7 +77,6 @@ public:
   std::string m_applet_name;
 };
 
-
 // ----------------------------------------------------------------------------
 /**
  * Generate list of all applets that have been discovered.
@@ -141,7 +113,6 @@ void tool_runner_usage( applet_context_t ctxt,
   }
 }
 
-
 // ----------------------------------------------------------------------------
 /**
  * This function handles the "help" operation. If there is an arg
@@ -176,7 +147,6 @@ void help_applet( const command_line_parser& options,
   std::cout << applet->m_cmd_options->help();
 }
 
-
 // ============================================================================
 int main(int argc, char *argv[])
 {
@@ -186,18 +156,10 @@ int main(int argc, char *argv[])
   //
   applet_context_t tool_context = std::make_shared< kwiver::tools::applet_context >();
 
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  kwiver::vital::plugin_manager_internal& vpm = kwiver::vital::plugin_manager_internal::instance();
+
   const std::string exec_path = kwiver::vital::get_executable_path();
-  vpm.add_search_path(exec_path + "/../lib/kwiver/modules");
-  vpm.add_search_path(exec_path + "/../lib/kwiver/modules/applets");
-  vpm.add_search_path(exec_path + "/../lib/kwiver/processes");
-
-  // remove all default plugin filters
-  vpm.get_loader()->clear_filters();
-
-  // Add filter to select all plugins
-  kwiver::vital::plugin_filter_handle_t filt = std::make_shared<kwiver::vital::plugin_filter_default>();
-  vpm.get_loader()->add_filter( filt );
+  vpm.add_search_path(exec_path + "/../lib/kwiver/plugins");
 
   vpm.load_all_plugins();
 

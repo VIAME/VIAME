@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -76,7 +50,6 @@ public:
     return m_matlab_engine.get();
   }
 
-
   // ------------------------------------------------------------------
   void check_result()
   {
@@ -87,7 +60,6 @@ public:
     }
   }
 
-
   // ------------------------------------------------------------------
   void eval( const std::string& expr )
   {
@@ -95,7 +67,6 @@ public:
     engine()->eval( expr );
     check_result();
   }
-
 
   // ------------------------------------------------------------------
   void initialize_once()
@@ -134,7 +105,6 @@ public:
     eval( "detector_initialize()" );
   }
 
-
   // --- instance data -----
   matlab_detection_output* m_parent;
   kwiver::vital::logger_handle_t m_logger;
@@ -150,22 +120,17 @@ private:
 
 };
 
-
 // ==================================================================
 matlab_detection_output::
 matlab_detection_output()
   : d( new matlab_detection_output::priv( this ) )
 {
-  attach_logger( "arrows.matlab.matlab_detection_output" );
-  d->m_logger = logger;
 }
-
 
 matlab_detection_output::
 ~matlab_detection_output()
 {
 }
-
 
 // ------------------------------------------------------------------
 vital::config_block_sptr
@@ -181,7 +146,6 @@ get_configuration() const
   return config;
 }
 
-
 // ------------------------------------------------------------------
 void
 matlab_detection_output::
@@ -193,7 +157,6 @@ set_configuration( vital::config_block_sptr config )
   d->m_matlab_program = config->get_value<std::string>( "program_file" );
 }
 
-
 // ------------------------------------------------------------------
 bool
 matlab_detection_output::
@@ -202,25 +165,21 @@ check_configuration( vital::config_block_sptr config ) const
   return true;
 }
 
-
 // ------------------------------------------------------------------
 void
 matlab_detection_output::
-write_set( const kwiver::vital::detected_object_set_sptr set,
+write_set( const kwiver::vital::detected_object_set_sptr detections,
            std::string const&                            image_name )
 {
   d->initialize_once();
 
-  // Get detections from set
-  const auto detections = set->select();
-
   MxArraySptr mx_image_name = std::make_shared<MxArray>( MxArray::Cell() );
   mx_image_name->set( 0, image_name );
   MxArraySptr mx_detections = std::make_shared<MxArray>();
-  MxArraySptr mx_class =  std::make_shared<MxArray>( MxArray::Cell(detections.size(), 2) );
+  MxArraySptr mx_class =  std::make_shared<MxArray>( MxArray::Cell(detections->size(), 2) );
   unsigned det_index(0);
 
-  for( const auto det : detections )
+  for( const auto det : *detections )
   {
     const kwiver::vital::bounding_box_d bbox( det->bounding_box() );
 
@@ -232,15 +191,15 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
     mx_detections->set( det_index, 4, det->confidence() );
 
     // Process classifications if there are any
-    const auto dot( det->type() );
-    if ( dot )
+    const auto cm( det->type() );
+    if ( cm )
     {
-      const auto name_list( dot->class_names() );
+      const auto name_list( cm->class_names() );
       for( auto name : name_list )
       {
         // Add classification entry to cell array
         mx_class->set( det_index, 0, name.c_str() );
-        mx_class->set( det_index, 1, dot->score(name) );
+        mx_class->set( det_index, 1, cm->score(name) );
       } // end foreach
     }
 

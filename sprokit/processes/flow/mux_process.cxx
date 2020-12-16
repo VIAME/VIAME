@@ -362,9 +362,10 @@ mux_process
           break;
         }
 
-        default:
-          VITAL_THROW( invalid_configuration_exception, name(),
-                       "Invalid option specified for termination_policy." );
+      default:
+      case priv::term_policy_t::skip:
+        VITAL_THROW( invalid_configuration_exception, name(),
+                     "Invalid option specified for termination_policy." );
       } // end switch
 
       continue;

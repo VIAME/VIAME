@@ -885,7 +885,8 @@ IMPLEMENT_TEST(reconfigure_tunable)
 
   kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep + key_tunable, tuned_value);
+  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep() +
+                      key_tunable, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
@@ -920,7 +921,8 @@ IMPLEMENT_TEST(reconfigure_non_tunable)
 
   kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_value_t("new_value");
 
-  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep + key_tunable, tuned_value);
+  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep() +
+                      key_tunable, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
@@ -954,7 +956,8 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
 
   const auto tunable_value = kwiver::vital::config_block_value_t("old_value");
 
-  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep + new_key, tunable_value);
+  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep() +
+                      new_key, tunable_value);
 
   pipeline->reconfigure(new_conf);
 }

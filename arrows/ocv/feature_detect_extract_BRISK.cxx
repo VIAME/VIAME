@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -35,12 +9,13 @@
 
 #include "feature_detect_extract_BRISK.h"
 
+#include <vital/vital_config.h>
+
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
 namespace ocv {
-
 
 namespace {
 
@@ -62,7 +37,7 @@ public:
   /// Create new impl instance based on current parameters
   cv::Ptr<cv::BRISK> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv::BRISK>(
       new cv::BRISK( threshold, octaves, pattern_scale )
     );
@@ -99,7 +74,6 @@ public:
 
 } // end anon namespace
 
-
 /// Private implementation class for BRISK feature detection
 class detect_features_BRISK::priv
   : public ocv::priv
@@ -112,7 +86,6 @@ class extract_descriptors_BRISK::priv
 {
 };
 
-
 detect_features_BRISK
 ::detect_features_BRISK()
   : p_( new priv )
@@ -121,12 +94,10 @@ detect_features_BRISK
   detector = p_->create();
 }
 
-
 detect_features_BRISK
 ::~detect_features_BRISK()
 {
 }
-
 
 vital::config_block_sptr
 detect_features_BRISK
@@ -137,7 +108,6 @@ detect_features_BRISK
   return config;
 }
 
-
 void
 detect_features_BRISK
 ::set_configuration(vital::config_block_sptr config)
@@ -148,14 +118,12 @@ detect_features_BRISK
   detector = p_->create();
 }
 
-
 bool
 detect_features_BRISK
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
-
 
 extract_descriptors_BRISK
 ::extract_descriptors_BRISK()
@@ -165,12 +133,10 @@ extract_descriptors_BRISK
   extractor = p_->create();
 }
 
-
 extract_descriptors_BRISK
 ::~extract_descriptors_BRISK()
 {
 }
-
 
 vital::config_block_sptr
 extract_descriptors_BRISK
@@ -180,7 +146,6 @@ extract_descriptors_BRISK
   p_->update_configuration(config);
   return config;
 }
-
 
 void
 extract_descriptors_BRISK
@@ -192,14 +157,12 @@ extract_descriptors_BRISK
   extractor = p_->create();
 }
 
-
 bool
 extract_descriptors_BRISK
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config) const
 {
   return true;
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

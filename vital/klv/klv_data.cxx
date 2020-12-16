@@ -54,11 +54,11 @@ namespace vital {
 klv_data
 ::klv_data(container_t const& raw_packet,
          std::size_t key_offset, std::size_t key_len,
-         std::size_t m_value_offset, std::size_t value_len)
+         std::size_t value_offset, std::size_t value_len)
   : m_raw_data( raw_packet ),
     m_key_offset( key_offset ),
     key_len_( key_len ),
-    m_value_offset( m_value_offset ),
+    m_value_offset( value_offset ),
     m_value_len ( value_len )
 { }
 

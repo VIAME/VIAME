@@ -4,6 +4,8 @@ find_package(ZLIB MODULE REQUIRED)
 include_directories( ${ZLIB_INCLUDE_DIRS} )
 
 set( headers_public
+  activity.h
+  activity_type.h
   bounding_box.h
   detected_object.h
   detected_object_set.h
@@ -28,6 +30,8 @@ set( private_headers
   )
 
 set( sources
+  activity.cxx
+  activity_type.cxx
   bounding_box.cxx
   detected_object.cxx
   detected_object_set.cxx

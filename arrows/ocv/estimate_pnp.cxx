@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -36,7 +10,6 @@
 #include <cmath>
 
 #include "estimate_pnp.h"
-
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
@@ -67,14 +40,12 @@ public:
   vital::logger_handle_t m_logger;
 };
 
-
 /// Constructor
 estimate_pnp
 ::estimate_pnp()
 : d_(new priv)
 {
 }
-
 
 /// Destructor
 estimate_pnp
@@ -100,7 +71,6 @@ estimate_pnp
   return config;
 }
 
-
 /// Set this algorithm's properties via a config block
 void
 estimate_pnp
@@ -111,7 +81,6 @@ estimate_pnp
   d_->max_iterations =
     config->get_value<int>("max_iterations", d_->max_iterations);
 }
-
 
 /// Check that the algorithm's configuration vital::config_block is valid
 bool
@@ -142,7 +111,6 @@ estimate_pnp
 
   return good_conf;
 }
-
 
 /// Estimate a camera pose from corresponding points
 vital::camera_perspective_sptr
@@ -178,72 +146,45 @@ estimate_pnp
                              static_cast<float>(X.z())));
   }
 
-  cv::Mat best_inliers_mat;
-  cv::Mat best_rvec, best_tvec;
-
-
-  int num_iterations = 5;
-  double reproj_error = 4;
-  double OCV_confidence = 0.98;  //I'm not sure what this is for.
+  const double reproj_error = 4;
 
   vital::matrix_3x3d K = cal->as_matrix();
   cv::Mat cv_K;
   cv::eigen2cv(K, cv_K);
 
-  double confidence = 0;
-  double confidence_thresh = d_->confidence_threshold;
-  int max_iterations = d_->max_iterations;  // set some maximum because we don't
-                                            // want to wait forever
-  int iterations = 0;
-  double best_inlier_ratio = 0;
-  const double sample_size = 3;
-
   std::vector<double> dist_coeffs = get_ocv_dist_coeffs(cal);
 
-  while (confidence < confidence_thresh && iterations < max_iterations)
-  {
-    cv::Mat inliers_mat;
-    cv::Mat rvec, tvec;
+  cv::Mat inliers_mat;
+  cv::Mat rvec, tvec;
+  bool success =
     cv::solvePnPRansac(Xs, projs, cv_K, dist_coeffs, rvec, tvec, false,
-      num_iterations, reproj_error, OCV_confidence, inliers_mat,
-      cv::SOLVEPNP_EPNP);
+                       d_->max_iterations, reproj_error,
+                       d_->confidence_threshold, inliers_mat,
+                       cv::SOLVEPNP_EPNP);
 
-    iterations += num_iterations;
+  double inlier_ratio = ((double)inliers_mat.rows / (double)Xs.size());
 
-    if (inliers_mat.rows > best_inliers_mat.rows)
-    {
-      //we found more inliers
-      best_inliers_mat = inliers_mat;
-      best_inlier_ratio = ((double)best_inliers_mat.rows / (double)Xs.size());
-      best_tvec = tvec;
-      best_rvec = rvec;
-    }
-
-    confidence = 1.0 - std::pow((1.0 - std::pow(best_inlier_ratio, sample_size)),
-      double(iterations));
-  }
-
-  if (best_tvec.rows == 0 || best_rvec.rows == 0)
+  if (!success || tvec.rows == 0 || rvec.rows == 0)
   {
-    LOG_DEBUG(d_->m_logger, "no PnP solution after " << iterations << " iterations "
-      " with confidence " << confidence << " and best inlier ratio " <<
-      best_inlier_ratio );
+    LOG_DEBUG(d_->m_logger, "no PnP solution after " << d_->max_iterations
+              << " iterations with confidence " << d_->confidence_threshold
+              << " and best inlier ratio " << inlier_ratio );
 
     return vital::camera_perspective_sptr();
   }
 
   inliers.assign(Xs.size(), 0);
 
-  for(int i = 0; i < best_inliers_mat.rows; ++i)
+  for(int i = 0; i < inliers_mat.rows; ++i)
   {
-    int idx = best_inliers_mat.at<int>(i);
+    int idx = inliers_mat.at<int>(i);
     inliers[idx] = true;
   }
 
   auto res_cam = std::make_shared<vital::simple_camera_perspective>();
   Eigen::Vector3d rvec_eig, tvec_eig;
-  cv::cv2eigen(best_rvec, rvec_eig);
-  cv::cv2eigen(best_tvec, tvec_eig);
+  cv::cv2eigen(rvec, rvec_eig);
+  cv::cv2eigen(tvec, tvec_eig);
   vital::rotation_d rot(rvec_eig);
   res_cam->set_rotation(rot);
   res_cam->set_translation(tvec_eig);
@@ -251,10 +192,10 @@ estimate_pnp
 
   if (!std::isfinite(res_cam->center().x()))
   {
-    LOG_DEBUG(d_->m_logger, "best_rvec " << best_rvec.at<double>(0) << " " <<
-      best_rvec.at<double>(1) << " " << best_rvec.at<double>(2));
-    LOG_DEBUG(d_->m_logger, "best_tvec " << best_tvec.at<double>(0) << " " <<
-      best_tvec.at<double>(1) << " " << best_tvec.at<double>(2));
+    LOG_DEBUG(d_->m_logger, "rvec " << rvec.at<double>(0) << " " <<
+              rvec.at<double>(1) << " " << rvec.at<double>(2));
+    LOG_DEBUG(d_->m_logger, "tvec " << tvec.at<double>(0) << " " <<
+              tvec.at<double>(1) << " " << tvec.at<double>(2));
     LOG_DEBUG(d_->m_logger, "rotation angle " << res_cam->rotation().angle());
     LOG_WARN(d_->m_logger, "non-finite camera center found");
     return vital::camera_perspective_sptr();
@@ -262,7 +203,6 @@ estimate_pnp
 
   return std::dynamic_pointer_cast<vital::camera_perspective>(res_cam);
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

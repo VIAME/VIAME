@@ -69,7 +69,6 @@ public:
 
   cluster_bakery const m_bakery;
 
-
 private:
   kwiver::vital::config_block_sptr m_default_config;
 

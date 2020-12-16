@@ -35,6 +35,7 @@
 
 #include "process_instrumentation.h"
 
+#include <vital/vital_config.h>
 #include <sprokit/pipeline/process.h>
 
 namespace sprokit {
@@ -55,7 +56,7 @@ set_process( sprokit::process const& proc )
 
 void
 process_instrumentation::
-configure( kwiver::vital::config_block_sptr const config )
+configure( VITAL_UNUSED kwiver::vital::config_block_sptr const config )
 { }
 
 

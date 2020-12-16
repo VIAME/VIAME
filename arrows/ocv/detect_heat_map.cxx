@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017.2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -220,7 +194,6 @@ mask_bounding_box( const cv::Mat image, double threshold = 0, int first_row = 0,
 
   return std::make_tuple( first_row, last_row+1, first_col, last_col+1 );
 }
-
 
 // ---------------------------------------------------------------------------
 // ------------------------------ Sprokit ------------------------------------
@@ -621,7 +594,7 @@ public:
     mask.col(0) = 0;
     mask.row(mask.rows-1) = 0;
     mask.col(mask.cols-1) = 0;
-    cv::findContours(mask, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE,
+    cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE,
                      cv::Point(0, 0) );
 
     auto dot = std::make_shared< detected_object_type >();
@@ -654,7 +627,6 @@ public:
 
 };
 
-
 /// Constructor
 detect_heat_map
 ::detect_heat_map()
@@ -664,13 +636,11 @@ detect_heat_map
   d_->m_logger = logger();
 }
 
-
 /// Destructor
 detect_heat_map
 ::~detect_heat_map() noexcept
 {
 }
-
 
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
@@ -733,7 +703,6 @@ detect_heat_map
 
   return config;
 }
-
 
 /// Set this algo's properties via a config block
 void
@@ -839,7 +808,6 @@ detect_heat_map
   }
 }
 
-
 bool
 detect_heat_map
 ::check_configuration(vital::config_block_sptr config_in) const
@@ -849,7 +817,6 @@ detect_heat_map
   kwiver::vital::config_difference cd( config, config_in );
   return ! cd.warn_extra_keys( logger() );
 }
-
 
 /// Return homography to stabilize the image_src relative to the key frame
 detected_object_set_sptr
@@ -871,7 +838,6 @@ detect_heat_map
 
   return d_->get_bounding_boxes(cv_src);
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

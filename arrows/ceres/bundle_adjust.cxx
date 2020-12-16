@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -40,6 +14,8 @@
 #include <unordered_set>
 
 #include <vital/io/eigen_io.h>
+#include <vital/vital_config.h>
+
 #include <arrows/ceres/reprojection_error.h>
 #include <arrows/ceres/types.h>
 #include <arrows/ceres/options.h>
@@ -53,7 +29,6 @@ namespace kwiver {
 namespace arrows {
 namespace ceres {
 
-
 // ============================================================================
 // A class to register callbacks with Ceres
 class StateCallback
@@ -63,7 +38,7 @@ public:
   explicit StateCallback(bundle_adjust* b = NULL)
     : bap(b) {}
 
-  ::ceres::CallbackReturnType operator() (const ::ceres::IterationSummary& summary)
+  ::ceres::CallbackReturnType operator() ( VITAL_UNUSED const ::ceres::IterationSummary& summary)
   {
     return ( bap && !bap->trigger_callback() )
            ? ::ceres::SOLVER_TERMINATE_SUCCESSFULLY
@@ -72,7 +47,6 @@ public:
 
   bundle_adjust* bap;
 };
-
 
 // ============================================================================
 // Private implementation class
@@ -99,7 +73,6 @@ public:
   // the scale of the loss function
   double loss_function_scale;
 
-
   // the input cameras to update in place
   camera_map::map_camera_t cams;
   // the input landmarks to update in place
@@ -116,7 +89,6 @@ public:
   StateCallback ceres_callback;
 };
 
-
 // ----------------------------------------------------------------------------
 // Constructor
 bundle_adjust
@@ -127,13 +99,11 @@ bundle_adjust
   d_->ceres_callback.bap = this;
 }
 
-
 // Destructor
 bundle_adjust
 ::~bundle_adjust()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 // Get this algorithm's \link vital::config_block configuration block \endlink
@@ -160,7 +130,6 @@ bundle_adjust
 
   return config;
 }
-
 
 // ----------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
@@ -203,12 +172,11 @@ bundle_adjust
   }
 }
 
-
 // ----------------------------------------------------------------------------
 // Check that the algorithm's currently configuration is valid
 bool
 bundle_adjust
-::check_configuration(config_block_sptr config) const
+::check_configuration( VITAL_UNUSED config_block_sptr config ) const
 {
   std::string msg;
   if( !d_->options.IsValid(&msg) )
@@ -276,7 +244,6 @@ bundle_adjust
   landmarks = std::make_shared<simple_landmark_map>(lms);
   cameras = std::make_shared<simple_camera_perspective_map>(cams);
 }
-
 
 // ----------------------------------------------------------------------------
 // Optimize the camera and landmark parameters given a set of tracks
@@ -431,7 +398,6 @@ bundle_adjust
     }
   }
 
-
   if (d_->camera_path_smoothness > 0.0 ||
       d_->camera_forward_motion_damping > 0.0)
   {
@@ -449,7 +415,6 @@ bundle_adjust
     // Add forward motion regularization residuals
     d_->add_forward_motion_damping_cost(problem, ordered_params, d_->frame_to_intr_map);
   }
-
 
   //fix all the cameras in the to_fix_cameras list
   std::unordered_set<unsigned int> to_fix_intrinsics;
@@ -600,7 +565,6 @@ bundle_adjust
   cameras.set_from_base_camera_map(d_->cams);
 }
 
-
 // ----------------------------------------------------------------------------
 // Set a callback function to report intermediate progress
 void
@@ -615,7 +579,6 @@ bundle_adjust
     o.callbacks.push_back(&d_->ceres_callback);
   }
 }
-
 
 // ----------------------------------------------------------------------------
 // This function is called by a Ceres callback to trigger a kwiver callback
@@ -647,7 +610,6 @@ bundle_adjust
   }
   return true;
 }
-
 
 } // end namespace ceres
 } // end namespace arrows

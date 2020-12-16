@@ -72,8 +72,8 @@ vital_config_block_block_sep()
   if ( ! static_bs )
   {
     STANDARD_CATCH(
-      "C::config_block::block_sep", NULL,
-      std::string bs( kwiver::vital::config_block::block_sep );
+      "C::config_block::block_sep()", NULL,
+      std::string bs( kwiver::vital::config_block::block_sep() );
       static_bs = bs.c_str();
     );
   }
@@ -91,7 +91,7 @@ vital_config_block_global_value()
   {
     STANDARD_CATCH(
       "C::config_block::global_value", NULL,
-      std::string gv( kwiver::vital::config_block::global_value );
+      std::string gv( kwiver::vital::config_block::global_value() );
       static_gv = gv.c_str();
     );
   }
