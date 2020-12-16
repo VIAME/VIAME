@@ -36,14 +36,16 @@ from __future__ import print_function, absolute_import
 
 import nose.tools
 
+from kwiver.arrows.serialize.json import serialize_activity_type
+from kwiver.arrows.serialize.json import deserialize_activity_type
 from kwiver.arrows.serialize.json import serialize_bounding_box
 from kwiver.arrows.serialize.json import deserialize_bounding_box
-from kwiver.arrows.serialize.json import serialize_class_map
-from kwiver.arrows.serialize.json import deserialize_class_map
 from kwiver.arrows.serialize.json import serialize_detected_object
 from kwiver.arrows.serialize.json import deserialize_detected_object
 from kwiver.arrows.serialize.json import serialize_detected_object_set
 from kwiver.arrows.serialize.json import deserialize_detected_object_set
+from kwiver.arrows.serialize.json import serialize_detected_object_type
+from kwiver.arrows.serialize.json import deserialize_detected_object_type
 from kwiver.arrows.serialize.json import serialize_image
 from kwiver.arrows.serialize.json import deserialize_image
 from kwiver.arrows.serialize.json import serialize_timestamp
@@ -59,14 +61,16 @@ from kwiver.arrows.serialize.json import deserialize_object_track_state
 from kwiver.arrows.serialize.json import serialize_object_track_set
 from kwiver.arrows.serialize.json import deserialize_object_track_set
 
+from kwiver.arrows.tests.serialize_json_utils import create_activity_type
+from kwiver.arrows.tests.serialize_json_utils import compare_activity_type
 from kwiver.arrows.tests.serialize_json_utils import create_bounding_box
 from kwiver.arrows.tests.serialize_json_utils import compare_bounding_box
-from kwiver.arrows.tests.serialize_json_utils import create_class_map
-from kwiver.arrows.tests.serialize_json_utils import compare_class_map
 from kwiver.arrows.tests.serialize_json_utils import create_detected_object
 from kwiver.arrows.tests.serialize_json_utils import compare_detected_object
 from kwiver.arrows.tests.serialize_json_utils import create_detected_object_set
 from kwiver.arrows.tests.serialize_json_utils import compare_detected_object_set
+from kwiver.arrows.tests.serialize_json_utils import create_detected_object_type
+from kwiver.arrows.tests.serialize_json_utils import compare_detected_object_type
 from kwiver.arrows.tests.serialize_json_utils import create_image
 from kwiver.arrows.tests.serialize_json_utils import compare_image
 from kwiver.arrows.tests.serialize_json_utils import create_timestamp
@@ -82,17 +86,17 @@ from kwiver.arrows.tests.serialize_json_utils import compare_object_track_state
 from kwiver.arrows.tests.serialize_json_utils import create_object_track_set
 from kwiver.arrows.tests.serialize_json_utils import compare_object_track_set
 
+def test_serialize_activity_type():
+    at = create_activity_type()
+    serialized_at = serialize_activity_type(at)
+    deserialized_at = deserialize_activity_type(serialized_at)
+    nose.tools.assert_true(compare_activity_type( at, deserialized_at ) )
+
 def test_serialize_bounding_box():
     bbox = create_bounding_box()
     serialized_bbox = serialize_bounding_box(bbox)
     deserialized_bbox = deserialize_bounding_box(serialized_bbox)
     nose.tools.assert_true(compare_bounding_box( bbox, deserialized_bbox ) )
-
-def test_serialize_class_map():
-    cm = create_class_map()
-    serialized_cm = serialize_class_map(cm)
-    deserialized_cm = deserialize_class_map(serialized_cm)
-    nose.tools.assert_true(compare_class_map( cm, deserialized_cm ) )
 
 def test_serialize_detected_object():
     do = create_detected_object()
@@ -105,6 +109,12 @@ def test_serialize_detected_object_set():
     serialized_dos = serialize_detected_object_set(dos)
     deserialized_dos = deserialize_detected_object_set(serialized_dos)
     nose.tools.assert_true(compare_detected_object_set( dos, deserialized_dos ) )
+
+def test_serialize_detected_object_type():
+    dot = create_detected_object_type()
+    serialized_dot = serialize_detected_object_type(dot)
+    deserialized_dot = deserialize_detected_object_type(serialized_dot)
+    nose.tools.assert_true(compare_detected_object_type( dot, deserialized_dot ) )
 
 def test_serialize_image():
     img = create_image()

@@ -159,7 +159,7 @@ Triangulate Landmarks Algorithm
 
 .. _vxl_vidl_ffmpeg_video_input:
 
-FFMPEG Video Input Algorithm
+FFmpeg Video Input Algorithm
 ----------------------------
 
 ..  doxygenclass:: kwiver::arrows::vxl::vidl_ffmpeg_video_input

@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2010-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <stdexcept>
 #include <iostream>
@@ -79,7 +77,6 @@ struct special_io_handler< false, T, Type >
 // (now without 'typeof')
 //
 
-
 template< typename T >
 class is_that_a_class
 {
@@ -136,7 +133,6 @@ struct type_has_default_value_member
   static const bool value = impl_type_has_default< is_that_a_class<T>::value, T >::value;
 };
 
-
 template< bool T_has_default_value, typename T, typename Type >
 struct set_default_value_handler
 {
@@ -154,7 +150,6 @@ struct set_default_value_handler< false, T, Type >
     // do nothing
   }
 };
-
 
 template< typename T >
 track_field<T>
@@ -275,7 +270,6 @@ track_field<T>
   // types match, return the field handle
   return f;
 }
-
 
 template< typename T >
 typename track_field<T>::Type

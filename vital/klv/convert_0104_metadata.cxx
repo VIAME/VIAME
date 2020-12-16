@@ -39,8 +39,8 @@
 #include <vital/klv/klv_data.h>
 
 #include <vital/exceptions/metadata.h>
-
 #include <vital/types/geodesy.h>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace vital {
@@ -105,7 +105,7 @@ is_valid_lon_lat( vector_3d const& vec )
  */
 kwiver::vital::any
 convert_metadata
-::normalize_0104_tag_data( klv_0104::tag tag,
+::normalize_0104_tag_data( VITAL_UNUSED klv_0104::tag tag,
                            kwiver::vital::vital_metadata_tag vital_tag,
                            kwiver::vital::any const& data )
 {

@@ -237,8 +237,8 @@ public:
   };
 
   process_registrar( kwiver::vital::plugin_loader& vpl,
-                       const std::string& mod_name )
-    : plugin_registrar( vpl, mod_name )
+                       const std::string& mod_name_ )
+    : plugin_registrar( vpl, mod_name_ )
   {
   }
 

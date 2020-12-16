@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -153,10 +153,7 @@ public:
    * @param val Value to be wrapped in datum for port.
    */
   template <typename T>
-  void add_value( sprokit::process::port_t const& port, T const& val )
-  {
-    m_port_datum_set[port] = sprokit::datum::new_datum<T>( val );
-  }
+  void add_value( ::sprokit::process::port_t const& port, T const& val );
 
   /**
    * @brief Query if data set is empty.
@@ -225,15 +222,17 @@ public:
    * type does not match the actual type of the data from the port.
    */
   template<typename T>
-  T get_port_data( sprokit::process::port_t const& port )
-  {
-    auto it = this->find( port );
-    if ( it == this->end() )
-    {
-      throw std::runtime_error( "Data for port \"" + port + "\" is not in the adapter_data_set." );
-    }
-    return it->second->get_datum<T>();
-  }
+  T get_port_data( ::sprokit::process::port_t const& port );
+
+  /**
+   * @brief Return the number of elements in the adapter_data_set.
+   *
+   * This method returns the number of elements stored in the adapter_data_set.
+   * Similar to std::map::size()
+   *
+   * @return Number of elements in the adapter_data_set.
+   */
+  size_t size() const;
 
 protected:
   KWIVER_ADAPTER_NO_EXPORT adapter_data_set( data_set_type type ); // private CTOR - use factory method

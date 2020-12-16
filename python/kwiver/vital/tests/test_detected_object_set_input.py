@@ -34,7 +34,7 @@ import unittest
 
 from kwiver.vital.algo import DetectedObjectSetInput
 from kwiver.vital.config import config
-from kwiver.vital.modules import load_known_modules
+from kwiver.vital.modules.modules import load_known_modules
 from kwiver.vital.types import DetectedObjectSet
 
 SIMULATOR_CONFIG = dict(

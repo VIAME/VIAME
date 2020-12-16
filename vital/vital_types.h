@@ -87,9 +87,6 @@ typedef int64_t activity_id_t;
 /// The type of an activity name
 typedef std::string activity_label_t;
 
-/// The type for an activity confidence
-typedef double activity_confidence_t;
-
 /// Global activity used to denote an undefined activity label
 const activity_label_t UNDEFINED_ACTIVITY("UNDEFINED_ACTIVITY");
 

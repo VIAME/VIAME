@@ -148,15 +148,15 @@ public:
     // header
     if ( ! m_header.empty() )
     {
-      cv::Size tbox = cv::getTextSize( m_header,
+      cv::Size t_box = cv::getTextSize( m_header,
                                        font_face,
                                        font_scale,
                                        font_thickness,
                                        &baseline );
 
       // Calculate point for lower left of text block
-      cv::Point header_org( ( image.cols - tbox.width ) / 2,
-                            tbox.height + 3 );
+      cv::Point header_org( ( image.cols - t_box.width ) / 2,
+                            t_box.height + 3 );
 
       cv::putText( image,
                    m_header,
@@ -170,14 +170,14 @@ public:
     // footer
     if ( ! m_footer.empty() )
     {
-      cv::Size tbox = cv::getTextSize( m_footer,
+      cv::Size t_box = cv::getTextSize( m_footer,
                                        font_face,
                                        font_scale,
                                        font_thickness,
                                        &baseline );
 
       // Calculate point for lower left of text block
-      cv::Point footer_org( ( image.cols - tbox.width ) / 2,
+      cv::Point footer_org( ( image.cols - t_box.width ) / 2,
                             ( image.rows - 3 ) );
 
       cv::putText( image,

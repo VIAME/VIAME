@@ -17,3 +17,7 @@ kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pythonpath_test_process.py
 kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pythonpath_test_scheduler.py
   sprokit/tests/processes
   pythonpath_test_scheduler)
+
+if(KWIVER_ENABLE_PYTORCH)
+  add_subdirectory( pytorch )
+endif()

@@ -268,9 +268,9 @@ convert_metadata
 
       // Source specific metadata tags
 
-      // These are prefixed with the spec. number because the data format is specification specific.
-      CASE2( WEAPON_LOAD, 0601_WEAPON_LOAD );
-      CASE2( WEAPON_FIRED, 0601_WEAPON_FIRED );
+      // These are suffixed with the spec. number because the data format is specification specific.
+      CASE2( WEAPON_LOAD, WEAPON_LOAD_0601 );
+      CASE2( WEAPON_FIRED, WEAPON_FIRED_0601 );
 
 #undef CASE
 #undef CASE2
@@ -388,7 +388,7 @@ convert_metadata
       break;
 
     case KLV_0601_TARGET_LOCATION_ELEV:
-      raw_target_location[2] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LAT, data );
+      raw_target_location[2] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_ELEV, data );
       break;
 
     case KLV_0601_TARGET_LOCATION_LAT:
@@ -399,6 +399,11 @@ convert_metadata
       raw_target_location[0] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LONG, data );
       break;
 
+      // And all the others
+    case KLV_0601_UNKNOWN:
+    case KLV_0601_CHECKSUM:
+    case KLV_0601_ENUM_END:
+    case KLV_0601_GENERIC_FLAG_DATA_01:
     default:
       LOG_DEBUG( logger, "KLV 0601 key: " << int(itr->first) << " is not supported." );
       break;

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <pybind11/stl.h>
+
+#include <vital/vital_config.h>
 
 namespace py = pybind11;
 namespace kwiver {
@@ -73,8 +75,8 @@ class EigenArray
 EigenArray::
 EigenArray(int rows,
            int cols,
-           bool dynamic_rows, // we're ignoring these, but keeping them in for API reasons
-           bool dynamic_cols,
+           VITAL_UNUSED bool dynamic_rows, // we're ignoring these, but keeping them in for API reasons
+           VITAL_UNUSED bool dynamic_cols,
            char ctype)
 {
   type = ctype;

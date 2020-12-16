@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -38,10 +12,10 @@
 #include <iostream>
 #include <set>
 
-#include <vital/util/cpu_timer.h>
-
 #include <arrows/vxl/camera_map.h>
 #include <vital/io/eigen_io.h>
+#include <vital/util/cpu_timer.h>
+#include <vital/vital_config.h>
 
 #include <vpgl/algo/vpgl_bundle_adjust.h>
 
@@ -82,7 +56,6 @@ public:
   double g_tolerance;
 };
 
-
 /// Constructor
 bundle_adjust
 ::bundle_adjust()
@@ -91,13 +64,11 @@ bundle_adjust
   attach_logger( "arrows.vxl.bundle_adjust" );
 }
 
-
 /// Destructor
 bundle_adjust
 ::~bundle_adjust()
 {
 }
-
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
@@ -134,7 +105,6 @@ bundle_adjust
                     "Exit when (max(grad_params) < g_tol)");
   return config;
 }
-
 
 /// Set this algorithm's properties via a config block
 void
@@ -179,15 +149,13 @@ bundle_adjust
   d_->ba.set_g_tolerence(d_->g_tolerance);
 }
 
-
 /// Check that the algorithm's currently configuration is valid
 bool
 bundle_adjust
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
-
 
 /// Optimize the camera and landmark parameters given a set of feature tracks
 void
@@ -256,15 +224,15 @@ bundle_adjust
       }
       super_map_inner_t frame_lm2feature_map;
 
-      for(const track_sptr& t : ftracks)
+      for(const track_sptr& ft : ftracks)
       {
-        const track_id_t id = t->id();
+        const track_id_t id = ft->id();
         // make sure the track id has an associated landmark
 
         if( lms.find(id) != lms.end() )
         {
           auto fts = std::dynamic_pointer_cast<feature_track_state>(
-                          *t->find(frame) );
+                          *ft->find(frame) );
           if( fts && fts->feature )
           {
             frame_lm2feature_map[id] = fts->feature;
@@ -388,7 +356,6 @@ bundle_adjust
 
 #undef SBA_TIMED
 }
-
 
 } // end namespace vxl
 } // end namespace arrows

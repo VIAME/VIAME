@@ -32,6 +32,14 @@ target_link_libraries(python-vital.types-activity
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+kwiver_add_python_library(activity_type
+  vital/types
+  activity_type.cxx
+  )
+target_link_libraries(python-vital.types-activity_type
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 kwiver_add_python_library(bounding_box
   vital/types
   bounding_box.cxx)
@@ -64,13 +72,6 @@ kwiver_add_python_library(category_hierarchy
   vital/types
   category_hierarchy.cxx)
 target_link_libraries(python-vital.types-category_hierarchy
-  PUBLIC ${PYTHON_LIBRARIES}
-         vital)
-
-kwiver_add_python_library(class_map
-  vital/types
-  class_map.cxx)
-target_link_libraries(python-vital.types-class_map
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -113,6 +114,13 @@ kwiver_add_python_library(detected_object_set
   vital/types
   detected_object_set.cxx)
 target_link_libraries(python-vital.types-detected_object_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+kwiver_add_python_library(detected_object_type
+  vital/types
+  detected_object_type.cxx)
+target_link_libraries(python-vital.types-detected_object_type
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -196,21 +204,24 @@ target_link_libraries(python-vital.types-object_track_set
 if(NOT SKBUILD)
   kwiver_create_python_init(vital/types
     types
+    activity_type
     bounding_box
     camera
     camera_intrinsics
     camera_map
     category_hierarchy
-    class_map
     color
     covariance
     descriptor
     descriptor_set
+    # Next module is required by detected_object, so must be loaded first.
+    detected_object_type
     detected_object
     detected_object_set
     eigen
     feature
     homography
+    homography_f2f
     landmark
     rotation
     similarity

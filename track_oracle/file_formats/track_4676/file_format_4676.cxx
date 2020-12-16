@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2012-2014 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "file_format_4676.h"
 
@@ -21,7 +19,6 @@
 using std::numeric_limits;
 using std::vector;
 using std::string;
-
 
 VIDTK_LOGGER("file_format_4676");
 
@@ -118,7 +115,6 @@ extract_tracks(STANAG_4676::TrackMessage::sptr message,
 }
 
 } // anon
-
 
 namespace vidtk
 {

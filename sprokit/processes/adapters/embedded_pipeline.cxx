@@ -39,16 +39,15 @@
 #include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/vital_config.h>
 
 #include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
-
 #include <sprokit/processes/adapters/input_adapter.h>
 #include <sprokit/processes/adapters/input_adapter_process.h>
-
 #include <sprokit/processes/adapters/output_adapter.h>
 #include <sprokit/processes/adapters/output_adapter_process.h>
 
@@ -483,7 +482,7 @@ embedded_pipeline
 // ----------------------------------------------------------------------------
 void
 embedded_pipeline::
-update_config( kwiver::vital::config_block_sptr config )
+update_config( VITAL_UNUSED kwiver::vital::config_block_sptr config )
 {
 }
 

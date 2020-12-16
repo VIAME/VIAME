@@ -97,10 +97,12 @@ serializer_base
 
       algo_config->set_value( ser_type, elem_spec.m_algo_name );
 
-      std::stringstream str;
-      vital::config_block_formatter fmt( algo_config );
-      fmt.print( str );
-      LOG_TRACE( m_logger, "Creating algorithm for (config block):\n" << str.str() << std::endl );
+      {
+        std::stringstream ss;
+        vital::config_block_formatter fmt( algo_config );
+        fmt.print( ss );
+        LOG_TRACE( m_logger, "Creating algorithm for (config block):\n" << ss.str() << std::endl );
+      }
 
       vital::algorithm_sptr base_nested_algo;
 
@@ -113,11 +115,11 @@ serializer_base
       elem_spec.m_serializer = std::dynamic_pointer_cast< vital::algo::data_serializer > ( base_nested_algo );
       if ( ! elem_spec.m_serializer )
       {
-        std::stringstream str;
-        str << "Unable to create serializer for type \""
+        std::stringstream ss;
+        ss << "Unable to create serializer for type \""
             << elem_spec.m_algo_name << "\" for " << m_serialization_type;
 
-        VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), str.str() );
+        VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), ss.str() );
       }
 
       if ( ! vital::algorithm::check_nested_algo_configuration( ser_algo_type,

@@ -120,7 +120,7 @@ main(int argc, char* argv[])
 }
 
 // ==================================================================
-IMPLEMENT_TEST(non_blocking)
+IMPLEMENT_TEST(nonblocking)
 {
   std::stringstream pipeline_desc;
   pipeline_desc

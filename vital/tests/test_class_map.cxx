@@ -33,7 +33,10 @@
  * \brief test class_map class
  */
 
-#include <vital/types/class_map.h>
+#include <vital/types/class_map.txx>
+
+#include <vital/types/activity_type.h>
+#include <vital/types/detected_object_type.h>
 
 #include <gtest/gtest.h>
 
@@ -46,7 +49,12 @@ std::vector<std::string> const names =
 
 std::vector<double> const scores  = { 0.65, 0.6, 0.07, 0.055, 0.005 };
 
+struct test_class_map_tag {};
+
 }
+
+template class kwiver::vital::class_map< test_class_map_tag >;
+using test_class_map = class_map< test_class_map_tag >;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -58,7 +66,7 @@ int main(int argc, char** argv)
 // ----------------------------------------------------------------------------
 TEST(class_map, api)
 {
-  class_map cm( names, scores );
+  test_class_map cm( names, scores );
 
   EXPECT_EQ( 0.07, cm.score( "other" ) );
 
@@ -106,27 +114,29 @@ TEST(class_map, creation_error)
   wrong_size_scores.resize( 4 );
 
   EXPECT_THROW(
-    class_map cm( {}, {} ),
+    test_class_map cm( {}, {} ),
     std::invalid_argument );
 
   EXPECT_THROW(
-    class_map cm( names, wrong_size_scores ),
+    test_class_map cm( names, wrong_size_scores ),
     std::invalid_argument );
 }
 
 // ----------------------------------------------------------------------------
 TEST(class_map, name_pool)
 {
-  class_map cm( names, scores );
+  test_class_map cm( names, scores );
 
   std::vector<std::string> alt_names =
     { "a-person", "a-vehicle", "a-other", "a-clam", "a-barnacle" };
 
-  class_map cm_2( alt_names, scores );
+  test_class_map cm_2( alt_names, scores );
 
-  EXPECT_EQ( 10, class_map::all_class_names().size() );
+  EXPECT_EQ( 10, test_class_map::all_class_names().size() );
+  EXPECT_EQ( 0, activity_type::all_class_names().size() );
+  EXPECT_EQ( 0, detected_object_type::all_class_names().size() );
 
-  for ( auto const& name : class_map::all_class_names() )
+  for ( auto const& name : test_class_map::all_class_names() )
   {
     std::cout << "  --  " << name << std::endl;
   }

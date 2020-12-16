@@ -72,7 +72,7 @@ PYBIND11_MODULE(object_track_set, m)
   .def(py::init<kv::timestamp,
                 kv::bounding_box_d,
                 double,
-                kwiver::vital::class_map_sptr>())
+                kwiver::vital::detected_object_type_sptr>())
   .def(py::init<kv::timestamp,
                 kv::bounding_box_d,
                 double>())

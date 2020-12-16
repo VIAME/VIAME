@@ -14,6 +14,11 @@ Config
 Vital
 
  * Added a missing include file in track.cxx required to build on MSVC 2019.
+ * Changed incorrect metadata tag in convert_0601_metadata.cxx from
+   KLV_0601_TARGET_LOCATION_LAT to KLV_0601_TARGET_LOCATION_ELEV.
+ * Fixed a typo in the TARGET_LOCATION metadata field name.
+ * Updated metadata field names for kv::geo_point types to be more
+   descriptive. Made the distinction between elevation and altitude.
 
 Arrows: Core
 
@@ -29,6 +34,9 @@ Arrows: Core
    remaining cameras multiple times until no further cameras are added.
 
 Arrows: CUDA
+
+ * Fixed a linking error on Linux with some versions of CUDA requiring
+   to "recompile with -fPIC".
 
  * Fixed a bug in launching the integrate_depth_maps CUDA kernel.
    Previously, the kernel would fail to launch if the size of the volume
@@ -52,3 +60,12 @@ Arrows: OpenCV
    A workaround was previously added that forced a deep copy, but this created
    another bug resulting in images with invalid first_pixel() values.
    Both of these issues have been addressed.
+
+Arrows: Serialize
+
+ * Fixed a bug in the JSON serializer for metadata where bool fields caused a
+   runtime error.
+
+ * Fixed a bug in JSON serialization of metadata maps which caused name
+   collisions for multiple metadata packets associated the same frame. This
+   made the output unusable by applications other than KWIVER.

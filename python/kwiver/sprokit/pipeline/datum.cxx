@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
+ * Copyright 2011-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,16 +62,17 @@
  * \brief Python bindings for \link sprokit::datum\endlink.
  */
 
-using namespace pybind11;
 
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned char>);
 PYBIND11_MAKE_OPAQUE(std::vector<double>);
 PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
+
+using namespace pybind11;
 namespace kwiver{
 namespace sprokit{
 namespace python{
 
-static ::sprokit::datum new_datum_no_cast(object const& obj);
+static ::sprokit::datum new_datum_correct_type(object const& obj);
 template<class T> ::sprokit::datum new_datum(object const& obj);
 static ::sprokit::datum empty_datum();
 static ::sprokit::datum flush_datum();
@@ -79,7 +80,7 @@ static ::sprokit::datum complete_datum();
 static ::sprokit::datum error_datum(std::string const& err);
 static ::sprokit::datum::type_t datum_type(::sprokit::datum const& self);
 static ::sprokit::datum::error_t datum_get_error(::sprokit::datum const& self);
-static object datum_get_datum(::sprokit::datum const& self);
+static object datum_get_datum_correct_type(::sprokit::datum const& self);
 static std::string datum_datum_type(::sprokit::datum const& self);
 
 static PyObject* datum_get_datum_ptr(::sprokit::datum& self);
@@ -106,12 +107,12 @@ PYBIND11_MODULE(datum, m)
     .value("error", sprokit::datum::error)
   ;
 
-  bind_vector<std::vector<unsigned char>, std::shared_ptr<std::vector<unsigned char>>>(m, "VectorUChar");
-  bind_vector<std::vector<double>, std::shared_ptr<std::vector<double>>>(m, "VectorDouble");
-  bind_vector<std::vector<std::string>, std::shared_ptr<std::vector<std::string>>>(m, "VectorString");
+  bind_vector<std::vector<unsigned char>, std::shared_ptr<std::vector<unsigned char>>>(m, "VectorUChar", module_local(true));
+  bind_vector<std::vector<double>, std::shared_ptr<std::vector<double>>>(m, "VectorDouble", module_local(true));
+  bind_vector<std::vector<std::string>, std::shared_ptr<std::vector<std::string>>>(m, "VectorString", module_local(true));
 
   // constructors
-  m.def("new", &new_datum_no_cast
+  m.def("new", &new_datum_correct_type
     , (arg("dat"))
     , "Creates a new datum packet containing a python object.");
   m.def("new_int", &new_datum<int>
@@ -124,28 +125,28 @@ PYBIND11_MODULE(datum, m)
     , (arg("dat"))
     , "Creates a new datum packet containing a string.");
   m.def("new_image_container", &new_datum<std::shared_ptr<kwiver::vital::image_container>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing an image container.");
   m.def("new_descriptor_set", &new_datum<std::shared_ptr<kwiver::vital::descriptor_set>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing a descriptor set.");
   m.def("new_detected_object_set", &new_datum<std::shared_ptr<kwiver::vital::detected_object_set>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing a detected object set.");
   m.def("new_track_set", &new_datum<std::shared_ptr<kwiver::vital::track_set>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing a track set.");
   m.def("new_feature_track_set", &new_datum<std::shared_ptr<kwiver::vital::feature_track_set>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing a feature track set.");
   m.def("new_object_track_set", &new_datum<std::shared_ptr<kwiver::vital::object_track_set>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing an object track set.");
   m.def("new_double_vector", &new_datum<std::shared_ptr<std::vector<double>>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing a double vector.");
   m.def("new_string_vector", &new_datum<std::shared_ptr<std::vector<std::string>>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing a string vector.");
   m.def("new_bounding_box", &new_datum<kwiver::vital::bounding_box_d>
     , (arg("dat"))
@@ -157,7 +158,7 @@ PYBIND11_MODULE(datum, m)
     , (arg("dat"))
     , "Creates a new set of corner points");
   m.def("new_uchar_vector", &new_datum<std::shared_ptr<std::vector<unsigned char>>>
-    , (arg("dat"))
+    , (arg("dat").none(false))
     , "Creates a new datum packet containing an unsigned char vector.");
   m.def("new_f2f_homography", &new_datum<kwiver::vital::f2f_homography>
     , (arg("dat"))
@@ -179,7 +180,7 @@ PYBIND11_MODULE(datum, m)
     , "Creates an error datum packet.");
 
   // Methods on datum
-  class_<sprokit::datum>(m, "Datum"
+  class_<sprokit::datum, std::shared_ptr<sprokit::datum > >(m, "Datum"
     , "A packet of data within the pipeline.")
     .def("type", &datum_type
       , "The type of the datum packet.")
@@ -187,10 +188,12 @@ PYBIND11_MODULE(datum, m)
       , "The type of the data in the packet")
     .def("get_error", &datum_get_error
       , "The error contained within the datum packet.")
-    .def("get_datum", &datum_get_datum
+    .def("get_datum", &datum_get_datum_correct_type
       , "Get the data contained within the packet (if coming from a python process).")
     .def("get_datum_ptr", &datum_get_datum_ptr
       , "Get pointer to datum object as a PyCapsule.")
+    .def("get_int", &datum_get_object<int>)
+    .def("get_float", &datum_get_object<float>)
     .def("get_image_container", &datum_get_object<std::shared_ptr<kwiver::vital::image_container>>
       , "Convert the data to an image container")
     .def("get_descriptor_set", &datum_get_object<std::shared_ptr<kwiver::vital::descriptor_set>>
@@ -218,7 +221,7 @@ PYBIND11_MODULE(datum, m)
     .def("get_string", &datum_get_object<std::string>,
             "Convert the data to a string")
     .def("get_f2f_homography", &datum_get_object<kwiver::vital::f2f_homography>,
-	 "Convert the data to a f2f_homography")
+            "Convert the data to a f2f_homography")
   ;
 
 } // end module
@@ -228,11 +231,43 @@ namespace kwiver{
 namespace sprokit{
 namespace python{
 // For now, we need to manually specify how we want to cast our datum
-// This should be fixed when we move away from kwiver::vital::any
+// Check each type and cast. This way we are never storing a pybind object,
+// which could accidentally be used in a C++ process
 ::sprokit::datum
-new_datum_no_cast(object const& obj)
+new_datum_correct_type(object const& obj)
 {
-  return *(::sprokit::datum::new_datum(obj));
+  if (obj.is_none())
+  {
+    throw type_error("Cannot create datum with NoneType");
+  }
+
+  #define CHECK_TYPE_NEW_DATUM(PYTYPE, TYPE) \
+  if (isinstance<PYTYPE>(obj)) \
+  { \
+    TYPE casted_obj = obj.cast<TYPE>(); \
+    return *(::sprokit::datum::new_datum<TYPE>(casted_obj)); \
+  }
+
+  CHECK_TYPE_NEW_DATUM(int_, int)
+  CHECK_TYPE_NEW_DATUM(float_, float)
+  CHECK_TYPE_NEW_DATUM(str, std::string)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::image_container, std::shared_ptr<kwiver::vital::image_container>)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::descriptor_set, std::shared_ptr<kwiver::vital::descriptor_set>)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::detected_object_set, std::shared_ptr<kwiver::vital::detected_object_set>)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::track_set, std::shared_ptr<kwiver::vital::track_set>)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::feature_track_set, std::shared_ptr<kwiver::vital::feature_track_set>)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::object_track_set, std::shared_ptr<kwiver::vital::object_track_set>)
+  CHECK_TYPE_NEW_DATUM(std::vector<double>, std::shared_ptr<std::vector<double>>)
+  CHECK_TYPE_NEW_DATUM(std::vector<std::string>, std::shared_ptr<std::vector<std::string>>)
+  CHECK_TYPE_NEW_DATUM(std::vector<unsigned char>, std::shared_ptr<std::vector<unsigned char>>)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::bounding_box_d, kwiver::vital::bounding_box_d)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::timestamp, kwiver::vital::timestamp)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::geo_polygon, kwiver::vital::geo_polygon)
+  CHECK_TYPE_NEW_DATUM(kwiver::vital::f2f_homography, kwiver::vital::f2f_homography)
+
+  #undef CHECK_TYPE_NEW_DATUM
+
+  throw type_error("Unable to construct datum from object");
 }
 
 template<class T>
@@ -278,20 +313,47 @@ datum_get_error(::sprokit::datum const& self)
   return self.get_error();
 }
 
-// This converts straight to a pybind11::object
-// It can be useful if we can assume we're dealing specifically with python
-// otherwise, use a converter like get_image_container
+// This converts straight to a pybind11::object.
+// For an explanation of the 'any.is_type<TYPE>()' call,
+// see the comment in python/kwiver/sprokit/adapters/adapter_data_set.cxx.
 object
-datum_get_datum(::sprokit::datum const& self)
+datum_get_datum_correct_type(::sprokit::datum const& self)
 {
-  object dat = none();
-  if ( self.type() == ::sprokit::datum::data )
+  if ( self.type() != ::sprokit::datum::data )
   {
-    kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
-    dat = kwiver::vital::any_cast<object>(any);
+    return none();
   }
 
-  return dat;
+  kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
+
+  #define DATUM_GET_OBJECT(TYPE) \
+  if (any.is_type<TYPE>()) \
+  { \
+    return cast(kwiver::vital::any_cast<TYPE>(any)); \
+  }
+
+  DATUM_GET_OBJECT(int)
+  DATUM_GET_OBJECT(float)
+  DATUM_GET_OBJECT(std::string)
+  DATUM_GET_OBJECT(std::shared_ptr<kwiver::vital::image_container>)
+  DATUM_GET_OBJECT(std::shared_ptr<kwiver::vital::descriptor_set>)
+  DATUM_GET_OBJECT(std::shared_ptr<kwiver::vital::detected_object_set>)
+  DATUM_GET_OBJECT(std::shared_ptr<kwiver::vital::track_set>)
+  DATUM_GET_OBJECT(std::shared_ptr<kwiver::vital::feature_track_set>)
+  DATUM_GET_OBJECT(std::shared_ptr<kwiver::vital::object_track_set>)
+  DATUM_GET_OBJECT(std::shared_ptr<std::vector<double>>)
+  DATUM_GET_OBJECT(std::shared_ptr<std::vector<std::string>>)
+  DATUM_GET_OBJECT(std::shared_ptr<std::vector<unsigned char>>)
+  DATUM_GET_OBJECT(kwiver::vital::bounding_box_d)
+  DATUM_GET_OBJECT(kwiver::vital::timestamp)
+  DATUM_GET_OBJECT(kwiver::vital::geo_polygon)
+  DATUM_GET_OBJECT(kwiver::vital::f2f_homography)
+
+  #undef DATUM_GET_OBJECT
+
+  std::string msg("Unable to convert object stored in datum. Data is of type: ");
+  msg += any.type_name();
+  throw type_error(msg);
 }
 
 std::string
@@ -359,7 +421,7 @@ datum_from_capsule( PyObject* cap )
  * The type, T, must have a pybind11 binding.
  * To use this, add a binding with an explicit type.
  *
- * \return shared_ptr<T> to the converted object
+ * \return T, the converted object
  */
 template<class T>
 T

@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2010-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "track_oracle_core_impl.h"
 #include <typeinfo>
@@ -63,7 +61,6 @@ struct default_value_handler< false, T >
     return T();
   }
 };
-
 
 template< typename T >
 field_handle_type
@@ -135,7 +132,6 @@ track_oracle_core_impl
   probe.first->erase( row );
 }
 
-
 template< typename T >
 T&
 track_oracle_core_impl
@@ -174,7 +170,6 @@ track_oracle_core_impl
     ? make_pair( false, f_probe.second )
     : make_pair( true, probe->second );
 }
-
 
 template< typename T >
 oracle_entry_handle_type

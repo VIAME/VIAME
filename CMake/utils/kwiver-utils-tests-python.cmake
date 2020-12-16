@@ -64,17 +64,7 @@ endfunction ()
 #
 #
 function (kwiver_add_python_test group instance)
-  string(TOLOWER "${CMAKE_PROJECT_NAME}" project_name)
-  set(python_module_path    "${kwiver_python_output_path}/${python_sitename}")
-  set(python_chdir          ".")
-
-  if (CMAKE_CONFIGURATION_TYPES)
-    set(python_module_path      "${kwiver_python_output_path}/$<CONFIGURATION>/${python_sitename}")
-    set(python_chdir           "$<CONFIGURATION>")
-  endif ()
-
-  kwiver_add_test(python-${group} ${instance}
-    "${python_chdir}" "${python_module_path}" ${ARGN})
+  kwiver_add_test(python-${group} ${instance} ${ARGN})
 endfunction ()
 
 
@@ -138,3 +128,50 @@ function (kwiver_discover_python_tests group file)
     endif ()
   endforeach ()
 endfunction ()
+
+###
+# Adds a python module testing suite run by nosetests
+#
+function (kwiver_add_nosetests name targ)
+  if (WIN32)
+    add_test(
+      NAME    test-python-${name}
+      COMMAND cmd /C "${NOSE_COMMAND} ${kwiver_test_runner}${name}.py --with-xunit\
+                                --xunit-file=nose_results.xml"
+              ${ARGN})
+  else()
+    add_test(
+      NAME    test-python-${name}
+      COMMAND bash -c "${NOSE_COMMAND} ${kwiver_test_runner}${name}.py --with-xunit\
+                                --xunit-file=nose_results.xml"
+              ${ARGN})
+  endif()
+
+  set_tests_properties(test-python-${name}
+    PROPERTIES
+      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
+  if (kwiver_test_working_path)
+    set_tests_properties(test-python-${name}
+      PROPERTIES
+      WORKING_DIRECTORY "${kwiver_test_working_path}")
+  endif ()
+  if (kwiver_test_environment)
+    set_tests_properties(test-python-${name}
+      PROPERTIES
+      ENVIRONMENT "${kwiver_test_environment}")
+  endif ()
+  if (KWIVER_TEST_ADD_TARGETS)
+    add_custom_target(test-python-${name})
+    add_custom_command(
+      TARGET  test-python-${name}
+      COMMAND ${kwiver_test_environment}
+              ${kwiver_test_runner}
+              "${kwiver_test_output_path}"
+              ${ARGN}
+      WORKING_DIRECTORY
+              "${kwiver_test_working_path}"
+      COMMENT "Running test \"${name}\"")
+      add_dependencies(${targ}
+                       test-python-${name})
+  endif ()
+endfunction()

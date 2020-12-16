@@ -158,7 +158,8 @@ expand_token( std::string const& initial_string )
 // ------------------------------------------------------------------
 bool
 token_expander::
-handle_missing_entry( const std::string& provider, const std::string& entry )
+handle_missing_entry( VITAL_UNUSED std::string const& provider,
+                      VITAL_UNUSED std::string const& entry )
 {
   // default is to insert unresolved text
   return true;
@@ -168,7 +169,8 @@ handle_missing_entry( const std::string& provider, const std::string& entry )
 // ------------------------------------------------------------------
 bool
 token_expander::
-handle_missing_provider( const std::string& provider, const std::string& entry )
+handle_missing_provider( VITAL_UNUSED std::string const& provider,
+                         VITAL_UNUSED std::string const& entry )
 {
   // default is to insert unresolved text
   return true;

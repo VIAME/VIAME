@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #ckwg +28
-# Copyright 2011-2013 by Kitware, Inc.
+# Copyright 2011-2020 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,9 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+from kwiver.sprokit.util.test import find_tests, run_test, test_error
+
 def test_import(path_unused):
     try:
         import kwiver.sprokit.pipeline_util.bake
@@ -81,19 +84,14 @@ def test_cluster_multiplier(path):
 if __name__ == '__main__':
     import os
     import sys
-    from kwiver.sprokit.util.test import *
 
-    if not len(sys.argv) == 5:
-        test_error("Expected four arguments")
+    if len(sys.argv) != 3:
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
 
-    os.chdir(sys.argv[2])
-
-    sys.path.append(sys.argv[3])
-
-    pipeline_dir = sys.argv[4]
+    pipeline_dir = sys.argv[2]
 
     path = os.path.join(pipeline_dir, '%s.pipe' % testname)
 

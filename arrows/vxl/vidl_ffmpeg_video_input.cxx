@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -43,6 +17,7 @@
 #include <vital/klv/convert_metadata.h>
 #include <vital/klv/misp_time.h>
 #include <vital/klv/klv_data.h>
+#include <vital/vital_config.h>
 
 #include <arrows/vxl/image_container.h>
 
@@ -57,7 +32,6 @@
 #include <vector>
 #include <sstream>
 #include <chrono>
-
 
 namespace kwiver {
 namespace arrows {
@@ -90,7 +64,6 @@ public:
       d_frame_time( 0 ),
       d_frame_number( 1 )
   { }
-
 
   vidl_ffmpeg_istream d_video_stream;
   vital::logger_handle_t d_logger; // for logging in priv methods
@@ -171,7 +144,6 @@ public:
   kwiver::vital::convert_metadata converter; // metadata converter object
 
   static std::mutex s_open_mutex;
-
 
   // =====================================================================================
   /*
@@ -254,7 +226,6 @@ public:
 
     return retval;
   }
-
 
   // -------------------------------------------------------------------------------------
   /*
@@ -514,7 +485,6 @@ public:
 // static open interlocking mutex
 std::mutex vidl_ffmpeg_video_input::priv::s_open_mutex;
 
-
 // =======================================================================================
 vidl_ffmpeg_video_input
 ::vidl_ffmpeg_video_input()
@@ -524,13 +494,11 @@ vidl_ffmpeg_video_input
   d->d_logger = this->logger();
 }
 
-
 vidl_ffmpeg_video_input
 ::~vidl_ffmpeg_video_input()
 {
   d->d_video_stream.close( );
 }
-
 
 // ---------------------------------------------------------------------------------------
 // Get this algorithm's \link vital::config_block configuration block \endlink
@@ -588,7 +556,6 @@ vidl_ffmpeg_video_input
   return config;
 }
 
-
 // ---------------------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
 void
@@ -613,7 +580,6 @@ vidl_ffmpeg_video_input
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
             d->c_time_source_list, " ,", kwiver::vital::TokenizeTrimEmpty );
 }
-
 
 // ---------------------------------------------------------------------------------------
 bool
@@ -664,7 +630,6 @@ vidl_ffmpeg_video_input
 
   return retcode;
 }
-
 
 // ---------------------------------------------------------------------------------------
 void
@@ -762,7 +727,6 @@ vidl_ffmpeg_video_input
   set_capability(vital::algo::video_input::IS_SEEKABLE, d->d_is_seekable );
 }
 
-
 // ---------------------------------------------------------------------------------------
 void
 vidl_ffmpeg_video_input
@@ -783,12 +747,11 @@ vidl_ffmpeg_video_input
   d->d_frame_number = 1;
 }
 
-
 // ---------------------------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
 ::next_frame( kwiver::vital::timestamp& ts,
-              uint32_t timeout )
+              VITAL_UNUSED uint32_t timeout )
 {
   if (d->d_at_eov)
   {
@@ -844,7 +807,7 @@ bool
 vidl_ffmpeg_video_input
 ::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               kwiver::vital::timestamp::frame_t frame_number,
-              uint32_t                  timeout )
+              VITAL_UNUSED uint32_t                  timeout )
 {
   // is stream open?
   if ( ! d->d_video_stream.is_open() )
@@ -916,12 +879,10 @@ vidl_ffmpeg_video_input
   d->d_frame_time = d->meta_ts + pts_diff;
   d->d_frame_number = frame_number;
 
-
   ts = this->frame_timestamp();
 
   return true;
 }
-
 
 // ---------------------------------------------------------------------------------------
 kwiver::vital::timestamp
@@ -974,7 +935,6 @@ vidl_ffmpeg_video_input
   return img_cont;
 }
 
-
 // ---------------------------------------------------------------------------------------
 kwiver::vital::metadata_vector
 vidl_ffmpeg_video_input
@@ -990,7 +950,6 @@ vidl_ffmpeg_video_input
   return d->process_metadata( d->d_video_stream.current_metadata() );
 }
 
-
 kwiver::vital::metadata_map_sptr
 vidl_ffmpeg_video_input
 ::metadata_map()
@@ -1000,7 +959,6 @@ vidl_ffmpeg_video_input
   return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);
 }
 
-
 // ---------------------------------------------------------------------------------------
 double
 vidl_ffmpeg_video_input
@@ -1009,7 +967,6 @@ vidl_ffmpeg_video_input
   return d->d_video_stream.frame_rate();
 }
 
-
 // ---------------------------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
@@ -1017,7 +974,6 @@ vidl_ffmpeg_video_input
 {
   return d->d_at_eov;
 }
-
 
 // ---------------------------------------------------------------------------------------
 bool

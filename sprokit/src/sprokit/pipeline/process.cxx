@@ -37,6 +37,7 @@
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/util/string.h>
 #include <vital/optional.h>
+#include <vital/vital_config.h>
 
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
@@ -832,7 +833,7 @@ process
 // ------------------------------------------------------------------
 void
 process
-::input_port_undefined( port_t const& port )
+::input_port_undefined( VITAL_UNUSED port_t const& port )
 {
 }
 
@@ -866,7 +867,7 @@ process
 // ------------------------------------------------------------------
 void
 process
-::output_port_undefined( port_t const& port )
+::output_port_undefined( VITAL_UNUSED port_t const& port )
 {
 }
 

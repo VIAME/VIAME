@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -36,8 +10,9 @@
 #include <gtest/gtest.h>
 
 #include <arrows/serialize/protobuf/activity.h>
+#include <arrows/serialize/protobuf/activity_type.h>
 #include <arrows/serialize/protobuf/bounding_box.h>
-#include <arrows/serialize/protobuf/class_map.h>
+#include <arrows/serialize/protobuf/detected_object_type.h>
 #include <arrows/serialize/protobuf/detected_object.h>
 #include <arrows/serialize/protobuf/detected_object_set.h>
 #include <arrows/serialize/protobuf/timestamp.h>
@@ -51,10 +26,11 @@
 #include <arrows/serialize/protobuf/convert_protobuf.h>
 
 #include <vital/types/activity.h>
+#include <vital/types/activity_type.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object_set.h>
-#include <vital/types/class_map.h>
 #include <vital/types/detected_object.h>
+#include <vital/types/detected_object_type.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/track.h>
 #include <vital/types/track_set.h>
@@ -75,7 +51,7 @@ int main(int argc, char** argv)
 TEST( serialize, activity_default )
 {
   // This tests the behavior when participants
-  // and class_map are set to NULL
+  // and detected_object_type are set to NULL
   auto const act = kwiver::vital::activity{};
   auto act_ser = kasp::activity{};
 
@@ -88,7 +64,7 @@ TEST( serialize, activity_default )
   // Check members
   EXPECT_EQ( act.id(), act_dser.id() );
   EXPECT_EQ( act.label(), act_dser.label() );
-  EXPECT_EQ( act.activity_type(), act_dser.activity_type() );
+  EXPECT_EQ( act.type(), act_dser.type() );
   EXPECT_EQ( act.participants(), act_dser.participants() );
   EXPECT_DOUBLE_EQ( act.confidence(), act_dser.confidence() );
 
@@ -110,10 +86,10 @@ TEST( serialize, activity_default )
 // ----------------------------------------------------------------------------
 TEST( serialize, activity )
 {
-  auto cm_sptr = std::make_shared< kwiver::vital::class_map >();
-  cm_sptr->set_score( "first", 1 );
-  cm_sptr->set_score( "second", 10 );
-  cm_sptr->set_score( "third", 101 );
+  auto at_sptr = std::make_shared< kwiver::vital::activity_type >();
+  at_sptr->set_score( "first", 1 );
+  at_sptr->set_score( "second", 10 );
+  at_sptr->set_score( "third", 101 );
 
   // Create object_track_set consisting of
   // 1 track_sptr with 10 track states
@@ -124,11 +100,11 @@ TEST( serialize, activity )
     auto const bbox =
       kwiver::vital::bounding_box_d{ 10.0 + i, 10.0 + i, 20.0 + i, 20.0 + i };
 
-    auto dobj_cm_sptr = std::make_shared< kwiver::vital::class_map >();
-    dobj_cm_sptr->set_score( "key", i / 10.0 );
+    auto dobj_dot_sptr = std::make_shared< kwiver::vital::detected_object_type >();
+    dobj_dot_sptr->set_score( "key", i / 10.0 );
 
     auto const dobj_sptr =
-      std::make_shared< kwiver::vital::detected_object >( bbox, i / 10.0, dobj_cm_sptr );
+      std::make_shared< kwiver::vital::detected_object >( bbox, i / 10.0, dobj_dot_sptr );
 
     auto const ots_sptr =
       std::make_shared< kwiver::vital::object_track_state >( i, i, dobj_sptr );
@@ -146,7 +122,7 @@ TEST( serialize, activity )
 
   // Now construct activity
   auto const act =
-    kwiver::vital::activity{ 5, "test_label", 3.1415, cm_sptr, start, end, obj_trk_set_sptr };
+    kwiver::vital::activity{ 5, "test_label", 3.1415, at_sptr, start, end, obj_trk_set_sptr };
 
   auto act_ser = kasp::activity{};
 
@@ -164,8 +140,8 @@ TEST( serialize, activity )
   EXPECT_EQ( act.end(), act_dser.end() );
 
   // Check values in the retrieved class map
-  auto const act_type = act.activity_type();
-  auto const act_type_dser = act_dser.activity_type();
+  auto const act_type = act.type();
+  auto const act_type_dser = act_dser.type();
   EXPECT_EQ( act_type->size(), act_type_dser->size() );
   EXPECT_DOUBLE_EQ( act_type->score( "first" ),  act_type_dser->score( "first" ) );
   EXPECT_DOUBLE_EQ( act_type->score( "second" ), act_type_dser->score( "second" ) );
@@ -201,13 +177,13 @@ TEST( serialize, activity )
     EXPECT_EQ( do_ser_sptr->bounding_box(), do_dser_sptr->bounding_box() );
     EXPECT_EQ( do_ser_sptr->confidence(), do_dser_sptr->confidence() );
 
-    auto const cm_ser_sptr = do_ser_sptr->type();
-    auto const cm_dser_sptr = do_dser_sptr->type();
+    auto const at_ser_sptr = do_ser_sptr->type();
+    auto const at_dser_sptr = do_dser_sptr->type();
 
-    if ( cm_ser_sptr )
+    if ( at_ser_sptr )
     {
-      EXPECT_EQ( cm_ser_sptr->size(), cm_dser_sptr->size() );
-      EXPECT_EQ( cm_ser_sptr->score( "key" ), cm_dser_sptr->score( "key" ) );
+      EXPECT_EQ( at_ser_sptr->size(), at_dser_sptr->size() );
+      EXPECT_EQ( at_ser_sptr->score( "key" ), at_dser_sptr->score( "key" ) );
     }
   }
 }
@@ -236,29 +212,61 @@ TEST( serialize, bounding_box )
 }
 
 // ----------------------------------------------------------------------------
-TEST( serialize, class_map )
+TEST( serialize, activity_type )
 {
-  kasp::class_map cm_ser; // get serializer
-  kwiver::vital::class_map cm;
+  kasp::activity_type at_ser; // get serializer
+  kwiver::vital::activity_type at;
 
-  cm.set_score( "first", 1 );
-  cm.set_score( "second", 10 );
-  cm.set_score( "third", 101 );
-  cm.set_score( "last", 121 );
+  at.set_score( "first", 1 );
+  at.set_score( "second", 10 );
+  at.set_score( "third", 101 );
+  at.set_score( "last", 121 );
 
-  kwiver::vital::any cm_any( cm );
-  auto mes = cm_ser.serialize( cm_any );
+  kwiver::vital::any at_any( at );
+  auto mes = at_ser.serialize( at_any );
 
-  auto dser = cm_ser.deserialize( *mes );
-  kwiver::vital::class_map cm_dser =
-    kwiver::vital::any_cast< kwiver::vital::class_map >( dser );
+  auto dser = at_ser.deserialize( *mes );
+  kwiver::vital::activity_type at_dser =
+    kwiver::vital::any_cast< kwiver::vital::activity_type >( dser );
 
-  EXPECT_EQ( cm.size(), cm_dser.size() );
+  EXPECT_EQ( at.size(), at_dser.size() );
 
-  auto o_it = cm.begin();
-  auto d_it = cm_dser.begin();
+  auto o_it = at.begin();
+  auto d_it = at_dser.begin();
 
-  for (size_t i = 0; i < cm.size(); ++i )
+  for (size_t i = 0; i < at.size(); ++i )
+  {
+    EXPECT_EQ( *(o_it->first), *(d_it->first) );
+    EXPECT_EQ( o_it->second, d_it->second );
+    ++o_it;
+    ++d_it;
+  }
+}
+
+// ----------------------------------------------------------------------------
+TEST( serialize, detected_object_type )
+{
+  kasp::detected_object_type dot_ser; // get serializer
+  kwiver::vital::detected_object_type dot;
+
+  dot.set_score( "first", 1 );
+  dot.set_score( "second", 10 );
+  dot.set_score( "third", 101 );
+  dot.set_score( "last", 121 );
+
+  kwiver::vital::any dot_any( dot );
+  auto mes = dot_ser.serialize( dot_any );
+
+  auto dser = dot_ser.deserialize( *mes );
+  kwiver::vital::detected_object_type dot_dser =
+    kwiver::vital::any_cast< kwiver::vital::detected_object_type >( dser );
+
+  EXPECT_EQ( dot.size(), dot_dser.size() );
+
+  auto o_it = dot.begin();
+  auto d_it = dot_dser.begin();
+
+  for (size_t i = 0; i < dot.size(); ++i )
   {
     EXPECT_EQ( *(o_it->first), *(d_it->first) );
     EXPECT_EQ( o_it->second, d_it->second );
@@ -272,15 +280,15 @@ TEST( serialize, detected_object )
 {
   kasp::detected_object obj_ser; // get serializer
 
-  auto cm = std::make_shared<kwiver::vital::class_map>();
+  auto dot = std::make_shared<kwiver::vital::detected_object_type>();
 
-  cm->set_score( "first", 1 );
-  cm->set_score( "second", 10 );
-  cm->set_score( "third", 101 );
-  cm->set_score( "last", 121 );
+  dot->set_score( "first", 1 );
+  dot->set_score( "second", 10 );
+  dot->set_score( "third", 101 );
+  dot->set_score( "last", 121 );
 
   auto obj = std::make_shared< kwiver::vital::detected_object>(
-    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, cm );
+    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, dot );
   obj->set_detector_name( "test_detector" );
   obj->set_index( 1234 );
 
@@ -321,17 +329,17 @@ TEST( serialize, detected_object )
   }
 
   // class map
-  cm = obj->type();
-  if (cm)
+  dot = obj->type();
+  if (dot)
   {
-    auto cm_dser = obj_dser->type();
+    auto dot_dser = obj_dser->type();
 
-    EXPECT_EQ( cm->size(), cm_dser->size() );
+    EXPECT_EQ( dot->size(), dot_dser->size() );
 
-    auto o_it = cm->begin();
-    auto d_it = cm_dser->begin();
+    auto o_it = dot->begin();
+    auto d_it = dot_dser->begin();
 
-    for (size_t i = 0; i < cm->size(); ++i )
+    for (size_t i = 0; i < dot->size(); ++i )
     {
       EXPECT_EQ( *(o_it->first), *(d_it->first) );
       EXPECT_EQ( o_it->second, d_it->second );
@@ -349,15 +357,15 @@ TEST( serialize, detected_object_set )
   auto ser_dos_sptr = std::make_shared< kwiver::vital::detected_object_set >();
   for ( int i=0; i < 10; i++ )
   {
-    auto cm_sptr = std::make_shared<kwiver::vital::class_map>();
+    auto dot_sptr = std::make_shared<kwiver::vital::detected_object_type>();
 
-    cm_sptr->set_score( "first", 1 + i );
-    cm_sptr->set_score( "second", 10 + i );
-    cm_sptr->set_score( "third", 101 + i );
-    cm_sptr->set_score( "last", 121 + i );
+    dot_sptr->set_score( "first", 1 + i );
+    dot_sptr->set_score( "second", 10 + i );
+    dot_sptr->set_score( "third", 101 + i );
+    dot_sptr->set_score( "last", 121 + i );
 
     auto det_object_sptr = std::make_shared< kwiver::vital::detected_object>(
-      kwiver::vital::bounding_box_d{ 1.0 + i, 2.0 + i, 3.0 + i, 4.0 + i }, 3.14159, cm_sptr );
+      kwiver::vital::bounding_box_d{ 1.0 + i, 2.0 + i, 3.0 + i, 4.0 + i }, 3.14159, dot_sptr );
     det_object_sptr->set_detector_name( "test_detector" );
     det_object_sptr->set_index( 1234 + i);
 
@@ -380,17 +388,17 @@ TEST( serialize, detected_object_set )
     EXPECT_EQ( ser_do_sptr->confidence(), deser_do_sptr->confidence() );
     EXPECT_EQ( ser_do_sptr->detector_name(), deser_do_sptr->detector_name() );
 
-    auto ser_cm_sptr = ser_do_sptr->type();
-    auto deser_cm_sptr = deser_do_sptr->type();
+    auto ser_dot_sptr = ser_do_sptr->type();
+    auto deser_dot_sptr = deser_do_sptr->type();
 
-    if ( ser_cm_sptr )
+    if ( ser_dot_sptr )
     {
-      EXPECT_EQ( ser_cm_sptr->size(),deser_cm_sptr->size() );
+      EXPECT_EQ( ser_dot_sptr->size(),deser_dot_sptr->size() );
 
-      auto ser_it = ser_cm_sptr->begin();
-      auto deser_it = deser_cm_sptr->begin();
+      auto ser_it = ser_dot_sptr->begin();
+      auto deser_it = deser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_cm_sptr->size(); ++i )
+      for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
       {
         EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
         EXPECT_EQ( deser_it->second, deser_it->second );
@@ -520,16 +528,16 @@ TEST (serialize, track_state)
 // ----------------------------------------------------------------------------
 TEST (serialize, object_track_state)
 {
-  auto cm = std::make_shared<kwiver::vital::class_map>();
+  auto dot = std::make_shared<kwiver::vital::detected_object_type>();
 
-  cm->set_score( "first", 1 );
-  cm->set_score( "second", 10 );
-  cm->set_score( "third", 101 );
-  cm->set_score( "last", 121 );
+  dot->set_score( "first", 1 );
+  dot->set_score( "second", 10 );
+  dot->set_score( "third", 101 );
+  dot->set_score( "last", 121 );
 
   auto dobj_sptr = std::make_shared< kwiver::vital::detected_object>(
                           kwiver::vital::bounding_box_d{ 1, 2, 3, 4 },
-                              3.14159265, cm );
+                              3.14159265, dot );
   dobj_sptr->set_detector_name( "test_detector" );
   dobj_sptr->set_index( 1234 );
   kwiver::vital::object_track_state obj_trk_state( 1, 1, dobj_sptr );
@@ -543,7 +551,6 @@ TEST (serialize, object_track_state)
   kwiver::vital::object_track_state obj_trk_state_dser =
     kwiver::vital::any_cast< kwiver::vital::object_track_state > ( dser );
 
-
   auto ser_do_sptr = obj_trk_state.detection();
   auto deser_do_sptr = obj_trk_state_dser.detection();
 
@@ -552,17 +559,17 @@ TEST (serialize, object_track_state)
   EXPECT_EQ( ser_do_sptr->confidence(), deser_do_sptr->confidence() );
   EXPECT_EQ( ser_do_sptr->detector_name(), deser_do_sptr->detector_name() );
 
-  auto ser_cm_sptr = ser_do_sptr->type();
-  auto deser_cm_sptr = deser_do_sptr->type();
+  auto ser_dot_sptr = ser_do_sptr->type();
+  auto deser_dot_sptr = deser_do_sptr->type();
 
-  if ( ser_cm_sptr )
+  if ( ser_dot_sptr )
   {
-    EXPECT_EQ( ser_cm_sptr->size(),deser_cm_sptr->size() );
+    EXPECT_EQ( ser_dot_sptr->size(),deser_dot_sptr->size() );
 
-    auto ser_it = ser_cm_sptr->begin();
-    auto deser_it = deser_cm_sptr->begin();
+    auto ser_it = ser_dot_sptr->begin();
+    auto deser_it = deser_dot_sptr->begin();
 
-    for ( size_t i = 0; i < ser_cm_sptr->size(); ++i )
+    for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
     {
       EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
       EXPECT_EQ( deser_it->second, deser_it->second );
@@ -579,16 +586,16 @@ TEST( serialize, track )
   obj_trk->set_id( 1 );
   for ( int i=0; i<10; i++ )
   {
-    auto cm = std::make_shared< kwiver::vital::class_map >();
+    auto dot = std::make_shared< kwiver::vital::detected_object_type >();
 
-    cm->set_score( "first", 1 );
-    cm->set_score( "second", 10 );
-    cm->set_score( "third", 101 );
-    cm->set_score( "last", 121 );
+    dot->set_score( "first", 1 );
+    dot->set_score( "second", 10 );
+    dot->set_score( "third", 101 );
+    dot->set_score( "last", 121 );
 
     auto dobj_sptr = std::make_shared< kwiver::vital::detected_object>(
                             kwiver::vital::bounding_box_d{ 1, 2, 3, 4 },
-                                3.14159265, cm );
+                                3.14159265, dot );
     dobj_sptr->set_detector_name( "test_detector" );
     dobj_sptr->set_index( 1234 );
     auto obj_trk_state_sptr = std::make_shared< kwiver::vital::object_track_state >
@@ -623,7 +630,6 @@ TEST( serialize, track )
     auto dser_obj_trk_state_sptr = kwiver::vital::object_track_state::
                                                       downcast( dser_trk_state_sptr );
 
-
     auto ser_do_sptr = obj_trk_state_sptr->detection();
     auto dser_do_sptr = dser_obj_trk_state_sptr->detection();
 
@@ -632,17 +638,17 @@ TEST( serialize, track )
     EXPECT_EQ( ser_do_sptr->confidence(), dser_do_sptr->confidence() );
     EXPECT_EQ( ser_do_sptr->detector_name(), dser_do_sptr->detector_name() );
 
-    auto ser_cm_sptr = ser_do_sptr->type();
-    auto dser_cm_sptr = dser_do_sptr->type();
+    auto ser_dot_sptr = ser_do_sptr->type();
+    auto dser_dot_sptr = dser_do_sptr->type();
 
-    if ( ser_cm_sptr )
+    if ( ser_dot_sptr )
     {
-      EXPECT_EQ( ser_cm_sptr->size(), dser_cm_sptr->size() );
+      EXPECT_EQ( ser_dot_sptr->size(), dser_dot_sptr->size() );
 
-      auto ser_it = ser_cm_sptr->begin();
-      auto dser_it = dser_cm_sptr->begin();
+      auto ser_it = ser_dot_sptr->begin();
+      auto dser_it = dser_dot_sptr->begin();
 
-      for ( size_t i = 0; i < ser_cm_sptr->size(); ++i )
+      for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
       {
         EXPECT_EQ( *( ser_it->first ), *( ser_it->first ) );
         EXPECT_EQ( dser_it->second, dser_it->second );
@@ -651,13 +657,12 @@ TEST( serialize, track )
 
   }
 
-
   // test track with track state
   auto trk = kwiver::vital::track::create();
   trk->set_id( 2 );
-  for ( int i=0; i<10; i++ )
+  for ( int ii = 0; ii < 10; ii++ )
   {
-    auto trk_state_sptr = std::make_shared< kwiver::vital::track_state>( i );
+    auto trk_state_sptr = std::make_shared< kwiver::vital::track_state>( ii );
     bool insert_success = trk->insert( trk_state_sptr );
     if ( !insert_success )
     {
@@ -740,16 +745,16 @@ TEST( serialize, object_track_set )
     trk->set_id( trk_id );
     for ( int i=trk_id*10; i < ( trk_id+1 )*10; i++ )
     {
-      auto cm = std::make_shared<kwiver::vital::class_map>();
+      auto dot = std::make_shared<kwiver::vital::detected_object_type>();
 
-      cm->set_score( "first", 1 );
-      cm->set_score( "second", 10 );
-      cm->set_score( "third", 101 );
-      cm->set_score( "last", 121 );
+      dot->set_score( "first", 1 );
+      dot->set_score( "second", 10 );
+      dot->set_score( "third", 101 );
+      dot->set_score( "last", 121 );
 
       auto dobj_sptr = std::make_shared< kwiver::vital::detected_object>(
                               kwiver::vital::bounding_box_d{ 1, 2, 3, 4 },
-                                  3.14159265, cm );
+                                  3.14159265, dot );
       dobj_sptr->set_detector_name( "test_detector" );
       dobj_sptr->set_index( 1234 );
       auto obj_trk_state_sptr = std::make_shared< kwiver::vital::object_track_state >
@@ -787,7 +792,6 @@ TEST( serialize, object_track_set )
       auto dser_obj_trk_state_sptr = kwiver::vital::object_track_state::
                                                       downcast( dser_trk_state_sptr );
 
-
       auto ser_do_sptr = obj_trk_state_sptr->detection();
       auto dser_do_sptr = dser_obj_trk_state_sptr->detection();
 
@@ -796,17 +800,17 @@ TEST( serialize, object_track_set )
       EXPECT_EQ( ser_do_sptr->confidence(), dser_do_sptr->confidence() );
       EXPECT_EQ( ser_do_sptr->detector_name(), dser_do_sptr->detector_name() );
 
-      auto ser_cm_sptr = ser_do_sptr->type();
-      auto dser_cm_sptr = dser_do_sptr->type();
+      auto ser_dot_sptr = ser_do_sptr->type();
+      auto dser_dot_sptr = dser_do_sptr->type();
 
-      if ( ser_cm_sptr )
+      if ( ser_dot_sptr )
       {
-        EXPECT_EQ( ser_cm_sptr->size(),dser_cm_sptr->size() );
+        EXPECT_EQ( ser_dot_sptr->size(),dser_dot_sptr->size() );
 
-        auto ser_it = ser_cm_sptr->begin();
-        auto dser_it = dser_cm_sptr->begin();
+        auto ser_it = ser_dot_sptr->begin();
+        auto dser_it = dser_dot_sptr->begin();
 
-        for ( size_t i = 0; i < ser_cm_sptr->size(); ++i )
+        for ( size_t j = 0; j < ser_dot_sptr->size(); ++j )
         {
           EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
           EXPECT_EQ( dser_it->second, dser_it->second );

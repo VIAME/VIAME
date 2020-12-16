@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -56,8 +30,8 @@ int main(int argc, char** argv)
 namespace {
 
 // ----------------------------------------------------------------------------
-kwiver::vital::class_map_sptr
-create_cm( const char* n[], const double s[] )
+kwiver::vital::detected_object_type_sptr
+create_dot( const char* n[], const double s[] )
 {
   std::vector< std::string > names;
   std::vector< double > scores;
@@ -68,7 +42,7 @@ create_cm( const char* n[], const double s[] )
     scores.push_back( s[i] );
   } // end for
 
-  return  std::make_shared< kwiver::vital::class_map >( names, scores );
+  return  std::make_shared< kwiver::vital::detected_object_type >( names, scores );
 }
 
 // ----------------------------------------------------------------------------
@@ -82,27 +56,27 @@ make_dos()
   const char* n[]  = { "person", "vehicle", "other", "clam", "barnacle", 0 };
   double s[] = {   .65,      .6,       .005,    .07,     .005,     0 };
 
-  auto cm = create_cm( n, s );
+  auto dot = create_dot( n, s );
 
   auto detection = std::make_shared< kwiver::vital::detected_object >( bb1 ); // using defaults
   do_set->add( detection );
 
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.65, cm  );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.65, dot  );
   do_set->add( detection );
 
   double s1[] = {   .0065,      .006,       .005,    .775,     .605,     0 };
-  cm = create_cm( n, s1 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.75, cm  );
+  dot = create_dot( n, s1 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.75, dot  );
   do_set->add( detection );
 
   double s2[] = {   .0065,      .006,       .005,    .605,     .775,     0 };
-  cm = create_cm( n, s2 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.78, cm  );
+  dot = create_dot( n, s2 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.78, dot  );
   do_set->add( detection );
 
   double s3[] = {   .5065,      .006,       .005,    .775,     .605,     0 };
-  cm = create_cm( n, s3 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.70, cm  );
+  dot = create_dot( n, s3 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.70, dot  );
   do_set->add( detection );
 
   return do_set;

@@ -1,3 +1,5 @@
+**activity_type** - An instance of a class_map (see below).
+
 **bounding_box** - 
 
 **camera** - Defines the interface base class camera and the subclass simple_camera, which capture all of the intrinsic and extrinsic parameters (e.g., position and orientation) of a camera. The intrinsic parameters are represented with an instance of the intrinsic_camera class.
@@ -19,6 +21,8 @@
 **detected_object** - 
 
 **detected_object_set** - 
+
+**detected_object_type** - An instance of a class_map.
 
 **essential_matrix** - 
 

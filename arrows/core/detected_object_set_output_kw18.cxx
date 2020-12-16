@@ -1,36 +1,11 @@
-/*ckwg +29
- * Copyright 2016-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "detected_object_set_output_kw18.h"
 
 #include <vital/util/tokenize.h>
+#include <vital/vital_config.h>
 
 #include <memory>
 #include <vector>
@@ -42,7 +17,6 @@
 #else
   #include <atomic>
 #endif
-
 
 namespace kwiver {
 namespace arrows {
@@ -89,7 +63,6 @@ public:
   std::vector< std::string > m_parsed_tot_ids1, m_parsed_tot_ids2;
 };
 
-
 // ==================================================================
 detected_object_set_output_kw18::
 detected_object_set_output_kw18()
@@ -97,7 +70,6 @@ detected_object_set_output_kw18()
 {
   attach_logger( "arrows.core.detected_object_set_output_kw18" );
 }
-
 
 detected_object_set_output_kw18::
 ~detected_object_set_output_kw18()
@@ -112,7 +84,6 @@ detected_object_set_output_kw18::
     d->m_type_writer->close();
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -131,7 +102,6 @@ set_configuration( vital::config_block_sptr config_in )
   vital::tokenize( d->m_tot_field1_ids, d->m_parsed_tot_ids1, ",;", kwiver::vital::TokenizeTrimEmpty );
   vital::tokenize( d->m_tot_field2_ids, d->m_parsed_tot_ids2, ",;", kwiver::vital::TokenizeTrimEmpty );
 }
-
 
 // ------------------------------------------------------------------
 vital::config_block_sptr
@@ -155,11 +125,10 @@ get_configuration() const
   return config;
 }
 
-
 // ------------------------------------------------------------------
 bool
 detected_object_set_output_kw18::
-check_configuration( vital::config_block_sptr config ) const
+check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   if( d->m_write_tot && d->m_tot_field1_ids.empty() )
   {
@@ -174,11 +143,11 @@ check_configuration( vital::config_block_sptr config ) const
   return true;
 }
 
-
 // ------------------------------------------------------------------
 void
 detected_object_set_output_kw18::
-write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name )
+write_set( const kwiver::vital::detected_object_set_sptr set,
+           VITAL_UNUSED std::string const& image_name )
 {
 
   if (d->m_first)
@@ -251,11 +220,11 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     double ily = ( bbox.min_y() + bbox.max_y() ) / 2.0;
 
     static std::atomic<unsigned> id_counter( 0 );
-    const unsigned id = id_counter++;
+    const unsigned l_id = id_counter++;
 
-    stream() << id << " "                   // 1: track id
+    stream() << l_id << " "                 // 1: track id
              << "1 "                        // 2: track length
-             << d->m_frame_number << " "    // 3: frame number / set number
+             << d->m_frame_number-1 << " "  // 3: frame number / set number
              << "0 "                        // 4: tracking plane x
              << "0 "                        // 5: tracking plane y
              << "0 "                        // 6: velocity x
@@ -277,7 +246,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     // optionally write tot to corresponding file
     if( d->m_write_tot )
     {
-      vital::class_map_sptr clf = (*det)->type();
+      vital::detected_object_type_sptr clf = (*det)->type();
 
       double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
@@ -288,6 +257,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
           f1 = std::max( f1, clf->score( id ) );
         }
       }
+
       for( const std::string id : d->m_parsed_tot_ids2 )
       {
         if( clf->has_class_name( id ) )
@@ -298,20 +268,20 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
       f3 = 1.0 - f2 - f1;
 
-      (*d->m_tot_writer) << id << " " << f1 << " " << f2 << " " << f3 << std::endl;
+      (*d->m_tot_writer) << l_id << " " << f1 << " " << f2 << " " << f3 << std::endl;
     } // end write_tot
 
     // optionally write type to corresponding file
     if( d->m_write_types )
     {
-      vital::class_map_sptr clf = (*det)->type();
+      vital::detected_object_type_sptr clf = (*det)->type();
 
       if( !clf->size() == 0 )
       {
         std::string cls;
         clf->get_most_likely( cls );
 
-        (*d->m_type_writer) << id << " " << cls << std::endl;
+        (*d->m_type_writer) << l_id << " " << cls << std::endl;
       }
     } // end write_type
   } // end foreach

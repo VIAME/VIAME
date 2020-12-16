@@ -79,6 +79,21 @@ basename_from_metadata(metadata_sptr md,
   return basename;
 }
 
+std::string
+basename_from_metadata(kwiver::vital::metadata_vector const& mdv,
+                       frame_id_t frame)
+{
+  for (auto const& md : mdv)
+  {
+    if (md->has(kwiver::vital::VITAL_META_IMAGE_URI) ||
+        md->has(kwiver::vital::VITAL_META_VIDEO_URI))
+    {
+      return basename_from_metadata(md, frame);
+    }
+  }
+  return basename_from_metadata(nullptr, frame);
+}
+
 // ----------------------------------------------------------------------------
 /// Read in a POS file, producing a metadata object
 metadata_sptr

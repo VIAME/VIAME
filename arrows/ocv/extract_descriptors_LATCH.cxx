@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -44,7 +18,6 @@ using namespace kwiver::vital;
 namespace kwiver {
 namespace arrows {
 namespace ocv {
-
 
 class extract_descriptors_LATCH::priv
 {
@@ -81,17 +54,17 @@ public:
     bool valid = true;
 
     // Bytes can only be one of the following values
-    int bytes = config->get_value<int>( "bytes" );
-    if( ! ( bytes == 1 ||
-            bytes == 2 ||
-            bytes == 4 ||
-            bytes == 8 ||
-            bytes == 16 ||
-            bytes == 32 ||
-            bytes == 64 ) )
+    int bytes_ = config->get_value<int>( "bytes" );
+    if( ! ( bytes_ == 1 ||
+            bytes_ == 2 ||
+            bytes_ == 4 ||
+            bytes_ == 8 ||
+            bytes_ == 16 ||
+            bytes_ == 32 ||
+            bytes_ == 64 ) )
     {
       LOG_ERROR( log, "bytes value must be one of [1, 2, 4, 8, 16, 32, 64]. "
-                      "Given: " << bytes );
+                      "Given: " << bytes_ );
       valid = false;
     }
 
@@ -104,7 +77,6 @@ public:
   int half_ssd_size;
 };
 
-
 extract_descriptors_LATCH
 ::extract_descriptors_LATCH()
   : p_( new priv )
@@ -112,7 +84,6 @@ extract_descriptors_LATCH
   attach_logger( "arrows.ocv.LATCH" );
   extractor = p_->create();
 }
-
 
 extract_descriptors_LATCH
 ::~extract_descriptors_LATCH()
@@ -128,7 +99,6 @@ extract_descriptors_LATCH
   return config;
 }
 
-
 void extract_descriptors_LATCH
 ::set_configuration(vital::config_block_sptr config)
 {
@@ -138,7 +108,6 @@ void extract_descriptors_LATCH
   extractor = p_->create();
 }
 
-
 bool
 extract_descriptors_LATCH
 ::check_configuration(vital::config_block_sptr config) const
@@ -147,7 +116,6 @@ extract_descriptors_LATCH
   c->merge_config( config );
   return p_->check_config( c, logger() );
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

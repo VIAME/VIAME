@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016, 2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@
  */
 
 #include "adapter_data_set.h"
+
+#include <kwiver_type_traits.h>
 
 namespace kwiver {
 namespace adapter {
@@ -75,7 +77,7 @@ void
 adapter_data_set
 ::add_datum( sprokit::process::port_t const& port, sprokit::datum_t const& datum )
 {
-  m_port_datum_set[port] = datum ;
+  m_port_datum_set[port] = datum;
 }
 
 
@@ -165,5 +167,87 @@ kwiver::adapter::adapter_data_set::type() const
 {
   return m_set_type;
 }
+
+
+// ------------------------------------------------------------------
+size_t
+adapter_data_set::size() const
+{
+  return m_port_datum_set.size();
+}
+
+
+// ------------------------------------------------------------------
+template <typename T>
+void adapter_data_set::add_value(::sprokit::process::port_t const& port, T const& val)
+{
+  m_port_datum_set[port] = ::sprokit::datum::new_datum<T>(val);
+}
+
+
+// ------------------------------------------------------------------
+template<typename T>
+T adapter_data_set::get_port_data( ::sprokit::process::port_t const& port )
+{
+  auto it = this->find( port );
+  if ( it == this->end() )
+  {
+    throw std::runtime_error( "Data for port \"" + port + "\" is not in the adapter_data_set." );
+  }
+  return it->second->get_datum<T>();
+}
+
+
+// ------------------------------------------------------------------
+#define INSTANTIATE_ADS_ADD_VALUE(T) \
+  template KWIVER_ADAPTER_EXPORT \
+  void \
+  adapter_data_set::add_value(::sprokit::process::port_t const& port, T const& val);
+
+#define INSTANTIATE_ADS_GET_PORT_DATA(T) \
+  template KWIVER_ADAPTER_EXPORT \
+  T \
+  adapter_data_set::get_port_data(::sprokit::process::port_t const& port);
+
+#define INSTANTIATE_ADS_ADD_GET_VALUE(T) \
+  INSTANTIATE_ADS_ADD_VALUE(T) \
+  INSTANTIATE_ADS_GET_PORT_DATA(T)
+
+INSTANTIATE_ADS_ADD_GET_VALUE(int);
+INSTANTIATE_ADS_ADD_GET_VALUE(float);
+INSTANTIATE_ADS_ADD_GET_VALUE(double);
+INSTANTIATE_ADS_ADD_GET_VALUE(bool);
+
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::any);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::bounding_box_d);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::timestamp);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::geo_polygon);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::image_container_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::image_container_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::feature_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::database_query_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::descriptor_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::descriptor_request_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::query_result_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::iqr_feedback_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::string_t);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::string_vector_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::track_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::feature_track_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::object_track_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::double_vector_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::detected_object_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::track_descriptor_set_sptr);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::matrix_d);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::f2f_homography);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::metadata_vector);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::uid);
+
+INSTANTIATE_ADS_ADD_GET_VALUE(std::shared_ptr<std::vector<unsigned char>>);
+INSTANTIATE_ADS_ADD_GET_VALUE(kwiver::vital::string_sptr);
+
+#undef INSTANTIATE_ADS_ADD_VALUE
+#undef INSTANTIATE_ADS_GET_PORT_DATA
+#undef INSTANTIATE_ADS_ADD_GET_VALUE
 
 } } // end namespace

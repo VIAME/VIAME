@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2012-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "file_format_csv.h"
 
@@ -30,7 +28,6 @@
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
-
 
 using std::map;
 using std::string;
@@ -70,7 +67,6 @@ parse_csv_row( oracle_entry_handle_type row,
     b->read_csv_to_row( row, header_value_map );
   }
 }
-
 
 struct redundant_object_helper_type
 {
@@ -198,10 +194,8 @@ private:
 
 } // anon
 
-
 namespace kwiver {
 namespace track_oracle {
-
 
 file_format_csv
 ::file_format_csv(): file_format_base(TF_CSV, "Generic CSV")
@@ -339,7 +333,6 @@ file_format_csv
   map< size_t, track_handle_type > sequence_to_handle_map;
   track_handle_type current_track_handle;
 
-
   // various legacy hacks
   redundant_object_helper_type redundant_object_helper;
 
@@ -442,7 +435,6 @@ file_format_csv
       }
       this_row = track( parent_probe->second ).create_frame().row;
     }
-
 
     // create this row's header-value map
     map< string, string > header_value_map;

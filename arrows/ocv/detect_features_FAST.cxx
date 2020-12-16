@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -41,7 +15,6 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-
 class detect_features_FAST::priv
 {
 public:
@@ -51,7 +24,7 @@ public:
       nonmaxSuppression(true),
       targetNumDetections(2500)
   {
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     neighborhood_type = cv::FastFeatureDetector::TYPE_9_16;
 #endif
   }
@@ -59,7 +32,7 @@ public:
   /// Create a new FAST detector instance with the current parameter values
   cv::Ptr<cv::FastFeatureDetector> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     // 2.4.x version constructor
     return cv::Ptr<cv::FastFeatureDetector>(
         new cv::FastFeatureDetector(threshold, nonmaxSuppression)
@@ -74,7 +47,7 @@ public:
   /// Update the parameters of the given detector with the currently set values
   void update(cv::Ptr<cv::FeatureDetector> detector) const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     detector->set("threshold", threshold);
     detector->set("nonmaxSuppression", nonmaxSuppression);
 #else
@@ -96,13 +69,14 @@ public:
                        "if true, non-maximum suppression is applied to "
                        "detected corners (keypoints)" );
 
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     std::stringstream ss;
     ss << "one of the three neighborhoods as defined in the paper: "
       "TYPE_5_8=" << cv::FastFeatureDetector::TYPE_5_8 << ", "
       "TYPE_7_12=" << cv::FastFeatureDetector::TYPE_7_12 << ", "
       "TYPE_9_16=" << cv::FastFeatureDetector::TYPE_9_16 << ".";
-    config->set_value( "neighborhood_type", neighborhood_type , ss.str());
+    config->set_value( "neighborhood_type",
+                       static_cast< int >( neighborhood_type ), ss.str());
 #endif
 
     config->set_value("target_num_features_detected", targetNumDetections,
@@ -117,8 +91,10 @@ public:
     threshold = config->get_value<int>( "threshold" );
     nonmaxSuppression = config->get_value<bool>( "nonmaxSuppression" );
 
-#ifdef KWIVER_HAS_OPENCV_VER_3
-    neighborhood_type = config->get_value<int>( "neighborhood_type" );
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
+    neighborhood_type =
+      static_cast< decltype( neighborhood_type ) >(
+        config->get_value<int>( "neighborhood_type" ) );
 #endif
     targetNumDetections = config->get_value<int>("target_num_features_detected");
   }
@@ -129,7 +105,7 @@ public:
   {
     bool valid = true;
 
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     // Check that the input integer is one of the valid enum values
     int nt = config->get_value<int>( "neighborhood_type" );
     if( ! ( nt == cv::FastFeatureDetector::TYPE_5_8 ||
@@ -149,12 +125,15 @@ public:
 
   mutable int threshold;
   bool nonmaxSuppression;
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 4
+  cv::FastFeatureDetector::DetectorType neighborhood_type;
+#else
   int neighborhood_type;
+#endif
 #endif
   int targetNumDetections;
 };
-
 
 /// Constructor
 detect_features_FAST
@@ -165,13 +144,11 @@ detect_features_FAST
   detector = p_->create();
 }
 
-
 /// Destructor
 detect_features_FAST
 ::~detect_features_FAST()
 {
 }
-
 
 vital::config_block_sptr
 detect_features_FAST
@@ -181,7 +158,6 @@ detect_features_FAST
   p_->update_config( config );
   return config;
 }
-
 
 void
 detect_features_FAST
@@ -194,7 +170,6 @@ detect_features_FAST
   // Update the wrapped algo inst with new parameters
   p_->update(detector);
 }
-
 
 bool
 detect_features_FAST
@@ -328,7 +303,6 @@ detect_features_FAST
       }
     }
   }
-
 
   return last_det_feat_set;
 }

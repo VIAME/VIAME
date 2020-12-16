@@ -260,11 +260,11 @@ refine_detections_with_svm
     result_map res = d_->apply_svms( svm_nodes );
 
     // Set output detected object type using map
-    class_map_sptr new_type;
+    detected_object_type_sptr new_type;
 
     if( d_->override_original || !det->type() )
     {
-      new_type = std::make_shared< class_map >();
+      new_type = std::make_shared< detected_object >();
     }
     else
     {

@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef INCL_TRACK_FIELD_INSTANTIATION_H
 #define INCL_TRACK_FIELD_INSTANTIATION_H
@@ -56,7 +54,6 @@
 // seems to cause problems building track_oracle project on win64
 // template std::ostream& kwiver::track_oracle::operator<< <kwiver::track_oracle::track_field<T>::Type> ( std::ostream&, const kwiver::track_oracle::track_field_io_proxy<kwiver::track_oracle::track_field<T>::Type>& );
 
-
 #define TRACK_FIELD_INSTANCES_DATA_TERM_SPECIAL_OUTPUT(T) \
   TRACK_FIELD_INSTANCES_GENERAL(T) \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field();                        \
@@ -98,7 +95,6 @@
 
 #define TRACK_FIELD_INSTANCES_DATA_TERM_IO(T) \
  template std::ostream& kwiver::track_oracle::operator<< <kwiver::track_oracle::track_field<T>::Type> ( std::ostream&, const kwiver::track_oracle::track_field_io_proxy<kwiver::track_oracle::track_field<T>::Type>& );
-
 
 #define TRACK_FIELD_INSTANCES_DATA_TERM(T) \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field(); \

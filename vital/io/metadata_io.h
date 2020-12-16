@@ -66,6 +66,12 @@ VITAL_EXPORT
 basename_from_metadata(metadata_sptr md,
                        frame_id_t frame);
 
+std::string
+VITAL_EXPORT
+basename_from_metadata(kwiver::vital::metadata_vector const& mds,
+                       frame_id_t frame);
+
+
 
 /// Read in a POS file, producing a metadata object
 /**

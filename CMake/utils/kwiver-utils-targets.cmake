@@ -287,14 +287,18 @@ function(kwiver_add_library     name)
   endif()
 
   _kwiver_export("${name}")
+  set(LIB_PREFIX "")
+  if (SKBUILD)
+    set(LIB_PREFIX "${CMAKE_INSTALL_PREFIX}/")
+  endif()
   # LIB_SUFFIX should only apply to installation location, not the build
   # locations that properties above this point pertain to.
   if (NOT SKBUILD OR NOT target_type STREQUAL "STATIC_LIBRARY")
     kwiver_install(
       TARGETS             "${name}"
       ${exports}
-      ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/${library_dir}${LIB_SUFFIX}/${library_subdir}"
-      LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/${library_dir}${LIB_SUFFIX}/${library_subdir}"
+      ARCHIVE DESTINATION "${LIB_PREFIX}${library_dir}${LIB_SUFFIX}/${library_subdir}"
+      LIBRARY DESTINATION "${LIB_PREFIX}${library_dir}${LIB_SUFFIX}/${library_subdir}"
       RUNTIME DESTINATION "bin/${library_subdir}"
       COMPONENT           ${component}
       )

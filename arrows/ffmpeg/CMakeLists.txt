@@ -4,9 +4,9 @@
 include_directories(${FFMPEG_INCLUDE_DIR})
 
 if (NOT FFMPEG_FOUND_SEVERAL)
-  message( FATAL_ERROR "FFMPEG headers all in the same directories, "
+  message( FATAL_ERROR "FFmpeg headers all in the same directories, "
 "this is not supported by this Arrow."
-"\nThis likely indicates that you are building against an old FFMPEG ! "
+"\nThis likely indicates that you are building against an old FFmpeg ! "
 )
 endif()
 
@@ -50,7 +50,7 @@ if(fletch_ENABLED_ZLib)
 endif()
 
 target_link_libraries( kwiver_algo_ffmpeg
-  PUBLIC               kwiver_algo_core
+  PUBLIC               vital_algo
   PRIVATE              vital_klv kwiversys
                        ${FFMPEG_LIBRARIES}
                        ${ZLIB_LIBRARIES}

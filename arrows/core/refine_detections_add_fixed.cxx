@@ -125,12 +125,12 @@ refine_detections_add_fixed
 
     if( !d_->detection_type.empty() )
     {
-      auto cm = std::make_shared< kwiver::vital::class_map >();
-      cm->set_score( d_->detection_type, 1.0 );
+      auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+      dot->set_score( d_->detection_type, 1.0 );
 
       output->add(
         std::make_shared< kwiver::vital::detected_object >(
-          det_box, 1.0, cm ) );
+          det_box, 1.0, dot ) );
     }
     else
     {

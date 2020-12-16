@@ -32,14 +32,14 @@ syntax = "proto2";
 
 package kwiver.protobuf;
 
-import "class_map.proto";
+import "activity_type.proto";
 import "object_track_set.proto";
 import "timestamp.proto";
 
 message activity {
   required int64 id = 1;
   required string label = 2;
-  optional class_map activity_type = 3;
+  optional activity_type classifications = 3;
   required double confidence = 4;
   optional object_track_set participants = 5;
   required timestamp start_frame = 6;

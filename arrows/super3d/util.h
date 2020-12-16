@@ -1,32 +1,7 @@
-/*ckwg +29
- * Copyright 2012-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
+
  /**
  * \file
  * \brief Header file for util, various helper functions for depth estimation
@@ -50,7 +25,6 @@ vpgl_perspective_camera<double>
 scale_camera(const vpgl_perspective_camera<double>& camera,
              double scale);
 
-
 /// Produce the camera corresponding to a cropped image
 /// \param camera The input camera
 /// \param left the left coordinate of the cropping
@@ -69,7 +43,6 @@ void depth_map_to_height_map(const vpgl_perspective_camera<double>& camera,
                              const vil_image_view<double>& depth_map,
                              vil_image_view<double>& height_map);
 
-
 /// Convert a height map into a depth map
 /// \param camera the camera corresponding to the height map
 /// \param height_map input height map
@@ -78,6 +51,17 @@ void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
                              const vil_image_view<double>& height_map,
                              vil_image_view<double>& depth_map);
 
+/// Convert a height map into a depth map and scale uncertainty
+/**
+ * \param [in]  camera         the camera corresponding to the height map
+ * \param [in]  height_map     input height map
+ * \param [out] depth_map      output depth map
+ * \param [in,out] uncertainty uncertainty map to scale in place
+ */
+void height_map_to_depth_map(vpgl_perspective_camera<double> const& camera,
+                             vil_image_view<double> const& height_map,
+                             vil_image_view<double>& depth_map,
+                             vil_image_view<double>& uncertainty);
 
 } // end namespace super3d
 } // end namespace arrows

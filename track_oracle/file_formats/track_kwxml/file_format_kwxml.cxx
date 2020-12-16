@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2012-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "file_format_kwxml.h"
 
@@ -21,7 +19,6 @@
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
-
 using std::istringstream;
 using std::map;
 using std::ofstream;
@@ -31,7 +28,6 @@ using std::vector;
 
 namespace // anon
 {
-
 
 template< typename T>
 bool
@@ -55,7 +51,6 @@ read_vector_from_xml( TiXmlElement* descriptor,
 }
 
 } // anon
-
 
 namespace kwiver {
 namespace track_oracle {
@@ -122,7 +117,6 @@ file_format_kwxml
     xml_root = &doc;
   }
 
-
   TiXmlNode* xml_track_objects = 0;
   track_kwxml_type kwxml;
   logging_map_type wmap( main_logger, KWIVER_LOGGER_SITE );
@@ -132,7 +126,6 @@ file_format_kwxml
     // only interested in track nodes
     const string object_str("track");
     if (xml_track_objects->Value() != object_str) continue;
-
 
     // The frameNumberOrigin and offset variables are deprecated and no longer
     // used. Therefore, we won go through the problem of reading them.
@@ -251,7 +244,6 @@ file_format_kwxml
         wmap.add_msg( "no VideoID?" );
       }
     }
-
 
     {
       TiXmlText* time_stamp_text = track_handle.FirstChildElement( "timeStamp" ).FirstChild().ToText();
@@ -835,7 +827,6 @@ file_format_kwxml
         }
       }
 
-
       else if (string(descr_type) == "queryResultScore")
       {
         double d;
@@ -851,7 +842,6 @@ file_format_kwxml
       }
 
       // Parse the metadata descriptor
-
 
       else if (string(descr_type) == "metadataDescriptor")
       {
@@ -948,7 +938,6 @@ file_format_kwxml
         kwxml.descriptor_metadata() = meta;
       }
 
-
       else if (string(descr_type) == "motionDescriptor")
       {
         descriptor_motion_type d;
@@ -1001,7 +990,6 @@ file_format_kwxml
   } // for each track object;
 
   wmap.dump_msgs();
-
 
   // all done!
   return true;

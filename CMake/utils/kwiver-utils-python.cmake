@@ -38,6 +38,7 @@ if ( NOT TARGET python)
   add_custom_target(python)
 endif()
 
+
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py\\.in$")
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py$")
 
@@ -149,10 +150,12 @@ function (kwiver_add_python_module path     modpath    module)
   # in source build this would be kwiver_python_install_path/project_name
   if(SKBUILD)
     set(pyfile_dst "${CMAKE_BINARY_DIR}/${modpath}/${module}.py")
+    set(mod_dst "${CMAKE_BINARY_DIR/${modpath}/" PARENT_SCOPE)
     # installation path for this module
     set(pypkg_install_path "${CMAKE_INSTALL_PREFIX}/${modpath}")
   else()
     set(pyfile_dst "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${project_name}/${modpath}/${module}.py")
+    set(mod_dst "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${project_name}/${modpath}/" PARENT_SCOPE)
     # installation path for this module
     set(pypkg_install_path "${kwiver_python_install_path}/${project_name}/${modpath}")
   endif()
@@ -255,3 +258,16 @@ function (kwiver_create_python_init    modpath)
     DESTINATION "${install_path}"
     COMPONENT   runtime)
 endfunction ()
+
+###
+# wrapper around add_custom_target eventually implementing python specific logic
+#
+#
+function (python_target_add_command cmd_name cust_command comment_)
+  add_custom_target(${cmd_name} ALL
+                    COMMAND ${cust_command}
+                    COMMENT ${comment_})
+  if(${ARGC} GREATER 3)
+    add_dependencies(${cmd_name} ${ARGN})
+  endif()
+endfunction()

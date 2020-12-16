@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #ckwg +28
-# Copyright 2011-2013, 2020 by Kitware, Inc.
+# Copyright 2011-2020 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+from kwiver.sprokit.util.test import expect_exception, find_tests, run_test, test_error
 
 cpp_scheds = ["sync","thread_per_process"] # One shop stop if we add any more c++ schedulers to the tests
 
@@ -382,19 +384,12 @@ def test_python_via_cpp(sched_type):
 
 
 if __name__ == '__main__':
-    import os
     import sys
 
-    if not len(sys.argv) == 4:
-        test_error("Expected three arguments. \"name-of-test\" \"new cwd\" \"python path to add\"")
+    if len(sys.argv) != 2:
+        test_error("Expected two arguments")
         sys.exit(1)
 
     (testname, sched_type) = tuple(sys.argv[1].split('-', 1))
-
-    os.chdir(sys.argv[2])
-
-    sys.path.append(sys.argv[3])
-
-    from kwiver.sprokit.util.test import *
 
     run_test(testname, find_tests(locals()), sched_type)

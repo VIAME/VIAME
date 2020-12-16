@@ -16,6 +16,8 @@ kwiver_check_compiler_flag( -Werror=reorder )
 kwiver_check_compiler_flag( -Werror=overloaded-virtual )
 kwiver_check_compiler_flag( -Werror=cast-qual )
 kwiver_check_compiler_flag( -Werror=vla )
+kwiver_check_compiler_flag( -Wunused-parameter )
+kwiver_check_compiler_flag( -Wshadow=local )
 
 # to slience this warning
 kwiver_check_compiler_flag( -Wno-unknown-pragmas )
@@ -54,8 +56,6 @@ if (KWIVER_CPP_EXTRA)
 
   # TODO: Python triggers warnings with this
   kwiver_check_compiler_flag(-Wold-style-cast)
-  # Variable naming warnings
-  kwiver_check_compiler_flag(-Wshadow)
   # Exception warnings
   kwiver_check_compiler_flag(-Wnoexcept)
   # Miscellaneous warnings
@@ -65,6 +65,7 @@ if (KWIVER_CPP_EXTRA)
   kwiver_check_compiler_flag(-Wdocumentation)
   kwiver_check_compiler_flag(-Wundef)
   kwiver_check_compiler_flag(-Wunused-macros)
+  kwiver_check_compiler_flag( -Wshadow )
 endif()
 
 OPTION(KWIVER_CPP_NITPICK "Generate warnings about nitpicky things" OFF)

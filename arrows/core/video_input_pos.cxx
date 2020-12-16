@@ -1,48 +1,21 @@
-/*ckwg +29
- * Copyright 2017-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "video_input_pos.h"
 
-#include <vital/vital_types.h>
+#include <vital/exceptions.h>
+#include <vital/io/metadata_io.h>
 #include <vital/types/metadata.h>
 #include <vital/types/metadata_traits.h>
 #include <vital/types/timestamp.h>
-#include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
-
-#include <vital/io/metadata_io.h>
+#include <vital/vital_config.h>
+#include <vital/vital_types.h>
 
 #include <kwiversys/SystemTools.hxx>
 
 #include <fstream>
-
 
 namespace kwiver {
 namespace arrows {
@@ -113,7 +86,6 @@ public:
   }
 };
 
-
 // ------------------------------------------------------------------
 video_input_pos
 ::video_input_pos()
@@ -132,13 +104,11 @@ video_input_pos
   set_capability( vital::algo::video_input::IS_SEEKABLE, true );
 }
 
-
 // ------------------------------------------------------------------
 video_input_pos
 ::~video_input_pos()
 {
 }
-
 
 // ------------------------------------------------------------------
 vital::config_block_sptr
@@ -157,7 +127,6 @@ video_input_pos
   return config;
 }
 
-
 // ------------------------------------------------------------------
 void
 video_input_pos
@@ -173,15 +142,13 @@ video_input_pos
     "metadata_extension", d->c_meta_extension );
 }
 
-
 // ------------------------------------------------------------------
 bool
 video_input_pos
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -224,7 +191,6 @@ video_input_pos
   d->d_frame_number = 0;
 }
 
-
 // ------------------------------------------------------------------
 void
 video_input_pos
@@ -236,7 +202,6 @@ video_input_pos
   d->d_metadata = nullptr;
 }
 
-
 // ------------------------------------------------------------------
 bool
 video_input_pos
@@ -244,7 +209,6 @@ video_input_pos
 {
   return  d->d_current_files == d->d_img_md_files.end();
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -274,7 +238,7 @@ video_input_pos
 bool
 video_input_pos
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
-              uint32_t                  timeout ) // not supported
+              VITAL_UNUSED uint32_t     timeout ) // not supported
 {
   // reset current metadata packet and timestamp
   d->d_metadata = nullptr;
@@ -324,7 +288,7 @@ bool
 video_input_pos
 ::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               kwiver::vital::timestamp::frame_t frame_number,
-              uint32_t                  timeout )
+              VITAL_UNUSED uint32_t             timeout )
 {
   // reset current metadata packet and timestamp
   d->d_metadata = nullptr;
@@ -368,7 +332,6 @@ video_input_pos
   return true;
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::timestamp
 video_input_pos
@@ -404,7 +367,6 @@ video_input_pos
 {
   return nullptr;
 }
-
 
 // ------------------------------------------------------------------
 kwiver::vital::metadata_vector
