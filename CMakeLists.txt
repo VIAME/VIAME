@@ -122,8 +122,8 @@ if( VIAME_ENABLE_PYTORCH )
 
   option( VIAME_ENABLE_PYTORCH-INTERNAL "Enable internal PyTorch build"  OFF )
   option( VIAME_ENABLE_PYTORCH-MMDET    "Enable mmdet PyTorch code"      ON )
-  option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"      ON )
   option( VIAME_ENABLE_PYTORCH-NETHARN  "Enable netharn PyTorch code"    ON )
+  option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"      OFF )
   option( VIAME_ENABLE_PYTORCH-MDNET    "Enable mdnet PyTorch code"      OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
