@@ -4,7 +4,7 @@
 
 /**
  * \file
- * \brief Implementation of \link kwiver::vital::track track \endlink
+ * \brief Implementation of \link kwiver::vital::track track \endlink.
  */
 
 #include "track.h"
@@ -30,7 +30,7 @@ public:
 namespace kwiver {
 namespace vital {
 
-/// Default Constructor
+// ----------------------------------------------------------------------------
 track
 ::track(track_data_sptr d)
   : id_( invalid_track_id )
@@ -38,7 +38,7 @@ track
 {
 }
 
-/// Copy Constructor
+// ----------------------------------------------------------------------------
 track
 ::track( const track& other )
   : history_()
@@ -47,7 +47,7 @@ track
 {
 }
 
-/// Factory function
+// ----------------------------------------------------------------------------
 track_sptr
 track
 ::create( track_data_sptr data )
@@ -55,7 +55,7 @@ track
   return track_sptr( new track( data ) );
 }
 
-/// Clone
+// ----------------------------------------------------------------------------
 track_sptr
 track
 ::clone( clone_type ct ) const
@@ -71,7 +71,7 @@ track
   return t;
 }
 
-/// Access the first frame number covered by this track
+// ----------------------------------------------------------------------------
 frame_id_t
 track
 ::first_frame() const
@@ -83,7 +83,7 @@ track
   return( *this->history_.begin() )->frame();
 }
 
-/// Access the last frame number covered by this track
+// ----------------------------------------------------------------------------
 frame_id_t
 track
 ::last_frame() const
@@ -95,7 +95,7 @@ track
   return( *this->history_.rbegin() )->frame();
 }
 
-/// Append a track state.
+// ----------------------------------------------------------------------------
 bool
 track
 ::append( track_state_sptr&& state )
@@ -116,7 +116,7 @@ track
   return true;
 }
 
-/// Append an entire other track.
+// ----------------------------------------------------------------------------
 bool
 track
 ::append( track& to_append )
@@ -138,7 +138,7 @@ track
   return true;
 }
 
-/// Insert a track state.
+// ----------------------------------------------------------------------------
 bool
 track
 ::insert( track_state_sptr&& state )
@@ -165,7 +165,7 @@ track
   return true;
 }
 
-/// Remove a track state
+// ----------------------------------------------------------------------------
 bool
 track
 ::remove( track_state_sptr const& state )
@@ -188,7 +188,7 @@ track
   return true;
 }
 
-/// Remove all track states
+// ----------------------------------------------------------------------------
 void
 track
 ::clear()
@@ -200,7 +200,7 @@ track
   this->history_.clear();
 }
 
-/// Find the track state iterator matching \a frame
+// ----------------------------------------------------------------------------
 track::history_const_itr
 track
 ::find( frame_id_t frame ) const
@@ -219,7 +219,7 @@ track
   return this->end();
 }
 
-/// Return the set of all frame IDs covered by this track
+// ----------------------------------------------------------------------------
 std::set< frame_id_t >
 track
 ::all_frame_ids() const
