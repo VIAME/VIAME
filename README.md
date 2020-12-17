@@ -46,7 +46,7 @@ Installations
 For a full installation guide and description of the various flavors of VIAME, see the
 quick-start guide, above. In summary, VIAME Desktop is currently provided as either a .zip or
 .tar file. Alternatively, docker files are available for both VIAME Desktop and Web (below).
-A sample instance of VIAME Web is also online, hosted at [viame.kitware.com](viame.kitware.com).
+A sample instance of VIAME Web is also online, hosted at [viame.kitware.com](https://viame.kitware.com).
 For desktop installs, extract the binaries and place them in a directory of your choosing,
 for example /opt/noaa/viame on Linux or C:\Program Files\VIAME on Windows. If you're using
 packages built with GPU support, make sure to have sufficient video drivers installed,
