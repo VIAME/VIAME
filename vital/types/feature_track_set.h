@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -142,7 +116,6 @@ public:
   bool is_keyframe;
 };
 
-
 class feature_info {
 public:
   feature_set_sptr features;
@@ -209,7 +182,6 @@ public:
    */
   virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
 
-
   /// Return a vector of feature track states corresponding to the tracks on the given frame.
   /**
   * \param [in] offset the frame offset for selecting the target frame.
@@ -271,7 +243,6 @@ using feature_track_set_sptr = std::shared_ptr< feature_track_set >;
 static constexpr auto as_feature_track =
   feature_track_state::downcast_transform;
 
-
 class feature_track_set_changes;
 typedef std::shared_ptr<feature_track_set_changes> feature_track_set_changes_sptr;
 
@@ -307,7 +278,6 @@ public:
 
   std::vector<state_data> m_changes;
 };
-
 
 } } // end namespace vital
 

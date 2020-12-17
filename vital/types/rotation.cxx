@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -63,7 +37,6 @@ rotation_< T >
   }
 }
 
-
 /// Constructor - from rotation angle (radians) and axis
 template < typename T >
 rotation_< T >
@@ -71,7 +44,6 @@ rotation_< T >
   : q_( Eigen::Quaternion< T > ( Eigen::AngleAxis< T > ( angle, axis.normalized() ) ) )
 {
 }
-
 
 /// Constructor - from yaw, pitch, and roll (radians)
 template < typename T >
@@ -96,7 +68,6 @@ rotation_< T >
   *this = Rx * Ry * Rz * Rned2enu;
 }
 
-
 /// Constructor - from a matrix
 /**
  * requires orthonormal matrix with +1 determinant
@@ -108,7 +79,6 @@ rotation_< T >
   q_ = Eigen::Quaternion< T > ( rot );
 }
 
-
 /// Convert to a 3x3 matrix
 template < typename T >
 Eigen::Matrix< T, 3, 3 >
@@ -117,8 +87,6 @@ rotation_< T >
 {
   return q_.toRotationMatrix();
 }
-
-
 
 /// Returns the axis of rotation
 template < typename T >
@@ -135,7 +103,6 @@ rotation_< T >
   }
   return dir / mag;
 }
-
 
 /// Returns the angle of the rotation in radians about the axis
 template < typename T >
@@ -163,7 +130,6 @@ rotation_< T >
   return a;
 }
 
-
 /// Return the rotation as a Rodrigues vector
 template < typename T >
 Eigen::Matrix< T, 3, 1 >
@@ -179,7 +145,6 @@ rotation_< T >
   return this->axis() * angle;
 }
 
-
 /// Convert to yaw, pitch, and roll (radians)
 template < typename T >
 void
@@ -194,7 +159,6 @@ rotation_< T >
   roll  = T( std::atan2( double( -rotM( 1, 2 ) ), double( -rotM( 2, 2 ) ) ) );
 }
 
-
 /// Compose two rotations
 template < typename T >
 rotation_< T >
@@ -203,7 +167,6 @@ rotation_< T >
 {
   return q_ * rhs.q_;
 }
-
 
 /// Rotate a vector
 /**
@@ -218,7 +181,6 @@ rotation_< T >
   return q_ * rhs;
 }
 
-
 /// output stream operator for a rotation
 template < typename T >
 std::ostream&
@@ -227,7 +189,6 @@ operator<<( std::ostream& s, const rotation_< T >& r )
   s << r.quaternion().coeffs();
   return s;
 }
-
 
 /// input stream operator for a rotation
 template < typename T >
@@ -241,7 +202,6 @@ operator>>( std::istream& s, rotation_< T >& r )
   return s;
 }
 
-
 /// Generate a rotation vector that, when applied to A N times, produces B.
 template < typename T >
 rotation_< T >
@@ -252,7 +212,6 @@ interpolate_rotation( rotation_< T > const& A, rotation_< T > const& B, T f )
   // Reduce the angle of rotation by the fraction provided
   return A * rotation_< T > ( C.angle() * f, C.axis() );
 }
-
 
 /// Generate N evenly interpolated rotations inbetween \c A and \c B.
 template < typename T >
@@ -266,7 +225,6 @@ interpolated_rotations( rotation_< T > const& A, rotation_< T > const& B, size_t
     interp_rots.push_back( interpolate_rotation< T > ( A, B, static_cast< T > ( i ) / denom ) );
   }
 }
-
 
 template < typename T >
 Eigen::Matrix< T, 3, 3> rotation_zyx(T yaw, T pitch, T roll)
@@ -335,7 +293,6 @@ compose_rotations(
   R = R_c*Rs.transpose()*Rp.transpose();
   return kwiver::vital::rotation_< T >(R);
 }
-
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_ROTATION( T )                                       \

@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef VITAL_TRACK_DESCRIPTOR_
 #define VITAL_TRACK_DESCRIPTOR_
@@ -117,7 +91,6 @@ public:
      */
     vital::timestamp get_timestamp() const;
 
-
     /**
      * \brief Get image location.
      *
@@ -126,7 +99,6 @@ public:
      */
     image_bbox_t const& get_image_location() const;
 
-
     /**
      * \brief Get world location.
      *
@@ -134,7 +106,6 @@ public:
      * @return Bounding box in world coordinates, usually in meters.
      */
     world_bbox_t const& get_world_location() const;
-
 
   private:
     history_entry(); /* not implemented */
@@ -169,7 +140,6 @@ public:
    */
   static track_descriptor_sptr create( std::string const& type );
 
-
   /**
    * \brief Raw descriptor factory method.
    *
@@ -184,7 +154,6 @@ public:
 
   ~track_descriptor();
 
-
   /**
    * \brief Override the descriptor type for this descriptor.
    *
@@ -193,7 +162,6 @@ public:
    * @param type The descriptor identifier
    */
   void set_type( const descriptor_id_t& type );
-
 
   /**
    * \brief Returns the descriptor type.
@@ -204,7 +172,6 @@ public:
    */
   descriptor_id_t const& get_type() const;
 
-
   /**
    * \brief Override the descriptor uid for this descriptor.
    *
@@ -214,7 +181,6 @@ public:
    */
   void set_uid( const vital::uid& id );
 
-
   /**
    * \brief Returns the descriptor uid.
    *
@@ -223,7 +189,6 @@ public:
    * @return The descriptor unique identifier.
    */
   vital::uid const& get_uid() const;
-
 
   /**
    * \brief Add new track id to raw descriptor.
@@ -235,7 +200,6 @@ public:
    */
   void add_track_id( uint64_t id );
 
-
   /**
    * \brief Adds multiple new track ids to raw descriptor.
    *
@@ -246,7 +210,6 @@ public:
    */
   void add_track_ids( const std::vector< uint64_t >& ids );
 
-
   /**
    * \brief Get list of track ID's.
    *
@@ -255,7 +218,6 @@ public:
    * @return List of track ID's in this object.
    */
   std::vector< uint64_t > const& get_track_ids() const;
-
 
   /**
    * \brief Set descriptor data vector.
@@ -267,7 +229,6 @@ public:
    */
   void set_descriptor( descriptor_data_sptr const& data );
 
-
   /**
    * \brief Get read only access to data.
    *
@@ -277,7 +238,6 @@ public:
    * @return Reference to descriptor data vector.
    */
   descriptor_data_sptr const& get_descriptor() const;
-
 
   /**
    * \brief Get read/write access to data.
@@ -292,7 +252,6 @@ public:
    * @return Reference to descriptor data vector.
    */
   descriptor_data_sptr& get_descriptor();
-
 
   //@{
   /**
@@ -314,7 +273,6 @@ public:
   double const& at( size_t idx ) const;
   //@}
 
-
   /**
    * \brief Get size of feature vector.
    *
@@ -323,7 +281,6 @@ public:
    * @return Number of elements in feature vector.
    */
   size_t descriptor_size() const;
-
 
   /**
    * \brief Resize features vector.
@@ -349,7 +306,6 @@ public:
    * @param n New size of features vector.
    */
   void resize_descriptor( size_t n );
-
 
   /**
    * \brief Resize features vector.
@@ -377,14 +333,12 @@ public:
    */
   void resize_descriptor( size_t n, double init_value );
 
-
   /**
    * \brief Does the feature vector contain any features?
    *
    * @return Whether or not the feature vector is empty.
    */
   bool has_descriptor() const;
-
 
   /**
    * \brief Set history vector.
@@ -396,7 +350,6 @@ public:
    */
   void set_history( descriptor_history_t const& hist );
 
-
   /**
    * \brief Add history entry.
    *
@@ -407,7 +360,6 @@ public:
    */
   void add_history_entry( history_entry const& hist );
 
-
   /**
    * \brief Get history vector.
    *
@@ -416,7 +368,6 @@ public:
    * @return Current history vector.
    */
   descriptor_history_t const& get_history() const;
-
 
 private:
   /// Default constructor
@@ -437,7 +388,6 @@ private:
   /// History of descriptor, if known
   descriptor_history_t history_;
 };
-
 
 } } // end namespace
 

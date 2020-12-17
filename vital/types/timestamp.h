@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef _VITAL_TIMESTAMP_H_
 #define _VITAL_TIMESTAMP_H_
@@ -74,7 +48,6 @@ public:
    */
   timestamp();
 
-
   /**
    * \brief Constructor
    *
@@ -104,7 +77,6 @@ public:
    */
   bool has_valid_time() const { return m_valid_time; }
 
-
   /**
    * \brief Timestamp has valid frame number.
    *
@@ -113,7 +85,6 @@ public:
    * @return \b true if frame number has been set
    */
   bool has_valid_frame() const { return m_valid_frame; }
-
 
   /**
    * \brief Get time from timestamp.
@@ -128,7 +99,6 @@ public:
    */
   time_usec_t get_time_usec() const { return m_time; }
 
-
   /**
    * \brief Get time in seconds.
    *
@@ -137,7 +107,6 @@ public:
    * \return time in seconds.
    */
   double get_time_seconds() const;
-
 
   /**
    * \brief Get frame number from timestamp.
@@ -152,14 +121,12 @@ public:
    */
   frame_id_t get_frame() const { return m_frame; }
 
-
   /**
    * \brief Set time portion of timestamp.
    *
    * @param t Time for frame.
    */
   timestamp& set_time_usec( time_usec_t t );
-
 
   /**
    * \brief Set time portion of timestamp.
@@ -168,7 +135,6 @@ public:
    */
   timestamp& set_time_seconds( double t );
 
-
   /**
    * \brief Set frame portion of timestamp.
    *
@@ -176,14 +142,12 @@ public:
    */
   timestamp& set_frame( frame_id_t f);
 
-
   /**
    * \brief Set timestamp totally invalid.
    *
    * Both the frame and time are set to invalid
    */
   timestamp& set_invalid();
-
 
   /**
    * @brief Set time domain index for this timestamp
@@ -195,7 +159,6 @@ public:
   timestamp& set_time_domain_index ( int dom );
 
   int get_time_domain_index() const { return m_time_domain_index; }
-
 
   /**
    * \brief Format object in a readable manner.
@@ -214,7 +177,6 @@ public:
   bool operator<=( timestamp const& rhs ) const;
   bool operator>=( timestamp const& rhs ) const;
 
-
 private:
   bool m_valid_time;            ///< indicates valid time
   bool m_valid_frame;           ///< indicates valid frame number
@@ -226,7 +188,6 @@ private:
   int m_time_domain_index;
 
 }; // end class timestamp
-
 
 inline std::ostream& operator<< ( std::ostream& str, timestamp const& obj )
 { str << obj.pretty_print().c_str(); return str; }
