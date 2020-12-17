@@ -15,21 +15,32 @@ Step 2: Generate Supplemental Installers
 The supplemental installers are generated via the Python script called
 ``generate_viame_installers.py``.  Prior to running the Python script:
 
-* Ensure that the list which describes the data objects, called 
+* Ensure that the list which describes the data objects, called
   ``data_name_dict``, is up to date.
 * Ensure that the Girder connection information is correct.  This includes:
 
   * Username
   * Password
-  * API url
+  * API root url
   * Girder parent object Id
 
 
 Execute the ``generate_viame_installers.py`` file.  This long running process
 will create a set of temporary directories and execute a small CMake process to
-generate the installer for each piece of data.  It will then upload the MSI file 
+generate the installer for each piece of data.  It will then upload the MSI file
 to the Girder instance and copy it to the directory where the
-``generate_viame_installers.py`` file exists. 
+``generate_viame_installers.py`` file exists.  This file uses the
+multiprocessing library to spawn multiple processes to generate installers in
+parallel.  The default number of processes is 4.
+
+The ``generate_viame_installers.py`` has two optional arguments.
+
+``--remake_all`` will create a new installer, whether the target file exists in
+the remote folder or not.
+
+``-j`` will allow the user to set a different number of processes to be used.
+
+
 
 This script also creates the file needed for the ``Chain`` capbility of the
 WiX Toolset based upon the amount of data set.
@@ -47,11 +58,11 @@ the installer which other installers to acquire.
 
 If necessary, update the available checkboxes to contain the same options as
 those that are found in the ``VIAME_Chain_File.wxs``.  That is, each Checkbox
-``name`` should match one found in an ``InstallCondition`` in the ``.wxs`` 
+``name`` should match one found in an ``InstallCondition`` in the ``.wxs``
 file.
 
 
-3.2 Creation of EXE 
+3.2 Creation of EXE
 ++++++++++++++++++++
 
 The generation of the network installer is performed in two steps.  First, a
