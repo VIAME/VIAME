@@ -50,7 +50,7 @@ A sample instance of VIAME Web is also online, hosted at [viame.kitware.com](via
 For desktop installs, extract the binaries and place them in a directory of your choosing,
 for example /opt/noaa/viame on Linux or C:\Program Files\VIAME on Windows. If you're using
 packages built with GPU support, make sure to have sufficient video drivers installed,
-version 418.39 or higher. The best way to install drivers depends on your operating system,
+version 451.82 or higher. The best way to install drivers depends on your operating system,
 see below. Lastly, run through some of the examples to validate the installation. The binaries
 are quite large, in terms of disk space, due to the inclusion of multiple default model files
 and programs, but if just building your desired features from source (e.g. for embedded apps)
@@ -61,7 +61,7 @@ RHEL/CentOS 7 64-Bit, Ubuntu 16.04/18.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 6 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
-NVIDIA Drivers (Version 418.39+ 
+NVIDIA Drivers (Version 451.82+ 
 Windows 
 [\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
 [\[2\]](https://developer.nvidia.com/cuda-downloads)
