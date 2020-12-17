@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -47,14 +21,11 @@ extern "C"
 #include <vital/bindings/c/types/color.h>
 #include <vital/bindings/c/types/eigen.h>
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Generic functions + accessors
 
-
 /// Base opaque structure for vital::feature
 typedef struct vital_feature_s vital_feature_t;
-
 
 /// Destroy a feature instance
 /**
@@ -64,7 +35,6 @@ typedef struct vital_feature_s vital_feature_t;
 VITAL_C_EXPORT
 void
 vital_feature_destroy( vital_feature_t *f, vital_error_handle_t *eh );
-
 
 /// Get 2D image location
 /**
@@ -76,7 +46,6 @@ VITAL_C_EXPORT
 vital_eigen_matrix2x1d_t*
 vital_feature_loc( vital_feature_t *f, vital_error_handle_t *eh );
 
-
 /// Get feature magnitude
 /**
  * \param f Feature instance
@@ -86,7 +55,6 @@ vital_feature_loc( vital_feature_t *f, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 double
 vital_feature_magnitude( vital_feature_t *f, vital_error_handle_t *eh );
-
 
 /// Get feature scale
 /**
@@ -98,7 +66,6 @@ VITAL_C_EXPORT
 double
 vital_feature_scale( vital_feature_t *f, vital_error_handle_t *eh );
 
-
 /// Get feature angle
 /**
  * \param f Feature instance
@@ -108,7 +75,6 @@ vital_feature_scale( vital_feature_t *f, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 double
 vital_feature_angle( vital_feature_t *f, vital_error_handle_t *eh );
-
 
 /// Get feature 2D covariance
 /**
@@ -120,7 +86,6 @@ VITAL_C_EXPORT
 vital_covariance_2d_t*
 vital_feature_covar( vital_feature_t *f, vital_error_handle_t *eh );
 
-
 /// Get Feature location's pixel color
 /**
  * \param f Feature instance
@@ -130,7 +95,6 @@ vital_feature_covar( vital_feature_t *f, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 vital_rgb_color_t*
 vital_feature_color( vital_feature_t *f, vital_error_handle_t *eh );
-
 
 /// Get the name of the instance's data type
 /**
@@ -142,10 +106,8 @@ VITAL_C_EXPORT
 char const*
 vital_feature_type_name( vital_feature_t const *f, vital_error_handle_t *eh );
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Type specific constructors + functions
-
 
 /// Declare type-specific feature functions
 /**
@@ -276,10 +238,8 @@ vital_feature_##S##_set_color( vital_feature_t *f, \
                                vital_rgb_color_t *c, \
                                vital_error_handle_t *eh ); \
 
-
 DECLARE_FEATURE_OPERATIONS( double, d )
 DECLARE_FEATURE_OPERATIONS( float,  f )
-
 
 #ifdef __cplusplus
 }

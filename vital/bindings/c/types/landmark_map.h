@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -48,10 +22,8 @@ extern "C"
 #include <vital/bindings/c/types/landmark.h>
 #include <vital/bindings/c/vital_c_export.h>
 
-
 /// vital::landmark_map Opaque structure
 typedef struct vital_landmark_map_s vital_landmark_map_t;
-
 
 /// Create a new simple landmark map from an array of landmarks
 /**
@@ -70,7 +42,6 @@ vital_landmark_map_new( vital_landmark_t const **landmarks,
                         size_t length,
                         vital_error_handle_t *eh );
 
-
 /// Create a new, empty landmark map
 /**
  * \param eh Vital error handle instance
@@ -79,7 +50,6 @@ vital_landmark_map_new( vital_landmark_t const **landmarks,
 VITAL_C_EXPORT
 vital_landmark_map_t*
 vital_landmark_map_new_empty( vital_error_handle_t *eh );
-
 
 /// Destroy a landmark map instance
 /**
@@ -90,7 +60,6 @@ VITAL_C_EXPORT
 void
 vital_landmark_map_destroy( vital_landmark_map_t *lm, vital_error_handle_t *eh);
 
-
 /// Get the size of the landmark map
 /**
  * \param lm Landmark map instance
@@ -100,7 +69,6 @@ VITAL_C_EXPORT
 size_t
 vital_landmark_map_size( vital_landmark_map_t const *lm,
                          vital_error_handle_t *eh );
-
 
 /// Get the landmarks contained in this map
 /**
@@ -124,7 +92,6 @@ vital_landmark_map_landmarks( vital_landmark_map_t const *lm,
                               int64_t **lm_ids,
                               vital_landmark_t ***landmarks,
                               vital_error_handle_t *eh );
-
 
 #ifdef __cplusplus
 }
