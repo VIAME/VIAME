@@ -15,7 +15,7 @@ of environments.
 Documentation
 -------------
 
-The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5fd856652fa25629b99139d6/download),
+The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5fdaf1dd2fa25629b99843f8/download),
 [Tutorial Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
 and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
