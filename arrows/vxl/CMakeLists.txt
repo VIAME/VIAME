@@ -2,6 +2,7 @@
 # structures
 
 set(vxl_headers_public
+  high_pass_filter.h
   bounding_box.h
   bundle_adjust.h
   camera.h
@@ -35,6 +36,7 @@ kwiver_install_headers(
   )
 
 set(vxl_sources
+  high_pass_filter.cxx
   bundle_adjust.cxx
   camera.cxx
   camera_map.cxx
