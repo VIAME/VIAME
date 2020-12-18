@@ -4,7 +4,8 @@ Acknowledgement
 VIAME was originally developed with funding from the National
 Oceanic and Atmospheric Administration (NOAA)'s Fisheries Strategic
 Initiative on Automated Image Analysis (AIASI) committee, in addition
-to other groups within NOAA, such as the Marine Mammals Lab.
+to other groups within NOAA, such as the Marine Mammals Lab, and
+external groups such as the Coonamessett Farm Foundation.
 
 Additional thanks goes to the Air Force Research Laboratory (AFRL)
 RY and RI divisions, with some features developed across SBIRS/STTRS
