@@ -9,13 +9,14 @@
 #ifndef VITAL_TRACK_H_
 #define VITAL_TRACK_H_
 
-#include <vital/vital_export.h>
+#include <vital/attribute_set.h>
 #include <vital/vital_config.h>
+#include <vital/vital_export.h>
 #include <vital/vital_types.h>
 
-#include <vector>
-#include <set>
 #include <memory>
+#include <set>
+#include <vector>
 
 namespace kwiver {
 namespace vital {
@@ -243,6 +244,25 @@ public:
   /// Return whether or not this track has any states.
   bool empty() const { return history_.empty(); }
 
+  /// Get attribute set.
+  ///
+  /// This method returns a pointer to the attribute set that is attached to
+  /// this track. It is possible that the pointer is null, so check before
+  /// using it.
+  ///
+  /// \return Pointer to attribute set or \c nullptr
+  attribute_set_sptr attributes() const;
+
+  /// Attach attribute set to this track.
+  ///
+  /// This method attaches the specified attribute set to this track.
+  ///
+  /// \param attrs Pointer to attribute set to attach.
+  ///@{
+  void set_attributes( attribute_set_sptr&& attrs );
+  void set_attributes( attribute_set_sptr const& attrs );
+  ///@}
+
 protected:
   explicit track( track_data_sptr d = nullptr );
   track( const track& other );
@@ -255,6 +275,8 @@ protected:
 
   /// Optional data structure associated with this track.
   track_data_sptr data_;
+  /// The optional data structure associated with this track
+  attribute_set_sptr attrs_;
 };
 
 } } // end namespace vital

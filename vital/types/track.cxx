@@ -68,6 +68,10 @@ track
     new_state->track_ = t;
     t->history_.emplace_back( std::move( new_state ) );
   }
+  if( this->attrs_ )
+  {
+    t->set_attributes( this->attrs_->clone() );
+  }
   return t;
 }
 
@@ -231,6 +235,30 @@ track
     ids.insert( ts->frame() );
   }
   return ids;
+}
+
+// ----------------------------------------------------------------------------
+attribute_set_sptr
+track
+::attributes() const
+{
+  return this->attrs_;
+}
+
+// ----------------------------------------------------------------------------
+void
+track
+::set_attributes( attribute_set_sptr&& attrs )
+{
+  this->attrs_ = std::move( attrs );
+}
+
+// ----------------------------------------------------------------------------
+void
+track
+::set_attributes( attribute_set_sptr const& attrs )
+{
+  this->attrs_ = attrs;
 }
 
 } } // end namespace vital
