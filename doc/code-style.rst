@@ -140,9 +140,16 @@ General Presentation: :a:`[gen]`
     indented to the same level as surrounding code. Additional lines should
     start with :code:`*` and be indented one additional space, so that each
     :code:`*` lines up with the *first* :code:`*` of the initial line.
-    (However, prefer to avoid such comments aside from copyright notices and
-    Doxygen documentation blocks. For that matter, consider using :cpp:`///`
-    for Doxygen documentation of new code.)
+    Note, however, that use of C++ style comments (:cpp:`//`) is preferred.
+
+    .. admonition:: Rationale:
+
+      C++-style comments are slightly easier to type, slightly more terse (no
+      trailing :cpp:`*/` line), and, due to each line starting in the same
+      column with the same sequence of characters, somewhat less prone to
+      formatting butchering by editors. There is also no question of whether to
+      start text on the same line as :cpp:`/*` (visually inconsistent) or not
+      (another "unneeded" line).
 
 - :a:`[gen.proto]`
   Function prototypes should place the return type, class name, and method name
@@ -698,7 +705,75 @@ API Style: :a:`[api]`
 API Documentation: :a:`[doc]`
 '''''''''''''''''''''''''''''
 
-This section needs to be written.
+C++ code is documented using Doxygen. Strive to provide documentation for all
+public interfaces (free functions, member functions, and member variables)
+where such documentation is not superfluous.
+
+- :a:`[doc.format]`
+  Use :cpp:`///` for all doxygen documentation, except for those directives
+  which require other syntax (e.g. :cpp:`//@{` and :cpp:`//@}`). Avoid use of
+  C-style Doxygen comments. (See ``[gen.comments.format]`` for rationale.)
+
+- :a:`[doc.directives]`
+  Use ``\command`` rather than ``@command``.
+
+- :a:`[doc.keywords]`
+  When a code keyword (e.g. :cpp:`true`) or parameter name appears in
+  documentation, prefer to annotate these with ``\c`` or ``\p``, respectively.
+
+- :a:`[doc.periods]`
+  End all documentation with a period, including brief documentation consisting
+  of a single sentence or sentence fragment. Use a single space after
+  sentences.
+
+  .. admonition:: Rationale:
+
+    Always ending documentation with periods is fairly common practice, and
+    improves consistency by ensuring that all documentation renders with a
+    terminal period, both in the generated HTML and in the corresponding
+    source. Using a single space after sentences, rather than two, is much
+    easier to tool-enforce.
+
+- :a:`[doc.superfluous]`
+  Omit superfluous documentation. In particular, avoid documentation that
+  simply reiterates the name of the thing being documented.
+
+  .. admonition:: Rationale:
+
+    Documenting a copy constructor as "copy constructor" is essentially a waste
+    of space. Just as excessive use of code comments to state the obvious is
+    discouraged, we also wish to avoid documentation that is effectively
+    gratuitous.
+
+    Note that this does not apply to brief descriptions when additional,
+    meaningful detailed documentation is also present.
+
+- :a:`[doc.wordiness]`
+  Avoid unnecessarily "wordy" brief documentation. In particular, avoid
+  starting brief descriptions with unnecessary articles ("a", "the", etc.).
+  (Note that this does *not* apply to detailed descriptions.)
+
+- :a:`[doc.brief]`
+  Make use of AUTOBRIEF. Avoid use of ``\brief`` and write the first paragraph
+  of documentation so that it is suitable as a brief description. Keep in mind
+  that the entire first paragraph of documentation will be used; you are not
+  limited to one line or one sentence. Make sure to start a new paragraph
+  before detailed documentation.
+
+- :a:`[doc.blanks]`
+  Always insert a blank line between a (previous, unrelated) declaration and
+  documentation. Avoid a blank line between documentation and the code being
+  documented.
+
+- :a:`[doc.repeating]`
+  Avoid repeating documentation from a header (``.h``) in an implementation
+  (``.cpp``).
+
+  .. admonition:: Rationale:
+
+    Repeating documentation increases the size of implementations and adds
+    maintenance burden, and it is arguable whether or not doing so adds any
+    meaningful benefit.
 
 Unit Tests: :a:`[test]`
 '''''''''''''''''''''''
