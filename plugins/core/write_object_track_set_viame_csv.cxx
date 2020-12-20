@@ -54,6 +54,8 @@ public:
     , m_first( true )
     , m_delim( "," )
     , m_stream_identifier( "" )
+    , m_model_identifier( "" )
+    , m_version_identifier( "" )
     , m_active_writing( false )
     , m_write_time_as_uid( false )
     , m_tot_option( "weighted_average" )
@@ -67,6 +69,8 @@ public:
   bool m_first;
   std::string m_delim;
   std::string m_stream_identifier;
+  std::string m_model_identifier;
+  std::string m_version_identifier;
   std::map< unsigned, kwiver::vital::track_sptr > m_tracks;
   bool m_active_writing;
   bool m_write_time_as_uid;
@@ -262,6 +266,10 @@ write_object_track_set_viame_csv
     config->get_value<std::string>( "delimiter", d->m_delim );
   d->m_stream_identifier =
     config->get_value<std::string>( "stream_identifier", d->m_stream_identifier );
+  d->m_model_identifier =
+    config->get_value< std::string >( "model_identifier", d->m_model_identifier );
+  d->m_version_identifier =
+    config->get_value< std::string >( "version_identifier", d->m_version_identifier );
   d->m_active_writing =
     config->get_value<bool>( "active_writing", d->m_active_writing );
   d->m_write_time_as_uid =
@@ -313,6 +321,20 @@ write_object_track_set_viame_csv
     stream() << "# Written on: " << atime
              << "   by: write_object_track_set_viame_csv"
              << std::endl;
+
+    if( !d->m_model_identifier.empty() )
+    {
+      stream() << "# Computed using model identifier: "
+               << d->m_model_identifier
+               << std::endl;
+    }
+
+    if( !d->m_version_identifier.empty() )
+    {
+      stream() << "# Computed using software version: "
+               << d->m_version_identifier
+               << std::endl;
+    }
 
     d->m_first = false;
   }
