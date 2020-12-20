@@ -351,12 +351,21 @@ static kwiver::vital::config_block_sptr default_config()
     "Number of sequential frames to use in test set to avoid it being too similar to "
     "the training set." );
   config->set_value( "image_extensions",
-    ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG;.bmp;.BMP",
+    ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG;.sgi;.SGI;.bmp;.BMP;.pgm;.PGM",
     "Semicolon list of seperated image extensions to use in training, images without "
     "this extension will not be included." );
+  config->set_value( "video_extensions",
+    ".mp4;.MP4;.mpg;.MPG;.mpeg;.MPEG;.avi;.AVI;.wmv;.WMV;.mov;.MOV;.webm;.WEBM;.ogg;.OGG",
+    "Semicolon list of seperated video extensions to use in training, images without "
+    "this extension will not be included." );
+  config->set_value( "video_extractor", "ffmpeg",
+    "Method to use to extract frames from video, can either be ffmpeg or a pipe file" );
+  config->set_value( "frame_rate", "5",
+    "Default frame rate to use for videos when it is not manually specified inside of a "
+    "groundtruth file." );
   config->set_value( "threshold", "0.00",
     "Optional threshold to provide on top of input groundtruth. This is useful if the "
-    "truth is derived from some automated detector." );
+    "truth is derived from some automated detector and is unfiltered." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
   config->set_value( "data_warning_file", "",
