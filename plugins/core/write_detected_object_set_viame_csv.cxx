@@ -59,6 +59,7 @@ public:
     , m_frame_number( 0 )
     , m_write_frame_number( true )
     , m_stream_identifier( "" )
+    , m_model_identifier( "" )
   {}
 
   ~priv() {}
@@ -68,6 +69,7 @@ public:
   int m_frame_number;
   bool m_write_frame_number;
   std::string m_stream_identifier;
+  std::string m_model_identifier;
 };
 
 
@@ -94,9 +96,11 @@ write_detected_object_set_viame_csv
   kwiver::vital::config_block_sptr config = this->get_configuration();
 
   d->m_write_frame_number =
-    config->get_value<bool>( "write_frame_number", d->m_write_frame_number );
+    config->get_value< bool >( "write_frame_number", d->m_write_frame_number );
   d->m_stream_identifier =
-    config->get_value<std::string>( "stream_identifier", d->m_stream_identifier );
+    config->get_value< std::string >( "stream_identifier", d->m_stream_identifier );
+  d->m_model_identifier =
+    config->get_value< std::string >( "model_identifier", d->m_model_identifier );
 
   config->merge_config( config_in );
 }
@@ -112,10 +116,12 @@ write_detected_object_set_viame_csv
 
   // Class parameters
   config->set_value( "write_frame_number", d->m_write_frame_number,
-                     "Write a frame number for the unique frame ID field "
-                     "(as opposed to a string identifier)." );
+    "Write a frame number for the unique frame ID field (as opposed to a string "
+    "identifier) for column 3 in the output csv." );
   config->set_value( "stream_identifier", d->m_stream_identifier,
-                     "Video name over-ride to write to output file." );
+    "Optional video name over-ride to write to output column 2 in the csv." );
+  config->set_value( "model_identifier", d->m_model_identifier,
+    "Model identifier string to write to the header or the csv." );
 
   return config;
 }
@@ -160,6 +166,13 @@ write_detected_object_set_viame_csv
     stream() << "# Written on: " << atime
              << "   by: write_detected_object_set_viame_csv"
              << std::endl;
+
+    if( !d->m_model_identifier.empty() )
+    {
+      stream() << "# Computed using model identifier: "
+               << d->m_model_identifier
+               << std::endl;
+    }
 
     d->m_first = false;
   } // end first
