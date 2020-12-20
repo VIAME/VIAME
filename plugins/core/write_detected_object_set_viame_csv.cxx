@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2021 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ public:
     , m_write_frame_number( true )
     , m_stream_identifier( "" )
     , m_model_identifier( "" )
+    , m_version_identifier( "" )
   {}
 
   ~priv() {}
@@ -70,6 +71,7 @@ public:
   bool m_write_frame_number;
   std::string m_stream_identifier;
   std::string m_model_identifier;
+  std::string m_version_identifier;
 };
 
 
@@ -101,6 +103,8 @@ write_detected_object_set_viame_csv
     config->get_value< std::string >( "stream_identifier", d->m_stream_identifier );
   d->m_model_identifier =
     config->get_value< std::string >( "model_identifier", d->m_model_identifier );
+  d->m_version_identifier =
+    config->get_value< std::string >( "version_identifier", d->m_version_identifier );
 
   config->merge_config( config_in );
 }
@@ -119,9 +123,11 @@ write_detected_object_set_viame_csv
     "Write a frame number for the unique frame ID field (as opposed to a string "
     "identifier) for column 3 in the output csv." );
   config->set_value( "stream_identifier", d->m_stream_identifier,
-    "Optional video name over-ride to write to output column 2 in the csv." );
+    "Optional fixed video name over-ride to write to output column 2 in the csv." );
   config->set_value( "model_identifier", d->m_model_identifier,
     "Model identifier string to write to the header or the csv." );
+  config->set_value( "version_identifier", d->m_version_identifier,
+    "Version identifier string to write to the header or the csv." );
 
   return config;
 }
@@ -171,6 +177,13 @@ write_detected_object_set_viame_csv
     {
       stream() << "# Computed using model identifier: "
                << d->m_model_identifier
+               << std::endl;
+    }
+
+    if( !d->m_version_identifier.empty() )
+    {
+      stream() << "# Computed using software version: "
+               << d->m_version_identifier
                << std::endl;
     }
 

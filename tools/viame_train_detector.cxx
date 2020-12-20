@@ -79,7 +79,9 @@ public:
   bool opt_no_query;
 
   std::string opt_config;
-  std::string opt_input;
+  std::string opt_input_dir;
+  std::string opt_input_list;
+  std::string opt_input_truth;
   std::string opt_detector;
   std::string opt_out_config;
   std::string opt_threshold;
@@ -544,45 +546,53 @@ main( int argc, char* argv[] )
   g_params.m_args.StoreUnusedArguments( true );
   typedef kwiversys::CommandLineArguments argT;
 
-  g_params.m_args.AddArgument( "--help",      argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "--help",          argT::NO_ARGUMENT,
     &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "-h",          argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "-h",              argT::NO_ARGUMENT,
     &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "--list",      argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "--list",          argT::NO_ARGUMENT,
     &g_params.opt_list, "Display list of all trainable algorithms" );
-  g_params.m_args.AddArgument( "-l",          argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "-l",              argT::NO_ARGUMENT,
     &g_params.opt_list, "Display list of all trainable algorithms" );
-  g_params.m_args.AddArgument( "--no-query",  argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "--no-query",      argT::NO_ARGUMENT,
     &g_params.opt_no_query, "Do not query the user for anything" );
-  g_params.m_args.AddArgument( "-nq",         argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "-nq",             argT::NO_ARGUMENT,
     &g_params.opt_no_query, "Do not query the user for anything" );
-  g_params.m_args.AddArgument( "--config",    argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "--config",        argT::SPACE_ARGUMENT,
     &g_params.opt_config, "Input configuration file with parameters" );
-  g_params.m_args.AddArgument( "-c",          argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-c",              argT::SPACE_ARGUMENT,
     &g_params.opt_config, "Input configuration file with parameters" );
-  g_params.m_args.AddArgument( "--input",     argT::SPACE_ARGUMENT,
-    &g_params.opt_input, "Input directory containing groundtruth" );
-  g_params.m_args.AddArgument( "-i",          argT::SPACE_ARGUMENT,
-    &g_params.opt_input, "Input directory containing groundtruth" );
-  g_params.m_args.AddArgument( "--detector",  argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "--input",         argT::SPACE_ARGUMENT,
+    &g_params.opt_input_dir, "Input directory containing groundtruth" );
+  g_params.m_args.AddArgument( "-i",              argT::SPACE_ARGUMENT,
+    &g_params.opt_input_dir, "Input directory containing groundtruth" );
+  g_params.m_args.AddArgument( "--input-list",    argT::SPACE_ARGUMENT,
+    &g_params.opt_input_list, "Input list with data for training" );
+  g_params.m_args.AddArgument( "-il",             argT::SPACE_ARGUMENT,
+    &g_params.opt_input_list, "Input list with data for training" );
+  g_params.m_args.AddArgument( "--input-truth",   argT::SPACE_ARGUMENT,
+    &g_params.opt_input_truth, "Input list containing training truth" );
+  g_params.m_args.AddArgument( "-it",             argT::SPACE_ARGUMENT,
+    &g_params.opt_input_truth, "Input list containing training truth" );
+  g_params.m_args.AddArgument( "--detector",      argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector to train if no config" );
-  g_params.m_args.AddArgument( "-d",          argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-d",              argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector to train if no config" );
   g_params.m_args.AddArgument( "--output-config", argT::SPACE_ARGUMENT,
     &g_params.opt_out_config, "Output a sample configuration to file" );
-  g_params.m_args.AddArgument( "-o",          argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-o",              argT::SPACE_ARGUMENT,
     &g_params.opt_out_config, "Output a sample configuration to file" );
-  g_params.m_args.AddArgument( "--setting", argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "--setting",       argT::SPACE_ARGUMENT,
     &g_params.opt_settings, "Over-ride some setting in the config" );
-  g_params.m_args.AddArgument( "-s",          argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-s",              argT::SPACE_ARGUMENT,
     &g_params.opt_settings, "Over-ride some setting in the config" );
-  g_params.m_args.AddArgument( "--threshold", argT::SPACE_ARGUMENT,
-    &g_params.opt_threshold, "Threshold override to apply over inputs" );
-  g_params.m_args.AddArgument( "-t",          argT::SPACE_ARGUMENT,
-    &g_params.opt_threshold, "Threshold override to apply over inputs" );
-  g_params.m_args.AddArgument( "--pipeline",  argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "--threshold",     argT::SPACE_ARGUMENT,
+    &g_params.opt_threshold, "Threshold override to apply over input" );
+  g_params.m_args.AddArgument( "-t",              argT::SPACE_ARGUMENT,
+    &g_params.opt_threshold, "Threshold override to apply over input" );
+  g_params.m_args.AddArgument( "--pipeline",      argT::SPACE_ARGUMENT,
     &g_params.opt_pipeline_file, "Pipeline file" );
-  g_params.m_args.AddArgument( "-p",          argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-p",              argT::SPACE_ARGUMENT,
     &g_params.opt_pipeline_file, "Pipeline file" );
 
   // Parse args
@@ -658,7 +668,7 @@ main( int argc, char* argv[] )
   //   (a) Load groundtruth according to criteria
   //   (b) Select detector to train
 
-  std::string input_dir = g_params.opt_input;
+  std::string input_dir = g_params.opt_input_dir;
 
   if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
   {
@@ -770,7 +780,7 @@ main( int argc, char* argv[] )
     // Test first entry
     bool absolute_paths = false;
     std::string to_test = train_files[0];
-    std::string full_path = append_path( g_params.opt_input, to_test );
+    std::string full_path = append_path( g_params.opt_input_dir, to_test );
 
     if( !does_file_exist( full_path ) && does_file_exist( to_test ) )
     {
@@ -782,7 +792,7 @@ main( int argc, char* argv[] )
     {
       if( !absolute_paths )
       {
-        train_files[i] = append_path( g_params.opt_input, train_files[i] );
+        train_files[i] = append_path( g_params.opt_input_dir, train_files[i] );
       }
 
       if( !does_file_exist( train_files[i] ) )
@@ -794,7 +804,7 @@ main( int argc, char* argv[] )
     {
       if( !absolute_paths )
       {
-        test_files[i] = append_path( g_params.opt_input, test_files[i] );
+        test_files[i] = append_path( g_params.opt_input_dir, test_files[i] );
       }
 
       if( !does_file_exist( test_files[i] ) )
@@ -979,7 +989,7 @@ main( int argc, char* argv[] )
 
   // Identify all sub-directories containing data
   std::vector< std::string > subdirs;
-  list_all_subfolders( g_params.opt_input, subdirs );
+  list_all_subfolders( g_params.opt_input_dir, subdirs );
 
   // Load groundtruth for all image files in all folders using reader class
   std::vector< std::string > train_image_fn;
