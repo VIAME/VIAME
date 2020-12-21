@@ -6,5 +6,5 @@ option( KWIVER_ENABLE_FFMPEG
   )
 
 if( KWIVER_ENABLE_FFMPEG )
-  find_package( FFMPEG REQUIRED )
+  find_package( FFMPEG 3.0  REQUIRED )
 endif( KWIVER_ENABLE_FFMPEG )
