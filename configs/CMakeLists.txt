@@ -216,6 +216,7 @@ set( CORE_PIPELINE_FILES
   pipelines/extract_chips_from_detections.pipe
   pipelines/filter_debayer_and_enhance.pipe
   pipelines/filter_enhance.pipe
+  pipelines/filter_extract_frames.pipe
   pipelines/filter_extract_left.pipe
   pipelines/filter_split_and_debayer.pipe
   pipelines/filter_to_kwa.pipe

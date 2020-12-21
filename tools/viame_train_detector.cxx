@@ -82,6 +82,7 @@ public:
   std::string opt_input_dir;
   std::string opt_input_list;
   std::string opt_input_truth;
+  std::string opt_label_file;
   std::string opt_detector;
   std::string opt_out_config;
   std::string opt_threshold;
@@ -466,6 +467,27 @@ bool file_contains_string( const std::string& file, std::string key )
   return false;
 }
 
+bool load_file_list( const std::string& file, std::vector< std::string >& output )
+{
+  std::ifstream fin( file );
+  output.clear();
+
+  if( !fin )
+  {
+    return false;
+  }
+
+  while( !fin.eof() )
+  {
+    std::string line;
+    std::getline( fin, line );
+    output.push_back( line );
+  }
+
+  fin.close();
+  return true;
+}
+
 bool run_pipeline_on_image( pipeline_t& pipe,
                             std::string pipe_file,
                             std::string input_name,
@@ -583,6 +605,10 @@ main( int argc, char* argv[] )
     &g_params.opt_input_truth, "Input list containing training truth" );
   g_params.m_args.AddArgument( "-it",             argT::SPACE_ARGUMENT,
     &g_params.opt_input_truth, "Input list containing training truth" );
+  g_params.m_args.AddArgument( "--labels",   argT::SPACE_ARGUMENT,
+    &g_params.opt_label_file, "Input label file for train categories" );
+  g_params.m_args.AddArgument( "-lbl",             argT::SPACE_ARGUMENT,
+    &g_params.opt_label_file, "Input label file for train categories" );
   g_params.m_args.AddArgument( "--detector",      argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector to train if no config" );
   g_params.m_args.AddArgument( "-d",              argT::SPACE_ARGUMENT,
@@ -673,162 +699,13 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
-  // Run tool:
-  //   (a) Load groundtruth according to criteria
-  //   (b) Select detector to train
-
-  std::string input_dir = g_params.opt_input_dir;
-
-  if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
-  {
-    input_dir = boost::filesystem::canonical(
-      boost::filesystem::path( input_dir + ".lnk" ) ).string();
-  }
-
-  if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
-  {
-    std::cerr << "Input directory does not exist, exiting." << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Load labels.txt file
-  const std::string label_fn = append_path( input_dir, "labels.txt" );
-
-  kwiver::vital::category_hierarchy_sptr model_labels;
-  bool detection_without_label = false;
-
-  if( !does_file_exist( label_fn ) && g_params.opt_out_config.empty() )
-  {
-    std::cout << "Label file (labels.txt) does not exist in input folder" << std::endl;
-    std::cout << std::endl << "Would you like to train over all category labels? (y/n) ";
-
-    if( !g_params.opt_no_query )
-    {
-      std::string response;
-      std::cin >> response;
-
-      if( response != "y" && response != "Y" && response != "yes" && response != "Yes" )
-      {
-        std::cout << std::endl << "Exiting training due to no labels.txt" << std::endl;
-        return EXIT_FAILURE;
-      }
-    }
-  }
-  else if( g_params.opt_out_config.empty() )
-  {
-    try
-    {
-      model_labels.reset( new kwiver::vital::category_hierarchy( label_fn ) );
-    }
-    catch( const std::exception& e )
-    {
-      std::cerr << "Error reading labels.txt: " << e.what() << std::endl;
-      return EXIT_FAILURE;
-    }
-  }
-
-  // Load train.txt, if available
-  const std::string train_fn = append_path( input_dir, "train.txt" );
-
-  std::vector< std::string > train_files;
-  if( does_file_exist( train_fn ) && !file_to_vector( train_fn, train_files ) )
-  {
-    std::cerr << "Unable to open " << train_fn << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Special use case for multiple overlapping streams
-  const std::string train1_fn = append_path( input_dir, "train1.txt" );
-  const std::string train2_fn = append_path( input_dir, "train2.txt" );
-
-  if( does_file_exist( train1_fn ) )
-  {
-    if( does_file_exist( train_fn ) )
-    {
-      std::cerr << "Folder cannot contain both train.txt and train1.txt" << std::endl;
-      return EXIT_FAILURE;
-    }
-
-    if( !file_to_vector( train1_fn, train_files ) )
-    {
-      std::cerr << "Unable to open " << label_fn << std::endl;
-      return EXIT_FAILURE;
-    }
-  }
-
-  std::vector< std::string > train2_files;
-  if( does_file_exist( train2_fn ) && !file_to_vector( train2_fn, train2_files ) )
-  {
-    std::cerr << "Unable to open " << train2_fn << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Load test.txt, if available
-  const std::string test_fn = append_path( input_dir, "test.txt" );
-
-  std::vector< std::string > test_files;
-  if( does_file_exist( test_fn ) && !file_to_vector( test_fn, test_files ) )
-  {
-    std::cerr << "Unable to open " << test_fn << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // Append path to all test and train files, test to see if they all exist
-  if( train_files.empty() && test_files.empty() )
-  {
-    std::cout << "Automatically selecting train and test files" << std::endl;
-  }
-  else if( train_files.empty() != test_files.empty() )
-  {
-    std::cerr << "If one of either train.txt or test.txt is specified, "
-              << "then they must both be." << std::endl;
-    return EXIT_FAILURE;
-  }
-  else
-  {
-    // Test first entry
-    bool absolute_paths = false;
-    std::string to_test = train_files[0];
-    std::string full_path = append_path( g_params.opt_input_dir, to_test );
-
-    if( !does_file_exist( full_path ) && does_file_exist( to_test ) )
-    {
-      absolute_paths = true;
-      std::cout << "Using absolute paths in train.txt and test.txt" << std::endl;
-    }
-
-    for( unsigned i = 0; i < train_files.size(); i++ )
-    {
-      if( !absolute_paths )
-      {
-        train_files[i] = append_path( g_params.opt_input_dir, train_files[i] );
-      }
-
-      if( !does_file_exist( train_files[i] ) )
-      {
-        std::cerr << "Could not find train file: " << train_files[i] << std::endl;
-      }
-    }
-    for( unsigned i = 0; i < test_files.size(); i++ )
-    {
-      if( !absolute_paths )
-      {
-        test_files[i] = append_path( g_params.opt_input_dir, test_files[i] );
-      }
-
-      if( !does_file_exist( test_files[i] ) )
-      {
-        std::cerr << "Could not find test file: " << test_files[i] << std::endl;
-      }
-    }
-  }
-
-  // Identify technique to run and parse config if it's available
+  // Load KWIVER plugins
   kwiver::vital::plugin_manager::instance().load_all_plugins();
   kwiver::vital::config_block_sptr config = default_config();
   kwiver::vital::algo::detected_object_set_input_sptr groundtruth_reader;
   kwiver::vital::algo::train_detector_sptr detector_trainer;
 
+  // Read all configuration options and check settings
   if( !g_params.opt_config.empty() )
   {
     try
@@ -921,28 +798,34 @@ main( int argc, char* argv[] )
   }
 
   // Read setup configs
-  double percent_test =
-    config->get_value< double >( "default_percent_test" );
-  unsigned test_burst_frame_count =
-    config->get_value< double >( "test_burst_frame_count" );
-  std::string groundtruth_extensions_str =
+  std::string groundtruth_exts_str =
     config->get_value< std::string >( "groundtruth_extensions" );
-  std::string image_extensions_str =
-    config->get_value< std::string >( "image_extensions" );
   std::string groundtruth_style =
     config->get_value< std::string >( "groundtruth_style" );
   std::string pipeline_file =
     config->get_value< std::string >( "augmentation_pipeline" );
   std::string augmented_cache =
     config->get_value< std::string >( "augmentation_cache" );
-  std::string augmented_ext_override =
-    config->get_value< std::string >( "augmented_ext_override" );
   bool regenerate_cache =
     config->get_value< bool >( "regenerate_cache" );
-  bool check_override =
-    config->get_value< bool >( "check_override" );
+  std::string augmented_ext_override =
+    config->get_value< std::string >( "augmented_ext_override" );
+  double percent_test =
+    config->get_value< double >( "default_percent_test" );
+  unsigned test_burst_frame_count =
+    config->get_value< double >( "test_burst_frame_count" );
+  std::string image_exts_str =
+    config->get_value< std::string >( "image_extensions" );
+  std::string video_exts_str =
+    config->get_value< std::string >( "video_extensions" );
+  std::string video_extractor =
+    config->get_value< std::string >( "video_extractor" );
+  double frame_rate =
+    config->get_value< double >( "frame_rate" );
   double threshold =
     config->get_value< double >( "threshold" );
+  bool check_override =
+    config->get_value< bool >( "check_override" );
   std::string data_warning_file =
     config->get_value< std::string >( "data_warning_file" );
 
@@ -970,7 +853,7 @@ main( int argc, char* argv[] )
     data_warning_writer.reset( new std::ofstream( data_warning_file.c_str() ) );
   }
 
-  std::vector< std::string > image_extensions, groundtruth_extensions;
+  std::vector< std::string > image_exts, video_exts, groundtruth_exts;
   bool one_file_per_image;
 
   if( groundtruth_style == "one_per_file" )
@@ -993,12 +876,218 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
-  string_to_vector( image_extensions_str, image_extensions, "\n\t\v,; " );
-  string_to_vector( groundtruth_extensions_str, groundtruth_extensions, "\n\t\v,; " );
+  string_to_vector( image_exts_str, image_exts, "\n\t\v,; " );
+  string_to_vector( video_exts_str, video_exts, "\n\t\v,; " );
+  string_to_vector( groundtruth_exts_str, groundtruth_exts, "\n\t\v,; " );
 
-  // Identify all sub-directories containing data
-  std::vector< std::string > subdirs;
-  list_all_subfolders( g_params.opt_input_dir, subdirs );
+  // Load labels.txt file
+  std::string label_fn;
+
+  if( !g_params.opt_label_file.empty() )
+  {
+    label_fn = g_params.opt_label_file;
+  }
+  else if( !g_params.opt_input_dir.empty() )
+  {
+    label_fn = append_path( g_params.opt_input_dir, "labels.txt" );
+  }
+
+  kwiver::vital::category_hierarchy_sptr model_labels;
+  bool detection_without_label = false;
+
+  if( !does_file_exist( label_fn ) && g_params.opt_out_config.empty() )
+  {
+    std::cout << "Label file (labels.txt) does not exist in input folder" << std::endl;
+    std::cout << std::endl << "Would you like to train over all category labels? (y/n) ";
+
+    if( !g_params.opt_no_query )
+    {
+      std::string response;
+      std::cin >> response;
+
+      if( response != "y" && response != "Y" && response != "yes" && response != "Yes" )
+      {
+        std::cout << std::endl << "Exiting training due to no labels.txt" << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+  }
+  else if( g_params.opt_out_config.empty() )
+  {
+    try
+    {
+      model_labels.reset( new kwiver::vital::category_hierarchy( label_fn ) );
+    }
+    catch( const std::exception& e )
+    {
+      std::cerr << "Error reading labels.txt: " << e.what() << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+
+  // Data regardless of source - 
+  std::vector< std::string > train_data;  // List of folders, image lists, or videos
+  std::vector< std::string > train_truth; // Corresponding list of groundtruth files
+  std::vector< std::string > test_items;  // A subset of train_data used for testing
+  bool auto_detect_truth = false;         // Auto-detect truth if not manually specified
+
+  // Option 1: a typical training data directory is input
+  if( !g_params.opt_input_dir.empty() )
+  {
+    std::string input_dir = g_params.opt_input_dir;
+
+    if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
+    {
+      input_dir = boost::filesystem::canonical(
+        boost::filesystem::path( input_dir + ".lnk" ) ).string();
+    }
+
+    if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
+    {
+      std::cerr << "Input directory does not exist, exiting." << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    // Load train.txt, if available
+    const std::string train_fn = append_path( input_dir, "train.txt" );
+
+    std::vector< std::string > train_files;
+    if( does_file_exist( train_fn ) && !file_to_vector( train_fn, train_files ) )
+    {
+      std::cerr << "Unable to open " << train_fn << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    // Special use case for multiple overlapping streams
+    const std::string train1_fn = append_path( input_dir, "train1.txt" );
+    const std::string train2_fn = append_path( input_dir, "train2.txt" );
+
+    if( does_file_exist( train1_fn ) )
+    {
+      if( does_file_exist( train_fn ) )
+      {
+        std::cerr << "Folder cannot contain both train.txt and train1.txt" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      if( !file_to_vector( train1_fn, train_files ) )
+      {
+        std::cerr << "Unable to open " << label_fn << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+
+    std::vector< std::string > train2_files;
+    if( does_file_exist( train2_fn ) && !file_to_vector( train2_fn, train2_files ) )
+    {
+      std::cerr << "Unable to open " << train2_fn << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    // Load test.txt, if available
+    const std::string test_fn = append_path( input_dir, "test.txt" );
+
+    std::vector< std::string > test_files;
+    if( does_file_exist( test_fn ) && !file_to_vector( test_fn, test_files ) )
+    {
+      std::cerr << "Unable to open " << test_fn << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    // Append path to all test and train files, test to see if they all exist
+    if( train_files.empty() && test_files.empty() )
+    {
+      std::cout << "Automatically selecting train and test files" << std::endl;
+    }
+    else if( train_files.empty() != test_files.empty() )
+    {
+      std::cerr << "If one of either train.txt or test.txt is specified, "
+                << "then they must both be." << std::endl;
+      return EXIT_FAILURE;
+    }
+    else
+    {
+      // Test first entry
+      bool absolute_paths = false;
+      std::string to_test = train_files[0];
+      std::string full_path = append_path( g_params.opt_input_dir, to_test );
+
+      if( !does_file_exist( full_path ) && does_file_exist( to_test ) )
+      {
+        absolute_paths = true;
+        std::cout << "Using absolute paths in train.txt and test.txt" << std::endl;
+      }
+
+      for( unsigned i = 0; i < train_files.size(); i++ )
+      {
+        if( !absolute_paths )
+        {
+          train_files[i] = append_path( g_params.opt_input_dir, train_files[i] );
+        }
+
+        if( !does_file_exist( train_files[i] ) )
+        {
+          std::cerr << "Could not find train file: " << train_files[i] << std::endl;
+        }
+      }
+      for( unsigned i = 0; i < test_files.size(); i++ )
+      {
+        if( !absolute_paths )
+        {
+          test_files[i] = append_path( g_params.opt_input_dir, test_files[i] );
+        }
+
+        if( !does_file_exist( test_files[i] ) )
+        {
+          std::cerr << "Could not find test file: " << test_files[i] << std::endl;
+        }
+      }
+    }
+
+    // Identify all sub-directories containing data
+    list_all_subfolders( g_params.opt_input_dir, train_data );
+
+    if( train_data.empty() )
+    {
+      std::cout << "Error: training folder contains no sub-folders" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    auto_detect_truth = true;
+  }
+  else if( !g_params.opt_input_list.empty() )
+  {
+    if( !does_file_exist( g_params.opt_input_list ) ||
+        !load_file_list( g_params.opt_input_list, train_data ) )
+    {
+      std::cout << "Unable to load: " << g_params.opt_input_list << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    if( train_data.empty() )
+    {
+      std::cout << "Input training data list contains no entries" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    auto_detect_truth = g_params.opt_input_truth.empty();
+
+    if( !auto_detect_truth )
+    {
+      if( !does_file_exist( g_params.opt_input_truth ) ||
+          !load_file_list( g_params.opt_input_truth, train_truth ) )
+      {
+        std::cout << "Unable to load: " << g_params.opt_input_truth << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      if( train_data.size() != train_truth.size() )
+      {
+        std::cout << "Training data and truth list lengths do not match" << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+  }
 
   // Load groundtruth for all image files in all folders using reader class
   std::vector< std::string > train_image_fn;
@@ -1006,50 +1095,52 @@ main( int argc, char* argv[] )
   std::vector< std::string > test_image_fn;
   std::vector< kwiver::vital::detected_object_set_sptr > test_gt;
 
-  if( subdirs.empty() )
-  {
-    std::cout << "Error: training folder contains no sub-folders" << std::endl;
-    return EXIT_FAILURE;
-  }
-
   // Retain class counts for error checking
   std::map< std::string, int > label_counts;
 
-  for( std::string folder : subdirs )
+  for( unsigned i = 0; i < train_data.size(); i++ )
   {
-    // Test for .txt train file over-rides
-    bool using_list = !train_files.empty();
+    // Get next data entry to process
+    const std::string& data_item = train_data[i];
+    std::cout << "Processing " << data_item << std::endl;
 
-    std::cout << "Processing " << ( using_list ? "train.txt" : folder ) << std::endl;
-
+    // Identify all images and truth files for this entry
     std::vector< std::string > image_files, gt_files;
 
-    list_files_in_folder( folder, image_files, true, image_extensions );
-    list_files_in_folder( folder, gt_files, false, groundtruth_extensions );
-
+    list_files_in_folder( data_item, image_files, true, image_exts );
     std::sort( image_files.begin(), image_files.end() );
-    std::sort( gt_files.begin(), gt_files.end() );
 
-    if( one_file_per_image && ( image_files.size() != gt_files.size() ) )
+    if( auto_detect_truth )
     {
-      std::cout << "Error: folder " << folder << " contains unequal truth and "
-                << "image file counts" << std::endl << " - Consider turning on "
-                << "the one_per_folder groundtruth style" << std::endl;
-      return EXIT_FAILURE;
+      list_files_in_folder( data_item, gt_files, false, groundtruth_exts );
+      std::sort( gt_files.begin(), gt_files.end() );
+
+      if( one_file_per_image && ( image_files.size() != gt_files.size() ) )
+      {
+        std::cout << "Error: item " << data_item << " contains unequal truth and "
+                  << "image file counts" << std::endl << " - Consider turning on "
+                  << "the one_per_folder groundtruth style" << std::endl;
+        return EXIT_FAILURE;
+      }
+      else if( gt_files.size() < 1 )
+      {
+        std::cout << "Error reading item " << data_item << ", no groundtruth." << std::endl;
+        return EXIT_FAILURE;
+      }
     }
-    else if( gt_files.size() < 1 )
+    else
     {
-      std::cout << "Error reading folder " << folder << ", no groundtruth." << std::endl;
-      return EXIT_FAILURE;
+      gt_files.resize( 1, train_truth[i] );
     }
 
     kwiver::vital::algo::detected_object_set_input_sptr gt_reader;
 
+    // Load groundtruth file for this entry
     if( !one_file_per_image )
     {
       if( gt_files.size() != 1 )
       {
-        std::cout << "Error: folder " << folder
+        std::cout << "Error: iten " << data_item
                   << " must contain only 1 groundtruth file" << std::endl;
         return EXIT_FAILURE;
       }
@@ -1064,14 +1155,15 @@ main( int argc, char* argv[] )
       gt_reader->open( gt_files[0] );
     }
 
+    // Perform any augmentation for this entry, if enabled
     pipeline_t augmentation_pipe = load_embedded_pipeline( pipeline_file );
     std::string last_subdir;
 
     if( !augmented_cache.empty() )
     {
       std::vector< std::string > cache_path, split_folder;
-      kwiversys::SystemTools::SplitPath( folder, split_folder );
-      last_subdir = ( split_folder.empty() ? folder : split_folder.back() );
+      kwiversys::SystemTools::SplitPath( data_item, split_folder );
+      last_subdir = ( split_folder.empty() ? data_item : split_folder.back() );
 
       cache_path.push_back( "" );
       cache_path.push_back( augmented_cache );
