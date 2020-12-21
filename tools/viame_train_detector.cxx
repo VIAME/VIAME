@@ -1064,6 +1064,11 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
     }
 
+    while( !train_data.empty() && train_data.back().empty() )
+    {
+      train_data.pop_back();
+    }
+
     if( train_data.empty() )
     {
       std::cout << "Input training data list contains no entries" << std::endl;
@@ -1079,6 +1084,11 @@ main( int argc, char* argv[] )
       {
         std::cout << "Unable to load: " << g_params.opt_input_truth << std::endl;
         return EXIT_FAILURE;
+      }
+
+      while( train_truth.size() > train_data.size() && train_truth.back().empty() )
+      {
+        train_truth.pop_back();
       }
 
       if( train_data.size() != train_truth.size() )
