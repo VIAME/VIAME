@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "klv_0601.h"
 #include "klv_0601_traits.h"
@@ -76,7 +50,6 @@ struct klv_convert_bytes
   }
 };
 
-
 // ------------------------------------------------------------------
 // Specialization for a single byte (sizeof(T)==1) from a raw byte stream
 template < typename T >
@@ -97,7 +70,6 @@ struct klv_convert_bytes< T, 1 >
   }
 };
 
-
 // ------------------------------------------------------------------
 // Parse type T from a raw byte stream in MSB (most significant byte first) order
 template < typename T >
@@ -106,7 +78,6 @@ klv_convert( const uint8_t* data, std::size_t length )
 {
   return klv_convert_bytes<T, sizeof(T)>()(data, length);
 }
-
 
 // ------------------------------------------------------------------
 // Specialization for extracting strings from a raw byte stream
@@ -118,7 +89,6 @@ klv_convert< std::string > ( const uint8_t* data, std::size_t length )
 
   return value;
 }
-
 
 // ------------------------------------------------------------------
 // Specialization for extracting STD 0102 LSD from raw byte stream
@@ -133,11 +103,9 @@ klv_convert< kwiver::vital::std_0102_lds > ( const uint8_t* data, std::size_t le
   return value;
 }
 
-
 // ------------------------------------------------------------------
 // A function type that converts a kwiver::vital::any to a double
 typedef std::function< double ( kwiver::vital::any const& ) > klv_any_to_double_func_t;
-
 
 // ------------------------------------------------------------------
 // Take a "convert T to double" function apply to a kwiver::vital::any
@@ -150,10 +118,8 @@ klv_as_double( const std::function< double(T const& val) >& func,
   return func( kwiver::vital::any_cast< T > ( data ) );
 }
 
-
 // A function type to format kwiver::vital::any raw data in hex and write to the ostream
 typedef std::function< void ( std::ostream& os, kwiver::vital::any const& ) > klv_any_format_hex_func_t;
-
 
 // ------------------------------------------------------------------
 // Write kwiver::vital::any (with underlying type T) in hex
@@ -168,7 +134,6 @@ format_hex( std::ostream& os, kwiver::vital::any const& data )
   os.flags( f );
 }
 
-
 // ------------------------------------------------------------------
 // Specialization for writing a byte in hex (so it doesn't print ASCII)
 template < >
@@ -182,7 +147,6 @@ format_hex< uint8_t > ( std::ostream& os, kwiver::vital::any const& data )
   os.flags( f );
 }
 
-
 // ------------------------------------------------------------------
 // Specialization for writing a byte in hex (so it doesn't print ASCII)
 template < >
@@ -195,7 +159,6 @@ format_hex< int8_t > ( std::ostream& os, kwiver::vital::any const& data )
       << static_cast< unsigned int > ( kwiver::vital::any_cast< int8_t > ( data ) );
   os.flags( f );
 }
-
 
 // ------------------------------------------------------------------
 // Specialization for writing a string as a sequence of hex bytes
@@ -214,7 +177,6 @@ format_hex< std::string > ( std::ostream& os, kwiver::vital::any const& data )
   os.flags( f );
 }
 
-
 // ------------------------------------------------------------------
 // Specialization for writing a STD 0102 LDS in hex bytes
 template < >
@@ -232,7 +194,6 @@ format_hex< kwiver::vital::std_0102_lds > ( std::ostream& os, kwiver::vital::any
   os.flags( f );
 }
 
-
 // ------------------------------------------------------------------
 // Store KLV 0601 traits for dynamic run-time lookup
 // Build an array of these structs, one for each 0601 tag,
@@ -247,7 +208,6 @@ struct klv_0601_dyn_traits
   klv_any_to_double_func_t double_func;
   klv_any_format_hex_func_t any_hex_func;
 };
-
 
 // ------------------------------------------------------------------
 // Recursive template metaprogram to populate the run-time array of traits
@@ -271,9 +231,7 @@ struct construct_traits
     return construct_traits< klv_0601_tag( tag - 1 ) >::init( data );
   }
 
-
 };
-
 
 // ------------------------------------------------------------------
 // The base case: unknown tag (with ID = 0)
@@ -292,7 +250,6 @@ struct construct_traits< KLV_0601_UNKNOWN >
   }
 };
 
-
 // ------------------------------------------------------------------
 // Construct an array of traits for all known 0601 tags
 std::vector< klv_0601_dyn_traits > init_traits_array()
@@ -301,7 +258,6 @@ std::vector< klv_0601_dyn_traits > init_traits_array()
 
   return construct_traits< klv_0601_tag( KLV_0601_ENUM_END - 1 ) >::init( tmp );
 }
-
 
 static const std::vector< klv_0601_dyn_traits > traits_array = init_traits_array();
 
@@ -317,7 +273,6 @@ static const klv_uds_key klv_0601_uds_key( key_data );
 
 } // end anonymous namespace
 
-
 //=============================================================================
 // Public function implementations below
 //=============================================================================
@@ -331,13 +286,11 @@ klv_0601_key()
   return klv_0601_uds_key;
 }
 
-
 bool
 is_klv_0601_key( klv_uds_key const& key )
 {
   return key == klv_0601_uds_key;
 }
-
 
 klv_0601_tag
 klv_0601_get_tag( klv_lds_key key )
@@ -374,7 +327,6 @@ klv_0601_checksum( klv_data const& data )
 {
   klv_data::const_iterator_t eit = data.klv_end();
 
-
   // if checksum tag is not where expected then terminate early
   if ( ( *( eit - 4 ) != 0x01 ) && //
        ( *( eit - 3 ) != 0x02 ) ) // cksum length
@@ -399,7 +351,6 @@ klv_0601_checksum( klv_data const& data )
   return bcc == cksum;
 }
 
-
 // ------------------------------------------------------------------
 // Return a string representation of the name of a KLV 0601 tag
 std::string
@@ -407,7 +358,6 @@ klv_0601_tag_to_string( klv_0601_tag t )
 {
   return traits_array[t].name;
 }
-
 
 // ------------------------------------------------------------------
 // Extract the appropriate data type from raw bytes as a kwiver::vital::any
@@ -417,7 +367,6 @@ klv_0601_value( klv_0601_tag t, const uint8_t* data, std::size_t length )
   return traits_array[t].decode_func( data, length );
 }
 
-
 // ------------------------------------------------------------------
 // Return the tag data as a double
 double
@@ -426,7 +375,6 @@ klv_0601_value_double( klv_0601_tag t, kwiver::vital::any const& data )
   return traits_array[t].double_func( data );
 }
 
-
 // ------------------------------------------------------------------
 // Return the tag data as a double
 bool
@@ -434,7 +382,6 @@ klv_0601_has_double( klv_0601_tag t )
 {
   return traits_array[t].has_double;
 }
-
 
 // ------------------------------------------------------------------
 // Format the tag data as a string
@@ -467,7 +414,6 @@ klv_0601_value_string( klv_0601_tag t, kwiver::vital::any const& data )
 
   return "Unknown";
 }
-
 
 // ------------------------------------------------------------------
 // Format the tag data as a hex string

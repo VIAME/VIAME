@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -45,14 +19,12 @@
 #include <string>
 #include <cstddef>
 
-
 namespace kwiver {
 namespace vital {
 
 /// Validate a KLV 0601 data packet using the checksum at the end
 /// @param[in] data is the klv packet to checksum
 VITAL_KLV_EXPORT bool klv_0601_checksum( klv_data const& data );
-
 
 /// Enumeration of tags in the MISB 0601 KLV standard
 enum klv_0601_tag {KLV_0601_UNKNOWN                     = 0,
@@ -122,11 +94,9 @@ enum klv_0601_tag {KLV_0601_UNKNOWN                     = 0,
                    KLV_0601_PLATFORM_MAGNET_HEADING     = 64,
                    KLV_0601_UAS_LDS_VERSION_NUMBER      = 65,
 
-
 //                   KLV_0601_OPERATIONAL_MODE           = 77,
                    // TODO Add the rest of the fields here
                    KLV_0601_ENUM_END };
-
 
 /// Get tag value from key.
 /**
@@ -140,7 +110,6 @@ enum klv_0601_tag {KLV_0601_UNKNOWN                     = 0,
 VITAL_KLV_EXPORT klv_0601_tag
 klv_0601_get_tag( klv_lds_key key );
 
-
 /// Return a string representation of the name of a KLV 0601 tag
 /**
  * Convert tag code to descriptive string.
@@ -151,7 +120,6 @@ klv_0601_get_tag( klv_lds_key key );
  */
 VITAL_KLV_EXPORT std::string
 klv_0601_tag_to_string(klv_0601_tag t);
-
 
 /// Test to see if a 0601 key
 /**
@@ -165,7 +133,6 @@ klv_0601_tag_to_string(klv_0601_tag t);
 VITAL_KLV_EXPORT bool
 is_klv_0601_key( klv_uds_key const& key);
 
-
 /// Return 0601 key
 /**
  * This function returns the standard 0601 key structure. This is
@@ -175,7 +142,6 @@ is_klv_0601_key( klv_uds_key const& key);
  */
 VITAL_KLV_EXPORT klv_uds_key
 klv_0601_key();
-
 
 /// Extract the appropriate data type from raw bytes as a kwiver::vital::any
 /**
@@ -191,7 +157,6 @@ klv_0601_key();
 VITAL_KLV_EXPORT kwiver::vital::any
 klv_0601_value( klv_0601_tag t, uint8_t const* data, std::size_t length );
 
-
 /// Can value be converted to double.
 /**
  * This method returns whether the value can be converted to double.
@@ -203,7 +168,6 @@ klv_0601_value( klv_0601_tag t, uint8_t const* data, std::size_t length );
  */
 VITAL_KLV_EXPORT bool
 klv_0601_has_double( klv_0601_tag t );
-
 
 /// Return the tag data as a double.
 /**
@@ -220,7 +184,6 @@ klv_0601_has_double( klv_0601_tag t );
  */
 VITAL_KLV_EXPORT double
 klv_0601_value_double(klv_0601_tag t, kwiver::vital::any const& data);
-
 
 /// Format the tag data as a string.
 /**
@@ -241,7 +204,6 @@ klv_0601_value_double(klv_0601_tag t, kwiver::vital::any const& data);
  */
 VITAL_KLV_EXPORT std::string
 klv_0601_value_string(klv_0601_tag t, kwiver::vital::any const& data);
-
 
 /// Format the tag data as a hex string
 /**

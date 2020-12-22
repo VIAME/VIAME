@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -43,10 +17,8 @@
 #include <vital/logger/logger.h>
 #include <kwiversys/SystemTools.hxx>
 
-
 namespace kwiver {
 namespace vital {
-
 
 namespace {
 
@@ -78,7 +50,6 @@ check_output_file(const std::string& filename)
   std::ofstream output_stream(filename.c_str());
 }
 
-
 /// Helper function to check that the input file name can be used
 void
 check_input_file(const std::string& filename)
@@ -106,7 +77,6 @@ check_input_file(const std::string& filename)
 
 }
 
-
 /// Read a mesh from a file, determine type from extension
 mesh_sptr
 read_mesh(const std::string& filename)
@@ -130,7 +100,6 @@ read_mesh(const std::string& filename)
   return mesh_sptr();
 }
 
-
 /// Read a mesh from a PLY2 file
 mesh_sptr
 read_ply2(const std::string& filename)
@@ -139,7 +108,6 @@ read_ply2(const std::string& filename)
   std::ifstream input_stream(filename.c_str());
   return read_ply2(input_stream);
 }
-
 
 /// Read a mesh from a PLY2 stream
 mesh_sptr
@@ -169,7 +137,6 @@ read_ply2(std::istream& is)
   return std::make_shared<mesh>(std::move(verts), std::move(faces));
 }
 
-
 /// Read a mesh from a PLY file
 mesh_sptr
 read_ply(const std::string& filename)
@@ -178,7 +145,6 @@ read_ply(const std::string& filename)
   std::ifstream input_stream(filename.c_str());
   return read_ply(input_stream);
 }
-
 
 /// Read a mesh from a PLY stream
 mesh_sptr read_ply(std::istream& is)
@@ -230,7 +196,6 @@ mesh_sptr read_ply(std::istream& is)
   return std::make_shared<mesh>(std::move(verts), std::move(faces));
 }
 
-
 /// Write a mesh to a PLY2 file
 void
 write_ply2(const std::string& filename, const mesh& mesh)
@@ -239,7 +204,6 @@ write_ply2(const std::string& filename, const mesh& mesh)
   std::ofstream output_stream(filename.c_str());
   write_ply2(output_stream, mesh);
 }
-
 
 /// Write a mesh to a PLY2 stream
 void write_ply2(std::ostream& os, const mesh& mesh)
@@ -265,7 +229,6 @@ void write_ply2(std::ostream& os, const mesh& mesh)
   }
 }
 
-
 /// Read texture coordinates from a UV2 file
 bool read_uv2(const std::string& filename, mesh& mesh)
 {
@@ -274,7 +237,6 @@ bool read_uv2(const std::string& filename, mesh& mesh)
   fh.close();
   return retval;
 }
-
 
 /// Read texture coordinates from a UV2 stream
 bool read_uv2(std::istream& is, mesh& mesh)
@@ -297,7 +259,6 @@ bool read_uv2(std::istream& is, mesh& mesh)
   return true;
 }
 
-
 /// Read a mesh from a wavefront OBJ file
 mesh_sptr
 read_obj(const std::string& filename)
@@ -306,7 +267,6 @@ read_obj(const std::string& filename)
   std::ifstream input_stream(filename.c_str());
   return read_obj(input_stream);
 }
-
 
 /// Read a mesh from a wavefront OBJ stream
 mesh_sptr
@@ -435,7 +395,6 @@ read_obj(std::istream& is)
   return m;
 }
 
-
 /// Write a mesh to a wavefront OBJ file
 void
 write_obj(const std::string& filename, const mesh& mesh)
@@ -444,7 +403,6 @@ write_obj(const std::string& filename, const mesh& mesh)
   std::ofstream output_stream(filename.c_str());
   write_obj(output_stream, mesh);
 }
-
 
 /// Write a mesh to a wavefront OBJ stream
 void
@@ -529,7 +487,6 @@ write_obj(std::ostream& os, const mesh& mesh)
   }
 }
 
-
 /// Write a mesh to a kml file
 void
 write_kml(const std::string& filename, const mesh& mesh)
@@ -538,7 +495,6 @@ write_kml(const std::string& filename, const mesh& mesh)
   std::ofstream output_stream(filename.c_str());
   write_kml(output_stream, mesh);
 }
-
 
 /// Write a mesh into a kml stream
 void
@@ -587,7 +543,6 @@ write_kml(std::ostream& os, const mesh& mesh)
   }
 }
 
-
 /// Write a mesh to a kml collada file
 void
 write_kml_collada(const std::string& filename, const mesh& mesh)
@@ -596,7 +551,6 @@ write_kml_collada(const std::string& filename, const mesh& mesh)
   std::ofstream output_stream(filename.c_str());
   write_kml_collada(output_stream, mesh);
 }
-
 
 /// Write a mesh into a kml collada stream
 void
@@ -749,7 +703,6 @@ write_kml_collada(std::ostream& os, const mesh& mesh)
      << "</COLLADA>\n";
 }
 
-
 /// Write a mesh to a vrml file
 void
 write_vrml(const std::string& filename, const mesh& mesh)
@@ -758,7 +711,6 @@ write_vrml(const std::string& filename, const mesh& mesh)
   std::ofstream output_stream(filename.c_str());
   write_vrml(output_stream, mesh);
 }
-
 
 /// Write a mesh into a vrml stream
 void
@@ -880,7 +832,6 @@ write_vrml(std::ostream& os, const mesh& mesh)
   //close transform
   os << "}\n";
 }
-
 
 } // end namespace vital
 } // end namespace kwiver

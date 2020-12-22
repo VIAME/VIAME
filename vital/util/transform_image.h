@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -36,14 +10,11 @@
 #ifndef VITAL_TRANSFORM_IMAGE_H_
 #define VITAL_TRANSFORM_IMAGE_H_
 
-
 #include <vital/types/image.h>
 #include <cstdlib>
 
-
 namespace kwiver {
 namespace vital {
-
 
 /// Transform a given image in place given a unary function
 /**
@@ -121,7 +92,6 @@ void transform_image( image_of<T>& img, OP op )
   }
 }
 
-
 /// Transform an input image to an output image given a unary function
 /**
  * This function is similar to the inplace variant except it copies the transformed data
@@ -160,14 +130,12 @@ void transform_image( image_of<T1> const& img_in, image_of<T2>& img_out, OP op )
   }
 }
 
-
 /// Functor for casting pixel values for use in the cast_image function
 template <typename T1, typename T2>
 struct cast_pixel
 {
   T2 operator () (T1 const& v) const { return static_cast<T2>(v); }
 };
-
 
 /// Specialization of cast_pixel for bool to avoid compiler warnings
 template <typename T1>
@@ -176,14 +144,12 @@ struct cast_pixel<T1, bool>
   bool operator () (T1 const& v) const { return v != T1(0); }
 };
 
-
 /// Static cast an image of one type to that of another type
 template <typename T1, typename T2>
 void cast_image( image_of<T1> const& img_in, image_of<T2>& img_out )
 {
   transform_image(img_in, img_out, cast_pixel<T1,T2>());
 }
-
 
 /// Static cast an image of unknown type to a known type
 template <typename T>
@@ -219,7 +185,6 @@ void cast_image( image const& img_in, image_of<T>& img_out )
   VITAL_THROW( image_type_mismatch_exception,
                "kwiver::vital::cast_image() cannot cast unknown type");
 }
-
 
 /// Call a unary function on every pixel in a const image
 /**
