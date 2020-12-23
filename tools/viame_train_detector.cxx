@@ -1562,7 +1562,7 @@ main( int argc, char* argv[] )
       }
     }
 
-    bool is_first = true;
+    bool is_first = true, is_second = true;
     std::vector< std::string > adj_train_image_fn;
     std::vector< kwiver::vital::detected_object_set_sptr > adj_train_gt;
 
@@ -1573,6 +1573,12 @@ main( int argc, char* argv[] )
         test_image_fn.push_back( train_image_fn[i] );
         test_gt.push_back( train_gt[i] );
         is_first = false;
+      }
+      else if( is_second && !train_gt[i]->empty() )
+      {
+        adj_train_image_fn.push_back( train_image_fn[i] );
+        adj_train_gt.push_back( train_gt[i] );
+        is_second = false;
       }
       else if( i % total_segment < train_segment )
       {
