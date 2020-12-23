@@ -464,8 +464,7 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 std::vector< std::string > extract_video_frames( const std::string& video_filename,
                                                  const std::string& pipeline_filename,
                                                  const double& frame_rate,
-                                                 const std::string& output_directory,
-                                                 bool use_ffmpeg = false )
+                                                 const std::string& output_directory )
 {
   std::vector< std::string > output;
 
@@ -538,6 +537,58 @@ bool file_contains_string( const std::string& file, std::string key )
   }
   fin.close();
   return false;
+}
+
+double get_file_frame_rate( const std::string& file )
+{
+  std::ifstream fin( file );
+
+  if( !fin )
+  {
+    return -1.0;
+  }
+
+  std::string number;
+
+  for( unsigned i = 0; i < 4 && !fin.eof(); i++ )
+  {
+    std::string line;
+    std::getline( fin, line );
+
+    if( line.size() > 5 && line[0] == '#' )
+    {
+      for( unsigned p = 0; p < line.size() - 4; p++ )
+      {
+        if( line.substr( p, 4 ) == "fps:" )
+        {
+          for( unsigned l = p + 4; l < line.size(); l++ )
+          {
+            if( line[l] == ' ' )
+            {
+              continue;
+            }
+            else if( std::isdigit( line[l] ) )
+            {
+              number = number + line[l];
+            }
+            else
+            {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  fin.close();
+
+  if( number.empty() )
+  {
+    return -1.0;
+  }
+
+  return std::stof( number );
 }
 
 bool load_file_list( const std::string& file, std::vector< std::string >& output )
@@ -1191,21 +1242,10 @@ main( int argc, char* argv[] )
     const std::string& data_item = train_data[i];
     std::cout << "Processing " << data_item << std::endl;
 
-    // Identify all images and truth files for this entry
+    // Identify all truth files for this entry
     std::vector< std::string > image_files, gt_files;
 
     bool is_video = ends_with_extension( data_item, video_exts );
-
-    if( is_video )
-    {
-      image_files = extract_video_frames( data_item, video_extractor,
-                                          frame_rate, augmented_cache );
-    }
-    else
-    {
-      list_files_in_folder( data_item, image_files, true, image_exts );
-    }
-    std::sort( image_files.begin(), image_files.end() );
 
     if( is_video && auto_detect_truth )
     {
@@ -1242,9 +1282,23 @@ main( int argc, char* argv[] )
       gt_files.resize( 1, train_truth[i] );
     }
 
-    kwiver::vital::algo::detected_object_set_input_sptr gt_reader;
+    // Find images for this entry
+    if( is_video )
+    {
+      double file_frame_rate = get_file_frame_rate( gt_files[0] );
+
+      image_files = extract_video_frames( data_item, video_extractor,
+        ( file_frame_rate > 0 ? file_frame_rate : frame_rate ), augmented_cache );
+    }
+    else
+    {
+      list_files_in_folder( data_item, image_files, true, image_exts );
+    }
+    std::sort( image_files.begin(), image_files.end() );
 
     // Load groundtruth file for this entry
+    kwiver::vital::algo::detected_object_set_input_sptr gt_reader;
+
     if( !one_file_per_image )
     {
       if( gt_files.size() != 1 )
