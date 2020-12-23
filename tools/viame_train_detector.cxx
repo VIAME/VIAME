@@ -486,7 +486,7 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
 
     if( !create_folder( output_dir ) )
     {
-      std::cout << "ERROR: Unable to create folder: " << output_dir << std::endl;
+      std::cout << "Error: Unable to create folder: " << output_dir << std::endl;
       return output;
     }
   }
@@ -1627,7 +1627,7 @@ main( int argc, char* argv[] )
       }
     }
 
-    bool is_first = true, is_second = true;
+    bool found_first = false, found_second = false;
     std::vector< std::string > adj_train_image_fn;
     std::vector< kwiver::vital::detected_object_set_sptr > adj_train_gt;
 
@@ -1635,17 +1635,17 @@ main( int argc, char* argv[] )
     {
       // First 2 conditionals are hack to ensure at least 1 truth frame
       // in both train and test sets, could be done better in future.
-      if( is_first && !train_gt[i]->empty() )
+      if( !found_first && !train_gt[i]->empty() )
       {
         test_image_fn.push_back( train_image_fn[i] );
         test_gt.push_back( train_gt[i] );
-        is_first = false;
+        found_first = true;
       }
-      else if( is_second && !train_gt[i]->empty() )
+      else if( !found_second && !train_gt[i]->empty() )
       {
         adj_train_image_fn.push_back( train_image_fn[i] );
         adj_train_gt.push_back( train_gt[i] );
-        is_second = false;
+        found_second = true;
       }
       else if( i % total_segment < train_segment )
       {
@@ -1657,6 +1657,12 @@ main( int argc, char* argv[] )
         test_image_fn.push_back( train_image_fn[i] );
         test_gt.push_back( train_gt[i] );
       }
+    }
+
+    if( !found_first || !found_second )
+    {
+      std::cout << "Error: not enough data diversity to generate model" << std::endl;
+      return EXIT_FAILURE;
     }
 
     train_image_fn = adj_train_image_fn;
