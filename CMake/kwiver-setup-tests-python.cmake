@@ -14,7 +14,7 @@ if (NOSE_RUNNER)
   string(TOLOWER "${CMAKE_PROJECT_NAME}" project_name)
 
   if (WIN32)
-    set(kwiver_test_output_path    "${KWIVER_BINARY_DIR}/${WIN_TEST_CONFIG_TYPE}bin")
+    set(kwiver_test_output_path    "${KWIVER_BINARY_DIR}/${WIN_TEST_CONFIG_TYPE}/bin")
   else ()
     set(kwiver_test_output_path    "${KWIVER_BINARY_DIR}/tests/bin")
   endif ()
