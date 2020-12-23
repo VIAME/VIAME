@@ -77,7 +77,7 @@ public:
 
 protected:
   vtkKwiverCamera();
-  ~vtkKwiverCamera() override = default;
+  virtual ~vtkKwiverCamera() = default;
 
   using vtkCamera::GetFrustumPlanes; // Hide overloaded virtual
 
