@@ -366,7 +366,7 @@ static kwiver::vital::config_block_sptr default_config()
     "Can be either: \"one_per_file\" or \"one_per_folder\"" );
   config->set_value( "augmentation_pipeline", "",
     "Optional embedded pipeline for performing assorted augmentations" );
-  config->set_value( "augmentation_cache", "",
+  config->set_value( "augmentation_cache", "augmented_images",
     "Directory to store augmented samples, a temp directiry is used if not specified." );
   config->set_value( "regenerate_cache", "true",
     "If an augmentation cache already exists, should we regenerate it or use it as-is?" );
