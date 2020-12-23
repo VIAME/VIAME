@@ -225,6 +225,32 @@ std::string get_filename_no_path( std::string path )
   return boost::filesystem::path( path ).filename().string();
 }
 
+bool ends_with_extension( const std::string& str, const std::string& ext )
+{
+  if( str.length() >= ext.length() )
+  {
+    return( 0 == str.compare( str.length() - ext.length(),
+                              ext.length(), ext ) );
+  }
+  else
+  {
+    return false;
+  }
+}
+
+bool ends_with_extension( const std::string& str,
+                          const std::vector< std::string >& exts )
+{
+  for( auto ext : exts )
+  {
+    if( ends_with_extension( str, ext ) )
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 template< typename T >
 bool string_to_vector( const std::string& str,
                        std::vector< T >& out,
@@ -433,6 +459,53 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
   }
 
   return external_pipeline;
+}
+
+std::vector< std::string > extract_video_frames( const std::string& video_filename,
+                                                 const std::string& pipeline_filename,
+                                                 const double& frame_rate,
+                                                 const std::string& output_directory,
+                                                 bool use_ffmpeg = false )
+{
+  std::vector< std::string > output;
+
+  std::string video_no_path = get_filename_no_path( video_filename );
+  std::string output_dir = append_path( output_directory, video_no_path );
+  std::string output_path = append_path( output_dir, "frame%06d.png" );
+  std::string frame_rate_str = boost::lexical_cast< std::string >( frame_rate );
+
+  if( does_folder_exist( output_dir ) )
+  {
+    boost::filesystem::remove_all( output_dir );
+  }
+
+  if( !create_folder( output_dir ) )
+  {
+    std::cout << "ERROR: Unable to create output folder: " << output_dir << std::endl;
+    return output;
+  }
+
+  std::string cmd = "kwiver";
+
+#ifdef WIN32
+  cmd = cmd + ".exe";
+#endif
+
+  cmd = cmd + " runner " + pipeline_filename + " ";
+  cmd = cmd + "-s input:video_filename=" + video_filename + " ";
+  cmd = cmd + "-s input:video_reader:type=vidl_ffmpeg ";
+  cmd = cmd + "-s input:target_frame_rate=" + frame_rate_str + " ";
+  cmd = cmd + "-s output:file_name_template=" + output_path + " ";
+
+  system( cmd.c_str() );
+
+  list_files_in_folder( output_dir, output );
+  return output;
+}
+
+std::string replace_ext_with( std::string file_name, std::string ext )
+{
+  return file_name.substr( 0, file_name.find_last_of( '.' ) ) + ext;
 }
 
 std::string add_aux_ext( std::string file_name, unsigned id )
@@ -744,13 +817,13 @@ main( int argc, char* argv[] )
       setting.substr( 0, split_pos );
     kwiver::vital::config_block_value_t setting_value =
       setting.substr( split_pos + 1 );
-  
+
     kwiver::vital::config_block_keys_t keys;
-  
+
     kwiver::vital::tokenize( setting_key, keys,
       kwiver::vital::config_block::block_sep,
       kwiver::vital::TokenizeTrimEmpty );
-  
+
     if( keys.size() < 2 )
     {
       std::string const reason = "Error: The key portion of setting "
@@ -1045,7 +1118,11 @@ main( int argc, char* argv[] )
     }
 
     // Identify all sub-directories containing data
-    list_all_subfolders( g_params.opt_input_dir, train_data );
+    std::vector< std::string > subfolders, videos;
+    list_all_subfolders( g_params.opt_input_dir, subfolders );
+    list_files_in_folder( g_params.opt_input_dir, videos, false, video_exts ); 
+    train_data.insert( train_data.end(), subfolders.begin(), subfolders.end() );
+    train_data.insert( train_data.end(), videos.begin(), videos.end() );
 
     if( train_data.empty() )
     {
@@ -1117,10 +1194,32 @@ main( int argc, char* argv[] )
     // Identify all images and truth files for this entry
     std::vector< std::string > image_files, gt_files;
 
-    list_files_in_folder( data_item, image_files, true, image_exts );
+    bool is_video = ends_with_extension( data_item, video_exts );
+
+    if( is_video )
+    {
+      image_files = extract_video_frames( data_item, video_extractor,
+                                          frame_rate, augmented_cache );
+    }
+    else
+    {
+      list_files_in_folder( data_item, image_files, true, image_exts );
+    }
     std::sort( image_files.begin(), image_files.end() );
 
-    if( auto_detect_truth )
+    if( is_video && auto_detect_truth )
+    {
+      std::string video_truth = replace_ext_with( data_item, groundtruth_exts[0] );
+
+      if( !does_file_exist( video_truth ) )
+      {
+        std::cout << "Error: cannot find " << video_truth << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      gt_files.resize( 1, video_truth );
+    }
+    else if( !is_video && auto_detect_truth )
     {
       list_files_in_folder( data_item, gt_files, false, groundtruth_exts );
       std::sort( gt_files.begin(), gt_files.end() );
