@@ -577,7 +577,7 @@ double get_file_frame_rate( const std::string& file )
             {
               continue;
             }
-            else if( std::isdigit( line[l] ) )
+            else if( std::isdigit( line[l] ) || line[l] == '.' )
             {
               number = number + line[l];
             }
