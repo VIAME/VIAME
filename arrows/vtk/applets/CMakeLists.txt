@@ -6,11 +6,13 @@ set( sources
   register_applets.cxx
 
   color_mesh.cxx
+  estimate_depth.cxx
   fuse_depth.cxx
   )
 
 set( headers
   color_mesh.h
+  estimate_depth.h
   fuse_depth.h
   )
 
