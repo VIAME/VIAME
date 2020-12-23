@@ -1627,7 +1627,7 @@ main( int argc, char* argv[] )
       }
     }
 
-    bool found_first = false, found_second = false;
+    bool found_first = false, found_second = false, initial_override = false;
     std::vector< std::string > adj_train_image_fn;
     std::vector< kwiver::vital::detected_object_set_sptr > adj_train_gt;
 
@@ -1646,9 +1646,14 @@ main( int argc, char* argv[] )
         adj_train_image_fn.push_back( train_image_fn[i] );
         adj_train_gt.push_back( train_gt[i] );
         found_second = true;
+        initial_override = true;
       }
-      else if( i % total_segment < train_segment )
+      else if( initial_override || i % total_segment < train_segment )
       {
+        if( initial_override && i % total_segment == 0 )
+        {
+          initial_override = false;
+        }
         adj_train_image_fn.push_back( train_image_fn[i] );
         adj_train_gt.push_back( train_gt[i] );
       }
