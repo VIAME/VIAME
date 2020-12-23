@@ -1633,6 +1633,8 @@ main( int argc, char* argv[] )
 
     for( unsigned i = 0; i < train_image_fn.size(); ++i )
     {
+      // First 2 conditionals are hack to ensure at least 1 truth frame
+      // in both train and test sets, could be done better in future.
       if( is_first && !train_gt[i]->empty() )
       {
         test_image_fn.push_back( train_image_fn[i] );
