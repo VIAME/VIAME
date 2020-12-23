@@ -464,8 +464,12 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 std::vector< std::string > extract_video_frames( const std::string& video_filename,
                                                  const std::string& pipeline_filename,
                                                  const double& frame_rate,
-                                                 const std::string& output_directory )
+                                                 const std::string& output_directory,
+                                                 bool skip_extract = false )
 {
+  std::cout << "Extracting frames from " << video_filename
+            << " at rate " << frame_rate << std::endl;
+
   std::vector< std::string > output;
 
   std::string video_no_path = get_filename_no_path( video_filename );
@@ -473,15 +477,18 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   std::string output_path = append_path( output_dir, "frame%06d.png" );
   std::string frame_rate_str = boost::lexical_cast< std::string >( frame_rate );
 
-  if( does_folder_exist( output_dir ) )
+  if( !skip_extract )
   {
-    boost::filesystem::remove_all( output_dir );
-  }
+    if( does_folder_exist( output_dir ) )
+    {
+      boost::filesystem::remove_all( output_dir );
+    }
 
-  if( !create_folder( output_dir ) )
-  {
-    std::cout << "ERROR: Unable to create output folder: " << output_dir << std::endl;
-    return output;
+    if( !create_folder( output_dir ) )
+    {
+      std::cout << "ERROR: Unable to create folder: " << output_dir << std::endl;
+      return output;
+    }
   }
 
   std::string cmd = "kwiver";
@@ -496,7 +503,10 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   cmd = cmd + "-s input:target_frame_rate=" + frame_rate_str + " ";
   cmd = cmd + "-s output:file_name_template=" + output_path + " ";
 
-  system( cmd.c_str() );
+  if( !skip_extract )
+  {
+    system( cmd.c_str() );
+  }
 
   list_files_in_folder( output_dir, output );
   return output;
@@ -1288,7 +1298,8 @@ main( int argc, char* argv[] )
       double file_frame_rate = get_file_frame_rate( gt_files[0] );
 
       image_files = extract_video_frames( data_item, video_extractor,
-        ( file_frame_rate > 0 ? file_frame_rate : frame_rate ), augmented_cache );
+        ( file_frame_rate > 0 ? file_frame_rate : frame_rate ),
+        augmented_cache, !regenerate_cache );
     }
     else
     {
