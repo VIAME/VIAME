@@ -50,6 +50,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
+#include <algorithm>
 
 #ifdef VIAME_ENABLE_VXL
 #include <vgl/vgl_polygon.h>
@@ -482,6 +483,30 @@ read_detected_object_set_viame_csv::priv
       m_detection_by_str[ str_id ]->add( dob );
     }
   } // ...while !eof
+
+  // Check if all frame names are timestamps, if so don't use them in favor of frame ids
+  unsigned timestamp_count = 0;
+  unsigned frame_count = 0;
+
+  for( auto itr : m_detection_by_str )
+  {
+    const std::string& entry = itr.first;
+
+    if( std::count( entry.begin(), entry.end(), ':' ) == 2 &&
+        std::count( entry.begin(), entry.end(), '.' ) == 1 )
+    {
+      timestamp_count++;
+    }
+    else
+    {
+      frame_count++;
+    }
+  }
+
+  if( timestamp_count > 0 && frame_count <= 1 && timestamp_count > frame_count )
+  {
+    m_detection_by_str.clear();
+  }
 } // read_all
 
 } // end namespace
