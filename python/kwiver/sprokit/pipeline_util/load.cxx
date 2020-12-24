@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
@@ -240,14 +214,12 @@ class pipe_block_visitor
     object operator () (::sprokit::cluster_pipe_block const& cluster_block) const;
 };
 
-
 // ----------------------------------------------------------------------------
 object
 pipe_block_config(::sprokit::pipe_block const& block)
 {
   return kwiver::vital::visit( pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -256,14 +228,12 @@ pipe_block_config_set(::sprokit::pipe_block& block, ::sprokit::config_pipe_block
   block = config;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 pipe_block_process(::sprokit::pipe_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -272,7 +242,6 @@ pipe_block_process_set(::sprokit::pipe_block& block, ::sprokit::process_pipe_blo
   block = process;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 pipe_block_connect(::sprokit::pipe_block const& block)
@@ -280,14 +249,12 @@ pipe_block_connect(::sprokit::pipe_block const& block)
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
 }
 
-
 // ----------------------------------------------------------------------------
 void
 pipe_block_connect_set(::sprokit::pipe_block& block, ::sprokit::connect_pipe_block const& connect)
 {
   block = connect;
 }
-
 
 // ----------------------------------------------------------------------------
 class cluster_subblock_visitor
@@ -310,14 +277,12 @@ class cluster_subblock_visitor
     object operator () (::sprokit::cluster_output_t const& output) const;
 };
 
-
 // ----------------------------------------------------------------------------
 object
 cluster_subblock_config(::sprokit::cluster_subblock_t const& subblock)
 {
   return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_CONFIG), subblock);
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -326,14 +291,12 @@ cluster_subblock_config_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::
   subblock = config;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 cluster_subblock_input(::sprokit::cluster_subblock_t const& subblock)
 {
   return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_INPUT), subblock);
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -342,14 +305,12 @@ cluster_subblock_input_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::c
   subblock = input;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 cluster_subblock_output(::sprokit::cluster_subblock_t const& subblock)
 {
   return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_OUTPUT), subblock);
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -358,14 +319,12 @@ cluster_subblock_output_set(::sprokit::cluster_subblock_t& subblock, ::sprokit::
   subblock = output;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 cluster_block_config(::sprokit::cluster_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -374,14 +333,12 @@ cluster_block_config_set(::sprokit::cluster_block& block, ::sprokit::config_pipe
   block = config;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 cluster_block_process(::sprokit::cluster_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -390,14 +347,12 @@ cluster_block_process_set(::sprokit::cluster_block& block, ::sprokit::process_pi
   block = process;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 cluster_block_connect(::sprokit::cluster_block const& block)
 {
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -406,7 +361,6 @@ cluster_block_connect_set(::sprokit::cluster_block& block, ::sprokit::connect_pi
   block = connect;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 cluster_block_cluster(::sprokit::cluster_block const& block)
@@ -414,14 +368,12 @@ cluster_block_cluster(::sprokit::cluster_block const& block)
   return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CLUSTER), block);
 }
 
-
 // ----------------------------------------------------------------------------
 void
 cluster_block_cluster_set(::sprokit::cluster_block& block, ::sprokit::cluster_pipe_block const& cluster)
 {
   block = cluster;
 }
-
 
 // ----------------------------------------------------------------------------
 ::sprokit::pipe_blocks
@@ -431,7 +383,6 @@ load_pipe_file(std::string const& path)
   builder.load_pipeline( path );
   return builder.pipeline_blocks();
 }
-
 
 // ----------------------------------------------------------------------------
 ::sprokit::pipe_blocks
@@ -443,7 +394,6 @@ load_pipe(object const& stream)
   return builder.pipeline_blocks();
 }
 
-
 // ----------------------------------------------------------------------------
 ::sprokit::cluster_blocks
 load_cluster_file(std::string const& path)
@@ -452,7 +402,6 @@ load_cluster_file(std::string const& path)
   builder.load_cluster( path );
   return builder.cluster_blocks();
 }
-
 
 // ----------------------------------------------------------------------------
 ::sprokit::cluster_blocks
@@ -464,7 +413,6 @@ load_cluster(object const& stream)
   return builder.cluster_blocks();
 }
 
-
 // ----------------------------------------------------------------------------
 pipe_block_visitor
 ::pipe_block_visitor(block_t type)
@@ -472,13 +420,11 @@ pipe_block_visitor
 {
 }
 
-
 // ----------------------------------------------------------------------------
 pipe_block_visitor
 ::~pipe_block_visitor()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 object
@@ -498,7 +444,6 @@ pipe_block_visitor
   return obj;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
@@ -516,7 +461,6 @@ pipe_block_visitor
 
   return obj;
 }
-
 
 // ----------------------------------------------------------------------------
 object
@@ -536,7 +480,6 @@ pipe_block_visitor
   return obj;
 }
 
-
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
@@ -555,7 +498,6 @@ pipe_block_visitor
   return obj;
 }
 
-
 // ----------------------------------------------------------------------------
 cluster_subblock_visitor
 ::cluster_subblock_visitor(block_t type)
@@ -563,13 +505,11 @@ cluster_subblock_visitor
 {
 }
 
-
 // ----------------------------------------------------------------------------
 cluster_subblock_visitor
 ::~cluster_subblock_visitor()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 object
@@ -587,7 +527,6 @@ cluster_subblock_visitor
   return none();
 }
 
-
 // ----------------------------------------------------------------------------
 object
 cluster_subblock_visitor
@@ -603,7 +542,6 @@ cluster_subblock_visitor
 
   return none();
 }
-
 
 // ----------------------------------------------------------------------------
 object
@@ -621,7 +559,6 @@ cluster_subblock_visitor
   return none();
 }
 
-
 // ----------------------------------------------------------------------------
 std::vector<wrap_port_addr>
 get_targets(::sprokit::cluster_input_t const& self)
@@ -633,7 +570,6 @@ get_targets(::sprokit::cluster_input_t const& self)
   }
   return wrap_targets;
 }
-
 
 // ----------------------------------------------------------------------------
 void
