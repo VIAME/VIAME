@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2012-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "process_cluster.h"
 
@@ -75,7 +49,6 @@ class process_cluster::priv
     kwiver::vital::logger_handle_t m_logger;
 };
 
-
 // ==================================================================
 processes_t
 process_cluster
@@ -93,7 +66,6 @@ process_cluster
   return procs;
 }
 
-
 // ------------------------------------------------------------------
 process::connections_t
 process_cluster
@@ -101,7 +73,6 @@ process_cluster
 {
   return d->input_mappings;
 }
-
 
 // ------------------------------------------------------------------
 process::connections_t
@@ -111,7 +82,6 @@ process_cluster
   return d->output_mappings;
 }
 
-
 // ------------------------------------------------------------------
 process::connections_t
 process_cluster
@@ -119,7 +89,6 @@ process_cluster
 {
   return d->internal_connections;
 }
-
 
 // ------------------------------------------------------------------
 process_cluster
@@ -129,7 +98,6 @@ process_cluster
 {
 }
 
-
 // ------------------------------------------------------------------
 process_cluster
 ::~process_cluster()
@@ -137,7 +105,6 @@ process_cluster
 }
 
 static process::name_t convert_name(process::name_t const& cluster_name, process::name_t const& process_name);
-
 
 // ------------------------------------------------------------------
 void
@@ -157,7 +124,6 @@ process_cluster
 
   d->config_map[name_].push_back(mapping);
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -244,7 +210,6 @@ process_cluster
   d->processes[ name_ ] = proc;
 }
 
-
 // ------------------------------------------------------------------
 void
 process_cluster
@@ -285,7 +250,6 @@ process_cluster
 
   d->input_mappings.push_back(connection);
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -328,7 +292,6 @@ process_cluster
   d->output_mappings.push_back(connection);
 }
 
-
 // ------------------------------------------------------------------
 void
 process_cluster
@@ -365,7 +328,6 @@ process_cluster
   d->internal_connections.push_back(connection);
 }
 
-
 // ============================================================================
 // Stub process implementations.
 void
@@ -374,14 +336,12 @@ process_cluster
 {
 }
 
-
 // ------------------------------------------------------------------
 void
 process_cluster
 ::_init()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -390,14 +350,12 @@ process_cluster
 {
 }
 
-
 // ------------------------------------------------------------------
 void
 process_cluster
 ::_finalize()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -406,7 +364,6 @@ process_cluster
 {
   VITAL_THROW( process_exception );
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -454,7 +411,6 @@ process_cluster
   process::_reconfigure( conf );
 }
 
-
 // ------------------------------------------------------------------
 process::properties_t
 process_cluster
@@ -466,7 +422,6 @@ process_cluster
 
   return base_properties;
 }
-
 
 // ==================================================================
 process_cluster::priv
@@ -480,13 +435,11 @@ process_cluster::priv
 {
 }
 
-
 // ------------------------------------------------------------------
 process_cluster::priv
 ::~priv()
 {
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -495,7 +448,6 @@ process_cluster::priv
 {
   return (0 != processes.count(name));
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -508,7 +460,6 @@ process_cluster::priv
                  name);
   }
 }
-
 
 // ------------------------------------------------------------------
 /*
