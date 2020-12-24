@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017, 2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "perform_query_process.h"
 
@@ -120,7 +94,6 @@ public:
   unsigned get_instance_id( const std::string& uid );
 }; // end priv class
 
-
 // =============================================================================
 
 perform_query_process
@@ -135,12 +108,10 @@ perform_query_process
   make_config();
 }
 
-
 perform_query_process
 ::~perform_query_process()
 {
 }
-
 
 // -----------------------------------------------------------------------------
 void perform_query_process
@@ -206,7 +177,6 @@ void perform_query_process
     }
   }
 }
-
 
 // -----------------------------------------------------------------------------
 void
@@ -446,7 +416,6 @@ perform_query_process
   push_to_port_using_trait( query_result, output );
 }
 
-
 // -----------------------------------------------------------------------------
 void perform_query_process
 ::make_ports()
@@ -476,7 +445,6 @@ void perform_query_process
   declare_input_port_using_trait( result_descriptor_scores, optional_no_dep );
 }
 
-
 // -----------------------------------------------------------------------------
 void perform_query_process
 ::make_config()
@@ -491,7 +459,6 @@ void perform_query_process
   declare_config_using_trait( index_postfix );
 }
 
-
 // =============================================================================
 perform_query_process::priv
 ::priv( perform_query_process* p )
@@ -504,12 +471,10 @@ perform_query_process::priv
 {
 }
 
-
 perform_query_process::priv
 ::~priv()
 {
 }
-
 
 void perform_query_process::priv
 ::populate_database()
@@ -585,7 +550,6 @@ void perform_query_process::priv
   database_populated = true;
 }
 
-
 void perform_query_process::priv
 ::reset_query( const vital::database_query_sptr& query )
 {
@@ -596,7 +560,6 @@ void perform_query_process::priv
   forced_negatives.clear();
   active_uid = query->id();
 }
-
 
 unsigned perform_query_process::priv
 ::get_instance_id( const std::string& uid )
