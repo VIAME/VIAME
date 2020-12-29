@@ -8,6 +8,7 @@ import signal
 import sys
 from subprocess import run
 from tempfile import TemporaryDirectory
+import urllib
 
 run_dir = os.path.dirname(__file__)
 
@@ -159,6 +160,13 @@ def main(options):
                                       file_name=installer_name,
                                       file_id=installer_data["itemId"]))
     chain.write("</Include>")
+
+# Avoid sending HEAD request to GitHub and AWS for VIAME-Dive
+#  https://github.com/wixtoolset/issues/issues/6060
+# Download now and embed it in the installer.
+with open(os.path.join(run_dir,"VIAME-Dive-1.3.0.msi"), "wb") as installer:
+  with urllib.request.urlopen("https://github.com/VIAME/VIAME-Web/releases/download/1.3.0/VIAME-Dive-1.3.0.msi") as remote:
+    installer.write(remote.read())
 
 if __name__ == "__main__":
     arg = ArgumentParser()
