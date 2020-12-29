@@ -32,7 +32,7 @@
 
         <Text X="0" Y="250" Width="-100" Height="15" TabStop="yes" FontId="3">Select GUI to install: </Text>
         <Checkbox Name="VIAME_DiveCheckbox" X="10" Y="265" Width="-100" Height="15" TabStop="yes" FontId="3">Install VIAME-Dive GUI?</Checkbox>
-        <Checkbox Name="CPU_GUI_x64DataModelsCheckbox" X="10" Y="265" Width="-100" Height="15" TabStop="yes" FontId="3">Install VIAME CPUx64 GUI?</Checkbox>
+        <Checkbox Name="CPU_GUI_x64DataModelsCheckbox" X="10" Y="280" Width="-100" Height="15" TabStop="yes" FontId="3">Install VIAME CPUx64 GUI?</Checkbox>
         <Button Name="OptionsOkButton" X="-91" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.OptionsOkButton)</Button>
         <Button Name="OptionsCancelButton" X="-11" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.OptionsCancelButton)</Button>
     </Page>
