@@ -17,7 +17,7 @@ class KWIVER_ALGO_VTK_APPLETS_EXPORT fuse_depth
 {
 public:
   fuse_depth();
-  ~fuse_depth() override;
+  virtual ~fuse_depth();
 
   PLUGIN_INFO( "fuse-depth",
                "Fuse depth maps from multiple cameras into a single surface");
