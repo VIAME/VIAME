@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -65,7 +39,6 @@ static kwiver::vital::config_block_key_t const epx_block_key = kwiver::vital::co
 
 } // end
 
-
 namespace kwiver {
 
 typedef kwiversys::SystemTools ST;
@@ -78,7 +51,6 @@ public:
   priv()
     : m_logger( kwiver::vital::get_logger( "sprokit.embedded_pipeline" ))
   { }
-
 
   ~priv()
   {
@@ -118,7 +90,6 @@ public:
 
 }; // end class embedded_pipeline::priv
 
-
 // ============================================================================
 /*
  * This implementation of the plugin context provides real access to
@@ -143,13 +114,10 @@ private:
   std::shared_ptr< embedded_pipeline::priv > m_priv;
 };
 
-
 real_context::
 real_context( std::shared_ptr< embedded_pipeline::priv> p )
   : m_priv(p)
 { }
-
-
 
 // ==================================================================
 embedded_pipeline
@@ -163,12 +131,10 @@ embedded_pipeline
   m_priv->m_context = std::make_shared< real_context >( m_priv );
 }
 
-
 embedded_pipeline
 ::~embedded_pipeline()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -283,7 +249,6 @@ embedded_pipeline
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 embedded_pipeline
@@ -296,7 +261,6 @@ embedded_pipeline
 
   m_priv->m_input_adapter.send( ads );
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -311,7 +275,6 @@ embedded_pipeline
   auto ds = kwiver::adapter::adapter_data_set::create( kwiver::adapter::adapter_data_set::end_of_input );
   this->send( ds );
 }
-
 
 // ------------------------------------------------------------------
 kwiver::adapter::adapter_data_set_t
@@ -346,7 +309,6 @@ embedded_pipeline
   return ads;
 }
 
-
 // ------------------------------------------------------------------
 bool
 embedded_pipeline
@@ -359,7 +321,6 @@ embedded_pipeline
 
   return m_priv->m_input_adapter.full();
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -374,7 +335,6 @@ embedded_pipeline
   return m_priv->m_output_adapter.empty();
 }
 
-
 // ------------------------------------------------------------------
 bool
 embedded_pipeline
@@ -382,7 +342,6 @@ embedded_pipeline
 {
   return m_priv->m_at_end;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -392,7 +351,6 @@ embedded_pipeline
   m_priv->m_scheduler->start();
 }
 
-
 // ------------------------------------------------------------------
 void
 embedded_pipeline
@@ -400,7 +358,6 @@ embedded_pipeline
 {
   m_priv->m_scheduler->wait();
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -413,7 +370,6 @@ embedded_pipeline
   // scheduler has not been started
   m_priv->m_scheduler->stop();
 }
-
 
 // ------------------------------------------------------------------
 sprokit::process::ports_t
@@ -428,7 +384,6 @@ embedded_pipeline
   return m_priv->m_input_adapter.port_list();
 }
 
-
 // ------------------------------------------------------------------
 sprokit::process::ports_t
 embedded_pipeline
@@ -442,7 +397,6 @@ embedded_pipeline
   return m_priv->m_output_adapter.port_list();
 }
 
-
 // ------------------------------------------------------------------
 bool
 embedded_pipeline
@@ -450,7 +404,6 @@ embedded_pipeline
 {
   return m_priv->connect_input_adapter();
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -460,7 +413,6 @@ embedded_pipeline
   return m_priv->connect_output_adapter();
 }
 
-
 // ------------------------------------------------------------------
 bool
 embedded_pipeline
@@ -468,7 +420,6 @@ embedded_pipeline
 {
   return m_priv->m_input_adapter_connected;
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -478,14 +429,12 @@ embedded_pipeline
   return m_priv->m_output_adapter_connected;
 }
 
-
 // ----------------------------------------------------------------------------
 void
 embedded_pipeline::
 update_config( VITAL_UNUSED kwiver::vital::config_block_sptr config )
 {
 }
-
 
 // ==================================================================
 bool
@@ -505,7 +454,6 @@ connect_input_adapter()
   }
   return false;
 }
-
 
 // ------------------------------------------------------------------
 bool

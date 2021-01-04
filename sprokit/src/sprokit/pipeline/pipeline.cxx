@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "pipeline.h"
 #include "pipeline_exception.h"
@@ -251,7 +225,6 @@ kwiver::vital::config_block_key_t const pipeline::priv::config_edge_conn    = kw
 kwiver::vital::config_block_key_t const pipeline::priv::upstream_subblock   = kwiver::vital::config_block_key_t("up");
 kwiver::vital::config_block_key_t const pipeline::priv::downstream_subblock = kwiver::vital::config_block_key_t("down");
 
-
 // ------------------------------------------------------------------
 pipeline
 ::pipeline(kwiver::vital::config_block_sptr const& config)
@@ -269,7 +242,6 @@ pipeline
 ::~pipeline()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -341,7 +313,6 @@ pipeline
   d->process_map[name] = process;
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline
@@ -385,7 +356,6 @@ pipeline
 
   d->remove_from_pipeline(name);
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -464,7 +434,6 @@ pipeline
   d->connections.push_back(connection);
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline
@@ -504,7 +473,6 @@ pipeline
 
 #undef FORGET_CONNECTION
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -547,7 +515,6 @@ pipeline
   d->setup_successful = true;
 }
 
-
 // ------------------------------------------------------------------
 bool
 pipeline
@@ -556,7 +523,6 @@ pipeline
   return d->setup;
 }
 
-
 // ------------------------------------------------------------------
 bool
 pipeline
@@ -564,7 +530,6 @@ pipeline
 {
   return d->setup_successful;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -618,7 +583,6 @@ pipeline
   d->setup_in_progress = false;
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline
@@ -668,7 +632,6 @@ pipeline
   }
 }
 
-
 // ------------------------------------------------------------------
 process::names_t
 pipeline
@@ -686,7 +649,6 @@ pipeline
   return names;
 }
 
-
 // ------------------------------------------------------------------
 process_t
 pipeline
@@ -702,7 +664,6 @@ pipeline
   return i->second;
 }
 
-
 // ------------------------------------------------------------------
 process::name_t
 pipeline
@@ -717,7 +678,6 @@ pipeline
 
   return i->second;
 }
-
 
 // ------------------------------------------------------------------
 process::names_t
@@ -736,7 +696,6 @@ pipeline
   return names;
 }
 
-
 // ------------------------------------------------------------------
 process_cluster_t
 pipeline
@@ -752,7 +711,6 @@ pipeline
 
   return i->second;
 }
-
 
 // ------------------------------------------------------------------
 process::port_addrs_t
@@ -778,7 +736,6 @@ pipeline
   return addrs;
 }
 
-
 // ------------------------------------------------------------------
 process::port_addr_t
 pipeline
@@ -800,7 +757,6 @@ pipeline
 
   return process::port_addr_t();
 }
-
 
 // ------------------------------------------------------------------
 processes_t
@@ -838,7 +794,6 @@ pipeline
   return processes;
 }
 
-
 // ------------------------------------------------------------------
 process_t
 pipeline
@@ -866,7 +821,6 @@ pipeline
 
   return process_t();
 }
-
 
 // ------------------------------------------------------------------
 processes_t
@@ -903,7 +857,6 @@ pipeline
 
   return processes;
 }
-
 
 // ------------------------------------------------------------------
 processes_t
@@ -943,7 +896,6 @@ pipeline
   return processes;
 }
 
-
 // ------------------------------------------------------------------
 process::port_addr_t
 pipeline
@@ -968,7 +920,6 @@ pipeline
 
   return process::port_addr_t();
 }
-
 
 // ------------------------------------------------------------------
 process::port_addrs_t
@@ -996,7 +947,6 @@ pipeline
 
   return port_addrs;
 }
-
 
 // ------------------------------------------------------------------
 edge_t
@@ -1032,7 +982,6 @@ pipeline
   return edge_t();
 }
 
-
 // ------------------------------------------------------------------
 edges_t
 pipeline
@@ -1061,7 +1010,6 @@ pipeline
 
   return edges;
 }
-
 
 // ------------------------------------------------------------------
 edge_t
@@ -1092,7 +1040,6 @@ pipeline
   return edge_t();
 }
 
-
 // ------------------------------------------------------------------
 edges_t
 pipeline
@@ -1121,7 +1068,6 @@ pipeline
 
   return edges;
 }
-
 
 // ------------------------------------------------------------------
 edges_t
@@ -1154,7 +1100,6 @@ pipeline
   return edges;
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline
@@ -1164,7 +1109,6 @@ pipeline
 
   d->running = true;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1180,7 +1124,6 @@ pipeline
 
   d->running = false;
 }
-
 
 // ------------------------------------------------------------------
 processes_t
@@ -1201,7 +1144,6 @@ pipeline
 
   return python_processes;
 }
-
 
 // ------------------------------------------------------------------
 pipeline::priv
@@ -1236,7 +1178,6 @@ pipeline::priv
 {
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -1248,7 +1189,6 @@ pipeline::priv
                  name);
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1275,7 +1215,6 @@ pipeline::priv
 
 #undef FORGET_CONNECTIONS
 }
-
 
 // ------------------------------------------------------------------
 pipeline::priv::port_type_status
@@ -1322,7 +1261,6 @@ pipeline::priv
 
   return type_compatible;
 }
-
 
 // ------------------------------------------------------------------
 /// Check connection flags to see if they are consistent.
@@ -1374,7 +1312,6 @@ pipeline::priv
   // All other combinations are allowable
   return true;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1472,7 +1409,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -1483,7 +1419,6 @@ pipeline::priv
     VITAL_THROW( no_processes_exception );
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1615,7 +1550,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -1683,7 +1617,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -1696,7 +1629,6 @@ pipeline::priv
     throw std::logic_error(reason);
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1792,7 +1724,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -1803,7 +1734,6 @@ pipeline::priv
     VITAL_THROW( untyped_connection_exception );
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1943,7 +1873,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -2043,7 +1972,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -2114,7 +2042,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -2130,7 +2057,6 @@ pipeline::priv
     proc->init();
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -2281,7 +2207,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 pipeline::priv
@@ -2298,7 +2223,6 @@ pipeline::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 bool
 pipeline::priv
@@ -2308,7 +2232,6 @@ pipeline::priv
 
   return (addr == up_addr);
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -2320,7 +2243,6 @@ pipeline::priv
   return (addr == down_addr);
 }
 
-
 // ------------------------------------------------------------------
 bool
 pipeline::priv
@@ -2330,7 +2252,6 @@ pipeline::priv
 
   return is_upstream_for(addr, connection);
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -2342,7 +2263,6 @@ pipeline::priv
   return is_downstream_for(addr, connection);
 }
 
-
 // ------------------------------------------------------------------
 bool
 pipeline::priv
@@ -2352,7 +2272,6 @@ pipeline::priv
 
   return (name == proc_name);
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -2365,7 +2284,6 @@ pipeline::priv
   return (is_addr_on(name, upstream_addr) || is_addr_on(name, downstream_addr));
 }
 
-
 // ------------------------------------------------------------------
 bool
 pipeline::priv
@@ -2376,7 +2294,6 @@ pipeline::priv
   return is_connection_with(name, connection);
 }
 
-
 // ------------------------------------------------------------------
 bool
 pipeline::priv
@@ -2386,7 +2303,6 @@ pipeline::priv
 
   return (connection == cluster_connection);
 }
-
 
 // ------------------------------------------------------------------
 pipeline::priv::propagation_exception
@@ -2405,7 +2321,6 @@ pipeline::priv::propagation_exception
 {
   m_what = "<internal>";
 }
-
 
 // ------------------------------------------------------------------
 pipeline::priv::propagation_exception

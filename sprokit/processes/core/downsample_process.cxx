@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "downsample_process.h"
 
@@ -77,7 +51,6 @@ private:
   int target_frame_count( double time_seconds );
 };
 
-
 process::port_t const downsample_process::priv::port_inputs[5] = {
   process::port_t( "input_1" ),
   process::port_t( "input_2" ),
@@ -94,7 +67,6 @@ process::port_t const downsample_process::priv::port_outputs[5] = {
   process::port_t( "output_5" ),
 };
 
-
 downsample_process
 ::downsample_process( vital::config_block_sptr const& config )
   : process( config ),
@@ -104,12 +76,10 @@ downsample_process
   make_config();
 }
 
-
 downsample_process
 ::~downsample_process()
 {
 }
-
 
 void downsample_process
 ::_configure()
@@ -120,7 +90,6 @@ void downsample_process
   d->renumber_frames_ = config_value_using_trait( renumber_frames );
 }
 
-
 void downsample_process
 ::_init()
 {
@@ -130,7 +99,6 @@ void downsample_process
   d->output_counter_ = 0;
   d->is_first_ = true;
 }
-
 
 void downsample_process
 ::_step()
@@ -163,7 +131,6 @@ void downsample_process
   }
 }
 
-
 void downsample_process
 ::make_ports()
 {
@@ -192,7 +159,6 @@ void downsample_process
   }
 }
 
-
 void downsample_process
 ::make_config()
 {
@@ -202,13 +168,11 @@ void downsample_process
   declare_config_using_trait( renumber_frames );
 }
 
-
 int downsample_process::priv
 ::target_frame_count( double time_seconds )
 {
   return static_cast< int >( std::floor( time_seconds * target_frame_rate_ ) );
 }
-
 
 bool downsample_process::priv
 ::skip_frame( VITAL_UNUSED vital::timestamp const& ts,
@@ -251,13 +215,11 @@ bool downsample_process::priv
   return false;
 }
 
-
 downsample_process::priv
 ::priv( downsample_process* p )
   : parent( p )
 {
 }
-
 
 downsample_process::priv
 ::~priv()

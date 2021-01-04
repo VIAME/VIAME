@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2017, 2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <sprokit/processes/process_explorer_plugin_export.h>
 
@@ -66,11 +40,9 @@ std::string quoted( const std::string& txt, const char c = '\"' )
   return ss.str();
 }
 
-
 static std::string const hidden_prefix = "_";
 
 } // end namespace
-
 
 // ==================================================================
 /**
@@ -98,7 +70,6 @@ public:
   kwiver::vital::logger_handle_t m_logger;
 }; // end class process_explorer
 
-
 // ==================================================================
 process_explorer::
 process_explorer()
@@ -106,11 +77,9 @@ process_explorer()
   , m_logger( kwiver::vital::get_logger( "process_explorer_plugin" ) )
 { }
 
-
 process_explorer::
 ~process_explorer()
 { }
-
 
 // ------------------------------------------------------------------
 bool
@@ -121,7 +90,6 @@ initialize( explorer_context* context )
 
   return true;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -296,7 +264,6 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
  * input and output ports.
  */
 
-
 /* We possibly want to output JSON format in "VITAL only" mode
  * hence we won't use and JSON libraries for this
  */
@@ -428,7 +395,6 @@ public:
     }
 };
 
-
 class process_explorer_json
   : public category_explorer
 {
@@ -450,18 +416,15 @@ public:
 
 }; // end class process_explorer_json
 
-
 // ==================================================================
 process_explorer_json::
 process_explorer_json()
 {
 }
 
-
 process_explorer_json::
 ~process_explorer_json()
 { }
-
 
 // ------------------------------------------------------------------
 std::ostream&
@@ -476,7 +439,6 @@ out_stream()
   return m_context->output_stream();
 }
 
-
 // ------------------------------------------------------------------
 bool
 process_explorer_json::
@@ -485,7 +447,6 @@ initialize( explorer_context* context )
   m_context = context;
   return true;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -626,7 +587,6 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   }
 } // process_explorer_json::explore
 
-
 // ==================================================================
 /**
  * @brief plugin_explorer support for formatting processes in RST
@@ -655,7 +615,6 @@ public:
 
 }; // end class process_explorer_rst
 
-
 // ==================================================================
 process_explorer_rst::
 process_explorer_rst()
@@ -664,11 +623,9 @@ process_explorer_rst()
   m_comment_wtb.set_indent_string( " # " );
 }
 
-
 process_explorer_rst::
 ~process_explorer_rst()
 { }
-
 
 // ------------------------------------------------------------------
 std::ostream&
@@ -683,7 +640,6 @@ out_stream()
   return m_context->output_stream();
 }
 
-
 // ------------------------------------------------------------------
 std::string
 process_explorer_rst::
@@ -695,7 +651,6 @@ wrap_rst_text( const std::string& txt )
   wtxt.erase( wtxt.find_last_not_of( " \t\n\r\f\v" ) + 1 );
   return std::regex_replace( wtxt, std::regex("\n"), std::string(" |br|\\ ") );
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -715,7 +670,6 @@ initialize( explorer_context* context )
 
   return true;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -956,7 +910,6 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   }
   out_stream() << std::endl;
 
-
   // loop over output ports
   out_stream() << underline( "The following Output ports will need to be set" , '^')
                << ".. code::" << std::endl
@@ -995,7 +948,6 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
 } // process_explorer_rst::explore
 
-
 // ==================================================================
 /**
  * @brief plugin_explorer support for formatting processes.
@@ -1023,7 +975,6 @@ public:
 
 }; // end class process_explorer_pipe
 
-
 // ==================================================================
 process_explorer_pipe::
 process_explorer_pipe()
@@ -1032,11 +983,9 @@ process_explorer_pipe()
   m_wtb.set_indent_string( "#   " );
 }
 
-
 process_explorer_pipe::
 ~process_explorer_pipe()
 { }
-
 
 // ------------------------------------------------------------------
 bool
@@ -1047,7 +996,6 @@ initialize( explorer_context* context )
 
   return true;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1158,7 +1106,6 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 } // process_explorer_pipe::explore
 
 } } // end namespace
-
 
 // ==================================================================
 extern "C"

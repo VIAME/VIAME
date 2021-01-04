@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "export_pipe.h"
 
@@ -69,7 +43,6 @@ public:
 
   void output_process_defaults();
 
-
 private:
   void output_process_by_name( sprokit::process::name_t const& name, bool fatal_if_no_process );
   void output_process_block( sprokit::process_t const& name, std::string const& kind );
@@ -84,7 +57,6 @@ private:
   process_set_t m_visited;
 };
 
-
 // ------------------------------------------------------------------
 config_printer
 ::config_printer( std::ostream& ostr, sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& conf )
@@ -94,12 +66,10 @@ config_printer
 {
 }
 
-
 config_printer
 ::~config_printer()
 {
 }
-
 
 // ==================================================================
 class key_printer
@@ -110,11 +80,9 @@ public:
 
   void operator()( sprokit::config_value_t const& config_value ) const;
 
-
 private:
   std::ostream& m_ostr;
 };
-
 
 // ------------------------------------------------------------------
 void
@@ -140,7 +108,6 @@ config_printer
   output_process_by_name( denorm_name, false );
 }
 
-
 // ------------------------------------------------------------------
 void
 config_printer
@@ -160,7 +127,6 @@ config_printer
   output_process_by_name( name, true );
 }
 
-
 // ------------------------------------------------------------------
 void
 config_printer
@@ -179,7 +145,6 @@ config_printer
 
   m_ostr << std::endl;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -219,7 +184,6 @@ config_printer
     output_process_block( proc, kind );
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -265,7 +229,6 @@ config_printer
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 config_printer
@@ -281,7 +244,6 @@ config_printer
 
   output_process( proc );
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -348,7 +310,6 @@ config_printer
   m_visited.insert( name );
 } // config_printer::output_process
 
-
 // ------------------------------------------------------------------
 key_printer
 ::key_printer( std::ostream& ostr )
@@ -356,12 +317,10 @@ key_printer
 {
 }
 
-
 key_printer
 ::~key_printer()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -388,7 +347,6 @@ key_printer
   m_ostr << " = " << value << std::endl;
 }
 
-
 // ------------------------------------------------------------------
 sprokit::process::name_t
 denormalize_name( sprokit::process::name_t const& name )
@@ -399,7 +357,6 @@ denormalize_name( sprokit::process::name_t const& name )
 
   return denorm_name;
 }
-
 
 // ------------------------------------------------------------------
 sprokit::process::name_t
@@ -412,7 +369,6 @@ normalize_name( sprokit::process::name_t const& name )
   return norm_name;
 }
 
-
 // ==================================================================
 export_pipe::
 export_pipe( const sprokit::pipeline_builder& builder )
@@ -420,11 +376,9 @@ export_pipe( const sprokit::pipeline_builder& builder )
 {
 }
 
-
 export_pipe::
 ~export_pipe()
 { }
-
 
 // ------------------------------------------------------------------
 void

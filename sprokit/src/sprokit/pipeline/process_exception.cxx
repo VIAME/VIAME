@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "process_exception.h"
 
@@ -54,7 +28,6 @@ process_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 null_process_config_exception
 ::null_process_config_exception() noexcept
@@ -71,7 +44,6 @@ null_process_config_exception
 ::~null_process_config_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 already_initialized_exception
@@ -91,7 +63,6 @@ already_initialized_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 unconfigured_exception
 ::unconfigured_exception(process::name_t const& name) noexcept
@@ -109,7 +80,6 @@ unconfigured_exception
 ::~unconfigured_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 reconfigured_exception
@@ -129,7 +99,6 @@ reconfigured_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 reinitialization_exception
 ::reinitialization_exception(process::name_t const& name) noexcept
@@ -147,7 +116,6 @@ reinitialization_exception
 ::~reinitialization_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 null_conf_info_exception
@@ -171,7 +139,6 @@ null_conf_info_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 null_port_info_exception
 ::null_port_info_exception(process::name_t const& name, process::port_t const& port, std::string const& type) noexcept
@@ -192,7 +159,6 @@ null_port_info_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 null_input_port_info_exception
 ::null_input_port_info_exception(process::name_t const& name, process::port_t const& port) noexcept
@@ -205,7 +171,6 @@ null_input_port_info_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 null_output_port_info_exception
 ::null_output_port_info_exception(process::name_t const& name, process::port_t const& port) noexcept
@@ -217,7 +182,6 @@ null_output_port_info_exception
 ::~null_output_port_info_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 flag_mismatch_exception
@@ -241,7 +205,6 @@ flag_mismatch_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 set_type_on_initialized_process_exception
 ::set_type_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& type) noexcept
@@ -262,7 +225,6 @@ set_type_on_initialized_process_exception
 ::~set_type_on_initialized_process_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 set_frequency_on_initialized_process_exception
@@ -285,7 +247,6 @@ set_frequency_on_initialized_process_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 uninitialized_exception
 ::uninitialized_exception(process::name_t const& name) noexcept
@@ -304,7 +265,6 @@ uninitialized_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 port_connection_exception
 ::port_connection_exception(process::name_t const& name, process::port_t const& port) noexcept
@@ -318,7 +278,6 @@ port_connection_exception
 ::~port_connection_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 connect_to_initialized_process_exception
@@ -337,7 +296,6 @@ connect_to_initialized_process_exception
 ::~connect_to_initialized_process_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 no_such_port_exception
@@ -368,12 +326,10 @@ no_such_port_exception
   m_what = sstr.str();
 }
 
-
 no_such_port_exception
 ::~no_such_port_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 null_edge_port_connection_exception
@@ -393,7 +349,6 @@ null_edge_port_connection_exception
 ::~null_edge_port_connection_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 static_type_reset_exception
@@ -417,7 +372,6 @@ static_type_reset_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 port_reconnect_exception
 ::port_reconnect_exception(process::name_t const& name, process::port_t const& port) noexcept
@@ -435,7 +389,6 @@ port_reconnect_exception
 ::~port_reconnect_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 missing_connection_exception
@@ -458,7 +411,6 @@ missing_connection_exception
 {
 }
 
-
 // ----------------------------------------------------------------------------
 process_configuration_exception
 ::process_configuration_exception() noexcept
@@ -470,7 +422,6 @@ process_configuration_exception
 ::~process_configuration_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 unknown_configuration_value_exception
@@ -492,7 +443,6 @@ unknown_configuration_value_exception
 ::~unknown_configuration_value_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 invalid_configuration_value_exception
@@ -518,7 +468,6 @@ invalid_configuration_value_exception
 ::~invalid_configuration_value_exception() noexcept
 {
 }
-
 
 // ----------------------------------------------------------------------------
 invalid_configuration_exception
