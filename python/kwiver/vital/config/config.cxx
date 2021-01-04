@@ -1,33 +1,6 @@
-/*ckwg +29
- * Copyright 2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <python/kwiver/vital/config/config.h>
 
@@ -60,14 +33,12 @@ config_set_value( kwiver::vital::config_block_sptr self,
   self->set_value< kwiver::vital::config_block_value_t > ( key, value );
 }
 
-
 kwiver::vital::config_block_value_t
 config_get_value( kwiver::vital::config_block_sptr self,
                   kwiver::vital::config_block_key_t const&  key )
 {
   return self->get_value< kwiver::vital::config_block_value_t > ( key );
 }
-
 
 kwiver::vital::config_block_value_t
 config_get_value_with_default( kwiver::vital::config_block_sptr self,
@@ -77,13 +48,11 @@ config_get_value_with_default( kwiver::vital::config_block_sptr self,
   return self->get_value< kwiver::vital::config_block_value_t > ( key, def );
 }
 
-
 pybind11::size_t
 config_len( kwiver::vital::config_block_sptr self )
 {
   return self->available_values().size();
 }
-
 
 kwiver::vital::config_block_value_t
 config_getitem( kwiver::vital::config_block_sptr self,
@@ -108,7 +77,6 @@ config_getitem( kwiver::vital::config_block_sptr self,
   return val;
 }
 
-
 void
 config_setitem( kwiver::vital::config_block_sptr self,
                 kwiver::vital::config_block_key_t const& key,
@@ -118,7 +86,6 @@ config_setitem( kwiver::vital::config_block_sptr self,
 
   self->set_value( key, str_value );
 }
-
 
 void
 config_delitem( kwiver::vital::config_block_sptr self,
@@ -249,7 +216,6 @@ config( py::module& m)
         R"pbdoc(Magic function to assign a new value to a key)pbdoc")
     .def("__delitem__", &kwiver::vital::python::config_delitem,
         R"pbdoc(Magic function to remove a key)pbdoc");
-
 
 // ----------------------------------------------------------------------------"
     py::class_<kwiver::vital::config_difference, std::shared_ptr<kwiver::vital::config_difference>>(m, "ConfigDifference"
