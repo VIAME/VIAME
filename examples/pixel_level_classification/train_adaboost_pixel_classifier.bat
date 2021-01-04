@@ -1,7 +1,7 @@
 @echo off
 
 REM Set path to input directory
-SET INPUT_DIRECTORY=training_data_adaboost
+SET INPUT_DIRECTORY=training_data
 
 REM Setup VIAME Paths (no need to set if installed to registry or already set up)
 SET VIAME_INSTALL=.\..\..

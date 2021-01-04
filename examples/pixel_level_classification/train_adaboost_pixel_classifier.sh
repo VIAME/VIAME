@@ -1,6 +1,6 @@
 #!/bin/sh
 # Input locations and types
-export INPUT_DIRECTORY=training_data_adaboost
+export INPUT_DIRECTORY=training_data
 
 # Path to VIAME installation
 export VIAME_INSTALL="$(cd "$(dirname $0)" && pwd)/../.."

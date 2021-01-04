@@ -1,0 +1,12 @@
+./training_data/seq1/20171027.214830.208.029135.png
+./training_data/seq1/20171027.214830.290.029136.png
+./training_data/seq1/20171027.214830.374.029137.png
+./training_data/seq1/20171027.214830.458.029138.png
+./training_data/seq1/20171027.214830.541.029139.png
+./training_data/seq1/20171027.214830.623.029140.png
+./training_data/seq1/20171027.214830.706.029141.png
+./training_data/seq1/20171027.214830.791.029142.png
+./training_data/seq1/20171027.214830.874.029143.png
+./training_data/seq1/20171027.214830.958.029144.png
+./training_data/seq1/20171027.214831.041.029145.png
+./training_data/seq1/20171027.214831.124.029146.png
