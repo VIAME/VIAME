@@ -63,9 +63,11 @@ data_name_dict = {
   "SEFSC1_1": "5fb69a7450a41e3d1960c6a5",
   "SEFSC1_2": "5fcdb5f150a41e3d198fa856",
   "ArcticSeals": "5e30b8ffaf2e2eed3545bff6",
+  "HabCam": "5f6bb7e850a41e3d19a63047",
 
   # GUI options
-  "CPU_GUI_x64":"5fb9ff7350a41e3d196659df"
+  "CPU_GUI_x64":"5fb9ff7350a41e3d196659df",
+  "GPU_GUI_x64":"5fbea91550a41e3d19705409"
 }
   # End pre-set information
 pool_options={}
