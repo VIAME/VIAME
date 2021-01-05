@@ -9,7 +9,7 @@
         UpgradeCode="91A46E15-EE49-4411-9836-583499D9C12F">
 
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense" >
-      <bal:WixStandardBootstrapperApplication LicenseUrl="" ThemeFile="VIAME_options.xml" />
+      <bal:WixStandardBootstrapperApplication LicenseUrl="https://github.com/VIAME/VIAME/blob/master/LICENSE.txt" ThemeFile="VIAME_options.xml" />
     </BootstrapperApplicationRef>
 
     <Chain>
