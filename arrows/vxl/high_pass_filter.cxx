@@ -20,7 +20,8 @@ namespace vxl {
 class high_pass_filter::priv
 {
 public:
-  priv()
+  priv( high_pass_filter* parent )
+  : p( parent )
   {
   }
 
@@ -34,6 +35,7 @@ public:
   size_t kernel_height = 7;
   bool treat_as_interlaced = false;
   bool output_net_only = false;
+  high_pass_filter* p;
 
   // Perform box filtering
   template <typename PixType>
@@ -54,7 +56,6 @@ public:
       // if interlaced, split the image into odd and even views
       // transpose all input and ouput images so that the horizontal
       // smoothing function produces vertical smoothing
-      // TODO remove the mentions of vidtk and refactor the below helpers
       vil_image_view<PixType> im_even_t = vil_transpose( even_rows( grey_img ) );
       vil_image_view<PixType> im_odd_t = vil_transpose( odd_rows( grey_img ) );
 
@@ -234,8 +235,14 @@ public:
                        vil_image_view<PixType>& dst,
                        unsigned width )
   {
-    //assert(width % 2 == 1, "Kernel width must be odd");
-    //assert(src.ni() > 0, "Image width must be non-zero");
+    if( src.ni() <= 0 )
+    {
+      LOG_ERROR( p->logger(), "Image width must be non-zero" );
+    }
+    if( width % 2 == 0 )
+    {
+      LOG_ERROR( p->logger(), "Kernel width must be odd" );
+    }
 
     if( width >= src.ni() )
     {
@@ -331,7 +338,7 @@ public:
 // ----------------------------------------------------------------------------
 high_pass_filter
 ::high_pass_filter()
-: d( new priv() )
+: d( new priv( this ) )
 {
   attach_logger( "arrows.vxl.high_pass_filter" );
 }
