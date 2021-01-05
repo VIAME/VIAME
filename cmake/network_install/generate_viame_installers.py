@@ -42,16 +42,17 @@ pkg_template = """<MsiPackage Id="{data_name}Data"
 </MsiPackage>
 """
 
-# Before Running:
+# !!!!! Before Running:
 # Ensure the information below is up to date
 gider_parent_folder_id = ""
 girder_id = ""
 girder_password = ""
 girder_url = "https://viame.kitware.com/api/v1"
-upload_folder=""
-gc = girder_client.GirderClient(apiUrl=girder_url)
+
+
 # Dictionary of descriptive string to
-# ITEM Id of the archive file.
+# ITEM Id of the archive file. The ITEM id should
+# be reachable on the https://data.kitware.com Girder instance.
 
 data_name_dict = {
   # Models/Data
@@ -68,7 +69,8 @@ data_name_dict = {
 }
   # End pre-set information
 pool_options={}
-
+upload_folder=""
+gc = girder_client.GirderClient(apiUrl=girder_url)
 def init_folder(options):
   """ A simple function used to initialize each process.
   It signs into the girder instance and collects the upload

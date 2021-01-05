@@ -6,24 +6,36 @@ Step 1: Generate VIAME Installer
 --------------------------------
 
 Use the ``VIAME_CREATE_PACKAGE`` option in CMake to direct CPack to create an
-MSI for the VIAME code
+MSI for the VIAME code.  On Windows, this will entail the building of the
+``PACKAGE`` target in Visual Studio.
+
+Copy the resultant ``.msi`` file to the directory which contains the
+``VIAME_Network.wxs`` file.
 
 
 Step 2: Generate Supplemental Installers
 -----------------------------------------
 
 The supplemental installers are generated via the Python script called
-``generate_viame_installers.py``.  Prior to running the Python script:
+``generate_viame_installers.py``.  This will use multiple processes to
+generate an installer for each archive object in a list that is user-specified.
 
-* Ensure that the list which describes the data objects, called
-  ``data_name_dict``, is up to date.
-* Ensure that the Girder connection information is correct.  This includes:
+Prior to running the script
++++++++++++++++++++++++++++
 
-  * Username
-  * Password
-  * API root url
-  * Girder parent object Id
+Fill in user-specific data:
+  * Ensure that the list which describes the archive objects, called
+    ``data_name_dict``, is up to date.
+  * Ensure that the Girder connection information is correct.  This includes:
+    * Username
+    * Password
+    * API root url
+    * Girder parent object Id
 
+All of these objects can be found from line 45 to line 70.
+
+Executing the Python script:
+++++++++++++++++++++++++++++
 
 Execute the ``generate_viame_installers.py`` file.  This long running process
 will create a set of temporary directories and execute a small CMake process to
@@ -39,8 +51,6 @@ The ``generate_viame_installers.py`` has two optional arguments.
 the remote folder or not.
 
 ``-j`` will allow the user to set a different number of processes to be used.
-
-
 
 This script also creates the file needed for the ``Chain`` capbility of the
 WiX Toolset based upon the amount of data set.
