@@ -4,8 +4,6 @@
 
 #include "high_pass_filter.h"
 
-#include "point_view_to_region.h"
-
 #include <arrows/vxl/image_container.h>
 
 #include <vil/vil_image_view.h>
@@ -22,12 +20,7 @@ namespace vxl {
 class high_pass_filter::priv
 {
 public:
-  priv() :
-  mode("box"),
-  kernel_width(7),
-  kernel_height(7),
-  treat_as_interlaced(false),
-  output_net_only(false)
+  priv()
   {
   }
 
@@ -36,18 +29,16 @@ public:
   }
 
   // Internal parameters/settings
-  // These should be initialized
-  std::string mode;
-  size_t kernel_width;
-  size_t kernel_height;
-  bool treat_as_interlaced;
-  bool output_net_only;
+  std::string mode = "box";
+  size_t kernel_width = 7;
+  size_t kernel_height = 7;
+  bool treat_as_interlaced = false;
+  bool output_net_only = false;
 
-  // TODO Document correctly or validate that this is alright
-  // TODO is there a better stylistic choice than PixType
   // Perform box filtering
   template <typename PixType>
-  vil_image_view< PixType > box_high_pass_filter( const vil_image_view< PixType >& grey_img )
+  vil_image_view< PixType >
+  box_high_pass_filter( const vil_image_view< PixType >& grey_img )
   {
     // recreate the output image and create views of each plane
     vil_image_view< PixType > output;
@@ -56,7 +47,7 @@ public:
     vil_image_view<PixType> filter_y = vil_plane(output, 1);
     vil_image_view<PixType> filter_xy = vil_plane(output, 2);
 
-    // comptue the vertically smoothed image
+    // compute the vertically smoothed image
     filter_x.set_size(grey_img.ni(), grey_img.nj(), 1);
     if( treat_as_interlaced )
     {
@@ -64,11 +55,11 @@ public:
       // transpose all input and ouput images so that the horizontal
       // smoothing function produces vertical smoothing
       // TODO remove the mentions of vidtk and refactor the below helpers
-      vil_image_view<PixType> im_even_t = vil_transpose(vidtk::even_rows(grey_img));
-      vil_image_view<PixType> im_odd_t = vil_transpose(vidtk::odd_rows(grey_img));
+      vil_image_view<PixType> im_even_t = vil_transpose( even_rows( grey_img ) );
+      vil_image_view<PixType> im_odd_t = vil_transpose( odd_rows( grey_img ) );
 
-      vil_image_view<PixType> smooth_even_t = vil_transpose(vidtk::even_rows(filter_x));
-      vil_image_view<PixType> smooth_odd_t = vil_transpose(vidtk::odd_rows(filter_x));
+      vil_image_view<PixType> smooth_even_t = vil_transpose( even_rows( filter_x ) );
+      vil_image_view<PixType> smooth_odd_t = vil_transpose( odd_rows( filter_x ) );
 
       // use a half size odd kernel since images are half height
       int half_kernel_height = kernel_height / 2;
@@ -184,11 +175,11 @@ public:
       // if interlaced, split the image into odd and even views
       // transpose all input and ouput images so that the horizontal
       // smoothing function produces vertical smoothing
-      vil_image_view<PixType> im_even_t = vil_transpose(vidtk::even_rows(grey_img));
-      vil_image_view<PixType> im_odd_t = vil_transpose(vidtk::odd_rows(grey_img));
+      vil_image_view<PixType> im_even_t = vil_transpose( even_rows( grey_img ) );
+      vil_image_view<PixType> im_odd_t = vil_transpose( odd_rows( grey_img ) );
 
-      vil_image_view<PixType> smooth_even_t = vil_transpose(vidtk::even_rows(filter_x));
-      vil_image_view<PixType> smooth_odd_t = vil_transpose(vidtk::odd_rows(filter_x));
+      vil_image_view<PixType> smooth_even_t = vil_transpose( even_rows( filter_x ) );
+      vil_image_view<PixType> smooth_odd_t = vil_transpose( odd_rows( filter_x ) );
 
       // use a half size odd kernel since images are half height
       int half_kernel_height = kernel_height / 2;
@@ -216,6 +207,25 @@ public:
     vil_math_image_max( filter_xy, filter_x, filter_y );
 
     return output;
+  }
+
+  // Function which returns an image view of the even rows of an image
+  template <typename PixType>
+  inline vil_image_view<PixType> even_rows(const vil_image_view<PixType>& im)
+  {
+    return vil_image_view<PixType>( im.memory_chunk(), im.top_left_ptr(),
+                                    im.ni(), (im.nj()+1)/2, im.nplanes(),
+                                    im.istep(), im.jstep()*2, im.planestep() );
+  }
+
+
+  // Function which returns an image view of the odd rows of an image
+  template <typename PixType>
+  inline vil_image_view<PixType> odd_rows(const vil_image_view<PixType>& im)
+  {
+    return vil_image_view<PixType>( im.memory_chunk(), im.top_left_ptr()+im.jstep(),
+                                    im.ni(), (im.nj())/2, im.nplanes(),
+                                    im.istep(), im.jstep()*2, im.planestep() );
   }
 
   // Fast 1D (horizontal) box filter smoothing
