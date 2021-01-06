@@ -51,7 +51,6 @@ public:
 
     vil_image_view< PixType > filter_x = vil_plane( output, 1 );
     vil_image_view< PixType > filter_y = vil_plane( output, 2 );
-    vil_image_view< PixType > filter_xy = vil_plane( output, 0 );
 
     if( treat_as_interlaced )
     {
@@ -103,6 +102,9 @@ public:
     vil_image_view< PixType > filter_x = vil_plane( output, 0 );
     vil_image_view< PixType > filter_y = vil_plane( output, 1 );
     vil_image_view< PixType > filter_xy = vil_plane( output, 2 );
+
+    // apply horizontal smoothing to the vertical smoothed image to get a 2D box filter
+    box_average_1d(filter_x, filter_xy, kernel_width);
 
     // Report the difference between the pixel value and all of the smoothed
     // responses
@@ -156,7 +158,7 @@ public:
   }
 
   // Given an input grayscale image, and a smoothed version of this greyscale
-  // image, calculate the bidirectional filter response in the horizontal
+  // image, calculate the bidirectional filter response in the vertical
   // direction.
   template < typename PixType >
   void
@@ -189,9 +191,9 @@ public:
     vil_image_view< PixType > filter_xy = vil_plane( output, 2 );
 
     // Report the difference between the pixel value, and all of the smoothed
-    // responses
+    // responses. The xy channel is used as a temporary buffer to avoid
+    // additional memory allocation
     horizontal_box_bidirectional_pass( grey_img, filter_x, filter_xy, kernel_width);
-    // The xy channel is used for to avoid alocating a temporary variable
     std::swap(filter_x, filter_xy);
     vertical_box_bidirectional_pass( grey_img, filter_y, filter_xy, kernel_height);
     std::swap(filter_y, filter_xy);
