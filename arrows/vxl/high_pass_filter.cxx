@@ -43,25 +43,23 @@ public:
   // Perform box filtering
   template < typename PixType >
   vil_image_view< PixType >
-  box_high_pass_filter( const vil_image_view< PixType >& grey_img )
+  smooth_horizontal_vertical( const vil_image_view< PixType >& grey_img )
   {
     // recreate the output image and create views of each plane
     vil_image_view< PixType > output;
     output.set_size( grey_img.ni(), grey_img.nj(), 3 );
 
-    vil_image_view< PixType > filter_x = vil_plane( output, 0 );
-    vil_image_view< PixType > filter_y = vil_plane( output, 1 );
-    vil_image_view< PixType > filter_xy = vil_plane( output, 2 );
+    vil_image_view< PixType > filter_x = vil_plane( output, 1 );
+    vil_image_view< PixType > filter_y = vil_plane( output, 2 );
+    vil_image_view< PixType > filter_xy = vil_plane( output, 0 );
 
-    // compute the vertically smoothed image
-    filter_x.set_size( grey_img.ni(), grey_img.nj(), 1 );
     if( treat_as_interlaced )
     {
       // if interlaced, split the image into odd and even views
       // transpose all input and ouput images so that the horizontal
       // smoothing function produces vertical smoothing
-      vil_image_view< PixType > im_even_t = vil_transpose( even_rows(
-                                                             grey_img ) );
+      vil_image_view< PixType > im_even_t = vil_transpose(
+        even_rows( grey_img ) );
       vil_image_view< PixType > im_odd_t =
         vil_transpose( odd_rows( grey_img ) );
 
@@ -88,12 +86,23 @@ public:
       box_average_1d( grey_img_t, smooth_t, kernel_height );
     }
 
-    // apply horizontal smoothing to the vertical smoothed image to get a 2D
-    // box filter
-    box_average_1d( filter_x, filter_xy, kernel_width );
-
     // smooth the image horizontally and detect the vertical response
     box_average_1d( grey_img, filter_y, kernel_width );
+
+    return output;
+  }
+
+  // Perform box filtering
+  template < typename PixType >
+  vil_image_view< PixType >
+  box_high_pass_filter( const vil_image_view< PixType >& grey_img )
+  {
+    // recreate the output image and create views of each plane
+    vil_image_view< PixType > output = smooth_horizontal_vertical( grey_img );
+
+    vil_image_view< PixType > filter_x = vil_plane( output, 0 );
+    vil_image_view< PixType > filter_y = vil_plane( output, 1 );
+    vil_image_view< PixType > filter_xy = vil_plane( output, 2 );
 
     // Report the difference between the pixel value and all of the smoothed
     // responses
@@ -105,15 +114,14 @@ public:
   }
 
   // Given an input grayscale image, and a smoothed version of this greyscale
-  // image, calculate the bidirectional filter response in either the vertical
-  // or horizontal directions.
+  // image, calculate the bidirectional filter response in the horizontal
+  // direction.
   template < typename PixType >
   void
-  box_bidirectional_pass( const vil_image_view< PixType >& grey,
-                          const vil_image_view< PixType >& avg,
-                          vil_image_view< PixType >& output,
-                          unsigned kernel_width,
-                          bool is_horizontal )
+  horizontal_box_bidirectional_pass( const vil_image_view< PixType >& grey,
+                                     const vil_image_view< PixType >& smoothed,
+                                     vil_image_view< PixType >& output,
+                                     unsigned kernel_width )
   {
     const unsigned ni = grey.ni();
     const unsigned nj = grey.nj();
@@ -124,7 +132,6 @@ public:
 
     unsigned diff1 = 0, diff2 = 0;
 
-    if( is_horizontal )
     {
       if( ni < 2 * offset + 1 )
       {
@@ -136,30 +143,8 @@ public:
         for( unsigned i = offset; i < ni - offset; i++ )
         {
           const PixType& val = grey( i, j );
-          const PixType& avg1 = avg( i - offset, j );
-          const PixType& avg2 = avg( i + offset, j );
-
-          diff1 = ( val > avg1 ? val - avg1 : avg1 - val );
-          diff2 = ( val > avg2 ? val - avg2 : avg2 - val );
-
-          output( i, j ) = std::min( diff1, diff2 );
-        }
-      }
-    }
-    else
-    {
-      if( nj < 2 * offset + 1 )
-      {
-        return;
-      }
-
-      for( unsigned j = offset; j < nj - offset; j++ )
-      {
-        for( unsigned i = 0; i < ni; i++ )
-        {
-          const PixType& val = grey( i, j );
-          const PixType& avg1 = avg( i, j + offset );
-          const PixType& avg2 = avg( i, j - offset );
+          const PixType& avg1 = smoothed( i - offset, j );
+          const PixType& avg2 = smoothed( i + offset, j );
 
           diff1 = ( val > avg1 ? val - avg1 : avg1 - val );
           diff2 = ( val > avg2 ? val - avg2 : avg2 - val );
@@ -170,64 +155,47 @@ public:
     }
   }
 
+  // Given an input grayscale image, and a smoothed version of this greyscale
+  // image, calculate the bidirectional filter response in the horizontal
+  // direction.
+  template < typename PixType >
+  void
+  vertical_box_bidirectional_pass( const vil_image_view< PixType >& grey,
+                                   const vil_image_view< PixType >& smoothed,
+                                   vil_image_view< PixType >& output,
+                                   unsigned kernel_width )
+  {
+    vil_image_view< PixType > grey_t = vil_transpose( grey );
+    vil_image_view< PixType > smoothed_t = vil_transpose( smoothed );
+    vil_image_view< PixType > output_t = vil_transpose( output );
+
+    horizontal_box_bidirectional_pass( grey_t,
+                                       smoothed_t,
+                                       output_t,
+                                       kernel_width );
+  }
+
   // Perform bidirectional filtering
   template < typename PixType >
   vil_image_view< PixType >
   bidirection_box_filter( const vil_image_view< PixType >& grey_img )
   {
-    // recreate the output image and create views of each plane
-    vil_image_view< PixType > output;
-    output.set_size( grey_img.ni(), grey_img.nj(), 3 );
+    // Recreate the output image
+    vil_image_view< PixType > output = smooth_horizontal_vertical( grey_img );
 
-    vil_image_view< PixType > filter_x = vil_plane( output, 1 );
-    vil_image_view< PixType > filter_y = vil_plane( output, 2 );
-    vil_image_view< PixType > filter_xy = vil_plane( output, 0 );
-
-    // comptue the vertically smoothed image
-    filter_x.set_size( grey_img.ni(), grey_img.nj(), 1 );
-    if( treat_as_interlaced )
-    {
-      // if interlaced, split the image into odd and even views
-      // transpose all input and ouput images so that the horizontal
-      // smoothing function produces vertical smoothing
-      vil_image_view< PixType > im_even_t = vil_transpose( even_rows(
-                                                             grey_img ) );
-      vil_image_view< PixType > im_odd_t =
-        vil_transpose( odd_rows( grey_img ) );
-
-      vil_image_view< PixType > smooth_even_t =
-        vil_transpose( even_rows( filter_x ) );
-      vil_image_view< PixType > smooth_odd_t =
-        vil_transpose( odd_rows( filter_x ) );
-
-      // use a half size odd kernel since images are half height
-      int half_kernel_height = kernel_height / 2;
-      if( half_kernel_height % 2 == 0 )
-      {
-        ++half_kernel_height;
-      }
-      box_average_1d( im_even_t, smooth_even_t, half_kernel_height );
-      box_average_1d( im_odd_t, smooth_odd_t, half_kernel_height );
-    }
-    else
-    {
-      // if not interlaced, transpose inputs and outputs and apply horizontal
-      // smoothing.
-      vil_image_view< PixType > grey_img_t = vil_transpose( grey_img );
-      vil_image_view< PixType > smooth_t = vil_transpose( filter_x );
-      box_average_1d( grey_img_t, smooth_t, kernel_height );
-    }
-
-    // smooth the image horizontally and detect the vertical response
-    box_average_1d( grey_img, filter_y, kernel_width );
+    // Create views of each plane
+    vil_image_view< PixType > filter_x = vil_plane( output, 0 );
+    vil_image_view< PixType > filter_y = vil_plane( output, 1 );
+    vil_image_view< PixType > filter_xy = vil_plane( output, 2 );
 
     // Report the difference between the pixel value, and all of the smoothed
     // responses
-    box_bidirectional_pass( grey_img, filter_x, filter_xy, kernel_width,
-                            true );
-    box_bidirectional_pass( grey_img, filter_y, filter_x, kernel_height,
-                            false );
-    vil_math_image_max( filter_xy, filter_x, filter_y );
+    horizontal_box_bidirectional_pass( grey_img, filter_x, filter_xy, kernel_width);
+    // The xy channel is used for to avoid alocating a temporary variable
+    std::swap(filter_x, filter_xy);
+    vertical_box_bidirectional_pass( grey_img, filter_y, filter_xy, kernel_height);
+    std::swap(filter_y, filter_xy);
+    vil_math_image_max( filter_x, filter_y, filter_xy );
 
     return output;
   }
