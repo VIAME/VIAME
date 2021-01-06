@@ -274,6 +274,7 @@ public:
 
     if( width >= src.ni() )
     {
+      // Force width to be smaller than image width and odd
       width = ( src.ni() == 1 ? 1 : ( src.ni() - 2 ) | 0x01 );
     }
 
@@ -432,8 +433,32 @@ bool
 high_pass_filter
 ::check_configuration( vital::config_block_sptr config ) const
 {
-  return ( config->get_value< std::string >( "mode" ) == "box" ||
-           config->get_value< std::string >( "mode" ) == "bidir" );
+  std::string mode_string = config->get_value< std::string >( "mode" );
+  if( !(mode_string == "box" ||
+        mode_string == "bidir") )
+  {
+    LOG_ERROR( logger(), "mode must be 'box' or 'bidir' but instead was "
+                         << mode_string);
+    return false;
+  }
+
+  size_t width = config->get_value< size_t >( "kernel_width" );
+  if( width % 2 == 0 )
+  {
+    LOG_ERROR( logger(), "Kernel width must be odd but is "
+                         << width );
+    return false;
+  }
+
+  size_t height = config->get_value< size_t >( "kernel_height" );
+  if( height % 2 == 0 )
+  {
+    LOG_ERROR( logger(), "Kernel height must be odd but is "
+                         << height );
+    return false;
+  }
+
+  return true;
 }
 
 // ----------------------------------------------------------------------------
