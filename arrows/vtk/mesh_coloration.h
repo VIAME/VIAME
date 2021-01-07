@@ -134,6 +134,8 @@ protected:
   bool remove_occluded_;
   bool remove_masked_;
 
+  kwiver::vital::logger_handle_t logger_;
+
   struct coloration_data
   {
     coloration_data(kwiver::vital::image_container_sptr imageContainer,

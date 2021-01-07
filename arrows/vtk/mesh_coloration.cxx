@@ -56,8 +56,6 @@ static void ComputeMedian(std::vector<T> vector, double& median)
     }
 }
 
-  static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( "arrows.vtk.mesh_coloration" ) );
-
 }
 
 namespace kwiver {
@@ -77,6 +75,7 @@ mesh_coloration::mesh_coloration()
   video_reader_ = nullptr;
   mask_reader_ = nullptr;
   cameras_ = nullptr;
+  logger_ = kwiver::vital::get_logger("arrows.vtk.mesh_coloration");
 }
 
 mesh_coloration::mesh_coloration(
@@ -108,7 +107,7 @@ void mesh_coloration::set_mask(kwiver::vital::config_block_sptr& mask_config,
   if (has_mask && ! kwiver::vital::algo::video_input::check_nested_algo_configuration(
         BLOCK_MR, mask_config))
   {
-    LOG_ERROR(main_logger,
+    LOG_ERROR(logger_,
       "An error was found in the mask reader configuration.");
     return;
   }
@@ -155,7 +154,7 @@ void mesh_coloration::set_frame_sampling(int sample)
 
 bool mesh_coloration::colorize()
 {
-  LOG_INFO(main_logger, "Initialize camera and image list: frame " << frame_);
+  LOG_INFO(logger_, "Initialize camera and image list: frame " << frame_);
   initialize_data_list(frame_);
   int numFrames = static_cast<int>(data_list_.size());
 
@@ -163,19 +162,19 @@ bool mesh_coloration::colorize()
   {
     if (input_ == 0)
     {
-      LOG_ERROR(main_logger, "Error when input has been set");
+      LOG_ERROR(logger_, "Error when input has been set");
     }
     else
     {
-      LOG_INFO(main_logger, "No camera for this frame");
+      LOG_INFO(logger_, "No camera for this frame");
     }
-    LOG_INFO(main_logger, "Done: frame " << frame_);
+    LOG_INFO(logger_, "Done: frame " << frame_);
     return false;
   }
   vtkDataArray* normals = input_->GetPointData()->GetNormals();
   if (! normals)
   {
-    LOG_INFO(main_logger, "Generating normals ...");
+    LOG_INFO(logger_, "Generating normals ...");
     vtkNew<vtkPolyDataNormals> compute_normals;
     compute_normals->SetInputDataObject(input_);
     compute_normals->Update();
@@ -185,8 +184,8 @@ bool mesh_coloration::colorize()
   vtkPoints* meshPointList = input_->GetPoints();
   if (meshPointList == 0)
   {
-    LOG_ERROR(main_logger, "invalid mesh points");
-    LOG_INFO(main_logger, "Done: frame " << frame_);
+    LOG_ERROR(logger_, "invalid mesh points");
+    LOG_INFO(logger_, "Done: frame " << frame_);
     return false;
   }
   vtkIdType nbMeshPoint = meshPointList->GetNumberOfPoints();
@@ -219,7 +218,7 @@ bool mesh_coloration::colorize()
     auto ren_win = create_depth_buffer_pipeline();
     if (! ren_win)
     {
-      LOG_ERROR(main_logger, "Fail to create the render window");
+      LOG_ERROR(logger_, "Fail to create the render window");
       return false;
     }
 
@@ -470,7 +469,7 @@ void mesh_coloration::initialize_data_list(int frame_id)
     catch(std::exception const&)
     {
       has_mask = false;
-      LOG_ERROR(main_logger, "Cannot open mask file: " << mask_path_);
+      LOG_ERROR(logger_, "Cannot open mask file: " << mask_path_);
     }
   }
   //Take a subset of images
