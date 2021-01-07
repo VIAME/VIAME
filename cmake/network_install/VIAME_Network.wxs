@@ -8,8 +8,8 @@
         Version="0.0.1"
         UpgradeCode="91A46E15-EE49-4411-9836-583499D9C12F">
 
-    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense" >
-      <bal:WixStandardBootstrapperApplication LicenseUrl="https://github.com/VIAME/VIAME/blob/master/LICENSE.txt" ThemeFile="VIAME_options.xml" />
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLargeLicense" >
+      <bal:WixStandardBootstrapperApplication LicenseUrl="https://raw.githubusercontent.com/VIAME/VIAME/master/LICENSE.txt" ThemeFile="VIAME_options.xml" />
     </BootstrapperApplicationRef>
 
     <Chain>
