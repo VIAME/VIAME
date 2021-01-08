@@ -17,5 +17,9 @@ unzip -o ${DOWNLOAD_LOCATION}/download1.zip -d ${VIAME_INSTALL}
 wget -O ${DOWNLOAD_LOCATION}/download2.zip https://data.kitware.com/api/v1/item/5ff8b8d22fa25629b9d0e4ed/download
 unzip -o ${DOWNLOAD_LOCATION}/download2.zip -d ${VIAME_INSTALL}
 
+# PengHead -
+wget -O ${DOWNLOAD_LOCATION}/download3.zip https://data.kitware.com/api/v1/item/5ff8cfa32fa25629b9d124c7/download
+unzip -o ${DOWNLOAD_LOCATION}/download3.zip -d ${VIAME_INSTALL}
+
 # Ensure Download Location is Removed
 rm -rf ${DOWNLOAD_LOCATION}
