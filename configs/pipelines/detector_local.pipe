@@ -26,10 +26,34 @@ process detector_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
+process track_initializer
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+   :type                                      class_probablity_filter
+   :class_probablity_filter:threshold         0.0
+   :class_probablity_filter:keep_all_classes  true
+  endblock
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:active_writing             false
+
 connect from downsampler.output_1
         to   detector_input.image
 connect from downsampler.output_2
         to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   track_initializer.timestamp
+
+connect from classifier1.detected_object_set
+        to   track_initializer.detected_object_set
+
+connect from track_initializer.object_track_set
+        to   track_writer.object_track_set
 
 connect from detector_output.detected_object_set
         to   detector_writer.detected_object_set
