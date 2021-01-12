@@ -32,8 +32,8 @@ process writer
 connect from downsampler.output_1
         to   draw_box.image
 connect from downsampler.output_2
-        to   read_annotations.image_file_name
-connect from read_annotations.detected_object_set
+        to   detection_reader.image_file_name
+connect from detection_reader.detected_object_set
         to   draw_box.detected_object_set
 connect from downsampler.output_1
         to   writer.image
