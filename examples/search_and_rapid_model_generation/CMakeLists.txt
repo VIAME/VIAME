@@ -17,7 +17,7 @@ if( WIN32 )
        process_full_frames_using_svm_model.bat
        generate_detections_using_svm_model.bat
        launch_search_interface.bat
-       launch_annotation_interface.bat )
+       launch_view_interface.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
@@ -29,7 +29,7 @@ else()
        process_full_frames_using_svm_model.sh
        generate_detections_using_svm_model.sh
        launch_search_interface.sh
-       launch_annotation_interface.sh )
+       launch_view_interface.sh )
 endif()
 
 ###

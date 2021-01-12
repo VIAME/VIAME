@@ -24,7 +24,7 @@ use the tool to make annotations you don't need to specify the later three, and 
 set a DataSetSpecifier or [reccommended] use the File->New Project option to load imagery directly
 without a prj file. Also, see the below example guide and videos.
 
-There are 2 default run scripts in this folder. "launch_annotation_interface" launches the main
+There are 2 default run scripts in this folder. "launch_view_interface" launches the main
 vpview annotation and results display GUI while "run_display_pipe" runs the simpler in-pipeline
 display GUI. Lastly, "run_chip_pipe" creates image chips and "run_draw_pipe" does the same
 as display, only writing out images with boxes drawn on top of them to file.

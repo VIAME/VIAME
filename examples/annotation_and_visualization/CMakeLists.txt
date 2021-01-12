@@ -28,15 +28,15 @@ if( VIAME_ENABLE_VIVIA )
   if( WIN32 )
     set( example_files
          ${example_files}
-         launch_annotation_interface.bat )
+         launch_view_interface.bat )
   elseif( APPLE )
     set( example_files
          ${example_files}
-         launch_annotation_interface.mac.sh )
+         launch_view_interface.mac.sh )
   else()
     set( example_files
          ${example_files}
-         launch_annotation_interface.sh )
+         launch_view_interface.sh )
   endif()
 endif()
 
