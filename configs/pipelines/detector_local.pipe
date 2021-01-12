@@ -19,13 +19,7 @@ include common_default_input_with_downsampler.pipe
 
 include category_models/detector.pipe
 
-process detector_writer
-  :: detected_object_output
-
-  # Type of file to output
-  :file_name                                   computed_detections.csv
-  :writer:type                                 viame_csv
-
+# Create one-length tracks from detections for more informative saving
 process track_initializer
   :: initialize_object_tracks
   :track_initializer:type                      threshold
@@ -45,17 +39,14 @@ process track_writer
 connect from downsampler.output_1
         to   detector_input.image
 connect from downsampler.output_2
-        to   detector_writer.image_file_name
+        to   track_writer.image_file_name
 connect from downsampler.timestamp
         to   track_initializer.timestamp
 
-connect from classifier1.detected_object_set
+connect from detector_output.detected_object_set
         to   track_initializer.detected_object_set
 
 connect from track_initializer.object_track_set
         to   track_writer.object_track_set
-
-connect from detector_output.detected_object_set
-        to   detector_writer.detected_object_set
 
 # -- end of file --
