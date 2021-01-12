@@ -35,5 +35,5 @@ connect from downsampler.output_2
         to   detection_reader.image_file_name
 connect from detection_reader.detected_object_set
         to   draw_box.detected_object_set
-connect from downsampler.output_1
+connect from draw_box.image
         to   writer.image
