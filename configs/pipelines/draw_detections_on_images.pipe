@@ -2,11 +2,19 @@
 # Pipe file to write out images with annotations drawn on them
 #
 
-# ==================================================================================
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
 
-include common_default_input.pipe
+# =============================== INPUT FRAME LIST =================================
 
-process read_annotations
+include common_default_input_with_downsampler.pipe
+
+# =================================== DRAWER =======================================
+
+process detection_reader
   :: detected_object_input
   :file_name                                   example_output.csv
   :reader:type                                 viame_csv
@@ -21,11 +29,11 @@ process writer
   :image_writer:type                           ocv
 
 # ==================================================================================
-connect from input.image
+connect from downsampler.output_1
         to   draw_box.image
-connect from input.file_name
+connect from downsampler.output_2
         to   read_annotations.image_file_name
 connect from read_annotations.detected_object_set
         to   draw_box.detected_object_set
-connect from draw_box.image
+connect from downsampler.output_1
         to   writer.image
