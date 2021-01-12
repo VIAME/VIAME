@@ -195,11 +195,6 @@ bundle_adjust
   {
     o.callbacks.clear();
     o.callbacks.push_back(&d_->ceres_callback);
-    o.update_state_every_iteration = true;
-  }
-  else
-  {
-    o.update_state_every_iteration = false;
   }
 }
 
