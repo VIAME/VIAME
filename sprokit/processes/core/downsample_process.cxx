@@ -59,15 +59,21 @@ public:
   unsigned burst_frame_break_;
   bool renumber_frames_;
 
-  double ds_factor_;
-  double ds_counter_;
+  // Time of the current frame (seconds)
+  double ds_frame_time_;
+  // Time of the last sent frame (ignoring burst filtering)
+  double last_sent_frame_time_;
   unsigned burst_counter_;
-  bool burst_skip_mode_;
   unsigned output_counter_;
   bool is_first_;
 
   static port_t const port_inputs[5];
   static port_t const port_outputs[5];
+
+private:
+  // Compute the frame number corresponding to time_seconds assuming a
+  // frame rate of target_frame_rate_
+  int target_frame_count( double time_seconds );
 };
 
 
@@ -121,9 +127,9 @@ void downsample_process
 void downsample_process
 ::_init()
 {
-  d->ds_counter_ = 0.0;
+  d->ds_frame_time_ = 0.0;
+  d->last_sent_frame_time_ = 0.0;
   d->burst_counter_ = 0;
-  d->burst_skip_mode_ = false;
   d->output_counter_ = 0;
   d->is_first_ = true;
 }
@@ -259,49 +265,47 @@ void downsample_process
 }
 
 
+int downsample_process::priv
+::target_frame_count( double time_seconds )
+{
+  return static_cast< int >( std::floor( time_seconds * target_frame_rate_ ) );
+}
+
+
 bool downsample_process::priv
 ::skip_frame( vital::timestamp const& ts, double frame_rate )
 {
-  ds_factor_ = frame_rate / target_frame_rate_;
+  ds_frame_time_ = ts.has_valid_time() ?
+    ts.get_time_seconds() : ds_frame_time_ + 1 / frame_rate;
 
   if( is_first_ )
   {
     // Triggers always sending the first frame
-    ds_counter_ = ds_factor_;
+    last_sent_frame_time_ = ( target_frame_count( ds_frame_time_ ) - 0.5 ) / target_frame_rate_;
     is_first_ = false;
   }
-  else
-  {
-    ds_counter_ += 1.0;
-  }
 
-  if( ds_counter_ < ds_factor_ )
+  int elapsed_frames = target_frame_count( ds_frame_time_ )
+    - target_frame_count( last_sent_frame_time_ );
+  if( elapsed_frames <= 0 )
   {
     return true;
   }
   else
   {
-    ds_counter_ = std::fmod( ds_counter_, ds_factor_ );
+    last_sent_frame_time_ = ds_frame_time_;
   }
 
   if( burst_frame_count_ != 0 && burst_frame_break_ != 0 )
   {
-    burst_counter_++;
+    burst_counter_ += elapsed_frames;
+    burst_counter_ %= burst_frame_count_ + burst_frame_break_;
 
-    if( burst_skip_mode_ )
+    // If burst_counter_ is in [1..burst_frame_count_], we're in
+    // pass-through mode; otherwise we're in skip mode.
+    if( burst_counter_ > burst_frame_count_ || burst_counter_ == 0)
     {
-      if( burst_counter_ >= burst_frame_break_ )
-      {
-        burst_counter_ = 0;
-        burst_skip_mode_ = false;
-      }
-
       return true;
-    }
-    else if( burst_counter_ >= burst_frame_count_ )
-    {
-      burst_counter_ = 0;
-      burst_skip_mode_ = true;
     }
   }
 
