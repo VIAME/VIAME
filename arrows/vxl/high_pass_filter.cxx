@@ -55,7 +55,8 @@ public:
     box_average_vertical( grey_img, filter_x, kernel_height );
     box_average_horizontal( grey_img, filter_y, kernel_width );
 
-    // apply horizontal smoothing to the vertical smoothed image to get a 2D box filter
+    // apply horizontal smoothing to the vertically smoothed image to get a 2D
+    // box filter
     box_average_horizontal( filter_x, filter_xy, kernel_width );
 
     // Report the difference between the pixel value and all of the smoothed
@@ -117,7 +118,7 @@ public:
   vertical_box_bidirectional_pass( const vil_image_view< PixType >& grey,
                                    const vil_image_view< PixType >& smoothed,
                                    vil_image_view< PixType >& output,
-                                   unsigned kernel_width )
+                                   unsigned kernel_height )
   {
     vil_image_view< PixType > grey_t = vil_transpose( grey );
     vil_image_view< PixType > smoothed_t = vil_transpose( smoothed );
@@ -126,7 +127,7 @@ public:
     horizontal_box_bidirectional_pass( grey_t,
                                        smoothed_t,
                                        output_t,
-                                       kernel_width );
+                                       kernel_height );
   }
 
   // Perform bidirectional filtering
@@ -146,9 +147,11 @@ public:
     // responses. The xy channel is used as a temporary buffer to avoid
     // additional memory allocation
     box_average_vertical( grey_img, filter_xy, kernel_height );
-    horizontal_box_bidirectional_pass( grey_img, filter_xy, filter_x, kernel_width );
+    horizontal_box_bidirectional_pass( grey_img, filter_xy, filter_x,
+                                       kernel_width );
     box_average_1d_horizontal( grey_img, filter_xy, kernel_width );
-    vertical_box_bidirectional_pass( grey_img, filter_xy, filter_y, kernel_height );
+    vertical_box_bidirectional_pass( grey_img, filter_xy, filter_y,
+                                     kernel_height );
     vil_math_image_max( filter_x, filter_y, filter_xy );
 
     return output;
@@ -217,6 +220,7 @@ public:
     {
       const PixType* rowS = planeS;
       PixType*       rowD = planeD;
+
       for( unsigned j = 0; j < nj; ++j, rowS += jstepS, rowD += jstepD )
       {
         const PixType* pixelS1 = rowS;
@@ -289,6 +293,7 @@ public:
       {
         ++half_kernel_height;
       }
+      // Smooth transposed inputs with the horizontal smoothing
       box_average_horizontal( im_even_t, smooth_even_t, half_kernel_height );
       box_average_horizontal( im_odd_t, smooth_odd_t, half_kernel_height );
     }
@@ -397,15 +402,17 @@ high_pass_filter
 ::check_configuration( vital::config_block_sptr config ) const
 {
   std::string mode_string = config->get_value< std::string >( "mode" );
-  if( !(mode_string == "box" ||
-        mode_string == "bidir") )
+
+  if( !( mode_string == "box" ||
+         mode_string == "bidir" ) )
   {
     LOG_ERROR( logger(), "mode must be 'box' or 'bidir' but instead was "
-                         << mode_string);
+                         << mode_string );
     return false;
   }
 
   size_t width = config->get_value< size_t >( "kernel_width" );
+
   if( width % 2 == 0 )
   {
     LOG_ERROR( logger(), "Kernel width must be odd but is "

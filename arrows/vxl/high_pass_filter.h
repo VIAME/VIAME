@@ -10,7 +10,9 @@
 #include <vital/algo/image_filter.h>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace vxl {
 
 /**
@@ -21,17 +23,17 @@ namespace vxl {
  */
 class KWIVER_ALGO_VXL_EXPORT high_pass_filter
   : public vital::algorithm_impl< high_pass_filter,
-      vital::algo::image_filter >
+                                  vital::algo::image_filter >
 {
 public:
-
   PLUGIN_INFO( "vxl_high_pass_filter",
                "Use VXL to create an image based on high-frequency information." )
 
   high_pass_filter();
   virtual ~high_pass_filter();
 
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::config_block configuration block
+  /// \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration( vital::config_block_sptr config );
@@ -43,11 +45,15 @@ public:
     kwiver::vital::image_container_sptr image_data );
 
 private:
-
   class priv;
-  const std::unique_ptr<priv> d;
+
+  const std::unique_ptr< priv > d;
 };
 
-} } }
+} // namespace vxl
 
-#endif /* KWIVER_ARROWS_VXL_HIGH_PASS_FILTER_ */
+} // namespace arrows
+
+} // namespace kwiver
+
+#endif
