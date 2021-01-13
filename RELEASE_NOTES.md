@@ -1,8 +1,8 @@
-v0.13.0 - 1/12/2020
+v0.13.0 - 1/15/2020
 ===================
 
 
--Update several dependencies for faster train: pytorch 1.4->1.6, mmcv, netharn
+-Update several dependencies for faster train: pytorch 1.4->1.7, mmcv, netharn
 
 
 -Add additional supported training datastructures, input lists
