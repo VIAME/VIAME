@@ -19,35 +19,35 @@ include common_default_input_with_downsampler.pipe
 
 include category_models/detector.pipe
 
-# Create one-length tracks from detections for more informative saving
+# Create one-length tracks from detections for timestamp inclusion on videos
 process track_initializer
   :: initialize_object_tracks
   :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-   :type                                       class_probablity_filter
-   :class_probablity_filter:threshold          0.0
-   :class_probablity_filter:keep_all_classes   true
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.0
+    :class_probablity_filter:keep_all_classes  true
   endblock
 
 process detector_writer
   :: write_object_track
-  :file_name                                   computed_tracks.csv
+  :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:active_writing             true
 
 connect from downsampler.output_1
         to   detector_input.image
-connect from downsampler.output_2
-        to   detector_writer.image_file_name
+
 connect from downsampler.timestamp
         to   track_initializer.timestamp
-connect from downsampler.timestamp
-        to   detector_writer.timestamp
-
 connect from detector_output.detected_object_set
         to   track_initializer.detected_object_set
 
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
 connect from track_initializer.object_track_set
         to   detector_writer.object_track_set
 
