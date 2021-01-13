@@ -30,6 +30,10 @@ if( VIAME_ENABLE_TENSORFLOW )
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH-INTERNAL )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "dataclasses" )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf" )
 endif()
