@@ -114,6 +114,7 @@ public:
   kv::path_t  camera_directory = "results/krtd";
   kv::path_t  landmarks_file = "results/landmarks.ply";
   kv::path_t  geo_origin_file = "results/geo_origin.txt";
+  bool ignore_metadata = false;
 
   enum commandline_mode {SUCCESS, HELP, WRITE, FAIL};
 
@@ -237,6 +238,9 @@ public:
       "provided as input (e.g. in the input video).  If this "
       "file exists, it will be overwritten.");
 
+    config->set_value("ignore_metadata", ignore_metadata,
+      "Do not scan the video file for metadata.");
+
     initialize_cameras_landmarks::get_nested_algo_configuration(
       "initializer", config, nullptr);
     video_input::get_nested_algo_configuration(
@@ -275,6 +279,13 @@ public:
   {
     if(config == nullptr)
     {
+      return;
+    }
+
+    if (config->get_value<bool>("ignore_metadata", false))
+    {
+      sfm_constraint_ptr = std::make_shared<sfm_constraints>();
+      video_file = config->get_value<std::string>("video_source");
       return;
     }
 
