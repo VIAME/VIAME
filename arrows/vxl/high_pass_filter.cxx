@@ -149,7 +149,7 @@ public:
     box_average_vertical( grey_img, filter_xy, kernel_height );
     horizontal_box_bidirectional_pass( grey_img, filter_xy, filter_x,
                                        kernel_width );
-    box_average_1d_horizontal( grey_img, filter_xy, kernel_width );
+    box_average_horizontal( grey_img, filter_xy, kernel_width );
     vertical_box_bidirectional_pass( grey_img, filter_xy, filter_y,
                                      kernel_height );
     vil_math_image_max( filter_x, filter_y, filter_xy );
@@ -239,7 +239,7 @@ public:
         }
 
         // starting boundary case: the kernel width is expanding
-        for(; i < width; ++i, pixelS2 += istepS, pixelD += istepD )
+        for(; i < kernel_width; ++i, pixelS2 += istepS, pixelD += istepD )
         {
           *pixelD = static_cast< PixType >( sum / i );
           sum += *pixelS2;
@@ -249,13 +249,13 @@ public:
         for(; i < ni;
             ++i, pixelS1 += istepS, pixelS2 += istepS, pixelD += istepD )
         {
-          *pixelD = static_cast< PixType >( sum / width );
+          *pixelD = static_cast< PixType >( sum / kernel_width );
           sum -= *pixelS1;
           sum += *pixelS2;
         }
 
         // ending boundary case: the kernel is shrinking
-        for( i = width; i > half_width;
+        for( i = kernel_width; i > half_width;
              --i, pixelS1 += istepS, pixelD += istepD )
         {
           *pixelD = static_cast< PixType >( sum / i );
@@ -301,8 +301,8 @@ public:
     {
       // if not interlaced, transpose inputs and outputs and apply horizontal
       // smoothing.
-      vil_image_view< PixType > grey_img_t = vil_transpose( grey_img );
-      vil_image_view< PixType > smooth_t = vil_transpose( filter_x );
+      vil_image_view< PixType > grey_img_t = vil_transpose( src );
+      vil_image_view< PixType > smooth_t = vil_transpose( dst );
       box_average_horizontal( grey_img_t, smooth_t, kernel_height );
     }
   }
