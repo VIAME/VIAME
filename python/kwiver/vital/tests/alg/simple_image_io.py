@@ -29,7 +29,7 @@
 from __future__ import print_function
 
 from kwiver.vital.algo import ImageIO
-from kwiver.vital.tests.helpers import CommonConfigurationMixin
+from kwiver.vital.tests.py_helpers import CommonConfigurationMixin
 
 class SimpleImageIO(CommonConfigurationMixin,
                                   ImageIO):

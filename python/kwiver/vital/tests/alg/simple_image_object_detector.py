@@ -30,7 +30,7 @@ from __future__ import print_function
 
 from kwiver.vital.algo import ImageObjectDetector
 from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.tests.helpers import CommonConfigurationMixin
+from kwiver.vital.tests.py_helpers import CommonConfigurationMixin
 
 
 class SimpleImageObjectDetector(CommonConfigurationMixin, ImageObjectDetector):

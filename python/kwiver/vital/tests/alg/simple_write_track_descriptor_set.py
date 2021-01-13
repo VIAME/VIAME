@@ -29,7 +29,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from kwiver.vital.algo import WriteTrackDescriptorSet
-from kwiver.vital.tests.helpers import CommonConfigurationMixin
+from kwiver.vital.tests.py_helpers import CommonConfigurationMixin
 
 
 class SimpleWriteTrackDescriptorSet(CommonConfigurationMixin, WriteTrackDescriptorSet):

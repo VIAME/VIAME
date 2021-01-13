@@ -14,7 +14,6 @@ set(__testable_modnames
   test_camera
   test_camera_intrinsics
   test_category_hierarchy
-  test_close_loops
   test_config
   test_camera_map
   test_camera_perspective
@@ -46,7 +45,6 @@ set(__testable_modnames
   test_image
   test_image_container
   test_iqr_feedback
-  test_image_object_detector
   test_image_io
   test_landmark
   test_landmark_map

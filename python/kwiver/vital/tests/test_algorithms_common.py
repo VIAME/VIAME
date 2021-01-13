@@ -36,7 +36,7 @@ import os
 from kwiver.vital.modules import modules
 from kwiver.vital.config import config
 from unittest import TestCase
-from kwiver.vital.tests.helpers import generate_dummy_config
+from kwiver.vital.tests.py_helpers import generate_dummy_config
 import kwiver.vital.algo
 import kwiver.vital.algo.algos
 from kwiver.vital.algo import algorithm_factory
