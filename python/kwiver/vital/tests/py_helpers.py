@@ -57,6 +57,8 @@ from kwiver.vital.types import (
     TrackState,
 )
 
+from kwiver.vital.config import config
+
 
 def random_point_3d(stddev):
     """
@@ -235,7 +237,6 @@ def map_dtype_name_to_pixel_type(dtype_name):
         want = dtype_name
     return want
 
-
 # Just gets a list of num_desc track_descriptors, each with td_size random entries
 # Returns a track_descriptor_set and a copy of the lists used to set each track_descriptor
 def create_track_descriptor_set(td_size=5, num_desc=3):
@@ -293,3 +294,70 @@ def no_call_pure_virtual_method(mthd, *args, **kwargs):
                 RuntimeError, "Tried to call pure virtual function",
             ):
                 mthd(*args, **kwargs)
+
+def generate_dummy_config(**kwargs):
+    """
+    Create an instance of kwiver.vital.config based on the named arguments
+    provided to the function
+    :param kwargs: Named arguments provided to the function
+    :return An instance of config with named arguments as attributes
+    """
+    test_cfg = config.empty_config()
+    for var_name in kwargs:
+        if isinstance(type(kwargs[var_name]), type(config)):
+            test_config.merge_config(kwargs[var_name])
+        else:
+            test_cfg.set_value(str(var_name), str(kwargs[var_name]))
+    return test_cfg
+
+class CommonConfigurationMixin(object):
+    """
+    A mixin used by algorithm implementations that were created for testing. It
+    provides a configuration with threshold key when it is used by the algorithm
+
+    Note: This mixin is intended only for simple algorithms that were written
+          for testing kwiver.vital.algo bindings
+    """
+    threshold = 0.0
+
+    def __init__(self):
+        """
+        Constructor for the mixin
+        :return None
+        """
+        super(CommonConfigurationMixin, self).__init__()
+
+    def get_configuration(self):
+        """
+        The mixin gets the configuration from super, creates a configuration
+        with threshold and merges the two
+        :return A kwiver.vital.config.Config object with threshold key
+        """
+        base_cfg = super(CommonConfigurationMixin, self).get_configuration()
+        cfg = config.empty_config()
+        cfg.set_value("threshold", str(self.threshold))
+        cfg.merge_config(base_cfg)
+        return cfg
+
+    def set_configuration(self, cfg_in):
+        """
+        Alter attributes based on configuration
+        :param cfg_in: A kwiver.vital.config.Config object that can be used to
+                       alter algorithm attributes
+        :return None
+        """
+        cfg = self.get_configuration()
+        cfg.merge_config(cfg_in)
+        self.threshold = float(cfg.get_value("threshold"))
+
+    def check_configuration(self, cfg):
+        """
+        Check configuration based on member attributes
+        :param cfg_in: A kwiver.vital.config.Config object that must be verified
+        :return A boolean value representing the succeess of check
+        """
+        current_check = False
+        if cfg.has_value("threshold") and \
+           float(cfg.get_value("threshold"))==self.threshold:
+            current_check = True
+        return current_check

@@ -15,6 +15,7 @@ void algorithm(py::module &m)
 {
   py::class_<kwiver::vital::algorithm, std::shared_ptr<kwiver::vital::algorithm>,
              algorithm_trampoline<>>(m, "_algorithm")
+    .def_property("impl_name", &kwiver::vital::algorithm::impl_name, &kwiver::vital::algorithm::set_impl_name)
     .def("get_configuration", &kwiver::vital::algorithm::get_configuration)
     .def("set_configuration", &kwiver::vital::algorithm::set_configuration)
     .def("check_configuration", &kwiver::vital::algorithm::check_configuration);

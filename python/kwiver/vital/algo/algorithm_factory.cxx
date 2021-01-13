@@ -64,6 +64,11 @@ PYBIND11_MODULE(algorithm_factory, m)
   m.def("implementations", &implementation_names,
       py::call_guard<kwiver::vital::python::gil_scoped_release>(),
       "Returns all the implementations of an algorithm");
+
+  m.def("create_algorithm", &kwiver::vital::create_algorithm,
+      py::call_guard<kwiver::vital::python::gil_scoped_release>(),
+      py::arg("algo_name"), py::arg("impl_name"),
+      "Creates a concrete instance of algo specified by impl_name");
 }
 
 namespace kwiver {

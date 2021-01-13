@@ -15,8 +15,6 @@
 #include <python/kwiver/vital/util/pybind11.h>
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/analyze_tracks.h>
-#include <vital/types/track_set.h>
-#include <vital/types/image_container.h>
 
 #include <ostream>
 

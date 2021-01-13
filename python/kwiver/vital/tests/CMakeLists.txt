@@ -7,6 +7,7 @@ add_subdirectory(cpp_helpers)
 # Define modules with tests in them
 set(__testable_modnames
   test_activity
+  test_algorithms_common
   test_algorithm_factory
   test_activity_type
   test_bounding_box
@@ -37,12 +38,14 @@ set(__testable_modnames
   test_geo_point
   test_geo_polygon
   test_geodesy
+  test_feature_descriptor_io
   test_homography
   test_homography_f2f
   test_homography_f2w
   test_image
   test_image_container
   test_iqr_feedback
+  test_image_io
   test_landmark
   test_landmark_map
   test_local_cartesian
@@ -69,16 +72,8 @@ set(__testable_modnames
   test_track_state
   test_transform_2d
   test_uid
+  test_transform_2d_io
   )
-
-if(KWIVER_ENABLE_SPROKIT AND KWIVER_ENABLE_ARROWS)
-  # ImageObjectDetector test requires config bindings in sprokit
-  list(APPEND
-      __testable_modnames
-      test_detected_object_set_input
-      test_image_object_detector
-    )
-endif()
 
 # All python filenames_we in the vital.tests module
 set(__all_modnames
@@ -112,3 +107,5 @@ if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
   endforeach()
 
 endif()
+
+add_subdirectory(alg)

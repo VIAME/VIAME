@@ -30,7 +30,7 @@ namespace algo {
  *
  * Track sets from multiple images are stored in a single file with
  * enough information to recreate a unique image identifier, usually a frame
- * number, and an associated wet of object tracks.
+ * number, and an associated set of object tracks.
  */
 class VITAL_ALGO_EXPORT write_object_track_set
   : public kwiver::vital::algorithm_def<write_object_track_set>
