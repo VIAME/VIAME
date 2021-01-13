@@ -270,6 +270,7 @@ def video_output_settings_list( options, basename ):
 
   return list(itertools.chain(
     fset( 'detector_writer:file_name=' + output_dir + div + basename + detection_ext ),
+    fset( 'detector_writer:stream_identifier=' + basename ),
     fset( 'track_writer:file_name=' + output_dir + div + basename + track_ext ),
     fset( 'track_writer:stream_identifier=' + basename ),
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
@@ -488,8 +489,10 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
+    command += fset( 'detector_writer:writer:viame_csv:write_time_as_uid=true' )
   else:
     command += fset( 'track_writer:writer:viame_csv:stream_identifier=' + input_basename )
+    command += fset( 'detector_writer:writer:viame_csv:stream_identifier=' + input_basename )
 
   if len( options.input_detections ) > 0:
     command += fset( "detection_reader:file_name=" + options.input_detections )
