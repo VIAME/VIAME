@@ -38,7 +38,7 @@ import unittest
 import nose.tools
 import numpy
 
-from kwiver.vital.types import ObjectTrackState, BoundingBox, DetectedObjectType as DOT, \
+from kwiver.vital.types import ObjectTrackState, BoundingBoxD as bbD, DetectedObjectType as DOT, \
         DetectedObject
 
 
@@ -49,7 +49,7 @@ class TestObjectTrackState (unittest.TestCase):
         :return: Detected object with bounding box coordinates of
                  (10, 10, 20, 20), confidence of 0.4 and "test" label
         """
-        bbox = BoundingBox(10, 10, 20, 20)
+        bbox = bbD(10, 10, 20, 20)
         cm  = DOT("test", 0.4)
         do = DetectedObject(bbox, 0.4, cm)
         return do

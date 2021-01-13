@@ -4,6 +4,7 @@
 
 #include <vital/types/track.h>
 
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -31,7 +32,8 @@ PYBIND11_MODULE(track, m)
 {
   py::class_<kwiver::vital::track_state, std::shared_ptr<kwiver::vital::track_state>>(m, "TrackState")
   .def(py::init<int64_t>())
-  .def_property_readonly("frame_id", &kwiver::vital::track_state::frame)
+  .def(py::self == py::self)
+  .def_property("frame_id", &kwiver::vital::track_state::frame, &kwiver::vital::track_state::set_frame)
   ;
 
   py::class_<kwiver::vital::track, std::shared_ptr<kwiver::vital::track>>(m, "Track")
@@ -63,6 +65,5 @@ PYBIND11_MODULE(track, m)
   .def_property_readonly("is_empty", &kwiver::vital::track::empty)
   .def_property_readonly("first_frame", &kwiver::vital::track::first_frame)
   .def_property_readonly("last_frame", &kwiver::vital::track::last_frame)
-
   ;
 }

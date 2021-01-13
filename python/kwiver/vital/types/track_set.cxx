@@ -20,7 +20,6 @@ get_track(std::shared_ptr<kwiver::vital::track_set> &self, uint64_t id)
   {
     throw py::index_error("Track does not exist in set");
   }
-
   return track;
 }
 }

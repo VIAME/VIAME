@@ -2,6 +2,8 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
+
+#include <string.h>
 #include <vital/types/bounding_box.h>
 
 #include <Eigen/Core>
@@ -12,9 +14,9 @@
 
 namespace py = pybind11;
 
-typedef kwiver::vital::bounding_box<double> bbox;
 
-PYBIND11_MODULE(bounding_box, m)
+template<typename T>
+void bounding_box(py::module &m, const char * typestr)
 {
 
   /*
@@ -28,8 +30,12 @@ PYBIND11_MODULE(bounding_box, m)
 
    *
    */
+  typedef kwiver::vital::bounding_box<T> bbox;
+  char pyclass_name[20];
+  strcpy(pyclass_name, "BoundingBox");
+  strcat(pyclass_name, typestr);
 
-  py::class_<bbox, std::shared_ptr<bbox>>(m, "BoundingBox", R"(
+  py::class_<bbox, std::shared_ptr<bbox>>(m, pyclass_name, R"(
     Coordinate aligned bounding box.
 
     Example:
@@ -41,9 +47,9 @@ PYBIND11_MODULE(bounding_box, m)
         4000.0
 
     )")
-  .def(py::init<Eigen::Matrix<double,2,1>, Eigen::Matrix<double,2,1>>())
-  .def(py::init<Eigen::Matrix<double,2,1>, double, double>())
-  .def(py::init<double, double, double, double>(), py::doc(R"(
+  .def(py::init<Eigen::Matrix<T,2,1>, Eigen::Matrix<T,2,1>>())
+  .def(py::init<Eigen::Matrix<T,2,1>, T, T>())
+  .def(py::init<T, T, T, T>(), py::doc(R"(
         Create a box from four coordinates
 
         Args:
@@ -52,7 +58,10 @@ PYBIND11_MODULE(bounding_box, m)
             xmax (float):  max x coord
             ymax (float):  max y coord
         )"))
-
+  .def(py::init<>(), py::doc(R"(
+    Create a new default Bounding Box
+    It is empty, and invalid.
+    )"))
   .def("is_valid", &bbox::is_valid)
   .def("center", &bbox::center)
   .def("upper_left", &bbox::upper_left)
@@ -64,6 +73,7 @@ PYBIND11_MODULE(bounding_box, m)
   .def("width", &bbox::width)
   .def("height", &bbox::height)
   .def("area", &bbox::area)
+  .def("contains", &bbox::contains)
 
   .def("__nice__", [](bbox& self) -> std::string {
     auto locals = py::dict(py::arg("self")=self);
@@ -91,5 +101,14 @@ PYBIND11_MODULE(bounding_box, m)
     )", py::globals(), locals);
     return locals["retval"].cast<std::string>();
     })
+  .def("__eq__", [](bbox self, bbox other) {return self == other;})
+  .def("__ne__", [](bbox self, bbox other) {return self != other;})
   ;
+}
+
+PYBIND11_MODULE(bounding_box, m)
+{
+  bounding_box<double>(m, "D");
+  bounding_box<float>(m, "F");
+  bounding_box<int>(m, "I");
 }

@@ -125,7 +125,7 @@ detected_object
 // ----------------------------------------------------------------------------
 image_container_scptr
 detected_object
-::mask()
+::mask() const
 {
   return m_mask_image;
 }

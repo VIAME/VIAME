@@ -128,7 +128,7 @@ def test_api_calls(cpp_pipeline_dir, py_pipeline_dir):
     ep.stop()
 
 def run_roundtrip_pipeline(py_pipeline_dir, ads_in):
-    from kwiver.vital.types import DetectedObject, DetectedObjectSet, BoundingBox
+    from kwiver.vital.types import DetectedObject, DetectedObjectSet, BoundingBoxD
     from kwiver.sprokit.adapters import adapter_data_set, embedded_pipeline
 
     pipeline_fname = "py_to_cpp_type_conversion.pipe"
@@ -152,10 +152,10 @@ def run_roundtrip_pipeline(py_pipeline_dir, ads_in):
     ep.wait()
 
 def _create_detected_object_set():
-    from kwiver.vital.types import DetectedObject, DetectedObjectSet, BoundingBox
+    from kwiver.vital.types import DetectedObject, DetectedObjectSet, BoundingBoxD
 
     dos = DetectedObjectSet()
-    bbox = BoundingBox(0, 10, 100, 50)
+    bbox = BoundingBoxD(0, 10, 100, 50)
     dos.add(DetectedObject(bbox, 0.2))
     dos.add(DetectedObject(bbox, 0.5))
     dos.add(DetectedObject(bbox, 0.4))
@@ -166,7 +166,7 @@ def _create_detected_object_set():
 # are usable by raw C++ code. We'll use run_roundtrip_pipeline to make sure
 # C++ objects can be converted on both sides
 def test_cpp_conversion(cpp_pipeline_dir, py_pipeline_dir):
-    from kwiver.vital.types import DetectedObject, DetectedObjectSet, BoundingBox
+    from kwiver.vital.types import DetectedObject, DetectedObjectSet, BoundingBoxD
     from kwiver.sprokit.adapters import adapter_data_set, embedded_pipeline
     from kwiver.sprokit.pipeline import datum
 

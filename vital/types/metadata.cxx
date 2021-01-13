@@ -14,33 +14,6 @@
 namespace kwiver {
 namespace vital {
 
-// ----------------------------------------------------------------
-/*
- * This class is returned when find can not locate the requested tag.
- *
- */
-  class unknown_metadata_item
-    : public metadata_item
-  {
-  public:
-    // -- CONSTRUCTORS --
-    unknown_metadata_item()
-      : metadata_item( "Requested metadata item is not in collection", 0, VITAL_META_UNKNOWN )
-    { }
-
-    bool is_valid() const override { return false; }
-    std::type_info const& type() const override { return typeid( void ); }
-    std::string as_string() const override { return "--Unknown metadata item--"; }
-    std::ostream& print_value(std::ostream& os) const override
-    {
-      os << this->as_string();
-      return os;
-    }
-
-    metadata_item* clone() const override { return nullptr; } // never used
-  }; // end class unknown_metadata_item
-
-// ----------------------------------------------------------------------------
 metadata_item
 ::metadata_item( std::string const& p_name,
                  kwiver::vital::any const& p_data,

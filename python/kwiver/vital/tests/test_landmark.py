@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,138 +38,208 @@ import unittest
 
 import nose.tools
 import numpy
+import numpy.testing as npt
+from kwiver.vital.types import Landmark, LandmarkF, LandmarkD, Covar3f, Covar3d, RGBColor
 
-from kwiver.vital.types import Landmark, Covariance, RGBColor
+class TestLandmarks (unittest.TestCase):
 
-
-class TestLandmark (unittest.TestCase):
-
-    ctypeS = ['d', 'f']
+    precs = [15, 6]
 
     def test_new(self):
-        Landmark()
-        Landmark(ctype='f')
-
-        Landmark([1, 1, 1])
-        Landmark([1, 1, 1], ctype='f')
-
-        Landmark(scale=10)
-        Landmark(scale=10, ctype='f')
+        LandmarkF()
+        LandmarkD()
+        LandmarkF([1, 1, 1])
+        LandmarkD([1, 1, 1])
+        LandmarkF([1, 1, 1], scale=10)
+        LandmarkD([1, 1, 1], scale=10)
 
     def test_type_name(self):
         # Double default
-        nose.tools.assert_equal(Landmark().type_name, 'd')
-        nose.tools.assert_equal(Landmark(ctype='f').type_name, 'f')
+        nose.tools.assert_equal(LandmarkD().data_type, 'double')
+        nose.tools.assert_equal(LandmarkF().data_type, 'float')
 
-        nose.tools.assert_equal(Landmark([1, 2, 2]).type_name, 'd')
-        nose.tools.assert_equal(Landmark([1, 2, 2], ctype='f').type_name, 'f')
+        nose.tools.assert_equal(LandmarkD([1, 2, 2]).data_type, 'double')
+        nose.tools.assert_equal(LandmarkF([1, 2, 2]).data_type, 'float')
 
     def test_get_loc(self):
-        for ct in self.ctypeS:
-            print(ct)
+        l = LandmarkF()
+        numpy.testing.assert_equal(l.loc, [0,0,0])
 
-            l = Landmark(ctype=ct)
-            numpy.testing.assert_equal(l.loc, [0,0,0])
+        l = LandmarkF([1, 2, 3])
+        numpy.testing.assert_equal(l.loc, [1,2,3])
 
-            l = Landmark([1, 2, 3], ctype=ct)
-            numpy.testing.assert_equal(l.loc, [1,2,3])
+        l = LandmarkD()
+        numpy.testing.assert_equal(l.loc, [0,0,0])
+
+        l = LandmarkD([1, 2, 3])
+        numpy.testing.assert_equal(l.loc, [1,2,3])
 
     def test_set_loc(self):
-        for ct in self.ctypeS:
-            print(ct)
+        l = LandmarkF()
+        l.loc = [1,1,1]
+        numpy.testing.assert_equal(l.loc, [1, 1, 1])
 
-            l = Landmark(ctype=ct)
-            l.loc = [1,1,1]
-            numpy.testing.assert_equal(l.loc, [1, 1, 1])
+        l.loc = [9.12,
+                    4.1,
+                    8.3]
+        numpy.testing.assert_almost_equal(l.loc, [9.12, 4.1, 8.3], self.precs[1])
 
-            l.loc = [9.12,
-                     4.1,
-                     8.3]
-            numpy.testing.assert_almost_equal(l.loc, [9.12,
-                                                      4.1,
-                                                      8.3], 6)
+        l = LandmarkD()
+        l.loc = [1,1,1]
+        numpy.testing.assert_equal(l.loc, [1, 1, 1])
+
+        l.loc = [9.12,
+                    4.1,
+                    8.3]
+        numpy.testing.assert_almost_equal(l.loc, [9.12,
+                                                    4.1,
+                                                    8.3], self.precs[0])
 
     def test_get_scale(self):
-        for ct in self.ctypeS:
-            l = Landmark(ctype=ct)
-            print(ct)
+        l = LandmarkF()
+        nose.tools.assert_equal(l.scale, 1)
 
-            nose.tools.assert_equal(l.scale, 1)
+        l = LandmarkF([3, 4, 5], 44.5)
+        nose.tools.assert_almost_equal(l.scale, 44.5, self.precs[1])
 
-            l = Landmark(scale=17, ctype=ct)
-            nose.tools.assert_equal(l.scale, 17)
+        l = LandmarkD()
+        nose.tools.assert_equal(l.scale, 1)
 
-            l = Landmark(scale=2.22, ctype=ct)
-            nose.tools.assert_almost_equal(l.scale, 2.22, 6)
-
-            l = Landmark([3, 4, 5], 44.5, ct)
-            nose.tools.assert_almost_equal(l.scale, 44.5, 6)
+        l = LandmarkD([3, 4, 5], 44.5)
+        nose.tools.assert_almost_equal(l.scale, 44.5, self.precs[0])
 
     def test_set_scale(self):
-        for ct in self.ctypeS:
-            print(ct)
 
-            l = Landmark(ctype=ct)
-            l.scale = 1
-            nose.tools.assert_equal(l.scale, 1)
+        l = LandmarkF()
+        l.scale = 1
+        nose.tools.assert_equal(l.scale, 1)
 
-            l.scale = 2
-            nose.tools.assert_equal(l.scale, 2)
+        l.scale = 2
+        nose.tools.assert_equal(l.scale, 2)
 
-            l.scale = 2.456
-            nose.tools.assert_almost_equal(l.scale, 2.456, 6)
+        l.scale = 2.456
+        nose.tools.assert_almost_equal(l.scale, 2.456, self.precs[1])
 
-            l.scale = -2
-            nose.tools.assert_almost_equal(l.scale, -2, 6)
+        l.scale = -2
+        nose.tools.assert_almost_equal(l.scale, -2, self.precs[1])
+
+        l = LandmarkD()
+        l.scale = 1
+        nose.tools.assert_equal(l.scale, 1)
+
+        l.scale = 2
+        nose.tools.assert_equal(l.scale, 2)
+
+        l.scale = 2.456
+        nose.tools.assert_almost_equal(l.scale, 2.456, self.precs[0])
+
+        l.scale = -2
+        nose.tools.assert_almost_equal(l.scale, -2, self.precs[0])
 
 
     def test_normal(self):
-        for ct in self.ctypeS:
-            print(ct)
-            l = Landmark(ctype=ct)
 
-            # check default
-            numpy.testing.assert_equal(l.normal, [0,0,0])
+        l = LandmarkF()
+        numpy.testing.assert_equal(l.normal, [0,0,0])
 
-            l.normal = [0,1,0]
-            numpy.testing.assert_equal(l.normal, [0,1,0])
+        l.normal = [0,1,0]
+        numpy.testing.assert_equal(l.normal, [0,1,0])
+
+        l = LandmarkD()
+        numpy.testing.assert_equal(l.normal, [0,0,0])
+
+        l.normal = [0,1,0]
+        numpy.testing.assert_equal(l.normal, [0,1,0])
 
     def test_covariance(self):
-        for ct in self.ctypeS:
-            print(ct)
-            l = Landmark(ctype=ct)
+        covars = [Covar3d(7), Covar3f(7)]
 
-            # check default
-            #nose.tools.assert_equal(l.covariance, Covariance.new_covar(3))
+        l = LandmarkF()
 
-            # set type-aligned covariance
-            c = Covariance.new_covar(3, ct, 7)
-            l.covariance = c
-            #nose.tools.assert_equal(l.covariance, c)
+        # check default
+        numpy.testing.assert_array_equal(l.covariance.matrix(), Covar3d().matrix())
+
+        # set type-aligned covariance
+        l.covariance = covars[1]
+        numpy.testing.assert_array_almost_equal(l.covariance.matrix(), covars[1].matrix(), self.precs[1])
+
+        l = LandmarkD()
+        numpy.testing.assert_array_equal(l.covariance.matrix(), Covar3d().matrix())
+        l.covariance = covars[0]
+        numpy.testing.assert_array_almost_equal(l.covariance.matrix(), covars[0].matrix(), self.precs[0])
 
     def test_color(self):
-        for ct in self.ctypeS:
-            print(ct)
-            l = Landmark(ctype=ct)
 
-            # default
-            nose.tools.assert_equal(l.color, RGBColor())
+        l = LandmarkF()
 
-            c = RGBColor(0, 0, 0)
-            l.color = c
-            nose.tools.assert_equal(l.color, c)
+        # default
+        nose.tools.assert_equal(l.color, RGBColor())
+        c = RGBColor(0, 0, 0)
+        l.color = c
+        nose.tools.assert_equal(l.color, c)
 
-            c = RGBColor(12, 240, 120)
-            l.color = c
-            nose.tools.assert_equal(l.color, c)
+        c = RGBColor(12, 240, 120)
+        l.color = c
+        nose.tools.assert_equal(l.color, c)
+
+        l = LandmarkD()
+
+        # default
+        nose.tools.assert_equal(l.color, RGBColor())
+        c = RGBColor(0, 0, 0)
+        l.color = c
+        nose.tools.assert_equal(l.color, c)
+
+        c = RGBColor(12, 240, 120)
+        l.color = c
+        nose.tools.assert_equal(l.color, c)
 
     def test_observations(self):
-        for ct in self.ctypeS:
-            print(ct)
-            l = Landmark(ctype=ct)
 
-            # default
-            nose.tools.assert_equal(l.observations, 0)
+        l = LandmarkF()
 
-            l.observations = 42
-            nose.tools.assert_equal(l.observations, 42)
+        # default
+        nose.tools.assert_equal(l.observations, 0)
+
+        l.observations = 42
+        nose.tools.assert_equal(l.observations, 42)
+
+        l = LandmarkD()
+
+        # default
+        nose.tools.assert_equal(l.observations, 0)
+
+        l.observations = 42
+        nose.tools.assert_equal(l.observations, 42)
+
+    def test_cos_obs_angle(self):
+
+        l = LandmarkF()
+        # default
+        nose.tools.assert_equal(l.cos_obs_angle, 1)
+        l.cos_obs_angle = 0.5
+        numpy.testing.assert_almost_equal(l.cos_obs_angle, 0.5, self.precs[1])
+
+        l.cos_obs_angle = -0.5
+        numpy.testing.assert_almost_equal(l.cos_obs_angle, -0.5, self.precs[1])
+        # Can technically go outside range of cosine
+        l.cos_obs_angle = 1.5
+        numpy.testing.assert_almost_equal(l.cos_obs_angle, 1.5, self.precs[1])
+
+        l.cos_obs_angle = -1.5
+        numpy.testing.assert_almost_equal(l.cos_obs_angle, -1.5, self.precs[1])
+
+        l = LandmarkD()
+        # default
+        nose.tools.assert_equal(l.cos_obs_angle, 1)
+        l.cos_obs_angle = 0.5
+        numpy.testing.assert_almost_equal(l.cos_obs_angle, 0.5, self.precs[0])
+
+        l.cos_obs_angle = -0.5
+        numpy.testing.assert_almost_equal(l.cos_obs_angle, -0.5, self.precs[0])
+        # Can technically go outside range of cosine
+        l.cos_obs_angle = 1.5
+        numpy.testing.assert_almost_equal(l.cos_obs_angle, 1.5, self.precs[0])
+
+        l.cos_obs_angle = -1.5
+        numpy.testing.assert_almost_equal(l.cos_obs_angle, -1.5, self.precs[0])

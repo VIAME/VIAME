@@ -2,6 +2,7 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <vital/types/descriptor_set.h>
