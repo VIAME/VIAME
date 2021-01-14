@@ -8,7 +8,7 @@ v0.13.0 - 1/15/2020
 -Add additional supported training datastructures, input lists
 
 
--Add support for training direct on videos
+-Add support for training direct on videos, other video support improvements
 
 
 -Fix issues in videos with dropped frames and incorrect metadata
