@@ -4,7 +4,6 @@
 
 #include "average_frames.h"
 
-#include <vital/util/ring_buffer.h>
 #include <arrows/vxl/image_container.h>
 
 #include <vil/vil_pixel_format.h>
@@ -12,6 +11,7 @@
 #include <vil/vil_convert.h>
 #include <vil/vil_math.h>
 
+#include <deque>
 #include <exception>
 #include <memory>
 
@@ -143,7 +143,8 @@ public:
 protected:
 
   /// Buffer containing pointers to last window_length frames
-  kwiver::vital::ring_buffer< vil_image_view< PixType > > window_buffer_;
+  std::deque< vil_image_view< PixType > > window_buffer_;
+  size_t window_buffer_capacity_;
 
 };
 
@@ -381,7 +382,7 @@ windowed_frame_averager<PixType>
 ::windowed_frame_averager( const bool should_round,
                            const unsigned window_length )
 {
-  this->window_buffer_.set_capacity( window_length );
+  this->window_buffer_capacity_ = window_length;
   this->should_round_ = should_round;
   this->reset();
 }
@@ -402,7 +403,7 @@ void windowed_frame_averager<PixType>
   {
     vil_convert_cast( input, this->last_average_ );
   }
-  else if( window_buffer_size < window_buffer_.capacity() )
+  else if( window_buffer_size < window_buffer_capacity_ )
   {
     double src_weight = 1.0/(window_buffer_size+1.0);
     vil_math_add_image_fraction( this->last_average_, 1.0-src_weight, input, src_weight );
@@ -419,7 +420,7 @@ void windowed_frame_averager<PixType>
     // Image A = Removed Entry, B = Added Entry, C = The Average Calculation
     const double scale = 1.0/window_buffer_size;
 
-    const input_type& tmpA = window_buffer_.datum_at( window_buffer_size-1 );
+    input_type const& tmpA = window_buffer_[ window_buffer_size-1 ];
     const input_type* imA = &tmpA;
     const input_type* imB = &input;
     vil_image_view< double >* imC = &(this->last_average_);
@@ -453,7 +454,11 @@ void windowed_frame_averager<PixType>
   }
 
   // Add to buffer
-  this->window_buffer_.insert( input );
+  this->window_buffer_.push_back( input );
+  if ( this->window_buffer_.size() > this->window_buffer_capacity_ )
+  {
+    this->window_buffer_.pop_front();
+  }
 
   // Copy into output
   copy_cast_and_scale( this->last_average_,
