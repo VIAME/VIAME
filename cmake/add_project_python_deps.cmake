@@ -270,6 +270,7 @@ foreach( ID RANGE ${DEP_COUNT} )
     set( PYTHON_DEP_INSTALL ${CMAKE_COMMAND}
       -DVIAME_PYTHON_BASE:PATH=${PYTHON_BASEPATH}
       -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
+      -DVIAME_PYTORCH_VERSION:STRING=${VIAME_PYTORCH_VERSION}
       -P ${VIAME_SOURCE_DIR}/cmake/custom_pytorch_install.cmake )
   else()
     set( PYTHON_DEP_INSTALL "" )
