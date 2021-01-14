@@ -426,7 +426,6 @@ compute_depth::priv
     unsigned percent_complete = (50 * slice_num) / this->num_slices;
     std::stringstream ss;
     ss << "Computing cost volume slice " << slice_num << " of " << this->num_slices;
-    // TODO Check if this can be the real uncertainty
     return this->callback(nullptr, ss.str(), percent_complete, nullptr);
   }
   return true;
