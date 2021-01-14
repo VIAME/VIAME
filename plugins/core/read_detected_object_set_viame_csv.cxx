@@ -492,8 +492,9 @@ read_detected_object_set_viame_csv::priv
   {
     const std::string& entry = itr.first;
 
-    if( std::count( entry.begin(), entry.end(), ':' ) == 2 &&
-        std::count( entry.begin(), entry.end(), '.' ) == 1 )
+    if( ( std::count( entry.begin(), entry.end(), ':' ) == 2 &&
+          std::count( entry.begin(), entry.end(), '.' ) == 1 ) ||
+         entry.find( ".data@" ) != std::string::npos )
     {
       timestamp_count++;
     }
