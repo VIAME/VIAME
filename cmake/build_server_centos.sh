@@ -19,7 +19,7 @@ lapack-devel \
 libXt-devel \
 libXmu-devel \
 libXi-devel \
-libx264-dev \
+libx264-devel \
 expat-devel \
 readline-devel \
 curl \
