@@ -183,6 +183,18 @@ if( WIN32 AND VIAME_ENABLE_ITK )
   )
 endif()
 
+if( VIAME_ENABLE_FFMPEG-X264 )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_FFmpeg_libx264:BOOL=ON
+  )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_FFmpeg_libx264:BOOL=OFF
+  )
+endif()
+
 if( EXTERNAL_Qt )
   if( WIN32 )
     set( fletch_DEP_FLAGS

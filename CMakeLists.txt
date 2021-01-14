@@ -135,6 +135,13 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
 endif()
 
+# Additional libraries built for ffmpeg
+##
+if( VIAME_ENABLE_FFMPEG )
+  option( VIAME_ENABLE_FFMPEG-X264 "Enable libx264 codec in FFmpeg" OFF )
+  mark_as_advanced( VIAME_ENABLE_FFMPEG-X264 )
+endif()
+
 # ##
 # Core build settings advanced flags
 #
