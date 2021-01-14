@@ -6,29 +6,29 @@
 
 #include <arrows/vxl/image_container.h>
 
-#include <vil/vil_pixel_format.h>
-#include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
+#include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
+#include <vil/vil_pixel_format.h>
 
 #include <deque>
 #include <exception>
 #include <memory>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace vxl {
 
 namespace {
 
 /// Base class for all online frame averagers instances
-template <typename PixType>
+template < typename PixType >
 class online_frame_averager
 {
-
 public:
-
-  online_frame_averager() : should_round_(false) {}
+  online_frame_averager() : should_round_( false ) {}
   virtual ~online_frame_averager() {}
 
   /// Process a new frame, returning the current frame average.
@@ -36,8 +36,8 @@ public:
                               vil_image_view< PixType >& average ) = 0;
 
   /// Process a new frame, and additionally compute a per-pixel instantaneous
-  /// variance estimation, which can be further average to estimate the per-pixel
-  /// variance over x frames.
+  /// variance estimation, which can be further averaged to estimate the
+  /// per-pixel variance over x frames.
   void process_frame( const vil_image_view< PixType >& input,
                       vil_image_view< PixType >& average,
                       vil_image_view< double >& variance );
@@ -46,32 +46,28 @@ public:
   virtual void reset() = 0;
 
 protected:
-
   /// Should we spend a little bit of extra time rounding outputs?
   bool should_round_;
 
   /// The last average in double form
-  vil_image_view<double> last_average_;
+  vil_image_view< double > last_average_;
 
   /// Is the resolution of the input image different from prior inputs?
   bool has_resolution_changed( const vil_image_view< PixType >& input );
 
 private:
-
   /// Temporary buffers used for variance calculations if they're enabled
-  vil_image_view<double> dev1_tmp_space_;
-  vil_image_view<double> dev2_tmp_space_;
-
+  vil_image_view< double > dev1_tmp_space_;
+  vil_image_view< double > dev2_tmp_space_;
 };
 
 /// A cumulative frame averager
-template <typename PixType>
-class cumulative_frame_averager : public online_frame_averager<PixType>
+template < typename PixType >
+class cumulative_frame_averager : public online_frame_averager< PixType >
 {
-
 public:
-
   cumulative_frame_averager( const bool should_round = false );
+
   virtual ~cumulative_frame_averager() {}
 
   /// Process a new frame, returning the current frame average.
@@ -82,19 +78,15 @@ public:
   virtual void reset();
 
 protected:
-
   /// The number of observed frames since the last reset
   unsigned frame_count_;
-
 };
 
 /// An exponential frame averager
-template <typename PixType>
-class exponential_frame_averager : public online_frame_averager<PixType>
+template < typename PixType >
+class exponential_frame_averager : public online_frame_averager< PixType >
 {
-
 public:
-
   exponential_frame_averager( const bool should_round = false,
                               const double new_frame_weight = 0.5 );
 
@@ -108,7 +100,6 @@ public:
   virtual void reset();
 
 protected:
-
   /// The exponential averaging coefficient
   double new_frame_weight_;
 
@@ -117,12 +108,10 @@ protected:
 };
 
 /// A windowed frame averager
-template <typename PixType>
-class windowed_frame_averager : public online_frame_averager<PixType>
+template < typename PixType >
+class windowed_frame_averager : public online_frame_averager< PixType >
 {
-
 public:
-
   typedef vil_image_view< PixType > input_type;
 
   windowed_frame_averager( const bool should_round = false,
@@ -141,16 +130,15 @@ public:
   virtual unsigned frame_count() const;
 
 protected:
-
   /// Buffer containing pointers to last window_length frames
   std::deque< vil_image_view< PixType > > window_buffer_;
   size_t window_buffer_capacity_;
-
 };
 
 // Shared functionality - process a frame while computing variance
-template <typename PixType>
-void online_frame_averager<PixType>
+template < typename PixType >
+void
+online_frame_averager< PixType >
 ::process_frame( const vil_image_view< PixType >& input,
                  vil_image_view< PixType >& average,
                  vil_image_view< double >& variance )
@@ -180,8 +168,9 @@ void online_frame_averager<PixType>
   variance.deep_copy( dev1_tmp_space_ );
 }
 
-template <typename PixType>
-bool online_frame_averager<PixType>
+template < typename PixType >
+bool
+online_frame_averager< PixType >
 ::has_resolution_changed( const vil_image_view< PixType >& input )
 {
   return ( input.ni() != this->last_average_.ni() ||
@@ -190,17 +179,19 @@ bool online_frame_averager<PixType>
 }
 
 // Helper function to allocate a completely new image, and cast the input image
-// to whatever specified type the output image is, scaling by some factor if set
+// to whatever specified type the output image is, scaling by some factor if
+// set
 // and rounding if enabled, in one pass.
-template <typename inT, typename outT>
-void copy_cast_and_scale( const vil_image_view< inT >& input,
-                          vil_image_view< outT >& output,
-                          bool rounding_enabled,
-                          const inT scale_factor )
+template < typename inT, typename outT >
+void
+copy_cast_and_scale( const vil_image_view< inT >& input,
+                     vil_image_view< outT >& output,
+                     bool rounding_enabled,
+                     const inT scale_factor )
 {
   // Just deep copy if pixel formats equivalent and there is no scale factor
-  if( vil_pixel_format_of(inT()) == vil_pixel_format_of(outT())
-      && scale_factor == 1.0 )
+  if( vil_pixel_format_of( inT() ) == vil_pixel_format_of( outT() ) &&
+      scale_factor == 1.0 )
   {
     output.deep_copy( input );
     return;
@@ -209,8 +200,8 @@ void copy_cast_and_scale( const vil_image_view< inT >& input,
   // Determine if any rounding would even be beneficial based on source types
   if( rounding_enabled )
   {
-    rounding_enabled = !std::numeric_limits<inT>::is_integer &&
-                       std::numeric_limits<outT>::is_integer;
+    rounding_enabled = !std::numeric_limits< inT >::is_integer &&
+                       std::numeric_limits< outT >::is_integer;
   }
 
   // Resize, cast and copy
@@ -218,8 +209,10 @@ void copy_cast_and_scale( const vil_image_view< inT >& input,
   output.set_size( ni, nj, np );
 
   // s* = source properties, d* = dest
-  std::ptrdiff_t sistep=input.istep(), sjstep=input.jstep(), spstep=input.planestep();
-  std::ptrdiff_t distep=output.istep(), djstep=output.jstep(), dpstep=output.planestep();
+  std::ptrdiff_t sistep = input.istep(), sjstep = input.jstep(),
+                 spstep = input.planestep();
+  std::ptrdiff_t distep = output.istep(), djstep = output.jstep(),
+                 dpstep = output.planestep();
 
   // Iterate through image and perform cast and any required ops. We could
   // shorten this code using vil_transform and functors (binding arguments),
@@ -232,17 +225,18 @@ void copy_cast_and_scale( const vil_image_view< inT >& input,
   {
     const inT* splane = input.top_left_ptr();
     outT* dplane = output.top_left_ptr();
-    for (unsigned p=0;p<np;++p,splane += spstep,dplane += dpstep)
+
+    for( unsigned p = 0; p < np; ++p, splane += spstep, dplane += dpstep )
     {
       const inT* srow = splane;
       outT* drow = dplane;
-      for (unsigned j=0;j<nj;++j,srow += sjstep,drow += djstep)
+      for( unsigned j = 0; j < nj; ++j, srow += sjstep, drow += djstep )
       {
         const inT* spixel = srow;
         outT* dpixel = drow;
-        for (unsigned i=0;i<ni;++i,spixel+=sistep,dpixel+=distep)
+        for( unsigned i = 0; i < ni; ++i, spixel += sistep, dpixel += distep )
         {
-          *dpixel = static_cast<outT>(*spixel * scale_factor);
+          *dpixel = static_cast< outT >( *spixel * scale_factor );
         }
       }
     }
@@ -251,17 +245,17 @@ void copy_cast_and_scale( const vil_image_view< inT >& input,
   {
     const inT* splane = input.top_left_ptr();
     outT* dplane = output.top_left_ptr();
-    for (unsigned p=0;p<np;++p,splane += spstep,dplane += dpstep)
+    for( unsigned p = 0; p < np; ++p, splane += spstep, dplane += dpstep )
     {
       const inT* srow = splane;
       outT* drow = dplane;
-      for (unsigned j=0;j<nj;++j,srow += sjstep,drow += djstep)
+      for( unsigned j = 0; j < nj; ++j, srow += sjstep, drow += djstep )
       {
         const inT* spixel = srow;
         outT* dpixel = drow;
-        for (unsigned i=0;i<ni;++i,spixel+=sistep,dpixel+=distep)
+        for( unsigned i = 0; i < ni; ++i, spixel += sistep, dpixel += distep )
         {
-          *dpixel = static_cast<outT>(*spixel * scale_factor + 0.5);
+          *dpixel = static_cast< outT >( *spixel * scale_factor + 0.5 );
         }
       }
     }
@@ -269,16 +263,18 @@ void copy_cast_and_scale( const vil_image_view< inT >& input,
 }
 
 // Cumulative averager
-template <typename PixType>
-cumulative_frame_averager<PixType>
+template < typename PixType >
+cumulative_frame_averager< PixType >
+
 ::cumulative_frame_averager( const bool should_round )
 {
   this->should_round_ = should_round;
   this->reset();
 }
 
-template <typename PixType>
-void cumulative_frame_averager<PixType>
+template < typename PixType >
+void
+cumulative_frame_averager< PixType >
 ::process_frame( const vil_image_view< PixType >& input,
                  vil_image_view< PixType >& average )
 {
@@ -295,10 +291,10 @@ void cumulative_frame_averager<PixType>
   // Standard update case
   else
   {
-    // Calculate new average - TODO: Non-exponential cumulative average can be modified
-    // to be more efficient and prevent precision losses by not using math_add_fraction
-    // function. Can also be optimized in the byte case to use integer instead of double
-    // operations, but it's good enough for now.
+    // Calculate new average - TODO: Non-exponential cumulative average can be
+    // modified to be more efficient and prevent precision losses by not using
+    // math_add_fraction function. Can also be optimized in the byte case to
+    // use integer instead of double operations, but it's good enough for now.
     double scale_factor = 1.0 / ( this->frame_count_ + 1 );
 
     vil_math_add_image_fraction( this->last_average_,
@@ -307,7 +303,7 @@ void cumulative_frame_averager<PixType>
                                  scale_factor );
   }
 
-  // Copy a completely new image in case we are running in async mode
+  // Copy a completely new image
   copy_cast_and_scale( this->last_average_,
                        average,
                        this->should_round_,
@@ -317,16 +313,18 @@ void cumulative_frame_averager<PixType>
   this->frame_count_++;
 }
 
-template <typename PixType>
-void cumulative_frame_averager<PixType>
+template < typename PixType >
+void
+cumulative_frame_averager< PixType >
 ::reset()
 {
   this->frame_count_ = 0;
 }
 
 // Exponential averager
-template <typename PixType>
-exponential_frame_averager<PixType>
+template < typename PixType >
+exponential_frame_averager< PixType >
+
 ::exponential_frame_averager( const bool should_round,
                               const double new_frame_weight )
 {
@@ -335,8 +333,9 @@ exponential_frame_averager<PixType>
   this->reset();
 }
 
-template <typename PixType>
-void exponential_frame_averager<PixType>
+template < typename PixType >
+void
+exponential_frame_averager< PixType >
 ::process_frame( const vil_image_view< PixType >& input,
                  vil_image_view< PixType >& average )
 {
@@ -354,7 +353,7 @@ void exponential_frame_averager<PixType>
   else
   {
     vil_math_add_image_fraction( this->last_average_,
-                                 1.0-new_frame_weight_,
+                                 1.0 - new_frame_weight_,
                                  input,
                                  new_frame_weight_ );
   }
@@ -369,16 +368,18 @@ void exponential_frame_averager<PixType>
   this->frame_count_++;
 }
 
-template <typename PixType>
-void exponential_frame_averager<PixType>
+template < typename PixType >
+void
+exponential_frame_averager< PixType >
 ::reset()
 {
   this->frame_count_ = 0;
 }
 
 // Windowed averager
-template <typename PixType>
-windowed_frame_averager<PixType>
+template < typename PixType >
+windowed_frame_averager< PixType >
+
 ::windowed_frame_averager( const bool should_round,
                            const unsigned window_length )
 {
@@ -387,8 +388,9 @@ windowed_frame_averager<PixType>
   this->reset();
 }
 
-template <typename PixType>
-void windowed_frame_averager<PixType>
+template < typename PixType >
+void
+windowed_frame_averager< PixType >
 ::process_frame( const vil_image_view< PixType >& input,
                  vil_image_view< PixType >& average )
 {
@@ -405,8 +407,9 @@ void windowed_frame_averager<PixType>
   }
   else if( window_buffer_size < window_buffer_capacity_ )
   {
-    double src_weight = 1.0/(window_buffer_size+1.0);
-    vil_math_add_image_fraction( this->last_average_, 1.0-src_weight, input, src_weight );
+    double src_weight = 1.0 / ( window_buffer_size + 1.0 );
+    vil_math_add_image_fraction( this->last_average_, 1.0 - src_weight, input,
+                                 src_weight );
   }
   // Standard case, buffer is full
   else
@@ -418,36 +421,44 @@ void windowed_frame_averager<PixType>
     const unsigned np = input.nplanes();
 
     // Image A = Removed Entry, B = Added Entry, C = The Average Calculation
-    const double scale = 1.0/window_buffer_size;
+    const double scale = 1.0 / window_buffer_size;
 
-    input_type const& tmpA = window_buffer_[ window_buffer_size-1 ];
+    input_type const& tmpA = window_buffer_[ window_buffer_size - 1 ];
     const input_type* imA = &tmpA;
     const input_type* imB = &input;
-    vil_image_view< double >* imC = &(this->last_average_);
+    vil_image_view< double >* imC = &( this->last_average_ );
 
-    std::ptrdiff_t istepA=imA->istep(),jstepA=imA->jstep(),pstepA=imA->planestep();
-    std::ptrdiff_t istepB=imB->istep(),jstepB=imB->jstep(),pstepB=imB->planestep();
-    std::ptrdiff_t istepC=imC->istep(),jstepC=imC->jstep(),pstepC=imC->planestep();
+    std::ptrdiff_t istepA = imA->istep(), jstepA = imA->jstep(),
+                   pstepA = imA->planestep();
+    std::ptrdiff_t istepB = imB->istep(), jstepB = imB->jstep(),
+                   pstepB = imB->planestep();
+    std::ptrdiff_t istepC = imC->istep(), jstepC = imC->jstep(),
+                   pstepC = imC->planestep();
 
     const PixType* planeA = imA->top_left_ptr();
     const PixType* planeB = imB->top_left_ptr();
     double*        planeC = imC->top_left_ptr();
 
-    for( unsigned p=0;p<np;++p,planeA+=pstepA,planeB+=pstepB,planeC+=pstepC )
+    for( unsigned p = 0; p < np;
+         ++p, planeA += pstepA, planeB += pstepB, planeC += pstepC )
     {
       const PixType* rowA = planeA;
       const PixType* rowB = planeB;
       double*        rowC = planeC;
 
-      for( unsigned j=0;j<nj;++j,rowA+=jstepA,rowB+=jstepB,rowC+=jstepC )
+      for( unsigned j = 0; j < nj;
+           ++j, rowA += jstepA, rowB += jstepB, rowC += jstepC )
       {
         const PixType* pixelA = rowA;
         const PixType* pixelB = rowB;
         double*        pixelC = rowC;
 
-        for( unsigned i=0;i<ni;++i,pixelA+=istepA,pixelB+=istepB,pixelC+=istepC )
+        for( unsigned i = 0; i < ni;
+             ++i, pixelA += istepA, pixelB += istepB, pixelC += istepC )
         {
-          *pixelC += scale*(static_cast<double>(*pixelB)-static_cast<double>(*pixelA));
+          *pixelC += scale *
+                     ( static_cast< double >( *pixelB ) -
+                       static_cast< double >( *pixelA ) );
         }
       }
     }
@@ -455,7 +466,7 @@ void windowed_frame_averager<PixType>
 
   // Add to buffer
   this->window_buffer_.push_back( input );
-  if ( this->window_buffer_.size() > this->window_buffer_capacity_ )
+  if( this->window_buffer_.size() > this->window_buffer_capacity_ )
   {
     this->window_buffer_.pop_front();
   }
@@ -465,18 +476,19 @@ void windowed_frame_averager<PixType>
                        average,
                        this->should_round_,
                        1.0 );
-
 }
 
-template <typename PixType>
-void windowed_frame_averager<PixType>
+template < typename PixType >
+void
+windowed_frame_averager< PixType >
 ::reset()
 {
   this->window_buffer_.clear();
 }
 
-template <typename PixType>
-unsigned windowed_frame_averager<PixType>
+template < typename PixType >
+unsigned
+windowed_frame_averager< PixType >
 ::frame_count() const
 {
   return this->window_buffer_.size();
@@ -484,23 +496,23 @@ unsigned windowed_frame_averager<PixType>
 
 } // end anonoymous namespace
 
-
 // --------------------------------------------------------------------------------------
 /// Private implementation class
 class average_frames::priv
 {
 public:
-
-  typedef std::unique_ptr< online_frame_averager< vxl_byte > > frame_averager_byte_sptr;
-  typedef std::unique_ptr< online_frame_averager< double > > frame_averager_float_sptr;
+  typedef std::unique_ptr< online_frame_averager< vxl_byte > >
+    frame_averager_byte_sptr;
+  typedef std::unique_ptr< online_frame_averager< double > >
+    frame_averager_float_sptr;
 
   priv()
     : type( "window" )
-    , window_size( 10 )
-    , exp_weight( 0.3 )
-    , round( false )
-    , output_variance( false )
-    , variance_scale( 0.0 )
+      , window_size( 10 )
+      , exp_weight( 0.3 )
+      , round( false )
+      , output_variance( false )
+      , variance_scale( 0.0 )
   {
   }
 
@@ -521,24 +533,25 @@ public:
   frame_averager_float_sptr float_averager;
 
   // Load model, special optimizations are in place for the byte case
-  void load_model( bool is_byte = true )
+  void
+  load_model( bool is_byte = true )
   {
     if( ( is_byte && byte_averager ) || ( !is_byte && float_averager ) )
     {
       return;
     }
 
-    if( type == "window")
+    if( type == "window" )
     {
       if( is_byte )
       {
         byte_averager.reset(
-          new windowed_frame_averager< vxl_byte >( round, window_size ) );
+            new windowed_frame_averager< vxl_byte >( round, window_size ) );
       }
       else
       {
         float_averager.reset(
-          new windowed_frame_averager< double >( round, window_size ) );
+            new windowed_frame_averager< double >( round, window_size ) );
       }
     }
     else if( type == "cumulative" )
@@ -546,12 +559,12 @@ public:
       if( is_byte )
       {
         byte_averager.reset(
-          new cumulative_frame_averager< vxl_byte >( round ) );
+            new cumulative_frame_averager< vxl_byte >( round ) );
       }
       else
       {
         float_averager.reset(
-          new cumulative_frame_averager< double >( round ) );
+            new cumulative_frame_averager< double >( round ) );
       }
     }
     else if( type == "exponential" )
@@ -564,12 +577,12 @@ public:
       if( is_byte )
       {
         byte_averager.reset(
-          new exponential_frame_averager< vxl_byte >( round, exp_weight ) );
+            new exponential_frame_averager< vxl_byte >( round, exp_weight ) );
       }
       else
       {
         float_averager.reset(
-          new exponential_frame_averager< double >( round, exp_weight ) );
+            new exponential_frame_averager< double >( round, exp_weight ) );
       }
     }
     else
@@ -603,7 +616,7 @@ public:
 // ----------------------------------------------------------------------------
 average_frames
 ::average_frames()
-: d( new priv() )
+  : d( new priv() )
 {
   attach_logger( "arrows.vxl.average_frames" );
 }
@@ -623,17 +636,17 @@ average_frames
   vital::config_block_sptr config = algorithm::get_configuration();
 
   config->set_value( "type", d->type,
-    "Operating mode of this filter, possible values: cumulative, window, "
-    "or exponential." );
+                     "Operating mode of this filter, possible values: cumulative, window, "
+                     "or exponential." );
   config->set_value( "window_size", d->window_size,
-    "The window size if computing a windowed moving average." );
+                     "The window size if computing a windowed moving average." );
   config->set_value( "exp_weight", d->exp_weight,
-    "Exponential averaging coefficient if computing an exp average." );
+                     "Exponential averaging coefficient if computing an exp average." );
   config->set_value( "round", d->round,
-    "Should we spend a little extra time rounding when possible?" );
+                     "Should we spend a little extra time rounding when possible?" );
   config->set_value( "output_variance", d->output_variance,
-    "If set, will compute an estimated variance for each pixel which "
-    "will be outputted as either a double-precision or byte image." );
+                     "If set, will compute an estimated variance for each pixel which "
+                     "will be outputted as either a double-precision or byte image." );
 
   return config;
 }
@@ -643,9 +656,9 @@ void
 average_frames
 ::set_configuration( vital::config_block_sptr in_config )
 {
-  // Starting with our generated vital::config_block to ensure that assumed values
-  // are present. An alternative is to check for key presence before performing a
-  // get_value() call.
+  // Starting with our generated vital::config_block to ensure that assumed
+  // values are present. An alternative is to check for key presence before
+  // performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
@@ -662,13 +675,13 @@ average_frames
 ::check_configuration( vital::config_block_sptr config ) const
 {
   std::string type = config->get_value< std::string >( "type" );
-  if( !(type == "cumulative" ||
-        type == "window" ||
-        type == "exponential") )
+  if( !( type == "cumulative" ||
+         type == "window" ||
+         type == "exponential" ) )
   {
     return false;
   }
-  else if( type == "exponential")
+  else if( type == "exponential" )
   {
     double exp_weight = config->get_value< double >( "exp_weight" );
     if( exp_weight <= 0 || exp_weight > 1 )
@@ -695,33 +708,33 @@ average_frames
     vxl::image_container::vital_to_vxl( image_data->get_image() );
 
   // Perform different actions based on input type
-#define HANDLE_CASE(T)                                                 \
+#define HANDLE_CASE( T )                                               \
   case T:                                                              \
-    {                                                                  \
-      typedef vil_pixel_format_type_of< T >::component_type pix_t;     \
-      vil_image_view< pix_t > uncast_input = view;                     \
-      vil_image_view< double > input;                                  \
-      vil_convert_cast( uncast_input, input );                         \
+  {                                                                    \
+    typedef vil_pixel_format_type_of< T >::component_type pix_t;       \
+    vil_image_view< pix_t > uncast_input = view;                       \
+    vil_image_view< double > input;                                    \
+    vil_convert_cast( uncast_input, input );                           \
                                                                        \
-      d->process_frame( input );                                       \
-    }                                                                  \
+    d->process_frame( input );                                         \
     break;                                                             \
+  }                                                                    \
 
-  switch ( view->pixel_format() )
+  switch( view->pixel_format() )
   {
-    HANDLE_CASE(VIL_PIXEL_FORMAT_BOOL);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_SBYTE);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_UINT_16);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_INT_16);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_UINT_32);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_INT_32);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_UINT_64);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_INT_64);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_FLOAT);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_DOUBLE);
+    HANDLE_CASE( VIL_PIXEL_FORMAT_BOOL );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_SBYTE );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_INT_16 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_32 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_INT_32 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_64 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_INT_64 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_FLOAT );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_DOUBLE );
 #undef HANDLE_CASE
 
-  case VIL_PIXEL_FORMAT_BYTE:
+    case VIL_PIXEL_FORMAT_BYTE:
     {
       // Default byte case
       vil_image_view< vxl_byte > input = view;
@@ -744,11 +757,11 @@ average_frames
       break;
     }
 
-  default:
-    // The image type was not one we handle
-    LOG_ERROR( logger(), "Invalid input format " << view->pixel_format()
-                         << " type received" );
-    return kwiver::vital::image_container_sptr();
+    default:
+      // The image type was not one we handle
+      LOG_ERROR( logger(), "Invalid input format "      << view->pixel_format()
+                                                        << " type received" );
+      return kwiver::vital::image_container_sptr();
   }
 
   // Code not reached, prevent warning
@@ -756,5 +769,7 @@ average_frames
 }
 
 } // end namespace vxl
+
 } // end namespace arrows
+
 } // end namespace kwiver

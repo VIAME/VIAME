@@ -10,27 +10,27 @@
 #include <vital/algo/image_filter.h>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace vxl {
 
-/**
- * @brief VXL Frame Averaging Process
- *
- * This method contains basic methods for image filtering on top of input
- * images via performing assorted averaging operations.
- */
+/// VXL Frame Averaging Process
+///
+/// This method contains basic methods for image filtering on top of input
+/// images via performing assorted averaging operations.
 class KWIVER_ALGO_VXL_EXPORT average_frames
   : public vital::algo::image_filter
 {
 public:
-
   PLUGIN_INFO( "vxl_average",
                "Use VXL to average frames together." )
 
   average_frames();
   virtual ~average_frames();
 
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::config_block configuration block
+  /// \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration( vital::config_block_sptr config );
@@ -42,11 +42,15 @@ public:
     kwiver::vital::image_container_sptr image_data );
 
 private:
-
   class priv;
-  const std::unique_ptr<priv> d;
+
+  const std::unique_ptr< priv > d;
 };
 
-} } }
+} // namespace vxl
 
-#endif /* KWIVER_ARROWS_VXL_AVERAGE_FRAMES_ */
+} // namespace arrows
+
+} // namespace kwiver
+
+#endif
