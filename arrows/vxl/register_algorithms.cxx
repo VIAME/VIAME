@@ -12,6 +12,7 @@
 
 #include <arrows/vxl/bundle_adjust.h>
 #include <arrows/vxl/close_loops_homography_guided.h>
+#include <arrows/vxl/color_commonality_filter.h>
 #include <arrows/vxl/estimate_canonical_transform.h>
 #include <arrows/vxl/estimate_essential_matrix.h>
 #include <arrows/vxl/estimate_fundamental_matrix.h>
@@ -44,6 +45,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   reg.register_algorithm< bundle_adjust >();
   reg.register_algorithm< close_loops_homography_guided >();
+  reg.register_algorithm< color_commonality_filter >();
   reg.register_algorithm< estimate_canonical_transform >();
   reg.register_algorithm< estimate_essential_matrix >();
   reg.register_algorithm< estimate_fundamental_matrix >();
