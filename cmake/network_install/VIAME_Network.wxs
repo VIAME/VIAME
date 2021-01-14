@@ -4,12 +4,14 @@
 	  xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
     RequiredVersion="3.6.3303.0">
   <Bundle
-        Name="Network VIAME"
-        Version="0.0.1"
+        Name="VIAME Toolkit"
+        Version="0.12.1"
         UpgradeCode="91A46E15-EE49-4411-9836-583499D9C12F">
 
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLargeLicense" >
-      <bal:WixStandardBootstrapperApplication LicenseUrl="https://raw.githubusercontent.com/VIAME/VIAME/master/LICENSE.txt" ThemeFile="VIAME_options.xml" />
+      <bal:WixStandardBootstrapperApplication LicenseUrl="https://raw.githubusercontent.com/VIAME/VIAME/master/LICENSE.txt"
+                                              ThemeFile="VIAME_options.xml"
+                                              LogoFile="VIAME_32px.png"/>
     </BootstrapperApplicationRef>
 
     <Chain>
