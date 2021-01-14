@@ -55,7 +55,7 @@ MainWindow
     "KWIVER Pipelines (*.pipe);;"
     "All files (*)" );
 
-  if ( !path.isEmpty() )
+  if( !path.isEmpty() )
   {
     this->executePipeline( path );
   }
@@ -70,7 +70,7 @@ MainWindow
 
   PipelineWorker worker{ this };
 
-  if ( worker.initialize( path ) )
+  if( worker.initialize( path ) )
   {
     d->ui.actionExecutePipeline->setEnabled( false );
     d->ui.actionSuspendUpdates->setEnabled( true );

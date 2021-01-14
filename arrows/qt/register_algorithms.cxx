@@ -24,7 +24,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 {
   ::kwiver::vital::algorithm_registrar reg( vpm, "arrows.qt" );
 
-  if (reg.is_module_loaded())
+  if( reg.is_module_loaded() )
   {
     return;
   }
