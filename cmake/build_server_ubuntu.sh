@@ -16,6 +16,7 @@ libgtk2.0-dev \
 libxt-dev \
 libxml2-dev \
 liblapack-dev \
+libx264-dev \
 openssl \
 libssl-dev \
 g++ \
