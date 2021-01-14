@@ -237,7 +237,8 @@ if( VIAME_ENABLE_PYTHON )
     endif()
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        NOT PYTHON_VERSION VERSION_EQUAL "3.6" )
+        NOT PYTHON_VERSION VERSION_EQUAL "3.6" AND
+        NOT PYTHON_VERSION_PATCH EQUAL "5" )
       message( FATAL_ERROR "Short-term, the only tested python distribution is "
         "Anaconda3 5.2.0, either install that version or set the cmake flag"
         "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
@@ -287,6 +288,27 @@ if( VIAME_ENABLE_CUDA )
 
   if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND VIAME_ENABLE_CAFFE )
     message( FATAL_ERROR "Caffe does not support CUDA 10 or above" )
+  endif()
+
+  if( NOT CUDA_VERSION_PATCH )
+    if( CUDA_NVCC_EXECUTABLE AND
+        CUDA_NVCC_EXECUTABLE STREQUAL CMAKE_CUDA_COMPILER AND
+        CMAKE_CUDA_COMPILER_VERSION MATCHES [=[([0-9]+)\.([0-9]+)\.([0-9]+)]=] )
+      set( CUDA_VERSION_PATCH "${CMAKE_MATCH_3}" )
+    elseif( CUDA_NVCC_EXECUTABLE )
+      execute_process( COMMAND ${CUDA_NVCC_EXECUTABLE} "--version" OUTPUT_VARIABLE NOUT )
+      if( NOUT MATCHES [=[ V([0-9]+)\.([0-9]+)\.([0-9]+)]=] )
+        set( CUDA_VERSION_PATCH "${CMAKE_MATCH_3}" )
+      endif()
+    endif()
+  endif()
+
+  if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND VIAME_ENABLE_CAFFE )
+    message( FATAL_ERROR "Caffe does not support CUDA 10 or above" )
+  endif()
+
+  if( CUDA_VERSION VERSION_EQUAL "10.1" AND CUDA_VERSION_PATCH EQUAL "168" )
+    message( FATAL_ERROR "CUDA 10.1.168 has bugs, upgrade to 10.1.264 or above" )
   endif()
 
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
