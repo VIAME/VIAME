@@ -3024,6 +3024,11 @@ initialize_cameras_landmarks_keyframe::priv
     find_visible_landmarks_in_frames(lmks, tracks, cur_fid);
   auto cur_landmarks = get_sub_landmark_map(lmks, cur_frame_landmarks);
 
+  if (cur_landmarks.size() < 3)
+  {
+    return false;
+  }
+
   // get a random subset of the current landmarks
   std::vector<landmark_id_t> lm_ids;
   lm_ids.reserve(cur_landmarks.size());
