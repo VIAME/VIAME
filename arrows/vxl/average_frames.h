@@ -20,8 +20,7 @@ namespace vxl {
  * images via performing assorted averaging operations.
  */
 class KWIVER_ALGO_VXL_EXPORT average_frames
-  : public vital::algorithm_impl< average_frames,
-      vital::algo::image_filter >
+  : public vital::algo::image_filter
 {
 public:
 
