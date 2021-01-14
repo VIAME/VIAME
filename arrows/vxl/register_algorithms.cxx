@@ -10,6 +10,7 @@
 #include <arrows/vxl/kwiver_algo_vxl_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
+#include <arrows/vxl/average_frames.h>
 #include <arrows/vxl/bundle_adjust.h>
 #include <arrows/vxl/close_loops_homography_guided.h>
 #include <arrows/vxl/estimate_canonical_transform.h>
@@ -42,6 +43,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   using namespace kwiver::arrows::vxl;
 
+  reg.register_algorithm< average_frames >();
   reg.register_algorithm< bundle_adjust >();
   reg.register_algorithm< close_loops_homography_guided >();
   reg.register_algorithm< estimate_canonical_transform >();

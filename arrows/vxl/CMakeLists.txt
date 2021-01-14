@@ -2,6 +2,7 @@
 # structures
 
 set(vxl_headers_public
+  average_frames.h
   bounding_box.h
   bundle_adjust.h
   camera.h
@@ -35,6 +36,7 @@ kwiver_install_headers(
   )
 
 set(vxl_sources
+  average_frames.cxx
   bundle_adjust.cxx
   camera.cxx
   camera_map.cxx
