@@ -3645,7 +3645,9 @@ initialize_cameras_landmarks_keyframe::priv
         }
       }
     }
-    if (max_constraints_used < 10)
+    if (constraints &&
+        constraints->get_camera_position_priors().size() >= 10 &&
+        max_constraints_used < 10)
     {
       int num_constraints_used;
       if (fit_reconstruction_to_constraints(cams, lmks, tracks,
