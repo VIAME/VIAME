@@ -8,7 +8,7 @@ Originally targetting marine species analytics, it now contains many common algo
 and is also useful as a generic computer vision toolkit. It contains a number of standalone tools for
 accomplishing the above, a pipeline framework which can connect C/C++, python, and matlab nodes together
 in a multi-threaded fashion, and lastly multiple algorithms resting on top of the pipeline infrastructure.
-Both a desktop and web version exists for deployments in different types of environments.
+Both a desktop and web version exist for deployments in different types of environments.
 
 Documentation
 -------------
