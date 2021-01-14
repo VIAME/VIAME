@@ -120,7 +120,12 @@ if( VIAME_ENABLE_PYTORCH )
   set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.4.0" "1.6.0" "1.7.1" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
+  if( WIN32 )
+    option( VIAME_ENABLE_PYTORCH-INTERNAL   "Enable internal PyTorch build" OFF )
+  else()
+    option( VIAME_ENABLE_PYTORCH-INTERNAL   "Enable internal PyTorch build" ON )
+  endif()
+
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
   option( VIAME_ENABLE_PYTORCH-MMDET        "Enable mmdet PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-NETHARN      "Enable netharn PyTorch code"   ON )
@@ -210,8 +215,8 @@ if( VIAME_ENABLE_DOCS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF )
-  mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
+  option( VIAME_DISABLE_PYTHON_CHECKS   "Disable python version checking" OFF )
+  mark_as_advanced( VIAME_DISABLE_PYTHON_CHECKS )
 
   if( NOT WIN32 )
     option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
@@ -225,10 +230,17 @@ if( VIAME_ENABLE_PYTHON )
     find_package( PythonInterp REQUIRED )
     find_package( PythonLibs REQUIRED )
 
-    if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
+    if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
         NOT EXISTS ${PYTHON_INCLUDE_DIR}/pyconfig.h )
-      message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
-        make sure the variable is set correctly and you have python-dev installed." )
+      message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR "
+        "make sure the variable is set correctly and you have python-dev installed." )
+    endif()
+
+    if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
+        NOT PYTHON_VERSION VERSION_EQUAL "3.6" )
+      message( FATAL_ERROR "Short-term, the only tested python distribution is "
+        "Anaconda3 5.2.0, either install that version or set the cmake flag"
+        "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
     endif()
   endif()
 
