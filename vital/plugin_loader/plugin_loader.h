@@ -10,8 +10,6 @@
 #include <vital/vital_types.h>
 #include <vital/logger/logger.h>
 
-#include <kwiversys/DynamicLoader.hxx>
-
 #include <vector>
 #include <string>
 #include <map>
@@ -43,8 +41,6 @@ class plugin_loader_impl;
 class VITAL_VPM_EXPORT plugin_loader
 {
 public:
-  typedef kwiversys::DynamicLoader   DL;
-
   /**
    * @brief Constructor
    *
