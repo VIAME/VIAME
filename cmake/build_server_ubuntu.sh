@@ -139,6 +139,12 @@ cp /usr/lib/x86_64-linux-gnu/libquadmath.so.0 install/lib || true
 
 cp -P /usr/lib/x86_64-linux-gnu/libnccl.so* install/lib || true
 
+# HACK: Okay these are a bit much
+cp /usr/lib/x86_64-linux-gnu/libharfbuzz.so.0 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libpng16.so.16 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libglib-2.0.so.0 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libgraphite2.so.3 install/lib || true
+
 # HACK: Copy in ubuntu 18.04 specific libraries
 source /etc/lsb-release
 
