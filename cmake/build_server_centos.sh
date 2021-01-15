@@ -19,7 +19,6 @@ lapack-devel \
 libXt-devel \
 libXmu-devel \
 libXi-devel \
-libx264-devel \
 expat-devel \
 readline-devel \
 curl \
@@ -68,7 +67,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_CUDNN:BOOL=ON \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
 -DVIAME_ENABLE_FFMPEG:BOOL=ON \
--DVIAME_ENABLE_FFMPEG-X264:BOOL=ON \
+-DVIAME_ENABLE_FFMPEG-X264:BOOL=OFF \
 -DVIAME_ENABLE_GDAL:BOOL=ON \
 -DVIAME_ENABLE_FLASK:BOOL=OFF \
 -DVIAME_ENABLE_ITK:BOOL=OFF \
