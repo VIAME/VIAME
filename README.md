@@ -74,7 +74,7 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 **Windows Desktop Binaries:** <br>
 [VIAME v0.13.0 Windows 7\*/8/10, GPU Enabled, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/6001aa9d2fa25629b9eb33b1/download) <br>
 [VIAME v0.13.0 Windows 7\*/8/10, GPU Enabled, Mirror2 (.zip)](https://drive.google.com/file/d/1_wl67866KPiRU1oZXbZw-WDZXhZhfJRr/view?usp=sharing) <br>
-[VIAME v0.13.0 Windows 7\*/8/10, CPU Only, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/5fb9ff7350a41e3d196659df/download) <br>
+[VIAME v0.13.0 Windows 7\*/8/10, CPU Only, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/6001ab602fa25629b9eb33e9/download) <br>
 [VIAME v0.13.0 Windows 7\*/8/10, CPU Only, Mirror2 (.zip)](https://drive.google.com/file/d/1U121nMixU2kDY5pk33IMKGmMCBgyU0d4/view?usp=sharing)
 
 **Ubuntu Desktop Binaries:** <br>
