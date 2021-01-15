@@ -121,8 +121,14 @@ ln -s libcudnn.so.7 install/lib/libcudnn.so
 # Should be removed when this issue is fixed
 cp /lib/x86_64-linux-gnu/libreadline.so.6 install/lib || true
 cp /lib/x86_64-linux-gnu/libreadline.so.7 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libcrypto.so install/lib || true
 cp /lib/x86_64-linux-gnu/libpcre.so.3 install/lib || true
+cp /lib/x86_64-linux-gnu/libexpat.so.1 install/lib || true
+cp /lib/x86_64-linux-gnu/libcurl.so.4 install/lib || true
+cp /lib/x86_64-linux-gnu/liblzma.so.5.2.2 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libcrypto.so install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libfreetype.so.6 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libx264.so.152 install/lib || true
 cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 install/lib || true
 cp /usr/lib/x86_64-linux-gnu/libSM.so.6 install/lib || true
 cp /usr/lib/x86_64-linux-gnu/libICE.so.6 install/lib || true
