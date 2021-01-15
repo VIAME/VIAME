@@ -5,6 +5,7 @@
 #include "high_pass_filter.h"
 
 #include <arrows/vxl/image_container.h>
+#include <vital/util/enum_converter.h>
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
@@ -16,6 +17,15 @@ namespace kwiver {
 namespace arrows {
 
 namespace vxl {
+
+enum filter_mode
+{
+  MODE_box,
+  MODE_bidir,
+};
+
+ENUM_CONVERTER( mode_converter, filter_mode, { "box", MODE_box }, { "bidir",
+                                                                    MODE_bidir } )
 
 // --------------------------------------------------------------------------------------
 /// Private implementation class
@@ -33,7 +43,7 @@ public:
   }
 
   // Internal parameters/settings
-  std::string mode = "box";
+  filter_mode mode = MODE_box;
   size_t kernel_width = 7;
   size_t kernel_height = 7;
   bool treat_as_interlaced = false;
@@ -313,17 +323,16 @@ public:
   filter( vil_image_view< PixType >& input )
   {
     vil_image_view< PixType > output;
-    if( mode == "box" )
+    switch( mode )
     {
-      output = box_high_pass_filter( input );
-    }
-    else if( mode == "bidir" )
-    {
-      output = bidirection_box_filter( input );
-    }
-    else
-    {
-      return nullptr;
+      case MODE_box:
+        output = box_high_pass_filter( input );
+        break;
+      case MODE_bidir:
+        output = bidirection_box_filter( input );
+        break;
+      default:
+        return nullptr;
     }
 
     // Only report the summation of directional filterings, contained in the
@@ -359,7 +368,8 @@ high_pass_filter
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
-  config->set_value( "mode", d->mode,
+  config->set_value( "mode", mode_converter().to_string(
+                       d->mode ),
                      "Operating mode of this filter, possible values: box, bidir" );
   config->set_value( "kernel_width", d->kernel_width,
                      "Pixel width of smoothing kernel" );
@@ -389,7 +399,7 @@ high_pass_filter
   config->merge_config( in_config );
 
   // Settings for filtering
-  d->mode = config->get_value< std::string >( "mode" );
+  d->mode = config->get_enum_value< mode_converter >( "mode" );
   d->kernel_width = config->get_value< size_t >( "kernel_width" );
   d->kernel_height = config->get_value< size_t >( "kernel_height" );
   d->treat_as_interlaced = config->get_value< bool >( "treat_as_interlaced" );
@@ -401,22 +411,12 @@ bool
 high_pass_filter
 ::check_configuration( vital::config_block_sptr config ) const
 {
-  std::string mode_string = config->get_value< std::string >( "mode" );
-
-  if( !( mode_string == "box" ||
-         mode_string == "bidir" ) )
-  {
-    LOG_ERROR( logger(), "mode must be 'box' or 'bidir' but instead was "
-                         << mode_string );
-    return false;
-  }
-
   size_t width = config->get_value< size_t >( "kernel_width" );
 
   if( width % 2 == 0 )
   {
     LOG_ERROR( logger(), "Kernel width must be odd but is "
-                         << width );
+               << width );
     return false;
   }
 
@@ -424,7 +424,7 @@ high_pass_filter
   if( height % 2 == 0 )
   {
     LOG_ERROR( logger(), "Kernel height must be odd but is "
-                         << height );
+               << height );
     return false;
   }
 
