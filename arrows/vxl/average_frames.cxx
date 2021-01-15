@@ -180,8 +180,7 @@ online_frame_averager< PixType >
 
 // Helper function to allocate a completely new image, and cast the input image
 // to whatever specified type the output image is, scaling by some factor if
-// set
-// and rounding if enabled, in one pass.
+// set and rounding if enabled, in one pass.
 template < typename inT, typename outT >
 void
 copy_cast_and_scale( const vil_image_view< inT >& input,
@@ -208,56 +207,28 @@ copy_cast_and_scale( const vil_image_view< inT >& input,
   unsigned ni = input.ni(), nj = input.nj(), np = input.nplanes();
   output.set_size( ni, nj, np );
 
-  // s* = source properties, d* = dest
-  std::ptrdiff_t sistep = input.istep(), sjstep = input.jstep(),
-                 spstep = input.planestep();
-  std::ptrdiff_t distep = output.istep(), djstep = output.jstep(),
-                 dpstep = output.planestep();
-
-  // Iterate through image and perform cast and any required ops. We could
-  // shorten this code using vil_transform and functors (binding arguments),
-  // but just to ensure they get inlined...
   if( scale_factor == 1.0 && !rounding_enabled )
   {
     vil_convert_cast( input, output );
-  }
-  else if( !rounding_enabled )
-  {
-    const inT* splane = input.top_left_ptr();
-    outT* dplane = output.top_left_ptr();
-
-    for( unsigned p = 0; p < np; ++p, splane += spstep, dplane += dpstep )
-    {
-      const inT* srow = splane;
-      outT* drow = dplane;
-      for( unsigned j = 0; j < nj; ++j, srow += sjstep, drow += djstep )
-      {
-        const inT* spixel = srow;
-        outT* dpixel = drow;
-        for( unsigned i = 0; i < ni; ++i, spixel += sistep, dpixel += distep )
-        {
-          *dpixel = static_cast< outT >( *spixel * scale_factor );
-        }
-      }
+    // Acording ot the documentation of vil_convert_cast, if the types are the
+    // same, the output of vil_convert_cast may be a shallow copy
+    if( vil_pixel_format_of( inT() ) == vil_pixel_format_of( outT() ) ){
+      output.deep_copy( output );
     }
   }
   else
   {
-    const inT* splane = input.top_left_ptr();
-    outT* dplane = output.top_left_ptr();
-    for( unsigned p = 0; p < np; ++p, splane += spstep, dplane += dpstep )
+    vil_image_view< inT > scaled;
+    scaled.deep_copy( input );
+    vil_math_scale_values( scaled, scale_factor );
+
+    if( rounding_enabled )
     {
-      const inT* srow = splane;
-      outT* drow = dplane;
-      for( unsigned j = 0; j < nj; ++j, srow += sjstep, drow += djstep )
-      {
-        const inT* spixel = srow;
-        outT* dpixel = drow;
-        for( unsigned i = 0; i < ni; ++i, spixel += sistep, dpixel += distep )
-        {
-          *dpixel = static_cast< outT >( *spixel * scale_factor + 0.5 );
-        }
-      }
+      vil_convert_round( scaled, output );
+    }
+    else
+    {
+      vil_convert_cast( scaled, output );
     }
   }
 }
@@ -670,6 +641,7 @@ average_frames
   d->output_variance = config->get_value< bool >( "output_variance" );
 }
 
+// ----------------------------------------------------------------------------
 bool
 average_frames
 ::check_configuration( vital::config_block_sptr config ) const
