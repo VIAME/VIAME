@@ -209,7 +209,8 @@ compute_uncertainty(vil_image_view<double> const& height_map,
   // This scale is 1/(2*sigma) converted from [0,255] to [0,1]
   const double cost_scale = 255.0 / (2.0 * 5.0);
 
-  for (unsigned int j = 0; j < cost_volume.nj(); j++)
+#pragma omp parallel for
+  for (int64_t j = 0; j < cost_volume.nj(); j++)
   {
     for (unsigned int i = 0; i < cost_volume.ni(); i++)
     {
