@@ -111,7 +111,7 @@ if( VIAME_DOWNLOAD_MODELS )
   endif()
 
   # YOLO Model Files
-  if( VIAME_ENABLE_YOLO )
+  if( VIAME_ENABLE_DARKNET )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5f6589e850a41e3d199942a2/download
       8d5e963d14ce5f717f149277710c2dc6
@@ -289,7 +289,7 @@ if( VIAME_ENABLE_VIVIA )
     pipelines/embedded_single_stream/local_svm_detector_with_def_tracker.pipe
     pipelines/embedded_single_stream/local_svm_frame_classifier.pipe )
 
-  if( VIAME_ENABLE_YOLO )
+  if( VIAME_ENABLE_DARKNET )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       pipelines/embedded_single_stream/train_deep_detector_yolo.pipe )
   endif()
@@ -299,7 +299,7 @@ if( VIAME_ENABLE_VIVIA )
       pipelines/embedded_single_stream/train_deep_detector_cfrnn.pipe )
   endif()
 
-  if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-MOUSS )
+  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-MOUSS )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       pipelines/embedded_single_stream/mouss_detector.pipe
       pipelines/embedded_single_stream/mouss_tracker.pipe )
@@ -311,7 +311,7 @@ if( VIAME_ENABLE_VIVIA )
       pipelines/embedded_single_stream/arctic_seal_ir_tf_detector.pipe )
   endif()
 
-  if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       pipelines/embedded_single_stream/arctic_seal_eo_tiny_yolo_detector.pipe
       pipelines/embedded_single_stream/arctic_seal_eo_tiny_yolo_tracker.pipe
@@ -406,7 +406,7 @@ if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     pipelines/detector_arctic_seal_ir_tf.pipe )
 endif()
 
-if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_arctic_seal_eo_yolo_detector.pipe
     pipelines/common_arctic_seal_eo_tiny_yolo_detector.pipe
@@ -417,7 +417,7 @@ if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     pipelines/detector_arctic_seal_ir_yolo.pipe )
 endif()
 
-if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-MOUSS )
+if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-MOUSS )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_mouss_detector.pipe
     pipelines/common_mouss_detector_with_filter.pipe
@@ -450,7 +450,7 @@ if( VIAME_ENABLE_SEAK_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       pipelines/embedded_dual_stream/train_cfrnn_ir.pipe )
   endif()
 
-  if( VIAME_ENABLE_YOLO )
+  if( VIAME_ENABLE_DARKNET )
     set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
       pipelines/embedded_dual_stream/train_yolo_eo.pipe
       pipelines/embedded_dual_stream/train_yolo_ir.pipe )

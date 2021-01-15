@@ -56,14 +56,14 @@ option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
 option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
-option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
+option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 
 ###
 # Add secondary plugin enable flags
 ##
-option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
+option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
@@ -129,7 +129,7 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
   option( VIAME_ENABLE_PYTORCH-MMDET        "Enable mmdet PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-NETHARN      "Enable netharn PyTorch code"   ON )
-  option( VIAME_ENABLE_PYTORCH-PYSOT        "Enable pysot PyTorch code"     OFF )
+  option( VIAME_ENABLE_PYTORCH-PYSOT        "Enable pysot PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-MDNET        "Enable mdnet PyTorch code"     OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
@@ -192,7 +192,7 @@ mark_as_advanced( VIAME_BUILD_TESTS )
 # Add logic relating to enable flags
 ##
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
-    VIAME_ENABLE_YOLO )
+    VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"   FORCE )
 endif()
 
@@ -445,7 +445,7 @@ if( VIAME_BUILD_DEPENDENCIES )
   include( add_project_fletch )
 
   # Add optional projects
-  if( VIAME_ENABLE_YOLO )
+  if( VIAME_ENABLE_DARKNET )
     include( add_project_darknet )
   endif()
 

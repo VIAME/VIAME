@@ -23,7 +23,7 @@ else()
        run_trained_model.sh )
 endif()
 
-if( VIAME_ENABLE_YOLO )
+if( VIAME_ENABLE_DARKNET )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
