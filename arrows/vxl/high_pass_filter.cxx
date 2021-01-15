@@ -97,25 +97,23 @@ public:
 
     unsigned diff1 = 0, diff2 = 0;
 
+    if( ni < 2 * offset + 1 )
     {
-      if( ni < 2 * offset + 1 )
+      return;
+    }
+
+    for( unsigned j = 0; j < nj; j++ )
+    {
+      for( unsigned i = offset; i < ni - offset; i++ )
       {
-        return;
-      }
+        const PixType& val = grey( i, j );
+        const PixType& avg1 = smoothed( i - offset, j );
+        const PixType& avg2 = smoothed( i + offset, j );
 
-      for( unsigned j = 0; j < nj; j++ )
-      {
-        for( unsigned i = offset; i < ni - offset; i++ )
-        {
-          const PixType& val = grey( i, j );
-          const PixType& avg1 = smoothed( i - offset, j );
-          const PixType& avg2 = smoothed( i + offset, j );
+        diff1 = ( val > avg1 ? val - avg1 : avg1 - val );
+        diff2 = ( val > avg2 ? val - avg2 : avg2 - val );
 
-          diff1 = ( val > avg1 ? val - avg1 : avg1 - val );
-          diff2 = ( val > avg2 ? val - avg2 : avg2 - val );
-
-          output( i, j ) = std::min( diff1, diff2 );
-        }
+        output( i, j ) = std::min( diff1, diff2 );
       }
     }
   }
