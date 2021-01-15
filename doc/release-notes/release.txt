@@ -31,6 +31,10 @@ Arrows: Ceres
 
 Arrows: Core
 
+ * Remove some unnecessary computation in initialize_camera_landmarks_keyframe
+   by adding checks to detect earlier when computations that cannot achieve
+   their desired result due to insufficient data.
+
  * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
    principal point was not initialized from the image size unless there
    was also metadata useful for determining focal length.  Distortion
