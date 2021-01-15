@@ -63,6 +63,7 @@
 #include <iterator>
 #include <memory>
 #include <map>
+#include <cctype>
 
 // =======================================================================================
 // Class storing all input parameters and private variables for tool
