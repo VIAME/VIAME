@@ -80,6 +80,10 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
 endif()
 
+if( VIAME_CREATE_PACKAGE AND UNIX )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "backports.lzma" "backports.weakref" )
+endif()
+
 # ---------------------- ADD ANY ADV PYTHON DEPS HERE --------------------------
 # Advanced python dependencies are installed individually due to special reqs
 

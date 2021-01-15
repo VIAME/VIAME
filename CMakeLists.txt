@@ -176,7 +176,7 @@ mark_as_advanced( VIAME_ENABLE_VIAME_PLUGINS )
 # Add external package build instructions
 ##
 option( VIAME_BUILD_DEPENDENCIES    "Build all required dependencies in a super-build" ON )
-option( VIAME_CREATE_PACKAGE        "Build a binary package at the end of build"       OFF )
+option( VIAME_CREATE_PACKAGE        "Build a release package at the end of build"      OFF )
 mark_as_advanced( VIAME_CREATE_PACKAGE )
 
 ###
