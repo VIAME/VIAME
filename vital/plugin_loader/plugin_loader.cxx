@@ -11,10 +11,11 @@
 #include <vital/util/demangle.h>
 #include <vital/util/string.h>
 
-#include <sstream>
-
-#include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
+#include <kwiversys/DynamicLoader.hxx>
+#include <kwiversys/SystemTools.hxx>
+
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
