@@ -31,7 +31,7 @@ but select entries are also listed below broken down by individual functionality
 [Calibration and Image Enhancement](examples/image_enhancement) <>
 [Image Registration and Mosaicing](examples/image_registration)  <>
 [Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <>
-[Pipelining (KWIVER) Overview](https://github.com/Kitware/kwiver) <>
+[KWIVER Pipelining Overview](https://github.com/Kitware/kwiver) <>
 [Core Class and Pipelining Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <>
 [Web Interface](https://github.com/VIAME/VIAME-Web) <>
 [How to Integrate Your Own Plugin](examples/hello_world_pipeline) <>
