@@ -32,7 +32,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#include <libavfilter/avfiltergraph.h>
+#include <libavfilter/avfilter.h>
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
 #include <libavutil/opt.h>
@@ -340,8 +340,8 @@ public:
     using AVFilterInOut_ptr = std::unique_ptr<AVFilterInOut*, decltype(deleter)>;
     char args[512];
     int ret = 0;
-    AVFilter *buffersrc = avfilter_get_by_name("buffer");
-    AVFilter *buffersink = avfilter_get_by_name("buffersink");
+    auto* const buffersrc = avfilter_get_by_name("buffer");
+    auto* const buffersink = avfilter_get_by_name("buffersink");
     AVFilterInOut_ptr outputs(new AVFilterInOut*[1], deleter);
     *outputs.get() = avfilter_inout_alloc();
     AVFilterInOut_ptr inputs(new AVFilterInOut*[1], deleter);
