@@ -68,6 +68,9 @@ public:
    */
   virtual T at( size_t index ) = 0;
   virtual T const at( size_t index ) const = 0;
+
+  T operator[]( size_t index ) { return this->at( index ); }
+  const T operator[]( size_t index ) const { return this->at( index ); }
   ///@}
 };
 
