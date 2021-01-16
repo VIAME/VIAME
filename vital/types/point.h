@@ -69,8 +69,8 @@ public:
     m_covariance = v;
   }
 
-  T& operator[]( int i ) { return m_value[i]; }
-  const T& operator[]( int i ) const { return m_value[i]; }
+  T operator[]( size_t i ) { return m_value[i]; }
+  const T operator[]( size_t i ) const { return m_value[i]; }
 
 protected:
   vector_type m_value = vector_type::Zero();
