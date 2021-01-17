@@ -34,7 +34,8 @@ endif()
 
 # Move any misinstalled python files
 if( PYTHON_VERSION )
-  set( OUTPUT_PYTHON_DIR "${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages/" )
+  set( ROOT_PYTHON_DIR "${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}" )
+  set( OUTPUT_PYTHON_DIR "${ROOT_PYTHON_DIR}/site-packages/" )
 
   if( EXISTS ${VIAME_BUILD_INSTALL_PREFIX}/lib/site-packages )
     set( DIR_TO_MOVE "${VIAME_BUILD_INSTALL_PREFIX}/lib/site-packages" )
@@ -53,6 +54,29 @@ if( PYTHON_VERSION )
   if( NOT WIN32 AND VIAME_ENABLE_OPENCV )
     set( PATCH_DIR ${VIAME_CMAKE_DIR}/../packages/patches/fletch )
     file( COPY ${PATCH_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
+  endif()
+
+  if( UNIX AND VIAME_CREATE_PACKAGE )
+    set( LZMA_FILE "${ROOT_PYTHON_DIR}/lzma.py" )
+
+    set( SEARCH_CODE1
+      "from _lzma import *" )
+    set( SEARCH_CODE2
+      "from _lzma import _encode_filter_properties, _decode_filter_properties" )
+    set( REPL_CODE
+      "try:\n"
+      "    from  _lzma import *\n"
+      "    from  _lzma import _encode_filter_properties, _decode_filter_properties\n"
+      "except ImportError:\n"
+      "    from  backports.lzma import *\n"
+      "    from  backports.lzma import _encode_filter_properties, _decode_filter_properties\n" )
+
+    if( EXISTS ${LZMA_FILE} )
+      file( READ LZMA_FILE LZMA_FILE_DATA )
+      string( REPLACE SEARCH_CODE1 REPL_CODE "${LZMA_FILE_DATA}" ADJ_FILE_DATA )
+      string( REPLACE SEARCH_CODE2 "" "${ADJ_FILE_DATA}" LZMA_FILE_DATA )
+      file( WRITE LZMA_FILE "${LZMA_FILE_DATA}")
+    endif()
   endif()
 endif()
 
