@@ -60,22 +60,22 @@ if( PYTHON_VERSION )
     set( LZMA_FILE "${ROOT_PYTHON_DIR}/lzma.py" )
 
     set( SEARCH_CODE1
-      "from _lzma import *" )
+"from _lzma import *" )
     set( SEARCH_CODE2
-      "from _lzma import _encode_filter_properties, _decode_filter_properties" )
+"from _lzma import _encode_filter_properties, _decode_filter_properties" )
     set( REPL_CODE
-      "try:\n"
-      "    from  _lzma import *\n"
-      "    from  _lzma import _encode_filter_properties, _decode_filter_properties\n"
-      "except ImportError:\n"
-      "    from  backports.lzma import *\n"
-      "    from  backports.lzma import _encode_filter_properties, _decode_filter_properties\n" )
+"try:\n \
+    from  _lzma import *\n \
+    from  _lzma import _encode_filter_properties, _decode_filter_properties\n \
+except ImportError:\n \
+    from  backports.lzma import *\n \
+    from  backports.lzma import _encode_filter_properties, _decode_filter_properties\n" )
 
     if( EXISTS ${LZMA_FILE} )
       file( READ "${LZMA_FILE}" LZMA_FILE_DATA )
-      string( REPLACE SEARCH_CODE1 REPL_CODE "${LZMA_FILE_DATA}" ADJ_FILE_DATA )
-      string( REPLACE SEARCH_CODE2 "" "${ADJ_FILE_DATA}" LZMA_FILE_DATA )
-      file( WRITE LZMA_FILE "${LZMA_FILE_DATA}")
+      string( REPLACE "${SEARCH_CODE1}" "${REPL_CODE}" ADJ_FILE_DATA "${LZMA_FILE_DATA}" )
+      string( REPLACE "${SEARCH_CODE2}" "" LZMA_FILE_DATA "${ADJ_FILE_DATA}" )
+      file( WRITE "${LZMA_FILE}" "${LZMA_FILE_DATA}")
     endif()
   endif()
 endif()
