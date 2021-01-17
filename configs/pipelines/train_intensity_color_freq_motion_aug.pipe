@@ -39,7 +39,7 @@ process color_freq_filter
   block filter:vxl_color_commonality
     :color_resolution_per_channel              16
     :internsity_hist_resolution                32
-    :output_scale                              512
+    :output_scale                              256
   endblock
 
 connect from ensure_grey.image
@@ -51,7 +51,7 @@ process motion_filter
 
   block filter:vxl_average
     :type                                      window
-    :window_size                               10
+    :window_size                               8
     :round                                     false
     :output_variance                           true
   endblock
@@ -65,7 +65,7 @@ process float_to_byte
 
   block filter:vxl_convert_image
     :format                                    byte
-    :scale_factor                              0.50
+    :scale_factor                              0.25
   endblock
 
 connect from motion_filter.image
