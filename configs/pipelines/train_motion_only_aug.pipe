@@ -2,7 +2,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-   :capacity                                   10
+  :capacity                                    10
 
 # ==============================================================================
 process in_adapt
@@ -20,7 +20,7 @@ connect from in_adapt.input_file_name
 
 # ==============================================================================
 
-process ensure_grey
+process rgb_to_grey
   :: image_filter
   :filter:type                                 vxl_convert_image
 
@@ -30,20 +30,7 @@ process ensure_grey
   endblock
 
 connect from image_reader.image
-        to   ensure_grey.image
-
-process color_freq_filter
-  :: image_filter
-  :filter:type                                 vxl_color_commonality
-
-  block filter:vxl_color_commonality
-    :color_resolution_per_channel              16
-    :internsity_hist_resolution                32
-    :output_scale                              512
-  endblock
-
-connect from ensure_grey.image
-        to   color_freq_filter.image
+        to   rgb_to_grey.image
 
 process motion_filter
   :: image_filter
@@ -56,7 +43,7 @@ process motion_filter
     :output_variance                           true
   endblock
 
-connect from ensure_grey.image
+connect from rgb_to_grey.image
         to   motion_filter.image
 
 process float_to_byte
@@ -65,7 +52,7 @@ process float_to_byte
 
   block filter:vxl_convert_image
     :format                                    byte
-    :scale_factor                              0.50
+    :scale_factor                              0.01
   endblock
 
 connect from motion_filter.image
@@ -73,27 +60,14 @@ connect from motion_filter.image
 
 # ==============================================================================
 
-process image_merger
-  :: merge_images
-  :merge_images:type                           ocv
-
-connect from ensure_grey.image
-        to   image_merger.image1
-connect from color_freq_filter.image
-        to   image_merger.image2
-connect from float_to_byte.image
-        to   image_merger.image3
-
-# ==============================================================================
-
 process image_writer
  :: image_writer
  :image_writer:type                             vxl
  :image_writer:vxl:split_channels               false
-
+ 
 connect from in_adapt.output_file_name
         to   image_writer.image_file_name
-connect from image_merger.image
+connect from float_to_byte.image
         to   image_writer.image
 
 connect from image_writer.success_flag
