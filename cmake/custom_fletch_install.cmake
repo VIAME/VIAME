@@ -64,11 +64,11 @@ if( PYTHON_VERSION )
     set( SEARCH_CODE2
 "from _lzma import _encode_filter_properties, _decode_filter_properties" )
     set( REPL_CODE
-"try:\n \
-    from  _lzma import *\n \
-    from  _lzma import _encode_filter_properties, _decode_filter_properties\n \
-except ImportError:\n \
-    from  backports.lzma import *\n \
+"try:\n\
+    from  _lzma import *\n\
+    from  _lzma import _encode_filter_properties, _decode_filter_properties\n\
+except ImportError:\n\
+    from  backports.lzma import *\n\
     from  backports.lzma import _encode_filter_properties, _decode_filter_properties\n" )
 
     if( EXISTS ${LZMA_FILE} )
