@@ -73,16 +73,23 @@ connect from motion_filter.image
 
 # ==============================================================================
 
-process image_merger
+process image_merger1
   :: merge_images
   :merge_images:type                           ocv
 
 connect from ensure_grey.image
-        to   image_merger.image1
+        to   image_merger1.image1
 connect from color_freq_filter.image
-        to   image_merger.image2
+        to   image_merger1.image2
+
+process image_merger2
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from image_merger1.image
+        to   image_merger2.image1
 connect from float_to_byte.image
-        to   image_merger.image3
+        to   image_merger2.image2
 
 # ==============================================================================
 
@@ -93,7 +100,7 @@ process image_writer
 
 connect from in_adapt.output_file_name
         to   image_writer.image_file_name
-connect from image_merger.image
+connect from image_merger2.image
         to   image_writer.image
 
 connect from image_writer.success_flag
