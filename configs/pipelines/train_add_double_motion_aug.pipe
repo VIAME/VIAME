@@ -90,9 +90,9 @@ process image_merger1
   :: merge_images
   :merge_images:type                           ocv
 
-connect from rgb_to_grey.image
-        to   image_merger1.image1
 connect from float_to_byte1.image
+        to   image_merger1.image1
+connect from rgb_to_grey.image
         to   image_merger1.image2
 
 process image_merger2
