@@ -186,7 +186,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
                   CUDA_VERSION VERSION_EQUAL "10.0" OR CUDA_VERSION VERSION_EQUAL "9.2" ) )
       message( FATAL_ERROR "With your current build settings you must either:\n"
         " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL\n"
-        " (b) Use a CUDA version with premade torch (e.g. 9.2, 10.0, or 10.1)\n"
+        " (b) Use a CUDA version with premade torch (e.g. 9.2, 10.0, 10.1, 11.0)\n"
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
   endif()
