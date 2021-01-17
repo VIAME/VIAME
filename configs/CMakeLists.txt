@@ -252,6 +252,7 @@ set( CORE_PIPELINE_FILES
   pipelines/tracker_stabilized_iou.pipe
   pipelines/tracker_svm_models.pipe
   pipelines/train_add_color_freq_aug.pipe
+  pipelines/train_add_double_motion_aug.pipe
   pipelines/train_add_motion_aug.pipe
   pipelines/train_add_motion_and_color_freq_aug.pipe
   pipelines/train_enhance_and_add_motion_aug.pipe
