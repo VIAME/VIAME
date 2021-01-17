@@ -72,7 +72,7 @@ if( PYTHON_VERSION )
       "    from  backports.lzma import _encode_filter_properties, _decode_filter_properties\n" )
 
     if( EXISTS ${LZMA_FILE} )
-      file( READ LZMA_FILE LZMA_FILE_DATA )
+      file( READ "${LZMA_FILE}" LZMA_FILE_DATA )
       string( REPLACE SEARCH_CODE1 REPL_CODE "${LZMA_FILE_DATA}" ADJ_FILE_DATA )
       string( REPLACE SEARCH_CODE2 "" "${ADJ_FILE_DATA}" LZMA_FILE_DATA )
       file( WRITE LZMA_FILE "${LZMA_FILE_DATA}")
