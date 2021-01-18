@@ -22,10 +22,12 @@ namespace ka = kwiver::arrows;
 
 kv::path_t g_data_dir;
 static std::string test_image_name = "images/small_grey_logo.png";
+static std::string test_color_image_name = "images/small_color_logo.png";
 static std::string expected_box = "images/box.png";
 static std::string expected_box_wide = "images/box_wide.png";
 static std::string expected_bidir = "images/bidir.png";
 static std::string expected_bidir_wide = "images/bidir_wide.png";
+static std::string expected_bidir_color = "images/bidir_color.png";
 
 // ----------------------------------------------------------------------------
 int
@@ -44,6 +46,26 @@ class high_pass_filter : public ::testing::Test
 {
   TEST_ARG( data_dir );
 };
+
+// ----------------------------------------------------------------------------
+TEST_F(high_pass_filter, color)
+{
+  ka::vxl::image_io io;
+
+  std::string filename = data_dir + "/" + test_color_image_name;
+  auto const& image_ptr = io.load( filename );
+
+  ka::vxl::high_pass_filter filter;
+  auto config = kv::config_block::empty_config();
+  config->set_value( "mode", "bidir" );
+  filter.set_configuration( config );
+
+  auto const filtered_image_ptr = filter.filter( image_ptr );
+  kv::path_t expected = data_dir + "/" + expected_bidir_color;
+  auto const& expected_image_ptr = io.load( expected );
+  EXPECT_TRUE( equal_content( filtered_image_ptr->get_image(),
+                              expected_image_ptr->get_image() ) );
+}
 
 // ----------------------------------------------------------------------------
 TEST_F(high_pass_filter, box)
