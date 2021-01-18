@@ -55,7 +55,7 @@ and programs, but if just building your desired features from source (e.g. for e
 they are much smaller.
 
 **Installation Requirements:** <br>
-Windows 7, 8, or 10 64-Bit, RHEL/CentOS 7/8 64-Bit, or Ubuntu 20.04/18.04/16.04 64-Bit <br>
+Windows 7, 8, or 10 64-Bit, RHEL/CentOS 7/8 64-Bit, or Ubuntu 16.04/18.04/20.04 64-Bit <br>
 6 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
