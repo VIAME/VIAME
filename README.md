@@ -55,7 +55,7 @@ and programs, but if just building your desired features from source (e.g. for e
 they are much smaller.
 
 **Installation Requirements:** <br>
-RHEL/CentOS 7 64-Bit, Ubuntu 16.04/18.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
+Windows 7, 8, or 10 64-Bit, RHEL/CentOS 7/8 64-Bit, or Ubuntu 20.04/18.04/16.04 64-Bit <br>
 6 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
@@ -78,16 +78,16 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [VIAME v0.13.0 Windows 7\*/8/10, CPU Only, Mirror2 (.zip)](https://drive.google.com/file/d/1U121nMixU2kDY5pk33IMKGmMCBgyU0d4/view?usp=sharing)
 
 **Ubuntu Desktop Binaries:** <br>
-[VIAME v0.13.0 Ubuntu 18.04, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/6001afd62fa25629b9eb37f8/download) <br>
-[VIAME v0.13.0 Ubuntu 18.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1lRoBbSGdv3FHzTMBfuSGlyvzDyrCFc6b/view?usp=sharing) <br>
+[VIAME v0.13.0 Ubuntu 18.04/20.04, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/6001afd62fa25629b9eb37f8/download) <br>
+[VIAME v0.13.0 Ubuntu 18.04/20.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1lRoBbSGdv3FHzTMBfuSGlyvzDyrCFc6b/view?usp=sharing) <br>
 [VIAME v0.12.0 Ubuntu 16.04, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/5f9f751350a41e3d19276a29/download) <br>
 [VIAME v0.12.0 Ubuntu 16.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1e9bWPJvwHKCJxsI8DoiVciTiEDlpBSAR/view?usp=sharing)
 
 **CentOS or Other Linux Desktop Binaries:** <br>
-[VIAME v0.13.0 RHEL/CentOS 7/8, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/6005c8ff2fa25629b9f98550/download) <br>
-[VIAME v0.13.0 RHEL/CentOS 7/8, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1WaPvW9NFtdPEcZtC0sw6IHwW78UlpIjM/view?usp=sharing) <br>
-[VIAME v0.13.0 Generic Linux, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/6005c8ff2fa25629b9f98550/download) <br>
-[VIAME v0.13.0 Generic Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1WaPvW9NFtdPEcZtC0sw6IHwW78UlpIjM/view?usp=sharing)
+[VIAME v0.13.0 RHEL/CentOS 7/8, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/600602462fa25629b9fa0862/download) <br>
+[VIAME v0.13.0 RHEL/CentOS 7/8, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1qEcJHIT02cqXG6oCVQHl6EwuBGOCHAhA/view?usp=sharing) <br>
+[VIAME v0.13.0 Generic Linux, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/600602462fa25629b9fa0862/download) <br>
+[VIAME v0.13.0 Generic Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1qEcJHIT02cqXG6oCVQHl6EwuBGOCHAhA/view?usp=sharing)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
