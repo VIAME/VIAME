@@ -28,6 +28,7 @@
 #include <string>
 
 using namespace kwiver::vital;
+using ST = kwiversys::SystemTools;
 
 namespace kwiver {
 namespace arrows {
@@ -142,17 +143,18 @@ convert_image_helper(const vil_image_view<bool>& src,
   dest = src;
 }
 
-
 std::string
-plane_filename(std::string filename, unsigned p)
+plane_filename(const std::string filename, unsigned p)
 {
   std::string parent_directory =
     kwiversys::SystemTools::GetParentDirectory(filename);
   std::string file_name_with_ext =
     kwiversys::SystemTools::GetFilenameName(filename);
 
-  std::string file_name_no_ext = kwiversys::SystemTools::GetFilenameWithoutLastExtension( file_name_with_ext );
-  std::string file_extension = kwiversys::SystemTools::GetFilenameLastExtension( file_name_with_ext );
+  std::string file_name_no_ext =
+    kwiversys::SystemTools::GetFilenameWithoutLastExtension( file_name_with_ext );
+  std::string file_extension =
+    kwiversys::SystemTools::GetFilenameLastExtension( file_name_with_ext );
 
   std::vector<std::string> full_path;
   std::string plane_id = ( p > 0 ? "_" + std::to_string(p) : "" );
@@ -181,6 +183,28 @@ save_image(const vil_image_view<inP>& src,
   }
 }
 
+// Create a list of filenames representing the non-initial plane files
+std::vector< std::string >
+construct_plane_filenames( std::string const& filename )
+{
+  std::vector< std::string > plane_files;
+
+  for( size_t p = 1;; p++ )
+  {
+    std::string plane_file = plane_filename( filename, p );
+
+    if( ST::FileExists( plane_file ) )
+    {
+      plane_files.push_back( plane_file );
+    }
+    else
+    {
+      break;
+    }
+  }
+  return plane_files;
+}
+
 // Helper function to load images when they are saved out in above format
 template< typename Type >
 vil_image_view< Type >
@@ -189,31 +213,23 @@ load_external_planes(const std::string& filename,
 {
   std::vector< vil_image_view< Type > > images( 1, first_plane );
 
-  unsigned p = 1;
-  unsigned total_p = first_plane.nplanes();
+  size_t p = 1;
+  size_t total_p = first_plane.nplanes();
 
-  while( true )
+  auto const plane_filenames = construct_plane_filenames( filename );
+
+  for( auto const& plane_file : plane_filenames )
   {
-    std::string plane_file = plane_filename( filename, p );
+    vil_image_view< Type > plane = vil_load( plane_file.c_str() );
 
-    if( kwiversys::SystemTools::FileExists( plane_file ) )
+    if( plane.ni() != first_plane.ni() || plane.nj() != first_plane.nj() )
     {
-      vil_image_view< Type > plane = vil_load( plane_file.c_str() );
-
-      if( plane.ni() != first_plane.ni() || plane.nj() != first_plane.nj() )
-      {
-        VITAL_THROW( vital::image_type_mismatch_exception, "Input channel size difference" );
-      }
-
-      images.push_back( plane );
-      total_p += plane.nplanes();
-
-      p++;
+      VITAL_THROW( vital::image_type_mismatch_exception, "Input channel size difference" );
     }
-    else
-    {
-      break;
-    }
+
+    images.push_back( plane );
+    total_p += plane.nplanes();
+    p++;
   }
 
   vil_image_view< Type > output( first_plane.ni(), first_plane.nj(), total_p );
@@ -551,6 +567,19 @@ image_io
   auto md = std::make_shared<kwiver::vital::metadata>();
   md->add< kwiver::vital::VITAL_META_IMAGE_URI >( filename );
   return md;
+}
+
+// ----------------------------------------------------------------------------
+std::vector< std::string >
+image_io
+::plane_filenames( std::string const& filename ) const
+{
+  std::vector< std::string > output{ filename };
+  std::vector< std::string > additional_plane_filenames = construct_plane_filenames( filename );
+  output.insert( output.end(),
+                 additional_plane_filenames.begin(),
+                 additional_plane_filenames.end() );
+  return output;
 }
 
 } // end namespace vxl
