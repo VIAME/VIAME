@@ -543,7 +543,7 @@ darknet_detector::priv
 
     detection* dets = get_network_boxes(
       &m_net,
-      1, 1,             /* i: w, h */
+      m_net.w, m_net.h, /* i: w, h */
       m_thresh,         /* i: caller supplied threshold */
       m_hier_thresh,    /* i: tree thresh, relative */
       0,                /* i: map */
