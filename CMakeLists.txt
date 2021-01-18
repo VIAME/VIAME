@@ -290,6 +290,11 @@ if( VIAME_ENABLE_CUDA )
     message( FATAL_ERROR "Caffe does not support CUDA 10 or above" )
   endif()
 
+  if( CUDA_VERSION_MAJOR GREATER_EQUAL 11 )
+    message( FATAL_ERROR "CUDA 11 is not fully tested and likely has compiler errors, \
+      though will be supported soon. If feeling adventurous you can disable this error." )
+  endif()
+
   if( NOT CUDA_VERSION_PATCH )
     if( CUDA_NVCC_EXECUTABLE AND
         CUDA_NVCC_EXECUTABLE STREQUAL CMAKE_CUDA_COMPILER AND
