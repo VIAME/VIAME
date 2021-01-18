@@ -7,6 +7,7 @@
 #include <arrows/vxl/image_container.h>
 #include <vital/util/enum_converter.h>
 
+#include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
 #include <vil/vil_plane.h>
@@ -62,8 +63,8 @@ public:
     vil_image_view< PixType > filter_y = vil_plane( output, 1 );
     vil_image_view< PixType > filter_xy = vil_plane( output, 2 );
 
-    box_average_vertical( grey_img, filter_x, kernel_height );
-    box_average_horizontal( grey_img, filter_y, kernel_width );
+    box_average_horizontal( grey_img, filter_x, kernel_width );
+    box_average_vertical( grey_img, filter_y, kernel_height );
 
     // apply horizontal smoothing to the vertically smoothed image to get a 2D
     // box filter
@@ -368,7 +369,8 @@ high_pass_filter
 
   config->set_value( "mode", mode_converter().to_string(
                        d->mode ),
-                     "Operating mode of this filter, possible values: box, bidir" );
+                     "Operating mode of this filter, possible values: " +
+                     mode_converter().element_name_string() );
   config->set_value( "kernel_width", d->kernel_width,
                      "Pixel width of smoothing kernel" );
   config->set_value( "kernel_height", d->kernel_height,
@@ -436,6 +438,17 @@ high_pass_filter
 {
   vil_image_view_base_sptr view =
     vxl::image_container::vital_to_vxl( image_data->get_image() );
+
+  if( view->nplanes() == 3 )
+  {
+    view = vil_convert_to_grey_using_average( view );
+  }
+  else if( view->nplanes() != 1)
+  {
+    LOG_ERROR( logger(), "Expected 1 or 3 channels but recieved "
+               << view->nplanes() );
+    return kwiver::vital::image_container_sptr();
+  }
 
 #define HANDLE_CASE( T )                                                 \
   case T:                                                                \
