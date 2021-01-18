@@ -286,15 +286,6 @@ if( VIAME_ENABLE_CUDA )
     set( CUDA_cublas_device_LIBRARY CACHE INTERNAL "${CUDA_cublas_LIBRARY}" )
   endif()
 
-  if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND VIAME_ENABLE_CAFFE )
-    message( FATAL_ERROR "Caffe does not support CUDA 10 or above" )
-  endif()
-
-  if( CUDA_VERSION_MAJOR GREATER_EQUAL 11 )
-    message( FATAL_ERROR "CUDA 11 is not fully tested and likely has compiler errors, \
-      though will be supported soon. If feeling adventurous you can disable this error." )
-  endif()
-
   if( NOT CUDA_VERSION_PATCH )
     if( CUDA_NVCC_EXECUTABLE AND
         CUDA_NVCC_EXECUTABLE STREQUAL CMAKE_CUDA_COMPILER AND
@@ -306,6 +297,11 @@ if( VIAME_ENABLE_CUDA )
         set( CUDA_VERSION_PATCH "${CMAKE_MATCH_3}" )
       endif()
     endif()
+  endif()
+
+  if( CUDA_VERSION_MAJOR GREATER_EQUAL "11" )
+    message( FATAL_ERROR "CUDA 11 is not fully tested and likely has compiler errors, \
+      though will be supported soon. If feeling adventurous you can disable this error." )
   endif()
 
   if( CUDA_VERSION VERSION_EQUAL "10.1" AND CUDA_VERSION_PATCH EQUAL "168" )
