@@ -6,19 +6,20 @@
 
 #include <arrows/vxl/image_container.h>
 
-#include <vil/vil_fill.h>
-#include <vil/vil_image_view.h>
-#include <vil/vil_crop.h>
-#include <vil/algo/vil_gauss_filter.h>
 #include <vgl/vgl_box_2d.h>
 #include <vgl/vgl_intersection.h>
+#include <vil/algo/vil_gauss_filter.h>
+#include <vil/vil_crop.h>
+#include <vil/vil_fill.h>
+#include <vil/vil_image_view.h>
 
 #include <limits>
 #include <type_traits>
 
-
 namespace kwiver {
+
 namespace arrows {
+
 namespace vxl {
 
 namespace {
@@ -44,51 +45,55 @@ struct color_commonality_filter_settings
   // can (a) prevent having to reallocate it over and over again, and
   // (b) allow the user to use it as a by-product of the main operation.
   // If set to NULL, will use an internal histogram buffer.
-  std::vector<unsigned>* histogram;
+  std::vector< unsigned >* histogram;
 
   // Default constructor
   color_commonality_filter_settings()
-    : resolution_per_channel(8),
-      output_scale_factor(0),
-      grid_image(false),
-      grid_resolution_height(5),
-      grid_resolution_width(6),
-      histogram(NULL)
+    : resolution_per_channel( 8 ),
+      output_scale_factor( 0 ),
+      grid_image( false ),
+      grid_resolution_height( 5 ),
+      grid_resolution_width( 6 ),
+      histogram( NULL )
   {}
 };
 
 // Simple helper functions
-inline bool is_power_of_two( const unsigned num )
+inline bool
+is_power_of_two( const unsigned num )
 {
-  return ( (num > 0) && ((num & (num - 1)) == 0) );
+  return ( ( num > 0 ) && ( ( num & ( num - 1 ) ) == 0 ) );
 }
 
-inline unsigned int integer_log2( unsigned int value )
+inline unsigned int
+integer_log2( unsigned int value )
 {
   unsigned int l = 0;
-  while( (value >> l) > 1 ) ++l;
+  while( ( value >> l ) > 1 ) { ++l; }
   return l;
 }
 
 // Intersect a region with some image boundaries
-template< typename PixType >
-void check_region_boundaries( vgl_box_2d< int >& bbox,
-  const vil_image_view< PixType >& img )
+template < typename PixType >
+void
+check_region_boundaries( vgl_box_2d< int >& bbox,
+                         const vil_image_view< PixType >& img )
 {
-  vgl_box_2d<int> boundaries( 0, img.ni(), 0, img.nj() );
+  vgl_box_2d< int > boundaries( 0, img.ni(), 0, img.nj() );
   bbox = vgl_intersection( boundaries, bbox );
 }
 
 // Point an image view to a rectangular region in the image
-template< typename PixType, typename BoxType >
-void point_view_to_region( const vil_image_view< PixType >& src,
-                           const vgl_box_2d< BoxType >& region,
-                           vil_image_view< PixType >& dst )
+template < typename PixType, typename BoxType >
+void
+point_view_to_region( const vil_image_view< PixType >& src,
+                      const vgl_box_2d< BoxType >& region,
+                      vil_image_view< PixType >& dst )
 {
   // Early exit case, no crop required
   if( region.min_x() == 0 && region.min_y() == 0 &&
-      region.max_x() == static_cast<BoxType>( src.ni() ) &&
-      region.max_y() == static_cast<BoxType>( src.nj() ) )
+      region.max_x() == static_cast< BoxType >( src.ni() ) &&
+      region.max_y() == static_cast< BoxType >( src.nj() ) )
   {
     dst = src;
     return;
@@ -113,9 +118,10 @@ void point_view_to_region( const vil_image_view< PixType >& src,
 }
 
 // Alternative call for the above
-template< typename PixType, typename BoxType >
-vil_image_view< PixType > point_view_to_region( const vil_image_view< PixType >& src,
-                                                const vgl_box_2d< BoxType >& region )
+template < typename PixType, typename BoxType >
+vil_image_view< PixType >
+point_view_to_region( const vil_image_view< PixType >& src,
+                      const vgl_box_2d< BoxType >& region )
 {
   vil_image_view< PixType > output;
   point_view_to_region( src, region, output );
@@ -126,11 +132,12 @@ vil_image_view< PixType > point_view_to_region( const vil_image_view< PixType >&
 // a n^p dimensional histogram from integer image 'input' given the
 // resolution of each channel of the histogram, and a bitshift value
 // which maps each value to its channel step for the histogram
-template< class InputType >
-void populate_image_histogram( const vil_image_view<InputType>& input,
-                               unsigned *hist_top_left,
-                               const unsigned bitshift,
-                               const std::ptrdiff_t *hist_steps )
+template < class InputType >
+void
+populate_image_histogram( const vil_image_view< InputType >& input,
+                          unsigned* hist_top_left,
+                          const unsigned bitshift,
+                          const std::ptrdiff_t* hist_steps )
 {
   // Get image properties
   const unsigned ni = input.ni();
@@ -142,28 +149,29 @@ void populate_image_histogram( const vil_image_view<InputType>& input,
 
   // Filter image
   const InputType* row = input.top_left_ptr();
-  for( unsigned j=0; j<nj; ++j, row+=jstep )
+  for( unsigned j = 0; j < nj; ++j, row += jstep )
   {
     const InputType* pixel = row;
-    for( unsigned i=0; i<ni; ++i, pixel+=istep )
+    for( unsigned i = 0; i < ni; ++i, pixel += istep )
     {
       unsigned step = 0;
       const InputType* plane = pixel;
-      for( unsigned p=0; p<np; ++p, plane+=pstep )
+      for( unsigned p = 0; p < np; ++p, plane += pstep )
       {
-        step += hist_steps[p] * ( *plane >> bitshift );
+        step += hist_steps[ p ] * ( *plane >> bitshift );
       }
-      (*(hist_top_left + step))++;
+      ++( *( hist_top_left + step ) );
     }
   }
 }
 
 // Integer-typed filtering main loop
-template< class InputType, class OutputType >
-typename std::enable_if<std::is_integral<OutputType>::value>::type
-filter_color_image( const vil_image_view<InputType>& input,
-                    vil_image_view<OutputType>& output,
-                    std::vector<unsigned>& histogram,
+template < class InputType, class OutputType >
+typename std::enable_if< std::is_integral< OutputType >::value >::type
+
+filter_color_image( const vil_image_view< InputType >& input,
+                    vil_image_view< OutputType >& output,
+                    std::vector< unsigned >& histogram,
                     const color_commonality_filter_settings& options )
 {
   assert( input.ni() == output.ni() && input.nj() == output.nj() );
@@ -174,10 +182,12 @@ filter_color_image( const vil_image_view<InputType>& input,
     return;
   }
 
-  // Configure output scaling settings based on the output type and user settings
-  const InputType input_type_max = std::numeric_limits<InputType>::max();
-  const OutputType output_type_max = std::numeric_limits<OutputType>::max();
-  const unsigned histogram_threshold = static_cast<unsigned>( output_type_max );
+  // Configure output scaling settings based on the output type and user
+  // settings
+  const InputType input_type_max = std::numeric_limits< InputType >::max();
+  const OutputType output_type_max = std::numeric_limits< OutputType >::max();
+  const unsigned histogram_threshold =
+    static_cast< unsigned >( output_type_max );
   unsigned histogram_scale_factor = options.output_scale_factor;
 
   // Use type default options if no scale factor specified
@@ -188,32 +198,36 @@ filter_color_image( const vil_image_view<InputType>& input,
 
   // Populate histogram steps for each channel of the hist
   std::vector< std::ptrdiff_t > histsteps( input.nplanes() );
-  histsteps[0] = 1;
-  for( unsigned p = 1; p < input.nplanes(); p++ )
+  histsteps[ 0 ] = 1;
+
+  for( unsigned p = 1; p < input.nplanes(); ++p )
   {
-    histsteps[p] = histsteps[p-1] * options.resolution_per_channel;
+    histsteps[ p ] = histsteps[ p - 1 ] * options.resolution_per_channel;
   }
 
   // Fill in histogram of the input image
-  const unsigned bitshift = integer_log2( (static_cast<unsigned>(input_type_max)+1)
-                                          / options.resolution_per_channel );
+  const unsigned bitshift =
+    integer_log2( ( static_cast< unsigned >( input_type_max ) + 1 ) /
+                  options.resolution_per_channel );
 
-  unsigned* hist_top_left = &histogram[0];
+  unsigned* hist_top_left = &histogram[ 0 ];
 
-  populate_image_histogram( input, hist_top_left, bitshift, &histsteps[0] );
+  populate_image_histogram( input, hist_top_left, bitshift, &histsteps[ 0 ] );
 
   // Normalize histogram to the output types range
   unsigned sum = 0;
-  for( unsigned i = 0; i < histogram.size(); i++ )
+
+  for( unsigned i = 0; i < histogram.size(); ++i )
   {
-    sum += histogram[i];
+    sum += histogram[ i ];
   }
 
   // Fill in color commonality image from the compiled histogram
-  for( unsigned i = 0; i < histogram.size(); i++ )
+  for( unsigned i = 0; i < histogram.size(); ++i )
   {
-    unsigned value = ( histogram_scale_factor * histogram[i] ) / sum;
-    histogram[i] = ( value > histogram_threshold ? histogram_threshold : value );
+    unsigned value = ( histogram_scale_factor * histogram[ i ] ) / sum;
+    histogram[ i ] =
+      ( value > histogram_threshold ? histogram_threshold : value );
   }
 
   const unsigned ni = input.ni();
@@ -224,28 +238,29 @@ filter_color_image( const vil_image_view<InputType>& input,
   const std::ptrdiff_t pstep = input.planestep();
 
   const InputType* row = input.top_left_ptr();
-  for( unsigned j=0; j<nj; ++j,row+=jstep )
+  for( unsigned j = 0; j < nj; ++j, row += jstep )
   {
     const InputType* pixel = row;
-    for( unsigned i=0; i<ni; ++i, pixel+=istep )
+    for( unsigned i = 0; i < ni; ++i, pixel += istep )
     {
       const InputType* plane = pixel;
       unsigned step = 0;
-      for( unsigned p=0; p<np; ++p,plane+=pstep )
+      for( unsigned p = 0; p < np; ++p, plane += pstep )
       {
-        step += histsteps[p] * ( *plane >> bitshift );
+        step += histsteps[ p ] * ( *plane >> bitshift );
       }
-      output(i,j) = *(hist_top_left+step);
+      output( i, j ) = *( hist_top_left + step );
     }
   }
 }
 
 // Float-typed output filtering main loop
-template< class InputType, class OutputType >
-typename std::enable_if<!std::is_integral<OutputType>::value>::type
-filter_color_image( const vil_image_view<InputType>& input,
-                    vil_image_view<OutputType>& output,
-                    std::vector<unsigned>& histogram,
+template < class InputType, class OutputType >
+typename std::enable_if< !std::is_integral< OutputType >::value >::type
+
+filter_color_image( const vil_image_view< InputType >& input,
+                    vil_image_view< OutputType >& output,
+                    std::vector< unsigned >& histogram,
                     const color_commonality_filter_settings& options )
 {
   assert( input.ni() == output.ni() && input.nj() == output.nj() );
@@ -256,37 +271,41 @@ filter_color_image( const vil_image_view<InputType>& input,
     return;
   }
 
-  // Configure output scaling settings based on the output type and user settings
-  const InputType input_type_max = std::numeric_limits<InputType>::max();
+  // Configure output scaling settings based on the output type and user
+  // settings
+  const InputType input_type_max = std::numeric_limits< InputType >::max();
 
   // Populate histogram steps for each channel of the hist
   std::vector< std::ptrdiff_t > histsteps( input.nplanes() );
-  histsteps[0] = 1;
-  for( unsigned p = 1; p < input.nplanes(); p++ )
+  histsteps[ 0 ] = 1;
+
+  for( unsigned p = 1; p < input.nplanes(); ++p )
   {
-    histsteps[p] = histsteps[p-1] * options.resolution_per_channel;
+    histsteps[ p ] = histsteps[ p - 1 ] * options.resolution_per_channel;
   }
 
   // Fill in histogram of the input image
-  const unsigned bitshift = integer_log2( (static_cast<unsigned>(input_type_max)+1)
-                                          / options.resolution_per_channel );
+  const unsigned bitshift =
+    integer_log2( ( static_cast< unsigned >( input_type_max ) + 1 ) /
+                  options.resolution_per_channel );
 
-  unsigned* hist_top_left = &histogram[0];
+  unsigned* hist_top_left = &histogram[ 0 ];
 
-  populate_image_histogram( input, hist_top_left, bitshift, &histsteps[0] );
+  populate_image_histogram( input, hist_top_left, bitshift, &histsteps[ 0 ] );
 
   // Normalize histogram to the output types range
   unsigned sum = 0;
-  for( unsigned i=0; i<histogram.size(); i++ )
+
+  for( unsigned i = 0; i < histogram.size(); ++i )
   {
-    sum += histogram[i];
+    sum += histogram[ i ];
   }
 
   // Use type default options if no scale factor specified
   OutputType scale_factor = 1.0;
   if( options.output_scale_factor != 0 )
   {
-    scale_factor = static_cast<OutputType>( options.output_scale_factor );
+    scale_factor = static_cast< OutputType >( options.output_scale_factor );
   }
   scale_factor = scale_factor / sum;
 
@@ -299,18 +318,19 @@ filter_color_image( const vil_image_view<InputType>& input,
   const std::ptrdiff_t pstep = input.planestep();
 
   const InputType* row = input.top_left_ptr();
-  for (unsigned j=0;j<nj;++j,row+=jstep)
+  for( unsigned j = 0; j < nj; ++j, row += jstep )
   {
     const InputType* pixel = row;
-    for (unsigned i=0;i<ni;++i,pixel+=istep)
+
+    for( unsigned i = 0; i < ni; ++i, pixel += istep )
     {
       const InputType* plane = pixel;
       unsigned step = 0;
-      for (unsigned p=0;p<np;++p,plane+=pstep)
+      for( unsigned p = 0; p < np; ++p, plane += pstep )
       {
-        step += histsteps[p] * (*plane >> bitshift);
+        step += histsteps[ p ] * ( *plane >> bitshift );
       }
-      output(i,j) = scale_factor * (*(hist_top_left+step));
+      output( i, j ) = scale_factor * ( *( hist_top_left + step ) );
     }
   }
 }
@@ -323,12 +343,13 @@ filter_color_image( const vil_image_view<InputType>& input,
 /// Functions by first building a histogram of the input image, then,
 /// for each pixel, looking up the value in the histogram and scaling
 /// this value by a given factor.
-template< class InputType, class OutputType >
-void perform_filtering( const vil_image_view<InputType>& input,
-                        vil_image_view<OutputType>& output,
-                        const color_commonality_filter_settings& options )
+template < class InputType, class OutputType >
+void
+perform_filtering( const vil_image_view< InputType >& input,
+                   vil_image_view< OutputType >& output,
+                   const color_commonality_filter_settings& options )
 {
-  assert( std::numeric_limits<InputType>::is_integer );
+  assert( std::numeric_limits< InputType >::is_integer );
   assert( is_power_of_two( options.resolution_per_channel ) );
 
   // Set output image size
@@ -344,28 +365,29 @@ void perform_filtering( const vil_image_view<InputType>& input,
     unsigned ni = input.ni();
     unsigned nj = input.nj();
 
-    for( unsigned j = 0; j < options.grid_resolution_height; j++ )
+    for( unsigned j = 0; j < options.grid_resolution_height; ++j )
     {
-      for( unsigned i = 0; i < options.grid_resolution_width; i++ )
+      for( unsigned i = 0; i < options.grid_resolution_width; ++i )
       {
         // Top left point for region
         int ti = ( i * ni ) / options.grid_resolution_width;
         int tj = ( j * nj ) / options.grid_resolution_height;
 
         // Bottom right
-        int bi = ( (i+1) * ni ) / options.grid_resolution_width;
-        int bj = ( (j+1) * nj ) / options.grid_resolution_height;
+        int bi = ( ( i + 1 ) * ni ) / options.grid_resolution_width;
+        int bj = ( ( j + 1 ) * nj ) / options.grid_resolution_height;
 
         // Formulate rect region
-        vgl_box_2d<int> region( ti, bi, tj, bj );
+        vgl_box_2d< int > region( ti, bi, tj, bj );
 
-        vil_image_view<InputType> region_data_ptr =
+        vil_image_view< InputType > region_data_ptr =
           point_view_to_region( input, region );
-        vil_image_view<OutputType> output_data_ptr =
+        vil_image_view< OutputType > output_data_ptr =
           point_view_to_region( output, region );
 
         // Process rect region independent of one another
-        perform_filtering( region_data_ptr, output_data_ptr, recursive_options );
+        perform_filtering( region_data_ptr, output_data_ptr,
+                           recursive_options );
       }
     }
 
@@ -385,11 +407,11 @@ void perform_filtering( const vil_image_view<InputType>& input,
 
   bool use_external_hist = ( options.histogram != NULL );
 
-  std::vector<unsigned>* histogram = options.histogram;
+  std::vector< unsigned >* histogram = options.histogram;
 
   if( !use_external_hist )
   {
-    histogram = new std::vector<unsigned>(hist_size);
+    histogram = new std::vector< unsigned >( hist_size );
   }
 
   histogram->resize( hist_size );
@@ -414,10 +436,10 @@ class color_commonality_filter::priv
 public:
 
   priv()
-   : color_resolution( 512 )
-   , color_resolution_per_chan( 8 )
-   , intensity_resolution( 16 )
-   , smooth_image( false )
+    : color_resolution( 512 )
+      , color_resolution_per_chan( 8 )
+      , intensity_resolution( 16 )
+      , smooth_image( false )
   {
   }
 
@@ -432,14 +454,14 @@ public:
   unsigned intensity_resolution;
   bool smooth_image;
 
-  std::vector<unsigned> color_histogram;
-  std::vector<unsigned> intensity_histogram;
+  std::vector< unsigned > color_histogram;
+  std::vector< unsigned > intensity_histogram;
 };
 
 // ----------------------------------------------------------------------------
 color_commonality_filter
 ::color_commonality_filter()
-: d( new priv() )
+  : d( new priv() )
 {
   attach_logger( "arrows.vxl.color_commonality_filter" );
 }
@@ -458,25 +480,28 @@ color_commonality_filter
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
-  config->set_value( "color_resolution_per_channel", d->color_resolution_per_chan,
-    "Resolution of the utilized histogram (per channel) if the input "
-    "contains 3 channels." );
+  config->set_value( "color_resolution_per_channel",
+                     d->color_resolution_per_chan,
+                     "Resolution of the utilized histogram (per channel) if the input "
+                     "contains 3 channels." );
   config->set_value( "intensity_resolution", d->intensity_resolution,
-    "Resolution of the utilized histogram if the input "
-    "contains 1 channel." );
+                     "Resolution of the utilized histogram if the input "
+                     "contains 1 channel." );
   config->set_value( "output_scale", d->settings.output_scale_factor,
-     "Scale the output image (typically, values start in the range [0,1]) "
-     "by this amount. Enter 0 for type-specific default." );
+                     "Scale the output image (typically, values start in the range [0,1]) "
+                     "by this amount. Enter 0 for type-specific default." );
   config->set_value( "smooth_image",  d->smooth_image,
-    "Should we smooth the input image before filtering?" );
+                     "Should we smooth the input image before filtering?" );
   config->set_value( "grid_image", d->settings.grid_image,
-    "Instead of calculating which colors are more common "
-    "in the entire image, should we do it for smaller evenly "
-    "spaced regions?" );
-  config->set_value( "grid_resolution_height", d->settings.grid_resolution_height,
-    "Divide the height of the image into x regions, if enabled." );
-  config->set_value( "grid_resolution_width", d->settings.grid_resolution_width,
-    "Divide the width of the image into x regions, if enabled." );
+                     "Instead of calculating which colors are more common "
+                     "in the entire image, should we do it for smaller evenly "
+                     "spaced regions?" );
+  config->set_value( "grid_resolution_height",
+                     d->settings.grid_resolution_height,
+                     "Divide the height of the image into x regions, if enabled." );
+  config->set_value( "grid_resolution_width",
+                     d->settings.grid_resolution_width,
+                     "Divide the width of the image into x regions, if enabled." );
 
   return config;
 }
@@ -486,30 +511,32 @@ void
 color_commonality_filter
 ::set_configuration( vital::config_block_sptr in_config )
 {
-  // Starting with our generated vital::config_block to ensure that assumed values
-  // are present. An alternative is to check for key presence before performing a
+  // Starting with our generated vital::config_block to ensure that assumed
+  // values
+  // are present. An alternative is to check for key presence before performing
+  // a
   // get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
   // Settings for ccf
   d->color_resolution_per_chan =
-    config->get_value<unsigned>( "color_resolution_per_channel" );
+    config->get_value< unsigned >( "color_resolution_per_channel" );
   d->intensity_resolution =
-    config->get_value<unsigned>( "intensity_resolution" );
+    config->get_value< unsigned >( "intensity_resolution" );
   d->smooth_image =
-    config->get_value<bool>("smooth_image");
+    config->get_value< bool >( "smooth_image" );
   d->settings.output_scale_factor =
-    config->get_value<unsigned>("output_scale");
+    config->get_value< unsigned >( "output_scale" );
   d->settings.grid_image =
-    config->get_value<bool>( "grid_image" );
+    config->get_value< bool >( "grid_image" );
 
   if( d->settings.grid_image )
   {
     d->settings.grid_resolution_width =
-      config->get_value<unsigned>( "grid_resolution_width" );
+      config->get_value< unsigned >( "grid_resolution_width" );
     d->settings.grid_resolution_height =
-      config->get_value<unsigned>( "grid_resolution_height" );
+      config->get_value< unsigned >( "grid_resolution_height" );
   }
 
   d->color_resolution = d->color_resolution_per_chan *
@@ -555,50 +582,50 @@ color_commonality_filter
     vxl::image_container::vital_to_vxl( image_data->get_image() );
 
   // Perform different actions based on input type
-#define HANDLE_CASE(T)                                                 \
-  case T:                                                              \
-    {                                                                  \
-      typedef vil_pixel_format_type_of<T >::component_type pix_t;      \
-      vil_image_view< pix_t > input = view;                            \
-                                                                       \
-      if( d->smooth_image )                                            \
-      {                                                                \
-        vil_image_view< pix_t > smoothed;                              \
-        vil_gauss_filter_2d( input, smoothed, 0.5, 2 );                \
-        input = smoothed;                                              \
-      }                                                                \
-      if( input.nplanes() == 1 )                                       \
-      {                                                                \
-        vil_image_view< pix_t > output;                                \
-        d->settings.resolution_per_channel = d->intensity_resolution;  \
-        d->settings.histogram = &d->intensity_histogram;               \
-        perform_filtering( input, output, d->settings );               \
-        return std::make_shared< vxl::image_container >( output );     \
-      }                                                                \
-      else                                                             \
-      {                                                                \
-        vil_image_view< pix_t > output;                                \
-        d->settings.resolution_per_channel = d->color_resolution_per_chan; \
-        d->settings.histogram = &d->color_histogram;                   \
-        perform_filtering( input, output, d->settings );               \
-        return std::make_shared< vxl::image_container >( output );     \
-      }                                                                \
-    }                                                                  \
-    break;                                                             \
+#define HANDLE_CASE( T )                                             \
+  case T:                                                            \
+  {                                                                  \
+    typedef vil_pixel_format_type_of< T >::component_type pix_t;     \
+    vil_image_view< pix_t > input = view;                            \
+                                                                     \
+    if( d->smooth_image )                                            \
+    {                                                                \
+      vil_image_view< pix_t > smoothed;                              \
+      vil_gauss_filter_2d( input, smoothed, 0.5, 2 );                \
+      input = smoothed;                                              \
+    }                                                                \
+    if( input.nplanes() == 1 )                                       \
+    {                                                                \
+      vil_image_view< pix_t > output;                                \
+      d->settings.resolution_per_channel = d->intensity_resolution;  \
+      d->settings.histogram = &d->intensity_histogram;               \
+      perform_filtering( input, output, d->settings );               \
+      return std::make_shared< vxl::image_container >( output );     \
+    }                                                                \
+    else                                                             \
+    {                                                                \
+      vil_image_view< pix_t > output;                                \
+      d->settings.resolution_per_channel = d->color_resolution_per_chan; \
+      d->settings.histogram = &d->color_histogram;                   \
+      perform_filtering( input, output, d->settings );               \
+      return std::make_shared< vxl::image_container >( output );     \
+    }                                                                \
+    break;                                                           \
+  }                                                                  \
 
   switch( view->pixel_format() )
   {
-    HANDLE_CASE(VIL_PIXEL_FORMAT_BOOL);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_BYTE);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_SBYTE);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_UINT_16);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_UINT_32);
-    HANDLE_CASE(VIL_PIXEL_FORMAT_UINT_64);
+    HANDLE_CASE( VIL_PIXEL_FORMAT_BOOL );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_BYTE );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_SBYTE );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_32 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_64 );
 #undef HANDLE_CASE
 
-  default:
-    LOG_ERROR( logger(), "Invalid type received" );
-    return image_data;
+    default:
+      LOG_ERROR( logger(), "Invalid type received" );
+      return image_data;
   }
 
   // Code not reached, prevent warning
@@ -606,5 +633,7 @@ color_commonality_filter
 }
 
 } // end namespace vxl
+
 } // end namespace arrows
+
 } // end namespace kwiver

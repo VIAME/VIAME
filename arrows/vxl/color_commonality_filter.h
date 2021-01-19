@@ -10,7 +10,9 @@
 #include <vital/algo/image_filter.h>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace vxl {
 
 /**
@@ -20,18 +22,17 @@ namespace vxl {
  * to how frequent the pixel's color is in the entire image.
  */
 class KWIVER_ALGO_VXL_EXPORT color_commonality_filter
-  : public vital::algorithm_impl< color_commonality_filter,
-      vital::algo::image_filter >
+  : public vital::algo::image_filter
 {
 public:
-
   PLUGIN_INFO( "vxl_color_commonality",
                "Filter image based on color frequency or commonality." )
 
   color_commonality_filter();
   virtual ~color_commonality_filter();
 
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::config_block configuration block
+  /// \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration( vital::config_block_sptr config );
@@ -43,11 +44,15 @@ public:
     kwiver::vital::image_container_sptr image_data );
 
 private:
-
   class priv;
-  const std::unique_ptr<priv> d;
+
+  const std::unique_ptr< priv > d;
 };
 
-} } }
+} // namespace vxl
 
-#endif /* KWIVER_ARROWS_VXL_COLOR_COMMONALITY_FILTER_ */
+} // namespace arrows
+
+} // namespace kwiver
+
+#endif
