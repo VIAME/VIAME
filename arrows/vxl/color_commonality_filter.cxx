@@ -447,6 +447,10 @@ public:
   {
   }
 
+  template < typename pix_t >
+  kwiver::vital::image_container_sptr
+  compute_commonality( vil_image_view< pix_t >& input );
+
   color_commonality_filter_settings settings;
 
   unsigned color_resolution;
@@ -457,6 +461,35 @@ public:
   std::vector< unsigned > color_histogram;
   std::vector< unsigned > intensity_histogram;
 };
+
+template < typename pix_t >
+kwiver::vital::image_container_sptr
+color_commonality_filter::priv
+::compute_commonality( vil_image_view< pix_t >& input )
+{
+  if( smooth_image )
+  {
+    vil_image_view< pix_t > smoothed;
+    vil_gauss_filter_2d( input, smoothed, 0.5, 2 );
+    input = smoothed;
+  }
+  if( input.nplanes() == 1 )
+  {
+    vil_image_view< pix_t > output;
+    settings.resolution_per_channel = intensity_resolution;
+    settings.histogram = &intensity_histogram;
+    perform_filtering( input, output, settings );
+    return std::make_shared< vxl::image_container >( output );
+  }
+  else
+  {
+    vil_image_view< pix_t > output;
+    settings.resolution_per_channel = color_resolution_per_chan;
+    settings.histogram = &color_histogram;
+    perform_filtering( input, output, settings );
+    return std::make_shared< vxl::image_container >( output );
+  }
+}
 
 // ----------------------------------------------------------------------------
 color_commonality_filter
@@ -587,30 +620,7 @@ color_commonality_filter
   {                                                                  \
     typedef vil_pixel_format_type_of< T >::component_type pix_t;     \
     vil_image_view< pix_t > input = view;                            \
-                                                                     \
-    if( d->smooth_image )                                            \
-    {                                                                \
-      vil_image_view< pix_t > smoothed;                              \
-      vil_gauss_filter_2d( input, smoothed, 0.5, 2 );                \
-      input = smoothed;                                              \
-    }                                                                \
-    if( input.nplanes() == 1 )                                       \
-    {                                                                \
-      vil_image_view< pix_t > output;                                \
-      d->settings.resolution_per_channel = d->intensity_resolution;  \
-      d->settings.histogram = &d->intensity_histogram;               \
-      perform_filtering( input, output, d->settings );               \
-      return std::make_shared< vxl::image_container >( output );     \
-    }                                                                \
-    else                                                             \
-    {                                                                \
-      vil_image_view< pix_t > output;                                \
-      d->settings.resolution_per_channel = d->color_resolution_per_chan; \
-      d->settings.histogram = &d->color_histogram;                   \
-      perform_filtering( input, output, d->settings );               \
-      return std::make_shared< vxl::image_container >( output );     \
-    }                                                                \
-    break;                                                           \
+    return d->compute_commonality( input );                          \
   }                                                                  \
 
   switch( view->pixel_format() )
