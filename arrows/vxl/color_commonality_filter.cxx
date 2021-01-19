@@ -601,13 +601,13 @@ color_commonality_filter
   // Perform Basic Validation
   if( !image_data )
   {
-    return image_data;
+    return kwiver::vital::image_container_sptr();
   }
 
   if( image_data->depth() != 1 && image_data->depth() != 3 )
   {
     LOG_ERROR( logger(), "Invalid number of input planes!" );
-    return image_data;
+    return kwiver::vital::image_container_sptr();
   }
 
   // Get input image
