@@ -80,8 +80,8 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 **Ubuntu Desktop Binaries:** <br>
 [VIAME v0.13.0 Ubuntu 18.04/20.04, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/6001afd62fa25629b9eb37f8/download) <br>
 [VIAME v0.13.0 Ubuntu 18.04/20.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1lRoBbSGdv3FHzTMBfuSGlyvzDyrCFc6b/view?usp=sharing) <br>
-[VIAME v0.12.0 Ubuntu 16.04, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/5f9f751350a41e3d19276a29/download) <br>
-[VIAME v0.12.0 Ubuntu 16.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1e9bWPJvwHKCJxsI8DoiVciTiEDlpBSAR/view?usp=sharing)
+[VIAME v0.13.0 Ubuntu 16.04, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/600630842fa25629b9fa627a/download) <br>
+[VIAME v0.13.0 Ubuntu 16.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1GZmkLA68e1I8JOPsLngTOg4qMEwtczfZ/view?usp=sharing)
 
 **CentOS or Other Linux Desktop Binaries:** <br>
 [VIAME v0.13.0 RHEL/CentOS 7/8, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/600602462fa25629b9fa0862/download) <br>
