@@ -1,3 +1,11 @@
+v0.13.1 - 1/22/2020
+===================
+
+
+-Update darknet wrapper to allow for non-square input perspective fields
+
+
+
 v0.13.0 - 1/15/2020
 ===================
 
