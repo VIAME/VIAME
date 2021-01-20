@@ -154,17 +154,10 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # Mixed pipelines and models provided by add-on packages
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
-    if( WIN32 )
-      DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/5f6bb7e850a41e3d19a63047/download
-        ffa7c8b775f7a8dc651a16ce3a78e606
-        ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5-Win.zip )
-    else()
-      DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/5fc92e3250a41e3d19828ffc/download
-        1e856a1fd2a74b1a35c910d6b6559c4a
-        ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5-Linux.zip )
-    endif()
+    DownloadAndInstallAddOn(
+      https://data.kitware.com/api/v1/item/6008b8c32fa25629b9021973/download
+      ffa7c8b775f7a8dc651a16ce3a78e606
+      ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.5.zip )
   endif()
 
   # Transformation Models
