@@ -56,23 +56,25 @@ TEST_F(image_io, save_plane)
   auto image_ptr = std::make_shared< ka::vxl::image_container >( image );
 
   // Configure to split channels
-  ka::vxl::image_io writer;
+  ka::vxl::image_io io;
   auto config = kv::config_block::empty_config();
   config->set_value( "split_channels", true );
-  writer.set_configuration( config );
+  io.set_configuration( config );
 
   auto const& output_filename =
     kwiver::testing::temp_file_name( "image_io_save_plane-", ".png" );
 
-  std::cout << output_filename << std::endl;
+  io.save( output_filename, image_ptr );
 
-  writer.save( output_filename, image_ptr );
+  auto const reread_image_ptr = io.load( output_filename );
 
-  const auto saved_filenames = writer.plane_filenames( output_filename );
+  EXPECT_TRUE( equal_content( image_ptr->get_image(),
+                              reread_image_ptr->get_image() ) );
+
+  const auto saved_filenames = io.plane_filenames( output_filename );
 
   for( auto const& saved_filename : saved_filenames )
   {
-    std::cout << saved_filename << std::endl;
     if( !ST::RemoveFile( saved_filename ) )
     {
       std::cerr << "Failed to remove output vxl plane image" << std::endl;
@@ -83,13 +85,17 @@ TEST_F(image_io, save_plane)
 // ----------------------------------------------------------------------------
 TEST_F(image_io, load_plane)
 {
-  std::string filename = data_dir + "/" + test_plane_image_name;
+  std::string color_filename = data_dir + "/" + test_color_image_name;
+  std::string plane_filename = data_dir + "/" + test_plane_image_name;
 
   ka::vxl::image_io reader;
+  auto const color_image_ptr = reader.load( color_filename );
+
   auto config = kv::config_block::empty_config();
   config->set_value( "split_channels", true );
   reader.set_configuration( config );
 
-  auto const image_ptr = reader.load( filename );
-  ASSERT_NE( image_ptr, nullptr );
+  auto const plane_image_ptr = reader.load( plane_filename );
+  EXPECT_TRUE( equal_content( color_image_ptr->get_image(),
+                              plane_image_ptr->get_image() ) );
 }
