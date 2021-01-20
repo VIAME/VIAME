@@ -10,7 +10,9 @@
 #include <vital/algo/image_filter.h>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace vxl {
 
 /**
@@ -20,18 +22,17 @@ namespace vxl {
  * a byte image and vice versa.
  */
 class KWIVER_ALGO_VXL_EXPORT convert_image
-  : public vital::algorithm_impl< convert_image,
-      vital::algo::image_filter >
+  : public vital::algo::image_filter
 {
 public:
-
   PLUGIN_INFO( "vxl_convert_image",
                "Convert image between different formats or scales." )
 
   convert_image();
   virtual ~convert_image();
 
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::config_block configuration block
+  /// \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration( vital::config_block_sptr config );
@@ -43,11 +44,15 @@ public:
     kwiver::vital::image_container_sptr image_data );
 
 private:
-
   class priv;
-  const std::unique_ptr<priv> d;
+
+  const std::unique_ptr< priv > d;
 };
 
-} } }
+} // namespace vxl
+
+} // namespace arrows
+
+} // namespace kwiver
 
 #endif
