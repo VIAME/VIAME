@@ -25,10 +25,12 @@ namespace vxl {
 
 namespace {
 
-enum averager_mode {
+enum averager_mode
+{
   AVERAGER_cumulative,
   AVERAGER_window,
-  AVERAGER_exponential };
+  AVERAGER_exponential,
+};
 
 ENUM_CONVERTER( averager_converter, averager_mode,
   { "cumulative", AVERAGER_cumulative },
@@ -222,9 +224,11 @@ copy_cast_and_scale( const vil_image_view< inT >& input,
   if( scale_factor == 1.0 && !rounding_enabled )
   {
     vil_convert_cast( input, output );
+
     // Acording ot the documentation of vil_convert_cast, if the types are the
     // same, the output of vil_convert_cast may be a shallow copy
-    if( vil_pixel_format_of( inT() ) == vil_pixel_format_of( outT() ) ){
+    if( vil_pixel_format_of( inT() ) == vil_pixel_format_of( outT() ) )
+    {
       output.deep_copy( output );
     }
   }
@@ -248,7 +252,6 @@ copy_cast_and_scale( const vil_image_view< inT >& input,
 // Cumulative averager
 template < typename PixType >
 cumulative_frame_averager< PixType >
-
 ::cumulative_frame_averager( const bool should_round )
 {
   this->should_round_ = should_round;
@@ -307,7 +310,6 @@ cumulative_frame_averager< PixType >
 // Exponential averager
 template < typename PixType >
 exponential_frame_averager< PixType >
-
 ::exponential_frame_averager( const bool should_round,
                               const double new_frame_weight )
 {
@@ -362,7 +364,6 @@ exponential_frame_averager< PixType >
 // Windowed averager
 template < typename PixType >
 windowed_frame_averager< PixType >
-
 ::windowed_frame_averager( const bool should_round,
                            const unsigned window_length )
 {
@@ -423,6 +424,7 @@ windowed_frame_averager< PixType >
     double*        planeC = imC->top_left_ptr();
 
     for( unsigned p = 0; p < np;
+
          ++p, planeA += pstepA, planeB += pstepB, planeC += pstepC )
     {
       const PixType* rowA = planeA;
@@ -430,6 +432,7 @@ windowed_frame_averager< PixType >
       double*        rowC = planeC;
 
       for( unsigned j = 0; j < nj;
+
            ++j, rowA += jstepA, rowB += jstepB, rowC += jstepC )
       {
         const PixType* pixelA = rowA;
@@ -558,13 +561,15 @@ public:
       {
         if( exp_weight <= 0 || exp_weight >= 1 )
         {
-          throw std::runtime_error( "Invalid exponential averaging coefficient!" );
+          throw std::runtime_error(
+                  "Invalid exponential averaging coefficient!" );
         }
 
         if( is_byte )
         {
           byte_averager.reset(
-              new exponential_frame_averager< vxl_byte >( round, exp_weight ) );
+              new exponential_frame_averager< vxl_byte >( round,
+                                                          exp_weight ) );
         }
         else
         {
@@ -625,8 +630,8 @@ average_frames
   vital::config_block_sptr config = algorithm::get_configuration();
 
   config->set_value( "type", averager_converter().to_string( d->type ),
-                     "Operating mode of this filter, possible values: "
-                     + averager_converter().element_name_string() );
+                     "Operating mode of this filter, possible values: " +
+                     averager_converter().element_name_string() );
   config->set_value( "window_size", d->window_size,
                      "The window size if computing a windowed moving average." );
   config->set_value( "exp_weight", d->exp_weight,
