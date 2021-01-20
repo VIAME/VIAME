@@ -69,6 +69,7 @@
 #include <arrows/ocv/match_features_flannbased.h>
 #include <arrows/ocv/merge_images.h>
 #include <arrows/ocv/hough_circle_detector.h>
+#include <arrows/ocv/refine_detections_grabcut.h>
 #include <arrows/ocv/refine_detections_write_to_disk.h>
 #include <arrows/ocv/split_image_channels.h>
 #include <arrows/ocv/split_image_horizontally.h>
@@ -174,6 +175,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   reg.register_algorithm< detect_heat_map >();
 
+  reg.register_algorithm< refine_detections_grabcut >();
   reg.register_algorithm< refine_detections_write_to_disk >();
   reg.register_algorithm< split_image_channels >();
   reg.register_algorithm< split_image_horizontally >();
