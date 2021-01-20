@@ -6,6 +6,8 @@
 
 #include <arrows/vxl/image_container.h>
 
+#include <vital/util/enum_converter.h>
+
 #include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
@@ -22,6 +24,16 @@ namespace arrows {
 namespace vxl {
 
 namespace {
+
+enum averager_mode {
+  AVERAGER_cumulative,
+  AVERAGER_window,
+  AVERAGER_exponential };
+
+ENUM_CONVERTER( averager_converter, averager_mode,
+  { "cumulative", AVERAGER_cumulative },
+  { "window", AVERAGER_window },
+  { "exponential", AVERAGER_exponential } );
 
 /// Base class for all online frame averagers instances
 template < typename PixType >
@@ -478,7 +490,7 @@ public:
     frame_averager_float_sptr;
 
   priv()
-    : type( "window" )
+    : type( AVERAGER_window )
       , window_size( 10 )
       , exp_weight( 0.3 )
       , round( false )
@@ -492,7 +504,7 @@ public:
   }
 
   // Internal parameters/settings
-  std::string type;
+  averager_mode type;
   unsigned window_size;
   double exp_weight;
   bool round;
@@ -512,53 +524,59 @@ public:
       return;
     }
 
-    if( type == "window" )
+    switch( type )
     {
-      if( is_byte )
+      case AVERAGER_window:
       {
-        byte_averager.reset(
-            new windowed_frame_averager< vxl_byte >( round, window_size ) );
+        if( is_byte )
+        {
+          byte_averager.reset(
+              new windowed_frame_averager< vxl_byte >( round, window_size ) );
+        }
+        else
+        {
+          float_averager.reset(
+              new windowed_frame_averager< double >( round, window_size ) );
+        }
+        break;
       }
-      else
+      case AVERAGER_cumulative:
       {
-        float_averager.reset(
-            new windowed_frame_averager< double >( round, window_size ) );
+        if( is_byte )
+        {
+          byte_averager.reset(
+              new cumulative_frame_averager< vxl_byte >( round ) );
+        }
+        else
+        {
+          float_averager.reset(
+              new cumulative_frame_averager< double >( round ) );
+        }
+        break;
       }
-    }
-    else if( type == "cumulative" )
-    {
-      if( is_byte )
+      case AVERAGER_exponential:
       {
-        byte_averager.reset(
-            new cumulative_frame_averager< vxl_byte >( round ) );
-      }
-      else
-      {
-        float_averager.reset(
-            new cumulative_frame_averager< double >( round ) );
-      }
-    }
-    else if( type == "exponential" )
-    {
-      if( exp_weight <= 0 || exp_weight >= 1 )
-      {
-        throw std::runtime_error( "Invalid exponential averaging coefficient!" );
-      }
+        if( exp_weight <= 0 || exp_weight >= 1 )
+        {
+          throw std::runtime_error( "Invalid exponential averaging coefficient!" );
+        }
 
-      if( is_byte )
-      {
-        byte_averager.reset(
-            new exponential_frame_averager< vxl_byte >( round, exp_weight ) );
+        if( is_byte )
+        {
+          byte_averager.reset(
+              new exponential_frame_averager< vxl_byte >( round, exp_weight ) );
+        }
+        else
+        {
+          float_averager.reset(
+              new exponential_frame_averager< double >( round, exp_weight ) );
+        }
+        break;
       }
-      else
+      default:
       {
-        float_averager.reset(
-            new exponential_frame_averager< double >( round, exp_weight ) );
+        throw std::runtime_error( "Invalid averaging type!" );
       }
-    }
-    else
-    {
-      throw std::runtime_error( "Invalid averaging type!" );
     }
   }
 
@@ -606,9 +624,9 @@ average_frames
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
-  config->set_value( "type", d->type,
-                     "Operating mode of this filter, possible values: cumulative, window, "
-                     "or exponential." );
+  config->set_value( "type", averager_converter().to_string( d->type ),
+                     "Operating mode of this filter, possible values: "
+                     + averager_converter().element_name_string() );
   config->set_value( "window_size", d->window_size,
                      "The window size if computing a windowed moving average." );
   config->set_value( "exp_weight", d->exp_weight,
@@ -634,7 +652,7 @@ average_frames
   config->merge_config( in_config );
 
   // Settings for averaging
-  d->type = config->get_value< std::string >( "type" );
+  d->type = config->get_enum_value< averager_converter >( "type" );
   d->window_size = config->get_value< unsigned >( "window_size" );
   d->exp_weight = config->get_value< double >( "exp_weight" );
   d->round = config->get_value< bool >( "round" );
@@ -646,14 +664,14 @@ bool
 average_frames
 ::check_configuration( vital::config_block_sptr config ) const
 {
-  std::string type = config->get_value< std::string >( "type" );
-  if( !( type == "cumulative" ||
-         type == "window" ||
-         type == "exponential" ) )
+  auto const& type = config->get_enum_value< averager_converter >( "type" );
+  if( !( type == AVERAGER_cumulative ||
+         type == AVERAGER_window ||
+         type == AVERAGER_exponential ) )
   {
     return false;
   }
-  else if( type == "exponential" )
+  else if( type == AVERAGER_exponential )
   {
     double exp_weight = config->get_value< double >( "exp_weight" );
     if( exp_weight <= 0 || exp_weight > 1 )
