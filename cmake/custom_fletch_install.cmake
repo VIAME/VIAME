@@ -56,7 +56,7 @@ if( PYTHON_VERSION )
     file( COPY ${PATCH_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
   endif()
 
-  if( UNIX AND VIAME_CREATE_PACKAGE )
+  if( UNIX AND VIAME_ENABLE_PYTHON-INTERNAL )
     set( LZMA_FILE "${ROOT_PYTHON_DIR}/lzma.py" )
 
     set( SEARCH_CODE1
