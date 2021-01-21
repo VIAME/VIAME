@@ -27,51 +27,31 @@ namespace {
 // it by a scaling factor in addition to thresholding it in one operation.
 // Performs rounding.
 template < typename InType, typename OutType >
-void
+vil_image_view< OutType >
 scale_image( const vil_image_view< InType >& src,
-             vil_image_view< OutType >& dst,
              const double& dp_scale )
 {
-  // Resize, cast and copy
   unsigned ni = src.ni(), nj = src.nj(), np = src.nplanes();
-  dst.set_size( ni, nj, np );
-
-  std::ptrdiff_t sistep = src.istep(), sjstep = src.jstep(),
-                 spstep = src.planestep();
-  std::ptrdiff_t distep = dst.istep(), djstep = dst.jstep(),
-                 dpstep = dst.planestep();
+  vil_image_view< OutType > dst{ ni, nj, np };
 
   const OutType max_output_value = std::numeric_limits< OutType >::max();
 
   const InType max_input_value = static_cast< InType >(
     static_cast< double >( max_output_value ) / dp_scale );
 
-  const InType scale = static_cast< InType >( dp_scale );
-
-  const InType* splane = src.top_left_ptr();
-  OutType* dplane = dst.top_left_ptr();
-
-  for( unsigned p = 0; p < np; ++p, splane += spstep, dplane += dpstep )
-  {
-    const InType* srow = splane;
-    OutType* drow = dplane;
-    for( unsigned j = 0; j < nj; ++j, srow += sjstep, drow += djstep )
-    {
-      const InType* spixel = srow;
-      OutType* dpixel = drow;
-      for( unsigned i = 0; i < ni; ++i, spixel += sistep, dpixel += distep )
-      {
-        if( *spixel <= max_input_value )
-        {
-          *dpixel = static_cast< OutType >( *spixel * scale + 0.5 );
-        }
-        else
-        {
-          *dpixel = max_output_value;
-        }
-      }
-    }
-  }
+  vil_transform( src, dst,
+                 [ max_input_value, max_output_value, dp_scale ](
+                   InType pixel ){
+                   if( pixel <= max_input_value )
+                   {
+                     return static_cast< OutType >( pixel * dp_scale + 0.5 );
+                   }
+                   else
+                   {
+                     return max_output_value;
+                   }
+                 } );
+  return dst;
 }
 
 template < typename Type >
@@ -91,9 +71,8 @@ combine_channels( vil_image_view< Type > const& src,
 
 // Convert a fraction of images to grey
 template < typename Type >
-void
+vil_image_view< Type >
 random_grey_conversion( vil_image_view< Type > const& src,
-                        vil_image_view< Type >& dst,
                         double const random_factor )
 {
   if( static_cast< double >( rand() ) / RAND_MAX < random_factor )
@@ -101,25 +80,25 @@ random_grey_conversion( vil_image_view< Type > const& src,
     vil_image_view< Type > compressed;
     combine_channels( src, compressed );
 
-    dst.set_size( src.ni(), src.nj(), src.nplanes() );
+    vil_image_view< Type > dst{ src.ni(), src.nj(), src.nplanes() };
 
     for( unsigned p = 0; p < src.nplanes(); ++p )
     {
       vil_image_view< Type > output_plane = vil_plane( dst, p );
       vil_copy_reformat( compressed, output_plane );
     }
+    return dst;
   }
   else
   {
-    dst = src;
+    return src;
   }
 }
 
 // Calculate the values of our image percentiles from x sampling points
 template < typename PixType >
-void
+std::vector< PixType >
 sample_and_sort_image( const vil_image_view< PixType >& src,
-                       std::vector< PixType >& dst,
                        unsigned int sampling_points,
                        bool remove_extremes )
 {
@@ -128,9 +107,11 @@ sample_and_sort_image( const vil_image_view< PixType >& src,
     sampling_points = src.ni() * src.nj();
   }
 
+  std::vector< PixType > dst;
+
   if( sampling_points == 0 )
   {
-    return;
+    return dst;
   }
 
   const unsigned scanning_area = src.size();
@@ -180,6 +161,7 @@ sample_and_sort_image( const vil_image_view< PixType >& src,
       }
     }
   }
+  return dst;
 }
 
 // Estimate the pixel values at given percentiles using a subset of points
@@ -190,9 +172,8 @@ get_image_percentiles( const vil_image_view< PixType >& src,
                        unsigned sampling_points,
                        bool remove_extremes )
 {
-  std::vector< PixType > sorted_samples;
-  sample_and_sort_image( src, sorted_samples, sampling_points,
-                         remove_extremes );
+  std::vector< PixType > sorted_samples =
+    sample_and_sort_image( src, sampling_points, remove_extremes );
 
   std::vector< PixType > dst( percentiles.size() );
   double sampling_points_minus1 =
@@ -212,25 +193,6 @@ get_image_percentiles( const vil_image_view< PixType >& src,
   return dst;
 }
 
-template < typename PixType >
-void
-percentile_threshold_above( const vil_image_view< PixType >& src,
-                            const std::vector< double >& percentiles,
-                            vil_image_view< bool >& dst,
-                            unsigned sampling_points )
-{
-  // Calculate thresholds
-  std::vector< PixType > const thresholds = get_image_percentiles( src, percentiles, sampling_points );
-  dst.set_size( src.ni(), src.nj(), percentiles.size() );
-
-  // Perform thresholding
-  for( unsigned i = 0; i < thresholds.size(); i++ )
-  {
-    vil_image_view< bool > output_plane = vil_plane( dst, i );
-    vil_threshold_above( src, output_plane, thresholds[ i ] );
-  }
-}
-
 template < typename InputType, typename OutputType >
 void
 percentile_scale_image( const vil_image_view< InputType >& src,
@@ -243,8 +205,9 @@ percentile_scale_image( const vil_image_view< InputType >& src,
   percentiles[ 0 ] = lower;
   percentiles[ 1 ] = upper;
 
-  std::vector< InputType > percentile_values = get_image_percentiles( src, percentiles, sampling_points,
-                         ignore_extremes );
+  std::vector< InputType > percentile_values =
+    get_image_percentiles( src, percentiles, sampling_points,
+                           ignore_extremes );
 
   OutputType max_val = std::numeric_limits< OutputType >::max();
 
@@ -267,53 +230,24 @@ percentile_scale_image( const vil_image_view< InputType >& src,
   unsigned ni = src.ni(), nj = src.nj(), np = src.nplanes();
   dst.set_size( ni, nj, np );
 
-  std::ptrdiff_t istep = src.istep(), jstep = src.jstep(),
-                 pstep = src.planestep();
-
-  vil_transform(src, dst,
-  [ lower_bound, upper_bound, scale ]( InputType pixel )
-  {
-    if( pixel < lower_bound )
-    {
-      return static_cast< OutputType >( 0 );
-    }
-    else if( pixel > upper_bound )
-    {
-      return static_cast< OutputType >( std::numeric_limits< OutputType >::max() );
-    }
-    else
-    {
-      return static_cast< OutputType >( ( pixel - lower_bound ) * scale );
-    }
-  } // end of lambda expression
-  );
-
-  //const InputType* plane = src.top_left_ptr();
-  //for( unsigned p = 0; p < np; ++p, plane += pstep )
-  //{
-  //  const InputType* row = plane;
-  //  for( unsigned j = 0; j < nj; ++j, row += jstep )
-  //  {
-  //    const InputType* pixel = row;
-  //    for( unsigned i = 0; i < ni; ++i, pixel += istep )
-  //    {
-  //      if( *pixel < lower_bound )
-  //      {
-  //        dst( i, j, p ) = 0;
-  //      }
-  //      else if( *pixel > upper_bound )
-  //      {
-  //        dst( i, j, p ) = std::numeric_limits< OutputType >::max();
-  //      }
-  //      else
-  //      {
-  //        dst( i, j, p ) =
-  //          static_cast< OutputType >( ( *pixel - lower_bound ) *
-  //                                     scale );
-  //      }
-  //    }
-  //  }
-  //}
+  // Stretch image to upper and lower percentile bounds
+  vil_transform( src, dst,
+                 [ lower_bound, upper_bound, scale ]( InputType pixel ){
+                   if( pixel < lower_bound )
+                   {
+                     return static_cast< OutputType >( 0 );
+                   }
+                   else if( pixel > upper_bound )
+                   {
+                     return static_cast< OutputType >( std::numeric_limits< OutputType >
+                                                       ::max() );
+                   }
+                   else
+                   {
+                     return static_cast< OutputType >( ( pixel -
+                                                         lower_bound ) * scale );
+                   }
+                 } );
 }
 
 } // namespace <anonoymous>
@@ -323,6 +257,7 @@ percentile_scale_image( const vil_image_view< InputType >& src,
 class convert_image::priv
 {
 public:
+
   priv()
     : format( "byte" )
       , single_channel( false )
@@ -370,8 +305,10 @@ convert_image
                      "Convert input image to a 3-channel greyscale image randomly with this percentage "
                      "between 0.0 and 1.0. This is used for machine learning augmentation." );
   config->set_value( "percentile_norm", d->percentile_norm,
-                     "If set, perform percentile normalization such that the output image's min and max "
-                     "value correspond to this value to 1.0 minus this value percntile in the input image." );
+                     "If set, between [0, 0.5), perform percentile "
+                     "normalization such that the output image's min and max "
+                     "values correspond to the percentiles in the orignal "
+                     "image at this value and one minus this value, respectively." );
 
   return config;
 }
@@ -443,7 +380,7 @@ convert_image
     }                                                                       \
     else                                                                    \
     {                                                                       \
-      scale_image< ipix_t, opix_t >( input, output, d->scale_factor );      \
+      output = scale_image< ipix_t, opix_t >( input, d->scale_factor );     \
     }                                                                       \
                                                                             \
     return std::make_shared< vxl::image_container >( output );              \
@@ -464,7 +401,7 @@ convert_image
     if( d->random_greyscale > 0.0 )                               \
     {                                                             \
       vil_image_view< ipix_t > tmp = view;                        \
-      random_grey_conversion( tmp, input, d->random_greyscale );  \
+      input = random_grey_conversion( tmp, d->random_greyscale ); \
     }                                                             \
     else if( d->single_channel )                                  \
     {                                                             \
