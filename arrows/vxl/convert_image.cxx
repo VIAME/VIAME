@@ -182,29 +182,34 @@ sample_and_sort_image( const vil_image_view< PixType >& src,
   }
 }
 
+// Estimate the pixel values at given percentiles using a subset of points
 template < typename PixType >
-void
+std::vector< PixType >
 get_image_percentiles( const vil_image_view< PixType >& src,
                        const std::vector< double >& percentiles,
-                       std::vector< PixType >& dst,
                        unsigned sampling_points,
                        bool remove_extremes )
 {
   std::vector< PixType > sorted_samples;
   sample_and_sort_image( src, sorted_samples, sampling_points,
                          remove_extremes );
-  dst.resize( percentiles.size() );
 
-  double sampling_points_m1 =
+  std::vector< PixType > dst( percentiles.size() );
+  double sampling_points_minus1 =
     static_cast< double >( sorted_samples.size() - 1 );
 
   for( unsigned i = 0; i < percentiles.size(); i++ )
   {
+    // Find the index by multiplying the number of points by the percentile
+    // The number is adjusted by -1 to account for the fact that percentiles
+    // are the number which fall below a value. The +0.5 is to account for
+    // truncation by static cast.
     unsigned ind =
-      static_cast< unsigned >( sampling_points_m1 * percentiles[ i ] +
+      static_cast< unsigned >( sampling_points_minus1 * percentiles[ i ] +
                                0.5 );
     dst[ i ] = sorted_samples[ ind ];
   }
+  return dst;
 }
 
 template < typename PixType >
@@ -215,8 +220,7 @@ percentile_threshold_above( const vil_image_view< PixType >& src,
                             unsigned sampling_points )
 {
   // Calculate thresholds
-  std::vector< PixType > thresholds;
-  get_image_percentiles( src, percentiles, thresholds, sampling_points );
+  std::vector< PixType > const thresholds = get_image_percentiles( src, percentiles, sampling_points );
   dst.set_size( src.ni(), src.nj(), percentiles.size() );
 
   // Perform thresholding
@@ -239,22 +243,20 @@ percentile_scale_image( const vil_image_view< InputType >& src,
   percentiles[ 0 ] = lower;
   percentiles[ 1 ] = upper;
 
-  std::vector< InputType > per_values;
-
-  get_image_percentiles( src, percentiles, per_values, sampling_points,
+  std::vector< InputType > percentile_values = get_image_percentiles( src, percentiles, sampling_points,
                          ignore_extremes );
 
   OutputType max_val = std::numeric_limits< OutputType >::max();
 
-  InputType lower_bound = per_values[ 0 ];
-  InputType upper_bound = per_values[ 1 ];
+  InputType lower_bound = percentile_values[ 0 ];
+  InputType upper_bound = percentile_values[ 1 ];
 
   double scale;
 
-  if( per_values[ 1 ] - per_values[ 0 ] > 0 )
+  if( percentile_values[ 1 ] - percentile_values[ 0 ] > 0 )
   {
     scale = ( static_cast< double >( max_val ) + 0.5 ) /
-            ( per_values[ 1 ] - per_values[ 0 ] );
+            ( percentile_values[ 1 ] - percentile_values[ 0 ] );
   }
   else
   {
@@ -268,33 +270,50 @@ percentile_scale_image( const vil_image_view< InputType >& src,
   std::ptrdiff_t istep = src.istep(), jstep = src.jstep(),
                  pstep = src.planestep();
 
-  const InputType* plane = src.top_left_ptr();
-  for( unsigned p = 0; p < np; ++p, plane += pstep )
+  vil_transform(src, dst,
+  [ lower_bound, upper_bound, scale ]( InputType pixel )
   {
-    const InputType* row = plane;
-    for( unsigned j = 0; j < nj; ++j, row += jstep )
+    if( pixel < lower_bound )
     {
-      const InputType* pixel = row;
-      for( unsigned i = 0; i < ni; ++i, pixel += istep )
-      {
-        if( *pixel < lower_bound )
-        {
-          dst( i, j, p ) = 0;
-        }
-        else if( *pixel > upper_bound )
-        {
-          dst( i, j, p ) = std::numeric_limits< OutputType >::max();
-        }
-        else
-        {
-          dst( i, j,
-               p ) =
-            static_cast< OutputType >( ( *pixel - lower_bound ) *
-                                       scale );
-        }
-      }
+      return static_cast< OutputType >( 0 );
     }
-  }
+    else if( pixel > upper_bound )
+    {
+      return static_cast< OutputType >( std::numeric_limits< OutputType >::max() );
+    }
+    else
+    {
+      return static_cast< OutputType >( ( pixel - lower_bound ) * scale );
+    }
+  } // end of lambda expression
+  );
+
+  //const InputType* plane = src.top_left_ptr();
+  //for( unsigned p = 0; p < np; ++p, plane += pstep )
+  //{
+  //  const InputType* row = plane;
+  //  for( unsigned j = 0; j < nj; ++j, row += jstep )
+  //  {
+  //    const InputType* pixel = row;
+  //    for( unsigned i = 0; i < ni; ++i, pixel += istep )
+  //    {
+  //      if( *pixel < lower_bound )
+  //      {
+  //        dst( i, j, p ) = 0;
+  //      }
+  //      else if( *pixel > upper_bound )
+  //      {
+  //        dst( i, j, p ) = std::numeric_limits< OutputType >::max();
+  //      }
+  //      else
+  //      {
+  //        dst( i, j, p ) =
+  //          static_cast< OutputType >( ( *pixel - lower_bound ) *
+  //                                     scale );
+  //      }
+  //    }
+  //  }
+  //}
 }
 
 } // namespace <anonoymous>
