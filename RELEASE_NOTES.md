@@ -5,6 +5,12 @@ v0.13.1 - 1/22/2020
 -Update darknet wrapper to allow for non-square input perspective fields
 
 
+-Add CLI option for no special prints during train for DIVE desktop support
+
+
+-Fix certain csv downloads from viame web not working on desktop
+
+
 
 v0.13.0 - 1/15/2020
 ===================
