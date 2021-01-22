@@ -39,9 +39,9 @@ from kwiver.vital.modules import modules
 
 import nose.tools as nt
 import numpy as np
+import unittest
 
-
-class TestVitalLocalCartesian(object):
+class TestVitalLocalCartesian(unittest.TestCase):
     def setUp(self):
         self.wgs = geodesy.SRID.lat_lon_WGS84
         self.crs_utm_18n = geodesy.SRID.UTM_WGS84_north + 18
