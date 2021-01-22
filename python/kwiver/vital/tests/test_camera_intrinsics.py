@@ -63,36 +63,6 @@ class TestCameraInstrinsicsBase(unittest.TestCase):
         np.testing.assert_array_almost_equal(np.array([3, 2]), ci.distort(np.array([3, 2])))
         np.testing.assert_array_almost_equal(np.array([3, 2]), ci.undistort(np.array([3 ,2])))
 
-    def test_equal(self):
-        ci1 = CameraIntrinsics()
-        ci2 = CameraIntrinsics()
-        assert (ci1 == ci2)
-        assert not (ci1 != ci2)
-
-        ci1 = CameraIntrinsics(2, (10, 10), 3, 1)
-        ci2 = CameraIntrinsics(2, (11, 10), 3, 0.1)
-        assert not (ci1 == ci2)
-        assert (ci1 != ci2)
-
-    def test_get_focal_length(self):
-        self.assertEqual(CameraIntrinsics().focal_length, 1.)
-        self.assertEqual(CameraIntrinsics(5.2).focal_length, 5.2)
-
-    def test_get_aspect_ratio(self):
-        self.assertEqual(
-            CameraIntrinsics().aspect_ratio, 1.
-        )
-        self.assertEqual(
-            CameraIntrinsics(aspect_ratio=2.1).aspect_ratio, 2.1
-        )
-
-    def test_get_skew(self):
-        self.assertEqual(
-            CameraIntrinsics().skew, 0.
-        )
-        self.assertEqual(
-            CameraIntrinsics(skew=1.).skew, 1.
-        )
 
 class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
     def setUp(self):
@@ -103,6 +73,8 @@ class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
         self.dist_coeffs = [4.5, 5.2, 6.8]
         self.image_width = 1080
         self.image_height = 720
+
+        # Calibration matrix constructed so that resulting
         # camera_intrinsics properties should be equal to one constructed using above
         # parameters directly. Also matches format of .matrix()
         self.K = np.array(
@@ -271,8 +243,8 @@ class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
         assert(isinstance(s, str))
 
     def test_as_matrix(self):
-        self.assertEqual(SimpleCameraIntrinsics().as_matrix(), np.eye(3))
-        self.assertEqual(
+        np.testing.assert_equal(SimpleCameraIntrinsics().as_matrix(), np.eye(3))
+        np.testing.assert_equal(
             SimpleCameraIntrinsics(10, (2, 3), 2, 5).as_matrix(),
             [[10, 5, 2], [0, 5, 3], [0, 0, 1]],
         )
