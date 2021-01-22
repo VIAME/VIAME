@@ -87,6 +87,7 @@ class NetHarnTrainer( TrainDetector ):
         self._resize_option = "original_and_resized"
         self._max_scale_wrt_chip = 2.0
         self._no_format = False
+        self._allow_unicode = "auto"
         self._aux_image_labels = ""
         self._aux_image_extensions = ""
 
@@ -115,6 +116,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "max_scale_wrt_chip", str( self._max_scale_wrt_chip ) )
         cfg.set_value( "no_format", str( self._no_format ) )
+        cfg.set_value( "allow_unicode", str( self._allow_unicode ) )
         cfg.set_value( "aux_image_labels", str( self._aux_image_labels ) )
         cfg.set_value( "aux_image_extensions", str( self._aux_image_extensions ) )
 
@@ -146,6 +148,7 @@ class NetHarnTrainer( TrainDetector ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._max_scale_wrt_chip = float( cfg.get_value( "max_scale_wrt_chip" ) )
         self._no_format = strtobool( cfg.get_value( "no_format" ) )
+        self._allow_unicode = str( cfg.get_value( "allow_unicode" ) )
         self._aux_image_labels = str( cfg.get_value( "aux_image_labels" ) )
         self._aux_image_extensions = str( cfg.get_value( "aux_image_extensions" ) )
 
@@ -355,6 +358,9 @@ class NetHarnTrainer( TrainDetector ):
 
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )
+
+        if self._allow_unicode != "auto":
+            cmd.append( "--allow_unicode=" + self._allow_unicode  )
 
         channel_str = "rgb"
         if len( self._aux_image_labels ) > 0:

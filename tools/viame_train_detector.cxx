@@ -78,6 +78,7 @@ public:
   bool opt_help;
   bool opt_list;
   bool opt_no_query;
+  bool opt_no_adv_print;
 
   std::string opt_config;
   std::string opt_input_dir;
@@ -95,6 +96,7 @@ public:
     opt_help = false;
     opt_list = false;
     opt_no_query = false;
+    opt_no_adv_print = false;
   }
 
   virtual ~trainer_vars()
@@ -724,6 +726,10 @@ main( int argc, char* argv[] )
     &g_params.opt_no_query, "Do not query the user for anything" );
   g_params.m_args.AddArgument( "-nq",             argT::NO_ARGUMENT,
     &g_params.opt_no_query, "Do not query the user for anything" );
+  g_params.m_args.AddArgument( "--no-adv-prints", argT::NO_ARGUMENT,
+    &g_params.opt_no_adv_print, "Do not print out any advanced chars" );
+  g_params.m_args.AddArgument( "-nap",            argT::NO_ARGUMENT,
+    &g_params.opt_no_adv_print, "Do not print out any advanced chars" );
   g_params.m_args.AddArgument( "--config",        argT::SPACE_ARGUMENT,
     &g_params.opt_config, "Input configuration file with parameters" );
   g_params.m_args.AddArgument( "-c",              argT::SPACE_ARGUMENT,
@@ -740,9 +746,9 @@ main( int argc, char* argv[] )
     &g_params.opt_input_truth, "Input list containing training truth" );
   g_params.m_args.AddArgument( "-it",             argT::SPACE_ARGUMENT,
     &g_params.opt_input_truth, "Input list containing training truth" );
-  g_params.m_args.AddArgument( "--labels",   argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "--labels",        argT::SPACE_ARGUMENT,
     &g_params.opt_label_file, "Input label file for train categories" );
-  g_params.m_args.AddArgument( "-lbl",             argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-lbl",            argT::SPACE_ARGUMENT,
     &g_params.opt_label_file, "Input label file for train categories" );
   g_params.m_args.AddArgument( "--detector",      argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector to train if no config" );
@@ -896,6 +902,15 @@ main( int argc, char* argv[] )
     }
 
     config->set_value( setting_key, setting_value );
+  }
+
+  if( g_params.opt_no_adv_print )
+  {
+    const std::string prefix1 = "detector_trainer:netharn";
+    const std::string prefix2 = "detector_trainer:ocv_windowed:trainer:netharn";
+
+    config->set_value( prefix1 + ":allow_unicode", "False" );
+    config->set_value( prefix2 + ":allow_unicode", "False" );
   }
 
   kwiver::vital::algo::train_detector::set_nested_algo_configuration
