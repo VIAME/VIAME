@@ -23,7 +23,7 @@ libssl-dev \
 g++ \
 zlib1g-dev \
 bzip2 \
-libbz2-dev\
+libbz2-dev \
 liblzma-dev
 
 # Install CMAKE
