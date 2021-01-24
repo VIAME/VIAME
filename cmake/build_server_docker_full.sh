@@ -17,13 +17,14 @@ libgtk2.0-dev \
 libxt-dev \
 libxml2-dev \
 liblapack-dev \
+libx264-dev \
 openssl \
 libssl-dev \
 g++ \
 zlib1g-dev \
 bzip2 \
-libbz2-dev
-
+libbz2-dev\
+liblzma-dev
 
 # Install CMAKE
 wget https://cmake.org/files/v3.17/cmake-3.17.0.tar.gz
@@ -59,6 +60,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_CUDNN:BOOL=ON \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
 -DVIAME_ENABLE_FFMPEG:BOOL=ON \
+-DVIAME_ENABLE_FFMPEG-X264:BOOL=ON \
 -DVIAME_ENABLE_FASTER_RCNN:BOOL=OFF \
 -DVIAME_ENABLE_GDAL:BOOL=OFF \
 -DVIAME_ENABLE_FLASK:BOOL=OFF \
