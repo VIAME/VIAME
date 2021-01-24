@@ -5,6 +5,7 @@ SET VIAME_INSTALL=C:\Program Files\VIAME
 
 REM Processing options
 SET INPUT_DIRECTORY=training_data
+SET DEFAULT_ANNOTATION_FRAME_RATE=5.0
 
 REM Disable warnings
 SET KWIMAGE_DISABLE_C_EXTENSIONS=1
@@ -18,6 +19,6 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 viame_train_detector.exe ^
   -i "%INPUT_DIRECTORY%" ^
   -c "%VIAME_INSTALL%\configs\pipelines\train_netharn_cascade.viame_csv.conf" ^
-  --threshold 0.0
+  --threshold 0.0 --default-vfr %DEFAULT_ANNOTATION_FRAME_RATE%
 
 pause

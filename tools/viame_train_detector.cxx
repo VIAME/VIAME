@@ -90,6 +90,7 @@ public:
   std::string opt_threshold;
   std::string opt_settings;
   std::string opt_pipeline_file;
+  std::string opt_frame_rate;
 
   trainer_vars()
   {
@@ -770,6 +771,10 @@ main( int argc, char* argv[] )
     &g_params.opt_pipeline_file, "Pipeline file" );
   g_params.m_args.AddArgument( "-p",              argT::SPACE_ARGUMENT,
     &g_params.opt_pipeline_file, "Pipeline file" );
+  g_params.m_args.AddArgument( "--default-vfr",   argT::SPACE_ARGUMENT,
+    &g_params.opt_frame_rate, "Pipeline file" );
+  g_params.m_args.AddArgument( "-vfr",            argT::SPACE_ARGUMENT,
+    &g_params.opt_frame_rate, "Pipeline file" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -1001,6 +1006,11 @@ main( int argc, char* argv[] )
   if( !data_warning_file.empty() )
   {
     data_warning_writer.reset( new std::ofstream( data_warning_file.c_str() ) );
+  }
+
+  if( !g_params.opt_frame_rate.empty() )
+  {
+    frame_rate = std::stod( g_params.opt_frame_rate );
   }
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
