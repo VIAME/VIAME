@@ -1,3 +1,14 @@
+v0.13.2 - 1/26/2020
+===================
+
+
+-Fix training error introduced in last in print statements for netharn detectors
+
+
+-Switch default algorithm and pipeline name for 'wtf' cfrnn variant
+
+
+
 v0.13.1 - 1/22/2020
 ===================
 
