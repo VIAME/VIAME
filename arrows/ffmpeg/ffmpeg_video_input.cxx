@@ -108,8 +108,11 @@ public:
   // What you put after -vf in the ffmpeg command line tool
   std::string filter_desc;
 
-  // the buffers of metadata from the data streams
-  std::map<int, std::deque<uint8_t>> metadata;
+  // the buffers of raw metadata from the data streams tagged with the timestamp
+  std::map<int, std::multimap<int64_t, std::deque<uint8_t> > > metadata;
+
+  // Storage for current frame's raw metadata
+  std::map<int, std::deque<uint8_t> > curr_metadata;
 
   // metadata converter object
   kwiver::vital::convert_metadata converter;
@@ -182,7 +185,9 @@ public:
       }
       else if (params->codec_type == AVMEDIA_TYPE_DATA)
       {
-        this->metadata.insert(std::make_pair(i, std::deque<uint8_t>() ) );
+        this->metadata.insert(
+          std::make_pair(i, std::multimap<int64_t, std::deque<uint8_t> >() ) );
+        this->curr_metadata.insert(std::make_pair(i, std::deque<uint8_t>() ) );
       }
     }
 
@@ -201,7 +206,8 @@ public:
         AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
         if (params->codec_type == AVMEDIA_TYPE_UNKNOWN)
         {
-          this->metadata.insert(std::make_pair(i, std::deque<uint8_t>() ) );
+          this->metadata.insert(
+            std::make_pair(i, std::multimap<int64_t, std::deque<uint8_t> >() ) );
           LOG_INFO(this->logger, "Using AVMEDIA_TYPE_UNKNOWN stream as a data stream");
         }
       }
@@ -445,6 +451,10 @@ public:
     {
       md.second.clear();
     }
+    for (auto& md : this->curr_metadata)
+    {
+      md.second.clear();
+    }
 
     while (!this->frame_advanced &&
            av_read_frame(this->f_format_context, this->f_packet) >= 0)
@@ -487,8 +497,9 @@ public:
       auto md_iter = this->metadata.find(this->f_packet->stream_index);
       if (md_iter != this->metadata.end() )
       {
-        md_iter->second.insert(md_iter->second.end(), this->f_packet->data,
-                               this->f_packet->data + this->f_packet->size);
+        md_iter->second.insert(std::make_pair( this->f_packet->pts,
+            std::deque<uint8_t>(this->f_packet->data,
+              this->f_packet->data + this->f_packet->size) ) );
       }
 
       // De-reference previous packet
@@ -502,6 +513,15 @@ public:
     if (!this->frame_advanced)
     {
       this->f_frame->data[0] = NULL;
+    }
+
+    for (auto md : this->metadata)
+    {
+      for (auto md_ts : md.second)
+      {
+        this->curr_metadata[md.first].insert(curr_metadata[md.first].end(),
+            md_ts.second.begin(), md_ts.second.end() );
+      }
     }
 
     return this->frame_advanced;
@@ -636,7 +656,7 @@ public:
   {
     kwiver::vital::metadata_vector retval;
 
-    for (auto md : this->metadata)
+    for (auto md : this->curr_metadata)
     {
       // Copy the current raw metadata
       std::deque<uint8_t> md_buffer = md.second;
