@@ -97,7 +97,7 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [VIAME Web Source Repository](https://github.com/VIAME/VIAME-Web)
 
 **DIVE Standalone Desktop Installers:** <br>
-[DIVE Installers (Without Algorithms))](https://github.com/VIAME/VIAME-Web/releases/tag/1.3.4)
+[DIVE Installers (Linux, Mac, Windows - Without Algorithms)](https://github.com/VIAME/VIAME-Web/releases/tag/1.3.4)
 
 **SEAL Desktop Custom Distribution:** <br>
 [SEAL v0.13.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/5fbea91550a41e3d19705409/download) <br>
