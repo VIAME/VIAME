@@ -7,6 +7,7 @@ set(test_libraries     kwiver_algo_vxl)
 ##############################
 # Algorithms VXL tests
 ##############################
+kwiver_discover_gtests(vxl aligned_edge_detection      LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
 kwiver_discover_gtests(vxl bounding_box                LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl camera                      LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl estimate_homography         LIBRARIES ${test_libraries})
