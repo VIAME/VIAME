@@ -12,7 +12,6 @@
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
 #include <vil/vil_plane.h>
-//#include <vil/vil_transform.h>
 
 #include <cstdlib>
 #include <limits>
@@ -34,15 +33,13 @@ public:
   template < typename PixType,
              typename GradientType > vil_image_view< PixType >
   calculate_aligned_edges( const vil_image_view< PixType >& input,
-                           const GradientType edge_threshold,
                            vil_image_view< GradientType >& grad_i,
                            vil_image_view< GradientType >& grad_j );
 
   template < typename InputType,
              typename OutputType > vil_image_view< OutputType >
   nonmax_suppression( const vil_image_view< InputType >& grad_i,
-                      const vil_image_view< InputType >& grad_j,
-                      const InputType edge_threshold );
+                      const vil_image_view< InputType >& grad_j );
 
   template < typename pix_t > vil_image_view< pix_t >
   filter( const vil_image_view< pix_t >& input_image );
@@ -61,8 +58,7 @@ template < typename InputType, typename OutputType >
 vil_image_view< OutputType >
 aligned_edge_detection::priv
 ::nonmax_suppression( const vil_image_view< InputType >& grad_i,
-                      const vil_image_view< InputType >& grad_j,
-                      const InputType edge_threshold )
+                      const vil_image_view< InputType >& grad_j )
 {
   if( grad_i.ni() != grad_j.ni() || grad_i.nj() != grad_j.nj() )
   {
@@ -85,14 +81,14 @@ aligned_edge_detection::priv
       const InputType val_i = grad_i( i, j );
       const InputType val_j = grad_j( i, j );
 
-      if( val_i > edge_threshold )
+      if( val_i > threshold )
       {
         if( val_i >= grad_i( i - 1, j ) && val_i >= grad_i( i + 1, j ) )
         {
           output( i, j, 0 ) = static_cast< OutputType >( val_i );
         }
       }
-      if( val_j > edge_threshold )
+      if( val_j > threshold )
       {
         if( val_j >= grad_j( i, j - 1 ) && val_j >= grad_j( i, j + 1 ) )
         {
@@ -109,7 +105,6 @@ template < typename PixType, typename GradientType >
 vil_image_view< PixType >
 aligned_edge_detection::priv
 ::calculate_aligned_edges( const vil_image_view< PixType >& input,
-                           const GradientType edge_threshold,
                            vil_image_view< GradientType >& grad_i,
                            vil_image_view< GradientType >& grad_j )
 {
@@ -125,8 +120,7 @@ aligned_edge_detection::priv
   // Perform NMS in vert/hori directions and threshold magnitude
   vil_image_view< PixType > output = nonmax_suppression< GradientType,
                                                          PixType >( grad_i,
-                                                                    grad_j,
-                                                                    edge_threshold );
+                                                                    grad_j );
   return output;
 }
 
@@ -151,7 +145,6 @@ aligned_edge_detection::priv
   vil_image_view< pix_t > aligned_edges = calculate_aligned_edges< pix_t,
                                                                    float >(
     input_image,
-    threshold,
     grad_i,
     grad_j );
 
