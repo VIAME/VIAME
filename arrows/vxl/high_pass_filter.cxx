@@ -68,7 +68,7 @@ public:
 
     // apply horizontal smoothing to the vertically smoothed image to get a 2D
     // box filter
-    box_average_horizontal( filter_x, filter_xy, kernel_width );
+    box_average_horizontal( filter_y, filter_xy, kernel_width );
 
     // Report the difference between the pixel value and all of the smoothed
     // responses
