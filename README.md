@@ -96,11 +96,14 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [VIAME Web Local Installation Instructions](https://github.com/VIAME/VIAME-Web/blob/master/docker/README.md) <br>
 [VIAME Web Source Repository](https://github.com/VIAME/VIAME-Web)
 
-**Custom Desktop Distributions:** <br>
-[SEAL Multi-View GUI, Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/5fbea91550a41e3d19705409/download) <br>
-[SEAL Multi-View GUI, Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/5f87103650a41e3d19ea6c66/download) <br>
-[SEAL Multi-View GUI, CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f7764cd50a41e3d19c2e35f/download) <br>
-[SEAL Multi-View GUI, Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f77645650a41e3d19c2e26b/download)
+**DIVE Standalone Desktop Installers:** <br>
+[DIVE Installers (Without Algorithms))](https://github.com/VIAME/VIAME-Web/releases/tag/1.3.4)
+
+**SEAL Desktop Custom Distribution:** <br>
+[SEAL v0.13.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/5fbea91550a41e3d19705409/download) <br>
+[SEAL v0.13.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/5f87103650a41e3d19ea6c66/download) <br>
+[SEAL v0.13.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f7764cd50a41e3d19c2e35f/download) <br>
+[SEAL v0.13.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f77645650a41e3d19c2e26b/download)
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
@@ -114,7 +117,7 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [Sea Lion Models Add-On, All OS](https://data.kitware.com/api/v1/item/5f750f1c50a41e3d19bc97bb/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
-To use project files extract them into your working directory of choice. Custom Applications
+To use project files extract them into your working directory of choice. Custom distributions 
 contain a full installation, only with non-default features turned on, and should not be copied
 into existing installations because they are a full installation and bad things will happen.
 
