@@ -53,8 +53,6 @@ public:
   bool produce_joint_output = true;
   double smoothing_sigma = 1.3;
   unsigned smoothing_half_step = 2;
-  unsigned max_thread_count = 1;
-  int border_ignore_factor = 1;
 };
 
 // Perform NMS on the input gradient images in horizontal and vert directions
@@ -140,8 +138,7 @@ aligned_edge_detection::priv
   size_t source_ni = input_image.ni();
   size_t source_nj = input_image.nj();
 
-  vil_image_view< pix_t > combined_edges( source_ni,
-                                          source_nj );
+  vil_image_view< pix_t > combined_edges( source_ni, source_nj );
 
   if( produce_joint_output )
   {
@@ -221,7 +218,7 @@ aligned_edge_detection
   config->set_value( "produce_joint_output",
                      d->produce_joint_output,
                      "Set to false if we do not want to spend time computing "
-                     "joint edge images comprised of both horizontal and verticle "
+                     "joint edge images comprised of both horizontal and vertical "
                      "information." );
   config->set_value( "smoothing_sigma",
                      d->smoothing_sigma,
@@ -229,12 +226,6 @@ aligned_edge_detection
   config->set_value( "smoothing_half_step",
                      d->smoothing_half_step,
                      "Smoothing half step for the output NMS edge density map." );
-  config->set_value( "max_thread_count",
-                     d->max_thread_count,
-                     "Whether or not to enable internal threading." );
-  config->set_value( "border_ignore_factor",
-                     d->border_ignore_factor,
-                     "Number of pixels to ignore near the border during operation." );
 
   return config;
 }
@@ -257,8 +248,6 @@ aligned_edge_detection
   d->smoothing_sigma = config->get_value< double >( "smoothing_sigma" );
   d->smoothing_half_step =
     config->get_value< unsigned >( "smoothing_half_step" );
-  d->max_thread_count = config->get_value< int >( "max_thread_count" );
-  d->border_ignore_factor = config->get_value< int >( "border_ignore_factor" );
 }
 
 // ----------------------------------------------------------------------------
@@ -291,7 +280,7 @@ aligned_edge_detection
     return kwiver::vital::image_container_sptr();
   }
 
-#define HANDLE_INPUT_CASE( T )                                    \
+#define HANDLE_CASE( T )                                          \
   case T:                                                         \
   {                                                               \
     typedef vil_pixel_format_type_of< T >::component_type ipix_t; \
@@ -303,9 +292,10 @@ aligned_edge_detection
 
   switch( source_image->pixel_format() )
   {
-    HANDLE_INPUT_CASE( VIL_PIXEL_FORMAT_BYTE );
-    HANDLE_INPUT_CASE( VIL_PIXEL_FORMAT_FLOAT );
-
+    HANDLE_CASE( VIL_PIXEL_FORMAT_BYTE );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_FLOAT );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 );
+#undef HANDLE_CASE
     default:
       LOG_ERROR( logger(), "Invalid input format type received" );
       return kwiver::vital::image_container_sptr();
