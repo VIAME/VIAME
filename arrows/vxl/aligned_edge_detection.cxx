@@ -12,7 +12,7 @@
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
 #include <vil/vil_plane.h>
-#include <vil/vil_transform.h>
+//#include <vil/vil_transform.h>
 
 #include <cstdlib>
 #include <limits>
@@ -184,9 +184,11 @@ aligned_edge_detection::priv
     {
       vil_copy_reformat( joint_nms_edges, combined_edges );
     }
-    // TODO determine whether it makes more sense to return this as a third
-    // plane of the image
-    return joint_nms_edges;
+    vil_image_view< pix_t > all_channels( joint_nms_edges.ni(), joint_nms_edges.nj(), 3 );
+    vil_plane( all_channels, 0 ) = vil_plane( aligned_edges, 0 );
+    vil_plane( all_channels, 1 ) = vil_plane( aligned_edges, 1 );
+    vil_plane( all_channels, 2 ) = joint_nms_edges;
+    return all_channels;
   }
   return aligned_edges;
 }
@@ -293,8 +295,8 @@ aligned_edge_detection
   switch( source_image->pixel_format() )
   {
     HANDLE_CASE( VIL_PIXEL_FORMAT_BYTE );
-    HANDLE_CASE( VIL_PIXEL_FORMAT_FLOAT );
     HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_FLOAT );
 #undef HANDLE_CASE
     default:
       LOG_ERROR( logger(), "Invalid input format type received" );
