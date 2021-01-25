@@ -13,9 +13,6 @@ process detector_input
     :single_channel                            true
   endblock
 
-connect from downsampler.output_1
-        to   detector_input.image
-
 process motion_filter1
   :: image_filter
   :filter:type                                 vxl_average
