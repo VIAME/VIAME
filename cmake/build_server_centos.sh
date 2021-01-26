@@ -170,4 +170,4 @@ rm download.tar.gz
 cd ..
 
 # HACK: Remove unused default models in seal
-rm install/configs/pipelines/models/default_detector.zip
+rm install/configs/pipelines/models/fish_no_motion_detector.zip
