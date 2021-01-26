@@ -100,10 +100,10 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [DIVE Installers (Linux, Mac, Windows - Without Algorithms)](https://github.com/VIAME/VIAME-Web/releases/tag/1.3.4)
 
 **SEAL Desktop Custom Distribution:** <br>
-[SEAL v0.13.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/5fbea91550a41e3d19705409/download) <br>
-[SEAL v0.13.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/5f87103650a41e3d19ea6c66/download) <br>
-[SEAL v0.13.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f7764cd50a41e3d19c2e35f/download) <br>
-[SEAL v0.13.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f77645650a41e3d19c2e26b/download)
+[SEAL v0.13.2 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/601020302fa25629b9149207/download) <br>
+[SEAL v0.13.2 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/60101f792fa25629b91491b4/download) <br>
+[SEAL v0.13.2 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f7764cd50a41e3d19c2e35f/download) <br>
+[SEAL v0.13.2 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f77645650a41e3d19c2e26b/download)
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
