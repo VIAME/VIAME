@@ -70,7 +70,8 @@ public:
     end_of_video(true),
     number_of_frames(0),
     collected_all_metadata(false),
-    estimated_num_frames(false)
+    estimated_num_frames(false),
+    sync_metadata(false)
   { }
 
   // f_* variables are FFmpeg specific
@@ -137,6 +138,7 @@ public:
   size_t number_of_frames;
   bool collected_all_metadata;
   bool estimated_num_frames;
+  bool sync_metadata;
 
   // ==================================================================
   /*
@@ -880,6 +882,12 @@ ffmpeg_video_input
     "deinterlacing only to frames which are interlaced.  "
     "See details at https://ffmpeg.org/ffmpeg-filters.html");
 
+  config->set_value("sync_metadata", d->sync_metadata,
+    "When set to true will attempt synchronizaton the metadata by "
+    "caching metadata packets whose timestamp is greater than the "
+    "current frame's timestamp until a frame is reached with timestamp "
+    "that is equal or greater than the metadata's timestamp.");
+
   return config;
 }
 
@@ -896,6 +904,8 @@ ffmpeg_video_input
   config->merge_config(in_config);
 
   d->filter_desc = config->get_value<std::string>("filter_desc", d->filter_desc);
+
+  d->sync_metadata = config->get_value<bool>("sync_metadata", d->sync_metadata);
 }
 
 // ------------------------------------------------------------------
