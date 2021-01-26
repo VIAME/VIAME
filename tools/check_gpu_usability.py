@@ -35,6 +35,3 @@ if __name__ == "__main__" :
         for i in range( self._gpu_count ):
             gpu_mem = torch.cuda.get_device_properties( i ).total_memory
             print( "Device #1, usable mem: " + str( gpu_mem ) )
-
-
-
