@@ -118,9 +118,8 @@ aligned_edge_detection::priv
                                                                std::abs );
 
   // Perform NMS in vert/hori directions and threshold magnitude
-  vil_image_view< PixType > output = nonmax_suppression< GradientType,
-                                                         PixType >( grad_i,
-                                                                    grad_j );
+  vil_image_view< PixType > output =
+    nonmax_suppression< GradientType, PixType >( grad_i, grad_j );
   return output;
 }
 
@@ -142,11 +141,8 @@ aligned_edge_detection::priv
   vil_image_view< float > grad_i( source_ni, source_nj );
   vil_image_view< float > grad_j( source_ni, source_nj );
 
-  vil_image_view< pix_t > aligned_edges = calculate_aligned_edges< pix_t,
-                                                                   float >(
-    input_image,
-    grad_i,
-    grad_j );
+  vil_image_view< pix_t > aligned_edges =
+    calculate_aligned_edges< pix_t, float >( input_image, grad_i, grad_j );
 
   // Perform extra op if enabled
   if( produce_joint_output )
@@ -177,7 +173,8 @@ aligned_edge_detection::priv
     {
       vil_copy_reformat( joint_nms_edges, combined_edges );
     }
-    vil_image_view< pix_t > all_channels( joint_nms_edges.ni(), joint_nms_edges.nj(), 3 );
+    vil_image_view< pix_t > all_channels( joint_nms_edges.ni(),
+                                          joint_nms_edges.nj(), 3 );
     vil_plane( all_channels, 0 ) = vil_plane( aligned_edges, 0 );
     vil_plane( all_channels, 1 ) = vil_plane( aligned_edges, 1 );
     vil_plane( all_channels, 2 ) = joint_nms_edges;
