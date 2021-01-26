@@ -102,8 +102,8 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 **SEAL Desktop Custom Distribution:** <br>
 [SEAL v0.13.2 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/601020302fa25629b9149207/download) <br>
 [SEAL v0.13.2 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/60101f792fa25629b91491b4/download) <br>
-[SEAL v0.13.2 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f7764cd50a41e3d19c2e35f/download) <br>
-[SEAL v0.13.2 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/5f77645650a41e3d19c2e26b/download)
+[SEAL v0.13.2 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/601027502fa25629b9149d35/download) <br>
+[SEAL v0.13.2 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/601026fc2fa25629b9149cec/download)
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
