@@ -27,6 +27,12 @@ if( VIAME_ENABLE_OPENCV )
     stereo_rectify.py )
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  set( PYTHON_SCRIPTS
+    ${PYTHON_SCRIPTS}
+    check_gpu_usability.py )
+endif()
+
 ###
 # C/C++ compiled standalone tools
 ##
