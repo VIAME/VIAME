@@ -136,6 +136,7 @@ cp /usr/lib64/libblas.so.3 install/lib || true
 cp /usr/lib64/liblapack.so.3 install/lib || true
 cp /usr/lib64/libgfortran.so.3 install/lib || true
 cp /usr/lib64/libquadmath.so.0 install/lib || true
+cp /usr/lib64/libpng15.so.15 install/lib || true
 
 #cp /usr/lib64/libX11.so.6 install/lib || true
 #cp /usr/lib64/libXau.so.6 install/lib || true
