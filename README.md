@@ -72,10 +72,10 @@ CentOS
 A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.13.2 Windows 7\*/8/10, GPU Enabled, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/600f34942fa25629b911e278/download) <br>
-[VIAME v0.13.2 Windows 7\*/8/10, GPU Enabled, Mirror2 (.zip)](https://drive.google.com/file/d/1sB-bA0wq2bkxKkJ0oVbqdJMJnES5EwR9/view?usp=sharing) <br>
-[VIAME v0.13.2 Windows 7\*/8/10, CPU Only, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/600f343c2fa25629b911e21c/download) <br>
-[VIAME v0.13.2 Windows 7\*/8/10, CPU Only, Mirror2 (.zip)](https://drive.google.com/file/d/14W07HVYEjcdwebL5ZfvKt9wN75XePZJp/view?usp=sharing)
+[VIAME v0.13.3 Windows 7\*/8/10, GPU Enabled, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/60118f532fa25629b919a44e/download) <br>
+[VIAME v0.13.3 Windows 7\*/8/10, GPU Enabled, Mirror2 (.zip)](https://drive.google.com/file/d/1sB-bA0wq2bkxKkJ0oVbqdJMJnES5EwR9/view?usp=sharing) <br>
+[VIAME v0.13.3 Windows 7\*/8/10, CPU Only, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/60118f8d2fa25629b919a471/download) <br>
+[VIAME v0.13.3 Windows 7\*/8/10, CPU Only, Mirror2 (.zip)](https://drive.google.com/file/d/14W07HVYEjcdwebL5ZfvKt9wN75XePZJp/view?usp=sharing)
 
 **Ubuntu Desktop Binaries:** <br>
 [VIAME v0.13.2 Ubuntu 18.04/20.04, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/600f327d2fa25629b911d9bd/download) <br>
@@ -100,8 +100,8 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [DIVE Installers (Linux, Mac, Windows - Without Algorithms)](https://github.com/VIAME/VIAME-Web/releases/tag/1.3.4)
 
 **SEAL Desktop Custom Distribution:** <br>
-[SEAL v0.13.2 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/601020302fa25629b9149207/download) <br>
-[SEAL v0.13.2 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/60101f792fa25629b91491b4/download) <br>
+[SEAL v0.13.3 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/6011908e2fa25629b919a4f2/download) <br>
+[SEAL v0.13.3 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/60118fca2fa25629b919a496/download) <br>
 [SEAL v0.13.3 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/60118b6a2fa25629b9197354/download) <br>
 [SEAL v0.13.3 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/60118b212fa25629b9197312/download)
 
