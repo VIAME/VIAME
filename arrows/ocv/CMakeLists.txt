@@ -43,6 +43,7 @@ set( ocv_headers_public
   match_set.h
   merge_images.h
   refine_detections_grabcut.h
+  refine_detections_watershed.h
   refine_detections_write_to_disk.h
   split_image_channels.h
   split_image_horizontally.h
@@ -104,6 +105,7 @@ set( ocv_sources
   refine_detections_grabcut.cxx
   refine_detections_util.cxx
   refine_detections_util.h
+  refine_detections_watershed.cxx
   refine_detections_write_to_disk.cxx
   split_image_channels.cxx
   split_image_horizontally.cxx
