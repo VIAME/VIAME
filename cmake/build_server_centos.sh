@@ -163,7 +163,7 @@ cp /usr/lib64/libpng15.so.15 install/lib || true
 # HACK: Install correct Qt5 binaries in install tree
 # Should be removed when this issue is fixed
 cd install
-wget https://data.kitware.com/api/v1/item/5d5f112385f25b11ff47c1a8/download
+wget https://data.kitware.com/api/v1/item/6010eaf12fa25629b9175b83/download
 mv download download.tar.gz
 tar -xvf download.tar.gz
 rm download.tar.gz
