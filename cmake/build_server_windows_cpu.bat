@@ -29,6 +29,7 @@ move "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
 "C:\Program Files\7-Zip\7z.exe" x -aoa %CPU_ADD_ON_PACKAGE% -o%VIAME_BUILD_DIR%
 move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 
+copy /y "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Performance Tools\msvcr120.dll" %VIAME_BUILD_DIR%\VIAME\bin
 copy /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
 REM ---------------------------------------------------
