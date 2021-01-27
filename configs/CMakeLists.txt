@@ -91,9 +91,9 @@ if( VIAME_DOWNLOAD_MODELS )
     # Project specific pytorch models
     if( VIAME_DOWNLOAD_MODELS-SEA-LION )
       DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/5f750f1c50a41e3d19bc97bb/download
-        3ed807df7513521afd1cc6a5efb951e6
-        ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v1.1.zip )
+        https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download
+        cccd42702eead4148de7d26c53bb3718
+        ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v1.3.zip )
     endif()
   else()
     if( VIAME_DOWNLOAD_MODELS-SEA-LION )
