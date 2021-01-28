@@ -449,10 +449,6 @@ public:
     this->frame_advanced = false;
 
     // clear the metadata from the previous frame
-    for (auto& md : this->metadata)
-    {
-      md.second.clear();
-    }
     for (auto& md : this->curr_metadata)
     {
       md.second.clear();
@@ -517,12 +513,24 @@ public:
       this->f_frame->data[0] = NULL;
     }
 
-    for (auto md : this->metadata)
+    for (auto& md : this->metadata)
     {
-      for (auto md_ts : md.second)
+      for (auto md_it = md.second.begin(); md_it != md.second.end(); )
       {
-        this->curr_metadata[md.first].insert(curr_metadata[md.first].end(),
-            md_ts.second.begin(), md_ts.second.end() );
+        // Skip if timestamp is too large while in sync mode
+        if (md_it->first <= this->f_pts || !this->sync_metadata)
+        {
+          this->curr_metadata[md.first].insert(curr_metadata[md.first].end(),
+            md_it->second.begin(), md_it->second.end() );
+
+          // Remove packet from cache since it was used
+          md_it = md.second.erase(md_it);
+        }
+        else
+        {
+          // Skip to the next metadata packet if not used
+          ++md_it;
+        }
       }
     }
 
