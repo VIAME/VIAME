@@ -97,7 +97,7 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [VIAME Web Source Repository](https://github.com/VIAME/VIAME-Web)
 
 **DIVE Standalone Desktop Installers:** <br>
-[DIVE Installers (Linux, Mac, Windows - Without Algorithms)](https://github.com/VIAME/VIAME-Web/releases/tag/1.3.4)
+[DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases/tag/1.3.4)
 
 **SEAL Desktop Custom Distribution:** <br>
 [SEAL v0.13.3 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/6011908e2fa25629b919a4f2/download) <br>
@@ -114,6 +114,7 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Model Set 2 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5e8d3ad42660cbefba9dd13c/download) <br>
+[Penguin Head FF Models Add-On, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
 [Sea Lion Models Add-On, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
