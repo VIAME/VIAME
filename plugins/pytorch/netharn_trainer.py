@@ -94,7 +94,8 @@ class NetHarnTrainer( TrainDetector ):
         self._border_exclude = -1
         self._detector_model = ""
         self._overlap_for_association = 0.90
-        self._max_negs_per_frame = 10
+        self._max_negs_per_frame = 5
+        self._negative_category = "background"
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -294,7 +295,7 @@ class NetHarnTrainer( TrainDetector ):
             class_lbl = item.type().get_most_likely_class()
             if categories is not None and not categories.has_class_id( class_lbl ):
                 if self._mode == "detection_refiner":
-                    class_lbl = "background"
+                    class_lbl = self._negative_category
                 else:
                     continue
             if categories is not None:
@@ -429,7 +430,8 @@ class NetHarnTrainer( TrainDetector ):
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
                      "--schedule=ReduceLROnPlateau-p3-c3",
-                     "--input_dims=" + self._chip_width + "," + self._chip_width ]
+                     "--input_dims=" + self._chip_width + "," + self._chip_width,
+                     "--patience=20" ]
         else:
             cmd += [ "bioharn.detect_fit",
                      "--nice=" + self._identifier,
