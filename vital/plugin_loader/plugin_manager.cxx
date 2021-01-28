@@ -42,8 +42,7 @@ class plugin_manager::priv
 {
 public:
   priv()
-    : m_all_loaded( false )
-    , m_loader( new plugin_loader( register_function_name, shared_library_suffix ) )
+    : m_loader( new plugin_loader( register_function_name, shared_library_suffix ) )
     , m_logger( kwiver::vital::get_logger( "vital.plugin_manager" ) )
   {
     // Add the default filter which checks for duplicate plugins
@@ -51,8 +50,8 @@ public:
     m_loader->add_filter( filt );
   }
 
-  bool m_all_loaded;            ///< set if modules are loaded
-  std::unique_ptr< plugin_loader > m_loader;       ///< the real loader object
+  plugin_types m_loaded; // bitmask of modules loaded
+  std::unique_ptr< plugin_loader > m_loader; // the real loader object
   kwiver::vital::logger_handle_t m_logger;
 
   path_list_t m_search_paths;
@@ -113,57 +112,56 @@ plugin_manager
 // ------------------------------------------------------------------
 void
 plugin_manager
-::load_all_plugins( plugin_type type )
+::load_all_plugins( plugin_types types )
 {
-  if ( !m_priv->m_all_loaded )
+  types &= ~m_priv->m_loaded;
+
+  if ( types )
   {
     path_list_t dirpath;
     auto search_path = this->search_path();
 
-#define SELECT( B ) static_cast< unsigned >( type ) & \
-  static_cast< unsigned  >( plugin_type::B )
-
     // Process each directory in the path and add the directories for
     // the selected plugins.
-    for ( auto const p : search_path )
+    for ( auto const& p : search_path )
     {
       // Load plugins from directories based on the options specified.
-      if ( SELECT( PROCESSES ) )
+      if ( types & plugin_type::PROCESSES )
       {
         // load processes
         std::string dir_name = p + "/processes";
         dirpath.push_back( dir_name );
       }
 
-      if ( SELECT( ALGORITHMS ) )
+      if ( types & plugin_type::ALGORITHMS )
       {
         // load arrows
         std::string dir_name = p + "/algorithms";
         dirpath.push_back( dir_name );
       }
 
-      if ( SELECT( APPLETS ) )
+      if ( types & plugin_type::APPLETS )
       {
         // load applets
         std::string dir_name = p + "/applets";
         dirpath.push_back( dir_name );
       }
 
-      if ( SELECT( EXPLORER ) )
+      if ( types & plugin_type::EXPLORER )
       {
         // load plugin explorer stuff
         std::string dir_name = p + "/plugin_explorer";
         dirpath.push_back( dir_name );
       }
 
-      if ( SELECT( OTHERS ) )
+      if ( types & plugin_type::OTHERS )
       {
         // load everything else
         std::string dir_name = p + "/modules";
         dirpath.push_back( dir_name );
       }
 
-      if ( SELECT( LEGACY ) )
+      if ( types & plugin_type::LEGACY )
       {
         // just use the raw directory form the list
         std::string dir_name = p;
@@ -175,7 +173,7 @@ plugin_manager
 
     // Load modules from path list
     m_priv->m_loader->load_plugins( dirpath );
-    m_priv->m_all_loaded = true;
+    m_priv->m_loaded |= types;
   }
 }
 
@@ -263,7 +261,7 @@ file_list()
 void plugin_manager::
 reload_plugins()
 {
-  m_priv->m_all_loaded = false;
+  m_priv->m_loaded = plugin_types{};
   m_priv->m_loader.reset( new plugin_loader( register_function_name, shared_library_suffix ) );
 
   // Add paths to the real loader
