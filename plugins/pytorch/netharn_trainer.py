@@ -90,6 +90,9 @@ class NetHarnTrainer( TrainDetector ):
         self._allow_unicode = "auto"
         self._aux_image_labels = ""
         self._aux_image_extensions = ""
+        self._area_pivot = 0
+        self._border_exclude = -1
+        self._detector_model = ""
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -119,6 +122,9 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "allow_unicode", str( self._allow_unicode ) )
         cfg.set_value( "aux_image_labels", str( self._aux_image_labels ) )
         cfg.set_value( "aux_image_extensions", str( self._aux_image_extensions ) )
+        cfg.set_value( "area_pivot", str( self._area_pivot ) )
+        cfg.set_value( "border_exclude", str( self._border_exclude ) )
+        cfg.set_value( "detector_model", str( self._detector_model ) )
 
         return cfg
 
@@ -151,6 +157,9 @@ class NetHarnTrainer( TrainDetector ):
         self._allow_unicode = str( cfg.get_value( "allow_unicode" ) )
         self._aux_image_labels = str( cfg.get_value( "aux_image_labels" ) )
         self._aux_image_extensions = str( cfg.get_value( "aux_image_extensions" ) )
+        self._area_pivot = float( cfg.get_value( "area_pivot" ) )
+        self._border_exclude = float( cfg.get_value( "border_exclude" ) )
+        self._detector_model = str( cfg.get_value( "detector_model" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -184,7 +193,7 @@ class NetHarnTrainer( TrainDetector ):
                     self._batch_size = str( 1 * gpu_param_adj )
             if self._learning_rate == "auto":
                 self._learning_rate = str( 1e-3 )
-        elif self._mode == "frame_classifier":
+        elif self._mode == "frame_classifier" or self._mode == "detection_refiner":
             if self._batch_size == "auto":
                 if gpu_memory_available > 9.5e9:
                     self._batch_size = str( 64 * gpu_param_adj )
@@ -208,6 +217,8 @@ class NetHarnTrainer( TrainDetector ):
                 self._train_directory, self._tmp_training_file )
             self._validation_file = os.path.join(
                 self._train_directory, self._tmp_validation_file )
+            self._chip_directory = os.path.join(
+                self._train_directory, "image_chips" )
         else:
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
@@ -240,10 +251,23 @@ class NetHarnTrainer( TrainDetector ):
 
         # Set default architecture if unset
         if not self._arch:
-            if self._mode == "frame_classifier":
+            if self._mode == "frame_classifier" or self._mode == "detection_refiner":
                 self._arch = "resnet50"
             else:
                 self._arch = "cascade"
+
+        # Launch helper detector if enabled
+        if self._mode == "detection_refiner" and self._detector_model:
+            from bioharn import detect_predict
+            pred_config = detect_predict.DetectPredictConfig()
+            pred_config['batch_size'] = 1
+            pred_config['deployed'] = self._detector_model
+            pred_config['xpu'] = 'auto'
+            self._detector = detect_predict.DetectPredictor( pred_config )
+            self._detector._ensure_model()
+
+        if self._mode == "detection_refiner" and not os.path.exists( self._chip_directory ):
+            os.mkdir( self._chip_directory )
 
         # Initialize persistent variables
         self._training_data = []
@@ -267,7 +291,10 @@ class NetHarnTrainer( TrainDetector ):
                 continue
             class_lbl = item.type().get_most_likely_class()
             if categories is not None and not categories.has_class_id( class_lbl ):
-                continue
+                if self._mode == "detection_refiner":
+                    class_lbl = "background"
+                else:
+                    continue
             if categories is not None:
                 class_lbl = categories.get_class_name( class_lbl )
             elif class_lbl not in self._categories:
@@ -289,6 +316,50 @@ class NetHarnTrainer( TrainDetector ):
 
         return filtered_truth, use_frame
 
+    def extract_chips_for_dets( self, image_files, detections ):
+        import cv2
+        output_files = []
+        output_dets = []
+
+        for i in range( len( image_files ) ):
+            filename = image_files[ i ]
+            groundtruth = detections[ i ]
+
+            if len( groundtruth ) > 0:
+                img = cv2.imread( filename )
+
+            # Run detector on image, TODO
+            #if self._detector_model:
+            #else if len( train_dets ) == 0:
+            #    continue
+
+            if len( groundtruth ) == 0:
+                continue
+
+            for det in groundtruth:
+                # Extract chip for this detection
+                bbox = det.bounding_box()
+                bbox_min_x = int( bbox.min_x() )
+                bbox_max_x = int( bbox.max_x() )
+                bbox_min_y = int( bbox.min_y() )
+                bbox_max_y = int( bbox.max_y() )
+                crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
+                self._sample_count = self._sample_count + 1
+                crop_str = ( '%09d' %  self._sample_count ) + ".png"
+                new_file = os.path.join( self._chip_directory, crop_str )
+                cv2.imwrite( new_file, crop )
+
+                # Set new box size for this detection
+                det.set_bounding_box(
+                  BoundingBox( 0, 0, np.shape( crop )[1], np.shape( crop )[0] ) )
+                new_set = DetectedObjectSet()
+                new_set.add( det )
+
+                output_files.append( new_file )
+                output_dets.append( new_set )
+  
+        return [ output_files, output_dets ]
+
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
         if self._no_format:
             return
@@ -297,6 +368,9 @@ class NetHarnTrainer( TrainDetector ):
             return
         if categories is not None:
             self._categories = categories.all_class_names()
+        if self._mode == "detection_refiner":
+            [ train_files, train_dets ] = self.extract_chips_for_dets( train_files, train_dets )
+            [ test_files, test_dets ] = self.extract_chips_for_dets( test_files, test_dets )          
         for i in range( len( train_files ) + len( test_files ) ):
             if i < len( train_files ):
                 filename = train_files[ i ]
@@ -318,7 +392,7 @@ class NetHarnTrainer( TrainDetector ):
 
         cmd = [ "python.exe" if os.name == 'nt' else "python", "-m" ]
 
-        if self._mode == "frame_classifier":
+        if self._mode == "frame_classifier" or self._mode == "detection_refiner":
             cmd += [ "bioharn.clf_fit",
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
@@ -394,7 +468,7 @@ class NetHarnTrainer( TrainDetector ):
     def save_final_model( self ):
         if len( self._pipeline_template ) > 0:
             # Copy model file to final directory
-            if self._mode == "frame_classifier":
+            if self._mode == "frame_classifier" or self._mode == "detection_refiner":
                 output_model_name = "trained_classifier.zip"
             else:
                 output_model_name = "trained_detector.zip"

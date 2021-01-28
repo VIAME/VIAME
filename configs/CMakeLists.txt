@@ -379,6 +379,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     pipelines/train_netharn_cascade_wtf.viame_csv.conf
     pipelines/train_netharn_cascade_motion.viame_csv.conf
     pipelines/train_netharn_cascade_special.viame_csv.conf
+    pipelines/train_netharn_refiner.viame_csv.conf
     pipelines/train_netharn_resnet.viame_csv.conf
     pipelines/train_netharn_resnet_nf.viame_csv.conf )
 endif()
