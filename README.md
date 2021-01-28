@@ -96,7 +96,7 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [VIAME Web Local Installation Instructions](https://github.com/VIAME/VIAME-Web/blob/master/docker/README.md) <br>
 [VIAME Web Source Repository](https://github.com/VIAME/VIAME-Web)
 
-**DIVE Standalone Desktop Installers:** <br>
+**DIVE Standalone Desktop Annotator:** <br>
 [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases/tag/1.3.4)
 
 **SEAL Desktop Custom Distribution:** <br>
