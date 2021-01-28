@@ -93,6 +93,8 @@ class NetHarnTrainer( TrainDetector ):
         self._area_pivot = 0
         self._border_exclude = -1
         self._detector_model = ""
+        self._overlap_for_association = 0.90
+        self._max_negs_per_frame = 10
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -257,14 +259,14 @@ class NetHarnTrainer( TrainDetector ):
                 self._arch = "cascade"
 
         # Launch helper detector if enabled
-        if self._mode == "detection_refiner" and self._detector_model:
-            from bioharn import detect_predict
-            pred_config = detect_predict.DetectPredictConfig()
-            pred_config['batch_size'] = 1
-            pred_config['deployed'] = self._detector_model
-            pred_config['xpu'] = 'auto'
-            self._detector = detect_predict.DetectPredictor( pred_config )
-            self._detector._ensure_model()
+        #if self._mode == "detection_refiner" and self._detector_model:
+        #    from bioharn import detect_predict
+        #    pred_config = detect_predict.DetectPredictConfig()
+        #    pred_config['batch_size'] = 1
+        #    pred_config['deployed'] = self._detector_model
+        #    pred_config['xpu'] = 'auto'
+        #    self._detector = detect_predict.DetectPredictor( pred_config )
+        #    self._detector._ensure_model()
 
         if self._mode == "detection_refiner" and not os.path.exists( self._chip_directory ):
             os.mkdir( self._chip_directory )
@@ -321,28 +323,58 @@ class NetHarnTrainer( TrainDetector ):
         output_files = []
         output_dets = []
 
+        # Run detector on image, TODO
+        #if self._detector_model:
+        #else if len( train_dets ) == 0:
+        #    continue
+
+        #TODO use self._overlap_for_association = 0.90
+        #TODO use self._max_negs_per_frame = 10
+
         for i in range( len( image_files ) ):
             filename = image_files[ i ]
             groundtruth = detections[ i ]
 
             if len( groundtruth ) > 0:
                 img = cv2.imread( filename )
-
-            # Run detector on image, TODO
-            #if self._detector_model:
-            #else if len( train_dets ) == 0:
-            #    continue
+  
+                img_max_x = np.shape( img )[1]
+                img_max_y = np.shape( img )[0]
 
             if len( groundtruth ) == 0:
                 continue
 
+            pos_bboxs = []
+
             for det in groundtruth:
                 # Extract chip for this detection
                 bbox = det.bounding_box()
+
                 bbox_min_x = int( bbox.min_x() )
                 bbox_max_x = int( bbox.max_x() )
                 bbox_min_y = int( bbox.min_y() )
                 bbox_max_y = int( bbox.max_y() )
+
+                bbox_width = bbox_max_x - bbox_min_x
+                bbox_height = bbox_max_y - bbox_min_y
+
+                bbox_area = bbox_width * bbox_height
+
+                if self._area_pivot > 1 and bbox_area < self._area_pivot:
+                    continue
+                if self._area_pivot < -1 and bbox_area > -self._area_pivot:
+                    continue
+
+                if self._border_exclude > 0:
+                    if bbox_min_x <= self._border_exclude:
+                        continue
+                    if bbox_min_y <= self._border_exclude:
+                        continue
+                    if bbox_max_x >= img_max_x - self._border_exclude:
+                        continue
+                    if bbox_max_y >= img_max_y - self._border_exclude:
+                        continue
+
                 crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
                 self._sample_count = self._sample_count + 1
                 crop_str = ( '%09d' %  self._sample_count ) + ".png"
@@ -357,7 +389,7 @@ class NetHarnTrainer( TrainDetector ):
 
                 output_files.append( new_file )
                 output_dets.append( new_set )
-  
+
         return [ output_files, output_dets ]
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
