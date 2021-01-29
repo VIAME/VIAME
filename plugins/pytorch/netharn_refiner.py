@@ -67,7 +67,7 @@ class NetharnRefiner(RefineDetections):
     """
 
     def __init__(self):
-        ImageObjectDetector.__init__(self)
+        RefineDetections.__init__(self)
 
         # kwiver configuration variables
         self._kwiver_config = {
@@ -84,7 +84,7 @@ class NetharnRefiner(RefineDetections):
 
     def get_configuration(self):
         # Inherit from the base class
-        cfg = super(ImageObjectDetector, self).get_configuration()
+        cfg = super(RefineDetections, self).get_configuration()
         for key, value in self._kwiver_config.items():
             cfg.set_value(key, str(value))
         return cfg
@@ -145,6 +145,9 @@ class NetharnRefiner(RefineDetections):
         img = image_data.asarray().astype('uint8')
         predictor = self.predictor
 
+        img_max_x = np.shape( img )[1]
+        img_max_y = np.shape( img )[0]
+
         # Extract patches for ROIs
         image_chips = []
         detection_ids = []
@@ -189,7 +192,7 @@ class NetharnRefiner(RefineDetections):
         output = DetectedObjectSet()
 
         for i, det in enumerate( detections ):
-            if len( detections_ids ) == 0 or i != detection_ids[0]:
+            if len( detection_ids ) == 0 or i != detection_ids[0]:
                 output.add( det )
                 continue
 
