@@ -46,12 +46,12 @@
 
 
 
-template <class algorithm_def_iod_base=kwiver::vital::algorithm_def<kwiver::vital::algo::refine_detections>>
-class algorithm_def_iod_trampoline :
-      public algorithm_trampoline<algorithm_def_iod_base>
+template <class algorithm_def_rd_base=kwiver::vital::algorithm_def<kwiver::vital::algo::refine_detections>>
+class algorithm_def_rd_trampoline :
+      public algorithm_trampoline<algorithm_def_rd_base>
 {
   public:
-    using algorithm_trampoline<algorithm_def_iod_base>::algorithm_trampoline;
+    using algorithm_trampoline<algorithm_def_rd_base>::algorithm_trampoline;
 
     std::string type_name() const override 
     {
@@ -66,11 +66,11 @@ class algorithm_def_iod_trampoline :
 
 template <class refine_detections_base=kwiver::vital::algo::refine_detections>
 class refine_detections_trampoline :
-      public algorithm_def_iod_trampoline<refine_detections_base>
+      public algorithm_def_rd_trampoline<refine_detections_base>
 {
   public:
-    using algorithm_def_iod_trampoline<refine_detections_base>::
-              algorithm_def_iod_trampoline;
+    using algorithm_def_rd_trampoline<refine_detections_base>::
+              algorithm_def_rd_trampoline;
     kwiver::vital::detected_object_set_sptr refine(kwiver::vital::image_container_sptr image_data,
                                                    kwiver::vital::detected_object_set_sptr detections) const override
     {

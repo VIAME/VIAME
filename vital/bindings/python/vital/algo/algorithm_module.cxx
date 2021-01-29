@@ -42,6 +42,7 @@
 #include <vital/algo/algorithm.h>
 
 #include <vital/algo/image_object_detector.h>
+#include <vital/algo/refine_detections.h>
 #include <vital/algo/train_detector.h>
 
 #include <vital/bindings/python/vital/algo/algorithm.h>
@@ -49,6 +50,7 @@
 #include <vital/bindings/python/vital/algo/detected_object_set_output.h>
 #include <vital/bindings/python/vital/algo/image_filter.h>
 #include <vital/bindings/python/vital/algo/image_object_detector.h>
+#include <vital/bindings/python/vital/algo/refine_detections.h>
 #include <vital/bindings/python/vital/algo/train_detector.h>
 
 #include <vital/bindings/python/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
@@ -56,6 +58,7 @@
 #include <vital/bindings/python/vital/algo/trampoline/image_filter_trampoline.txx>
 #include <vital/bindings/python/vital/algo/trampoline/train_detector_trampoline.txx>
 #include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
+#include <vital/bindings/python/vital/algo/trampoline/refine_detections_trampoline.txx>
 
 #include <sstream>
 
@@ -80,6 +83,10 @@ PYBIND11_MODULE(algorithm, m)
   register_algorithm<kwiver::vital::algo::image_object_detector,
     algorithm_def_iod_trampoline<>>(m, "image_object_detector");
   image_object_detector(m);
+
+  register_algorithm<kwiver::vital::algo::refine_detections,
+    algorithm_def_rd_trampoline<>>(m, "refine_detections");
+  refine_detections(m);
 
   register_algorithm<kwiver::vital::algo::train_detector,
     algorithm_def_td_trampoline<>>(m, "train_detector");
