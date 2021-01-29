@@ -43,6 +43,11 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     viame/arrows/pytorch
     netharn_trainer )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/netharn_refiner.py
+    viame/arrows/pytorch
+    netharn_refiner )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MDNET )
