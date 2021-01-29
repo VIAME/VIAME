@@ -77,7 +77,7 @@ class refine_detections_trampoline :
       VITAL_PYBIND11_OVERLOAD_PURE(
         kwiver::vital::detected_object_set_sptr,
         kwiver::vital::algo::refine_detections,
-        detect,
+        refine,
         image_data,
         detections
       );
