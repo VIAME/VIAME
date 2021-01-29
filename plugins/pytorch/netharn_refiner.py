@@ -36,6 +36,8 @@ from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
 from vital.types import DetectedObjectType
 
+from distutils.util import strtobool
+
 import numpy as np  # NOQA
 import ubelt as ub
 
@@ -75,7 +77,8 @@ class NetharnRefiner(RefineDetections):
             'xpu': "0",
             'batch_size': "auto",
             'area_pivot': "0",
-            'border_exclude': "-1"
+            'border_exclude': "-1",
+            'average_prior': "False"
         }
 
         # netharn variables
@@ -129,6 +132,7 @@ class NetharnRefiner(RefineDetections):
         self.predictor._ensure_model()
         self._area_pivot = int(self._kwiver_config['area_pivot'])
         self._border_exclude = int(self._kwiver_config['border_exclude'])
+        self._average_prior = strtobool(self._kwiver_config['average_prior'])
         return True
 
     def check_configuration(self, cfg):
@@ -201,15 +205,26 @@ class NetharnRefiner(RefineDetections):
             if new_class.data.get('prob', None) is not None:
                 # If we have a probability for each class, uses that
                 class_names = list(new_class.classes)
-                class_prob = new_class.prob
-                detected_object_type = DetectedObjectType(class_names, class_prob)
-                det.set_type(detected_object_type)
+                class_scores = new_class.prob
             else:
-                # Otherwise we only have the score for the predicted calss
-                class_name = new_class.classes[new_class.cidx]
-                class_score = new_class.conf
-                detected_object_type = DetectedObjectType(class_name, class_score)
-                det.set_type(detected_object_type)
+                # Otherwise we only have the score for the predicted class
+                class_names = [ new_class.classes[new_class.cidx] ]
+                class_scores = [ new_class.conf ]
+
+            if self._average_prior and det.type() is not None:
+                priors = det.type()
+                prior_names = priors.class_names()
+                for name in prior_names:
+                    if name in class_names:
+                        class_scores[ class_names.index( name ) ] += priors.score( name )
+                    else:
+                        class_names.append( name )
+                        class_scores.append( priors.score( name ) )
+                for i in range(len(class_scores)):
+                    class_scores[i] = class_scores[i] * 0.5
+
+            detected_object_type = DetectedObjectType(class_names, class_scores)
+            det.set_type(detected_object_type)
 
             output.add( det )
             detection_ids.pop(0)
