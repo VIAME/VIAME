@@ -1,3 +1,11 @@
+v0.13.4 - 2/1/2020
+==================
+
+
+-Updates to support training in the VIAME-DIVE interface
+
+
+
 v0.13.3 - 1/27/2020
 ===================
 
