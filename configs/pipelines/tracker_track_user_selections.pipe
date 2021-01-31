@@ -17,6 +17,16 @@ include common_default_input_with_downsampler.pipe
 
 # ================================= CORE TRACKER ===================================
 
+# Input detections for user initializations
+process detection_reader
+  :: detected_object_input
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
+# Tracker algorithm
 include common_short_term_tracker.pipe
 
 # Connect inputs to tracker
@@ -24,13 +34,14 @@ connect from downsampler.output_1
         to   short_term_tracker.image
 connect from downsampler.timestamp
         to   short_term_tracker.timestamp
+connect from detection_reader.detected_object_set
+        to   short_term_tracker.detected_object_set
 
 # ================================= OUTPUT TRK DATA ================================
 
 process track_writer
   :: write_object_track
-#  :file_name                                   siamrpn_computed_tracks.csv
-  :file_name                                   siammask_computed_tracks.csv
+  :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
 
