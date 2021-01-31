@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2020 by Kitware, Inc.
+ * Copyright 2017-2021 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@
 #include <memory>
 #include <map>
 #include <cctype>
+#include <regex>
 
 // =======================================================================================
 // Class storing all input parameters and private variables for tool
@@ -79,6 +80,7 @@ public:
   bool opt_list;
   bool opt_no_query;
   bool opt_no_adv_print;
+  bool opt_no_emb_pipe;
 
   std::string opt_config;
   std::string opt_input_dir;
@@ -98,6 +100,7 @@ public:
     opt_list = false;
     opt_no_query = false;
     opt_no_adv_print = false;
+    opt_no_emb_pipe = false;
   }
 
   virtual ~trainer_vars()
@@ -731,6 +734,10 @@ main( int argc, char* argv[] )
     &g_params.opt_no_adv_print, "Do not print out any advanced chars" );
   g_params.m_args.AddArgument( "-nap",            argT::NO_ARGUMENT,
     &g_params.opt_no_adv_print, "Do not print out any advanced chars" );
+  g_params.m_args.AddArgument( "--no-embedded-pipe", argT::NO_ARGUMENT,
+    &g_params.opt_no_emb_pipe, "Do not output embedded pipes" );
+  g_params.m_args.AddArgument( "-nep",            argT::NO_ARGUMENT,
+    &g_params.opt_no_emb_pipe, "Do not output embedded pipes" );
   g_params.m_args.AddArgument( "--config",        argT::SPACE_ARGUMENT,
     &g_params.opt_config, "Input configuration file with parameters" );
   g_params.m_args.AddArgument( "-c",              argT::SPACE_ARGUMENT,
@@ -916,6 +923,24 @@ main( int argc, char* argv[] )
 
     config->set_value( prefix1 + ":allow_unicode", "False" );
     config->set_value( prefix2 + ":allow_unicode", "False" );
+  }
+
+  if( g_params.opt_no_emb_pipe )
+  {
+    auto conf_values = config->available_values();
+
+    for( auto conf : conf_values )
+    {
+      if( conf.find( "pipeline_template" ) != std::string::npos )
+      {
+        std::string new_value = std::regex_replace(
+          config->get_value< std::string >( conf ),
+          std::regex( "embedded_" ),
+          "detector_" );
+
+        config->set_value( conf, new_value );
+      }
+    }
   }
 
   kwiver::vital::algo::train_detector::set_nested_algo_configuration
