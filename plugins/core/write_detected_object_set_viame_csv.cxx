@@ -97,6 +97,8 @@ write_detected_object_set_viame_csv
 {
   kwiver::vital::config_block_sptr config = this->get_configuration();
 
+  config->merge_config( config_in );
+
   d->m_write_frame_number =
     config->get_value< bool >( "write_frame_number", d->m_write_frame_number );
   d->m_stream_identifier =
@@ -105,8 +107,6 @@ write_detected_object_set_viame_csv
     config->get_value< std::string >( "model_identifier", d->m_model_identifier );
   d->m_version_identifier =
     config->get_value< std::string >( "version_identifier", d->m_version_identifier );
-
-  config->merge_config( config_in );
 }
 
 
