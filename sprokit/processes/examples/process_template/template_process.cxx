@@ -40,6 +40,7 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <vital/types/timestamp.h>
+#include <vital/vital_config.h>
 #include <arrows/ocv/image_container.h>
 
 #include <opencv2/core/core.hpp>
@@ -236,7 +237,7 @@ template_process
 //++ to get the new config values from the supplied config
 void
 template_process
-::_reconfigure(kwiver::vital::config_block_sptr const& conf)
+::_reconfigure( VITAL_UNUSED kwiver::vital::config_block_sptr const& conf)
 {
   scoped_reconfigure_instrumentation();
 

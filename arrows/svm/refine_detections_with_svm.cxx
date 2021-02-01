@@ -264,7 +264,7 @@ refine_detections_with_svm
 
     if( d_->override_original || !det->type() )
     {
-      new_type = std::make_shared< detected_object_type >();
+      new_type = std::make_shared< detected_object >();
     }
     else
     {

@@ -31,12 +31,14 @@
 #include "pipeline_runner.h"
 
 #include <vital/config/config_block.h>
+#include <vital/config/config_block_formatter.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline_util/pipeline_builder.h>
+#include <sprokit/pipeline_util/pipe_display.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -76,7 +78,10 @@ add_command_options()
       cxxopts::value<std::vector<std::string>>() )
     ( "I,include", "A directory to be added to configuration include path. Can occur multiple times.",
       cxxopts::value<std::vector<std::string>>()  )
-    ( "S,scheduler", "Scheduler type to use.", cxxopts::value<std::string>() );
+    ( "S,scheduler", "Scheduler type to use.", cxxopts::value<std::string>() )
+    ( "D,dump-pipe", "Dump final pipeline configuration. This is useful for "
+      "debugging config related problems." )
+    ;
 
     // positional parameters
   m_cmd_options->add_options()
@@ -152,12 +157,24 @@ run()
   // get handle to config block
   kwiver::vital::config_block_sptr const conf = builder.config();
 
+  // nice to dump config at this point
+  if ( cmd_args["dump-pipe"].as<bool>() )
+  {
+    std::cout << "\nPipeline contents:\n";;
+    sprokit::pipe_display pd( std::cout );
+    pd.print_loc();
+    pd.display_pipe_blocks( builder.pipeline_blocks() );
+
+    return EXIT_SUCCESS;
+  }
+
   if (!pipe)
   {
     std::cerr << "Error: Unable to bake pipeline" << std::endl;
     return EXIT_FAILURE;
   }
 
+  // Get pipeline ready to run
   pipe->setup_pipeline();
 
   //
@@ -173,13 +190,16 @@ run()
   else
   {
     scheduler_type = conf->get_value(
-        scheduler_block + kwiver::vital::config_block::block_sep + "type",  // key string
+        scheduler_block + kwiver::vital::config_block::block_sep()
+        + "type",  // key string
         sprokit::scheduler_factory::default_type ); // default value
   }
 
   // Get scheduler sub block based on selected scheduler type
-  kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
-                                              kwiver::vital::config_block::block_sep + scheduler_type);
+  kwiver::vital::config_block_sptr const scheduler_config =
+             conf->subblock(scheduler_block +
+                            kwiver::vital::config_block::block_sep() +
+                            scheduler_type);
 
   sprokit::scheduler_t scheduler = sprokit::create_scheduler(scheduler_type, pipe, scheduler_config);
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,6 +110,25 @@ void convert_metadata
     LOG_DEBUG( m_logger, "Unsupported UDS Key: "
               << uds_key << " data size is "
               << klv.value_size() );
+  }
+}
+
+
+// ------------------------------------------------------------------
+std::type_info const&
+convert_metadata
+::typeid_for_tag( vital_metadata_tag tag )
+{
+
+  switch (tag)
+  {
+#define VITAL_META_TRAIT_CASE(TAG, NAME, T, ...) case VITAL_META_ ## TAG: return typeid(T);
+
+    KWIVER_VITAL_METADATA_TAGS( VITAL_META_TRAIT_CASE )
+
+#undef VITAL_META_TRAIT_CASE
+
+  default: return typeid(void);
   }
 }
 

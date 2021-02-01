@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -40,11 +14,9 @@
 #include <vxl_config.h>
 #include <vil/vil_new.h>
 
-
 namespace kwiver {
 namespace arrows {
 namespace vxl {
-
 
 /// Constructor - from a vil_image_view_base
 image_container
@@ -52,7 +24,6 @@ image_container
 : data_(vil_new_image_view_base_sptr(d))
 {
 }
-
 
 /// Constructor - convert base image container to vil
 image_container
@@ -69,7 +40,6 @@ image_container
     this->data_ = vital_to_vxl(image_cont.get_image());
   }
 }
-
 
 /// The size of the image data in bytes
 /**
@@ -117,7 +87,6 @@ image_container
   return 0;
 }
 
-
 /// Convert a VXL vil_image_view to a VITAL image
 vital::image
 image_container
@@ -155,7 +124,6 @@ image_container
   return vital::image();
 }
 
-
 namespace
 {
 
@@ -173,7 +141,6 @@ make_vil_image_view(const vital::image& img)
 }
 
 }
-
 
 /// Convert a VITAL image to a VXL vil_image_view
 vil_image_view_base_sptr

@@ -124,9 +124,9 @@ compute_association_matrix_process
 ::_step()
 {
   // Check for end of video since we're in manual management mode
-  auto port_info = peek_at_port_using_trait( detected_object_set );
+  auto p_info = peek_at_port_using_trait( detected_object_set );
 
-  if( port_info.datum->type() == sprokit::datum::complete )
+  if( p_info.datum->type() == sprokit::datum::complete )
   {
     grab_edge_datum_using_trait( detected_object_set );
     mark_process_as_complete();

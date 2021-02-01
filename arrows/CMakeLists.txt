@@ -8,6 +8,11 @@ set(ARROWS_BINARY_DIR           "${CMAKE_CURRENT_BINARY_DIR}")
 # Base plug-in with default implementations
 add_subdirectory( core )
 
+# Add MVG plugin if enabled
+if( KWIVER_ENABLE_MVG )
+  add_subdirectory( mvg )
+endif()
+
 # Add Ceres plugin if enabled
 if( KWIVER_ENABLE_CERES )
   add_subdirectory( ceres )
@@ -95,19 +100,14 @@ if( KWIVER_ENABLE_UUID )
   add_subdirectory( uuid )
 endif()
 
-# if python is enabled
-if( KWIVER_ENABLE_PYTHON )
-  kwiver_create_python_init( kwiver/arrows )
-  add_subdirectory( python )
-
-  if( KWIVER_ENABLE_PYTORCH )
-    add_subdirectory( pytorch )
-  endif()
-endif()
-
-# if FFMPEG is enabled
+# if FFmpeg is enabled
 if( KWIVER_ENABLE_FFMPEG)
   add_subdirectory( ffmpeg )
+endif()
+
+# if VTK is enabled
+if( KWIVER_ENABLE_VTK)
+  add_subdirectory( vtk )
 endif()
 
 add_subdirectory( serialize )

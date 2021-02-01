@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -51,7 +25,6 @@
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( "arrows.kpf.kpf_yaml_parser" ) );
-
 
 using std::istream;
 using std::string;
@@ -209,7 +182,7 @@ parse_packet( const YAML::const_iterator& it, KPF::packet_t& p )
       break;
 
     case KPF::packet_style::ID:
-      new (&p.id) KPFC::id_t( it->second.as<int>() );
+      new (&p.id) KPFC::id_t( it->second.as<uint64_t>() );
       break;
 
     case KPF::packet_style::KV:
@@ -286,7 +259,6 @@ parse_general( const YAML::Node& n, KPF::packet_buffer_t& local_packet_buffer )
   } // ...for all entries in this node's map (or until there's an error)
   return okay;
 }
-
 
 bool
 parse_scoped_timespan( const YAML::Node& n,
@@ -378,7 +350,7 @@ parse_actors( const YAML::Node& n,
         if ( h.style == KPF::packet_style::ID)
         {
           actor.actor_id = KPFC::scoped< KPFC::id_t >(
-            KPFC::id_t( actor_map->second.as<int>() ),
+            KPFC::id_t( actor_map->second.as<uint64_t>() ),
             h.domain );
         }
         else
@@ -452,7 +424,7 @@ parse_activity( const YAML::Node& n, KPF::packet_buffer_t& local_packet_buffer )
 
       if (( h.style == KPF::packet_style::ID) && ( h.domain == act.activity_id.domain ))
       {
-        act.activity_id.t.d = i->second.as<int>();
+        act.activity_id.t.d = i->second.as<uint64_t>();
       }
       else if (h.style == KPF::packet_style::KV)
       {
@@ -461,9 +433,9 @@ parse_activity( const YAML::Node& n, KPF::packet_buffer_t& local_packet_buffer )
       }
       else if (h.style == KPF::packet_style::EVAL)
       {
-        KPF::packet_t p(h);
-        if ( ! parse_packet( i, p )) return false;
-        act.evals.push_back ( {p.eval, p.header.domain} );
+        KPF::packet_t packet(h);
+        if ( ! parse_packet( i, packet )) return false;
+        act.evals.push_back ( {p.eval, packet.header.domain} );
       }
       else if (h.style == KPF::packet_style::ACT)
       {
@@ -501,7 +473,6 @@ parse_as_kpf_v3( const YAML::Node& n,
 
   return parse_general( n, local_packet_buffer );
 }
-
 
 } // ...anon
 
@@ -624,7 +595,7 @@ kpf_yaml_parser_t
   this->current_record_schema = check;
 
   // special case for meta
-  if ((check == schema_style::INVALID) && ( str2style( n_sub->first.as<string>()) == packet_style::META ))
+  if ( str2style( n_sub->first.as<string>()) == packet_style::META )
   {
     okay = parse_as_kpf_v3( n, schema_style::UNSPECIFIED, local_packet_buffer );
   }

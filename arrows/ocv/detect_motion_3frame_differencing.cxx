@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -40,6 +14,7 @@
 #include <kwiversys/SystemTools.hxx>
 #include <vital/exceptions.h>
 #include <vital/types/matrix.h>
+#include <vital/vital_config.h>
 
 #include <arrows/ocv/image_container.h>
 
@@ -52,7 +27,6 @@ namespace arrows {
 namespace ocv {
 
 using namespace kwiver::vital;
-
 
 //-----------------------------------------------------------------------------
   ///
@@ -71,7 +45,7 @@ rms_over_channels( const cv::Mat &src, cv::Mat &dst)
 {
   cv::Mat *src_split = new cv::Mat[src.channels()];
   cv::split(src, src_split);
-  cv::Mat accum = cv::Mat(src.rows, src.cols, CV_32F, cvScalar(0));
+  cv::Mat accum = cv::Mat(src.rows, src.cols, CV_32F, cv::Scalar(0));
   for( int i=0; i<src.channels(); ++i)
   {
     cv::Mat temp;
@@ -86,7 +60,6 @@ rms_over_channels( const cv::Mat &src, cv::Mat &dst)
   accum.convertTo(dst, CV_8UC1);
   delete [] src_split;
 }
-
 
 // ----------------------------------------------------------------------------
 /// Private implementation class
@@ -178,7 +151,7 @@ public:
     {
       LOG_TRACE( m_logger, "Haven't collected enough frames yet, so setting "
                            "foreground mask to all zeros.");
-      fgmask = cv::Mat(cv_src.rows, cv_src.cols, CV_8UC1, cvScalar(0));
+      fgmask = cv::Mat(cv_src.rows, cv_src.cols, CV_8UC1, cv::Scalar(0));
       return;
     }
 
@@ -279,7 +252,6 @@ public:
   }
 };
 
-
 /// Constructor
 detect_motion_3frame_differencing
 ::detect_motion_3frame_differencing()
@@ -290,13 +262,11 @@ detect_motion_3frame_differencing
   d_->reset();
 }
 
-
 /// Destructor
 detect_motion_3frame_differencing
 ::~detect_motion_3frame_differencing() noexcept
 {
 }
-
 
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
@@ -336,7 +306,6 @@ detect_motion_3frame_differencing
 
   return config;
 }
-
 
 /// Set this algo's properties via a config block
 void
@@ -394,19 +363,17 @@ detect_motion_3frame_differencing
   LOG_DEBUG( logger(), "debug_dir: " << d_->m_debug_dir );
 }
 
-
 bool
 detect_motion_3frame_differencing
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
 
-
 /// Detect motion from a sequence of images
 image_container_sptr
 detect_motion_3frame_differencing
-::process_image( const timestamp& ts,
+::process_image( VITAL_UNUSED const timestamp& ts,
                  const image_container_sptr image,
                  bool reset_model)
 {
@@ -427,7 +394,6 @@ detect_motion_3frame_differencing
 
   return std::make_shared<ocv::image_container>(fgmask,image_container::BGR_COLOR);
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

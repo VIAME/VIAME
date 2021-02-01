@@ -41,6 +41,7 @@
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
 #include <vital/types/timestamp.h>
+#include <vital/vital_config.h>
 #include <arrows/ocv/image_container.h>
 
 //++ include definition of abstract base algorithm.
@@ -239,7 +240,7 @@ template_algo_wrapper
 //++ to get the new config values from the supplied config
 void
 template_algo_wrapper
-::_reconfigure(kwiver::vital::config_block_sptr const& conf)
+::_reconfigure( VITAL_UNUSED kwiver::vital::config_block_sptr const& conf)
 {
   scoped_reconfigure_instrumentation();
 

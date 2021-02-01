@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -38,6 +12,7 @@
 #include <vital/exceptions/io.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/util/string.h>
+#include <vital/vital_config.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -65,7 +40,6 @@ typedef kwiversys::SystemTools     ST;
 
 /// Helper typedef for storing match lines between frames
 typedef std::vector< std::pair< cv::Point, cv::Point > > line_vec_t;
-
 
 /// Helper typedef for storing past frame id offsets
 typedef std::vector< frame_id_t > fid_offset_vec_t;
@@ -110,7 +84,6 @@ public:
   frame_id_t cur_frame_id;
 };
 
-
 /// Constructor
 draw_tracks
 ::draw_tracks()
@@ -118,13 +91,11 @@ draw_tracks
 {
 }
 
-
 /// Destructor
 draw_tracks
 ::~draw_tracks()
 {
 }
-
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
@@ -176,7 +147,6 @@ draw_tracks
   return config;
 }
 
-
 /// Set this algorithm's properties via a config block
 void
 draw_tracks
@@ -216,15 +186,13 @@ draw_tracks
   }
 }
 
-
 /// Check that the algorithm's currently configuration is valid
 bool
 draw_tracks
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
-
 
 /// Helper function to subtract a value from all elements in a vec
 void subtract_from_all( fid_offset_vec_t& offsets, unsigned value )
@@ -234,7 +202,6 @@ void subtract_from_all( fid_offset_vec_t& offsets, unsigned value )
     offsets[i] -= value;
   }
 }
-
 
 /// Helper function to convert a track state to an OpenCV point
 cv::Point state_to_cv_point( track_state_sptr ts )
@@ -248,7 +215,6 @@ cv::Point state_to_cv_point( track_state_sptr ts )
   //TODO Maybe throw an exception here
   return cv::Point();
 }
-
 
 /// Helper function for creating valid match lines for a given track
 void generate_match_lines( const track_sptr trk,
@@ -311,7 +277,6 @@ void generate_match_lines( const track_sptr trk,
   }
 }
 
-
 /// Output images with tracked features drawn on them
 image_container_sptr
 draw_tracks
@@ -370,7 +335,7 @@ draw_tracks
     // Convert to 3 channel image if not one already
     if( img.channels() == 1 )
     {
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
       cv::cvtColor( img, img, cv::COLOR_GRAY2BGR );
 #else
       cv::cvtColor( img, img, CV_GRAY2BGR );

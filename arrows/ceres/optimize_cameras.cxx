@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
 * \file
@@ -37,14 +11,13 @@
 #include <arrows/ceres/options.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <vital/exceptions.h>
-
+#include <vital/vital_config.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
 namespace ceres {
-
 
 // Private implementation class
 class optimize_cameras::priv
@@ -77,7 +50,6 @@ public:
   double loss_function_scale;
 };
 
-
 // ----------------------------------------------------------------------------
 // Constructor
 optimize_cameras
@@ -87,13 +59,11 @@ optimize_cameras
   attach_logger( "arrows.ceres.optimize_cameras" );
 }
 
-
 // Destructor
 optimize_cameras
 ::~optimize_cameras()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 // Get this algorithm's \link vital::config_block configuration block \endlink
@@ -120,7 +90,6 @@ optimize_cameras
 
   return config;
 }
-
 
 // ----------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
@@ -152,12 +121,11 @@ optimize_cameras
   d_->camera_options::set_configuration(config);
 }
 
-
 // ----------------------------------------------------------------------------
 // Check that the algorithm's currently configuration is valid
 bool
 optimize_cameras
-::check_configuration(config_block_sptr config) const
+::check_configuration( VITAL_UNUSED config_block_sptr config) const
 {
   std::string msg;
   if( !d_->options.IsValid(&msg) )
@@ -167,7 +135,6 @@ optimize_cameras
   }
   return true;
 }
-
 
 // ----------------------------------------------------------------------------
 // Optimize camera parameters given sets of landmarks and feature tracks
@@ -302,8 +269,7 @@ optimize_cameras
   }
 
   // add costs for priors
-  int num_position_priors_applied =
-    d_->add_position_prior_cost(problem, camera_params, constraints);
+  d_->add_position_prior_cost(problem, camera_params, constraints);
 
   d_->add_intrinsic_priors_cost(problem, camera_intr_params);
 
@@ -327,7 +293,6 @@ optimize_cameras
   cameras = std::make_shared<simple_camera_map>(cams);
 }
 
-
 // ----------------------------------------------------------------------------
 // Optimize a single camera given corresponding features and landmarks
 void
@@ -335,7 +300,7 @@ optimize_cameras
 ::optimize(vital::camera_perspective_sptr& camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
-           kwiver::vital::sfm_constraints_sptr constraints) const
+           VITAL_UNUSED kwiver::vital::sfm_constraints_sptr constraints) const
 {
   // extract camera parameters to optimize
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
@@ -418,7 +383,6 @@ optimize_cameras
   d_->update_camera_extrinsics(new_camera, &cam_extrinsic_params[0]);
   camera = new_camera;
 }
-
 
 } // end namespace ceres
 } // end namespace arrows

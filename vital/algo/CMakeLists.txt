@@ -8,6 +8,7 @@
 #
 set( public_headers
 
+  activity_detector.h
   algorithm.h
   algorithm_factory.h
   analyze_tracks.h
@@ -70,6 +71,7 @@ set( public_headers
 
 set( sources
 
+  activity_detector.cxx
   algorithm.cxx
   algorithm_factory.cxx
   analyze_tracks.cxx
@@ -142,7 +144,7 @@ kwiver_install_headers(
   NOPATH
   )
 
-kwiver_add_library( vital_algo
+kwiver_add_library( vital_algo SHARED
   ${public_headers}
   ${sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_algo_export.h

@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -49,7 +23,6 @@ frame_index_track_set_impl
 ::frame_index_track_set_impl()
 {
 }
-
 
 /// Constructor from a vector of tracks
 frame_index_track_set_impl
@@ -79,7 +52,6 @@ frame_index_track_set_impl
   }
 }
 
-
 /// Populate frame_map_ only if it is empty
 void
 frame_index_track_set_impl
@@ -91,7 +63,6 @@ frame_index_track_set_impl
   }
 }
 
-
 /// Return the number of tracks in the set
 size_t
 frame_index_track_set_impl
@@ -100,7 +71,6 @@ frame_index_track_set_impl
   return this->all_tracks_.size();
 }
 
-
 /// Return whether or not there are any tracks in the set
 bool
 frame_index_track_set_impl
@@ -108,7 +78,6 @@ frame_index_track_set_impl
 {
   return this->all_tracks_.empty();
 }
-
 
 /// Return true if the set contains a specific track
 bool
@@ -122,7 +91,6 @@ frame_index_track_set_impl
   auto itr = all_tracks_.find(t->id());
   return itr != all_tracks_.end() && itr->second == t;
 }
-
 
 /// Assign a vector of track shared pointers to this container
 void
@@ -141,7 +109,6 @@ frame_index_track_set_impl
 
   frame_map_.clear();
 }
-
 
 /// Insert a track shared pointer into this container
 void
@@ -163,7 +130,6 @@ frame_index_track_set_impl
     }
   }
 }
-
 
 /// Notify the container that a new state has been added to an existing track
 void
@@ -208,7 +174,6 @@ frame_index_track_set_impl
   }
 }
 
-
 /// Remove a track from the set and return true if successful
 bool
 frame_index_track_set_impl
@@ -242,7 +207,6 @@ frame_index_track_set_impl
   return true;
 }
 
-
 /// Return a vector of track shared pointers
 std::vector< track_sptr >
 frame_index_track_set_impl
@@ -256,7 +220,6 @@ frame_index_track_set_impl
   }
   return tks;
 }
-
 
 /// Return the set of all frame IDs covered by these tracks
 std::set<frame_id_t>
@@ -275,7 +238,6 @@ frame_index_track_set_impl
   return ids;
 }
 
-
 /// Return the set of all track IDs in this track set
 std::set<track_id_t>
 frame_index_track_set_impl
@@ -289,7 +251,6 @@ frame_index_track_set_impl
   return ids;
 }
 
-
 /// Return the last (largest) frame number containing tracks
 frame_id_t
 frame_index_track_set_impl
@@ -301,7 +262,6 @@ frame_index_track_set_impl
   }
   return frame_map_.rbegin()->first;
 }
-
 
 /// Return the first (smallest) frame number containing tracks
 frame_id_t
@@ -315,7 +275,6 @@ frame_index_track_set_impl
   return frame_map_.begin()->first;
 }
 
-
 /// Return the track in the set with the specified id.
 track_sptr const
 frame_index_track_set_impl
@@ -326,7 +285,6 @@ frame_index_track_set_impl
   {
     return t_it->second;
   }
-
 
   return track_sptr();
 }
@@ -354,7 +312,6 @@ frame_index_track_set_impl
   return active_tracks;
 }
 
-
 /// Return all tracks not active on a frame.
 std::vector< track_sptr >
 frame_index_track_set_impl
@@ -373,7 +330,6 @@ frame_index_track_set_impl
   }
   return inactive_tracks;
 }
-
 
 /// Return all new tracks on a given frame.
 std::vector< track_sptr >
@@ -399,7 +355,6 @@ frame_index_track_set_impl
   }
   return new_tracks;
 }
-
 
 /// Return all terminated tracks on a given frame.
 std::vector< track_sptr >
@@ -461,7 +416,6 @@ frame_index_track_set_impl
   return static_cast<double>(isect_tracks.size()) / union_tracks.size();
 }
 
-
 /// Return a vector of state data corresponding to the tracks on the given frame.
 std::vector<track_state_sptr>
 frame_index_track_set_impl
@@ -512,7 +466,6 @@ frame_index_track_set_impl
   return false;
 }
 
-
 /// Set additional data associated with all tracks on the given frame
 bool
 frame_index_track_set_impl
@@ -536,7 +489,6 @@ frame_index_track_set_impl
   }
   return true;
 }
-
 
 track_set_implementation_uptr
 frame_index_track_set_impl
@@ -563,7 +515,6 @@ frame_index_track_set_impl
   return std::move( the_clone );
 #endif
 }
-
 
 } // end namespace core
 } // end namespace arrows

@@ -90,6 +90,8 @@ set( vital_public_headers
   io/metadata_io.h
   io/track_set_io.h
 
+  types/activity.h
+  types/activity_type.h
   types/bounding_box.h
   types/camera.h
   types/camera_intrinsics.h
@@ -98,6 +100,7 @@ set( vital_public_headers
   types/camera_perspective_map.h
   types/camera_rpc.h
   types/category_hierarchy.h
+  types/class_map.h
   types/color.h
   types/color_space.h
   types/covariance.h
@@ -172,6 +175,8 @@ set( vital_sources
   io/metadata_io.cxx
   io/track_set_io.cxx
 
+  types/activity.cxx
+  types/activity_type.cxx
   types/bounding_box.cxx
   types/camera_intrinsics.cxx
   types/camera_perspective.cxx
@@ -248,6 +253,7 @@ target_link_libraries( vital
                   vital_exceptions
                   vital_logger
                   vital_util
+                  Eigen3::Eigen
   )
 
 ###

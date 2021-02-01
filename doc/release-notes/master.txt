@@ -7,13 +7,36 @@ over the previous v1.5.0 release.
 Updates since v1.5.0
 --------------------
 
+ * Renamed symbols or other approaches to reduce "shadowing" warnings.
+
 Vital
 
 Vital Algo
 
+ * Extended the API for compute_depth to also return an uncertainty image.
+
+Vital Applets
+
+ * Added utility functions to help validate config file entries for input
+   and output files and directories.
+
 Vital Types
 
+ * Add new method to metadata class to add a metadata item being
+   passed by shared_ptr
+
 Vital Plugin-loader
+
+ * Added support for filtering plugins when they are loaded. Filter
+   objects can be added to the plugin loader at run time to select or
+   exclude specific plugins.
+
+ * Added optional bit mask to load_all_plugins() which allows selected
+   groups of plugins to be loaded. In addition the build/install
+   directory structure for the plugins was reorganized.
+
+ * Internal change to consolidate determining and configuring the
+   build-time plugin search paths.
 
 Vital Util
 
@@ -25,9 +48,28 @@ Vital Types
 
 Vital Bindings
 
+ * Remove ctypes python bindings
+
+ * Moved python bindings associated with config from sprokit.pipeline to
+   vital.config.
+
+ * Force logging level of TRACE to be DEBUG in bindings because Python logging
+   does not support the TRACE level.
+
 Arrows
 
+ * Cleaned up arrows library links.  Many arrows linked to the core arrow
+   when really only needed to link directly to vital libraries.
+
 Arrows: Core
+
+ * Updated dump-klv applet to load default configuration from a file.
+
+ * Added a utility function to depth_utils.h to find similar cameras by view
+   angle.
+
+ * Added a utility funciton to depth_utils.h to gather corresponding cameras,
+   images, and masks from video sources for use in depth map estimation.
 
 Arrows: Ceres
 
@@ -35,15 +77,66 @@ Arrows: CUDA
 
 Arrows: FFmpeg
 
+ * Added a libavfilter pipeline into the ffmpeg_video_input reader. This
+   allows users to inject filters in the video reader, much the same as
+   is possible in the ffmpeg command line with the -vf option.  The default
+   filter applies deinterlacing to any interlaced frames.
+
+ * Fixed the memory leak that occurred when a video was opened and closed.
+
 Arrows: GDAL
 
 Arrows: KPF
+
+Arrows: MVG
+
+ * Created new MVG arrow to make a new home for Multi-View Geometry and
+   other 3D vision code.  Much of this code will move from the "core" arrow
+   which had grown too large.
+
+ * Moved track_features applet from core into mvg.
+
+ * Moved the following algorithms from core into mvg:
+   - hierarchical_bundle_adjust
+   - initialize_cameras_landmarks_keyframe (renamed to initialize_cameras_landmarks)
+   - initialize_cameras_landmarks (renamed to initialize_cameras_landmarks_basic)
+   - triangulate_landmarks
+
+ * Moved the following utility headers from core into mvg:
+   - epipolar_geometry.h
+   - interpolate_camera.h
+   - necker_reverse.h
+   - metrics.h
+   - projected_track_set.h
+   - sfm_utils.h
+   - transform.h
+   - triangulate.h
+
+ * Added a new applet, init_cameras_landmarks, to run the estimate cameras
+   and landmarks from feature tracks produced by the track_features applet.
 
 Arrows: OpenCV
 
 Arrows: Serialization
 
 Arrows: Super3d
+
+ * Changed the compute_depth parameters to take a sampling rate, in pixels,
+   instead of an absolute number of depth slices.  This allows the algorithm
+   the scale the number of slices appropriatlely ensuring at least a minimum
+   sampling rate when projecting into support images.
+
+ * Updated the Super3D compute_depth algorithm to compute uncertainty.
+
+Arrows: VTK
+
+ * Created new VTK arrow.
+
+ * Added utility function to convert depth images to vtkImageData.
+   This function was ported from TeleSculptor.
+
+ * Added a new applet for fusing depth maps in volume and extracting a
+   surface mesh.
 
 Arrows: VXL
 
@@ -53,7 +146,20 @@ Sprokit
 
 Sprokit: Processes
 
+ * Added four new PyTorch-using Python Sprokit processes for tracking
+   (srnn_tracker), descriptor computation (alexnet_descriptors and
+   resnet_descriptors), and augmentation (resnet_augmentation).
+
+Sprokit: Bindings
+
+ * Removed redundant logger support sprokit.sprokit_logging module.
+
 Tools
+
+Build System
+
+ * Added a new build flag, KWIVER_ENABLE_PYTORCH, to include
+   PyTorch-dependent code in the build.
 
 Unit Tests
 
@@ -68,3 +174,7 @@ Arrows: Ceres
 
 Arrows: Super3D
 
+Sprokit: Processes
+
+ * Fixed the compute_track_descriptors process's handling of null
+   output from its nested algorithm.

@@ -54,6 +54,19 @@
 General Presentation: :a:`[gen]`
 ''''''''''''''''''''''''''''''''
 
+- :a:`[gen.copyright]`
+  Files containing non-trivial, non-machine-generated content should ideally
+  include the following copyright notice:
+
+  .. code::
+
+    // This file is part of KWIVER, and is distributed under the
+    // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+    // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
+
+  The comment markers should be replaced according to the type of file.
+  (For example, Python code would use :code:`#` rather than :code:`//`.)
+
 - :a:`[gen.len]`
   Prefer to limit lines to at most 79 characters. Use of the 80th character is
   acceptable in cases where doing so is beneficial to readability.

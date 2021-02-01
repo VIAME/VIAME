@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,21 +61,21 @@ namespace
 // ----------------------------------------------------------------------------
 /// Dummy algo impl to test function wrappers
 class dummy_est
-  : public kwiver::vital::algorithm_impl < dummy_est, kwiver::vital::algo::estimate_similarity_transform >
+  : public kwiver::vital::algo::estimate_similarity_transform
 {
 public:
   dummy_est()
     : expected_size(0)
   {}
 
-  dummy_est(size_t expected_size)
-    : expected_size(expected_size)
+  dummy_est(size_t expected_size_)
+    : expected_size(expected_size_)
   {}
 
   virtual ~dummy_est() = default;
 
-  void set_configuration(kwiver::vital::config_block_sptr config) {}
-  bool check_configuration(kwiver::vital::config_block_sptr config) const {return true;}
+  void set_configuration( VITAL_UNUSED kwiver::vital::config_block_sptr config) {}
+  bool check_configuration( VITAL_UNUSED kwiver::vital::config_block_sptr config) const {return true;}
 
   using kwiver::vital::algo::estimate_similarity_transform::estimate_transform;
 

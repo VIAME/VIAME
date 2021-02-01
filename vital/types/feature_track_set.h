@@ -65,24 +65,24 @@ class VITAL_EXPORT feature_track_state : public track_state
 public:
   //@{
   /// Constructor
-  explicit feature_track_state( frame_id_t frame,
-                                feature_sptr const& feature = nullptr,
-                                descriptor_sptr const& descriptor = nullptr,
-                                bool inlier = false )
-    : track_state{ frame }
-    , feature{ feature }
-    , descriptor{ descriptor }
-    , inlier{ inlier }
+  explicit feature_track_state( frame_id_t p_frame,
+                                feature_sptr const& p_feature = nullptr,
+                                descriptor_sptr const& p_descriptor = nullptr,
+                                bool p_inlier = false )
+    : track_state{ p_frame }
+    , feature{ p_feature }
+    , descriptor{ p_descriptor }
+    , inlier{ p_inlier }
   {}
 
-  explicit feature_track_state( frame_id_t frame,
-                                feature_sptr&& feature,
-                                descriptor_sptr&& descriptor,
-                                bool inlier = false )
-    : track_state{ frame }
-    , feature{ std::move( feature ) }
-    , descriptor{ std::move( descriptor ) }
-    , inlier{ inlier }
+  explicit feature_track_state( frame_id_t p_frame,
+                                feature_sptr&& p_feature,
+                                descriptor_sptr&& p_descriptor,
+                                bool p_inlier = false )
+    : track_state{ p_frame }
+    , feature{ std::move( p_feature ) }
+    , descriptor{ std::move( p_descriptor ) }
+    , inlier{ p_inlier }
   {}
   //@}
 

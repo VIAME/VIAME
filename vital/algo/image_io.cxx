@@ -37,6 +37,7 @@
 
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
+#include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
 #include <kwiversys/SystemTools.hxx>
@@ -135,7 +136,7 @@ image_io
 
 metadata_sptr
 image_io
-::load_metadata_(std::string const& filename) const
+::load_metadata_(VITAL_UNUSED std::string const& filename) const
 {
   // No metadata-only loading by default.
   return nullptr;

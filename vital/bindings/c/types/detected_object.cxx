@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/detected_object.h>
 #include <vital/bindings/c/helpers/detected_object_type.h>
+#include <vital/bindings/c/types/detected_object_type.h>
 
 #include <memory>
 
@@ -160,7 +161,7 @@ void vital_detected_object_set_type( vital_detected_object_t *      obj,
     "vital_detected_object_set_type", 0,
     auto ldot = std::make_shared< kwiver::vital::detected_object_type > (
       * reinterpret_cast< kwiver::vital::detected_object_type* >(dot) );
-    //+ DOT is managed by sptr
+    //+ dot is managed by sptr
     kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_type( ldot );
   );
 }

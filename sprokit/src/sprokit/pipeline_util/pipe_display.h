@@ -64,7 +64,10 @@ public:
   // display internal config blocks
   void display_pipe_blocks( const sprokit::pipe_blocks blocks );
 
+  void print_loc( bool opt = true );
+
 private:
+  bool m_opt_print_loc{ false };
   std::ostream& m_ostr;
 
 }; // end class pipe_display

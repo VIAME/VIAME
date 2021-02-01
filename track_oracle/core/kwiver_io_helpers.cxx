@@ -1,13 +1,12 @@
-/*ckwg +5
- * Copyright 2014-2018 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
-
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "kwiver_io_helpers.h"
 
 #include <vital/logger/logger.h>
+#include <vital/vital_config.h>
+
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
 using std::ostream;
@@ -60,7 +59,6 @@ vector<string> kwiver_csv_header_pair( const string& n, const string& p1, const 
   r.push_back( n+p2 );
   return r;
 }
-
 
 //
 // vgl_box_2d<double>
@@ -155,7 +153,6 @@ kwiver_ts_to_strings( const vital::timestamp& ts )
   return make_pair( f_str, t_str );
 }
 
-
 bool
 kwiver_ts_string_read( const string& frame_str,
                        const string& time_str,
@@ -230,32 +227,32 @@ ostream& kwiver_write( ostream& os, const vital::uid& uid )
   return os;
 }
 
-bool kwiver_read( const std::string& s, kpf_cset_type& cset )
+bool kwiver_read( VITAL_UNUSED const std::string& s, VITAL_UNUSED kpf_cset_type& cset )
 {
   return false;
 }
 
-ostream& kwiver_write( std::ostream& os, const kpf_cset_type& cset )
+ostream& kwiver_write( std::ostream& os, VITAL_UNUSED const kpf_cset_type& cset )
 {
   return os;
 }
 
-bool kwiver_read( const std::string& s, kpf_cset_sys_type& cset )
+bool kwiver_read( VITAL_UNUSED const std::string& s, VITAL_UNUSED kpf_cset_sys_type& cset )
 {
   return false;
 }
 
-ostream& kwiver_write( std::ostream& os, const kpf_cset_sys_type& cset )
+ostream& kwiver_write( VITAL_UNUSED std::ostream& os, VITAL_UNUSED const kpf_cset_sys_type& cset )
 {
   return os;
 }
 
-bool kwiver_read( const std::string& s, kpf_cset_s2i_type& cset )
+bool kwiver_read( VITAL_UNUSED const std::string& s, VITAL_UNUSED kpf_cset_s2i_type& cset )
 {
   return false;
 }
 
-ostream& kwiver_write( std::ostream& os, const kpf_cset_s2i_type& cset )
+ostream& kwiver_write( VITAL_UNUSED std::ostream& os, VITAL_UNUSED const kpf_cset_s2i_type& cset )
 {
   return os;
 }

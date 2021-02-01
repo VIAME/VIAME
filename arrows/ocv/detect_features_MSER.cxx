@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -56,13 +30,13 @@ public:
       min_margin( 0.003 ),
       edge_blur_size( 5 )
   {
-    #ifdef KWIVER_HAS_OPENCV_VER_3
+    #if KWIVER_OPENCV_VERSION_MAJOR >= 3
     pass2only = false;
     #endif
   }
 
   cv::Ptr<cv::MSER> create() const {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     // 2.4.x version constructor
     return cv::Ptr<cv::MSER>(
         new cv::MSER( delta, min_area, max_area, max_variation,
@@ -106,7 +80,7 @@ public:
                        "For color images, ignore too-small regions." );
     config->set_value( "edge_blur_size", edge_blur_size,
                        "For color images, the aperture size for edge blur" );
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     config->set_value( "pass2only", pass2only, "Undocumented" );
 #endif
   }
@@ -123,7 +97,7 @@ public:
     area_threshold = c->get_value<double>("area_threshold");
     min_margin = c->get_value<double>("min_margin");
     edge_blur_size = c->get_value<int>("edge_blur_size");
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
     pass2only = c->get_value<bool>("pass2only");
 #endif
   }
@@ -156,11 +130,10 @@ public:
   double area_threshold;
   double min_margin;
   int edge_blur_size;
-#ifdef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR >= 3
   bool pass2only;
 #endif
 };
-
 
 detect_features_MSER
 ::detect_features_MSER()
@@ -170,12 +143,10 @@ detect_features_MSER
   detector = p_->create();
 }
 
-
 detect_features_MSER
 ::~detect_features_MSER()
 {
 }
-
 
 vital::config_block_sptr
 detect_features_MSER
@@ -186,7 +157,6 @@ detect_features_MSER
   return config;
 }
 
-
 void detect_features_MSER
 ::set_configuration(vital::config_block_sptr config)
 {
@@ -196,7 +166,6 @@ void detect_features_MSER
   detector = p_->create();
 }
 
-
 bool
 detect_features_MSER
 ::check_configuration(vital::config_block_sptr config) const
@@ -205,7 +174,6 @@ detect_features_MSER
   c->merge_config(config);
   return p_->check_config( c, logger() );
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

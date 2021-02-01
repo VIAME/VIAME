@@ -1,7 +1,7 @@
 ###
 # Top level build script for kwiver-build
 #
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.15)
 
 project(KWIVER)
 
@@ -9,7 +9,7 @@ project(KWIVER)
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 1)
 set(KWIVER_VERSION_MINOR 5)
-set(KWIVER_VERSION_PATCH 0)
+set(KWIVER_VERSION_PATCH 1)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
 # This policy is new in CMake 3.12. The NEW behavior uses the <PackageName>_ROOT variable in
@@ -48,8 +48,11 @@ mark_as_advanced(KWIVER_DEFAULT_LIBRARY_DIR)
 #
 # kwiver module config file.
 set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
- if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.10)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.20)
+    set(_vcVersion vc16)
+  elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.10)
     set(_vcVersion vc15)
   elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19)
     set(_vcVersion vc14)
@@ -108,6 +111,10 @@ OPTION(KWIVER_ENABLE_SERIALIZE_JSON       "Enable json serialization" OFF )
 # if sprokit enabled
 OPTION(KWIVER_ENABLE_SPROKIT              "Enable building sprokit" OFF )
 
+if(KWIVER_ENABLE_ARROWS)
+  OPTION(KWIVER_ENABLE_MVG                "Enable Multi-View Geometry Arrow" ON )
+endif()
+
 CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES
   "Should the KWIVER Sprokit Processes Be Built?" OFF
   "KWIVER_ENABLE_ARROWS AND KWIVER_ENABLE_SPROKIT" OFF )
@@ -135,14 +142,9 @@ endif()
 #
 include( kwiver-utils )
 
-if( KWIVER_ENABLE_PYTHON )
-  set( kwiver_python_subdir "python${PYTHON_VERSION}" )
-  set( kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}" )
-
-  kwiver_create_python_init( kwiver )
-
-  if( NOT WIN32 )
-    OPTION( KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
+if (KWIVER_ENABLE_PYTHON)
+  if (NOT WIN32)
+    OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
   endif()
 
   if( NOT KWIVER_ENABLE_C_BINDINGS )
@@ -155,14 +157,18 @@ set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
 # Set directories where loadable modules are stored.
 # These subdirs are under .../lib/
-set( kwiver_plugin_subdir                         kwiver )
+set( kwiver_plugin_subdir                         kwiver/plugins )
 set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
-set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
+set( kwiver_plugin_algorithm_subdir               ${kwiver_plugin_subdir}/algorithms )
+set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/processes )
 set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
 set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
-set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
-set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
-set( kwiver_plugin_applets                        ${kwiver_plugin_subdir}/modules/applets )
+set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/plugin_explorer )
+set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/logger )
+set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
+
+# other well known subdirs
+set( kwiver_config_subdir                         share/kwiver/${KWIVER_VERSION}/config)
 
 ##
 # System specific compiler flags
@@ -256,6 +262,9 @@ if (KWIVER_ENABLE_TOOLS)
   add_subdirectory(tools)
 endif()
 
+if (KWIVER_ENABLE_PYTHON)
+  add_subdirectory(python)
+endif()
 ###
 # include as the last subdir
 add_subdirectory( vital )
@@ -334,19 +343,20 @@ configure_file(
 
 kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
 
-kwiver_install(
-  FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
-  DESTINATION "${kwiver_cmake_install_dir}"
-  RENAME      kwiver-config.cmake
-  )
+if(NOT SKBUILD)
+  kwiver_install(
+    FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
+    DESTINATION "${kwiver_cmake_install_dir}"
+    RENAME      kwiver-config.cmake
+    )
 
-kwiver_install(
-  EXPORT      ${kwiver_export_name}
-  NAMESPACE   kwiver::
-  DESTINATION "${kwiver_cmake_install_dir}"
-  FILE        kwiver-config-targets.cmake
-  )
-
+  kwiver_install(
+    EXPORT      ${kwiver_export_name}
+    NAMESPACE   kwiver::
+    DESTINATION "${kwiver_cmake_install_dir}"
+    FILE        kwiver-config-targets.cmake
+    )
+endif()
 ###
 # link compile commands to root of source tree
 if ( CMAKE_EXPORT_COMPILE_COMMANDS )
@@ -367,34 +377,40 @@ else()  # Other Unix systems
   set(path_sep "\\072")
 endif()
 
+set(KWIVER_DEFAULT_MODULE_PATHS ""
+  CACHE STRING "The default paths for module scanning. Separate paths with ';' character." FORCE)
+mark_as_advanced( KWIVER_DEFAULT_MODULE_PATHS )
+
 # add all user supplied paths to the property
 foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
   kwiver_add_module_path( ${p} )
 endforeach(p)
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_process_subdir} )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_subdir} )
 kwiver_add_module_path(  "${kwiver_module_path_result}" )
 
+set(sprokit_default_pipe_include_paths
+  "${CMAKE_INSTALL_PREFIX}/${kwiver_config_subdir}/pipelines/include")
+
+set(sprokit_default_cluster_paths
+  "${CMAKE_INSTALL_PREFIX}/${kwiver_config_subdir}/pipelines/clusters")
+
 if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_process_subdir} )
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_subdir} )
   kwiver_add_module_path(  "${kwiver_module_path_result}" )
+
+  set(sprokit_default_pipe_include_paths
+    "${sprokit_default_pipe_include_paths}${path_sep}${KWIVER_SOURCE_DIR}/config/pipelines")
+
+  set(sprokit_default_cluster_paths
+    "${sprokit_default_cluster_paths}${path_sep}${KWIVER_SOURCE_DIR}/config/clusters")
 endif()
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
-kwiver_add_module_path(  "${kwiver_module_path_result}" )
+set(SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS "${sprokit_default_pipe_include_paths}"
+  CACHE STRING "The default paths to search for pipe includes in" FORCE)
 
-if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
-  kwiver_add_module_path(  "${kwiver_module_path_result}" )
-endif()
-
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_applets} )
-kwiver_add_module_path( "${kwiver_module_path_result}" )
-
-if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_applets} )
-  kwiver_add_module_path( "${kwiver_module_path_result}" )
-endif()
+set(SPROKIT_DEFAULT_CLUSTER_PATHS "${sprokit_default_cluster_paths}"
+  CACHE STRING "The default paths to search for clusters in" FORCE)
 
 # need to retrieve the GLOBAL PROPERTY kwiver_plugin_path and
 # formulate the default module path
@@ -410,8 +426,8 @@ foreach( p IN LISTS plugin_path )
 endforeach(p)
 
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/vital/algorithm_plugin_manager_paths.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/vital/algorithm_plugin_manager_paths.h" )
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/kwiver-include-paths.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/kwiver-include-paths.h" )
 
 
 # ===========================================================================================

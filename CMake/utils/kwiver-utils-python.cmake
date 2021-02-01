@@ -38,6 +38,7 @@ if ( NOT TARGET python)
   add_custom_target(python)
 endif()
 
+
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py\\.in$")
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py$")
 
@@ -60,7 +61,13 @@ endmacro ()
 function (kwiver_add_python_library    name    modpath)
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
 
-  set(library_subdir "/${kwiver_python_subdir}/${python_sitename}/${modpath}")
+  string(TOLOWER "${CMAKE_PROJECT_NAME}" project_name)
+  if(SKBUILD)
+    set(library_dir "")
+    set(library_subdir "${modpath}")
+  else()
+    set(library_subdir "/${kwiver_python_subdir}/${python_sitename}/${project_name}/${modpath}")
+  endif()
   set(component runtime)
 
   set(no_export ON)
@@ -90,7 +97,6 @@ function (kwiver_add_python_library    name    modpath)
 
   add_dependencies(python      "python-${safe_modpath}-${name}")
   set_property(GLOBAL APPEND PROPERTY kwiver_python_modules ${name})
-
 endfunction ()
 
 
@@ -117,6 +123,7 @@ endfunction ()
 function (kwiver_add_python_module path     modpath    module)
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
 
+  string(TOLOWER "${CMAKE_PROJECT_NAME}" project_name)
   set(python_arch)
   set(python_noarchdir)
 
@@ -131,15 +138,27 @@ function (kwiver_add_python_module path     modpath    module)
     endif ()
   endif ()
 
-  if (CMAKE_CONFIGURATION_TYPES)
+  if (CMAKE_CONFIGURATION_TYPES AND NOT SKBUILD)
     set(kwiver_configure_cmake_args
       "\"-Dconfig=${CMAKE_CFG_INTDIR}/\"")
     set(kwiver_configure_extra_dests
-      "${kwiver_python_output_path}/${python_noarchdir}\${config}/${python_sitename}/${modpath}/${module}.py")
+      "${kwiver_python_output_path}/${python_noarchdir}\${config}/${python_sitename}/${project_name}/${modpath}/${module}.py")
   endif ()
 
   set(pyfile_src "${path}")
-  set(pyfile_dst "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${modpath}/${module}.py")
+  # SKBUILD associates the package root with CMAKE_INSTALL_PREFIX
+  # in source build this would be kwiver_python_install_path/project_name
+  if(SKBUILD)
+    set(pyfile_dst "${CMAKE_BINARY_DIR}/${modpath}/${module}.py")
+    set(mod_dst "${CMAKE_BINARY_DIR/${modpath}/" PARENT_SCOPE)
+    # installation path for this module
+    set(pypkg_install_path "${CMAKE_INSTALL_PREFIX}/${modpath}")
+  else()
+    set(pyfile_dst "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${project_name}/${modpath}/${module}.py")
+    set(mod_dst "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${project_name}/${modpath}/" PARENT_SCOPE)
+    # installation path for this module
+    set(pypkg_install_path "${kwiver_python_install_path}/${project_name}/${modpath}")
+  endif()
 
   # copy and configure the source file into the binary directory
   if (KWIVER_SYMLINK_PYTHON)
@@ -154,10 +173,10 @@ function (kwiver_add_python_module path     modpath    module)
       PYTHON_EXECUTABLE)
   endif()
 
-  # install the configured binary to the kwiver python install path
+  # install the configured binary to pypkg_install_path
   kwiver_install(
     FILES       "${pyfile_dst}"
-    DESTINATION "${kwiver_python_install_path}/${modpath}"
+    DESTINATION "${pypkg_install_path}"
     COMPONENT   runtime)
 
   add_dependencies(python
@@ -194,8 +213,12 @@ function (kwiver_create_python_init    modpath)
       set(python_arch u)
     endif ()
   endif ()
-
-  set (init_path "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${modpath}/__init__.py")
+  string(TOLOWER "${CMAKE_PROJECT_NAME}" project_name)
+  if(SKBUILD)
+    set (init_path "${CMAKE_BINARY_DIR}/${modpath}/__init__.py")
+  else()
+    set (init_path "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${project_name}/${modpath}/__init__.py")
+  endif()
 
   if (NOT EXISTS "${init_path}")
     if (NOT copyright_header)
@@ -223,9 +246,28 @@ function (kwiver_create_python_init    modpath)
     endforeach()
   endif()
 
-  # Installation __init__
+  # SKBUILD associates the package root with CMAKE_INSTALL_PREFIX
+  # in source build this would be kwiver_python_install_path/project_name
+  if(SKBUILD)
+    set ( install_path "${CMAKE_INSTALL_PREFIX}/${modpath}")
+  else()
+    set ( install_path "${kwiver_python_install_path}/${project_name}/${modpath}")
+  endif()
   kwiver_install(
     FILES       "${init_path}"
-    DESTINATION "${kwiver_python_install_path}/${modpath}"
+    DESTINATION "${install_path}"
     COMPONENT   runtime)
 endfunction ()
+
+###
+# wrapper around add_custom_target eventually implementing python specific logic
+#
+#
+function (python_target_add_command cmd_name cust_command comment_)
+  add_custom_target(${cmd_name} ALL
+                    COMMAND ${cust_command}
+                    COMMENT ${comment_})
+  if(${ARGC} GREATER 3)
+    add_dependencies(${cmd_name} ${ARGN})
+  endif()
+endfunction()

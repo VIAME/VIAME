@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2018 by Kitware, Inc.
+ * Copyright 2012-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,23 +36,21 @@
 
 #include "processes_clusters_export.h"
 
-#include <processes/clusters/cluster-paths.h>
-
-#include <vital/logger/logger.h>
-#include <vital/util/tokenize.h>
-
-#include <sprokit/pipeline_util/load_pipe_exception.h>
-#include <sprokit/pipeline_util/pipeline_builder.h>
-#include <sprokit/pipeline_util/pipe_bakery.h>
-#include <sprokit/pipeline_util/pipe_bakery_exception.h>
-
+#include <kwiversys/Directory.hxx>
+#include <kwiversys/SystemTools.hxx>
 #include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/process_registry_exception.h>
 #include <sprokit/pipeline/utils.h>
+#include <sprokit/pipeline_util/load_pipe_exception.h>
+#include <sprokit/pipeline_util/pipe_bakery.h>
+#include <sprokit/pipeline_util/pipe_bakery_exception.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
+#include <vital/logger/logger.h>
+#include <vital/util/tokenize.h>
+#include <vital/kwiver-include-paths.h>
 
 #include <algorithm>
-#include <kwiversys/SystemTools.hxx>
-#include <kwiversys/Directory.hxx>
+#include <iostream>
 
 using namespace sprokit;
 
@@ -72,6 +70,8 @@ PROCESSES_CLUSTERS_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
+  using kvpf = kwiver::vital::plugin_factory;
+
   process_registrar reg( vpm, "cluster_processes" );
 
   static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "sprokit.register_cluster" );
@@ -103,7 +103,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
       LOG_WARN( logger, "Path not directory loading clusters: " << include_dir );
       continue;
     }
-
 
     kwiversys::Directory dir;
     dir.Load( include_dir );
@@ -149,21 +148,25 @@ register_factories( kwiver::vital::plugin_loader& vpm )
         LOG_WARN( logger, "Exception caught processing cluster definition: " << e.what() );
         continue;
       }
+      catch (std::exception const& e)
+      {
+        LOG_ERROR( logger, "Caught unexpected exception: " << e.what() );
+        continue;
+      }
 
       if (info)
       {
-        process::type_t const& type = info->type;
-        std::string const& description = info->description;
-        process_factory_func_t const& ctor = info->ctor;
+
+        LOG_DEBUG( logger, "Registering a cluster. Name: " << info->type );
 
         try
         {
           // Add cluster to process registry with a specific factory function
-          auto fact = vpm.add_factory( new sprokit::cpp_process_factory( type, typeid( sprokit::process ).name(), ctor ) );
-          fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description );
-
-          // Indicate this is a cluster and add source file name
-          fact->add_attribute( "sprokit.cluster", pstr );
+          auto fact = vpm.add_factory( new sprokit::cluster_process_factory( info ) );
+          fact->add_attribute( kvpf::PLUGIN_MODULE_NAME,  reg.module_name() )
+            .add_attribute( kvpf::PLUGIN_ORGANIZATION, reg.organization() )
+            .add_attribute( "cluster-file", pstr ) // indicate cluster and source file name
+            ;
         }
         catch (kwiver::vital::plugin_already_exists const& e)
         {

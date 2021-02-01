@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "kwiver_io_base.h"
 
@@ -14,7 +12,6 @@
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t kib_logger( kwiver::vital::get_logger( __FILE__ ) );
-
 
 using std::istream;
 using std::vector;
@@ -35,9 +32,7 @@ char tmp[2]; no_io_type not_used(tmp);
 no_io_type operator>>( const proxy&, const proxy& ) { return not_used; }
 no_io_type check( no_io_type ) { return not_used; }
 
-
 template <typename U> yes_io_type check( const U& );
-
 
 template< typename T >
 class class_has_input_operator

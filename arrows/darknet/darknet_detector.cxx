@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "darknet_detector.h"
 #include "darknet_custom_resize.h"
@@ -35,6 +9,7 @@
 #include <vital/util/cpu_timer.h>
 #include <vital/exceptions/io.h>
 #include <vital/config/config_block_formatter.h>
+#include <vital/types/detected_object_set_util.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -152,7 +127,6 @@ public:
   kwiver::vital::logger_handle_t m_logger;
 };
 
-
 // =============================================================================
 darknet_detector
 ::darknet_detector()
@@ -165,11 +139,9 @@ darknet_detector
   gpu_index = d->m_gpu_index;
 }
 
-
 darknet_detector
 ::~darknet_detector()
 {}
-
 
 // -----------------------------------------------------------------------------
 vital::config_block_sptr
@@ -209,7 +181,6 @@ darknet_detector
 
   return config;
 }
-
 
 // -----------------------------------------------------------------------------
 void
@@ -262,7 +233,6 @@ darknet_detector
   srand( 2222222 );
 } // darknet_detector::set_configuration
 
-
 // -----------------------------------------------------------------------------
 bool
 darknet_detector
@@ -305,7 +275,6 @@ darknet_detector
 
   return success;
 } // darknet_detector::check_configuration
-
 
 // -----------------------------------------------------------------------------
 vital::detected_object_set_sptr
@@ -464,7 +433,6 @@ darknet_detector
 
   return detections;
 } // darknet_detector::detect
-
 
 // =============================================================================
 std::vector< vital::detected_object_set_sptr >
@@ -656,7 +624,6 @@ darknet_detector::priv
   return output;
 }
 
-
 image
 darknet_detector::priv
 ::cvmat_to_image( const cv::Mat& src, unsigned max_channels )
@@ -718,17 +685,17 @@ darknet_detector::priv
 {
   if( info.scale1 != 1.0 )
   {
-    dets->scale( info.scale1 );
+    vital::scale_detections( dets, info.scale1 );
   }
 
   if( info.shiftx != 0 || info.shifty != 0 )
   {
-    dets->shift( info.shiftx, info.shifty );
+    vital::shift_detections( dets, info.shiftx, info.shifty );
   }
 
   if( info.scale2 != 1.0 )
   {
-    dets->scale( info.scale2 );
+    vital::scale_detections( dets, info.scale2 );
   }
 
   const int dist = info.edge_filter;

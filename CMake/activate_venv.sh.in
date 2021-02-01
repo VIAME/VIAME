@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# Script to activate a python virtual environment
+# and compose the differences in env variables
+# to setable env vars in cmake or the general environment
+export OLDPATH=$PATH
+conda activate @VENV_DIR@
+echo ${PATH%"$OLDPATH"} > conda_venv_path.txt
+echo $CONDA_PREFIX > conda_prefix.txt

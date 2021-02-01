@@ -241,7 +241,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
-
   fact = vpm.ADD_FACTORY( kwiver::vital::format_config_block, kwiver::vital::format_config_block_tree );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "tree")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )

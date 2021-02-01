@@ -92,7 +92,7 @@ size_t
 data_stream_reader::
 line_number() const
 {
-  return m_line_count;
+  return static_cast<size_t>(m_line_count);
 }
 
 

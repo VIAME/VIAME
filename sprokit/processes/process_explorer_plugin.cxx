@@ -162,7 +162,17 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
     return;
   }
 
-  sprokit::process_t const proc = pf->create_object( kwiver::vital::config_block::empty_config() );
+  sprokit::process_t proc;
+
+  try
+  {
+    proc = pf->create_object( kwiver::vital::config_block::empty_config() );
+  }
+  catch ( ::kwiver::vital::exception const& e )
+  {
+    LOG_ERROR( m_logger, "Exception caught creating process: " << e.what() );
+    return;
+  }
 
   auto const properties = proc->properties();
   auto const properties_str = join( properties, ", " );
@@ -1147,7 +1157,6 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
 } // process_explorer_pipe::explore
 
-
 } } // end namespace
 
 
@@ -1167,13 +1176,11 @@ void register_explorer_plugin( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Plugin explorer for process category." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-
   fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::process_explorer_rst );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "process-rst" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Plugin explorer for process category rst format output" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
 
   fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::process_explorer_pipe );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "process-pipe" )

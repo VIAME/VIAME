@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <arrows/serialize/json/load_save.h>
 
@@ -42,12 +16,10 @@
 #include <vital/internal/cereal/types/map.hpp>
 #include <vital/internal/cereal/types/utility.hpp>
 
-
 namespace {
 
 // ---- STATIC DATA ----
 static ::kwiver::vital::metadata_traits meta_traits;
-
 
 // ----------------------------------------------------------------------------
 struct meta_item
@@ -81,7 +53,7 @@ struct meta_item
     archive(  ::cereal::make_nvp( "type", item_value.type_name() ) );
     archive(  ::cereal::make_nvp( "name", trait.name() ) );
 
-    // This si a switch on the item data type
+    // This is a switch on the item data type
     if ( trait.is_floating_point() )
     {
       const double value = kwiver::vital::any_cast< double > ( this->item_value );
@@ -89,8 +61,18 @@ struct meta_item
     }
     else if ( trait.is_integral() )
     {
-      const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
-      archive( CEREAL_NVP( value ) );
+      // bool metadata passes the is_integral() check but cannot be cast
+      // to uint64_t
+      if ( trait.tag_type() == typeid( bool ) )
+      {
+        const bool value = kwiver::vital::any_cast< bool > ( this->item_value );
+        archive( CEREAL_NVP( value ) );
+      }
+      else
+      {
+        const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
+        archive( CEREAL_NVP( value ) );
+      }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
@@ -135,9 +117,19 @@ struct meta_item
     }
     else if ( trait.is_integral() )
     {
-      uint64_t value;
-      archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      // is_integral() returns true for a bool, which needs to be handled differently
+      if ( trait.tag_type() == typeid( bool ) )
+      {
+        bool value;
+        archive( CEREAL_NVP( value ) );
+        this->item_value = kwiver::vital::any( value );
+      }
+      else
+      {
+        uint64_t value;
+        archive( CEREAL_NVP( value ) );
+        this->item_value = kwiver::vital::any( value );
+      }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
@@ -175,32 +167,27 @@ namespace cereal {
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta )
 {
-  archive( ::cereal::make_nvp( "size", meta.size() ) );
-
+  std::vector<kwiver::vital::metadata> meta_dereferenced;
   for ( const auto& element : meta )
   {
-    save( archive, *element );
+    meta_dereferenced.push_back( *element );
   }
 
+  save( archive, meta_dereferenced );
 }
 
 // ----------------------------------------------------------------------------
 void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata_vector& meta )
 {
-  ::cereal::size_type size;
-  archive( CEREAL_NVP( size ) );
+  std::vector< kwiver::vital::metadata > meta_dereferenced;
+  load( archive, meta_dereferenced );
 
-  for ( ::cereal::size_type i = 0; i < size; ++i )
+  for ( const auto& packet : meta_dereferenced )
   {
-    auto new_obj = std::make_shared< kwiver::vital::metadata > ();
-    load( archive, *new_obj );
-
-    meta.push_back( new_obj );
+    meta.push_back( std::make_shared< kwiver::vital::metadata > ( packet ) );
   }
 
 }
-
-
 
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& meta )
@@ -218,7 +205,7 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& 
 
   } // end for
 
-  archive( ::cereal::make_nvp( "items", meta_vect ) );
+  save( archive, meta_vect );
 }
 
 // ----------------------------------------------------------------------------
@@ -227,15 +214,14 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
   meta_vect_t meta_vect; // intermediate form
 
   // Deserialize the list of elements for one metadata collection
-  archive( ::cereal::make_nvp( "items", meta_vect ) );
+  load( archive, meta_vect );
 
   // Convert the intermediate form back to a real metadata collection
   for ( const auto & it : meta_vect )
   {
     const auto& trait = meta_traits.find( it.tag );
-    auto* item = trait.create_metadata_item( it.item_value );
-    meta.add( item );
-  } // end for
+    meta.add( trait.create_metadata_item( it.item_value ) );
+  }
 }
 
 } // end namespace

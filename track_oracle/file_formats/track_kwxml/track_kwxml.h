@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2011-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #ifndef INCL_TRACK_KWXML_H
 #define INCL_TRACK_KWXML_H
@@ -29,7 +27,7 @@ struct TRACK_KWXML_EXPORT track_kwxml_type: public track_base< track_kwxml_type 
 {
 
   //Track specific
-  track_field< unsigned >& external_id;
+  track_field< dt::tracking::external_id > external_id;
   track_field< unsigned >& video_id;
   track_field< std::string >& time_stamp;
   track_field< dt::events::source_track_ids> source_track_ids;
@@ -44,9 +42,9 @@ struct TRACK_KWXML_EXPORT track_kwxml_type: public track_base< track_kwxml_type 
 
   //Frame specific
   track_field< std::string >& type;
-  track_field< vgl_box_2d< double > >& bounding_box;
-  track_field< unsigned >& frame_number;
-  track_field< unsigned long long>& timestamp_usecs;
+  track_field< dt::tracking::bounding_box > bounding_box;
+  track_field< dt::tracking::frame_number > frame_number;
+  track_field< dt::tracking::timestamp_usecs > timestamp_usecs;
 
   //Descriptors
 
@@ -85,9 +83,7 @@ struct TRACK_KWXML_EXPORT track_kwxml_type: public track_base< track_kwxml_type 
   track_field< double >& latitude;
   track_field< double >& longitude;
 
-
   track_kwxml_type():
-    external_id(Track.add_field< unsigned >("external_id")),
     video_id( Track.add_field< unsigned >("video_id")),
     time_stamp( Track.add_field< std::string >("time_stamp_str")),
     track_style(Track.add_field< std::string >("track_style")),
@@ -97,9 +93,6 @@ struct TRACK_KWXML_EXPORT track_kwxml_type: public track_base< track_kwxml_type 
     relevancy( Track.add_field< double >( "relevancy" )),
 
     type(Frame.add_field< std::string >("type")),  //should be bool raw?
-    bounding_box(Frame.add_field< vgl_box_2d< double > >("bounding_box")),
-    frame_number(Frame.add_field< unsigned >("frame_number")),
-    timestamp_usecs(Frame.add_field< unsigned long long >("timestamp_usecs")),
 
     descriptor_uthof(Track.add_field< std::vector< std::vector< double > > >("descriptor_uthof")),
     descriptor_rpidbn1(Track.add_field< std::vector< double > >("descriptor_rpidbn1")),
@@ -132,8 +125,13 @@ struct TRACK_KWXML_EXPORT track_kwxml_type: public track_base< track_kwxml_type 
     longitude( Track.add_field< double >( "longitude" ))
 
   {
+    Track.add_field( external_id );
     Track.add_field( source_track_ids );
     Track.add_field( descriptor_classifier );
+
+    Frame.add_field( bounding_box );
+    Frame.add_field( frame_number );
+    Frame.add_field( timestamp_usecs );
   }
 };
 

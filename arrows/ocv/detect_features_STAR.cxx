@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -35,9 +9,11 @@
 
 #include "detect_features_STAR.h"
 
-#if ! defined(KWIVER_HAS_OPENCV_VER_3) || defined(HAVE_OPENCV_XFEATURES2D)
+#if KWIVER_OPENCV_VERSION_MAJOR < 3 || defined(HAVE_OPENCV_XFEATURES2D)
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#include <vital/vital_config.h>
+
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
 typedef cv::StarDetector cv_STAR_t;
 #else
 #include <opencv2/xfeatures2d.hpp>
@@ -49,7 +25,6 @@ using namespace kwiver::vital;
 namespace kwiver {
 namespace arrows {
 namespace ocv {
-
 
 class detect_features_STAR::priv
 {
@@ -65,7 +40,7 @@ public:
 
   cv::Ptr<cv_STAR_t> create() const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
     return cv::Ptr<cv_STAR_t>(
       new cv_STAR_t( max_size, response_threshold, line_threshold_projected,
                      line_threshold_binarized, suppress_nonmax_size )
@@ -77,7 +52,7 @@ public:
 #endif
   }
 
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   void update( cv::Ptr<cv_STAR_t> a ) const
   {
     a->set( "maxSize", max_size );
@@ -114,7 +89,6 @@ public:
   int suppress_nonmax_size;
 };
 
-
 detect_features_STAR
 ::detect_features_STAR()
   : p_( new priv )
@@ -123,12 +97,10 @@ detect_features_STAR
   detector = p_->create();
 }
 
-
 detect_features_STAR
 ::~detect_features_STAR()
 {
 }
-
 
 vital::config_block_sptr
 detect_features_STAR
@@ -139,7 +111,6 @@ detect_features_STAR
   return config;
 }
 
-
 void
 detect_features_STAR
 ::set_configuration(vital::config_block_sptr config)
@@ -147,21 +118,19 @@ detect_features_STAR
   config_block_sptr c = get_configuration();
   c->merge_config( config );
   p_->set_config( c );
-#ifndef KWIVER_HAS_OPENCV_VER_3
+#if KWIVER_OPENCV_VERSION_MAJOR < 3
   p_->update( detector );
 #else
   detector = p_->create();
 #endif
 }
 
-
 bool
 detect_features_STAR
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
-
 
 } // end namespace ocv
 } // end namespace arrows

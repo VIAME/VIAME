@@ -1,32 +1,6 @@
-/*ckwg +29
-* Copyright 2016, Kitware SAS, Copyright 2018-2019 by Kitware, Inc.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-*  * Redistributions of source code must retain the above copyright notice,
-*    this list of conditions and the following disclaimer.
-*
-*  * Redistributions in binary form must reproduce the above copyright notice,
-*    this list of conditions and the following disclaimer in the documentation
-*    and/or other materials provided with the distribution.
-*
-*  * Neither name of Kitware, Inc. nor the names of any contributors may be used
-*    to endorse or promote products derived from this software without specific
-*    prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
-* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
 * \file
@@ -49,7 +23,8 @@ void cuda_initalize(int h_gridDims[3], double h_gridOrig[3],
                     double h_rayPDelta);
 
 void launch_depth_kernel(double * d_depth, double * d_weight, int depthmap_dims[2],
-                         double d_K[16], double d_RT[16], double* output);
+                         double d_K[16], double d_RT[16], double* output,
+                         unsigned max_voxels_per_launch);
 
 namespace kwiver {
 namespace arrows {
@@ -68,6 +43,7 @@ public:
       ray_potential_delta(200.0),
       grid_spacing {1.0, 1.0, 1.0},
       voxel_spacing_factor(1.0),
+      max_voxels_per_launch(20000000),
       m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
   {
   }
@@ -87,6 +63,9 @@ public:
 
   // multiplier on all dimensions of grid spacing
   double voxel_spacing_factor;
+
+  // Maximum number of voxels to process in a single kernel launch
+  unsigned max_voxels_per_launch;
 
   // Logger handle
   vital::logger_handle_t m_logger;
@@ -133,6 +112,11 @@ integrate_depth_maps::get_configuration() const
   config->set_value("voxel_spacing_factor", d_->voxel_spacing_factor,
                     "Multiplier on voxel spacing.  Set to 1.0 for voxel "
                     "sizes that project to 1 pixel on average.");
+  config->set_value("max_voxels_per_launch", d_->max_voxels_per_launch,
+                    "Maximum number of voxels to process in a single kernel "
+                    "launch.  Processing too much data at once on the GPU "
+                    "can cause the GPU to time out.  Set to zero for "
+                    "unlimited.");
 
   std::ostringstream stream;
   stream << d_->grid_spacing[0] << " "
@@ -169,6 +153,9 @@ integrate_depth_maps::set_configuration(vital::config_block_sptr in_config)
     config->get_value<double>("ray_potential_delta", d_->ray_potential_delta);
   d_->voxel_spacing_factor =
     config->get_value<double>("voxel_spacing_factor", d_->voxel_spacing_factor);
+  d_->max_voxels_per_launch =
+    config->get_value<unsigned>("max_voxels_per_launch",
+                                d_->max_voxels_per_launch);
 
   std::ostringstream ostream;
   ostream << d_->grid_spacing[0] << " "
@@ -246,7 +233,6 @@ void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera,
                             cudaMemcpyHostToDevice));
 }
 
-
 //*****************************************************************************
 
 void
@@ -319,7 +305,8 @@ integrate_depth_maps::integrate(
     // run code on device
     LOG_INFO( logger(), "depth map " << i );
     launch_depth_kernel(d_depth.get(), d_weight.get(), depthmap_dims,
-                        d_K.get(), d_RT.get(), d_volume.get());
+                        d_K.get(), d_RT.get(), d_volume.get(),
+                        d_->max_voxels_per_launch);
   }
 
   // Transfer data from device to host

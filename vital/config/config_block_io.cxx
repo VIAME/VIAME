@@ -223,12 +223,15 @@ application_config_file_paths(std::string const& application_name,
   auto paths = config_path_list_t{};
   append_kwiver_config_paths(paths);
 
-  auto app_paths = application_config_file_paths_helper(application_name,
-                                                        application_version,
-                                                        app_install_prefix);
-  for (auto const& path : app_paths)
+  if (!application_name.empty())
   {
-    paths.push_back(path);
+    auto app_paths = application_config_file_paths_helper(application_name,
+                                                          application_version,
+                                                          app_install_prefix);
+    for (auto const& path : app_paths)
+    {
+      paths.push_back(path);
+    }
   }
 
   auto kwiver_paths = application_config_file_paths_helper("kwiver",

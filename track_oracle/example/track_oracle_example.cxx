@@ -1,8 +1,6 @@
-/*ckwg +5
- * Copyright 2010-2016 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <stdexcept>
 #include <fstream>
@@ -29,7 +27,6 @@
 // 3) whether or not the element is associated with the track as a whole
 //    or with frames on the track.
 //
-
 
 #include <vital/vital_config.h>
 #include <track_oracle/core/track_oracle_export.h>
@@ -85,7 +82,6 @@ struct my_particular_track: public ::kwiver::track_oracle::track_base< my_partic
   }
 };
 
-
 // The resulting structure, in this case 'my_particular_track', is not
 // a structure you instantiate multiple times to get multiple instances of
 // a track.  Instead, it acts as a type-safe "window" into the (invisible-to-
@@ -130,7 +126,6 @@ struct derived_track: public ::kwiver::track_oracle::track_base< derived_track, 
     foo( Track.add_field< double >( "relevancy" ))
   {}
 };
-
 
 int main( int argc, char *argv[] )
 {
@@ -225,7 +220,6 @@ int main( int argc, char *argv[] )
     t.remove_frame( last_frame );
     LOG_INFO( main_logger, "After deleting last frame\n" << t << "");
 
-
     // Now we go out of scope, taking the instance of our
     // track data structure along with it.
   }
@@ -251,8 +245,6 @@ int main( int argc, char *argv[] )
     LOG_INFO( main_logger, t( track_handle ) << "");
 
   }
-
-
 
   //
   // test the generic get-frames capability
@@ -348,7 +340,6 @@ int main( int argc, char *argv[] )
       LOG_INFO( main_logger, "Timestamp 103: " << f[ lookup ] );
     }
   }
-
 
   // Note that we can get to individual (handle, field-name) tuples
   // via a different track data structure:

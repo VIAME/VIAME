@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2012-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
  /**
  * \file
@@ -50,6 +24,7 @@
 #include <limits>
 
 #include <vital/logger/logger.h>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace arrows {
@@ -164,10 +139,10 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
 //Compute gradient weighting
 void
 compute_g(const vil_image_view<double> &ref_img,
-  vil_image_view<double> &g,
-  double alpha,
-  double beta,
-  vil_image_view<bool> *mask)
+          vil_image_view<double> &g,
+          double alpha,
+          VITAL_UNUSED double beta,
+          vil_image_view<bool> *mask)
 {
   g.set_size(ref_img.ni(), ref_img.nj(), 1);
 
@@ -193,6 +168,37 @@ compute_g(const vil_image_view<double> &ref_img,
         g(i, j) = 1.0;
     }
   }
+}
+
+//*****************************************************************************
+
+/// Compute the number of depth slices needed to properly sample the data
+double
+compute_depth_sampling(world_space const& ws,
+  std::vector<vpgl_perspective_camera<double> > const& cameras)
+{
+  double max_dist = 0.0;
+  for (unsigned i = 0; i < 3; ++i)
+  {
+    for (unsigned j = 0; j < 3; ++j)
+    {
+      auto near = ws.point_at_depth_on_axis((ws.ni() * i) / 2,
+                                            (ws.nj() * j) / 2, 0.0);
+      auto far = ws.point_at_depth_on_axis((ws.ni() * i) / 2,
+                                           (ws.nj() * j) / 2, 1.0);
+      for (auto const& cam : cameras)
+      {
+        auto p1 = cam.project(vgl_homg_point_3d<double>(near[0], near[1], near[2]));
+        auto p2 = cam.project(vgl_homg_point_3d<double>(far[0], far[1], far[2]));
+        double dist = (p2 - p1).length();
+        if (dist > max_dist)
+        {
+          max_dist = dist;
+        }
+      }
+    }
+  }
+  return max_dist;
 }
 
 //*****************************************************************************

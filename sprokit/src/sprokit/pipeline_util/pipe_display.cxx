@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,11 +55,23 @@ namespace sprokit {
 namespace {
 
 // ==================================================================
+struct display_context
+{
+  display_context( std::ostream& str, bool print_loc )
+    : m_ostr( str),
+      m_opt_print_loc( print_loc )
+  { }
+
+  std::ostream& m_ostr;
+  bool m_opt_print_loc;
+};
+
+// ==================================================================
 class config_printer
 {
 public:
-  config_printer( std::ostream& ostr );
-  ~config_printer();
+  config_printer( display_context& ctxt );
+  ~config_printer() = default;
 
   void operator()( sprokit::config_pipe_block const& config_block );
   void operator()( sprokit::process_pipe_block const& process_block );
@@ -68,40 +80,30 @@ public:
 private:
   void print_config_value( sprokit::config_value_t const& config_value ) const;
 
-  typedef std::set< sprokit::process::name_t > process_set_t;
+  using process_set_t = std::set< sprokit::process::name_t >;
 
-  std::ostream& m_ostr;
-
+  display_context& m_ctxt;
 };
 
 
 config_printer
-::config_printer( std::ostream& ostr )
-  : m_ostr( ostr )
+::config_printer( display_context& ctxt )
+  : m_ctxt( ctxt )
 {
 }
-
-
-config_printer
-::~config_printer()
-{
-}
-
 
 // ==================================================================
 class key_printer
 {
 public:
-  key_printer( std::ostream& ostr );
-  ~key_printer();
+  key_printer( display_context& ctxt );
+  ~key_printer() = default;
 
   void operator()( sprokit::config_value_t const& config_value ) const;
 
-
 private:
-  std::ostream& m_ostr;
+  display_context& m_ctxt;
 };
-
 
 // ------------------------------------------------------------------
 void
@@ -111,16 +113,17 @@ config_printer
   kwiver::vital::config_block_keys_t const& keys = config_block.key;
   sprokit::config_values_t const& values = config_block.values;
 
-  kwiver::vital::config_block_key_t const key_path = kwiver::vital::join( keys, kwiver::vital::config_block::block_sep );
+  kwiver::vital::config_block_key_t const key_path =
+        kwiver::vital::join( keys,
+                             kwiver::vital::config_block::block_sep() );
 
   // generate pipe level config block
-  m_ostr << "config " << key_path << std::endl;
+  m_ctxt.m_ostr << "config " << key_path << std::endl;
 
-  key_printer const printer( m_ostr );
+  key_printer const printer( m_ctxt );
 
   std::for_each( values.begin(), values.end(), printer );
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -131,14 +134,20 @@ config_printer
   sprokit::process::type_t const& type = process_block.type;
   sprokit::config_values_t const& values = process_block.config_values;
 
-  m_ostr << "process " << name << std::endl
-         << " :: " << type << std::endl;
+  m_ctxt.m_ostr << "process " << name << std::endl
+         << " :: " << type;
 
-  key_printer const printer( m_ostr );
+  if (m_ctxt.m_opt_print_loc)
+  {
+    m_ctxt.m_ostr << "  # from " << process_block.loc;
+  }
 
+  m_ctxt.m_ostr << std::endl;
+
+  // Display process config items
+  key_printer const printer( m_ctxt );
   std::for_each( values.begin(), values.end(), printer );
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -153,25 +162,22 @@ config_printer
   sprokit::process::name_t const& downstream_name = downstream_addr.first;
   sprokit::process::port_t const& downstream_port = downstream_addr.second;
 
-  m_ostr << "connect from " << upstream_name << "." << upstream_port << std::endl
-         << "        to   " << downstream_name << "." << downstream_port << std::endl
-         << std::endl;
-}
+  m_ctxt.m_ostr << "connect from " << upstream_name << "." << upstream_port << std::endl
+         << "        to   " << downstream_name << "." << downstream_port << std::endl;
 
+  if (m_ctxt.m_opt_print_loc)
+  {
+    m_ctxt.m_ostr << "  # from " << connect_block.loc;
+  }
+  m_ctxt.m_ostr << std::endl;
+}
 
 // ------------------------------------------------------------------
 key_printer
-::key_printer( std::ostream& ostr )
-  : m_ostr( ostr )
+::key_printer( display_context& ctxt )
+  : m_ctxt( ctxt )
 {
 }
-
-
-key_printer
-::~key_printer()
-{
-}
-
 
 // ------------------------------------------------------------------
 void
@@ -180,45 +186,50 @@ key_printer
 {
   const auto& value = config_value.value;
   const auto& keys = config_value.key_path;
-  const auto key_path = kwiver::vital::join( keys, kwiver::vital::config_block::block_sep );
+  const auto key_path = kwiver::vital::join( keys,
+                 kwiver::vital::config_block::block_sep() );
 
   const auto& flags = config_value.flags;
 
-  m_ostr << "  " << key_path;
+  m_ctxt.m_ostr << "  " << key_path;
 
   if ( ! flags.empty() )
   {
     const auto flag_list = kwiver::vital::join( flags, "," );
 
-    m_ostr << "[" << flag_list << "]";
+    m_ctxt.m_ostr << "[" << flag_list << "]";
   }
 
-  m_ostr << " = " << value << std::endl;
+  m_ctxt.m_ostr << " = " << value;
+
+  if (m_ctxt.m_opt_print_loc)
+  {
+    m_ctxt.m_ostr << "  # from " << config_value.loc;
+  }
+
+  m_ctxt.m_ostr << std::endl;
 }
-
-
 
 } // end namespace
 
 // ==================================================================
-pipe_display::
-pipe_display( std::ostream& ostr )
+pipe_display
+::pipe_display( std::ostream& ostr )
   : m_ostr( ostr )
 {
 }
 
-
-pipe_display::
-~pipe_display()
+pipe_display
+::~pipe_display()
 { }
-
 
 // ------------------------------------------------------------------
 void
-pipe_display::
-display_pipe_blocks( const sprokit::pipe_blocks blocks )
+pipe_display
+::display_pipe_blocks( const sprokit::pipe_blocks blocks )
 {
-  config_printer printer( m_ostr );
+  display_context local_ctxt( m_ostr, m_opt_print_loc );
+  config_printer printer( local_ctxt );
 
   m_ostr << "Number of blocks in list: " << blocks.size() << std::endl;
 
@@ -228,4 +239,11 @@ display_pipe_blocks( const sprokit::pipe_blocks blocks )
   }
 }
 
+// ----------------------------------------------------------------------------
+void
+pipe_display
+::print_loc( bool opt )
+{
+  m_opt_print_loc = opt;
+}
 } // end namespace

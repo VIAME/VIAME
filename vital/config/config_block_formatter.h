@@ -61,14 +61,6 @@ public:
   void print( std::ostream& str );
 
   /**
-   * @brief Format config block using alternate formatter.
-   *
-   * @param str Stream to format on
-   * @param format Name of formatting to use
-   */
-  void print( std::ostream& str, const std::string& format );
-
-  /**
    * @brief Set line prefix for printing.
    *
    * @param pfx The prefix string.

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
+ * Copyright 2011-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,6 @@
 
 #include "pipeline_builder.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <sprokit/pipeline_util/include-paths.h>
-#endif
-
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 #include <sprokit/pipeline_util/pipe_parser.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
@@ -42,8 +38,7 @@
 #include <vital/config/config_block.h>
 #include <vital/util/tokenize.h>
 #include <vital/util/string.h>
-
-#include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
+#include <vital/kwiver-include-paths.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -62,6 +57,7 @@ namespace {
 static std::string const default_include_dirs = std::string( DEFAULT_PIPE_INCLUDE_PATHS );
 static std::string const sprokit_include_envvar = std::string( "SPROKIT_PIPE_INCLUDE_PATH" );
 static std::string const split_str = "=";
+static std::string const path_separator( 1, PATH_SEPARATOR_CHAR );
 
 }
 
@@ -166,6 +162,7 @@ void
 pipeline_builder
 ::add_setting( std::string const& setting )
 {
+  static auto command_line_src = std::make_shared< std::string >( "Command Line" );
   size_t const split_pos = setting.find(split_str);
 
   if (split_pos == std::string::npos)
@@ -181,7 +178,9 @@ pipeline_builder
 
   kwiver::vital::config_block_keys_t keys;
 
-  kwiver::vital::tokenize( setting_key, keys, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
+  kwiver::vital::tokenize( setting_key, keys,
+                 kwiver::vital::config_block::block_sep(),
+                 kwiver::vital::TokenizeTrimEmpty );
 
   if (keys.size() < 2)
   {
@@ -194,13 +193,15 @@ pipeline_builder
   sprokit::config_value_t value;
   value.key_path.push_back(keys.back());
   value.value = setting_value;
-
+  value.loc = ::kwiver::vital::source_location( command_line_src, 1 );
   keys.pop_back();
 
   sprokit::config_pipe_block block;
   block.key = keys;
   block.values.push_back(value);
+  block.loc = ::kwiver::vital::source_location( command_line_src, 1 );
 
+  // Add to pipe blocks
   m_blocks.push_back(block);
 }
 
@@ -286,8 +287,8 @@ pipeline_builder
   kwiversys::SystemTools::GetPath( path_list, sprokit_include_envvar.c_str() );
 
   // Add the default search path
-  ST::Split( default_include_dirs, path_list, PATH_SEPARATOR_CHAR );
-
+  ::kwiver::vital::tokenize( default_include_dirs, path_list, path_separator,
+                             kwiver::vital::TokenizeTrimEmpty );
   if ( ! path_list.empty() )
   {
     add_search_path( path_list );

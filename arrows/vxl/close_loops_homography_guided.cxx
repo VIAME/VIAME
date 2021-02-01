@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -45,6 +19,8 @@
 
 #include <vital/algo/compute_ref_homography.h>
 #include <vital/algo/match_features.h>
+#include <vital/vital_config.h>
+
 #include <arrows/vxl/compute_homography_overlap.h>
 
 using namespace kwiver::vital;
@@ -55,7 +31,6 @@ namespace vxl {
 
 namespace
 {
-
 
 // Data stored for every detected checkpoint
 class checkpoint_entry_t
@@ -83,13 +58,11 @@ public:
   f2f_homography_sptr src_to_ref;
 };
 
-
 // Buffer type for detected checkpoints
 typedef std::deque< checkpoint_entry_t > checkpoint_buffer_t;
 
 // Buffer reverse iterator
 typedef checkpoint_buffer_t::reverse_iterator buffer_ritr;
-
 
 // If possible convert a src1 to ref and src2 to ref homography to a src2 to src1 homography
 bool
@@ -112,9 +85,7 @@ convert( const f2f_homography_sptr &src1_to_ref,
   return false;
 }
 
-
 } // end namespace anonymous
-
 
 /// Private implementation class
 class close_loops_homography_guided::priv
@@ -155,7 +126,6 @@ public:
   vital::algo::match_features_sptr matcher_;
 };
 
-
 // ----------------------------------------------------------------------------
 close_loops_homography_guided
 ::close_loops_homography_guided()
@@ -164,12 +134,10 @@ close_loops_homography_guided
   attach_logger( "arrows.vxl.close_loops_homography_guided" );
 }
 
-
 close_loops_homography_guided
 ::~close_loops_homography_guided()
 {
 }
-
 
 // ----------------------------------------------------------------------------
 vital::config_block_sptr
@@ -200,7 +168,6 @@ close_loops_homography_guided
 
   return config;
 }
-
 
 void
 close_loops_homography_guided
@@ -235,7 +202,6 @@ close_loops_homography_guided
   }
 }
 
-
 bool
 close_loops_homography_guided
 ::check_configuration( vital::config_block_sptr config ) const
@@ -248,14 +214,13 @@ close_loops_homography_guided
   );
 }
 
-
 // Perform stitch operation
 feature_track_set_sptr
 close_loops_homography_guided
 ::stitch( frame_id_t frame_number,
           feature_track_set_sptr input,
           image_container_sptr image,
-          image_container_sptr mask ) const
+          VITAL_UNUSED image_container_sptr mask ) const
 {
   if( !d_->enabled_ )
   {
@@ -378,7 +343,6 @@ close_loops_homography_guided
   // Return input set
   return input;
 }
-
 
 } // end namespace vxl
 } // end namespace arrows

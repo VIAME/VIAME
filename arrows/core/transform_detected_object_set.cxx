@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "transform_detected_object_set.h"
 
@@ -77,7 +51,6 @@ get_configuration() const
   return config;
 }
 
-
 // ---------------------------------------------------------------------------
 void
 transform_detected_object_set::
@@ -97,7 +70,6 @@ set_configuration( vital::config_block_sptr config_in )
     kwiver::vital::read_krtd_file( this->dest_camera_krtd_file_name );
 }
 
-
 // ---------------------------------------------------------------------------
 bool
 transform_detected_object_set::
@@ -115,7 +87,6 @@ check_configuration( vital::config_block_sptr config ) const
 
   return true;
 }
-
 
 // ---------------------------------------------------------------------------
 vector_3d
@@ -221,14 +192,14 @@ box_around_box3d( kwiver::vital::camera_perspective_sptr const camera,
 // ---------------------------------------------------------------------------
 vital::bounding_box<double>
 transform_detected_object_set::
-view_to_view( kwiver::vital::camera_perspective_sptr const src_camera,
-              kwiver::vital::camera_perspective_sptr const dest_camera,
+view_to_view( kwiver::vital::camera_perspective_sptr const src_camera_,
+              kwiver::vital::camera_perspective_sptr const dest_camera_,
               vital::bounding_box<double> const& bbox ) const
 {
   Eigen::Matrix<double, 8, 3> box3d =
-    this->backproject_bbox( src_camera, bbox );
+    this->backproject_bbox( src_camera_, bbox );
 
-  return this->box_around_box3d( dest_camera, box3d );
+  return this->box_around_box3d( dest_camera_, box3d );
 }
 
 // ---------------------------------------------------------------------------

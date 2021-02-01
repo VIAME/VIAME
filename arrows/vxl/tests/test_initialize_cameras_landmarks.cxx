@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <test_gtest.h>
 #include <test_eigen.h>
@@ -35,16 +9,17 @@
 #include <arrows/vxl/estimate_essential_matrix.h>
 #include <arrows/vxl/estimate_similarity_transform.h>
 
-#include <arrows/core/projected_track_set.h>
-#include <arrows/core/metrics.h>
-#include <arrows/core/transform.h>
-#include <arrows/core/initialize_cameras_landmarks.h>
+#include <arrows/mvg/projected_track_set.h>
+#include <arrows/mvg/metrics.h>
+#include <arrows/mvg/transform.h>
+#include <arrows/mvg/algo/initialize_cameras_landmarks_basic.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <vital/types/similarity.h>
 
 using namespace kwiver::vital;
+using namespace kwiver::arrows::mvg;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -57,13 +32,13 @@ int main(int argc, char** argv)
 // ----------------------------------------------------------------------------
 TEST(initialize_cameras_landmarks, create)
 {
-  EXPECT_NE( nullptr, algo::initialize_cameras_landmarks::create("core") );
+  EXPECT_NE( nullptr, algo::initialize_cameras_landmarks::create("mvg-basic") );
 }
 
 // ----------------------------------------------------------------------------
 // Helper function to configure the algorithm
 static void
-configure_algo(kwiver::arrows::core::initialize_cameras_landmarks& algo,
+configure_algo(initialize_cameras_landmarks_basic& algo,
                const kwiver::vital::camera_intrinsics_sptr K)
 {
   using namespace kwiver::arrows;
@@ -76,7 +51,7 @@ configure_algo(kwiver::arrows::core::initialize_cameras_landmarks& algo,
   cfg->set_value("essential_mat_estimator:type", "vxl");
   cfg->set_value("essential_mat_estimator:vxl:num_ransac_samples", 10);
   cfg->set_value("camera_optimizer:type", "vxl");
-  cfg->set_value("lm_triangulator:type", "core");
+  cfg->set_value("lm_triangulator:type", "mvg");
   algo.set_configuration(cfg);
 
   if(!algo.check_configuration(cfg))
@@ -101,7 +76,6 @@ evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
   vital::similarity_d global_sim = est_sim->estimate_transform(est_cams, true_cams);
   std::cout << "similarity = "<<global_sim<<std::endl;
 
-
   vital::camera_map::map_camera_t orig_cams = true_cams->cameras();
   vital::camera_map::map_camera_t new_cams = est_cams->cameras();
   for (auto const& p : orig_cams)
@@ -110,8 +84,7 @@ evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
       std::dynamic_pointer_cast<vital::camera_perspective>(p.second);
     auto new_cam =
       std::dynamic_pointer_cast<vital::camera_perspective>(new_cams[p.first]);
-    vital::camera_perspective_sptr new_cam_t =
-      arrows::core::transform(new_cam, global_sim);
+    vital::camera_perspective_sptr new_cam_t = transform(new_cam, global_sim);
     vital::rotation_d dR = new_cam_t->rotation().inverse() * orig_cam->rotation();
     EXPECT_NEAR(0.0, dR.angle(), tol) << "Rotation difference magnitude";
 
@@ -123,8 +96,7 @@ evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
   vital::landmark_map::map_landmark_t new_lms = est_landmarks->landmarks();
   for (auto const& p : orig_lms)
   {
-    vital::landmark_sptr new_lm_tr =
-      arrows::core::transform(new_lms[p.first], global_sim);
+    vital::landmark_sptr new_lm_tr = transform(new_lms[p.first], global_sim);
 
     double dt = (p.second->loc() - new_lm_tr->loc()).norm();
     EXPECT_NEAR(0.0, dt, tol) << "Landmark location difference";
@@ -136,7 +108,7 @@ evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
 TEST(initialize_cameras_landmarks, ideal_points)
 {
   using namespace kwiver;
-  arrows::core::initialize_cameras_landmarks init;
+  initialize_cameras_landmarks_basic init;
 
   // create landmarks at the random locations
   vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
@@ -146,7 +118,7 @@ TEST(initialize_cameras_landmarks, ideal_points)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
   kwiver::testing::reset_inlier_flag( tracks );
 
   auto first_cam =
@@ -168,7 +140,7 @@ TEST(initialize_cameras_landmarks, ideal_points)
 TEST(initialize_cameras_landmarks, ideal_points_from_last)
 {
   using namespace kwiver;
-  arrows::core::initialize_cameras_landmarks init;
+  initialize_cameras_landmarks_basic init;
 
   // create landmarks at the random locations
   vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
@@ -178,7 +150,7 @@ TEST(initialize_cameras_landmarks, ideal_points_from_last)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
   kwiver::testing::reset_inlier_flag( tracks );
 
   vital::config_block_sptr cfg = init.get_configuration();
@@ -203,7 +175,7 @@ TEST(initialize_cameras_landmarks, ideal_points_from_last)
 TEST(initialize_cameras_landmarks, noisy_points)
 {
   using namespace kwiver;
-  arrows::core::initialize_cameras_landmarks init;
+  initialize_cameras_landmarks_basic init;
 
   // create landmarks at the random locations
   vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
@@ -213,7 +185,7 @@ TEST(initialize_cameras_landmarks, noisy_points)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
@@ -238,7 +210,7 @@ TEST(initialize_cameras_landmarks, noisy_points)
 TEST(initialize_cameras_landmarks, noisy_points_from_last)
 {
   using namespace kwiver;
-  arrows::core::initialize_cameras_landmarks init;
+  initialize_cameras_landmarks_basic init;
 
   // create landmarks at the random locations
   vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
@@ -248,7 +220,7 @@ TEST(initialize_cameras_landmarks, noisy_points_from_last)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
@@ -276,7 +248,7 @@ TEST(initialize_cameras_landmarks, noisy_points_from_last)
 TEST(initialize_cameras_landmarks, subset_init)
 {
   using namespace kwiver;
-  arrows::core::initialize_cameras_landmarks init;
+  initialize_cameras_landmarks_basic init;
 
   // create landmarks at the random locations
   vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
@@ -286,7 +258,7 @@ TEST(initialize_cameras_landmarks, subset_init)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
   kwiver::testing::reset_inlier_flag( tracks );
 
   auto first_cam =
