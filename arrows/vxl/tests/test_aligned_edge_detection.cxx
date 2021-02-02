@@ -2,11 +2,6 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-/**
- * \file
- * \brief test aligned edge detection
- */
-
 #include <test_gtest.h>
 
 #include <arrows/vxl/aligned_edge_detection.h>
@@ -58,6 +53,7 @@ public:
   kv::image_container_sptr input_image;
 };
 
+// ----------------------------------------------------------------------------
 void
 aligned_edge_detection
 ::SetUp()
@@ -67,7 +63,8 @@ aligned_edge_detection
   input_image = io.load( test_file );
 }
 
-TEST_F(aligned_edge_detection, seperate)
+// ----------------------------------------------------------------------------
+TEST_F ( aligned_edge_detection, seperate )
 {
   auto const expected_filename = data_dir + "/" + expected_seperate_edges;
 
@@ -82,7 +79,8 @@ TEST_F(aligned_edge_detection, seperate)
                               expected_image_ptr->get_image() ) );
 }
 
-TEST_F(aligned_edge_detection, combined)
+// ----------------------------------------------------------------------------
+TEST_F ( aligned_edge_detection, combined )
 {
   auto const expected_filename = data_dir + "/" + expected_combined_edges;
 

@@ -13,9 +13,10 @@
 #include <vil/vil_math.h>
 #include <vil/vil_plane.h>
 
-#include <cstdlib>
 #include <limits>
 #include <type_traits>
+
+#include <cstdlib>
 
 namespace kwiver {
 
@@ -28,21 +29,21 @@ namespace vxl {
 class aligned_edge_detection::priv
 {
 public:
-  priv( aligned_edge_detection* parent ) : p( parent ) {}
+  priv( aligned_edge_detection* parent ) : p{ parent } {}
 
-  template < typename PixType,
-             typename GradientType > vil_image_view< PixType >
-  calculate_aligned_edges( const vil_image_view< PixType >& input,
+  template < typename PixType, typename GradientType >
+  vil_image_view< PixType >
+  calculate_aligned_edges( vil_image_view< PixType > const& input,
                            vil_image_view< GradientType >& grad_i,
                            vil_image_view< GradientType >& grad_j );
 
-  template < typename InputType,
-             typename OutputType > vil_image_view< OutputType >
-  nonmax_suppression( const vil_image_view< InputType >& grad_i,
-                      const vil_image_view< InputType >& grad_j );
+  template < typename InputType, typename OutputType >
+  vil_image_view< OutputType >
+  nonmax_suppression( vil_image_view< InputType > const& grad_i,
+                      vil_image_view< InputType > const& grad_j );
 
   template < typename pix_t > vil_image_view< pix_t >
-  filter( const vil_image_view< pix_t >& input_image );
+  filter( vil_image_view< pix_t > const& input_image );
 
   aligned_edge_detection* p;
   // Internal parameters/settings
@@ -52,13 +53,14 @@ public:
   unsigned smoothing_half_step = 2;
 };
 
+// ----------------------------------------------------------------------------
 // Perform NMS on the input gradient images in horizontal and vert directions
 // only
 template < typename InputType, typename OutputType >
 vil_image_view< OutputType >
 aligned_edge_detection::priv
-::nonmax_suppression( const vil_image_view< InputType >& grad_i,
-                      const vil_image_view< InputType >& grad_j )
+::nonmax_suppression( vil_image_view< InputType > const& grad_i,
+                      vil_image_view< InputType > const& grad_j )
 {
   if( grad_i.ni() != grad_j.ni() || grad_i.nj() != grad_j.nj() )
   {
@@ -67,16 +69,16 @@ aligned_edge_detection::priv
       "Input gradient image dimensions must be equivalent" );
   }
 
-  const unsigned ni = grad_i.ni();
-  const unsigned nj = grad_i.nj();
+  auto const ni = grad_i.ni();
+  auto const nj = grad_i.nj();
 
   vil_image_view< OutputType > output( ni, nj, 2 );
   output.fill( 0 );
 
   // Perform non-maximum suppression
-  for( unsigned j = 1; j < nj - 1; j++ )
+  for( decltype(+nj) j = 1; j < nj - 1; j++ )
   {
-    for( unsigned i = 1; i < ni - 1; i++ )
+    for( decltype(+ni) i = 1; i < ni - 1; i++ )
     {
       const InputType val_i = grad_i( i, j );
       const InputType val_j = grad_j( i, j );
@@ -100,11 +102,12 @@ aligned_edge_detection::priv
   return output;
 }
 
+// ----------------------------------------------------------------------------
 // Calculate potential edges
 template < typename PixType, typename GradientType >
 vil_image_view< PixType >
 aligned_edge_detection::priv
-::calculate_aligned_edges( const vil_image_view< PixType >& input,
+::calculate_aligned_edges( vil_image_view< PixType > const& input,
                            vil_image_view< GradientType >& grad_i,
                            vil_image_view< GradientType >& grad_j )
 {
@@ -112,34 +115,28 @@ aligned_edge_detection::priv
   vil_sobel_3x3( input, grad_i, grad_j );
 
   // Take absolute value of gradients
-  vil_transform< GradientType, GradientType( GradientType ) >( grad_i,
-                                                               std::abs );
-  vil_transform< GradientType, GradientType( GradientType ) >( grad_j,
-                                                               std::abs );
+  vil_transform< GradientType, GradientType( GradientType ) >(
+    grad_i, std::abs );
+  vil_transform< GradientType, GradientType( GradientType ) >(
+    grad_j, std::abs );
 
-  // Perform NMS in vert/hori directions and threshold magnitude
+  // Perform NMS in vertical/horizonal directions and threshold magnitude
   vil_image_view< PixType > output =
     nonmax_suppression< GradientType, PixType >( grad_i, grad_j );
   return output;
 }
 
+// ----------------------------------------------------------------------------
 template < typename pix_t >
 vil_image_view< pix_t >
 aligned_edge_detection::priv
-::filter( const vil_image_view< pix_t >& input_image )
+::filter( vil_image_view< pix_t > const& input_image )
 {
-  size_t source_ni = input_image.ni();
-  size_t source_nj = input_image.nj();
+  auto const source_ni = input_image.ni();
+  auto const source_nj = input_image.nj();
 
-  vil_image_view< pix_t > combined_edges( source_ni, source_nj );
-
-  if( produce_joint_output )
-  {
-    combined_edges.fill( 0 );
-  }
-
-  vil_image_view< float > grad_i( source_ni, source_nj );
-  vil_image_view< float > grad_j( source_ni, source_nj );
+  vil_image_view< float > grad_i{ source_ni, source_nj };
+  vil_image_view< float > grad_j{ source_ni, source_nj };
 
   vil_image_view< pix_t > aligned_edges =
     calculate_aligned_edges< pix_t, float >( input_image, grad_i, grad_j );
@@ -147,6 +144,9 @@ aligned_edge_detection::priv
   // Perform extra op if enabled
   if( produce_joint_output )
   {
+    vil_image_view< pix_t > combined_edges{ source_ni, source_nj };
+    combined_edges.fill( 0 );
+
     // Add vertical and horizontal edge planes together and smooth
     vil_image_view< pix_t > joint_nms_edges;
 
@@ -164,9 +164,7 @@ aligned_edge_detection::priv
 
     if( half_step != 0 )
     {
-      vil_gauss_filter_2d( joint_nms_edges,
-                           combined_edges,
-                           smoothing_sigma,
+      vil_gauss_filter_2d( joint_nms_edges, combined_edges, smoothing_sigma,
                            half_step );
     }
     else
@@ -186,21 +184,23 @@ aligned_edge_detection::priv
 // ----------------------------------------------------------------------------
 aligned_edge_detection
 ::aligned_edge_detection()
-  : d( new priv( this ) )
+  : d{ new priv{ this } }
 {
   attach_logger( "arrows.vxl.aligned_edge_detection" );
 }
 
+// ----------------------------------------------------------------------------
 aligned_edge_detection
 ::~aligned_edge_detection()
 {
 }
 
+// ----------------------------------------------------------------------------
 vital::config_block_sptr
 aligned_edge_detection
 ::get_configuration() const
 {
-  // get base config from base class
+  // Get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
   config->set_value( "threshold",
@@ -210,14 +210,15 @@ aligned_edge_detection
   config->set_value( "produce_joint_output",
                      d->produce_joint_output,
                      "Set to false if we do not want to spend time computing "
-                     "joint edge images comprised of both horizontal and vertical "
-                     "information." );
+                     "joint edge images comprised of both horizontal and "
+                     "vertical information." );
   config->set_value( "smoothing_sigma",
                      d->smoothing_sigma,
                      "Smoothing sigma for the output NMS edge density map." );
   config->set_value( "smoothing_half_step",
                      d->smoothing_half_step,
-                     "Smoothing half step for the output NMS edge density map." );
+                     "Smoothing half step for the output NMS edge density "
+                     "map." );
 
   return config;
 }
@@ -253,34 +254,40 @@ aligned_edge_detection
 // ----------------------------------------------------------------------------
 kwiver::vital::image_container_sptr
 aligned_edge_detection
-::filter( kwiver::vital::image_container_sptr image_data )
+::filter( kwiver::vital::image_container_sptr source_image_ptr )
 {
+  if( !source_image_ptr )
+  {
+    LOG_ERROR( logger(), "Image pointer was not valid." );
+    return nullptr;
+  }
+
   // Get input image
   vil_image_view_base_sptr source_image =
-    vxl::image_container::vital_to_vxl( image_data->get_image() );
+    vxl::image_container::vital_to_vxl( source_image_ptr->get_image() );
 
   // Perform Basic Validation
-  if( !image_data )
+  if( !source_image )
   {
-    return kwiver::vital::image_container_sptr();
+    LOG_ERROR( logger(), "Image was not valid." );
+    return nullptr;
   }
 
   // Perform Basic Validation
   if( !source_image || source_image->nplanes() != 1 )
   {
     LOG_ERROR( logger(), "Input must be a grayscale image!" );
-    return kwiver::vital::image_container_sptr();
+    return nullptr;
   }
 
 #define HANDLE_CASE( T )                                          \
   case T:                                                         \
   {                                                               \
-    typedef vil_pixel_format_type_of< T >::component_type ipix_t; \
+    using ipix_t = vil_pixel_format_type_of< T >::component_type; \
     auto filtered = d->filter< ipix_t >( source_image );          \
-    auto container = vxl::image_container( filtered );            \
+    auto container = vxl::image_container{ filtered };            \
     return std::make_shared< vxl::image_container >( container ); \
   }                                                               \
-
 
   switch( source_image->pixel_format() )
   {
@@ -290,11 +297,11 @@ aligned_edge_detection
 #undef HANDLE_CASE
     default:
       LOG_ERROR( logger(), "Invalid input format type received" );
-      return kwiver::vital::image_container_sptr();
+      return nullptr;
   }
 
   LOG_ERROR( logger(), "Invalid output format type received" );
-  return kwiver::vital::image_container_sptr();
+  return nullptr;
 }
 
 } // end namespace vxl
