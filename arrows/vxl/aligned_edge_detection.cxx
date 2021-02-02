@@ -175,9 +175,9 @@ aligned_edge_detection::priv
     }
     vil_image_view< pix_t > all_channels( joint_nms_edges.ni(),
                                           joint_nms_edges.nj(), 3 );
-    vil_plane( all_channels, 0 ) = vil_plane( aligned_edges, 0 );
-    vil_plane( all_channels, 1 ) = vil_plane( aligned_edges, 1 );
-    vil_plane( all_channels, 2 ) = joint_nms_edges;
+    vil_plane( all_channels, 0 ).deep_copy( vil_plane( aligned_edges, 0 ) );
+    vil_plane( all_channels, 1 ).deep_copy( vil_plane( aligned_edges, 1 ) );
+    vil_plane( all_channels, 2 ).deep_copy( joint_nms_edges );
     return all_channels;
   }
   return aligned_edges;
