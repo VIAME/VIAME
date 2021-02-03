@@ -59,6 +59,7 @@ public:
     , m_active_writing( false )
     , m_write_time_as_uid( false )
     , m_tot_option( "weighted_average" )
+    , m_tot_ignore_class( "" )
     , m_frame_id_adjustment( 0 )
   { }
 
@@ -74,7 +75,9 @@ public:
   std::map< unsigned, kwiver::vital::track_sptr > m_tracks;
   bool m_active_writing;
   bool m_write_time_as_uid;
+
   std::string m_tot_option;
+  std::string m_tot_ignore_class;
   int m_frame_id_adjustment;
   std::map< unsigned, std::string > m_frame_uids;
 
@@ -110,7 +113,9 @@ write_object_track_set_viame_csv::priv
 }
 
 kwiver::vital::detected_object_type_sptr
-compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
+compute_average_tot( kwiver::vital::track_sptr trk_ptr,
+                     bool weighted,
+                     std::string ignore_class = "" )
 {
   std::map< std::string, double > class_map;
 
@@ -120,6 +125,9 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
   if( trk_ptr )
   {
     double total_mass = 0.0;
+
+    double total_non_ignore_mass = 0.0;
+    double total_ignore_mass = 0.0;
 
     for( auto ts_ptr : *trk_ptr )
     {
@@ -137,21 +145,58 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
       {
         double weight = ( weighted ? ts->detection()->confidence() : 1.0 );
 
+        bool ignore_found = false;
+        bool other_found = false;
+
         for( const auto name : dot->class_names() )
         {
           class_map[ name ] += ( dot->score( name ) * weight );
+
+          if( name == ignore_class )
+          {
+            ignore_found = true;
+          }
+          else
+          {
+            other_found = true;
+          }
         }
 
         total_mass += weight;
+
+        if( ignore_found )
+        {
+          total_ignore_mass += weight;
+        }
+        if( other_found )
+        {
+          total_non_ignore_mass += weight;
+        }
       }
     }
 
-    if( total_mass > 0.0 )
+    double norm_weight = 0.0;
+
+    if( total_mass > 0.0 && total_ignore_mass == 0.0 )
+    {
+      norm_weight = total_mass;
+    }
+    else if( total_ignore_mass > 0.0 && total_non_ignore_mass > 0.0 )
+    {
+      class_map.erase( ignore_class );
+      norm_weight = total_non_ignore_mass;
+    }
+    else if( total_ignore_mass > 0.0 )
+    {
+      norm_weight = total_ignore_mass;
+    }
+
+    if( norm_weight > 0.0 )
     {
       for( auto itr : class_map )
       {
         class_names.push_back( itr.first );
-        scores.push_back( itr.second / total_mass );
+        scores.push_back( itr.second / norm_weight );
       }
     }
   }
@@ -195,7 +240,9 @@ void write_object_track_set_viame_csv
 
     const kwiver::vital::detected_object_type_sptr trk_average_tot =
           ( d->m_tot_option == "detection" ? kwiver::vital::detected_object_type_sptr()
-            : compute_average_tot( trk_ptr, d->m_tot_option == "weighted_average" ) );
+            : compute_average_tot( trk_ptr,
+                                   d->m_tot_option == "weighted_average",
+                                   d->m_tot_ignore_class ) );
 
     for( auto ts_ptr : *trk_ptr )
     {
@@ -276,6 +323,8 @@ write_object_track_set_viame_csv
     config->get_value<bool>( "write_time_as_uid", d->m_write_time_as_uid );
   d->m_tot_option =
     config->get_value<std::string>( "tot_option", d->m_tot_option );
+  d->m_tot_ignore_class =
+    config->get_value<std::string>( "tot_ignore_class", d->m_tot_ignore_class );
   d->m_frame_id_adjustment =
     config->get_value<int>( "frame_id_adjustment", d->m_frame_id_adjustment );
 }
@@ -408,7 +457,9 @@ write_object_track_set_viame_csv
       {
         const kwiver::vital::detected_object_type_sptr dot =
           ( d->m_tot_option == "detection" ? det->type() :
-            compute_average_tot( trk_ptr, d->m_tot_option == "weighted_average" ) );
+            compute_average_tot( trk_ptr,
+                                 d->m_tot_option == "weighted_average",
+                                 d->m_tot_ignore_class ) );
 
         if( dot )
         {
