@@ -39,6 +39,8 @@ unknown_metadata_item, and metadata
 import nose.tools as nt
 import numpy as np
 import sys
+import unittest
+
 from kwiver.vital.types.metadata_traits import *
 from kwiver.vital.types.metadata import *
 from kwiver.vital.types import (
@@ -92,7 +94,7 @@ class TestVitalMetadataItem(object):
 # typed_metadata and unknown_metadata. typed_metadata has 2 templated parameters.
 # Because of pybind's inability to handle template types, there is a separate class for
 # each instantiation.
-class TestVitalMetadataItemSubclasses(object):
+class TestVitalMetadataItemSubclasses(unittest.TestCase):
     # Creates a geo_point and geo_poly
     def setUp(self):
         self.g_point = GeoPoint(np.array([1, 2, 3]), gd.SRID.lat_lon_WGS84)
@@ -293,7 +295,7 @@ class TestVitalMetadataItemSubclasses(object):
 
 
 # And finally, the actual metadata class
-class TestVitalMetadata(object):
+class TestVitalMetadata(unittest.TestCase):
     def setUp(self):
         self.tags = [
             mt.tags.VITAL_META_GPS_WEEK,

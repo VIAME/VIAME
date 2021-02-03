@@ -39,9 +39,9 @@ from kwiver.vital.types import CategoryHierarchy
 import nose.tools as nt
 import os
 import tempfile
+import unittest
 
-
-class TestVitalCategoryHierarchy(object):
+class TestVitalCategoryHierarchy(unittest.TestCase):
     def setUp(self):
         """
         First create the following hierarchy using lists
