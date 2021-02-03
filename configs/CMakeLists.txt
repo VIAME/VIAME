@@ -31,6 +31,12 @@ if( VIAME_DOWNLOAD_MODELS )
           ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.tar.gz
           ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
       endif()
+      if( VIAME_DOWNLOAD_MODELS-MOTION )
+         DownloadAndInstallAddOn(
+          https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download
+          b2b8406cb14bf1c890fdd79e269404d1
+          ${VIAME_DOWNLOAD_DIR}/VIAME-Motion-Models-v1.0.zip )
+      endif()
     elseif( VIAME_ENABLE_PYTORCH-MMDET )
       if( VIAME_DOWNLOAD_MODELS-GENERIC )
         DownloadAndExtract(
