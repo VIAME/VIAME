@@ -274,7 +274,11 @@ aligned_edge_detection
   }
 
   // Perform Basic Validation
-  if( !source_image || source_image->nplanes() != 1 )
+  if( source_image->nplanes() == 3 )
+  {
+    source_image = vil_convert_to_grey_using_average( source_image );
+  }
+  else if( source_image->nplanes() != 1 )
   {
     LOG_ERROR( logger(), "Input must be a grayscale image!" );
     return nullptr;
