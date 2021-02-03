@@ -106,16 +106,19 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [SEAL v0.13.3 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/60118b212fa25629b9197312/download)
 
 **Optional Patches:** <br>
-[Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
-[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
-[Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
-[HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/6011e3452fa25629b91ade60/download) <br>
-[Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
-[MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
-[MOUSS Model Set 2 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
+[Motion Detector Models, All OS](https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download) <br>
+[Alternative Generic Detector for IQR, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
+[Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
+[Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
+[HabCam Models (Scallop, Skate, Flatfish), All OS](https://data.kitware.com/api/v1/item/6011e3452fa25629b91ade60/download) <br>
+[Low Memory GPU (For 4+ Gb Cards), All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
+[MOUSS Model Set 1 (Deep 7 Bottomfish), All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
+[MOUSS Model Set 2 (Deep 7 Bottomfish), All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5e8d3ad42660cbefba9dd13c/download) <br>
-[Penguin Head FF Models Add-On, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
-[Sea Lion Models Add-On, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download)
+[Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
+[Sea Lion Models, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download) <br>
+[SEFSC 100 Class Fish Models, All OS](https://data.kitware.com/api/v1/item/601ae0a82fa25629b938d0db/download) <br>
+[EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom distributions 
