@@ -14,12 +14,21 @@ wget -O ${DOWNLOAD_LOCATION}/download1.zip https://data.kitware.com/api/v1/item/
 unzip -o ${DOWNLOAD_LOCATION}/download1.zip -d ${VIAME_INSTALL}
 
 # SEFSC -
-wget -O ${DOWNLOAD_LOCATION}/download2.zip https://data.kitware.com/api/v1/item/6013acad2fa25629b9207b52/download
+wget -O ${DOWNLOAD_LOCATION}/download2.zip https://data.kitware.com/api/v1/item/601ae0a82fa25629b938d0db/download
 unzip -o ${DOWNLOAD_LOCATION}/download2.zip -d ${VIAME_INSTALL}
 
 # PengHead -
 wget -O ${DOWNLOAD_LOCATION}/download3.zip https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download
 unzip -o ${DOWNLOAD_LOCATION}/download3.zip -d ${VIAME_INSTALL}
+
+# Motion -
+wget -O ${DOWNLOAD_LOCATION}/download4.zip https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download
+unzip -o ${DOWNLOAD_LOCATION}/download4.zip -d ${VIAME_INSTALL}
+
+# EM Tuna -
+wget -O ${DOWNLOAD_LOCATION}/download5.zip https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download
+unzip -o ${DOWNLOAD_LOCATION}/download5.zip -d ${VIAME_INSTALL}
+
 
 # Ensure Download Location is Removed
 rm -rf ${DOWNLOAD_LOCATION}
