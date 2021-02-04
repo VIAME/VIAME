@@ -25,15 +25,14 @@ enum filter_mode
   MODE_bidir,
 };
 
-ENUM_CONVERTER( mode_converter, filter_mode, { "box", MODE_box }, { "bidir",
-                                                                    MODE_bidir } )
+ENUM_CONVERTER( mode_converter,
+                filter_mode, { "box", MODE_box }, { "bidir", MODE_bidir } )
 
 // --------------------------------------------------------------------------------------
 /// Private implementation class
 class high_pass_filter::priv
 {
 public:
-
   priv( high_pass_filter* parent )
     : p( parent )
   {
@@ -443,7 +442,7 @@ high_pass_filter
   {
     view = vil_convert_to_grey_using_average( view );
   }
-  else if( view->nplanes() != 1)
+  else if( view->nplanes() != 1 )
   {
     LOG_ERROR( logger(), "Expected 1 or 3 channels but recieved "
                << view->nplanes() );

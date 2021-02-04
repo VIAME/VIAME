@@ -2,7 +2,6 @@
 # structures
 
 set(vxl_headers_public
-  high_pass_filter.h
   bounding_box.h
   bundle_adjust.h
   camera.h
@@ -14,6 +13,7 @@ set(vxl_headers_public
   estimate_fundamental_matrix.h
   estimate_homography.h
   estimate_similarity_transform.h
+  high_pass_filter.h
   image_container.h
   image_io.h
   match_features_constrained.h
@@ -36,12 +36,12 @@ kwiver_install_headers(
   )
 
 set(vxl_sources
-  high_pass_filter.cxx
   bundle_adjust.cxx
   camera.cxx
   camera_map.cxx
   close_loops_homography_guided.cxx
   compute_homography_overlap.cxx
+  high_pass_filter.cxx
   estimate_canonical_transform.cxx
   estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
