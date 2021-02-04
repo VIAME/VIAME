@@ -31,17 +31,19 @@ class aligned_edge_detection::priv
 public:
   priv( aligned_edge_detection* parent ) : p{ parent } {}
 
+  // Calculate potential edges
   template < typename PixType, typename GradientType >
   vil_image_view< PixType >
   calculate_aligned_edges( vil_image_view< PixType > const& input,
                            vil_image_view< GradientType >& grad_i,
                            vil_image_view< GradientType >& grad_j );
-
-  template < typename InputType, typename OutputType >
+  // Perform NMS on the input gradient images in horizontal and vertical
+  // directions only
+  template < typename OutputType, typename InputType >
   vil_image_view< OutputType >
   nonmax_suppression( vil_image_view< InputType > const& grad_i,
                       vil_image_view< InputType > const& grad_j );
-
+  // Compute axis-aligned edges and perform NMS on them
   template < typename pix_t > vil_image_view< pix_t >
   filter( vil_image_view< pix_t > const& input_image );
 
@@ -54,9 +56,7 @@ public:
 };
 
 // ----------------------------------------------------------------------------
-// Perform NMS on the input gradient images in horizontal and vert directions
-// only
-template < typename InputType, typename OutputType >
+template < typename OutputType, typename InputType >
 vil_image_view< OutputType >
 aligned_edge_detection::priv
 ::nonmax_suppression( vil_image_view< InputType > const& grad_i,
@@ -72,13 +72,14 @@ aligned_edge_detection::priv
   auto const ni = grad_i.ni();
   auto const nj = grad_i.nj();
 
-  vil_image_view< OutputType > output( ni, nj, 2 );
+  vil_image_view< OutputType > output{ ni, nj, 2 };
   output.fill( 0 );
 
   // Perform non-maximum suppression
-  for( decltype(+nj) j = 1; j < nj - 1; j++ )
+  for( decltype( +nj ) j{ 1 }; j < nj - 1; ++j )
+
   {
-    for( decltype(+ni) i = 1; i < ni - 1; i++ )
+    for( decltype( +ni ) i{ 1 }; i < ni - 1; ++i )
     {
       const InputType val_i = grad_i( i, j );
       const InputType val_j = grad_j( i, j );
@@ -103,7 +104,6 @@ aligned_edge_detection::priv
 }
 
 // ----------------------------------------------------------------------------
-// Calculate potential edges
 template < typename PixType, typename GradientType >
 vil_image_view< PixType >
 aligned_edge_detection::priv
@@ -114,16 +114,12 @@ aligned_edge_detection::priv
   // Calculate sobel approx in x/y directions
   vil_sobel_3x3( input, grad_i, grad_j );
 
-  // Take absolute value of gradients
-  vil_transform< GradientType, GradientType( GradientType ) >(
-    grad_i, std::abs );
-  vil_transform< GradientType, GradientType( GradientType ) >(
-    grad_j, std::abs );
+  // Take the absolute value of gradients in place
+  vil_transform( grad_i, std::abs< GradientType > );
+  vil_transform( grad_j, std::abs< GradientType > );
 
   // Perform NMS in vertical/horizonal directions and threshold magnitude
-  vil_image_view< PixType > output =
-    nonmax_suppression< GradientType, PixType >( grad_i, grad_j );
-  return output;
+  return nonmax_suppression< PixType >( grad_i, grad_j );
 }
 
 // ----------------------------------------------------------------------------
@@ -171,8 +167,8 @@ aligned_edge_detection::priv
     {
       vil_copy_reformat( joint_nms_edges, combined_edges );
     }
-    vil_image_view< pix_t > all_channels( joint_nms_edges.ni(),
-                                          joint_nms_edges.nj(), 3 );
+    vil_image_view< pix_t > all_channels(
+      joint_nms_edges.ni(), joint_nms_edges.nj(), 3 );
     vil_plane( all_channels, 0 ).deep_copy( vil_plane( aligned_edges, 0 ) );
     vil_plane( all_channels, 1 ).deep_copy( vil_plane( aligned_edges, 1 ) );
     vil_plane( all_channels, 2 ).deep_copy( joint_nms_edges );
@@ -228,8 +224,8 @@ void
 aligned_edge_detection
 ::set_configuration( vital::config_block_sptr in_config )
 {
-  // Starting with our generated vital::config_block to ensure that assumed
-  // values are present. An alternative is to check for key presence before
+  // Start with our generated vital::config_block to ensure that assumed values
+  // are present. An alternative would be to check for key presence before
   // performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
@@ -289,9 +285,8 @@ aligned_edge_detection
   {                                                               \
     using ipix_t = vil_pixel_format_type_of< T >::component_type; \
     auto filtered = d->filter< ipix_t >( source_image );          \
-    auto container = vxl::image_container{ filtered };            \
-    return std::make_shared< vxl::image_container >( container ); \
-  }                                                               \
+    return std::make_shared< vxl::image_container >( filtered );  \
+  }
 
   switch( source_image->pixel_format() )
   {

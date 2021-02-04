@@ -15,7 +15,6 @@ namespace arrows {
 
 namespace vxl {
 
-
 /// Extract axis-aligned edges.
 class KWIVER_ALGO_VXL_EXPORT aligned_edge_detection
   : public vital::algo::image_filter
