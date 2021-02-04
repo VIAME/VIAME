@@ -1,3 +1,20 @@
+v0.14.0 - 2/5/2020
+==================
+
+
+-Include DIVE interface in default VIAME installers
+
+
+-Fix issue in ResNetX classifier still downloading things at inference time
+
+
+-Fix issue in track averaging of target object types
+
+
+-Update darknet to include instruction sets for more recent GPUs
+
+
+
 v0.13.4 - 2/1/2020
 ==================
 
