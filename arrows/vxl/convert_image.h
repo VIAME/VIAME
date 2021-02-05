@@ -15,12 +15,10 @@ namespace arrows {
 
 namespace vxl {
 
-/**
- * @brief Convert between VXL image formats.
- *
- * This can be used, for example, to turn a floating point image into
- * a byte image and vice versa.
- */
+/// Convert between VXL image formats.
+///
+/// This can be used, for example, to turn a floating point image into
+/// a byte image and vice versa.
 class KWIVER_ALGO_VXL_EXPORT convert_image
   : public vital::algo::image_filter
 {
