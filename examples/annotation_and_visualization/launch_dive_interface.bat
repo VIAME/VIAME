@@ -8,5 +8,5 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-"%VIAME_INSTALL%\bin\dive\DIVE-Desktop.exe"
+"%VIAME_INSTALL%\dive\DIVE-Desktop.exe"
 
