@@ -15,12 +15,10 @@ namespace arrows {
 
 namespace vxl {
 
-/**
- * @brief VXL Color Commonality Filter
- *
- * This method produces an output image where each pixel corresponds
- * to how frequent the pixel's color is in the entire image.
- */
+/// VXL Color Commonality Filter.
+///
+/// This method produces an output image where each pixel corresponds
+/// to how frequent the pixel's color is in the entire image.
 class KWIVER_ALGO_VXL_EXPORT color_commonality_filter
   : public vital::algo::image_filter
 {
