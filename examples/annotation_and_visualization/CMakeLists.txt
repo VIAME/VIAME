@@ -40,6 +40,17 @@ if( VIAME_ENABLE_VIVIA )
   endif()
 endif()
 
+if( VIAME_ENABLE_DIVE )
+  if( WIN32 )
+    set( example_files
+         ${example_files}
+         launch_dive_interface.bat )
+  else()
+    set( example_files
+         ${example_files}
+         launch_dive_interface.sh )
+  endif()
+endif()
 
 if( VIAME_ENABLE_SEAL_TK )
   if( WIN32 )
