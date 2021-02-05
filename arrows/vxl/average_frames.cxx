@@ -43,7 +43,7 @@ template < typename PixType >
 class online_frame_averager
 {
 public:
-  online_frame_averager() : should_round_( false ) {}
+  online_frame_averager() : should_round_{ false } {}
   virtual ~online_frame_averager() {}
 
   /// Process a new frame, returning the current frame average.
@@ -224,7 +224,9 @@ copy_cast_and_scale(
   }
 
   // Resize, cast and copy
-  unsigned ni = input.ni(), nj = input.nj(), np = input.nplanes();
+  auto ni = input.ni();
+  auto nj = input.nj();
+  auto np = input.nplanes();
   output.set_size( ni, nj, np );
 
   if( scale_factor == 1.0 && !rounding_enabled )
@@ -290,7 +292,7 @@ cumulative_frame_averager< PixType >
     // math_add_fraction function. Can also be optimized in the byte case to
     // use integer instead of double operations, but it's good enough for now.
     double scale_factor = 1.0 /
-      static_cast< double >( this->frame_count_ + 1 );
+                          static_cast< double >( this->frame_count_ + 1 );
 
     vil_math_add_image_fraction( this->last_average_, 1.0 - scale_factor,
                                  input, scale_factor );
@@ -370,7 +372,6 @@ exponential_frame_averager< PixType >
 // Windowed averager
 template < typename PixType >
 windowed_frame_averager< PixType >
-
 ::windowed_frame_averager( bool const should_round,
                            unsigned const window_length )
 {
@@ -400,7 +401,7 @@ windowed_frame_averager< PixType >
   else if( window_buffer_size < window_buffer_capacity_ )
   {
     double src_weight = 1.0 /
-      ( static_cast< double >( window_buffer_size ) + 1.0 );
+                        ( static_cast< double >( window_buffer_size ) + 1.0 );
     vil_math_add_image_fraction( this->last_average_, 1.0 - src_weight, input,
                                  src_weight );
   }
@@ -435,21 +436,21 @@ windowed_frame_averager< PixType >
     PixType const* planeB = imB->top_left_ptr();
     double*        planeC = imC->top_left_ptr();
 
-    for( unsigned p = 0; p < np;
+    for( decltype(+np) p{ 0 }; p < np;
          ++p, planeA += pstepA, planeB += pstepB, planeC += pstepC )
     {
       PixType const* rowA = planeA;
       PixType const* rowB = planeB;
       double*        rowC = planeC;
 
-      for( unsigned j = 0; j < nj;
+      for( decltype(+nj) j{ 0 }; j < nj;
            ++j, rowA += jstepA, rowB += jstepB, rowC += jstepC )
       {
         PixType const* pixelA = rowA;
         PixType const* pixelB = rowB;
         double*        pixelC = rowC;
 
-        for( unsigned i = 0; i < ni;
+        for( decltype(+ni) i{ 0 }; i < ni;
              ++i, pixelA += istepA, pixelB += istepB, pixelC += istepC )
         {
           *pixelC += scale *
@@ -503,12 +504,12 @@ public:
     std::unique_ptr< online_frame_averager< double > >;
 
   priv()
-    : type( AVERAGER_window )
-      , window_size( 10 )
-      , exp_weight( 0.3 )
-      , round( false )
-      , output_variance( false )
-      , variance_scale( 0.0 )
+    : type{ AVERAGER_window }
+      , window_size{ 10 }
+      , exp_weight{ 0.3 }
+      , round{ false }
+      , output_variance{ false }
+      , variance_scale{ 0.0 }
   {
   }
 
@@ -545,12 +546,12 @@ public:
         if( is_byte )
         {
           byte_averager.reset(
-              new windowed_frame_averager< vxl_byte >( round, window_size ) );
+              new windowed_frame_averager< vxl_byte >{ round, window_size } );
         }
         else
         {
           float_averager.reset(
-              new windowed_frame_averager< double >( round, window_size ) );
+              new windowed_frame_averager< double >{ round, window_size } );
         }
         break;
       }
@@ -559,12 +560,12 @@ public:
         if( is_byte )
         {
           byte_averager.reset(
-              new cumulative_frame_averager< vxl_byte >( round ) );
+              new cumulative_frame_averager< vxl_byte >{ round } );
         }
         else
         {
           float_averager.reset(
-              new cumulative_frame_averager< double >( round ) );
+              new cumulative_frame_averager< double >{ round } );
         }
         break;
       }
@@ -572,26 +573,26 @@ public:
       {
         if( exp_weight <= 0 || exp_weight >= 1 )
         {
-          throw std::runtime_error(
-                  "Invalid exponential averaging coefficient!" );
+          throw std::runtime_error{
+                  "Invalid exponential averaging coefficient!" };
         }
 
         if( is_byte )
         {
           byte_averager.reset(
-              new exponential_frame_averager< vxl_byte >( round,
-                                                          exp_weight ) );
+              new exponential_frame_averager< vxl_byte >{
+                round, exp_weight } );
         }
         else
         {
           float_averager.reset(
-              new exponential_frame_averager< double >( round, exp_weight ) );
+              new exponential_frame_averager< double >{ round, exp_weight } );
         }
         break;
       }
       default:
       {
-        throw std::runtime_error( "Invalid averaging type!" );
+        throw std::runtime_error{ "Invalid averaging type!" };
       }
     }
   }
@@ -612,7 +613,8 @@ public:
     }
     else
     {
-      vil_image_view< double > tmp, output;
+      vil_image_view< double > tmp;
+      vil_image_view< double > output;
       float_averager->process_frame( input, tmp, output );
       return std::make_shared< vxl::image_container >( output );
     }
@@ -622,7 +624,7 @@ public:
 // ----------------------------------------------------------------------------
 average_frames
 ::average_frames()
-  : d( new priv() )
+  : d{ new priv{} }
 {
   attach_logger( "arrows.vxl.average_frames" );
 }
@@ -687,8 +689,7 @@ average_frames
 ::check_configuration( vital::config_block_sptr config ) const
 {
   auto const& type = config->get_enum_value< averager_converter >( "type" );
-  if( !( type == AVERAGER_cumulative ||
-         type == AVERAGER_window ||
+  if( !( type == AVERAGER_cumulative || type == AVERAGER_window ||
          type == AVERAGER_exponential ) )
   {
     return false;
@@ -771,13 +772,13 @@ average_frames
 
     default:
       // The image type was not one we handle
-      LOG_ERROR( logger(), "Invalid input format "      << view->pixel_format()
-                                                        << " type received" );
-      return kwiver::vital::image_container_sptr();
+      LOG_ERROR( logger(), "Invalid input format " << view->pixel_format()
+                                                   << " type received" );
+      return nullptr;
   }
 
   // Code not reached, prevent warning
-  return kwiver::vital::image_container_sptr();
+  return nullptr;
 }
 
 } // end namespace vxl
