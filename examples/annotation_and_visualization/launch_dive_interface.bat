@@ -8,5 +8,5 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-"%VIAME_INSTALL%\bin\dive\vue-media-annotator.exe"
+"%VIAME_INSTALL%\bin\dive\DIVE-Desktop.exe"
 
