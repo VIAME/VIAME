@@ -33,10 +33,11 @@ enum averager_mode
 };
 
 ENUM_CONVERTER( averager_converter, averager_mode,
-  { "cumulative", AVERAGER_cumulative },
-  { "window", AVERAGER_window },
-  { "exponential", AVERAGER_exponential } );
+                { "cumulative", AVERAGER_cumulative },
+                { "window", AVERAGER_window },
+                { "exponential", AVERAGER_exponential } );
 
+// ----------------------------------------------------------------------------
 /// Base class for all online frame averagers instances
 template < typename PixType >
 class online_frame_averager
@@ -46,15 +47,15 @@ public:
   virtual ~online_frame_averager() {}
 
   /// Process a new frame, returning the current frame average.
-  virtual void process_frame( const vil_image_view< PixType >& input,
+  virtual void process_frame( vil_image_view< PixType > const& input,
                               vil_image_view< PixType >& average ) = 0;
 
   /// Process a new frame, and additionally compute a per-pixel instantaneous
   /// variance estimation, which can be further averaged to estimate the
   /// per-pixel variance over x frames.
-  void process_frame( const vil_image_view< PixType >& input,
-                      vil_image_view< PixType >& average,
-                      vil_image_view< double >& variance );
+  void process_frame(
+    vil_image_view< PixType > const& input, vil_image_view< PixType >& average,
+    vil_image_view< double >& variance );
 
   /// Reset the internal average.
   virtual void reset() = 0;
@@ -67,7 +68,7 @@ protected:
   vil_image_view< double > last_average_;
 
   /// Is the resolution of the input image different from prior inputs?
-  bool has_resolution_changed( const vil_image_view< PixType >& input );
+  bool has_resolution_changed( vil_image_view< PixType > const& input );
 
 private:
   /// Temporary buffers used for variance calculations if they're enabled
@@ -75,45 +76,47 @@ private:
   vil_image_view< double > dev2_tmp_space_;
 };
 
+// ----------------------------------------------------------------------------
 /// A cumulative frame averager
 template < typename PixType >
 class cumulative_frame_averager : public online_frame_averager< PixType >
 {
 public:
-  cumulative_frame_averager( const bool should_round = false );
+  cumulative_frame_averager( bool const should_round = false );
 
   virtual ~cumulative_frame_averager() {}
 
   /// Process a new frame, returning the current frame average.
-  virtual void process_frame( const vil_image_view< PixType >& input,
+  virtual void process_frame( vil_image_view< PixType > const& input,
                               vil_image_view< PixType >& average );
 
   /// Reset the internal average.
   virtual void reset();
 
-protected:
+private:
   /// The number of observed frames since the last reset
-  unsigned frame_count_;
+  size_t frame_count_;
 };
 
+// ----------------------------------------------------------------------------
 /// An exponential frame averager
 template < typename PixType >
 class exponential_frame_averager : public online_frame_averager< PixType >
 {
 public:
-  exponential_frame_averager( const bool should_round = false,
-                              const double new_frame_weight = 0.5 );
+  exponential_frame_averager( bool const should_round = false,
+                              double const new_frame_weight = 0.5 );
 
   virtual ~exponential_frame_averager() {}
 
   /// Process a new frame, returning the current frame average.
-  virtual void process_frame( const vil_image_view< PixType >& input,
+  virtual void process_frame( vil_image_view< PixType > const& input,
                               vil_image_view< PixType >& average );
 
   /// Reset the internal average.
   virtual void reset();
 
-protected:
+private:
   /// The exponential averaging coefficient
   double new_frame_weight_;
 
@@ -121,39 +124,41 @@ protected:
   unsigned frame_count_;
 };
 
+// ---------------------------------------------------------------------------
 /// A windowed frame averager
 template < typename PixType >
 class windowed_frame_averager : public online_frame_averager< PixType >
 {
 public:
-  typedef vil_image_view< PixType > input_type;
+  using input_type = vil_image_view< PixType >;
 
-  windowed_frame_averager( const bool should_round = false,
-                           const unsigned window_length = 20 );
+  windowed_frame_averager( bool const should_round = false,
+                           unsigned const window_length = 20 );
 
   virtual ~windowed_frame_averager() {}
 
   /// Process a new frame, returning the current frame average.
-  virtual void process_frame( const vil_image_view< PixType >& input,
+  virtual void process_frame( vil_image_view< PixType > const& input,
                               vil_image_view< PixType >& average );
 
   /// Reset the internal average.
   virtual void reset();
 
   /// Get number of frames used in the current window
-  virtual unsigned frame_count() const;
+  virtual size_t frame_count() const;
 
-protected:
+private:
   /// Buffer containing pointers to last window_length frames
   std::deque< vil_image_view< PixType > > window_buffer_;
   size_t window_buffer_capacity_;
 };
 
+// ----------------------------------------------------------------------------
 // Shared functionality - process a frame while computing variance
 template < typename PixType >
 void
 online_frame_averager< PixType >
-::process_frame( const vil_image_view< PixType >& input,
+::process_frame( vil_image_view< PixType > const& input,
                  vil_image_view< PixType >& average,
                  vil_image_view< double >& variance )
 {
@@ -182,25 +187,26 @@ online_frame_averager< PixType >
   variance.deep_copy( dev1_tmp_space_ );
 }
 
+// ----------------------------------------------------------------------------
 template < typename PixType >
 bool
 online_frame_averager< PixType >
-::has_resolution_changed( const vil_image_view< PixType >& input )
+::has_resolution_changed( vil_image_view< PixType > const& input )
 {
   return ( input.ni() != this->last_average_.ni() ||
            input.nj() != this->last_average_.nj() ||
            input.nplanes() != this->last_average_.nplanes() );
 }
 
+// ----------------------------------------------------------------------------
 // Helper function to allocate a completely new image, and cast the input image
 // to whatever specified type the output image is, scaling by some factor if
 // set and rounding if enabled, in one pass.
 template < typename inT, typename outT >
 void
-copy_cast_and_scale( const vil_image_view< inT >& input,
-                     vil_image_view< outT >& output,
-                     bool rounding_enabled,
-                     const inT scale_factor )
+copy_cast_and_scale(
+  vil_image_view< inT > const& input, vil_image_view< outT >& output,
+  bool rounding_enabled, inT const scale_factor )
 {
   // Just deep copy if pixel formats equivalent and there is no scale factor
   if( vil_pixel_format_of( inT() ) == vil_pixel_format_of( outT() ) &&
@@ -249,19 +255,21 @@ copy_cast_and_scale( const vil_image_view< inT >& input,
   }
 }
 
+// ----------------------------------------------------------------------------
 // Cumulative averager
 template < typename PixType >
 cumulative_frame_averager< PixType >
-::cumulative_frame_averager( const bool should_round )
+::cumulative_frame_averager( bool const should_round )
 {
   this->should_round_ = should_round;
   this->reset();
 }
 
+// ----------------------------------------------------------------------------
 template < typename PixType >
 void
 cumulative_frame_averager< PixType >
-::process_frame( const vil_image_view< PixType >& input,
+::process_frame( vil_image_view< PixType > const& input,
                  vil_image_view< PixType >& average )
 {
   if( this->has_resolution_changed( input ) )
@@ -281,24 +289,22 @@ cumulative_frame_averager< PixType >
     // modified to be more efficient and prevent precision losses by not using
     // math_add_fraction function. Can also be optimized in the byte case to
     // use integer instead of double operations, but it's good enough for now.
-    double scale_factor = 1.0 / ( this->frame_count_ + 1 );
+    double scale_factor = 1.0 /
+      static_cast< double >( this->frame_count_ + 1 );
 
-    vil_math_add_image_fraction( this->last_average_,
-                                 1.0 - scale_factor,
-                                 input,
-                                 scale_factor );
+    vil_math_add_image_fraction( this->last_average_, 1.0 - scale_factor,
+                                 input, scale_factor );
   }
 
   // Copy a completely new image
-  copy_cast_and_scale( this->last_average_,
-                       average,
-                       this->should_round_,
+  copy_cast_and_scale( this->last_average_, average, this->should_round_,
                        1.0 );
 
   // Increase observed frame count
-  this->frame_count_++;
+  ++this->frame_count_;
 }
 
+// ----------------------------------------------------------------------------
 template < typename PixType >
 void
 cumulative_frame_averager< PixType >
@@ -307,21 +313,23 @@ cumulative_frame_averager< PixType >
   this->frame_count_ = 0;
 }
 
+// ----------------------------------------------------------------------------
 // Exponential averager
 template < typename PixType >
 exponential_frame_averager< PixType >
-::exponential_frame_averager( const bool should_round,
-                              const double new_frame_weight )
+::exponential_frame_averager( bool const should_round,
+                              double const new_frame_weight )
 {
   this->should_round_ = should_round;
   this->new_frame_weight_ = new_frame_weight;
   this->reset();
 }
 
+// ----------------------------------------------------------------------------
 template < typename PixType >
 void
 exponential_frame_averager< PixType >
-::process_frame( const vil_image_view< PixType >& input,
+::process_frame( vil_image_view< PixType > const& input,
                  vil_image_view< PixType >& average )
 {
   if( this->has_resolution_changed( input ) )
@@ -337,22 +345,19 @@ exponential_frame_averager< PixType >
   // Standard update case
   else
   {
-    vil_math_add_image_fraction( this->last_average_,
-                                 1.0 - new_frame_weight_,
-                                 input,
-                                 new_frame_weight_ );
+    vil_math_add_image_fraction( this->last_average_, 1.0 - new_frame_weight_,
+                                 input, new_frame_weight_ );
   }
 
   // Copy a completely new image in case we are running in async mode
-  copy_cast_and_scale( this->last_average_,
-                       average,
-                       this->should_round_,
+  copy_cast_and_scale( this->last_average_, average, this->should_round_,
                        1.0 );
 
   // Increase observed frame count
-  this->frame_count_++;
+  ++this->frame_count_;
 }
 
+// ----------------------------------------------------------------------------
 template < typename PixType >
 void
 exponential_frame_averager< PixType >
@@ -361,21 +366,24 @@ exponential_frame_averager< PixType >
   this->frame_count_ = 0;
 }
 
+// ----------------------------------------------------------------------------
 // Windowed averager
 template < typename PixType >
 windowed_frame_averager< PixType >
-::windowed_frame_averager( const bool should_round,
-                           const unsigned window_length )
+
+::windowed_frame_averager( bool const should_round,
+                           unsigned const window_length )
 {
   this->window_buffer_capacity_ = window_length;
   this->should_round_ = should_round;
   this->reset();
 }
 
+// ----------------------------------------------------------------------------
 template < typename PixType >
 void
 windowed_frame_averager< PixType >
-::process_frame( const vil_image_view< PixType >& input,
+::process_frame( vil_image_view< PixType > const& input,
                  vil_image_view< PixType >& average )
 {
   if( this->has_resolution_changed( input ) )
@@ -384,14 +392,15 @@ windowed_frame_averager< PixType >
   }
 
   // Early exit cases: the buffer is currently filling
-  const unsigned window_buffer_size = window_buffer_.size();
+  auto const window_buffer_size = window_buffer_.size();
   if( window_buffer_size == 0 )
   {
     vil_convert_cast( input, this->last_average_ );
   }
   else if( window_buffer_size < window_buffer_capacity_ )
   {
-    double src_weight = 1.0 / ( window_buffer_size + 1.0 );
+    double src_weight = 1.0 /
+      ( static_cast< double >( window_buffer_size ) + 1.0 );
     vil_math_add_image_fraction( this->last_average_, 1.0 - src_weight, input,
                                  src_weight );
   }
@@ -400,43 +409,44 @@ windowed_frame_averager< PixType >
   {
     // Scan image subtracting the last frame, and adding the new one from
     // the previous average
-    const unsigned ni = input.ni();
-    const unsigned nj = input.nj();
-    const unsigned np = input.nplanes();
+    auto const ni = input.ni();
+    auto const nj = input.nj();
+    auto const np = input.nplanes();
 
     // Image A = Removed Entry, B = Added Entry, C = The Average Calculation
-    const double scale = 1.0 / window_buffer_size;
+    auto const scale = 1.0 / static_cast< double >( window_buffer_size );
 
     input_type const& tmpA = window_buffer_[ window_buffer_size - 1 ];
-    const input_type* imA = &tmpA;
-    const input_type* imB = &input;
+    input_type const* imA = &tmpA;
+    input_type const* imB = &input;
     vil_image_view< double >* imC = &( this->last_average_ );
 
-    std::ptrdiff_t istepA = imA->istep(), jstepA = imA->jstep(),
-                   pstepA = imA->planestep();
-    std::ptrdiff_t istepB = imB->istep(), jstepB = imB->jstep(),
-                   pstepB = imB->planestep();
-    std::ptrdiff_t istepC = imC->istep(), jstepC = imC->jstep(),
-                   pstepC = imC->planestep();
+    auto istepA = imA->istep();
+    auto jstepA = imA->jstep();
+    auto pstepA = imA->planestep();
+    auto istepB = imB->istep();
+    auto jstepB = imB->jstep();
+    auto pstepB = imB->planestep();
+    auto istepC = imC->istep();
+    auto jstepC = imC->jstep();
+    auto pstepC = imC->planestep();
 
-    const PixType* planeA = imA->top_left_ptr();
-    const PixType* planeB = imB->top_left_ptr();
+    PixType const* planeA = imA->top_left_ptr();
+    PixType const* planeB = imB->top_left_ptr();
     double*        planeC = imC->top_left_ptr();
 
     for( unsigned p = 0; p < np;
-
          ++p, planeA += pstepA, planeB += pstepB, planeC += pstepC )
     {
-      const PixType* rowA = planeA;
-      const PixType* rowB = planeB;
+      PixType const* rowA = planeA;
+      PixType const* rowB = planeB;
       double*        rowC = planeC;
 
       for( unsigned j = 0; j < nj;
-
            ++j, rowA += jstepA, rowB += jstepB, rowC += jstepC )
       {
-        const PixType* pixelA = rowA;
-        const PixType* pixelB = rowB;
+        PixType const* pixelA = rowA;
+        PixType const* pixelB = rowB;
         double*        pixelC = rowC;
 
         for( unsigned i = 0; i < ni;
@@ -458,12 +468,11 @@ windowed_frame_averager< PixType >
   }
 
   // Copy into output
-  copy_cast_and_scale( this->last_average_,
-                       average,
-                       this->should_round_,
+  copy_cast_and_scale( this->last_average_, average, this->should_round_,
                        1.0 );
 }
 
+// ----------------------------------------------------------------------------
 template < typename PixType >
 void
 windowed_frame_averager< PixType >
@@ -472,8 +481,9 @@ windowed_frame_averager< PixType >
   this->window_buffer_.clear();
 }
 
+// ----------------------------------------------------------------------------
 template < typename PixType >
-unsigned
+size_t
 windowed_frame_averager< PixType >
 ::frame_count() const
 {
@@ -482,15 +492,15 @@ windowed_frame_averager< PixType >
 
 } // end anonoymous namespace
 
-// --------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// Private implementation class
 class average_frames::priv
 {
 public:
-  typedef std::unique_ptr< online_frame_averager< vxl_byte > >
-    frame_averager_byte_sptr;
-  typedef std::unique_ptr< online_frame_averager< double > >
-    frame_averager_float_sptr;
+  using frame_averager_byte_sptr =
+    std::unique_ptr< online_frame_averager< vxl_byte > >;
+  using frame_averager_float_sptr =
+    std::unique_ptr< online_frame_averager< double > >;
 
   priv()
     : type( AVERAGER_window )
@@ -518,6 +528,7 @@ public:
   frame_averager_byte_sptr byte_averager;
   frame_averager_float_sptr float_averager;
 
+  // --------------------------------------------------------------------------
   // Load model, special optimizations are in place for the byte case
   void
   load_model( bool is_byte = true )
@@ -585,6 +596,7 @@ public:
     }
   }
 
+  // --------------------------------------------------------------------------
   // Compute the updated average with the current frame
   // return the average or the variance
   kwiver::vital::image_container_sptr
@@ -629,18 +641,23 @@ average_frames
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
-  config->set_value( "type", averager_converter().to_string( d->type ),
-                     "Operating mode of this filter, possible values: " +
-                     averager_converter().element_name_string() );
-  config->set_value( "window_size", d->window_size,
-                     "The window size if computing a windowed moving average." );
-  config->set_value( "exp_weight", d->exp_weight,
-                     "Exponential averaging coefficient if computing an exp average." );
-  config->set_value( "round", d->round,
-                     "Should we spend a little extra time rounding when possible?" );
-  config->set_value( "output_variance", d->output_variance,
-                     "If set, will compute an estimated variance for each pixel which "
-                     "will be outputted as either a double-precision or byte image." );
+  config->set_value(
+    "type", averager_converter().to_string( d->type ),
+    "Operating mode of this filter, possible values: " +
+    averager_converter().element_name_string() );
+  config->set_value(
+    "window_size", d->window_size,
+    "The window size if computing a windowed moving average." );
+  config->set_value(
+    "exp_weight", d->exp_weight,
+    "Exponential averaging coefficient if computing an exp average." );
+  config->set_value(
+    "round", d->round,
+    "Should we spend a little extra time rounding when possible?" );
+  config->set_value(
+    "output_variance", d->output_variance,
+    "If set, will compute an estimated variance for each pixel which "
+    "will be outputted as either a double-precision or byte image." );
 
   return config;
 }
@@ -650,8 +667,8 @@ void
 average_frames
 ::set_configuration( vital::config_block_sptr in_config )
 {
-  // Starting with our generated vital::config_block to ensure that assumed
-  // values are present. An alternative is to check for key presence before
+  // Start with our generated vital::config_block to ensure that assumed values
+  // are present. An alternative would be to check for key presence before
   // performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
@@ -695,6 +712,7 @@ average_frames
   // Perform Basic Validation
   if( !image_data )
   {
+    LOG_ERROR( logger(), "Invalid input image." );
     return image_data;
   }
 
@@ -706,14 +724,13 @@ average_frames
 #define HANDLE_CASE( T )                                               \
   case T:                                                              \
   {                                                                    \
-    typedef vil_pixel_format_type_of< T >::component_type pix_t;       \
+    using pix_t = vil_pixel_format_type_of< T >::component_type;       \
     vil_image_view< pix_t > uncast_input = view;                       \
     vil_image_view< double > input;                                    \
     vil_convert_cast( uncast_input, input );                           \
-                                                                       \
     d->process_frame( input );                                         \
     break;                                                             \
-  }                                                                    \
+  }
 
   switch( view->pixel_format() )
   {
