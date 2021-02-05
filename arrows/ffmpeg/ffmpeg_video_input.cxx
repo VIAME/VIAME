@@ -1000,6 +1000,8 @@ ffmpeg_video_input
     vital::image_pixel_traits pixel_trait = vital::image_pixel_traits_of<unsigned char>();
     bool direct_copy;
     AVFrame* frame = d->f_frame;
+    auto filtered_frame_ref =
+      std::unique_ptr<AVFrame, void (*)(AVFrame*)>{nullptr, nullptr};
 
     if (d->f_filter_src_context && d->f_filter_sink_context)
     {
@@ -1016,6 +1018,7 @@ ffmpeg_video_input
           return nullptr;
         }
         // Pull a filtered frame from the filter graph
+        filtered_frame_ref = {d->f_filtered_frame, &av_frame_unref};
         auto const ret = av_buffersink_get_frame(d->f_filter_sink_context,
                                                  d->f_filtered_frame);
         if (ret == AVERROR_EOF)
