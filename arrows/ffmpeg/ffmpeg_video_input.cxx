@@ -1006,9 +1006,7 @@ ffmpeg_video_input
       // Since we are only reading one frame at a time we need to push this
       // frame into the filter pipeline repeatedly until the same frame comes
       // out the other side.
-      int ret = AVERROR(EAGAIN);
-      while (ret == AVERROR(EAGAIN) ||
-        d->f_frame->best_effort_timestamp != d->f_filtered_frame->best_effort_timestamp)
+      do
       {
         // Push the decoded frame into the filter graph
         if (av_buffersrc_add_frame_flags(d->f_filter_src_context, d->f_frame,
@@ -1018,12 +1016,18 @@ ffmpeg_video_input
           return nullptr;
         }
         // Pull a filtered frame from the filter graph
-        ret = av_buffersink_get_frame(d->f_filter_sink_context, d->f_filtered_frame);
+        auto const ret = av_buffersink_get_frame(d->f_filter_sink_context,
+                                                 d->f_filtered_frame);
         if (ret == AVERROR_EOF)
         {
           return nullptr;
         }
-      }
+        if (ret == AVERROR(EAGAIN))
+        {
+          continue;
+        }
+      } while (d->f_frame->best_effort_timestamp !=
+               d->f_filtered_frame->best_effort_timestamp);
       frame = d->f_filtered_frame;
     }
 
@@ -1065,7 +1069,7 @@ ffmpeg_video_input
     if (direct_copy)
     {
       int size = av_image_get_buffer_size(pix_fmt, width, height, 1);
-      d->current_image_memory = vital::image_memory_sptr(new vital::image_memory(size));
+      d->current_image_memory = std::make_shared<vital::image_memory>(size);
 
       AVFrame picture;
       av_image_fill_arrays(picture.data, picture.linesize,
