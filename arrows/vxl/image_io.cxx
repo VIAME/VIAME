@@ -130,6 +130,7 @@ convert_image_helper(const vil_image_view<bool>& src,
   convert_image_helper<vxl_byte>(src, dest, force_byte, auto_stretch, manual_stretch, intensity_range);
 }
 
+// ----------------------------------------------------------------------------
 // Helper function to convert images based on configuration - specialization for bool/bool
 void
 convert_image_helper(const vil_image_view<bool>& src,
@@ -143,32 +144,34 @@ convert_image_helper(const vil_image_view<bool>& src,
   dest = src;
 }
 
+// ----------------------------------------------------------------------------
 // Construct a plane filename given the basename and plane index
 std::string
-plane_filename( const std::string filename, unsigned p )
+plane_filename( std::string const& filename, unsigned p )
 {
-  std::string parent_directory =
-    kwiversys::SystemTools::GetParentDirectory( filename );
-  std::string file_name_with_ext =
-    kwiversys::SystemTools::GetFilenameName( filename );
+  auto const parent_directory =
+    ST::GetParentDirectory( filename );
+  auto const file_name_with_ext =
+    ST::GetFilenameName( filename );
 
-  std::string file_name_no_ext =
-    kwiversys::SystemTools::GetFilenameWithoutLastExtension( file_name_with_ext );
-  std::string file_extension =
-    kwiversys::SystemTools::GetFilenameLastExtension( file_name_with_ext );
+  auto const file_name_no_ext =
+    ST::GetFilenameWithoutLastExtension( file_name_with_ext );
+  auto const file_extension =
+    ST::GetFilenameLastExtension( file_name_with_ext );
 
   std::vector< std::string > full_path;
-  std::string plane_id = ( p > 0 ? "_" + std::to_string( p ) : "" );
+  auto const plane_id = ( p > 0 ? "_" + std::to_string( p ) : "" );
   full_path.push_back( "" );
   full_path.push_back( parent_directory );
   full_path.push_back( file_name_no_ext + plane_id + file_extension );
-  return kwiversys::SystemTools::JoinPath( full_path );
+  return ST::JoinPath( full_path );
 }
 
+// ----------------------------------------------------------------------------
 // Save image as either single file or multiple plane files
 template< typename inP >
 void
-save_image( const vil_image_view<inP>& src,
+save_image( vil_image_view<inP> const& src,
             std::string const& filename,
             bool split_planes=false )
 {
@@ -178,20 +181,21 @@ save_image( const vil_image_view<inP>& src,
   }
   else
   {
-    for( unsigned i = 0; i < src.nplanes(); ++i )
+    for( decltype( src.nplanes() ) i{ 0 }; i < src.nplanes(); ++i )
     {
       vil_save( vil_plane( src, i ), plane_filename( filename, i ).c_str() );
     }
   }
 }
 
+// ----------------------------------------------------------------------------
 // Create a list of filenames representing the non-initial plane files
 std::vector< std::string >
 construct_plane_filenames( std::string const& filename )
 {
   std::vector< std::string > plane_files;
 
-  for( size_t p = 1;; ++p )
+  for( unsigned p{ 1 };; ++p )
   {
     std::string plane_file = plane_filename( filename, p );
 
@@ -207,6 +211,7 @@ construct_plane_filenames( std::string const& filename )
   return plane_files;
 }
 
+// ----------------------------------------------------------------------------
 // Helper function to load images when they are saved out in above format
 template< typename Type >
 vil_image_view< Type >
@@ -216,7 +221,7 @@ load_external_planes( std::string const& filename,
   std::vector< vil_image_view< Type > > images( 1, first_plane );
 
   size_t p = 1;
-  size_t total_p = first_plane.nplanes();
+  auto total_p = first_plane.nplanes();
 
   auto const plane_filenames = construct_plane_filenames( filename );
 
@@ -226,7 +231,8 @@ load_external_planes( std::string const& filename,
 
     if( plane.ni() != first_plane.ni() || plane.nj() != first_plane.nj() )
     {
-      VITAL_THROW( vital::image_type_mismatch_exception, "Input channel size difference" );
+      VITAL_THROW( vital::image_type_mismatch_exception,
+                   "Input channel size difference" );
     }
 
     images.push_back( plane );
@@ -234,11 +240,13 @@ load_external_planes( std::string const& filename,
     ++p;
   }
 
-  vil_image_view< Type > output( first_plane.ni(), first_plane.nj(), total_p );
+  vil_image_view< Type > output{ first_plane.ni(), first_plane.nj(), total_p };
 
-  for( unsigned img_id = 0, out_pln = 0; out_pln < total_p; ++img_id )
+  for( decltype( total_p ) img_id{ 0 }, out_pln{ 0 };
+       out_pln < total_p; ++img_id )
   {
-    for( unsigned img_pln = 0; img_pln < images[ img_id ].nplanes(); ++img_pln, ++out_pln )
+    for( unsigned img_pln{ 0 }; img_pln < images[ img_id ].nplanes();
+         ++img_pln, ++out_pln )
     {
       vil_image_view< Type > src = vil_plane( images[ img_id ], img_pln );
       vil_image_view< Type > dst = vil_plane( output, out_pln );
@@ -277,12 +285,13 @@ public:
                          this->intensity_range);
   }
 
+  // Load a single image, potentially saved as individual planes
   template< typename pix_t >
   image_container_sptr
   load_image( vil_image_view< pix_t >& img_pix_t,
               std::shared_ptr< metadata > md,
               std::string const& filename );
-
+  // Convert an image to the appropriate type and write to disk
   template< typename pix_t >
   void
   convert_and_save( vil_image_view< pix_t >& img_pix_t,
@@ -295,11 +304,11 @@ public:
   vector_2d intensity_range;
 };
 
-// Load a single image, potentially saved as individual planes
+// ----------------------------------------------------------------------------
 template< typename pix_t >
 image_container_sptr
 image_io::priv
-::load_image( vil_image_view<pix_t>& img_pix_t,
+::load_image( vil_image_view< pix_t >& img_pix_t,
               std::shared_ptr< metadata > md,
               std::string const& filename )
 {
@@ -325,7 +334,7 @@ image_io::priv
   }
 }
 
-// Convert an image to the appropriate type and write to disk
+// ----------------------------------------------------------------------------
 template< typename pix_t >
 void
 image_io::priv
@@ -476,7 +485,7 @@ image_io
 #define DO_CASE(T)                                                     \
   case T:                                                              \
     {                                                                  \
-      typedef vil_pixel_format_type_of< T >::component_type pix_t;     \
+      using pix_t = vil_pixel_format_type_of< T >::component_type;     \
       vil_image_view< pix_t > img_pix_t = img_rsc->get_view();         \
       return d_->load_image( img_pix_t, md, filename );                \
     }                                                                  \
@@ -607,7 +616,7 @@ image_io
 ::plane_filenames( std::string const& filename ) const
 {
   std::vector< std::string > output{ filename };
-  std::vector< std::string > additional_plane_filenames = construct_plane_filenames( filename );
+  auto additional_plane_filenames = construct_plane_filenames( filename );
   output.insert( output.end(),
                  additional_plane_filenames.begin(),
                  additional_plane_filenames.end() );

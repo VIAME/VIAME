@@ -51,8 +51,8 @@ class image_io : public ::testing::Test
 TEST_F(image_io, save_plane)
 {
   // Create an image to output
-  auto const& vil_image = vil_image_view< vxl_byte >( 150, 150, 3 );
-  auto image = ka::vxl::image_container( vil_image );
+  auto const vil_image = vil_image_view< vxl_byte >{ 150, 150, 3 };
+  auto image = ka::vxl::image_container{ vil_image };
   auto image_ptr = std::make_shared< ka::vxl::image_container >( image );
 
   // Configure to split channels
@@ -61,7 +61,7 @@ TEST_F(image_io, save_plane)
   config->set_value( "split_channels", true );
   io.set_configuration( config );
 
-  auto const& output_filename =
+  auto const output_filename =
     kwiver::testing::temp_file_name( "image_io_save_plane-", ".png" );
 
   io.save( output_filename, image_ptr );
@@ -71,7 +71,7 @@ TEST_F(image_io, save_plane)
   EXPECT_TRUE( equal_content( image_ptr->get_image(),
                               reread_image_ptr->get_image() ) );
 
-  const auto saved_filenames = io.plane_filenames( output_filename );
+  auto const saved_filenames = io.plane_filenames( output_filename );
 
   for( auto const& saved_filename : saved_filenames )
   {
@@ -85,8 +85,8 @@ TEST_F(image_io, save_plane)
 // ----------------------------------------------------------------------------
 TEST_F(image_io, load_plane)
 {
-  std::string color_filename = data_dir + "/" + test_color_image_name;
-  std::string plane_filename = data_dir + "/" + test_plane_image_name;
+  auto const color_filename = data_dir + "/" + test_color_image_name;
+  auto const plane_filename = data_dir + "/" + test_plane_image_name;
 
   ka::vxl::image_io reader;
   auto const color_image_ptr = reader.load( color_filename );
