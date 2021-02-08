@@ -32,8 +32,8 @@ xz-devel
 
 # Install and use more recent compiler
 yum -y install centos-release-scl
-yum -y install devtoolset-8
-source /opt/rh/devtoolset-8/enable
+yum -y install devtoolset-6
+source /opt/rh/devtoolset-6/enable
 
 # Install CMAKE
 wget https://cmake.org/files/v3.17/cmake-3.17.0.tar.gz
