@@ -142,7 +142,7 @@ if( VIAME_ENABLE_PYTHON )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/npy_image_normalization.py
-    viame/arrows/core
+    arrows/core
     npy_image_normalization )
 
   kwiver_add_python_module(

@@ -30,7 +30,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_classifier.py
-    viame/arrows/pytorch
+    arrows/pytorch
     netharn_classifier )
 
   kwiver_add_python_module(
@@ -45,7 +45,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_refiner.py
-    viame/arrows/pytorch
+    arrows/pytorch
     netharn_refiner )
 
 endif()
