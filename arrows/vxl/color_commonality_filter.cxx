@@ -260,88 +260,6 @@ filter_color_image( vil_image_view< InputType > const& input,
 }
 
 // ----------------------------------------------------------------------------
-// Float-typed output filtering main loop
-template < class InputType, class OutputType >
-typename std::enable_if< !std::is_integral< OutputType >::value >::type
-filter_color_image( vil_image_view< InputType > const& input,
-                    vil_image_view< OutputType >& output,
-                    std::vector< unsigned >& histogram,
-                    color_commonality_filter_settings const& options )
-{
-  assert( input.ni() == output.ni() && input.nj() == output.nj() );
-  assert( is_power_of_two( options.resolution_per_channel ) );
-
-  if( input.ni() == 0 || input.nj() == 0 )
-  {
-    return;
-  }
-
-  // Configure output scaling settings based on the output type and user
-  // settings
-  auto const input_type_max = std::numeric_limits< InputType >::max();
-
-  // Populate histogram steps for each channel of the hist
-  std::vector< std::ptrdiff_t > histsteps( input.nplanes() );
-  histsteps[ 0 ] = 1;
-
-  for( unsigned p = 1; p < input.nplanes(); ++p )
-  {
-    histsteps[ p ] = histsteps[ p - 1 ] * options.resolution_per_channel;
-  }
-
-  // Fill in histogram of the input image
-  unsigned const bitshift =
-    integer_log2( ( static_cast< unsigned >( input_type_max ) + 1 ) /
-                  options.resolution_per_channel );
-
-  unsigned* hist_top_left = &histogram[ 0 ];
-
-  populate_image_histogram( input, hist_top_left, bitshift, &histsteps[ 0 ] );
-
-  // Normalize histogram to the output types range
-  unsigned sum = 0;
-
-  for( unsigned i = 0; i < histogram.size(); ++i )
-  {
-    sum += histogram[ i ];
-  }
-
-  // Use type default options if no scale factor specified
-  OutputType scale_factor = 1.0;
-  if( options.output_scale_factor != 0 )
-  {
-    scale_factor = static_cast< OutputType >( options.output_scale_factor );
-  }
-  scale_factor = scale_factor / sum;
-
-  // Fill in color commonality image from the compiled histogram
-  auto const ni = input.ni();
-  auto const nj = input.nj();
-  auto const np = input.nplanes();
-  auto const istep = input.istep();
-  auto const jstep = input.jstep();
-  auto const pstep = input.planestep();
-
-  InputType const* row = input.top_left_ptr();
-  for( unsigned j = 0; j < nj; ++j, row += jstep )
-  {
-    InputType const* pixel = row;
-
-    for( unsigned i = 0; i < ni; ++i, pixel += istep )
-    {
-      InputType const* plane = pixel;
-      unsigned step = 0;
-      for( unsigned p = 0; p < np; ++p, plane += pstep )
-      {
-        step += histsteps[ p ] * ( *plane >> bitshift );
-      }
-      output( i, j ) = static_cast< OutputType >(
-        scale_factor * ( *( hist_top_left + step ) ) );
-    }
-  }
-}
-
-// ----------------------------------------------------------------------------
 /// Create an output image indicating the relative commonality of each
 /// input pixel's color occuring in the entire input image. A lower
 /// value in the output image corresponds to that pixels value being
@@ -442,10 +360,9 @@ class color_commonality_filter::priv
 {
 public:
   priv()
-    : color_resolution{ 512 }
-      , color_resolution_per_chan{ 8 }
-      , intensity_resolution{ 16 }
-      , smooth_image{ false }
+    : color_resolution{ 512 },
+      color_resolution_per_chan{ 8 },
+      intensity_resolution{ 16 }
   {
   }
 
@@ -461,7 +378,6 @@ public:
   unsigned color_resolution;
   unsigned color_resolution_per_chan;
   unsigned intensity_resolution;
-  bool smooth_image;
 
   std::vector< unsigned > color_histogram;
   std::vector< unsigned > intensity_histogram;
@@ -473,12 +389,6 @@ kwiver::vital::image_container_sptr
 color_commonality_filter::priv
 ::compute_commonality( vil_image_view< pix_t >& input )
 {
-  if( smooth_image )
-  {
-    vil_image_view< pix_t > smoothed;
-    vil_gauss_filter_2d( input, smoothed, 0.5, 2 );
-    input = smoothed;
-  }
   if( input.nplanes() == 1 )
   {
     vil_image_view< pix_t > output;
@@ -529,8 +439,6 @@ color_commonality_filter
   config->set_value( "output_scale", d->settings.output_scale_factor,
                      "Scale the output image (typically, values start in the range [0,1]) "
                      "by this amount. Enter 0 for type-specific default." );
-  config->set_value( "smooth_image",  d->smooth_image,
-                     "Should we smooth the input image before filtering?" );
   config->set_value( "grid_image", d->settings.grid_image,
                      "Instead of calculating which colors are more common "
                      "in the entire image, should we do it for smaller evenly "
@@ -558,23 +466,23 @@ color_commonality_filter
 
   // Settings for ccf
   d->color_resolution_per_chan =
-    config->get_value< unsigned >( "color_resolution_per_channel" );
+    config->get_value< unsigned >( "color_resolution_per_channel",
+                                   d->color_resolution_per_chan );
   d->intensity_resolution =
-    config->get_value< unsigned >( "intensity_resolution" );
-  d->smooth_image =
-    config->get_value< bool >( "smooth_image" );
+    config->get_value< unsigned >( "intensity_resolution",
+                                   d->intensity_resolution );
   d->settings.output_scale_factor =
-    config->get_value< unsigned >( "output_scale" );
+    config->get_value< unsigned >( "output_scale",
+                                   d->settings.output_scale_factor );
   d->settings.grid_image =
-    config->get_value< bool >( "grid_image" );
-
-  if( d->settings.grid_image )
-  {
-    d->settings.grid_resolution_width =
-      config->get_value< unsigned >( "grid_resolution_width" );
-    d->settings.grid_resolution_height =
-      config->get_value< unsigned >( "grid_resolution_height" );
-  }
+    config->get_value< bool >( "grid_image",
+                               d->settings.grid_image );
+  d->settings.grid_resolution_width =
+    config->get_value< unsigned >( "grid_resolution_width",
+                                   d->settings.grid_resolution_width );
+  d->settings.grid_resolution_height =
+    config->get_value< unsigned >( "grid_resolution_height",
+                                   d->settings.grid_resolution_height );
 
   d->color_resolution = d->color_resolution_per_chan *
                         d->color_resolution_per_chan *
