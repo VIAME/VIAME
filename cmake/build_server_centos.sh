@@ -31,9 +31,14 @@ bzip2-devel \
 xz-devel
 
 # Install and use more recent compiler
-yum -y install centos-release-scl
-yum -y install devtoolset-6
-source /opt/rh/devtoolset-6/enable
+yum -y install libmpc-devel mpfr-devel gmp-devel
+wget https://ftp.gnu.org/gnu/gcc/gcc-5.5.0/gcc-5.5.0.tar.gz
+tar zxvf gcc-*
+cd gcc-5.5.0
+./configure --with-system-zlib --disable-multilib --enable-languages=c,c++
+make -j$(nproc)
+make install
+cd /
 
 # Install CMAKE
 wget https://cmake.org/files/v3.17/cmake-3.17.0.tar.gz
