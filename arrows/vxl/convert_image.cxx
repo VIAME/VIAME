@@ -32,7 +32,9 @@ vil_image_view< OutType >
 scale_image( vil_image_view< InType > const& src,
              double const& dp_scale )
 {
-  unsigned ni = src.ni(), nj = src.nj(), np = src.nplanes();
+  auto const ni = src.ni();
+  auto const nj = src.nj();
+  auto const np = src.nplanes();
   vil_image_view< OutType > dst{ ni, nj, np };
 
   OutType const max_output_value = std::numeric_limits< OutType >::max();
@@ -233,9 +235,9 @@ percentile_scale_image(
             std::numeric_limits< InputType >::max();
   }
 
-  const auto ni = src.ni();
-  const auto nj = src.nj();
-  const auto np = src.nplanes();
+  auto const ni = src.ni();
+  auto const nj = src.nj();
+  auto const np = src.nplanes();
   dst.set_size( ni, nj, np );
 
   // Stretch image to upper and lower percentile bounds
@@ -344,11 +346,13 @@ convert_image
   attach_logger( "arrows.vxl.convert_image" );
 }
 
+// ----------------------------------------------------------------------------
 convert_image
 ::~convert_image()
 {
 }
 
+// ----------------------------------------------------------------------------
 vital::config_block_sptr
 convert_image
 ::get_configuration() const
@@ -431,12 +435,12 @@ convert_image
     vxl::image_container::vital_to_vxl( image_data->get_image() );
 
   // Perform different actions based on input type
-#define HANDLE_OUTPUT_CASE( S, T )                                         \
-  if( d->format == S )                                                     \
-  {                                                                        \
-    using opix_t = vil_pixel_format_type_of< T >::component_type;          \
+#define HANDLE_OUTPUT_CASE( S, T )                                 \
+  if( d->format == S )                                             \
+  {                                                                \
+    using opix_t = vil_pixel_format_type_of< T >::component_type;  \
     vil_image_view< opix_t > output = d->scale< opix_t >( input ); \
-    return std::make_shared< vxl::image_container >( output );             \
+    return std::make_shared< vxl::image_container >( output );     \
   }
 
 #define HANDLE_INPUT_CASE( T )                                     \
