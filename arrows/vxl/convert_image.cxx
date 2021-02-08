@@ -276,13 +276,13 @@ public:
   {
   }
 
-  // Convert the type
+  // Apply appropriate transforms
   template < typename ipix_t > vil_image_view< ipix_t >
-  convert( vil_image_view_base_sptr& view );
+  apply_transforms( vil_image_view_base_sptr& view );
 
   // Scale and convert the image
   template < typename opix_t, typename ipix_t > vil_image_view< opix_t >
-  scale( vil_image_view< ipix_t > input );
+  scale_and_convert( vil_image_view< ipix_t > input );
 
   std::string format;
   bool single_channel;
@@ -295,31 +295,31 @@ public:
 template < typename ipix_t >
 vil_image_view< ipix_t >
 convert_image::priv
-::convert( vil_image_view_base_sptr& view )
+::apply_transforms( vil_image_view_base_sptr& view )
 {
-  vil_image_view< ipix_t > input;
+  vil_image_view< ipix_t > output;
   if( random_greyscale > 0.0 )
   {
-    vil_image_view< ipix_t > tmp = view;
-    input = random_grey_conversion( tmp, random_greyscale );
+    vil_image_view< ipix_t > tmp{ view };
+    output = random_grey_conversion( tmp, random_greyscale );
   }
   else if( single_channel )
   {
-    vil_image_view< ipix_t > tmp = view;
-    combine_channels( tmp, input );
+    vil_image_view< ipix_t > tmp{ view };
+    combine_channels( tmp, output );
   }
   else
   {
-    input = view;
+    output = view;
   }
-  return input;
+  return output;
 }
 
 // ----------------------------------------------------------------------------
 template < typename opix_t, typename ipix_t >
 vil_image_view< opix_t >
 convert_image::priv
-::scale( vil_image_view< ipix_t > input )
+::scale_and_convert( vil_image_view< ipix_t > input )
 {
   vil_image_view< opix_t > output;
   if( percentile_norm >= 0.0 )
@@ -435,35 +435,36 @@ convert_image
     vxl::image_container::vital_to_vxl( image_data->get_image() );
 
   // Perform different actions based on input type
-#define HANDLE_OUTPUT_CASE( S, T )                                 \
-  if( d->format == S )                                             \
-  {                                                                \
-    using opix_t = vil_pixel_format_type_of< T >::component_type;  \
-    vil_image_view< opix_t > output = d->scale< opix_t >( input ); \
-    return std::make_shared< vxl::image_container >( output );     \
+#define HANDLE_OUTPUT_CASE( S, T )                                            \
+  if( d->format == S )                                                        \
+  {                                                                           \
+    using opix_t = vil_pixel_format_type_of< T >::component_type;             \
+    vil_image_view< opix_t > output = d->scale_and_convert< opix_t >( input );\
+    return std::make_shared< vxl::image_container >( output );                \
   }
 
-#define HANDLE_INPUT_CASE( T )                                     \
-  case T:                                                          \
-  {                                                                \
-    using ipix_t = vil_pixel_format_type_of< T >::component_type;  \
-    if( d->format == "disable" )                                   \
-    {                                                              \
-      return image_data;                                           \
-    }                                                              \
-    vil_image_view< ipix_t > input = d->convert< ipix_t >( view ); \
-    HANDLE_OUTPUT_CASE( "bool", VIL_PIXEL_FORMAT_BOOL );           \
-    HANDLE_OUTPUT_CASE( "byte", VIL_PIXEL_FORMAT_BYTE );           \
-    HANDLE_OUTPUT_CASE( "sbyte", VIL_PIXEL_FORMAT_SBYTE );         \
-    HANDLE_OUTPUT_CASE( "uint16", VIL_PIXEL_FORMAT_UINT_16 );      \
-    HANDLE_OUTPUT_CASE( "int16", VIL_PIXEL_FORMAT_INT_16 );        \
-    HANDLE_OUTPUT_CASE( "uint32", VIL_PIXEL_FORMAT_UINT_32 );      \
-    HANDLE_OUTPUT_CASE( "int32", VIL_PIXEL_FORMAT_INT_32 );        \
-    HANDLE_OUTPUT_CASE( "uint64", VIL_PIXEL_FORMAT_UINT_64 );      \
-    HANDLE_OUTPUT_CASE( "int64", VIL_PIXEL_FORMAT_INT_64 );        \
-    HANDLE_OUTPUT_CASE( "float", VIL_PIXEL_FORMAT_FLOAT );         \
-    HANDLE_OUTPUT_CASE( "double", VIL_PIXEL_FORMAT_DOUBLE );       \
-    break;                                                         \
+#define HANDLE_INPUT_CASE( T )                                                \
+  case T:                                                                     \
+  {                                                                           \
+    using ipix_t = vil_pixel_format_type_of< T >::component_type;             \
+    if( d->format == "disable" )                                              \
+    {                                                                         \
+      return image_data;                                                      \
+    }                                                                         \
+    vil_image_view< ipix_t > input = d->apply_transforms< ipix_t >( view );   \
+                                                                              \
+    HANDLE_OUTPUT_CASE( "bool", VIL_PIXEL_FORMAT_BOOL );                      \
+    HANDLE_OUTPUT_CASE( "byte", VIL_PIXEL_FORMAT_BYTE );                      \
+    HANDLE_OUTPUT_CASE( "sbyte", VIL_PIXEL_FORMAT_SBYTE );                    \
+    HANDLE_OUTPUT_CASE( "uint16", VIL_PIXEL_FORMAT_UINT_16 );                 \
+    HANDLE_OUTPUT_CASE( "int16", VIL_PIXEL_FORMAT_INT_16 );                   \
+    HANDLE_OUTPUT_CASE( "uint32", VIL_PIXEL_FORMAT_UINT_32 );                 \
+    HANDLE_OUTPUT_CASE( "int32", VIL_PIXEL_FORMAT_INT_32 );                   \
+    HANDLE_OUTPUT_CASE( "uint64", VIL_PIXEL_FORMAT_UINT_64 );                 \
+    HANDLE_OUTPUT_CASE( "int64", VIL_PIXEL_FORMAT_INT_64 );                   \
+    HANDLE_OUTPUT_CASE( "float", VIL_PIXEL_FORMAT_FLOAT );                    \
+    HANDLE_OUTPUT_CASE( "double", VIL_PIXEL_FORMAT_DOUBLE );                  \
+    break;                                                                    \
   }
 
   switch( view->pixel_format() )
