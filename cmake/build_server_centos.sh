@@ -39,6 +39,7 @@ cd gcc-5.5.0
 make -j$(nproc)
 make install
 cd /
+export LD_LIBRARY_PATH=/usr/local/lib64:/usr/local/lib
 
 # Install CMAKE
 wget https://cmake.org/files/v3.17/cmake-3.17.0.tar.gz
