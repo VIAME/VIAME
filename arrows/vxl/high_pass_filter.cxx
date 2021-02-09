@@ -19,6 +19,8 @@ namespace arrows {
 
 namespace vxl {
 
+namespace { // anonymous
+
 enum filter_mode
 {
   MODE_box,
@@ -27,6 +29,47 @@ enum filter_mode
 
 ENUM_CONVERTER( mode_converter, filter_mode,
                 { "box", MODE_box }, { "bidir", MODE_bidir } )
+
+// ----------------------------------------------------------------------------
+template < typename T > struct accumulator;
+
+template <>
+struct accumulator< char >
+{ using type = int; };
+
+template <>
+struct accumulator< signed char >
+{ using type = signed int; };
+
+template <>
+struct accumulator< unsigned char >
+{ using type = unsigned int; };
+
+template <>
+struct accumulator< signed short >
+{ using type = signed int; };
+
+template <>
+struct accumulator< unsigned short >
+{ using type = unsigned int; };
+
+template <>
+struct accumulator< signed int >
+{ using type = signed long long; };
+
+template <>
+struct accumulator< unsigned int >
+{ using type = unsigned long long; };
+
+template <>
+struct accumulator< float >
+{ using type = double; };
+
+template <>
+struct accumulator< double >
+{ using type = double; };
+
+} // namespace <anonymous>
 
 // ----------------------------------------------------------------------------
 /// Private implementation class
@@ -133,8 +176,7 @@ high_pass_filter::priv
   unsigned const ni = grey.ni();
   unsigned const nj = grey.nj();
 
-  auto const offset =
-    static_cast< decltype( ni ) >( ( kernel_width / 2 ) + 1 );
+  auto const offset = ( kernel_width / 2 ) + 1;
 
   if( ni < 2 * offset + 1 )
   {
@@ -142,12 +184,13 @@ high_pass_filter::priv
   }
 
   output.fill( 0 );
+
   PixType diff1 = 0;
   PixType diff2 = 0;
 
-  for( decltype(+nj) j{ 0 }; j < nj; ++j )
+  for( decltype( +nj ) j{ 0 }; j < nj; ++j )
   {
-    for( decltype(+nj) i{ offset }; i < ni - offset; ++i )
+    for( decltype( +nj ) i{ offset }; i < ni - offset; ++i )
     {
       PixType const& val = grey( i, j );
       PixType const& avg1 = smoothed( i - offset, j );
@@ -283,7 +326,10 @@ high_pass_filter::priv
 
       // fast box filter smoothing by adding one pixel to the sum and
       // subtracting another pixel at each step
-      unsigned sum = 0;
+      using accumulator_t = typename accumulator< PixType >::type;
+
+      auto const kw = static_cast< accumulator_t >( kernel_width );
+      accumulator_t sum = 0;
       unsigned i = 0;
 
       // initialize the sum for half the kernel width
@@ -295,7 +341,8 @@ high_pass_filter::priv
       // starting boundary case: the kernel width is expanding
       for(; i < kernel_width; ++i, pixelS2 += istepS, pixelD += istepD )
       {
-        *pixelD = static_cast< PixType >( sum / i );
+        *pixelD =
+          static_cast< PixType >( sum / static_cast< accumulator_t >( i ) );
         sum += *pixelS2;
       }
 
@@ -303,7 +350,7 @@ high_pass_filter::priv
       for(; i < ni;
           ++i, pixelS1 += istepS, pixelS2 += istepS, pixelD += istepD )
       {
-        *pixelD = static_cast< PixType >( sum / kernel_width );
+        *pixelD = static_cast< PixType >( sum / kw );
         sum -= *pixelS1;
         sum += *pixelS2;
       }
@@ -312,7 +359,8 @@ high_pass_filter::priv
       for( i = kernel_width; i > half_width;
            --i, pixelS1 += istepS, pixelD += istepD )
       {
-        *pixelD = static_cast< PixType >( sum / i );
+        *pixelD =
+          static_cast< PixType >( sum / static_cast< accumulator_t >( i ) );
         sum -= *pixelS1;
       }
     }
@@ -500,15 +548,12 @@ high_pass_filter
 
   switch( view->pixel_format() )
   {
-    HANDLE_CASE( VIL_PIXEL_FORMAT_BOOL )
     HANDLE_CASE( VIL_PIXEL_FORMAT_BYTE )
     HANDLE_CASE( VIL_PIXEL_FORMAT_SBYTE )
     HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 )
     HANDLE_CASE( VIL_PIXEL_FORMAT_INT_16 )
     HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_32 )
     HANDLE_CASE( VIL_PIXEL_FORMAT_INT_32 )
-    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_64 )
-    HANDLE_CASE( VIL_PIXEL_FORMAT_INT_64 )
     HANDLE_CASE( VIL_PIXEL_FORMAT_FLOAT )
     HANDLE_CASE( VIL_PIXEL_FORMAT_DOUBLE )
 #undef HANDLE_CASE
@@ -522,8 +567,8 @@ high_pass_filter
   return nullptr;
 }
 
-} // end namespace vxl
+} // namespace vxl
 
-} // end namespace arrows
+} // namespace arrows
 
-} // end namespace kwiver
+} // namespace kwiver
