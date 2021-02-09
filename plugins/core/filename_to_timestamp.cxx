@@ -140,6 +140,39 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
           static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
     }
+    // Example: 20190624_BIALI ROCK_SSLC0581.*
+    if( parts.size() > 2 &&
+        parts[0].size() == 8 && 
+        filename.find( "SSL" ) != std::string::npos )
+    {
+      tm t;
+
+      t.tm_year = std::stoi( parts[0].substr( 0, 4 ) ) - 1900;
+      t.tm_mon = std::stoi( parts[0].substr( 4, 2 ) ) - 1;
+      t.tm_mday = std::stoi( parts[0].substr( 6, 2 ) );
+
+      t.tm_hour = 0;
+      t.tm_min = 0;
+      t.tm_sec = 0;
+
+      std::string last_num, current_num;
+
+      for( unsigned i = 8; i < filename.size(); ++i )
+      {
+        if( std::isdigit( filename[i] ) )
+        {
+          current_num += filename[i];
+          last_num = current_num;
+        }
+        else
+        {
+          current_num = std::string();
+        }
+      }
+
+      kwiver::vital::time_usec_t sec = std::stoi( last_num ) * 1e6;
+      utc_time_usec = static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + sec;
+    }
     // Example: *_20190507_004346.455104* or *_20190401_220727.714*
     else if( parts.size() > 2 )
     {
