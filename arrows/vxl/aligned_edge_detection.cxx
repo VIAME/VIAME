@@ -32,17 +32,19 @@ public:
   priv( aligned_edge_detection* parent ) : p{ parent } {}
 
   // Calculate potential edges
-  template < typename PixType, typename GradientType >
-  vil_image_view< PixType >
+  template < typename PixType >
+  void
   calculate_aligned_edges( vil_image_view< PixType > const& input,
-                           vil_image_view< GradientType >& grad_i,
-                           vil_image_view< GradientType >& grad_j );
+                           vil_image_view< PixType >& output_i,
+                           vil_image_view< PixType >& output_j );
   // Perform NMS on the input gradient images in horizontal and vertical
   // directions only
   template < typename OutputType, typename InputType >
-  vil_image_view< OutputType >
+  void
   nonmax_suppression( vil_image_view< InputType > const& grad_i,
-                      vil_image_view< InputType > const& grad_j );
+                      vil_image_view< InputType > const& grad_j,
+                      vil_image_view< OutputType >& output_i,
+                      vil_image_view< OutputType >& output_j );
   // Compute axis-aligned edges and perform NMS on them
   template < typename pix_t > vil_image_view< pix_t >
   filter( vil_image_view< pix_t > const& input_image );
@@ -57,10 +59,12 @@ public:
 
 // ----------------------------------------------------------------------------
 template < typename OutputType, typename InputType >
-vil_image_view< OutputType >
+void
 aligned_edge_detection::priv
 ::nonmax_suppression( vil_image_view< InputType > const& grad_i,
-                      vil_image_view< InputType > const& grad_j )
+                      vil_image_view< InputType > const& grad_j,
+                      vil_image_view< OutputType > & output_i,
+                      vil_image_view< OutputType > & output_j )
 {
   if( grad_i.ni() != grad_j.ni() || grad_i.nj() != grad_j.nj() )
   {
@@ -72,8 +76,8 @@ aligned_edge_detection::priv
   auto const ni = grad_i.ni();
   auto const nj = grad_i.nj();
 
-  vil_image_view< OutputType > output{ ni, nj, 2 };
-  output.fill( 0 );
+  output_i.fill( 0 );
+  output_j.fill( 0 );
 
   // Perform non-maximum suppression
   for( decltype( +nj ) j{ 1 }; j < nj - 1; ++j )
@@ -88,38 +92,43 @@ aligned_edge_detection::priv
       {
         if( val_i >= grad_i( i - 1, j ) && val_i >= grad_i( i + 1, j ) )
         {
-          output( i, j, 0 ) = static_cast< OutputType >( val_i );
+          output_i( i, j ) = static_cast< OutputType >( val_i );
         }
       }
       if( val_j > threshold )
       {
         if( val_j >= grad_j( i, j - 1 ) && val_j >= grad_j( i, j + 1 ) )
         {
-          output( i, j, 1 ) = static_cast< OutputType >( val_j );
+          output_j( i, j ) = static_cast< OutputType >( val_j );
         }
       }
     }
   }
-  return output;
 }
 
 // ----------------------------------------------------------------------------
-template < typename PixType, typename GradientType >
-vil_image_view< PixType >
+template < typename PixType >
+void
 aligned_edge_detection::priv
 ::calculate_aligned_edges( vil_image_view< PixType > const& input,
-                           vil_image_view< GradientType >& grad_i,
-                           vil_image_view< GradientType >& grad_j )
+                           vil_image_view< PixType >& output_i,
+                           vil_image_view< PixType >& output_j )
 {
+  auto const source_ni = input.ni();
+  auto const source_nj = input.nj();
+
+  vil_image_view< float > grad_i{ source_ni, source_nj };
+  vil_image_view< float > grad_j{ source_ni, source_nj };
+
   // Calculate sobel approx in x/y directions
   vil_sobel_3x3( input, grad_i, grad_j );
 
   // Take the absolute value of gradients in place
-  vil_transform( grad_i, std::abs< GradientType > );
-  vil_transform( grad_j, std::abs< GradientType > );
+  vil_transform( grad_i, std::abs< float > );
+  vil_transform( grad_j, std::abs< float > );
 
   // Perform NMS in vertical/horizonal directions and threshold magnitude
-  return nonmax_suppression< PixType >( grad_i, grad_j );
+  nonmax_suppression< PixType >( grad_i, grad_j, output_i, output_j );
 }
 
 // ----------------------------------------------------------------------------
@@ -131,27 +140,34 @@ aligned_edge_detection::priv
   auto const source_ni = input_image.ni();
   auto const source_nj = input_image.nj();
 
-  vil_image_view< float > grad_i{ source_ni, source_nj };
-  vil_image_view< float > grad_j{ source_ni, source_nj };
+  vil_image_view< pix_t > aligned_edges;
+  if( produce_joint_output )
+  {
+    aligned_edges.set_size( source_ni, source_nj, 3 );
+  }
+  else
+  {
+    aligned_edges.set_size( source_ni, source_nj, 2 );
+  }
+  aligned_edges.fill( 0 );
 
-  vil_image_view< pix_t > aligned_edges =
-    calculate_aligned_edges< pix_t, float >( input_image, grad_i, grad_j );
+  auto i_response = vil_plane( aligned_edges, 0 );
+  auto j_response = vil_plane( aligned_edges, 1 );
+
+  calculate_aligned_edges< pix_t >( input_image, i_response, j_response );
 
   // Perform extra op if enabled
   if( produce_joint_output )
   {
-    vil_image_view< pix_t > combined_edges{ source_ni, source_nj };
-    combined_edges.fill( 0 );
+    auto combined_response = vil_plane( aligned_edges, 2 );
 
     // Add vertical and horizontal edge planes together and smooth
-    vil_image_view< pix_t > joint_nms_edges;
-
-    vil_math_image_sum( vil_plane( aligned_edges, 0 ),
-                        vil_plane( aligned_edges, 1 ),
-                        joint_nms_edges );
+    vil_math_image_sum( i_response,
+                        j_response,
+                        combined_response );
 
     unsigned half_step = smoothing_half_step;
-    unsigned min_dim = std::min( joint_nms_edges.ni(), joint_nms_edges.nj() );
+    unsigned min_dim = std::min( source_ni, source_nj );
 
     if( 2 * half_step + 1 >= min_dim )
     {
@@ -160,19 +176,12 @@ aligned_edge_detection::priv
 
     if( half_step != 0 )
     {
-      vil_gauss_filter_2d( joint_nms_edges, combined_edges, smoothing_sigma,
-                           half_step );
+      vil_image_view< pix_t > smoothed_response;
+      // Smooth the combined response
+      vil_gauss_filter_2d(
+        combined_response, smoothed_response, smoothing_sigma, half_step );
+      combined_response.deep_copy( smoothed_response );
     }
-    else
-    {
-      vil_copy_reformat( joint_nms_edges, combined_edges );
-    }
-    vil_image_view< pix_t > all_channels(
-      joint_nms_edges.ni(), joint_nms_edges.nj(), 3 );
-    vil_plane( all_channels, 0 ).deep_copy( vil_plane( aligned_edges, 0 ) );
-    vil_plane( all_channels, 1 ).deep_copy( vil_plane( aligned_edges, 1 ) );
-    vil_plane( all_channels, 2 ).deep_copy( joint_nms_edges );
-    return all_channels;
   }
   return aligned_edges;
 }
@@ -276,7 +285,8 @@ aligned_edge_detection
   }
   else if( source_image->nplanes() != 1 )
   {
-    LOG_ERROR( logger(), "Input must be a grayscale image!" );
+    LOG_ERROR( logger(), "Input must have either 1 or 3 channels but has "
+                         << source_image->nplanes() );
     return nullptr;
   }
 
