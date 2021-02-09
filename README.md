@@ -100,10 +100,10 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
 
 **SEAL Desktop Custom Distribution:** <br>
-[SEAL v0.13.3 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/6011908e2fa25629b919a4f2/download) <br>
-[SEAL v0.13.3 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/60118fca2fa25629b919a496/download) <br>
-[SEAL v0.13.3 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/60118b6a2fa25629b9197354/download) <br>
-[SEAL v0.13.3 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/60118b212fa25629b9197312/download)
+[SEAL v0.14.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
+[SEAL v0.14.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
+[SEAL v0.14.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6022951c2fa25629b9547fbb/download) <br>
+[SEAL v0.14.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6022948a2fa25629b9547f1f/download)
 
 **Optional Patches:** <br>
 [Motion Detector Models, All OS](https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download) <br>
