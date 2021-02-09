@@ -34,7 +34,7 @@ from kwiver.vital.algo import RefineDetections
 from kwiver.vital.types import BoundingBox
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import DetectedObjectType
+from kwiver.vital.types import ClassMap
 
 from distutils.util import strtobool
 
@@ -223,7 +223,7 @@ class NetharnRefiner(RefineDetections):
                 for i in range(len(class_scores)):
                     class_scores[i] = class_scores[i] * 0.5
 
-            detected_object_type = DetectedObjectType(class_names, class_scores)
+            detected_object_type = ClassMap(class_names, class_scores)
             det.set_type(detected_object_type)
 
             output.add( det )

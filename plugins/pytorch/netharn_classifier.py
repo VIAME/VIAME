@@ -49,7 +49,7 @@ try:
     from kwiver.vital.types import BoundingBox
     from kwiver.vital.types import DetectedObjectSet
     from kwiver.vital.types import DetectedObject
-    from kwiver.vital.types import DetectedObjectType
+    from kwiver.vital.types import ClassMap
 
 except ImportError:
     # Handle old kwiver structure
@@ -58,7 +58,7 @@ except ImportError:
     from kwiver.vital.types import BoundingBox
     from kwiver.vital.types import DetectedObjectSet
     from kwiver.vital.types import DetectedObject
-    from kwiver.vital.types import DetectedObjectType
+    from kwiver.vital.types import ClassMap
 
 import numpy as np  # NOQA
 import ubelt as ub
@@ -253,12 +253,12 @@ def _classification_to_kwiver_detections(classification, w, h):
         # If we have a probability for each class, uses that
         class_names = list(classification.classes)
         class_prob = classification.prob
-        detected_object_type = DetectedObjectType(class_names, class_prob)
+        detected_object_type = ClassMap(class_names, class_prob)
     else:
         # Otherwise we only have the score for the predicted calss
         class_name = classification.classes[classification.cidx]
         class_score = classification.conf
-        detected_object_type = DetectedObjectType(class_name, class_score)
+        detected_object_type = ClassMap(class_name, class_score)
 
     bounding_box = BoundingBox(0, 0, w, h)
     detected_object = DetectedObject(
