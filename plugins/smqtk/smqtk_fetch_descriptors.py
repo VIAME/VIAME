@@ -27,8 +27,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from kwiver.kwiver_process import KwiverProcess
-from vital.types import new_descriptor, DescriptorSet
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.vital.types import new_descriptor, DescriptorSet
 
 
 class SmqtkFetchDescriptors (KwiverProcess):

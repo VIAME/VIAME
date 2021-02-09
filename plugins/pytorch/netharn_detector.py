@@ -54,12 +54,12 @@ try:
 
 except ImportError:
     # Handle old kwiver structure
-    from vital.algo import ImageObjectDetector
+    from kwiver.vital.algo import ImageObjectDetector
 
-    from vital.types import BoundingBox
-    from vital.types import ClassMap
-    from vital.types import DetectedObjectSet
-    from vital.types import DetectedObject
+    from kwiver.vital.types import BoundingBox
+    from kwiver.vital.types import ClassMap
+    from kwiver.vital.types import DetectedObjectSet
+    from kwiver.vital.types import DetectedObject
 
 import numpy as np
 

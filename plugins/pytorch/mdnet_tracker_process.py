@@ -34,8 +34,8 @@ from __future__ import absolute_import
 import sys
 import numpy as np
 
-from kwiver.kwiver_process import KwiverProcess
-from sprokit.pipeline import process
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
 
 from kwiver.vital.types import (
     BoundingBox, DetectedObject, DetectedObjectSet,
@@ -239,7 +239,7 @@ class MDNetTrackerProcess(KwiverProcess):
 
 # ==============================================================================
 def __sprokit_register__():
-    from sprokit.pipeline import process_factory
+    from kwiver.sprokit.pipeline import process_factory
 
     module_name = 'python:viame.pytorch.MDNetTrackerProcess'
 
