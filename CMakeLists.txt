@@ -571,8 +571,7 @@ else()
       set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
       set( viame_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
 
-      kwiver_create_python_init( viame )
-      kwiver_create_python_init( viame/processes )
+      kwiver_create_python_init( processes )
     endif()
 
     ##

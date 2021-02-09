@@ -138,7 +138,7 @@ kwiver_add_plugin( viame_processes_core
 
 if( VIAME_ENABLE_PYTHON )
 
-  kwiver_create_python_init( viame/arrows/core )
+  kwiver_create_python_init( arrows/core )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/npy_image_normalization.py
@@ -147,12 +147,12 @@ if( VIAME_ENABLE_PYTHON )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    viame/processes/core
+    processes/core
     __init__ )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
-    viame/processes/core
+    processes/core
     utility_processes )
 
 endif()
