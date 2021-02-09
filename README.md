@@ -85,9 +85,9 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 
 **CentOS or Other Linux Desktop Binaries:** <br>
 [VIAME v0.14.0 RHEL/CentOS 7/8, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/60220df22fa25629b951954d/download) <br>
-[VIAME v0.14.0 RHEL/CentOS 7/8, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1-8qnJyjcIBaBmBC6yk8HZphzwnBrNE31/view?usp=sharing) <br>
+[VIAME v0.14.0 RHEL/CentOS 7/8, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1fDb4uqB84kSEqiw3vrT3YwGVn5E15haX/view?usp=sharing) <br>
 [VIAME v0.14.0 Generic Linux, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/60220df22fa25629b951954d/download) <br>
-[VIAME v0.14.0 Generic Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1-8qnJyjcIBaBmBC6yk8HZphzwnBrNE31/view?usp=sharing)
+[VIAME v0.14.0 Generic Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1fDb4uqB84kSEqiw3vrT3YwGVn5E15haX/view?usp=sharing)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
