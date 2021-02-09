@@ -18,12 +18,17 @@
 #include <arrows/vxl/image_container.h>
 
 #include <vil/vil_convert.h>
+#include <vil/vil_plane.h>
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 #include <sstream>
+#include <string>
 
 using namespace kwiver::vital;
+using ST = kwiversys::SystemTools;
 
 namespace kwiver {
 namespace arrows {
@@ -125,6 +130,7 @@ convert_image_helper(const vil_image_view<bool>& src,
   convert_image_helper<vxl_byte>(src, dest, force_byte, auto_stretch, manual_stretch, intensity_range);
 }
 
+// ----------------------------------------------------------------------------
 // Helper function to convert images based on configuration - specialization for bool/bool
 void
 convert_image_helper(const vil_image_view<bool>& src,
@@ -138,6 +144,120 @@ convert_image_helper(const vil_image_view<bool>& src,
   dest = src;
 }
 
+// ----------------------------------------------------------------------------
+// Construct a plane filename given the basename and plane index
+std::string
+plane_filename( std::string const& filename, unsigned p )
+{
+  auto const parent_directory =
+    ST::GetParentDirectory( filename );
+  auto const file_name_with_ext =
+    ST::GetFilenameName( filename );
+
+  auto const file_name_no_ext =
+    ST::GetFilenameWithoutLastExtension( file_name_with_ext );
+  auto const file_extension =
+    ST::GetFilenameLastExtension( file_name_with_ext );
+
+  std::vector< std::string > full_path;
+  auto const plane_id = ( p > 0 ? "_" + std::to_string( p ) : "" );
+  full_path.push_back( "" );
+  full_path.push_back( parent_directory );
+  full_path.push_back( file_name_no_ext + plane_id + file_extension );
+  return ST::JoinPath( full_path );
+}
+
+// ----------------------------------------------------------------------------
+// Save image as either single file or multiple plane files
+template< typename inP >
+void
+save_image( vil_image_view<inP> const& src,
+            std::string const& filename,
+            bool split_planes=false )
+{
+  if( !split_planes || src.nplanes() == 1 )
+  {
+    vil_save( src, filename.c_str() );
+  }
+  else
+  {
+    for( decltype( src.nplanes() ) i{ 0 }; i < src.nplanes(); ++i )
+    {
+      vil_save( vil_plane( src, i ), plane_filename( filename, i ).c_str() );
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Create a list of filenames representing the non-initial plane files
+std::vector< std::string >
+construct_plane_filenames( std::string const& filename )
+{
+  std::vector< std::string > plane_files;
+
+  for( unsigned p{ 1 };; ++p )
+  {
+    std::string plane_file = plane_filename( filename, p );
+
+    if( ST::FileExists( plane_file ) )
+    {
+      plane_files.push_back( plane_file );
+    }
+    else
+    {
+      break;
+    }
+  }
+  return plane_files;
+}
+
+// ----------------------------------------------------------------------------
+// Helper function to load images when they are saved out in above format
+template< typename Type >
+vil_image_view< Type >
+load_external_planes( std::string const& filename,
+                      vil_image_view< Type >& first_plane )
+{
+  std::vector< vil_image_view< Type > > images( 1, first_plane );
+
+  size_t p = 1;
+  auto total_p = first_plane.nplanes();
+
+  auto const plane_filenames = construct_plane_filenames( filename );
+
+  for( auto const& plane_file : plane_filenames )
+  {
+    vil_image_view< Type > plane = vil_load( plane_file.c_str() );
+
+    if( plane.ni() != first_plane.ni() || plane.nj() != first_plane.nj() )
+    {
+      VITAL_THROW( vital::image_type_mismatch_exception,
+                   "Input channel size difference" );
+    }
+
+    images.push_back( plane );
+    total_p += plane.nplanes();
+    ++p;
+  }
+
+  vil_image_view< Type > output{ first_plane.ni(), first_plane.nj(), total_p };
+
+  for( decltype( total_p ) img_id{ 0 }, out_pln{ 0 };
+       out_pln < total_p; ++img_id )
+  {
+    for( unsigned img_pln{ 0 }; img_pln < images[ img_id ].nplanes();
+         ++img_pln, ++out_pln )
+    {
+      vil_image_view< Type > src = vil_plane( images[ img_id ], img_pln );
+      vil_image_view< Type > dst = vil_plane( output, out_pln );
+
+      vil_copy_reformat( src, dst );
+    }
+  }
+
+  return output;
+}
+
 }
 
 // Private implementation class
@@ -149,6 +269,7 @@ public:
   : force_byte(false),
     auto_stretch(false),
     manual_stretch(false),
+    split_channels(false),
     intensity_range(0, 255)
   {
   }
@@ -164,11 +285,75 @@ public:
                          this->intensity_range);
   }
 
+  // Load a single image, potentially saved as individual planes
+  template< typename pix_t >
+  image_container_sptr
+  load_image( vil_image_view< pix_t >& img_pix_t,
+              std::shared_ptr< metadata > md,
+              std::string const& filename );
+  // Convert an image to the appropriate type and write to disk
+  template< typename pix_t >
+  void
+  convert_and_save( vil_image_view< pix_t >& img_pix_t,
+                    std::string const& filename );
+
   bool force_byte;
   bool auto_stretch;
   bool manual_stretch;
+  bool split_channels;
   vector_2d intensity_range;
 };
+
+// ----------------------------------------------------------------------------
+template< typename pix_t >
+image_container_sptr
+image_io::priv
+::load_image( vil_image_view< pix_t >& img_pix_t,
+              std::shared_ptr< metadata > md,
+              std::string const& filename )
+{
+  if( split_channels )
+  {
+    img_pix_t = load_external_planes( filename, img_pix_t );
+  }
+  if( force_byte )
+  {
+    vil_image_view< vxl_byte > img;
+    convert_image( img_pix_t, img );
+    auto img_ptr = image_container_sptr( new vxl::image_container( img ) );
+    img_ptr->set_metadata( md );
+    return img_ptr;
+  }
+  else
+  {
+    vil_image_view< pix_t > img;
+    convert_image( img_pix_t, img );
+    auto img_ptr = image_container_sptr( new vxl::image_container( img ) );
+    img_ptr->set_metadata( md );
+    return img_ptr;
+  }
+}
+
+// ----------------------------------------------------------------------------
+template< typename pix_t >
+void
+image_io::priv
+::convert_and_save( vil_image_view< pix_t >& img_pix_t,
+                    std::string const& filename )
+{
+  if( force_byte )
+  {
+    vil_image_view< vxl_byte > img;
+    convert_image( img_pix_t, img );
+    save_image( img, filename, split_channels );
+  }
+  else
+  {
+    vil_image_view< pix_t > img;
+    convert_image( img_pix_t, img );
+    save_image( img, filename, split_channels );
+  }
+}
 
 // ----------------------------------------------------------------------------
 // Constructor
@@ -214,6 +399,7 @@ image_io
                     "Manually stretch the range of the input data by "
                     "specifying the minimum and maximum values of the data "
                     "to map to the full byte range");
+
   if( d_->manual_stretch )
   {
     config->set_value("intensity_range", d_->intensity_range.transpose(),
@@ -221,6 +407,13 @@ image_io
                       "the byte range.  This is most useful when e.g. 12-bit "
                       "data is encoded in 16-bit pixels");
   }
+
+  config->set_value( "split_channels", d_->split_channels,
+                     "When writing out images, if it contains more than one image "
+                     "plane, write each plane out as a seperate image file. Also, "
+                     "when enabled at read time, support images written out in via "
+                     "this method." );
+
   return config;
 }
 
@@ -240,7 +433,9 @@ image_io
   d_->auto_stretch = config->get_value<bool>("auto_stretch",
                                               d_->auto_stretch);
   d_->manual_stretch = config->get_value<bool>("manual_stretch",
-                                              d_->manual_stretch);
+                                               d_->manual_stretch);
+  d_->split_channels = config->get_value< bool >( "split_channels",
+                                                  d_->split_channels );
   d_->intensity_range = config->get_value<vector_2d>("intensity_range",
                                         d_->intensity_range.transpose());
 }
@@ -290,24 +485,9 @@ image_io
 #define DO_CASE(T)                                                     \
   case T:                                                              \
     {                                                                  \
-      typedef vil_pixel_format_type_of<T >::component_type pix_t;      \
-      vil_image_view<pix_t> img_pix_t = img_rsc->get_view();           \
-      if( d_->force_byte )                                             \
-      {                                                                \
-        vil_image_view<vxl_byte> img;                                  \
-        d_->convert_image(img_pix_t, img);                             \
-        auto img_ptr = image_container_sptr(new vxl::image_container(img)); \
-        img_ptr->set_metadata(md);                                     \
-        return img_ptr;                                                \
-      }                                                                \
-      else                                                             \
-      {                                                                \
-        vil_image_view<pix_t> img;                                     \
-        d_->convert_image(img_pix_t, img);                             \
-        auto img_ptr = image_container_sptr(new vxl::image_container(img)); \
-        img_ptr->set_metadata(md);                                     \
-        return img_ptr;                                                \
-      }                                                                \
+      using pix_t = vil_pixel_format_type_of< T >::component_type;     \
+      vil_image_view< pix_t > img_pix_t = img_rsc->get_view();         \
+      return d_->load_image( img_pix_t, md, filename );                \
     }                                                                  \
     break;                                                             \
 
@@ -332,10 +512,10 @@ image_io
     {
       // automatically stretch to fill the byte range using the
       // minimum and maximum pixel values
-      vil_image_view<vxl_byte> img;
-      img = vil_convert_stretch_range(vxl_byte(), img_rsc->get_view());
-      auto img_ptr = image_container_sptr(new vxl::image_container(img));
-      img_ptr->set_metadata(md);
+      vil_image_view< vxl_byte > img;
+      img = vil_convert_stretch_range( vxl_byte(), img_rsc->get_view() );
+      auto img_ptr = image_container_sptr( new vxl::image_container( img ) );
+      img_ptr->set_metadata( md );
       return img_ptr;
     }
     else if( d_->manual_stretch )
@@ -348,9 +528,9 @@ image_io
     else
     {
       vil_image_view<vxl_byte> img;
-      img = vil_convert_cast(vxl_byte(), img_rsc->get_view());
-      auto img_ptr =  image_container_sptr(new vxl::image_container(img));
-      img_ptr->set_metadata(md);
+      img = vil_convert_cast( vxl_byte(), img_rsc->get_view() );
+      auto img_ptr = image_container_sptr( new vxl::image_container( img ) );
+      img_ptr->set_metadata( md );
       return img_ptr;
     }
   }
@@ -363,7 +543,7 @@ image_io
 void
 image_io
 ::save_(const std::string& filename,
-       image_container_sptr data) const
+        image_container_sptr data) const
 {
   vil_image_view_base_sptr view =
     vxl::image_container::vital_to_vxl(data->get_image());
@@ -373,20 +553,7 @@ image_io
     {                                                                  \
       typedef vil_pixel_format_type_of<T >::component_type pix_t;      \
       vil_image_view<pix_t> img_pix_t = view;                          \
-      if( d_->force_byte )                                             \
-      {                                                                \
-        vil_image_view<vxl_byte> img;                                  \
-        d_->convert_image(img_pix_t, img);                             \
-        vil_save(img, filename.c_str());                               \
-        return;                                                        \
-      }                                                                \
-      else                                                             \
-      {                                                                \
-        vil_image_view<pix_t> img;                                     \
-        d_->convert_image(img_pix_t, img);                             \
-        vil_save(img, filename.c_str());                               \
-        return;                                                        \
-      }                                                                \
+      d_->convert_and_save( img_pix_t, filename );                     \
     }                                                                  \
     break;                                                             \
 
@@ -411,8 +578,8 @@ image_io
       // automatically stretch to fill the byte range using the
       // minimum and maximum pixel values
       vil_image_view<vxl_byte> img;
-      img = vil_convert_stretch_range(vxl_byte(), view);
-      vil_save(img, filename.c_str());
+      img = vil_convert_stretch_range( vxl_byte(), view );
+      save_image( img, filename, d_->split_channels );
       return;
     }
     else if( d_->manual_stretch )
@@ -424,9 +591,9 @@ image_io
     }
     else
     {
-      vil_image_view<vxl_byte> img;
-      img = vil_convert_cast(vxl_byte(), view);
-      vil_save(img, filename.c_str());
+      vil_image_view< vxl_byte > img;
+      img = vil_convert_cast( vxl_byte(), view );
+      save_image( img, filename, d_->split_channels );
       return;
     }
   }
@@ -441,6 +608,19 @@ image_io
   auto md = std::make_shared<kwiver::vital::metadata>();
   md->add< kwiver::vital::VITAL_META_IMAGE_URI >( filename );
   return md;
+}
+
+// ----------------------------------------------------------------------------
+std::vector< std::string >
+image_io
+::plane_filenames( std::string const& filename ) const
+{
+  std::vector< std::string > output{ filename };
+  auto additional_plane_filenames = construct_plane_filenames( filename );
+  output.insert( output.end(),
+                 additional_plane_filenames.begin(),
+                 additional_plane_filenames.end() );
+  return output;
 }
 
 } // end namespace vxl
