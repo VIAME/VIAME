@@ -45,8 +45,9 @@ public:
                       vil_image_view< InputType > const& grad_j,
                       vil_image_view< OutputType >& output_i,
                       vil_image_view< OutputType >& output_j );
-  // Compute axis-aligned edges and perform NMS on them
-  template < typename pix_t > vil_image_view< pix_t >
+  // Compute axis-aligned edges and perform non-max suppression on them
+  template < typename pix_t >
+  vil_image_view< pix_t >
   filter( vil_image_view< pix_t > const& input_image );
 
   aligned_edge_detection* p;
@@ -63,8 +64,8 @@ void
 aligned_edge_detection::priv
 ::nonmax_suppression( vil_image_view< InputType > const& grad_i,
                       vil_image_view< InputType > const& grad_j,
-                      vil_image_view< OutputType > & output_i,
-                      vil_image_view< OutputType > & output_j )
+                      vil_image_view< OutputType >& output_i,
+                      vil_image_view< OutputType >& output_j )
 {
   if( grad_i.ni() != grad_j.ni() || grad_i.nj() != grad_j.nj() )
   {
@@ -81,12 +82,11 @@ aligned_edge_detection::priv
 
   // Perform non-maximum suppression
   for( unsigned j = 1; j < nj - 1; ++j )
-
   {
     for( unsigned i = 1; i < ni - 1; ++i )
     {
-      const InputType val_i = grad_i( i, j );
-      const InputType val_j = grad_j( i, j );
+      InputType const val_i = grad_i( i, j );
+      InputType const val_j = grad_j( i, j );
 
       if( val_i > threshold )
       {
@@ -166,8 +166,8 @@ aligned_edge_detection::priv
                         j_response,
                         combined_response );
 
-    unsigned half_step = smoothing_half_step;
-    unsigned min_dim = std::min( source_ni, source_nj );
+    auto half_step = smoothing_half_step;
+    auto const min_dim = std::min( source_ni, source_nj );
 
     if( 2 * half_step + 1 >= min_dim )
     {
@@ -251,7 +251,7 @@ aligned_edge_detection
 // ----------------------------------------------------------------------------
 bool
 aligned_edge_detection
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -286,7 +286,7 @@ aligned_edge_detection
   else if( source_image->nplanes() != 1 )
   {
     LOG_ERROR( logger(), "Input must have either 1 or 3 channels but has "
-                         << source_image->nplanes() );
+               << source_image->nplanes() );
     return nullptr;
   }
 
