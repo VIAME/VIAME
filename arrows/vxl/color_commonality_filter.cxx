@@ -155,14 +155,14 @@ populate_image_histogram(
 
   // Filter image
   InputType const* row = input.top_left_ptr();
-  for( decltype( +nj ) j{ 0 }; j < nj; ++j, row += jstep )
+  for( unsigned j = 0; j < nj; ++j, row += jstep )
   {
     InputType const* pixel = row;
-    for( decltype( +ni ) i{ 0 }; i < ni; ++i, pixel += istep )
+    for( unsigned i = 0; i < ni; ++i, pixel += istep )
     {
       std::ptrdiff_t step = 0;
       InputType const* plane = pixel;
-      for( decltype( +np ) p{ 0 }; p < np; ++p, plane += pstep )
+      for( unsigned p = 0; p < np; ++p, plane += pstep )
       {
         step += hist_steps[ p ] * ( *plane >> bitshift );
       }
