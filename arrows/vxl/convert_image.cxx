@@ -130,9 +130,9 @@ sample_and_sort_image( vil_image_view< PixType > const& src,
 
   unsigned position = 0;
 
-  for( decltype( +np ) p{ 0 }; p < np; ++p )
+  for( unsigned p = 0; p < np; ++p )
   {
-    for( decltype( sampling_points ) s{ 0 };
+    for( unsigned s = 0;
          s < sampling_points; ++s, position += pixel_step )
     {
       unsigned i = position % ni;
