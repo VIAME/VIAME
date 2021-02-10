@@ -436,21 +436,21 @@ windowed_frame_averager< PixType >
     PixType const* planeB = imB->top_left_ptr();
     double*        planeC = imC->top_left_ptr();
 
-    for( decltype(+np) p{ 0 }; p < np;
+    for( unsigned p = 0; p < np;
          ++p, planeA += pstepA, planeB += pstepB, planeC += pstepC )
     {
       PixType const* rowA = planeA;
       PixType const* rowB = planeB;
       double*        rowC = planeC;
 
-      for( decltype(+nj) j{ 0 }; j < nj;
+      for( unsigned j = 0; j < nj;
            ++j, rowA += jstepA, rowB += jstepB, rowC += jstepC )
       {
         PixType const* pixelA = rowA;
         PixType const* pixelB = rowB;
         double*        pixelC = rowC;
 
-        for( decltype(+ni) i{ 0 }; i < ni;
+        for( unsigned i = 0; i < ni;
              ++i, pixelA += istepA, pixelB += istepB, pixelC += istepC )
         {
           *pixelC += scale *
