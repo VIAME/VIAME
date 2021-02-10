@@ -79,7 +79,7 @@ public:
                        "amount of angular range division quantity" );
     config->set_value( "q_hist", q_hist,
                        "amount of gradient orientations range division quantity" );
-    config->set_value( "norm", norm,
+    config->set_value( "norm", static_cast< int >( norm ),
                        "descriptor normalization type. valid choices:\n"
                        + list_norm_options() );
     config->set_value( "interpolation", interpolation,
@@ -94,7 +94,7 @@ public:
     q_radius = config->get_value<int>( "q_radius" );
     q_theta = config->get_value<int>( "q_theta" );
     q_hist = config->get_value<int>( "q_hist" );
-    norm = config->get_value<int>( "norm" );
+    norm = static_cast< decltype( norm ) >( config->get_value<int>( "norm" ) );
     interpolation = config->get_value<bool>( "interpolation" );
     use_orientation = config->get_value<bool>( "use_orientation" );
   }
@@ -119,7 +119,11 @@ public:
   int q_radius;
   int q_theta;
   int q_hist;
+#if KWIVER_OPENCV_VERSION_MAJOR >= 4
+  cv::xfeatures2d::DAISY::NormalizationType norm;
+#else
   int norm;
+#endif
   bool interpolation;
   bool use_orientation;
 };
