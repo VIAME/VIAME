@@ -23,6 +23,7 @@
 #include <arrows/vxl/high_pass_filter.h>
 #include <arrows/vxl/image_io.h>
 #include <arrows/vxl/optimize_cameras.h>
+#include <arrows/vxl/pixel_feature_extractor.h>
 #include <arrows/vxl/split_image.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 #include <arrows/vxl/match_features_constrained.h>
@@ -59,6 +60,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< high_pass_filter >();
   reg.register_algorithm< image_io >();
   reg.register_algorithm< optimize_cameras >();
+  reg.register_algorithm< pixel_feature_extractor >();
   reg.register_algorithm< split_image >();
   reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< match_features_constrained >();
