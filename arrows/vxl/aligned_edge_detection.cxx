@@ -80,10 +80,10 @@ aligned_edge_detection::priv
   output_j.fill( 0 );
 
   // Perform non-maximum suppression
-  for( decltype( +nj ) j{ 1 }; j < nj - 1; ++j )
+  for( unsigned j = 1; j < nj - 1; ++j )
 
   {
-    for( decltype( +ni ) i{ 1 }; i < ni - 1; ++i )
+    for( unsigned i = 1; i < ni - 1; ++i )
     {
       const InputType val_i = grad_i( i, j );
       const InputType val_j = grad_j( i, j );
