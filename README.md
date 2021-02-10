@@ -102,8 +102,8 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 **SEAL Desktop Custom Distribution:** <br>
 [SEAL v0.14.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
 [SEAL v0.14.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
-[SEAL v0.14.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6022951c2fa25629b9547fbb/download) <br>
-[SEAL v0.14.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6022948a2fa25629b9547f1f/download)
+[SEAL v0.14.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
+[SEAL v0.14.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
 
 **Optional Patches:** <br>
 [Motion Detector Models, All OS](https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download) <br>
