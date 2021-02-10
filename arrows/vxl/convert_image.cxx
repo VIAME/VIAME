@@ -5,6 +5,7 @@
 #include "convert_image.h"
 
 #include <arrows/vxl/image_container.h>
+#include <vital/range/iota.h>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
@@ -13,6 +14,7 @@
 
 #include <cstdlib>
 #include <limits>
+#include <random>
 #include <type_traits>
 
 namespace kwiver {
@@ -37,23 +39,24 @@ scale_image( vil_image_view< InType > const& src,
   auto const np = src.nplanes();
   vil_image_view< OutType > dst{ ni, nj, np };
 
-  OutType const max_output_value = std::numeric_limits< OutType >::max();
+  constexpr OutType max_output_value = std::numeric_limits< OutType >::max();
 
   auto const max_input_value = static_cast< InType >(
     static_cast< double >( max_output_value ) / dp_scale );
 
-  vil_transform( src, dst,
-                 [ max_input_value, max_output_value, dp_scale ](
-                   InType pixel ){
-                   if( pixel <= max_input_value )
-                   {
-                     return static_cast< OutType >( pixel * dp_scale + 0.5 );
-                   }
-                   else
-                   {
-                     return max_output_value;
-                   }
-                 } );
+  vil_transform(
+    src, dst,
+    [ max_input_value, max_output_value, dp_scale ]( InType pixel ){
+      if( pixel <= max_input_value )
+      {
+        return static_cast< OutType >(
+          static_cast< double >( pixel ) * dp_scale + 0.5 );
+      }
+      else
+      {
+        return max_output_value;
+      }
+    } );
   return dst;
 }
 
@@ -74,13 +77,18 @@ combine_channels( vil_image_view< Type > const& src,
 }
 
 // ----------------------------------------------------------------------------
-// Convert a fraction of images to grey
+// Convert a fraction of images to gray
 template < typename Type >
 vil_image_view< Type >
-random_grey_conversion( vil_image_view< Type > const& src,
-                        double const random_factor )
+random_gray_conversion( vil_image_view< Type > const& src,
+                        double const random_fraction )
 {
-  if( static_cast< double >( rand() ) / RAND_MAX < random_factor )
+  std::random_device random_device;
+  std::mt19937 engine{ random_device() };
+  std::uniform_real_distribution< double > dist( 0.0, 1.0 );
+  auto random_value = dist( engine );
+
+  if( random_value < random_fraction )
   {
     vil_image_view< Type > compressed;
     combine_channels( src, compressed );
@@ -124,48 +132,37 @@ sample_and_sort_image( vil_image_view< PixType > const& src,
   auto const ni = src.ni();
   auto const nj = src.nj();
   auto const np = src.nplanes();
-  auto const pixel_step = scanning_area / sampling_points;
+  auto const pixel_step =
+    static_cast< unsigned >( scanning_area / sampling_points );
 
-  dst.resize( sampling_points * np );
+  dst.reserve( sampling_points * np );
 
   unsigned position = 0;
 
   for( unsigned p = 0; p < np; ++p )
   {
-    for( unsigned s = 0;
-         s < sampling_points; ++s, position += pixel_step )
+    for( unsigned s = 0; s < sampling_points; ++s, position += pixel_step )
     {
       unsigned i = position % ni;
       unsigned j = ( position / ni ) % nj;
-      dst[ np * s + p ] = src( i, j, p );
+      dst.push_back( src( i, j, p ) );
     }
   }
 
   std::sort( dst.begin(), dst.end() );
 
-  if( remove_extremes &&
-      dst[ dst.size() - 1 ] == std::numeric_limits< PixType >::max() )
+  if( remove_extremes )
   {
-    for( unsigned i = 1; i < dst.size(); ++i )
+    constexpr auto low = PixType{ 0 };
+    while( !dst.empty() && dst.front() == low )
     {
-      if( dst[ dst.size() - i ] != std::numeric_limits< PixType >::max() )
-      {
-        dst.erase( dst.end() - i, dst.end() );
-        break;
-      }
+      dst.erase( dst.begin() );
     }
-  }
 
-  if( remove_extremes &&
-      dst[ 0 ] == static_cast< PixType >( 0 ) )
-  {
-    for( unsigned i = 1; i < dst.size(); ++i )
+    constexpr auto high = std::numeric_limits< PixType >::max();
+    while( !dst.empty() && dst.back() == high )
     {
-      if( dst[ i ] != 0 )
-      {
-        dst.erase( dst.begin(), dst.begin() + i );
-        break;
-      }
+      dst.pop_back();
     }
   }
   return dst;
@@ -187,15 +184,15 @@ get_image_percentiles(
   double sampling_points_minus1 =
     static_cast< double >( sorted_samples.size() - 1 );
 
-  for( unsigned i = 0; i < percentiles.size(); ++i )
+  for( auto const i : vital::range::iota( percentiles.size() ) )
   {
     // Find the index by multiplying the number of points by the percentile
     // The number is adjusted by -1 to account for the fact that percentiles
     // are the number which fall below a value. The +0.5 is to account for
     // truncation by static cast.
-    unsigned ind =
-      static_cast< unsigned >( sampling_points_minus1 * percentiles[ i ] +
-                               0.5 );
+    auto ind =
+      static_cast< size_t >(
+        sampling_points_minus1 * percentiles[ i ] + 0.5 );
     dst[ i ] = sorted_samples[ ind ];
   }
   return dst;
@@ -227,12 +224,13 @@ percentile_scale_image(
   if( percentile_values[ 1 ] - percentile_values[ 0 ] > 0 )
   {
     scale = ( static_cast< double >( max_val ) + 0.5 ) /
-            ( percentile_values[ 1 ] - percentile_values[ 0 ] );
+            static_cast< double >( percentile_values[ 1 ] -
+                                   percentile_values[ 0 ] );
   }
   else
   {
     scale = static_cast< double >( max_val ) /
-            std::numeric_limits< InputType >::max();
+            static_cast< double >( std::numeric_limits< InputType >::max() );
   }
 
   auto const ni = src.ni();
@@ -241,23 +239,24 @@ percentile_scale_image(
   dst.set_size( ni, nj, np );
 
   // Stretch image to upper and lower percentile bounds
-  vil_transform( src, dst,
-                 [ lower_bound, upper_bound, scale ]( InputType pixel ){
-                   if( pixel < lower_bound )
-                   {
-                     return static_cast< OutputType >( 0 );
-                   }
-                   else if( pixel > upper_bound )
-                   {
-                     return static_cast< OutputType >( std::numeric_limits< OutputType >
-                                                       ::max() );
-                   }
-                   else
-                   {
-                     return static_cast< OutputType >( ( pixel -
-                                                         lower_bound ) * scale );
-                   }
-                 } );
+  vil_transform(
+    src, dst,
+    [ lower_bound, upper_bound, scale ]( InputType pixel ){
+      if( pixel < lower_bound )
+      {
+        return static_cast< OutputType >( 0 );
+      }
+      else if( pixel > upper_bound )
+      {
+        return static_cast< OutputType >(
+          std::numeric_limits< OutputType >::max() );
+      }
+      else
+      {
+        return static_cast< OutputType >(
+          static_cast< double >( pixel - lower_bound ) * scale );
+      }
+    } );
 }
 
 } // namespace <anonoymous>
@@ -271,7 +270,7 @@ public:
     : format{ "byte" }
       , single_channel{ false }
       , scale_factor{ 0.0 }
-      , random_greyscale{ 0.0 }
+      , random_grayscale{ 0.0 }
       , percentile_norm{ -1.0 }
   {
   }
@@ -287,7 +286,7 @@ public:
   std::string format;
   bool single_channel;
   double scale_factor;
-  double random_greyscale;
+  double random_grayscale;
   double percentile_norm;
 };
 
@@ -298,15 +297,17 @@ convert_image::priv
 ::apply_transforms( vil_image_view_base_sptr& view )
 {
   vil_image_view< ipix_t > output;
-  if( random_greyscale > 0.0 )
+  if( single_channel )
   {
-    vil_image_view< ipix_t > tmp{ view };
-    output = random_grey_conversion( tmp, random_greyscale );
+    combine_channels( static_cast< vil_image_view< ipix_t > >( view ),
+                      output );
   }
-  else if( single_channel )
+  else if( random_grayscale > 0.0 )
   {
-    vil_image_view< ipix_t > tmp{ view };
-    combine_channels( tmp, output );
+    output =
+      random_gray_conversion(
+        static_cast< vil_image_view< ipix_t > >( view ),
+        random_grayscale );
   }
   else
   {
@@ -372,8 +373,8 @@ convert_image
     "scale_factor", d->scale_factor,
     "Optional input value scaling factor" );
   config->set_value(
-    "random_greyscale", d->random_greyscale,
-    "Convert input image to a 3-channel greyscale image randomly with this "
+    "random_grayscale", d->random_grayscale,
+    "Convert input image to a 3-channel grayscale image randomly with this "
     "percentage between 0.0 and 1.0. This is used for machine learning "
     "augmentation." );
   config->set_value(
@@ -401,7 +402,7 @@ convert_image
   d->format = config->get_value< std::string >( "format" );
   d->single_channel = config->get_value< bool >( "single_channel" );
   d->scale_factor = config->get_value< double >( "scale_factor" );
-  d->random_greyscale = config->get_value< double >( "random_greyscale" );
+  d->random_grayscale = config->get_value< double >( "random_grayscale" );
   d->percentile_norm = config->get_value< double >( "percentile_norm" );
 
   // Adjustment in case user specified 1% instead of 0.01
@@ -414,7 +415,7 @@ convert_image
 // ----------------------------------------------------------------------------
 bool
 convert_image
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -435,12 +436,12 @@ convert_image
     vxl::image_container::vital_to_vxl( image_data->get_image() );
 
   // Perform different actions based on input type
-#define HANDLE_OUTPUT_CASE( S, T )                                            \
-  if( d->format == S )                                                        \
-  {                                                                           \
-    using opix_t = vil_pixel_format_type_of< T >::component_type;             \
-    vil_image_view< opix_t > output = d->scale_and_convert< opix_t >( input );\
-    return std::make_shared< vxl::image_container >( output );                \
+#define HANDLE_OUTPUT_CASE( S, T )                                             \
+  if( d->format == S )                                                         \
+  {                                                                            \
+    using opix_t = vil_pixel_format_type_of< T >::component_type;              \
+    vil_image_view< opix_t > output = d->scale_and_convert< opix_t >( input ); \
+    return std::make_shared< vxl::image_container >( output );                 \
   }
 
 #define HANDLE_INPUT_CASE( T )                                                \
@@ -453,7 +454,6 @@ convert_image
     }                                                                         \
     vil_image_view< ipix_t > input = d->apply_transforms< ipix_t >( view );   \
                                                                               \
-    HANDLE_OUTPUT_CASE( "bool", VIL_PIXEL_FORMAT_BOOL );                      \
     HANDLE_OUTPUT_CASE( "byte", VIL_PIXEL_FORMAT_BYTE );                      \
     HANDLE_OUTPUT_CASE( "sbyte", VIL_PIXEL_FORMAT_SBYTE );                    \
     HANDLE_OUTPUT_CASE( "uint16", VIL_PIXEL_FORMAT_UINT_16 );                 \
