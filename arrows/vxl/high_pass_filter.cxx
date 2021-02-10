@@ -188,9 +188,9 @@ high_pass_filter::priv
   PixType diff1 = 0;
   PixType diff2 = 0;
 
-  for( decltype( +nj ) j{ 0 }; j < nj; ++j )
+  for( unsigned j = 0; j < nj; ++j )
   {
-    for( decltype( +nj ) i{ offset }; i < ni - offset; ++i )
+    for( unsigned i = offset; i < ni - offset; ++i )
     {
       PixType const& val = grey( i, j );
       PixType const& avg1 = smoothed( i - offset, j );
