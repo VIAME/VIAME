@@ -3,7 +3,7 @@
 
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence including
 object detection, object tracking, image/video annotation, image/video search, image mosaicing,
-stereo measurement, rapid model generation, and tools for the evaluation of different algorithms.
+size measurement, rapid model generation, and tools for the evaluation of different algorithms.
 Originally targetting marine species analytics, it now contains many common algorithms and libraries,
 and is also useful as a generic computer vision toolkit. It contains a number of standalone tools for
 accomplishing the above, a pipeline framework which can connect C/C++, python, and matlab nodes together
