@@ -13,16 +13,22 @@
 
 #if defined(HAVE_OPENCV_NONFREE) || defined(HAVE_OPENCV_XFEATURES2D)
 
+#include <opencv2/core/version.hpp>
+
 // Include the correct file and unify different namespace locations of SIFT type
 // across versions
-#if KWIVER_OPENCV_VERSION_MAJOR < 3
+#if CV_VERSION_MAJOR < 3
 // 2.4.x header location
 #include <opencv2/nonfree/features2d.hpp>
 typedef cv::SIFT cv_SIFT_t;
-#else
-// 3.x header location
+#elif CV_VERSION_MAJOR < 4 || (CV_VERSION_MAJOR == 4 && CV_VERSION_MINOR < 3)
+// 3.x - 4.2 header location
 #include <opencv2/xfeatures2d/nonfree.hpp>
 typedef cv::xfeatures2d::SIFT cv_SIFT_t;
+#else
+// 4.4+ header location
+#include <opencv2/features2d.hpp>
+typedef cv::SIFT cv_SIFT_t;
 #endif
 
 using namespace kwiver::vital;
