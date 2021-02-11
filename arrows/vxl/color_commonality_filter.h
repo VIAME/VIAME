@@ -30,21 +30,21 @@ public:
   virtual ~color_commonality_filter();
 
   /// Get this algorithm's \link vital::config_block configuration block
-  /// \endlink
+  /// \endlink.
   virtual vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
+  /// Set this algorithm's properties via a config block.
   virtual void set_configuration( vital::config_block_sptr config );
-  /// Check that the algorithm's currently configuration is valid
+  /// Check that the algorithm's currently configuration is valid.
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  /// Perform pixel frequency computation for one frame
+  /// Perform pixel frequency computation for one frame.
   virtual kwiver::vital::image_container_sptr filter(
     kwiver::vital::image_container_sptr image_data );
 
 private:
   class priv;
 
-  const std::unique_ptr< priv > d;
+  std::unique_ptr< priv > const d;
 };
 
 } // namespace vxl
