@@ -15,7 +15,7 @@ namespace arrows {
 
 namespace vxl {
 
-/// VXL Frame Averaging Process
+/// VXL Frame Averaging Process.
 ///
 /// This method contains basic methods for image filtering on top of input
 /// images via performing assorted averaging operations.
@@ -30,14 +30,14 @@ public:
   virtual ~average_frames();
 
   /// Get this algorithm's \link vital::config_block configuration block
-  /// \endlink
+  /// \endlink.
   virtual vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
+  /// Set this algorithm's properties via a config block.
   virtual void set_configuration( vital::config_block_sptr config );
-  /// Check that the algorithm's currently configuration is valid
+  /// Check that the algorithm's currently configuration is valid.
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  /// Average frames temporally
+  /// Average frames temporally.
   virtual kwiver::vital::image_container_sptr filter(
     kwiver::vital::image_container_sptr image_data );
 

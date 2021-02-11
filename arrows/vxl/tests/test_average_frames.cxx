@@ -63,6 +63,7 @@ class average_frames : public ::testing::Test
   TEST_ARG( data_dir );
 };
 
+// ----------------------------------------------------------------------------
 void
 test_averaging_type( kv::path_t data_dir, std::string type,
                      std::vector< std::string > expected_filenames )
