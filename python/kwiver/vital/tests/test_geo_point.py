@@ -36,12 +36,13 @@
 
 import nose.tools as nt
 import numpy as np
+import unittest
 
 from kwiver.vital.types import geo_point as gp, geodesy
 from kwiver.vital.modules import modules
 
 
-class TestVitalGeoPoint(object):
+class TestVitalGeoPoint(unittest.TestCase):
     def setUp(self):
         self.loc1 = np.array([-73.759291, 42.849631])
         self.loc2 = np.array([-73.757161, 42.849764])

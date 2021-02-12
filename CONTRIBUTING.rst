@@ -93,14 +93,23 @@ For further reading, see:
 Coding Style
 ============
 
-When developing KWIVER, please keep to the prevailing style of the code. KWIVER
-uses ``uncrustify`` to assist with style consistency.
+When developing KWIVER, please keep to the prevailing style of the code.
 
 CMake, C++
 ----------
 
 Please refer to the `style guide <doc/code-style.rst>`_ for a detailed
 description and explanation of the coding style we follow.
+
+KWIVER uses ``uncrustify`` to assist with style consistency.
+A `configuration <.uncrustify.cfg>`_ is provided, however, please note that it
+is considered experimental as of uncrustify 0.71, which is known to mis-handle
+some edge cases and is not currently able to enforce all aspects of our desired
+style. It is strongly recommended that you build uncrustify from from sources
+(it requires only a C++ compiler and CMake, both of which you should already
+have if you are doing KWIVER development), as feature additions and bug fixes
+are frequent and older versions, especially those packaged by LTS
+distributionsm, are often prone to misformatting.
 
 Python
 ------

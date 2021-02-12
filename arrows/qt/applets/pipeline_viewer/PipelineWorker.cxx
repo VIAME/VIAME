@@ -37,13 +37,14 @@ PipelineWorker
 ::processOutput( adapter::adapter_data_set_t const& output )
 {
   auto const& iter = output->find( "image" );
-  if ( iter != output->end() )
+
+  if( iter != output->end() )
   {
     auto const& image =
       iter->second->get_datum< vital::image_container_sptr >();
-    if ( image )
+    if( image )
     {
-      if ( auto qi = std::dynamic_pointer_cast< qt_image_container >( image ) )
+      if( auto qi = std::dynamic_pointer_cast< qt_image_container >( image ) )
       {
         emit this->imageAvailable( *qi );
       }

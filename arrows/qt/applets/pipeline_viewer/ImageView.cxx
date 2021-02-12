@@ -35,14 +35,14 @@ void
 ImageViewPrivate
 ::updateTransform( QGraphicsView* view, bool forceUpdate )
 {
-  if ( this->scaleMode == ImageView::FitToWindow )
+  if( this->scaleMode == ImageView::FitToWindow )
   {
-    if ( !this->lastImage.isNull() )
+    if( !this->lastImage.isNull() )
     {
       view->fitInView( &this->imageItem, Qt::KeepAspectRatio );
     }
   }
-  else if ( forceUpdate )
+  else if( forceUpdate )
   {
     view->resetTransform();
   }
@@ -85,7 +85,7 @@ ImageView
 
   d->updatesSuspended = suspend;
 
-  if ( !suspend )
+  if( !suspend )
   {
     displayImage( d->lastImage );
   }
@@ -121,7 +121,7 @@ ImageView
   auto const first = ( d->lastImage.isNull() );
   d->lastImage = image;
 
-  if ( first || !d->updatesSuspended )
+  if( first || !d->updatesSuspended )
   {
     d->imageItem.setPixmap( QPixmap::fromImage( image ) );
     d->updateTransform( this );

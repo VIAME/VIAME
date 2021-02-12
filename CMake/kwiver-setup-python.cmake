@@ -216,6 +216,7 @@ if (KWIVER_ENABLE_TESTS)
 
   message(STATUS "Python and testing enabled.")
   message(STATUS "Searching for Python3 Interp...")
+  set(PYTHON_TEST_EXE "${PYTHON_EXECUTABLE}")
   # locate the python3 install to gather info for venv creation
   # determine if the package is conda
   find_package(Python3 COMPONENTS Interpreter)
@@ -248,8 +249,8 @@ if (KWIVER_ENABLE_TESTS)
                       COMMAND_ECHO STDOUT
                     )
     if (create_venv_result AND NOT create_venv_result EQUAL 0)
-        # could not create venv, report to that effect, Nose may still be found and tests may still be run
-        # but dependencies (including nose) to be met by a pip install are not garunteed
+        # could not create venv, report to that effect, pytest may still be found and tests may still be run
+        # but dependencies (including pytest) to be met by a pip install are not garunteed
         message (WARNING "Virtualenv creation failed. Python tests may not be run or may fail unexpectedly.")
     else()
       set(VENV_CREATED 1)
@@ -275,7 +276,8 @@ if (KWIVER_ENABLE_TESTS)
                 Python tests may be run without garuntee of dependencies")
       else()
         # conda comes with a pip install so this should be flavor agnostic
-        set(PIP_COMMAND "${Python3_EXECUTABLE}" "-m" "pip" "-q")
+        set(PYTHON_TEST_EXE "${Python3_EXECUTABLE}")
+        set(PIP_COMMAND "${PYTHON_TEST_EXE}" "-m" "pip" "-q")
         set(PIP_UPGRADE_COMMAND ${PIP_COMMAND} "install" "--upgrade" "pip")
         set(PIP_INSTALL_TEST_DEPS_COMMAND ${PIP_COMMAND}
                         "install"
@@ -293,35 +295,31 @@ if (KWIVER_ENABLE_TESTS)
   endif()
 
   ###
-  # Pybind11 Bindings Test Runner - nosetests
-  # find virtualenv install of nosetests executable, search for version associated with kwiver
+  # Pybind11 Bindings Test Runner - pytest
+  # find virtualenv install of pytest executable, search for version associated with kwiver
   # first, default to v 3.4, the most recent version provided by pip install
-  # alternatively users can install the version of nose specific
+  # alternatively users can install the version of pytest specific
   # to the version of python they're building the kwiver-python against
   #
   #
   if (VENV_CREATED)
-    set(NOSE_RUNNER "${Python3_EXECUTABLE} -m nose")
-    set(NOSE_LOC "${VENV_DIR}/nose")
+    set(PYTEST_LOC "${VENV_DIR}/pytest")
   else()
-    find_program(NOSE_RUNNER NAMES
-    "nosetests-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-    "nosetests${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-    "nosetests-${PYTHON_VERSION_MAJOR}"
-    "nosetests${PYTHON_VERSION_MAJOR}"
-    "nosetests-3.4"
-    "nosetests3.4"
-    "nosetests")
-    set(NOSE_LOC NOSE_RUNNER)
+    # TODO: once the issue with pytest on the CI machines is resolved, remove import sys and print statement
+    execute_process(COMMAND ${PYTHON_TEST_EXE} "-c" "import pytest; import sys; print(sys.modules['pytest'])"
+                    RESULT_VARIABLE PYTEST_FOUND
+                    OUTPUT_VARIABLE PYTEST_EXE)
+    if(PYTEST_FOUND AND NOT PYTEST_FOUND GREATER 0)
+      set(PYTEST_LOC ${PYTEST_EXE})
+    endif()
   endif()
-  if (NOSE_RUNNER)
-
-    message(STATUS "Found nosetests at ${NOSE_LOC}.\n"
-            "Python tests will be run if testing is enabled. noserunner: ${NOSE_RUNNER}")
-
+  if (PYTEST_LOC)
+    set(PYTEST_RUNNER "${PYTHON_TEST_EXE} -m pytest")
+    message(STATUS "Found pytest at ${PYTEST_LOC}.\n"
+            "Python tests will be run if testing is enabled. pytest runner: ${PYTEST_RUNNER}")
   else()
-    message(STATUS "nosetests not found, Python tests will not be run.\
-           (To run install nosetests compatible with Python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})")
+    message(STATUS "pytest not found, Python tests will not be run.\
+           (To run install pytest compatible with Python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})")
   endif()
 endif()
 
