@@ -22,10 +22,12 @@ set(vxl_headers_public
   high_pass_filter.h
   image_container.h
   image_io.h
+  image_statistics.h
   match_features_constrained.h
   optimize_cameras.h
   polygon.h
   split_image.h
+  threshold.h
   triangulate_landmarks.h
   vil_image_memory.h
   vidl_ffmpeg_video_input.h
@@ -63,6 +65,7 @@ set(vxl_sources
   optimize_cameras.cxx
   polygon.cxx
   split_image.cxx
+  threshold.cxx
   triangulate_landmarks.cxx
   vil_image_memory.cxx
   vidl_ffmpeg_video_input.cxx

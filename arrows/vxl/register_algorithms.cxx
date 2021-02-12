@@ -24,6 +24,7 @@
 #include <arrows/vxl/image_io.h>
 #include <arrows/vxl/optimize_cameras.h>
 #include <arrows/vxl/split_image.h>
+#include <arrows/vxl/threshold.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 #include <arrows/vxl/match_features_constrained.h>
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
@@ -60,6 +61,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< image_io >();
   reg.register_algorithm< optimize_cameras >();
   reg.register_algorithm< split_image >();
+  reg.register_algorithm< threshold >();
   reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< match_features_constrained >();
   reg.register_algorithm< vidl_ffmpeg_video_input >();
