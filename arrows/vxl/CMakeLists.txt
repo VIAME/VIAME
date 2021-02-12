@@ -13,6 +13,7 @@ set(vxl_headers_public
   estimate_fundamental_matrix.h
   estimate_homography.h
   estimate_similarity_transform.h
+  high_pass_filter.h
   image_container.h
   image_io.h
   match_features_constrained.h
@@ -40,6 +41,7 @@ set(vxl_sources
   camera_map.cxx
   close_loops_homography_guided.cxx
   compute_homography_overlap.cxx
+  high_pass_filter.cxx
   estimate_canonical_transform.cxx
   estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
