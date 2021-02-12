@@ -122,14 +122,12 @@ sample_and_sort_image( vil_image_view< PixType > const& src,
   if( remove_extremes )
   {
     constexpr auto low = PixType{ 0 };
-
     while( !dst.empty() && dst.front() == low )
     {
       dst.erase( dst.begin() );
     }
 
     constexpr auto high = std::numeric_limits< PixType >::max();
-
     while( !dst.empty() && dst.back() == high )
     {
       dst.pop_back();
@@ -259,7 +257,7 @@ public:
   // Scale and convert the image
   template < typename opix_t, typename ipix_t >
   vil_image_view< opix_t >
-  scale_and_convert( vil_image_view< ipix_t >& input );
+  scale_and_convert( vil_image_view< ipix_t > const& input );
 
   std::string format;
   bool single_channel;
@@ -268,8 +266,8 @@ public:
   double percentile_norm;
 
   std::random_device random_device;
-  std::mt19937 engine{ random_device() };
-  std::uniform_real_distribution< double > dist{ 0.0, 1.0 };
+  std::mt19937 random_engine{ random_device() };
+  std::uniform_real_distribution< double > random_dist{ 0.0, 1.0 };
 };
 
 // ----------------------------------------------------------------------------
@@ -279,9 +277,7 @@ convert_image::priv
 ::random_gray_conversion( vil_image_view< Type > const& src,
                           double const random_fraction )
 {
-  auto random_value = dist( engine );
-
-  if( random_value < random_fraction )
+  if( random_dist( random_engine ) < random_fraction )
   {
     vil_image_view< Type > compressed;
     combine_channels( src, compressed );
@@ -307,31 +303,30 @@ vil_image_view< ipix_t >
 convert_image::priv
 ::apply_transforms( vil_image_view_base_sptr& view )
 {
-  vil_image_view< ipix_t > output;
-  if( single_channel )
+  if( single_channel && view->nplanes() != 1 )
   {
+    vil_image_view< ipix_t > output;
     combine_channels( static_cast< vil_image_view< ipix_t > >( view ),
                       output );
+    return output;
   }
   else if( random_grayscale > 0.0 )
   {
-    output =
-      random_gray_conversion(
-        static_cast< vil_image_view< ipix_t > >( view ),
-        random_grayscale );
+    return random_gray_conversion(
+      static_cast< vil_image_view< ipix_t > >( view ),
+      random_grayscale );
   }
   else
   {
-    output = view;
+    return view;
   }
-  return output;
 }
 
 // ----------------------------------------------------------------------------
 template < typename opix_t, typename ipix_t >
 vil_image_view< opix_t >
 convert_image::priv
-::scale_and_convert( vil_image_view< ipix_t >& input )
+::scale_and_convert( vil_image_view< ipix_t > const& input )
 {
   vil_image_view< opix_t > output;
   if( percentile_norm >= 0.0 )
