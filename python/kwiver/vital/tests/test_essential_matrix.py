@@ -40,9 +40,10 @@ from kwiver.vital.types import RotationD, RotationF
 
 import nose.tools as nt
 import numpy as np
+import unittest
 
 
-class TestVitalEssentialMatrix(object):
+class TestVitalEssentialMatrix(unittest.TestCase):
     def setUp(self):
         # Matrices
         self.rng = np.random.default_rng()

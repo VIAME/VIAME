@@ -73,6 +73,10 @@ Arrows: Core
 
 Arrows: Ceres
 
+ * Improve logging in bundle_adjust to allow logging per-iteration summaries
+   and independently control logging fully summaries after optimization
+   completes.
+
 Arrows: CUDA
 
 Arrows: FFmpeg

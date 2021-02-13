@@ -38,6 +38,8 @@ public:
   virtual void set_configuration(vital::config_block_sptr config);
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
+  /// Get plane filenames for a given written file
+  std::vector< std::string > plane_filenames( std::string const& filename ) const;
 
 private:
   /// Implementation specific load functionality.

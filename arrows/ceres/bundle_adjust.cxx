@@ -10,6 +10,7 @@
 #include "bundle_adjust.h"
 
 #include <iostream>
+#include <iomanip>
 #include <set>
 #include <unordered_set>
 
@@ -30,25 +31,6 @@ namespace arrows {
 namespace ceres {
 
 // ============================================================================
-// A class to register callbacks with Ceres
-class StateCallback
-  : public ::ceres::IterationCallback
-{
-public:
-  explicit StateCallback(bundle_adjust* b = NULL)
-    : bap(b) {}
-
-  ::ceres::CallbackReturnType operator() ( VITAL_UNUSED const ::ceres::IterationSummary& summary)
-  {
-    return ( bap && !bap->trigger_callback() )
-           ? ::ceres::SOLVER_TERMINATE_SUCCESSFULLY
-           : ::ceres::SOLVER_CONTINUE;
-  }
-
-  bundle_adjust* bap;
-};
-
-// ============================================================================
 // Private implementation class
 class bundle_adjust::priv
   : public solver_options,
@@ -56,18 +38,25 @@ class bundle_adjust::priv
 {
 public:
   // Constructor
-  priv()
+  priv(bundle_adjust* p)
   : solver_options(),
     camera_options(),
+    parent(p),
     verbose(false),
+    log_full_report(false),
     loss_function_type(TRIVIAL_LOSS),
     loss_function_scale(1.0),
-    ceres_callback()
+    ceres_callback(this)
   {
+    options.callbacks.push_back(&ceres_callback);
   }
 
+  // pointer to the parent bundle_adjust class
+  bundle_adjust* parent;
   // verbose output
   bool verbose;
+  // log a full report at the end of optimization
+  bool log_full_report;
   // the robust loss function type to use
   LossFunctionType loss_function_type;
   // the scale of the loss function
@@ -85,6 +74,49 @@ public:
   std::vector<std::vector<double> > camera_intr_params;
   // a map from frame number to index of unique camera intrinsics in camera_intr_params
   std::unordered_map<frame_id_t, unsigned int> frame_to_intr_map;
+
+  // ==========================================================================
+  // A class to register callbacks with Ceres
+  class StateCallback
+    : public ::ceres::IterationCallback
+  {
+  public:
+    explicit StateCallback(bundle_adjust::priv* p)
+      : parent(p) {}
+
+    ::ceres::CallbackReturnType
+      operator() (const ::ceres::IterationSummary& summary)
+    {
+      if (!parent || !parent->parent)
+      {
+        return ::ceres::SOLVER_CONTINUE;
+      }
+      bundle_adjust& ba = *parent->parent;
+      if (parent->verbose)
+      {
+        if (summary.iteration == 0)
+        {
+          LOG_DEBUG(ba.logger(),
+            "iter         cost  cost_change   |gradient|       "
+            "|step|  iter_time total_time");
+        }
+        LOG_DEBUG(ba.logger(),
+          std::setw(4) << summary.iteration << " "
+          << std::setw(12) << summary.cost << " "
+          << std::setw(12) << summary.cost_change << " "
+          << std::setw(12) << summary.gradient_max_norm << " "
+          << std::setw(12) << summary.step_norm << " "
+          << std::setw(10) << summary.iteration_time_in_seconds << " "
+          << std::setw(10) << summary.cumulative_time_in_seconds);
+      }
+      return (ba.trigger_callback())
+        ? ::ceres::SOLVER_CONTINUE
+        : ::ceres::SOLVER_TERMINATE_SUCCESSFULLY;
+    }
+
+    bundle_adjust::priv* parent;
+  };
+
   // the ceres callback class
   StateCallback ceres_callback;
 };
@@ -93,10 +125,9 @@ public:
 // Constructor
 bundle_adjust
 ::bundle_adjust()
-: d_(new priv)
+: d_(new priv(this))
 {
   attach_logger( "arrows.ceres.bundle_adjust" );
-  d_->ceres_callback.bap = this;
 }
 
 // Destructor
@@ -115,7 +146,10 @@ bundle_adjust
   config_block_sptr config = vital::algo::bundle_adjust::get_configuration();
   config->set_value("verbose", d_->verbose,
                     "If true, write status messages to the terminal showing "
-                    "optimization progress at each iteration");
+                    "optimization progress at each iteration.");
+  config->set_value("log_full_report", d_->log_full_report,
+                    "If true, log a full report of optimization stats at "
+                    "the end of optimization.");
   config->set_value("loss_function_type", d_->loss_function_type,
                     "Robust loss function type to use."
                     + ceres_options< ceres::LossFunctionType >());
@@ -145,9 +179,10 @@ bundle_adjust
 
   d_->verbose = config->get_value<bool>("verbose",
                                         d_->verbose);
-  o.minimizer_progress_to_stdout = d_->verbose;
-  o.logging_type = d_->verbose ? ::ceres::PER_MINIMIZER_ITERATION
-                               : ::ceres::SILENT;
+  d_->log_full_report = config->get_value<bool>("log_full_report",
+                                                d_->log_full_report);
+  o.minimizer_progress_to_stdout = false;
+  o.logging_type = ::ceres::SILENT;
   typedef ceres::LossFunctionType clf_t;
   d_->loss_function_type = config->get_value<clf_t>("loss_function_type",
                                                     d_->loss_function_type);
@@ -159,12 +194,6 @@ bundle_adjust
 
   // set the camera configuation options
   d_->camera_options::set_configuration(config);
-
-  if(this->m_callback)
-  {
-    o.callbacks.clear();
-    o.callbacks.push_back(&d_->ceres_callback);
-  }
 }
 
 // ----------------------------------------------------------------------------
@@ -542,7 +571,7 @@ bundle_adjust
 
   ::ceres::Solver::Summary summary;
   ::ceres::Solve(d_->options, &problem, &summary);
-  if( d_->verbose )
+  if( d_->log_full_report )
   {
     LOG_DEBUG(logger(), "Ceres Full Report:\n" << summary.FullReport());
   }
@@ -567,12 +596,6 @@ bundle_adjust
 ::set_callback(callback_t cb)
 {
   kwiver::vital::algo::bundle_adjust::set_callback(cb);
-  ::ceres::Solver::Options& o = d_->options;
-  o.callbacks.clear();
-  if(this->m_callback)
-  {
-    o.callbacks.push_back(&d_->ceres_callback);
-  }
 }
 
 // ----------------------------------------------------------------------------

@@ -4,8 +4,8 @@
 
 #include "kwiver_pipeline_viewer_export.h"
 
-#include <vital/plugin_loader/plugin_loader.h>
 #include <vital/applets/applet_registrar.h>
+#include <vital/plugin_loader/plugin_loader.h>
 
 #include "pipeline_viewer.h"
 
@@ -19,7 +19,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   kwiver::applet_registrar reg( vpm, "QT_tool_group" );
 
-  if (reg.is_module_loaded())
+  if( reg.is_module_loaded() )
   {
     return;
   }

@@ -55,9 +55,9 @@ template <>
 void
 populate_qt_image< bool, 1 >( QImage& img )
 {
-  for ( auto const j : range::iota( img.height() ) )
+  for( auto const j : range::iota( img.height() ) )
   {
-    for ( auto const i : range::iota( img.width() ) )
+    for( auto const i : range::iota( img.width() ) )
     {
       auto const y = value_at( i, j, 0 );
       img.setPixel( i, j, y >= 0.5 ? 1 : 0 );
@@ -71,9 +71,9 @@ template <>
 void
 populate_qt_image< byte, 1 >( QImage& img )
 {
-  for ( auto const j : range::iota( img.height() ) )
+  for( auto const j : range::iota( img.height() ) )
   {
-    for ( auto const i : range::iota( img.width() ) )
+    for( auto const i : range::iota( img.width() ) )
     {
       auto const y = value_at( i, j, 0 );
       img.setPixelColor( i, j, QColor::fromRgbF( y, y, y ) );
@@ -87,9 +87,9 @@ template <>
 void
 populate_qt_image< byte, 3 >( QImage& img )
 {
-  for ( auto j : range::iota( img.height() ) )
+  for( auto j : range::iota( img.height() ) )
   {
-    for ( auto i : range::iota( img.width() ) )
+    for( auto i : range::iota( img.width() ) )
     {
       auto const r = value_at( i, j, 0 );
       auto const g = value_at( i, j, 1 );
@@ -105,9 +105,9 @@ template <>
 void
 populate_qt_image< byte, 4 >( QImage& img )
 {
-  for ( auto j : range::iota( img.height() ) )
+  for( auto j : range::iota( img.height() ) )
   {
-    for ( auto i : range::iota( img.width() ) )
+    for( auto i : range::iota( img.width() ) )
     {
       auto const r = value_at( i, j, 0 );
       auto const g = value_at( i, j, 1 );
@@ -122,7 +122,7 @@ populate_qt_image< byte, 4 >( QImage& img )
 QImage::Format
 native_format( QImage::Format format )
 {
-  switch ( format )
+  switch( format )
   {
     case QImage::Format_RGB888:
       return QImage::Format_RGB32;
@@ -332,9 +332,9 @@ run_qt_conversion_tests( QImage const& img )
   ASSERT_FALSE( ::testing::Test::HasNonfatalFailure() );
 
   [ & ]{
-    for ( auto const j : range::iota( img.height() ) )
+    for( auto const j : range::iota( img.height() ) )
     {
-      for ( auto const i : range::iota( img.width() ) )
+      for( auto const i : range::iota( img.width() ) )
       {
         compare_pixels< pix_t, T::depth >( img, vimg, i, j );
         ASSERT_FALSE( ::testing::Test::HasNonfatalFailure() )
@@ -372,9 +372,9 @@ run_vital_conversion_tests( image_of< typename T::pixel_type > const& img )
   ASSERT_FALSE( ::testing::Test::HasNonfatalFailure() );
 
   [ & ]{
-    for ( auto const j : range::iota( img.height() ) )
+    for( auto const j : range::iota( img.height() ) )
     {
-      for ( auto const i : range::iota( img.width() ) )
+      for( auto const i : range::iota( img.width() ) )
       {
         compare_pixels< pix_t, T::depth >( img, qimg, i, j );
         ASSERT_FALSE( ::testing::Test::HasNonfatalFailure() )

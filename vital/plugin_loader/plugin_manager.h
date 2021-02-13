@@ -17,6 +17,7 @@
 #include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
 #include <vital/util/demangle.h>
+#include <vital/bitflags.h>
 #include <vital/noncopyable.h>
 
 #include <memory>
@@ -50,6 +51,7 @@ public:
     DEFAULT    = 0x00f7,
     ALL        = 0xffff
   };
+  KWIVER_DECLARE_BITFLAGS( plugin_types, plugin_type );
 
   static plugin_manager& instance();  // singleton interface
 
@@ -69,7 +71,7 @@ public:
    *
    * @throws plugin_already_exists - if a duplicate plugin is detected
    */
-  void load_all_plugins( plugin_type type = plugin_type::DEFAULT );
+  void load_all_plugins( plugin_types types = plugin_type::DEFAULT );
 
   /**
    * @brief Load plugins from list of directories.
@@ -413,6 +415,8 @@ public:
     : implementation_factory<T>( kwiver::vital::plugin_factory::PLUGIN_NAME )
   { }
 };
+
+KWIVER_DECLARE_OPERATORS_FOR_BITFLAGS( plugin_manager::plugin_types )
 
 } } // end namespace
 
