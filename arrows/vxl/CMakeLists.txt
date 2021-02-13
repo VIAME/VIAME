@@ -2,6 +2,7 @@
 # structures
 
 set(vxl_headers_public
+  aligned_edge_detection.h
   bounding_box.h
   bundle_adjust.h
   camera.h
@@ -37,6 +38,7 @@ kwiver_install_headers(
   )
 
 set(vxl_sources
+  aligned_edge_detection.cxx
   bundle_adjust.cxx
   camera.cxx
   camera_map.cxx
