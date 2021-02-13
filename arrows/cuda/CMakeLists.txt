@@ -1,3 +1,6 @@
+
+set(CMAKE_FOLDER "Arrows/CUDA")
+
 set(header_files
   integrate_depth_maps.h
   )

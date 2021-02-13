@@ -1,5 +1,7 @@
 # Build / Install Plugin containing core algorithm implementations
 
+set(CMAKE_FOLDER "Arrows/Core")
+
 set( plugin_core_headers
   associate_detections_to_tracks_threshold.h
   class_probablity_filter.h

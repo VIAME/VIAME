@@ -1,6 +1,8 @@
 # Build / Install plugin containing ffmpeg algorithm implementations + support
 # structures
 
+set(CMAKE_FOLDER "Arrows/FFmpeg")
+
 include_directories(${FFMPEG_INCLUDE_DIR})
 
 if (NOT FFMPEG_FOUND_SEVERAL)

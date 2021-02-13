@@ -2,6 +2,7 @@
 # Top level build for VITAL
 #
 project( vital )
+set(CMAKE_FOLDER "Vital")
 
 ###
 # KWSys

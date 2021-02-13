@@ -19,6 +19,9 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+# Organize target into folders for IDEs that support it
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 ###
 # Look for and use Fletch to find dependencies
 #

@@ -1,6 +1,8 @@
 ###
 # algorithms/proj
 
+set(CMAKE_FOLDER "Arrows/PROJ")
+
 set(proj_headers_public
   )
 
