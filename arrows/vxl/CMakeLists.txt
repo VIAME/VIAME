@@ -2,11 +2,13 @@
 # structures
 
 set(vxl_headers_public
+  aligned_edge_detection.h
   bounding_box.h
   bundle_adjust.h
   camera.h
   camera_map.h
   close_loops_homography_guided.h
+  color_commonality_filter.h
   compute_homography_overlap.h
   convert_image.h
   estimate_canonical_transform.h
@@ -37,10 +39,12 @@ kwiver_install_headers(
   )
 
 set(vxl_sources
+  aligned_edge_detection.cxx
   bundle_adjust.cxx
   camera.cxx
   camera_map.cxx
   close_loops_homography_guided.cxx
+  color_commonality_filter.cxx
   compute_homography_overlap.cxx
   convert_image.cxx
   estimate_canonical_transform.cxx
@@ -72,6 +76,7 @@ target_link_libraries( kwiver_algo_vxl
                        rrel rsdl
                        vnl
                        vidl
+                       vil_algo
                        vgl_algo
                        vpgl_algo
                        kwiversys
