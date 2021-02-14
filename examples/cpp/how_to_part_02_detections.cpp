@@ -52,7 +52,7 @@ void how_to_part_02_detections()
   cv::imshow("Hough Detections", hough_mat);                     // Show our image inside it.
   cv::waitKey(5);
   kwiversys::SystemTools::Delay(2000);                                       // Wait for 2s
-  cvDestroyWindow("Hough Detections");
+  cv::destroyWindow("Hough Detections");
 
   // Next, let's look at the detection data structures and we can make them
 
@@ -118,7 +118,7 @@ void how_to_part_02_detections()
   cv::imshow("Detections", mat);                     // Show our image inside it.
   cv::waitKey(5);
   kwiversys::SystemTools::Delay(2000);                                       // Wait for 2s
-  cvDestroyWindow("Detections");
+  cv::destroyWindow("Detections");
 
   kwiver::vital::algo::detected_object_set_output_sptr kpf_writer = kwiver::vital::algo::detected_object_set_output::create("kpf_output");
   kwiver::vital::algo::detected_object_set_input_sptr kpf_reader = kwiver::vital::algo::detected_object_set_input::create("kpf_input");

@@ -77,7 +77,7 @@ void how_to_part_01_images()
   cv::imshow("Image loaded by OpenCV", mat);                     // Show our image inside it.
   cv::waitKey(5);
   kwiversys::SystemTools::Delay(2000);                                                   // Wait for 2s
-  cvDestroyWindow("Image loaded by OpenCV");
+  cv::destroyWindow("Image loaded by OpenCV");
 
   // We can do the same, even if the image was originally loaded with VXL
   mat = kwiver::arrows::ocv::image_container::vital_to_ocv(vxl_img->get_image(), kwiver::arrows::ocv::image_container::RGB_COLOR);
@@ -85,7 +85,7 @@ void how_to_part_01_images()
   cv::imshow("Image loaded by VXL", mat);                     // Show our image inside it.
   cv::waitKey(5);
   kwiversys::SystemTools::Delay(2000);                                                // Wait for 2s
-  cvDestroyWindow("Image loaded by VXL");
+  cv::destroyWindow("Image loaded by VXL");
 
   //////////////////
   // Image Filter //
@@ -110,7 +110,7 @@ void how_to_part_01_images()
     cv::imshow("OpenCV Split Image", mat);                     // Show our image inside it.
     cv::waitKey(5);
     kwiversys::SystemTools::Delay(2000);                                               // Wait for 2s
-    cvDestroyWindow("OpenCV Split Image");
+    cv::destroyWindow("OpenCV Split Image");
   }
 
   std::vector<kwiver::vital::image_container_sptr> vxl_imgs = ocv_split->split(ocv_img);
@@ -121,7 +121,7 @@ void how_to_part_01_images()
     cv::imshow("VXL Split Image", mat);                     // Show our image inside it.
     cv::waitKey(5);
     kwiversys::SystemTools::Delay(2000);                                            // Wait for 2s
-    cvDestroyWindow("VXL Split Image");
+    cv::destroyWindow("VXL Split Image");
   }
 
 }
