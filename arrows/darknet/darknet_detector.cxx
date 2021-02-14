@@ -47,25 +47,7 @@
 #include <exception>
 #include <limits>
 
-// Since we need to wrap darknet.h in an extern C
-// We need to include CUDA/CUDNN before darknet does
-// so C++ gets a hold of them first
-// We may want to wrap all the declarations in darknet.h in
-// an extern C rather than have to do it here.
-
-#ifdef DARKNET_USE_GPU
-  #define GPU
-  #include "cuda_runtime.h"
-  #include "curand.h"
-  #include "cublas_v2.h"
-  #ifdef DARKNET_USE_CUDNN
-    #define CUDNN
-    #include "cudnn.h"
-  #endif
-#endif
-extern "C" {
-#include "darknet.h"
-}
+#include "darknet/yolo_v2_class.hpp"
 
 namespace kwiver {
 namespace arrows {
@@ -87,13 +69,10 @@ public:
     , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
     , m_is_first( true )
-    , m_names( 0 )
-  { }
+    , m_names()
+  {}
 
-  ~priv()
-  {
-    free( m_names );
-  }
+  ~priv() {}
 
   // Items from the config
   std::string m_net_config;
@@ -114,8 +93,8 @@ public:
   bool m_is_first;
 
   // Needed to operate the model
-  char **m_names;                 /* list of classes/labels */
-  network m_net;
+  std::vector< std::string > m_names;
+  std::unique_ptr< Detector > m_net;
 
   // Helper functions
   struct region_info
@@ -138,10 +117,6 @@ public:
     double scale2;
   };
 
-  image cvmat_to_image(
-    const cv::Mat& src ,
-    unsigned max_channels = std::numeric_limits< unsigned >::max() );
-
   std::vector< vital::detected_object_set_sptr > process_images(
     const std::vector< cv::Mat >& cv_image );
 
@@ -160,9 +135,6 @@ darknet_detector
 {
   attach_logger( "arrows.darknet.darknet_detector" );
   d->m_logger = logger();
-
-  // set darknet global GPU index
-  gpu_index = d->m_gpu_index;
 }
 
 
@@ -223,39 +195,24 @@ darknet_detector
 
   config->merge_config( config_in );
 
-  this->d->m_net_config  = config->get_value< std::string >( "net_config" );
-  this->d->m_weight_file = config->get_value< std::string >( "weight_file" );
-  this->d->m_class_names = config->get_value< std::string >( "class_names" );
-  this->d->m_thresh      = config->get_value< float >( "thresh" );
-  this->d->m_hier_thresh = config->get_value< float >( "hier_thresh" );
-  this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
-  this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
-  this->d->m_scale       = config->get_value< double >( "scale" );
-  this->d->m_chip_step   = config->get_value< int >( "chip_step" );
-  this->d->m_nms_threshold = config->get_value< double >( "nms_threshold" );
-  this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
-  this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
-  this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
+  d->m_net_config  = config->get_value< std::string >( "net_config" );
+  d->m_weight_file = config->get_value< std::string >( "weight_file" );
+  d->m_class_names = config->get_value< std::string >( "class_names" );
+  d->m_thresh      = config->get_value< float >( "thresh" );
+  d->m_hier_thresh = config->get_value< float >( "hier_thresh" );
+  d->m_gpu_index   = config->get_value< int >( "gpu_index" );
+  d->m_resize_option = config->get_value< std::string >( "resize_option" );
+  d->m_scale       = config->get_value< double >( "scale" );
+  d->m_chip_step   = config->get_value< int >( "chip_step" );
+  d->m_nms_threshold = config->get_value< double >( "nms_threshold" );
+  d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
+  d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
+  d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
 
-  /* the size of this array is a mystery - probably has to match some
-   * constant in net description */
+  // TODO Open file and return 'list' of labels
+  //d->m_names = 
 
-#ifdef DARKNET_USE_GPU
-  if( d->m_gpu_index >= 0 )
-  {
-    cuda_set_device( d->m_gpu_index );
-  }
-#endif
-
-  // Open file and return 'list' of labels
-  d->m_names = get_labels( const_cast< char* >( d->m_class_names.c_str() ) );
-
-  network* net = load_network( const_cast< char* >( d->m_net_config.c_str() ),
-                               const_cast< char* >( d->m_weight_file.c_str() ), 0 );
-  d->m_net = *net;
-  free( net );
-
-  set_batch_network( &d->m_net, 1 );
+  d->m_net.reset( new Detector( d->m_net_config, d->m_weight_file, d->m_gpu_index ) );
 
   // This assumes that there are no other users of random number
   // generator in this application.
@@ -350,7 +307,8 @@ darknet_detector
   if( d->m_resize_option != "disabled" )
   {
     scale_factor = format_image( cv_image, cv_resized_image,
-      d->m_resize_option, d->m_scale, d->m_net.w, d->m_net.h );
+      d->m_resize_option, d->m_scale,
+      d->m_net->get_net_width(), d->m_net->get_net_height() );
   }
   else
   {
@@ -383,16 +341,16 @@ darknet_detector
   {
     // Chip up scaled image
     for( int li = 0;
-         li < cv_resized_image.cols - d->m_net.w + d->m_chip_step;
+         li < cv_resized_image.cols - d->m_net->get_net_width() + d->m_chip_step;
          li += d->m_chip_step )
     {
-      int ti = std::min( li + d->m_net.w, cv_resized_image.cols );
+      int ti = std::min( li + d->m_net->get_net_width(), cv_resized_image.cols );
 
       for( int lj = 0;
-           lj < cv_resized_image.rows - d->m_net.h + d->m_chip_step;
+           lj < cv_resized_image.rows - d->m_net->get_net_height() + d->m_chip_step;
            lj += d->m_chip_step )
       {
-        int tj = std::min( lj + d->m_net.h, cv_resized_image.rows );
+        int tj = std::min( lj + d->m_net->get_net_height(), cv_resized_image.rows );
 
         cv::Rect resized_roi( li, lj, ti-li, tj-lj );
         cv::Rect original_roi( li / scale_factor,
@@ -404,7 +362,7 @@ darknet_detector
         cv::Mat scaled_crop, tmp_cropped;
 
         double scaled_crop_scale = scale_image_maintaining_ar(
-          cropped_chip, scaled_crop, d->m_net.w, d->m_net.h );
+          cropped_chip, scaled_crop, d->m_net->get_net_width(), d->m_net->get_net_height() );
 
         regions_to_process.push_back( scaled_crop );
 
@@ -423,7 +381,7 @@ darknet_detector
       cv::Mat scaled_original;
 
       double scaled_original_scale = scale_image_maintaining_ar( cv_image,
-        scaled_original, d->m_net.w, d->m_net.h );
+        scaled_original, d->m_net->get_net_width(), d->m_net->get_net_height() );
 
       if( d->m_gs_to_rgb && scaled_original.channels() == 1 )
       {
@@ -440,7 +398,7 @@ darknet_detector
   }
 
   // Process all regions
-  unsigned max_count = d->m_net.batch;
+  unsigned max_count = 1;
 
   for( unsigned i = 0; i < regions_to_process.size(); i+= max_count )
   {
@@ -471,242 +429,28 @@ std::vector< vital::detected_object_set_sptr >
 darknet_detector::priv
 ::process_images( const std::vector< cv::Mat >& cv_images )
 {
-  // set batch size to 1 if on the first frame we're just given 1 frame, it's
-  // almost guaranteed on all other frames we'll also just be given one. Why
-  // use batching then?
-  if( m_is_first )
-  {
-    if( cv_images.size() == 1 && m_net.batch != 1 )
-    {
-      set_batch_network( &m_net, 1 );
-    }
-    m_is_first = false;
-  }
-
-  // copies and converts to floating pixel value.
-  unsigned image_size = m_net.w * m_net.h * m_net.c;
-  float* X = static_cast< float* >( calloc( m_net.batch * image_size, sizeof( float ) ) );
-  layer l = m_net.layers[ m_net.n - 1 ]; /* last network layer */
-
-  for( unsigned i = 0; i < cv_images.size(); i++ )
-  {
-    // Error checking
-    if( cv_images[i].channels() != m_net.c && !( cv_images[i].channels() == 5 && m_net.c == 3 ) )
-    {
-      throw std::runtime_error( "Model channel count (" + std::to_string( m_net.c ) + ") "
-        + "does not match input image count (" + std::to_string( cv_images[i].channels() ) + ")" );
-    }
-
-    // Copy in image
-    image img = cvmat_to_image( cv_images[i], m_net.c );
-
-    if( img.w == m_net.w && img.h == m_net.h )
-    {
-      memcpy( X + i * image_size, img.data, image_size * sizeof( float ) );
-    }
-    else
-    {
-      image sized = resize_image( img, m_net.w, m_net.h );
-      memcpy( X + i * image_size, sized.data, image_size * sizeof( float ) );
-      free_image( sized );
-    }
-
-    free_image( img );
-  }
-
-  /* run image through network */
-  network_predict( &m_net, X );
-
-  /* get boxes around detected objects */
   std::vector< vital::detected_object_set_sptr > output;
 
-  std::vector< float* > original_outputs( m_net.n );
-
-  if( cv_images.size() > 1 )
-  {
-    for( int j = 0; j < m_net.n; j++ )
-    {
-      layer *l = &( m_net.layers[j] );
-
-      if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
-      {
-        original_outputs[j] = l->output;
-      }
-    }
-  }
-
   for( unsigned i = 0; i < cv_images.size(); i++ )
   {
+    auto darknet_output = m_net->detect( cv_images[i], m_thresh );
     auto detected_objects = std::make_shared< vital::detected_object_set >();
 
-    int det_count;
-
-    detection* dets = get_network_boxes(
-      &m_net,
-      m_net.w, m_net.h, /* i: w, h */
-      m_thresh,         /* i: caller supplied threshold */
-      m_hier_thresh,    /* i: tree thresh, relative */
-      0,                /* i: map */
-      1,                /* i: tree thresh, relative */
-      &det_count );     /* i: number of detections */
-
-    if( l.softmax_tree && m_nms_threshold )
+    for( const auto& det : darknet_output )
     {
-      do_nms_obj( dets, det_count, l.classes, m_nms_threshold );
+      kwiver::vital::bounding_box_d bbox( det.x, det.y, det.x + det.w, det.y + det.h );
+      auto dot = std::make_shared< kwiver::vital::detected_object_type >(
+        m_names[ det.obj_id ], det.prob );
+
+      detected_objects->add(
+        std::make_shared< kwiver::vital::detected_object >(
+          bbox, det.prob, dot ) );
     }
-    else if( m_nms_threshold )
-    {
-      do_nms_sort( dets, det_count, l.classes, m_nms_threshold );
-    }
-    else
-    {
-      LOG_ERROR( m_logger, "Internal error - nms == 0" );
-    }
-
-    // -- extract detections and convert to our format --
-    for( int d = 0; d < det_count; ++d )
-    {
-      const box b = dets[d].bbox;
-
-      int left  = ( b.x - b.w / 2. ) * m_net.w;
-      int right = ( b.x + b.w / 2. ) * m_net.w;
-      int top   = ( b.y - b.h / 2. ) * m_net.h;
-      int bot   = ( b.y + b.h / 2. ) * m_net.h;
-
-      /* clip box to image bounds */
-      if( left < 0 )
-      {
-        left = 0;
-      }
-      if( right > m_net.w - 1 )
-      {
-        right = m_net.w - 1;
-      }
-      if( top < 0 )
-      {
-        top = 0;
-      }
-      if( bot > m_net.h - 1 )
-      {
-        bot = m_net.h - 1;
-      }
-
-      kwiver::vital::bounding_box_d bbox( left, top, right, bot );
-
-      auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-      bool has_name = false;
-
-      // Iterate over all classes and collect all names over the threshold
-      double conf = 0.0;
-
-      for( int class_idx = 0; class_idx < l.classes; ++class_idx )
-      {
-        const double prob = static_cast< double >( dets[d].prob[class_idx] );
-
-        if( prob >= m_thresh )
-        {
-          const std::string class_name( m_names[ class_idx ] );
-          dot->set_score( class_name, prob );
-          conf = std::max( conf, prob );
-          has_name = true;
-        }
-      }
-
-      if( has_name )
-      {
-        detected_objects->add(
-          std::make_shared< kwiver::vital::detected_object >(
-            bbox, conf, dot ) );
-      }
-    }
-
-    free_detections( dets, det_count );
 
     output.push_back( detected_objects );
-
-    if( cv_images.size() > 1 )
-    {
-      for( int j = 0; j < m_net.n; j++ )
-      {
-        layer *l = &( m_net.layers[j] );
-
-        if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
-        {
-          l->output += l->outputs;
-        }
-      }
-    }
   }
-
-  if( cv_images.size() > 1 )
-  {
-    for( int j = 0; j < m_net.n; j++ )
-    {
-      layer *l = &( m_net.layers[j] );
-
-      if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
-      {
-        l->output = original_outputs[j];
-      }
-    }
-  }
-
-  free( X );
 
   return output;
-}
-
-
-image
-darknet_detector::priv
-::cvmat_to_image( const cv::Mat& src, unsigned max_channels )
-{
-  unsigned h = src.rows;
-  unsigned w = src.cols;
-  unsigned c = std::min( static_cast< unsigned >( src.channels() ), max_channels );
-
-  unsigned istep = src.step[ 1 ];
-  unsigned jstep = src.step[ 0 ];
-
-  image out = make_image( w, h, c );
-
-  unsigned int i, j, k;
-
-  unsigned char* input = (unsigned char*)src.data;
-  float* output = out.data;
-
-  if( src.depth() == CV_8U )
-  {
-    for( k = 0; k < c; k++ )
-    {
-      for( j = 0; j < h; j++ )
-      {
-        for( i = 0; i < w; i++, output++ )
-        {
-          *output = input[j*jstep + i*istep + k] / 255.;
-        }
-      }
-    }
-  }
-  else if( src.depth() == CV_16U )
-  {
-    for( k = 0; k < c; k++ )
-    {
-      for( j = 0; j < h; j++ )
-      {
-        for( i = 0; i < w; i++, output++ )
-        {
-          *output = *(unsigned short*)(input + j*jstep + i*istep + k) / 65535.;
-        }
-      }
-    }
-  }
-  else
-  {
-    throw std::runtime_error( "Invalid image type received" );
-  }
-
-  return out;
 }
 
 
