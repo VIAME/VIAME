@@ -6,6 +6,8 @@ option( KWIVER_ENABLE_VTK
   )
 
 if( KWIVER_ENABLE_VTK )
+  find_package(VTK)
+  if(VTK_VERSION VERSION_LESS 9.0)
     find_package(VTK REQUIRED
         COMPONENTS
         vtkCommonCore
@@ -21,6 +23,18 @@ if( KWIVER_ENABLE_VTK )
             "(Found ${VTK_VERSION})")
     endif()
 
-  include(${VTK_USE_FILE})
+    include(${VTK_USE_FILE})
+  else()
+    find_package(VTK REQUIRED
+        COMPONENTS
+        CommonCore
+        CommonDataModel
+        IOXML
+        IOPLY
+        IOGeometry
+        RenderingCore
+        RenderingOpenGL2
+        )
+  endif()
 
 endif( KWIVER_ENABLE_VTK )

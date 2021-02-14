@@ -20,6 +20,18 @@ if(NOT KWIVER_ENABLE_MVG)
   message(FATAL_ERROR "-- The MVG arrow must be enabled (KWIVER_ENABLE_MVG)")
 endif()
 
+if(VTK_VERSION VERSION_LESS 9.0)
+  set(VTK_targets vtkFiltersCore
+                  vtkIOGeometry
+                  vtkIOPLY
+                  vtkIOXML)
+else()
+  set(VTK_targets VTK::FiltersCore
+                  VTK::IOGeometry
+                  VTK::IOPLY
+                  VTK::IOXML)
+endif()
+
 # Add applet plugin
 kwiver_add_plugin( kwiver_algo_vtk_applets
   SUBDIR       ${kwiver_plugin_applets_subdir}
@@ -29,8 +41,5 @@ kwiver_add_plugin( kwiver_algo_vtk_applets
                kwiver_algo_vtk
                kwiver_tools_applet
                kwiversys
-               vtkFiltersCore
-               vtkIOGeometry
-               vtkIOPLY
-               vtkIOXML
+               ${VTK_targets}
   )
