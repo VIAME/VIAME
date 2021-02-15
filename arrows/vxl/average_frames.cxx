@@ -659,7 +659,7 @@ average_frames
   {                                                              \
     using pix_t = vil_pixel_format_type_of< T >::component_type; \
     vil_image_view< pix_t > input = view;                        \
-    d->process_frame( input );                                   \
+    return d->process_frame( input );                            \
     break;                                                       \
   }
 
