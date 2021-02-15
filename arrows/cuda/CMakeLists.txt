@@ -1,3 +1,6 @@
+
+project(kwiver_arrow_cuda LANGUAGES CXX CUDA)
+
 set(header_files
   integrate_depth_maps.h
   )
@@ -7,21 +10,16 @@ set(private_header_files
   cuda_memory.h
   )
 
-set(cxx_files
+set(source_files
   cuda_error_check.cxx
   integrate_depth_maps.cxx
+  integrate_depth_maps.cu
   )
 
 kwiver_install_headers(
   SUBDIR     arrows/cuda
   ${header_files}
   )
-
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --gpu-architecture sm_30)
-if (UNIX AND NOT APPLE)
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --compiler-options '-fPIC')
-endif ()
-cuda_compile( CUDA_COMPILE_O integrate_depth_maps.cu OPTIONS -G)
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_cuda_export.h
@@ -31,17 +29,18 @@ kwiver_install_headers(
 kwiver_add_library( kwiver_algo_cuda
   ${header_files}
   ${private_header_files}
-  ${cxx_files}
-  ${CUDA_COMPILE_O}
+  ${source_files}
   )
+
+set_target_properties(kwiver_algo_cuda
+  PROPERTIES   POSITION_INDEPENDENT_CODE ON
+               CUDA_SEPARABLE_COMPILATION ON)
 
 target_link_libraries( kwiver_algo_cuda
   PUBLIC               vital_algo
   PRIVATE              kwiver_algo_core
-                       ${CUDA_LIBRARIES}
 )
 
 algorithms_create_plugin( kwiver_algo_cuda
   register_algorithms.cxx
   )
-
