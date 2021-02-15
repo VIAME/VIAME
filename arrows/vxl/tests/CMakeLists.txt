@@ -1,5 +1,7 @@
 project(arrows_test_vxl)
 
+set(CMAKE_FOLDER "Arrows/VXL/Tests")
+
 include(kwiver-test-setup)
 
 set(test_libraries     kwiver_algo_vxl)

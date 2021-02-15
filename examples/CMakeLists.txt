@@ -1,3 +1,4 @@
+set(CMAKE_FOLDER "Examples")
 set(EXAMPLE_DIR ${CMAKE_BINARY_DIR}/examples)
 file(MAKE_DIRECTORY "${EXAMPLE_DIR}/pipelines/output")
 

@@ -1,5 +1,7 @@
 project( kpf_tests )
 
+set(CMAKE_FOLDER "Arrows/KPF/Tests")
+
 include( kwiver-test-setup )
 
 set( test_libraries kpf_yaml )

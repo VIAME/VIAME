@@ -1,5 +1,7 @@
 # Build / Install Plugin containing UUID algorithm implementations
 
+set(CMAKE_FOLDER "Arrows/UUID")
+
 set( plugin_headers
   uuid_factory_uuid.h
   )

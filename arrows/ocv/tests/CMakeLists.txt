@@ -1,5 +1,7 @@
 project(arrows_test_ocv)
 
+set(CMAKE_FOLDER "Arrows/OCV/Tests")
+
 include(kwiver-test-setup)
 
 set(test_libraries      vital vital_vpm kwiver_algo_ocv)

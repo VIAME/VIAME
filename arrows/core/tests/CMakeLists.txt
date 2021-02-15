@@ -1,5 +1,7 @@
 project(arrows_test_core)
 
+set(CMAKE_FOLDER "Arrows/Core/Tests")
+
 include(kwiver-test-setup)
 
 set( test_libraries    kwiver_algo_core vital vital_vpm )

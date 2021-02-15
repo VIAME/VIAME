@@ -1,5 +1,7 @@
 # Build / Install VTK arrow
 
+set(CMAKE_FOLDER "Arrows/VTK")
+
 set( plugin_vtk_headers
   depth_utils.h
   mesh_coloration.h

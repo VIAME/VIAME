@@ -167,6 +167,9 @@ Build System
  * Added a new build flag, KWIVER_ENABLE_PYTORCH, to include
    PyTorch-dependent code in the build.
 
+ * Enabled the use of folders for CMake targets to provided better
+   organization in IDEs that support folders, like Visual Studio.
+
 Unit Tests
 
 General Documentation
