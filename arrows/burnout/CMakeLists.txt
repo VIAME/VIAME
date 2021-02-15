@@ -1,6 +1,8 @@
 # Build/install plugin for burnout CNN support
 #
 
+set(CMAKE_FOLDER "Arrows/BurnOut")
+
 set( headers
   burnout_image_enhancer.h
   burnout_pixel_classification.h

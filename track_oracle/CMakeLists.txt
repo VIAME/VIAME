@@ -1,3 +1,5 @@
+set(CMAKE_FOLDER "Track Oracle")
+
 OPTION(KWIVER_ENABLE_TRACK_ORACLE_EVENT_ADAPTER  "Enable track_oracle's event_adapter (disable until further notice)" OFF )
 OPTION(KWIVER_ENABLE_TRACK_ORACLE_MGRS  "Enable track_oracle's lat/lon <-> MGRS capabilities (disable until further notice)" OFF )
 

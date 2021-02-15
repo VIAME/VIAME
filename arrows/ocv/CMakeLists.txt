@@ -1,6 +1,8 @@
 # Build / Install plugin containing OpenCV algorithm implementations + support
 # structures
 
+set(CMAKE_FOLDER "Arrows/OCV")
+
 set( ocv_headers_public
   analyze_tracks.h
   camera_intrinsics.h

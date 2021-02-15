@@ -1,5 +1,7 @@
 find_package( yaml-cpp REQUIRED )
 
+set(CMAKE_FOLDER "Arrows/KPF")
+
 add_subdirectory(yaml)
 
 # Build/install plugin for kpf support for vital objects

@@ -2,6 +2,8 @@
 # Kwiver processes
 #
 
+set(CMAKE_FOLDER "Sprokit/Processes")
+
 # This policy is new in CMake 3.12. The NEW behavior uses the <PackageName>_ROOT variable in
 # find_package(<PackageName>) calls.
 # See: https://cmake.org/cmake/help/git-stage/policy/CMP0074.html

@@ -1,6 +1,8 @@
 
 project(kwiver_arrow_cuda LANGUAGES CXX CUDA)
 
+set(CMAKE_FOLDER "Arrows/CUDA")
+
 set(header_files
   integrate_depth_maps.h
   )

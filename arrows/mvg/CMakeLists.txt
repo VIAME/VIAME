@@ -1,5 +1,7 @@
 # Build / Install Multi-View Geometry arrow
 
+set(CMAKE_FOLDER "Arrows/MVG")
+
 set( plugin_mvg_headers
   algo/hierarchical_bundle_adjust.h
   algo/initialize_cameras_landmarks.h

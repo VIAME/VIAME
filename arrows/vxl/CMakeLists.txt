@@ -1,6 +1,8 @@
 # Build / Install plugin containing VXL algorithm implementations + support
 # structures
 
+set(CMAKE_FOLDER "Arrows/VXL")
+
 set(vxl_headers_public
   aligned_edge_detection.h
   bounding_box.h
