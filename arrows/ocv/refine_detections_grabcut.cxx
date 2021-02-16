@@ -35,6 +35,7 @@ public:
 
   int iter_count = 2;
   double context_scale_factor = 2;
+  bool seed_with_existing_masks = true;
   double foreground_scale_factor = 0;
 };
 
@@ -65,6 +66,9 @@ refine_detections_grabcut
                      "for each detection" );
   config->set_value( "context_scale_factor", d_->context_scale_factor,
                      "Amount to scale the detection by to produce a context region" );
+  config->set_value( "seed_with_existing_masks", d_->seed_with_existing_masks,
+                     "If true, use existing masks as \"certainly foreground\""
+                     " seed regions" );
   config->set_value( "foreground_scale_factor", d_->foreground_scale_factor,
                      "Amount to scale the detection by to produce a region "
                      "considered certainly foreground" );
@@ -82,6 +86,8 @@ refine_detections_grabcut
 
   d_->iter_count = config->get_value< int >( "iter_count" );
   d_->context_scale_factor = config->get_value< double >( "context_scale_factor" );
+  d_->seed_with_existing_masks =
+    config->get_value< bool >( "seed_with_existing_masks" );
   d_->foreground_scale_factor =
     config->get_value< double >( "foreground_scale_factor" );
 }
@@ -127,8 +133,15 @@ refine_detections_grabcut
     };
     cv::Mat bgdModel, fgdModel;
     mask_roi( rect & ctx_rect ) = cv::GC_PR_FGD;
-    auto fgbbox = vital::scale_about_center( bbox, d_->foreground_scale_factor );
-    mask_roi( bbox_to_mask_rect( fgbbox ) & mask_rect ) = cv::GC_FGD;
+    if( d_->seed_with_existing_masks && det->mask() )
+    {
+      mask_roi( rect ).setTo( cv::GC_FGD, get_standard_mask( det ) );
+    }
+    else
+    {
+      auto fgbbox = vital::scale_about_center( bbox, d_->foreground_scale_factor );
+      mask_roi( bbox_to_mask_rect( fgbbox ) & mask_rect ) = cv::GC_FGD;
+    }
     cv::Mat crop_mask = mask_roi( ctx_rect );
     cv::grabCut( img( ctx_rect ), crop_mask, cv::Rect(), bgdModel, fgdModel,
                  d_->iter_count, cv::GC_INIT_WITH_MASK );
