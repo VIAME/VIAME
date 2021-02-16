@@ -29,15 +29,31 @@ kwiver_add_library( kwiver_algo_vtk
   ${plugin_vtk_sources}
   )
 
+if(VTK_VERSION VERSION_LESS 9.0)
+  set(VTK_public_targets
+      vtkRenderingCore
+      vtkRenderingOpenGL2)
+  set(VTK_private_targets
+      vtkCommonCore
+      vtkCommonDataModel
+      vtkIOImage
+      vtkIOXML)
+else()
+  set(VTK_public_targets
+      VTK::RenderingCore
+      VTK::RenderingOpenGL2)
+  set(VTK_private_targets
+      VTK::CommonCore
+      VTK::CommonDataModel
+      VTK::IOImage
+      VTK::IOXML)
+endif()
+
 target_link_libraries( kwiver_algo_vtk
   PUBLIC               vital
-                       vtkRenderingCore
-                       vtkRenderingOpenGL2
+                       ${VTK_public_targets}
   PRIVATE              vital_algo
-                       vtkCommonCore
-                       vtkCommonDataModel
-                       vtkIOImage
-                       vtkIOXML
+                       ${VTK_private_targets}
   )
 
 #algorithms_create_plugin( kwiver_algo_vtk
