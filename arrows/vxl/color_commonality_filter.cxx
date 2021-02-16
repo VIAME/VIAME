@@ -248,7 +248,8 @@ color_commonality_filter::priv
   }
 
   // Populate histogram steps for each channel of the hist
-  std::vector< std::ptrdiff_t > hist_steps{ input.nplanes() };
+  std::vector< std::ptrdiff_t > hist_steps;
+  hist_steps.resize( input.nplanes() );
   hist_steps[ 0 ] = 1;
 
   for( unsigned p = 1; p < input.nplanes(); ++p )
