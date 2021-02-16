@@ -6,6 +6,7 @@ add_subdirectory(cpp)
 add_subdirectory(external)
 
 # Configure all the local example pipe files
+configure_file(pipelines/burnout_on_video.pipe.in ${EXAMPLE_DIR}/pipelines/burnout_on_video.pipe @ONLY )
 configure_file(pipelines/image_list.txt.in ${EXAMPLE_DIR}/pipelines/image_list.txt @ONLY )
 configure_file(pipelines/image_display.pipe.in ${EXAMPLE_DIR}/pipelines/image_display.pipe @ONLY )
 configure_file(pipelines/image_serialize.pipe.in ${EXAMPLE_DIR}/pipelines/image_serialize.pipe @ONLY )
