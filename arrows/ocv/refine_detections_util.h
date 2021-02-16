@@ -11,6 +11,7 @@
 #include <opencv2/core/core.hpp>
 
 #include <vital/types/bounding_box.h>
+#include <vital/types/detected_object.h>
 
 namespace kwiver {
 namespace arrows {
@@ -18,6 +19,11 @@ namespace ocv {
 
 /// Convert a bounding_box_d to the Rect that should describe its mask
 cv::Rect bbox_to_mask_rect( kwiver::vital::bounding_box_d const& bbox );
+
+/// Get the mask associated with det, adjusted to the expected size
+///
+/// The expected size is \code bbox_to_mask_rect( det->bounding_box() ).size() \endcode
+cv::Mat get_standard_mask( kwiver::vital::detected_object_sptr const& det );
 
 }
 }
