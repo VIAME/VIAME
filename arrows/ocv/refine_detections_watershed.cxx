@@ -34,6 +34,7 @@ public:
   {
   }
 
+  bool seed_with_existing_masks = true;
   double seed_scale_factor = 0.2;
 };
 
@@ -62,6 +63,8 @@ refine_detections_watershed
   config->set_value( "seed_scale_factor", d_->seed_scale_factor,
                      "Amount to scale the detection by to produce "
                      "a high-confidence seed region" );
+  config->set_value( "seed_with_existing_masks", d_->seed_with_existing_masks,
+                     "If true, use existing masks as seed regions" );
   return config;
 }
 
@@ -74,6 +77,8 @@ refine_detections_watershed
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
+  d_->seed_with_existing_masks =
+    config->get_value< bool >( "seed_with_existing_masks" );
   d_->seed_scale_factor =
     config->get_value< double >( "seed_scale_factor" );
 }
@@ -117,12 +122,21 @@ refine_detections_watershed
     background( rect & img_rect ) = 0;
     cv::Mat m = markers( rect & img_rect );
     cv::Mat already_set = m != 0;
-    seeds.emplace_back( rect.size(), CV_8UC1, cv::Scalar( 0 ) );
-    auto& seed = seeds.back();
-    auto seed_bbox = vital::scale_about_center( bbox, d_->seed_scale_factor );
-    seed( ( bbox_to_mask_rect( seed_bbox ) & rect ) - rect.tl() ) = 1;
+    cv::Mat seed;
+    if( d_->seed_with_existing_masks && det->mask() )
+    {
+      // Clone because this is modified below (crop_mask.setTo)
+      seed = get_standard_mask( det ).clone();
+    }
+    else
+    {
+      auto seed_bbox = vital::scale_about_center( bbox, d_->seed_scale_factor );
+      seed = cv::Mat( rect.size(), CV_8UC1, cv::Scalar( 0 ) );
+      seed( ( bbox_to_mask_rect( seed_bbox ) & rect ) - rect.tl() ) = 1;
+    }
     m.setTo( i + 1, seed );
     m.setTo( -1, seed & already_set );
+    seeds.push_back( std::move( seed ) );
   }
   markers = cv::max( markers, 0 );
   markers.setTo( i + 1, background );
