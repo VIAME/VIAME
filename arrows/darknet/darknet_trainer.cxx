@@ -74,8 +74,8 @@ public:
     , m_gpu_index( 0 )
     , m_resize_option( "maintain_ar" )
     , m_scale( 1.0 )
-    , m_resize_i( 0 )
-    , m_resize_j( 0 )
+    , m_resize_width( 0 )
+    , m_resize_height( 0 )
     , m_chip_step( 100 )
     , m_overlap_required( 0.05 )
     , m_random_int_shift( 0.00 )
@@ -105,8 +105,8 @@ public:
   int m_gpu_index;
   std::string m_resize_option;
   double m_scale;
-  int m_resize_i;
-  int m_resize_j;
+  int m_resize_width;
+  int m_resize_height;
   int m_chip_step;
   double m_overlap_required;
   double m_random_int_shift;
@@ -211,9 +211,9 @@ darknet_trainer
     "chip, or chip_and_original." );
   config->set_value( "scale", d->m_scale,
     "Image scaling factor used when resize_option is scale or chip." );
-  config->set_value( "resize_ni", d->m_resize_i,
+  config->set_value( "resize_width", d->m_resize_width,
     "Width resolution after resizing" );
-  config->set_value( "resize_nj", d->m_resize_j,
+  config->set_value( "resize_height", d->m_resize_height,
     "Height resolution after resizing" );
   config->set_value( "chip_step", d->m_chip_step,
     "When in chip mode, the chip step size between chips." );
@@ -269,8 +269,8 @@ darknet_trainer
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
   this->d->m_scale       = config->get_value< double >( "scale" );
-  this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
-  this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
+  this->d->m_resize_width = config->get_value< int >( "resize_width" );
+  this->d->m_resize_height = config->get_value< int >( "resize_height" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
@@ -332,7 +332,7 @@ darknet_trainer
 
   std::string model_type = config->get_value< std::string >( "model_type" );
 
-  if( model_type != "yolov2" && model_type != "yolov3" )
+  if( model_type != "yolov2" && model_type != "yolov3" && model_type != "yolov4" )
   {
     LOG_ERROR( d->m_logger, "invalid model type " << model_type );
     return false;
@@ -457,8 +457,8 @@ darknet_trainer
       }
     }
 
-    header_args = header_args +"]," + std::to_string( d->m_resize_i );
-    header_args = header_args + "," + std::to_string( d->m_resize_j );
+    header_args = header_args +"]," + std::to_string( d->m_resize_width );
+    header_args = header_args + "," + std::to_string( d->m_resize_height );
     header_args = header_args + "," + std::to_string( d->m_channel_count );
     header_args = header_args + "," + std::to_string( nfilters );
     header_args = header_args + "," + std::to_string( d->m_batch_size );
@@ -732,7 +732,7 @@ darknet_trainer::priv
   if( m_resize_option != "disabled" )
   {
     resized_scale = format_image( original_image, resized_image,
-      m_resize_option, m_scale, m_resize_i, m_resize_j );
+      m_resize_option, m_scale, m_resize_width, m_resize_height );
 
     scaled_groundtruth->scale( resized_scale );
   }
@@ -756,9 +756,9 @@ darknet_trainer::priv
   else
   {
     // Chip up and process scaled image
-    for( int i = 0; i < resized_image.cols - m_resize_i + m_chip_step; i += m_chip_step )
+    for( int i = 0; i < resized_image.cols - m_resize_width + m_chip_step; i += m_chip_step )
     {
-      int cw = i + m_resize_i;
+      int cw = i + m_resize_width;
 
       if( cw > resized_image.cols )
       {
@@ -766,12 +766,12 @@ darknet_trainer::priv
       }
       else
       {
-        cw = m_resize_i;
+        cw = m_resize_width;
       }
 
-      for( int j = 0; j < resized_image.rows - m_resize_j + m_chip_step; j += m_chip_step )
+      for( int j = 0; j < resized_image.rows - m_resize_height + m_chip_step; j += m_chip_step )
       {
-        int ch = j + m_resize_j;
+        int ch = j + m_resize_height;
 
         if( ch > resized_image.rows )
         {
@@ -779,7 +779,7 @@ darknet_trainer::priv
         }
         else
         {
-          ch = m_resize_j;
+          ch = m_resize_height;
         }
 
         // Only necessary in a few circumstances when chip_step exceeds image size.
@@ -792,12 +792,12 @@ darknet_trainer::priv
         cv::Mat resized_crop;
 
         scale_image_maintaining_ar( cropped_image,
-          resized_crop, m_resize_i, m_resize_j );
+          resized_crop, m_resize_width, m_resize_height );
 
         std::string img_file, gt_file;
         generate_fn( image_folder, label_folder, img_file, gt_file );
 
-        kwiver::vital::bounding_box_d roi_box( i, j, i + m_resize_i, j + m_resize_j );
+        kwiver::vital::bounding_box_d roi_box( i, j, i + m_resize_width, j + m_resize_height );
         if( print_detections( gt_file, scaled_groundtruth, roi_box, object_labels ) )
         {
           save_chip( img_file, resized_crop );
@@ -811,7 +811,7 @@ darknet_trainer::priv
       cv::Mat scaled_original;
 
       double scaled_original_scale = scale_image_maintaining_ar( original_image,
-        scaled_original, m_resize_i, m_resize_j );
+        scaled_original, m_resize_width, m_resize_height );
 
       kwiver::vital::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
       scaled_original_dets_ptr->scale( scaled_original_scale );
@@ -979,7 +979,7 @@ darknet_trainer::priv
   {
     multiplier = 5;
   }
-  else if( m_model_type == "yolov3" )
+  else
   {
     multiplier = 3;
   }
