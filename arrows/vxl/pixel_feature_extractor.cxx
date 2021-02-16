@@ -7,7 +7,6 @@
 #include "aligned_edge_detection.h"
 #include "average_frames.h"
 #include "color_commonality_filter.h"
-#include "convert_image.h"
 #include "high_pass_filter.h"
 
 #include <arrows/vxl/image_container.h>
@@ -51,14 +50,12 @@ public:
   bool enable_gray{ true };
   bool enable_aligned_edge{ true };
   bool enable_average{ true };
-  bool enable_convert{ true };
   bool enable_color_commonality{ true };
   bool enable_high_pass_bidir{ true };
   bool enable_high_pass_box{ true };
 
   vxl::aligned_edge_detection aligned_edge_detection_filter;
   vxl::average_frames average_frames_filter;
-  vxl::convert_image convert_image_filter;
   vxl::color_commonality_filter color_commonality_filter;
   vxl::high_pass_filter high_pass_bidir_filter;
   vxl::high_pass_filter high_pass_box_filter;
@@ -122,7 +119,7 @@ pixel_feature_extractor::priv
     // 1 channel
     if( enable_gray )
     {
-      // TODO check whether this should be vil_convert_to_grey_using_rgb_weighting
+      // TODO consider vil_convert_to_grey_using_rgb_weighting
       filtered_images.push_back( vil_convert_to_grey_using_average( vxl_image ) );
     }
   }
@@ -134,7 +131,6 @@ pixel_feature_extractor::priv
     filtered_images.push_back(
         vxl::image_container::vital_to_vxl( color_commonality->get_image() ) );
   }
-  // TODO this should also have one which does the other sort of filtering
   if( enable_high_pass_box )
   {
     auto high_pass_box = high_pass_box_filter.filter( input_image );
@@ -149,19 +145,10 @@ pixel_feature_extractor::priv
     filtered_images.push_back(
       vxl::image_container::vital_to_vxl( high_pass_bidir->get_image() ) );
   }
-  if( enable_convert )
-  {
-    // 3 channels
-    // This should be removed
-    auto converted = convert_image_filter.filter( input_image );
-    filtered_images.push_back(
-        vxl::image_container::vital_to_vxl( converted->get_image() ) );
-  }
-  // TODO this should be the variance instead
+  // TODO consider naming this variance since that option is used more
   if( enable_average )
   {
-    // This should
-    // Variance should be 1 channel
+    // 3 channels
     auto averaged = average_frames_filter.filter( input_image );
     filtered_images.push_back(
         vxl::image_container::vital_to_vxl( averaged->get_image() ) );
@@ -213,9 +200,6 @@ pixel_feature_extractor
   config->set_value( "enable_average",
                      d->enable_average,
                      "Enable average_frames filter." );
-  config->set_value( "enable_convert",
-                     d->enable_convert,
-                     "Enable convert_image filter." );
   config->set_value( "enable_color_commonality",
                      d->enable_color_commonality,
                      "Enable color_commonality_filter filter." );
@@ -243,7 +227,6 @@ pixel_feature_extractor
   d->enable_gray = config->get_value< bool >( "enable_gray" );
   d->enable_aligned_edge = config->get_value< bool >( "enable_aligned_edge" );
   d->enable_average = config->get_value< bool >( "enable_average" );
-  d->enable_convert = config->get_value< bool >( "enable_convert" );
   d->enable_color_commonality = config->get_value< bool >(
     "enable_color_commonality" );
   d->enable_high_pass_box =
@@ -256,8 +239,6 @@ pixel_feature_extractor
     config->subblock_view( "aligned_edge" ) );
   d->average_frames_filter.set_configuration(
      config->subblock_view( "average" ) );
-  d->convert_image_filter.set_configuration(
-    config->subblock_view( "convert" ) );
   d->color_commonality_filter.set_configuration(
     config->subblock_view( "color_commonality" ) );
   d->high_pass_box_filter.set_configuration(
@@ -277,7 +258,6 @@ pixel_feature_extractor
   auto enable_aligned_edge =
     config->get_value< bool >( "enable_aligned_edge" );
   auto enable_average = config->get_value< bool >( "enable_average" );
-  auto enable_convert = config->get_value< bool >( "enable_convert" );
   auto enable_color_commonality = config->get_value< bool >(
     "enable_color_commonality" );
   auto enable_high_pass_box =
@@ -286,8 +266,8 @@ pixel_feature_extractor
     config->get_value< bool >( "enable_high_pass_bidir" );
 
   if( !( enable_color || enable_gray || enable_aligned_edge ||
-         enable_average || enable_convert || enable_color_commonality ||
-         enable_high_pass_box || enable_high_pass_bidir) )
+         enable_average || enable_color_commonality || enable_high_pass_box ||
+         enable_high_pass_bidir) )
   {
     LOG_ERROR( logger(), "At least one filter must be enabled" );
     return false;
