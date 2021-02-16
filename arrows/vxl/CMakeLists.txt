@@ -22,7 +22,6 @@ set(vxl_headers_public
   high_pass_filter.h
   image_container.h
   image_io.h
-  image_statistics.h
   match_features_constrained.h
   optimize_cameras.h
   polygon.h

@@ -6,7 +6,6 @@
 #include "image_statistics.h"
 
 #include <arrows/vxl/image_container.h>
-#include <vital/range/iota.h>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>

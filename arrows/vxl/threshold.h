@@ -23,7 +23,7 @@ class KWIVER_ALGO_VXL_EXPORT threshold
 {
 public:
   PLUGIN_INFO( "vxl_threshold",
-               "Threshold at image at a given percentile." )
+               "Threshold at image at a given percentile or value." )
 
   threshold();
   virtual ~threshold();

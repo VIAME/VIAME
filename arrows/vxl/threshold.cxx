@@ -7,18 +7,21 @@
 #include "image_statistics.h"
 
 #include <arrows/vxl/image_container.h>
-#include <vital/range/iota.h>
+
 #include <vital/util/enum_converter.h>
+
+#include <vital/range/iota.h>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
 #include <vil/vil_plane.h>
 
-#include <cstdlib>
 #include <limits>
 #include <random>
 #include <type_traits>
+
+#include <cstdlib>
 
 namespace kwiver {
 
@@ -40,8 +43,6 @@ ENUM_CONVERTER( mode_converter, threshold_mode, { "absolute", MODE_absolute },
 class threshold::priv
 {
 public:
-  priv() = default;
-
   template < typename pix_t >
   vil_image_view< bool >
   filter( vil_image_view< pix_t > image );
