@@ -100,6 +100,8 @@ set( ocv_sources
   match_features_flannbased.cxx
   match_set.cxx
   merge_images.cxx
+  refine_detections_util.cxx
+  refine_detections_util.h
   refine_detections_write_to_disk.cxx
   split_image_channels.cxx
   split_image_horizontally.cxx
