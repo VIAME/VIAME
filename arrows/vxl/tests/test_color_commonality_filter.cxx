@@ -46,14 +46,14 @@ TEST_F(color_commonality_filter, color)
   ka::vxl::image_io io;
 
   std::string filename = data_dir + "/" + test_color_image_name;
-  auto const& image_ptr = io.load( filename );
+  auto const image_ptr = io.load( filename );
 
   ka::vxl::color_commonality_filter filter;
 
   auto const filtered_image_ptr = filter.filter( image_ptr );
 
   kv::path_t expected = data_dir + "/" + expected_commonality_default_color;
-  auto const& expected_image_ptr = io.load( expected );
+  auto const expected_image_ptr = io.load( expected );
   EXPECT_TRUE( equal_content( filtered_image_ptr->get_image(),
                               expected_image_ptr->get_image() ) );
 }
@@ -64,14 +64,14 @@ TEST_F(color_commonality_filter, gray)
   ka::vxl::image_io io;
 
   std::string filename = data_dir + "/" + test_image_name;
-  auto const& image_ptr = io.load( filename );
+  auto const image_ptr = io.load( filename );
 
   ka::vxl::color_commonality_filter filter;
 
   auto const filtered_image_ptr = filter.filter( image_ptr );
 
   kv::path_t expected = data_dir + "/" + expected_commonality_default_gray;
-  auto const& expected_image_ptr = io.load( expected );
+  auto const expected_image_ptr = io.load( expected );
   EXPECT_TRUE( equal_content( filtered_image_ptr->get_image(),
                               expected_image_ptr->get_image() ) );
 }
