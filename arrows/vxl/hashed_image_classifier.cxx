@@ -4,13 +4,13 @@
 
 #include "hashed_image_classifier.h"
 
+#include <vital/logger/logger.h>
+
 #include <vil/vil_plane.h>
 
 #include <boost/lexical_cast.hpp>
 
 #include <cmath>
-
-namespace vidtk {
 
 // ----------------------------------------------------------------------------
 // Classify a chain of hashed feature images
@@ -60,14 +60,15 @@ hashed_image_classifier< FeatureType, OutputType >
 {
   if( !model_->is_valid() )
   {
-    std::cout << "Internal classifier invalid" << std::endl;
+    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    LOG_ERROR( logger, "Internal classifier invalid" );
   }
 
   if( features != feature_count() )
   {
-    std::cout   << "Feature counts don't match, features: "
-                << features << ", feature_count(): " << feature_count()
-                << std::endl;
+    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    LOG_ERROR( logger, "Feature counts don't match, features: "
+                << features << ", feature_count(): " << feature_count() );
   }
 
   output_image.set_size( input_features[ 0 ].ni(), input_features[ 0 ].nj() );
@@ -137,11 +138,13 @@ hashed_image_classifier< FeatureType, OutputType >
 {
   if( !model_->is_valid() )
   {
-    std::cerr << "Internal classifier is invalid" << std::endl;
+    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    LOG_ERROR( logger, "Internal classifier is invalid" );
   }
   if( features != model_->num_features )
   {
-    std::cerr << "Feature counts don't match" << std::endl;
+    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    LOG_ERROR( logger, "Feature counts don't match" );
   }
 
   output_image.set_size( input_features[ 0 ].ni(), input_features[ 0 ].nj() );
@@ -182,7 +185,8 @@ hashed_image_classifier< FeatureType, OutputType >
 
   if( !input.is_open() )
   {
-    std::cout << "Unable to open input file: " << file << std::endl;
+    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    LOG_ERROR( logger, "Unable to open input file: " << file );
     return false;
   }
 
@@ -239,8 +243,8 @@ hashed_image_classifier< FeatureType, OutputType >
       // Make sure the model file has at least 1 input feature
       if( model_->num_features == 0 )
       {
-        std::cout << "Number of input features to use must be > 1" <<
-          std::endl;
+        auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+        LOG_ERROR( logger, "Number of input features to use must be > 1 but was " << model_->num_features );
         return false;
       }
 
@@ -264,8 +268,9 @@ hashed_image_classifier< FeatureType, OutputType >
     // Data corruption, model file ill formatted
     if( parsed.size() != num_values + 1  || entry >= model_->num_features )
     {
-      std::cout << "Number of weights (" << parsed.size() - 1
-                << ") does not match " << num_values;
+      auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+      LOG_ERROR( logger, "Number of weights (" << parsed.size() - 1
+                << ") does not match " << num_values );
       return false;
     }
 
@@ -279,10 +284,11 @@ hashed_image_classifier< FeatureType, OutputType >
   }
 
   // Another check to make sure that the reported file correctly contained
-  // the specified number of features specified
+  // the number of features specified
   if( weights.size() != model_->num_features )
   {
-    std::cout << "Weight vector size does not match " << model_->num_features;
+    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    LOG_ERROR( logger, "Weight vector size does not match " << model_->num_features );
     return false;
   }
 
@@ -317,7 +323,6 @@ hashed_image_classifier< FeatureType, OutputType >
     }
   }
 
-  std::cout << "model->num_features " << model_->num_features << std::endl;
   return true;
 }
 
@@ -351,7 +356,8 @@ hashed_image_classifier< FeatureType, OutputType >
 {
   if( !external_model->is_valid() )
   {
-    std::cout << "Input model invalid" << std::endl;
+    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    LOG_ERROR( logger, "Input model invalid" );
   }
 
   model_ = external_model;
@@ -378,7 +384,8 @@ hashed_image_classifier_model< FloatType >
   {
     return true;
   }
-  std::cout << "num_features: " << num_features << std::endl;
+  auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+  LOG_ERROR( logger, "num_features: " << num_features );
 
   return false;
 }
@@ -506,13 +513,11 @@ operator<<( std::ostream& os,
 }
 
 // Instantiate template classes
-template class vidtk::hashed_image_classifier_model< double >;
-template class vidtk::hashed_image_classifier_model< float >;
+template class hashed_image_classifier_model< double >;
+template class hashed_image_classifier_model< float >;
 
-template class vidtk::hashed_image_classifier< vxl_byte, double >;
-template class vidtk::hashed_image_classifier< vxl_byte, float >;
+template class hashed_image_classifier< vxl_byte, double >;
+template class hashed_image_classifier< vxl_byte, float >;
 
-template class vidtk::hashed_image_classifier< vxl_uint_16, double >;
-template class vidtk::hashed_image_classifier< vxl_uint_16, float >;
-
-} // end namespace vidtk
+template class hashed_image_classifier< vxl_uint_16, double >;
+template class hashed_image_classifier< vxl_uint_16, float >;

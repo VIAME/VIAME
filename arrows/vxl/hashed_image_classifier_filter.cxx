@@ -46,12 +46,10 @@ public:
 
   hashed_image_classifier_filter* p;
 
-  vidtk::hashed_image_classifier< vxl_byte, double > hashed_classifier;
+  hashed_image_classifier< vxl_byte, double > hashed_classifier;
   bool model_loaded = false;
 
-  bool use_variable_models = false;
-
-  std::string default_filename = "";
+  std::string model_file = "";
 };
 
 // ----------------------------------------------------------------------------
@@ -61,10 +59,10 @@ hashed_image_classifier_filter::priv
 {
   if( !model_loaded )
   {
-    if( !hashed_classifier.load_from_file( default_filename ) )
+    if( !hashed_classifier.load_from_file( model_file ) )
     {
       LOG_ERROR( p->logger(),
-                 "Could not load default_filename model" );
+                 "Could not load model_file model" );
       return false;
     }
     model_loaded = true;
@@ -94,11 +92,8 @@ hashed_image_classifier_filter
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
-  config->set_value( "use_variable_models", d->use_variable_models,
-                     "Set to true if we should use different models "
-                     "for different GSDs and modalities." );
-  config->set_value( "default_filename", d->default_filename,
-                     "Filename for the default model to use." );
+  config->set_value( "model_file", d->model_file,
+                     "model_file to load weights from." );
 
   return config;
 }
@@ -115,10 +110,8 @@ hashed_image_classifier_filter
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
-  d->use_variable_models =
-    config->get_value< bool >( "use_variable_models" );
-  d->default_filename =
-    config->get_value< std::string >( "default_filename" );
+  d->model_file =
+    config->get_value< std::string >( "model_file" );
 }
 
 // ----------------------------------------------------------------------------

@@ -2,8 +2,8 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#ifndef VIDTK_HASHED_IMAGE_CLASSIFIER_H_
-#define VIDTK_HASHED_IMAGE_CLASSIFIER_H_
+#ifndef HASHED_IMAGE_CLASSIFIER_H_
+#define HASHED_IMAGE_CLASSIFIER_H_
 
 #include <vgl/vgl_box_2d.h>
 #include <vil/vil_image_view.h>
@@ -12,11 +12,8 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
-
-namespace vidtk {
 
 template < typename FeatureType,
            typename OutputType > class hashed_image_classifier;
@@ -105,7 +102,7 @@ public:
   using input_image_t = vil_image_view< input_t >;
   using feature_vector_t = std::vector< input_image_t >;
   using model_t = hashed_image_classifier_model< OutputType >;
-  using model_sptr_t = boost::shared_ptr< model_t >;
+  using model_sptr_t = std::shared_ptr< model_t >;
   using self_t = hashed_image_classifier< FeatureType, OutputType >;
 
   /// Default constructor, a model must be loaded via load_from_file before use
@@ -178,7 +175,5 @@ protected:
   // A pointer to our internal data
   model_sptr_t model_;
 };
-
-} // namespace vidtk
 
 #endif
