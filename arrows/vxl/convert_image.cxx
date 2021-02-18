@@ -459,6 +459,12 @@ convert_image
       return image_data;                                                      \
     }                                                                         \
     vil_image_view< ipix_t > input = d->apply_transforms< ipix_t >( view );   \
+    if( d->format == "copy" )                                                 \
+    {                                                                         \
+       vil_image_view< ipix_t > output =                                      \
+         d->scale_and_convert< ipix_t >( input );                             \
+       return std::make_shared< vxl::image_container >( output );             \
+    }                                                                         \
                                                                               \
     HANDLE_OUTPUT_CASE( "byte", VIL_PIXEL_FORMAT_BYTE );                      \
     HANDLE_OUTPUT_CASE( "sbyte", VIL_PIXEL_FORMAT_SBYTE );                    \
