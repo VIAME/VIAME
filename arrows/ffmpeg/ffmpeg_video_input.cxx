@@ -110,10 +110,10 @@ public:
   std::string filter_desc;
 
   // the buffers of raw metadata from the data streams tagged with the timestamp
-  std::map<int, std::multimap<int64_t, std::deque<uint8_t> > > metadata;
+  std::map<int, std::multimap< int64_t, std::deque<uint8_t>>> metadata;
 
   // Storage for current frame's raw metadata
-  std::map<int, std::deque<uint8_t> > curr_metadata;
+  std::map<int, std::deque<uint8_t>> curr_metadata;
 
   // metadata converter object
   kwiver::vital::convert_metadata converter;
@@ -188,8 +188,8 @@ public:
       else if (params->codec_type == AVMEDIA_TYPE_DATA)
       {
         this->metadata.insert(
-          std::make_pair(i, std::multimap<int64_t, std::deque<uint8_t> >() ) );
-        this->curr_metadata.insert(std::make_pair(i, std::deque<uint8_t>() ) );
+          std::make_pair(i, std::multimap<int64_t, std::deque<uint8_t> >()));
+        this->curr_metadata.insert(std::make_pair(i, std::deque<uint8_t>()));
       }
     }
 
@@ -883,15 +883,17 @@ ffmpeg_video_input
   // get base config from base class
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
-  config->set_value("filter_desc", d->filter_desc,
+  config->set_value(
+    "filter_desc", d->filter_desc,
     "A string describing the libavfilter pipeline to apply when reading "
     "the video.  Only filters that operate on each frame independently "
     "will currently work.  The default \"yadif=deint=1\" filter applies "
     "deinterlacing only to frames which are interlaced.  "
     "See details at https://ffmpeg.org/ffmpeg-filters.html");
 
-  config->set_value("sync_metadata", d->sync_metadata,
-    "When set to true will attempt synchronizaton the metadata by "
+  config->set_value(
+    "sync_metadata", d->sync_metadata,
+    "When set to true will attempt to synchronize the metadata by "
     "caching metadata packets whose timestamp is greater than the "
     "current frame's timestamp until a frame is reached with timestamp "
     "that is equal or greater than the metadata's timestamp.");
