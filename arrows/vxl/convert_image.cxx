@@ -46,7 +46,7 @@ scale_image( vil_image_view< InType > const& src,
 
   vil_transform(
     src, dst,
-    [ max_input_value, max_output_value, dp_scale ]( InType pixel ){
+    [ max_input_value, dp_scale ]( InType pixel ){
       if( pixel <= max_input_value )
       {
         return static_cast< OutType >(
