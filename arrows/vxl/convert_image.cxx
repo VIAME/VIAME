@@ -334,7 +334,7 @@ convert_image::priv
     percentile_scale_image(
       input, output, percentile_norm, 1.0 - percentile_norm, 1e8 );
   }
-  else if( scale_factor == 0.0 )
+  else if( scale_factor == 0.0 || scale_factor == 1.0 )
   {
     vil_convert_cast( input, output );
   }
