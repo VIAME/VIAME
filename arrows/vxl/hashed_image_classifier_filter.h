@@ -41,7 +41,7 @@ public:
 private:
   class priv;
 
-  const std::unique_ptr< priv > d;
+  std::unique_ptr< priv > const d;
 };
 
 } // namespace vxl

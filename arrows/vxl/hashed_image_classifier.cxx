@@ -8,9 +8,13 @@
 
 #include <vil/vil_plane.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <cmath>
+
+namespace kwiver {
+
+namespace arrows {
+
+namespace vxl {
 
 // ----------------------------------------------------------------------------
 // Classify a chain of hashed feature images
@@ -28,7 +32,7 @@ hashed_image_classifier< FeatureType, OutputType >
     input_features_vector.push_back( vil_plane( input_features, i ) );
   }
   classify_images( &input_features_vector[ 0 ],
-                   input_features_vector.size(),
+                   static_cast< unsigned >( input_features_vector.size() ),
                    output_image,
                    offset );
 }
@@ -60,15 +64,17 @@ hashed_image_classifier< FeatureType, OutputType >
 {
   if( !model_->is_valid() )
   {
-    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    auto logger{ kwiver::vital::get_logger(
+                   "arrows.vxl.hashed_image_classifier" ) };
     LOG_ERROR( logger, "Internal classifier invalid" );
   }
 
   if( features != feature_count() )
   {
-    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    auto logger{ kwiver::vital::get_logger(
+                   "arrows.vxl.hashed_image_classifier" ) };
     LOG_ERROR( logger, "Feature counts don't match, features: "
-                << features << ", feature_count(): " << feature_count() );
+               << features << ", feature_count(): " << feature_count() );
   }
 
   output_image.set_size( input_features[ 0 ].ni(), input_features[ 0 ].nj() );
@@ -138,27 +144,30 @@ hashed_image_classifier< FeatureType, OutputType >
 {
   if( !model_->is_valid() )
   {
-    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    auto logger{ kwiver::vital::get_logger(
+                   "arrows.vxl.hashed_image_classifier" ) };
     LOG_ERROR( logger, "Internal classifier is invalid" );
   }
   if( features != model_->num_features )
   {
-    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    auto logger{ kwiver::vital::get_logger(
+                   "arrows.vxl.hashed_image_classifier" ) };
     LOG_ERROR( logger, "Feature counts don't match" );
   }
 
   output_image.set_size( input_features[ 0 ].ni(), input_features[ 0 ].nj() );
 
-  weight_t** const feature_weights = &model_->feature_weights[ 0 ];
+  weight_t** const feature_weights{ &model_->feature_weights[ 0 ] };
 
   for( unsigned j = 0; j < output_image.nj(); ++j )
+
   {
     for( unsigned i = 0; i < output_image.ni(); ++i )
 
     {
       if( mask( i, j ) )
       {
-        weight_t& output = output_image( i, j );
+        weight_t& output{ output_image( i, j ) };
 
         output = offset;
 
@@ -185,7 +194,8 @@ hashed_image_classifier< FeatureType, OutputType >
 
   if( !input.is_open() )
   {
-    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    auto logger{ kwiver::vital::get_logger(
+                   "arrows.vxl.hashed_image_classifier" ) };
     LOG_ERROR( logger, "Unable to open input file: " << file );
     return false;
   }
@@ -202,7 +212,7 @@ hashed_image_classifier< FeatureType, OutputType >
   {
     // Parse line
     std::vector< std::string > parsed;
-    std::istringstream iss( line );
+    std::istringstream iss{ line };
 
     while( iss )
     {
@@ -238,17 +248,20 @@ hashed_image_classifier< FeatureType, OutputType >
     {
       // Read number of features
       model_->num_features =
-        boost::lexical_cast< unsigned int >( parsed[ 0 ] );
+        static_cast< unsigned int >( std::stoi( parsed[ 0 ] ) );
 
       // Make sure the model file has at least 1 input feature
       if( model_->num_features == 0 )
       {
-        auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
-        LOG_ERROR( logger, "Number of input features to use must be > 1 but was " << model_->num_features );
+        auto logger{ kwiver::vital::get_logger(
+                       "arrows.vxl.hashed_image_classifier" ) };
+        LOG_ERROR( logger,
+                   "Number of input features to use must be > 1 but was " <<
+                   model_->num_features );
         return false;
       }
 
-      weights.resize( model_->num_features, std::vector< weight_t >() );
+      weights.resize( model_->num_features, std::vector< weight_t >{} );
 
       size_read_ = true;
       continue;
@@ -262,23 +275,26 @@ hashed_image_classifier< FeatureType, OutputType >
 
     // Read number of possible values for this feature
     unsigned int num_values =
-      boost::lexical_cast< unsigned int >( parsed[ 0 ] );
+      static_cast< unsigned int >( std::stoi( parsed[ 0 ] ) );
     weights[ entry ].resize( num_values, 0.0 );
 
     // Data corruption, model file ill formatted
     if( parsed.size() != num_values + 1  || entry >= model_->num_features )
     {
-      auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
-      LOG_ERROR( logger, "Number of weights (" << parsed.size() - 1
-                << ") does not match " << num_values );
+      auto logger{ kwiver::vital::get_logger(
+                     "arrows.vxl.hashed_image_classifier" ) };
+      LOG_ERROR( logger,
+                 "Number of weights ("  << parsed.size() - 1
+                                        << ") does not match " <<
+                 num_values );
       return false;
     }
 
     // Copy parsed weight values
     for( unsigned i = 1; i < num_values + 1; ++i )
     {
-      weights[ entry ][ i -
-                        1 ] = boost::lexical_cast< weight_t >( parsed[ i ] );
+      weights[ entry ][ i - 1 ] =
+        static_cast< weight_t >( std::stof( parsed[ i ] ) );
     }
     ++entry;
   }
@@ -287,8 +303,10 @@ hashed_image_classifier< FeatureType, OutputType >
   // the number of features specified
   if( weights.size() != model_->num_features )
   {
-    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
-    LOG_ERROR( logger, "Weight vector size does not match " << model_->num_features );
+    auto logger{ kwiver::vital::get_logger(
+                   "arrows.vxl.hashed_image_classifier" ) };
+    LOG_ERROR( logger,
+               "Weight vector size does not match " << model_->num_features );
     return false;
   }
 
@@ -301,7 +319,7 @@ hashed_image_classifier< FeatureType, OutputType >
   model_->max_feature_value.resize( model_->num_features );
   model_->feature_weights.resize( model_->num_features );
 
-  unsigned int total_weight_bins = 0;
+  unsigned int total_weight_bins{ 0 };
 
   for( unsigned i = 0; i < weights.size(); ++i )
   {
@@ -311,7 +329,7 @@ hashed_image_classifier< FeatureType, OutputType >
 
   model_->weights.resize( total_weight_bins );
 
-  unsigned int position = 0;
+  unsigned int position{ 0 };
 
   for( unsigned i = 0; i < weights.size(); ++i )
   {
@@ -337,9 +355,10 @@ hashed_image_classifier< FeatureType, OutputType >
   dst.set_size( src.ni(), src.nj() );
   dst.fill( 0 );
 
-  weight_t** const feature_weights = &model_->feature_weights[ 0 ];
+  weight_t** const feature_weights{ &model_->feature_weights[ 0 ] };
 
   for( unsigned j = 0; j < src.nj(); ++j )
+
   {
     for( unsigned i = 0; i < src.ni(); ++i )
     {
@@ -356,7 +375,8 @@ hashed_image_classifier< FeatureType, OutputType >
 {
   if( !external_model->is_valid() )
   {
-    auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
+    auto logger{ kwiver::vital::get_logger(
+                   "arrows.vxl.hashed_image_classifier" ) };
     LOG_ERROR( logger, "Input model invalid" );
   }
 
@@ -420,7 +440,7 @@ void
 hashed_image_classifier_model< FloatType >
 ::normalize( weight_t total_weight )
 {
-  weight_t norm_factor = 0;
+  weight_t norm_factor{ 0 };
 
   for( unsigned i = 0; i < this->weights.size(); ++i )
   {
@@ -429,7 +449,8 @@ hashed_image_classifier_model< FloatType >
 
   if( norm_factor != 0 )
   {
-    norm_factor = 1.0 / ( norm_factor * total_weight );
+    norm_factor =
+      static_cast< weight_t >( 1.0 / ( norm_factor * total_weight ) );
 
     for( unsigned i = 0; i < this->weights.size(); ++i )
     {
@@ -452,12 +473,12 @@ hashed_image_classifier_model< FloatType >
   {
     feature_weights.resize( other.feature_weights.size() );
 
-    weight_t const* const other_start = &( other.weights[ 0 ] );
-    weight_t* this_start = &weights[ 0 ];
+    weight_t const* const other_start{ &( other.weights[ 0 ] ) };
+    weight_t* this_start{ &weights[ 0 ] };
 
     for( unsigned i = 0; i < feature_weights.size(); ++i )
     {
-      std::ptrdiff_t const offset = other.feature_weights[ i ] - other_start;
+      std::ptrdiff_t const offset{ other.feature_weights[ i ] - other_start };
       feature_weights[ i ] = this_start + offset;
     }
   }
@@ -521,3 +542,9 @@ template class hashed_image_classifier< vxl_byte, float >;
 
 template class hashed_image_classifier< vxl_uint_16, double >;
 template class hashed_image_classifier< vxl_uint_16, float >;
+
+} // namespace vxl
+
+} // namespace arrows
+
+} // namespace kwiver

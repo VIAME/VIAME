@@ -15,6 +15,12 @@
 #include <memory>
 #include <vector>
 
+namespace kwiver {
+
+namespace arrows {
+
+namespace vxl {
+
 template < typename FeatureType,
            typename OutputType > class hashed_image_classifier;
 
@@ -31,7 +37,7 @@ public:
   using weight_t = FloatType;
 
   hashed_image_classifier_model() : num_features( 0 ) {}
-  hashed_image_classifier_model( const self_t& other );
+  hashed_image_classifier_model( self_t const& other );
 
   virtual ~hashed_image_classifier_model() {}
 
@@ -63,13 +69,13 @@ public:
 /// Stream operator declaration for the hashed_image_classifier model class.
 template < typename FloatType > std::ostream&
 operator<<( std::ostream& os,
-            const hashed_image_classifier_model< FloatType >& obj );
+            hashed_image_classifier_model< FloatType > const& obj );
 
 /// Stream operator declaration for the hashed_image_classifier class.
 template < typename FeatureType, typename OutputType >
 std::ostream&
 operator<<( std::ostream& os,
-            const hashed_image_classifier< FeatureType, OutputType >& obj );
+            hashed_image_classifier< FeatureType, OutputType > const& obj );
 
 /// A classifier designed to efficiently classifying every pixel in an image.
 ///
@@ -121,7 +127,7 @@ public:
   /// [Number of values feature 0 can take on] [weights for value 0, 1, etc. ]
   /// [Number of values feature 1 can take on] [weights for value 0, 1, etc. ]
   /// etc...
-  virtual bool load_from_file( const std::string& file );
+  virtual bool load_from_file( std::string const& file );
 
   /// Classify a feature array, in addition to adding offset to each pixel.
   virtual void classify_images( input_image_t const& input_features,
@@ -175,5 +181,11 @@ protected:
   // A pointer to our internal data
   model_sptr_t model_;
 };
+
+} // namespace vxl
+
+} // namespace arrows
+
+} // namespace kwiver
 
 #endif

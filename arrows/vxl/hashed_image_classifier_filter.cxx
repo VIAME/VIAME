@@ -30,7 +30,6 @@ namespace vxl {
 class hashed_image_classifier_filter::priv
 {
 public:
-
   // --------------------------------------------------------------------------
   priv( hashed_image_classifier_filter* parent ) : p{ parent }
   {
@@ -47,9 +46,9 @@ public:
   hashed_image_classifier_filter* p;
 
   hashed_image_classifier< vxl_byte, double > hashed_classifier;
-  bool model_loaded = false;
+  bool model_loaded{ false };
 
-  std::string model_file = "";
+  std::string model_file{ "" };
 };
 
 // ----------------------------------------------------------------------------
