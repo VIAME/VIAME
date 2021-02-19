@@ -15,6 +15,7 @@
 
 #include <deque>
 #include <exception>
+#include <map>
 #include <memory>
 
 namespace kwiver {
@@ -38,14 +39,28 @@ ENUM_CONVERTER( averager_converter, averager_mode,
                 { "exponential", AVERAGER_exponential } );
 
 // ----------------------------------------------------------------------------
-// Base class for all online frame averager instances
-template < typename PixType >
-class online_frame_averager
+class online_frame_averager_base
 {
 public:
-  online_frame_averager() : should_round_{ false } {}
-  virtual ~online_frame_averager() = default;
+  virtual ~online_frame_averager_base() = default;
 
+  // Reset the internal average
+  virtual void reset() = 0;
+
+protected:
+  // Should we spend a little bit of extra time rounding outputs?
+  bool should_round_ = false;
+
+  // The last average in double form
+  vil_image_view< double > last_average_;
+};
+
+// ----------------------------------------------------------------------------
+// Base class for all online frame averager instances
+template < typename PixType >
+class online_frame_averager : public online_frame_averager_base
+{
+public:
   // Process a new frame, returning the current frame average
   virtual void process_frame( vil_image_view< PixType > const& input,
                               vil_image_view< PixType >& average ) = 0;
@@ -57,16 +72,7 @@ public:
     vil_image_view< PixType > const& input, vil_image_view< PixType >& average,
     vil_image_view< double >& variance );
 
-  // Reset the internal average
-  virtual void reset() = 0;
-
 protected:
-  // Should we spend a little bit of extra time rounding outputs?
-  bool should_round_;
-
-  // The last average in double form
-  vil_image_view< double > last_average_;
-
   // Is the resolution of the input image different from prior inputs?
   bool has_resolution_changed( vil_image_view< PixType > const& input );
 
@@ -479,93 +485,69 @@ public:
   bool output_variance{ false };
   double variance_scale{ 0.0 };
 
-  // The actual frame averager
-  frame_averager_byte_sptr byte_averager;
-  frame_averager_float_sptr float_averager;
+  // The actual frame averagers
+  using averager_ptr = std::unique_ptr< online_frame_averager_base >;
+  std::map< vil_pixel_format, averager_ptr > frame_averager;
 
   // --------------------------------------------------------------------------
   // Load model, special optimizations are in place for the byte case
-  void
-  load_model( bool is_byte = true )
+  template < typename PixType >
+  online_frame_averager< PixType >*
+  load_model()
   {
-    if( ( is_byte && byte_averager ) || ( !is_byte && float_averager ) )
+    auto& averager = frame_averager[ vil_pixel_format_of( PixType{} ) ];
+    if( !averager )
     {
-      return;
+      switch( type )
+      {
+        case AVERAGER_window:
+        {
+          averager.reset( new windowed_frame_averager< PixType >{} );
+          break;
+        }
+        case AVERAGER_cumulative:
+        {
+          averager.reset( new cumulative_frame_averager< PixType >{ round } );
+          break;
+        }
+        case AVERAGER_exponential:
+        {
+          if( exp_weight <= 0 || exp_weight >= 1 )
+          {
+            throw std::runtime_error{
+                    "Invalid exponential averaging coefficient!" };
+          }
+
+          averager.reset(
+            new exponential_frame_averager< PixType >{ round, exp_weight } );
+          break;
+        }
+      }
     }
 
-    switch( type )
-    {
-      case AVERAGER_window:
-      {
-        if( is_byte )
-        {
-          byte_averager.reset(
-            new windowed_frame_averager< vxl_byte >{ round, window_size } );
-        }
-        else
-        {
-          float_averager.reset(
-            new windowed_frame_averager< double >{ round, window_size } );
-        }
-        break;
-      }
-      case AVERAGER_cumulative:
-      {
-        if( is_byte )
-        {
-          byte_averager.reset(
-            new cumulative_frame_averager< vxl_byte >{ round } );
-        }
-        else
-        {
-          float_averager.reset(
-            new cumulative_frame_averager< double >{ round } );
-        }
-        break;
-      }
-      case AVERAGER_exponential:
-      {
-        if( exp_weight <= 0 || exp_weight >= 1 )
-        {
-          throw std::runtime_error{
-                  "Invalid exponential averaging coefficient!" };
-        }
-
-        if( is_byte )
-        {
-          byte_averager.reset(
-            new exponential_frame_averager< vxl_byte >{
-              round, exp_weight } );
-        }
-        else
-        {
-          float_averager.reset(
-            new exponential_frame_averager< double >{ round, exp_weight } );
-        }
-        break;
-      }
-    }
+    return static_cast< online_frame_averager< PixType >* >( averager.get() );
   }
 
   // --------------------------------------------------------------------------
   // Compute the updated average with the current frame
   // return the average or the variance
+  template < typename PixType >
   kwiver::vital::image_container_sptr
-  process_frame( vil_image_view< double > input )
+  process_frame( vil_image_view< PixType > input )
   {
-    load_model( false );
+    auto* const averager = load_model< PixType >();
 
     if( !output_variance )
     {
-      vil_image_view< double > output;
-      float_averager->process_frame( input, output );
+      vil_image_view< PixType > output;
+      averager->process_frame( input, output );
       return std::make_shared< vxl::image_container >( output );
     }
     else
     {
-      vil_image_view< double > tmp;
+      vil_image_view< PixType > tmp;
       vil_image_view< double > output;
-      float_averager->process_frame( input, tmp, output );
+      averager->process_frame( input, tmp, output );
       return std::make_shared< vxl::image_container >( output );
     }
   }
@@ -672,20 +654,19 @@ average_frames
     vxl::image_container::vital_to_vxl( image_data->get_image() );
 
   // Perform different actions based on input type
-#define HANDLE_CASE( T )                                               \
-  case T:                                                              \
-  {                                                                    \
-    using pix_t = vil_pixel_format_type_of< T >::component_type;       \
-    vil_image_view< pix_t > uncast_input = view;                       \
-    vil_image_view< double > input;                                    \
-    vil_convert_cast( uncast_input, input );                           \
-    d->process_frame( input );                                         \
-    break;                                                             \
+#define HANDLE_CASE( T )                                         \
+  case T:                                                        \
+  {                                                              \
+    using pix_t = vil_pixel_format_type_of< T >::component_type; \
+    vil_image_view< pix_t > input = view;                        \
+    return d->process_frame( input );                            \
+    break;                                                       \
   }
 
   switch( view->pixel_format() )
   {
     HANDLE_CASE( VIL_PIXEL_FORMAT_BOOL );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_BYTE );
     HANDLE_CASE( VIL_PIXEL_FORMAT_SBYTE );
     HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 );
     HANDLE_CASE( VIL_PIXEL_FORMAT_INT_16 );
@@ -696,29 +677,6 @@ average_frames
     HANDLE_CASE( VIL_PIXEL_FORMAT_FLOAT );
     HANDLE_CASE( VIL_PIXEL_FORMAT_DOUBLE );
 #undef HANDLE_CASE
-
-    case VIL_PIXEL_FORMAT_BYTE:
-    {
-      // Default byte case
-      vil_image_view< vxl_byte > input = view;
-
-      d->load_model( true );
-
-      if( !d->output_variance )
-      {
-        vil_image_view< vxl_byte > output;
-        d->byte_averager->process_frame( input, output );
-        return std::make_shared< vxl::image_container >( output );
-      }
-      else
-      {
-        vil_image_view< vxl_byte > tmp;
-        vil_image_view< double > output;
-        d->byte_averager->process_frame( input, tmp, output );
-        return std::make_shared< vxl::image_container >( output );
-      }
-      break;
-    }
 
     default:
       // The image type was not one we handle
