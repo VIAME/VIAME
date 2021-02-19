@@ -2,8 +2,10 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#ifndef HASHED_IMAGE_CLASSIFIER_H_
-#define HASHED_IMAGE_CLASSIFIER_H_
+#ifndef KWIVER_ARROWS_VXL_HASHED_IMAGE_CLASSIFIER_
+#define KWIVER_ARROWS_VXL_HASHED_IMAGE_CLASSIFIER_
+
+#include <vital/logger/logger.h>
 
 #include <vgl/vgl_box_2d.h>
 #include <vil/vil_image_view.h>
@@ -64,6 +66,10 @@ public:
 
   // Normalize internal histogram weights to a given absolute sum
   void normalize( weight_t total_weight = 1.0 );
+
+private:
+  vital::logger_handle_t logger =
+    kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" );
 };
 
 /// Stream operator declaration for the hashed_image_classifier model class.
@@ -77,7 +83,7 @@ std::ostream&
 operator<<( std::ostream& os,
             hashed_image_classifier< FeatureType, OutputType > const& obj );
 
-/// A classifier designed to efficiently classifying every pixel in an image.
+/// A classifier designed to efficiently classify every pixel in an image.
 ///
 /// Every feature (for every pixel) is required to be mapped onto unsigned
 /// integral type HashType before input. For every possible value of this
@@ -111,7 +117,8 @@ public:
   using model_sptr_t = std::shared_ptr< model_t >;
   using self_t = hashed_image_classifier< FeatureType, OutputType >;
 
-  /// Default constructor; a model must be loaded via load_from_file before use.
+  /// Default constructor; a model must be loaded via load_from_file before
+  /// use.
   hashed_image_classifier() : model_( new model_t() ) {}
 
   /// Descructor
@@ -138,21 +145,8 @@ public:
                                 weight_image_t& output_image,
                                 weight_t const offset = 0.0 ) const;
 
-  /// Classify a feature array, in addition to adding offset to each pixel.
-  virtual void classify_images( input_image_t const* input_features,
-                                unsigned const features,
-                                weight_image_t& output_image,
-                                weight_t const offset = 0.0 ) const;
-
   /// Only classify certain pixels as given by a mask.
   virtual void classify_images( feature_vector_t const& input_features,
-                                mask_image_t const& mask,
-                                weight_image_t& output_image,
-                                weight_t const offset = 0.0 ) const;
-
-  /// Only classify certain pixels as given by a mask.
-  virtual void classify_images( input_image_t const* input_features,
-                                unsigned const features,
                                 mask_image_t const& mask,
                                 weight_image_t& output_image,
                                 weight_t const offset = 0.0 ) const;
@@ -166,7 +160,7 @@ public:
   virtual unsigned
   feature_count() const { return model_->num_features; }
 
-  /// Was a valid model loaded by this classifier?
+  /// Was a valid model loaded by this classifier.
   virtual bool
   is_valid() const { return model_ && model_->is_valid(); }
 
@@ -179,6 +173,8 @@ public:
 protected:
   // A pointer to our internal data
   model_sptr_t model_;
+  vital::logger_handle_t logger =
+    kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" );
 };
 
 } // namespace vxl
