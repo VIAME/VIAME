@@ -71,7 +71,7 @@ public:
     number_of_frames(0),
     collected_all_metadata(false),
     estimated_num_frames(false),
-    sync_metadata(false)
+    sync_metadata(true)
   { }
 
   // f_* variables are FFmpeg specific

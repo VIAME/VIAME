@@ -468,6 +468,8 @@ TEST_F(ffmpeg_video_input, no_sync_metadata)
   kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
 
   auto config = vif.get_configuration();
+  // Turn off metadata syncing
+  config->set_value("sync_metadata", "False");
   vif.set_configuration(config);
 
   kwiver::vital::path_t video_base_name = "aphill_short";
@@ -525,8 +527,6 @@ TEST_F(ffmpeg_video_input, sync_metadata)
   kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
 
   auto config = vif.get_configuration();
-  // Set to synchronize metadata
-  config->set_value("sync_metadata", "True");
   vif.set_configuration(config);
 
   kwiver::vital::path_t video_base_name = "aphill_short";
