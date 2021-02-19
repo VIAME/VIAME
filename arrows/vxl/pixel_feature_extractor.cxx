@@ -32,11 +32,12 @@ namespace vxl {
 class pixel_feature_extractor::priv
 {
 public:
-
   priv( pixel_feature_extractor* parent ) : p{ parent }
   {
   }
 
+  // Check the configuration of the sub algoirthms
+  bool check_sub_algorithm( vital::config_block_sptr config, std::string key );
   // Copy multiple filtered images into contigious memory
   template < typename pix_t > vil_image_view< pix_t >
   concatenate_images( std::vector< vil_image_view< pix_t > > filtered_images );
@@ -54,12 +55,48 @@ public:
   bool enable_high_pass_bidir{ true };
   bool enable_high_pass_box{ true };
 
-  vxl::aligned_edge_detection aligned_edge_detection_filter;
-  vxl::average_frames average_frames_filter;
-  vxl::color_commonality_filter color_commonality_filter;
-  vxl::high_pass_filter high_pass_bidir_filter;
-  vxl::high_pass_filter high_pass_box_filter;
+  std::shared_ptr< vxl::aligned_edge_detection >
+  aligned_edge_detection_filter =
+    std::make_shared< vxl::aligned_edge_detection >();
+  std::shared_ptr< vxl::average_frames > average_frames_filter =
+    std::make_shared< vxl::average_frames >();
+  std::shared_ptr< vxl::color_commonality_filter > color_commonality_filter =
+    std::make_shared< vxl::color_commonality_filter >();
+  std::shared_ptr< vxl::high_pass_filter > high_pass_bidir_filter =
+    std::make_shared< vxl::high_pass_filter >();
+  std::shared_ptr< vxl::high_pass_filter > high_pass_box_filter =
+    std::make_shared< vxl::high_pass_filter >();
+
+  std::map< std::string,
+            std::shared_ptr< vital::algo::image_filter > > filters{
+    std::make_pair( "aligned_edge_detection", aligned_edge_detection_filter ),
+    std::make_pair( "average", average_frames_filter ),
+    std::make_pair( "color_commonality", color_commonality_filter ),
+    std::make_pair( "high_pass_bidir", high_pass_bidir_filter ),
+    std::make_pair( "high_pass_box", high_pass_box_filter ) };
 };
+
+// ----------------------------------------------------------------------------
+bool
+pixel_feature_extractor::priv
+::check_sub_algorithm( vital::config_block_sptr config, std::string key )
+{
+  auto enabled = config->get_value< bool >( "enable_" + key );
+
+  if( !enabled )
+  {
+    return true;
+  }
+  auto subblock = config->subblock_view( key );
+  if( !filters.at( key )->check_configuration( subblock ) )
+  {
+    LOG_ERROR(
+      p->logger(),
+      "Sub-algorithm " << key << " failed its config check" );
+    return false;
+  }
+  return true;
+}
 
 // ----------------------------------------------------------------------------
 template < typename pix_t >
@@ -110,9 +147,12 @@ pixel_feature_extractor::priv
 
   if( enable_color || enable_gray )
   {
-    const auto vxl_image = vxl::image_container::vital_to_vxl( input_image->get_image() );
+    const auto vxl_image = vxl::image_container::vital_to_vxl(
+      input_image->get_image() );
+
     // 3 channels
-    if( enable_color ){
+    if( enable_color )
+    {
       filtered_images.push_back( vxl_image );
     }
 
@@ -127,34 +167,35 @@ pixel_feature_extractor::priv
   if( enable_color_commonality )
   {
     // 1 channel
-    auto color_commonality = color_commonality_filter.filter( input_image );
+    auto color_commonality = color_commonality_filter->filter( input_image );
     filtered_images.push_back(
         vxl::image_container::vital_to_vxl( color_commonality->get_image() ) );
   }
   if( enable_high_pass_box )
   {
-    auto high_pass_box = high_pass_box_filter.filter( input_image );
+    auto high_pass_box = high_pass_box_filter->filter( input_image );
     // 2 channels
     filtered_images.push_back(
-      vxl::image_container::vital_to_vxl( high_pass_box->get_image() ) );
+        vxl::image_container::vital_to_vxl( high_pass_box->get_image() ) );
   }
   if( enable_high_pass_bidir )
   {
-    auto high_pass_bidir = high_pass_bidir_filter.filter( input_image );
+    auto high_pass_bidir = high_pass_bidir_filter->filter( input_image );
     // 2 channels
     filtered_images.push_back(
-      vxl::image_container::vital_to_vxl( high_pass_bidir->get_image() ) );
+        vxl::image_container::vital_to_vxl( high_pass_bidir->get_image() ) );
   }
   // TODO consider naming this variance since that option is used more
   if( enable_average )
   {
     // 3 channels
-    auto averaged = average_frames_filter.filter( input_image );
+    auto averaged = average_frames_filter->filter( input_image );
     filtered_images.push_back(
         vxl::image_container::vital_to_vxl( averaged->get_image() ) );
   }
-  if( enable_aligned_edge ){
-    auto aligned_edge = aligned_edge_detection_filter.filter( input_image );
+  if( enable_aligned_edge )
+  {
+    auto aligned_edge = aligned_edge_detection_filter->filter( input_image );
     // 2 channels
     filtered_images.push_back(
         vxl::image_container::vital_to_vxl( aligned_edge->get_image() ) );
@@ -235,17 +276,16 @@ pixel_feature_extractor
     config->get_value< bool >( "enable_high_pass_bidir" );
 
   // Configure the individual filter algorithms
-  d->aligned_edge_detection_filter.set_configuration(
+  d->aligned_edge_detection_filter->set_configuration(
     config->subblock_view( "aligned_edge" ) );
-  d->average_frames_filter.set_configuration(
-     config->subblock_view( "average" ) );
-  d->color_commonality_filter.set_configuration(
+  d->average_frames_filter->set_configuration(
+    config->subblock_view( "average" ) );
+  d->color_commonality_filter->set_configuration(
     config->subblock_view( "color_commonality" ) );
-  d->high_pass_box_filter.set_configuration(
+  d->high_pass_box_filter->set_configuration(
     config->subblock_view( "high_pass_box" ) );
-  d->high_pass_bidir_filter.set_configuration(
+  d->high_pass_bidir_filter->set_configuration(
     config->subblock_view( "high_pass_bidir" ) );
-  write_config_file( config->subblock_view( "high_pass_box" ), "box.conf" );
 }
 
 // ----------------------------------------------------------------------------
@@ -267,12 +307,17 @@ pixel_feature_extractor
 
   if( !( enable_color || enable_gray || enable_aligned_edge ||
          enable_average || enable_color_commonality || enable_high_pass_box ||
-         enable_high_pass_bidir) )
+         enable_high_pass_bidir ) )
   {
     LOG_ERROR( logger(), "At least one filter must be enabled" );
     return false;
   }
-  return true;
+
+  return d->check_sub_algorithm( config, "aligned_edges" ) &&
+         d->check_sub_algorithm( config, "average" ) &&
+         d->check_sub_algorithm( config, "color_commonality" ) &&
+         d->check_sub_algorithm( config, "high_pass_box" ) &&
+         d->check_sub_algorithm( config, "high_pass_bidir" );
 }
 
 // ----------------------------------------------------------------------------
