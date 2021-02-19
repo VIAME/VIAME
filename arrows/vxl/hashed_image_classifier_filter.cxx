@@ -15,9 +15,10 @@
 #include <vil/vil_math.h>
 #include <vil/vil_plane.h>
 
-#include <cstdlib>
 #include <limits>
 #include <type_traits>
+
+#include <cstdlib>
 
 namespace kwiver {
 
@@ -30,7 +31,6 @@ namespace vxl {
 class hashed_image_classifier_filter::priv
 {
 public:
-  // --------------------------------------------------------------------------
   priv( hashed_image_classifier_filter* parent ) : p{ parent }
   {
   }
@@ -40,15 +40,14 @@ public:
   convert( vil_image_view_base_sptr& view );
 
   // Scale and convert the image
-  bool
-  load_model();
+  bool load_model();
 
-  hashed_image_classifier_filter* p;
+  hashed_image_classifier_filter* const p;
 
   hashed_image_classifier< vxl_byte, double > hashed_classifier;
   bool model_loaded{ false };
 
-  std::string model_file{ "" };
+  std::string model_file;
 };
 
 // ----------------------------------------------------------------------------
@@ -92,7 +91,7 @@ hashed_image_classifier_filter
   vital::config_block_sptr config = algorithm::get_configuration();
 
   config->set_value( "model_file", d->model_file,
-                     "model_file to load weights from." );
+                     "Model file from which to load weights." );
 
   return config;
 }

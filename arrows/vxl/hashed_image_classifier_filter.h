@@ -15,7 +15,7 @@ namespace arrows {
 
 namespace vxl {
 
-/// Classify an image of features using a sum of linear classifiers
+/// Classify an image of features using a sum of linear classifiers.
 class KWIVER_ALGO_VXL_EXPORT hashed_image_classifier_filter
   : public vital::algo::image_filter
 {

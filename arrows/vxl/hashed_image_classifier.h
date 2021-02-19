@@ -21,8 +21,8 @@ namespace arrows {
 
 namespace vxl {
 
-template < typename FeatureType,
-           typename OutputType > class hashed_image_classifier;
+template < typename FeatureType, typename OutputType >
+class hashed_image_classifier;
 
 /// Internal data required for the hashed_image_classifier class.
 ///
@@ -36,13 +36,13 @@ public:
   using self_t = hashed_image_classifier_model< FloatType >;
   using weight_t = FloatType;
 
-  hashed_image_classifier_model() : num_features( 0 ) {}
+  hashed_image_classifier_model() = default;
   hashed_image_classifier_model( self_t const& other );
 
-  virtual ~hashed_image_classifier_model() {}
+  virtual ~hashed_image_classifier_model() = default;
 
   // Number of features
-  unsigned int num_features;
+  unsigned int num_features = 0;
 
   // Maximum value for each feature
   std::vector< unsigned > max_feature_value;
@@ -84,7 +84,7 @@ operator<<( std::ostream& os,
 /// hashed mapping, and for every feature, a single weight must be given (in a
 /// model file) which contributes to some binary decision about said pixel.
 ///
-/// More formally, for every feature at location i,j, ie, f(i,j,0), f(i,j,1)
+/// More formally, for every feature at location i,j, i.e. f(i,j,0), f(i,j,1)
 /// f(i,j,...) the output classification is given as:
 ///
 ///                      c(i,j) = sum( w_{k}[ f(i,j,k) ] )
@@ -111,17 +111,16 @@ public:
   using model_sptr_t = std::shared_ptr< model_t >;
   using self_t = hashed_image_classifier< FeatureType, OutputType >;
 
-  /// Default constructor, a model must be loaded via load_from_file before use
+  /// Default constructor; a model must be loaded via load_from_file before use.
   hashed_image_classifier() : model_( new model_t() ) {}
 
   /// Descructor
-  virtual ~hashed_image_classifier() {}
+  virtual ~hashed_image_classifier() = default;
 
   /// Load a model from a file.
   ///
   /// The model file should be specified in the following format, where
-  /// bracketed
-  /// items should be replaced by values:
+  /// bracketed items should be replaced by values:
   ///
   /// [Number of features]
   /// [Number of values feature 0 can take on] [weights for value 0, 1, etc. ]

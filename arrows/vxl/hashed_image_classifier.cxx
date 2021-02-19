@@ -26,8 +26,7 @@ hashed_image_classifier< FeatureType, OutputType >
                    weight_t const offset ) const
 {
   feature_vector_t input_features_vector;
-  auto num_planes = input_features.nplanes();
-  for( unsigned i{ 0 }; i < num_planes; ++i )
+  for( auto const i : vital::range::iota( input_features.nplanes() ) )
   {
     input_features_vector.push_back( vil_plane( input_features, i ) );
   }
@@ -187,7 +186,7 @@ bool
 hashed_image_classifier< FeatureType, OutputType >
 ::load_from_file( std::string const& file )
 {
-  model_.reset( new model_t() );
+  model_.reset( new model_t{} );
 
   // Open model file for reading
   std::ifstream input( file.c_str() );
@@ -284,9 +283,9 @@ hashed_image_classifier< FeatureType, OutputType >
       auto logger{ kwiver::vital::get_logger(
                      "arrows.vxl.hashed_image_classifier" ) };
       LOG_ERROR( logger,
-                 "Number of weights ("  << parsed.size() - 1
-                                        << ") does not match " <<
-                 num_values );
+                 "Number of weights (" << parsed.size() - 1
+                                       << ") does not match "
+                                       << num_values );
       return false;
     }
 
@@ -404,6 +403,7 @@ hashed_image_classifier_model< FloatType >
   {
     return true;
   }
+
   auto logger{ kwiver::vital::get_logger( "arrows.vxl.hashed_image_classifier" ) };
   LOG_ERROR( logger, "num_features: " << num_features );
 
@@ -429,8 +429,8 @@ hashed_image_classifier_model< FloatType >
 
   for( unsigned i = 0; i < feature_count; ++i )
   {
-    this->feature_weights[ i ] = &( this->weights[ 0 ] ) + i *
-                                 entries_per_feature;
+    this->feature_weights[ i ] = &( this->weights[ 0 ] ) +
+                                 i * entries_per_feature;
   }
 }
 
@@ -478,7 +478,7 @@ hashed_image_classifier_model< FloatType >
 
     for( unsigned i = 0; i < feature_weights.size(); ++i )
     {
-      std::ptrdiff_t const offset{ other.feature_weights[ i ] - other_start };
+      auto const offset = other.feature_weights[ i ] - other_start;
       feature_weights[ i ] = this_start + offset;
     }
   }
