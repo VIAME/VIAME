@@ -187,9 +187,8 @@ public:
       }
       else if (params->codec_type == AVMEDIA_TYPE_DATA)
       {
-        this->metadata.insert(
-          std::make_pair(i, std::multimap<int64_t, std::deque<uint8_t> >()));
-        this->curr_metadata.insert(std::make_pair(i, std::deque<uint8_t>()));
+        this->metadata.emplace(i, std::multimap<int64_t, std::deque<uint8_t> >());
+        this->curr_metadata.emplace(i, std::deque<uint8_t>());
       }
     }
 
@@ -208,8 +207,8 @@ public:
         AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
         if (params->codec_type == AVMEDIA_TYPE_UNKNOWN)
         {
-          this->metadata.insert(
-            std::make_pair(i, std::multimap<int64_t, std::deque<uint8_t> >() ) );
+          this->metadata.emplace(i, std::multimap<int64_t, std::deque<uint8_t> >());
+          this->curr_metadata.emplace(i, std::deque<uint8_t>());
           LOG_INFO(this->logger, "Using AVMEDIA_TYPE_UNKNOWN stream as a data stream");
         }
       }
@@ -495,9 +494,10 @@ public:
       auto md_iter = this->metadata.find(this->f_packet->stream_index);
       if (md_iter != this->metadata.end() )
       {
-        md_iter->second.insert(std::make_pair( this->f_packet->pts,
-            std::deque<uint8_t>(this->f_packet->data,
-              this->f_packet->data + this->f_packet->size) ) );
+        md_iter->second.emplace(
+          this->f_packet->pts,
+          std::deque<uint8_t>(this->f_packet->data,
+                              this->f_packet->data + this->f_packet->size));
       }
 
       // De-reference previous packet
@@ -739,15 +739,13 @@ public:
       // Add metadata for current frame
       if ( frame_advanced )
       {
-        this->metadata_map.insert(
-          std::make_pair( this->frame_number(), this->current_metadata() ) );
+        this->metadata_map.emplace(this->frame_number(), this->current_metadata());
       }
 
       // Advance video stream to end
       while ( this->advance() )
       {
-        this->metadata_map.insert(
-          std::make_pair( this->frame_number(), this->current_metadata() ) );
+        this->metadata_map.emplace(this->frame_number(), this->current_metadata());
       }
 
       // Close and reopen to reset
@@ -759,8 +757,7 @@ public:
       while ( frame_num < initial_frame_number && this->advance() )
       {
         ++frame_num;
-        this->metadata_map.insert(
-          std::make_pair( this->frame_number(), this->current_metadata() ) );
+        this->metadata_map.emplace(this->frame_number(), this->current_metadata());
       }
 
       collected_all_metadata = true;
