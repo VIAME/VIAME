@@ -121,7 +121,6 @@ public:
   /// use.
   hashed_image_classifier() : model_( new model_t() ) {}
 
-  /// Descructor
   virtual ~hashed_image_classifier() = default;
 
   /// Load a model from a file.

@@ -16,6 +16,8 @@ namespace arrows {
 
 namespace vxl {
 
+namespace kvr = kwiver::vital::range;
+
 // ----------------------------------------------------------------------------
 // Classify a chain of hashed feature images
 template < typename FeatureType, typename OutputType >
@@ -26,7 +28,7 @@ hashed_image_classifier< FeatureType, OutputType >
                    weight_t const offset ) const
 {
   feature_vector_t input_features_vector;
-  for( auto const i : vital::range::iota( input_features.nplanes() ) )
+  for( auto const i : kvr::iota( input_features.nplanes() ) )
   {
     input_features_vector.push_back( vil_plane( input_features, i ) );
   }
@@ -57,34 +59,39 @@ hashed_image_classifier< FeatureType, OutputType >
                << num_features << ", feature_count(): " << feature_count() );
   }
 
+  if( num_features == 0 )
+  {
+    LOG_ERROR( logger, "The feature vector had 0 elements" );
+  }
+
   output_image.set_size(
-    input_features.at( 0 ).ni(), input_features.at( 0 ).nj() );
+      input_features[ 0 ].ni(), input_features[ 0 ].nj() );
   output_image.fill( offset );
 
   std::vector< std::ptrdiff_t > sisteps( num_features );
   std::vector< input_t const* > spixels( num_features );
 
-  for( auto const f : vital::range::iota( num_features ) )
+  for( auto const f : kvr::iota( num_features ) )
   {
-    sisteps[ f ] = input_features.at( f ).istep();
+    sisteps[ f ] = input_features[ f ].istep();
   }
 
   auto const distep = output_image.istep();
 
-  for( auto const j : vital::range::iota( output_image.nj() ) )
+  for( auto const j : kvr::iota( output_image.nj() ) )
   {
     weight_t* dpixel = &output_image( 0, j );
 
-    for( auto const f : vital::range::iota( num_features ) )
+    for( auto const f : kvr::iota( num_features ) )
     {
       spixels[ f ] = &input_features[ f ]( 0, j );
     }
 
     for( unsigned i = 0; i < output_image.ni(); ++i, dpixel += distep )
     {
-      for( auto const f : vital::range::iota( num_features ) )
+      for( auto const f : kvr::iota( num_features ) )
       {
-        *dpixel += model_->feature_weights.at( f )[ *spixels[ f ] ];
+        *dpixel += model_->feature_weights[ f ][ *spixels[ f ] ];
         spixels[ f ] += sisteps[ f ];
       }
     }
@@ -235,9 +242,9 @@ hashed_image_classifier< FeatureType, OutputType >
     if( parsed.size() != num_values + 1  || entry >= model_->num_features )
     {
       LOG_ERROR( logger,
-                 "Number of weights ("  << parsed.size() - 1
-                                        << ") does not match "
-                                        << num_values );
+                 "Number of weights (" << parsed.size() - 1
+                                       << ") does not match "
+                                       << num_values );
       return false;
     }
 
@@ -388,19 +395,19 @@ void
 hashed_image_classifier_model< FloatType >
 ::normalize( weight_t total_weight )
 {
-  double weight_magnitude_sum{ 0 };
+  double sum{ 0 };
 
-  for( auto const i : vital::range::iota( this->weights.size() ) )
+  for( auto const i : kvr::iota( this->weights.size() ) )
   {
-    weight_magnitude_sum += std::fabs( this->weights[ i ] );
+    sum += std::fabs( this->weights[ i ] );
   }
 
-  if( weight_magnitude_sum != 0 )
+  if( sum != 0 )
   {
     weight_t norm_factor =
-      static_cast< weight_t >( 1.0 / ( weight_magnitude_sum * total_weight ) );
+      static_cast< weight_t >( 1.0 / ( sum * total_weight ) );
 
-    for( auto const i : vital::range::iota( this->weights.size() ) )
+    for( auto const i : kvr::iota( this->weights.size() ) )
     {
       this->weights[ i ] *= norm_factor;
     }
