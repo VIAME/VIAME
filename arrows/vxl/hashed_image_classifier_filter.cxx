@@ -9,7 +9,6 @@
 
 #include <vital/vital_config.h>
 
-#include <vil/algo/vil_threshold.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
@@ -45,6 +44,7 @@ public:
   hashed_image_classifier_filter* const p;
 
   hashed_image_classifier< vxl_byte, double > hashed_classifier;
+  double offset{ 0 };
   bool model_loaded{ false };
 
   std::string model_file;
@@ -92,6 +92,8 @@ hashed_image_classifier_filter
 
   config->set_value( "model_file", d->model_file,
                      "Model file from which to load weights." );
+  config->set_value( "offset", d->offset,
+                     "Value to initialize the response map with." );
 
   return config;
 }
@@ -110,6 +112,8 @@ hashed_image_classifier_filter
 
   d->model_file =
     config->get_value< std::string >( "model_file" );
+  d->offset =
+    config->get_value< double >( "offset" );
 }
 
 // ----------------------------------------------------------------------------
@@ -155,7 +159,7 @@ hashed_image_classifier_filter
 
   vil_image_view< double > weight_image;
 
-  d->hashed_classifier.classify_images( view, weight_image, 0.0 );
+  d->hashed_classifier.classify_images( view, weight_image, d->offset );
 
   return std::make_shared< vxl::image_container >( weight_image );
 }
