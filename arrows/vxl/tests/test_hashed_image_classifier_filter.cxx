@@ -70,8 +70,8 @@ TEST_F(hashed_image_classifier_filter, compute_all)
   vil_math_scale_and_offset_values( vxl_filtered, 512.0, 128.0 );
   vil_image_view< vxl_byte > filtered_byte;
   vil_convert_cast( vxl_filtered, filtered_byte );
-  auto const filtered_byte_vital{
-    std::make_shared< ka::vxl::image_container >( filtered_byte ) };
+  auto const filtered_byte_vital =
+    std::make_shared< ka::vxl::image_container >( filtered_byte );
 
   auto const expected = io.load( expected_filename );
 

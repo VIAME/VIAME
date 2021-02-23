@@ -106,7 +106,6 @@ hashed_image_classifier_filter
   // Start with our generated vital::config_block to ensure that assumed values
   // are present. An alternative would be to check for key presence before
   // performing a get_value() call.
-
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
