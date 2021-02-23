@@ -576,7 +576,7 @@ double get_file_frame_rate( const std::string& file )
     {
       for( unsigned p = 0; p < line.size() - 4; p++ )
       {
-        if( line.substr( p, 4 ) == "fps:" )
+        if( line.substr( p, 4 ) == "fps:" || line.substr( p, 4 ) == "fps=" )
         {
           for( unsigned l = p + 4; l < line.size(); l++ )
           {
