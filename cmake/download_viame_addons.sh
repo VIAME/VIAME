@@ -2,7 +2,7 @@
 
 # Configurable Input Paths
 export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/.."
-export DOWNLOAD_LOCATION=~/VIAME-Addons
+export DOWNLOAD_LOCATION=/tmp/VIAME-Addons
 
 # Ensure Download Location is Created
 mkdir -p ${DOWNLOAD_LOCATION}
