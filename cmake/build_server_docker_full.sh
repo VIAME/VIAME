@@ -120,3 +120,4 @@ mv install viame
 mv viame /opt/noaa
 cd /
 rm -rf /viame
+chown -R 1099:1099 /opt/noaa/viame
