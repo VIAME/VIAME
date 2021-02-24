@@ -1,0 +1,81 @@
+# ================================================================
+process input
+  :: video_input
+  video_filename   	= @EXAMPLE_DIR@/videos/drone-video.mp4
+  frame_time        	= .3333
+
+  video_reader:type	= vidl_ffmpeg
+
+# ================================================================
+process filter
+  ::image_filter
+  filter:type                    	= vxl_pixel_feature_extractor
+  filter:vxl_pixel_feature_extractor:enable_color = true # 3 channels
+  filter:vxl_pixel_feature_extractor:enable_gray = true # 1 channel
+  filter:vxl_pixel_feature_extractor:enable_color_commonality = true # 1 channel
+  filter:vxl_pixel_feature_extractor:enable_high_pass_box = true # 3 channels
+  filter:vxl_pixel_feature_extractor:enable_high_pass_bidir = true # 1 channel
+  filter:vxl_pixel_feature_extractor:enable_average = true # 3 channels
+  filter:vxl_pixel_feature_extractor:enable_aligned_edge = true # 3 channels
+
+  filter:vxl_pixel_feature_extractor:average:window_size = 25
+  filter:vxl_pixel_feature_extractor:average:type = window
+  filter:vxl_pixel_feature_extractor:average:output_variance = true
+
+  # TODO figure out what size kernel to use based on expected GSD
+  filter:vxl_pixel_feature_extractor:high_pass_box:kernel_width = 13
+  filter:vxl_pixel_feature_extractor:high_pass_box:kernel_height = 13
+  filter:vxl_pixel_feature_extractor:high_pass_box:treat_as_interlaced = false
+  filter:vxl_pixel_feature_extractor:high_pass_box:output_net_only = false
+
+  filter:vxl_pixel_feature_extractor:high_pass_bidir:kernel_width = 27
+  filter:vxl_pixel_feature_extractor:high_pass_bidir:kernel_height = 27
+  filter:vxl_pixel_feature_extractor:high_pass_bidir:treat_as_interlaced = false
+  filter:vxl_pixel_feature_extractor:high_pass_bidir:output_net_only = true
+
+  filter:vxl_pixel_feature_extractor:color_commonality:smooth_image = false
+  filter:vxl_pixel_feature_extractor:color_commonality:output_scale = 255
+
+# ================================================================
+process classifier
+  ::image_filter
+  filter:type                                          = vxl_hashed_image_classifier_filter
+  filter:vxl_hashed_image_classifier_filter:model_file = @EXAMPLE_DIR@/models/default_burnout_600_iters
+
+# ================================================================
+process thresholder
+  ::image_filter
+  filter:type                           = vxl_threshold
+  filter:vxl_threshold:type             = percentile
+  filter:vxl_threshold:threshold        = 0.95
+
+process converter
+  ::image_filter
+  filter:type                           = vxl_convert_image
+  filter:vxl_convert_image:type         = byte
+  filter:vxl_convert_image:scale_factor = 255
+
+# ================================================================
+process writer
+  :: image_writer
+  image_writer:type                     = vxl
+  file_name_template                    = output/image%06d.png
+
+
+# connections
+connect from input.image
+        to   filter.image
+
+connect from filter.image
+        to   classifier.image
+
+connect from classifier.image
+        to thresholder.image
+
+connect from thresholder.image
+        to   converter.image
+
+connect from converter.image
+        to   writer.image
+
+# -- end of file --
