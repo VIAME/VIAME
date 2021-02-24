@@ -234,7 +234,7 @@ read_detected_object_set_viame_csv
   }
 
   // Test for end of all loaded detections
-  if( d->m_current_idx > d->m_last_idx )
+  if( image_name.empty() && d->m_current_idx > d->m_last_idx )
   {
     return false;
   }
