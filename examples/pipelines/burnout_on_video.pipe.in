@@ -39,8 +39,8 @@ process filter
 # ================================================================
 process classifier
   ::image_filter
-  filter:type                    	                     = vxl_hashed_image_classifier_filter
-  filter:vxl_hashed_image_classifier_filter:default_filename = @EXAMPLE_DIR@/models/default_burnout_600_iters
+  filter:type                                          = vxl_hashed_image_classifier_filter
+  filter:vxl_hashed_image_classifier_filter:model_file = @EXAMPLE_DIR@/models/default_burnout_600_iters
 
 # ================================================================
 process thresholder
@@ -49,11 +49,17 @@ process thresholder
   filter:vxl_threshold:type             = percentile
   filter:vxl_threshold:threshold        = 0.95
 
+process converter
+  ::image_filter
+  filter:type                           = vxl_convert_image
+  filter:vxl_convert_image:type         = byte
+  filter:vxl_convert_image:scale_factor = 255
+
 # ================================================================
 process writer
   :: image_writer
   image_writer:type                     = vxl
-  file_name_template                    = output/image%04d.png
+  file_name_template                    = output/image%06d.png
 
 
 # connections
@@ -67,6 +73,9 @@ connect from classifier.image
         to thresholder.image
 
 connect from thresholder.image
+        to   converter.image
+
+connect from converter.image
         to   writer.image
 
 # -- end of file --
