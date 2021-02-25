@@ -20,6 +20,7 @@ kwiver_discover_gtests(vxl hashed_image_classifier_filter LIBRARIES ${test_libra
 kwiver_discover_gtests(vxl high_pass_filter               LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
 kwiver_discover_gtests(vxl image                          LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl image_io                       LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
+kwiver_discover_gtests(vxl morphology                     LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
 kwiver_discover_gtests(vxl polygon                        LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl vidl_ffmpeg_video_input        LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
 
