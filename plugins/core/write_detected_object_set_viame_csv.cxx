@@ -46,16 +46,15 @@
 #endif
 
 #ifdef VIAME_ENABLE_OPENCV
-#include <arrows/ocv/image_container.h>
+  #include <arrows/ocv/image_container.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+  #include <opencv2/core/core.hpp>
+  #include <opencv2/imgproc/imgproc.hpp>
 
-// Needed for simplify_polygon
-#include <queue>
+  #include <queue>
 
-static std::vector< cv::Point >
-simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points );
+  static std::vector< cv::Point >
+  simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points );
 #endif
 
 namespace viame {
