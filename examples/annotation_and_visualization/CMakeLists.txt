@@ -69,4 +69,5 @@ if( VIAME_ENABLE_SEAL_TK )
 endif()
 
 install( FILES       ${example_files}
+         COMPONENT VIAME
          DESTINATION examples/annotation_and_visualization )
