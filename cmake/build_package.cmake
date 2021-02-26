@@ -131,5 +131,14 @@ if(WIN32)
   set(CPACK_WIX_COMPONENT_INSTALL ON)
   get_cmake_property(CPACK_COMPONENTS_ALL COMPONENTS)
   list(REMOVE_ITEM CPACK_COMPONENTS_ALL "System" "Unspecified" "runtime")
+
+  message("Setting Properties for shortcuts")
+  set_property(INSTALL "examples/annotation_and_visualization/launch_dive_interface.bat"
+  PROPERTY CPACK_DESKTOP_SHORTCUTS "VIAME DIVE Interface")
+  set_property(INSTALL "examples/annotation_and_visualization/launch_view_interface.bat"
+  PROPERTY CPACK_DESKTOP_SHORTCUTS "VIAME VIEW Interface")
+  # set_property(INSTALL "configs/prj-windows"
+  # PROPERTY CPACK_DESKTOP_SHORTCUTS "VIAME Project Folder")
+
 endif()
 include( CPack )
