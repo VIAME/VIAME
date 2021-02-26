@@ -180,10 +180,13 @@ endif()
 # All subdirectories for this folder installed as-is
 ##
 install( DIRECTORY gui-params
+         COMPONENT VIAME
          DESTINATION configs )
 install( DIRECTORY prj-linux
+         COMPONENT VIAME
          DESTINATION configs )
 install( DIRECTORY prj-windows
+         COMPONENT VIAME
          DESTINATION configs )
 
 ###
