@@ -92,10 +92,9 @@ morphology
   vil_math_scale_values( vxl_byte_image, 255 );
 
   auto const filtered_byte_image_ptr =
-   std::make_shared< ka::vxl::image_container >( vxl_byte_image );
+    std::make_shared< ka::vxl::image_container >( vxl_byte_image );
 
   auto expected_filename = data_dir + "/" + expected_basename;
-
   auto const expected_image_ptr = io.load( expected_filename );
   EXPECT_TRUE( equal_content( filtered_byte_image_ptr->get_image(),
                               expected_image_ptr->get_image() ) );
@@ -106,7 +105,6 @@ TEST_F(morphology, erode)
 {
   auto config = kv::config_block::empty_config();
   config->set_value( "morphology", "erode" );
-  config->set_value( "element_size", "32" );
 
   test_morphology_type( config, expected_morphology_erode );
 }
@@ -116,7 +114,6 @@ TEST_F(morphology, dilate)
 {
   auto config = kv::config_block::empty_config();
   config->set_value( "morphology", "dilate" );
-  config->set_value( "element_size", "32" );
 
   test_morphology_type( config, expected_morphology_dilate );
 }
@@ -126,7 +123,6 @@ TEST_F(morphology, union)
 {
   auto config = kv::config_block::empty_config();
   config->set_value( "channel_combination", "union" );
-  config->set_value( "element_size", "128" );
 
   test_morphology_type( config, expected_morphology_union );
 }
@@ -136,7 +132,6 @@ TEST_F(morphology, intersection)
 {
   auto config = kv::config_block::empty_config();
   config->set_value( "channel_combination", "intersection" );
-  config->set_value( "element_size", "128" );
 
   test_morphology_type( config, expected_morphology_intersection );
 }

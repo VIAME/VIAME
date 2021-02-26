@@ -4,7 +4,9 @@ set(CMAKE_FOLDER "Arrows/VXL/Tests")
 
 include(kwiver-test-setup)
 
-set(test_libraries     kwiver_algo_vxl)
+set(test_libraries
+  kwiver_algo_vxl
+  vil_algo)
 
 ##############################
 # Algorithms VXL tests

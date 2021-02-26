@@ -24,7 +24,8 @@ class KWIVER_ALGO_VXL_EXPORT morphology
 {
 public:
   PLUGIN_INFO( "vxl_morphology",
-               "Convert image between different formats or scales." )
+               "Apply channel-wise morphological operations and "
+               "optionally merge across channels." )
 
   morphology();
   ~morphology();

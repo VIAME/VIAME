@@ -61,12 +61,14 @@ ENUM_CONVERTER( combine_converter, combine_mode, { "none", COMBINE_none },
                 { "union", COMBINE_union },
                 { "intersection", COMBINE_intersection } );
 
+// ----------------------------------------------------------------------------
 inline bool
 union_functor( bool x1, bool x2 )
 {
   return x1 || x2;
 }
 
+// ----------------------------------------------------------------------------
 inline bool
 intersection_functor( bool x1, bool x2 )
 {
@@ -79,9 +81,9 @@ intersection_functor( bool x1, bool x2 )
 class morphology::priv
 {
 public:
-  using morphology_func_t = void (*)( vil_image_view< bool > const&,
-                                      vil_image_view< bool >&,
-                                      vil_structuring_element const& );
+  using morphology_func_t = void ( * )( vil_image_view< bool > const&,
+                                        vil_image_view< bool >&,
+                                        vil_structuring_element const& );
 
   // Set up structuring elements
   void setup_internals();
@@ -97,13 +99,13 @@ public:
   vil_image_view< bool >
   perform_morphological_operations( vil_image_view< bool > const& input );
 
-  bool setup{ false };
+  bool configured{ false };
   vil_structuring_element morphological_element;
 
   morphology_mode morphology_type{ MORPHOLOGY_dilate };
   element_mode element_type{ ELEMENT_disk };
   combine_mode combine_type{ COMBINE_none };
-  double element_size{ 1.0 };
+  double kernel_radius{ 1.5 };
 };
 
 // ----------------------------------------------------------------------------
@@ -111,25 +113,32 @@ void
 morphology::priv
 ::setup_internals()
 {
-  if( !setup )
+  if( !configured )
   {
     switch( element_type )
     {
       case ELEMENT_disk:
       {
-        morphological_element.set_to_disk( element_size );
+        morphological_element.set_to_disk( kernel_radius );
+        break;
       }
       case ELEMENT_iline:
       {
-        morphological_element.set_to_line_i( 0, element_size );
+        morphological_element.set_to_line_i(
+            -static_cast< int >( kernel_radius ),
+            static_cast< int >( kernel_radius ) );
+        break;
       }
       case ELEMENT_jline:
       {
-        morphological_element.set_to_line_j( 0, element_size );
+        morphological_element.set_to_line_j(
+            -static_cast< int >( kernel_radius ),
+            static_cast< int >( kernel_radius ) );
+        break;
       }
     }
 
-    setup = true;
+    configured = true;
   }
 }
 
@@ -193,10 +202,7 @@ morphology::priv
 
   vil_image_view< bool > output{ input.ni(), input.nj(), input.nplanes() };
 
-  if( morphology_type != MORPHOLOGY_none )
-  {
-    apply_morphology( input, output, i );
-  }
+  apply_morphology( input, output );
 
   if( combine_type == COMBINE_none )
   {
@@ -206,8 +212,8 @@ morphology::priv
 
   // Select whether to do pixel-wise union or intersection
   auto functor =
-    ( combine_type ==
-      COMBINE_union ) ? union_functor : intersection_functor;
+    ( combine_type == COMBINE_union
+      ? union_functor : intersection_functor );
 
   auto accumulator = vil_plane( output, 0 );
   for( unsigned i = 1; i < output.nplanes(); ++i )
@@ -246,8 +252,8 @@ morphology
     "element_shape", element_converter().to_string( d->element_type ),
     "Shape of the structuring element. Possible options are: " +
     element_converter().element_name_string() );
-  config->set_value( "element_size", d->element_size,
-                     "Size of the structuring element." );
+  config->set_value( "kernel_radius", d->kernel_radius,
+                     "Radius of morphological kernel." );
   config->set_value(
     "channel_combination", combine_converter().to_string( d->combine_type ),
     "Method for combining multiple binary channels. Possible options are: " +
@@ -267,16 +273,16 @@ morphology
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
-  d->morphology_type = config->get_enum_value< morphology_converter >(
-    "morphology" );
-  d->element_type = config->get_enum_value< element_converter >(
-    "element_shape" );
-  d->element_size = config->get_value< double >( "element_size" );
-  d->combine_type = config->get_enum_value< combine_converter >(
-    "channel_combination" );
+  d->morphology_type =
+    config->get_enum_value< morphology_converter >( "morphology" );
+  d->element_type =
+    config->get_enum_value< element_converter >( "element_shape" );
+  d->kernel_radius = config->get_value< double >( "kernel_radius" );
+  d->combine_type =
+    config->get_enum_value< combine_converter >( "channel_combination" );
 
   // Note that some internal elements must be reset
-  d->setup = false;
+  d->configured = false;
 }
 
 // ----------------------------------------------------------------------------
@@ -284,13 +290,13 @@ bool
 morphology
 ::check_configuration( vital::config_block_sptr config ) const
 {
-  auto const element_size = config->get_value< double >( "element_size" );
-  if( element_size < 0 )
+  auto const kernel_radius = config->get_value< double >( "kernel_radius" );
+  if( kernel_radius < 0 )
   {
     LOG_ERROR(
       logger(),
-      "Config item element_size should have been non-negative but was" <<
-        element_size );
+      "Config item kernel_radius should have been non-negative but was" <<
+        kernel_radius );
   }
   return true;
 }
@@ -300,7 +306,7 @@ kwiver::vital::image_container_sptr
 morphology
 ::filter( kwiver::vital::image_container_sptr image_data )
 {
-  // Perform Basic Validation
+  // Perform basic validation
   if( !image_data )
   {
     return nullptr;
@@ -323,8 +329,8 @@ morphology
   return std::make_shared< vxl::image_container >( filtered );
 }
 
-} // end namespace vxl
+} // namespace vxl
 
-} // end namespace arrows
+} // namespace arrows
 
-} // end namespace kwiver
+} // namespace kwiver
