@@ -79,18 +79,20 @@ intersection_functor( bool x1, bool x2 )
 class morphology::priv
 {
 public:
-  priv()
-  {
-  }
+  using morphology_func_t = void (*)( vil_image_view< bool > const&,
+                                      vil_image_view< bool >&,
+                                      vil_structuring_element const& );
 
-  ~priv();
-  // Setup structuring elements
+  // Set up structuring elements
   void setup_internals();
-  // Compute the morpholigical operation on a single plane of an input image
-  void
-  apply_morphology_to_plane( vil_image_view< bool > const& input,
-                             vil_image_view< bool >& output,
-                             unsigned plane_index );
+
+  // Compute the morphological operation on an image
+  void apply_morphology( vil_image_view< bool > const& input,
+                         vil_image_view< bool >& output );
+  void apply_morphology( vil_image_view< bool > const& input,
+                         vil_image_view< bool >& output,
+                         morphology_func_t func );
+
   // Perform a morphological operation and optionally combine across channels
   vil_image_view< bool >
   perform_morphological_operations( vil_image_view< bool > const& input );
@@ -103,12 +105,6 @@ public:
   combine_mode combine_type{ COMBINE_none };
   double element_size{ 1.0 };
 };
-
-// ----------------------------------------------------------------------------
-morphology::priv
-::~priv()
-{
-}
 
 // ----------------------------------------------------------------------------
 void
@@ -140,37 +136,49 @@ morphology::priv
 // ----------------------------------------------------------------------------
 void
 morphology::priv
-::apply_morphology_to_plane( vil_image_view< bool > const& input,
-                             vil_image_view< bool >& output,
-                             unsigned plane_index )
+::apply_morphology( vil_image_view< bool > const& input,
+                    vil_image_view< bool >& output,
+                    morphology_func_t func )
 {
-  auto input_plane = vil_plane( input, plane_index );
-  auto output_plane = vil_plane( output, plane_index );
+  for( auto plane_index : vital::range::iota( input.nplanes() ) )
+  {
+    auto input_plane = vil_plane( input, plane_index );
+    auto output_plane = vil_plane( output, plane_index );
+    func( input_plane, output_plane, morphological_element );
+  }
+}
+
+// ----------------------------------------------------------------------------
+void
+morphology::priv
+::apply_morphology( vil_image_view< bool > const& input,
+                    vil_image_view< bool >& output )
+{
   switch( morphology_type )
   {
     case MORPHOLOGY_erode:
     {
-      vil_binary_erode( input_plane, output_plane, morphological_element );
+      this->apply_morphology( input, output, vil_binary_erode );
       break;
     }
     case MORPHOLOGY_dilate:
     {
-      vil_binary_dilate( input_plane, output_plane, morphological_element );
+      this->apply_morphology( input, output, vil_binary_dilate );
       break;
     }
     case MORPHOLOGY_close:
     {
-      vil_binary_closing( input_plane, output_plane, morphological_element );
+      this->apply_morphology( input, output, vil_binary_closing );
       break;
     }
     case MORPHOLOGY_open:
     {
-      vil_binary_opening( input_plane, output_plane, morphological_element );
+      this->apply_morphology( input, output, vil_binary_opening );
       break;
     }
     case MORPHOLOGY_none:
     {
-      output_plane.deep_copy( input_plane );
+      output.deep_copy( input );
       break;
     }
   }
@@ -187,10 +195,7 @@ morphology::priv
 
   if( morphology_type != MORPHOLOGY_none )
   {
-    for( auto i : vital::range::iota( input.nplanes() ) )
-    {
-      apply_morphology_to_plane( input, output, i );
-    }
+    apply_morphology( input, output, i );
   }
 
   if( combine_type == COMBINE_none )
