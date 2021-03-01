@@ -204,6 +204,7 @@ set( CORE_PIPELINE_FILES
   pipelines/common_stabilized_iou_tracker.pipe
   pipelines/database_apply_svm_models.pipe
   pipelines/detector_add_segmentations.pipe
+  pipelines/detector_add_head_tail_keypoints.pipe
   pipelines/detector_extract_chips.pipe
   pipelines/detector_fish_without_motion.pipe
   pipelines/detector_generic_proposals.pipe
