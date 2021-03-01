@@ -50,6 +50,9 @@ Arrows: Core
    updated landmarks are not returned from a helper function and therefore
    intermediate results are returned as the final output.
 
+ * Fixed a bug in track features that was causing a crash on Linux after
+   detecting features on the first frame of video.
+
 Arrows: CUDA
 
  * Fixed a linking error on Linux with some versions of CUDA requiring
