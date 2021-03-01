@@ -375,9 +375,9 @@ track_features_core
     typedef std::vector<feature_sptr>::const_iterator feat_itr;
     typedef descriptor_set::const_iterator desc_itr;
     feat_itr fit = vf.begin();
-    desc_itr dit = curr_desc->begin();
+    desc_itr dit = curr_desc->cbegin();
     std::vector<vital::track_sptr> new_tracks;
-    for(; fit != vf.end() && dit != curr_desc->end(); ++fit, ++dit)
+    for(; fit != vf.end() && dit != curr_desc->cend(); ++fit, ++dit)
     {
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
