@@ -1,0 +1,55 @@
+# Add automatically generated segmentations via non-DL methods
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                                      5
+
+# ====================== INPUT FRAME LIST ========================
+process input
+  :: video_input
+  :video_filename                                   input_list.txt
+  :frame_time                                              0.03333
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type                   vxl
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                        detections.csv
+  :reader:type                                           viame_csv
+  :reader:viame_csv:poly_to_mask                              true
+
+process ensure_rgb
+  :: image_filter
+  :filter:type                                   vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                                   byte
+    :force_three_channel                                      true
+  endblock
+
+connect from input.image
+        to   ensure_rgb.image
+
+process detection_refiner
+  :: refine_detections
+  :refiner:type                                      ocv_watershed
+  :refiner:ocv_watershed:seed_scale_factor                     0.2
+
+connect from ensure_rgb.image
+        to   detection_refiner.image
+connect from detection_reader.detected_object_set
+        to   detection_refiner.detected_object_set
+
+process detector_writer
+  :: detected_object_output
+  :file_name                               computed_detections.csv
+  :writer:type                                           viame_csv
+  :writer:viame_csv:mask_to_poly_tol                          0.05
+
+connect from input.file_name
+        to   detector_writer.image_file_name
+connect from detection_refiner.detected_object_set
+        to   detector_writer.detected_object_set
+

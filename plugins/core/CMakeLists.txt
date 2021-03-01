@@ -3,6 +3,7 @@
 set( plugin_headers
   add_timestamp_from_filename.h
   auto_detect_transform.h
+  convert_head_tail_points.h
   empty_detector.h
   filename_to_timestamp.h
   notes_to_attributes.h
@@ -17,6 +18,7 @@ set( plugin_headers
 set( plugin_sources
   add_timestamp_from_filename.cxx
   auto_detect_transform.cxx
+  convert_head_tail_points.cxx
   empty_detector.cxx
   filename_to_timestamp.cxx
   notes_to_attributes.cxx

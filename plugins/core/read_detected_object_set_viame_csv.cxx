@@ -234,8 +234,9 @@ read_detected_object_set_viame_csv
   }
 
   // Test for end of all loaded detections
-  if( d->m_current_idx > d->m_last_idx )
+  if( image_name.empty() && d->m_current_idx > d->m_last_idx )
   {
+    set = std::make_shared< kwiver::vital::detected_object_set>();
     return false;
   }
 

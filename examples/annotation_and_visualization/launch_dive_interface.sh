@@ -8,4 +8,6 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run vpView annotation GUI
 
+export DIVE_VIAME_INSTALL_PATH="${VIAME_INSTALL}"
+
 exec ${VIAME_INSTALL}/dive/vue-media-annotator

@@ -45,13 +45,15 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.bat
          train_cfrnn_viame_csv.bat
-         train_cfrnn_habcam.bat )
+         train_cfrnn_habcam.bat
+         train_motion_cfrnn_viame_csv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.sh
          train_cfrnn_viame_csv.sh
-         train_cfrnn_habcam.sh )
+         train_cfrnn_habcam.sh
+         train_motion_cfrnn_viame_csv.sh )
   endif()
 endif()
 

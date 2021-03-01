@@ -576,7 +576,7 @@ double get_file_frame_rate( const std::string& file )
     {
       for( unsigned p = 0; p < line.size() - 4; p++ )
       {
-        if( line.substr( p, 4 ) == "fps:" )
+        if( line.substr( p, 4 ) == "fps:" || line.substr( p, 4 ) == "fps=" )
         {
           for( unsigned l = p + 4; l < line.size(); l++ )
           {
@@ -1020,7 +1020,9 @@ main( int argc, char* argv[] )
     pipeline_file = g_params.opt_pipeline_file;
   }
 
-  if( !augmented_cache.empty() && create_folder( augmented_cache ) )
+  if( !augmented_cache.empty() &&
+      !pipeline_file.empty() &&
+      create_folder( augmented_cache ) )
   {
     regenerate_cache = true;
   }
@@ -1384,7 +1386,7 @@ main( int argc, char* argv[] )
     pipeline_t augmentation_pipe = load_embedded_pipeline( pipeline_file );
     std::string last_subdir;
 
-    if( !augmented_cache.empty() )
+    if( !augmented_cache.empty() && !pipeline_file.empty() )
     {
       std::vector< std::string > cache_path, split_folder;
       kwiversys::SystemTools::SplitPath( data_item, split_folder );

@@ -6,7 +6,9 @@ SET VIAME_INSTALL=.\..\..
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-REM Run Pipeline
+REM Run Interface
+
+SET DIVE_VIAME_INSTALL_PATH="%VIAME_INSTALL%"
 
 "%VIAME_INSTALL%\dive\DIVE-Desktop.exe"
 
