@@ -69,7 +69,7 @@ public:
 
   std::map< std::string,
             std::shared_ptr< vital::algo::image_filter > > filters{
-    std::make_pair( "aligned_edge_detection", aligned_edge_detection_filter ),
+    std::make_pair( "aligned_edge", aligned_edge_detection_filter ),
     std::make_pair( "average", average_frames_filter ),
     std::make_pair( "color_commonality", color_commonality_filter ),
     std::make_pair( "high_pass_bidir", high_pass_bidir_filter ),
@@ -313,7 +313,7 @@ pixel_feature_extractor
     return false;
   }
 
-  return d->check_sub_algorithm( config, "aligned_edges" ) &&
+  return d->check_sub_algorithm( config, "aligned_edge" ) &&
          d->check_sub_algorithm( config, "average" ) &&
          d->check_sub_algorithm( config, "color_commonality" ) &&
          d->check_sub_algorithm( config, "high_pass_box" ) &&
