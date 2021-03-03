@@ -269,8 +269,7 @@ set( CORE_PIPELINE_FILES
   pipelines/utility_empty_frame_lbls_1fr.pipe
   pipelines/utility_empty_frame_lbls_10fr.pipe
   pipelines/utility_empty_frame_lbls_100fr.pipe
-  pipelines/utility_empty_frame_lbls_1000fr.pipe
-  )
+  pipelines/utility_empty_frame_lbls_1000fr.pipe )
 
 if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
