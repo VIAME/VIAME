@@ -117,7 +117,7 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5e8d3ad42660cbefba9dd13c/download) <br>
 [Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
 [Sea Lion Models, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download) <br>
-[SEFSC 100 Class Fish Models, All OS](https://data.kitware.com/api/v1/item/601ae0a82fa25629b938d0db/download) <br>
+[SEFSC 100 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/603fc38fe7f92342bb6c5e2a/download) <br>
 [EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
