@@ -154,6 +154,13 @@ EmbeddedPipelineWorkerPrivate
   kwiver::adapter::adapter_data_set_t const& output )
 {
   KQ_Q();
+
+  if( output->is_end_of_data() )
+  {
+    emit q->finished();
+    return;
+  }
+
   q->processOutput( output );
 }
 
@@ -166,14 +173,7 @@ Endcap
 
   for( int currentFrame = 0;; ++currentFrame )
   {
-    const auto& ods = q->pipeline.receive();
-
-    if( ods->is_end_of_data() )
-    {
-      return;
-    }
-
-    q->processOutput( ods );
+    q->processOutput( q->pipeline.receive() );
   }
 }
 
