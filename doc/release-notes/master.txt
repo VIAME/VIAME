@@ -127,6 +127,9 @@ Arrows: MVG
  * Added a new applet, init_cameras_landmarks, to run the estimate cameras
    and landmarks from feature tracks produced by the track_features applet.
 
+ * Added an implementation of integrate_depth_maps. This works exactly the same
+   as the implementation in the CUDA arrow, but does not require a GPU.
+
 Arrows: OpenCV
 
 Arrows: Serialization
