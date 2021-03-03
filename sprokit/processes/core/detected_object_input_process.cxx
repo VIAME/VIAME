@@ -52,7 +52,7 @@ create_config_trait( file_name, std::string, "", "Name of the detection set file
 
 create_algorithm_name_config_trait( reader )
 
-//----------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Private implementation class
 class detected_object_input_process::priv
 {
@@ -67,7 +67,7 @@ public:
 }; // end priv class
 
 
-// ================================================================
+// =============================================================================
 
 detected_object_input_process
 ::detected_object_input_process( kwiver::vital::config_block_sptr const& config )
@@ -85,7 +85,7 @@ detected_object_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void detected_object_input_process
 ::_configure()
 {
@@ -122,7 +122,7 @@ void detected_object_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void detected_object_input_process
 ::_init()
 {
@@ -132,21 +132,22 @@ void detected_object_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void detected_object_input_process
 ::_step()
 {
   std::string image_name;
   kwiver::vital::detected_object_set_sptr set;
-  bool result = true;
+  bool is_finished = false;
+  bool has_input = has_input_port_edge_using_trait( image_file_name );
 
-  if ( has_input_port_edge_using_trait( image_file_name ) )
+  if( has_input )
   {
     auto port_info = peek_at_port_using_trait( image_file_name );
 
     if( port_info.datum->type() == sprokit::datum::complete )
     {
-      result = false;
+      is_finished = true;
     }
     else
     {
@@ -154,13 +155,13 @@ void detected_object_input_process
     }
   }
 
-  if ( result )
+  if( !is_finished )
   {
     scoped_step_instrumentation();
-    result = d->m_reader->read_set( set, image_name );
+    is_finished = !d->m_reader->read_set( set, image_name ) && !has_input;
   }
 
-  if ( result )
+  if( !is_finished )
   {
     push_to_port_using_trait( image_file_name, image_name );
     push_to_port_using_trait( detected_object_set, set );
@@ -179,7 +180,7 @@ void detected_object_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void detected_object_input_process
 ::make_ports()
 {
@@ -193,7 +194,7 @@ void detected_object_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void detected_object_input_process
 ::make_config()
 {
@@ -202,7 +203,7 @@ void detected_object_input_process
 }
 
 
-// ================================================================
+// =============================================================================
 detected_object_input_process::priv
 ::priv()
 {

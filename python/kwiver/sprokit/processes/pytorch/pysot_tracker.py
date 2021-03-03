@@ -179,13 +179,16 @@ class PYSOTTracker(KwiverProcess):
             img = img[:, :, ::-1].copy() # RGB vs BGR
 
         # Handle track initialization
-        def initialize_track(tid, cbox, ts, image):
+        def initialize_track(tid, cbox, ts, image, dot=None):
             bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
             cx, cy, w, h = get_axis_aligned_bbox(np.array(bbox))
             start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
             self._trackers[tid] = build_tracker(self._model)
             self._trackers[tid].init(image, start_box)
-            self._tracks[tid] = [ObjectTrackState(ts, cbox, 1.0)]
+            if dot is None:
+                self._tracks[tid] = [ObjectTrackState(ts, cbox, 1.0)]
+            else:
+                self._tracks[tid] = [ObjectTrackState(ts, cbox, 1.0, dot)]
             self._track_init_frames[tid] = ts.get_frame()
             self._track_last_frames[tid] = ts.get_frame()
 
@@ -212,13 +215,14 @@ class PYSOTTracker(KwiverProcess):
               trk[trk.last_frame].frame_id == self._last_ts.get_frame() and \
               ( not trk.id in self._track_init_frames or \
               self._track_init_frames[ trk.id ] < self._last_ts.get_frame() ):
-                initialize_track(trk.id,
-                  trk[trk.last_frame].detection().bounding_box(),
-                  self._last_ts, self._last_img)
+                init_detection = trk[trk.last_frame].detection()
+                initialize_track(trk.id, init_detection.bounding_box(),
+                  self._last_ts, self._last_img, init_detection.type())
             # This track has an initialization signal for the current frame
             elif trk[trk.last_frame].frame_id == frame_id:
-                bbox = trk[trk.last_frame].detection().bounding_box()
-                initialize_track(trk.id, bbox, ts, img)
+                init_detection = trk[trk.last_frame].detection()
+                initialize_track(trk.id, init_detection.bounding_box(),
+                  ts, img, init_detection.type())
                 frame_boxes.append(bbox)
 
         # Update existing tracks
@@ -270,7 +274,7 @@ class PYSOTTracker(KwiverProcess):
                     continue
                 # Initialize new track if necessary
                 self._track_counter = self._track_counter + 1
-                initialize_track(self._track_counter, cbox, ts, img)
+                initialize_track(self._track_counter, cbox, ts, img, det.type())
 
         # Output tracks
         output_tracks = ObjectTrackSet(
