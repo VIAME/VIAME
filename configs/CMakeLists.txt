@@ -265,7 +265,7 @@ set( CORE_PIPELINE_FILES
   pipelines/train_yolo_stereo_704.habcam.conf
   pipelines/train_yolo_wtf_704.viame_csv.conf
   pipelines/utility_add_head_tail_keypoints.pipe
-  pipelines/utility_add_segmentations.pipe
+  pipelines/utility_add_segmentations_watershed.pipe
   pipelines/utility_empty_frame_lbls_1fr.pipe
   pipelines/utility_empty_frame_lbls_10fr.pipe
   pipelines/utility_empty_frame_lbls_100fr.pipe
