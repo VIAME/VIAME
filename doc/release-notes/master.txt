@@ -181,6 +181,11 @@ Arrows: Core
 
 Arrows: Ceres
 
+Arrows: CUDA
+
+ * Fixed an issue in which depth imagery was loaded transposed and flipped
+   and then later flipped and transposed back during CUDA processing.
+
 Arrows: Super3D
 
 Sprokit: Processes

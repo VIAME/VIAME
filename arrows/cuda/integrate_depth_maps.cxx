@@ -186,11 +186,11 @@ copy_img_to_gpu(kwiver::vital::image_container_sptr h_img)
 
   //copy to cuda format
   kwiver::vital::image img = h_img->get_image();
-  for (unsigned int i = 0; i < h_img->width(); i++)
+  for (unsigned int j = 0; j < h_img->height(); j++)
   {
-    for (unsigned int j = 0; j < h_img->height(); j++)
+    for (unsigned int i = 0; i < h_img->width(); i++)
     {
-      temp[i*h_img->height() + j] = img.at<double>(i, j);
+      temp[j*h_img->width() + i] = img.at<double>(i, j);
     }
   }
 
