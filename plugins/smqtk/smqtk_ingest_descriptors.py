@@ -123,7 +123,7 @@ class SmqtkIngestDescriptors (KwiverProcess):
     # Set/vector of descriptors to add to the SMQTK descriptor index with
     #   the paired UID strings.
     #
-    #: :type: vital.types.DescriptorSet
+    #: :type: kwiver.vital.types.DescriptorSet
     vital_descriptor_set = self.grab_input_using_trait('descriptor_set')
     #
     # Vector of UIDs for vector of descriptors in descriptor_set.

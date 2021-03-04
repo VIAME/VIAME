@@ -29,8 +29,8 @@
 
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
-from vital.types import Image
-from vital.types import ImageContainer
+from kwiver.vital.types import Image
+from kwiver.vital.types import ImageContainer
 
 class hello_world_filter(KwiverProcess):
     """

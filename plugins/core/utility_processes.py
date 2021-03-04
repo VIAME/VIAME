@@ -33,10 +33,10 @@ from random import randint
 from kwiver.kwiver_process import KwiverProcess
 from sprokit.pipeline import process
 
-from vital.types import Image
-from vital.types import ImageContainer
-from vital.types import DetectedObject, DetectedObjectSet
-from vital.types import ObjectTrackState, Track, ObjectTrackSet
+from kwiver.vital.types import Image
+from kwiver.vital.types import ImageContainer
+from kwiver.vital.types import DetectedObject, DetectedObjectSet
+from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
 
 from vital.util.VitalPIL import get_pil_image, from_pil
 
