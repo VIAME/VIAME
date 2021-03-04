@@ -42,23 +42,12 @@ Notes:
     git submodule add -b release git@gitlab.kitware.com:computer-vision/kwimage.git packages/kwimage
 """
 
-try:
-    # Handle new kwiver structure
-    from kwiver.vital.algo import ImageObjectDetector
+from kwiver.vital.algo import ImageObjectDetector
 
-    from kwiver.vital.types import BoundingBox
-    from kwiver.vital.types import DetectedObjectSet
-    from kwiver.vital.types import DetectedObject
-    from kwiver.vital.types import DetectedObjectType
-
-except ImportError:
-    # Handle old kwiver structure
-    from kwiver.vital.algo import ImageObjectDetector
-
-    from kwiver.vital.types import BoundingBox
-    from kwiver.vital.types import DetectedObjectSet
-    from kwiver.vital.types import DetectedObject
-    from kwiver.vital.types import DetectedObjectType
+from kwiver.vital.types import BoundingBox
+from kwiver.vital.types import DetectedObjectSet
+from kwiver.vital.types import DetectedObject
+from kwiver.vital.types import DetectedObjectType
 
 import numpy as np  # NOQA
 import ubelt as ub
