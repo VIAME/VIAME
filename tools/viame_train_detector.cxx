@@ -31,7 +31,7 @@
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/CommandLineArguments.hxx>
 
-#include <vital/algorithm_plugin_manager_paths.h>
+#include <vital/kwiver-include-paths.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/plugin_loader/plugin_factory.h>
