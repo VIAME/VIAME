@@ -122,6 +122,26 @@ public:
   detected_object_set_sptr select(
     double threshold = detected_object_type::INVALID_SCORE ) const;
 
+  /**
+   * @brief Filter detections via an arbitrary function
+   *
+   * Filter the detected object set based on some predicate function
+   *
+   * @param p Predicate function which returns true if an element should
+   *          be removed.
+   *
+   * @return List of detections.
+   */
+  template< class UnaryPredicate >
+  void filter( UnaryPredicate p )
+  {
+    m_detected_objects.erase(
+      std::remove_if( m_detected_objects.begin(),
+                      m_detected_objects.end(),
+                      p ),
+      m_detected_objects.end() );
+  }
+
   /// Select detections based on class name.
   ///
   /// This method returns a vector of detections that have the specified

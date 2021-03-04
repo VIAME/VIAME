@@ -46,11 +46,14 @@ void train_detector(py::module &m)
     .def(py::init())
     .def_static("static_type_name",
         &kwiver::vital::algo::train_detector::static_type_name)
-    .def("train_from_disk",
-         &kwiver::vital::algo::train_detector::train_from_disk)
-    .def("train_from_memory",
-         &kwiver::vital::algo::train_detector::train_from_memory);
+    .def("add_data_from_disk",
+         &kwiver::vital::algo::train_detector::add_data_from_disk)
+    .def("add_data_from_memory",
+         &kwiver::vital::algo::train_detector::add_data_from_memory)
+    .def("update_model",
+         &kwiver::vital::algo::train_detector::update_model);
 }
+
 }
 }
 }

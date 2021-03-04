@@ -50,3 +50,4 @@ void image_filter(py::module &m)
 }
 }
 }
+}

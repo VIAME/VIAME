@@ -99,13 +99,15 @@ class write_track_descriptor_set_trampoline :
 
 
     void
-    write_set( const kwiver::vital::track_descriptor_set_sptr set ) override
+    write_set( const kwiver::vital::track_descriptor_set_sptr set,
+               const std::string& source_id ) override
     {
       VITAL_PYBIND11_OVERLOAD_PURE(
         void,
         kwiver::vital::algo::write_track_descriptor_set,
         write_set,
-        set
+        set,
+        source_id
       );
     }
 };

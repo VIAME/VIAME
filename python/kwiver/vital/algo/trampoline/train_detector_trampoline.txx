@@ -38,7 +38,6 @@
 #ifndef TRAIN_DETECTOR_TRAMPOLINE_TXX
 #define TRAIN_DETECTOR_TRAMPOLINE_TXX
 
-
 #include <python/kwiver/vital/util/pybind11.h>
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/train_detector.h>
@@ -76,19 +75,18 @@ class train_detector_trampoline :
     using algorithm_def_td_trampoline< train_detector_base>::
               algorithm_def_td_trampoline;
 
+
     void
-    train_from_disk(
-           kwiver::vital::category_hierarchy_sptr object_labels,
-           std::vector< std::string > train_image_names,
-           std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-           std::vector< std::string > test_image_names,
-           std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth
-         )  override
+    add_data_from_disk( kwiver::vital::category_hierarchy_sptr object_labels,
+      std::vector< std::string > train_image_names,
+      std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+      std::vector< std::string > test_image_names,
+      std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth ) override
     {
       VITAL_PYBIND11_OVERLOAD(
         void,
         kwiver::vital::algo::train_detector,
-        train_from_disk,
+        add_data_from_disk,
         object_labels,
         train_image_names,
         train_groundtruth,
@@ -98,17 +96,16 @@ class train_detector_trampoline :
     }
 
     void
-    train_from_memory( kwiver::vital::category_hierarchy_sptr object_labels,
-           std::vector< kwiver::vital::image_container_sptr > train_images,
-           std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-           std::vector< kwiver::vital::image_container_sptr > test_images,
-           std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth
-         )  override
+    add_data_from_memory( kwiver::vital::category_hierarchy_sptr object_labels,
+      std::vector< kwiver::vital::image_container_sptr > train_images,
+      std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+      std::vector< kwiver::vital::image_container_sptr > test_images,
+      std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth ) override
     {
       VITAL_PYBIND11_OVERLOAD(
         void,
         kwiver::vital::algo::train_detector,
-        train_from_memory,
+        add_data_from_memory,
         object_labels,
         train_images,
         train_groundtruth,
@@ -116,8 +113,19 @@ class train_detector_trampoline :
         test_groundtruth
       );
     }
+
+    void update_model() override
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
+        void,
+        kwiver::vital::algo::train_detector,
+        update_model
+      );
+    }
 };
 
 }
 }
 }
+
+#endif
