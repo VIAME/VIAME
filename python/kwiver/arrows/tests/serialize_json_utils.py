@@ -32,7 +32,7 @@ Utilities to support testing for json serialization of vital types
 """
 
 from kwiver.vital.types import ActivityType
-from kwiver.vital.types import BoundingBox
+from kwiver.vital.types import BoundingBoxD
 from kwiver.vital.types import DetectedObject
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObjectType
@@ -51,7 +51,7 @@ def compare_activity_type(at1, at2):
             at1.get_most_likely_score() == at2.get_most_likely_score()
 
 def create_bounding_box():
-    return BoundingBox(1.0, 2.0, 3.0, 4.0)
+    return BoundingBoxD(1.0, 2.0, 3.0, 4.0)
 
 def compare_bounding_box(bbox1, bbox2):
     return bbox1.min_x() == bbox2.min_x() and \

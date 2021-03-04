@@ -26,7 +26,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from kwiver.vital.types import BoundingBox
+from kwiver.vital.types import BoundingBoxD
 from enum import Enum
 
 class GTFileType(Enum):
@@ -93,7 +93,7 @@ class GTBBox(object):
         
         for item in bb_info:
             x, y, w, h = map(float, item[1:])
-            bb_list.append(BoundingBox(x, y, x + w, y + h))
+            bb_list.append(BoundingBoxD(x, y, x + w, y + h))
 
         return bb_list
 
