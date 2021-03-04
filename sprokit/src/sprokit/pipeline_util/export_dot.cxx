@@ -1,36 +1,9 @@
-/*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "export_dot.h"
 #include "export_dot_exception.h"
-
 
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
@@ -112,7 +85,6 @@ static void output_cluster( std::ostream&           ostr,
                             pipeline_t const&       pipe,
                             parent_names_t const&   parent_map,
                             std::string const&      link_prefix );
-
 
 // ----------------------------------------------------------------------------
 void
@@ -224,14 +196,12 @@ export_dot( std::ostream&       ostr,
   ostr << "}" << std::endl;
 } // export_dot
 
-
 // ----------------------------------------------------------------------------
 void
 export_dot( std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name )
 {
   export_dot( ostr, pipe, graph_name, "" );
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -249,7 +219,6 @@ export_dot( std::ostream& ostr, process_cluster_t const& cluster, std::string co
   export_dot( ostr, pipe, graph_name );
 }
 
-
 static void output_process( std::ostream&       ostr,
                             process_t const&    process,
                             std::string const&  link_prefix );
@@ -257,7 +226,6 @@ static void output_process( std::ostream&       ostr,
 static void output_process_cluster( std::ostream&             ostr,
                                     process_cluster_t const&  cluster,
                                     callback_t const&         output_children );
-
 
 // ----------------------------------------------------------------------------
 void
@@ -314,7 +282,6 @@ output_cluster( std::ostream&           ostr,
     }
   }
 } // output_cluster
-
 
 // ----------------------------------------------------------------------------
 void
@@ -387,7 +354,6 @@ output_process( std::ostream& ostr, process_t const& process, std::string const&
         << "}" << std::endl
         << std::endl;
 } // output_process
-
 
 // ----------------------------------------------------------------------------
 void

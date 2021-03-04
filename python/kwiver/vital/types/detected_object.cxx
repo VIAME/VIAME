@@ -1,50 +1,27 @@
-/*ckwg +29
- * Copyright 2017-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <vital/types/detected_object.h>
 
-#include <pybind11/pybind11.h>
+#include <pybind11/eigen.h>
 #include <pybind11/embed.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <stdexcept>
+
+typedef kwiver::vital::detected_object det_obj;
 
 namespace py = pybind11;
-typedef kwiver::vital::detected_object det_obj;
 namespace kwiver {
-namespace vital  {
+namespace vital {
 namespace python {
-
-
 
 // We want to be able to add a mask in the python constructor
 // so we need a pass-through cstor
 std::shared_ptr<det_obj>
-new_detected_object(kwiver::vital::bounding_box<double> bbox,
+new_detected_object(bounding_box<double> bbox,
                     double conf,
                     kwiver::vital::detected_object_type_sptr type,
                     kwiver::vital::image_container_sptr mask)
@@ -59,11 +36,113 @@ new_detected_object(kwiver::vital::bounding_box<double> bbox,
   return new_obj;
 }
 
+// Pybind casts away all const-ness, and since a few getters/setters
+// in the detected_object class have pointers to const, we have to copy
+// them in order to avoid undefined behavior.
+descriptor_sptr
+det_obj_const_safe_descriptor(detected_object const& self)
+{
+  auto desc = self.descriptor();
+  if (desc)
+  {
+    // Create a pointer to a copy so we don't violate const
+    return desc->clone();
+  }
+  return nullptr;
+}
+
+void
+det_obj_const_safe_set_descriptor(detected_object& self, descriptor_sptr desc)
+{
+  if (desc)
+  {
+    // Return a pointer to a copy
+    // clone() returns pointer to base
+    auto cloned_desc = desc->clone();
+    auto des_dyn_sptr = std::dynamic_pointer_cast<descriptor_dynamic<double>>(cloned_desc);
+
+    // Check conversion worked
+    if (!des_dyn_sptr)
+    {
+      throw std::runtime_error("Downcasting descriptor_dynamic<double> from base pointer failed");
+    }
+    self.set_descriptor(des_dyn_sptr);
+  }
+  else
+  {
+    self.set_descriptor(nullptr);
+  }
+}
+
+
+// TODO: uncomment these when rebased on latest master with metadata API changes
+// Those changes will make copying metadata objects much easier.
+// metadata_sptr
+metadata_sptr copy_metadata(metadata_sptr m)
+{
+  auto m_clone = std::make_shared<metadata>();
+  auto eix = m->end();
+  auto ix = m->begin();
+  for (; ix != eix; ix++)
+  {
+    m_clone->add_copy(ix->second);
+  }
+  return m_clone;
+}
+
+image_container_sptr
+det_obj_const_safe_mask(detected_object const& self)
+{
+  auto mask = self.mask();
+  if (mask)
+  {
+    // image_container does not have a clone method
+    // manual copy must be made
+    auto im = image(mask->get_image());
+    auto meta = mask->get_metadata();
+    if(meta)
+    {
+      auto md = copy_metadata(meta);
+      return std::make_shared<simple_image_container>(im, md);
+    }
+    return std::make_shared<simple_image_container>(im);
+
+
+  }
+  return nullptr;
+}
+
+void
+det_obj_const_safe_set_mask(detected_object& self, image_container_sptr mask)
+{
+  if (mask)
+  {
+    auto im = image(mask->get_image());
+    auto meta = mask->get_metadata();
+    if(meta)
+    {
+      auto md = copy_metadata(meta);
+      auto ptr = std::make_shared<simple_image_container>(im, md);
+      self.set_mask(ptr);
+    }
+    else
+    {
+      auto ptr = std::make_shared<simple_image_container>(im);
+      self.set_mask(ptr);
+    }
+  }
+  else
+  {
+    self.set_mask(nullptr);
+  }
+}
+
 }
 }
 }
 
-using namespace kwiver::vital::python;
+using namespace kwiver::vital;
+
 PYBIND11_MODULE(detected_object, m)
 {
   /*
@@ -95,7 +174,7 @@ PYBIND11_MODULE(detected_object, m)
         >>> print(self)
         <DetectedObject(conf=1.0)>
     )")
-  .def(py::init(&new_detected_object),
+  .def(py::init(&python::new_detected_object),
     py::arg("bbox"), py::arg("confidence")=1.0,
     py::arg("classifications")=kwiver::vital::detected_object_type_sptr(),
     py::arg("mask")=kwiver::vital::image_container_sptr(), py::doc(R"(
@@ -107,7 +186,7 @@ PYBIND11_MODULE(detected_object, m)
   .def("__nice__", [](det_obj& self) -> std::string {
     auto locals = py::dict(py::arg("self")=self);
     py::exec(R"(
-        retval = 'conf={}'.format(self.confidence())
+        retval = 'conf={}'.format(self.confidence)
     )", py::globals(), locals);
     return locals["retval"].cast<std::string>();
     })
@@ -129,21 +208,25 @@ PYBIND11_MODULE(detected_object, m)
     )", py::globals(), locals);
     return locals["retval"].cast<std::string>();
     })
-  .def("bounding_box", &det_obj::bounding_box)
-  .def("set_bounding_box", &det_obj::set_bounding_box,
-    py::arg("bbox"))
-  .def("geo_point", &det_obj::geo_point)
-  .def("set_geo_point", &det_obj::set_geo_point,
-    py::arg("gp"))
-  .def("confidence", &det_obj::confidence)
-  .def("set_confidence", &det_obj::set_confidence,
-    py::arg("d"))
-  .def("descriptor", &det_obj::descriptor)
-  .def("set_descriptor", &det_obj::set_descriptor,
-		py::arg("descriptor"))
-  .def("type", &det_obj::type)
-  .def("set_type", &det_obj::set_type,
-    py::arg("c"))
-  .def_property("mask", &det_obj::mask, &det_obj::set_mask)
+  .def("clone", &det_obj::clone)
+  .def("add_note", &det_obj::add_note)
+  .def("clear_notes", &det_obj::clear_notes)
+  .def("add_keypoint", &det_obj::add_keypoint)
+  .def("clear_keypoints", &det_obj::clear_keypoints)
+  // TODO: Uncomment after above const-safe methods are implemented for mask
+  .def_property("mask", &python::det_obj_const_safe_mask, &python::det_obj_const_safe_set_mask)
+
+  // Convey that users can't access the the underlying descriptor directly.
+  // Must go through the setter. This is because of the const-issue discussed above.
+  .def("descriptor_copy", &python::det_obj_const_safe_descriptor)
+  .def("set_descriptor", &python::det_obj_const_safe_set_descriptor)
+  .def_property("bounding_box", &det_obj::bounding_box, &det_obj::set_bounding_box)
+  .def_property("geo_point", &det_obj::geo_point, &det_obj::set_geo_point)
+  .def_property("confidence", &det_obj::confidence, &det_obj::set_confidence)
+  .def_property("index", &det_obj::index, &det_obj::set_index)
+  .def_property("detector_name", &det_obj::detector_name, &det_obj::set_detector_name)
+  .def_property("type", &det_obj::type, &det_obj::set_type)
+  .def_property_readonly("notes", &det_obj::notes)
+  .def_property_readonly("keypoints", &det_obj::keypoints)
   ;
 }

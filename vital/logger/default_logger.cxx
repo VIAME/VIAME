@@ -1,33 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <vital/logger/vital_logger_export.h>
 #include "default_logger.h"
@@ -46,14 +19,12 @@ namespace kwiver {
 namespace vital {
 namespace logger_ns {
 
-
 // ------------------------------------------------------------------
 logger_factory_default
 ::logger_factory_default()
   : kwiver_logger_factory( "default_logger factory" )
 {
 }
-
 
 // ==================================================================
 /**
@@ -135,19 +106,16 @@ public:
     if ( is_fatal_enabled() ) { log_message( LEVEL_FATAL, msg ); }
   }
 
-
   virtual void log_fatal( std::string const&              msg,
                           logger_ns::location_info const& location )
   {
     if ( is_fatal_enabled() ) { log_message( LEVEL_FATAL, msg, location ); }
   }
 
-
   virtual void log_error( std::string const& msg )
   {
     if ( is_error_enabled() ) { log_message( LEVEL_ERROR, msg ); }
   }
-
 
   virtual void log_error( std::string const&              msg,
                           logger_ns::location_info const& location )
@@ -155,12 +123,10 @@ public:
     if ( is_error_enabled() ) { log_message( LEVEL_ERROR, msg, location ); }
   }
 
-
   virtual void log_warn( std::string const& msg )
   {
     if ( is_warn_enabled() ) { log_message( LEVEL_WARN, msg ); }
   }
-
 
   virtual void log_warn( std::string const&               msg,
                          logger_ns::location_info const&  location )
@@ -168,12 +134,10 @@ public:
     if ( is_warn_enabled() ) { log_message( LEVEL_WARN, msg, location ); }
   }
 
-
   virtual void log_info( std::string const& msg )
   {
     if ( is_info_enabled() ) { log_message( LEVEL_INFO, msg ); }
   }
-
 
   virtual void log_info( std::string const&               msg,
                          logger_ns::location_info const&  location )
@@ -181,12 +145,10 @@ public:
     if ( is_info_enabled() ) { log_message( LEVEL_INFO, msg, location ); }
   }
 
-
   virtual void log_debug( std::string const& msg )
   {
     if ( is_debug_enabled() ) { log_message( LEVEL_DEBUG, msg ); }
   }
-
 
   virtual void log_debug( std::string const&              msg,
                           logger_ns::location_info const& location )
@@ -194,19 +156,16 @@ public:
     if ( is_debug_enabled() ) { log_message( LEVEL_DEBUG, msg, location ); }
   }
 
-
   virtual void log_trace( std::string const& msg )
   {
     if ( is_trace_enabled() ) { log_message( LEVEL_TRACE, msg ); }
   }
-
 
   virtual void log_trace( std::string const&              msg,
                           logger_ns::location_info const& location )
   {
     if ( is_trace_enabled() ) { log_message( LEVEL_TRACE, msg, location ); }
   }
-
 
 private:
   // ------------------------------------------------------------------
@@ -216,7 +175,6 @@ private:
     log_message_i( level, msg, "" );
     do_callback(level, msg, location_info());
   }
-
 
   // ------------------------------------------------------------------
   void log_message_i(  log_level_t         level,
@@ -260,7 +218,6 @@ private:
     }
   }
 
-
   // ------------------------------------------------------------------
   virtual void log_message( log_level_t                     level,
                             std::string const&              msg,
@@ -274,13 +231,11 @@ private:
     do_callback(level, msg, location);
   }
 
-
   // ------------------------------------------------------------------
   std::ostream& get_stream()
   {
     return *s_output_stream;
   }
-
 
   // ##################################################################
   log_level_t                  m_logLevel;       // current logging level
@@ -291,11 +246,9 @@ private:
 
 }; // end class logger
 
-
 // -- STATIC data --
 // Set up default logging stream
 std::ostream* default_logger::s_output_stream = &std::cerr;
-
 
 // ==================================================================
 logger_handle_t

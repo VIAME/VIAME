@@ -21,7 +21,8 @@ kwiver::tools::pipeline_viewer
   auto argv = std::unique_ptr< char*[] >{ new char*[ argc ] };
 
   auto margs = std::vector< std::unique_ptr< char[] > >{};
-  for ( auto const i : vital::range::iota( args.size() ) )
+
+  for( auto const i : vital::range::iota( args.size() ) )
   {
     auto const& arg = args[ i ];
     auto const l = arg.size() + 1;

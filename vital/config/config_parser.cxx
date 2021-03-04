@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -99,7 +73,6 @@ struct block_context_t
 
 } // end namespace
 
-
 // ------------------------------------------------------------------
 class config_parser::priv
 {
@@ -117,7 +90,6 @@ public:
     m_token_expander.add_token_type( new kwiver::vital::token_type_config( m_config_block ) );
     m_token_expander.add_token_type( m_symtab );
   }
-
 
   // ------------------------------------------------------------------
   /**
@@ -441,7 +413,6 @@ public:
     } // end while
   }
 
-
   // ----------------------------------------------------------------
   /**
    * @brief Read a line from the stream.
@@ -498,7 +469,6 @@ public:
 
     return true;
   }
-
 
   // ------------------------------------------------------------------
   /**
@@ -576,7 +546,6 @@ public:
     //+ std::cout << "--- type: " << token.type << "   returning token: \"" << token.value << "\"\n";
   }
 
-
   // ------------------------------------------------------------------
   /**
    * @brief Flush remaining line in parser.
@@ -587,7 +556,6 @@ public:
   {
     m_token_line.clear();
   }
-
 
   // ------------------------------------------------------------------
   /**
@@ -600,7 +568,6 @@ public:
   {
     return m_current_file;
   }
-
 
   // ------------------------------------------------------------------
   /**
@@ -652,7 +619,6 @@ public:
     return kwiversys::SystemTools::FindFile( file_name, include_paths, true );
   }
 
-
   // ------------------------------------------------------------------
   // -- member data --
 
@@ -699,7 +665,6 @@ public:
   std::string m_token_line;
 };
 
-
 // ==================================================================
 
 config_parser
@@ -708,12 +673,10 @@ config_parser
 {
 }
 
-
 config_parser
 ::~config_parser()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -722,7 +685,6 @@ config_parser
 {
   m_priv->m_search_path.push_back( file_path );
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -733,7 +695,6 @@ config_parser
                                 file_path.begin(), file_path.end() );
 }
 
-
 // ------------------------------------------------------------------
 config_path_list_t const&
 config_parser
@@ -741,7 +702,6 @@ config_parser
 {
   return m_priv->m_search_path;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -752,7 +712,6 @@ config_parser
   m_priv->process_file( m_config_file );
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 config_parser
@@ -760,6 +719,5 @@ config_parser
 {
   return m_priv->m_config_block;
 }
-
 
 } } // end namespace

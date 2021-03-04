@@ -14,13 +14,26 @@ Config
 Vital
 
  * Added a missing include file in track.cxx required to build on MSVC 2019.
+
  * Changed incorrect metadata tag in convert_0601_metadata.cxx from
    KLV_0601_TARGET_LOCATION_LAT to KLV_0601_TARGET_LOCATION_ELEV.
+
  * Fixed a typo in the TARGET_LOCATION metadata field name.
+
  * Updated metadata field names for kv::geo_point types to be more
    descriptive. Made the distinction between elevation and altitude.
 
+Arrows: Ceres
+
+ * Fixed a bug in which the update_state_every_iteration config option
+   for bundle_adjust was not respected and was always manually overridden with
+   "true" if a callback was registered.
+
 Arrows: Core
+
+ * Remove some unnecessary computation in initialize_camera_landmarks_keyframe
+   by adding checks to detect earlier when computations that cannot achieve
+   their desired result due to insufficient data.
 
  * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
    principal point was not initialized from the image size unless there

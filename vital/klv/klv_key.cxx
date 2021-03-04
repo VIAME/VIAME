@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "klv_key.h"
 #include "klv_data.h"
@@ -49,7 +23,6 @@ klv_key< LEN >
   std::fill( key_, key_ + LEN, 0 );
 }
 
-
 // ------------------------------------------------------------------
 template < unsigned int LEN >
 klv_key< LEN >
@@ -57,7 +30,6 @@ klv_key< LEN >
 {
   std::copy( data, data + LEN, key_ );
 }
-
 
 // ------------------------------------------------------------------
 template < unsigned int LEN >
@@ -74,7 +46,6 @@ klv_key< LEN >
   }
   return true;
 }
-
 
 // ------------------------------------------------------------------
 /// Less than operator
@@ -93,7 +64,6 @@ klv_key< LEN >
   return false;
 }
 
-
 // ------------------------------------------------------------------
 template < unsigned int LEN >
 std::ostream&
@@ -111,13 +81,11 @@ operator<<( std::ostream& os, const klv_key< LEN >& key )
   return os;
 }
 
-
 //============================================================================
 
 /// All UDS keys start with this 4 byte prefix
 const uint8_t klv_uds_key
 ::prefix[] = { 0x06, 0x0e, 0x2b, 0x34 };
-
 
 /// The UDS 4 byte prefix represted as a uint32 (MSB first)
 const uint32_t klv_uds_key
@@ -139,14 +107,12 @@ klv_uds_key
   }
 }
 
-
 // ------------------------------------------------------------------
 klv_uds_key
 ::klv_uds_key( const uint8_t data[16] )
   : klv_key< 16 > ( data )
 {
 }
-
 
 // ------------------------------------------------------------------
 klv_uds_key
@@ -158,7 +124,6 @@ klv_uds_key
     key_[2 * i + 1] = static_cast< uint8_t > ( data[i] );
   }
 }
-
 
 // ------------------------------------------------------------------
 klv_uds_key
@@ -173,7 +138,6 @@ klv_uds_key
   }
 }
 
-
 // ------------------------------------------------------------------
 klv_uds_key
 ::klv_uds_key( const uint64_t data[2] )
@@ -185,7 +149,6 @@ klv_uds_key
   }
 }
 
-
 // ------------------------------------------------------------------
 klv_uds_key
 ::klv_uds_key( uint64_t d1, uint64_t d2 )
@@ -196,7 +159,6 @@ klv_uds_key
     key_[i + 8] = static_cast< uint8_t > ( d2 >> ( 7 - i ) * 8 );
   }
 }
-
 
 // ------------------------------------------------------------------
 klv_uds_key
@@ -211,7 +173,6 @@ klv_uds_key
     key_[i + 12] = static_cast< uint8_t > ( d4 >> ( 3 - i ) * 8 );
   }
 }
-
 
 // ------------------------------------------------------------------
 /// Check if this is a valid 16-byte SMPTE-administered Universal Label
@@ -250,7 +211,6 @@ bool klv_uds_key
   return true;
 }
 
-
 // ------------------------------------------------------------------
 /// Return true if this key has the required 4 byte prefix
 bool
@@ -263,7 +223,6 @@ klv_uds_key
          key_[3] == prefix[3];
 }
 
-
 // ------------------------------------------------------------------
 /// Return the category represented by this key
 klv_uds_key::category_t
@@ -273,7 +232,6 @@ klv_uds_key
   return (key_[4] > 0x05) ? CATEGORY_INVALID
                           : static_cast<category_t>(key_[4]);
 }
-
 
 // ------------------------------------------------------------------
 /// Return the type of single item (aka dictionary) used.
@@ -288,7 +246,6 @@ klv_uds_key
   }
   return static_cast<single_t>(key_[5]);
 }
-
 
 // ------------------------------------------------------------------
 /// Return the type of grouping used.
@@ -306,7 +263,6 @@ klv_uds_key
   return static_cast<group_t>(g);
 }
 
-
 // ------------------------------------------------------------------
 /// Return the type of wrapper used.
 /// Only valid for keys with CATEGORY_WRAPPER
@@ -320,7 +276,6 @@ klv_uds_key
   }
   return static_cast<wrapper_t>(key_[5]);
 }
-
 
 // ------------------------------------------------------------------
 /// Return the number of bytes used to represent length of each group item.
@@ -346,7 +301,6 @@ klv_uds_key
   return 0;
 }
 
-
 // ------------------------------------------------------------------
 /// Return the number of bytes used to represent the local tags.
 /// Valid only for GROUP_LOCAL_SET
@@ -365,9 +319,7 @@ klv_uds_key
   return map[(key_[5] & 0x18) >> 3];
 }
 
-
 //============================================================================
-
 
 klv_lds_key
 ::klv_lds_key(uint8_t data)
@@ -375,16 +327,13 @@ klv_lds_key
   key_[0] = data;
 }
 
-
 klv_lds_key
 ::klv_lds_key(const uint8_t data[1])
 {
   key_[0] = *data;
 }
 
-
 //============================================================================
-
 
 #define INSTANTIATE_KLV_KEY(NUM)                                        \
 template class klv_key<NUM>;                                            \

@@ -38,7 +38,6 @@ if ( NOT TARGET python)
   add_custom_target(python)
 endif()
 
-
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py\\.in$")
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py$")
 

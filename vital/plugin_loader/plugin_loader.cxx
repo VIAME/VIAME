@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2018, 2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "plugin_factory.h"
 #include "plugin_loader.h"
@@ -55,7 +29,6 @@ using library_t =  DL::LibraryHandle;
 using function_t = DL::SymbolPointer;
 
 } // end anon namespace
-
 
 // ==================================================================
 /**
@@ -112,7 +85,6 @@ public:
 
 }; // end class plugin_loader_impl
 
-
 // ------------------------------------------------------------------
 plugin_loader
 ::plugin_loader( std::string const& init_function,
@@ -121,11 +93,9 @@ plugin_loader
   , m_impl( new plugin_loader_impl( this, init_function, shared_lib_suffix ) )
 { }
 
-
 plugin_loader
 ::~plugin_loader()
 { }
-
 
 // ------------------------------------------------------------------
 plugin_factory_vector_t const&
@@ -142,7 +112,6 @@ plugin_loader
 
   return it->second;
 }
-
 
 // ------------------------------------------------------------------
 plugin_factory_handle_t
@@ -185,7 +154,6 @@ plugin_loader
   return fact_handle;
 }
 
-
 // ------------------------------------------------------------------
 plugin_map_t const&
 plugin_loader
@@ -193,7 +161,6 @@ plugin_loader
 {
   return m_impl->m_plugin_map;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -205,7 +172,6 @@ plugin_loader
   erase_duplicates(m_impl->m_search_paths);
 }
 
-
 // ------------------------------------------------------------------
 path_list_t const&
 plugin_loader
@@ -214,7 +180,6 @@ plugin_loader
   // return vector of paths
   return this->m_impl->m_search_paths;
 }
-
 
 // ------------------------------------------------------------------
 std::vector< std::string >
@@ -230,7 +195,6 @@ plugin_loader
 
   return retval;
 }
-
 
   // ------------------------------------------------------------------
 bool
@@ -248,7 +212,6 @@ plugin_loader
   m_impl->m_module_map.insert( std::pair< std::string, std::string >(name, m_impl->m_current_filename ) );
 }
 
-
 // ------------------------------------------------------------------
 plugin_module_map_t const&
 plugin_loader
@@ -257,7 +220,6 @@ plugin_loader
   return m_impl->m_module_map;
 }
 
-
 // ------------------------------------------------------------------
 void
 plugin_loader
@@ -265,7 +227,6 @@ plugin_loader
 {
   m_impl->load_known_modules();
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -279,7 +240,6 @@ plugin_loader
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 plugin_loader
@@ -287,7 +247,6 @@ plugin_loader
 {
   m_impl->load_from_module( file );
 }
-
 
 // ==================================================================
 /**
@@ -304,7 +263,6 @@ plugin_loader_impl
     look_in_directory( module_dir );
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -371,7 +329,6 @@ plugin_loader_impl
     }
   } // end for
 } // plugin_loader_impl::look_in_directory
-
 
 // ----------------------------------------------------------------
 /**
@@ -450,6 +407,5 @@ void plugin_loader
   f->m_loader = this;
   m_impl->m_filters.push_back( f );
 }
-
 
 } } // end namespace

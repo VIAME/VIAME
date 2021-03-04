@@ -301,7 +301,7 @@ def test_add_get_vital_types():
         ads,
         ads._add_bounding_box,
         ads._get_port_data_bounding_box,
-        kvt.BoundingBox(1, 1, 2, 2),
+        kvt.BoundingBoxD(1, 1, 2, 2),
         "bounding_box",
     )
     add_get_helper(

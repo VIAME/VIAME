@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -208,7 +182,6 @@ intrinsics_from_metadata(metadata const& md,
     (focal_len, pp, 1.0, 0.0, Eigen::VectorXd(), image_width, image_height);
 }
 
-
 /// Use a sequence of metadata objects to initialize a sequence of cameras
 std::map<frame_id_t, camera_sptr>
 initialize_cameras_with_metadata(std::map<frame_id_t,
@@ -296,7 +269,6 @@ initialize_cameras_with_metadata(std::map<frame_id_t,
   return cam_map;
 }
 
-
 /// Use the pose data provided by metadata to update camera pose
 bool
 update_camera_from_metadata(metadata const& md,
@@ -345,7 +317,6 @@ update_camera_from_metadata(metadata const& md,
     mdi.data(sensor_roll);
   }
 
-
   if (has_platform_yaw && has_platform_pitch && has_platform_roll &&
       has_sensor_yaw && has_sensor_pitch &&
       // Sensor roll is ignored here on purpose.
@@ -379,7 +350,6 @@ update_camera_from_metadata(metadata const& md,
   return rotation_set || translation_set;
 }
 
-
 /// Update a sequence of metadata from a sequence of cameras and local_geo_cs
 void
 update_metadata_from_cameras(std::map<frame_id_t, camera_sptr> const& cam_map,
@@ -410,7 +380,6 @@ update_metadata_from_cameras(std::map<frame_id_t, camera_sptr> const& cam_map,
     }
   }
 }
-
 
 /// Use the camera pose to update the metadata structure
 void
@@ -445,6 +414,5 @@ update_metadata_from_camera(simple_camera_perspective const& cam,
     md.add<VITAL_META_SENSOR_LOCATION>(gc);
   }
 }
-
 
 } } // end of namespace

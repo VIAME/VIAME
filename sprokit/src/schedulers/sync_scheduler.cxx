@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "sync_scheduler.h"
 
@@ -76,7 +50,6 @@ class sync_scheduler::priv
 
     mutable mutex_t mut;
 };
-
 
 // ============================================================================
 sync_scheduler
@@ -128,13 +101,11 @@ sync_scheduler
   }
 }
 
-
 sync_scheduler
 ::~sync_scheduler()
 {
   shutdown();
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -144,7 +115,6 @@ sync_scheduler
   d->thread = boost::thread(std::bind(&priv::run, d.get(), pipeline()));
 }
 
-
 // ----------------------------------------------------------------------------
 void
 sync_scheduler
@@ -152,7 +122,6 @@ sync_scheduler
 {
   d->thread.join();
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -162,7 +131,6 @@ sync_scheduler
   d->mut.lock();
 }
 
-
 // ----------------------------------------------------------------------------
 void
 sync_scheduler
@@ -170,7 +138,6 @@ sync_scheduler
 {
   d->mut.unlock();
 }
-
 
 // ----------------------------------------------------------------------------
 void
@@ -180,7 +147,6 @@ sync_scheduler
   d->thread.interrupt();
 }
 
-
 // ============================================================================
 sync_scheduler::priv
 ::priv()
@@ -189,12 +155,10 @@ sync_scheduler::priv
 {
 }
 
-
 sync_scheduler::priv
 ::~priv()
 {
 }
-
 
 static process::names_t sorted_names(pipeline_t const& pipe);
 static kwiver::vital::config_block_sptr monitor_edge_config();
@@ -271,7 +235,6 @@ sync_scheduler::priv
   }
 }
 
-
 // ----------------------------------------------------------------------------
 namespace {
 
@@ -281,7 +244,6 @@ typedef std::deque<vertex_t> vertices_t;
 typedef std::map<process::name_t, vertex_t> vertex_map_t;
 
 } // end anonymous
-
 
 // ----------------------------------------------------------------------------
 process::names_t
@@ -367,7 +329,6 @@ sorted_names(pipeline_t const& pipe)
 
   return names;
 }
-
 
 // ----------------------------------------------------------------------------
 kwiver::vital::config_block_sptr

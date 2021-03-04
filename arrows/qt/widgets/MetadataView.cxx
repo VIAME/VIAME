@@ -65,7 +65,7 @@ void
 MetadataViewPrivate
 ::addItem( int id, QString const& keyText )
 {
-  if ( auto* const l = this->m_keyLabels.value( id, nullptr ) )
+  if( auto* const l = this->m_keyLabels.value( id, nullptr ) )
   {
     l->setText( keyText );
   }
@@ -81,7 +81,7 @@ MetadataViewPrivate
     valueLabel->setElideMode( qtSqueezedLabel::ElideFade );
 
     auto* const layout = qobject_cast< QVBoxLayout* >( q->layout() );
-    if ( layout->count() )
+    if( layout->count() )
     {
       delete layout->takeAt( layout->count() - 1 );
     }
@@ -105,9 +105,9 @@ void
 MetadataViewPrivate
 ::setItemValue( int id, QString const& valueText )
 {
-  if ( auto* const l = this->m_valueLabels.value( id, nullptr ) )
+  if( auto* const l = this->m_valueLabels.value( id, nullptr ) )
   {
-    if ( valueText.isEmpty() )
+    if( valueText.isEmpty() )
     {
       l->setText( "(empty)" );
       l->setToolTip( {} );
@@ -126,7 +126,7 @@ void
 MetadataViewPrivate
 ::clearItemValue( int id )
 {
-  if ( auto* const l = this->m_valueLabels.value( id, nullptr ) )
+  if( auto* const l = this->m_valueLabels.value( id, nullptr ) )
   {
     l->setText( "(not available)" );
     l->setToolTip( {} );
@@ -171,7 +171,7 @@ void
 MetadataViewPrivate
 ::updateLabelColors()
 {
-  for ( auto* const l : this->m_keyLabels )
+  for( auto* const l : this->m_keyLabels )
   {
     this->setKeyLabelColor( l );
   }
@@ -209,7 +209,7 @@ MetadataView
 {
   QTE_D();
 
-  if ( sender == d->m_contentWidget && e && e->type() == QEvent::Resize )
+  if( sender == d->m_contentWidget && e && e->type() == QEvent::Resize )
   {
     this->setMinimumWidth(
       d->m_contentWidget->minimumSizeHint().width() +
@@ -224,7 +224,7 @@ void
 MetadataView
 ::changeEvent( QEvent* e )
 {
-  if ( e && e->type() == QEvent::PaletteChange )
+  if( e && e->type() == QEvent::PaletteChange )
   {
     QTE_D();
     d->updateLabelColors();
@@ -248,11 +248,11 @@ MetadataView
   auto traits = kv::metadata_traits{};
 
   // Collect all keys present in the metadata map
-  for ( auto const& mdi : *mdMap )
+  for( auto const& mdi : *mdMap )
   {
-    for ( auto const& mdp : mdi.second | kvr::valid )
+    for( auto const& mdp : mdi.second | kvr::valid )
     {
-      for ( auto const& mde : *mdp )
+      for( auto const& mde : *mdp )
       {
         mdKeys.insert( mde.first );
       }
@@ -264,10 +264,10 @@ MetadataView
 
   constexpr auto lastMetadataTag =
     static_cast< md_tag_type_t >( kv::VITAL_META_LAST_TAG );
-  for ( auto const k : vital::range::iota( lastMetadataTag ) )
+  for( auto const k : vital::range::iota( lastMetadataTag ) )
   {
     auto const tag = static_cast< kv::vital_metadata_tag >( k );
-    if ( mdKeys.contains( tag ) )
+    if( mdKeys.contains( tag ) )
     {
       d->clearItemValue( k );
       d->addItem( k, qtString( traits.tag_to_name( tag ) ) );
@@ -285,14 +285,14 @@ MetadataView
   auto traits = kv::metadata_traits{};
 
   auto const keys = d->itemIds();
-  for ( auto const k : keys )
+  for( auto const k : keys )
   {
     d->clearItemValue( k );
   }
 
-  for ( auto const& mdp : mdVec | kvr::valid )
+  for( auto const& mdp : mdVec | kvr::valid )
   {
-    for ( auto const& mde : *mdp )
+    for( auto const& mde : *mdp )
     {
       using md_tag_type_t =
         std::underlying_type< kv::vital_metadata_tag >::type;
@@ -300,9 +300,9 @@ MetadataView
       auto const k = static_cast< md_tag_type_t >( mde.first );
       auto const* mdi = mde.second.get();
 
-      if ( mdi )
+      if( mdi )
       {
-        if ( !keys.contains( k ) )
+        if( !keys.contains( k ) )
         {
           auto const tag = static_cast< kv::vital_metadata_tag >( k );
           d->addItem( k, qtString( traits.tag_to_name( tag ) ) );

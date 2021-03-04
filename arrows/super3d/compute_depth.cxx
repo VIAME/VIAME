@@ -50,6 +50,7 @@ public:
       world_plane_normal(0.0, 0.0, 1.0),
       depth_sample_rate(0.5),
       callback_interval(-1),    //default is no callback
+      uncertainty_in_callback(false),
       callback(NULL),
       m_logger(vital::get_logger("arrows.super3d.compute_depth"))
   {
@@ -72,6 +73,7 @@ public:
   vnl_double_3 world_plane_normal;
   double depth_sample_rate;
   int callback_interval;
+  bool uncertainty_in_callback;
 
   double depth_min, depth_max;
   unsigned int num_slices;
@@ -125,6 +127,10 @@ compute_depth::get_configuration() const
                     "up direction in world space");
   config->set_value("callback_interval", d_->callback_interval,
                     "number of iterations between updates (-1 turns off updates)");
+  config->set_value("uncertainty_in_callback", d_->uncertainty_in_callback,
+                    "If true, compute the uncertainty in each callback for a "
+                    "live preview at additional computational cost. "
+                    "Otherwise, uncertainty is only computed at the end.");
   config->set_value("depth_sample_rate", d_->depth_sample_rate,
                     "Specifies the maximum sampling rate, in pixels, of the "
                     "depth steps projected into support views.  This rate "
@@ -154,6 +160,9 @@ compute_depth::set_configuration(vital::config_block_sptr in_config)
   d_->epsilon = config->get_value<double>("epsilon", d_->epsilon);
   d_->callback_interval = config->get_value<double>("callback_interval",
                                                     d_->callback_interval);
+  d_->uncertainty_in_callback =
+    config->get_value<bool>("uncertainty_in_callback",
+                            d_->uncertainty_in_callback);
   d_->depth_sample_rate = config->get_value<double>("depth_sample_rate",
                                                     d_->depth_sample_rate);
 
@@ -200,7 +209,8 @@ compute_uncertainty(vil_image_view<double> const& height_map,
   // This scale is 1/(2*sigma) converted from [0,255] to [0,1]
   const double cost_scale = 255.0 / (2.0 * 5.0);
 
-  for (unsigned int j = 0; j < cost_volume.nj(); j++)
+#pragma omp parallel for
+  for (int64_t j = 0; j < cost_volume.nj(); j++)
   {
     for (unsigned int i = 0; i < cost_volume.ni(); i++)
     {
@@ -372,19 +382,29 @@ compute_depth::priv
     image_container_sptr result_u = nullptr;
     if (data.current_result)
     {
-      auto uncertainty = compute_uncertainty(data.current_result,
-                                             this->cost_volume);
-      double depth_scale = this->depth_max - this->depth_min;
-      vil_math_scale_and_offset_values(data.current_result,
-                                       depth_scale, this->depth_min);
-      vil_math_scale_values(uncertainty, depth_scale);
       vil_image_view<double> depth;
-      height_map_to_depth_map(this->ref_cam, data.current_result,
-                              depth, uncertainty);
+      double depth_scale = this->depth_max - this->depth_min;
+      if (this->uncertainty_in_callback)
+      {
+        auto uncertainty = compute_uncertainty(data.current_result,
+                                               this->cost_volume);
+        vil_math_scale_values(uncertainty, depth_scale);
+        vil_math_scale_and_offset_values(data.current_result,
+                                         depth_scale, this->depth_min);
+        height_map_to_depth_map(this->ref_cam, data.current_result,
+                                depth, uncertainty);
+        result_u = std::make_shared<vxl::image_container>(
+          vxl::image_container::vxl_to_vital(uncertainty));
+      }
+      else
+      {
+        vil_math_scale_and_offset_values(data.current_result,
+                                         depth_scale, this->depth_min);
+        height_map_to_depth_map(this->ref_cam, data.current_result,
+                                depth);
+      }
       result = std::make_shared<vxl::image_container>(
                  vxl::image_container::vxl_to_vital(depth));
-      result_u = std::make_shared<vxl::image_container>(
-                  vxl::image_container::vxl_to_vital(uncertainty));
     }
     unsigned percent_complete = 50 + (50 * data.num_iterations)
                                      / this->iterations;
@@ -407,7 +427,6 @@ compute_depth::priv
     unsigned percent_complete = (50 * slice_num) / this->num_slices;
     std::stringstream ss;
     ss << "Computing cost volume slice " << slice_num << " of " << this->num_slices;
-    // TODO Check if this can be the real uncertainty
     return this->callback(nullptr, ss.str(), percent_complete, nullptr);
   }
   return true;

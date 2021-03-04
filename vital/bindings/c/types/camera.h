@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -35,8 +9,6 @@
 
 #ifndef VITAL_C_CAMERA_H_
 #define VITAL_C_CAMERA_H_
-
-
 
 #ifdef __cplusplus
 extern "C"
@@ -51,10 +23,8 @@ extern "C"
 #include <vital/bindings/c/types/rotation.h>
 #include <vital/bindings/c/vital_c_export.h>
 
-
 /// Opaque structure to a vital::camera class
 typedef struct vital_camera_s vital_camera_t;
-
 
 /// Destroy a vital_camera_t instance
 /**
@@ -67,7 +37,6 @@ typedef struct vital_camera_s vital_camera_t;
 VITAL_C_EXPORT
 void vital_camera_destroy( vital_camera_t *cam,
                            vital_error_handle_t *eh );
-
 
 /// Create a new simple camera
 /**
@@ -86,7 +55,6 @@ vital_camera_new( vital_eigen_matrix3x1d_t const *center,
                   vital_camera_intrinsics_t const *intrinsics,
                   vital_error_handle_t *eh );
 
-
 /// Create a new simple camera instance with default parameters
 /**
  * \param eh Vital error handle instance.
@@ -95,7 +63,6 @@ vital_camera_new( vital_eigen_matrix3x1d_t const *center,
 VITAL_C_EXPORT
 vital_camera_t*
 vital_camera_new_default( vital_error_handle_t *eh );
-
 
 /// Create a new simple camera from a string
 /**
@@ -110,7 +77,6 @@ VITAL_C_EXPORT
 vital_camera_t*
 vital_camera_new_from_string( char const *s, vital_error_handle_t *eh );
 
-
 /// Clone the given camera instance, returning a new camera instance
 /**
  * \param cam Camera instance to clone.
@@ -120,7 +86,6 @@ vital_camera_new_from_string( char const *s, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 vital_camera_t*
 vital_camera_clone( vital_camera_t const *cam, vital_error_handle_t *eh );
-
 
 /// Get the 3D center point of the camera as a new 3x1 matrix (column-vector)
 /**
@@ -132,7 +97,6 @@ VITAL_C_EXPORT
 vital_eigen_matrix3x1d_t*
 vital_camera_center( vital_camera_t const *cam, vital_error_handle_t *eh );
 
-
 /// Get the 3D translation vector of the camera as a new 3x1 matrix (column-vector)
 /**
  * \param cam Camera instance to use
@@ -142,7 +106,6 @@ vital_camera_center( vital_camera_t const *cam, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 vital_eigen_matrix3x1d_t*
 vital_camera_translation( vital_camera_t const *cam, vital_error_handle_t *eh );
-
 
 /// Get the covariance of the camera center as a new vital covariance instance
 /**
@@ -154,7 +117,6 @@ VITAL_C_EXPORT
 vital_covariance_3d_t*
 vital_camera_center_covar( vital_camera_t const *cam, vital_error_handle_t *eh );
 
-
 /// Get rotation of the camera as a new vital rotation instance
 /**
  * \param cam Camera instance to use
@@ -164,7 +126,6 @@ vital_camera_center_covar( vital_camera_t const *cam, vital_error_handle_t *eh )
 VITAL_C_EXPORT
 vital_rotation_d_t*
 vital_camera_rotation( vital_camera_t const *cam, vital_error_handle_t *eh );
-
 
 /// Get new reference to the shared intrinsics instance of the camera
 /**
@@ -178,7 +139,6 @@ vital_camera_rotation( vital_camera_t const *cam, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 vital_camera_intrinsics_t*
 vital_camera_intrinsics( vital_camera_t const *cam, vital_error_handle_t *eh );
-
 
 /// Create a clone of this camera that is rotated to look at the given point
 /**
@@ -197,7 +157,6 @@ vital_camera_clone_look_at( vital_camera_t const *cam,
                             vital_eigen_matrix3x1d_t const *up_direction,
                             vital_error_handle_t *eh );
 
-
 /// Convert camera to a 3x4 homogeneous projection matrix instance
 /**
  * \note This matrix representation does not account for lens distortion
@@ -211,7 +170,6 @@ VITAL_C_EXPORT
 vital_eigen_matrix3x4d_t*
 vital_camera_as_matrix( vital_camera_t const *cam, vital_error_handle_t *eh );
 
-
 /// Project a 3D point into a (new) 2D image point via the given camera
 /**
  * \param cam Camera instance to use
@@ -224,7 +182,6 @@ vital_eigen_matrix2x1d_t*
 vital_camera_project( vital_camera_t const *cam,
                       vital_eigen_matrix3x1d_t const *pt,
                       vital_error_handle_t *eh );
-
 
 /// Compute the distance of the 3D point to the image plane
 /**
@@ -241,7 +198,6 @@ vital_camera_depth( vital_camera_t const *cam,
                     vital_eigen_matrix3x1d_t const *pt,
                     vital_error_handle_t *eh );
 
-
 /// Convert the camera into a new string representation
 /**
  * \param cam Camera instance to use
@@ -251,7 +207,6 @@ vital_camera_depth( vital_camera_t const *cam,
 VITAL_C_EXPORT
 char*
 vital_camera_to_string( vital_camera_t const *cam, vital_error_handle_t *eh );
-
 
 /// Read in a KRTD file, producing a new vital::camera object
 /**
@@ -264,7 +219,6 @@ vital_camera_t*
 vital_camera_read_krtd_file( char const *filepath,
                              vital_error_handle_t *eh );
 
-
 /// Output the given vital_camera_t object to the specified file path
 /**
  * \param cam Camera instance to use
@@ -276,7 +230,6 @@ void
 vital_camera_write_krtd_file( vital_camera_t const *cam,
                               char const *filepath,
                               vital_error_handle_t *eh );
-
 
 #ifdef __cplusplus
 }

@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -64,7 +38,6 @@ class track_set_frame_data;
 typedef std::shared_ptr<track_set_frame_data> track_set_frame_data_sptr;
 typedef std::map<frame_id_t, track_set_frame_data_sptr> track_set_frame_data_map_t;
 
-
 // ------------------------------------------------------------------
 /// Empty base class for data associated a frame in the track_set
 class VITAL_EXPORT track_set_frame_data
@@ -76,7 +49,6 @@ public:
 protected:
   virtual ~track_set_frame_data() = default;
 };
-
 
 // ------------------------------------------------------------------
 /// Abstract interface for a collection of tracks
@@ -350,7 +322,6 @@ public:
   virtual frame_id_t offset_to_frame( frame_id_t offset ) const = 0;
 };
 
-
 // ------------------------------------------------------------------
 /// A base class for the implementation of track sets
 /**
@@ -433,7 +404,6 @@ public:
   virtual track_set_implementation_uptr clone(
     clone_type = clone_type::DEEP ) const = 0;
 };
-
 
 // ------------------------------------------------------------------
 /// A collection of tracks
@@ -669,8 +639,6 @@ protected:
   /// The implementation of the track set functions
   std::unique_ptr<track_set_implementation> impl_;
 };
-
-
 
 // ------------------------------------------------------------------
 /// A concrete track set that simply wraps a vector of tracks.

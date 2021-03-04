@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -37,7 +11,6 @@
 
 #include <algorithm>
 #include <iomanip>
-
 
 namespace kwiver {
 namespace vital {
@@ -50,7 +23,6 @@ namespace vital {
       m_value_len ( 0 )
   { }
 
-
 klv_data
 ::klv_data(container_t const& raw_packet,
          std::size_t key_offset, std::size_t key_len,
@@ -61,7 +33,6 @@ klv_data
     m_value_offset( value_offset ),
     m_value_len ( value_len )
 { }
-
 
 klv_data
 ::~klv_data()
@@ -74,14 +45,12 @@ klv_data
   return this->key_len_;
 }
 
-
 std::size_t
 klv_data
 ::value_size() const
 {
   return this->m_value_len;
 }
-
 
 std::size_t
 klv_data
@@ -90,14 +59,12 @@ klv_data
   return this->m_raw_data.size();
 }
 
-
 klv_data::const_iterator_t
 klv_data
 ::klv_begin() const
 {
   return this->m_raw_data.begin();
 }
-
 
 klv_data::const_iterator_t
 klv_data
@@ -106,14 +73,12 @@ klv_data
   return this->m_raw_data.end();
 }
 
-
 klv_data::const_iterator_t
 klv_data
 ::key_begin() const
 {
   return this->m_raw_data.begin() + m_key_offset;
 }
-
 
 klv_data::const_iterator_t
 klv_data
@@ -123,7 +88,6 @@ klv_data
 
 }
 
-
 klv_data::const_iterator_t
 klv_data
 ::value_begin() const
@@ -131,14 +95,12 @@ klv_data
   return this->m_raw_data.begin() + m_value_offset;
 }
 
-
 klv_data::const_iterator_t
 klv_data
 ::value_end() const
 {
   return this->m_raw_data.begin() + m_value_offset + m_value_len;
 }
-
 
 std::ostream & operator<<( std::ostream& str, klv_data const& obj )
 {

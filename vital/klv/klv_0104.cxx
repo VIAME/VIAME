@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -49,9 +23,7 @@
 namespace kwiver {
 namespace vital {
 
-
 class std_0102_lds { };
-
 
 // ------------------------------------------------------------------
 /// Provides interpretation of raw data to kwiver::vital::any and can also
@@ -81,7 +53,6 @@ public:
 
 };
 
-
 namespace {
 
 // ==================================================================
@@ -97,9 +68,7 @@ static const klv_uds_key klv_0104_uds_key( key_data );
 
 }  //end anonymous namespace
 
-
 klv_0104* klv_0104::s_instance = 0;  // instance pointer
-
 
 // ------------------------------------------------------------------
 klv_0104*
@@ -121,7 +90,6 @@ klv_0104::instance()
 
   return s_instance;
 }
-
 
 // ------------------------------------------------------------------
 klv_0104::klv_0104()
@@ -234,7 +202,6 @@ klv_0104::klv_0104()
 
 }
 
-
 // ------------------------------------------------------------------
 klv_0104::~klv_0104()
 {
@@ -244,7 +211,6 @@ klv_0104::~klv_0104()
     m_traitsvec[i] = 0;
   }
 }
-
 
 // ------------------------------------------------------------------
 template < class T >
@@ -257,7 +223,6 @@ traits< T >::to_string( kwiver::vital::any const& data ) const
   ss << var;
   return ss.str();
 }
-
 
 // ------------------------------------------------------------------
 template < class T >
@@ -296,7 +261,6 @@ traits< T >::convert( uint8_t const* data, std::size_t length )
   return converter.val;
 }
 
-
 // ------------------------------------------------------------------
 // Specialization for extracting strings from a raw byte stream
 template < >
@@ -307,7 +271,6 @@ traits< std::string >::convert( uint8_t const* data, std::size_t length )
 
   return value;
 }
-
 
 // ------------------------------------------------------------------
 //Handle real values as floats or doubles but return double
@@ -355,7 +318,6 @@ traits< double >::convert( uint8_t const* data, std::size_t length )
   return val;
 }
 
-
 // ------------------------------------------------------------------
 // Specialization for extracting std_0102_lds from a raw byte stream
 template < >
@@ -378,7 +340,6 @@ traits< std_0102_lds >::to_string( kwiver::vital::any const& data ) const
   return var;
 }
 
-
 // ------------------------------------------------------------------
 klv_0104::tag
 klv_0104::get_tag( klv_uds_key const& k ) const
@@ -393,14 +354,12 @@ klv_0104::get_tag( klv_uds_key const& k ) const
   return itr->second;
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::any
 klv_0104::get_value( tag tg, uint8_t const* data, std::size_t length )
 {
   return m_traitsvec[tg]->convert( data, length );
 }
-
 
 // ------------------------------------------------------------------
 template < class T >
@@ -416,14 +375,12 @@ klv_0104::get_value( tag tg, kwiver::vital::any const& data ) const
   return kwiver::vital::any_cast< T > ( data );
 }
 
-
 // ------------------------------------------------------------------
 std::string
 klv_0104::get_string( tag tg, kwiver::vital::any const& data ) const
 {
   return m_traitsvec[tg]->to_string( data );
 }
-
 
 // ------------------------------------------------------------------
 std::string
@@ -432,14 +389,12 @@ klv_0104::get_tag_name( tag tg ) const
   return m_traitsvec[tg]->m_name;
 }
 
-
 // ------------------------------------------------------------------
 klv_0104::traits_base const&
 klv_0104::get_traits( tag tg ) const
 {
   return *m_traitsvec[tg];
 }
-
 
 // ------------------------------------------------------------------
 klv_uds_key
@@ -448,14 +403,12 @@ klv_0104::key()
   return klv_0104_uds_key;
 }
 
-
 // ------------------------------------------------------------------
 bool
 klv_0104::is_key( klv_uds_key const& key )
 {
   return key == klv_0104_uds_key;
 }
-
 
 template double klv_0104::get_value< double > ( tag tg, kwiver::vital::any const& data ) const;
 template uint64_t klv_0104::get_value< uint64_t > ( tag tg, kwiver::vital::any const& data ) const;

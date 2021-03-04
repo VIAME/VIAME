@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -54,7 +28,6 @@ SharedPointerCache< kwiver::vital::detected_object_set, vital_detected_object_se
 
 typedef std::vector< kwiver::vital::detected_object_sptr > vector_t;
 
-
 // ==================================================================
 // These two functions support C++ access to the SPTR_CACHE.
 
@@ -80,7 +53,6 @@ vital_detected_object_set_t* vital_detected_object_set_from_sptr( kwiver::vital:
   return 0;
 }
 
-
 vital_detected_object_set_t* vital_detected_object_set_from_c_pointer( kwiver::vital::detected_object_set* ptr )
 {
   STANDARD_CATCH(
@@ -92,7 +64,6 @@ vital_detected_object_set_t* vital_detected_object_set_from_c_pointer( kwiver::v
   return 0;
 }
 
-
 kwiver::vital::detected_object_set_sptr vital_detected_object_set_to_sptr( vital_detected_object_set_t* handle )
 {
   STANDARD_CATCH(
@@ -102,7 +73,6 @@ kwiver::vital::detected_object_set_sptr vital_detected_object_set_to_sptr( vital
     );
   return kwiver::vital::detected_object_set_sptr();
 }
-
 
 // ------------------------------------------------------------------
 vital_detected_object_set_t* vital_detected_object_set_new()
@@ -118,7 +88,6 @@ vital_detected_object_set_t* vital_detected_object_set_new()
   return 0;
 
 }
-
 
 // ------------------------------------------------------------------
 vital_detected_object_set_t*
@@ -142,7 +111,6 @@ vital_detected_object_set_new_from_list( vital_detected_object_t**  dobj,
   return 0;
 }
 
-
 // ------------------------------------------------------------------
 void vital_detected_object_set_destroy( vital_detected_object_set_t* obj)
 {
@@ -153,7 +121,6 @@ void vital_detected_object_set_destroy( vital_detected_object_set_t* obj)
   );
 
 }
-
 
 // ------------------------------------------------------------------
 void vital_detected_object_set_add( vital_detected_object_set_t* set,
@@ -166,7 +133,6 @@ void vital_detected_object_set_add( vital_detected_object_set_t* set,
     );
 }
 
-
 // ------------------------------------------------------------------
 size_t vital_detected_object_set_size( vital_detected_object_set_t* obj)
 {
@@ -177,7 +143,6 @@ size_t vital_detected_object_set_size( vital_detected_object_set_t* obj)
     );
   return 0;
 }
-
 
 // ------------------------------------------------------------------
 void vital_detected_object_set_select_threshold( vital_detected_object_set_t* obj,
@@ -203,7 +168,6 @@ void vital_detected_object_set_select_threshold( vital_detected_object_set_t* ob
     }
     );
 }
-
 
 // ------------------------------------------------------------------
 void vital_detected_object_set_select_class_threshold( vital_detected_object_set_t* obj,

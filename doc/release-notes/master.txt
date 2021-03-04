@@ -73,6 +73,10 @@ Arrows: Core
 
 Arrows: Ceres
 
+ * Improve logging in bundle_adjust to allow logging per-iteration summaries
+   and independently control logging fully summaries after optimization
+   completes.
+
 Arrows: CUDA
 
 Arrows: FFmpeg
@@ -134,6 +138,8 @@ Arrows: VTK
 
  * Added utility function to convert depth images to vtkImageData.
    This function was ported from TeleSculptor.
+
+ * Added an applet to estimate depth maps from multple views.
 
  * Added a new applet for fusing depth maps in volume and extracting a
    surface mesh.

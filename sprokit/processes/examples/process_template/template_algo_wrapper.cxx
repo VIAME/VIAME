@@ -1,32 +1,7 @@
-/*ckwg +29
- * Copyright 2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
+
 //++ The above header applies to this template code. Feel free to use your own
 //++ license header.
 
@@ -46,7 +21,6 @@
 
 //++ include definition of abstract base algorithm.
 #include <vital/algo/image_object_detector.h>
-
 
 //++ You can put all of your processes in the same namespace
 namespace group_ns {
@@ -116,12 +90,10 @@ template_algo_wrapper
   make_config(); // declare process configuration
 }
 
-
 template_algo_wrapper
 ::~template_algo_wrapper()
 {
 }
-
 
 // ----------------------------------------------------------------
 /**
@@ -153,7 +125,6 @@ template_algo_wrapper
     VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create algorithm." );
   }
 }
-
 
 // ----------------------------------------------------------------
 void
@@ -189,7 +160,6 @@ template_algo_wrapper
   push_to_port_using_trait( detected_object_set, out_set );
 }
 
-
 // ------------------------------------------------------------------
 //++ This method is called after all connections have been made to
 //++ this process. The process can analyze connections and adapt its
@@ -205,7 +175,6 @@ template_algo_wrapper
 
 }
 
-
 // ------------------------------------------------------------------
 //++ This method is called when the pipeline is reset.
 void
@@ -217,7 +186,6 @@ template_algo_wrapper
   // do reset processing if applicable.
 
 }
-
 
 // ------------------------------------------------------------------
 //++ This method is called when there is a flush on one of the input ports.
@@ -233,7 +201,6 @@ template_algo_wrapper
 
 }
 
-
 // ------------------------------------------------------------------
 //++ This method is called when the pipeline is reconfigured. This is where new
 //++ configuration values are supplied to the process. Use reconfig_value_using_trait( conf, ... )
@@ -247,7 +214,6 @@ template_algo_wrapper
   // perform reconfigure processing if applicable.
 
 }
-
 
 // ----------------------------------------------------------------
 void
@@ -266,7 +232,6 @@ template_algo_wrapper
   declare_output_port_using_trait( detected_object_set, optional );
 }
 
-
 // ----------------------------------------------------------------
 void
 template_algo_wrapper
@@ -277,14 +242,12 @@ template_algo_wrapper
   declare_config_using_trait( algo_name );
 }
 
-
 // ================================================================ ++
 //Initialize any private data here
 template_algo_wrapper::priv
 ::priv()
 {
 }
-
 
 template_algo_wrapper::priv
 ::~priv()

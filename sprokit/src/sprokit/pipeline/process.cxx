@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "process.h"
 #include "process_exception.h"
@@ -279,7 +253,6 @@ process
   d->configured = true;
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -302,7 +275,6 @@ process
   d->initialized = true;
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -324,7 +296,6 @@ process
   d->initialized = false;
   d->core_frequency.reset();
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -405,7 +376,6 @@ process
   }
 }
 
-
 // ----------------------------------------------------------------------------
 void
 process
@@ -413,7 +383,6 @@ process
 {
   d->m_properties.insert( prop );
 }
-
 
 // ------------------------------------------------------------------
 process::properties_t
@@ -430,7 +399,6 @@ process
 
   return result;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -452,7 +420,6 @@ process
   d->connect_input_port(port, edge);
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -466,7 +433,6 @@ process
 
   d->connect_output_port(port, edge);
 }
-
 
 // ------------------------------------------------------------------
 process::ports_t
@@ -485,7 +451,6 @@ process
   return ports;
 }
 
-
 // ------------------------------------------------------------------
 process::ports_t
 process
@@ -503,7 +468,6 @@ process
   return ports;
 }
 
-
 // ------------------------------------------------------------------
 process::port_info_t
 process
@@ -512,7 +476,6 @@ process
   return _input_port_info(port);
 }
 
-
 // ------------------------------------------------------------------
 process::port_info_t
 process
@@ -520,7 +483,6 @@ process
 {
   return _output_port_info(port);
 }
-
 
 // ------------------------------------------------------------------
 bool
@@ -541,7 +503,6 @@ process
   return _set_input_port_type(port, new_type);
 }
 
-
 // ------------------------------------------------------------------
 bool
 process
@@ -561,7 +522,6 @@ process
   return _set_output_port_type(port, new_type);
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::config_block_keys_t
 process
@@ -578,7 +538,6 @@ process
 
   return keys;
 }
-
 
 // ------------------------------------------------------------------
 kwiver::vital::config_block_keys_t
@@ -607,7 +566,6 @@ process
   return keys;
 }
 
-
 // ------------------------------------------------------------------
 process::conf_info_t
 process
@@ -615,7 +573,6 @@ process
 {
   return _config_info(key);
 }
-
 
 // ------------------------------------------------------------------
 kwiver::vital::config_difference
@@ -627,7 +584,6 @@ process
   return kwiver::vital::config_difference( avail_conf, d->conf );
 }
 
-
 // ------------------------------------------------------------------
 process::name_t
 process
@@ -636,7 +592,6 @@ process
   return d->name;
 }
 
-
 // ------------------------------------------------------------------
 process::type_t
 process
@@ -644,7 +599,6 @@ process
 {
   return d->type;
 }
-
 
 // ------------------------------------------------------------------
 //
@@ -709,13 +663,11 @@ process
   attach_logger( kwiver::vital::get_logger( std::string( "sprokit.process." ) + name() ) );
 }
 
-
 // ------------------------------------------------------------------
 process
 ::~process()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -724,14 +676,12 @@ process
 {
 }
 
-
 // ------------------------------------------------------------------
 void
 process
 ::_init()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -740,14 +690,12 @@ process
 {
 }
 
-
 // ------------------------------------------------------------------
 void
 process
 ::_flush()
 {
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -756,7 +704,6 @@ process
 {
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -764,14 +711,12 @@ process
 {
 }
 
-
 // ------------------------------------------------------------------
 void
 process
 ::_reconfigure(kwiver::vital::config_block_sptr const& /*conf*/)
 {
 }
-
 
 // ------------------------------------------------------------------
 process::properties_t
@@ -785,7 +730,6 @@ process
   return consts;
 }
 
-
 // ------------------------------------------------------------------
 process::ports_t
 process
@@ -794,7 +738,6 @@ process
   return ports_t();
 }
 
-
 // ------------------------------------------------------------------
 process::ports_t
 process
@@ -802,7 +745,6 @@ process
 {
   return ports_t();
 }
-
 
 // ------------------------------------------------------------------
 process::port_info_t
@@ -862,7 +804,6 @@ process
   VITAL_THROW( no_such_port_exception,
                d->name, port, output_ports());
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -947,7 +888,6 @@ process
   return true;
 }
 
-
 // ------------------------------------------------------------------
 bool
 process
@@ -1029,7 +969,6 @@ process
   return true;
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::config_block_keys_t
 process
@@ -1037,7 +976,6 @@ process
 {
   return kwiver::vital::config_block_keys_t();
 }
-
 
 // ------------------------------------------------------------------
 process::conf_info_t
@@ -1054,7 +992,6 @@ process
   VITAL_THROW( unknown_configuration_value_exception,
                d->name, key);
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1142,7 +1079,6 @@ process
   d->input_ports[port] = info;
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -1158,7 +1094,6 @@ process
     description_,
     frequency_));
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1214,7 +1149,6 @@ process
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -1230,7 +1164,6 @@ process
     description_,
     frequency_));
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1259,7 +1192,6 @@ process
     new_frequency);
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -1286,7 +1218,6 @@ process
     info->description,
     new_frequency);
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1328,7 +1259,6 @@ process
     d->input_port_tags.erase(port);
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1375,7 +1305,6 @@ process
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -1390,7 +1319,6 @@ process
   d->config_keys[key] = info;
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -1404,7 +1332,6 @@ process
     description_,
     tunable_));
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1423,7 +1350,6 @@ process
   }
 }
 
-
 // ------------------------------------------------------------------
 bool
 process
@@ -1437,7 +1363,6 @@ process
 
   return (0 != d->input_edges.count(port));
 }
-
 
 // ------------------------------------------------------------------
 size_t
@@ -1474,7 +1399,6 @@ process
   return edges.size();
 }
 
-
 // ------------------------------------------------------------------
 edge_datum_t
 process
@@ -1502,7 +1426,6 @@ process
   return edge->peek_datum(idx);
 }
 
-
 // ------------------------------------------------------------------
 datum_t
 process
@@ -1512,7 +1435,6 @@ process
 
   return edat.datum;
 }
-
 
 // ------------------------------------------------------------------
 edge_datum_t
@@ -1541,7 +1463,6 @@ process
   return edge->get_datum();
 }
 
-
 // ------------------------------------------------------------------
 datum_t
 process
@@ -1551,7 +1472,6 @@ process
 
   return edat.datum;
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1590,7 +1510,6 @@ process
     edge->push_datum(dat);
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1644,7 +1563,6 @@ process
   push_to_port(port, edge_datum_t(dat, push_stamp));
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 process
@@ -1653,7 +1571,6 @@ process
   return d->conf;
 }
 
-
 // ------------------------------------------------------------------
 void
 process
@@ -1661,7 +1578,6 @@ process
 {
   d->check_input_level = check;
 }
-
 
 // ------------------------------------------------------------------
 process::data_info_t
@@ -1696,7 +1612,6 @@ process
   return std::make_shared<data_info>(in_sync, max_type);
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::config_block_value_t
 process
@@ -1720,7 +1635,6 @@ process
   return info->def;
 }
 
-
 // ------------------------------------------------------------------
 bool
 process
@@ -1728,7 +1642,6 @@ process
 {
   return (0 != d->static_inputs.count(port));
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1760,7 +1673,6 @@ process
 
   d->make_output_stamps();
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1813,7 +1725,6 @@ process
 
   _reconfigure(conf);
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -1905,8 +1816,6 @@ process
   _reconfigure(conf);
 }
 
-
-
 // ------------------------------------------------------------------
 kwiver::vital::logger_handle_t
 process
@@ -1917,15 +1826,12 @@ process
   return temp;
 }
 
-
-
 // ------------------------------------------------------------------
 kwiver::vital::logger_handle_t
 process::logger() const
 {
   return d->m_logger;
 }
-
 
 // ------------------------------------------------------------------
 // Instrumentation implementation
@@ -1961,7 +1867,6 @@ INSTR( flush )
 INSTR( step )
 INSTR( configure )
 INSTR( reconfigure )
-
 
 // ==================================================================
 process::priv
@@ -1999,7 +1904,6 @@ process::priv
 {
 }
 
-
 // ------------------------------------------------------------------
 /*
  * This method puts a status packet on the hearbeat output port to
@@ -2026,7 +1930,6 @@ process::priv
   q->push_datum_to_port(port_heartbeat, dat);
 }
 
-
 // ------------------------------------------------------------------
 void
 process::priv
@@ -2046,7 +1949,6 @@ process::priv
 
   boost::assign::ptr_map_insert<input_port_info_t>(input_edges)(port, edge);
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -2074,7 +1976,6 @@ process::priv
 
   edges.push_back(edge);
 }
-
 
 // ------------------------------------------------------------------
 /**
@@ -2219,7 +2120,6 @@ process::priv
   return datum_t();
 }
 
-
 // ------------------------------------------------------------------
 void
 process::priv
@@ -2262,7 +2162,6 @@ process::priv
   }
 }
 
-
 // ------------------------------------------------------------------
 void
 process::priv
@@ -2303,7 +2202,6 @@ process::priv
     }
   }
 }
-
 
 // ------------------------------------------------------------------
 /*
@@ -2358,7 +2256,6 @@ process::priv
   return true;
 }
 
-
 // ------------------------------------------------------------------
 /* Return tag name if flow dependent port.
  * Return empty string if there is no tag.
@@ -2374,7 +2271,6 @@ process::priv
 
   return tag_t();
 }
-
 
 // ------------------------------------------------------------------
 /*
@@ -2393,7 +2289,6 @@ process::priv
     flow_tag_port_types.erase(tag);
   }
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -2446,7 +2341,6 @@ process::priv
   output_stamps_made = true;
 }
 
-
 // ------------------------------------------------------------------
 process::priv::input_port_info_t
 ::input_port_info_t(edge_t const& edge_)
@@ -2454,13 +2348,11 @@ process::priv::input_port_info_t
 {
 }
 
-
 // ------------------------------------------------------------------
 process::priv::input_port_info_t
 ::~input_port_info_t()
 {
 }
-
 
 // ------------------------------------------------------------------
 process::priv::output_port_info_t
@@ -2469,7 +2361,6 @@ process::priv::output_port_info_t
   , stamp()
 {
 }
-
 
 // ------------------------------------------------------------------
 process::priv::output_port_info_t

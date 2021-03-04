@@ -56,6 +56,7 @@ public:
     RequiresOutput = 1 << 1,
     RequiresInputAndOutput = RequiresInput | RequiresOutput,
   };
+
   Q_DECLARE_FLAGS( RequiredEndcaps, RequiredEndcap )
 
   EmbeddedPipelineWorker( RequiredEndcaps = RequiresInputAndOutput,

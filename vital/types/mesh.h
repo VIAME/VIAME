@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -39,7 +13,6 @@
 #ifndef VITAL_MESH_H_
 #define VITAL_MESH_H_
 
-
 #include <vector>
 #include <set>
 #include <memory>
@@ -47,10 +20,8 @@
 #include <vital/vital_export.h>
 #include <vital/types/vector.h>
 
-
 namespace kwiver {
 namespace vital {
-
 
 //-----------------------------------------------------------------------------
 // Mesh vertices
@@ -107,7 +78,6 @@ public:
 protected:
   std::vector<vector_3d> normals_;
 };
-
 
 /// An array of vertices of dimension d
 template <unsigned int d>
@@ -182,21 +152,17 @@ public:
   const_iterator end() const { return verts_.end(); }
 };
 
-
 /// compute the vector normal to the plane defined by 3 vertices
 VITAL_EXPORT
 vector_3d mesh_tri_normal(const vector_3d& a,
                           const vector_3d& b,
                           const vector_3d& c);
 
-
-
 //-----------------------------------------------------------------------------
 // Mesh faces
 
 /// The special value used to indicate and invalid index
 const unsigned int mesh_invalid_idx = static_cast<unsigned int>(-1);
-
 
 /// A mesh face with a fixed number of vertices
 template <unsigned s>
@@ -223,7 +189,6 @@ public:
     std::copy(verts.begin(), verts.end(), verts_);
   }
 
-
   /// return the number of vertices
   unsigned int num_verts() const { return s; }
 
@@ -238,7 +203,6 @@ public:
 protected:
   unsigned int verts_[s];
 };
-
 
 /// A triangle face
 class mesh_tri : public mesh_regular_face<3>
@@ -265,7 +229,6 @@ public:
     verts_[3] = d;
   }
 };
-
 
 /// Abstract base class for a collection of faces
 class VITAL_EXPORT mesh_face_array_base
@@ -350,7 +313,6 @@ protected:
   /// vectors that are normal to each face
   std::vector<vector_3d > normals_;
 };
-
 
 /// An array of mesh faces of arbitrary size
 class VITAL_EXPORT mesh_face_array : public mesh_face_array_base
@@ -440,7 +402,6 @@ public:
   std::vector<unsigned int>& operator[] (unsigned int f) { return faces_[f]; }
   const std::vector<unsigned int>& operator[] (unsigned int f) const { return faces_[f]; }
 };
-
 
 /// An array of mesh faces of arbitrary size
 template <unsigned int s>
@@ -535,7 +496,6 @@ public:
   const_iterator end() const { return faces_.end(); }
 };
 
-
 /// Merge the two face arrays
 /**
  * Shift the mesh indices in \param f2 by \param ind_shift
@@ -545,8 +505,6 @@ std::unique_ptr<mesh_face_array_base>
 merge_face_arrays(const mesh_face_array_base& f1,
                   const mesh_face_array_base& f2,
                   unsigned int ind_shift=0);
-
-
 
 //-----------------------------------------------------------------------------
 // Mesh edges
@@ -582,7 +540,6 @@ private:
   unsigned int vert_;
   unsigned int face_;
 };
-
 
 /// A collection of indexed half edges
 class VITAL_EXPORT mesh_half_edge_set
@@ -748,7 +705,6 @@ public:
     const mesh_half_edge_set& edge_set_;
   };
 
-
   //=====================================================
   // Mesh Vertex Iterators - each half edge touches the same vertex
 
@@ -901,11 +857,8 @@ private:
   std::vector<unsigned int> face_to_he_;
 };
 
-
-
 //-----------------------------------------------------------------------------
 // Mesh
-
 
 /// A simple indexed mesh
 class VITAL_EXPORT mesh
@@ -1038,7 +991,6 @@ public:
   vector_2d texture_map(unsigned int tri,
                                 double u, double v) const;
 
-
 private:
   /// array of mesh vertices
   std::unique_ptr<mesh_vertex_array_base> verts_;
@@ -1061,8 +1013,6 @@ private:
 
 //shared pointer typedef
 typedef std::shared_ptr<mesh> mesh_sptr;
-
-
 
 } // end namespace vital
 } // end namespace kwiver

@@ -1,36 +1,10 @@
-/*ckwg +29
- * Copyright 2014, 2019-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
- * \brief Implementation of \link kwiver::vital::track track \endlink
+ * \brief Implementation of \link kwiver::vital::track track \endlink.
  */
 
 #include "track.h"
@@ -53,12 +27,10 @@ public:
 
 }
 
-
 namespace kwiver {
 namespace vital {
 
-
-/// Default Constructor
+// ----------------------------------------------------------------------------
 track
 ::track(track_data_sptr d)
   : id_( invalid_track_id )
@@ -66,8 +38,7 @@ track
 {
 }
 
-
-/// Copy Constructor
+// ----------------------------------------------------------------------------
 track
 ::track( const track& other )
   : history_()
@@ -76,8 +47,7 @@ track
 {
 }
 
-
-/// Factory function
+// ----------------------------------------------------------------------------
 track_sptr
 track
 ::create( track_data_sptr data )
@@ -85,8 +55,7 @@ track
   return track_sptr( new track( data ) );
 }
 
-
-/// Clone
+// ----------------------------------------------------------------------------
 track_sptr
 track
 ::clone( clone_type ct ) const
@@ -99,11 +68,14 @@ track
     new_state->track_ = t;
     t->history_.emplace_back( std::move( new_state ) );
   }
+  if( this->attrs_ )
+  {
+    t->set_attributes( this->attrs_->clone() );
+  }
   return t;
 }
 
-
-/// Access the first frame number covered by this track
+// ----------------------------------------------------------------------------
 frame_id_t
 track
 ::first_frame() const
@@ -115,8 +87,7 @@ track
   return( *this->history_.begin() )->frame();
 }
 
-
-/// Access the last frame number covered by this track
+// ----------------------------------------------------------------------------
 frame_id_t
 track
 ::last_frame() const
@@ -128,8 +99,7 @@ track
   return( *this->history_.rbegin() )->frame();
 }
 
-
-/// Append a track state.
+// ----------------------------------------------------------------------------
 bool
 track
 ::append( track_state_sptr&& state )
@@ -150,8 +120,7 @@ track
   return true;
 }
 
-
-/// Append an entire other track.
+// ----------------------------------------------------------------------------
 bool
 track
 ::append( track& to_append )
@@ -173,8 +142,7 @@ track
   return true;
 }
 
-
-/// Insert a track state.
+// ----------------------------------------------------------------------------
 bool
 track
 ::insert( track_state_sptr&& state )
@@ -201,7 +169,7 @@ track
   return true;
 }
 
-/// Remove a track state
+// ----------------------------------------------------------------------------
 bool
 track
 ::remove( track_state_sptr const& state )
@@ -224,7 +192,7 @@ track
   return true;
 }
 
-/// Remove all track states
+// ----------------------------------------------------------------------------
 void
 track
 ::clear()
@@ -236,7 +204,7 @@ track
   this->history_.clear();
 }
 
-/// Find the track state iterator matching \a frame
+// ----------------------------------------------------------------------------
 track::history_const_itr
 track
 ::find( frame_id_t frame ) const
@@ -255,8 +223,7 @@ track
   return this->end();
 }
 
-
-/// Return the set of all frame IDs covered by this track
+// ----------------------------------------------------------------------------
 std::set< frame_id_t >
 track
 ::all_frame_ids() const
@@ -268,6 +235,30 @@ track
     ids.insert( ts->frame() );
   }
   return ids;
+}
+
+// ----------------------------------------------------------------------------
+attribute_set_sptr
+track
+::attributes() const
+{
+  return this->attrs_;
+}
+
+// ----------------------------------------------------------------------------
+void
+track
+::set_attributes( attribute_set_sptr&& attrs )
+{
+  this->attrs_ = std::move( attrs );
+}
+
+// ----------------------------------------------------------------------------
+void
+track
+::set_attributes( attribute_set_sptr const& attrs )
+{
+  this->attrs_ = attrs;
 }
 
 } } // end namespace vital

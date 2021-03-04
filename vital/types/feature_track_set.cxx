@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2013-2017, 2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -38,12 +12,10 @@
 
 #include <limits>
 
-
 namespace kwiver {
 namespace vital {
 
 typedef std::unique_ptr<track_set_implementation> tsi_uptr;
-
 
 /// Default Constructor
 feature_track_set
@@ -52,14 +24,12 @@ feature_track_set
 {
 }
 
-
 /// Constructor specifying the implementation
 feature_track_set
 ::feature_track_set(std::unique_ptr<track_set_implementation> impl)
   : track_set(std::move(impl))
 {
 }
-
 
 /// Constructor from a vector of tracks
 feature_track_set
@@ -79,7 +49,6 @@ feature_track_set
   return std::dynamic_pointer_cast<track_set>(new_fts);
 }
 
-
 /// Return the set of features in tracks on the last frame
 feature_set_sptr
 feature_track_set
@@ -88,7 +57,6 @@ feature_track_set
   return frame_features(this->last_frame());
 }
 
-
 /// Return the set of descriptors in tracks on the last frame
 descriptor_set_sptr
 feature_track_set
@@ -96,7 +64,6 @@ feature_track_set
 {
   return frame_descriptors(this->last_frame());
 }
-
 
 /// Return the set of features in all tracks for the given frame.
 feature_set_sptr
@@ -117,7 +84,6 @@ feature_track_set
   }
   return feature_set_sptr(new simple_feature_set(features));
 }
-
 
 /// Return the set of descriptors in all tracks for the given frame.
 descriptor_set_sptr
@@ -157,7 +123,6 @@ feature_track_set
   }
   return feat_states;
 }
-
 
 feature_info_sptr
 feature_track_set
@@ -200,7 +165,6 @@ feature_track_set
   return fi;
 }
 
-
 /// Return a map of all feature_track_set_frame_data
 std::map<frame_id_t, feature_track_set_frame_data_sptr>
 feature_track_set
@@ -219,7 +183,6 @@ feature_track_set
   }
   return feature_fmap;
 }
-
 
 /// Return the set of all keyframes in the track set
 std::set<frame_id_t>

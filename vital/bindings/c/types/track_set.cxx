@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -54,9 +28,7 @@ TRACK_SET_SPTR_CACHE( "track_set" );
 }
 }
 
-
 using namespace kwiver;
-
 
 /// Create a new track set from an array of track instances
 vital_trackset_t*
@@ -79,7 +51,6 @@ vital_trackset_new( size_t length, vital_track_t **tracks,
   return 0;
 }
 
-
 /// Adopt existing track set from sptr
 vital_trackset_t*
 vital_trackset_from_sptr( void* sptr )
@@ -93,7 +64,6 @@ vital_trackset_from_sptr( void* sptr )
   );
   return 0;
 }
-
 
 /// Create a new track set as read from file
 vital_trackset_t*
@@ -109,7 +79,6 @@ vital_trackset_new_from_file( char const *filepath,
   return 0;
 }
 
-
 /// Destroy a track set instance
 void
 vital_trackset_destroy( vital_trackset_t *track_set,
@@ -120,7 +89,6 @@ vital_trackset_destroy( vital_trackset_t *track_set,
     vital_c::TRACK_SET_SPTR_CACHE.erase( track_set );
   );
 }
-
 
 /// Get the size of the track set
 size_t
@@ -133,7 +101,6 @@ vital_trackset_size( vital_trackset_t const *track_set,
   );
   return 0;
 }
-
 
 /// Write track set to the given filepath
 void
@@ -149,7 +116,6 @@ vital_trackset_write_track_file( vital_trackset_t const *ts,
     );
   );
 }
-
 
 /// Get array of contained track references
 vital_track_t**
@@ -171,7 +137,6 @@ vital_trackset_tracks( vital_trackset_t const *track_set,
   );
   return 0;
 }
-
 
 /// Get the set of all frame IDs covered by contained tracks
 int64_t*
@@ -195,7 +160,6 @@ vital_trackset_all_frame_ids( vital_trackset_t const *trackset, size_t *length,
   return 0;
 }
 
-
 /// Get the set of all track IDs in the track set
 int64_t*
 vital_trackset_all_track_ids( vital_trackset_t const *trackset, size_t *length,
@@ -218,7 +182,6 @@ vital_trackset_all_track_ids( vital_trackset_t const *trackset, size_t *length,
   return 0;
 }
 
-
 /// Get the first (smallest) frame number containing tracks
 int64_t
 vital_trackset_first_frame( vital_trackset_t const *trackset,
@@ -231,7 +194,6 @@ vital_trackset_first_frame( vital_trackset_t const *trackset,
   return 0;
 }
 
-
 /// Get the last (largest) frame number containing tracks
 int64_t
 vital_trackset_last_frame( vital_trackset_t const *trackset,
@@ -243,7 +205,6 @@ vital_trackset_last_frame( vital_trackset_t const *trackset,
   );
   return 0;
 }
-
 
 /// Get the track in this set with the specified id
 vital_track_t*
@@ -261,7 +222,6 @@ vital_trackset_get_track( vital_trackset_t const *trackset, int64_t tid,
   return 0;
 }
 
-
 /// Create a vital_track_set_t around an existing shared pointer.
 vital_trackset_t*
 vital_track_set_new_from_sptr( kwiver::vital::track_set_sptr ts_sptr,
@@ -275,7 +235,6 @@ vital_track_set_new_from_sptr( kwiver::vital::track_set_sptr ts_sptr,
   );
   return NULL;
 }
-
 
 /// Get the vital::track_set shared pointer for a handle.
 kwiver::vital::track_set_sptr

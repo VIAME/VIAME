@@ -42,9 +42,8 @@ import pytest
 from six.moves import range
 import numpy
 
-from kwiver.vital.types import new_descriptor
+from kwiver.vital.types import new_descriptor, DescriptorD, DescriptorF, Descriptor
 
-@pytest.mark.skip(reason="Old bindings based tests that are being updated")
 class TestDescriptor (unittest.TestCase):
 
     def test_new(self):
@@ -103,3 +102,13 @@ class TestDescriptor (unittest.TestCase):
         b = d.tobytearray()
         nose.tools.assert_equal(len(b), d.nbytes)
         nose.tools.assert_equal(sum(b), 0)
+
+    def test_operators(self):
+        d = new_descriptor(10)
+        b = new_descriptor(10)
+        c = new_descriptor(5)
+        d[:] = 1
+        b[:] = 1
+        nose.tools.ok_(d==b)
+        nose.tools.ok_(c!=b)
+        nose.tools.ok_(not c!=c)

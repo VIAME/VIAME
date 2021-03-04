@@ -23,7 +23,7 @@ class PipelineWorker : public arrows::qt::EmbeddedPipelineWorker
 public:
   explicit PipelineWorker( QWidget* parent = nullptr );
 
-  ~PipelineWorker() override;
+  virtual ~PipelineWorker();
 
 signals:
   void imageAvailable( QImage const& );

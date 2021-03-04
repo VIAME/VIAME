@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -45,10 +19,8 @@ extern "C"
 #include <vital/bindings/c/error_handle.h>
 #include <vital/bindings/c/types/track.h>
 
-
 /// Opaque structure
 typedef struct vital_trackset_s vital_trackset_t;
-
 
 /// Create a new track set from an array of track instances
 /**
@@ -67,7 +39,6 @@ vital_trackset_t*
 vital_trackset_new( size_t length, vital_track_t **tracks,
                     vital_error_handle_t *eh );
 
-
 /// Adopt existing track set from sptr
 /**
  *
@@ -78,7 +49,6 @@ vital_trackset_new( size_t length, vital_track_t **tracks,
 VITAL_C_EXPORT
 vital_trackset_t*
 vital_trackset_from_sptr( void* sptr );
-
 
 /// Create a new track set as read from file
 /**
@@ -101,7 +71,6 @@ vital_trackset_t*
 vital_trackset_new_from_file( char const *filepath,
                               vital_error_handle_t *eh );
 
-
 /// Destroy a track set instance
 /**
  * This function destroys the referenced track set. The supplied
@@ -117,13 +86,11 @@ void
 vital_trackset_destroy( vital_trackset_t *track_set,
                         vital_error_handle_t *eh );
 
-
 /// Get the size of the track set
 VITAL_C_EXPORT
 size_t
 vital_trackset_size( vital_trackset_t const *track_set,
                      vital_error_handle_t *eh );
-
 
 /// Write track set to the given filepath
 VITAL_C_EXPORT
@@ -131,7 +98,6 @@ void
 vital_trackset_write_track_file( vital_trackset_t const *ts,
                                  char const *filepath,
                                  vital_error_handle_t *eh );
-
 
 /// Get array of contained track references
 /**
@@ -146,7 +112,6 @@ vital_track_t**
 vital_trackset_tracks( vital_trackset_t const *track_set,
                        vital_error_handle_t *eh );
 
-
 /// Get the set of all frame IDs covered by contained tracks
 /**
  * \param trackset the track set instance
@@ -158,7 +123,6 @@ VITAL_C_EXPORT
 int64_t*
 vital_trackset_all_frame_ids( vital_trackset_t const *trackset, size_t *length,
                               vital_error_handle_t *eh );
-
 
 /// Get the set of all track IDs in the track set
 /**
@@ -172,7 +136,6 @@ int64_t*
 vital_trackset_all_track_ids( vital_trackset_t const *trackset, size_t *length,
                               vital_error_handle_t *eh );
 
-
 /// Get the first (smallest) frame number containing tracks
 /**
  * \param trackset the track set instance
@@ -184,7 +147,6 @@ int64_t
 vital_trackset_first_frame( vital_trackset_t const *trackset,
                             vital_error_handle_t *eh );
 
-
 /// Get the last (largest) frame number containing tracks
 /**
  * \param trackset the track set instance
@@ -195,7 +157,6 @@ VITAL_C_EXPORT
 int64_t
 vital_trackset_last_frame( vital_trackset_t const *trackset,
                            vital_error_handle_t *eh );
-
 
 /// Get the track in this set with the specified id
 /**
@@ -211,7 +172,6 @@ VITAL_C_EXPORT
 vital_track_t*
 vital_trackset_get_track( vital_trackset_t const *trackset, int64_t tid,
                           vital_error_handle_t *eh );
-
 
 #ifdef __cplusplus
 }

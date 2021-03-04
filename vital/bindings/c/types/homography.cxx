@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016, 2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -41,7 +15,6 @@
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/homography.h>
 
-
 namespace kwiver {
 namespace vital_c {
 
@@ -51,9 +24,7 @@ SharedPointerCache< kwiver::vital::homography, vital_homography_t >
 }
 }
 
-
 using namespace kwiver;
-
 
 /// Destroy a homography instance
 void
@@ -64,7 +35,6 @@ vital_homography_destroy( vital_homography_t *h, vital_error_handle_t *eh )
     vital_c::HOMOGRAPHY_SPTR_CACHE.erase( h );
   );
 }
-
 
 /// Get the name of the descriptor instance's underlying data type
 char const*
@@ -78,7 +48,6 @@ vital_homography_type_name( vital_homography_t const *h,
   );
   return 0;
 }
-
 
 /// Create a clone of a homography instance
 vital_homography_t*
@@ -95,7 +64,6 @@ vital_homography_clone( vital_homography_t const *h, vital_error_handle_t *eh )
   return 0;
 }
 
-
 /// Get a new homography instance that is normalized
 vital_homography_t*
 vital_homography_normalize( vital_homography_t const *h,
@@ -110,7 +78,6 @@ vital_homography_normalize( vital_homography_t const *h,
   return 0;
 }
 
-
 /// Get a new homography instance that has been inverted
 vital_homography_t*
 vital_homography_inverse( vital_homography_t const *h,
@@ -124,7 +91,6 @@ vital_homography_inverse( vital_homography_t const *h,
   );
   return 0;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Type specific functions and constructors
@@ -235,7 +201,6 @@ vital_homography_##S##_multiply( vital_homography_t const *lhs, \
   ); \
   return 0; \
 }
-
 
 DEFINE_TYPED_OPERATIONS( double, d )
 DEFINE_TYPED_OPERATIONS( float,  f )

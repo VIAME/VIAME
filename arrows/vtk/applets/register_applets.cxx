@@ -12,6 +12,7 @@
 #include <vital/applets/applet_registrar.h>
 
 #include <arrows/vtk/applets/color_mesh.h>
+#include <arrows/vtk/applets/estimate_depth.h>
 #include <arrows/vtk/applets/fuse_depth.h>
 
 namespace kwiver {
@@ -33,6 +34,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   // -- register applets --
   reg.register_tool< color_mesh >();
+  reg.register_tool< estimate_depth >();
   reg.register_tool< fuse_depth >();
 
   reg.mark_module_as_loaded();

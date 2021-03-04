@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2016-2020 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -60,10 +34,8 @@ static std::string const shared_library_suffix = std::string( SHARED_LIB_SUFFIX 
 
 } // end anonymous namespace
 
-
 // ---- Static ----
 plugin_manager* plugin_manager::s_instance( 0 );
-
 
 // ==================================================================
 class plugin_manager::priv
@@ -79,14 +51,12 @@ public:
     m_loader->add_filter( filt );
   }
 
-
   bool m_all_loaded;            ///< set if modules are loaded
   std::unique_ptr< plugin_loader > m_loader;       ///< the real loader object
   kwiver::vital::logger_handle_t m_logger;
 
   path_list_t m_search_paths;
 };
-
 
 // ==================================================================
 plugin_manager&
@@ -109,7 +79,6 @@ instance()
 
   return *s_instance;
 }
-
 
 // ------------------------------------------------------------------
 plugin_manager::
@@ -140,7 +109,6 @@ plugin_manager()
 plugin_manager
 ::~plugin_manager()
 { }
-
 
 // ------------------------------------------------------------------
 void
@@ -211,14 +179,12 @@ plugin_manager
   }
 }
 
-
 // ------------------------------------------------------------------
 void plugin_manager::
 load_plugins( path_list_t const& dirpath )
 {
     m_priv->m_loader->load_plugins( dirpath );
 }
-
 
 // ------------------------------------------------------------------
 void plugin_manager::
@@ -231,14 +197,12 @@ add_search_path( path_t const& dirpath )
   m_priv->m_loader->add_search_path( path_list );
 }
 
-
 // ------------------------------------------------------------------
 void plugin_manager::
 add_search_path( path_list_t const& dirpath )
 {
   m_priv->m_loader->add_search_path( dirpath );
 }
-
 
 // ------------------------------------------------------------------
 void plugin_manager::
@@ -260,14 +224,12 @@ add_path_from_environment( std::string env_var)
   }
 }
 
-
 // ------------------------------------------------------------------
 path_list_t const& plugin_manager::
 search_path() const
 {
   return m_priv->m_loader->get_search_path();
 }
-
 
 // ------------------------------------------------------------------
 plugin_factory_handle_t plugin_manager::
@@ -276,14 +238,12 @@ add_factory( plugin_factory* fact )
   return m_priv->m_loader->add_factory( fact );
 }
 
-
 // ------------------------------------------------------------------
 plugin_factory_vector_t const& plugin_manager::
 get_factories( std::string const& type_name )
 {
   return m_priv->m_loader->get_factories( type_name );
 }
-
 
 // ------------------------------------------------------------------
 plugin_map_t const& plugin_manager::
@@ -292,14 +252,12 @@ plugin_map()
   return m_priv->m_loader->get_plugin_map();
 }
 
-
 // ------------------------------------------------------------------
 std::vector< std::string > plugin_manager::
 file_list()
 {
   return m_priv->m_loader->get_file_list();
 }
-
 
 // ------------------------------------------------------------------
 void plugin_manager::
@@ -335,14 +293,12 @@ module_map() const
   return m_priv->m_loader->get_module_map();
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::logger_handle_t plugin_manager::
 logger()
 {
   return m_priv->m_logger;
 }
-
 
 // ------------------------------------------------------------------
 kwiver::vital::plugin_loader*

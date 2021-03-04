@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <pybind11/stl.h>
 
@@ -128,6 +102,23 @@ get_index(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, size_t idx
 }
 
 using namespace kwiver::vital::python;
+template<typename T>
+void bind_descriptor(py::module &m, std::string && typestr)
+{
+  const std::string pyclass_name = std::string( "Descriptor" ) + typestr;
+  // Because slices need to use the raw_data function, we can't use kwiver::vital::descriptor
+  py::class_<kwiver::vital::descriptor_dynamic< T >, kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor_dynamic< T >>>( m, pyclass_name.c_str() )
+  .def("__setitem__", &set_slice<T>,
+    py::arg("slice"), py::arg("value"))
+  .def("__getitem__", &get_slice<T>,
+    py::arg("slice"))
+  .def("__setitem__", &set_index<T>,
+    py::arg("index"), py::arg("value"))
+  .def("__getitem__", &get_index<T>,
+    py::arg("index"));
+
+}
+
 PYBIND11_MODULE(descriptor, m)
 {
   // we have to use a separate function to initialize Descriptors, because it can return one of two separate types (DescriptorD or DescriptorF)
@@ -138,30 +129,24 @@ PYBIND11_MODULE(descriptor, m)
   py::class_<kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor>>(m, "Descriptor")
   .def("sum", &sum_descriptors)
   .def("todoublearray", &kwiver::vital::descriptor::as_double)
-  .def("tobytearray", &kwiver::vital::descriptor::as_bytes)
+  // as_bytes typically returns a raw ptr to an unsigned char array, which python interprets as 0
+  // return a vector instead
+  .def("tobytearray", ([](std::shared_ptr<kwiver::vital::descriptor> self){
+    std::vector<unsigned char> ret_vec;
+    const unsigned char* data = self->as_bytes();
+    const size_t bytes = self->num_bytes();
+    size_t idx = 0;
+    for (; idx<bytes; idx++)
+    {
+      ret_vec.push_back(data[idx]);
+    }
+    return ret_vec;
+   }))
   .def("__eq__", &kwiver::vital::descriptor::operator==)
   .def("__ne__", &kwiver::vital::descriptor::operator!=)
   .def_property_readonly("size", &kwiver::vital::descriptor::size)
   .def_property_readonly("nbytes", &kwiver::vital::descriptor::num_bytes)
   ;
-
-  // Because slices need to use the raw_data function, we can't use kwiver::vital::descriptor
-  py::class_<kwiver::vital::descriptor_dynamic<double>, kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor_dynamic<double>>>(m, "DescriptorD")
-  .def("__setitem__", &set_slice<double>,
-    py::arg("slice"), py::arg("value"))
-  .def("__getitem__", &get_slice<double>,
-    py::arg("slice"))
-  .def("__setitem__", &set_index<double>,
-    py::arg("index"), py::arg("value"))
-  .def("__getitem__", &get_index<double>,
-    py::arg("index"));
-  py::class_<kwiver::vital::descriptor_dynamic<float>, kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor_dynamic<float>>>(m, "DescriptorF")
-  .def("__setitem__", &set_slice<float>,
-    py::arg("slice"), py::arg("value"))
-  .def("__getitem__", &get_slice<float>,
-    py::arg("slice"))
-  .def("__setitem__", &set_index<float>,
-    py::arg("index"), py::arg("value"))
-  .def("__getitem__", &get_index<float>,
-    py::arg("index"));
+  bind_descriptor< double >(m, "D");
+  bind_descriptor< float >(m, "F");
 }

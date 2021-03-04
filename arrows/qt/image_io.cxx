@@ -68,7 +68,7 @@ image_io
   LOG_DEBUG( logger(), "Loading image from file: " << filename );
 
   auto img = QImage{ qt_string( filename ) };
-  if ( img.isNull() )
+  if( img.isNull() )
   {
     return {};
   }
@@ -85,7 +85,7 @@ image_io
   auto const& img =
     ( qdata ? ( *qdata ) : image_container::vital_to_qt( data->get_image() ) );
 
-  if ( !img.isNull() )
+  if( !img.isNull() )
   {
     img.save( qt_string( filename ) );
   }

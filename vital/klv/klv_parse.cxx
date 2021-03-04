@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -94,7 +68,6 @@ FormatString( std::string const& val )
 
 } // end namespace
 
-
 // ----------------------------------------------------------------
 /** Extract a KLV length using BER (basic encoding rules)
  *
@@ -144,7 +117,6 @@ klv_ber_length( ITERATOR buffer,
   }
   return true;
 }
-
 
 // ----------------------------------------------------------------
 /** @brief Pop the first KLV UDS key-value pair found in the data buffer.
@@ -253,7 +225,6 @@ klv_pop_next_packet( std::deque< uint8_t >&  data,
   return false;
 } // pop_klv_uds_pair
 
-
 // ----------------------------------------------------------------
 /** Parse out Local Data Set (LDS) packet.
  *
@@ -290,7 +261,6 @@ parse_klv_lds( klv_data const& data )
   return lds_pairs;
 }
 
-
 // ----------------------------------------------------------------
 /** Parse data set with universal keys */
 klv_uds_vector_t
@@ -312,7 +282,6 @@ parse_klv_uds( klv_data const& data )
 
   return uds_pairs;
 }
-
 
 // ----------------------------------------------------------------
 std::ostream&
@@ -460,6 +429,5 @@ print_klv( std::ostream& str, klv_data const& klv )
 
   return str;
 } // print_klv
-
 
 } }   // end namespace

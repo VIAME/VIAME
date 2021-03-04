@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <test_common.h>
 
@@ -56,7 +30,6 @@ main( int argc, char* argv[] )
   RUN_TEST( testname );
 }
 
-
 // ------------------------------------------------------------------
 class empty_cluster :
   public sprokit::process_cluster
@@ -66,7 +39,6 @@ public:
   ~empty_cluster();
 };
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( configure )
 {
@@ -74,7 +46,6 @@ IMPLEMENT_TEST( configure )
 
   cluster->configure();
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( init )
@@ -84,7 +55,6 @@ IMPLEMENT_TEST( init )
   cluster->configure();
   cluster->init();
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( step )
@@ -98,7 +68,6 @@ IMPLEMENT_TEST( step )
                     cluster->step(),
                     "stepping a cluster" );
 }
-
 
 // ------------------------------------------------------------------
 class sample_cluster :
@@ -122,7 +91,6 @@ public:
                  name_t const& downstream_name, port_t const& downstream_port );
 };
 typedef std::shared_ptr< sample_cluster > sample_cluster_t;
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( add_process )
@@ -165,7 +133,6 @@ IMPLEMENT_TEST( add_process )
   }
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( duplicate_name )
 {
@@ -183,7 +150,6 @@ IMPLEMENT_TEST( duplicate_name )
                     "adding a process with a duplicate name to a cluster" );
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config )
 {
@@ -194,7 +160,6 @@ IMPLEMENT_TEST( map_config )
 
   cluster->_map_config( key, name, key );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config_after_process )
@@ -214,7 +179,6 @@ IMPLEMENT_TEST( map_config_after_process )
                     "mapping a configuration after the process has been added" );
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config_no_exist )
 {
@@ -232,7 +196,6 @@ IMPLEMENT_TEST( map_config_no_exist )
                     cluster->_add_process( name, type ),
                     "mapping an unknown configuration on a cluster" );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config_read_only )
@@ -269,7 +232,6 @@ IMPLEMENT_TEST( map_config_read_only )
                     cluster->_add_process( name, type, conf ),
                     "when mapping to a value which already has a read-only value" );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config_ignore_override )
@@ -326,7 +288,6 @@ IMPLEMENT_TEST( map_config_ignore_override )
 
   pipeline->reconfigure( new_conf );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_input )
@@ -397,7 +358,6 @@ IMPLEMENT_TEST( map_input )
   }
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_input_twice )
 {
@@ -420,7 +380,6 @@ IMPLEMENT_TEST( map_input_twice )
                     "mapping a second cluster port to a process input port" );
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_input_no_exist )
 {
@@ -433,7 +392,6 @@ IMPLEMENT_TEST( map_input_no_exist )
                     cluster->_map_input( port, name, port ),
                     "mapping an input to a non-existent process" );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_input_port_no_exist )
@@ -452,7 +410,6 @@ IMPLEMENT_TEST( map_input_port_no_exist )
                     cluster->_map_input( port, name, port ),
                     "mapping an input to a non-existent port" );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_output )
@@ -523,7 +480,6 @@ IMPLEMENT_TEST( map_output )
   }
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_output_twice )
 {
@@ -547,7 +503,6 @@ IMPLEMENT_TEST( map_output_twice )
                     "mapping a second port to a cluster output port" );
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_output_no_exist )
 {
@@ -560,7 +515,6 @@ IMPLEMENT_TEST( map_output_no_exist )
                     cluster->_map_output( port, name, port ),
                     "mapping an output to a non-existent process" );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_output_port_no_exist )
@@ -645,7 +599,6 @@ IMPLEMENT_TEST( connect )
   }
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( connect_upstream_no_exist )
 {
@@ -664,7 +617,6 @@ IMPLEMENT_TEST( connect_upstream_no_exist )
                     cluster->_connect( name1, port, name2, port ),
                     "making a connection when the upstream process does not exist" );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( connect_upstream_port_no_exist )
@@ -688,7 +640,6 @@ IMPLEMENT_TEST( connect_upstream_port_no_exist )
                     "making a connection when the upstream port does not exist" );
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( connect_downstream_no_exist )
 {
@@ -707,7 +658,6 @@ IMPLEMENT_TEST( connect_downstream_no_exist )
                     cluster->_connect( name1, port, name2, port ),
                     "making a connection when the upstream process does not exist" );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( connect_downstream_port_no_exist )
@@ -730,7 +680,6 @@ IMPLEMENT_TEST( connect_downstream_port_no_exist )
                     cluster->_connect( name1, port1, name2, port2 ),
                     "making a connection when the downstream port does not exist" );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_pass_tunable_mappings )
@@ -783,7 +732,6 @@ IMPLEMENT_TEST( reconfigure_pass_tunable_mappings )
 
   pipeline->reconfigure( new_conf );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_no_pass_untunable_mappings )
@@ -838,7 +786,6 @@ IMPLEMENT_TEST( reconfigure_no_pass_untunable_mappings )
   pipeline->reconfigure( new_conf );
 }
 
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_pass_extra )
 {
@@ -880,7 +827,6 @@ IMPLEMENT_TEST( reconfigure_pass_extra )
 
   pipeline->reconfigure( new_conf );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_tunable_only_if_mapped )
@@ -926,7 +872,6 @@ IMPLEMENT_TEST( reconfigure_tunable_only_if_mapped )
 
   pipeline->reconfigure( new_conf );
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_mapped_untunable )
@@ -980,7 +925,6 @@ IMPLEMENT_TEST( reconfigure_mapped_untunable )
   pipeline->reconfigure( new_conf );
 }
 
-
 // ------------------------------------------------------------------
 empty_cluster
 ::empty_cluster()
@@ -988,12 +932,10 @@ empty_cluster
 {
 }
 
-
 empty_cluster
 ::~empty_cluster()
 {
 }
-
 
 sample_cluster
 ::sample_cluster( kwiver::vital::config_block_sptr const& conf )
@@ -1001,12 +943,10 @@ sample_cluster
 {
 }
 
-
 sample_cluster
 ::~sample_cluster()
 {
 }
-
 
 void
 sample_cluster
@@ -1018,7 +958,6 @@ sample_cluster
   declare_configuration_key( key, def_, description_, tunable_ );
 }
 
-
 void
 sample_cluster
 ::_map_config( kwiver::vital::config_block_key_t const& key,
@@ -1027,7 +966,6 @@ sample_cluster
 {
   map_config( key, name_, mapped_key );
 }
-
 
 void
 sample_cluster
@@ -1038,7 +976,6 @@ sample_cluster
   add_process( name_, type_, config );
 }
 
-
 void
 sample_cluster
 ::_map_input( port_t const& port, name_t const& name_, port_t const& mapped_port )
@@ -1046,14 +983,12 @@ sample_cluster
   map_input( port, name_, mapped_port );
 }
 
-
 void
 sample_cluster
 ::_map_output( port_t const& port, name_t const& name_, port_t const& mapped_port )
 {
   map_output( port, name_, mapped_port );
 }
-
 
 void
 sample_cluster

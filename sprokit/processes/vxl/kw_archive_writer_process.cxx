@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2015-2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /**
  * \file
@@ -76,7 +50,6 @@
 #include <vsl/vsl_vector_io.hxx>
 VSL_VECTOR_IO_INSTANTIATE( char );
 
-
 namespace kwiver
 {
 
@@ -104,7 +77,6 @@ create_port_trait( stream_id, string,
   "Stream ID to place in file" );
 create_port_trait( complete_flag, bool,
   "KWA complete flag" );
-
 
 // ----------------------------------------------------------------------------------
 // Private implementation class
@@ -169,12 +141,10 @@ kw_archive_writer_process
   make_config();
 }
 
-
 kw_archive_writer_process
 ::~kw_archive_writer_process( )
 {
 }
-
 
 // ----------------------------------------------------------------------------------
 void
@@ -193,7 +163,6 @@ kw_archive_writer_process
   d->m_fixed_col_count  = config_value_using_trait( fixed_col_count );
   d->m_fixed_row_count  = config_value_using_trait( fixed_row_count );
 }
-
 
 // ----------------------------------------------------------------------------------
 // Post connection initialization
@@ -293,7 +262,6 @@ kw_archive_writer_process
     VITAL_THROW( sprokit::invalid_configuration_exception, name(), reason );
   }
 } // kw_archive_writer_process::_init
-
 
 // ----------------------------------------------------------------------------------
 void
@@ -415,7 +383,6 @@ kw_archive_writer_process
   push_to_port_using_trait( complete_flag, true );
 } // kw_archive_writer_process::_step
 
-
 // ----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
@@ -439,7 +406,6 @@ kw_archive_writer_process
   declare_output_port_using_trait( complete_flag, optional );
 }
 
-
 // ----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
@@ -454,7 +420,6 @@ kw_archive_writer_process
   declare_config_using_trait( fixed_col_count );
   declare_config_using_trait( fixed_row_count );
 }
-
 
 // ----------------------------------------------------------------------------------
 void
@@ -576,11 +541,9 @@ kw_archive_writer_process::priv
 {
 }
 
-
 kw_archive_writer_process::priv
 ::~priv()
 {
 }
-
 
 } // end namespace kwiver

@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2018 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "category_hierarchy.h"
 
@@ -42,7 +16,6 @@
 
 namespace kwiver {
 namespace vital {
-
 
 // -----------------------------------------------------------------------------
 category_hierarchy
@@ -105,7 +78,6 @@ category_hierarchy
 {
 }
 
-
 // -----------------------------------------------------------------------------
 void
 category_hierarchy
@@ -131,7 +103,6 @@ category_hierarchy
   }
 }
 
-
 // -----------------------------------------------------------------------------
 bool
 category_hierarchy
@@ -144,7 +115,6 @@ category_hierarchy
   return false;
 }
 
-
 // -----------------------------------------------------------------------------
 category_hierarchy::label_t
 category_hierarchy
@@ -155,7 +125,6 @@ category_hierarchy
   return itr->second->category_name;
 }
 
-
 // -----------------------------------------------------------------------------
 category_hierarchy::label_id_t
 category_hierarchy
@@ -165,7 +134,6 @@ category_hierarchy
 
   return itr->second->category_id;
 }
-
 
 // -----------------------------------------------------------------------------
 category_hierarchy::label_vec_t
@@ -184,7 +152,6 @@ category_hierarchy
   return output;
 }
 
-
 // -----------------------------------------------------------------------------
 void
 category_hierarchy
@@ -196,7 +163,6 @@ category_hierarchy
   itr1->second->parents.push_back( itr2->second.get() );
   itr2->second->children.push_back( itr1->second.get() );
 }
-
 
 // -----------------------------------------------------------------------------
 void
@@ -219,7 +185,6 @@ category_hierarchy
   m_hierarchy[ synonym_name ] = itr->second;
 }
 
-
 // -----------------------------------------------------------------------------
 category_hierarchy::label_vec_t
 category_hierarchy
@@ -236,7 +201,6 @@ category_hierarchy
 
   return names;
 }
-
 
 // -----------------------------------------------------------------------------
 category_hierarchy::label_vec_t
@@ -258,7 +222,6 @@ category_hierarchy
   return names;
 }
 
-
 // -----------------------------------------------------------------------------
 size_t
 category_hierarchy
@@ -266,7 +229,6 @@ category_hierarchy
 {
   return m_hierarchy.size();
 }
-
 
 // -----------------------------------------------------------------------------
 void
@@ -325,7 +287,6 @@ category_hierarchy
   }
 }
 
-
 // -----------------------------------------------------------------------------
 category_hierarchy::hierarchy_const_itr_t
 category_hierarchy
@@ -340,7 +301,6 @@ category_hierarchy
 
   return itr;
 }
-
 
 // -----------------------------------------------------------------------------
 std::vector< category_hierarchy::category_sptr >
@@ -368,6 +328,5 @@ category_hierarchy
 
   return sorted_cats;
 }
-
 
 } } // end namespace
