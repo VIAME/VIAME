@@ -96,13 +96,6 @@ target_link_libraries(python-vital.types-category_hierarchy
   PRIVATE ${PYTHON_LIBRARIES}
          vital)
 
-kwiver_add_python_library(category_hierarchy
-  vital/types
-  category_hierarchy.cxx)
-target_link_libraries(python-vital.types-category_hierarchy
-  PUBLIC ${PYTHON_LIBRARIES}
-         vital)
-
 kwiver_add_python_library(color
   vital/types
   color.cxx)
