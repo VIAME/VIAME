@@ -31,7 +31,7 @@ from __future__ import print_function
 
 from kwiver.vital.algo import RefineDetections
 
-from kwiver.vital.types import BoundingBox
+from kwiver.vital.types import BoundingBoxD
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObject
 from kwiver.vital.types import DetectedObjectType

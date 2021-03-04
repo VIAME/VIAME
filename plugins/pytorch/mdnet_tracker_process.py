@@ -38,7 +38,7 @@ from kwiver.kwiver_process import KwiverProcess
 from sprokit.pipeline import process
 
 from kwiver.vital.types import (
-    BoundingBox, DetectedObject, DetectedObjectSet,
+    BoundingBoxD, DetectedObject, DetectedObjectSet,
     Image, ObjectTrackState, ObjectTrackSet, Track,
 )
 
@@ -210,7 +210,7 @@ class MDNetTrackerProcess(KwiverProcess):
                     break
             bbox, score = self._trackers[tid].update(img_npy, likely_bbox=recc_bbox)
             if score > mdnet.opts['success_thr']:
-                cbox = BoundingBox(
+                cbox = BoundingBoxD(
                   bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
                 new_state = ObjectTrackState(timestamp, cbox, score)
                 self._tracks[tid].append(new_state)

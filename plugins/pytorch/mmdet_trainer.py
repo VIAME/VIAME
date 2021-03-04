@@ -33,7 +33,7 @@ from __future__ import division
 from kwiver.vital.algo import DetectedObjectSetOutput, TrainDetector
 
 from kwiver.vital.types import (
-    BoundingBox, CategoryHierarchy, DetectedObject, DetectedObjectSet,
+    BoundingBoxD, CategoryHierarchy, DetectedObject, DetectedObjectSet,
 )
 
 from PIL import Image

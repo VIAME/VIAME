@@ -45,7 +45,7 @@ Notes:
 
 from kwiver.vital.algo import ImageObjectDetector
 
-from kwiver.vital.types import BoundingBox
+from kwiver.vital.types import BoundingBoxD
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObject
 from kwiver.vital.types import DetectedObjectType
@@ -297,7 +297,7 @@ def _kwimage_to_kwiver_detections(detections):
         class_name = detections.classes[cidx]
 
         bbox_int = np.round(tlbr).astype(np.int32)
-        bounding_box = BoundingBox(
+        bounding_box = BoundingBoxD(
             bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3])
 
         detected_object_type = DetectedObjectType(class_name, score)

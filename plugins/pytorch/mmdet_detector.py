@@ -32,7 +32,7 @@ from __future__ import print_function
 from kwiver.vital.algo import ImageObjectDetector
 
 from kwiver.vital.types import (
-    BoundingBox, DetectedObject, DetectedObjectSet, DetectedObjectType
+    BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType
 )
 
 from distutils.util import strtobool
@@ -149,8 +149,8 @@ class MMDetDetector( ImageObjectDetector ):
                 continue
 
             bbox_int = bbox.astype( np.int32 )
-            bounding_box = BoundingBox( bbox_int[0], bbox_int[1],
-                                        bbox_int[2], bbox_int[3] )
+            bounding_box = BoundingBoxD( bbox_int[0], bbox_int[1],
+                                         bbox_int[2], bbox_int[3] )
 
             class_name = self._labels[ label ]
             detected_object_type = DetectedObjectType( class_name, class_confidence )

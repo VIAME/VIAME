@@ -34,7 +34,7 @@ from kwiver.vital.types import Image
 from kwiver.vital.types import ImageContainer
 from kwiver.vital.types import DetectedObject
 from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import BoundingBox
+from kwiver.vital.types import BoundingBoxD
 
 class hello_world_detector(KwiverProcess):
     """

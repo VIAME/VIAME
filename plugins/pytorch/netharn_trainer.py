@@ -33,7 +33,7 @@ from __future__ import division
 from kwiver.vital.algo import DetectedObjectSetOutput, TrainDetector
 
 from kwiver.vital.types import (
-    BoundingBox, CategoryHierarchy,
+    BoundingBoxD, CategoryHierarchy,
     DetectedObjectSet, DetectedObject, DetectedObjectType
 )
 
@@ -382,7 +382,7 @@ class NetHarnTrainer( TrainDetector ):
 
                 # Set new box size for this detection
                 det.set_bounding_box(
-                  BoundingBox( 0, 0, np.shape( crop )[1], np.shape( crop )[0] ) )
+                  BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] ) )
                 new_set = DetectedObjectSet()
                 new_set.add( det )
 
