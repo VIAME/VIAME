@@ -2,8 +2,6 @@ project(sprokit)
 
 set(CMAKE_FOLDER "Sprokit")
 
-cmake_minimum_required(VERSION 3.0)
-
 set(sprokit_source_dir "${CMAKE_CURRENT_SOURCE_DIR}")
 set(sprokit_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 set(SPROKIT_CMAKE_DIR  "${sprokit_source_dir}/conf")
