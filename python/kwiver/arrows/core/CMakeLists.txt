@@ -24,3 +24,11 @@ target_link_libraries( python-arrows.core-core
 kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
                           arrows/core
                           __init__)
+
+kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/detected_object_set_input_coco.py
+                         arrows/core
+                         detected_object_set_input_coco)
+
+kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/detected_object_set_output_coco.py
+                         arrows/core
+                         detected_object_set_output_coco)
