@@ -7,6 +7,8 @@
 
 #include <arrows/vxl/image_container.h>
 
+#include <vital/config/config_block_io.h>
+
 #include <vital/vital_config.h>
 
 #include <vil/vil_convert.h>
@@ -57,10 +59,18 @@ hashed_image_classifier_filter::priv
 {
   if( !model_loaded )
   {
-    if( !hashed_classifier.load_from_file( model_file ) )
+    auto const& model_paths = vital::find_config_file( model_file );
+    if( model_paths.empty() )
     {
       LOG_ERROR( p->logger(),
-                 "Could not load model_file model" );
+                 "Could not locate \"" << model_file << "\" model" );
+      return false;
+    }
+
+    if( !hashed_classifier.load_from_file( model_paths.front() ) )
+    {
+      LOG_ERROR( p->logger(),
+                 "Could not load \"" << model_paths.front() << "\" model" );
       return false;
     }
     model_loaded = true;

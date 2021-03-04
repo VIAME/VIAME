@@ -342,6 +342,44 @@ read_config_file( std::string const& file_name,
   return result;
 }
 
+// ----------------------------------------------------------------------------
+std::vector< config_path_t > find_config_file(
+  std::string const& file_name,
+  std::string const& application_name,
+  std::string const& application_version,
+  config_path_t const& install_prefix,
+  bool find_all )
+{
+  // If the file name is an absolute path, just return it
+  if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
+  {
+    return { file_name };
+  }
+
+  auto const search_paths =
+    application_config_file_paths( application_name, application_version,
+                                   install_prefix );
+
+  // File name is relative, so go through the search process
+  auto out = std::vector< config_path_t >{};
+  for( auto const& search_path : search_paths )
+  {
+    auto const& config_path = search_path + "/" + file_name;
+
+    if( kwiversys::SystemTools::FileExists( config_path ) &&
+        !kwiversys::SystemTools::FileIsDirectory( config_path ) )
+    {
+      if( !find_all )
+      {
+        return { config_path };
+      }
+      out.push_back( config_path );
+    }
+  }
+
+  return out;
+}
+
 // ------------------------------------------------------------------
 // Output to file the given \c config_block object to the specified file path
 void
