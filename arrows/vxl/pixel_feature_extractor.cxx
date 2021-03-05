@@ -40,7 +40,7 @@ public:
   bool check_sub_algorithm( vital::config_block_sptr config, std::string key );
   // Copy multiple filtered images into contigious memory
   template < typename pix_t > vil_image_view< pix_t >
-  concatenate_images( std::vector< vil_image_view< pix_t > > filtered_images );
+  concatenate_images( std::vector< vil_image_view_base_sptr > filtered_images );
   // Extract local pixel-wise features
   template < typename response_t > vil_image_view< response_t >
   filter( kwiver::vital::image_container_sptr input_image );
@@ -102,14 +102,14 @@ pixel_feature_extractor::priv
 template < typename pix_t >
 vil_image_view< pix_t >
 pixel_feature_extractor::priv
-::concatenate_images( std::vector< vil_image_view< pix_t > > filtered_images )
+::concatenate_images( std::vector< vil_image_view_base_sptr > filtered_images )
 {
   // Count the total number of planes
   unsigned total_planes{ 0 };
 
   for( auto const& image : filtered_images )
   {
-    total_planes += image.nplanes();
+    total_planes += image->nplanes();
   }
 
   if( total_planes == 0 )
@@ -118,19 +118,32 @@ pixel_feature_extractor::priv
     return {};
   }
 
-  auto const ni = filtered_images.at( 0 ).ni();
-  auto const nj = filtered_images.at( 0 ).nj();
+  auto const ni = filtered_images.at( 0 )->ni();
+  auto const nj = filtered_images.at( 0 )->nj();
   vil_image_view< pix_t > concatenated_planes{ ni, nj, total_planes };
 
   // Concatenate the filtered images into a single output
   unsigned current_plane{ 0 };
 
-  for( auto const& image : filtered_images )
+  for( auto const& filtered_image_ptr : filtered_images )
   {
-    for( unsigned i{ 0 }; i < image.nplanes(); ++i )
+    vil_image_view< pix_t > filtered_image;
+    if( filtered_image_ptr->pixel_format() ==
+        concatenated_planes.pixel_format() )
     {
-      vil_plane( concatenated_planes,
-                 current_plane ).deep_copy( vil_plane( image, i ) );
+      filtered_image = filtered_image_ptr;
+    }
+    else
+    {
+      // Cast the image pointer into the concrete type we want
+      filtered_image = vil_convert_cast( pix_t(), filtered_image_ptr );
+    }
+
+    for( unsigned i{ 0 }; i < filtered_image.nplanes(); ++i )
+    {
+      auto output_plane = vil_plane( concatenated_planes, current_plane );
+      auto input_plane = vil_plane( filtered_image, i );
+      output_plane.deep_copy( input_plane );
       ++current_plane;
     }
   }
@@ -143,7 +156,7 @@ vil_image_view< pix_t >
 pixel_feature_extractor::priv
 ::filter( kwiver::vital::image_container_sptr input_image )
 {
-  std::vector< vil_image_view< vxl_byte > > filtered_images;
+  std::vector< vil_image_view_base_sptr > filtered_images;
 
   if( enable_color || enable_gray )
   {
