@@ -10,6 +10,7 @@ add_subdirectory( hello_world )
 
 if( VIAME_ENABLE_PYTHON )
   kwiver_create_python_init( arrows )
+  kwiver_create_python_init( processes )
 endif()
 
 if( VIAME_ENABLE_OPENCV )

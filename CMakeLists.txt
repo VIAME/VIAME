@@ -570,9 +570,6 @@ else()
       set( kwiver_python_subdir "python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" )
       set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
       set( viame_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
-
-      kwiver_create_python_init( viame )
-      kwiver_create_python_init( viame/processes )
     endif()
 
     ##
