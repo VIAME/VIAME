@@ -30,8 +30,8 @@
 from PIL import Image as pil_image
 from random import randint
 
-from kwiver.kwiver_process import KwiverProcess
-from sprokit.pipeline import process
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
 
 from kwiver.vital.types import Image
 from kwiver.vital.types import ImageContainer

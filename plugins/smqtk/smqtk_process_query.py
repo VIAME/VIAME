@@ -32,10 +32,9 @@ import json
 
 from six.moves import zip
 
-from sprokit.pipeline import process
-from sprokit.pipeline import datum
-
-from kwiver.kwiver_process import KwiverProcess
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
+from kwiver.sprokit.pipeline import datum
 
 import smqtk.algorithms
 import smqtk.iqr

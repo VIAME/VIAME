@@ -18,8 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-from kwiver.kwiver_process import KwiverProcess
-from sprokit.pipeline import process
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
 
 from kwiver.vital.types import Image
 from kwiver.vital.types import ImageContainer

@@ -30,10 +30,10 @@ from __future__ import print_function
 
 import json
 
-from sprokit.pipeline import process
 from six.moves import zip
 
-from kwiver.kwiver_process import KwiverProcess
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
 
 import smqtk.representation
 import smqtk.utils.plugin

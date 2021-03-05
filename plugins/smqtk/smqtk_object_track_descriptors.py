@@ -29,9 +29,8 @@
 
 import json
 
-from sprokit.pipeline import process
-
-from kwiver.kwiver_process import KwiverProcess
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
 
 from kwiver.vital.types import new_descriptor, DescriptorSet
 
