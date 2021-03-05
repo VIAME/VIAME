@@ -38,7 +38,6 @@ from torchvision import models, transforms, datasets
 from PIL import Image as pilImage
 
 from .parse_gpu_list import get_device
-from kwiver.vital.types import BoundingBox
 
 class ResnetDataLoader(data.Dataset):# This is the same as the siamese one it was based on
     def __init__(self, bbox_list, transform, frame_img, in_size):

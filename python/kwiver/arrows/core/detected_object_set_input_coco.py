@@ -80,7 +80,7 @@ class DetectedObjectSetInputCoco(DetectedObjectSetInput):
             x, y, w, h = ann['bbox']
             score = ann.get('score', 1.)
             det_objs.append(vt.DetectedObject(
-                bbox=vt.BoundingBox(x, y, x + w, y + h),
+                bbox=vt.BoundingBoxD(x, y, x + w, y + h),
                 confidence=score,
                 classifications=vt.ClassMap(
                     self.categories[ann['category_id']],

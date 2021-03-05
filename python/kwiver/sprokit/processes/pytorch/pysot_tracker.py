@@ -43,7 +43,7 @@ from kwiver.sprokit.pipeline import process
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 
 from kwiver.vital.types import Image
-from kwiver.vital.types import BoundingBox
+from kwiver.vital.types import BoundingBoxD
 from kwiver.vital.types import DetectedObject, DetectedObjectSet
 from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
 
@@ -204,7 +204,7 @@ class PYSOTTracker(KwiverProcess):
             init_track_ids = []
         elif self._is_first:
             init_track_pool = []
-            cbox = BoundingBox(self._seed_bbox[0],
+            cbox = BoundingBoxD(self._seed_bbox[0],
               self._seed_bbox[1], self._seed_bbox[2], self._seed_bbox[3])
             initialize_track(0, cbox, frame_id, img)
             init_track_ids = [0]
@@ -235,7 +235,7 @@ class PYSOTTracker(KwiverProcess):
             bbox = tracker_output['bbox']
             score = tracker_output['best_score']
             if score > self._threshold:
-                cbox = BoundingBox(
+                cbox = BoundingBoxD(
                   bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
                 new_state = ObjectTrackState(ts, cbox, score)
                 self._tracks[tid].append(new_state)
