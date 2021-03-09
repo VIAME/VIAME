@@ -81,6 +81,14 @@ Arrows: CUDA
 
 Arrows: FFmpeg
 
+ * Now checks the timestamps of the metadata packets to catch packets
+   that are arriving early. Packets that arrive early are cached until the
+   timestamp of the current frame is larger than the timestamp of the
+   metadata packet. This synchronization can be disabled if desired.
+
+ * Fixed an issue where only metadata packets from the first data stream
+   are saved.
+
  * Added a libavfilter pipeline into the ffmpeg_video_input reader. This
    allows users to inject filters in the video reader, much the same as
    is possible in the ffmpeg command line with the -vf option.  The default
