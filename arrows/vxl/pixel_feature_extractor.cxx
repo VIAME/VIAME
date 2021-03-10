@@ -13,6 +13,7 @@
 #include <arrows/vxl/image_container.h>
 #include <vital/config/config_block_io.h>
 
+#include <vil/vil_clamp.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
@@ -194,32 +195,17 @@ pixel_feature_extractor::priv
 // Convert to a narrower type without wrapping
 template < typename out_t, typename in_t >
 vil_image_view< out_t >
-safe_narrowing_cast( vil_image_view< in_t > input_image )
+clamping_cast( vil_image_view< in_t > input_image )
 {
-  auto const ni = input_image.ni();
-  auto const nj = input_image.nj();
-  auto const np = input_image.nplanes();
-  vil_image_view< out_t > output_image{ ni, nj, np };
+  constexpr auto min_output_value =
+    static_cast< in_t >( std::numeric_limits< out_t >::min() );
+  constexpr auto max_output_value =
+    static_cast< in_t >( std::numeric_limits< out_t >::max() );
 
-  constexpr out_t max_output_value = std::numeric_limits< out_t >::max();
-  constexpr out_t min_output_value = std::numeric_limits< out_t >::min();
+  vil_clamp( input_image, input_image, min_output_value, max_output_value );
 
-  vil_transform(
-    input_image, output_image,
-    [=]( in_t pixel ){
-      if( pixel < min_output_value )
-      {
-        return min_output_value;
-      }
-      else if( pixel > max_output_value )
-      {
-        return max_output_value;
-      }
-      else
-      {
-        return static_cast< out_t >( pixel );
-      }
-    } );
+  vil_image_view< out_t > output_image;
+  vil_convert_cast( input_image, output_image );
   return output_image;
 }
 
@@ -227,21 +213,11 @@ safe_narrowing_cast( vil_image_view< in_t > input_image )
 template < typename pix_t >
 vil_image_view< pix_t >
 convert_to_typed_vil_image_view(
-  kwiver::vital::image_container_sptr input_image,
-  bool input_has_larger_range = false )
+  kwiver::vital::image_container_sptr input_image )
 {
   auto const vxl_image_ptr = vxl::image_container::vital_to_vxl(
     input_image->get_image() );
-
-  if( !input_has_larger_range )
-  {
-    auto const concrete_image = vil_convert_cast( pix_t(), vxl_image_ptr );
-    return concrete_image;
-  }
-
-  auto const double_image = static_cast< vil_image_view< double > >(
-    vil_convert_cast( double(), vxl_image_ptr ) );
-  auto const concrete_image = safe_narrowing_cast< pix_t >( double_image );
+  auto const concrete_image = vil_convert_cast( pix_t(), vxl_image_ptr );
   return concrete_image;
 }
 
@@ -292,11 +268,11 @@ pixel_feature_extractor::priv
       high_pass_box_filter->filter( input_image ) );
 
     // Legacy BurnOut models expect these channels to be incorrectly ordered
-    // Swap the ordering to accomodate models trained in legacy BurnOut
+    // TODO Remove this code when we no longer need to train models using
+    // legacy code
     auto first_plane = vil_plane( high_pass_box, 0 );
     auto second_plane = vil_plane( high_pass_box, 1 );
     auto temp = vil_copy_deep( first_plane );
-    temp.deep_copy( first_plane );
     first_plane.deep_copy( second_plane );
     second_plane.deep_copy( temp );
 
@@ -328,8 +304,10 @@ pixel_feature_extractor::priv
   // TODO consider naming this variance since that option is used more
   if( enable_average )
   {
-    auto variance = convert_to_typed_vil_image_view< pix_t >(
-      variance_container, true );
+    auto double_variance = convert_to_typed_vil_image_view< double >(
+      variance_container );
+    auto variance = clamping_cast< pix_t >( double_variance );
+
     // 1 channel
     filtered_images.push_back( variance );
   }
@@ -353,7 +331,7 @@ pixel_feature_extractor::priv
       variance_scale_factor / static_cast< float >( frame_number );
     vil_math_scale_values( double_variance, scale_factor );
 
-    auto variance = safe_narrowing_cast< pix_t >( double_variance );
+    auto variance = clamping_cast< pix_t >( double_variance );
     // 1 channel
     filtered_images.push_back( variance );
   }
