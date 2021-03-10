@@ -1,0 +1,13 @@
+KWIVER v1.5.2 Release Notes
+===========================
+
+This is a patch release of KWIVER that provides fixes over the previous
+v1.5.1 release.
+
+Bug Fixes since v1.5.1
+----------------------
+
+Processes: Core
+
+ * Fix configuration check for read_object_track, enabling configuration to
+   succeed.
