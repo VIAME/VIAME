@@ -59,6 +59,7 @@ class TestVitalMetadataTags(unittest.TestCase):
             mt.tags.VITAL_META_IMAGE_SOURCE_SENSOR,
             mt.tags.VITAL_META_IMAGE_COORDINATE_SYSTEM,
             mt.tags.VITAL_META_IMAGE_URI,
+            mt.tags.VITAL_META_VIDEO_DATA_STREAM_INDEX,
             mt.tags.VITAL_META_VIDEO_URI,
             mt.tags.VITAL_META_VIDEO_KEY_FRAME,
             mt.tags.VITAL_META_SENSOR_LOCATION,
