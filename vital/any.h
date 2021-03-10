@@ -232,10 +232,13 @@ private:
 
 private:
   template < typename T >
-  friend T* any_cast( any * aval ) noexcept;
+  friend T* any_cast( any* ) noexcept;
 
   template < typename T >
-  friend T any_cast( any const& aval );
+  friend T const* any_cast( any const* ) noexcept;
+
+  template < typename T >
+  friend T any_cast( any const& );
 
   template < typename T >
   internal_typed< T >* content()
@@ -331,7 +334,7 @@ any_cast( any* operand ) noexcept
  *         or \c nullptr if the conversion failed.
  */
 template < typename T >
-inline const T*
+inline T const*
 any_cast( any const* operand ) noexcept
 {
   if ( operand && ( operand->is_type< T >() ) )
