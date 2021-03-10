@@ -175,7 +175,7 @@ Endcap
 {
   KQ_Q();
 
-  for( int currentFrame = 0; !q->atEnd; ++currentFrame )
+  while( !q->atEnd )
   {
     q->processOutput( q->pipeline.receive() );
   }
