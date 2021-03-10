@@ -135,9 +135,9 @@ class NetharnRefiner(RefineDetections):
         self._average_prior = strtobool(self._kwiver_config['average_prior'])
 
         if self._area_pivot < 0:
-            self._area_upper_bound = -self.area_pivot
-        elif self_.area_pivot > 0:
-            self._area_lower_bound = self.area_pivot
+            self._area_upper_bound = -self._area_pivot
+        elif self._area_pivot > 0:
+            self._area_lower_bound = self._area_pivot
 
         return True
 
