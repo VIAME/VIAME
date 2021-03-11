@@ -71,7 +71,6 @@ public:
   bool connect_input_adapter();
   bool connect_output_adapter();
 
-//---------------------------
   vital::logger_handle_t m_logger;
   bool m_at_end {false};
   bool m_stop_flag {false};
@@ -89,6 +88,9 @@ public:
   embedded_pipeline_extension_sptr m_hooks;
   std::shared_ptr< embedded_pipeline_extension::context> m_context;
 
+  std::string m_app_name;
+  std::string m_app_version;
+  std::string m_app_prefix;
 }; // end class embedded_pipeline::priv
 
 // ============================================================================
@@ -132,12 +134,25 @@ embedded_pipeline
   m_priv->m_context = std::make_shared< real_context >( m_priv );
 }
 
+// ----------------------------------------------------------------------------
 embedded_pipeline
 ::~embedded_pipeline()
 {
 }
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void
+embedded_pipeline
+::set_application_information( std::string const& app_name,
+                               std::string const& app_version,
+                               std::string const& app_prefix )
+{
+  m_priv->m_app_name = app_name;
+  m_priv->m_app_version = app_version;
+  m_priv->m_app_prefix = app_prefix;
+}
+
+// ----------------------------------------------------------------------------
 void
 embedded_pipeline
 ::build_pipeline( std::istream& istr, std::string const& def_dir )
@@ -146,7 +161,8 @@ embedded_pipeline
   sprokit::pipeline_builder builder;
 
   builder.add_search_path(
-    vital::application_config_file_paths( {}, {}, {} ) );
+    vital::application_config_file_paths(
+      m_priv->m_app_name, m_priv->m_app_version, m_priv->m_app_prefix ) );
 
   std::string cur_file( def_dir );
   if ( def_dir.empty() )
