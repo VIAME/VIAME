@@ -192,26 +192,36 @@ application_config_file_paths(std::string const& application_name,
 {
   // First, add any paths specified by our local environment variable
   auto paths = config_path_list_t{};
-  append_kwiver_config_paths(paths);
+  append_kwiver_config_paths( paths );
 
-  if (!application_name.empty())
+  if( !application_name.empty() )
   {
-    auto app_paths = application_config_file_paths_helper(application_name,
-                                                          application_version,
-                                                          app_install_prefix);
-    for (auto const& path : app_paths)
-    {
-      paths.push_back(path);
-    }
+    auto const& app_paths =
+      application_config_file_paths_helper(
+        application_name, application_version, app_install_prefix );
+
+    std::copy( app_paths.begin(), app_paths.end(),
+               std::back_inserter( paths ) );
   }
 
-  auto kwiver_paths = application_config_file_paths_helper("kwiver",
-                                                           KWIVER_VERSION,
-                                                           kwiver_install_prefix);
-  for (auto const& path : kwiver_paths)
+  auto* const env =
+    kwiversys::SystemTools::GetEnv( "KWIVER_CONFIG_PREFIX" );
+  if( env && *env )
   {
-    paths.push_back(path);
+    auto const& kwiver_env_paths =
+      application_config_file_paths_helper(
+        "kwiver", KWIVER_VERSION, env );
+
+    std::copy( kwiver_env_paths.begin(), kwiver_env_paths.end(),
+               std::back_inserter( paths ) );
   }
+
+  auto const& kwiver_paths =
+    application_config_file_paths_helper(
+      "kwiver", KWIVER_VERSION, kwiver_install_prefix );
+
+  std::copy( kwiver_paths.begin(), kwiver_paths.end(),
+             std::back_inserter( paths ) );
 
   return paths;
 }
