@@ -4,7 +4,8 @@
 
 /**
  * \file
- * \brief Interface for serialize_metadata \link kwiver::vital::algo::algorithm_def algorithm
+ * \brief Interface for serialize_metadata \link
+ * kwiver::vital::algo::algorithm_def algorithm
  *        definition \endlink.
  */
 
@@ -27,6 +28,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for reading and writing meatadata maps
+
 /**
  * This class represents an abstract interface for reading and writing
  * video metadata.
@@ -41,6 +43,7 @@ public:
   static std::string static_type_name() { return "serialize_metadata"; }
 
   /// Load metadata from the file
+
   /**
    * \throws kwiver::vital::path_not_exists Thrown when the given path does not
    *    exist.
@@ -54,6 +57,7 @@ public:
   kwiver::vital::metadata_map_sptr load( std::string const& filename ) const;
 
   /// Save metadata to a file
+
   /**
    * Save data for all frames in a map
    *
@@ -92,6 +96,7 @@ protected:
 
 private:
   /// Implementation specific load functionality.
+
   /**
    * Concrete implementations of serialize_metadata class must provide an
    * implementation for this method.
@@ -99,9 +104,11 @@ private:
    * \param filename the path to the file the load
    * \returns an metadata_map_sptr pointing to the loaded metadata
    */
-  virtual kwiver::vital::metadata_map_sptr load_( std::string const& filename ) const = 0;
+  virtual kwiver::vital::metadata_map_sptr load_( std::string const& filename )
+  const = 0;
 
   /// Implementation specific save functionality.
+
   /**
    * Concrete implementations of serialize_metadata class must provide an
    * implementation for this method.

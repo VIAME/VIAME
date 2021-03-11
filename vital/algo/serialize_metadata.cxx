@@ -37,12 +37,12 @@ serialize_metadata
 ::load( std::string const& filename ) const
 {
   // Make sure that the given file path exists and is a file.
-  if ( !kwiversys::SystemTools::FileExists( filename ) )
+  if( !kwiversys::SystemTools::FileExists( filename ) )
   {
     VITAL_THROW( path_not_exists,
                  filename );
   }
-  else if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
+  else if( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
     VITAL_THROW( path_not_a_file,
                  filename );
@@ -62,12 +62,12 @@ serialize_metadata
     kwiversys::SystemTools::GetFilenamePath(
       kwiversys::SystemTools::CollapseFullPath( filename ) );
 
-  if ( !kwiversys::SystemTools::FileExists( containing_dir ) )
+  if( !kwiversys::SystemTools::FileExists( containing_dir ) )
   {
     VITAL_THROW( path_not_exists,
                  containing_dir );
   }
-  else if ( !kwiversys::SystemTools::FileIsDirectory( containing_dir ) )
+  else if( !kwiversys::SystemTools::FileIsDirectory( containing_dir ) )
   {
     VITAL_THROW( path_not_a_directory,
                  containing_dir );

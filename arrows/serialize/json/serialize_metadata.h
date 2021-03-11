@@ -4,7 +4,8 @@
 
 /**
  * \file
- * \brief Interface for serialize_metadata \link kwiver::vital::algo::algorithm_def algorithm
+ * \brief Interface for serialize_metadata \link
+ * kwiver::vital::algo::algorithm_def algorithm
  *        definition \endlink.
  */
 
@@ -19,11 +20,15 @@
 #include <string>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace serialize {
+
 namespace json {
 
 /// An implementation class for reading and writing metadata maps
+
 /**
  * This class is a concrete implementation for reading and writing
  * video metadata.
@@ -40,27 +45,35 @@ public:
   ~serialize_metadata();
 
   /// Implementation specific load functionality.
+
   /**
    * \param filename the path to the file the load
    * \returns an image container refering to the loaded image
    */
-  virtual kwiver::vital::metadata_map_sptr load_(std::string const& filename) const;
+  virtual kwiver::vital::metadata_map_sptr load_( std::string const& filename )
+  const;
 
   /// Implementation specific save functionality.
+
   /**
    * \param filename the path to the file to save
    * \param data the image container refering to the image to write
    */
-  virtual void save_(std::string const& filename,
-                     kwiver::vital::metadata_map_sptr data) const;
+  virtual void save_( std::string const& filename,
+                      kwiver::vital::metadata_map_sptr data ) const;
 
 private:
   class priv;
-  std::unique_ptr<priv> d_;
 
+  std::unique_ptr< priv > d_;
 };
 
+} // namespace json
 
-} } } } // end namespace
+} // namespace serialize
 
-#endif // VITAL_ALGO_SERIALIZE_METADATA_H_
+} // namespace arrows
+
+} // end namespace
+
+#endif

@@ -12,12 +12,15 @@
 #include <arrows/serialize/json/metadata.h>
 #include <arrows/serialize/json/serialize_metadata.h>
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace serialize {
+
 namespace json {
 
 /// Private implementation class
@@ -33,14 +36,15 @@ public:
 /// Constructor
 serialize_metadata
 ::serialize_metadata()
-{ }
+{}
 
 /// Destructor
 serialize_metadata
 ::~serialize_metadata()
-{ }
+{}
 
 /// Load in the data from a filename.
+
 /**
  * \throws file_not_read_exception
  *    Thrown if the file can't be opened for reading, likely due to
@@ -50,32 +54,36 @@ serialize_metadata
  * \returns the metadata map for a video
  */
 kwiver::vital::metadata_map_sptr
-serialize_metadata::load_(std::string const& filename) const
+serialize_metadata
+::load_( std::string const& filename ) const
 {
   kwiver::vital::metadata_map::map_metadata_t metadata_map;
 
-  std::ifstream fin(filename);
+  std::ifstream fin( filename );
 
-  if ( fin )
+  if( fin )
   {
     std::stringstream buffer;
     buffer << fin.rdbuf();
+
     std::string input_string = buffer.str();
 
-    metadata_map = d_->serializer.deserialize_map(input_string);
+    metadata_map = d_->serializer.deserialize_map( input_string );
   }
   else
   {
-    VITAL_THROW(kwiver::vital::file_not_read_exception, filename,
-                "Insufficient permissions or moved file");
+    VITAL_THROW( kwiver::vital::file_not_read_exception, filename,
+                 "Insufficient permissions or moved file" );
   }
 
-  auto metadata_map_ptr = std::make_shared< kwiver::vital::simple_metadata_map >(
+  auto metadata_map_ptr =
+    std::make_shared< kwiver::vital::simple_metadata_map >(
       kwiver::vital::simple_metadata_map( metadata_map ) );
   return metadata_map_ptr;
 }
 
 /// Save metadata to a file.
+
 /**
  * \throws file_write_exception
  *    Thrown if the file can't be opened, likely due to permissions
@@ -85,8 +93,9 @@ serialize_metadata::load_(std::string const& filename) const
  * \param data the metadata map for a video
  */
 void
-serialize_metadata::save_(std::string const& filename,
-                          kwiver::vital::metadata_map_sptr data) const
+serialize_metadata
+::save_( std::string const& filename,
+         kwiver::vital::metadata_map_sptr data ) const
 {
   std::ofstream fout( filename.c_str() );
 
@@ -94,14 +103,20 @@ serialize_metadata::save_(std::string const& filename,
   {
     auto metadata = data->metadata();
     std::shared_ptr< std::string > serialized =
-      d_->serializer.serialize_map(metadata);
+      d_->serializer.serialize_map( metadata );
     fout << *serialized << std::endl;
   }
   else
   {
-    VITAL_THROW(kwiver::vital::file_write_exception, filename,
-                "Insufficient permissions or moved file");
+    VITAL_THROW( kwiver::vital::file_write_exception, filename,
+                 "Insufficient permissions or moved file" );
   }
 }
 
-} } } } // end namespace
+} // namespace json
+
+} // namespace serialize
+
+} // namespace arrows
+
+} // end namespace
