@@ -144,7 +144,7 @@ class ResnetDescriptors(KwiverProcess):
 
                 # get new track state from new frame and detections
                 for idx, item in enumerate(dos):
-                    bbox = item.bounding_box()
+                    bbox = item.bounding_box
                     d_obj = item
 
                     # store app feature to detectedObject
