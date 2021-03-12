@@ -106,6 +106,8 @@ public:
   EmbeddedPipeline pipeline;
   Endcap endcap;
 
+  bool atEnd = false;
+
 protected:
   KQ_DECLARE_PUBLIC_PTR( EmbeddedPipelineWorker )
 
@@ -131,6 +133,7 @@ EmbeddedPipelineWorkerPrivate
 
   if( this->pipeline.hasOutput() )
   {
+    this->atEnd = false;
     this->endcap.start();
   }
 
@@ -157,6 +160,7 @@ EmbeddedPipelineWorkerPrivate
 
   if( output->is_end_of_data() )
   {
+    this->atEnd = true;
     emit q->finished();
     return;
   }
@@ -171,7 +175,7 @@ Endcap
 {
   KQ_Q();
 
-  for( int currentFrame = 0;; ++currentFrame )
+  while( !q->atEnd )
   {
     q->processOutput( q->pipeline.receive() );
   }
