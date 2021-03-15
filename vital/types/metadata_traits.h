@@ -57,7 +57,7 @@ struct vital_meta_trait_base
     static std::string  description() { return std::string(LD); }       \
     static std::type_info const& tag_type() { return typeid(T); }       \
     static bool is_integral() { return std::is_integral<T>::value; }    \
-    static bool is_signed() { return std::is_signed<T>::value; }    \
+    static bool is_signed() { return std::is_signed<T>::value; }        \
     static bool is_floating_point() { return std::is_floating_point<T>::value; } \
     static vital_metadata_tag tag() { return TAG; }                     \
     typedef T type;                                                     \

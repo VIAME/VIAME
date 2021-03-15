@@ -12,14 +12,16 @@
 #ifndef VITAL_ALGO_SERIALIZE_METADATA_H_
 #define VITAL_ALGO_SERIALIZE_METADATA_H_
 
+#include <vital/algo/algorithm.h>
+
+#include <vital/algorithm_capabilities.h>
+
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
+
 #include <vital/vital_config.h>
 
 #include <string>
-
-#include <vital/algo/algorithm.h>
-#include <vital/algorithm_capabilities.h>
-#include <vital/types/metadata.h>
-#include <vital/types/metadata_map.h>
 
 namespace kwiver {
 
@@ -27,12 +29,10 @@ namespace vital {
 
 namespace algo {
 
-/// An abstract base class for reading and writing meatadata maps
-
-/**
- * This class represents an abstract interface for reading and writing
- * video metadata.
- */
+/// An abstract base class for reading and writing meatadata maps.
+///
+/// This class represents an abstract interface for reading and writing video
+/// metadata.
 class VITAL_ALGO_EXPORT serialize_metadata
   : public kwiver::vital::algorithm_def< serialize_metadata >
 {
@@ -42,51 +42,43 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "serialize_metadata"; }
 
-  /// Load metadata from the file
-
-  /**
-   * \throws kwiver::vital::path_not_exists Thrown when the given path does not
-   *    exist.
-   *
-   * \throws kwiver::vital::path_not_a_file Thrown when the given path does
-   *    not point to a file (i.e. it points to a directory).
-   *
-   * \param filename the path to the file to load
-   * \returns a metadata_map_sptr pointing to the data
-   */
+  /// Load metadata from the file.
+  ///
+  /// \throws kwiver::vital::path_not_exists
+  ///   Thrown when the given path does not exist.
+  /// \throws kwiver::vital::path_not_a_file
+  ///   Thrown when the given path does not point to a file (i.e. it points to
+  ///   a directory).
+  ///
+  /// \param filename The path to the file to load.
+  /// \returns A metadata_map_sptr pointing to the data.
   kwiver::vital::metadata_map_sptr load( std::string const& filename ) const;
 
-  /// Save metadata to a file
-
-  /**
-   * Save data for all frames in a map
-   *
-   * \throws kwiver::vital::path_not_exists Thrown when the expected
-   *    containing directory of the given path does not exist.
-   *
-   * \throws kwiver::vital::path_not_a_directory Thrown when the expected
-   *    containing directory of the given path is not actually a
-   *    directory.
-   *
-   * \param filename the path to the file to save
-   * \param data pointer to the metadata to write
-   */
+  /// Save metadata to a file.
+  ///
+  /// \throws kwiver::vital::path_not_exists
+  ///   Thrown when the expected containing directory of the given path does
+  ///   not exist.
+  /// \throws kwiver::vital::path_not_a_directory
+  ///   Thrown when the expected containing directory of the given path is not
+  ///   actually a directory.
+  ///
+  /// \param filename The path to the file to save.
+  /// \param data Pointer to the metadata to write.
   void save( std::string const& filename,
              kwiver::vital::metadata_map_sptr data ) const;
 
-  /**
-   * \brief Return capabilities of concrete implementation.
-   *
-   * This method returns the capabilities for the current image reader/writer.
-   *
-   * \return Reference to supported image capabilities.
-   */
+  /// Return capabilities of concrete implementation.
+  ///
+  /// This method returns the capabilities for the current metadata
+  /// reader/writer.
+  ///
+  /// \return Reference to supported algorithm capabilities.
   algorithm_capabilities const& get_implementation_capabilities() const;
 
-  void set_configuration( vital::config_block_sptr config );
+  void set_configuration( vital::config_block_sptr config ) override;
 
-  /// Check that the algorithm's current configuration is valid
-  bool check_configuration( vital::config_block_sptr config ) const;
+  bool check_configuration( vital::config_block_sptr config ) const override;
 
 protected:
   serialize_metadata();
@@ -96,26 +88,22 @@ protected:
 
 private:
   /// Implementation specific load functionality.
-
-  /**
-   * Concrete implementations of serialize_metadata class must provide an
-   * implementation for this method.
-   *
-   * \param filename the path to the file the load
-   * \returns an metadata_map_sptr pointing to the loaded metadata
-   */
-  virtual kwiver::vital::metadata_map_sptr load_( std::string const& filename )
-  const = 0;
+  ///
+  /// Concrete implementations of serialize_metadata class must provide an
+  /// implementation for this method.
+  ///
+  /// \param filename The path to the file to load.
+  /// \returns A metadata_map_sptr pointing to the loaded metadata.
+  virtual kwiver::vital::metadata_map_sptr load_(
+    std::string const& filename ) const = 0;
 
   /// Implementation specific save functionality.
-
-  /**
-   * Concrete implementations of serialize_metadata class must provide an
-   * implementation for this method.
-   *
-   * \param filename the path to the file to save
-   * \param data the metadata_map_sptr pointing to the metadata
-   */
+  ///
+  /// Concrete implementations of serialize_metadata class must provide an
+  /// implementation for this method.
+  ///
+  /// \param filename The path to the file to save.
+  /// \param data The metadata_map_sptr pointing to the metadata.
   virtual void save_( std::string const& filename,
                       kwiver::vital::metadata_map_sptr data ) const = 0;
 
@@ -123,7 +111,7 @@ private:
 };
 
 /// Shared pointer type for generic serialize_metadata definition type.
-typedef std::shared_ptr< serialize_metadata > serialize_metadata_sptr;
+using serialize_metadata_sptr = std::shared_ptr< serialize_metadata >;
 
 } // namespace algo
 

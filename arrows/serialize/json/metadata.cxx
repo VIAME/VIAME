@@ -18,18 +18,21 @@ namespace serialize {
 namespace json {
 
 // ----------------------------------------------------------------------------
-metadata::
-metadata()
-{ }
+metadata
+::metadata()
+{
+}
 
-metadata::
-~metadata()
-{ }
+// ----------------------------------------------------------------------------
+metadata
+::~metadata()
+{
+}
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
-metadata::
-serialize_meta( const kwiver::vital::metadata_vector& meta )
+metadata
+::serialize_meta( kwiver::vital::metadata_vector const& meta )
 {
   std::stringstream msg;
   msg << "metadata "; // add type tag
@@ -38,13 +41,13 @@ serialize_meta( const kwiver::vital::metadata_vector& meta )
     save( ar, meta );
   }
 
-  return std::make_shared< std::string > ( msg.str() );
+  return std::make_shared< std::string >( msg.str() );
 }
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
-metadata::
-serialize_map( const vital::metadata_map::map_metadata_t& frame_map )
+metadata
+::serialize_map( vital::metadata_map::map_metadata_t const& frame_map )
 {
   std::stringstream msg;
   {
@@ -52,7 +55,7 @@ serialize_map( const vital::metadata_map::map_metadata_t& frame_map )
     save( ar, frame_map );
   }
 
-  return std::make_shared< std::string > ( msg.str() );
+  return std::make_shared< std::string >( msg.str() );
 }
 
 // ----------------------------------------------------------------------------
@@ -60,7 +63,7 @@ vital::metadata_map::map_metadata_t
 metadata::
 deserialize_map( const std::string& message )
 {
-  std::stringstream msg(message);
+  std::stringstream msg( message );
   kwiver::vital::metadata_map::map_metadata_t metadata;
 
   cereal::JSONInputArchive ar( msg );
@@ -68,7 +71,6 @@ deserialize_map( const std::string& message )
 
   return metadata;
 }
-
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >

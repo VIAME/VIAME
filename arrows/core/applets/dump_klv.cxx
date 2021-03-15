@@ -11,20 +11,24 @@
 #include <iostream>
 #include <fstream>
 
-#include <vital/config/config_block.h>
-#include <vital/config/config_block_io.h>
-#include <vital/config/config_block_formatter.h>
-#include <vital/exceptions.h>
-#include <vital/util/get_paths.h>
-#include <vital/util/wrap_text_block.h>
 
 #include <vital/algo/serialize_metadata.h>
 #include <vital/algo/video_input.h>
 
-#include <vital/types/metadata.h>
-#include <vital/types/metadata_traits.h>
-#include <vital/types/metadata_map.h>
 #include <vital/plugin_loader/plugin_manager.h>
+
+#include <vital/config/config_block.h>
+#include <vital/config/config_block_io.h>
+#include <vital/config/config_block_formatter.h>
+
+#include <vital/util/get_paths.h>
+#include <vital/util/wrap_text_block.h>
+
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
+#include <vital/types/metadata_traits.h>
+
+#include <vital/exceptions.h>
 
 namespace kv = kwiver::vital;
 namespace kva = kwiver::vital::algo;
@@ -32,7 +36,6 @@ namespace kva = kwiver::vital::algo;
 namespace kwiver {
 namespace arrows {
 namespace core {
-
 
 // ----------------------------------------------------------------------------
 void
@@ -61,17 +64,16 @@ add_command_options()
   m_cmd_options->parse_positional("video-file");
 }
 
+// ----------------------------------------------------------------------------
+dump_klv
+::dump_klv()
+{
+}
 
-// ============================================================================
-dump_klv::
-dump_klv()
-{ }
-
-// ----------------------------------------------------------------
-/** Main entry. */
+// ----------------------------------------------------------------------------
 int
-dump_klv::
-run()
+dump_klv
+::run()
 {
   const std::string opt_app_name = applet_name();
   std::string video_file;
@@ -107,10 +109,15 @@ run()
     config->merge_config( kv::read_config_file( cmd_args["config"].as<std::string>() ) );
   }
 
-  kva::video_input::set_nested_algo_configuration( "video_reader", config, video_reader );
-  kva::video_input::get_nested_algo_configuration( "video_reader", config, video_reader );
-  kva::serialize_metadata::set_nested_algo_configuration( "metadata_serializer", config, metadata_serializer_ptr );
-  kva::serialize_metadata::get_nested_algo_configuration( "metadata_serializer", config, metadata_serializer_ptr );
+  kva::video_input::set_nested_algo_configuration(
+    "video_reader", config, video_reader );
+  kva::video_input::get_nested_algo_configuration(
+    "video_reader", config, video_reader );
+  kva::serialize_metadata::set_nested_algo_configuration(
+    "metadata_serializer", config, metadata_serializer_ptr );
+  kva::serialize_metadata::get_nested_algo_configuration(
+    "metadata_serializer", config, metadata_serializer_ptr );
+
   // Check to see if we are to dump config
   if ( cmd_args.count("output") )
   {
@@ -128,14 +135,15 @@ run()
     return EXIT_SUCCESS;
   }
 
-  if( !kva::video_input::check_nested_algo_configuration( "video_reader", config ) )
+  if( !kva::video_input::check_nested_algo_configuration(
+         "video_reader", config ) )
   {
     std::cerr << "Invalid video_reader config" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if ( !kva::serialize_metadata::check_nested_algo_configuration( "metadata_serializer",
-                                                                  config ) )
+  if ( !kva::serialize_metadata::check_nested_algo_configuration(
+          "metadata_serializer", config ) )
   {
     std::cerr << "Invalid metadata_serializer config" << std::endl;
     return EXIT_FAILURE;
@@ -159,8 +167,8 @@ run()
     return EXIT_FAILURE;
   }
 
-  kv::algorithm_capabilities const& caps = video_reader->get_implementation_capabilities();
-  if ( ! caps.capability( kva::video_input::HAS_METADATA ) )
+  auto const& caps = video_reader->get_implementation_capabilities();
+  if ( !caps.capability( kva::video_input::HAS_METADATA ) )
   {
     std::cerr << "No metadata stream found in " << video_file << '\n';
     return EXIT_FAILURE;
@@ -175,9 +183,9 @@ run()
   wtb.set_indent_string( "    " );
 
   // Avoid repeated dictionary access
-  bool detail = cmd_args["detail"].as<bool>();
-  bool quiet = cmd_args["quiet"].as<bool>();
-  bool log = cmd_args.count("log");
+  auto const detail = cmd_args[ "detail" ].as< bool >();
+  auto const quiet = cmd_args[ "quiet" ].as< bool >();
+  auto const log = ( cmd_args.count( "log" ) > 0 );
 
   while ( video_reader->next_frame( ts ) )
   {
@@ -191,26 +199,26 @@ run()
 
     if ( log )
     {
-      int timestamp = ts.get_frame();
       // Add the (frame number, vector of metadata packets) item
-      frame_metadata.insert( { timestamp, metadata } );
+      frame_metadata.insert( { ts.get_frame(), metadata } );
     }
 
     if ( !quiet )
     {
-      for ( auto meta : metadata )
+      for ( auto const& meta : metadata )
       {
-        std::cout << "\n\n---------------- Metadata from: " << meta->timestamp() << std::endl;
+        std::cout << "\n\n---------------- Metadata from: "
+                  << meta->timestamp() << std::endl;
 
         if ( detail )
         {
-          for (const auto ix : *meta)
+          for ( auto const& ix : *meta )
           {
             // process metada items
-            const std::string name = ix.second->name();
-            const kv::any data = ix.second->data();
-            const auto tag = ix.second->tag();
-            const auto descrip = md_traits.tag_to_description( tag );
+            auto const& name = ix.second->name();
+            auto const& data = ix.second->data();
+            auto const& tag = ix.second->tag();
+            auto const& descrip = md_traits.tag_to_description( tag );
 
             std::cout
                 << "Metadata item: " << name << std::endl
@@ -218,7 +226,7 @@ run()
                 << "Data: <" << ix.second->type().name() << ">: "
                 << kv::metadata::format_string(ix.second->as_string())
                 << std::endl;
-          } // end for
+          }
         }
         else
         {
@@ -252,4 +260,8 @@ run()
   return EXIT_SUCCESS;
 }
 
-} } } // end namespace
+} // namespace core
+
+} // namespace arrows
+
+} // namespace kwiver

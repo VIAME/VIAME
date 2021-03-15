@@ -17,7 +17,6 @@
 #include <vital/internal/cereal/types/map.hpp>
 #include <vital/internal/cereal/types/utility.hpp>
 
-
 namespace {
 
 // ---- STATIC DATA ----
@@ -108,8 +107,8 @@ struct meta_item
 
     // These two items are included to increase readability of the
     // serialized form and are not used when deserializing.
-    archive(  ::cereal::make_nvp( "name", trait.name() ) );
-    archive(  ::cereal::make_nvp( "type", type ) );
+    archive( ::cereal::make_nvp( "name", trait.name() ) );
+    archive( ::cereal::make_nvp( "type", type ) );
   } // end save
 
   // -------------------------------------------------
@@ -177,53 +176,57 @@ struct meta_item
 
 using meta_vect_t = std::vector< meta_item >;
 
-}
+} // namespace <anonymous>
 
 namespace cereal {
 
-// ============================================================================
-void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta_packets )
+// ----------------------------------------------------------------------------
+void save( ::cereal::JSONOutputArchive& archive,
+           kwiver::vital::metadata_vector const& meta_packets )
 {
-  std::vector<kwiver::vital::metadata> meta_packets_dereferenced;
-  for ( const auto& packet : meta_packets )
+  std::vector< kwiver::vital::metadata > meta_packets_dereferenced;
+  for( auto const& packet : meta_packets )
   {
-    meta_packets_dereferenced.push_back(*packet);
+    meta_packets_dereferenced.push_back( *packet );
   }
   save( archive, meta_packets_dereferenced );
 }
 
 // ----------------------------------------------------------------------------
-void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata_vector& meta )
+void load( ::cereal::JSONInputArchive& archive,
+           kwiver::vital::metadata_vector& meta )
 {
-  std::vector<kwiver::vital::metadata> meta_packets_dereferenced;
+  std::vector< kwiver::vital::metadata > meta_packets_dereferenced;
   load( archive, meta_packets_dereferenced );
 
-  for ( const auto& meta_packet : meta_packets_dereferenced )
+  for( auto const& meta_packet : meta_packets_dereferenced )
   {
-    meta.push_back( std::make_shared< kwiver::vital::metadata >( meta_packet ) );
+    meta.push_back(
+      std::make_shared< kwiver::vital::metadata >( meta_packet ) );
   }
 }
 
-// ============================================================================
-void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& packet_map )
+// ----------------------------------------------------------------------------
+void save( ::cereal::JSONOutputArchive& archive,
+           kwiver::vital::metadata const& packet_map )
 {
   meta_vect_t packet_vec;
 
   // Serialize one metadata collection
-  for ( const auto& item : packet_map )
+  for( auto const& item : packet_map )
   {
     // element is <tag, any>
     const auto tag = item.first;
     const auto metap = item.second;
-    packet_vec.push_back( meta_item { tag, metap->data() } );
-
-  } // end for
+    packet_vec.emplace_back( tag, metap->data() );
+  }
 
   save( archive, packet_vec );
 }
 
 // ----------------------------------------------------------------------------
-void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& packet_map )
+void load( ::cereal::JSONInputArchive& archive,
+           kwiver::vital::metadata& packet_map )
 {
   meta_vect_t meta_vect; // intermediate form
 
@@ -231,20 +234,21 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& packet_
   load( archive, meta_vect );
 
   // Convert the intermediate form back to a real metadata collection
-  for ( const auto & it : meta_vect )
+  for( auto const& it : meta_vect )
   {
-    const auto& trait = meta_traits.find( it.tag );
+    auto const& trait = meta_traits.find( it.tag );
     packet_map.add( trait.create_metadata_item( it.item_value ) );
   }
 }
 
-// ============================================================================
+// ----------------------------------------------------------------------------
 void save( ::cereal::JSONOutputArchive& archive,
-           const kwiver::vital::metadata_map::map_metadata_t& meta_map )
+           kwiver::vital::metadata_map::map_metadata_t const& meta_map )
 {
-  archive( make_size_tag( static_cast<size_type>(meta_map.size()) ) );
+  archive( make_size_tag( static_cast< size_type >( meta_map.size() ) ) );
 
-  for ( auto const &meta_vec : meta_map) {
+  for ( auto const& meta_vec : meta_map )
+  {
     archive( make_map_item( meta_vec.first, meta_vec.second ) );
   }
 }
@@ -265,12 +269,8 @@ void load( ::cereal::JSONInputArchive& archive,
     kwiver::vital::metadata_vector value;
 
     archive( make_map_item(key, value) );
-    #ifdef CEREAL_OLDER_GCC
-    hint = meta_map.insert( hint, std::make_pair(std::move(key), std::move(value)) );
-    #else // NOT CEREAL_OLDER_GCC
     hint = meta_map.emplace_hint( hint, std::move( key ), std::move( value ) );
-    #endif // NOT CEREAL_OLDER_GCC
   }
 }
 
-} // end namespace
+} // namespace cereal
