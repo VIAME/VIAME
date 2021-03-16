@@ -14,7 +14,7 @@ set( headers_public
   metadata.h
   object_track_set.h
   object_track_state.h
-  serialize_metadata.h
+  serialize_metadata_map.h
   string.h
   timestamp.h
   track.h
@@ -44,7 +44,7 @@ set( sources
   metadata.cxx
   object_track_set.cxx
   object_track_state.cxx
-  serialize_metadata.cxx
+  serialize_metadata_map.cxx
   string.cxx
   timestamp.cxx
   track.cxx

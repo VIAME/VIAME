@@ -9,8 +9,8 @@
  *        definition \endlink.
  */
 
-#ifndef VITAL_ALGO_SERIALIZE_METADATA_H_
-#define VITAL_ALGO_SERIALIZE_METADATA_H_
+#ifndef VITAL_ALGO_SERIALIZE_METADATA_MAP_H_
+#define VITAL_ALGO_SERIALIZE_METADATA_MAP_H_
 
 #include <vital/algo/algorithm.h>
 
@@ -29,18 +29,18 @@ namespace vital {
 
 namespace algo {
 
-/// An abstract base class for reading and writing meatadata maps.
+/// An abstract base class for reading and writing metadata maps.
 ///
 /// This class represents an abstract interface for reading and writing video
 /// metadata.
-class VITAL_ALGO_EXPORT serialize_metadata
-  : public kwiver::vital::algorithm_def< serialize_metadata >
+class VITAL_ALGO_EXPORT serialize_metadata_map
+  : public kwiver::vital::algorithm_def< serialize_metadata_map >
 {
 public:
-  virtual ~serialize_metadata() = default;
+  virtual ~serialize_metadata_map() = default;
 
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "serialize_metadata"; }
+  static std::string static_type_name() { return "serialize_metadata_map"; }
 
   /// Load metadata from the file.
   ///
@@ -81,7 +81,7 @@ public:
   bool check_configuration( vital::config_block_sptr config ) const override;
 
 protected:
-  serialize_metadata();
+  serialize_metadata_map();
 
   void set_capability( algorithm_capabilities::capability_name_t const& name,
                        bool val );
@@ -89,7 +89,7 @@ protected:
 private:
   /// Implementation specific load functionality.
   ///
-  /// Concrete implementations of serialize_metadata class must provide an
+  /// Concrete implementations of serialize_metadata_map class must provide an
   /// implementation for this method.
   ///
   /// \param filename The path to the file to load.
@@ -99,7 +99,7 @@ private:
 
   /// Implementation specific save functionality.
   ///
-  /// Concrete implementations of serialize_metadata class must provide an
+  /// Concrete implementations of serialize_metadata_map class must provide an
   /// implementation for this method.
   ///
   /// \param filename The path to the file to save.
@@ -110,8 +110,8 @@ private:
   algorithm_capabilities m_capabilities;
 };
 
-/// Shared pointer type for generic serialize_metadata definition type.
-using serialize_metadata_sptr = std::shared_ptr< serialize_metadata >;
+/// Shared pointer type for generic serialize_metadata_map definition type.
+using serialize_metadata_map_sptr = std::shared_ptr< serialize_metadata_map >;
 
 } // namespace algo
 
@@ -119,4 +119,4 @@ using serialize_metadata_sptr = std::shared_ptr< serialize_metadata >;
 
 } // namespace kwiver
 
-#endif // VITAL_ALGO_SERIALIZE_METADATA_H_
+#endif

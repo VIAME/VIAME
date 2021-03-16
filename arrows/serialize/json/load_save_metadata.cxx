@@ -17,6 +17,8 @@
 #include <vital/internal/cereal/types/map.hpp>
 #include <vital/internal/cereal/types/utility.hpp>
 
+namespace kv = kwiver::vital;
+
 namespace {
 
 // ---- STATIC DATA ----
@@ -53,7 +55,7 @@ struct meta_item
     // This is a switch on the item data type
     if ( trait.is_floating_point() )
     {
-      const double value = kwiver::vital::any_cast< double > ( this->item_value );
+      const double value = kv::any_cast< double > ( this->item_value );
       archive( CEREAL_NVP( value ) );
       type = "float";
     }
@@ -63,7 +65,7 @@ struct meta_item
       // to uint64_t
       if ( trait.tag_type() == typeid( bool ) )
       {
-        const bool value = kwiver::vital::any_cast< bool > ( this->item_value );
+        const bool value = kv::any_cast< bool > ( this->item_value );
         archive( CEREAL_NVP( value ) );
         type = "boolean";
       }
@@ -71,32 +73,35 @@ struct meta_item
       // values since this would be confusing for external applications
       else if ( trait.is_signed() )
       {
-        const int value = kwiver::vital::any_cast< int > ( this->item_value );
+        const int64_t value = kv::any_cast< int64_t > ( this->item_value );
         archive( CEREAL_NVP( value ) );
         type = "integer";
       }
       else
       {
-        const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
+        const uint64_t value = kv::any_cast< uint64_t > ( this->item_value );
         archive( CEREAL_NVP( value ) );
         type = "unsigned integer";
       }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
-      const std::string value = kwiver::vital::any_cast< std::string > ( this->item_value );
+      const std::string value =
+        kv::any_cast< std::string > ( this->item_value );
       archive( CEREAL_NVP( value ) );
       type = "string";
     }
-    else if ( trait.tag_type() == typeid( kwiver::vital::geo_point ) )
+    else if ( trait.tag_type() == typeid( kv::geo_point ) )
     {
-      const kwiver::vital::geo_point value = kwiver::vital::any_cast<kwiver::vital::geo_point  > ( this->item_value );
+      const kv::geo_point value =
+        kv::any_cast< kv::geo_point > ( this->item_value );
       archive( CEREAL_NVP( value ) );
       type = "geo-point";
     }
-    else if ( trait.tag_type() == typeid( kwiver::vital::geo_polygon ) )
+    else if ( trait.tag_type() == typeid( kv::geo_polygon ) )
     {
-      const kwiver::vital::geo_polygon value = kwiver::vital::any_cast<kwiver::vital::geo_polygon  > ( this->item_value );
+      const kv::geo_polygon value =
+        kv::any_cast< kv::geo_polygon > ( this->item_value );
       archive( CEREAL_NVP( value ) );
       type = "geo-polygon";
     }
@@ -129,7 +134,7 @@ struct meta_item
     {
       double value;
       archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      this->item_value = kv::any( value );
     }
     else if ( trait.is_integral() )
     {
@@ -138,32 +143,41 @@ struct meta_item
       {
         bool value;
         archive( CEREAL_NVP( value ) );
-        this->item_value = kwiver::vital::any( value );
+        this->item_value = kv::any( value );
       }
       else
       {
-        uint64_t value;
-        archive( CEREAL_NVP( value ) );
-        this->item_value = kwiver::vital::any( value );
+        if( trait.is_signed() )
+        {
+          int64_t value;
+          archive( CEREAL_NVP( value ) );
+          this->item_value = kv::any( value );
+        }
+        else
+        {
+          uint64_t value;
+          archive( CEREAL_NVP( value ) );
+          this->item_value = kv::any( value );
+        }
       }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
       std::string value;
       archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      this->item_value = kv::any( value );
     }
-    else if ( trait.tag_type() == typeid( kwiver::vital::geo_point ) )
+    else if ( trait.tag_type() == typeid( kv::geo_point ) )
     {
-      kwiver::vital::geo_point value;
+      kv::geo_point value;
       archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      this->item_value = kv::any( value );
     }
-    else if ( trait.tag_type() == typeid( kwiver::vital::geo_polygon ) )
+    else if ( trait.tag_type() == typeid( kv::geo_polygon ) )
     {
-      kwiver::vital::geo_polygon value;
+      kv::geo_polygon value;
       archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      this->item_value = kv::any( value );
     }
     else
     {

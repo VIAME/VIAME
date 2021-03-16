@@ -7,7 +7,7 @@
  * \brief Implementation of load/save wrapping functionality.
  */
 
-#include "serialize_metadata.h"
+#include "serialize_metadata_map.h"
 
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
@@ -17,7 +17,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::serialize_metadata );
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::serialize_metadata_map );
 /// \endcond
 
 namespace kwiver {
@@ -27,15 +27,15 @@ namespace vital {
 namespace algo {
 
 // ----------------------------------------------------------------------------
-serialize_metadata
-::serialize_metadata()
+serialize_metadata_map
+::serialize_metadata_map()
 {
-  attach_logger( "algo.serialize_metadata" );
+  attach_logger( "algo.serialize_metadata_map" );
 }
 
 // ----------------------------------------------------------------------------
 metadata_map_sptr
-serialize_metadata
+serialize_metadata_map
 ::load( std::string const& filename ) const
 {
   // Make sure that the given file path exists and is a file
@@ -53,7 +53,7 @@ serialize_metadata
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata
+serialize_metadata_map
 ::save( std::string const& filename, metadata_map_sptr data ) const
 {
   // Make sure that the given file path's containing directory exists and is
@@ -76,7 +76,7 @@ serialize_metadata
 
 // ----------------------------------------------------------------------------
 vital::algorithm_capabilities const&
-serialize_metadata
+serialize_metadata_map
 ::get_implementation_capabilities() const
 {
   return this->m_capabilities;
@@ -84,7 +84,7 @@ serialize_metadata
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata
+serialize_metadata_map
 ::set_capability( algorithm_capabilities::capability_name_t const& name,
                   bool val )
 {
@@ -93,14 +93,14 @@ serialize_metadata
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata
+serialize_metadata_map
 ::set_configuration( vital::config_block_sptr config )
 {
 }
 
 // ----------------------------------------------------------------------------
 bool
-serialize_metadata
+serialize_metadata_map
 ::check_configuration( vital::config_block_sptr config ) const
 {
   return true;
