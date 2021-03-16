@@ -55,7 +55,7 @@ class track_state(object):
 
         # FIXME: the detected_object confidence does not work
         # For now, I just set the confidence = 1.0
-        #self.conf = detectedObject.confidence()
+        #self.conf = detectedObject.confidence
         self.conf = 1.0
 
 
@@ -147,7 +147,7 @@ class track_set(object):
     def add_new_track_state_list(self, start_track_id, ts_list, thresh=0.0):
         track_id = start_track_id
         for ts in ts_list:
-            if ts.detected_object.confidence() >= thresh:
+            if ts.detected_object.confidence >= thresh:
                 self.add_new_track_state(track_id, ts)
                 track_id += 1
         return track_id
