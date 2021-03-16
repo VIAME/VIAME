@@ -139,7 +139,7 @@ class AlexNetDescriptors(KwiverProcess):
 
                 # get new track state from new frame and detections
                 for idx, item in enumerate(dos):
-                    bbox = item.bounding_box()
+                    bbox = item.bounding_box
                     fid = timestamp.get_frame()
                     ts = timestamp.get_time_usec()
                     d_obj = item

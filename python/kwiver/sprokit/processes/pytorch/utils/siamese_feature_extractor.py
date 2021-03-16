@@ -52,7 +52,7 @@ class SiameseDataLoader(data.Dataset):
         self._in_size = in_size
 
     def __getitem__(self, index):
-        bb = self._bbox_list[index] if self._mot_flag else self._bbox_list[index].bounding_box()
+        bb = self._bbox_list[index] if self._mot_flag else self._bbox_list[index].bounding_box
         im = self._frame_img.crop((float(bb.min_x()), float(bb.min_y()),
                       float(bb.max_x()), float(bb.max_y())))
         im = im.resize((self._in_size, self._in_size), pilImage.BILINEAR)

@@ -60,7 +60,7 @@ class Grid(object):
         bbox_id_centerIDX = []
         # build the grid for current image
         for item in bbox_list:
-            bb = item if mot_flag else item.bounding_box()
+            bb = item if mot_flag else item.bounding_box
 
             x = int(bb.min_x())
             y = int(bb.min_y())

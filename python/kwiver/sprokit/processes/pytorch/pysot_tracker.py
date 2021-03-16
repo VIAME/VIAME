@@ -216,12 +216,12 @@ class PYSOTTracker(KwiverProcess):
               ( not trk.id in self._track_init_frames or \
               self._track_init_frames[ trk.id ] < self._last_ts.get_frame() ):
                 init_detection = trk[trk.last_frame].detection()
-                initialize_track(trk.id, init_detection.bounding_box(),
+                initialize_track(trk.id, init_detection.bounding_box,
                   self._last_ts, self._last_img, init_detection.type())
             # This track has an initialization signal for the current frame
             elif trk[trk.last_frame].frame_id == frame_id:
                 init_detection = trk[trk.last_frame].detection()
-                initialize_track(trk.id, init_detection.bounding_box(),
+                initialize_track(trk.id, init_detection.bounding_box,
                   ts, img, init_detection.type())
                 frame_boxes.append(bbox)
 
@@ -264,7 +264,7 @@ class PYSOTTracker(KwiverProcess):
             detections = detections.select(self._init_threshold)
             for det in detections:
                 # Check for overlap
-                cbox = det.bounding_box()
+                cbox = det.bounding_box
                 overlaps = False
                 for obox in frame_boxes:
                     if box_intersect(cbox, obox) > self._init_intersect:

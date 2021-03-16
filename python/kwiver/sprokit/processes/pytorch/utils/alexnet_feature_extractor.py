@@ -50,7 +50,7 @@ class AlexNetDataLoader( data.Dataset ):
         self._in_size = in_size
 
     def __getitem__( self, index ):
-        bb = self._bbox_list[index].bounding_box()
+        bb = self._bbox_list[index].bounding_box
 
         # unwrap
         min_x = float( bb.min_x() )

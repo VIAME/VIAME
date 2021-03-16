@@ -334,7 +334,7 @@ class SRNNTracker(KwiverProcess):
                         ts = self._step_id
                         d_obj = DetectedObject(bbox=item, confidence=1.0)
                     else:
-                        bbox = item.bounding_box()
+                        bbox = item.bounding_box
                         fid = timestamp.get_frame()
                         ts = timestamp.get_time_usec()
                         d_obj = item
