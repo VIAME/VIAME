@@ -40,6 +40,7 @@ set( plugin_core_headers
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
   render_mesh_depth_map.h
+  serialize_metadata_csv.h
   track_features_augment_keyframes.h
   track_features_core.h
   transfer_bbox_with_depth_map.h
@@ -109,6 +110,7 @@ set( plugin_core_sources
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
   render_mesh_depth_map.cxx
+  serialize_metadata_csv.cxx
   track_features_augment_keyframes.cxx
   track_features_core.cxx
   transfer_bbox_with_depth_map.cxx

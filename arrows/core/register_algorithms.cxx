@@ -44,6 +44,7 @@
 #include <arrows/core/match_features_homography.h>
 #include <arrows/core/read_object_track_set_kw18.h>
 #include <arrows/core/read_track_descriptor_set_csv.h>
+#include <arrows/core/serialize_metadata_csv.h>
 #include <arrows/core/track_features_augment_keyframes.h>
 #include <arrows/core/track_features_core.h>
 #include <arrows/core/transfer_bbox_with_depth_map.h>
@@ -107,6 +108,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< match_features_homography >();
   reg.register_algorithm< read_object_track_set_kw18 >();
   reg.register_algorithm< read_track_descriptor_set_csv >();
+  reg.register_algorithm< serialize_metadata_csv >();
   reg.register_algorithm< track_features_augment_keyframes >();
   reg.register_algorithm< track_features_core >();
   reg.register_algorithm< transfer_bbox_with_depth_map >();
