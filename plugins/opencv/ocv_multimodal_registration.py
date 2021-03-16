@@ -26,7 +26,7 @@ from kwiver.vital.types import ImageContainer
 from kwiver.vital.types import F2FHomography
 
 from PIL import Image as pil_image
-from vital.util.VitalPIL import get_pil_image, from_pil
+from kwiver.vital.util.VitalPIL import get_pil_image, from_pil
 
 import cv2
 import csv

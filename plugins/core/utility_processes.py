@@ -38,7 +38,7 @@ from kwiver.vital.types import ImageContainer
 from kwiver.vital.types import DetectedObject, DetectedObjectSet
 from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
 
-from vital.util.VitalPIL import get_pil_image, from_pil
+from kwiver.vital.util.VitalPIL import get_pil_image, from_pil
 
 import numpy as np
 
