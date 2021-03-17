@@ -6,7 +6,9 @@
 
 #include <sprokit/processes/adapters/embedded_pipeline.h>
 
+#include <QCoreApplication>
 #include <QDebug>
+#include <QDir>
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QThread>
@@ -35,7 +37,7 @@ stdString( QString const& in )
 class EmbeddedPipeline : public kwiver::embedded_pipeline
 {
 public:
-  EmbeddedPipeline( RequiredEndcaps endcaps ) : endcaps_{ endcaps } {}
+  EmbeddedPipeline( RequiredEndcaps );
 
   bool hasInput() const { return this->inputConnected_; }
   bool hasOutput() const { return this->outputConnected_; }
@@ -48,6 +50,36 @@ protected:
   bool inputConnected_ = false;
   bool outputConnected_ = false;
 };
+
+// ----------------------------------------------------------------------------
+EmbeddedPipeline
+::EmbeddedPipeline( RequiredEndcaps endcaps )
+  : endcaps_{ endcaps }
+{
+  // Helper to convert to std::string using the system locale (don't assume it
+  // is UTF-8 like QString::toStdString does)
+  auto ss = []( QString const& qs ){
+    auto const& data = qs.toLocal8Bit();
+    auto const l = static_cast< size_t >( data.size() );
+    return std::string{ data.constData(), l };
+  };
+
+  auto const& an = ss( qApp->applicationName() );
+  auto const& av = ss( qApp->applicationVersion() );
+  auto ap = std::string{};
+
+  auto const appPath = qApp->applicationDirPath();
+  if( appPath.endsWith( QStringLiteral( "bin" ) ) )
+  {
+    ap = ss( QDir{ appPath }.absoluteFilePath( QStringLiteral( ".." ) ) );
+  }
+  else
+  {
+    ap = ss( appPath );
+  }
+
+  this->set_application_information( an, av, ap );
+}
 
 // ----------------------------------------------------------------------------
 bool
