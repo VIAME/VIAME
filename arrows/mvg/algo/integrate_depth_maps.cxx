@@ -45,8 +45,28 @@ public:
                            vector_3d const& origin,
                            vector_3d const& spacing) const;
 
+  // integrate a depth image using a 3x4 camera matrix
+  // this version is faster when there is no distrition
+  void integrate_depth_map(image_of<double>& volume,
+                           matrix_3x4d const& camera,
+                           image_of<double> const& depth,
+                           image_of<double> const& weight,
+                           vector_3d const& origin,
+                           vector_3d const& spacing) const;
+
   // compute the TSDF ray potential given an estimated depth and real depth
   double ray_potential(double est_depth, double real_depth) const;
+
+  // extract the depth at a point from the depth image and call ray_potiential
+  double ray_potiential_at_point(vector_2d const& image_pt,
+                                 double const& real_d,
+                                 image_of<double> const& depth) const;
+
+  // weighted version of ray_potiential_at_point
+  double ray_potiential_at_point(vector_2d const& image_pt,
+                                 double const& real_d,
+                                 image_of<double> const& depth,
+                                 image_of<double> const& weight) const;
 
   double ray_potential_rho;
   double ray_potential_thickness;
@@ -77,6 +97,94 @@ public:
 // ----------------------------------------------------------------------------
 
 // integrate a depth image into the integration volume
+template <typename OP>
+void
+accumulate_projections(image_of<double>& volume,
+                       vector_3d const& origin,
+                       vector_3d const& spacing,
+                       matrix_3x4d const& camera,
+                       OP&& accum_func)
+{
+  auto const ni = volume.width();
+  auto const nj = volume.height();
+  auto const nk = static_cast<int64_t>(volume.depth());
+
+  // origin offset by half a step to center voxels
+  vector_3d offset = origin + 0.5 * spacing;
+  vector_3d homog_pt_base = camera.leftCols<3>() * offset + camera.col(3);
+
+  vector_3d const x_step = spacing[0] * camera.col(0);
+  vector_3d const y_step = spacing[1] * camera.col(1);
+  vector_3d const z_step = spacing[2] * camera.col(2);
+
+#pragma omp parallel for
+  for (int64_t k = 0; k < nk; ++k)
+  {
+    vector_3d homog_pt_y = k * z_step + homog_pt_base;
+    for (size_t j = 0; j < nj; ++j, homog_pt_y += y_step)
+    {
+      vector_3d homog_pt = homog_pt_y;
+      for (size_t i = 0; i < ni; ++i, homog_pt += x_step)
+      {
+        volume(i, j, k) += accum_func(homog_pt);
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+
+double
+integrate_depth_maps::priv
+::ray_potiential_at_point(vector_2d const& image_pt,
+                          double const& real_d,
+                          image_of<double> const& depth) const
+{
+  int const u = static_cast<int>(image_pt.x() + 0.5);
+  int const v = static_cast<int>(image_pt.y() + 0.5);
+  if (u < 0 || u >= depth.width() ||
+      v < 0 || v >= depth.height())
+  {
+    return 0.0;
+  }
+  double const& d = depth(u, v);
+
+  if (d <= 0.0)
+  {
+    return 0.0;
+  }
+  return ray_potential(d, real_d);
+}
+
+// ----------------------------------------------------------------------------
+
+double
+integrate_depth_maps::priv
+::ray_potiential_at_point(vector_2d const& image_pt,
+                          double const& real_d,
+                          image_of<double> const& depth,
+                          image_of<double> const& weight) const
+{
+  int const u = static_cast<int>(image_pt.x() + 0.5);
+  int const v = static_cast<int>(image_pt.y() + 0.5);
+  if (u < 0 || u >= depth.width() ||
+      v < 0 || v >= depth.height())
+  {
+    return 0.0;
+  }
+  double const& d = depth(u, v);
+  double const& a = weight(u, v);
+
+  if (d <= 0.0 || a <= 0.0)
+  {
+    return 0.0;
+  }
+  return a * ray_potential(d, real_d);
+}
+
+// ----------------------------------------------------------------------------
+
+// integrate a depth image into the integration volume
 void
 integrate_depth_maps::priv
 ::integrate_depth_map(image_of<double>& volume,
@@ -86,43 +194,53 @@ integrate_depth_maps::priv
                       vector_3d const& origin,
                       vector_3d const& spacing) const
 {
-  auto const ni = volume.width();
-  auto const nj = volume.height();
-  auto const nk = static_cast<int64_t>(volume.depth());
-
-  auto const w = depth.width();
-  auto const h = depth.height();
-
-  #pragma omp parallel for
-  for (int64_t k = 0; k < nk; ++k)
+  if (camera.intrinsics()->dist_coeffs().empty())
   {
-    double const z = origin[2] + (k + 0.5) * spacing[2];
-    for (size_t j = 0; j < nj; ++j)
+    // For imagery without distortion we can combine the intrinsic and
+    // extrinsic paramters into a single 3x4 projection for faster iteration
+    if (weight.size() == 0)
     {
-      double const y = origin[1] + (j + 0.5) * spacing[1];
-      for (size_t i = 0; i < ni; ++i)
+      auto func = [&](vector_3d const& hpt)
       {
-        double const x = origin[0] + (i + 0.5) * spacing[0];
-        vector_3d world_pt = vector_3d{ x, y, z };
-        vector_2d image_pt = camera.project(world_pt);
-        int const u = static_cast<int>(std::round(image_pt.x()));
-        int const v = static_cast<int>(std::round(image_pt.y()));
-        vector_2i pixel = image_pt.cast<int>();
-        if (u < 0 || u >= w ||
-            v < 0 || v >= h)
-        {
-          continue;
-        }
-        double const& d = depth(u, v);
-        double const a = (weight.size() > 0) ? weight(u, v) : 1.0;
-
-        if (d <= 0.0 || a <= 0.0)
-        {
-          continue;
-        }
-        double real_d = camera.depth(world_pt);
-        volume(i, j, k) += a * ray_potential(d, real_d);
-      }
+        vector_2d image_pt{ hpt[0] / hpt[2], hpt[1] / hpt[2] };
+        return ray_potiential_at_point(image_pt, hpt[2], depth);
+      };
+      accumulate_projections(volume, origin, spacing,
+                             camera.as_matrix(), func);
+    }
+    else
+    {
+      auto func = [&](vector_3d const& hpt)
+      {
+        vector_2d image_pt{ hpt[0] / hpt[2], hpt[1] / hpt[2] };
+        return ray_potiential_at_point(image_pt, hpt[2], depth, weight);
+      };
+      accumulate_projections(volume, origin, spacing,
+                             camera.as_matrix(), func);
+    }
+  }
+  else
+  {
+    auto const K = camera.intrinsics();
+    if (weight.size() == 0)
+    {
+      auto func = [&](vector_3d const& hpt)
+      {
+        vector_2d image_pt = K->map(hpt);
+        return ray_potiential_at_point(image_pt, hpt[2], depth);
+      };
+      accumulate_projections(volume, origin, spacing,
+                             camera.pose_matrix(), func);
+    }
+    else
+    {
+      auto func = [&](vector_3d const& hpt)
+      {
+        vector_2d image_pt = K->map(hpt);
+        return ray_potiential_at_point(image_pt, hpt[2], depth, weight);
+      };
+      accumulate_projections(volume, origin, spacing,
+                             camera.pose_matrix(), func);
     }
   }
 }
