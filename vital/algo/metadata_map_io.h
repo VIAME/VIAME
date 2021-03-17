@@ -9,8 +9,8 @@
  *        definition \endlink.
  */
 
-#ifndef VITAL_ALGO_SERIALIZE_METADATA_MAP_H_
-#define VITAL_ALGO_SERIALIZE_METADATA_MAP_H_
+#ifndef VITAL_ALGO_METADATA_MAP_IO_H_
+#define VITAL_ALGO_METADATA_MAP_IO_H_
 
 #include <vital/algo/algorithm.h>
 
@@ -33,14 +33,14 @@ namespace algo {
 ///
 /// This class represents an abstract interface for reading and writing video
 /// metadata.
-class VITAL_ALGO_EXPORT serialize_metadata_map
-  : public kwiver::vital::algorithm_def< serialize_metadata_map >
+class VITAL_ALGO_EXPORT metadata_map_io
+  : public kwiver::vital::algorithm_def< metadata_map_io >
 {
 public:
-  virtual ~serialize_metadata_map() = default;
+  virtual ~metadata_map_io() = default;
 
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "serialize_metadata_map"; }
+  static std::string static_type_name() { return "metadata_map_io"; }
 
   /// Load metadata from the file.
   ///
@@ -97,7 +97,7 @@ public:
   bool check_configuration( vital::config_block_sptr config ) const override;
 
 protected:
-  serialize_metadata_map();
+  metadata_map_io();
 
   void set_capability( algorithm_capabilities::capability_name_t const& name,
                        bool val );
@@ -105,7 +105,7 @@ protected:
 private:
   /// Implementation specific load functionality.
   ///
-  /// Concrete implementations of serialize_metadata_map class must provide an
+  /// Concrete implementations of metadata_map_io class must provide an
   /// implementation for this method.
   ///
   /// \param filename The path to the file to load.
@@ -115,7 +115,7 @@ private:
 
   /// Implementation specific save functionality.
   ///
-  /// Concrete implementations of serialize_metadata_map class must provide an
+  /// Concrete implementations of metadata_map_io class must provide an
   /// implementation for this method.
   ///
   /// \param filename The path to the file to save.
@@ -127,8 +127,8 @@ private:
   algorithm_capabilities m_capabilities;
 };
 
-/// Shared pointer type for generic serialize_metadata_map definition type.
-using serialize_metadata_map_sptr = std::shared_ptr< serialize_metadata_map >;
+/// Shared pointer type for generic metadata_map_io definition type.
+using metadata_map_io_sptr = std::shared_ptr< metadata_map_io >;
 
 } // namespace algo
 

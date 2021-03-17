@@ -18,7 +18,7 @@
 #include "image.h"
 #include "object_track_set.h"
 #include "object_track_state.h"
-#include "serialize_metadata_map.h"
+#include "metadata_map_io.h"
 #include "string.h"
 #include "timestamp.h"
 #include "track.h"
@@ -69,7 +69,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   sreg.register_algorithm< string >( "kwiver:image_name" );
   sreg.register_algorithm< string >( "kwiver:video_name" );
 
-  areg.register_algorithm< serialize_metadata_map >();
+  areg.register_algorithm< metadata_map_io >();
 
   sreg.mark_module_as_loaded();
 }

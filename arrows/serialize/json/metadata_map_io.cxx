@@ -6,7 +6,7 @@
 /// \brief Implementation of metadata load/save functionality.
 
 #include <arrows/serialize/json/metadata.h>
-#include <arrows/serialize/json/serialize_metadata_map.h>
+#include <arrows/serialize/json/metadata_map_io.h>
 
 #include <vital/types/metadata_map.h>
 
@@ -24,27 +24,27 @@ namespace serialize {
 namespace json {
 
 // ----------------------------------------------------------------------------
-class serialize_metadata_map::priv
+class metadata_map_io::priv
 {
 public:
   metadata serializer;
 };
 
 // ----------------------------------------------------------------------------
-serialize_metadata_map
-::serialize_metadata_map()
+metadata_map_io
+::metadata_map_io()
 {
 }
 
 // ----------------------------------------------------------------------------
-serialize_metadata_map
-::~serialize_metadata_map()
+metadata_map_io
+::~metadata_map_io()
 {
 }
 
 // ----------------------------------------------------------------------------
 kwiver::vital::metadata_map_sptr
-serialize_metadata_map
+metadata_map_io
 ::load_( std::istream& fin, std::string const& filename ) const
 {
   vital::metadata_map::map_metadata_t metadata_map;
@@ -69,7 +69,7 @@ serialize_metadata_map
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_map
+metadata_map_io
 ::save_( std::ostream& fout,
          vital::metadata_map_sptr data, std::string const& filename ) const
 {

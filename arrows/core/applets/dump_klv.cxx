@@ -12,7 +12,7 @@
 #include <fstream>
 
 
-#include <vital/algo/serialize_metadata_map.h>
+#include <vital/algo/metadata_map_io.h>
 #include <vital/algo/video_input.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
@@ -51,20 +51,19 @@ add_command_options()
 
   m_cmd_options->add_options()
     ( "h,help", "Display applet usage" )
-    ( "c,config", "Configuration file for tool", cxxopts::value<std::string>() )
-    ( "o,output", "Dump configuration to file and exit", cxxopts::value<std::string>() )
-    ( "l,log", "Log metadata to a file. This uses JSON by default which "
-      "requires the KWIVER_ENABLE_SERIALIZE_JSON CMake flag. This file is "
-      "structured as an array of frames where each frame contains an array "
+    ( "c,config", "Configuration file for tool", cxxopts::value< std::string >() )
+    ( "o,output", "Dump configuration to file and exit", cxxopts::value< std::string >() )
+    ( "l,log", "Log metadata to a file. This requires the JSON serialization plugin. "
+      "The file is structured as an array of frames where each frame contains an array "
       "of metadata packets associated with that frame. Each packet is an "
       "array of metadata fields. Alternatively, the configuration file, "
       "dump_klv.conf, can be updated to use CSV instead.",
-      cxxopts::value<std::string>() )
+      cxxopts::value< std::string >() )
     ( "d,detail", "Display a detailed description of the metadata" )
     ( "q,quiet", "Do not show metadata. Overrides -d/--detail." )
 
     // positional parameters
-    ( "video-file", "Video input file", cxxopts::value<std::string>())
+    ( "video-file", "Video input file", cxxopts::value< std::string >())
     ;
 
   m_cmd_options->parse_positional("video-file");
@@ -106,7 +105,7 @@ dump_klv
   }
 
   kva::video_input_sptr video_reader;
-  kva::serialize_metadata_map_sptr metadata_serializer_ptr;
+  kva::metadata_map_io_sptr metadata_serializer_ptr;
   auto config = this->find_configuration("applets/dump_klv.conf");
 
   // If --config given, read in config file, merge in with default just generated
@@ -119,9 +118,9 @@ dump_klv
     "video_reader", config, video_reader );
   kva::video_input::get_nested_algo_configuration(
     "video_reader", config, video_reader );
-  kva::serialize_metadata_map::set_nested_algo_configuration(
+  kva::metadata_map_io::set_nested_algo_configuration(
     "metadata_serializer", config, metadata_serializer_ptr );
-  kva::serialize_metadata_map::get_nested_algo_configuration(
+  kva::metadata_map_io::get_nested_algo_configuration(
     "metadata_serializer", config, metadata_serializer_ptr );
 
   // Check to see if we are to dump config
@@ -148,7 +147,7 @@ dump_klv
     return EXIT_FAILURE;
   }
 
-  if ( !kva::serialize_metadata_map::check_nested_algo_configuration(
+  if ( !kva::metadata_map_io::check_nested_algo_configuration(
           "metadata_serializer", config ) )
   {
     std::cerr << "Invalid metadata_serializer config" << std::endl;

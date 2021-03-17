@@ -3,15 +3,15 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Interface for serialize_metadata_map
+/// \brief Interface for metadata_map_io
 /// \link kwiver::vital::algo::algorithm_def algorithm definition \endlink.
 
-#ifndef VITAL_ARROWS_SERIALIZATION_JSON_SERIALIZE_METADATA_MAP_H_
-#define VITAL_ARROWS_SERIALIZATION_JSON_SERIALIZE_METADATA_MAP_H_
+#ifndef VITAL_ARROWS_SERIALIZATION_JSON_METADATA_MAP_IO_H_
+#define VITAL_ARROWS_SERIALIZATION_JSON_METADATA_MAP_IO_H_
 
 #include <arrows/serialize/json/kwiver_serialize_json_export.h>
 
-#include <vital/algo/serialize_metadata_map.h>
+#include <vital/algo/metadata_map_io.h>
 
 #include <vital/vital_config.h>
 
@@ -29,16 +29,16 @@ namespace json {
 ///
 /// This class is a concrete implementation for reading and writing
 /// video metadata.
-class KWIVER_SERIALIZE_JSON_EXPORT serialize_metadata_map
-  : public vital::algo::serialize_metadata_map
+class KWIVER_SERIALIZE_JSON_EXPORT metadata_map_io
+  : public vital::algo::metadata_map_io
 {
 public:
   PLUGIN_INFO( "json",
                "Perform IO on video metadata using JSON." )
 
-  serialize_metadata_map();
+  metadata_map_io();
 
-  ~serialize_metadata_map();
+  ~metadata_map_io();
 
   /// Load in the data from a file.
   ///

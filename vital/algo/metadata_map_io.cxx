@@ -7,7 +7,7 @@
  * \brief Implementation of load/save wrapping functionality.
  */
 
-#include "serialize_metadata_map.h"
+#include "metadata_map_io.h"
 
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
@@ -19,7 +19,7 @@
 #include <fstream>
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::serialize_metadata_map );
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::metadata_map_io );
 /// \endcond
 
 namespace kwiver {
@@ -29,15 +29,15 @@ namespace vital {
 namespace algo {
 
 // ----------------------------------------------------------------------------
-serialize_metadata_map
-::serialize_metadata_map()
+metadata_map_io
+::metadata_map_io()
 {
-  attach_logger( "algo.serialize_metadata_map" );
+  attach_logger( "algo.metadata_map_io" );
 }
 
 // ----------------------------------------------------------------------------
 metadata_map_sptr
-serialize_metadata_map
+metadata_map_io
 ::load( std::string const& filename ) const
 {
   // Make sure that the given file path exists and is a file
@@ -57,7 +57,7 @@ serialize_metadata_map
 
 // ----------------------------------------------------------------------------
 metadata_map_sptr
-serialize_metadata_map
+metadata_map_io
 ::load( std::istream& fin, std::string const& filename ) const
 {
   return load_( fin, filename );
@@ -65,7 +65,7 @@ serialize_metadata_map
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_map
+metadata_map_io
 ::save( std::string const& filename, metadata_map_sptr data ) const
 {
   // Make sure that the given file path's containing directory exists and is
@@ -92,7 +92,7 @@ serialize_metadata_map
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_map
+metadata_map_io
 ::save( std::ostream& fout, metadata_map_sptr data, std::string const& filename ) const
 {
   save_( fout, data, filename );
@@ -100,7 +100,7 @@ serialize_metadata_map
 
 // ----------------------------------------------------------------------------
 vital::algorithm_capabilities const&
-serialize_metadata_map
+metadata_map_io
 ::get_implementation_capabilities() const
 {
   return this->m_capabilities;
@@ -108,7 +108,7 @@ serialize_metadata_map
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_map
+metadata_map_io
 ::set_capability( algorithm_capabilities::capability_name_t const& name,
                   bool val )
 {
@@ -117,14 +117,14 @@ serialize_metadata_map
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_map
+metadata_map_io
 ::set_configuration( vital::config_block_sptr config )
 {
 }
 
 // ----------------------------------------------------------------------------
 bool
-serialize_metadata_map
+metadata_map_io
 ::check_configuration( vital::config_block_sptr config ) const
 {
   return true;
