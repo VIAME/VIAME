@@ -70,7 +70,7 @@ public:
   bool enable_spatial_prior{ true };
 
   float variance_scale_factor{ 0.32f };
-  constexpr static unsigned grid_length{ 5 };
+  unsigned grid_length{ 5 };
 
   std::shared_ptr< vxl::aligned_edge_detection >
   aligned_edge_detection_filter =
@@ -131,7 +131,7 @@ pixel_feature_extractor::priv
 
   spatial_prior = vil_image_view< vxl_byte >( ni, nj, 1 );
 
-  constexpr double scale_factor =
+  double scale_factor =
     static_cast< double >( std::numeric_limits< vxl_byte >::max() ) /
     ( grid_length * grid_length - 1 );
 
@@ -413,6 +413,10 @@ pixel_feature_extractor
   config->set_value( "variance_scale_factor",
                      d->variance_scale_factor,
                      "The multiplicative value for the normalized varaince" );
+  config->set_value( "grid_length",
+                     d->grid_length,
+                     "The number of grids in each directions of the spatial "
+                     "prior" );
   return config;
 }
 
@@ -444,6 +448,7 @@ pixel_feature_extractor
 
   d->variance_scale_factor =
     config->get_value< float >( "variance_scale_factor" );
+  d->grid_length = config->get_value< unsigned >( "grid_length" );
 
   // Configure the individual filter algorithms
   d->aligned_edge_detection_filter->set_configuration(
