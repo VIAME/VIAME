@@ -77,8 +77,6 @@ public:
     std::make_shared< vxl::aligned_edge_detection >();
   std::shared_ptr< vxl::average_frames > average_frames_filter =
     std::make_shared< vxl::average_frames >();
-  std::shared_ptr< vxl::convert_image > convert_filter =
-    std::make_shared< vxl::convert_image >();
   std::shared_ptr< vxl::color_commonality_filter > color_commonality_filter =
     std::make_shared< vxl::color_commonality_filter >();
   std::shared_ptr< vxl::high_pass_filter > high_pass_bidir_filter =
@@ -90,7 +88,6 @@ public:
             std::shared_ptr< vital::algo::image_filter > > filters{
     std::make_pair( "aligned_edge", aligned_edge_detection_filter ),
     std::make_pair( "average", average_frames_filter ),
-    std::make_pair( "convert", convert_filter ),
     std::make_pair( "color_commonality", color_commonality_filter ),
     std::make_pair( "high_pass_bidir", high_pass_bidir_filter ),
     std::make_pair( "high_pass_box", high_pass_box_filter ) };
@@ -305,25 +302,23 @@ pixel_feature_extractor::priv
     filtered_images.push_back( high_pass_bidir );
   }
 
-  kwiver::vital::image_container_sptr variance_container;
-
+  vil_image_view< double > double_variance;
   if( enable_average || enable_normalized_variance )
   {
-    // This is only used internally and isn't externally configurable
-    vital::config_block_sptr convert_config =
-      vital::config_block::empty_config();
-    convert_config->set_value( "single_channel", true );
-    convert_filter->set_configuration( convert_config );
-
-    auto grayscale = convert_filter->filter( input_image );
-    variance_container = average_frames_filter->filter( grayscale );
+    auto multiplane_variance = convert_to_typed_vil_image_view< double >( input_image );
+    if( multiplane_variance.nplanes() == 3 )
+    {
+      vil_convert_planes_to_grey( multiplane_variance, double_variance );
+    }
+    else
+    {
+      vil_math_mean_over_planes( multiplane_variance, double_variance );
+    }
   }
 
   // TODO consider naming this variance since that option is used more
   if( enable_average )
   {
-    auto double_variance = convert_to_typed_vil_image_view< double >(
-      variance_container );
     auto variance = clamping_cast< pix_t >( double_variance );
 
     // 1 channel
@@ -343,8 +338,6 @@ pixel_feature_extractor::priv
   {
     // Since variance is a double and may be small, avoid premptively casting
     // to a byte
-    auto double_variance =
-      convert_to_typed_vil_image_view< double >( variance_container );
     auto scale_factor =
       variance_scale_factor / static_cast< float >( frame_number );
     vil_math_scale_values( double_variance, scale_factor );
