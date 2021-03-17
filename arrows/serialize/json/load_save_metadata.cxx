@@ -73,7 +73,7 @@ struct meta_item
       // values since this would be confusing for external applications
       else if ( trait.is_signed() )
       {
-        const int64_t value = kv::any_cast< int64_t > ( this->item_value );
+        const int value = kv::any_cast< int > ( this->item_value );
         archive( CEREAL_NVP( value ) );
         type = "integer";
       }
@@ -149,7 +149,7 @@ struct meta_item
       {
         if( trait.is_signed() )
         {
-          int64_t value;
+          int value;
           archive( CEREAL_NVP( value ) );
           this->item_value = kv::any( value );
         }
