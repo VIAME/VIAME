@@ -200,7 +200,7 @@ integrate_depth_maps::priv
     // extrinsic paramters into a single 3x4 projection for faster iteration
     if (weight.size() == 0)
     {
-      auto func = [&](vector_3d const& hpt)
+      auto func = [this, &depth](vector_3d const& hpt)
       {
         vector_2d image_pt{ hpt[0] / hpt[2], hpt[1] / hpt[2] };
         return ray_potiential_at_point(image_pt, hpt[2], depth);
@@ -210,7 +210,7 @@ integrate_depth_maps::priv
     }
     else
     {
-      auto func = [&](vector_3d const& hpt)
+      auto func = [this, &depth, &weight](vector_3d const& hpt)
       {
         vector_2d image_pt{ hpt[0] / hpt[2], hpt[1] / hpt[2] };
         return ray_potiential_at_point(image_pt, hpt[2], depth, weight);
@@ -224,7 +224,7 @@ integrate_depth_maps::priv
     auto const K = camera.intrinsics();
     if (weight.size() == 0)
     {
-      auto func = [&](vector_3d const& hpt)
+      auto func = [this, K, &depth](vector_3d const& hpt)
       {
         vector_2d image_pt = K->map(hpt);
         return ray_potiential_at_point(image_pt, hpt[2], depth);
@@ -234,7 +234,7 @@ integrate_depth_maps::priv
     }
     else
     {
-      auto func = [&](vector_3d const& hpt)
+      auto func = [this, K, &depth, &weight](vector_3d const& hpt)
       {
         vector_2d image_pt = K->map(hpt);
         return ray_potiential_at_point(image_pt, hpt[2], depth, weight);
