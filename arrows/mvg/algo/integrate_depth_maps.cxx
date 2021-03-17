@@ -361,7 +361,7 @@ integrate_depth_maps::set_configuration(vital::config_block_sptr in_config)
 
 /// Check that the algorithm's currently configuration is valid
 bool
-integrate_depth_maps::check_configuration(vital::config_block_sptr config) const
+integrate_depth_maps::check_configuration(vital::config_block_sptr) const
 {
   return true;
 }
@@ -420,7 +420,7 @@ integrate_depth_maps::integrate(
                       d_->grid_dims[2]);
 
   // fill volume with zeros
-  transform_image(voxel_grid, [] (double v) { return 0.0; });
+  transform_image(voxel_grid, [] (double) { return 0.0; });
 
   for (size_t i = 0; i < depth_maps.size(); ++i)
   {
