@@ -134,7 +134,7 @@ pixel_feature_extractor::priv
 
   spatial_prior = vil_image_view< vxl_byte >( ni, nj, 1 );
 
-  double const scale_factor =
+  constexpr double scale_factor =
     static_cast< double >( std::numeric_limits< vxl_byte >::max() ) /
     ( grid_length * grid_length - 1 );
 
@@ -197,12 +197,31 @@ template < typename out_t, typename in_t >
 vil_image_view< out_t >
 clamping_cast( vil_image_view< in_t > input_image )
 {
-  constexpr auto min_output_value =
-    static_cast< in_t >( std::numeric_limits< out_t >::min() );
-  constexpr auto max_output_value =
-    static_cast< in_t >( std::numeric_limits< out_t >::max() );
+  // Safely compute the min and max given any type of inputs
+  constexpr auto casted_in_min =
+    static_cast< double >( std::numeric_limits< in_t >::min() );
+  constexpr auto casted_out_min =
+    static_cast< double >( std::numeric_limits< out_t >::min() );
 
-  vil_clamp( input_image, input_image, min_output_value, max_output_value );
+  constexpr auto casted_in_max =
+    static_cast< double >( std::numeric_limits< in_t >::max() );
+  constexpr auto casted_out_max =
+    static_cast< double >( std::numeric_limits< out_t >::max() );
+
+  if( casted_in_min < casted_out_min || casted_in_max > casted_out_max )
+  {
+    constexpr auto min_output_value =
+      ( casted_in_min > casted_out_min
+        ? std::numeric_limits< in_t >::min()
+        : static_cast< in_t >( std::numeric_limits< out_t >::min() ) );
+
+    constexpr auto max_output_value =
+      ( casted_in_max < casted_out_max
+        ? std::numeric_limits< in_t >::max()
+        : static_cast< in_t >( std::numeric_limits< out_t >::max() ) );
+
+    vil_clamp( input_image, input_image, min_output_value, max_output_value );
+  }
 
   vil_image_view< out_t > output_image;
   vil_convert_cast( input_image, output_image );
