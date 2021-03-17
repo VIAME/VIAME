@@ -83,9 +83,9 @@ void evaluate_volume(image_container_sptr volume,
   auto world_value = [&vol_data, spacing, min_pt](vector_3d const& v)
   {
     Eigen::Vector3i index = ((v - min_pt).array() / spacing.array()).cast<int>();
-    if (index[0] < 0 || index[0] >= vol_data.width() ||
-      index[1] < 0 || index[1] >= vol_data.height() ||
-      index[2] < 0 || index[2] >= vol_data.depth())
+    if (index[0] < 0 || index[0] >= static_cast<int>(vol_data.width()) ||
+        index[1] < 0 || index[1] >= static_cast<int>(vol_data.height()) ||
+        index[2] < 0 || index[2] >= static_cast<int>(vol_data.depth()))
     {
       return std::numeric_limits<double>::quiet_NaN();
     }

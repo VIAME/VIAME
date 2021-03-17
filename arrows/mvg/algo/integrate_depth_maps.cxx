@@ -142,8 +142,8 @@ integrate_depth_maps::priv
 {
   int const u = static_cast<int>(image_pt.x() + 0.5);
   int const v = static_cast<int>(image_pt.y() + 0.5);
-  if (u < 0 || u >= depth.width() ||
-      v < 0 || v >= depth.height())
+  if (u < 0 || u >= static_cast<int>(depth.width()) ||
+      v < 0 || v >= static_cast<int>(depth.height()))
   {
     return 0.0;
   }
@@ -167,8 +167,8 @@ integrate_depth_maps::priv
 {
   int const u = static_cast<int>(image_pt.x() + 0.5);
   int const v = static_cast<int>(image_pt.y() + 0.5);
-  if (u < 0 || u >= depth.width() ||
-      v < 0 || v >= depth.height())
+  if (u < 0 || u >= static_cast<int>(depth.width()) ||
+      v < 0 || v >= static_cast<int>(depth.height()))
   {
     return 0.0;
   }
