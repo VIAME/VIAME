@@ -11,7 +11,9 @@
 #include "high_pass_filter.h"
 
 #include <arrows/vxl/image_container.h>
+
 #include <vital/config/config_block_io.h>
+#include <vital/range/iota.h>
 
 #include <vil/vil_clamp.h>
 #include <vil/vil_convert.h>
@@ -29,12 +31,13 @@ namespace arrows {
 
 namespace vxl {
 
+namespace kvr = kwiver::vital::range;
+
 // ----------------------------------------------------------------------------
 // Private implementation class
 class pixel_feature_extractor::priv
 {
 public:
-
   priv( pixel_feature_extractor* parent ) : p{ parent }
   {
   }
@@ -66,8 +69,8 @@ public:
   bool enable_normalized_variance{ true };
   bool enable_spatial_prior{ true };
 
-  float variance_scale_factor{ 0.32 };
-  unsigned grid_length{ 5 };
+  float variance_scale_factor{ 0.32f };
+  constexpr static unsigned grid_length{ 5 };
 
   std::shared_ptr< vxl::aligned_edge_detection >
   aligned_edge_detection_filter =
@@ -120,30 +123,27 @@ vil_image_view< vxl_byte >
 pixel_feature_extractor::priv
 ::generate_spatial_prior( kwiver::vital::image_container_sptr input_image )
 {
-  auto const image_data =
-    vxl::image_container::vital_to_vxl( input_image->get_image() );
+  auto const ni = static_cast< unsigned >( input_image->width() );
+  auto const nj = static_cast< unsigned >( input_image->height() );
+
   // Return the previously-computed one if the size is the same
-  if( spatial_prior.ni() == image_data->ni() &&
-      spatial_prior.nj() == image_data->nj() )
+  if( spatial_prior.ni() == ni && spatial_prior.nj() == nj )
   {
     return spatial_prior;
   }
 
-  spatial_prior = vil_image_view< vxl_byte >( image_data->ni(),
-                                              image_data->nj(), 1 );
+  spatial_prior = vil_image_view< vxl_byte >( ni, nj, 1 );
 
   double const scale_factor =
     static_cast< double >( std::numeric_limits< vxl_byte >::max() ) /
     ( grid_length * grid_length - 1 );
 
-  for( unsigned i = 0; i < image_data->ni(); i++ )
+  for( auto const i : kvr::iota( ni ) )
   {
-    auto const i_id =
-      static_cast< vxl_byte >( ( grid_length * i ) / image_data->ni() );
-    for( unsigned j = 0; j < image_data->nj(); j++ )
+    auto const i_id = ( grid_length * i ) / ni;
+    for( auto const j : kvr::iota( nj ) )
     {
-      auto const j_id =
-        static_cast< vxl_byte >( ( grid_length * j ) / image_data->nj() );
+      auto const j_id = ( grid_length * j ) / nj;
       auto const index = grid_length * j_id + i_id;
       spatial_prior( i, j ) = static_cast< vxl_byte >( index * scale_factor );
     }
@@ -217,8 +217,7 @@ convert_to_typed_vil_image_view(
 {
   auto const vxl_image_ptr = vxl::image_container::vital_to_vxl(
     input_image->get_image() );
-  auto const concrete_image = vil_convert_cast( pix_t(), vxl_image_ptr );
-  return concrete_image;
+  return vil_convert_cast( pix_t(), vxl_image_ptr );
 }
 
 // ----------------------------------------------------------------------------
