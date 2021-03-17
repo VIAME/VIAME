@@ -55,7 +55,7 @@ void make_test_data(std::vector< image_container_sptr >& depth_maps,
   core::mesh_triangulate(*cube);
 
   // create a camera sequence (elliptical path)
-  auto cams = kwiver::testing::camera_seq(20, K, 1.0, 360.0);
+  auto cams = kwiver::testing::camera_seq(10, K, 1.0, 360.0);
   camera_perspective_map pcameras;
   pcameras.set_from_base_cams(cams);
 
