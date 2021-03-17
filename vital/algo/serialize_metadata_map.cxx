@@ -16,6 +16,8 @@
 
 #include <kwiversys/SystemTools.hxx>
 
+#include <fstream>
+
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::serialize_metadata_map );
 /// \endcond
@@ -48,7 +50,17 @@ serialize_metadata_map
     VITAL_THROW( path_not_a_file, filename );
   }
 
-  return this->load_( filename );
+  std::ifstream fin{ filename };
+
+  return load( fin );
+}
+
+// ----------------------------------------------------------------------------
+metadata_map_sptr
+serialize_metadata_map
+::load( std::istream& fin, std::string const& filename ) const
+{
+  return load_( fin, filename );
 }
 
 // ----------------------------------------------------------------------------
@@ -71,7 +83,19 @@ serialize_metadata_map
     VITAL_THROW( path_not_a_directory, containing_dir );
   }
 
-  this->save_( filename, data );
+  /// \brief Default plugin algorithm registration interface implementation.
+
+  std::ofstream fout{ filename };
+
+  save( fout, data, "" );
+}
+
+// ----------------------------------------------------------------------------
+void
+serialize_metadata_map
+::save( std::ostream& fout, metadata_map_sptr data, std::string const& filename ) const
+{
+  save_( fout, data, filename );
 }
 
 // ----------------------------------------------------------------------------

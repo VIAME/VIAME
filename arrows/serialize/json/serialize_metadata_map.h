@@ -49,7 +49,7 @@ public:
   /// \param filename The path to the file to load.
   /// \returns An image container referring to the loaded image.
   kwiver::vital::metadata_map_sptr load_(
-    std::string const& filename ) const override;
+    std::istream& fin, std::string const& filename ) const override;
 
   /// Save metadata to a file.
   ///
@@ -59,8 +59,8 @@ public:
   ///
   /// \param filename The path to the file to save.
   /// \param data The metadata map for a video.
-  void save_( std::string const& filename,
-              kwiver::vital::metadata_map_sptr data ) const override;
+  void save_( std::ostream& fout, kwiver::vital::metadata_map_sptr data,
+              std::string const& filename ) const override;
 
 private:
   class priv;

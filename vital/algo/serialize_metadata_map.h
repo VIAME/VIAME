@@ -54,6 +54,14 @@ public:
   /// \returns A metadata_map_sptr pointing to the data.
   kwiver::vital::metadata_map_sptr load( std::string const& filename ) const;
 
+  /// Load metadata from the file.
+  ///
+  /// \param fin The stream to read from.
+  /// \param filename The path to the file to load.
+  /// \returns A metadata_map_sptr pointing to the data.
+  kwiver::vital::metadata_map_sptr load(
+    std::istream& fin, std::string const& filename = "stream" ) const;
+
   /// Save metadata to a file.
   ///
   /// \throws kwiver::vital::path_not_exists
@@ -67,6 +75,14 @@ public:
   /// \param data Pointer to the metadata to write.
   void save( std::string const& filename,
              kwiver::vital::metadata_map_sptr data ) const;
+
+  /// Save metadata to a stream.
+  ///
+  /// \param fout The output stream.
+  /// \param data Pointer to the metadata to write.
+  /// \param filename Filename that generated the stream. Simply for logging.
+  void save( std::ostream& fout, kwiver::vital::metadata_map_sptr data,
+             std::string const& filename = "stream" ) const;
 
   /// Return capabilities of concrete implementation.
   ///
@@ -95,7 +111,7 @@ private:
   /// \param filename The path to the file to load.
   /// \returns A metadata_map_sptr pointing to the loaded metadata.
   virtual kwiver::vital::metadata_map_sptr load_(
-    std::string const& filename ) const = 0;
+    std::istream& in_stream, std::string const& filename ) const = 0;
 
   /// Implementation specific save functionality.
   ///
@@ -104,8 +120,9 @@ private:
   ///
   /// \param filename The path to the file to save.
   /// \param data The metadata_map_sptr pointing to the metadata.
-  virtual void save_( std::string const& filename,
-                      kwiver::vital::metadata_map_sptr data ) const = 0;
+  virtual void save_( std::ostream& out_stream,
+                      kwiver::vital::metadata_map_sptr data,
+                      std::string const& filename ) const = 0;
 
   algorithm_capabilities m_capabilities;
 };

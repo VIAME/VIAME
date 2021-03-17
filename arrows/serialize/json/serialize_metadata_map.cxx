@@ -45,11 +45,9 @@ serialize_metadata_map
 // ----------------------------------------------------------------------------
 kwiver::vital::metadata_map_sptr
 serialize_metadata_map
-::load_( std::string const& filename ) const
+::load_( std::istream& fin, std::string const& filename ) const
 {
   vital::metadata_map::map_metadata_t metadata_map;
-
-  std::ifstream fin{ filename };
 
   if( fin )
   {
@@ -63,7 +61,7 @@ serialize_metadata_map
   else
   {
     VITAL_THROW( vital::file_not_read_exception, filename,
-                 "Insufficient permissions or moved file" );
+                 "Coult not read from stream" );
   }
 
   return std::make_shared< vital::simple_metadata_map >( metadata_map );
@@ -72,11 +70,9 @@ serialize_metadata_map
 // ----------------------------------------------------------------------------
 void
 serialize_metadata_map
-::save_( std::string const& filename,
-         vital::metadata_map_sptr data ) const
+::save_( std::ostream& fout,
+         vital::metadata_map_sptr data, std::string const& filename ) const
 {
-  std::ofstream fout{ filename };
-
   if( fout )
   {
     auto metadata = data->metadata();
@@ -87,7 +83,7 @@ serialize_metadata_map
   else
   {
     VITAL_THROW( vital::file_write_exception, filename,
-                 "Insufficient permissions or moved file" );
+                 "Could not write to stream" );
   }
 }
 
