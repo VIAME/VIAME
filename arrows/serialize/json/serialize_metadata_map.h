@@ -33,7 +33,7 @@ class KWIVER_SERIALIZE_JSON_EXPORT serialize_metadata_map
   : public vital::algo::serialize_metadata_map
 {
 public:
-  PLUGIN_INFO( "json_serialize_metadata_map",
+  PLUGIN_INFO( "json",
                "Perform IO on video metadata using JSON." )
 
   serialize_metadata_map();
