@@ -69,7 +69,7 @@ test_reprojection_error(
   cost_func->Evaluate(parameters, residuals.data(), NULL);
   delete cost_func;
 
-  EXPECT_NEAR( 0.0, residuals.norm(), 1e-12 );
+  EXPECT_NEAR( 0.0, residuals.norm(), 1e-11 );
 }
 
 // ----------------------------------------------------------------------------

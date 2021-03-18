@@ -15,10 +15,12 @@
 
 #include "test_random_point.h"
 
+#include <vital/math_constants.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/camera_perspective.h>
-#include <vital/types/landmark_map.h>
 #include <vital/types/feature_track_set.h>
+#include <vital/types/landmark_map.h>
+#include <vital/types/mesh.h>
 
 namespace kwiver {
 namespace testing {
@@ -43,6 +45,65 @@ cube_corners( double s, const kwiver::vital::vector_3d& c = kwiver::vital::vecto
   landmarks[7] = landmark_sptr( new landmark_d( c + vector_3d( s,  s,  s ) ) );
 
   return landmark_map_sptr( new simple_landmark_map( landmarks ) );
+}
+
+// construct a cube mesh centered at c with a side length of s
+kwiver::vital::mesh_sptr
+cube_mesh(double s, const kwiver::vital::vector_3d& c = { 0.0, 0.0, 0.0 })
+{
+  using namespace kwiver::vital;
+  s /= 2.0;
+  auto verts = new mesh_vertex_array<3> { {-s, -s, -s},
+                                          {-s, -s,  s},
+                                          {-s,  s, -s},
+                                          {-s,  s,  s},
+                                          { s, -s, -s},
+                                          { s, -s,  s},
+                                          { s,  s, -s},
+                                          { s,  s,  s} };
+  for (auto & vert : *verts)
+  {
+    vert += c;
+  }
+  auto faces = new mesh_regular_face_array<4> { {0, 1, 3, 2},
+                                                {4, 6, 7, 5},
+                                                {5, 7, 3, 1},
+                                                {6, 4, 0, 2},
+                                                {7, 6, 2, 3},
+                                                {1, 0, 4, 5} };
+  return std::make_shared<mesh>(std::unique_ptr<mesh_vertex_array_base>(verts),
+                                std::unique_ptr<mesh_face_array_base>(faces));
+}
+
+// construct a square mesh in XY centered at c with a side length of s
+kwiver::vital::mesh_sptr
+grid_mesh(unsigned width, unsigned height, double scale = 1.0,
+          const kwiver::vital::vector_3d& origin = { 0.0, 0.0, 0.0 })
+{
+  using namespace kwiver::vital;
+  auto verts = new mesh_vertex_array<3>;
+  auto faces = new mesh_regular_face_array<3>;
+  unsigned index = 0;
+  for (unsigned h = 0; h <= height; ++h)
+  {
+    for (unsigned w = 0; w <= width; ++w)
+    {
+      vector_3d vert{ scale * w, scale * h, 0.0 };
+      verts->push_back(origin + vert);
+      if (w > 0 && h > 0)
+      {
+        unsigned prev_x = index - 1;
+        unsigned prev_y = index - width - 1;
+        unsigned prev_xy = prev_y - 1;
+        faces->push_back({index, prev_xy, prev_y});
+        faces->push_back({index, prev_x, prev_xy});
+      }
+      ++index;
+    }
+  }
+
+  return std::make_shared<mesh>(std::unique_ptr<mesh_vertex_array_base>(verts),
+                                std::unique_ptr<mesh_face_array_base>(faces));
 }
 
 // construct map of landmarks will all locations at c
@@ -83,18 +144,20 @@ noisy_landmarks( kwiver::vital::landmark_map_sptr  landmarks,
 kwiver::vital::camera_map_sptr
 camera_seq(kwiver::vital::frame_id_t num_cams,
            kwiver::vital::camera_intrinsics_sptr K,
-           double scale = 1.0)
+           double scale = 1.0,
+           double degree_span = 115)
 {
   using namespace kwiver::vital;
   camera_map::map_camera_t cameras;
+  const double angle = degree_span * deg_to_rad;
 
   // create a camera sequence (elliptical path)
   rotation_d R; // identity
   for ( frame_id_t i = 0; i < num_cams; ++i )
   {
     double frac = static_cast< double > ( i ) / num_cams;
-    double x = 4 * std::cos( 2 * frac );
-    double y = 3 * std::sin( 2 * frac );
+    double x = 4 * std::cos( angle * frac );
+    double y = 3 * std::sin( angle * frac );
     simple_camera_perspective* cam =
       new simple_camera_perspective(scale * vector_3d(x,y,2+frac), R, K);
     // look at the origin
@@ -108,10 +171,12 @@ camera_seq(kwiver::vital::frame_id_t num_cams,
 kwiver::vital::camera_map_sptr
 camera_seq(kwiver::vital::frame_id_t num_cams = 20,
            kwiver::vital::simple_camera_intrinsics K =
-               kwiver::vital::simple_camera_intrinsics(1000, kwiver::vital::vector_2d(640, 480)),
-           double scale = 1.0)
+           kwiver::vital::simple_camera_intrinsics(
+             1000, { 640, 480 }, 1.0, 0.0, {}, 1280, 960),
+           double scale = 1.0,
+           double degree_span = 115)
 {
-  return camera_seq(num_cams, K.clone(), scale);
+  return camera_seq(num_cams, K.clone(), scale, degree_span);
 }
 
 // create an initial camera sequence with all cameras at the same location
