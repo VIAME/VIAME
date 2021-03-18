@@ -11,7 +11,6 @@
 #include <iostream>
 #include <fstream>
 
-
 #include <vital/algo/metadata_map_io.h>
 #include <vital/algo/video_input.h>
 

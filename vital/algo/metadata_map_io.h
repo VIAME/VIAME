@@ -56,8 +56,10 @@ public:
 
   /// Load metadata from the file.
   ///
-  /// \param fin The stream to read from.
-  /// \param filename The path to the file to load.
+  /// \param fin Stream to read from.
+  /// \param filename Filename that generated the stream. May be used for
+  ///                 logging, or in case of other operations for which the
+  ///                 filesystem path to the input is relevant.
   /// \returns A metadata_map_sptr pointing to the data.
   kwiver::vital::metadata_map_sptr load(
     std::istream& fin, std::string const& filename = "stream" ) const;
@@ -78,9 +80,11 @@ public:
 
   /// Save metadata to a stream.
   ///
-  /// \param fout The output stream.
+  /// \param fout Stream to write to.
   /// \param data Pointer to the metadata to write.
-  /// \param filename Filename that generated the stream. Simply for logging.
+  /// \param filename Filename that generated the stream. May be used for
+  ///                 logging, or in case of other operations for which the
+  ///                 filesystem path to the input is relevant.
   void save( std::ostream& fout, kwiver::vital::metadata_map_sptr data,
              std::string const& filename = "stream" ) const;
 
@@ -108,19 +112,25 @@ private:
   /// Concrete implementations of metadata_map_io class must provide an
   /// implementation for this method.
   ///
-  /// \param filename The path to the file to load.
+  /// \param fin Stream to read from.
+  /// \param filename Filename that generated the stream. May be used for
+  ///                 logging, or in case of other operations for which the
+  ///                 filesystem path to the input is relevant.
   /// \returns A metadata_map_sptr pointing to the loaded metadata.
   virtual kwiver::vital::metadata_map_sptr load_(
-    std::istream& in_stream, std::string const& filename ) const = 0;
+    std::istream& fin, std::string const& filename ) const = 0;
 
   /// Implementation specific save functionality.
   ///
   /// Concrete implementations of metadata_map_io class must provide an
   /// implementation for this method.
   ///
-  /// \param filename The path to the file to save.
+  /// \param fout Stream to write to.
   /// \param data The metadata_map_sptr pointing to the metadata.
-  virtual void save_( std::ostream& out_stream,
+  /// \param filename Filename that generated the stream. May be used for
+  ///                 logging, or in case of other operations for which the
+  ///                 filesystem path to the input is relevant.
+  virtual void save_( std::ostream& fout,
                       kwiver::vital::metadata_map_sptr data,
                       std::string const& filename ) const = 0;
 
