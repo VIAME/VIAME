@@ -87,13 +87,14 @@ metadata_map_io
 
   std::ofstream fout{ filename };
 
-  save( fout, data, "" );
+  save( fout, data, filename );
 }
 
 // ----------------------------------------------------------------------------
 void
 metadata_map_io
-::save( std::ostream& fout, metadata_map_sptr data, std::string const& filename ) const
+::save( std::ostream& fout, metadata_map_sptr data,
+        std::string const& filename ) const
 {
   save_( fout, data, filename );
 }

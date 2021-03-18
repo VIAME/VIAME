@@ -63,7 +63,7 @@ add_command_options()
     ( "q,quiet", "Do not show metadata. Overrides -d/--detail." )
 
     // positional parameters
-    ( "video-file", "Video input file", cxxopts::value< std::string >())
+    ( "video-file", "Video input file", cxxopts::value< std::string >() )
     ;
 
   m_cmd_options->parse_positional("video-file");

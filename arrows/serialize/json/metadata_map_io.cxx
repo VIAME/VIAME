@@ -61,7 +61,7 @@ metadata_map_io
   else
   {
     VITAL_THROW( vital::file_not_read_exception, filename,
-                 "Coult not read from stream" );
+                 "Could not read from stream" );
   }
 
   return std::make_shared< vital::simple_metadata_map >( metadata_map );
