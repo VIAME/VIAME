@@ -246,26 +246,48 @@ pixel_feature_extractor::priv
 
   std::vector< vil_image_view< pix_t > > filtered_images;
 
-  if( enable_color || enable_gray )
-  {
-    const auto vxl_image =
-      convert_to_typed_vil_image_view< pix_t >( input_image );
+  vil_image_view< double > double_variance;
 
+  if( enable_color )
+  {
     // 3 channels
-    if( enable_color )
+    auto color = convert_to_typed_vil_image_view< pix_t >(
+      input_image );
+    filtered_images.push_back( color );
+  }
+
+  // These three features require processing the vil_image directly
+  if( enable_gray || enable_average || enable_normalized_variance )
+  {
+    auto input_image_sptr =
+      vxl::image_container::vital_to_vxl( input_image->get_image() );
+
+    if( input_image_sptr->nplanes() == 3 )
     {
-      filtered_images.push_back( vxl_image );
+      input_image_sptr = vil_convert_to_grey_using_rgb_weighting(
+        input_image_sptr );
+    }
+    else
+    {
+      input_image_sptr = vil_convert_to_grey_using_average( input_image_sptr );
+    }
+
+    auto const double_gray = static_cast< vil_image_view< double > >(
+      vil_convert_cast( double(), input_image_sptr ) );
+
+    if( enable_average || enable_normalized_variance )
+    {
+      auto gray_container =
+        std::make_shared< vxl::image_container >( double_gray );
+      double_variance = convert_to_typed_vil_image_view< double >(
+        average_frames_filter->filter( gray_container ) );
     }
 
     // 1 channel
     if( enable_gray )
     {
-      // TODO consider vil_convert_to_grey_using_rgb_weighting
-      auto vxl_gray_sptr =
-        vil_convert_to_grey_using_average(
-          vxl::image_container::vital_to_vxl( input_image->get_image() ) );
-      auto vxl_gray = vil_convert_cast( pix_t(), vxl_gray_sptr );
-      filtered_images.push_back( vxl_gray );
+      auto pix_t_gray = clamping_cast< pix_t >( double_gray );
+      filtered_images.push_back( pix_t_gray );
     }
   }
 
@@ -300,20 +322,6 @@ pixel_feature_extractor::priv
       high_pass_bidir_filter->filter( input_image ) );
     // 3 channels
     filtered_images.push_back( high_pass_bidir );
-  }
-
-  vil_image_view< double > double_variance;
-  if( enable_average || enable_normalized_variance )
-  {
-    auto multiplane_variance = convert_to_typed_vil_image_view< double >( input_image );
-    if( multiplane_variance.nplanes() == 3 )
-    {
-      vil_convert_planes_to_grey( multiplane_variance, double_variance );
-    }
-    else
-    {
-      vil_math_mean_over_planes( multiplane_variance, double_variance );
-    }
   }
 
   // TODO consider naming this variance since that option is used more
