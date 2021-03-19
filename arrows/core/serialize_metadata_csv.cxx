@@ -2,10 +2,8 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-/**
- * \file
- * \brief Implementation of metadata writing to csv
- */
+/// \file
+/// \brief Implementation of metadata writing to csv
 
 #include "serialize_metadata_csv.h"
 
@@ -13,6 +11,7 @@
 #include <vital/exceptions/io.h>
 #include <vital/types/geo_point.h>
 #include <vital/types/geo_polygon.h>
+#include <vital/types/geodesy.h>
 
 #include <fstream>
 #include <typeinfo>
@@ -55,7 +54,10 @@ serialize_metadata_csv::priv
   {
     fout << '"' << csv_field << "\",";
   }
-  fout << csv_field << ",";
+  else
+  {
+    fout << csv_field << ",";
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -64,17 +66,12 @@ serialize_metadata_csv::priv
 ::write_csv_item( kv::metadata_item const& metadata,
                   std::ofstream& fout )
 {
-  if( metadata.tag() == kv::VITAL_META_VIDEO_URI )
-  {
-    // Don't write this internal tag
-    return;
-  }
   else if( metadata.type() == typeid( kv::geo_point ) )
   {
-    // TODO check the CRS and make sure it matches the expected one
     auto const& data = metadata.data();
     kv::geo_point point = kv::any_cast< kv::geo_point >( data );
-    kv::geo_point::geo_3d_point_t loc = point.location();
+    kv::geo_point::geo_3d_point_t loc = point.location(
+      kwiver::vital::SRID::lat_lon_WGS84 );
 
     fout << loc( 0 ) << "," << loc( 1 ) << "," << loc( 2 ) << ",";
   }
@@ -144,11 +141,6 @@ serialize_metadata_csv::priv
             "\"Lower left corner point lon (EPSG:4326)\","
             "\"Lower left corner point lat (EPSG:4326)\",";
   }
-  else if( csv_field == kv::VITAL_META_VIDEO_URI )
-  {
-    // Exclude this field as it's long and redundant across frames
-    return;
-  }
   else
   {
     // Quote all other data
@@ -200,8 +192,11 @@ serialize_metadata_csv
     {
       for( auto const& metadata_item : *metadata_packet )
       {
-        kv::vital_metadata_tag type_id = metadata_item.first;
-        metadata_ids.insert( type_id );
+        auto const type_id = metadata_item.first;
+        if( type_id != kv::VITAL_META_VIDEO_URI )
+        {
+          metadata_ids.insert( type_id );
+        }
       }
     }
   }
@@ -226,9 +221,8 @@ serialize_metadata_csv
         {
           d_->write_csv_item( metadata_packet->find( metadata_id ), fout );
         }
-        // exclude this field from writing since it's internal and
-        // shared between all frames
-        else if( metadata_id != kv::VITAL_META_VIDEO_URI )
+        // Write an empty field
+        else
         {
           fout << ",";
         }
