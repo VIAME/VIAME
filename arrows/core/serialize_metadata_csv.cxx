@@ -25,7 +25,7 @@ namespace arrows {
 
 namespace core {
 
-/// Private implementation class
+// ----------------------------------------------------------------------------
 class serialize_metadata_csv::priv
 {
 public:
@@ -37,7 +37,7 @@ public:
   // Correctly write a metadata item as one or more fields
   void write_csv_item( kv::metadata_item const& metadata,
                        std::ofstream& fout );
-// Quote csv header item as needed, and explode types as needed
+  // Quote csv header item as needed, and explode types as needed
   void write_csv_header( kv::vital_metadata_tag const& csv_field,
                          std::ofstream& fout );
 
@@ -165,8 +165,8 @@ serialize_metadata_csv
 }
 
 // ----------------------------------------------------------------------------
-serialize_metadata_csv::
-~serialize_metadata_csv()
+serialize_metadata_csv
+::~serialize_metadata_csv()
 {
 }
 
@@ -176,11 +176,6 @@ serialize_metadata_csv
 ::load_( std::string const& filename ) const
 {
   throw kv::file_write_exception( filename, "not implemented" );
-
-  kv::metadata_map::map_metadata_t metadata_map;
-
-  return std::make_shared< kv::simple_metadata_map >(
-    kv::simple_metadata_map( metadata_map ) );
 }
 
 // ----------------------------------------------------------------------------
