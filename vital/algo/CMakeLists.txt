@@ -49,6 +49,7 @@ set( public_headers
   integrate_depth_maps.h
   interpolate_track.h
   keyframe_selection.h
+  metadata_map_io.h
   match_descriptor_sets.h
   match_features.h
   merge_images.h
@@ -111,6 +112,7 @@ set( sources
   integrate_depth_maps.cxx
   interpolate_track.cxx
   keyframe_selection.cxx
+  metadata_map_io.cxx
   match_descriptor_sets.cxx
   match_features.cxx
   merge_images.cxx
