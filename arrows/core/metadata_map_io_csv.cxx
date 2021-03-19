@@ -5,7 +5,7 @@
 /// \file
 /// \brief Implementation of metadata writing to csv
 
-#include "serialize_metadata_csv.h"
+#include "metadata_map_io_csv.h"
 
 #include <vital/any.h>
 #include <vital/exceptions/io.h>
@@ -13,7 +13,7 @@
 #include <vital/types/geo_polygon.h>
 #include <vital/types/geodesy.h>
 
-#include <fstream>
+#include <iostream>
 #include <typeinfo>
 
 namespace kv = kwiver::vital;
@@ -25,29 +25,29 @@ namespace arrows {
 namespace core {
 
 // ----------------------------------------------------------------------------
-class serialize_metadata_csv::priv
+class metadata_map_io_csv::priv
 {
 public:
   priv() {}
 
   // Quote csv field if needed
   void write_csv_item( std::string const& csv_field,
-                       std::ofstream& fout );
+                       std::ostream& fout );
   // Correctly write a metadata item as one or more fields
   void write_csv_item( kv::metadata_item const& metadata,
-                       std::ofstream& fout );
+                       std::ostream& fout );
   // Quote csv header item as needed, and explode types as needed
   void write_csv_header( kv::vital_metadata_tag const& csv_field,
-                         std::ofstream& fout );
+                         std::ostream& fout );
 
   kv::metadata_traits md_traits;
 };
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_csv::priv
+metadata_map_io_csv::priv
 ::write_csv_item( std::string const& csv_field,
-                  std::ofstream& fout )
+                  std::ostream& fout )
 {
   // TODO handle other pathalogical characters such as quotes or newlines
   if( csv_field.find( ',' ) != std::string::npos )
@@ -62,16 +62,16 @@ serialize_metadata_csv::priv
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_csv::priv
+metadata_map_io_csv::priv
 ::write_csv_item( kv::metadata_item const& metadata,
-                  std::ofstream& fout )
+                  std::ostream& fout )
 {
-  else if( metadata.type() == typeid( kv::geo_point ) )
+  if( metadata.type() == typeid( kv::geo_point ) )
   {
     auto const& data = metadata.data();
     kv::geo_point point = kv::any_cast< kv::geo_point >( data );
     kv::geo_point::geo_3d_point_t loc = point.location(
-      kwiver::vital::SRID::lat_lon_WGS84 );
+                                          kwiver::vital::SRID::lat_lon_WGS84 );
 
     fout << loc( 0 ) << "," << loc( 1 ) << "," << loc( 2 ) << ",";
   }
@@ -108,9 +108,9 @@ serialize_metadata_csv::priv
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_csv::priv
+metadata_map_io_csv::priv
 ::write_csv_header( kv::vital_metadata_tag const& csv_field,
-                    std::ofstream& fout )
+                    std::ostream& fout )
 {
   if( csv_field == kv::VITAL_META_SENSOR_LOCATION )
   {
@@ -149,35 +149,34 @@ serialize_metadata_csv::priv
 }
 
 // ----------------------------------------------------------------------------
-serialize_metadata_csv
-::serialize_metadata_csv()
+metadata_map_io_csv
+::metadata_map_io_csv()
   : d_{ new priv }
 {
-  attach_logger( "arrows.core.serialize_metadata_csv" );
+  attach_logger( "arrows.core.metadata_map_io" );
 }
 
 // ----------------------------------------------------------------------------
-serialize_metadata_csv
-::~serialize_metadata_csv()
+metadata_map_io_csv
+::~metadata_map_io_csv()
 {
 }
 
 // ----------------------------------------------------------------------------
 kv::metadata_map_sptr
-serialize_metadata_csv
-::load_( std::string const& filename ) const
+metadata_map_io_csv
+::load_( std::istream& fin, std::string const& filename ) const
 {
   throw kv::file_write_exception( filename, "not implemented" );
 }
 
 // ----------------------------------------------------------------------------
 void
-serialize_metadata_csv
-::save_( std::string const& filename,
-         kv::metadata_map_sptr data ) const
+metadata_map_io_csv
+::save_( std::ostream& fout,
+         kv::metadata_map_sptr data,
+         std::string const& filename ) const
 {
-  std::ofstream fout{ filename };
-
   if( !fout )
   {
     VITAL_THROW( kv::file_write_exception, filename,

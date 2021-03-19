@@ -5,12 +5,14 @@
 /// \file
 /// \brief Interface for detected_object_set_output_csv
 
-#ifndef KWIVER_ARROWS_SERIALIZE_METADATA_CSV_H
-#define KWIVER_ARROWS_SERIALIZE_METADATA_CSV_H
+#ifndef KWIVER_ARROWS_METADATA_MAP_IO_CSV_H
+#define KWIVER_ARROWS_METADATA_MAP_IO_CSV_H
 
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/algo/serialize_metadata.h>
+#include <vital/algo/metadata_map_io.h>
+
+#include <iostream>
 
 namespace kwiver {
 
@@ -18,22 +20,23 @@ namespace arrows {
 
 namespace core {
 
-class KWIVER_ALGO_CORE_EXPORT serialize_metadata_csv
-  : public vital::algo::serialize_metadata
+class KWIVER_ALGO_CORE_EXPORT metadata_map_io_csv
+  : public vital::algo::metadata_map_io
 {
 public:
   PLUGIN_INFO( "csv",
                "Metadata map writer using CSV format." )
 
-  serialize_metadata_csv();
-  virtual ~serialize_metadata_csv();
+  metadata_map_io_csv();
+  virtual ~metadata_map_io_csv();
 
   /// Unimplemented
   ///
   /// \param filename the path to the file the load
   /// \throws kwiver::vital::file_write_exception not implemented
-  virtual kwiver::vital::metadata_map_sptr load_( std::string const& filename )
-  const;
+  kwiver::vital::metadata_map_sptr load_( std::istream& fin,
+                                          std::string const& filename )
+  const override;
 
   /// Implementation specific save functionality.
   ///
@@ -43,8 +46,9 @@ public:
   ///
   /// \param filename the path to the file to save
   /// \param data the metadata for a video to save
-  virtual void save_( std::string const& filename,
-                      kwiver::vital::metadata_map_sptr data ) const;
+  void save_( std::ostream& fout,
+              kwiver::vital::metadata_map_sptr data,
+              std::string const& filename ) const override;
 
 private:
   class priv;
