@@ -1,41 +1,12 @@
+include pipelines/detect_burnin.pipe
+
 # ================================================================
 process input
   :: video_input
-  video_filename   	= @EXAMPLE_DIR@/videos/drone-video.mp4
-  frame_time        	= .3333
+  video_filename    = @EXAMPLE_DIR@/videos/drone-video.mp4
+  frame_time        = .3333
 
-  video_reader:type	= vidl_ffmpeg
-
-# ================================================================
-process filter
-  ::image_filter
-  filter:type                    	= vxl_pixel_feature_extractor
-  filter:vxl_pixel_feature_extractor:enable_color = true # 3 channels
-  filter:vxl_pixel_feature_extractor:enable_gray = true # 1 channel
-  filter:vxl_pixel_feature_extractor:enable_color_commonality = true # 1 channel
-  filter:vxl_pixel_feature_extractor:enable_high_pass_box = true # 3 channels
-  filter:vxl_pixel_feature_extractor:enable_high_pass_bidir = true # 3 channels
-  filter:vxl_pixel_feature_extractor:enable_average = true # 1 channel
-  filter:vxl_pixel_feature_extractor:enable_aligned_edge = true # 1 channel
-  filter:vxl_pixel_feature_extractor:enable_normalized_variance = true # 1 channel
-  filter:vxl_pixel_feature_extractor:enable_spatial_prior = true # 1 channel
-
-  filter:vxl_pixel_feature_extractor:average:window_size = 25
-  filter:vxl_pixel_feature_extractor:average:type = window
-  filter:vxl_pixel_feature_extractor:average:output_variance = true
-
-  filter:vxl_pixel_feature_extractor:high_pass_box:kernel_width = 43
-  filter:vxl_pixel_feature_extractor:high_pass_box:kernel_height = 43
-  filter:vxl_pixel_feature_extractor:high_pass_box:treat_as_interlaced = false
-  filter:vxl_pixel_feature_extractor:high_pass_box:output_net_only = false
-
-  filter:vxl_pixel_feature_extractor:high_pass_bidir:kernel_width = 27
-  filter:vxl_pixel_feature_extractor:high_pass_bidir:kernel_height = 27
-  filter:vxl_pixel_feature_extractor:high_pass_bidir:treat_as_interlaced = false
-  filter:vxl_pixel_feature_extractor:high_pass_bidir:output_net_only = false
-
-  filter:vxl_pixel_feature_extractor:color_commonality:smooth_image = false
-  filter:vxl_pixel_feature_extractor:color_commonality:output_scale = 255
+  video_reader:type = vidl_ffmpeg
 
 # ================================================================
 # Optionally write out features for debugging
@@ -48,46 +19,6 @@ process filter
 #   image_writer:vxl:split_channels       = true
 
 # ================================================================
-process classifier
-  ::image_filter
-  filter:type                                          = vxl_hashed_image_classifier_filter
-  filter:vxl_hashed_image_classifier_filter:model_file = @EXAMPLE_DIR@/models/default_burnout_600_iters
-
-# ================================================================
-process averager
-  ::image_filter
-  filter:type                           = vxl_average
-  filter:vxl_average:type               = cumulative
-
-# ================================================================
-process thresholder
-  ::image_filter
-  filter:type                           = vxl_threshold
-  filter:vxl_threshold:type             = absolute
-  filter:vxl_threshold:threshold        = 0.0
-
-# ================================================================
-process closer
-  ::image_filter
-  filter:type                           = vxl_morphology
-  filter:vxl_morphology:morphology      = close
-  filter:vxl_morphology:kernel_radius   = 2.0
-
-# ================================================================
-process dilater
-  ::image_filter
-  filter:type                           = vxl_morphology
-  filter:vxl_morphology:morphology      = dilate
-  filter:vxl_morphology:kernel_radius   = 2.0
-
-# ================================================================
-process converter
-  ::image_filter
-  filter:type                           = vxl_convert_image
-  filter:vxl_convert_image:type         = byte
-  filter:vxl_convert_image:scale_factor = 255
-
-# ================================================================
 process writer
   :: image_writer
   image_writer:type                     = vxl
@@ -95,33 +26,14 @@ process writer
   image_writer:vxl:force_byte           = true
   image_writer:vxl:auto_stretch         = true
 
-# connections
-connect from input.image
-        to   filter.image
+###############################################################################
 
-connect from filter.image
-        to   classifier.image
+connect from input.image
+        to   detect_burnin__in.image
 
 # Optionally write out features for debugging
-# connect from filter.image
+# connect from detect_burnin__filter.image
 #         to filtered_writer.image
 
-connect from classifier.image
-        to averager.image
-
-connect from averager.image
-        to   thresholder.image
-
-connect from thresholder.image
-        to   closer.image
-
-connect from closer.image
-        to   dilater.image
-
-connect from dilater.image
-        to   converter.image
-
-connect from converter.image
+connect from detect_burnin__out.image
         to   writer.image
-
-# -- end of file --
