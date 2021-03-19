@@ -58,3 +58,5 @@ kwiver_install(
   )
 
 add_subdirectory(applets)
+add_subdirectory(models)
+add_subdirectory(pipelines)
