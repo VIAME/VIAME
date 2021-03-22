@@ -28,8 +28,6 @@ namespace core {
 class metadata_map_io_csv::priv
 {
 public:
-  priv() {}
-
   // Quote csv field if needed
   void write_csv_item( std::string const& csv_field,
                        std::ostream& fout );
@@ -66,12 +64,12 @@ metadata_map_io_csv::priv
 ::write_csv_item( kv::metadata_item const& metadata,
                   std::ostream& fout )
 {
+  constexpr auto crs = kwiver::vital::SRID::lat_lon_WGS84;
   if( metadata.type() == typeid( kv::geo_point ) )
   {
     auto const& data = metadata.data();
     kv::geo_point point = kv::any_cast< kv::geo_point >( data );
-    kv::geo_point::geo_3d_point_t loc = point.location(
-                                          kwiver::vital::SRID::lat_lon_WGS84 );
+    kv::geo_point::geo_3d_point_t loc = point.location( crs );
 
     fout << loc( 0 ) << "," << loc( 1 ) << "," << loc( 2 ) << ",";
   }
@@ -79,7 +77,7 @@ metadata_map_io_csv::priv
   {
     auto const& data = metadata.data();
     kv::geo_polygon poly = kv::any_cast< kv::geo_polygon >( data );
-    kv::polygon verts = poly.polygon();
+    kv::polygon verts = poly.polygon( crs );
 
     for( size_t n = 0; n < verts.num_vertices(); ++n )
     {

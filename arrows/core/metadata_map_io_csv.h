@@ -30,7 +30,7 @@ public:
   metadata_map_io_csv();
   virtual ~metadata_map_io_csv();
 
-  /// Unimplemented
+  /// Unimplemented.
   ///
   /// \param filename the path to the file the load
   /// \throws kwiver::vital::file_write_exception not implemented
