@@ -15,6 +15,14 @@ set( VIAME_VERSION "${VIAME_VERSION_MAJOR}.${VIAME_VERSION_MINOR}.${VIAME_VERSIO
 
 include( CMakeDependentOption )
 
+if( POLICY CMP0053 )
+  cmake_policy( SET CMP0053 NEW )
+endif()
+
+if( POLICY CMP0074 )
+  cmake_policy( SET CMP0074 NEW )
+endif()
+
 ###
 # Add paths used throughout CMakeLists files
 ##
