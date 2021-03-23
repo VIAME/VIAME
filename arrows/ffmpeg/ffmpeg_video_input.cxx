@@ -949,7 +949,7 @@ ffmpeg_video_input
       VITAL_THROW( kwiver::vital::video_runtime_exception, "Video stream open failed for unknown reasons");
     }
     this->set_capability(vital::algo::video_input::HAS_METADATA,
-                         d->metadata.empty() );
+                         !d->metadata.empty() );
     d->end_of_video = false;
   }
 }
