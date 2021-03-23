@@ -51,6 +51,7 @@ public:
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "write_object_track_set_db" ) )
     , m_commit_interval( 1 )
+    , m_matching_frames_only( true )
   { }
 
   ~priv() { }
@@ -61,6 +62,7 @@ public:
   std::string m_conn_str;
   std::string m_video_name;
   unsigned int m_commit_interval;
+  bool m_matching_frames_only;
   unsigned int m_commit_frame_counter;
   std::unique_ptr<cppdb::transaction> m_tran;
 };
@@ -89,6 +91,8 @@ write_object_track_set_db
   d->m_video_name = config->get_value< std::string > ( "video_name", "" );
   d->m_commit_interval =
     config->get_value<unsigned int>( "commit_interval", d->m_commit_interval );
+  d->m_matching_frames_only =
+    config->get_value<bool>( "matching_frames_only", d->m_matching_frames_only );
 }
 
 
@@ -187,7 +191,7 @@ write_object_track_set_db
         continue;
       }
 
-      if( trkstate->frame() != ts.get_frame() )
+      if( d->m_matching_frames_only && trkstate->frame() != ts.get_frame() )
       {
         continue;
       }
