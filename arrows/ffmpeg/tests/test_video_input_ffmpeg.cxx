@@ -430,6 +430,10 @@ TEST_F(ffmpeg_video_input, metadata_map)
 
   input.open(correct_file);
 
+  // metadata caapbility is false since no external metadata is present
+  auto const& caps = input.get_implementation_capabilities();
+  EXPECT_FALSE( caps.capability( kwiver::vital::algo::video_input::HAS_METADATA ) );
+
   // Get metadata map
   auto md_map = input.metadata_map()->metadata();
 
@@ -478,12 +482,19 @@ TEST_F(ffmpeg_video_input, no_sync_metadata)
   // Open the video
   vif.open(video_path);
 
+  auto const& caps = vif.get_implementation_capabilities();
+  EXPECT_TRUE( caps.capability( kwiver::vital::algo::video_input::HAS_METADATA ) );
+
   kwiver::vital::timestamp ts;
 
   unsigned int frame_num = 0;
   while (vif.next_frame(ts))
   {
     auto md_vect = vif.frame_metadata();
+
+    EXPECT_TRUE(md_vect.size() > 0)
+      << "Each frame tested should have metadata present";
+
     for (auto md : md_vect)
     {
       EXPECT_TRUE(md->has(kwiver::vital::VITAL_META_UNIX_TIMESTAMP))
@@ -535,12 +546,19 @@ TEST_F(ffmpeg_video_input, sync_metadata)
   // Open the video
   vif.open(video_path);
 
+  auto const& caps = vif.get_implementation_capabilities();
+  EXPECT_TRUE( caps.capability( kwiver::vital::algo::video_input::HAS_METADATA ) );
+
   kwiver::vital::timestamp ts;
 
   unsigned int frame_num = 0;
   while (vif.next_frame(ts))
   {
     auto md_vect = vif.frame_metadata();
+
+    EXPECT_TRUE(md_vect.size() > 0)
+      << "Each frame tested should have metadata present";
+
     for (auto md : md_vect)
     {
       EXPECT_TRUE(md->has(kwiver::vital::VITAL_META_UNIX_TIMESTAMP))
