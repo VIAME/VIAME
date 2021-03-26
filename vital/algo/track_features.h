@@ -45,9 +45,9 @@ public:
    */
   virtual feature_track_set_sptr
   track(feature_track_set_sptr prev_tracks,
-        unsigned int frame_number,
+        frame_id_t frame_number,
         image_container_sptr image_data,
-        image_container_sptr mask = image_container_sptr()) const = 0;
+        image_container_sptr mask = {}) const = 0;
 
 protected:
     track_features();

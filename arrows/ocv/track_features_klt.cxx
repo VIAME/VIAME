@@ -383,7 +383,7 @@ public:
   image_pyramid prev_pyramid;
   image_pyramid_map det_pyramids;
   detection_data_map det_data_map;
-  int prev_frame_num;
+  frame_id_t prev_frame_num;
   size_t last_detect_num_features;
   float redetect_threshold;
   cv::Mat tracked_feature_location_mask;
@@ -474,7 +474,7 @@ bool feat_stren_less(feature_sptr a, feature_sptr b)
 feature_track_set_sptr
 track_features_klt
 ::track(feature_track_set_sptr prev_tracks,
-        unsigned int frame_number,
+        frame_id_t frame_number,
         image_container_sptr image_data,
         image_container_sptr mask) const
 {
