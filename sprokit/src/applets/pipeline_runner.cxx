@@ -6,7 +6,9 @@
 
 #include <vital/config/config_block.h>
 #include <vital/config/config_block_formatter.h>
+#include <vital/config/config_block_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/util/get_paths.h>
 
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
@@ -84,11 +86,15 @@ run()
 
   sprokit::pipeline_builder builder;
 
-  // Add search path to builder.
+  // Add user-provided paths
   if ( cmd_args.count("include") > 0 )
   {
     builder.add_search_path( cmd_args["include"].as<std::vector<std::string>>() );
   }
+
+  // Add standard search locations
+  const std::string prefix = kwiver::vital::get_executable_path() + "/..";
+  builder.add_search_path( kwiver::vital::kwiver_config_file_paths( prefix ) );
 
   if ( cmd_args.count("pipe-file") == 0 )
   {
