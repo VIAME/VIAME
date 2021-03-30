@@ -449,7 +449,7 @@ class SRNNTracker(KwiverProcess):
 
             """
             # XXX ious should be defined in a more generic place
-            from kwiver.processes.simple_homog_tracker import ious
+            from kwiver.sprokit.processes.simple_homog_tracker import ious
             bboxes = []
             for det in det_dict.values():
                 bb = det.bounding_box
