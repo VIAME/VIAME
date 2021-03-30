@@ -275,31 +275,7 @@ public:
       this->f_frame_number_offset = 1;
     }
 
-    // Advance to first valid frame to get start time
-    this->f_start_time = 0;
-    if ( this->advance() )
-    {
-        this->f_start_time = this->f_pts;
-    }
-    else
-    {
-        LOG_ERROR(this->logger, "Error: failed to find valid frame to set start time");
-        this->f_start_time = -1;
-        return false;
-    }
-
-    // Now seek back to the start of the video
-    auto seek_rslt = av_seek_frame( this->f_format_context,
-                                    this->f_video_index,
-                                    0,
-                                    AVSEEK_FLAG_BACKWARD );
-    avcodec_flush_buffers( this->f_video_encoding );
-    if (seek_rslt < 0 )
-    {
-        LOG_ERROR(this->logger,
-                  "Error: failed to return to start after setting start time");
-        return false;
-    }
+    this->f_start_time = this->f_video_stream->start_time;
     this->frame_advanced = false;
     this->f_frame->data[0] = NULL;
     return true;
