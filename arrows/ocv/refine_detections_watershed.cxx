@@ -119,8 +119,9 @@ refine_detections_watershed
     auto&& det = detections->at( i );
     auto&& bbox = det->bounding_box();
     auto rect = bbox_to_mask_rect( bbox );
-    background( rect & img_rect ) = 0;
-    cv::Mat m = markers( rect & img_rect );
+    auto crop_rect = rect & img_rect;
+    background( crop_rect ) = 0;
+    cv::Mat m = markers( crop_rect );
     cv::Mat already_set = m != 0;
     cv::Mat seed;
     if( d_->seed_with_existing_masks && det->mask() )
@@ -134,8 +135,9 @@ refine_detections_watershed
       seed = cv::Mat( rect.size(), CV_8UC1, cv::Scalar( 0 ) );
       seed( ( bbox_to_mask_rect( seed_bbox ) & rect ) - rect.tl() ) = 1;
     }
-    m.setTo( i + 1, seed );
-    m.setTo( -1, seed & already_set );
+    cv::Mat crop_seed = seed( crop_rect - rect.tl() );
+    m.setTo( i + 1, crop_seed );
+    m.setTo( -1, crop_seed & already_set );
     seeds.push_back( std::move( seed ) );
   }
   markers = cv::max( markers, 0 );
