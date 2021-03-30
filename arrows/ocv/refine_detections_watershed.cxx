@@ -135,7 +135,8 @@ refine_detections_watershed
       seed = cv::Mat( rect.size(), CV_8UC1, cv::Scalar( 0 ) );
       seed( ( bbox_to_mask_rect( seed_bbox ) & rect ) - rect.tl() ) = 1;
     }
-    cv::Mat crop_seed = seed( crop_rect - rect.tl() );
+    cv::Mat crop_seed = crop_rect.empty() ? cv::Mat()
+      : seed( crop_rect - rect.tl() );
     m.setTo( i + 1, crop_seed );
     m.setTo( -1, crop_seed & already_set );
     seeds.push_back( std::move( seed ) );
@@ -152,7 +153,8 @@ refine_detections_watershed
     auto rect = bbox_to_mask_rect( bbox );
     auto crop_rect = rect & img_rect;
     auto& mask = seeds[ i ];
-    cv::Mat crop_mask = mask( crop_rect - rect.tl() );
+    cv::Mat crop_mask = crop_rect.empty() ? cv::Mat()
+      : mask( crop_rect - rect.tl() );
     crop_mask.setTo( 1, markers( crop_rect ) == i + 1 );
     // Add detection with mask to the output
     auto new_det = det->clone();
