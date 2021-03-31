@@ -99,14 +99,14 @@ refine_detections_watershed
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
-  using ic = ocv::image_container;
-  cv::Mat img = ic::vital_to_ocv( image_data->get_image(), ic::BGR_COLOR );
-  cv::Rect img_rect( 0, 0, img.cols, img.rows );
-
-  if( !detections )
+  if( !image_data || !detections )
   {
     return detections;
   }
+
+  using ic = ocv::image_container;
+  cv::Mat img = ic::vital_to_ocv( image_data->get_image(), ic::BGR_COLOR );
+  cv::Rect img_rect( 0, 0, img.cols, img.rows );
 
   cv::Mat background( img.size(), CV_8UC1, 255 );
   // Explicitly convert 0 to a Scalar to avoid interpretation as NULL

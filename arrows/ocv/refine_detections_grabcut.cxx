@@ -108,14 +108,14 @@ refine_detections_grabcut
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
-  using ic = ocv::image_container;
-  cv::Mat img = ic::vital_to_ocv( image_data->get_image(), ic::BGR_COLOR );
-  cv::Rect img_rect( 0, 0, img.cols, img.rows );
-
-  if( !detections )
+  if( !image_data || !detections )
   {
     return detections;
   }
+
+  using ic = ocv::image_container;
+  cv::Mat img = ic::vital_to_ocv( image_data->get_image(), ic::BGR_COLOR );
+  cv::Rect img_rect( 0, 0, img.cols, img.rows );
 
   auto result = std::make_shared< vital::detected_object_set >();
   for( auto const& det : *detections )
