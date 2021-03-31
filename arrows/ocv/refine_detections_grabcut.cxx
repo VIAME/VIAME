@@ -142,9 +142,15 @@ refine_detections_grabcut
       auto fgbbox = vital::scale_about_center( bbox, d_->foreground_scale_factor );
       mask_roi( bbox_to_mask_rect( fgbbox ) & mask_rect ) = cv::GC_FGD;
     }
-    cv::Mat crop_mask = mask_roi( ctx_rect );
-    cv::grabCut( img( ctx_rect ), crop_mask, cv::Rect(), bgdModel, fgdModel,
-                 d_->iter_count, cv::GC_INIT_WITH_MASK );
+    // In two cases calling cv::grabCut doesn't make sense, so skip it:
+    // - rect is outside of img_rect, so there's no foreground
+    // - rect contains ctx_rect, so there's no background
+    if( !( rect & img_rect ).empty() && ( rect & ctx_rect ) != ctx_rect )
+    {
+      cv::Mat crop_mask = mask_roi( ctx_rect );
+      cv::grabCut( img( ctx_rect ), crop_mask, cv::Rect(), bgdModel, fgdModel,
+                   d_->iter_count, cv::GC_INIT_WITH_MASK );
+    }
     // Crop mask and relabel pixels
     mask = mask_roi( rect ).clone();
     std::array< uint8_t, 256 > lut;
