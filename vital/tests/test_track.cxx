@@ -83,3 +83,20 @@ TEST(track, remove_by_frame)
   EXPECT_EQ( t, ts4->track() );
   EXPECT_EQ( nullptr, ts2->track() );
 }
+
+// ----------------------------------------------------------------------------
+TEST(track, contains)
+{
+  auto t = kwiver::vital::track::create();
+  auto ts1 = std::make_shared< kwiver::vital::track_state >( 1 );
+  auto ts4 = std::make_shared< kwiver::vital::track_state >( 4 );
+
+  t->insert( ts1 );
+  t->insert( ts4 );
+
+  EXPECT_EQ( 2, t->size() );
+  EXPECT_TRUE( t->contains( 1 ) );
+  EXPECT_TRUE( t->contains( 4 ) );
+  EXPECT_FALSE( t->contains( 2 ) );
+  EXPECT_FALSE( t->contains( 5 ) );
+}
