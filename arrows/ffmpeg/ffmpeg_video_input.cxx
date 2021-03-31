@@ -71,7 +71,8 @@ public:
     number_of_frames(0),
     collected_all_metadata(false),
     estimated_num_frames(false),
-    sync_metadata(true)
+    sync_metadata(true),
+    max_seek_back_attempts(10)
   { }
 
   // f_* variables are FFmpeg specific
@@ -139,6 +140,7 @@ public:
   bool collected_all_metadata;
   bool estimated_num_frames;
   bool sync_metadata;
+  size_t max_seek_back_attempts;
 
   // ==================================================================
   /*
@@ -527,6 +529,7 @@ public:
       this->stream_time_base_to_frame() + this->f_start_time;
 
     bool advance_successful = false;
+    size_t num_of_attempts = 0;
     do
     {
       auto seek_rslt = av_seek_frame( this->f_format_context,
@@ -544,6 +547,12 @@ public:
       // Continue to make seek request further back until we land at a frame
       // that is before the requested frame.
       frame_ts -= this->f_backstep_size * this->stream_time_base_to_frame();
+      num_of_attempts++;
+      if ( num_of_attempts > this->max_seek_back_attempts )
+      {
+        LOG_ERROR( this->logger, "Seek failed, unable to seek back to early timestamp" );
+        return false;
+      }
     }
     while( this->frame_number() > frame - 1 || !advance_successful );
 
