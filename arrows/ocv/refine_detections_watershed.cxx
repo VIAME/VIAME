@@ -99,14 +99,14 @@ refine_detections_watershed
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
-  using ic = ocv::image_container;
-  cv::Mat img = ic::vital_to_ocv( image_data->get_image(), ic::BGR_COLOR );
-  cv::Rect img_rect( 0, 0, img.cols, img.rows );
-
-  if( !detections )
+  if( !image_data || !detections )
   {
     return detections;
   }
+
+  using ic = ocv::image_container;
+  cv::Mat img = ic::vital_to_ocv( image_data->get_image(), ic::BGR_COLOR );
+  cv::Rect img_rect( 0, 0, img.cols, img.rows );
 
   cv::Mat background( img.size(), CV_8UC1, 255 );
   // Explicitly convert 0 to a Scalar to avoid interpretation as NULL
@@ -119,8 +119,9 @@ refine_detections_watershed
     auto&& det = detections->at( i );
     auto&& bbox = det->bounding_box();
     auto rect = bbox_to_mask_rect( bbox );
-    background( rect & img_rect ) = 0;
-    cv::Mat m = markers( rect & img_rect );
+    auto crop_rect = rect & img_rect;
+    background( crop_rect ) = 0;
+    cv::Mat m = markers( crop_rect );
     cv::Mat already_set = m != 0;
     cv::Mat seed;
     if( d_->seed_with_existing_masks && det->mask() )
@@ -134,8 +135,10 @@ refine_detections_watershed
       seed = cv::Mat( rect.size(), CV_8UC1, cv::Scalar( 0 ) );
       seed( ( bbox_to_mask_rect( seed_bbox ) & rect ) - rect.tl() ) = 1;
     }
-    m.setTo( i + 1, seed );
-    m.setTo( -1, seed & already_set );
+    cv::Mat crop_seed = crop_rect.empty() ? cv::Mat()
+      : seed( crop_rect - rect.tl() );
+    m.setTo( i + 1, crop_seed );
+    m.setTo( -1, crop_seed & already_set );
     seeds.push_back( std::move( seed ) );
   }
   markers = cv::max( markers, 0 );
@@ -150,7 +153,8 @@ refine_detections_watershed
     auto rect = bbox_to_mask_rect( bbox );
     auto crop_rect = rect & img_rect;
     auto& mask = seeds[ i ];
-    cv::Mat crop_mask = mask( crop_rect - rect.tl() );
+    cv::Mat crop_mask = crop_rect.empty() ? cv::Mat()
+      : mask( crop_rect - rect.tl() );
     crop_mask.setTo( 1, markers( crop_rect ) == i + 1 );
     // Add detection with mask to the output
     auto new_det = det->clone();
