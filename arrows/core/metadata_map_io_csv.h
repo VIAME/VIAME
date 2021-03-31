@@ -34,9 +34,8 @@ public:
   ///
   /// \param filename the path to the file the load
   /// \throws kwiver::vital::file_write_exception not implemented
-  kwiver::vital::metadata_map_sptr load_( std::istream& fin,
-                                          std::string const& filename )
-  const override;
+  kwiver::vital::metadata_map_sptr load_(
+    std::istream& fin, std::string const& filename ) const override;
 
   /// Implementation specific save functionality.
   ///
