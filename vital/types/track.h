@@ -211,8 +211,16 @@ public:
 
   /// Remove track state.
   ///
+  /// \param frame The state to remove.
   /// \returns \c true if the state was found and removed.
   bool remove( track_state_sptr const& state );
+
+  /// Remove track state by frame number.
+  ///
+  /// \param frame The frame number at which to remove a state.
+  /// \returns \c true if a state with the specified frame number was found and
+  ///          removed.
+  bool remove( frame_id_t frame );
 
   /// Remove all track states.
   void clear();
@@ -241,6 +249,11 @@ public:
   /// \return \c true if the track contains the specified \p frame,
   ///         otherwise \c false.
   bool contains( frame_id_t frame ) const;
+
+  /// Erase track state at iterator.
+  ///
+  /// \return An iterator to the item which followed the erased item.
+  history_const_itr erase( history_const_itr );
 
   /// Return the set of all frame identifiers covered by this track.
   std::set< frame_id_t > all_frame_ids() const;
