@@ -229,11 +229,18 @@ public:
   /// Access the last entry of the history.
   track_state_sptr back() const { return history_.back(); }
 
-  /// Find the track state iterator matching \a frame.
+  /// Find the track state iterator matching \p frame.
   ///
   /// \param frame The frame number to access.
   /// \return An iterator at the frame if found, or end() if not.
   history_const_itr find( frame_id_t frame ) const;
+
+  /// Test if the track contains \p frame.
+  ///
+  /// \param frame The frame number to find.
+  /// \return \c true if the track contains the specified \p frame,
+  ///         otherwise \c false.
+  bool contains( frame_id_t frame ) const;
 
   /// Return the set of all frame identifiers covered by this track.
   std::set< frame_id_t > all_frame_ids() const;

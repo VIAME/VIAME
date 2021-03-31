@@ -224,6 +224,14 @@ track
 }
 
 // ----------------------------------------------------------------------------
+bool
+track
+::contains( frame_id_t frame ) const
+{
+  return this->find( frame ) != this->end();
+}
+
+// ----------------------------------------------------------------------------
 std::set< frame_id_t >
 track
 ::all_frame_ids() const
