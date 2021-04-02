@@ -214,7 +214,13 @@ track
   {
     ( *iter )->track_.reset();
   }
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
+  // GCC 4.8 is missing C++11 vector::erase(const_iterator)
+  auto const offset = iter - this->history_.cbegin();
+  return this->history_.erase( this->history_.begin() + offset );
+#else
   return this->history_.erase( iter );
+#endif
 }
 
 // ----------------------------------------------------------------------------
