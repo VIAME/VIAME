@@ -72,6 +72,7 @@ CentOS
 A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
+[VIAME v0.14.1 Windows 7\*/8/10, GPU Enabled, Wizard (.msi)](https://viame.kitware.com/api/v1/item/606b5a99222f89bbdd03ac40/download) <br>
 [VIAME v0.14.1 Windows 7\*/8/10, GPU Enabled, Mirror1 (.zip)](https://viame.kitware.com/api/v1/item/604ec164bc3f8f99bba19f1d/download) <br>
 [VIAME v0.14.1 Windows 7\*/8/10, GPU Enabled, Mirror2 (.zip)](https://drive.google.com/file/d/1jBM8gID-1O9dhVC7nKca8acXD5P5qCuL/view?usp=sharing) <br>
 [VIAME v0.14.1 Windows 7\*/8/10, CPU Only, Mirror1 (.zip)](https://viame.kitware.com/api/v1/item/604ebf73bc3f8f99bba19f1a/download) <br>
