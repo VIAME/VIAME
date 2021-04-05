@@ -44,13 +44,10 @@ import ubelt as ub
 
 class NetharnRefiner(RefineDetections):
     """
-    Full-Frame Classifier
-
-    Note: there is no kwiver base class for classifiers, so we abuse the
-    detector interface.
+    Full-Frame Classifier around Detection Sets
 
     CommandLine:
-        xdoctest -m ~/code/VIAME/plugins/pytorch/netharn_classifier.py NetharnRefiner --show
+        xdoctest -m ~/code/VIAME/plugins/pytorch/netharn_classifier.py NetharnRefiner
 
     Example:
         >>> self = NetharnRefiner()
@@ -65,7 +62,6 @@ class NetharnRefiner(RefineDetections):
         >>> object_type = detected_objects[0].type()
         >>> class_names = object_type.all_class_names()
         >>> cname_to_prob = {cname: object_type.score(cname) for cname in class_names}
-        >>> print('cname_to_prob = {}'.format(ub.repr2(cname_to_prob, nl=1, precision=4)))
     """
 
     def __init__(self):
@@ -77,6 +73,8 @@ class NetharnRefiner(RefineDetections):
             'xpu': "0",
             'batch_size': "auto",
             'area_pivot': "0",
+            'area_lower_bound': "0",
+            'area_upper_bound': "0",
             'border_exclude': "-1",
             'average_prior': "False"
         }
@@ -111,7 +109,7 @@ class NetharnRefiner(RefineDetections):
                     gpu_mem = torch.cuda.get_device_properties(gpu_id).total_memory
                 else:
                     self._gpu_count = torch.cuda.device_count()
-                    for i in range( self._gpu_count ):
+                    for i in range(self._gpu_count):
                         single_gpu_mem = torch.cuda.get_device_properties(i).total_memory
                     if gpu_mem == 0:
                         gpu_mem = single_gpu_mem
@@ -131,8 +129,16 @@ class NetharnRefiner(RefineDetections):
         self.predictor = clf_predict.ClfPredictor(pred_config)
         self.predictor._ensure_model()
         self._area_pivot = int(self._kwiver_config['area_pivot'])
+        self._area_lower_bound = int(self._kwiver_config['area_lower_bound'])
+        self._area_upper_bound = int(self._kwiver_config['area_upper_bound'])
         self._border_exclude = int(self._kwiver_config['border_exclude'])
         self._average_prior = strtobool(self._kwiver_config['average_prior'])
+
+        if self._area_pivot < 0:
+            self._area_upper_bound = -self._area_pivot
+        elif self._area_pivot > 0:
+            self._area_lower_bound = self._area_pivot
+
         return True
 
     def check_configuration(self, cfg):
@@ -143,36 +149,36 @@ class NetharnRefiner(RefineDetections):
 
     def refine(self, image_data, detections):
 
-        if len( detections ) == 0:
+        if len(detections) == 0:
             return detections
 
         img = image_data.asarray().astype('uint8')
         predictor = self.predictor
 
-        img_max_x = np.shape( img )[1]
-        img_max_y = np.shape( img )[0]
+        img_max_x = np.shape(img)[1]
+        img_max_y = np.shape(img)[0]
 
         # Extract patches for ROIs
         image_chips = []
         detection_ids = []
 
-        for i, det in enumerate( detections ):
+        for i, det in enumerate(detections):
             # Extract chip for this detection
             bbox = det.bounding_box()
 
-            bbox_min_x = int( bbox.min_x() )
-            bbox_max_x = int( bbox.max_x() )
-            bbox_min_y = int( bbox.min_y() )
-            bbox_max_y = int( bbox.max_y() )
+            bbox_min_x = int(bbox.min_x())
+            bbox_max_x = int(bbox.max_x())
+            bbox_min_y = int(bbox.min_y())
+            bbox_max_y = int(bbox.max_y())
 
             bbox_width = bbox_max_x - bbox_min_x
             bbox_height = bbox_max_y - bbox_min_y
 
             bbox_area = bbox_width * bbox_height
 
-            if self._area_pivot > 1 and bbox_area < self._area_pivot:
+            if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
                 continue
-            if self._area_pivot < -1 and bbox_area > -self._area_pivot:
+            if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
                 continue
 
             if self._border_exclude > 0:
@@ -186,18 +192,18 @@ class NetharnRefiner(RefineDetections):
                     continue
 
             crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
-            image_chips.append( crop )
-            detection_ids.append( i )
+            image_chips.append(crop)
+            detection_ids.append(i)
 
         # Run classifier on ROIs
-        classifications = list( predictor.predict( image_chips ) )
+        classifications = list(predictor.predict(image_chips))
 
         # Put classifications back into detections
         output = DetectedObjectSet()
 
-        for i, det in enumerate( detections ):
-            if len( detection_ids ) == 0 or i != detection_ids[0]:
-                output.add( det )
+        for i, det in enumerate(detections):
+            if len(detection_ids) == 0 or i != detection_ids[0]:
+                output.add(det)
                 continue
 
             new_class = classifications[0]
@@ -216,17 +222,17 @@ class NetharnRefiner(RefineDetections):
                 prior_names = priors.class_names()
                 for name in prior_names:
                     if name in class_names:
-                        class_scores[ class_names.index( name ) ] += priors.score( name )
+                        class_scores[ class_names.index(name) ] += priors.score(name)
                     else:
-                        class_names.append( name )
-                        class_scores.append( priors.score( name ) )
+                        class_names.append(name)
+                        class_scores.append(priors.score(name))
                 for i in range(len(class_scores)):
                     class_scores[i] = class_scores[i] * 0.5
 
             detected_object_type = DetectedObjectType(class_names, class_scores)
             det.set_type(detected_object_type)
 
-            output.add( det )
+            output.add(det)
             detection_ids.pop(0)
             classifications.pop(0)
 
@@ -305,9 +311,9 @@ def __vital_algorithm_register__():
     implementation_name = "netharn"
 
     if not algorithm_factory.has_algorithm_impl_name(
-            NetharnRefiner.static_type_name(), implementation_name ):
+            NetharnRefiner.static_type_name(), implementation_name):
         algorithm_factory.add_algorithm(
             implementation_name, "PyTorch Netharn refiner routine",
-            NetharnRefiner )
+            NetharnRefiner)
 
-        algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+        algorithm_factory.mark_algorithm_as_loaded(implementation_name)

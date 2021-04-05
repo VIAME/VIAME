@@ -206,8 +206,6 @@ set( CORE_PIPELINE_FILES
   pipelines/common_image_stabilizer.pipe
   pipelines/common_stabilized_iou_tracker.pipe
   pipelines/database_apply_svm_models.pipe
-  pipelines/detector_add_segmentations.pipe
-  pipelines/detector_add_head_tail_keypoints.pipe
   pipelines/detector_extract_chips.pipe
   pipelines/detector_fish_without_motion.pipe
   pipelines/detector_generic_proposals.pipe
@@ -226,11 +224,6 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_to_kwa.pipe
   pipelines/full_frame_classifier_local.pipe
   pipelines/full_frame_classifier_svm.pipe
-  pipelines/generate_empty_frame_lbls_1fr.pipe
-  pipelines/generate_empty_frame_lbls_10fr.pipe
-  pipelines/generate_empty_frame_lbls_100fr.pipe
-  pipelines/generate_empty_frame_lbls_1000fr.pipe
-  pipelines/generate_reset_detections.pipe
   pipelines/index_default.pipe
   pipelines/index_default.svm.pipe
   pipelines/index_default.trk.pipe
@@ -273,7 +266,13 @@ set( CORE_PIPELINE_FILES
   pipelines/train_yolo_704.viame_csv.conf
   pipelines/train_yolo_alt_704.viame_csv.conf
   pipelines/train_yolo_stereo_704.habcam.conf
-  pipelines/train_yolo_wtf_704.viame_csv.conf )
+  pipelines/train_yolo_wtf_704.viame_csv.conf
+  pipelines/utility_add_head_tail_keypoints.pipe
+  pipelines/utility_add_segmentations_watershed.pipe
+  pipelines/utility_empty_frame_lbls_1fr.pipe
+  pipelines/utility_empty_frame_lbls_10fr.pipe
+  pipelines/utility_empty_frame_lbls_100fr.pipe
+  pipelines/utility_empty_frame_lbls_1000fr.pipe )
 
 if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
@@ -398,7 +397,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_short_term_tracker.pipe
-    pipelines/tracker_track_user_selections.pipe )
+    pipelines/utility_track_user_selections.pipe )
 endif()
 
 if( VIAME_ENABLE_ITK )

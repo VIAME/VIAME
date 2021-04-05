@@ -7,12 +7,7 @@ config _pipeline:_edge
   :capacity                                                      5
 
 # ====================== INPUT FRAME LIST ========================
-process input
-  :: video_input
-  :video_filename                                   input_list.txt
-  :frame_time                                              0.03333
-  :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type                   vxl
+include common_default_input_with_downsampler.pipe
 
 process detection_reader
   :: detected_object_input
@@ -29,7 +24,7 @@ process ensure_rgb
     :force_three_channel                                      true
   endblock
 
-connect from input.image
+connect from downsampler.output_1
         to   ensure_rgb.image
 
 process detection_refiner
@@ -48,7 +43,7 @@ process detector_writer
   :writer:type                                           viame_csv
   :writer:viame_csv:mask_to_poly_tol                          0.05
 
-connect from input.file_name
+connect from downsampler.output_2
         to   detector_writer.image_file_name
 connect from detection_refiner.detected_object_set
         to   detector_writer.detected_object_set
