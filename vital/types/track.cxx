@@ -187,9 +187,40 @@ track
     return false;
   }
 
-  (*pos)->track_.reset();
-  this->history_.erase(pos);
+  this->erase(pos);
   return true;
+}
+
+// ----------------------------------------------------------------------------
+bool
+track
+::remove( frame_id_t frame )
+{
+  auto const iter = this->find( frame );
+  if( iter == this->end() )
+  {
+    return false;
+  }
+  this->erase( iter );
+  return true;
+}
+
+// ----------------------------------------------------------------------------
+track::history_const_itr
+track
+::erase( history_const_itr iter )
+{
+  if( *iter )
+  {
+    ( *iter )->track_.reset();
+  }
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
+  // GCC 4.8 is missing C++11 vector::erase(const_iterator)
+  auto const offset = iter - this->history_.cbegin();
+  return this->history_.erase( this->history_.begin() + offset );
+#else
+  return this->history_.erase( iter );
+#endif
 }
 
 // ----------------------------------------------------------------------------
