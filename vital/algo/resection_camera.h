@@ -9,6 +9,7 @@
 #define VITAL_ALGO_RESECTION_CAMERA_H_
 
 #include <vital/algo/algorithm.h>
+
 #include <vital/types/camera_perspective.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/types/landmark_map.h>
@@ -34,25 +35,31 @@ public:
   /// Estimate camera parameters from 3D points and their corresponding
   /// projections.
   ///
-  /// \param [in] pts2d 2d projections of pts3d points
-  /// \param [in] pts3d 3d points in a 1-1 correspondence with pts2d
-  /// \param [out] inliers inlier flags for the point pairs
+  /// \param [in] image_points
+  ///   the 2D image space locations which are projections of \p world_points
+  /// \param [in] world_points
+  ///   locations in 3D world space corresponding to the \p image_points
+  /// \param [out] inliers estimated inlier status for the point pairs
   /// \param [in] cal initial guess on intrinsic parameters of the camera
   /// \return estimated camera parameters
   virtual
   kwiver::vital::camera_perspective_sptr
   resection(
-    std::vector< kwiver::vital::vector_2d > const& pts2d,
-    std::vector< kwiver::vital::vector_3d > const& pts3d,
+    std::vector< kwiver::vital::vector_2d > const& image_points,
+    std::vector< kwiver::vital::vector_3d > const& world_points,
     std::vector< bool >& inliers,
     kwiver::vital::camera_intrinsics_sptr cal ) const = 0;
 
   /// Estimate camera parameters for a frame from landmarks and tracks.
   ///
-  /// This is a convenience function, callin internally
-  /// resection(pts2d, pts3d, ...) with the recoverd point correspondences.
+  /// This is a convenience function for resectioning a camera for a particular
+  /// frame number in a collection of tracks with corresponding landmarks.
+  /// This function extracts corresponding image and worlds points from the
+  /// \p tracks and \p landmarks and then calls resection on those.
+  /// The image \p width and \p height are used to construct an initial
+  /// guess of camera intrinsics.
   ///
-  /// \param [in] frmID frame number for which to estimate a camera
+  /// \param [in] frame_id frame number for which to estimate a camera
   /// \param [in] landmarks 3D landmark locations to constrain camera
   /// \param [in] tracks 2D feature tracks in image coordinates
   /// \param [in] width image size in the x dimension in pixels
@@ -61,17 +68,19 @@ public:
   virtual
   kwiver::vital::camera_perspective_sptr
   resection(
-    kwiver::vital::frame_id_t frmID,
+    kwiver::vital::frame_id_t frame_id,
     kwiver::vital::landmark_map_sptr landmarks,
     kwiver::vital::feature_track_set_sptr tracks,
     unsigned width, unsigned height ) const;
 
   /// Estimate camera parameters for a frame from landmarks and tracks.
   ///
-  /// This is a convenience overload; the default implementation calls
-  /// resection(pts2d, pts3d, ...) with the recovered point correspondences.
+  /// This is a convenience function for resectioning a camera for a particular
+  /// frame number in a collection of tracks with corresponding landmarks.
+  /// This function extracts corresponding image and worlds points from the
+  /// \p tracks and \p landmarks and then calls resection on those.
   ///
-  /// \param [in] frmID frame number for which to estimate a camera
+  /// \param [in] frame_id frame number for which to estimate a camera
   /// \param [in] landmarks 3D landmarks locations to constrain camera
   /// \param [in] tracks 2D feature tracks in image coordinates
   /// \param [in] cal initial guess on intrinsic parameters of the camera
@@ -79,7 +88,7 @@ public:
   virtual
   kwiver::vital::camera_perspective_sptr
   resection(
-    kwiver::vital::frame_id_t frmID,
+    kwiver::vital::frame_id_t frame_id,
     kwiver::vital::landmark_map_sptr landmarks,
     kwiver::vital::feature_track_set_sptr tracks,
     kwiver::vital::camera_intrinsics_sptr cal ) const;

@@ -12,8 +12,6 @@
 INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::resection_camera );
 /// \endcond
 
-using namespace std;
-
 namespace kwiver {
 
 namespace vital {
@@ -53,11 +51,11 @@ resection_camera
              feature_track_set_sptr tracks,
              kwiver::vital::camera_intrinsics_sptr cal ) const
 {
-  auto world_points = vector< vector_3d >{};
-  auto camera_points = vector< vector_2d >{};
+  auto world_points = std::vector< vector_3d >{};
+  auto camera_points = std::vector< vector_2d >{};
 
   auto const& real_landmarks = landmarks->landmarks();
-  for( auto const& fts : tracks->frame_feature_track_states(frame_id) )
+  for( auto const& fts : tracks->frame_feature_track_states( frame_id ) )
   {
     auto lmi = real_landmarks.find( fts->track()->id() );
     if( lmi != real_landmarks.end() )
@@ -68,7 +66,7 @@ resection_camera
   }
 
   // Resection camera using point correspondences and initial calibration guess.
-  vector< bool > inliers;
+  std::vector< bool > inliers;
   return resection( camera_points, world_points, inliers, cal );
 }
 
