@@ -44,6 +44,7 @@ set( ocv_headers_public
   match_set.h
   merge_images.h
   refine_detections_write_to_disk.h
+  resection_camera.h
   split_image.h
   track_features_klt.h
   )
@@ -97,6 +98,7 @@ set( ocv_sources
   match_set.cxx
   merge_images.cxx
   refine_detections_write_to_disk.cxx
+  resection_camera.cxx
   split_image.cxx
   track_features_klt.cxx
   )
