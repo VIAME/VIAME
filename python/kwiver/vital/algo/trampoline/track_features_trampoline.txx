@@ -50,7 +50,7 @@ class track_features_trampoline :
 
     kwiver::vital::feature_track_set_sptr
     track( kwiver::vital::feature_track_set_sptr prev_tracks,
-           unsigned int frame_number,
+           kwiver::vital::frame_id_t frame_number,
            kwiver::vital::image_container_sptr image_data,
            kwiver::vital::image_container_sptr mask ) const override
     {
