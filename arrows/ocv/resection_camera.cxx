@@ -108,8 +108,8 @@ resection_camera
 ::resection(
   std::vector< kwiver::vital::vector_2d > const& image_points,
   std::vector< kwiver::vital::vector_3d > const& world_points,
-  std::vector< bool >& inliers,
-  vital::camera_intrinsics_sptr cal ) const
+  vital::camera_intrinsics_sptr cal,
+  std::vector< bool >* inliers ) const
 {
   if( cal == nullptr )
   {
@@ -179,15 +179,19 @@ resection_camera
 
   cv::Mat rvec = vrvec[ 0 ];
   cv::Mat tvec = vtvec[ 0 ];
-  std::vector< cv::Point2f > projected_points;
-  projectPoints( cv_world_points, rvec, tvec, cv_K,
-                 dist_coeffs, projected_points );
 
-  inliers.resize( point_count );
-  for( auto const i : kvr::iota( point_count ) )
+  if( inliers )
   {
-    auto const delta = norm( projected_points[ i ] - cv_image_points[ i ] );
-    inliers[ i ] = ( delta < reproj_error );
+    std::vector< cv::Point2f > projected_points;
+    projectPoints( cv_world_points, rvec, tvec, cv_K,
+                   dist_coeffs, projected_points );
+
+    inliers->resize( point_count );
+    for( auto const i : kvr::iota( point_count ) )
+    {
+      auto const delta = norm( projected_points[ i ] - cv_image_points[ i ] );
+      ( *inliers )[ i ] = ( delta < reproj_error );
+    }
   }
 
   auto res_cam = std::make_shared< vital::simple_camera_perspective >();

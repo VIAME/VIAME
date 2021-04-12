@@ -46,8 +46,8 @@ public:
   resection(
     std::vector< kwiver::vital::vector_2d > const& image_points,
     std::vector< kwiver::vital::vector_3d > const& world_points,
-    std::vector< bool >& inliers,
-    kwiver::vital::camera_intrinsics_sptr cal ) const override;
+    kwiver::vital::camera_intrinsics_sptr initial_calibration,
+    std::vector< bool >* inliers ) const override;
 
   using vital::algo::resection_camera::resection;
 

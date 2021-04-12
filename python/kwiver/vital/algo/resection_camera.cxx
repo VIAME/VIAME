@@ -25,8 +25,8 @@ void resection_camera(py::module &m)
                      (kwiver::vital::algo::resection_camera::*)
                      (std::vector<kwiver::vital::vector_2d> const&,
                       std::vector<kwiver::vital::vector_3d> const&,
-                      std::vector<bool>&,
-                      kwiver::vital::camera_intrinsics_sptr) const>
+                      kwiver::vital::camera_intrinsics_sptr,
+                      std::vector<bool>*) const>
          (&kwiver::vital::algo::resection_camera::resection))
     .def("resection",
          static_cast<kwiver::vital::camera_perspective_sptr
@@ -34,7 +34,8 @@ void resection_camera(py::module &m)
                      (kwiver::vital::frame_id_t,
                       kwiver::vital::landmark_map_sptr,
                       kwiver::vital::feature_track_set_sptr,
-                      unsigned width, unsigned height) const>
+                      unsigned width, unsigned height,
+                      std::unordered_set< landmark_id_t >*) const>
          (&kwiver::vital::algo::resection_camera::resection))
     .def("resection",
          static_cast<kwiver::vital::camera_perspective_sptr
@@ -42,7 +43,8 @@ void resection_camera(py::module &m)
                      (kwiver::vital::frame_id_t,
                       kwiver::vital::landmark_map_sptr,
                       kwiver::vital::feature_track_set_sptr,
-                      kwiver::vital::camera_intrinsics_sptr) const>
+                      kwiver::vital::camera_intrinsics_sptr,
+                      std::unordered_set< landmark_id_t >*) const>
          (&kwiver::vital::algo::resection_camera::resection));
 }
 }

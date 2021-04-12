@@ -48,8 +48,8 @@ TEST ( resection_camera, ideal_points )
   auto cams = cameras->cameras();
   auto cam = dynamic_pointer_cast< camera_perspective >( cams[ test_frame ] );
   vector< bool > inliers;
-  auto est_cam = res_cam.resection( pts_projs, pts_3d, inliers,
-                                    cam->intrinsics() );
+  auto est_cam = res_cam.resection( pts_projs, pts_3d, cam->intrinsics(),
+                                    &inliers );
 
   // true and computed camera poses
   auto const& camR = cam->rotation();

@@ -51,8 +51,8 @@ class resection_camera_trampoline :
     kwiver::vital::camera_perspective_sptr
       resection( const std::vector<kwiver::vital::vector_2d>& image_points,
                  const std::vector<kwiver::vital::vector_3d>& world_points,
-                 std::vector<bool>& inliers,
-                 kwiver::vital::camera_intrinsics_sptr cal
+                 kwiver::vital::camera_intrinsics_sptr cal,
+                 std::vector<bool>* inliers
                ) const override
     {
       VITAL_PYBIND11_OVERLOAD_PURE(
@@ -61,8 +61,8 @@ class resection_camera_trampoline :
         resection,
         image_points,
         world_points,
-        inliers,
-        cal
+        cal,
+        inliers
       );
     }
 
@@ -70,7 +70,8 @@ class resection_camera_trampoline :
       resection( kwiver::vital::frame_id_t frame_id,
                  kwiver::vital::landmark_map_sptr landmarks,
                  kwiver::vital::feature_track_set_sptr tracks,
-                 unsigned width, unsigned height
+                 unsigned width, unsigned height,
+                 std::unordered_set<landmark_id_t>* inliers
                ) const override
     {
       VITAL_PYBIND11_OVERLOAD(
@@ -80,7 +81,8 @@ class resection_camera_trampoline :
         frame_id,
         landmarks,
         tracks,
-        width, height
+        width, height,
+        inliers
       );
     }
 
@@ -88,7 +90,8 @@ class resection_camera_trampoline :
       resection( kwiver::vital::frame_id_t frame_id,
                  kwiver::vital::landmark_map_sptr landmarks,
                  kwiver::vital::feature_track_set_sptr tracks,
-                 kwiver::vital::camera_intrinsics_sptr cal
+                 kwiver::vital::camera_intrinsics_sptr cal,
+                 std::unordered_set<landmark_id_t>* inliers
                ) const override
     {
       VITAL_PYBIND11_OVERLOAD(
@@ -98,7 +101,8 @@ class resection_camera_trampoline :
         frame_id,
         landmarks,
         tracks,
-        cal
+        cal,
+        inliers
       );
     }
 };
