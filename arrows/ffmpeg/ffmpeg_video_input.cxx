@@ -524,10 +524,9 @@ public:
       // Continue to make seek request further back until we land at a frame
       // that is before the requested frame.
       frame_ts -= this->f_backstep_size * this->stream_time_base_to_frame();
-      num_of_attempts++;
-      if ( num_of_attempts > this->max_seek_back_attempts )
+      if ( ++num_of_attempts > this->max_seek_back_attempts )
       {
-        LOG_ERROR( this->logger, "Seek failed, unable to seek back to early timestamp" );
+        LOG_ERROR( this->logger, "Seek failed: unable to seek back to early timestamp" );
         return false;
       }
     }
