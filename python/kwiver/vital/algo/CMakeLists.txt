@@ -44,6 +44,7 @@ kwiver_add_python_library(algos
   match_descriptor_sets.h
   match_features.h
   merge_images.h
+  metadata_map_io.h
   optimize_cameras.h
   read_object_track_set.h
   read_track_descriptor_set.h
@@ -99,6 +100,7 @@ kwiver_add_python_library(algos
   match_descriptor_sets.cxx
   match_features.cxx
   merge_images.cxx
+  metadata_map_io.cxx
   optimize_cameras.cxx
   read_object_track_set.cxx
   read_track_descriptor_set.cxx
@@ -154,6 +156,7 @@ kwiver_add_python_library(algos
   trampoline/match_descriptor_sets_trampoline.txx
   trampoline/match_features_trampoline.txx
   trampoline/merge_images_trampoline.txx
+  trampoline/metadata_map_io_trampoline.txx
   trampoline/optimize_cameras_trampoline.txx
   trampoline/read_object_track_set_trampoline.txx
   trampoline/read_track_descriptor_set_trampoline.txx
