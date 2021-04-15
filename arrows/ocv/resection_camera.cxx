@@ -32,8 +32,8 @@ public:
 
   vital::logger_handle_t m_logger;
 
-  double reproj_accuracy = 4.;
-  int max_iterations = 32;
+  double reproj_accuracy = 1.;
+  int max_iterations = 300;
 };
 
 // ----------------------------------------------------------------------------

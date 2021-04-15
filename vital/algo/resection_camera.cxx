@@ -39,7 +39,8 @@ resection_camera
   // Generate calibration guess from image dimensions.
   auto const principal_point = vector_2d{ width * 0.5, height * 0.5 };
   auto cal = std::make_shared< simple_camera_intrinsics >(
-    ( width + height ) * 0.5, principal_point, 1.0, 0.0,
+    ( width + height ) * 0.5,
+    principal_point, 1.0, 0.0,
     Eigen::VectorXd(), width, height );
 
   // Resection using guessed calibration.
