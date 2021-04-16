@@ -49,65 +49,43 @@ class ffmpeg_video_input::priv
 {
 public:
   /// Constructor
-  priv() :
-    f_format_context(avformat_alloc_context()),
-    f_video_index(-1),
-    f_video_encoding(nullptr),
-    f_video_stream(nullptr),
-    f_frame(nullptr),
-    f_filtered_frame(nullptr),
-    f_packet(nullptr),
-    f_software_context(nullptr),
-    f_filter_graph(nullptr),
-    f_filter_sink_context(nullptr),
-    f_filter_src_context(nullptr),
-    f_start_time(-1),
-    f_backstep_size(-1),
-    f_frame_number_offset(0),
-    video_path(""),
-    filter_desc("yadif=deint=1"),
-    frame_advanced(false),
-    end_of_video(true),
-    number_of_frames(0),
-    collected_all_metadata(false),
-    estimated_num_frames(false),
-    sync_metadata(true)
+  priv()
   { }
 
   // f_* variables are FFmpeg specific
 
-  AVFormatContext* f_format_context;
-  int f_video_index;
-  AVCodecContext* f_video_encoding;
-  AVStream* f_video_stream;
-  AVFrame* f_frame;
-  AVFrame* f_filtered_frame;
-  AVPacket* f_packet;
-  SwsContext* f_software_context;
-  AVFilterGraph* f_filter_graph;
-  AVFilterContext *f_filter_sink_context;
-  AVFilterContext *f_filter_src_context;
+  AVFormatContext* f_format_context = avformat_alloc_context();
+  int f_video_index = -1;
+  AVCodecContext* f_video_encoding = nullptr;
+  AVStream* f_video_stream = nullptr;
+  AVFrame* f_frame = nullptr;
+  AVFrame* f_filtered_frame = nullptr;
+  AVPacket* f_packet = nullptr;
+  SwsContext* f_software_context = nullptr;
+  AVFilterGraph* f_filter_graph = nullptr;
+  AVFilterContext* f_filter_sink_context = nullptr;
+  AVFilterContext* f_filter_src_context = nullptr;
 
   // Start time of the stream, to offset the pts when computing the frame number.
   // (in stream time base)
-  int64_t f_start_time;
+  int64_t f_start_time = -1;
 
   // Presentation timestamp (in stream time base)
   int64_t f_pts;
 
   // Number of frames to back step when seek fails to land on frame before request
-  int64_t f_backstep_size;
+  int64_t f_backstep_size = -1;
 
   // Some codec/file format combinations need a frame number offset.
   // These codecs have a delay between reading packets and generating frames.
-  unsigned f_frame_number_offset;
+  unsigned f_frame_number_offset = 0;
 
   // Name of video we opened
-  std::string video_path;
+  std::string video_path = "";
 
   // FFMPEG filter description string
   // What you put after -vf in the ffmpeg command line tool
-  std::string filter_desc;
+  std::string filter_desc = "yadif=deint=1";
 
   // the buffers of raw metadata from the data streams tagged with the timestamp
   std::map<int, std::multimap< int64_t, std::deque<uint8_t>>> metadata;
@@ -133,12 +111,13 @@ public:
   kwiver::vital::image_container_sptr current_image;
 
   // local state
-  bool frame_advanced;
-  bool end_of_video;
-  size_t number_of_frames;
-  bool collected_all_metadata;
-  bool estimated_num_frames;
-  bool sync_metadata;
+  bool frame_advanced = false;
+  bool end_of_video = true;
+  size_t number_of_frames = 0;
+  bool collected_all_metadata = false;
+  bool estimated_num_frames = false;
+  bool sync_metadata = true;
+  size_t max_seek_back_attempts = 10;
 
   // ==================================================================
   /*
@@ -275,31 +254,7 @@ public:
       this->f_frame_number_offset = 1;
     }
 
-    // Advance to first valid frame to get start time
-    this->f_start_time = 0;
-    if ( this->advance() )
-    {
-        this->f_start_time = this->f_pts;
-    }
-    else
-    {
-        LOG_ERROR(this->logger, "Error: failed to find valid frame to set start time");
-        this->f_start_time = -1;
-        return false;
-    }
-
-    // Now seek back to the start of the video
-    auto seek_rslt = av_seek_frame( this->f_format_context,
-                                    this->f_video_index,
-                                    0,
-                                    AVSEEK_FLAG_BACKWARD );
-    avcodec_flush_buffers( this->f_video_encoding );
-    if (seek_rslt < 0 )
-    {
-        LOG_ERROR(this->logger,
-                  "Error: failed to return to start after setting start time");
-        return false;
-    }
+    this->f_start_time = this->f_video_stream->start_time;
     this->frame_advanced = false;
     this->f_frame->data[0] = NULL;
     return true;
@@ -551,6 +506,7 @@ public:
       this->stream_time_base_to_frame() + this->f_start_time;
 
     bool advance_successful = false;
+    size_t num_of_attempts = 0;
     do
     {
       auto seek_rslt = av_seek_frame( this->f_format_context,
@@ -568,6 +524,11 @@ public:
       // Continue to make seek request further back until we land at a frame
       // that is before the requested frame.
       frame_ts -= this->f_backstep_size * this->stream_time_base_to_frame();
+      if ( ++num_of_attempts > this->max_seek_back_attempts )
+      {
+        LOG_ERROR( this->logger, "Seek failed: unable to seek back to early timestamp" );
+        return false;
+      }
     }
     while( this->frame_number() > frame - 1 || !advance_successful );
 
