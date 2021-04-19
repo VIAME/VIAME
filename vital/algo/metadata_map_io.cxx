@@ -119,14 +119,14 @@ metadata_map_io
 // ----------------------------------------------------------------------------
 void
 metadata_map_io
-::set_configuration( vital::config_block_sptr config )
+::set_configuration( VITAL_UNUSED vital::config_block_sptr config )
 {
 }
 
 // ----------------------------------------------------------------------------
 bool
 metadata_map_io
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( VITAL_UNUSED vital::config_block_sptr config ) const
 {
   return true;
 }

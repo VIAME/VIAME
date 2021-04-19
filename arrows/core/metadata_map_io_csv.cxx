@@ -163,7 +163,7 @@ metadata_map_io_csv
 // ----------------------------------------------------------------------------
 kv::metadata_map_sptr
 metadata_map_io_csv
-::load_( std::istream& fin, std::string const& filename ) const
+::load_( VITAL_UNUSED std::istream& fin, std::string const& filename ) const
 {
   throw kv::file_write_exception( filename, "not implemented" );
 }

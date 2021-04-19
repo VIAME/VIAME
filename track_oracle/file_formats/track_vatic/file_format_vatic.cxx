@@ -37,7 +37,6 @@ file_format_vatic
   {
     return false;
   }
-  vector <string> fields;
 
   // quick exit unless quoted strings exist
   if ( line.find( "\"" ) == string::npos ) return false;
