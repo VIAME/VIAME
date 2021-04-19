@@ -88,7 +88,8 @@ class NetHarnTrainer( TrainDetector ):
         self._allow_unicode = "auto"
         self._aux_image_labels = ""
         self._aux_image_extensions = ""
-        self._area_pivot = 0
+        self._area_lower_bound = 0
+        self._area_upper_bound = 0
         self._border_exclude = -1
         self._detector_model = ""
         self._overlap_for_association = 0.90
@@ -123,7 +124,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "allow_unicode", str( self._allow_unicode ) )
         cfg.set_value( "aux_image_labels", str( self._aux_image_labels ) )
         cfg.set_value( "aux_image_extensions", str( self._aux_image_extensions ) )
-        cfg.set_value( "area_pivot", str( self._area_pivot ) )
+        cfg.set_value( "area_lower_bound", str( self._area_lower_bound ) )
+        cfg.set_value( "area_upper_bound", str( self._area_upper_bound ) )
         cfg.set_value( "border_exclude", str( self._border_exclude ) )
         cfg.set_value( "detector_model", str( self._detector_model ) )
 
@@ -158,7 +160,8 @@ class NetHarnTrainer( TrainDetector ):
         self._allow_unicode = str( cfg.get_value( "allow_unicode" ) )
         self._aux_image_labels = str( cfg.get_value( "aux_image_labels" ) )
         self._aux_image_extensions = str( cfg.get_value( "aux_image_extensions" ) )
-        self._area_pivot = float( cfg.get_value( "area_pivot" ) )
+        self._area_lower_bound = float( cfg.get_value( "area_lower_bound" ) )
+        self._area_upper_bound = float( cfg.get_value( "area_upper_bound" ) )
         self._border_exclude = float( cfg.get_value( "border_exclude" ) )
         self._detector_model = str( cfg.get_value( "detector_model" ) )
 
@@ -359,9 +362,9 @@ class NetHarnTrainer( TrainDetector ):
 
                 bbox_area = bbox_width * bbox_height
 
-                if self._area_pivot > 1 and bbox_area < self._area_pivot:
+                if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
                     continue
-                if self._area_pivot < -1 and bbox_area > -self._area_pivot:
+                if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
                     continue
 
                 if self._border_exclude > 0:
