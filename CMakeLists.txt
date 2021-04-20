@@ -239,8 +239,8 @@ if( VIAME_ENABLE_PYTHON )
     endif()
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        NOT PYTHON_VERSION VERSION_EQUAL "3.6" AND
-        NOT PYTHON_VERSION_PATCH EQUAL "5" )
+        ( NOT PYTHON_VERSION VERSION_EQUAL "3.6" OR
+          NOT PYTHON_VERSION_PATCH EQUAL "5" ) )
       message( FATAL_ERROR "Short-term, the only tested python distribution is "
         "Anaconda3 5.2.0, either install that version or set the cmake flag"
         "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
