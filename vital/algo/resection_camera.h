@@ -14,6 +14,7 @@
 #include <vital/types/feature_track_set.h>
 #include <vital/types/landmark_map.h>
 
+#include <unordered_set>
 #include <vector>
 
 namespace kwiver {
@@ -39,16 +40,17 @@ public:
   ///   the 2D image space locations which are projections of \p world_points
   /// \param [in] world_points
   ///   locations in 3D world space corresponding to the \p image_points
+  /// \param [in] initial_calibration
+  ///   initial guess on intrinsic parameters of the camera
   /// \param [out] inliers estimated inlier status for the point pairs
-  /// \param [in] cal initial guess on intrinsic parameters of the camera
   /// \return estimated camera parameters
   virtual
   kwiver::vital::camera_perspective_sptr
   resection(
     std::vector< kwiver::vital::vector_2d > const& image_points,
     std::vector< kwiver::vital::vector_3d > const& world_points,
-    std::vector< bool >& inliers,
-    kwiver::vital::camera_intrinsics_sptr cal ) const = 0;
+    kwiver::vital::camera_intrinsics_sptr initial_calibration,
+    std::vector< bool >* inliers = nullptr ) const = 0;
 
   /// Estimate camera parameters for a frame from landmarks and tracks.
   ///
@@ -64,6 +66,7 @@ public:
   /// \param [in] tracks 2D feature tracks in image coordinates
   /// \param [in] width image size in the x dimension in pixels
   /// \param [in] height image size in the y dimension in pixels
+  /// \param [out] inliers landmark identifiers of inliers
   /// \return estimated camera parameters
   virtual
   kwiver::vital::camera_perspective_sptr
@@ -71,7 +74,8 @@ public:
     kwiver::vital::frame_id_t frame_id,
     kwiver::vital::landmark_map_sptr landmarks,
     kwiver::vital::feature_track_set_sptr tracks,
-    unsigned width, unsigned height ) const;
+    unsigned width, unsigned height,
+    std::unordered_set< landmark_id_t >* inliers = nullptr ) const;
 
   /// Estimate camera parameters for a frame from landmarks and tracks.
   ///
@@ -83,7 +87,9 @@ public:
   /// \param [in] frame_id frame number for which to estimate a camera
   /// \param [in] landmarks 3D landmarks locations to constrain camera
   /// \param [in] tracks 2D feature tracks in image coordinates
-  /// \param [in] cal initial guess on intrinsic parameters of the camera
+  /// \param [in] initial_calibration
+  ///   initial guess on intrinsic parameters of the camera
+  /// \param [out] inliers landmark identifiers of inliers
   /// \return estimated camera parameters
   virtual
   kwiver::vital::camera_perspective_sptr
@@ -91,7 +97,8 @@ public:
     kwiver::vital::frame_id_t frame_id,
     kwiver::vital::landmark_map_sptr landmarks,
     kwiver::vital::feature_track_set_sptr tracks,
-    kwiver::vital::camera_intrinsics_sptr cal ) const;
+    kwiver::vital::camera_intrinsics_sptr initial_calibration,
+    std::unordered_set< landmark_id_t >* inliers = nullptr ) const;
 
 protected:
   resection_camera();

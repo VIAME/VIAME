@@ -28,6 +28,7 @@
 #include <arrows/ocv/estimate_fundamental_matrix.h>
 #include <arrows/ocv/estimate_homography.h>
 #include <arrows/ocv/estimate_pnp.h>
+#include <arrows/ocv/resection_camera.h>
 #include <arrows/ocv/extract_descriptors_BRIEF.h>
 #include <arrows/ocv/extract_descriptors_DAISY.h>
 #include <arrows/ocv/extract_descriptors_FREAK.h>
@@ -145,6 +146,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< merge_images >();
   reg.register_algorithm< track_features_klt >();
   reg.register_algorithm< estimate_pnp >();
+  reg.register_algorithm< resection_camera >();
 
   reg.mark_module_as_loaded();
 }
