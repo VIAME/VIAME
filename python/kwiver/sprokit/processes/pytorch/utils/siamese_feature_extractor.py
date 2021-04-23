@@ -44,15 +44,14 @@ from .parse_gpu_list import get_device
 
 
 class SiameseDataLoader(data.Dataset):
-    def __init__(self, bbox_list, transform, frame_img, in_size, mot_flag):
+    def __init__(self, bbox_list, transform, frame_img, in_size):
         self._frame_img = frame_img
         self._transform = transform
         self._bbox_list = bbox_list
-        self._mot_flag = mot_flag
         self._in_size = in_size
 
     def __getitem__(self, index):
-        bb = self._bbox_list[index] if self._mot_flag else self._bbox_list[index].bounding_box
+        bb = self._bbox_list[index]
         im = self._frame_img.crop((float(bb.min_x()), float(bb.min_y()),
                       float(bb.max_x()), float(bb.max_y())))
         im = im.resize((self._in_size, self._in_size), pilImage.BILINEAR)
@@ -63,7 +62,7 @@ class SiameseDataLoader(data.Dataset):
         return im
 
     def __len__(self):
-        return len(self._bbox_list) if self._mot_flag else self._bbox_list.size()
+        return len(self._bbox_list)
 
 
 class SiameseFeatureExtractor(object):
@@ -105,14 +104,14 @@ class SiameseFeatureExtractor(object):
                              .format(string, prefix))
         return string[len(prefix):]
 
-    def __call__(self, frame, bbox_list, mot_flag):
-        return self._obtain_features(frame, bbox_list, mot_flag)
+    def __call__(self, frame, bbox_list):
+        return self._obtain_features(frame, bbox_list)
 
-    def _obtain_features(self, frame, bbox_list, mot_flag):
+    def _obtain_features(self, frame, bbox_list):
         kwargs = {'num_workers': 0, 'pin_memory': True}
         if frame is not None:
             bbox_loader_class = SiameseDataLoader(bbox_list, self._transform,
-                                    frame, self._img_size, mot_flag)
+                                    frame, self._img_size)
         else:
             raise ValueError("Trying to create SiameseDataLoader without providing frame")
 

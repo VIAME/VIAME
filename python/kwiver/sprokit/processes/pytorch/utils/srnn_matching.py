@@ -110,19 +110,15 @@ class SRNNMatching(object):
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
         self._targetRNN_AIM_V_model = load_model(V_model_list, targetRNN_AIM_V_model_path)
 
-    def __call__(self, track_set, track_state_list, track_search_threshold):
-        track_list = [track for track in track_set.iter_active() if not track.updated_flag]
+    def __call__(self, track_list, track_state_list, track_search_threshold):
         tracks_num = len(track_list)
         track_states_num = len(track_state_list)
-
-        # obtain the list mapping: similarity row idx->track_id
-        track_idx_list = [track.track_id for track in track_list]
 
         if 0 in (tracks_num, track_states_num):
             # PyTorch doesn't handle zero-length dimensions cleanly
             # (see https://github.com/pytorch/pytorch/issues/5014);
             # this computes the intended result.
-            return np.empty((tracks_num, track_states_num), dtype=np.float32), track_idx_list
+            return np.empty((tracks_num, track_states_num), dtype=np.float32)
 
         self._similarity_mat = torch.FloatTensor(tracks_num, track_states_num).fill_(1.0).to(self._device)
 
@@ -139,7 +135,7 @@ class SRNNMatching(object):
             self._est_similarity(AIM_V_data_loader, RnnType.Target_RNN_AIM_V)
             self._est_similarity(AIM_data_loader, RnnType.Target_RNN_AIM)
 
-        return self._similarity_mat.cpu().numpy(), track_idx_list
+        return self._similarity_mat.cpu().numpy()
 
 
     def _est_similarity(self, loader, rnnType):
