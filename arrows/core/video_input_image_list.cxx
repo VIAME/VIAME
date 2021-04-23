@@ -497,7 +497,7 @@ video_input_image_list::priv
   if ( stream_reader.getline( line ) )
   {
     std::string resolved_file = line;
-    if ( ! ST::FileExists( resolved_file ) )
+    if ( ! ST::FileExists( resolved_file ) && ! c_disable_image_load )
     {
       // Resolve against specified path
       resolved_file = ST::FindFile( line, this->c_search_path, true );
@@ -519,7 +519,7 @@ video_input_image_list::priv
   while ( stream_reader.getline( line ) )
   {
     std::string resolved_file = line;
-    if ( ! ST::FileExists( resolved_file ) )
+    if ( ! ST::FileExists( resolved_file ) && ! c_disable_image_load )
     {
       resolved_file = data_dir + line;
       if ( ! ST::FileExists( resolved_file ) )
