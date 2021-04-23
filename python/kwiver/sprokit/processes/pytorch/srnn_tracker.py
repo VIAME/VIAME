@@ -78,6 +78,45 @@ def ts2ot_list(track_set):
                 print('Error: Cannot add ObjectTrackState')
     return ot_list
 
+def from_homog_f2f(homog_f2f):
+    """Take a F2FHomography and return a triple of a 3x3 numpy.ndarray and
+    two integers corresponding to the contained homography and the
+    from and to IDs, respectively.
+
+    """
+    arr = np.array([
+        [homog_f2f.get(r, c) for c in range(3)] for r in range(3)
+    ])
+    return arr, homog_f2f.from_id, homog_f2f.to_id
+
+def transform_homog(homog, point):
+    """Transform point (a length-2 array-like) using homog (a 3x3 ndarray)"""
+    # We actually write this generically so it has signature (m+1, n+1), (n) -> (m)
+    point = np.asarray(point)
+    ones = np.ones(point.shape[:-1] + (1,), dtype=point.dtype)
+    point = np.concatenate((point, ones), axis=-1)
+    result = np.matmul(homog, point[..., np.newaxis])[..., 0]
+    return result[..., :-1] / result[..., -1:]
+
+def transform_homog_bbox(homog, bbox):
+    """Given a bbox as [x_min, y_min, width, height], transform it
+    according to homog and return the smallest enclosing bbox in the
+    same format.
+
+    """
+    x_min, y_min, width, height = bbox
+    points = [
+        [x_min, y_min],
+        [x_min, y_min + height],
+        [x_min + width, y_min],
+        [x_min + width, y_min + height],
+    ]
+    tpoints = transform_homog(homog, points)
+    tx_min, ty_min = tpoints.min(0)
+    tx_max, ty_max = tpoints.max(0)
+    twidth, theight = tx_max - tx_min, ty_max - ty_min
+    return [tx_min, ty_min, twidth, theight]
+
 class SRNNTracker(KwiverProcess):
     # ----------------------------------------------
     def __init__(self, conf):
@@ -91,6 +130,29 @@ class SRNNTracker(KwiverProcess):
         # MOT start id : 1
         self._step_id = 0
 
+        # Homography state
+        #
+        # We maintain transformations to a "base" coordinate system.
+        # Since homographies come in as mappings from the current
+        # frame to an infrequently changing reference frame, we
+        # separately store the mapping from the current reference
+        # frame to "base" coordinates and the mapping from the current
+        # frame to the reference.
+        #
+        # We will handle breaks (changes in the reference frame) by
+        # assuming that the mapping from the new reference frame to
+        # the last frame is identity.
+        #
+        # Missing input is treated as a break with an anonymous
+        # reference.
+
+        # 3x3 ndarray from current reference frame to base
+        self._homog_ref_to_base = np.identity(3)
+        # Current reference frame (or None for anonymous)
+        self._homog_ref_id = None
+        # Mapping from current frame to reference (or None for identity)
+        self._homog_src_to_ref = None
+
         # set up required flags
         optional = process.PortFlags()
         required = process.PortFlags()
@@ -102,6 +164,7 @@ class SRNNTracker(KwiverProcess):
         self.declare_input_port_using_trait('detected_object_set', required)
         self.declare_input_port_using_trait('timestamp', required)
         self.declare_input_port_using_trait('object_track_set', optional)
+        self.declare_input_port_using_trait('homography_src_to_ref', optional)
 
         #  output port ( port-name,flags)
         self.declare_output_port_using_trait('object_track_set', optional)
@@ -297,6 +360,10 @@ class SRNNTracker(KwiverProcess):
             in_img_c = self.grab_input_using_trait('image')
             timestamp = self.grab_input_using_trait('timestamp')
             dos_ptr = self.grab_input_using_trait('detected_object_set')
+            if self.has_input_port_edge('homography_src_to_ref'):
+                homog_f2f = self.grab_input_using_trait('homography_src_to_ref')
+            else:
+                homog_f2f = None
             print('timestamp =', repr(timestamp))
 
             # Get current frame
@@ -311,17 +378,39 @@ class SRNNTracker(KwiverProcess):
                 bbox_num = dos.size()
             #print('bbox list len is', dos.size())
 
+            # Update homography
+            if homog_f2f is not None:
+                homog_f2f_arr, homog_f2f_from, homog_f2f_to = from_homog_f2f(homog_f2f)
+            if homog_f2f is None or homog_f2f_to != self._homog_ref_id:
+                # We have a new reference frame
+                # Update self._homog_ref_to_base (assume curr->prev is identity)
+                if self._homog_src_to_ref is not None:
+                    self._homog_ref_to_base = np.matmul(self._homog_ref_to_base, self._homog_src_to_ref)
+                    self._homog_src_to_ref = None
+                # Update self._homog_ref_id
+                if homog_f2f is None:
+                    self._homog_ref_id = None
+                else:
+                    assert homog_f2f_from == homog_f2f_to, "After break homog should map to self"
+                    self._homog_ref_id = homog_f2f_to
+                # This is a reference frame, so src->base is just ref->base
+                homog_src_to_base = self._homog_ref_to_base
+            else:
+                # We use the same reference frame
+                self._homog_src_to_ref = homog_f2f_arr
+                homog_src_to_base = np.matmul(self._homog_ref_to_base, self._homog_src_to_ref)
+
             det_obj_set = DetectedObjectSet()
             if bbox_num == 0:
                 print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
             else:
                 # interaction features
-                grid_feature_list = timing('grid feature', lambda:
-                    self._grid(im.size, dos, self._gtbbox_flag))
+                grid_feature_list = timing('grid feature', lambda: (
+                    self._grid(im.size, dos, self._gtbbox_flag)))
 
                 # appearance features (format: pytorch tensor)
-                pt_app_features = timing('app feature', lambda:
-                    self._app_feature_extractor(im, dos, self._gtbbox_flag))
+                pt_app_features = timing('app feature', lambda: (
+                    self._app_feature_extractor(im, dos, self._gtbbox_flag)))
 
                 track_state_list = []
                 next_track_id = int(self._track_set.get_max_track_id()) + 1
@@ -347,12 +436,14 @@ class SRNNTracker(KwiverProcess):
                     det_obj_set.add(d_obj)
 
                     # build track state for current bbox for matching
+                    bbox_as_list = [bbox.min_x(), bbox.min_y(), bbox.width(), bbox.height()]
                     cur_ts = track_state(frame_id=self._step_id,
                                         bbox_center=bbox.center(),
+                                        ref_point=transform_homog(homog_src_to_base, bbox.center()),
                                         interaction_feature=grid_feature_list[idx],
                                         app_feature=pt_app_features[idx],
-                                        bbox=[int(bbox.min_x()), int(bbox.min_y()),
-                                              int(bbox.width()), int(bbox.height())],
+                                        bbox=[int(x) for x in bbox_as_list],
+                                        ref_bbox=transform_homog_bbox(homog_src_to_base, bbox_as_list),
                                         detected_object=d_obj,
                                         sys_frame_id=fid, sys_frame_time=ts)
                     track_state_list.append(cur_ts)
@@ -393,12 +484,14 @@ class SRNNTracker(KwiverProcess):
                         sp.optimize.linear_sum_assignment(similarity_mat)
                     ))
 
-                    for i in range(len(row_idx_list)):
-                        r = row_idx_list[i]
-                        c = col_idx_list[i]
+                    # Contains the row associated with each column, or None
+                    hung_idx_list = [None] * len(track_state_list)
+                    for r, c in zip(row_idx_list, col_idx_list):
+                        hung_idx_list[c] = r
 
-                        if -similarity_mat[r, c] < self._similarity_threshold:
-                            # initialize a new track
+                    for c, r in enumerate(hung_idx_list):
+                        if r is None or -similarity_mat[r, c] < self._similarity_threshold:
+                            # Conditionally initialize a new track
                             if (track_state_list[c].detected_object.confidence
                                    >= self._track_initialization_threshold):
                                 self._track_set.add_new_track_state(next_track_id,
@@ -407,16 +500,6 @@ class SRNNTracker(KwiverProcess):
                         else:
                             # add to existing track
                             self._track_set.update_track(track_idx_list[r], track_state_list[c])
-
-                    # for the remaining unmatched track states, we initialize new tracks
-                    if len(track_state_list) - len(col_idx_list) > 0:
-                        for i in range(len(track_state_list)):
-                            if (i not in col_idx_list
-                                and (track_state_list[i].detected_object.confidence
-                                     >= self._track_initialization_threshold)):
-                                self._track_set.add_new_track_state(next_track_id,
-                                        track_state_list[i])
-                                next_track_id += 1
 
                 print('total tracks', len(self._track_set))
 

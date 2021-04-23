@@ -63,7 +63,7 @@ class SiameseDataLoader(data.Dataset):
         return im
 
     def __len__(self):
-        return len(self._bbox_list) if self._mot_flag else  self._bbox_list.size()
+        return len(self._bbox_list) if self._mot_flag else self._bbox_list.size()
 
 
 class SiameseFeatureExtractor(object):
@@ -77,7 +77,7 @@ class SiameseFeatureExtractor(object):
         # load Siamese model
         self._siamese_model = Siamese().to(self._device)
         if use_gpu_flag:
-            self._siamese_model = torch.nn.DataParallel(self._siamese_model, 
+            self._siamese_model = torch.nn.DataParallel(self._siamese_model,
                                                         device_ids=gpu_list)
             snapshot = torch.load(siamese_model_path)
             self._siamese_model.load_state_dict(snapshot['state_dict'])
@@ -85,7 +85,7 @@ class SiameseFeatureExtractor(object):
             snapshot = torch.load(siamese_model_path, map_location='cpu')
             tmp = {self._strip_prefix(k, 'module.'): v
                    for k, v in snapshot['state_dict'].items()}
-            self._siamese_model.load_state_dict( tmp )
+            self._siamese_model.load_state_dict(tmp)
 
         print('Model loaded from {}'.format(siamese_model_path))
         self._siamese_model.train(False)
@@ -93,7 +93,7 @@ class SiameseFeatureExtractor(object):
         self._transform = transforms.Compose([
             transforms.Scale(img_size),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ])
         self._img_size = img_size
         self._b_size = batch_size
@@ -101,22 +101,22 @@ class SiameseFeatureExtractor(object):
     @classmethod
     def _strip_prefix(_cls, string, prefix):
         if not string.startswith(prefix):
-            raise ValueError("{!r} was supposed to start with {!r} but does not".\
-                    format(string, prefix))
+            raise ValueError("{!r} was supposed to start with {!r} but does not"
+                             .format(string, prefix))
         return string[len(prefix):]
-    
+
     def __call__(self, frame, bbox_list, mot_flag):
         return self._obtain_features(frame, bbox_list, mot_flag)
 
     def _obtain_features(self, frame, bbox_list, mot_flag):
         kwargs = {'num_workers': 0, 'pin_memory': True}
         if frame is not None:
-            bbox_loader_class = SiameseDataLoader(bbox_list, self._transform, 
+            bbox_loader_class = SiameseDataLoader(bbox_list, self._transform,
                                     frame, self._img_size, mot_flag)
         else:
             raise ValueError("Trying to create SiameseDataLoader without providing frame")
 
-        bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, 
+        bbox_loader = torch.utils.data.DataLoader(bbox_loader_class,
                             batch_size=self._b_size, shuffle=False, **kwargs)
 
         torch.set_grad_enabled(False)
