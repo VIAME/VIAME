@@ -32,12 +32,15 @@ import torch
 import collections
 
 class track_state(object):
-    def __init__(self, frame_id, bbox_center, interaction_feature, app_feature, bbox, 
-                    detected_object, sys_frame_id, sys_frame_time):
+    def __init__(self, frame_id, bbox_center, ref_point,
+                 interaction_feature, app_feature, bbox, ref_bbox,
+                 detected_object, sys_frame_id, sys_frame_time):
         self.bbox_center = bbox_center
+        self.ref_point = ref_point
 
         '''a list [x, y, w, h]'''
         self.bbox = bbox
+        self.ref_bbox = ref_bbox
 
         # got required AMI features in torch.tensor format
         self.app_feature = app_feature
@@ -55,7 +58,7 @@ class track_state(object):
 
         # FIXME: the detected_object confidence does not work
         # For now, I just set the confidence = 1.0
-        #self.conf = detectedObject.confidence()
+        #self.conf = detectedObject.confidence
         self.conf = 1.0
 
 
@@ -64,7 +67,6 @@ class track(object):
         self.track_id = track_id
         self.track_state_list = []
         self.max_conf = 0.0
-        self.updated_flag = False
 
     def __len__(self):
         return len(self.track_state_list)
@@ -79,9 +81,9 @@ class track(object):
         if not self.track_state_list:
             new_track_state.motion_feature = torch.FloatTensor(2).zero_()
         else:
-            pre_bbox_center = np.asarray(self.track_state_list[-1].bbox_center, dtype=np.float32).reshape(2)
-            cur_bbox_center = np.asarray(new_track_state.bbox_center, dtype=np.float32).reshape(2)
-            new_track_state.motion_feature = torch.from_numpy(cur_bbox_center - pre_bbox_center)
+            pre_ref_point = np.asarray(self.track_state_list[-1].ref_point, dtype=np.float32).reshape(2)
+            cur_ref_point = np.asarray(new_track_state.ref_point, dtype=np.float32).reshape(2)
+            new_track_state.motion_feature = torch.from_numpy(cur_ref_point - pre_ref_point)
 
         new_track_state.track_id = self.track_id
         self.track_state_list.append(new_track_state)
@@ -92,7 +94,6 @@ class track(object):
         tsl = self.track_state_list
         tsl = [tsl[0]] * (timestep_len - len(tsl)) + tsl
         du_track.track_state_list = tsl
-        du_track.updated_flag = self.updated_flag
         du_track.max_conf = self.max_conf
 
         return du_track
@@ -114,10 +115,7 @@ class track_set(object):
         return (self[i] for i in self.active_id_set)
 
     def __getitem__(self, track_id):
-        try:
-            return self.id_ts_dict[track_id]
-        except KeyError:
-            raise IndexError
+        return self.id_ts_dict[track_id]
 
     def get_all_track_id(self):
         return sorted(self.id_ts_dict)
@@ -128,36 +126,30 @@ class track_set(object):
     def deactivate_track(self, track):
         del self.active_id_set[track.track_id]
 
+    def deactivate_all_tracks(self):
+        self.active_id_set.clear()
+
     def active_count(self):
         return len(self.active_id_set)
 
-    def add_new_track(self, track):
-        if track.track_id in self.id_ts_dict:
-            print("track ID exists in the track set!!!")
-            raise RuntimeError
+    def make_track(self, track_id, exist_ok=None):
+        """Create a new track in this track_set with the provided track ID,
+        mark it as active, and return it.
 
-        self.id_ts_dict[track.track_id] = track
-        self.active_id_set[track.track_id] = None
+        If exist_ok is true (default false), then track_id may be the
+        ID of an existing track, in which case it is remarked as
+        active and returned.
 
-    def add_new_track_state(self, track_id, track_state):
-        new_track = track(track_id)
-        new_track.append(track_state)
-        self.add_new_track(new_track)
-
-    def add_new_track_state_list(self, start_track_id, ts_list, thresh=0.0):
-        track_id = start_track_id
-        for ts in ts_list:
-            if ts.detected_object.confidence() >= thresh:
-                self.add_new_track_state(track_id, ts)
-                track_id += 1
-        return track_id
-
-    def update_track(self, track_id, new_track_state):
-        self[track_id].append(new_track_state)
-
-    def reset_updated_flag(self):
-        for track in self:
-            track.updated_flag = False
+        """
+        if track_id in self.id_ts_dict:
+            if not exist_ok:
+                raise ValueError("Track ID exists in the track set!")
+            new_track = self.id_ts_dict[track_id]
+        else:
+            new_track = track(track_id)
+            self.id_ts_dict[track_id] = new_track
+        self.active_id_set[track_id] = None
+        return new_track
 
 
 if __name__ == '__main__':

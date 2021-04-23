@@ -26,6 +26,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import itertools
+
 import numpy as np
 import torch
 
@@ -37,45 +39,48 @@ class Grid(object):
         self._target_neighborhood_w = target_neighborhood_w
         self._half_cell_w = int(self._target_neighborhood_w // 2)
 
-    def __call__(self, im_size, bbox_list, mot_flag=False):
-        return self.obtain_grid_feature_list(im_size, bbox_list, mot_flag)
+    def __call__(self, im_size, bbox_list, extra_bbox_list=None):
+        return self.obtain_grid_feature_list(im_size, bbox_list, extra_bbox_list)
 
-    def obtain_grid_feature_list(self, im_size, bbox_list, mot_flag):
+    def obtain_grid_feature_list(self, im_size, bbox_list, extra_bbox_list=None):
         r"""
             The output of the function is a grid feature list for
             each corresponding bbox of current frame/image
 
             A grid feature records which cells in the configured
-            neighborhood have at least one bonuding box in them.
+            neighborhood have at least one bounding box in them.
+
+            extra_bbox_list, if provided, fills in grid cells but
+            doesn't have features returned for it in the output.
         """
-        self.img_w, self.img_h = im_size
+        img_w, img_h = im_size
 
         # calculate grid cell height and width
-        cell_h = self.img_h / self._grid_rows
-        cell_w = self.img_w / self._grid_cols
+        cell_h = img_h / self._grid_rows
+        cell_w = img_w / self._grid_cols
 
         # initial all gridcell to 0
         grid = torch.FloatTensor(self._grid_rows, self._grid_cols).zero_()
 
         bbox_id_centerIDX = []
+        all_bboxes = itertools.chain(bbox_list, extra_bbox_list or ())
         # build the grid for current image
-        for item in bbox_list:
-            bb = item if mot_flag else item.bounding_box()
-
+        for i, bb in enumerate(all_bboxes):
             x = int(bb.min_x())
             y = int(bb.min_y())
             w = int(bb.width())
             h = int(bb.height())
 
             # bbox center
-            c_w = min(x + w / 2, self.img_w - 1)
-            c_h = min(y + h / 2, self.img_h - 1)
+            c_w = min(x + w / 2, img_w - 1)
+            c_h = min(y + h / 2, img_h - 1)
 
             # cell idxs
             row_idx = int(c_h // cell_h)
             col_idx = int(c_w // cell_w)
 
-            bbox_id_centerIDX.append((row_idx, col_idx))
+            if i < len(bbox_list):
+                bbox_id_centerIDX.append((row_idx, col_idx))
 
             # Assertion for corner cases
             assert row_idx < grid.shape[0]

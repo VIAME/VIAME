@@ -329,7 +329,7 @@ darknet_detector
   if( d->m_gs_to_rgb && cv_resized_image.channels() == 1 )
   {
     cv::Mat color_image;
-    cv::cvtColor( cv_resized_image, color_image, CV_GRAY2RGB );
+    cv::cvtColor( cv_resized_image, color_image, cv::COLOR_GRAY2RGB );
     cv_resized_image = color_image;
   }
 
@@ -397,7 +397,7 @@ darknet_detector
       if( d->m_gs_to_rgb && scaled_original.channels() == 1 )
       {
         cv::Mat color_image;
-        cv::cvtColor( scaled_original, color_image, CV_GRAY2RGB );
+        cv::cvtColor( scaled_original, color_image, cv::COLOR_GRAY2RGB );
         scaled_original = color_image;
       }
 

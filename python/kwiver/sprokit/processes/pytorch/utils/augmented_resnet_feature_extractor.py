@@ -88,7 +88,7 @@ class AugmentedResnetDataLoader(data.Dataset):
 
     def __getitem__(self, index):
         bid = int(math.floor(index / self._rot_shifts))
-        bb = self._bbox_list[bid].bounding_box()
+        bb = self._bbox_list[bid].bounding_box
         rot = float( 360.0 * ( index % self._rot_shifts ) ) / self._rot_shifts - 180.0
 
         # unwrap

@@ -3,7 +3,7 @@
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   sprokit/processes/pytorch
-  __init__.py )
+  __init__ )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/srnn_tracker.py
   sprokit/processes/pytorch

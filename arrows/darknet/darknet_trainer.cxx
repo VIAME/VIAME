@@ -674,7 +674,7 @@ darknet_trainer::priv
   if( m_gs_to_rgb && image.channels() == 1 )
   {
     cv::Mat color_image;
-    cv::cvtColor( image, color_image, CV_GRAY2RGB );
+    cv::cvtColor( image, color_image, cv::COLOR_GRAY2RGB );
     original_image = color_image;
   }
   else

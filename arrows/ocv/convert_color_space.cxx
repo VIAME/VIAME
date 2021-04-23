@@ -35,17 +35,17 @@ cv_convert_code lookup_cv_conversion_code(
       switch( space2 )
       {
         case vital::XYZ:
-          return CV_RGB2XYZ;
+          return cv::COLOR_RGB2XYZ;
         case vital::YCrCb:
-          return CV_RGB2YCrCb;
+          return cv::COLOR_RGB2YCrCb;
         case vital::HSV:
-          return CV_RGB2HSV;
+          return cv::COLOR_RGB2HSV;
         case vital::HLS:
-          return CV_RGB2HLS;
+          return cv::COLOR_RGB2HLS;
         case vital::Lab:
-          return CV_RGB2Lab;
+          return cv::COLOR_RGB2Lab;
         case vital::Luv:
-          return CV_RGB2Luv;
+          return cv::COLOR_RGB2Luv;
         default:
           return CV_Invalid;
       }
@@ -53,17 +53,17 @@ cv_convert_code lookup_cv_conversion_code(
       switch( space2 )
       {
         case vital::XYZ:
-          return CV_BGR2XYZ;
+          return cv::COLOR_BGR2XYZ;
         case vital::YCrCb:
-          return CV_BGR2YCrCb;
+          return cv::COLOR_BGR2YCrCb;
         case vital::HSV:
-          return CV_BGR2HSV;
+          return cv::COLOR_BGR2HSV;
         case vital::HLS:
-          return CV_BGR2HLS;
+          return cv::COLOR_BGR2HLS;
         case vital::Lab:
-          return CV_BGR2Lab;
+          return cv::COLOR_BGR2Lab;
         case vital::Luv:
-          return CV_BGR2Luv;
+          return cv::COLOR_BGR2Luv;
         default:
           return CV_Invalid;
       }
@@ -71,9 +71,9 @@ cv_convert_code lookup_cv_conversion_code(
       switch( space2 )
       {
         case vital::RGB:
-          return CV_HSV2RGB;
+          return cv::COLOR_HSV2RGB;
         case vital::BGR:
-          return CV_HSV2BGR;
+          return cv::COLOR_HSV2BGR;
         default:
           return CV_Invalid;
       }
@@ -81,9 +81,9 @@ cv_convert_code lookup_cv_conversion_code(
       switch( space2 )
       {
         case vital::RGB:
-          return CV_HLS2RGB;
+          return cv::COLOR_HLS2RGB;
         case vital::BGR:
-          return CV_HLS2BGR;
+          return cv::COLOR_HLS2BGR;
         default:
           return CV_Invalid;
       }
@@ -91,9 +91,9 @@ cv_convert_code lookup_cv_conversion_code(
       switch( space2 )
       {
         case vital::RGB:
-          return CV_XYZ2RGB;
+          return cv::COLOR_XYZ2RGB;
         case vital::BGR:
-          return CV_XYZ2BGR;
+          return cv::COLOR_XYZ2BGR;
         default:
           return CV_Invalid;
       }
@@ -101,9 +101,9 @@ cv_convert_code lookup_cv_conversion_code(
       switch( space2 )
       {
         case vital::RGB:
-          return CV_Lab2RGB;
+          return cv::COLOR_Lab2RGB;
         case vital::BGR:
-          return CV_Lab2BGR;
+          return cv::COLOR_Lab2BGR;
         default:
           return CV_Invalid;
       }
@@ -111,9 +111,9 @@ cv_convert_code lookup_cv_conversion_code(
       switch( space2 )
       {
         case vital::RGB:
-          return CV_Luv2RGB;
+          return cv::COLOR_Luv2RGB;
         case vital::BGR:
-          return CV_Luv2BGR;
+          return cv::COLOR_Luv2BGR;
         default:
           return CV_Invalid;
       }
@@ -121,9 +121,9 @@ cv_convert_code lookup_cv_conversion_code(
       switch( space2 )
       {
         case vital::RGB:
-          return CV_YCrCb2RGB;
+          return cv::COLOR_YCrCb2RGB;
         case vital::BGR:
-          return CV_YCrCb2BGR;
+          return cv::COLOR_YCrCb2BGR;
         default:
           return CV_Invalid;
       }
@@ -144,7 +144,7 @@ public:
   priv()
    : input_color_space( vital::RGB )
    , output_color_space( vital::HLS )
-   , conversion_code( CV_RGB2HLS )
+   , conversion_code( cv::COLOR_RGB2HLS )
   {
   }
 
