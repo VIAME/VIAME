@@ -323,14 +323,14 @@ class NetHarnTrainer( TrainDetector ):
 
         return filtered_truth, use_frame
 
-    def extract_chips_for_dets( self, image_files, detections ):
+    def extract_chips_for_dets( self, image_files, truth_sets ):
         import cv2
         output_files = []
         output_dets = []
 
         for i in range( len( image_files ) ):
             filename = image_files[ i ]
-            groundtruth = detections[ i ]
+            groundtruth = truth_sets[ i ]
             detections = []
 
             if len( groundtruth ) > 0:
