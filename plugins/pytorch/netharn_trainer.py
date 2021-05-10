@@ -95,7 +95,8 @@ class NetHarnTrainer( TrainDetector ):
         self._area_upper_bound = 0
         self._border_exclude = -1
         self._detector_model = ""
-        self._overlap_for_association = 0.05
+        self._min_overlap_for_association = 0.90
+        self._max_overlap_for_negative = 0.05
         self._max_negs_per_frame = 5
         self._negative_category = "BACKGROUND"
 
@@ -330,7 +331,7 @@ class NetHarnTrainer( TrainDetector ):
         for i in range( len( image_files ) ):
             filename = image_files[ i ]
             groundtruth = detections[ i ]
-            computed = []
+            detections = []
 
             if len( groundtruth ) > 0:
                 img = cv2.imread( filename )
@@ -342,16 +343,24 @@ class NetHarnTrainer( TrainDetector ):
                 if self._detector_model:
                     kw_image = Image( img )
                     kw_image_container = ImageContainer( kw_image )
-                    computed = self._detector.detect( kw_image_container )
+                    detections = self._detector.detect( kw_image_container )
 
-            if len( groundtruth ) == 0 and len( computed ) == 0:
+            if len( groundtruth ) == 0 and len( detections ) == 0:
                 continue
 
-            pos_bboxs = []
+            overlaps = np.zeros( ( len( detections ), len( groundtruth ) ) )
+            det_boxes = []
 
-            for det in groundtruth:
-                # Extract chip for this detection
+            for det in detections:
                 bbox = det.bounding_box()
+                det_boxes.append( ( int( bbox.min_x() ),
+                                    int( bbox.min_y() ),
+                                    int( bbox.width() ),
+                                    int( bbox.height() ) ) )
+
+            for i, gt in enumerate( groundtruth ):
+                # Extract chip for this detection
+                bbox = gt.bounding_box()
 
                 bbox_min_x = int( bbox.min_x() )
                 bbox_max_x = int( bbox.max_x() )
@@ -361,9 +370,42 @@ class NetHarnTrainer( TrainDetector ):
                 bbox_width = bbox_max_x - bbox_min_x
                 bbox_height = bbox_max_y - bbox_min_y
 
-                bbox_area = bbox_width * bbox_height
+                max_overlap = 0.0
 
-                pos_bboxs.append( ( bbox_min_x, bbox_min_y, bbox_width, bbox_height ) )
+                for j, det in enumerate( det_boxes ):
+
+                    # Compute overlap between detection and truth
+                    ( det_min_x, det_min_y, det_width, det_height ) = det
+
+                    # Get the overlap rectangle
+                    overlap_x0 = max( bbox_min_x, det_min_x )
+                    overlap_y0 = max( bbox_min_y, det_min_y )
+                    overlap_x1 = min( bbox_max_x, det_min_x + det_width )
+                    overlap_y1 = min( bbox_max_y, det_min_y + det_height )
+
+                    # Check if there is an overlap
+                    if overlap_x1 - overlap_x0 <= 0 or overlap_y1 - overlap_y0 <= 0:
+                        continue
+
+                    # If yes, calculate the ratio of the overlap
+                    det_area = float( det_width * det_height )
+                    gt_area = float( bbox_width * bbox_height )
+                    int_area = float( ( overlap_x1 - overlap_x0 ) * ( overlap_y1 - overlap_y0 ) )
+                    overlap = min( int_area / det_area, int_area / gt_area )
+                    overlaps[ j, i ] = overlap
+
+                    if overlap >= self._min_overlap_for_association and overlap > max_overlap:
+                        max_overlap = overlap
+
+                        bbox_min_x = det_min_x
+                        bbox_min_y = det_min_y
+                        bbox_max_x = det_min_x + det_width
+                        bbox_max_y = det_min_y + det_height
+
+                        bbox_width = det_width
+                        bbox_height = det_height
+
+                bbox_area = bbox_width * bbox_height
 
                 if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
                     continue
@@ -387,17 +429,21 @@ class NetHarnTrainer( TrainDetector ):
                 cv2.imwrite( new_file, crop )
 
                 # Set new box size for this detection
-                det.set_bounding_box(
+                gt.set_bounding_box(
                   BoundingBox( 0, 0, np.shape( crop )[1], np.shape( crop )[0] ) )
                 new_set = DetectedObjectSet()
-                new_set.add( det )
+                new_set.add( gt )
 
                 output_files.append( new_file )
                 output_dets.append( new_set )
 
             neg_count = 0
 
-            for det in computed:
+            for j, det in enumerate( detections ):
+
+                if max( overlaps[j] ) >= self._max_overlap_for_negative:
+                    continue
+
                 bbox = det.bounding_box()
 
                 bbox_min_x = int( bbox.min_x() )
@@ -424,32 +470,6 @@ class NetHarnTrainer( TrainDetector ):
                         continue
                     if bbox_max_y >= img_max_y - self._border_exclude:
                         continue
-
-                intersection = False
-
-                for pos in pos_bboxs:
-                    ( pos_min_x, pos_min_y, pos_width, pos_height ) = pos
-
-                    # Get the overlap rectangle
-                    overlap_x0 = max( bbox_min_x, pos_min_x )
-                    overlap_y0 = max( bbox_min_y, pos_min_y )
-                    overlap_x1 = min( bbox_min_x + bbox_width, pos_min_x + pos_width )
-                    overlap_y1 = min( bbox_min_y + bbox_height, pos_min_y + pos_height )
-
-                    # Check if there is an overlap
-                    if overlap_x1 - overlap_x0 <= 0 or overlap_y1 - overlap_y0 <= 0:
-                        continue
-
-                    # If yes, calculate the ratio of the overlap
-                    pos_area = pos_width * pos_height
-                    int_area = ( overlap_x1 - overlap_x0 ) * ( overlap_y1 - overlap_y0 )
-
-                    if float( int_area ) / pos_area >= self._overlap_for_association:
-                        intersection = True
-                        break
-
-                if intersection:
-                    continue
 
                 crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
                 self._sample_count = self._sample_count + 1
