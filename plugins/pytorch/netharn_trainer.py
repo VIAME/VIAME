@@ -42,8 +42,6 @@ from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
 from vital.types import DetectedObjectType
 
-from PIL import Image
-
 from distutils.util import strtobool
 from shutil import copyfile
 
@@ -430,7 +428,7 @@ class NetHarnTrainer( TrainDetector ):
                 intersection = False
 
                 for pos in pos_bboxs:
-                    ( pox_min_x, pos_min_y, pos_width, pos_height ) = pos
+                    ( pos_min_x, pos_min_y, pos_width, pos_height ) = pos
 
                     # Get the overlap rectangle
                     overlap_x0 = max( bbox_min_x, pos_min_x )
@@ -484,6 +482,8 @@ class NetHarnTrainer( TrainDetector ):
             print( "Error: train file and groundtruth count mismatch" )
             return
         if categories is not None:
+            if self._detector_model:
+                categories.add_class( self._negative_category, "", -1 )
             self._categories = categories.all_class_names()
         if self._mode == "detection_refiner":
             [ train_files, train_dets ] = self.extract_chips_for_dets( train_files, train_dets )
