@@ -36,8 +36,6 @@ from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
 from vital.types import DetectedObjectType
 
-from vital.algo import ImageObjectDetector
-
 from distutils.util import strtobool
 
 import numpy as np  # NOQA

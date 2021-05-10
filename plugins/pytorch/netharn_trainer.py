@@ -31,8 +31,11 @@ from __future__ import print_function
 from __future__ import division
 
 from vital.algo import TrainDetector
+from vital.algo import ImageObjectDetector
 from vital.algo import DetectedObjectSetOutput
 
+from vital.types import Image
+from vital.types import ImageContainer
 from vital.types import BoundingBox
 from vital.types import CategoryHierarchy
 from vital.types import DetectedObjectSet
