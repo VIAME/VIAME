@@ -97,7 +97,7 @@ class NetHarnTrainer( TrainDetector ):
         self._detector_model = ""
         self._min_overlap_for_association = 0.90
         self._max_overlap_for_negative = 0.05
-        self._max_negs_per_frame = 5
+        self._max_neg_per_frame = 5
         self._negative_category = "BACKGROUND"
 
     def get_configuration( self ):
@@ -132,6 +132,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "area_upper_bound", str( self._area_upper_bound ) )
         cfg.set_value( "border_exclude", str( self._border_exclude ) )
         cfg.set_value( "detector_model", str( self._detector_model ) )
+        cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
+        cfg.set_value( "negative_category", self._negative_category )
 
         return cfg
 
@@ -168,6 +170,8 @@ class NetHarnTrainer( TrainDetector ):
         self._area_upper_bound = float( cfg.get_value( "area_upper_bound" ) )
         self._border_exclude = float( cfg.get_value( "border_exclude" ) )
         self._detector_model = str( cfg.get_value( "detector_model" ) )
+        self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
+        self._negative_category = str( cfg.get_value( "negative_category" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -471,6 +475,10 @@ class NetHarnTrainer( TrainDetector ):
                     if bbox_max_y >= img_max_y - self._border_exclude:
                         continue
 
+                # Handle random factor
+                if self._max_neg_per_frame < 1.0 and random.uniform( 0, 1 ) > self._max_neg_per_frame:
+                    break
+
                 crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
                 self._sample_count = self._sample_count + 1
                 crop_str = ( '%09d' %  self._sample_count ) + ".png"
@@ -490,7 +498,7 @@ class NetHarnTrainer( TrainDetector ):
 
                 # Check maximum negative count
                 neg_count = neg_count + 1
-                if neg_count > self._max_negs_per_frame:
+                if neg_count > self._max_neg_per_frame:
                     break
 
         return [ output_files, output_dets ]
