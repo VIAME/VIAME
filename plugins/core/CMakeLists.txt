@@ -9,6 +9,7 @@ set( plugin_headers
   notes_to_attributes.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
+  read_detected_object_set_oceaneyes.h
   read_detected_object_set_viame_csv.h
   read_object_track_set_viame_csv.h
   write_detected_object_set_viame_csv.h
@@ -24,6 +25,7 @@ set( plugin_sources
   notes_to_attributes.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
+  read_detected_object_set_oceaneyes.cxx
   read_detected_object_set_viame_csv.cxx
   read_object_track_set_viame_csv.cxx
   write_detected_object_set_viame_csv.cxx
