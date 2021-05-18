@@ -63,8 +63,21 @@ double filter_number( std::string str )
   str.erase( std::remove( str.begin(), str.end(), '('), str.end() );
   str.erase( std::remove( str.begin(), str.end(), ')'), str.end() );
   str.erase( std::remove( str.begin(), str.end(), '"'), str.end() );
+  str.erase( std::remove( str.begin(), str.end(), ' '), str.end() );
 
-  return std::stod( str );
+  double output;
+
+  try
+  {
+    output = std::stod( str );
+  }
+  catch( const std::invalid_argument& e )
+  {
+    std::cout << "Unable to convert string to number: " << str << std::endl;
+    throw e;
+  }
+
+  return output;
 }
 
 // -----------------------------------------------------------------------------------
@@ -206,7 +219,9 @@ read_detected_object_set_oceaneyes::priv
     std::vector< std::string > col;
     kwiver::vital::tokenize( line, col, ",", false );
 
-    if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
+    if( col.empty() ||
+        ( !col[0].empty() && col[0][0] == '#' ) ||
+        ( col[0] == "filename" ) )
     {
       continue;
     }
