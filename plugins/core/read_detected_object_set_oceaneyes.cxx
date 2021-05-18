@@ -50,9 +50,22 @@ namespace viame
 
 enum
 {
-  COL_FRAME_ID=0,    // 0: Object ID
-  COL_SPECIES_ID=4,  // 4: Species Label
+  COL_FRAME_ID=0,      // 0: Object ID
+  COL_SPECIES_ID=4,    // 4: Species Label
+  COL_FISH_CONF=6,     // 6: Fish confidence
+  COL_SPEC_CONF=7,     // 7: Species confidence
+  COL_IS_HEAD_TAIL=10, // 10: Is head tail valid
+  COL_HEAD_TAIL=11     // 11: Head tail locations
 };
+
+double filter_number( std::string str )
+{
+  str.erase( std::remove( str.begin(), str.end(), '('), str.end() );
+  str.erase( std::remove( str.begin(), str.end(), ')'), str.end() );
+  str.erase( std::remove( str.begin(), str.end(), '"'), str.end() );
+
+  return std::stod( str );
+}
 
 // -----------------------------------------------------------------------------------
 class read_detected_object_set_oceaneyes::priv
@@ -198,7 +211,7 @@ read_detected_object_set_oceaneyes::priv
       continue;
     }
 
-    if( col.size() < COL_TOT )
+    if( col.size() < COL_SPECIES_ID )
     {
       std::stringstream str;
       str << "This is not a oceaneyes file; found " << col.size()
@@ -206,16 +219,9 @@ read_detected_object_set_oceaneyes::priv
       throw kwiver::vital::invalid_data( str.str() );
     }
 
-    /*
-     * Check to see if we have seen this frame before. If we have,
-     * then retrieve the frame's index into our output map. If not
-     * seen before, add frame -> detection set index to our map and
-     * press on.
-     *
-     * This allows for track states to be written in a non-contiguous
-     * manner as may be done by streaming writers.
-     */
+    // Get frame ID and remove extension to make filetype agnostic
     std::string str_id = col[ COL_FRAME_ID ];
+    str_id = str_id.substr( 0, str_id.find_last_of( "." ) );
 
     if( !str_id.empty() &&
         m_detection_by_str.count( str_id ) == 0 )
@@ -225,25 +231,57 @@ read_detected_object_set_oceaneyes::priv
         std::make_shared<kwiver::vital::detected_object_set>();
     }
 
+    if( col[ COL_SPECIES_ID ] == c_no_fish_string )
+    {
+      continue;
+    }
+
+    double x1 = filter_number( col[ COL_HEAD_TAIL + 0 ] );
+    double y1 = filter_number( col[ COL_HEAD_TAIL + 1 ] );
+    double x2 = filter_number( col[ COL_HEAD_TAIL + 2 ] );
+    double y2 = filter_number( col[ COL_HEAD_TAIL + 3 ] );
+
+    bool is_valid_head_tail = ( col[ COL_IS_HEAD_TAIL ] == "yes" );
+
     kwiver::vital::bounding_box_d bbox(
-      atof( col[ COL_MIN_X ].c_str() ),
-      atof( col[ COL_MIN_Y ].c_str() ),
-      atof( col[ COL_MAX_X ].c_str() ),
-      atof( col[ COL_MAX_Y ].c_str() ) );
+      std::min( x1, x2 ),
+      std::min( y1, y2 ),
+      std::max( x1, x2 ),
+      std::max( y1, y2 ) );
 
     // Create detection
     kwiver::vital::detected_object_type_sptr dot =
       std::make_shared< kwiver::vital::detected_object_type >();
 
-    dot->set_score( col[ COL_LABEL ], 1.0 );
+    double species_conf = std::stod( col[ COL_SPEC_CONF ] );
+
+    dot->set_score( col[ COL_SPECIES_ID ], species_conf );
 
     kwiver::vital::detected_object_sptr dob =
-      std::make_shared< kwiver::vital::detected_object>( bbox, 1.0, dot );
+      std::make_shared< kwiver::vital::detected_object>(
+        bbox, species_conf, dot );
+
+    if( is_valid_head_tail )
+    {
+      dob->add_keypoint( "head",
+        kwiver::vital::point_2d( x1, y1 ) );
+      dob->add_keypoint( "tail",
+        kwiver::vital::point_2d( x2, y2 ) );
+    }
 
     // Add detection to set for the frame
     m_detection_by_str[ str_id ]->add( dob );
 
   } // ...while !eof
+
+  // Optionally expand bounding boxes by a fixed factor
+  if( c_box_expansion > 0.0 )
+  {
+    for( auto itr : m_detection_by_str )
+    {
+      itr.second->scale( 1.0 + c_box_expansion );
+    }
+  }
 } // read_all
 
 } // end namespace
