@@ -258,19 +258,50 @@ read_detected_object_set_oceaneyes::priv
 
     bool is_valid_head_tail = ( col[ COL_IS_HEAD_TAIL ] == "yes" );
 
+    double x_min = std::min( x1, x2 );
+    double y_min = std::min( y1, y2 );
+    double x_max = std::max( x1, x2 );
+    double y_max = std::max( y1, y2 );
+
+    double c_x = ( x_min + x_max ) / 2.0;
+    double c_y = ( y_min + y_max ) / 2.0;
+
+    double width = ( x_max - x_min ) * ( 1.0 + c_box_expansion );
+    double height = ( y_max - y_min ) * ( 1.0 + c_box_expansion );
+
+    if( width == 0 || height == 0 )
+    {
+      continue;
+    }
+
+    const double max_ar = 8.0;
+
+    if( height / width > max_ar )
+    {
+      width = height / max_ar;
+    }
+    if( width / height > max_ar )
+    {
+      height = width / max_ar;
+    }
+
     kwiver::vital::bounding_box_d bbox(
-      std::min( x1, x2 ),
-      std::min( y1, y2 ),
-      std::max( x1, x2 ),
-      std::max( y1, y2 ) );
+      c_x - width / 2.0,
+      c_y - height / 2.0,
+      c_x + width / 2.0,
+      c_y + height / 2.0 );
 
     // Create detection
     kwiver::vital::detected_object_type_sptr dot =
       std::make_shared< kwiver::vital::detected_object_type >();
 
+    std::string species_label = col[ COL_SPECIES_ID ];
     double species_conf = std::stod( col[ COL_SPEC_CONF ] );
 
-    dot->set_score( col[ COL_SPECIES_ID ], species_conf );
+    species_label = ( species_label.empty() ? "other" : species_label );
+    species_conf = ( species_conf == 0.0 ? 0.01 : species_conf );
+
+    dot->set_score( species_label, species_conf );
 
     kwiver::vital::detected_object_sptr dob =
       std::make_shared< kwiver::vital::detected_object>(
@@ -288,15 +319,6 @@ read_detected_object_set_oceaneyes::priv
     m_detection_by_str[ str_id ]->add( dob );
 
   } // ...while !eof
-
-  // Optionally expand bounding boxes by a fixed factor
-  if( c_box_expansion > 0.0 )
-  {
-    for( auto itr : m_detection_by_str )
-    {
-      itr.second->scale( 1.0 + c_box_expansion );
-    }
-  }
 } // read_all
 
 } // end namespace
