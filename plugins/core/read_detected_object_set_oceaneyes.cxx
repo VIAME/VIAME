@@ -88,7 +88,8 @@ public:
     : m_parent( parent )
     , m_first( true )
     , c_no_fish_string( "no fish" )
-    , c_box_expansion( 0.20 )
+    , c_box_expansion( 0.25 )
+    , c_max_aspect_ratio( 3.0 )
   {}
 
   ~priv() { }
@@ -99,6 +100,7 @@ public:
   bool m_first;
   std::string c_no_fish_string;
   double c_box_expansion;
+  double c_max_aspect_ratio;
 
   typedef std::map< std::string, kwiver::vital::detected_object_set_sptr > map_type;
 
@@ -274,15 +276,13 @@ read_detected_object_set_oceaneyes::priv
       continue;
     }
 
-    const double max_ar = 8.0;
-
-    if( height / width > max_ar )
+    if( height / width > c_max_aspect_ratio )
     {
-      width = height / max_ar;
+      width = height / c_max_aspect_ratio;
     }
-    if( width / height > max_ar )
+    if( width / height > c_max_aspect_ratio )
     {
-      height = width / max_ar;
+      height = width / c_max_aspect_ratio;
     }
 
     kwiver::vital::bounding_box_d bbox(
@@ -296,10 +296,12 @@ read_detected_object_set_oceaneyes::priv
       std::make_shared< kwiver::vital::detected_object_type >();
 
     std::string species_label = col[ COL_SPECIES_ID ];
-    double species_conf = std::stod( col[ COL_SPEC_CONF ] );
+
+    double species_conf = std::max( std::stod( col[ COL_SPEC_CONF ] ),
+                                    std::stod( col[ COL_FISH_CONF ] ) );
 
     species_label = ( species_label.empty() ? "other" : species_label );
-    species_conf = ( species_conf == 0.0 ? 0.01 : species_conf );
+    species_conf = ( species_conf == 0.0 ? 0.10 : species_conf );
 
     dot->set_score( species_label, species_conf );
 
