@@ -88,8 +88,8 @@ public:
     : m_parent( parent )
     , m_first( true )
     , c_no_fish_string( "no fish" )
-    , c_box_expansion( 0.25 )
-    , c_max_aspect_ratio( 3.0 )
+    , c_box_expansion( 0.30 )
+    , c_max_aspect_ratio( 2.25 )
   {}
 
   ~priv() { }
