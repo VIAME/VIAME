@@ -231,7 +231,7 @@ set( CORE_PIPELINE_FILES
   pipelines/index_full_frame.svm.annot_only.pipe
   pipelines/measurement_default.trk.pipe
   pipelines/measurement_depth_map.pipe
-  pipelines/measurement.gmm_only.pipe
+  pipelines/measurement_gmm_only.pipe
   pipelines/query_augment_image.pipe
   pipelines/query_image_exemplar.cfe.pipe
   pipelines/query_image_exemplar.pipe
