@@ -232,6 +232,11 @@ std::string get_filename_no_path( std::string path )
   return boost::filesystem::path( path ).filename().string();
 }
 
+std::string add_quotes( const std::string& str )
+{
+  return "\"" + str + "\"";
+}
+
 bool ends_with_extension( const std::string& str, const std::string& ext )
 {
   if( str.length() >= ext.length() )
@@ -504,11 +509,11 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   cmd = cmd + ".exe";
 #endif
 
-  cmd = cmd + " runner " + pipeline_filename + " ";
-  cmd = cmd + "-s input:video_filename=" + video_filename + " ";
+  cmd = cmd + " runner " + add_quotes( pipeline_filename ) + " ";
+  cmd = cmd + "-s input:video_filename=" + add_quotes( video_filename ) + " ";
   cmd = cmd + "-s input:video_reader:type=vidl_ffmpeg ";
   cmd = cmd + "-s input:target_frame_rate=" + frame_rate_str + " ";
-  cmd = cmd + "-s output:file_name_template=" + output_path + " ";
+  cmd = cmd + "-s output:file_name_template=" + add_quotes( output_path ) + " ";
 
   if( !skip_extract )
   {
