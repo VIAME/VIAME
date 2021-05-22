@@ -30,14 +30,17 @@
 from __future__ import print_function
 from __future__ import division
 
-from kwiver.vital.algo import DetectedObjectSetOutput, TrainDetector
+from kwiver.vital.algo import (
+    DetectedObjectSetOutput,
+    ImageObjectDetector,
+    TrainDetector
+)
 
 from kwiver.vital.types import (
+    Image, ImageContainer,
     BoundingBoxD, CategoryHierarchy,
     DetectedObjectSet, DetectedObject, DetectedObjectType
 )
-
-from PIL import Image
 
 from distutils.util import strtobool
 from shutil import copyfile
@@ -52,6 +55,7 @@ import sys
 import subprocess
 import threading
 import time
+import random
 
 class NetHarnTrainer( TrainDetector ):
     """
@@ -92,9 +96,10 @@ class NetHarnTrainer( TrainDetector ):
         self._area_upper_bound = 0
         self._border_exclude = -1
         self._detector_model = ""
-        self._overlap_for_association = 0.90
-        self._max_negs_per_frame = 5
-        self._negative_category = "background"
+        self._min_overlap_for_association = 0.90
+        self._max_overlap_for_negative = 0.05
+        self._max_neg_per_frame = 5
+        self._negative_category = "BACKGROUND"
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -128,6 +133,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "area_upper_bound", str( self._area_upper_bound ) )
         cfg.set_value( "border_exclude", str( self._border_exclude ) )
         cfg.set_value( "detector_model", str( self._detector_model ) )
+        cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
+        cfg.set_value( "negative_category", self._negative_category )
 
         return cfg
 
@@ -164,6 +171,8 @@ class NetHarnTrainer( TrainDetector ):
         self._area_upper_bound = float( cfg.get_value( "area_upper_bound" ) )
         self._border_exclude = float( cfg.get_value( "border_exclude" ) )
         self._detector_model = str( cfg.get_value( "detector_model" ) )
+        self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
+        self._negative_category = str( cfg.get_value( "negative_category" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -260,18 +269,17 @@ class NetHarnTrainer( TrainDetector ):
             else:
                 self._arch = "cascade"
 
-        # Launch helper detector if enabled
-        #if self._mode == "detection_refiner" and self._detector_model:
-        #    from bioharn import detect_predict
-        #    pred_config = detect_predict.DetectPredictConfig()
-        #    pred_config['batch_size'] = 1
-        #    pred_config['deployed'] = self._detector_model
-        #    pred_config['xpu'] = 'auto'
-        #    self._detector = detect_predict.DetectPredictor( pred_config )
-        #    self._detector._ensure_model()
-
         if self._mode == "detection_refiner" and not os.path.exists( self._chip_directory ):
             os.mkdir( self._chip_directory )
+
+        # Load object detector if enabled
+        if self._detector_model:
+            self._detector = ImageObjectDetector.create( "netharn" )
+            detector_config = self._detector.get_configuration()
+            detector_config.set_value( "deployed", self._detector_model )
+            if not self._detector.set_configuration( detector_config ):
+                print( "Unable to configure detector" )
+                return False
 
         # Initialize persistent variables
         self._training_data = []
@@ -320,22 +328,15 @@ class NetHarnTrainer( TrainDetector ):
 
         return filtered_truth, use_frame
 
-    def extract_chips_for_dets( self, image_files, detections ):
+    def extract_chips_for_dets( self, image_files, truth_sets ):
         import cv2
         output_files = []
         output_dets = []
 
-        # Run detector on image, TODO
-        #if self._detector_model:
-        #else if len( train_dets ) == 0:
-        #    continue
-
-        #TODO use self._overlap_for_association = 0.90
-        #TODO use self._max_negs_per_frame = 10
-
         for i in range( len( image_files ) ):
             filename = image_files[ i ]
-            groundtruth = detections[ i ]
+            groundtruth = truth_sets[ i ]
+            detections = []
 
             if len( groundtruth ) > 0:
                 img = cv2.imread( filename )
@@ -343,13 +344,111 @@ class NetHarnTrainer( TrainDetector ):
                 img_max_x = np.shape( img )[1]
                 img_max_y = np.shape( img )[0]
 
-            if len( groundtruth ) == 0:
+                # Run optional background detector on data
+                if self._detector_model:
+                    kw_image = Image( img )
+                    kw_image_container = ImageContainer( kw_image )
+                    detections = self._detector.detect( kw_image_container )
+
+            if len( groundtruth ) == 0 and len( detections ) == 0:
                 continue
 
-            pos_bboxs = []
+            overlaps = np.zeros( ( len( detections ), len( groundtruth ) ) )
+            det_boxes = []
 
-            for det in groundtruth:
+            for det in detections:
+                bbox = det.bounding_box()
+                det_boxes.append( ( int( bbox.min_x() ),
+                                    int( bbox.min_y() ),
+                                    int( bbox.width() ),
+                                    int( bbox.height() ) ) )
+
+            for i, gt in enumerate( groundtruth ):
                 # Extract chip for this detection
+                bbox = gt.bounding_box()
+
+                bbox_min_x = int( bbox.min_x() )
+                bbox_max_x = int( bbox.max_x() )
+                bbox_min_y = int( bbox.min_y() )
+                bbox_max_y = int( bbox.max_y() )
+
+                bbox_width = bbox_max_x - bbox_min_x
+                bbox_height = bbox_max_y - bbox_min_y
+
+                max_overlap = 0.0
+
+                for j, det in enumerate( det_boxes ):
+
+                    # Compute overlap between detection and truth
+                    ( det_min_x, det_min_y, det_width, det_height ) = det
+
+                    # Get the overlap rectangle
+                    overlap_x0 = max( bbox_min_x, det_min_x )
+                    overlap_y0 = max( bbox_min_y, det_min_y )
+                    overlap_x1 = min( bbox_max_x, det_min_x + det_width )
+                    overlap_y1 = min( bbox_max_y, det_min_y + det_height )
+
+                    # Check if there is an overlap
+                    if overlap_x1 - overlap_x0 <= 0 or overlap_y1 - overlap_y0 <= 0:
+                        continue
+
+                    # If yes, calculate the ratio of the overlap
+                    det_area = float( det_width * det_height )
+                    gt_area = float( bbox_width * bbox_height )
+                    int_area = float( ( overlap_x1 - overlap_x0 ) * ( overlap_y1 - overlap_y0 ) )
+                    overlap = min( int_area / det_area, int_area / gt_area )
+                    overlaps[ j, i ] = overlap
+
+                    if overlap >= self._min_overlap_for_association and overlap > max_overlap:
+                        max_overlap = overlap
+
+                        bbox_min_x = det_min_x
+                        bbox_min_y = det_min_y
+                        bbox_max_x = det_min_x + det_width
+                        bbox_max_y = det_min_y + det_height
+
+                        bbox_width = det_width
+                        bbox_height = det_height
+
+                bbox_area = bbox_width * bbox_height
+
+                if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
+                    continue
+                if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
+                    continue
+
+                if self._border_exclude > 0:
+                    if bbox_min_x <= self._border_exclude:
+                        continue
+                    if bbox_min_y <= self._border_exclude:
+                        continue
+                    if bbox_max_x >= img_max_x - self._border_exclude:
+                        continue
+                    if bbox_max_y >= img_max_y - self._border_exclude:
+                        continue
+
+                crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
+                self._sample_count = self._sample_count + 1
+                crop_str = ( '%09d' %  self._sample_count ) + ".png"
+                new_file = os.path.join( self._chip_directory, crop_str )
+                cv2.imwrite( new_file, crop )
+
+                # Set new box size for this detection
+                gt.set_bounding_box(
+                  BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] ) )
+                new_set = DetectedObjectSet()
+                new_set.add( gt )
+
+                output_files.append( new_file )
+                output_dets.append( new_set )
+
+            neg_count = 0
+
+            for j, det in enumerate( detections ):
+
+                if max( overlaps[j] ) >= self._max_overlap_for_negative:
+                    continue
+
                 bbox = det.bounding_box()
 
                 bbox_min_x = int( bbox.min_x() )
@@ -377,6 +476,10 @@ class NetHarnTrainer( TrainDetector ):
                     if bbox_max_y >= img_max_y - self._border_exclude:
                         continue
 
+                # Handle random factor
+                if self._max_neg_per_frame < 1.0 and random.uniform( 0, 1 ) > self._max_neg_per_frame:
+                    break
+
                 crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
                 self._sample_count = self._sample_count + 1
                 crop_str = ( '%09d' %  self._sample_count ) + ".png"
@@ -386,11 +489,18 @@ class NetHarnTrainer( TrainDetector ):
                 # Set new box size for this detection
                 det.set_bounding_box(
                   BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] ) )
+                det.set_type(
+                  DetectedObjectType( self._negative_category, 1.0 ) )
                 new_set = DetectedObjectSet()
                 new_set.add( det )
 
                 output_files.append( new_file )
                 output_dets.append( new_set )
+
+                # Check maximum negative count
+                neg_count = neg_count + 1
+                if neg_count > self._max_neg_per_frame:
+                    break
 
         return [ output_files, output_dets ]
 
@@ -401,6 +511,8 @@ class NetHarnTrainer( TrainDetector ):
             print( "Error: train file and groundtruth count mismatch" )
             return
         if categories is not None:
+            if self._detector_model:
+                categories.add_class( self._negative_category, "", -1 )
             self._categories = categories.all_class_names()
         if self._mode == "detection_refiner":
             [ train_files, train_dets ] = self.extract_chips_for_dets( train_files, train_dets )
