@@ -2,7 +2,7 @@
 # top level build file for NOAA VIAME
 #
 
-cmake_minimum_required( VERSION 3.11.3 )
+cmake_minimum_required( VERSION 3.12.0 )
 set( CMAKE_CXX_STANDARD 11 )
 
 project( VIAME )
@@ -237,18 +237,16 @@ if( VIAME_ENABLE_PYTHON )
   if( VIAME_ENABLE_PYTHON-INTERNAL )
     include( setup_internal_python )
   else()
-    find_package( PythonInterp REQUIRED )
-    find_package( PythonLibs REQUIRED )
+    find_package( Python COMPONENTS Interpreter Development REQUIRED )
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        NOT EXISTS ${PYTHON_INCLUDE_DIR}/pyconfig.h )
-      message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR "
+        NOT EXISTS ${Python_INCLUDE_DIR}/pyconfig.h )
+      message( FATAL_ERROR "pyconfig.h does not exist in your Python_INCLUDE_DIR "
         "make sure the variable is set correctly and you have python-dev installed." )
     endif()
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        ( NOT PYTHON_VERSION VERSION_EQUAL "3.6" OR
-          NOT PYTHON_VERSION_PATCH EQUAL "5" ) )
+        NOT Python_VERSION VERSION_EQUAL "3.6.5" )
       message( FATAL_ERROR "Short-term, the only tested python distribution is "
         "Anaconda3 5.2.0, either install that version or set the cmake flag "
         "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
@@ -259,9 +257,7 @@ if( VIAME_ENABLE_PYTHON )
     message( FATAL_ERROR "Netharn currently also required mmdet enabled" )
   endif()
 
-  set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-       CACHE STRING "Python version number" )
-  set( PYTHON_VERSION_STRING "${PYTHON_VERSION}"
+  set( Python_VERSION_STRING "${Python_VERSION}"
        CACHE INTERNAL "Python version string" )
 endif()
 
@@ -281,8 +277,7 @@ endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
-  find_package( PythonInterp QUIET )
-  if( NOT PYTHONINTERP_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
+  if( NOT Python_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
     message( FATAL_ERROR "If VXL is enabled, there must be some python install located \
       on the system to build, even if VIAME_ENABLE_PYTHON is turned off for all other \
       packages. A python binary could not be found. Please install at least python." )
@@ -575,7 +570,7 @@ else()
 
     # Setup python directories for plugin processes in same style as KWIVER
     if( VIAME_ENABLE_PYTHON )
-      set( kwiver_python_subdir "python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" )
+      set( kwiver_python_subdir "python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" )
       set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
       set( viame_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
     endif()
