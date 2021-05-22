@@ -359,10 +359,12 @@ if( VIAME_ENABLE_CUDA )
 
   if( WIN32 )
     set( VIAME_EXECUTABLES_PATH
-      CACHE INTERNAL ${VIAME_BUILD_INSTALL_PREFIX}/bin;${CUDA_TOOLKIT_ROOT_DIR}/bin;$ENV{PATH} )
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin;${CUDA_TOOLKIT_ROOT_DIR}/bin;$ENV{PATH}
+      CACHE INTERNAL "All compiled and system-related runnable executables" )
   else()
     set( VIAME_EXECUTABLES_PATH
-      CACHE INTERNAL ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDA_TOOLKIT_ROOT_DIR}/bin:$ENV{PATH} )
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDA_TOOLKIT_ROOT_DIR}/bin:$ENV{PATH}
+      CACHE INTERNAL "All compiled and system-related runnable executables" )
   endif()
 else()
   set( VIAME_FORCE_CUDA_CSTD98 CACHE INTERNAL FALSE )
