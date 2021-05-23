@@ -38,6 +38,7 @@
 #ifndef TRAIN_DETECTOR_TRAMPOLINE_TXX
 #define TRAIN_DETECTOR_TRAMPOLINE_TXX
 
+#include <pybind11/stl.h>
 #include <python/kwiver/vital/util/pybind11.h>
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/train_detector.h>
