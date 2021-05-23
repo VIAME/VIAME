@@ -299,10 +299,10 @@ class NetHarnTrainer( TrainDetector ):
         use_frame = True
         max_length = int( self._max_scale_wrt_chip * float( self._chip_width ) )
         for i, item in enumerate( init_truth ):
-            if item.type() is None:
+            if item.type is None:
                 continue
             class_lbl = item.type.get_most_likely_class()
-            if categories is not None and not categories.has_class_id( class_lbl ):
+            if categories is not None and not categories.has_class_name( class_lbl ):
                 if self._mode == "detection_refiner":
                     class_lbl = self._negative_category
                 else:
@@ -312,12 +312,11 @@ class NetHarnTrainer( TrainDetector ):
             elif class_lbl not in self._categories:
                 self._categories.append( class_lbl )
 
-            truth_type = DetectedObjectType( class_lbl, 1.0 )
-            item.set_type( truth_type )
+            item.type = DetectedObjectType( class_lbl, 1.0 )
 
             if self._mode == "detector" and \
-               ( item.bounding_box().width() > max_length or \
-                 item.bounding_box().height() > max_length ):
+               ( item.bounding_box.width() > max_length or \
+                 item.bounding_box.height() > max_length ):
                 use_frame = False
                 break
 
