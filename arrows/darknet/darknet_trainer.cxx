@@ -116,8 +116,8 @@ public:
     vital::category_hierarchy_sptr object_labels );
 
   void generate_fn(
-    std::string image_folder, std::string gt_folder,
-    std::string& image, std::string& gt, const int len = 10 );
+    std::string output_folder, std::string& image,
+    std::string& gt, const int len = 10 );
 
   void save_chip(
     std::string filename,
@@ -274,13 +274,11 @@ darknet_trainer
       }
     }
 
-    std::vector< std::string > dirs_to_make( 5 );
+    std::vector< std::string > dirs_to_make( 3 );
 
     dirs_to_make[0] = d->m_train_directory;
     dirs_to_make[1] = d->m_train_directory + div + "train_images";
-    dirs_to_make[2] = d->m_train_directory + div + "train_labels";
-    dirs_to_make[3] = d->m_train_directory + div + "test_images";
-    dirs_to_make[4] = d->m_train_directory + div + "test_labels";
+    dirs_to_make[2] = d->m_train_directory + div + "test_images";
 
     for( unsigned i = 0; i < dirs_to_make.size(); ++i )
     {
@@ -694,7 +692,6 @@ darknet_trainer::priv
   }
 
   std::string image_folder = folder + div + prefix + "_images";
-  std::string label_folder = folder + div + prefix + "_labels";
 
   kwiver::vital::detected_object_set_sptr scaled_groundtruth = groundtruth->clone();
 
@@ -716,7 +713,7 @@ darknet_trainer::priv
   if( m_resize_option != "chip" && m_resize_option != "chip_and_original" )
   {
     std::string img_file, gt_file;
-    generate_fn( image_folder, label_folder, img_file, gt_file );
+    generate_fn( image_folder, img_file, gt_file );
 
     kwiver::vital::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
     if( print_detections( gt_file, scaled_groundtruth, roi_box, object_labels ) )
@@ -766,7 +763,7 @@ darknet_trainer::priv
           resized_crop, m_resize_width, m_resize_height );
 
         std::string img_file, gt_file;
-        generate_fn( image_folder, label_folder, img_file, gt_file );
+        generate_fn( image_folder, img_file, gt_file );
 
         kwiver::vital::bounding_box_d roi_box( i, j, i + m_resize_width, j + m_resize_height );
         if( print_detections( gt_file, scaled_groundtruth, roi_box, object_labels ) )
@@ -788,7 +785,7 @@ darknet_trainer::priv
       scale_detections( scaled_original_dets_ptr, scaled_original_scale );
 
       std::string img_file, gt_file;
-      generate_fn( image_folder, label_folder, img_file, gt_file );
+      generate_fn( image_folder, img_file, gt_file );
 
       kwiver::vital::bounding_box_d roi_box( 0, 0,
         scaled_original.cols, scaled_original.rows );
@@ -898,7 +895,7 @@ darknet_trainer::priv
 
 void
 darknet_trainer::priv
-::generate_fn( std::string image_folder, std::string gt_folder,
+::generate_fn( std::string output_folder,
                std::string& image, std::string& gt,
                VITAL_UNUSED const int len )
 {
@@ -910,8 +907,8 @@ darknet_trainer::priv
   ss << std::setw( 9 ) << std::setfill( '0' ) << sample_counter;
   std::string s = ss.str();
 
-  image = image_folder + div + s + ".png";
-  gt = gt_folder + div + s + ".txt";
+  image = output_folder + div + s + ".png";
+  gt = output_folder + div + s + ".txt";
 }
 
 void
