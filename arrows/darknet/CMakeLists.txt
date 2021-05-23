@@ -100,9 +100,9 @@ if( KWIVER_ENABLE_TESTS )
 endif()
 
 if( KWIVER_ENABLE_PYTHON )
-  kwiver_create_python_init( kwiver/arrows/darknet )
+  kwiver_create_python_init( arrows/darknet )
 
   kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/generate_headers.py
-    kwiver/arrows/darknet
+    arrows/darknet
     generate_headers )
 endif()
