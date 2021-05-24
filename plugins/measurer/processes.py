@@ -390,6 +390,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
                 # ...     ct_bbox, mask, special_keypoints=special_keypoints)
                 ct_det = ctalgo.DetectedObject(ct_bbox, mask)
                 yield ct_det
+
         detections1 = list(_detections_from_vital(detection_set1))
         detections2 = list(_detections_from_vital(detection_set2))
 
