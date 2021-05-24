@@ -94,7 +94,7 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
 
     def write_set(self, detected_object_set, file_name):
         for det in detected_object_set:
-            bbox = det.bounding_box()
+            bbox = det.bounding_box
             d = dict(
                 image_id=len(self.images),
                 bbox=[
@@ -103,11 +103,11 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
                     bbox.width(),
                     bbox.height(),
                 ],
-                score=det.confidence(),
+                score=det.confidence,
             )
-            if det.type() is not None:
+            if det.type is not None:
                 d['category_id'] = type(self).categories.setdefault(
-                    det.type().get_most_likely_class(),
+                    det.type.get_most_likely_class(),
                     len(type(self).categories) + self.category_start_id,
                 )
             self.detections.append(d)
