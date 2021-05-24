@@ -1,3 +1,14 @@
+v0.15.0 - 5/25/2021
+===================
+
+
+-Significant DIVE interface updates and bug fixes
+
+
+-Updates to stereo measurement process
+
+
+
 v0.14.1 - 3/10/2021
 ===================
 
