@@ -69,6 +69,7 @@ detected_object
   new_obj->m_detector_name = this->m_detector_name;
   new_obj->m_geo_point = this->m_geo_point;
   new_obj->m_keypoints = this->m_keypoints;
+  new_obj->m_polygon = this->m_polygon;
   new_obj->m_notes = this->m_notes;
 
   return new_obj;
@@ -248,6 +249,51 @@ detected_object
 ::clear_keypoints()
 {
   m_keypoints.clear();
+}
+
+// ----------------------------------------------------------------------------
+std::vector< vital::point_2d >
+detected_object
+::polygon() const
+{
+  return m_polygon;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_polygon( std::vector< vital::point_2d > p )
+{
+  m_polygon = p;
+}
+
+// ----------------------------------------------------------------------------
+std::vector< double >
+detected_object
+::get_flattened_polygon() const
+{
+  std::vector< double > flattened_polygon;
+  for( auto const& point : m_polygon )
+  {
+     flattened_polygon.push_back( point.value()[0] );
+     flattened_polygon.push_back( point.value()[1] );
+
+  }
+  return flattened_polygon;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_flattened_polygon( std::vector< double > p )
+{
+  m_polygon.clear();
+  for( unsigned i = 0; i < p.size(); i+=2 )
+  {
+    // Add an x, y point
+    m_polygon.push_back(
+      kwiver::vital::point_2d( p[ i ], p[ i + 1 ] ) );
+  }
 }
 
 } // namespace vital

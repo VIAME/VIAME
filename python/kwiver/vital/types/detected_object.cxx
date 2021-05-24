@@ -213,6 +213,8 @@ PYBIND11_MODULE(detected_object, m)
   .def("clear_notes", &det_obj::clear_notes)
   .def("add_keypoint", &det_obj::add_keypoint)
   .def("clear_keypoints", &det_obj::clear_keypoints)
+  .def("set_flattened_polygon", &det_obj::set_flattened_polygon)
+  .def("get_flattened_polygon", &det_obj::get_flattened_polygon)
   // TODO: Uncomment after above const-safe methods are implemented for mask
   .def_property("mask", &python::det_obj_const_safe_mask, &python::det_obj_const_safe_set_mask)
 
