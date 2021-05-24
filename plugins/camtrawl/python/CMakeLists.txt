@@ -11,6 +11,7 @@ set(_rel_modnames
   expt
   imutils
   processes
+  util_algo
   __init__
   __main__
   )
