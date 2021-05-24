@@ -498,6 +498,44 @@ def demodata_input(dataset='demo'):
     return img_path1, img_path2, cal_fpath
 
 
+def demodata_calibration():
+    cal = ctalgo.StereoCalibration._from_flat_dict({
+        # Left Intrinsics
+        'fc_left': np.array([1, 1]),  # focal point
+        'cc_left': np.array([0, 0]),  # principle point
+        'alpha_c_left': [0],  # skew
+        'kc_left': np.array([0, 0, 0, 0, 0]),  # distortion
+        # Right Intrinsics
+        'fc_right': np.array([1, 1]),  # focal point
+        'cc_right': np.array([0, 0]),  # principle point
+        'alpha_c_right': [0],  # skew
+        'kc_right': np.array([0, 0, 0, 0, 0]),  # distortion
+        # Right Extrinsics (wrt left as the origin)
+        'om': np.array([0, 0, 0]),  # rotation vector
+        'T': np.array([0, 1, 0]),  # translation vector
+    })
+    return cal
+
+
+def demodata_detections2():
+    """ Dummy data for tests """
+    cal = demodata_calibration()
+
+    detections1 = []
+    cc_mask = np.zeros((11, 11), dtype=np.uint8)
+    cc_mask[3:5, 2:7] = 1
+    det1 = ctalgo.DetectedObject.from_connected_component(cc_mask)
+    detections1.append(det1)
+
+    detections2 = []
+    cc_mask = np.zeros((11, 11), dtype=np.uint8)
+    cc_mask[4:6, 3:8] = 1
+    det2 = ctalgo.DetectedObject.from_connected_component(cc_mask)
+    detections2.append(det2)
+
+    return cal, detections1, detections2
+
+
 def demodata_detections(dataset='haul83', target_step='detect', target_frame_num=7):
     """
     Helper for doctests. Gets test data at different points in the pipeline.
@@ -623,7 +661,7 @@ def demo(config=None):
 
     detector1 = ctalgo.GMMForegroundObjectDetector(**gmm_params)
     detector2 = ctalgo.GMMForegroundObjectDetector(**gmm_params)
-    triangulator = ctalgo.FishStereoMeasurments(**triangulate_params)
+    triangulator = ctalgo.StereoLengthMeasurments(**triangulate_params)
 
     try:
         import pyfiglet

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Experimental scripts
+"""
 from __future__ import division, print_function, unicode_literals
 import cv2
 import numpy as np
@@ -98,7 +101,7 @@ def compare_results():
         len(intersect_frames), len(set(py_df.current_frame))))
 
     #  Reuse the hungarian algorithm implementation from ctalgo
-    min_assign = ctalgo.FishStereoMeasurments.minimum_weight_assignment
+    min_assign = ctalgo.StereoLengthMeasurments.minimum_weight_assignment
 
     correspond = []
     for f in intersect_frames:

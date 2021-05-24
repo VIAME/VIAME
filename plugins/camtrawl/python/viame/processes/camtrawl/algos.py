@@ -7,17 +7,17 @@ TODO:
     fix hard coded paths for doctests
 """
 from __future__ import division, print_function
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import cv2
 import itertools as it
 import numpy as np
-import scipy.optimize
-from .imutils import (imscale, ensure_grayscale, from_homog, to_homog)
-from os.path import splitext
 import ubelt as ub
 import logging
 import warnings
+from os.path import splitext
 from six.moves import zip
+from .imutils import (imscale, ensure_grayscale, from_homog, to_homog)
+from .util_algo import minimum_weight_assignment
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +32,6 @@ if __OPENCV_VERSION_2__:
                   'Please update to 3.x')
     import skimage  # NOQA
     import skimage.measure  # NOQA
-
-
-def dict_subset(dict_, keys):
-    return {k: dict_[k] for k in keys}
 
 
 def dict_update_subset(dict_, other):
@@ -111,6 +107,20 @@ class BoundingBox(ub.NiceRepr):
 
 class DetectedObject(ub.NiceRepr):
     """
+    Internal object for representing a detected object.
+
+    Notes:
+        not compatible with `vital.types.DetectedObject`
+
+    Attributes:
+        bbox (BoundingBox): bounding box in original image coordinates
+        mask (ndarray): segmentation mask of the object
+            (up to a scale and translation)
+        bbox_factor (float): upsample factor that would transform mask
+            into original image coordinates (up to a translation)
+        special_keypoints (Dict[str, ndarray]):
+            indicates a set of named special points that could be matched
+
     Example:
         >>> from viame.processes.camtrawl.algos import *
         >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
@@ -120,19 +130,55 @@ class DetectedObject(ub.NiceRepr):
         <DetectedObject(center=(4.0, 3.5), wh=(4, 1))>
     """
 
-    def __init__(self, bbox, mask):
+    def __init__(self, bbox, mask, special_keypoints=None):
         # bbox is kept in the image coordinate frame
         self.bbox = bbox
         # mask is kept in its own coordinate frame
         self.mask = mask
         # keep track of the scale factor from mask to bbox
         self.bbox_factor = 1.0
+        self._special_pts = None
 
     def __nice__(self):
         return self.bbox.__nice__()
 
+    def special_keypoints(self):
+        """
+        Return a set of ordered keypoints to be measured.
+
+        If the _special_pts attriute is not explicitly set, the corners of the
+        oriented bounding boxes are used as a proxy.
+        """
+        if self._special_pts is not None:
+            special_pts = self._special_pts
+        else:
+            # This hack returns the corners of the bounding box as proxies for
+            # special keypoints (e.g. the head and tail of a fish).
+            box_pts = self.box_points()
+            if False:
+                # Use 4 corners and center to ensure matrix math is good
+                # (hard to debug when ndims == npts, so make npts >> ndims)
+                special_pts = {
+                    'hacked_xy0': box_pts[0],  # will be the bottom right
+                    'hacked_xy1': box_pts[1],  # next clockwise point
+                    'hacked_xy2': box_pts[2],  # topmost point
+                    'hacked_xy3': box_pts[4],
+                    'hacked_center': self.oriented_bbox().center,
+                }
+            else:
+                # Use only the corners of the bbox
+                special_pts = {
+                    'hacked_xy0': box_pts[0],  # bottom-most point
+                    'hacked_xy2': box_pts[2],  # top-most point
+                }
+        return special_pts
+
     def num_pixels(self):
         """
+        Returns:
+            int : area of the object in number of pixels (in original image
+                space)
+
         Example:
             >>> from viame.processes.camtrawl.algos import *
             >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
@@ -148,6 +194,11 @@ class DetectedObject(ub.NiceRepr):
 
     def hull(self):
         """
+        Returns points on the convex hull
+
+        Returns:
+            ndarray
+
         Example:
             >>> from viame.processes.camtrawl.algos import *
             >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
@@ -171,6 +222,11 @@ class DetectedObject(ub.NiceRepr):
 
     def oriented_bbox(self):
         """
+        Fits a minimum area oriented bounding box to the mask points.
+
+        Returns:
+            OrientedBBox
+
         Example:
             >>> from viame.processes.camtrawl.algos import *
             >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
@@ -184,27 +240,73 @@ class DetectedObject(ub.NiceRepr):
         return oriented_bbox
 
     def box_points(self):
-        """
+        r"""
+        Finds oriented box corner points of `self.oriented_bbox`
+
         CommandLine:
             python -m viame.processes.camtrawl.algos DetectedObject.box_points
 
+        Returns:
+            ndarray: pts: [4x2] matrix where each item pts[i] is in x,y
+                coordinates in clockwise order starting from the bottom first,
+                and then the right (if more than one point are at the bottom).
+                (note: if the mask is a line of pixels points will be
+                 duplicated)
+
         Example:
             >>> from viame.processes.camtrawl.algos import *
-            >>> _, B = 0, 1
-            >>> cc_mask = np.array([
-            >>>     [_, _, _, _, _, _, _, _],
-            >>>     [_, _, _, B, _, _, _, _],
-            >>>     [_, _, B, B, B, _, _, _],
-            >>>     [_, B, B, B, B, B, _, _],
-            >>>     [_, _, B, B, B, B, B, _],
-            >>>     [_, _, _, B, B, B, _, _],
-            >>>     [_, _, _, _, B, _, _, _],
-            >>>     [_, _, _, _, _, _, _, _],
+            >>> _, o = 0, 1
+            >>> A = B = C = D = 1
+            >>> cc_mask = np.array([             # Y
+            >>>     [ _, _, _, _, _, _, _, _ ],  # 0
+            >>>     [ _, _, _, C, _, _, _, _ ],  # 1
+            >>>     [ _, _, o, o, o, _, _, _ ],  # 2
+            >>>     [ _, B, o, o, o, o, _, _ ],  # 3
+            >>>     [ _, _, o, o, o, o, D, _ ],  # 4
+            >>>     [ _, _, _, o, o, o, _, _ ],  # 5
+            >>>     [ _, _, _, _, A, _, _, _ ],  # 6
+            >>>     [ _, _, _, _, _, _, _, _ ],  # 7
             >>> ])
+            >>> # X:  0  1  2  3  4  5  6  7
             >>> self = DetectedObject.from_connected_component(cc_mask)
             >>> points = self.box_points()
             >>> print(ub.repr2(points.tolist(), precision=2, nl=0))
             [[4.00, 6.00], [1.00, 3.00], [3.00, 1.00], [6.00, 4.00]]
+
+        Example:
+            >>> from viame.processes.camtrawl.algos import *
+            >>> _, o = 0, 1
+            >>> A = B = C = D = 1
+            >>> cc_mask = np.array([     # Y
+            >>>     [ _, _, _, _, _, ],  # 0
+            >>>     [ _, C, o, D, _, ],  # 1
+            >>>     [ _, o, o, o, _, ],  # 2
+            >>>     [ _, B, o, A, _, ],  # 3
+            >>>     [ _, _, _, _, _, ],  # 4
+            >>> ])
+            >>> # X:  0  1  2  3  4
+            >>> self = DetectedObject.from_connected_component(cc_mask)
+            >>> points = self.box_points()
+            >>> print(ub.repr2(points.tolist(), precision=2, nl=0))
+            [[3.00, 3.00], [1.00, 3.00], [1.00, 1.00], [3.00, 1.00]]
+
+        Example:
+            >>> from viame.processes.camtrawl.algos import *
+            >>> _, o = 0, 1
+            >>> A = B = C = D = 1
+            >>> cc_mask = np.array([        # Y
+            >>>     [ _, _, _, o, _, _, ],  # 0
+            >>>     [ _, _, o, o, o, _, ],  # 1
+            >>>     [ _, o, o, o, o, o, ],  # 2
+            >>>     [ o, o, o, o, o, _, ],  # 3
+            >>>     [ _, o, o, o, _, _, ],  # 4
+            >>>     [ _, _, o, o, _, _, ],  # 5
+            >>> ])
+            >>> # X:  0  1  2  3  4  5  6
+            >>> self = DetectedObject.from_connected_component(cc_mask)
+            >>> points = self.box_points()
+            >>> print(ub.repr2(points.tolist(), precision=2, nl=0))
+            [[2.50, 5.50], [0.00, 3.00], [3.00, 0.00], [5.50, 2.50]]
         """
         if __OPENCV_VERSION_2__:
             return np.array(cv2.cv.BoxPoints(self.oriented_bbox()),
@@ -220,6 +322,9 @@ class DetectedObject(ub.NiceRepr):
 
     @classmethod
     def from_connected_component(DetectedObject, cc_mask):
+        """
+        Create a DetectedObject from connected components in a mask
+        """
         # note, `np.where` returns coords in (r, c)
         ys, xs = np.where(cc_mask)
         xmin, xmax = xs.min(), xs.max()
@@ -300,8 +405,10 @@ class GMMForegroundObjectDetector(object):
                 detectShadows=False)
 
         # Setup detection filter algorithm
-        filter_config = dict_subset(
-            detector.config, [pi.name for pi in default_params['filter']])
+        filter_config = {
+            pi.name: detector.config[pi.name]
+            for pi in default_params['filter']
+        }
         detector.filter = DetectionShapeFilter(**filter_config)
 
         detector.n_iters = 0
@@ -317,21 +424,23 @@ class GMMForegroundObjectDetector(object):
             img (ndarray): image to perform detection on
 
         Returns:
-            detections : list of DetectedObjects
+            detections : List[DetectedObjects]
 
         CommandLine:
             python -m viame.processes.camtrawl.algos GMMForegroundObjectDetector.detect
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> import matplotlib as mpl
             >>> mpl.use('agg')
             >>> from viame.processes.camtrawl.algos import *
             >>> from viame.processes.camtrawl.demo import *
-            >>> detector, img = demodata_detections(target_step='detect', target_frame_num=7)
+            >>> detector, img = demodata_detections(
+            >>>     target_step='detect', target_frame_num=7)
             >>> detections = detector.detect(img)
             >>> print('detections = {!r}'.format(detections))
             >>> masks = detector._masks
-            >>> # xdoc: REQUIRES(--show)
+            >>> # xdoctest: REQUIRES(--show)
             >>> draw_img = DrawHelper.draw_detections(img, detections, masks)
             >>> fpath = ub.ensure_app_cache_dir('camtrawl') + '/GMMForegroundObjectDetector.detect.png'
             >>> cv2.imwrite(fpath, draw_img)
@@ -377,7 +486,7 @@ class GMMForegroundObjectDetector(object):
 
     def preprocess_image(detector, img):
         """
-        Preprocess image before subtracting backround
+        Preprocess image before subtracting background
         """
         logger.debug('preprocess image before detect')
         # Convert to grayscale
@@ -413,6 +522,9 @@ class GMMForegroundObjectDetector(object):
             mask (ndarray): mask where non-zero pixels indicate all candidate
                 objects
 
+        Yields:
+            DetectedObject
+
         Example:
             >>> from viame.processes.camtrawl.algos import *
             >>> detector = GMMForegroundObjectDetector()
@@ -428,7 +540,7 @@ class GMMForegroundObjectDetector(object):
             >>> detections = list(detector.detections_in_mask(mask))
             >>> assert len(detections) == 7
         """
-        # 4-way connected compoment algorithm
+        # 4-way connected component algorithm
         if __OPENCV_VERSION_2__:
             # opencv2 doesnt have a builtin CC algo, need to use skimage
             cc_mask, n_ccs_sk = skimage.measure.label(mask, neighbors=8,
@@ -476,11 +588,11 @@ class DetectionShapeFilter(object):
             'filter': [
 
                 ParamInfo(name='min_num_pixels', default=800,
-                          doc=('keep detections only with the number of pixels '
+                          doc=('remove detections with fewer pixels '
                                'wrt original image size')),
 
                 ParamInfo(name='edge_trim', default=(12, 12),
-                          doc=('limits accepable targets to be within the region '
+                          doc=('constrains acceptable targets to the region '
                                '[padx, pady, img_w - padx, img_h - pady]. '
                                'These are wrt the original image size')),
 
@@ -511,8 +623,8 @@ class DetectionShapeFilter(object):
         Checks if the detection passes filtering constraints
 
         Args:
-            detection (DetectedObject): mask where non-zero pixels indicate a single
-                candidate object
+            detection (DetectedObject): mask where non-zero pixels indicate a
+                single candidate object
             img_dsize (tuple): w/h of the original image
 
         Returns:
@@ -550,10 +662,10 @@ class DetectionShapeFilter(object):
         return True
 
 
-class FishStereoMeasurments(object):
+class StereoLengthMeasurments(object):
     """
-    Algo for matching detections in left and right camera and determening the
-    fish length in milimeters.
+    Algo for matching detections in left and right camera and determining the
+    fish length in millimeters.
     """
 
     @staticmethod
@@ -565,7 +677,7 @@ class FishStereoMeasurments(object):
                     'points to make matches between left and right')),
 
                 ParamInfo('small_len', 150, doc=(
-                    'length (in milimeters) to switch between high and low '
+                    'length (in millimeters) to switch between high and low '
                     'max error thresholds ')),
             ]
         }
@@ -580,142 +692,26 @@ class FishStereoMeasurments(object):
         # modify based on user args
         dict_update_subset(self.config, kwargs)
 
-    def triangulate(self, cal, det1, det2):
-        """
-        Assuming, det1 matches det2, we determine 3d-coordinates of each
-        detection and measure the reprojection error.
-
-        References:
-            http://answers.opencv.org/question/117141
-            https://gist.github.com/royshil/7087bc2560c581d443bc
-            https://stackoverflow.com/a/29820184/887074
-
-        Doctest:
-            >>> # Rows are detections in img1, cols are detections in img2
-            >>> from viame.processes.camtrawl.algos import *
-            >>> from viame.processes.camtrawl.demo import *
-            >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
-            >>> det1, det2 = detections1[0], detections2[0]
-            >>> self = FishStereoMeasurments()
-            >>> assignment, assign_data, cand_errors = self.triangulate(cal, det1, det2)
-        """
-        logger.debug('triangulate')
-        _debug = 0
-        if _debug:
-            # Use 4 corners and center to ensure matrix math is good
-            # (hard to debug when ndims == npts, so make npts >> ndims)
-            pts1 = np.vstack([det1.box_points(), det1.oriented_bbox().center])
-            pts2 = np.vstack([det2.box_points(), det2.oriented_bbox().center])
-        else:
-            # Use only the corners of the bbox
-            pts1 = det1.box_points()[[0, 2]]
-            pts2 = det2.box_points()[[0, 2]]
-
-        # Move into opencv point format (num x 1 x dim)
-        pts1_cv = pts1[:, None, :]
-        pts2_cv = pts2[:, None, :]
-
-        # Grab camera parameters
-        K1, K2 = cal.intrinsic_matrices()
-        kc1, kc2 = cal.distortions()
-        rvec1, tvec1, rvec2, tvec2 = cal.extrinsic_vecs()
-
-        # Make extrincic matrices
-        R1 = cv2.Rodrigues(rvec1)[0]
-        R2 = cv2.Rodrigues(rvec2)[0]
-        T1 = tvec1[:, None]
-        T2 = tvec2[:, None]
-        RT1 = np.hstack([R1, T1])
-        RT2 = np.hstack([R2, T2])
-
-        # Undistort points
-        # This puts points in "normalized camera coordinates" making them
-        # independent of the intrinsic parameters. Moving to world coordinates
-        # can now be done using only the RT transform.
-        unpts1_cv = cv2.undistortPoints(pts1_cv, K1, kc1)
-        unpts2_cv = cv2.undistortPoints(pts2_cv, K2, kc2)
-
-        # note: trinagulatePoints docs say that it wants a 3x4 projection
-        # matrix (ie K.dot(RT)), but we only need to use the RT extrinsic
-        # matrix because the undistorted points already account for the K
-        # intrinsic matrix.
-        world_pts_homog = cv2.triangulatePoints(RT1, RT2, unpts1_cv, unpts2_cv)
-        world_pts = from_homog(world_pts_homog)
-
-        # Compute distance between 3D bounding box points
-        if _debug:
-            corner1, corner2 = world_pts.T[[0, 2]]
-        else:
-            corner1, corner2 = world_pts.T
-
-        # Length is in milimeters
-        fishlen = np.linalg.norm(corner1 - corner2)
-
-        # Reproject points
-        world_pts_cv = world_pts.T[:, None, :]
-        proj_pts1_cv = cv2.projectPoints(world_pts_cv, rvec1, tvec1, K1, kc1)[0]
-        proj_pts2_cv = cv2.projectPoints(world_pts_cv, rvec2, tvec2, K2, kc2)[0]
-
-        # Check error
-        err1 = ((proj_pts1_cv - pts1_cv)[:, 0, :] ** 2).sum(axis=1)
-        err2 = ((proj_pts2_cv - pts2_cv)[:, 0, :] ** 2).sum(axis=1)
-        errors = np.hstack([err1, err2])
-
-        # Get 3d points in each camera's reference frame
-        # Note RT1 is the identity and RT are 3x4, so no need for `from_homog`
-        # Return points in with shape (N,3)
-        pts1_3d = RT1.dot(to_homog(world_pts)).T
-        pts2_3d = RT2.dot(to_homog(world_pts)).T
-        return pts1_3d, pts2_3d, errors, fishlen
-
-    @staticmethod
-    def minimum_weight_assignment(cost_errors):
-        """
-        Finds optimal assignment of left-camera to right-camera detections
-
-        Doctest:
-            >>> # Rows are detections in img1, cols are detections in img2
-            >>> from viame.processes.camtrawl.algos import *
-            >>> self = FishStereoMeasurments()
-            >>> cost_errors = np.array([
-            >>>     [9, 2, 1, 9],
-            >>>     [4, 1, 5, 5],
-            >>>     [9, 9, 2, 4],
-            >>> ])
-            >>> assign1 = self.minimum_weight_assignment(cost_errors)
-            >>> assign2 = self.minimum_weight_assignment(cost_errors.T)
-        """
-        n1, n2 = cost_errors.shape
-        n = max(n1, n2)
-        # Embed the [n1 x n2] matrix in a padded (with inf) [n x n] matrix
-        cost_matrix = np.full((n, n), fill_value=np.inf)
-        cost_matrix[0:n1, 0:n2] = cost_errors
-
-        # Find an effective infinite value for infeasible assignments
-        is_infeasible = np.isinf(cost_matrix)
-        is_positive = cost_matrix > 0
-        feasible_vals = cost_matrix[~(is_infeasible & is_positive)]
-        large_val = (n + feasible_vals.sum()) * 2
-        # replace infinite values with effective infinite values
-        cost_matrix[is_infeasible] = large_val
-
-        # Solve munkres problem for minimum weight assignment
-        indexes = list(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
-        # Return only the feasible assignments
-        assignment = [(i, j) for (i, j) in indexes
-                      if cost_matrix[i, j] < large_val]
-        return assignment
-
     def find_matches(self, cal, detections1, detections2):
         """
         Match detections from the left camera to detections in the right camera
 
-        Doctest:
+        Args:
+            cal (StereoCalibration):
+            detections1 (List[DetectedObject]):
+            detections2 (List[DetectedObject]):
+
+        Returns:
+            Tuple: assignment, assign_data, cand_errors
+
+        Example:
             >>> # Rows are detections in img1, cols are detections in img2
             >>> from viame.processes.camtrawl.algos import *
-            >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
-            >>> self = FishStereoMeasurments()
-            >>> assignment, assign_data, cand_errors = self.find_matches(cal, detections1, detections2)
+            >>> from viame.processes.camtrawl.demo import *
+            >>> cal, detections1, detections2 = demodata_detections2()
+            >>> self = StereoLengthMeasurments()
+            >>> _tup  = self.find_matches(cal, detections1, detections2)
+            >>> assignment, assign_data, cand_errors = _tup
         """
         logger.debug('find matches')
         n_detect1, n_detect2 = len(detections1), len(detections2)
@@ -731,8 +727,22 @@ class FishStereoMeasurments(object):
                                                enumerate(detections2)):
             # Triangulate assuming det1 and det2 match, but return the
             # reprojection error so we can check if this assumption holds
-            pts1_3d, pts2_3d, errors, fishlen = self.triangulate(cal, det1, det2)
+            pts1 = det1.special_keypoints()
+            pts2 = det2.special_keypoints()
+
+            if len(pts1) != 2:
+                raise NotImplementedError('cant handle > 2 points yet')
+            elif len(pts2) != 2:
+                raise NotImplementedError('cant handle > 2 points yet')
+            else:
+                fishlen_key = tuple(sorted(pts2.keys()))
+                key_pairs = [fishlen_key]
+
+            _tup = self.triangulate(cal, pts1, pts2, key_pairs=key_pairs)
+            keys, pts1_3d, pts2_3d, errors, lengths = _tup
             error = errors.mean()
+
+            fishlen = lengths[fishlen_key]
 
             # Mark the pair (i, j) as a potential candidate match
             cand_errors[i, j] = error
@@ -773,7 +783,8 @@ class FishStereoMeasurments(object):
 
         # Find the matching with minimum reprojection error, such that each
         # detection in one camera can match at most one detection in the other.
-        assignment = self.minimum_weight_assignment(cost_errors)
+        # Finds optimal assignment of left-camera to right-camera detections
+        assignment = minimum_weight_assignment(cost_errors)
 
         # get associated data with each assignment
         assign_data = []
@@ -783,19 +794,131 @@ class FishStereoMeasurments(object):
             assign_data.append(data)
         return assignment, assign_data, cand_errors
 
+    def triangulate(self, cal, pts1, pts2, key_pairs=None):
+        """
+        Assuming, points in pts1 match pts2, we determine 3d-coordinates of
+        each detection and measure the reprojection error. Measure the lengths
+        between specified keys.
+
+        Args:
+            pts1 (Dict[str, ndarray[2]]): named x,y keypoints
+            pts2 (Dict[str, ndarray[2]]): named x,y keypoints
+            key_pairs (List[Tuple[str, str]]):
+                unordered pairs of named keypoints to measure the length
+                between. Errors if not specified unless the points only contain
+                two points.
+
+        Returns:
+            Tuple:
+                keys (List[str]): common special keys between pts1 and pts2
+                pts1_3d (ndarray): pts1 in world coords (order corresponds to keys)
+                pts2_3d (ndarray): pts2 in world coords (order corresponds to keys)
+                errors (ndarray): reprojection error between world points
+                lengths (Dict[Tuple[str, str], float]): measured length between
+                    specified key pairs.
+
+        References:
+            http://answers.opencv.org/question/117141
+            https://gist.github.com/royshil/7087bc2560c581d443bc
+            https://stackoverflow.com/a/29820184/887074
+
+        Example:
+            >>> # Rows are detections in img1, cols are detections in img2
+            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.camtrawl.demo import *
+            >>> cal = demodata_calibration()
+            >>> pts1 = {'head': [0, 0], 'tail': [1, 1]}
+            >>> pts2 = {'head': [1, 0], 'tail': [2, 1]}
+            >>> key_pairs = [('head', 'tail')]
+            >>> self = StereoLengthMeasurments()
+            >>> _tup = self.triangulate(cal, pts1, pts2, key_pairs)
+            >>> keys, pts1_3d, pts2_3d, errors, lengths = _tup
+            >>> print('lengths = ' + ub.repr2(lengths, nl=1, sk=1, precision=2))
+            lengths = {
+                ('head', 'tail'): 13.23,
+            }
+        """
+        logger.debug('triangulate')
+
+        keys = sorted(set(pts1.keys()) & set(pts2.keys()))
+        key_to_index = {k: i for i, k in enumerate(keys)}
+        if len(keys) < 2:
+            raise ValueError('Must have at least 2 corresponding points')
+
+        if key_pairs is None:
+            if len(keys) == 2:
+                key_pairs = [keys]
+            else:
+                raise ValueError(
+                    'Must specify key_pairs when using more than two points')
+
+        # Move into opencv point format (num x 1 x dim)
+        pts1_cv = np.array([pts1[k] for k in keys]).reshape(-1, 1, 2)
+        pts2_cv = np.array([pts2[k] for k in keys]).reshape(-1, 1, 2)
+        pts1_cv = pts1_cv.astype(np.float)
+        pts2_cv = pts2_cv.astype(np.float)
+
+        # Grab camera parameters
+        K1, K2 = cal.intrinsic_matrices()
+        kc1, kc2 = cal.distortions()
+        rvec1, tvec1, rvec2, tvec2 = cal.extrinsic_vecs()
+
+        # Make extrinsic matrices
+        R1 = cv2.Rodrigues(rvec1)[0]
+        R2 = cv2.Rodrigues(rvec2)[0]
+        T1 = tvec1[:, None]
+        T2 = tvec2[:, None]
+        RT1 = np.hstack([R1, T1])
+        RT2 = np.hstack([R2, T2])
+
+        # Undistort points
+        # This puts points in "normalized camera coordinates" making them
+        # independent of the intrinsic parameters. Moving to world coordinates
+        # can now be done using only the RT transform.
+        unpts1_cv = cv2.undistortPoints(pts1_cv, K1, distCoeffs=kc1)
+        unpts2_cv = cv2.undistortPoints(pts2_cv, K2, distCoeffs=kc2)
+
+        # note: trinagulatePoints docs say that it wants a 3x4 projection
+        # matrix (ie K.dot(RT)), but we only need to use the RT extrinsic
+        # matrix because the undistorted points already account for the K
+        # intrinsic matrix.
+        world_pts_homog = cv2.triangulatePoints(RT1, RT2, unpts1_cv, unpts2_cv)
+        world_pts = from_homog(world_pts_homog)
+
+        # Compute distance between key pairs of 3D bounding box points
+        lengths = OrderedDict()
+        for key1, key2 in key_pairs:
+            corner1 = world_pts.T[key_to_index[key1]]
+            corner2 = world_pts.T[key_to_index[key2]]
+            # Length is in millimeters
+            lengths[(key1, key2)] = np.linalg.norm(corner1 - corner2)
+
+        # Reproject points
+        world_pts_cv = world_pts.T[:, None, :]
+        proj_pts1_cv = cv2.projectPoints(world_pts_cv, rvec1, tvec1, K1, kc1)[0]
+        proj_pts2_cv = cv2.projectPoints(world_pts_cv, rvec2, tvec2, K2, kc2)[0]
+
+        # Check error
+        err1 = ((proj_pts1_cv - pts1_cv)[:, 0, :] ** 2).sum(axis=1)
+        err2 = ((proj_pts2_cv - pts2_cv)[:, 0, :] ** 2).sum(axis=1)
+        errors = np.hstack([err1, err2])
+
+        # Get 3d points in each camera's reference frame
+        # Note RT1 is the identity and RT are 3x4, so no need for `from_homog`
+        # Return points in with shape (N,3)
+        pts1_3d = RT1.dot(to_homog(world_pts)).T
+        pts2_3d = RT2.dot(to_homog(world_pts)).T
+        return keys, pts1_3d, pts2_3d, errors, lengths
+
 
 class StereoCalibration(object):
     """
     Helper class for reading / accessing stereo camera calibration params
 
-    Doctest:
-        >>> from viame.processes.camtrawl.algos import *
-        >>> cal_fpath = '/home/joncrall/data/camtrawl_stereo_sample_data/201608_calibration_data/selected/Camtrawl_2016.npz'
-        >>> cal = StereoCalibration.from_file(cal_fpath)
     """
     def __init__(cal, data=None):
         cal.data = data
-        cal.unit = 'milimeters'
+        cal.unit = 'millimeters'
 
     def __str__(cal):
         return '{}({})'.format(cal.__class__.__name__, cal.data)
@@ -851,6 +974,12 @@ class StereoCalibration(object):
         SeeAlso:
             from_npzfile
             from_matfile
+
+        Example:
+            >>> # xdoctest: +SKIP
+            >>> from viame.processes.camtrawl.algos import *
+            >>> cal_fpath = ub.expandpath('~/data/camtrawl_stereo_sample_data/201608_calibration_data/selected/Camtrawl_2016.npz')
+            >>> cal = StereoCalibration.from_file(cal_fpath)
         """
         ext = splitext(cal_fpath)[1].lower()
         if ext == '.mat':
@@ -924,10 +1053,11 @@ class StereoCalibration(object):
             http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/parameters.html
             http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/example5.html
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from viame.processes.camtrawl.algos import *
             >>> from viame.processes.camtrawl.demo import *
-            >>> cal_fpath = '/home/joncrall/data/autoprocess_test_set/cal_201608.mat'
+            >>> cal_fpath = ub.expandpath('~/data/autoprocess_test_set/cal_201608.mat')
             >>> cal = StereoCalibration.from_matfile(cal_fpath)
             >>> print('cal = {}'.format(cal))
         """
@@ -975,25 +1105,27 @@ class StereoCalibration(object):
                 }
             },
         }
+        # Cast to appropriate types
+        for cam in [data['left'], data['right']]:
+            in_mat = cam['intrinsic']
+            ex_mat = cam['extrinsic']
+            ex_mat['om'] = np.array(ex_mat['om'], dtype=np.float)
+            ex_mat['T'] = np.array(ex_mat['T'], dtype=np.float)
+            in_mat['fc'] = np.array(in_mat['fc'], dtype=np.float)
+            in_mat['cc'] = np.array(in_mat['cc'], dtype=np.float)
+            in_mat['kc'] = np.array(in_mat['kc'], dtype=np.float)
+
         cal = StereoCalibration()
         cal.data = data
         return cal
 
 
-# if __name__ == '__main__':
-#     from . import demo
-#     logging.basicConfig()
-#     demo.demo()
-#     # import camtrawl_demo
-#     # camtrawl_demo.demo()
-#     # import utool as ut
-#     # ut.dump_profile_text()
-#     # import pytest
-#     # pytest.main([__file__, '--doctest-modules'])
 if __name__ == '__main__':
     r"""
     CommandLine:
         python -m viame.processes.camtrawl.algos
+
+        xdoctest ~/code/VIAME/plugins/camtrawl/python/viame/processes/camtrawl/algos.py
 
     Ignore:
         workon_py2

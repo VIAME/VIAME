@@ -185,7 +185,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         Helper to decouple the algorithm and pipeline logic
 
         CommandLine:
-            python -m xdoctest viame.processes.camtrawl.processes CamtrawlDetectFishProcess._dowork
+            xdoctest viame.processes.camtrawl.processes CamtrawlDetectFishProcess._dowork
 
         Example:
             >>> from viame.processes.camtrawl.processes import *
@@ -253,7 +253,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         KwiverProcess.__init__(self, conf)
 
-        camtrawl_setup_config(self, ctalgo.FishStereoMeasurments.default_params())
+        camtrawl_setup_config(self, ctalgo.StereoLengthMeasurments.default_params())
 
         self.add_config_trait('measurement_file', 'measurement_file', '',
                               'output file to write detection measurements')
@@ -276,10 +276,10 @@ class CamtrawlMeasureProcess(KwiverProcess):
         self.add_port_trait('image_file_name' + '2', 'file_name', 'desc2')
 
         #  declare our input ports ( port-name,flags )
-        self.declare_input_port_using_trait('image_file_name' + '1', required)
-        self.declare_input_port_using_trait('image_file_name' + '2', required)
         self.declare_input_port_using_trait('detected_object_set' + '1', required)
         self.declare_input_port_using_trait('detected_object_set' + '2', required)
+        self.declare_input_port_using_trait('image_file_name' + '1', required)
+        self.declare_input_port_using_trait('image_file_name' + '2', required)
 
         #  declare our output ports ( port-name,flags )
         self.declare_output_port_using_trait('detected_object_set' + '1', required)
@@ -293,7 +293,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
         logger.info('triangulator config = {}'.format(ub.repr2(config, nl=2)))
         self.measurement_file = config.pop('measurement_file')
         self.calibration_file = config.pop('calibration_file')
-        self.triangulator = ctalgo.FishStereoMeasurments(**config)
+        self.triangulator = ctalgo.StereoLengthMeasurments(**config)
 
         # Camera loading process is not working correctly.
         # Load camera calibration data here for now.
@@ -332,17 +332,18 @@ class CamtrawlMeasureProcess(KwiverProcess):
             camera2 = self.grab_input_using_trait('camera' + '2')
 
             def _cal_from_vital(vital_camera):
-                vital_intrinsics = vital_camera.intrinsics
+                vci = vital_camera.intrinsics
                 cam_dict = {
                     'extrinsic': {
                         'om': vital_camera.rotation.rodrigues().ravel(),
                         'T': vital_camera.translation.ravel(),
                     },
                     'intrinsic': {
-                        'cc': vital_intrinsics.principle_point.ravel(),
-                        'fc': [vital_intrinsics.focal_length, vital_intrinsics.focal_length / vital_intrinsics.aspect_ratio],
-                        'alpha_c': vital_intrinsics.skew,
-                        'kc': vital_intrinsics.dist_coeffs.ravel(),
+                        'cc': vci.principle_point.ravel(),
+                        'fc': [vci.focal_length,
+                               vci.focal_length / vci.aspect_ratio],
+                        'alpha_c': vci.skew,
+                        'kc': vci.dist_coeffs.ravel(),
                     }
                 }
                 return cam_dict
@@ -378,6 +379,15 @@ class CamtrawlMeasureProcess(KwiverProcess):
                           bbox.max_x(), bbox.max_y()]
                 mask = vital_det.mask.asarray()
                 ct_bbox = ctalgo.BoundingBox(coords)
+
+                # TODO: to measure distances between special keypoint
+                # detections add an additional argument to DetectedObject
+                # >>> special_keypoints = {
+                # ...    'head': [x1, y1],
+                # ...    'tail': [x2, y2],
+                # ... }
+                # >>> ct_det = ctalgo.DetectedObject(
+                # ...     ct_bbox, mask, special_keypoints=special_keypoints)
                 ct_det = ctalgo.DetectedObject(ct_bbox, mask)
                 yield ct_det
         detections1 = list(_detections_from_vital(detection_set1))
