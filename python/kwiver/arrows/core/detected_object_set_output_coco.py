@@ -105,6 +105,10 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
                 ],
                 score=det.confidence,
             )
+            polygon = det.get_flattened_polygon()
+            if polygon:
+                # Downstream applications expect ints, not floats
+                d['segmentation'] = [int(round(p)) for p in polygon]
             if det.type is not None:
                 d['category_id'] = type(self).categories.setdefault(
                     det.type.get_most_likely_class(),
