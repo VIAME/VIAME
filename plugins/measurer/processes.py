@@ -398,14 +398,14 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         logger.debug(' ----- ' + self.__class__.__name__ + ' found {} matches'.format(len(assign_data)))
 
-        def csv_repr(d):
-            if isinstance(d, np.ndarray):
-                d = d.tolist()
-            s = repr(d)
-            return s.replace('\n', '').replace(',', ';').replace(' ', '')
-
         # Append assignments to the measurements
         if self.measurement_file:
+            def csv_repr(d):
+                if isinstance(d, np.ndarray):
+                    d = d.tolist()
+                s = repr(d)
+                return s.replace('\n', '').replace(',', ';').replace(' ', '')
+
             for data in assign_data:
                 data['current_frame'] = frame_id
                 line = ','.join([csv_repr(d) for d in ub.take(data, self.headers)])
