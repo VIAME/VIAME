@@ -1,0 +1,120 @@
+# ============================ GLOBAL PROPERTIES ===============================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==============================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+process image_reader
+ :: image_file_reader
+ :image_reader:type                            vxl
+
+connect from in_adapt.input_file_name
+        to   image_reader.image_file_name
+
+# ==============================================================================
+
+process enhancer
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+
+  block filter:ocv_enhancer
+    :apply_smoothing                           false
+    :smooth_kernel                             3
+    :apply_denoising                           false
+    :denoise_kernel                            3
+    :denoise_coeff                             2
+    :auto_balance                              true
+    :force_8bit                                false
+    :apply_clahe                               true
+    :clip_limit                                3
+  endblock
+
+connect from image_reader.image
+        to   enhancer.image
+
+process ensure_color
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :random_greyscale                          0.20
+    :force_three_channel                       true
+  endblock
+
+connect from enhancer.image
+        to   ensure_color.image
+
+# ==============================================================================
+
+process ensure_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            true
+  endblock
+
+connect from image_reader.image
+        to   ensure_grey.image
+
+process motion_filter
+  :: image_filter
+  :filter:type                                 vxl_average
+
+  block filter:vxl_average
+    :type                                      window
+    :window_size                               10
+    :round                                     false
+    :output_variance                           true
+  endblock
+
+connect from ensure_grey.image
+        to   motion_filter.image
+
+process float_to_byte
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :scale_factor                              0.50
+  endblock
+
+connect from motion_filter.image
+        to   float_to_byte.image
+
+# ==============================================================================
+
+process rgb_writer
+ :: image_writer
+ :image_writer:type                             vxl
+ :image_writer:vxl:split_channels               false
+ 
+connect from in_adapt.output_file_name
+        to   rgb_writer.image_file_name
+connect from ensure_color.image
+        to   rgb_writer.image
+
+process motion_writer
+ :: image_writer
+ :image_writer:type                             vxl
+ :image_writer:vxl:split_channels               false
+
+connect from in_adapt.output_file_name2
+        to   motion_writer.image_file_name
+connect from float_to_byte.image
+        to   motion_writer.image
+
+connect from motion_writer.success_flag
+        to   out_adapt.success_flag
+
+# -- end of file --
