@@ -245,18 +245,18 @@ set( CORE_PIPELINE_FILES
   pipelines/tracker_local.pipe
   pipelines/tracker_stabilized_iou.pipe
   pipelines/tracker_svm_models.pipe
-  pipelines/train_add_color_freq_aug.pipe
-  pipelines/train_add_double_motion_aug.pipe
-  pipelines/train_add_motion_aug.pipe
-  pipelines/train_add_motion_and_color_freq_aug.pipe
-  pipelines/train_enhance_and_add_motion_aug.pipe
-  pipelines/train_hue_shifting_only_aug.pipe
-  pipelines/train_intensity_color_freq_motion_aug.pipe
-  pipelines/train_intensity_hue_motion_aug.pipe
-  pipelines/train_motion_only_aug.pipe
-  pipelines/train_split_and_stereo_aug.pipe
-  pipelines/train_split_aug.pipe
-  pipelines/train_warp_ir_to_eo_aug.pipe
+  pipelines/train_aug_add_color_freq.pipe
+  pipelines/train_aug_add_double_motion.pipe
+  pipelines/train_aug_add_motion_and_color_freq.pipe
+  pipelines/train_aug_add_motion.pipe
+  pipelines/train_aug_enhance_and_add_motion.pipe
+  pipelines/train_aug_hue_shifting_only.pipe
+  pipelines/train_aug_intensity_color_freq_motion.pipe
+  pipelines/train_aug_intensity_hue_motion.pipe
+  pipelines/train_aug_motion_only.pipe
+  pipelines/train_aug_split_and_stereo.pipe
+  pipelines/train_aug_split.pipe
+  pipelines/train_aug_warp_ir_to_eo.pipe
   pipelines/train_yolo_544.viame_csv.conf
   pipelines/train_yolo_704.habcam.conf
   pipelines/train_yolo_704.kw18.conf
@@ -361,9 +361,9 @@ if( VIAME_ENABLE_SMQTK )
     pipelines/smqtk_postgres_ingest.json
     pipelines/smqtk_query.pipe
     pipelines/smqtk_train_itq.json
-    pipelines/train_svm_full_frame_classifier.viame_csv.conf
-    pipelines/train_svm_over_fish_detections.viame_csv.conf
-    pipelines/train_svm_over_generic_detections.viame_csv.conf )
+    pipelines/train_detector_svm_over_fish_detections.viame_csv.conf
+    pipelines/train_detector_svm_over_generic_detections.viame_csv.conf
+    pipelines/train_frame_classifier_svm_over_resnet.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
@@ -380,15 +380,15 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/train_netharn_cascade.viame_csv.conf
-    pipelines/train_netharn_cascade.habcam.conf
-    pipelines/train_netharn_cascade_nf.viame_csv.conf
-    pipelines/train_netharn_cascade_wtf.viame_csv.conf
-    pipelines/train_netharn_cascade_motion.viame_csv.conf
-    pipelines/train_netharn_cascade_special.viame_csv.conf
-    pipelines/train_netharn_refiner.viame_csv.conf
-    pipelines/train_netharn_resnet.viame_csv.conf
-    pipelines/train_netharn_resnet_nf.viame_csv.conf )
+    pipelines/train_detector_netharn_cfrnn.habcam.conf
+    pipelines/train_detector_netharn_cfrnn_motion.viame_csv.conf
+    pipelines/train_detector_netharn_cfrnn_nf.viame_csv.conf
+    pipelines/train_detector_netharn_cfrnn_special.viame_csv.conf
+    pipelines/train_detector_netharn_cfrnn.viame_csv.conf
+    pipelines/train_detector_netharn_cfrnn_wtf.viame_csv.conf
+    pipelines/train_object_classifier_netharn_resnet.viame_csv.conf
+    pipelines/train_frame_classifier_netharn_resnet_nf.viame_csv.conf
+    pipelines/train_frame_classifier_netharn_resnet.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
