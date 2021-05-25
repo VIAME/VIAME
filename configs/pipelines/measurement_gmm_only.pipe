@@ -80,13 +80,8 @@ process measurer
 
 connect from detector1.detected_object_set
         to   measurer.detected_object_set1
-connect from downsampler.output_2
-        to   measurer.image_file_name1
-        
 connect from detector2.detected_object_set
         to   measurer.detected_object_set2
-connect from downsampler.output_4
-        to   measurer.image_file_name2
 
 process detector_writer1
   :: detected_object_output
@@ -94,6 +89,7 @@ process detector_writer1
   # Type of file to output
   :file_name                                   computed_detections1.csv
   :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
 
 connect from measurer.detected_object_set1
         to   detector_writer1.detected_object_set
@@ -106,6 +102,7 @@ process detector_writer2
   # Type of file to output
   :file_name                                   computed_detections2.csv
   :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
 
 connect from measurer.detected_object_set2
         to   detector_writer2.detected_object_set
