@@ -42,17 +42,17 @@ Installations
 -------------
 
 For a full installation guide and description of the various flavors of VIAME, see the
-quick-start guide, above. In summary, VIAME Desktop is currently provided as either a .zip or
-.tar file. Alternatively, docker files are available for both VIAME Desktop and Web (below).
+quick-start guide, above. In summary, VIAME Desktop is currently provided as either a .msi, .zip
+or .tar file. Alternatively, docker files are available for both VIAME Desktop and Web (below).
 A sample instance of VIAME Web is also online, hosted at [viame.kitware.com](https://viame.kitware.com).
-For desktop installs, extract the binaries and place them in a directory of your choosing,
-for example /opt/noaa/viame on Linux or C:\Program Files\VIAME on Windows. If you're using
-packages built with GPU support, make sure to have sufficient video drivers installed,
-version 451.82 or higher. The best way to install drivers depends on your operating system,
-see below. Lastly, run through some of the examples to validate the installation. The binaries
-are quite large, in terms of disk space, due to the inclusion of multiple default model files
-and programs, but if just building your desired features from source (e.g. for embedded apps)
-they are much smaller.
+For desktop installs, extract the binaries (or use the Windows installation wizard) and place
+them in a directory of your choosing, for example /opt/noaa/viame on Linux or
+C:\Program Files\VIAME on Windows. If using packages built with GPU support, make sure to have
+sufficient video drivers installed, version 451.82 or higher. The best way to install drivers
+depends on your operating system, see below. Lastly, run through some of the examples to validate
+the installation. The binaries are quite large, in terms of disk space, due to the inclusion of
+multiple default model files and programs, but if just building your desired features from
+source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
 Windows 7, 8, or 10 64-Bit, RHEL/CentOS 7/8 64-Bit, or Ubuntu 16.04/18.04/20.04 64-Bit <br>
