@@ -257,9 +257,9 @@ set( CORE_PIPELINE_FILES
   pipelines/train_aug_split_and_stereo.pipe
   pipelines/train_aug_split.pipe
   pipelines/train_aug_warp_ir_to_eo.pipe
-  pipelines/train_detector_default.pipe
-  pipelines/train_frame_classifier_default.pipe
-  pipelines/train_object_classifier_default.pipe
+  pipelines/train_detector_default.viame_csv.conf
+  pipelines/train_frame_classifier_default.viame_csv.conf
+  pipelines/train_object_classifier_default.viame_csv.conf
   pipelines/train_yolo_544.viame_csv.conf
   pipelines/train_yolo_704.habcam.conf
   pipelines/train_yolo_704.kw18.conf
