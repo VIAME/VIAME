@@ -380,9 +380,9 @@ if( VIAME_ENABLE_OPENCV )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/train_detector_mmdet_cfrnn.habcam.conf
-    pipelines/train_detector_mmdet_cfrnn.viame_csv.conf)
+#  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+#    pipelines/train_detector_mmdet_cfrnn.habcam.conf
+#    pipelines/train_detector_mmdet_cfrnn.viame_csv.conf)
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
