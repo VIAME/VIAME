@@ -364,6 +364,24 @@ void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
   }
 }
 
+bool folder_contains_less_than_n_files( const std::string& folder, unsigned n )
+{
+  auto dir = boost::filesystem::directory_iterator( folder );
+  unsigned count = 0;
+
+  for( auto i : dir )
+  {
+    count++;
+
+    if( count >= n )
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 // =======================================================================================
 // Assorted configuration related helper functions
 static kwiver::vital::config_block_sptr default_config()
@@ -477,7 +495,7 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
                                                  const std::string& pipeline_filename,
                                                  const double& frame_rate,
                                                  const std::string& output_directory,
-                                                 bool skip_extract = false )
+                                                 bool skip_extract_if_exists = false )
 {
   std::cout << "Extracting frames from " << video_filename
             << " at rate " << frame_rate << std::endl;
@@ -489,7 +507,7 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   std::string output_path = append_path( output_dir, "frame%06d.png" );
   std::string frame_rate_str = boost::lexical_cast< std::string >( frame_rate );
 
-  if( !skip_extract )
+  if( !skip_extract_if_exists )
   {
     if( does_folder_exist( output_dir ) )
     {
@@ -515,7 +533,9 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   cmd = cmd + "-s input:target_frame_rate=" + frame_rate_str + " ";
   cmd = cmd + "-s output:file_name_template=" + add_quotes( output_path ) + " ";
 
-  if( !skip_extract )
+  if( !skip_extract_if_exists ||
+      ( !does_folder_exist( output_dir ) && create_folder( output_dir ) ) ||
+      folder_contains_less_than_n_files( output_dir, 3 ) )
   {
     system( cmd.c_str() );
   }
