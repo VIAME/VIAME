@@ -168,7 +168,12 @@ bool list_files_in_folder( std::string location,
     return false;
   }
 
-#ifndef WIN32
+#ifdef WIN32
+  if( location.back() != '\\' )
+  {
+    location = location + "\\";
+  }
+#else
   if( location.back() != '/' )
   {
     location = location + "/";

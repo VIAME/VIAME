@@ -407,6 +407,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   multi_threaded = ( options.gpu_count * options.pipes > 1 )
   auto_detect_gt = ( len( options.auto_detect_gt ) > 0 )
+  use_gt = ( len( options.gt_file ) > 0 or auto_detect_gt )
 
   input_basename = os.path.basename( input_name )
   input_ext = os.path.splitext( input_name )[1]
@@ -477,15 +478,19 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
 
-  if options.write_svm_info and not auto_detect_gt:
+  if options.write_svm_info and not use_gt:
     if len( options.input_detections ) == 0:
       exit_with_error( "Input detections must be specified to write out svm header info" )
     if not os.path.exists( options.input_detections ):
       exit_with_error( "Unable to find input detections" )
     gt_files = [ options.input_detections ]
-  if auto_detect_gt or options.write_svm_info:
+  if use_gt or options.write_svm_info:
     gt_type = options.auto_detect_gt if auto_detect_gt else "viame_csv"
+    gt_files = [ options.gt_file ] if not auto_detect_gt else gt_files
     command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu, gt_type )
+
+  if options.label_file:
+    command += fset( 'write_descriptor_ids:category_file=' + options.label_file )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
@@ -636,8 +641,14 @@ if __name__ == "__main__" :
   parser.add_argument("-plot-smooth", dest="smooth", default=1, type=int,
                       help="Smoothing factor for plots")
 
+  parser.add_argument("-gt-file", dest="gt_file", default="",
+                      help="Pass this groundtruth files to pipes")
+
   parser.add_argument("-auto-detect-gt", dest="auto_detect_gt", default="",
                       help="Automatically pass to pipes GT of this type if present")
+
+  parser.add_argument("-lbl-file", dest="label_file", default="",
+                      help="Pass this label file to pipes")
 
   parser.add_argument("--init-db", dest="init_db", action="store_true",
                       help="Re-initialize database")
