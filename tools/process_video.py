@@ -343,9 +343,12 @@ def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id, gt_ty
     else:
       output_extension = 'lbl'
 
-    lbl_file = options.input_dir + "/labels.txt"
-    if not os.path.exists( lbl_file ):
-      lbl_file = "labels.txt"
+    if options.label_file:
+      lbl_file = options.label_file
+    else:
+      lbl_file = options.input_dir + "/labels.txt"
+      if not os.path.exists( lbl_file ):
+        lbl_file = "labels.txt"
 
     output += fset( 'detection_reader:file_name=' + gt_files[0] )
     output += fset( 'detection_reader:reader:type=' + gt_type )
@@ -488,9 +491,6 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     gt_type = options.auto_detect_gt if auto_detect_gt else "viame_csv"
     gt_files = [ options.gt_file ] if not auto_detect_gt else gt_files
     command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu, gt_type )
-
-  if options.label_file:
-    command += fset( 'write_descriptor_ids:category_file=' + options.label_file )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )

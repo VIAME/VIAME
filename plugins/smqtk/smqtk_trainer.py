@@ -124,12 +124,12 @@ class SMQTKTrainer( TrainDetector ):
                 filename = train_files[ i ]
                 groundtruth = train_dets[ i ]
                 self._image_list_writer.write( filename + "\n" )
-                self._detection_writer.write_set( groundtruth, os.path.abspath( filename ) )
+                self._detection_writer.write_set( groundtruth, os.path.split( filename )[1] )
             else:
                 filename = test_files[ i-len( train_files ) ]
                 groundtruth = test_dets[ i-len( train_files ) ]
                 self._image_list_writer.write( filename + "\n" )
-                self._detection_writer.write_set( groundtruth, os.path.abspath( filename ) )
+                self._detection_writer.write_set( groundtruth, os.path.split( filename )[1] )
 
     def update_model( self ):
 
