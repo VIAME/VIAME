@@ -93,6 +93,7 @@ public:
   std::string opt_settings;
   std::string opt_pipeline_file;
   std::string opt_frame_rate;
+  std::string opt_max_frame_count;
 
   trainer_vars()
   {
@@ -423,6 +424,9 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "threshold", "0.00",
     "Optional threshold to provide on top of input groundtruth. This is useful if the "
     "truth is derived from some automated detector and is unfiltered." );
+  config->set_value( "max_frame_count", "-1",
+    "Maximum number of frames to use in training, useful for debugging and speed "
+    "optimization purposes." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
   config->set_value( "data_warning_file", "",
@@ -495,7 +499,8 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
                                                  const std::string& pipeline_filename,
                                                  const double& frame_rate,
                                                  const std::string& output_directory,
-                                                 bool skip_extract_if_exists = false )
+                                                 bool skip_extract_if_exists = false,
+                                                 unsigned max_frame_count = 0 )
 {
   std::cout << "Extracting frames from " << video_filename
             << " at rate " << frame_rate << std::endl;
@@ -532,6 +537,12 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   cmd = cmd + "-s input:video_reader:type=vidl_ffmpeg ";
   cmd = cmd + "-s input:target_frame_rate=" + frame_rate_str + " ";
   cmd = cmd + "-s output:file_name_template=" + add_quotes( output_path ) + " ";
+
+  if( max_frame_count > 0 )
+  {
+    cmd = cmd + "-s input:video_reader:vidl_ffmpeg:stop_after_frame="
+              + boost::lexical_cast< std::string >( max_frame_count );
+  }
 
   if( !skip_extract_if_exists ||
       ( !does_folder_exist( output_dir ) && create_folder( output_dir ) ) ||
@@ -807,6 +818,10 @@ main( int argc, char* argv[] )
     &g_params.opt_frame_rate, "Pipeline file" );
   g_params.m_args.AddArgument( "-vfr",            argT::SPACE_ARGUMENT,
     &g_params.opt_frame_rate, "Pipeline file" );
+  g_params.m_args.AddArgument( "--max-frame-count",argT::SPACE_ARGUMENT,
+    &g_params.opt_max_frame_count, "Maximum frame count to use" );
+  g_params.m_args.AddArgument( "-mfc",            argT::SPACE_ARGUMENT,
+    &g_params.opt_max_frame_count, "Maximum frame count to use" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -1027,6 +1042,8 @@ main( int argc, char* argv[] )
     config->get_value< std::string >( "video_extractor" );
   double frame_rate =
     config->get_value< double >( "frame_rate" );
+  unsigned max_frame_count =
+    config->get_value< unsigned >( "max_frame_count" );
   double threshold =
     config->get_value< double >( "threshold" );
   bool check_override =
@@ -1063,6 +1080,11 @@ main( int argc, char* argv[] )
   if( !g_params.opt_frame_rate.empty() )
   {
     frame_rate = std::stod( g_params.opt_frame_rate );
+  }
+
+  if( !g_params.opt_max_frame_count.empty() )
+  {
+    max_frame_count = std::stoi( g_params.opt_frame_rate );
   }
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
@@ -1377,7 +1399,12 @@ main( int argc, char* argv[] )
 
       image_files = extract_video_frames( data_item, video_extractor,
         ( file_frame_rate > 0 ? file_frame_rate : frame_rate ),
-        augmented_cache, !regenerate_cache );
+        augmented_cache, !regenerate_cache, max_frame_count );
+
+      if( max_frame_count > 0 )
+      {
+        break;
+      }
     }
     else
     {
@@ -1565,6 +1592,11 @@ main( int argc, char* argv[] )
         train_image_fn.push_back( filtered_image_file );
         train_gt.push_back( filtered_dets );
       }
+
+      if( max_frame_count > 0 && train_image_fn.size() > max_frame_count )
+      {
+        break;
+      }
     }
 
     if( augmentation_pipe )
@@ -1576,6 +1608,11 @@ main( int argc, char* argv[] )
     if( !one_file_per_image )
     {
       gt_reader->close();
+    }
+
+    if( max_frame_count > 0 && train_image_fn.size() > max_frame_count )
+    {
+      break;
     }
   }
 
