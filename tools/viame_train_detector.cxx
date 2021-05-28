@@ -155,7 +155,7 @@ bool list_all_subfolders( const std::string& location,
   return true;
 }
 
-bool list_files_in_folder( const std::string& location,
+bool list_files_in_folder( std::string location,
                            std::vector< std::string >& filepaths,
                            bool search_subfolders = false,
                            std::vector< std::string > extensions =
@@ -167,6 +167,13 @@ bool list_files_in_folder( const std::string& location,
   {
     return false;
   }
+
+#ifndef WIN32
+  if( location.back() != '/' )
+  {
+    location = location + "/";
+  }
+#endif
 
   boost::filesystem::path dir( location );
 
