@@ -203,6 +203,7 @@ set( CORE_PIPELINE_FILES
   pipelines/common_image_stabilizer.pipe
   pipelines/common_stabilized_iou_tracker.pipe
   pipelines/database_apply_svm_models.pipe
+  pipelines/detector_camtrawl.pipe
   pipelines/detector_extract_chips.pipe
   pipelines/detector_fish_without_motion.pipe
   pipelines/detector_generic_proposals.pipe
