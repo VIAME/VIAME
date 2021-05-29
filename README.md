@@ -42,7 +42,7 @@ Installations
 -------------
 
 For a full installation guide and description of the various flavors of VIAME, see the
-quick-start guide, above. VIAME Desktop is provided as either a .msi, .zip or .tar file.
+quick-start guide, above. The desktop version is provided as either a .msi, .zip or .tar file.
 Alternatively, docker files are available for both VIAME Desktop and Web (below).
 A sample instance of VIAME Web is also online, hosted at [viame.kitware.com](https://viame.kitware.com).
 For desktop installs, extract the binaries (or use the msi Windows installation wizard)
