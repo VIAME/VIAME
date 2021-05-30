@@ -394,6 +394,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     pipelines/train_detector_netharn_cfrnn_special.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn_wtf.viame_csv.conf
+    pipelines/train_detector_netharn_mask_rcnn.viame_csv.conf
     pipelines/train_object_classifier_netharn_resnet.viame_csv.conf
     pipelines/train_frame_classifier_netharn_resnet_nf.viame_csv.conf
     pipelines/train_frame_classifier_netharn_resnet.viame_csv.conf )
