@@ -436,7 +436,7 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "threshold", "0.00",
     "Optional threshold to provide on top of input groundtruth. This is useful if the "
     "truth is derived from some automated detector and is unfiltered." );
-  config->set_value( "max_frame_count", "-1",
+  config->set_value( "max_frame_count", "0",
     "Maximum number of frames to use in training, useful for debugging and speed "
     "optimization purposes." );
   config->set_value( "check_override", "false",
@@ -1096,7 +1096,7 @@ main( int argc, char* argv[] )
 
   if( !g_params.opt_max_frame_count.empty() )
   {
-    max_frame_count = std::stoi( g_params.opt_frame_rate );
+    max_frame_count = std::stoi( g_params.opt_max_frame_count );
   }
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
