@@ -80,15 +80,15 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 
 **Ubuntu Desktop Binaries:** <br>
 [VIAME v0.15.1 Ubuntu 18.04/20.04, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60b2fbe7d74671377b39cef1/download) <br>
-[VIAME v0.15.1 Ubuntu 18.04/20.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1dIf9SrITQOkaOFeSKF0tFXIXgSZjiI4B/view?usp=sharing) <br>
+[VIAME v0.15.1 Ubuntu 18.04/20.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1e4HwcwA-l4G93Qy4VTnRrsbLRUpH1cTi/view?usp=sharing) <br>
 [VIAME v0.15.1 Ubuntu 16.04, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60b2fc23181c59d24cdb15da/download) <br>
-[VIAME v0.15.1 Ubuntu 16.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1U-JFjLC6oycJM0BYOIzsoRqODdi2ys21/view?usp=sharing)
+[VIAME v0.15.1 Ubuntu 16.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1i_0zZgjIrSSR1RXfRcSvGrgebb9X-Tb4/view?usp=sharing)
 
 **CentOS or Other Linux Desktop Binaries:** <br>
 [VIAME v0.15.1 RHEL/CentOS 7/8, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60b2fbaed3ee6142d91c8351/download) <br>
-[VIAME v0.15.1 RHEL/CentOS 7/8, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1jfTjV4U3QCvZOYRaqHQJ-MMkequfYT9l/view?usp=sharing) <br>
+[VIAME v0.15.1 RHEL/CentOS 7/8, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1giGAwGGXhPMNhDCPoD2c8qY7eaP4KADv/view?usp=sharingg) <br>
 [VIAME v0.15.1 Generic Linux, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60b2fbaed3ee6142d91c8351/download) <br>
-[VIAME v0.15.1 Generic Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1jfTjV4U3QCvZOYRaqHQJ-MMkequfYT9l/view?usp=sharing)
+[VIAME v0.15.1 Generic Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1giGAwGGXhPMNhDCPoD2c8qY7eaP4KADv/view?usp=sharing)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
