@@ -1096,7 +1096,7 @@ main( int argc, char* argv[] )
 
   if( !g_params.opt_max_frame_count.empty() )
   {
-    max_frame_count = std::stoi( g_params.opt_frame_rate );
+    max_frame_count = std::stoi( g_params.opt_max_frame_count );
   }
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
