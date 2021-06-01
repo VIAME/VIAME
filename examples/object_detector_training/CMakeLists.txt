@@ -4,9 +4,9 @@
 
 # Download formatted example training data
 DownloadAndExtract(
-  https://data.kitware.com/api/v1/item/5e6008f3af2e2eed35fd0453/download
-  6b5e12186fc49c2088b0069ff48e8ee4
-  ${VIAME_DOWNLOAD_DIR}/training_example_set1.tar.gz
+  https://data.kitware.com/api/v1/item/60b5489d2fa25629b9f84808/download
+  bce0f0ab345e1d10b720b1c3cb8799df
+  ${VIAME_DOWNLOAD_DIR}/training_example_set2.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Install remaining example files
@@ -46,6 +46,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          continue_training_cfrnn.bat
          train_cfrnn_viame_csv.bat
          train_cfrnn_habcam.bat
+         train_mask_rcnn_viame_csv.bat
          train_motion_cfrnn_viame_csv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
@@ -53,6 +54,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          continue_training_cfrnn.sh
          train_cfrnn_viame_csv.sh
          train_cfrnn_habcam.sh
+         train_mask_rcnn_viame_csv.sh
          train_motion_cfrnn_viame_csv.sh )
   endif()
 endif()
