@@ -36,6 +36,7 @@ struct vital_meta_trait_base
   virtual std::string description() const = 0;
   virtual std::type_info const& tag_type() const = 0;
   virtual bool is_integral() const = 0;
+  virtual bool is_signed() const = 0;
   virtual bool is_floating_point() const = 0;
   virtual vital_metadata_tag tag() const = 0;
   virtual std::unique_ptr<metadata_item> create_metadata_item( const kwiver::vital::any& data ) const = 0;
@@ -56,6 +57,7 @@ struct vital_meta_trait_base
     static std::string  description() { return std::string(LD); }       \
     static std::type_info const& tag_type() { return typeid(T); }       \
     static bool is_integral() { return std::is_integral<T>::value; }    \
+    static bool is_signed() { return std::is_signed<T>::value; }        \
     static bool is_floating_point() { return std::is_floating_point<T>::value; } \
     static vital_metadata_tag tag() { return TAG; }                     \
     typedef T type;                                                     \

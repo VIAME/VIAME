@@ -49,70 +49,49 @@ class ffmpeg_video_input::priv
 {
 public:
   /// Constructor
-  priv() :
-    f_format_context(avformat_alloc_context()),
-    f_video_index(-1),
-    f_data_index(-1),
-    f_video_encoding(nullptr),
-    f_video_stream(nullptr),
-    f_frame(nullptr),
-    f_filtered_frame(nullptr),
-    f_packet(nullptr),
-    f_software_context(nullptr),
-    f_filter_graph(nullptr),
-    f_filter_sink_context(nullptr),
-    f_filter_src_context(nullptr),
-    f_start_time(-1),
-    f_backstep_size(-1),
-    f_frame_number_offset(0),
-    video_path(""),
-    filter_desc("yadif=deint=1"),
-    metadata(0),
-    frame_advanced(false),
-    end_of_video(true),
-    number_of_frames(0),
-    collected_all_metadata(false),
-    estimated_num_frames(false)
+  priv()
   { }
 
   // f_* variables are FFmpeg specific
 
-  AVFormatContext* f_format_context;
-  int f_video_index;
-  int f_data_index;
-  AVCodecContext* f_video_encoding;
-  AVStream* f_video_stream;
-  AVFrame* f_frame;
-  AVFrame* f_filtered_frame;
-  AVPacket* f_packet;
-  SwsContext* f_software_context;
-  AVFilterGraph* f_filter_graph;
-  AVFilterContext *f_filter_sink_context;
-  AVFilterContext *f_filter_src_context;
+  AVFormatContext* f_format_context = avformat_alloc_context();
+  int f_video_index = -1;
+  AVCodecContext* f_video_encoding = nullptr;
+  AVStream* f_video_stream = nullptr;
+  AVFrame* f_frame = nullptr;
+  AVFrame* f_filtered_frame = nullptr;
+  AVPacket* f_packet = nullptr;
+  SwsContext* f_software_context = nullptr;
+  AVFilterGraph* f_filter_graph = nullptr;
+  AVFilterContext* f_filter_sink_context = nullptr;
+  AVFilterContext* f_filter_src_context = nullptr;
 
   // Start time of the stream, to offset the pts when computing the frame number.
   // (in stream time base)
-  int64_t f_start_time;
+  int64_t f_start_time = -1;
 
   // Presentation timestamp (in stream time base)
   int64_t f_pts;
 
   // Number of frames to back step when seek fails to land on frame before request
-  int64_t f_backstep_size;
+  int64_t f_backstep_size = -1;
 
   // Some codec/file format combinations need a frame number offset.
   // These codecs have a delay between reading packets and generating frames.
-  unsigned f_frame_number_offset;
+  unsigned f_frame_number_offset = 0;
 
   // Name of video we opened
-  std::string video_path;
+  std::string video_path = "";
 
   // FFMPEG filter description string
   // What you put after -vf in the ffmpeg command line tool
-  std::string filter_desc;
+  std::string filter_desc = "yadif=deint=1";
 
-  // the buffer of metadata from the data stream
-  std::deque<uint8_t> metadata;
+  // the buffers of raw metadata from the data streams tagged with the timestamp
+  std::map<int, std::multimap< int64_t, std::deque<uint8_t>>> metadata;
+
+  // Storage for current frame's raw metadata
+  std::map<int, std::deque<uint8_t>> curr_metadata;
 
   // metadata converter object
   kwiver::vital::convert_metadata converter;
@@ -132,11 +111,13 @@ public:
   kwiver::vital::image_container_sptr current_image;
 
   // local state
-  bool frame_advanced;
-  bool end_of_video;
-  size_t number_of_frames;
-  bool collected_all_metadata;
-  bool estimated_num_frames;
+  bool frame_advanced = false;
+  bool end_of_video = true;
+  size_t number_of_frames = 0;
+  bool collected_all_metadata = false;
+  bool estimated_num_frames = false;
+  bool sync_metadata = true;
+  size_t max_seek_back_attempts = 10;
 
   // ==================================================================
   /*
@@ -174,7 +155,6 @@ public:
     // Find a video stream, and optionally a data stream.
     // Use the first ones we find.
     this->f_video_index = -1;
-    this->f_data_index = -1;
     AVCodecParameters* codec_param_origin = NULL;
     for (unsigned i = 0; i < this->f_format_context->nb_streams; ++i)
     {
@@ -184,9 +164,10 @@ public:
         this->f_video_index = i;
         codec_param_origin = params;
       }
-      else if (params->codec_type == AVMEDIA_TYPE_DATA && this->f_data_index < 0)
+      else if (params->codec_type == AVMEDIA_TYPE_DATA)
       {
-        this->f_data_index = i;
+        this->metadata.emplace(i, std::multimap<int64_t, std::deque<uint8_t> >());
+        this->curr_metadata.emplace(i, std::deque<uint8_t>());
       }
     }
 
@@ -196,7 +177,7 @@ public:
       return false;
     }
 
-    if (this->f_data_index < 0)
+    if (this->metadata.empty() )
     {
       LOG_INFO(this->logger, "No data stream available");
       // Fallback for the DATA stream if incorrectly coded as UNKNOWN.
@@ -205,7 +186,8 @@ public:
         AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
         if (params->codec_type == AVMEDIA_TYPE_UNKNOWN)
         {
-          this->f_data_index = i;
+          this->metadata.emplace(i, std::multimap<int64_t, std::deque<uint8_t> >());
+          this->curr_metadata.emplace(i, std::deque<uint8_t>());
           LOG_INFO(this->logger, "Using AVMEDIA_TYPE_UNKNOWN stream as a data stream");
         }
       }
@@ -272,31 +254,7 @@ public:
       this->f_frame_number_offset = 1;
     }
 
-    // Advance to first valid frame to get start time
-    this->f_start_time = 0;
-    if ( this->advance() )
-    {
-        this->f_start_time = this->f_pts;
-    }
-    else
-    {
-        LOG_ERROR(this->logger, "Error: failed to find valid frame to set start time");
-        this->f_start_time = -1;
-        return false;
-    }
-
-    // Now seek back to the start of the video
-    auto seek_rslt = av_seek_frame( this->f_format_context,
-                                    this->f_video_index,
-                                    0,
-                                    AVSEEK_FLAG_BACKWARD );
-    avcodec_flush_buffers( this->f_video_encoding );
-    if (seek_rslt < 0 )
-    {
-        LOG_ERROR(this->logger,
-                  "Error: failed to return to start after setting start time");
-        return false;
-    }
+    this->f_start_time = this->f_video_stream->start_time;
     this->frame_advanced = false;
     this->f_frame->data[0] = NULL;
     return true;
@@ -309,7 +267,7 @@ public:
   void close()
   {
     this->f_video_index = -1;
-    this->f_data_index = -1;
+    this->metadata.clear();
     this->f_start_time = -1;
 
     if (this->f_video_stream)
@@ -445,7 +403,10 @@ public:
     this->frame_advanced = false;
 
     // clear the metadata from the previous frame
-    this->metadata.clear();
+    for (auto& md : this->curr_metadata)
+    {
+      md.second.clear();
+    }
 
     while (!this->frame_advanced &&
            av_read_frame(this->f_format_context, this->f_packet) >= 0)
@@ -485,10 +446,13 @@ public:
       }
 
       // grab the metadata from this packet if from the metadata stream
-      else if (this->f_packet->stream_index == this->f_data_index)
+      auto md_iter = this->metadata.find(this->f_packet->stream_index);
+      if (md_iter != this->metadata.end() )
       {
-        this->metadata.insert(this->metadata.end(), this->f_packet->data,
-          this->f_packet->data + this->f_packet->size);
+        md_iter->second.emplace(
+          this->f_packet->pts,
+          std::deque<uint8_t>(this->f_packet->data,
+                              this->f_packet->data + this->f_packet->size));
       }
 
       // De-reference previous packet
@@ -502,6 +466,27 @@ public:
     if (!this->frame_advanced)
     {
       this->f_frame->data[0] = NULL;
+    }
+
+    for (auto& md : this->metadata)
+    {
+      for (auto md_it = md.second.begin(); md_it != md.second.end(); )
+      {
+        // Skip if timestamp is too large while in sync mode
+        if (md_it->first <= this->f_pts || !this->sync_metadata)
+        {
+          this->curr_metadata[md.first].insert(curr_metadata[md.first].end(),
+            md_it->second.begin(), md_it->second.end() );
+
+          // Remove packet from cache since it was used
+          md_it = md.second.erase(md_it);
+        }
+        else
+        {
+          // Skip to the next metadata packet if not used
+          ++md_it;
+        }
+      }
     }
 
     return this->frame_advanced;
@@ -521,6 +506,7 @@ public:
       this->stream_time_base_to_frame() + this->f_start_time;
 
     bool advance_successful = false;
+    size_t num_of_attempts = 0;
     do
     {
       auto seek_rslt = av_seek_frame( this->f_format_context,
@@ -538,6 +524,11 @@ public:
       // Continue to make seek request further back until we land at a frame
       // that is before the requested frame.
       frame_ts -= this->f_backstep_size * this->stream_time_base_to_frame();
+      if ( ++num_of_attempts > this->max_seek_back_attempts )
+      {
+        LOG_ERROR( this->logger, "Seek failed: unable to seek back to early timestamp" );
+        return false;
+      }
     }
     while( this->frame_number() > frame - 1 || !advance_successful );
 
@@ -636,34 +627,40 @@ public:
   {
     kwiver::vital::metadata_vector retval;
 
-    // Copy the current raw metadata
-    std::deque<uint8_t> md_buffer = this->metadata;
-
-    kwiver::vital::klv_data klv_packet;
-
-    // If we have collected enough of the stream to make a KLV packet
-    while ( klv_pop_next_packet( md_buffer, klv_packet ) )
+    for (auto md : this->curr_metadata)
     {
-      auto meta = std::make_shared<kwiver::vital::metadata>();
+      // Copy the current raw metadata
+      std::deque<uint8_t> md_buffer = md.second;
 
-      try
-      {
-        converter.convert( klv_packet, *(meta) );
-      }
-      catch ( kwiver::vital::metadata_exception const& e )
-      {
-        LOG_WARN( this->logger, "Metadata exception: " << e.what() );
-        continue;
-      }
+      kwiver::vital::klv_data klv_packet;
 
-      // If the metadata was even partially decided, then add to the list.
-      if ( ! meta->empty() )
+      // If we have collected enough of the stream to make a KLV packet
+      while ( klv_pop_next_packet( md_buffer, klv_packet ) )
       {
-        set_default_metadata( meta );
+        auto meta = std::make_shared<kwiver::vital::metadata>();
 
-        retval.push_back( meta );
-      } // end valid metadata packet.
-    } // end while
+        try
+        {
+          converter.convert( klv_packet, *(meta) );
+        }
+        catch ( kwiver::vital::metadata_exception const& e )
+        {
+          LOG_WARN( this->logger, "Metadata exception: " << e.what() );
+          continue;
+        }
+
+        // If the metadata was even partially decided, then add to the list.
+        if ( ! meta->empty() )
+        {
+          // Add the data stream index
+          meta->add< vital::VITAL_META_VIDEO_DATA_STREAM_INDEX >( md.first );
+
+          set_default_metadata( meta );
+
+          retval.push_back( meta );
+        } // end valid metadata packet.
+      } // end while
+    }
 
     // if no metadata from the stream, add a basic metadata item
     if ( retval.empty() )
@@ -703,15 +700,13 @@ public:
       // Add metadata for current frame
       if ( frame_advanced )
       {
-        this->metadata_map.insert(
-          std::make_pair( this->frame_number(), this->current_metadata() ) );
+        this->metadata_map.emplace(this->frame_number(), this->current_metadata());
       }
 
       // Advance video stream to end
       while ( this->advance() )
       {
-        this->metadata_map.insert(
-          std::make_pair( this->frame_number(), this->current_metadata() ) );
+        this->metadata_map.emplace(this->frame_number(), this->current_metadata());
       }
 
       // Close and reopen to reset
@@ -723,8 +718,7 @@ public:
       while ( frame_num < initial_frame_number && this->advance() )
       {
         ++frame_num;
-        this->metadata_map.insert(
-          std::make_pair( this->frame_number(), this->current_metadata() ) );
+        this->metadata_map.emplace(this->frame_number(), this->current_metadata());
       }
 
       collected_all_metadata = true;
@@ -847,12 +841,20 @@ ffmpeg_video_input
   // get base config from base class
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
-  config->set_value("filter_desc", d->filter_desc,
+  config->set_value(
+    "filter_desc", d->filter_desc,
     "A string describing the libavfilter pipeline to apply when reading "
     "the video.  Only filters that operate on each frame independently "
     "will currently work.  The default \"yadif=deint=1\" filter applies "
     "deinterlacing only to frames which are interlaced.  "
     "See details at https://ffmpeg.org/ffmpeg-filters.html");
+
+  config->set_value(
+    "sync_metadata", d->sync_metadata,
+    "When set to true will attempt to synchronize the metadata by "
+    "caching metadata packets whose timestamp is greater than the "
+    "current frame's timestamp until a frame is reached with timestamp "
+    "that is equal or greater than the metadata's timestamp.");
 
   return config;
 }
@@ -870,6 +872,8 @@ ffmpeg_video_input
   config->merge_config(in_config);
 
   d->filter_desc = config->get_value<std::string>("filter_desc", d->filter_desc);
+
+  d->sync_metadata = config->get_value<bool>("sync_metadata", d->sync_metadata);
 }
 
 // ------------------------------------------------------------------
@@ -906,7 +910,7 @@ ffmpeg_video_input
       VITAL_THROW( kwiver::vital::video_runtime_exception, "Video stream open failed for unknown reasons");
     }
     this->set_capability(vital::algo::video_input::HAS_METADATA,
-                         d->f_data_index >= 0);
+                         !d->metadata.empty() );
     d->end_of_video = false;
   }
 }

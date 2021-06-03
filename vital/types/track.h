@@ -211,8 +211,16 @@ public:
 
   /// Remove track state.
   ///
+  /// \param frame The state to remove.
   /// \returns \c true if the state was found and removed.
   bool remove( track_state_sptr const& state );
+
+  /// Remove track state by frame number.
+  ///
+  /// \param frame The frame number at which to remove a state.
+  /// \returns \c true if a state with the specified frame number was found and
+  ///          removed.
+  bool remove( frame_id_t frame );
 
   /// Remove all track states.
   void clear();
@@ -229,11 +237,23 @@ public:
   /// Access the last entry of the history.
   track_state_sptr back() const { return history_.back(); }
 
-  /// Find the track state iterator matching \a frame.
+  /// Find the track state iterator matching \p frame.
   ///
   /// \param frame The frame number to access.
   /// \return An iterator at the frame if found, or end() if not.
   history_const_itr find( frame_id_t frame ) const;
+
+  /// Test if the track contains \p frame.
+  ///
+  /// \param frame The frame number to find.
+  /// \return \c true if the track contains the specified \p frame,
+  ///         otherwise \c false.
+  bool contains( frame_id_t frame ) const;
+
+  /// Erase track state at iterator.
+  ///
+  /// \return An iterator to the item which followed the erased item.
+  history_const_itr erase( history_const_itr );
 
   /// Return the set of all frame identifiers covered by this track.
   std::set< frame_id_t > all_frame_ids() const;

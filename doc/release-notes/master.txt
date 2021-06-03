@@ -81,6 +81,14 @@ Arrows: CUDA
 
 Arrows: FFmpeg
 
+ * Now checks the timestamps of the metadata packets to catch packets
+   that are arriving early. Packets that arrive early are cached until the
+   timestamp of the current frame is larger than the timestamp of the
+   metadata packet. This synchronization can be disabled if desired.
+
+ * Fixed an issue where only metadata packets from the first data stream
+   are saved.
+
  * Added a libavfilter pipeline into the ffmpeg_video_input reader. This
    allows users to inject filters in the video reader, much the same as
    is possible in the ffmpeg command line with the -vf option.  The default
@@ -118,6 +126,9 @@ Arrows: MVG
 
  * Added a new applet, init_cameras_landmarks, to run the estimate cameras
    and landmarks from feature tracks produced by the track_features applet.
+
+ * Added an implementation of integrate_depth_maps. This works exactly the same
+   as the implementation in the CUDA arrow, but does not require a GPU.
 
 Arrows: OpenCV
 
@@ -180,6 +191,11 @@ Bug Fixes
 Arrows: Core
 
 Arrows: Ceres
+
+Arrows: CUDA
+
+ * Fixed an issue in which depth imagery was loaded transposed and flipped
+   and then later flipped and transposed back during CUDA processing.
 
 Arrows: Super3D
 

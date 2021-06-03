@@ -123,20 +123,34 @@ public:
   virtual ~embedded_pipeline();
 
   /**
+   * @brief Set application information
+   *
+   * This method sets the application information that will be used when
+   * searching for pipeline files. See kwiver::vital::read_config_file for a
+   * detailed explanation of the parameters and how search paths work.
+   *
+   * \sa build_pipeline
+   */
+  void set_application_information( std::string const& app_name,
+                                    std::string const& app_version,
+                                    std::string const& app_prefix = {} );
+
+  /**
    * @brief Build the embedded pipeline.
    *
-   * This method creates the pipeline based on the contents of the
-   * supplied stream.
+   * This method creates the pipeline based on the contents of the supplied
+   * stream. Inclusions will be resolved using the search paths in the same
+   * manner as kwiver::vital::read_config_file.
    *
    * @param istr Input stream containing the pipeline description.
    *
-   * @param def_dir The directory name used to report errors in the
-   * input stream and is used as the current directory to locate
-   * includes and to resolve relpath. Since the input stream being
-   * processed has no file name, the name "in-stream" is appended to
-   * the directory supplied so that errors in the stream can be
-   * differentiated from errors from other files. If this parameter is
-   * not supplied, the current directory is used.
+   * @param def_dir The directory name used to report errors in the input
+   * stream and as the location of the pipeline file when resolving include
+   * directives (if not resolved via the search paths) and relpath specifiers.
+   * Since the input stream being processed has no file name, the name
+   * "in-stream" is appended to the directory supplied so that errors in the
+   * stream can be differentiated from errors from other files. If this
+   * parameter is not supplied, the current directory is used.
    *
    * @throws std::runtime_error when there is a problem
    * constructing the pipeline or if there is a problem connecting

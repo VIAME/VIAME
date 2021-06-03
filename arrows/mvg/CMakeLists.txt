@@ -4,6 +4,7 @@ set(CMAKE_FOLDER "Arrows/MVG")
 
 set( plugin_mvg_headers
   algo/hierarchical_bundle_adjust.h
+  algo/integrate_depth_maps.h
   algo/initialize_cameras_landmarks.h
   algo/initialize_cameras_landmarks_basic.h
   algo/triangulate_landmarks.h
@@ -30,6 +31,7 @@ kwiver_install_headers(
 
 set( plugin_mvg_sources
   algo/hierarchical_bundle_adjust.cxx
+  algo/integrate_depth_maps.cxx
   algo/initialize_cameras_landmarks.cxx
   algo/initialize_cameras_landmarks_basic.cxx
   algo/triangulate_landmarks.cxx

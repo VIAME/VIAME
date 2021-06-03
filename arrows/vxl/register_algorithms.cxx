@@ -30,6 +30,7 @@
 #include <arrows/vxl/threshold.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 #include <arrows/vxl/match_features_constrained.h>
+#include <arrows/vxl/morphology.h>
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
 
 namespace kwiver {
@@ -70,6 +71,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< threshold >();
   reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< match_features_constrained >();
+  reg.register_algorithm< morphology >();
   reg.register_algorithm< vidl_ffmpeg_video_input >();
 
   reg.mark_module_as_loaded();

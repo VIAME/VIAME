@@ -41,6 +41,7 @@ struct vital_meta_trait_object
     virtual std::string description() const override { return std::string(TD); } \
     virtual std::type_info const& tag_type() const override { return typeid(T); } \
     virtual bool is_integral() const override { return std::is_integral<T>::value; } \
+    virtual bool is_signed() const override { return std::is_signed<T>::value; } \
     virtual bool is_floating_point() const override { return std::is_floating_point<T>::value; } \
     virtual vital_metadata_tag tag() const override { return VITAL_META_ ## TAG; } \
     virtual std::unique_ptr<metadata_item> create_metadata_item ( const kwiver::vital::any& data ) const override \

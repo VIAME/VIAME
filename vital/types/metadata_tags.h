@@ -92,6 +92,10 @@
         "Image URI",                                                    \
         std::string,                                                    \
         "" )                                                            \
+  CALL( VIDEO_DATA_STREAM_INDEX,                                        \
+        "Index of metadata stream",                                     \
+        int,                                                            \
+        "" )                                                            \
   CALL( VIDEO_URI,                                                      \
         "Video URI",                                                    \
         std::string,                                                    \

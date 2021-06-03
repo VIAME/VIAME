@@ -6,8 +6,10 @@
 #include <arrows/serialize/json/load_save_point.h>
 #include <arrows/serialize/json/load_save_track_state.h>
 #include <arrows/serialize/json/load_save_track_set.h>
+#include <arrows/serialize/json/track.h>
 
-#include <gtest/gtest.h>
+#include <vital/internal/cereal/cereal.hpp>
+#include <vital/internal/cereal/archives/json.hpp>
 
 #include <vital/types/activity.h>
 #include <vital/types/bounding_box.h>
@@ -19,6 +21,7 @@
 #include <vital/types/image_container.h>
 #include <vital/types/metadata.h>
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
 #include <vital/types/metadata_tags.h>
 #include <vital/types/metadata_traits.h>
 #include <vital/types/object_track_set.h>
@@ -27,16 +30,19 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/track.h>
 #include <vital/types/track_set.h>
+
 #include <vital/vital_types.h>
 
-#include <arrows/serialize/json/track.h>
-#include <vital/internal/cereal/cereal.hpp>
-#include <vital/internal/cereal/archives/json.hpp>
+#include <vital/range/iota.h>
+
+#include <gtest/gtest.h>
 
 #include <sstream>
 #include <iostream>
 
 #define DEBUG 0
+
+namespace kvr = kwiver::vital::range;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -500,6 +506,60 @@ TEST( load_save, metadata_vector )
   for (size_t i = 0; i < meta_vect.size(); i++)
   {
     compare_meta_collection( *meta_vect[i], *obj_dser[i] );
+  }
+}
+
+// ----------------------------------------------------------------------------
+TEST( load_save, metadata_map )
+{
+  auto const meta =
+    std::make_shared<kwiver::vital::metadata>( create_meta_collection() );
+
+  kwiver::vital::metadata_vector meta_vect0;
+  kwiver::vital::metadata_vector meta_vect1;
+
+  meta_vect0.push_back( meta );
+
+  meta_vect1.push_back( meta );
+  meta_vect1.push_back( meta );
+
+  kwiver::vital::metadata_map::map_metadata_t meta_map;
+
+  meta_map.insert( { 0, meta_vect0 } );
+  meta_map.insert( { 1, meta_vect1 } );
+
+  std::stringstream msg;
+
+  try
+  {
+    cereal::JSONOutputArchive ar( msg );
+    cereal::save( ar, meta_map );
+  }
+  catch( std::exception const& e )
+  {
+    std::cout << "exception caught: " << e.what() << std::endl;
+  }
+
+#if DEBUG
+  std::cout << "metadata vector as json - " << msg.str() << std::endl;
+#endif
+
+  kwiver::vital::metadata_map::map_metadata_t obj_dser;
+  {
+    cereal::JSONInputArchive ar( msg );
+    cereal::load( ar, obj_dser );
+  }
+
+  EXPECT_EQ( meta_map.size(), obj_dser.size() );
+
+  // Check to make sure they are the same
+  for( auto const& item : meta_map )
+  {
+    auto dser_vect = obj_dser.at( item.first );
+    for( auto const i : kvr::iota( item.second.size() ) )
+    {
+      compare_meta_collection( *item.second[i], *dser_vect[i] );
+    }
   }
 }
 

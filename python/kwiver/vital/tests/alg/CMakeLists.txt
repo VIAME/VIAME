@@ -40,6 +40,7 @@ set(__test_algorithms
   simple_read_object_track_set
   simple_read_track_descriptor_set
   simple_refine_detections
+  simple_resection_camera
   simple_split_image
   simple_track_features
   simple_train_detector

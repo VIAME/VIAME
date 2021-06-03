@@ -1,0 +1,105 @@
+# =============================================================================
+process detect_burnin__in
+  :: image_filter
+  filter:type                           = vxl_convert_image
+  filter:vxl_convert_image:type         = copy
+
+# =============================================================================
+process detect_burnin__filter
+  :: image_filter
+  filter:type = vxl_pixel_feature_extractor
+
+  block filter:vxl_pixel_feature_extractor
+    enable_color                        = true # 3 channels
+    enable_gray                         = true # 1 channel
+    enable_color_commonality            = true # 1 channel
+    enable_high_pass_box                = true # 3 channels
+    enable_high_pass_bidir              = true # 3 channels
+    enable_average                      = true # 1 channel
+    enable_aligned_edge                 = true # 1 channel
+    enable_normalized_variance          = true # 1 channel
+    enable_spatial_prior                = true # 1 channel
+
+    average:window_size                 = 25
+    average:type                        = window
+    average:output_variance             = true
+
+    high_pass_box:kernel_width          = 43
+    high_pass_box:kernel_height         = 43
+    high_pass_box:treat_as_interlaced   = false
+    high_pass_box:output_net_only       = false
+
+    high_pass_bidir:kernel_width        = 27
+    high_pass_bidir:kernel_height       = 27
+    high_pass_bidir:treat_as_interlaced = false
+    high_pass_bidir:output_net_only     = false
+
+    color_commonality:smooth_image      = false
+    color_commonality:output_scale      = 255
+  endblock
+
+# =============================================================================
+process detect_burnin__classifier
+  :: image_filter
+  filter:type = vxl_hashed_image_classifier_filter
+
+  block filter:vxl_hashed_image_classifier_filter
+    model_file = models/default_burnout_600_iters
+  endblock
+
+# =============================================================================
+process detect_burnin__averager
+  :: image_filter
+  filter:type                           = vxl_average
+  filter:vxl_average:type               = cumulative
+
+# =============================================================================
+process detect_burnin__thresholder
+  :: image_filter
+  filter:type                           = vxl_threshold
+  filter:vxl_threshold:type             = absolute
+  filter:vxl_threshold:threshold        = 0.0
+
+# =============================================================================
+process detect_burnin__closer
+  :: image_filter
+  filter:type                           = vxl_morphology
+  filter:vxl_morphology:morphology      = close
+  filter:vxl_morphology:kernel_radius   = 2.0
+
+# =============================================================================
+process detect_burnin__dilater
+  :: image_filter
+  filter:type                           = vxl_morphology
+  filter:vxl_morphology:morphology      = dilate
+  filter:vxl_morphology:kernel_radius   = 2.0
+
+# =============================================================================
+process detect_burnin__out
+  :: image_filter
+  filter:type                           = vxl_convert_image
+  filter:vxl_convert_image:type         = byte
+  filter:vxl_convert_image:scale_factor = 255
+
+###############################################################################
+
+connect from detect_burnin__in.image
+        to   detect_burnin__filter.image
+
+connect from detect_burnin__filter.image
+        to   detect_burnin__classifier.image
+
+connect from detect_burnin__classifier.image
+        to   detect_burnin__averager.image
+
+connect from detect_burnin__averager.image
+        to   detect_burnin__thresholder.image
+
+connect from detect_burnin__thresholder.image
+        to   detect_burnin__closer.image
+
+connect from detect_burnin__closer.image
+        to   detect_burnin__dilater.image
+
+connect from detect_burnin__dilater.image
+        to   detect_burnin__out.image

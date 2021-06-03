@@ -50,6 +50,9 @@ macro(vital_check_optional_feature NAME TEST MESSAGE)
   endif()
 endmacro()
 
+# Set default visibility
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+
 # C++11 is required
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)

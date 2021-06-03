@@ -129,11 +129,9 @@ __device__ int computeVoxelIDGrid(int coordinates[3])
 __device__ int computeVoxelIDDepth(int coordinates[3])
 {
   int dimX = c_depthMapDims.x;
-  int dimY = c_depthMapDims.y;
   int x = coordinates[0];
   int y = coordinates[1];
-  // /!\ vtkImageData has its origin at the bottom left, not top left
-  return (dimX*(dimY - 1 - y)) + x;
+  return (dimX * y) + x;
 }
 
 //*****************************************************************************

@@ -52,7 +52,7 @@ LoggerView
 ::logHandler( kv::kwiver_logger::log_level_t level,
               std::string const& name,
               std::string const& msg,
-              kv::logger_ns::location_info const& loc )
+              VITAL_UNUSED kv::logger_ns::location_info const& loc )
 {
   std::string levelStr = kv::kwiver_logger::get_level_string( level );
   auto html = qtString( "<b><font color=\"red\">" + levelStr + "</font> " +

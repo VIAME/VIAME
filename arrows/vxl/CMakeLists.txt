@@ -24,6 +24,7 @@ set(vxl_headers_public
   image_container.h
   image_io.h
   match_features_constrained.h
+  morphology.h
   optimize_cameras.h
   perform_white_balancing.h
   pixel_feature_extractor.h
@@ -66,6 +67,7 @@ set(vxl_sources
   image_container.cxx
   image_io.cxx
   match_features_constrained.cxx
+  morphology.cxx
   optimize_cameras.cxx
   perform_white_balancing.cxx
   pixel_feature_extractor.cxx
@@ -85,6 +87,7 @@ target_link_libraries( kwiver_algo_vxl
   PUBLIC               vital_algo
                        vil vpgl vgl
   PRIVATE              vital_klv
+                       vital_config
                        kwiver_algo_mvg
                        rrel rsdl
                        vnl
