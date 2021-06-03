@@ -26,7 +26,7 @@ process random_grey
 
   block filter:vxl_convert_image
     :format                                    byte
-    :random_greyscale                          0.20
+    :random_grayscale                          0.20
     :force_three_channel                       true
   endblock
 
