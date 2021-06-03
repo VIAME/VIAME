@@ -1,5 +1,7 @@
 project(sprokit)
 
+set(CMAKE_FOLDER "Sprokit")
+
 cmake_minimum_required(VERSION 3.0)
 
 set(sprokit_source_dir "${CMAKE_CURRENT_SOURCE_DIR}")

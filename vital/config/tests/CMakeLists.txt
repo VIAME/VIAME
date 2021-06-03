@@ -1,5 +1,7 @@
 project(kwiver_config_tests)
 
+set(CMAKE_FOLDER "Vital/Tests")
+
 include(kwiver-test-setup)
 
 set( test_libraries vital_config vital_exceptions kwiversys Eigen3::Eigen )

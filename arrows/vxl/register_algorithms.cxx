@@ -20,10 +20,14 @@
 #include <arrows/vxl/estimate_fundamental_matrix.h>
 #include <arrows/vxl/estimate_homography.h>
 #include <arrows/vxl/estimate_similarity_transform.h>
+#include <arrows/vxl/hashed_image_classifier_filter.h>
+#include <arrows/vxl/high_pass_filter.h>
 #include <arrows/vxl/image_io.h>
 #include <arrows/vxl/optimize_cameras.h>
 #include <arrows/vxl/perform_white_balancing.h>
+#include <arrows/vxl/pixel_feature_extractor.h>
 #include <arrows/vxl/split_image.h>
+#include <arrows/vxl/threshold.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 #include <arrows/vxl/match_features_constrained.h>
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
@@ -46,8 +50,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   using namespace kwiver::arrows::vxl;
 
-  reg.register_algorithm< bundle_adjust >();
   reg.register_algorithm< average_frames >();
+  reg.register_algorithm< bundle_adjust >();
   reg.register_algorithm< close_loops_homography_guided >();
   reg.register_algorithm< color_commonality_filter >();
   reg.register_algorithm< convert_image >();
@@ -56,10 +60,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< estimate_fundamental_matrix >();
   reg.register_algorithm< estimate_homography >();
   reg.register_algorithm< estimate_similarity_transform >();
+  reg.register_algorithm< hashed_image_classifier_filter >();
+  reg.register_algorithm< high_pass_filter >();
   reg.register_algorithm< image_io >();
   reg.register_algorithm< optimize_cameras >();
   reg.register_algorithm< perform_white_balancing >();
+  reg.register_algorithm< pixel_feature_extractor >();
   reg.register_algorithm< split_image >();
+  reg.register_algorithm< threshold >();
   reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< match_features_constrained >();
   reg.register_algorithm< vidl_ffmpeg_video_input >();

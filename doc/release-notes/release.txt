@@ -46,6 +46,13 @@ Arrows: Core
    the remaining cameras.  This is further improved to try the lists of
    remaining cameras multiple times until no further cameras are added.
 
+ * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
+   updated landmarks are not returned from a helper function and therefore
+   intermediate results are returned as the final output.
+
+ * Fixed a bug in track features that was causing a crash on Linux after
+   detecting features on the first frame of video.
+
 Arrows: CUDA
 
  * Fixed a linking error on Linux with some versions of CUDA requiring

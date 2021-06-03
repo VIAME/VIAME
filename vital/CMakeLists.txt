@@ -2,6 +2,7 @@
 # Top level build for VITAL
 #
 project( vital )
+set(CMAKE_FOLDER "Vital")
 
 ###
 # KWSys
@@ -72,6 +73,7 @@ set( vital_public_headers
   algorithm_capabilities.h
   any.h
   attribute_set.h
+  bitflags.h
   context.h
   exceptions.h
   iterator.h

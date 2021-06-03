@@ -36,13 +36,14 @@
 
 import nose.tools as nt
 import numpy as np
+import unittest
 
 from kwiver.vital.types import geo_polygon as gp, geodesy, Polygon
 from kwiver.vital.config import config
 from kwiver.vital.modules import modules
 
 
-class TestVitalGeoPolygon(object):
+class TestVitalGeoPolygon(unittest.TestCase):
     # Creates a regular (not Geo) polygon for a few tests
     def _create_polygon(self):
         return Polygon(

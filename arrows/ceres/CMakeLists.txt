@@ -1,6 +1,8 @@
 # Build / Install plugin containing Ceres algorithm implementations + support
 # structures
 
+set(CMAKE_FOLDER "Arrows/Ceres")
+
 set( ceres_headers_public
   bundle_adjust.h
   lens_distortion.h
