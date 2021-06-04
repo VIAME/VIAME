@@ -417,16 +417,10 @@ class CamtrawlMeasureProcess(KwiverProcess):
             i2 = match["ij"][1]
             output1[i1].set_length(match["fishlen"])
             output2[i2].set_length(match["fishlen"])
-            pts1 = detections1[i1].special_keypoints()
-            if "hacked_xy0" in pts1 and "hacked_xy2" in pts1:
-                head = pts1["hacked_xy0"]
-                tail = pts1["hacked_xy2"]
-                output1[i1].set_head_tail( head[0], head[1], tail[0], tail[1] )
-            pts2 = detections2[i2].special_keypoints()
-            if "hacked_xy0" in pts2 and "hacked_xy2" in pts2:
-                head = pts2["hacked_xy0"]
-                tail = pts2["hacked_xy2"]
-                output2[i2].set_head_tail( head[0], head[1], tail[0], tail[1] )
+            head, tail = detections1[i1].center_keypoints()
+            output1[i1].set_head_tail( head[0], head[1], tail[0], tail[1] )
+            head, tail = detections2[i2].center_keypoints()
+            output2[i2].set_head_tail( head[0], head[1], tail[0], tail[1] )
 
         output1 = DetectedObjectSet(output1)
         output2 = DetectedObjectSet(output2)

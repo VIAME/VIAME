@@ -173,6 +173,37 @@ class DetectedObject(ub.NiceRepr):
                 }
         return special_pts
 
+    def center_keypoints(self):
+        """
+        Return a set of ordered keypoints to be measured.
+
+        If the _special_pts attriute is not explicitly set, the corners of the
+        oriented bounding boxes are used as a proxy.
+        """
+        # This hack returns the corners of the bounding box as proxies for
+        # special keypoints (e.g. the head and tail of a fish).
+        box_pts = self.box_points()
+
+        # Use only the corners of the bbox
+        centers = [ ( box_pts[0] + box_pts[1] ) / 2 ]
+
+        centers.append( ( box_pts[1] + box_pts[2] ) / 2 )
+        centers.append( ( box_pts[2] + box_pts[3] ) / 2 )
+        centers.append( ( box_pts[3] + box_pts[0] ) / 2 )
+
+        min_x = 1000000
+        max_x = 0
+
+        for pt in centers:
+            if pt[0] < min_x:
+                min_pt = pt
+                min_x = pt[0]
+            if pt[0] > max_x:
+                max_pt = pt
+                max_x = pt[0]
+
+        return max_pt, min_pt
+
     def num_pixels(self):
         """
         Returns:
