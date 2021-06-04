@@ -1,3 +1,14 @@
+v0.15.2 - 6/04/2021
+===================
+
+
+-Fix issue in exe installer
+
+
+-Minor update for stabilization example
+
+
+
 v0.15.0 - 5/26/2021
 ===================
 
