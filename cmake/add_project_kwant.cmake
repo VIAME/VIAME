@@ -8,7 +8,7 @@
 ##
 
 if( VIAME_ENABLE_PYTHON )
-  FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
+  FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
 endif()
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwant )
