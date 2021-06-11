@@ -1,0 +1,91 @@
+KWIVER v1.5.1 Release Notes
+===========================
+
+This is a patch release of KWIVER that provides fixes over the previous
+v1.5.0 release.
+
+Bug Fixes since v1.5.0
+----------------------
+
+Config
+
+ * Add support for Visual Studio 2019 in the setup_KWIVER.bat
+
+Vital
+
+ * Added a missing include file in track.cxx required to build on MSVC 2019.
+
+ * Changed incorrect metadata tag in convert_0601_metadata.cxx from
+   KLV_0601_TARGET_LOCATION_LAT to KLV_0601_TARGET_LOCATION_ELEV.
+
+ * Fixed a typo in the TARGET_LOCATION metadata field name.
+
+ * Updated metadata field names for kv::geo_point types to be more
+   descriptive. Made the distinction between elevation and altitude.
+
+Arrows: Ceres
+
+ * Fixed a bug in which the update_state_every_iteration config option
+   for bundle_adjust was not respected and was always manually overridden with
+   "true" if a callback was registered.
+
+Arrows: Core
+
+ * Remove some unnecessary computation in initialize_camera_landmarks_keyframe
+   by adding checks to detect earlier when computations that cannot achieve
+   their desired result due to insufficient data.
+
+ * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
+   principal point was not initialized from the image size unless there
+   was also metadata useful for determining focal length.  Distortion
+   parameters were also not properly preserved in this initialization
+   and this has also been resolved.
+
+ * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
+   camera estimation loop would sometimes exit early without processing
+   the remaining cameras.  This is further improved to try the lists of
+   remaining cameras multiple times until no further cameras are added.
+
+ * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
+   updated landmarks are not returned from a helper function and therefore
+   intermediate results are returned as the final output.
+
+ * Fixed a bug in track features that was causing a crash on Linux after
+   detecting features on the first frame of video.
+
+Arrows: CUDA
+
+ * Fixed a linking error on Linux with some versions of CUDA requiring
+   to "recompile with -fPIC".
+
+ * Fixed a bug in launching the integrate_depth_maps CUDA kernel.
+   Previously, the kernel would fail to launch if the size of the volume
+   along the X direction was greater than 1024.
+
+ * Added a max_voxels_per_launch configuration option to the CUDA
+   integrate_depth_maps algorithm.  This works around a CUDA limitation
+   in which long-running CUDA kernels cause the GPU to freeze the system.
+   On Windows this leads to a time out after 2 seconds and the application
+   is terminated.  To avoid this we now launch the kernel multiple times
+   covering a subset of voxels in each chunk.
+
+Arrows: OpenCV
+
+ * Fixed improper use of RANSAC in the OpenCV estimate_pnp algorithm.
+   This algorithm was producing a lower then expected success rate when
+   resectioning cameras.
+
+ * Fixed a long standing bug with memory management when converting between
+   OpenCV and Vital images.  Reference counting was not handled correctly.
+   A workaround was previously added that forced a deep copy, but this created
+   another bug resulting in images with invalid first_pixel() values.
+   Both of these issues have been addressed.
+
+Arrows: Serialize
+
+ * Fixed a bug in the JSON serializer for metadata where bool fields caused a
+   runtime error.
+
+ * Fixed a bug in JSON serialization of metadata maps which caused name
+   collisions for multiple metadata packets associated the same frame. This
+   made the output unusable by applications other than KWIVER.

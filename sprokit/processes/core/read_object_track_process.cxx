@@ -76,9 +76,8 @@ void read_object_track_process
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if( algo::read_object_track_set::check_nested_algo_configuration_using_trait(
-        reader,
-        algo_config ) )
+  if( ! algo::read_object_track_set::check_nested_algo_configuration_using_trait(
+          reader, algo_config ) )
   {
     VITAL_THROW( sprokit::invalid_configuration_exception, name(),
                  "Configuration check failed." );

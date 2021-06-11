@@ -3734,6 +3734,9 @@ initialize_cameras_landmarks::priv
       m_frames_removed_from_sfm_solution.insert(rem_fid);
     }
   }
+
+  // package up the final landmarks to return
+  landmarks = std::make_shared<simple_landmark_map>(lmks);
   return true;
 }
 
