@@ -22,8 +22,7 @@ if( VIAME_ENABLE_MATLAB )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  FormatPassdowns( "Python" VIAME_PYTHON_FLAGS1 )
-  FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS2 )
+  FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
 endif()
 
 ExternalProject_Add(viame
@@ -44,8 +43,7 @@ ExternalProject_Add(viame
     ${VIAME_DOWNLOAD_FLAGS}
     ${VIAME_INSTALL_FLAGS}
     ${VIAME_MATLAB_FLAGS}
-    ${VIAME_PYTHON_FLAGS1}
-    ${VIAME_PYTHON_FLAGS2}
+    ${VIAME_PYTHON_FLAGS}
     ${VIAME_VERSION_FLAGS}
     -DBUILD_SHARED_LIBS:BOOL=ON
     -DVIAME_BUILD_DEPENDENCIES:BOOL=OFF

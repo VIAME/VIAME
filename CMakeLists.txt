@@ -210,6 +210,12 @@ option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled" 
 mark_as_advanced( VIAME_BUILD_TESTS )
 
 ###
+# Helper macros used across all cmakelists files in this project
+##
+include( common_macros )
+include( old_version_checks )
+
+###
 # Add logic and error checking relating to enable flags
 ##
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
@@ -263,6 +269,11 @@ if( VIAME_ENABLE_PYTHON )
         "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
     endif()
   endif()
+
+  # Backwards compatibility for sub-projects which use "PYTHON_" cmake
+  # variables and the old find_package( PythonInterp ) commands instead
+  # of the newer find Python. Copies all Python_* to PYTHON_* vars.
+  CopyVarsToAllCaps( "Python" )
 
   if( VIAME_ENABLE_PYTHON-NETHARN AND NOT VIAME_ENABLE_PYTHON-MMDET )
     message( FATAL_ERROR "Netharn currently also required mmdet enabled" )
@@ -464,12 +475,6 @@ if( CMAKE_SIZEOF_VOID_P EQUAL 4 )
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT")
 endif()
-
-# Include internal common CMake macros used across all CMakeLists.txt
-include( common_macros )
-
-# Include checks across all prior versions of the code
-include( old_version_checks )
 
 ###
 # Main build loop for when we are building both VIAME and all dependencies
