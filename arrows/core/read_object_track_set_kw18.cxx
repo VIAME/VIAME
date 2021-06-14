@@ -157,6 +157,11 @@ read_object_track_set_kw18
     return true;
   }
 
+  if( d->m_current_idx > d->m_last_idx )
+  {
+    return false;
+  }
+
   // Return detection set at current index if there is one
   if( d->m_tracks_by_frame_id.count( d->m_current_idx ) == 0 )
   {
@@ -175,8 +180,7 @@ read_object_track_set_kw18
 
   ++d->m_current_idx;
 
-  // Return if we are done parsing
-  return ( d->m_current_idx <= d->m_last_idx );
+  return true;
 }
 
 // -------------------------------------------------------------------------------
