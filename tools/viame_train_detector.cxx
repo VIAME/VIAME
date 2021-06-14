@@ -1045,7 +1045,7 @@ main( int argc, char* argv[] )
   double percent_test =
     config->get_value< double >( "default_percent_test" );
   unsigned test_burst_frame_count =
-    config->get_value< double >( "test_burst_frame_count" );
+    config->get_value< unsigned >( "test_burst_frame_count" );
   std::string image_exts_str =
     config->get_value< std::string >( "image_extensions" );
   std::string video_exts_str =
