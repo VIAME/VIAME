@@ -125,9 +125,11 @@ to_kwiver(vtkDataArray const* data, int const dims[3])
   {
     kwiver::vital::image_of<T> output_img(dims[0], dims[1], dims[2]);
     vtkIdType pt_id = 0;
-    for (int x = 0; x < dims[0]; x++)
+    // VTK images are stored with (0,0) at the bottom left instead of top left
+    // so flip vertically when copying memory
+    for (int y = dims[1]-1; y >= 0; y--)
     {
-      for (int y = 0; y < dims[1]; y++)
+      for (int x = 0; x < dims[0]; x++)
       {
         output_img(x, y) = vtk_array->GetValue(pt_id);
         pt_id++;

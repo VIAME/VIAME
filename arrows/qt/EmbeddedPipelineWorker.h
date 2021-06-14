@@ -74,6 +74,13 @@ public:
   ///         otherwise \c false.
   virtual bool initialize( QString const& pipelineFile );
 
+signals:
+  /// Signal when the pipeline is finished.
+  ///
+  /// This signal is emitted when the pipeline is finished; that is, when the
+  /// output endcap has received an end-of-input notification.
+  void finished();
+
 public slots:
   /// Execute the pipeline.
   ///
@@ -133,6 +140,10 @@ protected:
   /// pipeline endcap, so that users may act on the output produced by the
   /// pipeline. As the default implementation does nothing, most users will
   /// want to override this method.
+  ///
+  /// Note that this does \em not receive the end-of-input notification. Users
+  /// that need to handle termination of output processing should connect to
+  /// finished().
   ///
   /// This method executes on the pipeline worker thread.
   virtual void processOutput(

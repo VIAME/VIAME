@@ -42,7 +42,7 @@ public:
    * \returns \c config_block containing the configuration for this algorithm
    *          and any nested components.
    */
-  virtual vital::config_block_sptr get_configuration() const;
+  vital::config_block_sptr get_configuration() const override;
 
   /// Set this algorithm's properties via a config block
   /**
@@ -55,7 +55,7 @@ public:
    * \param config  The \c config_block instance containing the configuration
    *                parameters for this algorithm
    */
-  virtual void set_configuration(vital::config_block_sptr config);
+  void set_configuration(vital::config_block_sptr config) override;
 
   /// Check that the algorithm's currently configuration is valid
   /**
@@ -67,7 +67,7 @@ public:
    *
    * \returns true if the configuration check passed and false if it didn't.
    */
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  bool check_configuration(vital::config_block_sptr config) const override;
 
   /// Extend a previous set of feature tracks using the current frame
   /**
@@ -84,11 +84,11 @@ public:
    *                  value).
    * \returns an updated set of feature tracks including the current frame
    */
-  virtual vital::feature_track_set_sptr
+  vital::feature_track_set_sptr
   track(vital::feature_track_set_sptr prev_tracks,
-        unsigned int frame_number,
+        vital::frame_id_t frame_number,
         vital::image_container_sptr image_data,
-        vital::image_container_sptr mask = vital::image_container_sptr()) const;
+        vital::image_container_sptr mask = {}) const override;
 
 private:
   /// private implementation class

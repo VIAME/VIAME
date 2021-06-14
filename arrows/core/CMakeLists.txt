@@ -1,5 +1,7 @@
 # Build / Install Plugin containing core algorithm implementations
 
+set(CMAKE_FOLDER "Arrows/Core")
+
 set( plugin_core_headers
   associate_detections_to_tracks_threshold.h
   average_track_descriptors.h
@@ -37,6 +39,7 @@ set( plugin_core_headers
   match_features_homography.h
   match_tracks.h
   mesh_operations.h
+  metadata_map_io_csv.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
   refine_detections_add_fixed.h
@@ -110,6 +113,7 @@ set( plugin_core_sources
   match_features_homography.cxx
   match_tracks.cxx
   mesh_operations.cxx
+  metadata_map_io_csv.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
   refine_detections_add_fixed.cxx

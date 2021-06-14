@@ -525,7 +525,7 @@ Clusters Definition File
 
 A cluster is a collection of processes which can be treated as a
 single process for connection and configuration purposes. Clusters are
-defined in a slngle file with one cluster per file. Cluster definition
+defined in a single file with one cluster per file. Cluster definition
 files always have the `.cluster` extension.
 
 Clusters are loaded at the same time as the processes, but are loaded

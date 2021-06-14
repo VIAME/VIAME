@@ -5,6 +5,7 @@
 #include <arrows/serialize/json/load_save.h>
 
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
 #include <vital/types/metadata_traits.h>
 #include <vital/types/geo_point.h>
 #include <vital/types/geo_polygon.h>
@@ -15,6 +16,8 @@
 #include <vital/internal/cereal/types/vector.hpp>
 #include <vital/internal/cereal/types/map.hpp>
 #include <vital/internal/cereal/types/utility.hpp>
+
+namespace kv = kwiver::vital;
 
 namespace {
 
@@ -48,16 +51,13 @@ struct meta_item
 
     archive( CEREAL_NVP( tag ) );
 
-    // These two items are included to increase readability of the
-    // serialized form and are not used when deserializing.
-    archive(  ::cereal::make_nvp( "type", item_value.type_name() ) );
-    archive(  ::cereal::make_nvp( "name", trait.name() ) );
-
+    std::string type;
     // This is a switch on the item data type
     if ( trait.is_floating_point() )
     {
-      const double value = kwiver::vital::any_cast< double > ( this->item_value );
+      const double value = kv::any_cast< double > ( this->item_value );
       archive( CEREAL_NVP( value ) );
+      type = "float";
     }
     else if ( trait.is_integral() )
     {
@@ -65,34 +65,55 @@ struct meta_item
       // to uint64_t
       if ( trait.tag_type() == typeid( bool ) )
       {
-        const bool value = kwiver::vital::any_cast< bool > ( this->item_value );
+        const bool value = kv::any_cast< bool > ( this->item_value );
         archive( CEREAL_NVP( value ) );
+        type = "boolean";
+      }
+      // We don't want negative ints to be serialized as large postive unsigned
+      // values since this would be confusing for external applications
+      else if ( trait.is_signed() )
+      {
+        const int value = kv::any_cast< int > ( this->item_value );
+        archive( CEREAL_NVP( value ) );
+        type = "integer";
       }
       else
       {
-        const uint64_t value = kwiver::vital::any_cast< uint64_t > ( this->item_value );
+        const uint64_t value = kv::any_cast< uint64_t > ( this->item_value );
         archive( CEREAL_NVP( value ) );
+        type = "unsigned integer";
       }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
-      const std::string value = kwiver::vital::any_cast< std::string > ( this->item_value );
+      const std::string value =
+        kv::any_cast< std::string > ( this->item_value );
       archive( CEREAL_NVP( value ) );
+      type = "string";
     }
-    else if ( trait.tag_type() == typeid( kwiver::vital::geo_point ) )
+    else if ( trait.tag_type() == typeid( kv::geo_point ) )
     {
-      const kwiver::vital::geo_point value = kwiver::vital::any_cast<kwiver::vital::geo_point  > ( this->item_value );
+      const kv::geo_point value =
+        kv::any_cast< kv::geo_point > ( this->item_value );
       archive( CEREAL_NVP( value ) );
+      type = "geo-point";
     }
-    else if ( trait.tag_type() == typeid( kwiver::vital::geo_polygon ) )
+    else if ( trait.tag_type() == typeid( kv::geo_polygon ) )
     {
-      const kwiver::vital::geo_polygon value = kwiver::vital::any_cast<kwiver::vital::geo_polygon  > ( this->item_value );
+      const kv::geo_polygon value =
+        kv::any_cast< kv::geo_polygon > ( this->item_value );
       archive( CEREAL_NVP( value ) );
+      type = "geo-polygon";
     }
     else
     {
       //+ throw something
     }
+
+    // These two items are included to increase readability of the
+    // serialized form and are not used when deserializing.
+    archive( ::cereal::make_nvp( "name", trait.name() ) );
+    archive( ::cereal::make_nvp( "type", type ) );
   } // end save
 
   // -------------------------------------------------
@@ -113,7 +134,7 @@ struct meta_item
     {
       double value;
       archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      this->item_value = kv::any( value );
     }
     else if ( trait.is_integral() )
     {
@@ -122,32 +143,41 @@ struct meta_item
       {
         bool value;
         archive( CEREAL_NVP( value ) );
-        this->item_value = kwiver::vital::any( value );
+        this->item_value = kv::any( value );
       }
       else
       {
-        uint64_t value;
-        archive( CEREAL_NVP( value ) );
-        this->item_value = kwiver::vital::any( value );
+        if( trait.is_signed() )
+        {
+          int value;
+          archive( CEREAL_NVP( value ) );
+          this->item_value = kv::any( value );
+        }
+        else
+        {
+          uint64_t value;
+          archive( CEREAL_NVP( value ) );
+          this->item_value = kv::any( value );
+        }
       }
     }
     else if ( trait.tag_type() == typeid( std::string ) )
     {
       std::string value;
       archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      this->item_value = kv::any( value );
     }
-    else if ( trait.tag_type() == typeid( kwiver::vital::geo_point ) )
+    else if ( trait.tag_type() == typeid( kv::geo_point ) )
     {
-      kwiver::vital::geo_point value;
+      kv::geo_point value;
       archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      this->item_value = kv::any( value );
     }
-    else if ( trait.tag_type() == typeid( kwiver::vital::geo_polygon ) )
+    else if ( trait.tag_type() == typeid( kv::geo_polygon ) )
     {
-      kwiver::vital::geo_polygon value;
+      kv::geo_polygon value;
       archive( CEREAL_NVP( value ) );
-      this->item_value = kwiver::vital::any( value );
+      this->item_value = kv::any( value );
     }
     else
     {
@@ -160,56 +190,57 @@ struct meta_item
 
 using meta_vect_t = std::vector< meta_item >;
 
-}
+} // namespace <anonymous>
 
 namespace cereal {
 
-// ============================================================================
-void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta )
+// ----------------------------------------------------------------------------
+void save( ::cereal::JSONOutputArchive& archive,
+           kwiver::vital::metadata_vector const& meta_packets )
 {
-  std::vector<kwiver::vital::metadata> meta_dereferenced;
-  for ( const auto& element : meta )
+  std::vector< kwiver::vital::metadata > meta_packets_dereferenced;
+  for( auto const& packet : meta_packets )
   {
-    meta_dereferenced.push_back( *element );
+    meta_packets_dereferenced.push_back( *packet );
   }
-
-  save( archive, meta_dereferenced );
+  save( archive, meta_packets_dereferenced );
 }
 
 // ----------------------------------------------------------------------------
-void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata_vector& meta )
+void load( ::cereal::JSONInputArchive& archive,
+           kwiver::vital::metadata_vector& meta )
 {
-  std::vector< kwiver::vital::metadata > meta_dereferenced;
-  load( archive, meta_dereferenced );
+  std::vector< kwiver::vital::metadata > meta_packets_dereferenced;
+  load( archive, meta_packets_dereferenced );
 
-  for ( const auto& packet : meta_dereferenced )
+  for( auto const& meta_packet : meta_packets_dereferenced )
   {
-    meta.push_back( std::make_shared< kwiver::vital::metadata > ( packet ) );
+    meta.push_back(
+      std::make_shared< kwiver::vital::metadata >( meta_packet ) );
   }
-
 }
 
-// ============================================================================
-void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& meta )
+// ----------------------------------------------------------------------------
+void save( ::cereal::JSONOutputArchive& archive,
+           kwiver::vital::metadata const& packet_map )
 {
-  meta_vect_t meta_vect;
+  meta_vect_t packet_vec;
 
   // Serialize one metadata collection
-  for ( const auto& mi : meta )
+  for( auto const& item : packet_map )
   {
     // element is <tag, any>
-    const auto tag = mi.first;
-    const auto metap = mi.second;
+    const auto tag = item.first;
+    const auto metap = item.second;
+    packet_vec.emplace_back( tag, metap->data() );
+  }
 
-    meta_vect.push_back( meta_item { tag, metap->data() } );
-
-  } // end for
-
-  save( archive, meta_vect );
+  save( archive, packet_vec );
 }
 
 // ----------------------------------------------------------------------------
-void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
+void load( ::cereal::JSONInputArchive& archive,
+           kwiver::vital::metadata& packet_map )
 {
   meta_vect_t meta_vect; // intermediate form
 
@@ -217,11 +248,43 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
   load( archive, meta_vect );
 
   // Convert the intermediate form back to a real metadata collection
-  for ( const auto & it : meta_vect )
+  for( auto const& it : meta_vect )
   {
-    const auto& trait = meta_traits.find( it.tag );
-    meta.add( trait.create_metadata_item( it.item_value ) );
+    auto const& trait = meta_traits.find( it.tag );
+    packet_map.add( trait.create_metadata_item( it.item_value ) );
   }
 }
 
-} // end namespace
+// ----------------------------------------------------------------------------
+void save( ::cereal::JSONOutputArchive& archive,
+           kwiver::vital::metadata_map::map_metadata_t const& meta_map )
+{
+  archive( make_size_tag( static_cast< size_type >( meta_map.size() ) ) );
+
+  for ( auto const& meta_vec : meta_map )
+  {
+    archive( make_map_item( meta_vec.first, meta_vec.second ) );
+  }
+}
+
+// ----------------------------------------------------------------------------
+void load( ::cereal::JSONInputArchive& archive,
+           kwiver::vital::metadata_map::map_metadata_t& meta_map )
+{
+  size_type size;
+  archive( make_size_tag( size ) );
+
+  meta_map.clear();
+
+  auto hint = meta_map.begin();
+  for( size_t i = 0; i < size; ++i )
+  {
+    kwiver::vital::frame_id_t key;
+    kwiver::vital::metadata_vector value;
+
+    archive( make_map_item(key, value) );
+    hint = meta_map.emplace_hint( hint, std::move( key ), std::move( value ) );
+  }
+}
+
+} // namespace cereal

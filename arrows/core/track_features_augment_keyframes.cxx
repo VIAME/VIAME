@@ -42,7 +42,7 @@ public:
 vital::feature_track_set_sptr
 track_features_augment_keyframes
 ::track(kwiver::vital::feature_track_set_sptr tracks,
-        unsigned int frame_number,
+        kwiver::vital::frame_id_t frame_number,
         kwiver::vital::image_container_sptr image_data,
         kwiver::vital::image_container_sptr mask) const
 {

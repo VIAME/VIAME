@@ -16,6 +16,7 @@ cmake_dependent_option(${CMAKE_PROJECT_NAME}_INSTALL_DOCS
 
 if(${CMAKE_PROJECT_NAME}_ENABLE_DOCS)
   add_custom_target(doxygen ALL)
+  set_target_properties(doxygen PROPERTIES FOLDER "Documentation")
 endif()
 
 include(CMakeParseArguments)
@@ -153,6 +154,7 @@ function(kwiver_create_doxygen name inputdir)
     add_custom_target(doxygen-${name}
       DEPENDS "${doxy_project_output_dir}/index.html"
       )
+    set_target_properties(doxygen-${name} PROPERTIES FOLDER "Documentation")
 
     message(STATUS "[doxy-${name}] Linking to top-level doxygen target")
     add_dependencies(doxygen

@@ -1,3 +1,6 @@
+
+set(CMAKE_FOLDER "Arrows/Super3D")
+
 set(header_files
   compute_depth.h
   cost_volume.h

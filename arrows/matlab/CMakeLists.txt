@@ -1,6 +1,8 @@
 ###
 # CMake file for matlab bindings
 
+set(CMAKE_FOLDER "Arrows/Matlab")
+
 set( sources
   matlab_util.cxx
   matlab_exception.cxx

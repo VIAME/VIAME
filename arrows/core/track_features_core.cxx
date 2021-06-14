@@ -201,7 +201,7 @@ track_features_core
 feature_track_set_sptr
 track_features_core
 ::track(feature_track_set_sptr prev_tracks,
-        unsigned int frame_number,
+        frame_id_t frame_number,
         image_container_sptr image_data,
         image_container_sptr mask) const
 {

@@ -1,6 +1,9 @@
 ###
 # process instrumentation plugins
 #
+
+set(CMAKE_FOLDER "Extras")
+
 set( sources
   register_plugin.cxx
   logger_process_instrumentation.cxx

@@ -160,14 +160,14 @@ void vital_detected_object_detector_set_name(vital_detected_object_t * obj,
   kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_detector_name( sname );
 }
 
-vital_image_t* vital_detected_object_mask(vital_detected_object_t * obj)
+vital_image_t* vital_detected_object_mask(VITAL_UNUSED vital_detected_object_t * obj)
 {
   //+ TBD need to look up image_sptr in cache
   return 0;
 }
 
-void vital_detected_object_set_mask(vital_detected_object_t * obj,
-                                    vital_image_t* mask)
+void vital_detected_object_set_mask(VITAL_UNUSED vital_detected_object_t * obj,
+                                    VITAL_UNUSED vital_image_t* mask)
 {
   //+ TBD need to look up image in cache
 }

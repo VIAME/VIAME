@@ -1,6 +1,8 @@
 # Build / Install plugin containing GDAL algorithm implementations + support
 # structures
 
+set(CMAKE_FOLDER "Arrows/GDAL")
+
 set( gdal_headers_public
   image_container.h
   image_io.h

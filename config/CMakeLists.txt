@@ -1,3 +1,5 @@
+set(CMAKE_FOLDER "Configuration")
+
 set(config_files
   ceres_bundle_adjuster.conf
   core_feature_descriptor_io.conf
@@ -56,3 +58,5 @@ kwiver_install(
   )
 
 add_subdirectory(applets)
+add_subdirectory(models)
+add_subdirectory(pipelines)

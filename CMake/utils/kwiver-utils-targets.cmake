@@ -238,7 +238,7 @@ function(kwiver_add_library     name)
   if ( APPLE )
     set( props
       MACOSX_RPATH         TRUE
-      INSTALL_NAME_DIR     "@executable_path/${lib_subdir_path_to_root}${lib_dir_path_to_root}/${KWIVER_DEFAULT_LIBRARY_DIR}"
+      INSTALL_NAME_DIR     "@executable_path/../${KWIVER_DEFAULT_LIBRARY_DIR}"
       )
   else()
     if ( NOT no_version ) # optional versioning

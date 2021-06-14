@@ -13,5 +13,6 @@ function(kwiver_create_sphinx)
    add_custom_target(sphinx-kwiver
      COMMAND ${SPHINX_EXECUTABLE} -D breathe_projects.kwiver="${CMAKE_BINARY_DIR}/doc/kwiver/xml" ${CMAKE_SOURCE_DIR}/doc/manuals ${CMAKE_BINARY_DIR}/doc/sphinx
   )
+  set_target_properties(sphinx-kwiver PROPERTIES FOLDER "Documentation")
 
 endfunction(kwiver_create_sphinx)

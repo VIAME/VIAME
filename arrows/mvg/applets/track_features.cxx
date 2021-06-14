@@ -405,10 +405,11 @@ public:
     }
     else
     {
-      auto const num_frames = static_cast<kv::frame_id_t>(
-        video_reader->num_frames());
+      auto const num_frames = video_reader->num_frames();
+      auto const max_frame = static_cast<kv::frame_id_t>(num_frames);
+
       valid_frames.reserve(num_frames);
-      for (kv::frame_id_t f = 1; f <= num_frames; ++f)
+      for (kv::frame_id_t f = 1; f <= max_frame; ++f)
       {
         valid_frames.push_back(f);
       }

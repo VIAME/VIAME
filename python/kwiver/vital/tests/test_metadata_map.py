@@ -36,6 +36,7 @@ Tests for the vital classes metadata_map
 
 import nose.tools as nt
 import numpy as np
+import unittest
 from kwiver.vital.tests.cpp_helpers import metadata_map_helpers as mmh
 from kwiver.vital.tests.py_helpers import no_call_pure_virtual_method
 from kwiver.vital.types import(
@@ -47,7 +48,7 @@ from kwiver.vital.types import(
 from kwiver.vital.types.metadata_traits import *
 from kwiver.vital.types.metadata import *
 
-class TestMetadataMap(object):
+class TestMetadataMap(unittest.TestCase):
     def test_init(self):
         MetadataMap()
     def test_no_call_pure_virt(self):
@@ -84,7 +85,7 @@ class MetadataMapSub(MetadataMap):
     def frames(self):
         return set(self.data_.keys())
 
-class TestMetadataMapSub(object):
+class TestMetadataMapSub(unittest.TestCase):
     def populate_metadata(self, m):
         m.add(100, self.tags[0])
         m.add("hello", self.tags[3])
@@ -138,7 +139,7 @@ class TestMetadataMapSub(object):
         nt.assert_equal(len(ret_set), 1)
 
 
-class TestSimpleMetadataMap(object):
+class TestSimpleMetadataMap(unittest.TestCase):
     @classmethod
     def setUp(self):
         self.small_tag = [

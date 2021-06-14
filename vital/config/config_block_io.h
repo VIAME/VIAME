@@ -155,6 +155,23 @@ VITAL_CONFIG_EXPORT read_config_file(
   config_path_t const& install_prefix = config_path_t(),
   bool merge = true );
 
+// ----------------------------------------------------------------------------
+/// Locate (a) configuration file(s).
+///
+/// This function attempts to find configuration files from a search path. The
+/// search paths used are the same as in read_config_file(). The parameters
+/// also have the same meaning.
+///
+/// If \p find_all is \c true, the return is the list of all existing config
+/// files of the specified \p file_name in all search paths. Otherwise, the
+/// search process stops after the first file is found.
+std::vector< config_path_t > VITAL_CONFIG_EXPORT find_config_file(
+  std::string const& file_name,
+  std::string const& application_name = {},
+  std::string const& application_version = {},
+  config_path_t const& install_prefix = {},
+  bool find_all = false );
+
 // ------------------------------------------------------------------
 /// Output to file the given \c config_block object to the specified file path
 /**
