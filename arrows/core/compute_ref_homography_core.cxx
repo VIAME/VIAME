@@ -440,7 +440,7 @@ compute_ref_homography_core
   // this is a simple linear scan of the vector to ensure this.
   // This is needed for the find_track function's use of std::lower_bound
   // to work as expected.
-  std::sort( d_->buffer->begin(), d_->buffer->end(), compare_ti );
+  std::sort( new_buffer->begin(), new_buffer->end(), compare_ti );
 
   // Generate points to feed into homography regression
   std::vector<vector_2d> pts_ref, pts_cur;
