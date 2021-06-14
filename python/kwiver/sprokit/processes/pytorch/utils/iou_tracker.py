@@ -44,7 +44,7 @@ class IOUTracker(object):
         """
         # IOU based tracking
         if not track_state_list:
-            return []
+            return [], []
 
         track_state_list = track_state_list[:]
 
