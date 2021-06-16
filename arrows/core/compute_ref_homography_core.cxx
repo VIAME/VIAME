@@ -88,7 +88,10 @@ find_track( const track_sptr& trk, track_info_buffer_sptr buffer )
 {
   track_info_t ti;
   ti.tid = trk->id();
-  return std::lower_bound( buffer->begin(), buffer->end(), ti, compare_ti );
+  auto end = buffer->end();
+  auto result = std::lower_bound( buffer->begin(), end, ti, compare_ti );
+  // Check that we really found the track_info_t we're looking for
+  return ( result == end || result->tid == ti.tid ) ? result : end;
 }
 
 // ----------------------------------------------------------------------------
@@ -401,7 +404,7 @@ compute_ref_homography_core
     // Save earliest reference frame of active tracks
     // If not allowing regression, take max against min_ref_frame
     if( ti.active && ti.ref_id < earliest_ref
-        && (d_->allow_ref_frame_regression || (earliest_ref >= d_->min_ref_frame) ) )
+        && (d_->allow_ref_frame_regression || (ti.ref_id >= d_->min_ref_frame) ) )
     {
       earliest_ref = ti.ref_id;
     }
@@ -424,7 +427,7 @@ compute_ref_homography_core
       track_info_t new_entry;
 
       new_entry.tid = trk->id();
-      new_entry.ref_loc = vector_2d( fts->feature->loc() );
+      new_entry.ref_loc = fts->feature->loc();
       new_entry.ref_id = frame_number;
       new_entry.active = false; // don't want to use this track on this frame
       new_entry.trk = trk;
@@ -437,7 +440,7 @@ compute_ref_homography_core
   // this is a simple linear scan of the vector to ensure this.
   // This is needed for the find_track function's use of std::lower_bound
   // to work as expected.
-  std::sort( d_->buffer->begin(), d_->buffer->end(), compare_ti );
+  std::sort( new_buffer->begin(), new_buffer->end(), compare_ti );
 
   // Generate points to feed into homography regression
   std::vector<vector_2d> pts_ref, pts_cur;
@@ -518,7 +521,7 @@ compute_ref_homography_core
       // current_frame).
       if( (ti.active && ti.ref_id != earliest_ref) || ti.ref_id == frame_number )
       {
-        ti.ref_loc = output->homography()->map( ti.ref_loc );
+        ti.ref_loc = output->homography()->map( fts->feature->loc() );
         ti.ref_id = output->to_id();
       }
       // Test back-projection on active tracks that we did not just set ref_loc
@@ -539,7 +542,7 @@ compute_ref_homography_core
     else if ( !d_->allow_ref_frame_regression && ti.active )
     {
       ++ti_reset_count;
-      ti.ref_loc = vector_2d( fts->feature->loc() );
+      ti.ref_loc = fts->feature->loc();
       ti.ref_id = frame_number;
     }
   }
