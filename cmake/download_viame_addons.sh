@@ -10,7 +10,7 @@ mkdir -p ${DOWNLOAD_LOCATION}
 # Download All Optional Packages
 
 # Habcam -
-wget -O ${DOWNLOAD_LOCATION}/download1.zip https://viame.kitware.com/api/v1/item/60c6d1b4c127e91034371726/download
+wget -O ${DOWNLOAD_LOCATION}/download1.zip https://viame.kitware.com/api/v1/item/60d3c198b91def413908961a/download
 unzip -o ${DOWNLOAD_LOCATION}/download1.zip -d ${VIAME_INSTALL}
 
 # SEFSC -

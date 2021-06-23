@@ -161,8 +161,8 @@ if( VIAME_DOWNLOAD_MODELS )
   # Mixed pipelines and models provided by add-on packages
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     DownloadAndInstallAddOn(
-      https://viame.kitware.com/api/v1/item/60c6d1b4c127e91034371726/download
-      b7ac6ae2f57cca4c8ea07025c5326d2e
+      https://viame.kitware.com/api/v1/item/60d3c198b91def413908961a/download
+      2b0ae73c1adf7ad0e0d476d169c1bd64
       ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.7.zip )
   endif()
 
