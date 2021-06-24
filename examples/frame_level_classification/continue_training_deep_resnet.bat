@@ -19,7 +19,7 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 IF EXIST "%INITIAL_MODEL%" (
   viame_train_detector.exe ^
     -i "%INPUT_DIRECTORY%" ^
-    -c "%VIAME_INSTALL%\configs\pipelines\train_netharn_resnet.viame_csv.conf" ^
+    -c "%VIAME_INSTALL%\configs\pipelines\train_frame_classifier_netharn_resnet.viame_csv.conf" ^
     -s "detector_trainer:netharn:seed_model=%INITIAL_MODEL%" ^
     --threshold 0.0
 ) ELSE (

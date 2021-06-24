@@ -26,7 +26,7 @@ if( VIAME_ENABLE_SCALLOP_TK )
 endif()
 
 if( VIAME_ENABLE_CAMTRAWL )
-  add_subdirectory( camtrawl )
+  add_subdirectory( measurer )
 endif()
 
 if( VIAME_ENABLE_MATLAB )

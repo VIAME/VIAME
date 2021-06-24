@@ -1,3 +1,25 @@
+v0.15.2 - 6/04/2021
+===================
+
+
+-Fix issue in exe installer
+
+
+-Minor update for stabilization example
+
+
+
+v0.15.0 - 5/26/2021
+===================
+
+
+-Significant DIVE interface updates and bug fixes
+
+
+-Updates to stereo measurement process
+
+
+
 v0.14.1 - 3/10/2021
 ===================
 

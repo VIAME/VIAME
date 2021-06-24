@@ -1,6 +1,6 @@
 # ========================================================================================
 #
-# SVM Classifier on Generic Object Proposals
+# ResNet Classifier on Generic Object Proposals
 #
 # ========================================================================================
 
@@ -35,12 +35,22 @@ connect from detector_input.image
 
 # ========================================================================================
 
-include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
-
-process svm_refiner
+process classifier
   :: refine_detections
-  :refiner:type                                svm_refine
-  relativepath refiner:svm_refine:model_dir =  .
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    [-MODEL-FILE-]
+
+    :batch_size                                auto
+    :area_pivot                                5000
+    :border_exclude                            1
+  endblock
+
+connect from detector_input.image
+        to   classifier.image
+connect from generic_detector.detected_object_set
+        to   classifier.detected_object_set
 
 process nms_refiner
   :: refine_detections
@@ -53,17 +63,8 @@ process nms_refiner
   endblock
 
 connect from detector_input.image
-        to   descriptor.image
-connect from detector_input.image
-        to   svm_refiner.image
-connect from detector_input.image
         to   nms_refiner.image
-
-connect from generic_detector.detected_object_set
-        to   descriptor.detected_object_set
-connect from descriptor.detected_object_set
-        to   svm_refiner.detected_object_set
-connect from svm_refiner.detected_object_set
+connect from classifier.detected_object_set
         to   nms_refiner.detected_object_set
 
 # ========================================================================================

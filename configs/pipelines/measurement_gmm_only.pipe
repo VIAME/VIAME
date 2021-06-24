@@ -12,48 +12,100 @@ config _scheduler
 
 # ================================== VIDEO INPUT ==================================
 
-process cam1_imread
+process input1
   :: video_input
   :video_filename                              cam1_images.txt
-  :frame_time                                  0.033333333
+  :frame_time                                  1.0
   :video_reader:type                           image_list
 
   block video_reader:image_list
-    :image_reader:type                         ocv
+    :image_reader:type                         vxl
   endblock
 
-process cam1_detect
-  :: camtrawl_detect_fish
+  block video_reader:vidl_ffmpeg
+    :time_source                               start_at_0
+  endblock
 
-process cam2_imread
+process input2
   :: video_input
   :video_filename                              cam2_images.txt
-  :frame_time                                  0.033333333
+  :frame_time                                  1.0
   :video_reader:type                           image_list
 
   block video_reader:image_list
-    :image_reader:type                         ocv
+    :image_reader:type                         vxl
   endblock
 
-process cam2_detect
+  block video_reader:vidl_ffmpeg
+    :time_source                               start_at_0
+  endblock
+
+process downsampler
+  :: downsample
+  :target_frame_rate                           5
+  :burst_frame_count                           0
+  :burst_frame_break                           0
+  :renumber_frames                             true
+
+connect from input1.image
+        to   downsampler.input_1
+connect from input1.file_name
+        to   downsampler.input_2
+
+connect from input1.frame_rate
+        to   downsampler.frame_rate
+connect from input1.timestamp
+        to   downsampler.timestamp
+
+connect from input2.image
+        to   downsampler.input_3
+connect from input2.file_name
+        to   downsampler.input_4
+
+process detector1
   :: camtrawl_detect_fish
 
-process measure
+connect from downsampler.output_1
+        to   detector1.image
+
+process detector2
+  :: camtrawl_detect_fish
+
+connect from downsampler.output_3
+        to   detector2.image
+
+process measurer
   :: camtrawl_measure
-  :output_fpath                                ./output_raw_measurements.csv
-  :cal_fpath                                   ./calibration_matrices.npz
+  :calibration_file                            ./calibration_matrices.npz
 
-connect from cam1_imread.image
-        to   cam1_detect.image
+connect from detector1.detected_object_set
+        to   measurer.detected_object_set1
+connect from detector2.detected_object_set
+        to   measurer.detected_object_set2
 
-connect from cam2_imread.image
-        to   cam2_detect.image
+process detector_writer1
+  :: detected_object_output
 
-connect from cam2_imread.file_name
-        to   measure.image_file_name2
-connect from cam2_detect.detected_object_set
-        to   measure.detected_object_set2
-connect from cam1_detect.detected_object_set
-        to   measure.detected_object_set1
-connect from cam1_imread.file_name
-        to   measure.image_file_name1
+  # Type of file to output
+  :file_name                                   computed_detections1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
+
+connect from measurer.detected_object_set1
+        to   detector_writer1.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer1.image_file_name
+
+process detector_writer2
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
+
+connect from measurer.detected_object_set2
+        to   detector_writer2.detected_object_set
+connect from downsampler.output_4
+        to   detector_writer2.image_file_name
+

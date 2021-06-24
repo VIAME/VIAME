@@ -10,11 +10,11 @@ mkdir -p ${DOWNLOAD_LOCATION}
 # Download All Optional Packages
 
 # Habcam -
-wget -O ${DOWNLOAD_LOCATION}/download1.zip https://data.kitware.com/api/v1/item/6011e3452fa25629b91ade60/download
+wget -O ${DOWNLOAD_LOCATION}/download1.zip https://viame.kitware.com/api/v1/item/60d3c198b91def413908961a/download
 unzip -o ${DOWNLOAD_LOCATION}/download1.zip -d ${VIAME_INSTALL}
 
 # SEFSC -
-wget -O ${DOWNLOAD_LOCATION}/download2.zip https://viame.kitware.com/api/v1/item/607e4c9e1d59f90549235c8c/download
+wget -O ${DOWNLOAD_LOCATION}/download2.zip https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download
 unzip -o ${DOWNLOAD_LOCATION}/download2.zip -d ${VIAME_INSTALL}
 
 # PengHead -

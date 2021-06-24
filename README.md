@@ -42,17 +42,17 @@ Installations
 -------------
 
 For a full installation guide and description of the various flavors of VIAME, see the
-quick-start guide, above. In summary, VIAME Desktop is currently provided as either a .zip or
-.tar file. Alternatively, docker files are available for both VIAME Desktop and Web (below).
+quick-start guide, above. The desktop version is provided as either a .msi, .zip or .tar file.
+Alternatively, docker files are available for both VIAME Desktop and Web (below).
 A sample instance of VIAME Web is also online, hosted at [viame.kitware.com](https://viame.kitware.com).
-For desktop installs, extract the binaries and place them in a directory of your choosing,
-for example /opt/noaa/viame on Linux or C:\Program Files\VIAME on Windows. If you're using
-packages built with GPU support, make sure to have sufficient video drivers installed,
-version 451.82 or higher. The best way to install drivers depends on your operating system,
-see below. Lastly, run through some of the examples to validate the installation. The binaries
-are quite large, in terms of disk space, due to the inclusion of multiple default model files
-and programs, but if just building your desired features from source (e.g. for embedded apps)
-they are much smaller.
+For desktop installs, extract the binaries (or use the msi Windows installation wizard)
+and place them in a directory of your choosing, for example /opt/noaa/viame on Linux or
+C:\Program Files\VIAME on Windows. If using packages built with GPU support, make sure to have
+sufficient video drivers installed, version 451.82 or higher. The best way to install drivers
+depends on your operating system, see below. Lastly, run through some of the examples to validate
+the installation. The binaries are quite large, in terms of disk space, due to the inclusion of
+multiple default model files and programs, but if just building your desired features from
+source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
 Windows 7, 8, or 10 64-Bit, RHEL/CentOS 7/8 64-Bit, or Ubuntu 16.04/18.04/20.04 64-Bit <br>
@@ -72,23 +72,23 @@ CentOS
 A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.14.1 Windows 7\*/8/10, GPU Enabled, Wizard (.msi)](https://viame.kitware.com/api/v1/item/606b5a99222f89bbdd03ac40/download) <br>
-[VIAME v0.14.1 Windows 7\*/8/10, GPU Enabled, Mirror1 (.zip)](https://viame.kitware.com/api/v1/item/604ec164bc3f8f99bba19f1d/download) <br>
-[VIAME v0.14.1 Windows 7\*/8/10, GPU Enabled, Mirror2 (.zip)](https://drive.google.com/file/d/1jBM8gID-1O9dhVC7nKca8acXD5P5qCuL/view?usp=sharing) <br>
-[VIAME v0.14.1 Windows 7\*/8/10, CPU Only, Mirror1 (.zip)](https://viame.kitware.com/api/v1/item/604ebf73bc3f8f99bba19f1a/download) <br>
-[VIAME v0.14.1 Windows 7\*/8/10, CPU Only, Mirror2 (.zip)](https://drive.google.com/file/d/1BXC_K4h4kdPtlkwyz9v-8oNbBKFpdAFB/view?usp=sharing)
+[VIAME v0.15.2 Windows 7\*/8/10, GPU Enabled, Wizard (.msi)](https://viame.kitware.com/api/v1/item/60b9b976e3874645be0781cf/download), [Default Models](https://viame.kitware.com/api/v1/item/60b44157463dff1a6cb124f8/download) <br>
+[VIAME v0.15.2 Windows 7\*/8/10, GPU Enabled, Mirror1 (.zip)](https://viame.kitware.com/api/v1/item/60b95e0bbbb0042d293d5335/download) <br>
+[VIAME v0.15.2 Windows 7\*/8/10, GPU Enabled, Mirror2 (.zip)](https://drive.google.com/file/d/15uU-b_mvQJDaQrb00h4o17F5YxpmM7if/view?usp=sharing) <br>
+[VIAME v0.15.2 Windows 7\*/8/10, CPU Only, Mirror1 (.zip)](https://viame.kitware.com/api/v1/item/60b95e1e1c8fd494e3a75a80/download) <br>
+[VIAME v0.15.2 Windows 7\*/8/10, CPU Only, Mirror2 (.zip)](https://drive.google.com/file/d/1598aC2SK0bT6HgBD-wsWZDHa1dkefnUJ/view?usp=sharing)
 
 **Ubuntu Desktop Binaries:** <br>
-[VIAME v0.14.1 Ubuntu 18.04/20.04, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60519746bc3f8f99bba1a5f6/download) <br>
-[VIAME v0.14.1 Ubuntu 18.04/20.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1dIf9SrITQOkaOFeSKF0tFXIXgSZjiI4B/view?usp=sharing) <br>
-[VIAME v0.14.1 Ubuntu 16.04, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/6051962ebc3f8f99bba1a5f3/download) <br>
-[VIAME v0.14.1 Ubuntu 16.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1U-JFjLC6oycJM0BYOIzsoRqODdi2ys21/view?usp=sharing)
+[VIAME v0.15.1 Ubuntu 18.04/20.04, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60b2fbe7d74671377b39cef1/download) <br>
+[VIAME v0.15.1 Ubuntu 18.04/20.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1e4HwcwA-l4G93Qy4VTnRrsbLRUpH1cTi/view?usp=sharing) <br>
+[VIAME v0.15.1 Ubuntu 16.04, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60b2fc23181c59d24cdb15da/download) <br>
+[VIAME v0.15.1 Ubuntu 16.04, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1i_0zZgjIrSSR1RXfRcSvGrgebb9X-Tb4/view?usp=sharing)
 
 **CentOS or Other Linux Desktop Binaries:** <br>
-[VIAME v0.14.1 RHEL/CentOS 7/8, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/604e5711bc3f8f99bba19eca/download) <br>
-[VIAME v0.14.1 RHEL/CentOS 7/8, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1jfTjV4U3QCvZOYRaqHQJ-MMkequfYT9l/view?usp=sharing) <br>
-[VIAME v0.14.1 Generic Linux, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/604e5711bc3f8f99bba19eca/download) <br>
-[VIAME v0.14.1 Generic Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1jfTjV4U3QCvZOYRaqHQJ-MMkequfYT9l/view?usp=sharing)
+[VIAME v0.15.1 RHEL/CentOS 7/8, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60b2fbaed3ee6142d91c8351/download) <br>
+[VIAME v0.15.1 RHEL/CentOS 7/8, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1giGAwGGXhPMNhDCPoD2c8qY7eaP4KADv/view?usp=sharingg) <br>
+[VIAME v0.15.1 Generic Linux, GPU Enabled, Mirror1 (.tar.gz)](https://viame.kitware.com/api/v1/item/60b2fbaed3ee6142d91c8351/download) <br>
+[VIAME v0.15.1 Generic Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1giGAwGGXhPMNhDCPoD2c8qY7eaP4KADv/view?usp=sharing)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
@@ -111,14 +111,14 @@ A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more V
 [Alternative Generic Detector for IQR, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
 [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
 [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
-[HabCam Models (Scallop, Skate, Flatfish), All OS](https://data.kitware.com/api/v1/item/6011e3452fa25629b91ade60/download) <br>
+[HabCam Models (Scallop, Skate, Flatfish), All OS](https://viame.kitware.com/api/v1/item/60d3c198b91def413908961a/download) <br>
 [Low Memory GPU (For 4+ Gb Cards), All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish), All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Model Set 2 (Deep 7 Bottomfish), All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5e8d3ad42660cbefba9dd13c/download) <br>
 [Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
 [Sea Lion Models, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download) <br>
-[SEFSC 100 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/604859fc5b1737bb9085f5e2/download) <br>
+[SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download) <br>
 [EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.

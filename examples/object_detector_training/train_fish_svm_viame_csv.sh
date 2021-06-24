@@ -11,5 +11,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 # Run pipeline
 viame_train_detector \
   -i training_data_mouss \
-  -c ${VIAME_INSTALL}/configs/pipelines/train_svm_over_fish_detections.viame_csv.conf \
+  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_svm_over_fish_detections.viame_csv.conf \
   --threshold 0.0

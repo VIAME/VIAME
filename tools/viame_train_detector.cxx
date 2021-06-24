@@ -93,6 +93,7 @@ public:
   std::string opt_settings;
   std::string opt_pipeline_file;
   std::string opt_frame_rate;
+  std::string opt_max_frame_count;
 
   trainer_vars()
   {
@@ -154,7 +155,7 @@ bool list_all_subfolders( const std::string& location,
   return true;
 }
 
-bool list_files_in_folder( const std::string& location,
+bool list_files_in_folder( std::string location,
                            std::vector< std::string >& filepaths,
                            bool search_subfolders = false,
                            std::vector< std::string > extensions =
@@ -166,6 +167,18 @@ bool list_files_in_folder( const std::string& location,
   {
     return false;
   }
+
+#ifdef WIN32
+  if( location.back() != '\\' )
+  {
+    location = location + "\\";
+  }
+#else
+  if( location.back() != '/' )
+  {
+    location = location + "/";
+  }
+#endif
 
   boost::filesystem::path dir( location );
 
@@ -364,6 +377,24 @@ void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
   }
 }
 
+bool folder_contains_less_than_n_files( const std::string& folder, unsigned n )
+{
+  auto dir = boost::filesystem::directory_iterator( folder );
+  unsigned count = 0;
+
+  for( auto i : dir )
+  {
+    count++;
+
+    if( count >= n )
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 // =======================================================================================
 // Assorted configuration related helper functions
 static kwiver::vital::config_block_sptr default_config()
@@ -405,6 +436,9 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "threshold", "0.00",
     "Optional threshold to provide on top of input groundtruth. This is useful if the "
     "truth is derived from some automated detector and is unfiltered." );
+  config->set_value( "max_frame_count", "0",
+    "Maximum number of frames to use in training, useful for debugging and speed "
+    "optimization purposes." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
   config->set_value( "data_warning_file", "",
@@ -477,7 +511,8 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
                                                  const std::string& pipeline_filename,
                                                  const double& frame_rate,
                                                  const std::string& output_directory,
-                                                 bool skip_extract = false )
+                                                 bool skip_extract_if_exists = false,
+                                                 unsigned max_frame_count = 0 )
 {
   std::cout << "Extracting frames from " << video_filename
             << " at rate " << frame_rate << std::endl;
@@ -489,7 +524,7 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   std::string output_path = append_path( output_dir, "frame%06d.png" );
   std::string frame_rate_str = boost::lexical_cast< std::string >( frame_rate );
 
-  if( !skip_extract )
+  if( !skip_extract_if_exists )
   {
     if( does_folder_exist( output_dir ) )
     {
@@ -515,7 +550,15 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   cmd = cmd + "-s input:target_frame_rate=" + frame_rate_str + " ";
   cmd = cmd + "-s output:file_name_template=" + add_quotes( output_path ) + " ";
 
-  if( !skip_extract )
+  if( max_frame_count > 0 )
+  {
+    cmd = cmd + "-s input:video_reader:vidl_ffmpeg:stop_after_frame="
+              + boost::lexical_cast< std::string >( max_frame_count );
+  }
+
+  if( !skip_extract_if_exists ||
+      ( !does_folder_exist( output_dir ) && create_folder( output_dir ) ) ||
+      folder_contains_less_than_n_files( output_dir, 3 ) )
   {
     system( cmd.c_str() );
   }
@@ -787,6 +830,10 @@ main( int argc, char* argv[] )
     &g_params.opt_frame_rate, "Pipeline file" );
   g_params.m_args.AddArgument( "-vfr",            argT::SPACE_ARGUMENT,
     &g_params.opt_frame_rate, "Pipeline file" );
+  g_params.m_args.AddArgument( "--max-frame-count",argT::SPACE_ARGUMENT,
+    &g_params.opt_max_frame_count, "Maximum frame count to use" );
+  g_params.m_args.AddArgument( "-mfc",            argT::SPACE_ARGUMENT,
+    &g_params.opt_max_frame_count, "Maximum frame count to use" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -998,7 +1045,7 @@ main( int argc, char* argv[] )
   double percent_test =
     config->get_value< double >( "default_percent_test" );
   unsigned test_burst_frame_count =
-    config->get_value< double >( "test_burst_frame_count" );
+    config->get_value< unsigned >( "test_burst_frame_count" );
   std::string image_exts_str =
     config->get_value< std::string >( "image_extensions" );
   std::string video_exts_str =
@@ -1007,6 +1054,8 @@ main( int argc, char* argv[] )
     config->get_value< std::string >( "video_extractor" );
   double frame_rate =
     config->get_value< double >( "frame_rate" );
+  unsigned max_frame_count =
+    config->get_value< unsigned >( "max_frame_count" );
   double threshold =
     config->get_value< double >( "threshold" );
   bool check_override =
@@ -1043,6 +1092,11 @@ main( int argc, char* argv[] )
   if( !g_params.opt_frame_rate.empty() )
   {
     frame_rate = std::stod( g_params.opt_frame_rate );
+  }
+
+  if( !g_params.opt_max_frame_count.empty() )
+  {
+    max_frame_count = std::stoi( g_params.opt_max_frame_count );
   }
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
@@ -1357,7 +1411,12 @@ main( int argc, char* argv[] )
 
       image_files = extract_video_frames( data_item, video_extractor,
         ( file_frame_rate > 0 ? file_frame_rate : frame_rate ),
-        augmented_cache, !regenerate_cache );
+        augmented_cache, !regenerate_cache, max_frame_count );
+
+      if( max_frame_count > 0 )
+      {
+        break;
+      }
     }
     else
     {
@@ -1545,6 +1604,11 @@ main( int argc, char* argv[] )
         train_image_fn.push_back( filtered_image_file );
         train_gt.push_back( filtered_dets );
       }
+
+      if( max_frame_count > 0 && train_image_fn.size() > max_frame_count )
+      {
+        break;
+      }
     }
 
     if( augmentation_pipe )
@@ -1556,6 +1620,11 @@ main( int argc, char* argv[] )
     if( !one_file_per_image )
     {
       gt_reader->close();
+    }
+
+    if( max_frame_count > 0 && train_image_fn.size() > max_frame_count )
+    {
+      break;
     }
   }
 

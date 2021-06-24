@@ -91,7 +91,11 @@ SeeAlso
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
+
 import vital.types
+
+from kwiver.vital.types import DetectedObjectSet
+from kwiver.vital.types import DetectedObjectType
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
@@ -104,9 +108,8 @@ import itertools as it
 from . import algos as ctalgo
 
 from sprokit import sprokit_logging
-# import logging
+
 logger = sprokit_logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
 print = logger.info
 
 
@@ -157,7 +160,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
     does postprocessing and then sends the extracted chip to the output port.
 
     """
-    # ----------------------------------------------
+    # --------------------------------------------------------------------------
     def __init__(self, conf):
         print('conf = {!r}'.format(conf))
         logger.debug(' ----- init ' + self.__class__.__name__)
@@ -175,7 +178,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
         self.declare_output_port_using_trait('detected_object_set', optional )
 
-    # ----------------------------------------------
+    # --------------------------------------------------------------------------
     def _configure(self):
         logger.debug(' ----- configure ' + self.__class__.__name__)
         config = tmp_smart_cast_config(self)
@@ -183,13 +186,13 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         self.detector = ctalgo.GMMForegroundObjectDetector(**config)
         self._base_configure()
 
-    # ----------------------------------------------
+    # --------------------------------------------------------------------------
     def _dowork(self, img_container):
         """
         Helper to decouple the algorithm and pipeline logic
 
         CommandLine:
-            python -m xdoctest viame.processes.camtrawl.processes CamtrawlDetectFishProcess._dowork
+            xdoctest viame.processes.camtrawl.processes CamtrawlDetectFishProcess._dowork
 
         Example:
             >>> from viame.processes.camtrawl.processes import *
@@ -226,7 +229,8 @@ class CamtrawlDetectFishProcess(KwiverProcess):
             bbox = vital.types.BoundingBox(*detection.bbox.coords)
             mask = detection.mask.astype(np.uint8)
             vital_mask = vital.types.ImageContainer.fromarray(mask)
-            obj = vital.types.DetectedObject(bbox, 1.0, mask=vital_mask)
+            dot = DetectedObjectType("Motion", 1.0)
+            obj = vital.types.DetectedObject(bbox, 1.0, dot, mask=vital_mask)
             detection_set.add(obj)
         return detection_set
 
@@ -251,73 +255,74 @@ class CamtrawlMeasureProcess(KwiverProcess):
     This process gets an image and detection_set as input, extracts each chip,
     does postprocessing and then sends the extracted chip to the output port.
     """
-    # ----------------------------------------------
+    # --------------------------------------------------------------------------
     def __init__(self, conf):
         logger.debug(' ----- ' + self.__class__.__name__ + ' init')
 
         KwiverProcess.__init__(self, conf)
 
-        camtrawl_setup_config(self, ctalgo.FishStereoMeasurments.default_params())
+        camtrawl_setup_config(self, ctalgo.StereoLengthMeasurments.default_params())
 
-        self.add_config_trait('output_fpath', 'output_fpath', 'camtrawl_out.csv',
+        self.add_config_trait('measurement_file', 'measurement_file', '',
                               'output file to write detection measurements')
-        self.declare_config_using_trait('output_fpath')
-        self.add_config_trait('cal_fpath', 'cal_fpath', 'cal_201608.mat',
+        self.declare_config_using_trait('measurement_file')
+        self.add_config_trait('calibration_file', 'calibration_file', 'cal_201608.mat',
                               'matlab or npz file with calibration info')
-        self.declare_config_using_trait('cal_fpath')
+        self.declare_config_using_trait('calibration_file')
 
-        # optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        # self.add_port_trait('camera' + '1', 'camera', 'Left camera calibration')
-        # self.add_port_trait('camera' + '2', 'camera', 'Right camera calibration')
-        self.add_port_trait('detected_object_set' + '1', 'detected_object_set', 'Detections from camera1')
-        self.add_port_trait('detected_object_set' + '2', 'detected_object_set', 'Detections from camera2')
-        self.add_port_trait('image_file_name' + '1', 'file_name', 'desc1')
-        self.add_port_trait('image_file_name' + '2', 'file_name', 'desc2')
-        # self.add_port_trait('frame_id1', 'int', 'frame id')
-        # self.add_port_trait('frame_id2', 'int', 'frame id')
+        self.add_port_trait('detected_object_set1',
+          'detected_object_set',
+          'Detections from camera1')
+        self.add_port_trait('detected_object_set2',
+          'detected_object_set',
+          'Detections from camera2')
 
-        #  declare our input port ( port-name,flags)
-        # self.declare_input_port_using_trait('camera' + '1', optional)
-        # self.declare_input_port_using_trait('camera' + '2', optional)
-        self.declare_input_port_using_trait('image_file_name' + '1', required)
-        self.declare_input_port_using_trait('image_file_name' + '2', required)
-        self.declare_input_port_using_trait('detected_object_set' + '1', required)
-        self.declare_input_port_using_trait('detected_object_set' + '2', required)
+        #  declare our input ports ( port-name,flags )
+        self.declare_input_port_using_trait('detected_object_set1', required)
+        self.declare_input_port_using_trait('detected_object_set2', required)
 
-    # ----------------------------------------------
+        #  declare our output ports ( port-name,flags )
+        self.declare_output_port_using_trait('detected_object_set1', required)
+        self.declare_output_port_using_trait('detected_object_set2', required)
+
+    # --------------------------------------------------------------------------
     def _configure(self):
         logger.debug(' ----- ' + self.__class__.__name__ + ' configure')
         config = tmp_smart_cast_config(self)
 
         logger.info('triangulator config = {}'.format(ub.repr2(config, nl=2)))
-        output_fpath = config.pop('output_fpath')
-        cal_fpath = config.pop('cal_fpath')
-        self.triangulator = ctalgo.FishStereoMeasurments(**config)
+        self.measurement_file = config.pop('measurement_file')
+        self.calibration_file = config.pop('calibration_file')
+        self.triangulator = ctalgo.StereoLengthMeasurments(**config)
 
-        # Camera loading process is not working correctly.
-        # Load camera calibration data here for now.
-        #
-        if not os.path.exists(cal_fpath):
+        # Load camera calibration data here.
+        if not os.path.exists(self.calibration_file):
             raise KeyError('must specify a valid camera calibration path')
-        self.cal = ctalgo.StereoCalibration.from_file(cal_fpath)
+
+        self.cal = ctalgo.StereoCalibration.from_file(self.calibration_file)
         logger.info('self.cal = {!r}'.format(self.cal))
 
         self.headers = ['current_frame', 'fishlen', 'range', 'error', 'dz',
                         'box_pts1', 'box_pts2']
-        self.output_file = open(output_fpath, 'w')
-        self.output_file.write(','.join(self.headers) + '\n')
-        self.output_file.close()
 
-        self.output_file = open(output_fpath, 'a')
+        if self.measurement_file:
+            self.output_file = open(self.measurement_file, 'w')
+            self.output_file.write(','.join(self.headers) + '\n')
+            self.output_file.close()
+
+            self.output_file = open(self.measurement_file, 'a')
+
         self._base_configure()
 
         self.prog = ub.ProgIter(verbose=3)
         self.prog.begin()
 
-    # ----------------------------------------------
+        self.frame_id = 0
+
+    # --------------------------------------------------------------------------
     def _step(self):
         logger.debug(' ----- ' + self.__class__.__name__ + ' step')
         self.prog.step()
@@ -331,17 +336,18 @@ class CamtrawlMeasureProcess(KwiverProcess):
             camera2 = self.grab_input_using_trait('camera' + '2')
 
             def _cal_from_vital(vital_camera):
-                vital_intrinsics = vital_camera.intrinsics
+                vci = vital_camera.intrinsics
                 cam_dict = {
                     'extrinsic': {
                         'om': vital_camera.rotation.rodrigues().ravel(),
                         'T': vital_camera.translation.ravel(),
                     },
                     'intrinsic': {
-                        'cc': vital_intrinsics.principle_point.ravel(),
-                        'fc': [vital_intrinsics.focal_length, vital_intrinsics.focal_length / vital_intrinsics.aspect_ratio],
-                        'alpha_c': vital_intrinsics.skew,
-                        'kc': vital_intrinsics.dist_coeffs.ravel(),
+                        'cc': vci.principle_point.ravel(),
+                        'fc': [vci.focal_length,
+                               vci.focal_length / vci.aspect_ratio],
+                        'alpha_c': vci.skew,
+                        'kc': vci.dist_coeffs.ravel(),
                     }
                 }
                 return cam_dict
@@ -353,19 +359,6 @@ class CamtrawlMeasureProcess(KwiverProcess):
             })
             logger.debug(' ----- ' + self.__class__.__name__ + ' no more need for cameras')
 
-        image_file_name1 = self.grab_input_using_trait('image_file_name1')  # .get_datum()
-        image_file_name2 = self.grab_input_using_trait('image_file_name2')  # .get_datum()
-
-        def _parse_frameid(fname):
-            return int(os.path.basename(fname).split('_')[0])
-
-        frame_id1 = _parse_frameid(image_file_name1)
-        frame_id2 = _parse_frameid(image_file_name2)
-        assert frame_id1 == frame_id2
-        frame_id = frame_id1
-
-        # frame_id1 = self.grab_input_using_trait('frame_id' + '1')
-        # frame_id2 = self.grab_input_using_trait('frame_id' + '2')
         detection_set1 = self.grab_input_using_trait('detected_object_set' + '1')
         detection_set2 = self.grab_input_using_trait('detected_object_set' + '2')
 
@@ -377,8 +370,18 @@ class CamtrawlMeasureProcess(KwiverProcess):
                           bbox.max_x(), bbox.max_y()]
                 mask = vital_det.mask.asarray()
                 ct_bbox = ctalgo.BoundingBox(coords)
+
+                # TODO: to measure distances between special keypoint
+                # detections add an additional argument to DetectedObject
+                # >>> special_keypoints = {
+                # ...    'head': [x1, y1],
+                # ...    'tail': [x2, y2],
+                # ... }
+                # >>> ct_det = ctalgo.DetectedObject(
+                # ...     ct_bbox, mask, special_keypoints=special_keypoints)
                 ct_det = ctalgo.DetectedObject(ct_bbox, mask)
                 yield ct_det
+
         detections1 = list(_detections_from_vital(detection_set1))
         detections2 = list(_detections_from_vital(detection_set2))
 
@@ -387,23 +390,44 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         logger.debug(' ----- ' + self.__class__.__name__ + ' found {} matches'.format(len(assign_data)))
 
-        def csv_repr(d):
-            if isinstance(d, np.ndarray):
-                d = d.tolist()
-            s = repr(d)
-            return s.replace('\n', '').replace(',', ';').replace(' ', '')
-
         # Append assignments to the measurements
-        for data in assign_data:
-            data['current_frame'] = frame_id
-            line = ','.join([csv_repr(d) for d in ub.take(data, self.headers)])
-            self.output_file.write(line + '\n')
+        if self.measurement_file:
+            def csv_repr(d):
+                if isinstance(d, np.ndarray):
+                    d = d.tolist()
+                s = repr(d)
+                return s.replace('\n', '').replace(',', ';').replace(' ', '')
 
-        if assign_data:
-            self.output_file.flush()
+            for data in assign_data:
+                data['current_frame'] = self.frame_id
+                self.frame_id = self.frame_id + 1
+                line = ','.join([csv_repr(d) for d in ub.take(data, self.headers)])
+                self.output_file.write(line + '\n')
 
-        # push dummy image object (same as input) to output port
-        # self.push_to_port_using_trait('out_image', vital.types.ImageContainer(in_img))
+            if assign_data:
+                 self.output_file.flush()
+
+        # Create output detection vectors
+        output1 = [d for d in detection_set1]
+        output2 = [d for d in detection_set2]
+
+        # Assign all points to detections for now
+        for match in assign_data:
+            i1 = match["ij"][0]
+            i2 = match["ij"][1]
+            output1[i1].set_length(match["fishlen"])
+            output2[i2].set_length(match["fishlen"])
+            head, tail = detections1[i1].center_keypoints()
+            output1[i1].set_head_tail( head[0], head[1], tail[0], tail[1] )
+            head, tail = detections2[i2].center_keypoints()
+            output2[i2].set_head_tail( head[0], head[1], tail[0], tail[1] )
+
+        output1 = DetectedObjectSet(output1)
+        output2 = DetectedObjectSet(output2)
+
+        # Push output detections to port
+        self.push_to_port_using_trait('detected_object_set1', output1)
+        self.push_to_port_using_trait('detected_object_set2', output2)
         self._base_step()
 
 
