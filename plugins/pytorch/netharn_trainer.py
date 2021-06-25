@@ -646,7 +646,7 @@ class NetHarnTrainer( TrainDetector ):
 
             if self._output_plots:
                 eval_folder = os.path.join( self._train_directory,
-                   "fit", "nice", "eval" )
+                   "fit", "nice", self._identifier, "eval" )
                 eval_output = os.path.join( self._output_directory,
                    "eval" )
                 if os.path.exists( eval_folder ):
