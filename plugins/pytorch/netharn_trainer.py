@@ -50,12 +50,22 @@ import numpy as np
 import torch
 import pickle
 import os
+import shutil
 import signal
 import sys
 import subprocess
 import threading
 import time
 import random
+
+def copytree( src, dst, symlinks=False, ignore=None ):
+    for item in os.listdir( src ):
+        s = os.path.join( src, item )
+        d = os.path.join( dst, item )
+        if os.path.isdir( s ):
+            shutil.copytree( s, d, symlinks, ignore )
+        else:
+            shutil.copy2( s, d )
 
 class NetHarnTrainer( TrainDetector ):
     """
@@ -71,6 +81,7 @@ class NetHarnTrainer( TrainDetector ):
         self._train_directory = "deep_training"
         self._output_directory = "category_models"
         self._output_prefix = "custom_cfrnn"
+        self._output_plots = True
         self._pipeline_template = ""
         self._gpu_count = -1
         self._tmp_training_file = "training_truth.json"
@@ -112,6 +123,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "output_directory", self._output_directory )
         cfg.set_value( "output_prefix", self._output_prefix )
+        cfg.set_value( "output_plots", str( self._output_plots ) )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
@@ -150,6 +162,7 @@ class NetHarnTrainer( TrainDetector ):
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._output_directory = str( cfg.get_value( "output_directory" ) )
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
+        self._output_plots = strtobool( cfg.get_value( "output_plots" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
@@ -630,6 +643,14 @@ class NetHarnTrainer( TrainDetector ):
                 sys.exit( 0 )
 
             copyfile( final_model, output_model )
+
+            if self._output_plots:
+                eval_folder = os.path.join( self._train_directory,
+                   "fit", "nice", "eval" )
+                eval_output = os.path.join( self._output_directory,
+                   "eval" )
+                if os.path.exists( eval_folder ):
+                    copytree( eval_folder, eval_output )
 
             # Copy pipeline file
             fin = open( self._pipeline_template )
