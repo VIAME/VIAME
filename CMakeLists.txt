@@ -257,12 +257,6 @@ if( VIAME_ENABLE_PYTHON )
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        NOT EXISTS ${Python_INCLUDE_DIR}/pyconfig.h )
-      message( FATAL_ERROR "pyconfig.h does not exist in your Python_INCLUDE_DIR "
-        "make sure the variable is set correctly and you have python-dev installed." )
-    endif()
-
-    if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
         NOT Python_VERSION VERSION_EQUAL "3.6.5" )
       message( FATAL_ERROR "Short-term, the only tested python distribution is "
         "Anaconda3 5.2.0, either install that version or set the cmake flag "
