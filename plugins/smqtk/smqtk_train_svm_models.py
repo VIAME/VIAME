@@ -155,7 +155,7 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
   best_neg_uuids.update( set( feedback_uuids ).intersection( neg_uuids ) )
 
   if len( best_neg_uuids ) > max_neg_samples:
-    best_neg_uuids = random.sample( best_neg_uuids, max_neg_samples )
+    best_neg_uuids = set( random.sample( best_neg_uuids, max_neg_samples ) )
 
   if not smqtk_params['train_on_neighbors_only']:
     if len( neg_uuids ) > max_neg_samples:
