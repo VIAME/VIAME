@@ -49,6 +49,7 @@
 #include <vil/vil_copy.h>
 #include <vil/vil_crop.h>
 #include <vil/vil_fill.h>
+#include <vil/vil_plane.h>
 #include <vil/vil_resample_bilin.h>
 
 
@@ -178,21 +179,37 @@ vxl_srm_image_formatter_process
 // -----------------------------------------------------------------------------
 template< typename PixType >
 void vxl_srm_image_formatter_process::priv
-::filter( const vil_image_view< PixType >& input,
+::filter( const vil_image_view< PixType >& raw_input,
           std::vector< vil_image_view< PixType > >& output )
 {
   typedef vil_image_view< PixType > image_t;
 
   // Verification of input
-  if( input.ni() == 0 || input.nj() == 0 )
+  if( raw_input.ni() == 0 || raw_input.nj() == 0 )
   {
     output.push_back( image_t() );
     return;
   }
 
   // Update recorded image properties
-  m_max_input_width = std::max( input.ni(), m_max_input_width );
-  m_max_input_height = std::max( input.nj(), m_max_input_height );
+  m_max_input_width = std::max( raw_input.ni(), m_max_input_width );
+  m_max_input_height = std::max( raw_input.nj(), m_max_input_height );
+
+  // Confirm not RGBA
+  image_t input = raw_input;
+
+  if( raw_input.nplanes() == 4 )
+  {
+    input = vil_image_view< PixType >( raw_input.ni(), raw_input.nj(), 3 );
+
+    image_t tmp1 = vil_plane( input, 0 );
+    image_t tmp2 = vil_plane( input, 1 );
+    image_t tmp3 = vil_plane( input, 2 );
+
+    vil_copy_reformat( vil_plane( raw_input, 0 ), tmp1 );
+    vil_copy_reformat( vil_plane( raw_input, 1 ), tmp2 );
+    vil_copy_reformat( vil_plane( raw_input, 2 ), tmp3 );
+  }
 
   // Handle correct case
   if( m_resize_option == RESCALE )
