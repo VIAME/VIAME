@@ -547,7 +547,7 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   cmd = cmd + " runner " + add_quotes( pipeline_filename ) + " ";
   cmd = cmd + "-s input:video_filename=" + add_quotes( video_filename ) + " ";
   cmd = cmd + "-s input:video_reader:type=vidl_ffmpeg ";
-  cmd = cmd + "-s input:target_frame_rate=" + frame_rate_str + " ";
+  cmd = cmd + "-s downsampler:target_frame_rate=" + frame_rate_str + " ";
   cmd = cmd + "-s output:file_name_template=" + add_quotes( output_path ) + " ";
 
   if( max_frame_count > 0 )
