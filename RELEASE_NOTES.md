@@ -1,3 +1,14 @@
+v0.15.3 - 7/10/2021
+===================
+
+
+-Updated DIVE interface
+
+
+-Fix issue in training directly on videos with non-default timestamps
+
+
+
 v0.15.2 - 6/04/2021
 ===================
 
