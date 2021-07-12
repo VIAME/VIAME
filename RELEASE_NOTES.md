@@ -1,11 +1,11 @@
-v0.15.3 - 7/10/2021
+v0.16.0 - 7/12/2021
 ===================
 
 
--Updated DIVE interface
+-Updated DIVE interface (add stereo pipe support and multi-camera)
 
 
--Fix issue in training directly on videos with non-default timestamps
+-Fix issue in training directly on videos with non-default frame rates
 
 
 
