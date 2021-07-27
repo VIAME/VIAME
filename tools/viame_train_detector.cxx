@@ -81,6 +81,7 @@ public:
   bool opt_no_query;
   bool opt_no_adv_print;
   bool opt_no_emb_pipe;
+  bool opt_gt_only;
 
   std::string opt_config;
   std::string opt_input_dir;
@@ -786,6 +787,10 @@ main( int argc, char* argv[] )
     &g_params.opt_no_emb_pipe, "Do not output embedded pipes" );
   g_params.m_args.AddArgument( "-nep",            argT::NO_ARGUMENT,
     &g_params.opt_no_emb_pipe, "Do not output embedded pipes" );
+  g_params.m_args.AddArgument( "--gt-frames-only", argT::NO_ARGUMENT,
+    &g_params.opt_gt_only, "Use frames with annotations only" );
+  g_params.m_args.AddArgument( "-gto",            argT::NO_ARGUMENT,
+    &g_params.opt_gt_only, "Use frames with annotations only" );
   g_params.m_args.AddArgument( "--config",        argT::SPACE_ARGUMENT,
     &g_params.opt_config, "Input configuration file with parameters" );
   g_params.m_args.AddArgument( "-c",              argT::SPACE_ARGUMENT,
@@ -1733,6 +1738,25 @@ main( int argc, char* argv[] )
     {
       model_labels->add_class( label.first );
     }
+  }
+
+  // Use GT frames only if enabled
+  if( g_params.opt_gt_only )
+  {
+    std::vector< std::string > adj_train_image_fn;
+    std::vector< kwiver::vital::detected_object_set_sptr > adj_train_gt;
+
+    for( unsigned i = 0; i < train_image_fn.size(); ++i )
+    {
+      if( !train_gt[i]->empty() )
+      {
+        adj_train_image_fn.push_back( train_image_fn[i] );
+        adj_train_gt.push_back( train_gt[i] );
+      }
+    }
+
+    train_image_fn = adj_train_image_fn;
+    train_gt = adj_train_gt;
   }
 
   // Generate a testing and validation set automatically if enabled
