@@ -621,7 +621,7 @@ class SRNNTracker(KwiverProcess):
         # Directly add explicit init tracks
         for tid, ts in init_track_states:
             # XXX This doesn't check for unintended overlap with an automatic ID
-            self._track_set.make_track(tid, on_exist='resume').append(ts)
+            self._track_set.make_track(tid, on_exist='restart').append(ts)
 
         next_track_id = int(self._track_set.get_max_track_id()) + 1
 
