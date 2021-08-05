@@ -64,32 +64,39 @@ class track_state(object):
 class track(object):
     def __init__(self, track_id):
         self.track_id = track_id
-        self.track_state_list = []
+        self._all_track_states = []
+        self._current_track_states = []
+
+    @property
+    def full_history(self):
+        return self._all_track_states
 
     def __len__(self):
-        return len(self.track_state_list)
+        return len(self._current_track_states)
 
     def __getitem__(self, idx):
-        return self.track_state_list[idx]
+        return self._current_track_states[idx]
 
     def __iter__(self):
-        return iter(self.track_state_list)
+        return iter(self._current_track_states)
 
     def append(self, new_track_state):
-        if not self.track_state_list:
+        if not self._current_track_states:
             new_track_state.motion_feature = torch.FloatTensor(2).zero_()
         else:
-            pre_ref_point = np.asarray(self.track_state_list[-1].ref_point, dtype=np.float32).reshape(2)
+            pre_ref_point = np.asarray(self._current_track_states[-1].ref_point, dtype=np.float32).reshape(2)
             cur_ref_point = np.asarray(new_track_state.ref_point, dtype=np.float32).reshape(2)
             new_track_state.motion_feature = torch.from_numpy(cur_ref_point - pre_ref_point)
 
-        self.track_state_list.append(new_track_state)
+        self._all_track_states.append(new_track_state)
+        self._current_track_states.append(new_track_state)
 
     def duplicate_track_state(self, timestep_len = 6):
         du_track = track(self.track_id)
-        tsl = self.track_state_list
+        tsl = self._current_track_states
         tsl = [tsl[0]] * (timestep_len - len(tsl)) + tsl
-        du_track.track_state_list = tsl
+        du_track._all_track_states = tsl
+        du_track._current_track_states = tsl[:]
 
         return du_track
 

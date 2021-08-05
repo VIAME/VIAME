@@ -84,7 +84,7 @@ def ts2ots(track_set):
 
     for idx, t in enumerate(track_set):
         ot = ot_list[idx]
-        for ti in t:
+        for ti in t.full_history:
             ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time,
                                         ti.detected_object)
             if not ot.append(ot_state):
