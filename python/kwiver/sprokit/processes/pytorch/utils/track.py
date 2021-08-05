@@ -134,22 +134,29 @@ class track_set(object):
     def active_count(self):
         return len(self.active_id_set)
 
-    def make_track(self, track_id, exist_ok=None):
+    def make_track(self, track_id, on_exist=None):
         """Create a new track in this track_set with the provided track ID,
         mark it as active, and return it.
 
-        If exist_ok is true (default false), then track_id may be the
-        ID of an existing track, in which case it is remarked as
-        active and returned.
+        If track_id is the ID of an existing track, behavior is
+        controlled by the value of on_exist as follows:
+        - "error" (default): ValueError is raised
+        - "resume": the existing track is reused after reactivating it
+          if necessary
+
+        Other values of on_exist are invalid and will result in a
+        ValueError.
 
         """
-        if track_id in self.id_ts_dict:
-            if not exist_ok:
-                raise ValueError("Track ID exists in the track set!")
-            new_track = self.id_ts_dict[track_id]
-        else:
+        if track_id not in self.id_ts_dict:
             new_track = track(track_id)
             self.id_ts_dict[track_id] = new_track
+        elif on_exist is None or on_exist == 'error':
+            raise ValueError("Track ID exists in the track set!")
+        elif on_exist == 'resume':
+            new_track = self.id_ts_dict[track_id]
+        else:
+            raise ValueError("Unrecognized value for on_exist")
         self.active_id_set[track_id] = None
         return new_track
 
