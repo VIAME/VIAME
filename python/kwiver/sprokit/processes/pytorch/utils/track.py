@@ -100,6 +100,9 @@ class track(object):
 
         return du_track
 
+    def clear(self):
+        self._current_track_states = []
+
 
 class track_set(object):
     def __init__(self):
@@ -143,6 +146,8 @@ class track_set(object):
         - "error" (default): ValueError is raised
         - "resume": the existing track is reused after reactivating it
           if necessary
+        - "restart": the existing track's current history is cleared
+          and then it is reused after reactivating it if necessary
 
         Other values of on_exist are invalid and will result in a
         ValueError.
@@ -153,8 +158,10 @@ class track_set(object):
             self.id_ts_dict[track_id] = new_track
         elif on_exist is None or on_exist == 'error':
             raise ValueError("Track ID exists in the track set!")
-        elif on_exist == 'resume':
+        elif on_exist in ('resume', 'restart'):
             new_track = self.id_ts_dict[track_id]
+            if on_exist == 'restart':
+                new_track.clear()
         else:
             raise ValueError("Unrecognized value for on_exist")
         self.active_id_set[track_id] = None
