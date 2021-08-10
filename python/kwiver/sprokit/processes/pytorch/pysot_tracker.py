@@ -195,9 +195,9 @@ class PYSOTTracker(KwiverProcess):
         frame_boxes = []
 
         if self.has_input_port_edge_using_trait('initializations'):
-            initializations = self.grab_input_using_trait('initializations')
+            inits = self.grab_input_using_trait('initializations')
             self._has_init_signals = True
-            init_track_pool = initializations.tracks()
+            init_track_pool = [] if inits is None else inits.tracks()
             init_track_ids = []
         elif self.has_input_port_edge_using_trait('detected_object_set'):
             init_track_pool = []

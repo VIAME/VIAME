@@ -414,7 +414,8 @@ class SRNNTracker(KwiverProcess):
         dos_ptr = self.grab_input_using_trait('detected_object_set')
         if self.has_input_port_edge('object_track_set'):
             # Initializations
-            inits = self.grab_input_using_trait('object_track_set').tracks()
+            inits = self.grab_input_using_trait('object_track_set')
+            inits = [] if inits is None else inits.tracks()
         else:
             # An empty value is treated the same as no value
             inits = []
