@@ -80,16 +80,32 @@ class track(object):
     def __iter__(self):
         return iter(self._current_track_states)
 
-    def append(self, new_track_state):
-        if not self._current_track_states:
+    def append(self, new_track_state, on_duplicate=None):
+        ats, cts = self._all_track_states, self._current_track_states
+        if not ats or ats[-1].frame_id < new_track_state.frame_id:
+            pass
+        elif ats[-1].frame_id == new_track_state.frame_id:
+            if on_duplicate is None or on_duplicate == 'error':
+                raise ValueError("Cannot append state with duplicate frame ID")
+            elif on_duplicate == 'replace':
+                if not cts:
+                    raise ValueError
+                ats.pop()
+                cts.pop()
+            else:
+                raise ValueError("Unknown value for on_duplicate")
+        else:
+            raise ValueError("Cannot append state with earlier frame ID")
+
+        if not cts:
             new_track_state.motion_feature = torch.FloatTensor(2).zero_()
         else:
-            pre_ref_point = np.asarray(self._current_track_states[-1].ref_point, dtype=np.float32).reshape(2)
+            pre_ref_point = np.asarray(cts[-1].ref_point, dtype=np.float32).reshape(2)
             cur_ref_point = np.asarray(new_track_state.ref_point, dtype=np.float32).reshape(2)
             new_track_state.motion_feature = torch.from_numpy(cur_ref_point - pre_ref_point)
 
-        self._all_track_states.append(new_track_state)
-        self._current_track_states.append(new_track_state)
+        ats.append(new_track_state)
+        cts.append(new_track_state)
 
     def duplicate_track_state(self, timestep_len = 6):
         du_track = track(self.track_id)

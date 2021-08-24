@@ -493,11 +493,15 @@ class SRNNTracker(KwiverProcess):
                 # normal inits
                 self._track_set.deactivate_all_tracks()
 
-            # This is the only relevant part of _step_track_set
+            # This is the only relevant part of _step_track_set.
+            # Unlike there, we permit overwriting the last frame's
+            # state if necessary (on_duplicate='replace').
+
             # Directly add explicit init tracks
             for tid, ts in zip(prev_inits, prev_track_state_list):
                 # XXX This doesn't check for unintended overlap with an automatic ID
-                self._track_set.make_track(tid, on_exist='resume').append(ts)
+                track = self._track_set.make_track(tid, on_exist='resume')
+                track.append(ts, on_duplicate='replace')
 
         inits = inits.get(timestamp.get_frame(), {})
         if not self._explicit_initialization and inits:
