@@ -464,11 +464,11 @@ class SRNNTracker(KwiverProcess):
 
         prev_inits = inits.get(self._prev_frame)
         if prev_inits:
-            assert all(
-                det is self._prev_inits[tid]
-                for tid, det in prev_inits.items()
-                if tid in self._prev_inits
-            )
+            # Ignore tracks we saw as same-frame initializations on
+            # the previous frame.  Do this on the expectation that
+            # they are equivalent to (though perhaps not sharing
+            # object identity with) the initializations on the
+            # previous frame.
             prev_inits = {
                 tid: det for tid, det in prev_inits.items()
                 if tid not in self._prev_inits
