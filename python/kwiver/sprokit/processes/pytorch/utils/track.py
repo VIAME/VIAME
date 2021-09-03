@@ -48,7 +48,6 @@ class track_state(object):
         self.interaction_feature = interaction_feature
         self.bbar_feature = torch.FloatTensor(2).zero_()
 
-        self.track_id = -1
         self.frame_id = frame_id
 
         self.detected_object = detected_object
@@ -66,7 +65,6 @@ class track(object):
     def __init__(self, track_id):
         self.track_id = track_id
         self.track_state_list = []
-        self.max_conf = 0.0
 
     def __len__(self):
         return len(self.track_state_list)
@@ -85,16 +83,13 @@ class track(object):
             cur_ref_point = np.asarray(new_track_state.ref_point, dtype=np.float32).reshape(2)
             new_track_state.motion_feature = torch.from_numpy(cur_ref_point - pre_ref_point)
 
-        new_track_state.track_id = self.track_id
         self.track_state_list.append(new_track_state)
-        self.max_conf = max(self.max_conf, new_track_state.conf)
 
     def duplicate_track_state(self, timestep_len = 6):
         du_track = track(self.track_id)
         tsl = self.track_state_list
         tsl = [tsl[0]] * (timestep_len - len(tsl)) + tsl
         du_track.track_state_list = tsl
-        du_track.max_conf = self.max_conf
 
         return du_track
 
