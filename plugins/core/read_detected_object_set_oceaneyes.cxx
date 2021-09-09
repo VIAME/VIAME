@@ -227,19 +227,24 @@ read_detected_object_set_oceaneyes::priv
       }
       continue;
     }
+    else if( col[0] == "photo location" )
+    {
+      version = 3;
+      continue;
+    }
 
     // Object ID
-    const unsigned  COL_FRAME_ID = ( version <= 1 ? 0 : 0 );
+    const unsigned  COL_FRAME_ID = ( version == 3 ? 1 : ( version == 2 ? 0 : 0 ) );
     // Species Label
-    const unsigned  COL_SPECIES_ID = ( version <= 1 ? 4 : 4 );
+    const unsigned  COL_SPECIES_ID = ( version == 3 ? 5 : ( version == 2 ? 4 : 4 ) );
     // Fish confidence
-    const int COL_FISH_CONF = ( version <= 1 ? 6 : -1 );
+    const int COL_FISH_CONF = ( version == 3 ? -1 : ( version == 2 ? -1 : 6 ) );
     // Species confidence
-    const int COL_SPEC_CONF = ( version <= 1 ? 7 : -1 );
+    const int COL_SPEC_CONF = ( version == 3 ? 8 : ( version == 2 ? -1 : 7 ) );
     // Is head tail valid
-    const int COL_IS_HEAD_TAIL = ( version <= 1 ? 10 : -1 );
+    const int COL_IS_HEAD_TAIL = ( version == 3 ? 11 : ( version == 2 ? -1 : 10 ) );
     // Head tail locations
-    const int COL_HEAD_TAIL = ( version <= 1 ? 11 : 5 );
+    const int COL_HEAD_TAIL = ( version == 3 ? 12 : ( version == 2 ? 5 : 11 ) );
 
     if( col.size() < COL_SPECIES_ID )
     {
@@ -313,10 +318,14 @@ read_detected_object_set_oceaneyes::priv
 
     double species_conf = 1.0;
 
-    if( COL_SPEC_CONF > 0 )
+    if( COL_SPEC_CONF > 0 && COL_FISH_CONF > 0 )
     {
       species_conf = std::max( std::stod( col[ COL_SPEC_CONF ] ),
                                std::stod( col[ COL_FISH_CONF ] ) );
+    }
+    else if( COL_SPEC_CONF > 0 )
+    {
+      species_conf = std::stod( col[ COL_SPEC_CONF ] );
     }
 
     species_label = ( species_label.empty() ? "other" : species_label );
