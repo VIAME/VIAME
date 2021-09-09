@@ -162,8 +162,8 @@ if( VIAME_DOWNLOAD_MODELS )
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     DownloadAndInstallAddOn(
       https://viame.kitware.com/api/v1/item/613a5e3105f7bea4ca761c01/download
-      2b0ae73c1adf7ad0e0d476d169c1bd64
-      ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.7.zip )
+      423223456f7035558aa5cc741dfbe5a4
+      ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.8.zip )
   endif()
 
   # Transformation Models
