@@ -43,7 +43,7 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 # Add core utilities enable flags
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
-option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             ON )
+option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
 option( VIAME_ENABLE_SEAL_TK        "Enable Seal-TK GUIs"           OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
