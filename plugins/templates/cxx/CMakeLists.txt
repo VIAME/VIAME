@@ -1,5 +1,6 @@
 ###
-# Loadable algorithms
+# Example CMakeLists file for generating plugins
+##
 
 set( plugin_headers
   @template@_detector.h
