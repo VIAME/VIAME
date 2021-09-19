@@ -2,7 +2,7 @@ REM ---------------------------------------------------
 REM CORE BUILD PIPELINE
 REM ---------------------------------------------------
 
-SET VIAME_SOURCE_DIR=C:\workspace\VIAME-master_WinNight
+SET VIAME_SOURCE_DIR=C:\workspace\VIAME-MSI-Release
 SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
 
 IF EXIST build rmdir /s /q build
