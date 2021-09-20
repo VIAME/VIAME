@@ -110,7 +110,8 @@ class NetHarnTrainer( TrainDetector ):
         self._min_overlap_for_association = 0.90
         self._max_overlap_for_negative = 0.05
         self._max_neg_per_frame = 5
-        self._negative_category = "BACKGROUND"
+        self._negative_category = "background"
+        self._reduce_category = ""
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -147,6 +148,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "detector_model", str( self._detector_model ) )
         cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
         cfg.set_value( "negative_category", self._negative_category )
+        cfg.set_value( "reduce_category", self._reduce_category )
 
         return cfg
 
@@ -186,6 +188,7 @@ class NetHarnTrainer( TrainDetector ):
         self._detector_model = str( cfg.get_value( "detector_model" ) )
         self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
         self._negative_category = str( cfg.get_value( "negative_category" ) )
+        self._reduce_category = str( cfg.get_value( "reduce_category" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -428,6 +431,11 @@ class NetHarnTrainer( TrainDetector ):
                 if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
                     continue
                 if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
+                    continue
+
+                if self._reduce_category and gt.type() and \
+                  gt.type().get_most_likely_class() == self._reduce_category and \
+                  random.uniform( 0, 1 ) < 0.90:
                     continue
 
                 if self._border_exclude > 0:
