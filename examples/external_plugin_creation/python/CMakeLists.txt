@@ -27,7 +27,6 @@ set( PLUGIN_NAME "example_external_plugin" )
 set( PLUGIN_FILES
   example_filter.py
   example_filter_process.py
-  __init__.py
   )
 
 set( PLUGIN_PATH "viame/processes/external_example" )
