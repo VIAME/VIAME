@@ -130,14 +130,6 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-yolo_v3_seed_model-v1.3.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
-    if( VIAME_DOWNLOAD_MODELS-MOUSS )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5bad56158d777f06b908c473/download
-        00aa39ecdc321b205ed54766441c65aa
-        ${VIAME_DOWNLOAD_DIR}/models-mouss-v2.1.0.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-    endif()
-
     if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/5cbb84d08d777f072b53ab46/download
@@ -164,6 +156,13 @@ if( VIAME_DOWNLOAD_MODELS )
       https://viame.kitware.com/api/v1/item/613ed525a28c6cb53f3a0601/download
       6582b5dd9485727dd40e5582defc0389
       ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.8.zip )
+  endif()
+
+  if( VIAME_DOWNLOAD_MODELS-MOUSS )
+    DownloadAndInstallAddOn(
+      https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download
+      b597f71305cc446cbbae8421ab7ad798
+      ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.0.zip )
   endif()
 
   # Transformation Models
@@ -309,12 +308,6 @@ if( VIAME_ENABLE_VIVIA )
       pipelines/embedded_single_stream/train_deep_detector_cfrnn.pipe )
   endif()
 
-  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-MOUSS )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/embedded_single_stream/mouss_detector.pipe
-      pipelines/embedded_single_stream/mouss_tracker.pipe )
-  endif()
-
   if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       pipelines/embedded_single_stream/arctic_seal_eo_tf_detector.pipe
@@ -429,17 +422,6 @@ if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     pipelines/detector_arctic_seal_fusion_yolo.pipe
     pipelines/detector_arctic_seal_eo_yolo.pipe
     pipelines/detector_arctic_seal_ir_yolo.pipe )
-endif()
-
-if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-MOUSS )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/common_mouss_detector.pipe
-    pipelines/common_mouss_detector_with_filter.pipe
-    pipelines/index_mouss.pipe
-    pipelines/index_mouss.no_desc.pipe
-    pipelines/index_mouss.trk.no_desc.pipe
-    pipelines/index_mouss.trk.pipe
-    pipelines/tracker_mouss.pipe )
 endif()
 
 if( VIAME_ENABLE_MATLAB )

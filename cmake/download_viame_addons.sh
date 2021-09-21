@@ -29,6 +29,9 @@ unzip -o ${DOWNLOAD_LOCATION}/download4.zip -d ${VIAME_INSTALL}
 wget -O ${DOWNLOAD_LOCATION}/download5.zip https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download
 unzip -o ${DOWNLOAD_LOCATION}/download5.zip -d ${VIAME_INSTALL}
 
+# MOUSS Deep 7 -
+wget -O ${DOWNLOAD_LOCATION}/download6.zip https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download
+unzip -o ${DOWNLOAD_LOCATION}/download6.zip -d ${VIAME_INSTALL}
 
 # Ensure Download Location is Removed
 rm -rf ${DOWNLOAD_LOCATION}

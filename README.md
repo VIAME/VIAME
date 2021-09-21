@@ -113,9 +113,7 @@ VIAME v0.15.2 Windows 7\*/8/10, GPU Enabled, Wizard (.msi), Default Models (Rebu
 [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish), All OS](https://viame.kitware.com/api/v1/item/613ed525a28c6cb53f3a0601/download) <br>
 [Low Memory GPU (For 4+ Gb Cards), All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
-[MOUSS Model Set 1 (Deep 7 Bottomfish), All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
-[MOUSS Model Set 2 (Deep 7 Bottomfish), All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
-[MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5e8d3ad42660cbefba9dd13c/download) <br>
+[MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download) <br>
 [Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
 [Sea Lion Models, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download) <br>
 [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download) <br>
