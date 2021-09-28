@@ -94,8 +94,8 @@ VIAME v0.15.2 Windows 7\*/8/10, GPU Enabled, Wizard (.msi), Default Models (Rebu
 
 **Web Applications**: <br>
 [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
-[VIAME Web Local Installation Instructions](https://github.com/VIAME/VIAME-Web/blob/master/docker/README.md) <br>
-[VIAME Web Source Repository](https://github.com/VIAME/VIAME-Web)
+[VIAME Web Local Installation Instructions](https://kitware.github.io/dive/Deployment-Overview/) <br>
+[VIAME Web Source Repository](https://github.com/Kitware/dive)
 
 **DIVE Standalone Desktop Annotator:** <br>
 [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
