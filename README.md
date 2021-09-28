@@ -100,7 +100,7 @@ VIAME v0.15.2 Windows 7\*/8/10, GPU Enabled, Wizard (.msi), Default Models (Rebu
 **DIVE Standalone Desktop Annotator:** <br>
 [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
 
-**SEAL Desktop Custom Distribution:** <br>
+**SEAL Custom Annotator Distribution:** <br>
 [SEAL v0.14.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
 [SEAL v0.14.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
 [SEAL v0.14.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
