@@ -33,5 +33,9 @@ unzip -o ${DOWNLOAD_LOCATION}/download5.zip -d ${VIAME_INSTALL}
 wget -O ${DOWNLOAD_LOCATION}/download6.zip https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download
 unzip -o ${DOWNLOAD_LOCATION}/download6.zip -d ${VIAME_INSTALL}
 
+# Aerial Penguin
+wget -O ${DOWNLOAD_LOCATION}/download7.zip https://viame.kitware.com/api/v1/item/61550c43ac52f76882908da3/download
+unzip -o ${DOWNLOAD_LOCATION}/download7.zip -d ${VIAME_INSTALL}
+
 # Ensure Download Location is Removed
 rm -rf ${DOWNLOAD_LOCATION}
