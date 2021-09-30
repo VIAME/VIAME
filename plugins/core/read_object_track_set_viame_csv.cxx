@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2020 by Kitware, Inc.
+ * Copyright 2017-2021 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@
 
 #include <kwiversys/SystemTools.hxx>
 
+#include <set>
+
 namespace viame {
 
 enum
@@ -69,6 +71,8 @@ public:
     , m_delim( "," )
     , m_confidence_override( -1.0 )
     , m_frame_id_adjustment( 0 )
+    , m_single_state_only( false )
+    , m_multi_state_only( false )
     , m_first( true )
     , m_current_idx( 0 )
     , m_last_idx( 1 )
@@ -76,24 +80,30 @@ public:
 
   ~priv() {}
 
+  typedef std::vector< kwiver::vital::track_sptr > track_vector;
+  typedef int frame_id_t;
+
   read_object_track_set_viame_csv* m_parent;
   kwiver::vital::logger_handle_t m_logger;
-  typedef int frame_id_t;
 
   // Configuration parameters
   bool m_batch_load;
   std::string m_delim;
   double m_confidence_override;
   frame_id_t m_frame_id_adjustment;
+  bool m_single_state_only;
+  bool m_multi_state_only;
 
   // Internal counters
   bool m_first;
   frame_id_t m_current_idx;
   frame_id_t m_last_idx;
 
+  // Helper function - read all states
   void read_all();
 
-  typedef std::vector< kwiver::vital::track_sptr > track_vector;
+  // Helper function - format tracks for current frame
+  track_vector format_tracks( const track_vector& tracks, const frame_id_t frame_id );
 
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
@@ -149,6 +159,10 @@ read_object_track_set_viame_csv
     config->get_value< double >( "confidence_override", d->m_confidence_override );
   d->m_frame_id_adjustment =
     config->get_value< int >( "frame_id_adjustment", d->m_frame_id_adjustment );
+  d->m_single_state_only =
+    config->get_value< bool >( "single_state_only", d->m_single_state_only );
+  d->m_multi_state_only =
+    config->get_value< bool >( "multi_state_only", d->m_multi_state_only );
 
   d->m_current_idx = d->m_frame_id_adjustment;
 }
@@ -159,7 +173,11 @@ bool
 read_object_track_set_viame_csv
 ::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
-  return true;
+  if( d->m_multi_state_only && d->m_single_state_only )
+  {
+    return true;
+  }
+  return false;
 }
 
 
@@ -183,6 +201,14 @@ read_object_track_set_viame_csv
 
     for( auto it = d->m_all_tracks.begin(); it != d->m_all_tracks.end(); ++it )
     {
+      if( d->m_single_state_only && it->second->size() > 1 )
+      {
+        continue;
+      }
+      if( d->m_multi_state_only && it->second->size() == 1 )
+      {
+        continue;
+      }
       trks.push_back( it->second );
     }
 
@@ -203,7 +229,9 @@ read_object_track_set_viame_csv
     // Return tracks for this frame
     kwiver::vital::object_track_set_sptr new_set(
       new kwiver::vital::object_track_set(
-        d->m_tracks_by_frame_id[ d->m_current_idx ] ) );
+        d->format_tracks( 
+          d->m_tracks_by_frame_id[ d->m_current_idx ],
+          d->m_current_idx ) ) );
 
     set = new_set;
   }
@@ -226,6 +254,13 @@ read_object_track_set_viame_csv::priv
   m_tracks_by_frame_id.clear();
   m_all_tracks.clear();
   m_track_ids.clear();
+
+  if( m_single_state_only || m_multi_state_only )
+  {
+    m_tracks_by_frame_id.clear();
+    m_all_tracks.clear();
+    m_track_ids.clear();
+  }
 
   // Read track file
   while( stream_reader.getline( line ) )
@@ -360,6 +395,34 @@ read_object_track_set_viame_csv::priv
       m_last_idx = std::max( m_last_idx, frame_id );
     }
   }
+}
+
+read_object_track_set_viame_csv::priv::track_vector
+read_object_track_set_viame_csv::priv
+::format_tracks( const track_vector& tracks, const frame_id_t frame_id )
+{
+  if( m_single_state_only || m_multi_state_only )
+  {
+    track_vector output;
+
+    for( auto trk : tracks )
+    {
+      if( m_single_state_only && trk->size() > 1 )
+      {
+        continue;
+      }
+      if( m_multi_state_only && trk->size() == 1 )
+      {
+        continue;
+      }
+
+      output.push_back( trk );
+    }
+
+    return output;
+  }
+
+  return tracks;
 }
 
 } // end namespace
