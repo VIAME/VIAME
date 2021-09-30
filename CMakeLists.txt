@@ -333,11 +333,6 @@ if( VIAME_ENABLE_CUDA )
     endif()
   endif()
 
-  if( CUDA_VERSION_MAJOR GREATER_EQUAL "11" )
-    message( FATAL_ERROR "CUDA 11 is not fully tested and likely has compiler errors, \
-      though will be supported soon. If feeling adventurous you can disable this error." )
-  endif()
-
   if( CUDA_VERSION VERSION_EQUAL "10.1" AND CUDA_VERSION_PATCH EQUAL "168" )
     message( FATAL_ERROR "CUDA 10.1.168 has bugs, upgrade to 10.1.264 or above" )
   endif()
