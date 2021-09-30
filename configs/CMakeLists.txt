@@ -269,7 +269,9 @@ set( CORE_PIPELINE_FILES
   pipelines/utility_empty_frame_lbls_1fr.pipe
   pipelines/utility_empty_frame_lbls_10fr.pipe
   pipelines/utility_empty_frame_lbls_100fr.pipe
-  pipelines/utility_empty_frame_lbls_1000fr.pipe )
+  pipelines/utility_empty_frame_lbls_1000fr.pipe
+  pipelines/utility_max_10_points_per_poly.pipe
+  pipelines/utility_max_25_points_per_poly.pipe )
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
