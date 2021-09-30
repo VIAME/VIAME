@@ -207,7 +207,7 @@ And a number of flags which control which system utilities and optimizations are
 |------------------------------|--------------------------------------------------------------------------------|
 | VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all packages                           |
 | VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                         |
-| VIAME_ENABLE_VIVIA           | Builds DIVE GUI (annotation and training on multiple sequences)                |
+| VIAME_ENABLE_DIVE            | Builds DIVE GUI (annotation and training on multiple sequences)                |
 | VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (VIEW and SEARCH for annotation and video search)            |
 | VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                    |
 | VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation (puts in install tree)                |
