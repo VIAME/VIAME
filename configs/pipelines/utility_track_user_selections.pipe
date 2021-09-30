@@ -27,12 +27,6 @@ process detection_reader
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
-process tracks_to_detections
-  :: unwrap_detections
-
-connect from detection_reader.object_track_set
-        to   tracks_to_detections.object_track_set
-
 # Input tracks to merge into set and keep as-is
 process track_reader
   :: read_object_track
@@ -51,8 +45,8 @@ connect from downsampler.output_1
         to   short_term_tracker.image
 connect from downsampler.timestamp
         to   short_term_tracker.timestamp
-connect from tracks_to_detections.detected_object_set
-        to   short_term_tracker.detected_object_set
+connect from detection_reader.object_track_set
+        to   short_term_tracker.initializations
 
 # ================================= OUTPUT TRK DATA ================================
 
