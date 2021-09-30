@@ -60,9 +60,12 @@ process detection_reader
   :reader:type                                          viame_csv
   :reader:viame_csv:poly_to_mask                        true
 
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
 # ==================================== WRITER ======================================
 
-process detection_writer
+process detector_writer
   :: detected_object_output
 
   # Type of file to output
@@ -70,9 +73,9 @@ process detection_writer
   :writer:type                                          viame_csv
   :writer:viame_csv:mask_to_poly_points                 10
 
-connect from detector.detected_object_set
-        to   detector_writer.detected_object_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name
+connect from detection_reader.detected_object_set
+        to   detector_writer.detected_object_set
 
 # -- end of file --
