@@ -180,8 +180,22 @@ darknet_detector
   d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
   d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
 
-  // TODO Open file and return 'list' of labels
-  //d->m_names = 
+  // Open file and return 'list' of labels
+  std::ifstream fin( d->m_class_names.c_str() );
+  d->m_names.clear();
+  if( !fin )
+  {
+    LOG_ERROR( logger(), "Unable to open labels file" );
+  }
+  std::string line;
+  while( std::getline( fin, line ) )
+  {
+    if( line.size() > 0 )
+    {
+      d->m_names.push_back( line );
+    }
+  }
+  fin.close();
 
   d->m_net.reset( new Detector( d->m_net_config, d->m_weight_file, d->m_gpu_index ) );
 
@@ -195,8 +209,8 @@ bool
 darknet_detector
 ::check_configuration( vital::config_block_sptr config ) const
 {
-  std::string net_config = config->get_value<std::string>( "net_config" );
-  std::string class_file = config->get_value<std::string>( "class_names" );
+  std::string net_config = config->get_value< std::string >( "net_config" );
+  std::string class_file = config->get_value< std::string >( "class_names" );
 
   bool success = true;
 
@@ -224,7 +238,7 @@ darknet_detector
       "Configuration is as follows:\n" << str.str() );
     success = false;
   }
-  else if( ! kwiversys::SystemTools::FileExists( class_file ) )
+  else if( !kwiversys::SystemTools::FileExists( class_file ) )
   {
     LOG_ERROR( logger(), "class names file \"" << class_file << "\" not found." );
     success = false;
