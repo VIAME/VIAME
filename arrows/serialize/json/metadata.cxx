@@ -6,6 +6,7 @@
 #include "load_save.h"
 
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
 #include <vital/internal/cereal/cereal.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
@@ -17,13 +18,59 @@ namespace serialize {
 namespace json {
 
 // ----------------------------------------------------------------------------
-metadata::
-metadata()
-{ }
+metadata
+::metadata()
+{
+}
 
+// ----------------------------------------------------------------------------
+metadata
+::~metadata()
+{
+}
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+metadata
+::serialize_meta( kwiver::vital::metadata_vector const& meta )
+{
+  std::stringstream msg;
+  msg << "metadata "; // add type tag
+  {
+    cereal::JSONOutputArchive ar( msg );
+    save( ar, meta );
+  }
+
+  return std::make_shared< std::string >( msg.str() );
+}
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+metadata
+::serialize_map( vital::metadata_map::map_metadata_t const& frame_map )
+{
+  std::stringstream msg;
+  {
+    cereal::JSONOutputArchive ar( msg );
+    save( ar, frame_map );
+  }
+
+  return std::make_shared< std::string >( msg.str() );
+}
+
+// ----------------------------------------------------------------------------
+vital::metadata_map::map_metadata_t
 metadata::
-~metadata()
-{ }
+deserialize_map( const std::string& message )
+{
+  std::stringstream msg( message );
+  kwiver::vital::metadata_map::map_metadata_t metadata;
+
+  cereal::JSONInputArchive ar( msg );
+  load( ar, metadata );
+
+  return metadata;
+}
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >

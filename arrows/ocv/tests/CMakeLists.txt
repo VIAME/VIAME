@@ -1,5 +1,7 @@
 project(arrows_test_ocv)
 
+set(CMAKE_FOLDER "Arrows/OCV/Tests")
+
 include(kwiver-test-setup)
 
 set(test_libraries      vital vital_vpm kwiver_algo_ocv)
@@ -23,4 +25,5 @@ if (KWIVER_ENABLE_MVG)
   kwiver_discover_gtests(ocv estimate_fundamental_matrix LIBRARIES ${test_libraries})
   kwiver_discover_gtests(ocv estimate_homography         LIBRARIES ${test_libraries})
   #kwiver_discover_gtests(ocv estimate_pnp                LIBRARIES ${test_libraries})
+  kwiver_discover_gtests(ocv resection_camera            LIBRARIES ${test_libraries})
 endif()

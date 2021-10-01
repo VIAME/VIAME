@@ -118,14 +118,7 @@ class SiameseFeatureExtractor(object):
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class,
                             batch_size=self._b_size, shuffle=False, **kwargs)
 
-        torch.set_grad_enabled(False)
-        for idx, imgs in enumerate(bbox_loader):
-            v_imgs = imgs.to(self._device)
-            output = self._siamese_model(v_imgs)
-
-            if idx == 0:
-                app_features = output.data
-            else:
-                app_features = torch.cat((app_features, output.data), dim=0)
-
-        return app_features.cpu()
+        with torch.no_grad():
+            app_features = [self._siamese_model(imgs.to(self._device))
+                            for imgs in bbox_loader]
+        return app_features and torch.cat(app_features).cpu()

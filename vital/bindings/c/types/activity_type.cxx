@@ -52,7 +52,7 @@ vital_activity_type_t*
 vital_activity_type_new_from_list( VITAL_UNUSED vital_activity_type_t* obj,
                                    size_t count,
                                    char** class_names,
-                                   VITAL_UNUSED double* scores )
+                                   VITAL_UNUSED double* scrs )
 {
   STANDARD_CATCH(
     "C::activity_type::new_from_list", 0,

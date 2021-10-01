@@ -1,5 +1,7 @@
 project(sprokit_test_pipeline_util)
 
+set(CMAKE_FOLDER "Sprokit/Tests")
+
 set(test_libraries
   sprokit_pipeline_util
   sprokit_pipeline

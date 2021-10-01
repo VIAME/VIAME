@@ -1,5 +1,7 @@
 project(arrows_test_ceres)
 
+set(CMAKE_FOLDER "Arrows/Ceres/Tests")
+
 include(kwiver-test-setup)
 
 set(test_libraries    kwiver_algo_ceres kwiver_algo_core)

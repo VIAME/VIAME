@@ -50,7 +50,7 @@ public:
    * \returns \c config_block containing the configuration for this algorithm
    *          and any nested components.
    */
-  virtual vital::config_block_sptr get_configuration() const;
+  vital::config_block_sptr get_configuration() const override;
 
   /// Set this algorithm's properties via a config block
   /**
@@ -63,7 +63,7 @@ public:
    * \param config  The \c config_block instance containing the configuration
    *                parameters for this algorithm
    */
-  virtual void set_configuration(vital::config_block_sptr config);
+  void set_configuration(vital::config_block_sptr config) override;
 
   /// Check that the algorithm's currently configuration is valid
   /**
@@ -75,7 +75,7 @@ public:
    *
    * \returns true if the configuration check passed and false if it didn't.
    */
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  bool check_configuration(vital::config_block_sptr config) const override;
 
   /// Augment existing tracks with additional features if a keyframe
   /**
@@ -101,12 +101,11 @@ public:
    *                  value).
    * \returns an updated set of feature tracks
    */
-  virtual kwiver::vital::feature_track_set_sptr
+  kwiver::vital::feature_track_set_sptr
   track(kwiver::vital::feature_track_set_sptr prev_tracks,
-        unsigned int frame_number,
+        kwiver::vital::frame_id_t frame_number,
         kwiver::vital::image_container_sptr image_data,
-        kwiver::vital::image_container_sptr mask =
-          kwiver::vital::image_container_sptr()) const;
+        kwiver::vital::image_container_sptr mask = {}) const override;
 
 protected:
 

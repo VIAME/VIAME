@@ -12,6 +12,7 @@ set( headers_public
   detected_object_type.h
   image.h
   metadata.h
+  metadata_map_io.h
   object_track_set.h
   object_track_state.h
   string.h
@@ -41,6 +42,7 @@ set( sources
   load_save_point.cxx
   load_save_metadata.cxx
   metadata.cxx
+  metadata_map_io.cxx
   object_track_set.cxx
   object_track_state.cxx
   string.cxx

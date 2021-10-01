@@ -76,9 +76,8 @@ void read_object_track_process
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if( algo::read_object_track_set::check_nested_algo_configuration_using_trait(
-        reader,
-        algo_config ) )
+  if( ! algo::read_object_track_set::check_nested_algo_configuration_using_trait(
+          reader, algo_config ) )
   {
     VITAL_THROW( sprokit::invalid_configuration_exception, name(),
                  "Configuration check failed." );
@@ -127,11 +126,7 @@ void read_object_track_process
     }
   }
 
-  if( !end_process && ( d->m_reader_finished || d->m_reader->read_set( set ) ) )
-  {
-    push_to_port_using_trait( object_track_set, set );
-  }
-  else
+  if( !end_process && !d->m_reader_finished && !d->m_reader->read_set( set ) )
   {
     // Indicates the reader is done producing and tracks and won't produce more.
     d->m_reader_finished = true;
@@ -153,6 +148,14 @@ void read_object_track_process
 
     const sprokit::datum_t dat = sprokit::datum::complete_datum();
     push_datum_to_port_using_trait( object_track_set, dat );
+  }
+  else
+  {
+    if( !set )
+    {
+      set = std::make_shared< kwiver::vital::object_track_set >();
+    }
+    push_to_port_using_trait( object_track_set, set );
   }
 }
 

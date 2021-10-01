@@ -1,6 +1,8 @@
 # Build/install plugin for darknet CNN support
 #
 
+set(CMAKE_FOLDER "Arrows/Darknet")
+
 set( headers
   darknet_custom_resize.h
   darknet_detector.h

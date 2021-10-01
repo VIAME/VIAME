@@ -1,5 +1,7 @@
 project(sprokit_tests_test)
 
+set(CMAKE_FOLDER "Sprokit/Tests")
+
 set(test_libraries      sprokit_pipeline kwiversys )
 
 sprokit_discover_tests(test test_libraries test_test.cxx)

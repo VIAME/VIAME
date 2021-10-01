@@ -84,7 +84,7 @@ def ts2ots(track_set):
 
     for idx, t in enumerate(track_set):
         ot = ot_list[idx]
-        for ti in t:
+        for ti in t.full_history:
             ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time,
                                         ti.detected_object)
             if not ot.append(ot_state):
@@ -414,7 +414,8 @@ class SRNNTracker(KwiverProcess):
         dos_ptr = self.grab_input_using_trait('detected_object_set')
         if self.has_input_port_edge('object_track_set'):
             # Initializations
-            inits = self.grab_input_using_trait('object_track_set').tracks()
+            inits = self.grab_input_using_trait('object_track_set')
+            inits = [] if inits is None else inits.tracks()
         else:
             # An empty value is treated the same as no value
             inits = []
@@ -464,11 +465,11 @@ class SRNNTracker(KwiverProcess):
 
         prev_inits = inits.get(self._prev_frame)
         if prev_inits:
-            assert all(
-                det is self._prev_inits[tid]
-                for tid, det in prev_inits.items()
-                if tid in self._prev_inits
-            )
+            # Ignore tracks we saw as same-frame initializations on
+            # the previous frame.  Do this on the expectation that
+            # they are equivalent to (though perhaps not sharing
+            # object identity with) the initializations on the
+            # previous frame.
             prev_inits = {
                 tid: det for tid, det in prev_inits.items()
                 if tid not in self._prev_inits
@@ -492,11 +493,15 @@ class SRNNTracker(KwiverProcess):
                 # normal inits
                 self._track_set.deactivate_all_tracks()
 
-            # This is the only relevant part of _step_track_set
+            # This is the only relevant part of _step_track_set.
+            # Unlike there, we permit overwriting the last frame's
+            # state if necessary (on_duplicate='replace').
+
             # Directly add explicit init tracks
             for tid, ts in zip(prev_inits, prev_track_state_list):
                 # XXX This doesn't check for unintended overlap with an automatic ID
-                self._track_set.make_track(tid, exist_ok=True).append(ts)
+                track = self._track_set.make_track(tid, on_exist='resume')
+                track.append(ts, on_duplicate='replace')
 
         inits = inits.get(timestamp.get_frame(), {})
         if not self._explicit_initialization and inits:
@@ -620,7 +625,7 @@ class SRNNTracker(KwiverProcess):
         # Directly add explicit init tracks
         for tid, ts in init_track_states:
             # XXX This doesn't check for unintended overlap with an automatic ID
-            self._track_set.make_track(tid, exist_ok=True).append(ts)
+            self._track_set.make_track(tid, on_exist='restart').append(ts)
 
         next_track_id = int(self._track_set.get_max_track_id()) + 1
 

@@ -89,14 +89,19 @@ unwrap_detections_process
   auto object_tracks = grab_from_port_using_trait( object_track_set );
   auto detected_objects = std::make_shared< kwiver::vital::detected_object_set >();
 
-  for( auto& trk : object_tracks->tracks() )
+  if( object_tracks )
   {
-    for( auto& state : *trk )
+    for( auto& trk : object_tracks->tracks() )
     {
-      auto obj_state = std::static_pointer_cast< kwiver::vital::object_track_state >( state );
-      if( state->frame() == d->m_current_idx )
+      for( auto& state : *trk )
       {
-        detected_objects->add( obj_state->detection() );
+        auto obj_state =
+          std::static_pointer_cast< kwiver::vital::object_track_state >( state );
+
+        if( state->frame() == d->m_current_idx )
+        {
+          detected_objects->add( obj_state->detection() );
+        }
       }
     }
   }

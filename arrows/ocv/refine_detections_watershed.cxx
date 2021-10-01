@@ -36,6 +36,7 @@ public:
 
   bool seed_with_existing_masks = true;
   double seed_scale_factor = 0.2;
+  double uncertain_scale_factor = 1;
 };
 
 // ----------------------------------------------------------------------------
@@ -60,6 +61,9 @@ refine_detections_watershed
 ::get_configuration() const
 {
   vital::config_block_sptr config = vital::algo::refine_detections::get_configuration();
+  config->set_value( "uncertain_scale_factor", d_->uncertain_scale_factor,
+                     "Amount to scale the detection by to produce "
+                     "a region that will be marked as uncertain" );
   config->set_value( "seed_scale_factor", d_->seed_scale_factor,
                      "Amount to scale the detection by to produce "
                      "a high-confidence seed region" );
@@ -81,6 +85,8 @@ refine_detections_watershed
     config->get_value< bool >( "seed_with_existing_masks" );
   d_->seed_scale_factor =
     config->get_value< double >( "seed_scale_factor" );
+  d_->uncertain_scale_factor =
+    config->get_value< double >( "uncertain_scale_factor" );
 }
 
 // ----------------------------------------------------------------------------
@@ -119,8 +125,11 @@ refine_detections_watershed
     auto&& det = detections->at( i );
     auto&& bbox = det->bounding_box();
     auto rect = bbox_to_mask_rect( bbox );
+    auto uncertain_bbox = vital::scale_about_center(
+      bbox, d_->uncertain_scale_factor );
+    auto uncertain_rect = bbox_to_mask_rect( uncertain_bbox );
+    background( uncertain_rect & img_rect ) = 0;
     auto crop_rect = rect & img_rect;
-    background( crop_rect ) = 0;
     cv::Mat m = markers( crop_rect );
     cv::Mat already_set = m != 0;
     cv::Mat seed;

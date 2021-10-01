@@ -12,6 +12,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/mvg/algo/hierarchical_bundle_adjust.h>
+#include <arrows/mvg/algo/integrate_depth_maps.h>
 #include <arrows/mvg/algo/initialize_cameras_landmarks.h>
 #include <arrows/mvg/algo/initialize_cameras_landmarks_basic.h>
 #include <arrows/mvg/algo/triangulate_landmarks.h>
@@ -52,6 +53,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   reg.register_algorithm< hierarchical_bundle_adjust >();
+  reg.register_algorithm< integrate_depth_maps >();
   reg.register_algorithm< initialize_cameras_landmarks >();
   reg.register_algorithm< initialize_cameras_landmarks_basic >();
   reg.register_algorithm< triangulate_landmarks >();

@@ -6,16 +6,25 @@
 #define ARROWS_SERIALIZATION_JSON_METADATA
 
 #include <arrows/serialize/json/kwiver_serialize_json_export.h>
+
 #include <vital/algo/data_serializer.h>
 
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
+
 namespace cereal {
-  class JSONOutputArchive;
-  class JSONInputArchive;
-} // end namespace cereal
+
+class JSONOutputArchive;
+class JSONInputArchive;
+
+} // namespace cereal
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace serialize {
+
 namespace json {
 
 class KWIVER_SERIALIZE_JSON_EXPORT metadata
@@ -27,11 +36,24 @@ public:
 
   metadata();
   virtual ~metadata();
+  std::shared_ptr< std::string > serialize_meta(
+    vital::metadata_vector const& elements );
+  std::shared_ptr< std::string > serialize_map(
+    vital::metadata_map::map_metadata_t const& frame_map );
+  std::shared_ptr< std::string > serialize(
+    vital::any const& elements ) override;
 
-  std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
-  vital::any deserialize( const std::string& message ) override;
+  vital::metadata_map::map_metadata_t deserialize_map(
+    std::string const& message );
+  vital::any deserialize( std::string const& message ) override;
 };
 
-} } } }       // end namespace kwiver
+} // namespace json
 
-#endif // ARROWS_SERIALIZATION_JSON_METADATA
+} // namespace serialize
+
+} // namespace arrows
+
+} // namespace kwiver
+
+#endif

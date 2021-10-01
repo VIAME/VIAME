@@ -681,15 +681,15 @@ TEST(bundle_adjust, minimum_hfov)
   simple_camera_intrinsics K(1000, vector_2d(640, 480));
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = kwiver::testing::camera_seq(20, K);
+  camera_map_sptr cameras = kwiver::testing::camera_seq(20, K, 1.0, 90.0);
   test_ba_min_hfov(cameras, cfg);
 
   // create a camera sequence (elliptical path)
-  cameras = kwiver::testing::camera_seq(100, K);
+  cameras = kwiver::testing::camera_seq(100, K, 1.0, 90.0);
   test_ba_min_hfov(cameras, cfg);
 
   // create a camera sequence (elliptical path)
-  cameras = kwiver::testing::camera_seq(100, K, 1000.0);
+  cameras = kwiver::testing::camera_seq(100, K, 1000.0, 90.0);
   test_ba_min_hfov(cameras, cfg, 1000.0);
 
   // test with non-sequential cameras

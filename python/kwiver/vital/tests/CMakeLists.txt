@@ -90,14 +90,14 @@ foreach (modname IN LISTS __all_modnames)
 endforeach()
 
 # Add python vital.tests to CTest if python test runner is available
-if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
+if (KWIVER_ENABLE_TESTS AND PYTEST_RUNNER)
   if (WIN32)
     set(WIN_TEST_CONFIG_TYPE "$<CONFIG>")
   endif()
 
   include(kwiver-setup-tests-python)
   foreach (test IN LISTS __testable_modnames)
-    kwiver_add_nosetests(${test} python)
+    kwiver_add_pytest(${test} python)
   endforeach()
 
   set(_test_data
@@ -105,7 +105,6 @@ if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
   foreach (file_name IN LISTS _test_data)
     kwiver_python_add_test_data(${file_name} ${kwiver_test_working_path})
   endforeach()
-
 endif()
 
 add_subdirectory(alg)

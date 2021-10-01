@@ -1,6 +1,8 @@
 ###
 # algorithms/proj
 
+set(CMAKE_FOLDER "Arrows/PROJ")
+
 set(proj_headers_public
   )
 
@@ -21,6 +23,10 @@ set(proj_sources
 kwiver_add_library( kwiver_algo_proj
   ${proj_headers_public}
   ${proj_sources}
+  )
+
+target_include_directories( kwiver_algo_proj
+  SYSTEM PRIVATE ${PROJ_INCLUDE_DIR}
   )
 
 target_link_libraries( kwiver_algo_proj

@@ -37,9 +37,9 @@ Tests for Python interface to vital::metadata_tags
 from kwiver.vital.types import metadata_tags as mt
 
 import nose.tools as nt
+import unittest
 
-
-class TestVitalMetadataTags(object):
+class TestVitalMetadataTags(unittest.TestCase):
     def setUp(self):
         # This gets us a list of every tag enum value,
         # including the VITAL_META_LAST_TAG
@@ -59,6 +59,7 @@ class TestVitalMetadataTags(object):
             mt.tags.VITAL_META_IMAGE_SOURCE_SENSOR,
             mt.tags.VITAL_META_IMAGE_COORDINATE_SYSTEM,
             mt.tags.VITAL_META_IMAGE_URI,
+            mt.tags.VITAL_META_VIDEO_DATA_STREAM_INDEX,
             mt.tags.VITAL_META_VIDEO_URI,
             mt.tags.VITAL_META_VIDEO_KEY_FRAME,
             mt.tags.VITAL_META_SENSOR_LOCATION,

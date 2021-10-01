@@ -48,7 +48,6 @@ class track_state(object):
         self.interaction_feature = interaction_feature
         self.bbar_feature = torch.FloatTensor(2).zero_()
 
-        self.track_id = -1
         self.frame_id = frame_id
 
         self.detected_object = detected_object
@@ -65,38 +64,60 @@ class track_state(object):
 class track(object):
     def __init__(self, track_id):
         self.track_id = track_id
-        self.track_state_list = []
-        self.max_conf = 0.0
+        self._all_track_states = []
+        self._current_track_states = []
+
+    @property
+    def full_history(self):
+        return self._all_track_states
 
     def __len__(self):
-        return len(self.track_state_list)
+        return len(self._current_track_states)
 
     def __getitem__(self, idx):
-        return self.track_state_list[idx]
+        return self._current_track_states[idx]
 
     def __iter__(self):
-        return iter(self.track_state_list)
+        return iter(self._current_track_states)
 
-    def append(self, new_track_state):
-        if not self.track_state_list:
+    def append(self, new_track_state, on_duplicate=None):
+        ats, cts = self._all_track_states, self._current_track_states
+        if not ats or ats[-1].frame_id < new_track_state.frame_id:
+            pass
+        elif ats[-1].frame_id == new_track_state.frame_id:
+            if on_duplicate is None or on_duplicate == 'error':
+                raise ValueError("Cannot append state with duplicate frame ID")
+            elif on_duplicate == 'replace':
+                if not cts:
+                    raise ValueError
+                ats.pop()
+                cts.pop()
+            else:
+                raise ValueError("Unknown value for on_duplicate")
+        else:
+            raise ValueError("Cannot append state with earlier frame ID")
+
+        if not cts:
             new_track_state.motion_feature = torch.FloatTensor(2).zero_()
         else:
-            pre_ref_point = np.asarray(self.track_state_list[-1].ref_point, dtype=np.float32).reshape(2)
+            pre_ref_point = np.asarray(cts[-1].ref_point, dtype=np.float32).reshape(2)
             cur_ref_point = np.asarray(new_track_state.ref_point, dtype=np.float32).reshape(2)
             new_track_state.motion_feature = torch.from_numpy(cur_ref_point - pre_ref_point)
 
-        new_track_state.track_id = self.track_id
-        self.track_state_list.append(new_track_state)
-        self.max_conf = max(self.max_conf, new_track_state.conf)
+        ats.append(new_track_state)
+        cts.append(new_track_state)
 
     def duplicate_track_state(self, timestep_len = 6):
         du_track = track(self.track_id)
-        tsl = self.track_state_list
+        tsl = self._current_track_states
         tsl = [tsl[0]] * (timestep_len - len(tsl)) + tsl
-        du_track.track_state_list = tsl
-        du_track.max_conf = self.max_conf
+        du_track._all_track_states = tsl
+        du_track._current_track_states = tsl[:]
 
         return du_track
+
+    def clear(self):
+        self._current_track_states = []
 
 
 class track_set(object):
@@ -132,22 +153,33 @@ class track_set(object):
     def active_count(self):
         return len(self.active_id_set)
 
-    def make_track(self, track_id, exist_ok=None):
+    def make_track(self, track_id, on_exist=None):
         """Create a new track in this track_set with the provided track ID,
         mark it as active, and return it.
 
-        If exist_ok is true (default false), then track_id may be the
-        ID of an existing track, in which case it is remarked as
-        active and returned.
+        If track_id is the ID of an existing track, behavior is
+        controlled by the value of on_exist as follows:
+        - "error" (default): ValueError is raised
+        - "resume": the existing track is reused after reactivating it
+          if necessary
+        - "restart": the existing track's current history is cleared
+          and then it is reused after reactivating it if necessary
+
+        Other values of on_exist are invalid and will result in a
+        ValueError.
 
         """
-        if track_id in self.id_ts_dict:
-            if not exist_ok:
-                raise ValueError("Track ID exists in the track set!")
-            new_track = self.id_ts_dict[track_id]
-        else:
+        if track_id not in self.id_ts_dict:
             new_track = track(track_id)
             self.id_ts_dict[track_id] = new_track
+        elif on_exist is None or on_exist == 'error':
+            raise ValueError("Track ID exists in the track set!")
+        elif on_exist in ('resume', 'restart'):
+            new_track = self.id_ts_dict[track_id]
+            if on_exist == 'restart':
+                new_track.clear()
+        else:
+            raise ValueError("Unrecognized value for on_exist")
         self.active_id_set[track_id] = None
         return new_track
 

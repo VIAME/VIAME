@@ -1,0 +1,39 @@
+include pipelines/detect_burnin.pipe
+
+# ================================================================
+process input
+  :: video_input
+  video_filename    = @EXAMPLE_DIR@/videos/drone-video.mp4
+  frame_time        = .3333
+
+  video_reader:type = vidl_ffmpeg
+
+# ================================================================
+# Optionally write out features for debugging
+# process filtered_writer
+#   :: image_writer
+#   image_writer:type                     = vxl
+#   file_name_template                    = filtered/image%06d.png
+#   image_writer:vxl:force_byte           = true
+#   image_writer:vxl:auto_stretch         = true
+#   image_writer:vxl:split_channels       = true
+
+# ================================================================
+process writer
+  :: image_writer
+  image_writer:type                     = vxl
+  file_name_template                    = output/image%06d.png
+  image_writer:vxl:force_byte           = true
+  image_writer:vxl:auto_stretch         = true
+
+###############################################################################
+
+connect from input.image
+        to   detect_burnin__in.image
+
+# Optionally write out features for debugging
+# connect from detect_burnin__filter.image
+#         to filtered_writer.image
+
+connect from detect_burnin__out.image
+        to   writer.image

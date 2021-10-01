@@ -24,6 +24,7 @@
 #include "vtkRenderWindow.h"
 #include "vtkSequencePass.h"
 #include "vtkSmartPointer.h"
+#include "vtkUnsignedCharArray.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkXMLImageDataWriter.h"
 #include "vtkXMLPolyDataWriter.h"

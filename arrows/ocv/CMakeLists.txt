@@ -1,6 +1,8 @@
 # Build / Install plugin containing OpenCV algorithm implementations + support
 # structures
 
+set(CMAKE_FOLDER "Arrows/OCV")
+
 set( ocv_headers_public
   analyze_tracks.h
   camera_intrinsics.h
@@ -45,6 +47,7 @@ set( ocv_headers_public
   refine_detections_grabcut.h
   refine_detections_watershed.h
   refine_detections_write_to_disk.h
+  resection_camera.h
   split_image_channels.h
   split_image_horizontally.h
   track_features_klt.h
@@ -107,6 +110,7 @@ set( ocv_sources
   refine_detections_util.h
   refine_detections_watershed.cxx
   refine_detections_write_to_disk.cxx
+  resection_camera.cxx
   split_image_channels.cxx
   split_image_horizontally.cxx
   track_features_klt.cxx

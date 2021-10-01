@@ -38,9 +38,9 @@ from kwiver.vital.types import FundamentalMatrixF, FundamentalMatrixD
 
 import nose.tools as nt
 import numpy as np
+import unittest
 
-
-class TestVitalFundamentalMatrix(object):
+class TestVitalFundamentalMatrix(unittest.TestCase):
     def setUp(self):
         self.rng = np.random.default_rng()
         self.rand_float_mat = 10 * self.rng.random((3, 3), dtype="f") - 5

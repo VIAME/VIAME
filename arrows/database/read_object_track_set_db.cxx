@@ -150,7 +150,8 @@ bool
 read_object_track_set_db
 ::read_set( kwiver::vital::object_track_set_sptr& set )
 {
-  if( d->m_first )
+  auto const first = d->m_first;
+  if( first )
   {
     // Read in all detections
     d->read_all();
@@ -159,6 +160,10 @@ read_object_track_set_db
 
   if( d->m_batch_load )
   {
+    if( !first )
+    {
+      return false;
+    }
     std::vector< vital::track_sptr > trks;
 
     for( auto it = d->m_all_tracks.begin(); it != d->m_all_tracks.end(); ++it )
@@ -168,6 +173,11 @@ read_object_track_set_db
 
     set = vital::object_track_set_sptr( new vital::object_track_set( trks ) );
     return true;
+  }
+
+  if( d->m_current_idx > d->m_last_idx )
+  {
+    return false;
   }
 
   // Return detection set at current index if there is one
@@ -184,7 +194,7 @@ read_object_track_set_db
 
   ++d->m_current_idx;
 
-  return d->m_current_idx > d->m_last_idx;
+  return true;
 }
 
 

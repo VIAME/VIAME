@@ -121,18 +121,21 @@ convert_tracks_to_detections_process
   // Split track set into detections
   std::vector< vital::detected_object_sptr > output;
 
-  for( auto trk_ptr : tracks->tracks() )
+  if( tracks )
   {
-    if( trk_ptr && !trk_ptr->empty() )
+    for( auto trk_ptr : tracks->tracks() )
     {
-      kwiver::vital::object_track_state* state =
-        dynamic_cast< kwiver::vital::object_track_state* >( trk_ptr->back().get() );
-
-      if( state &&
-          ( ( d->frame_ids_only && state->frame() == ts.get_frame() ) ||
-            state->ts() == ts ) )
+      if( trk_ptr && !trk_ptr->empty() )
       {
-        output.push_back( state->detection() );
+        kwiver::vital::object_track_state* state =
+          dynamic_cast< kwiver::vital::object_track_state* >( trk_ptr->back().get() );
+  
+        if( state &&
+            ( ( d->frame_ids_only && state->frame() == ts.get_frame() ) ||
+              state->ts() == ts ) )
+        {
+          output.push_back( state->detection() );
+        }
       }
     }
   }

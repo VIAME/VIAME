@@ -1,5 +1,7 @@
 project(kwiver_serialize_json_tests)
 
+set(CMAKE_FOLDER "Arrows/Serialize/Tests")
+
 include(kwiver-test-setup)
 
 set( test_libraries vital vital_vpm vital_algo kwiver_serialize_json )

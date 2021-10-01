@@ -430,6 +430,10 @@ TEST_F(ffmpeg_video_input, metadata_map)
 
   input.open(correct_file);
 
+  // metadata caapbility is false since no external metadata is present
+  auto const& caps = input.get_implementation_capabilities();
+  EXPECT_FALSE( caps.capability( kwiver::vital::algo::video_input::HAS_METADATA ) );
+
   // Get metadata map
   auto md_map = input.metadata_map()->metadata();
 
@@ -452,6 +456,136 @@ TEST_F(ffmpeg_video_input, metadata_map)
     }
     std::cout << std::endl;
   }
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, no_sync_metadata)
+{
+  std::map<int, std::set<uint64_t>> expected_md = {
+    {0, {1221515219356000, 1221515219396000, 1221515219426000}},
+    {1, {1221515219456000}},
+    {2, {1221515219486000}},
+    {3, {1221515219516000}},
+    {4, {1221515219556000}}
+  };
+
+  kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
+
+  auto config = vif.get_configuration();
+  // Turn off metadata syncing
+  config->set_value("sync_metadata", "False");
+  vif.set_configuration(config);
+
+  kwiver::vital::path_t video_base_name = "aphill_short";
+  kwiver::vital::path_t video_path = data_dir + "/" + video_base_name + ".ts";
+
+  // Open the video
+  vif.open(video_path);
+
+  auto const& caps = vif.get_implementation_capabilities();
+  EXPECT_TRUE( caps.capability( kwiver::vital::algo::video_input::HAS_METADATA ) );
+
+  kwiver::vital::timestamp ts;
+
+  unsigned int frame_num = 0;
+  while (vif.next_frame(ts))
+  {
+    auto md_vect = vif.frame_metadata();
+
+    EXPECT_TRUE(md_vect.size() > 0)
+      << "Each frame tested should have metadata present";
+
+    for (auto md : md_vect)
+    {
+      EXPECT_TRUE(md->has(kwiver::vital::VITAL_META_UNIX_TIMESTAMP))
+        << "Each of the first five frames should have a UNIX time stamp in"
+        << " its metadata";
+
+      for (auto md_item : *md)
+      {
+        if (md_item.first == kwiver::vital::VITAL_META_UNIX_TIMESTAMP)
+        {
+          EXPECT_TRUE(expected_md[frame_num].find(md_item.second->as_uint64())
+                      != expected_md[frame_num].end())
+            << "UNIX time stamp " << md_item.second->as_uint64()
+            << " was not found in metadata for frame " << frame_num;
+        }
+      }
+    }
+
+    frame_num++;
+
+    if (frame_num >= expected_md.size())
+    {
+      break;
+    }
+  }
+
+  vif.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, sync_metadata)
+{
+  std::map<int, std::set<uint64_t>> expected_md = {
+    {0, {1221515219356000, 1221515219396000}},
+    {1, {1221515219426000}},
+    {2, {1221515219456000}},
+    {3, {1221515219486000}},
+    {4, {1221515219516000}}
+  };
+
+  kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
+
+  auto config = vif.get_configuration();
+  vif.set_configuration(config);
+
+  kwiver::vital::path_t video_base_name = "aphill_short";
+  kwiver::vital::path_t video_path = data_dir + "/" + video_base_name + ".ts";
+
+  // Open the video
+  vif.open(video_path);
+
+  auto const& caps = vif.get_implementation_capabilities();
+  EXPECT_TRUE( caps.capability( kwiver::vital::algo::video_input::HAS_METADATA ) );
+
+  kwiver::vital::timestamp ts;
+
+  unsigned int frame_num = 0;
+  while (vif.next_frame(ts))
+  {
+    auto md_vect = vif.frame_metadata();
+
+    EXPECT_TRUE(md_vect.size() > 0)
+      << "Each frame tested should have metadata present";
+
+    for (auto md : md_vect)
+    {
+      EXPECT_TRUE(md->has(kwiver::vital::VITAL_META_UNIX_TIMESTAMP))
+        << "Each of the first five frames should have a UNIX time stamp in"
+        << " its metadata";
+
+      for (auto md_item : *md)
+      {
+        if (md_item.first == kwiver::vital::VITAL_META_UNIX_TIMESTAMP)
+        {
+          EXPECT_TRUE(expected_md[frame_num].find(md_item.second->as_uint64())
+                      != expected_md[frame_num].end())
+            << "UNIX time stamp " << md_item.second->as_uint64()
+            << " was not found in metadata for frame " << frame_num;
+        }
+      }
+    }
+
+    frame_num++;
+
+    if (frame_num >= expected_md.size())
+    {
+      break;
+    }
+  }
+
+  vif.close();
 }
 
 // ----------------------------------------------------------------------------

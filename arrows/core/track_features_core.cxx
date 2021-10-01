@@ -201,7 +201,7 @@ track_features_core
 feature_track_set_sptr
 track_features_core
 ::track(feature_track_set_sptr prev_tracks,
-        unsigned int frame_number,
+        frame_id_t frame_number,
         image_container_sptr image_data,
         image_container_sptr mask) const
 {
@@ -342,9 +342,9 @@ track_features_core
     typedef std::vector<feature_sptr>::const_iterator feat_itr;
     typedef descriptor_set::const_iterator desc_itr;
     feat_itr fit = vf.begin();
-    desc_itr dit = curr_desc->begin();
+    desc_itr dit = curr_desc->cbegin();
     std::vector<vital::track_sptr> new_tracks;
-    for(; fit != vf.end() && dit != curr_desc->end(); ++fit, ++dit)
+    for(; fit != vf.end() && dit != curr_desc->cend(); ++fit, ++dit)
     {
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
