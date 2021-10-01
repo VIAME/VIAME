@@ -10,11 +10,11 @@ mkdir -p ${DOWNLOAD_LOCATION}
 # Download All Optional Packages
 
 # Habcam -
-wget -O ${DOWNLOAD_LOCATION}/download1.zip https://data.kitware.com/api/v1/item/6011e3452fa25629b91ade60/download
+wget -O ${DOWNLOAD_LOCATION}/download1.zip https://viame.kitware.com/api/v1/item/613ed525a28c6cb53f3a0601/download
 unzip -o ${DOWNLOAD_LOCATION}/download1.zip -d ${VIAME_INSTALL}
 
 # SEFSC -
-wget -O ${DOWNLOAD_LOCATION}/download2.zip https://viame.kitware.com/api/v1/item/607e4c9e1d59f90549235c8c/download
+wget -O ${DOWNLOAD_LOCATION}/download2.zip https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download
 unzip -o ${DOWNLOAD_LOCATION}/download2.zip -d ${VIAME_INSTALL}
 
 # PengHead -
@@ -29,6 +29,13 @@ unzip -o ${DOWNLOAD_LOCATION}/download4.zip -d ${VIAME_INSTALL}
 wget -O ${DOWNLOAD_LOCATION}/download5.zip https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download
 unzip -o ${DOWNLOAD_LOCATION}/download5.zip -d ${VIAME_INSTALL}
 
+# MOUSS Deep 7 -
+wget -O ${DOWNLOAD_LOCATION}/download6.zip https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download
+unzip -o ${DOWNLOAD_LOCATION}/download6.zip -d ${VIAME_INSTALL}
+
+# Aerial Penguin
+wget -O ${DOWNLOAD_LOCATION}/download7.zip https://viame.kitware.com/api/v1/item/6155e55365f360b7225ccd62/download
+unzip -o ${DOWNLOAD_LOCATION}/download7.zip -d ${VIAME_INSTALL}
 
 # Ensure Download Location is Removed
 rm -rf ${DOWNLOAD_LOCATION}

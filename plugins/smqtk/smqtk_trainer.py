@@ -61,6 +61,12 @@ class SMQTKTrainer( TrainDetector ):
         self._pipeline_template = ""
         self._output_directory = "category_models"
 
+        self._tmp_directory = "svm_training"
+
+        self._detection_file = os.path.join( self._tmp_directory, "train_dets.csv" )
+        self._list_file = os.path.join( self._tmp_directory, "train_list.txt" )
+        self._label_file = os.path.join( self._tmp_directory, "labels.txt" )
+
     def get_configuration( self ):
         cfg = super( TrainDetector, self ).get_configuration()
         cfg.set_value( "mode", self._mode )
@@ -91,6 +97,17 @@ class SMQTKTrainer( TrainDetector ):
 
         self._viame_install = os.environ['VIAME_INSTALL']
 
+        if not os.path.exists( self._tmp_directory ):
+            os.mkdir( self._tmp_directory )
+
+        self._detection_writer = DetectedObjectSetOutput.create( "viame_csv" )
+        writer_conf = self._detection_writer.get_configuration()
+        self._detection_writer.set_configuration( writer_conf )
+
+        self._detection_writer.open( self._detection_file )
+        self._image_list_writer = open( self._list_file, "w" )
+        self._label_writer = open( self._label_file, "w" )
+
         if len( self._viame_install ) < 0:
             print( "ERROR: VIAME_INSTALL OS variable required" )
             return False
@@ -100,14 +117,28 @@ class SMQTKTrainer( TrainDetector ):
         return True
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
-        for image_file in train_files:
-            root_dir = os.path.dirname( os.path.dirname( image_file ) )
-            if len( self._root_dir ) > 0 and root_dir != self._root_dir:
-                print( "ERROR: Inconsistent root dirs, exiting" )
-                sys.exit( 0 )
-            self._root_dir = root_dir
+        if categories is not None:
+            self._categories = categories.all_class_names()
+        for i in range( len( train_files ) + len( test_files ) ):
+            if i < len( train_files ):
+                filename = train_files[ i ]
+                groundtruth = train_dets[ i ]
+                self._image_list_writer.write( filename + "\n" )
+                self._detection_writer.write_set( groundtruth, os.path.split( filename )[1] )
+            else:
+                filename = test_files[ i-len( train_files ) ]
+                groundtruth = test_dets[ i-len( train_files ) ]
+                self._image_list_writer.write( filename + "\n" )
+                self._detection_writer.write_set( groundtruth, os.path.split( filename )[1] )
 
     def update_model( self ):
+
+        for cat in self._categories:
+            self._label_writer.write( cat + "\n" )
+
+        self._detection_writer.complete()
+        self._image_list_writer.close()
+        self._label_writer.close()
 
         cmd = [ "python.exe" if os.name == 'nt' else "python" ]
 
@@ -115,12 +146,13 @@ class SMQTKTrainer( TrainDetector ):
 
         cmd += [ script,
                  "--init",
-                 "-d", self._root_dir,
+                 "-l", self._list_file,
                  "-p", self._ingest_pipeline,
                  "-logs", "PIPE",
                  "-o", "database",
                  "--build-index",
-                 "-auto-detect-gt", "viame_csv",
+                 "-gt-file", self._detection_file,
+                 "-lbl-file", self._label_file,
                  "--no-reset-prompt",
                  "-install", self._viame_install ]
 

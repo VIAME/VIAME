@@ -281,19 +281,25 @@ def _kwimage_to_kwiver_detections(detections):
     Returns:
         kwiver.vital.types.DetectedObjectSet
     """
+    from kwiver.vital.types.types import ImageContainer, Image
 
+    segmentations = None
     # convert segmentation masks
     if 'segmentations' in detections.data:
-        print( "Warning: segmentations not implemented" )
+        segmentations = detections.data['segmentations']
 
     boxes = detections.boxes.to_tlbr()
     scores = detections.scores
     class_idxs = detections.class_idxs
 
+    if not segmentations:
+        # Placeholders
+        segmentations = (None,) * len(boxes)
+
     # convert to kwiver format, apply threshold
     detected_objects = DetectedObjectSet()
 
-    for tlbr, score, cidx in zip(boxes.data, scores, class_idxs):
+    for tlbr, score, cidx, seg in zip(boxes.data, scores, class_idxs, segmentations):
         class_name = detections.classes[cidx]
 
         bbox_int = np.round(tlbr).astype(np.int32)
@@ -303,6 +309,10 @@ def _kwimage_to_kwiver_detections(detections):
         detected_object_type = DetectedObjectType(class_name, score)
         detected_object = DetectedObject(
             bounding_box, score, detected_object_type)
+        if seg:
+            mask = seg.to_relative_mask().numpy().data
+            detected_object.mask = ImageContainer(Image(mask))
+
         detected_objects.add(detected_object)
     return detected_objects
 

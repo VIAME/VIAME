@@ -366,6 +366,7 @@ simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points )
   {
     return curve;
   }
+
   // Find approximate diameter endpoints
   size_t start = 0, opposite;
   for( int diameter_iter = 0; diameter_iter < 3; ++diameter_iter )
@@ -384,9 +385,11 @@ simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points )
     opposite = start;
     start = i_max;
   }
+
   // Indices for rec and find_max are relative to start
-  auto to_rel = [&]( size_t i ){ return ( i + size - start ) % size; };
-  auto from_rel = [&]( size_t i ){ return ( i + start ) % size; };
+  auto to_rel = [&]( size_t i ) { return ( i + size - start ) % size; };
+  auto from_rel = [&]( size_t i ) { return ( i + start ) % size; };
+
   struct rec
   {
     double sq_dist; size_t l, r, i;
@@ -395,16 +398,22 @@ simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points )
       return this->sq_dist < other.sq_dist;
     }
   };
-  auto find_max = [&]( size_t l, size_t r ){
+
+  auto find_max = [&]( size_t l, size_t r )
+  {
     auto& pl = curve[ from_rel( l ) ]; auto& pr = curve[ from_rel( r ) ];
     double dx = pr.x - pl.x, dy = pr.y - pl.y;
     double sq_dist_den = dx * dx + dy * dy;
-    auto sqrt_sq_dist_num = [&]( size_t i ){
+
+    auto sqrt_sq_dist_num = [&]( size_t i )
+    {
       auto& p = curve[ from_rel( i ) ];
       return std::abs( ( p.x - pl.x ) * dy - ( p.y - pl.y ) * dx );
     };
+
     size_t i = l + 1;
     size_t i_max = i; double ssdn_max = sqrt_sq_dist_num( i );
+
     for( ++i; i < r; ++i )
     {
       auto ssdn = sqrt_sq_dist_num( i );
@@ -416,6 +425,7 @@ simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points )
     }
     return rec{ ssdn_max * ssdn_max / sq_dist_den, l, r, i_max };
   };
+
   // Initialize using the two approximate diameter endpoints and the
   // parts of the curve between them.
   std::vector< bool > keep( size, false );
@@ -423,6 +433,7 @@ simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points )
   std::priority_queue< rec > queue;
   queue.push( find_max( 0, to_rel( opposite ) ) );
   queue.push( find_max( to_rel( opposite ), size ) );
+
   for( size_t keep_count = 2; keep_count < max_points; ++keep_count )
   {
     auto max_rec = queue.top(); queue.pop();
@@ -436,6 +447,7 @@ simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points )
       queue.push( find_max( max_rec.i, max_rec.r ) );
     }
   }
+
   std::vector< cv::Point > result;
   for( size_t i = 0; i < size; ++i )
   {

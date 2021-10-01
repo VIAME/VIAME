@@ -387,11 +387,10 @@ read_detected_object_set_viame_csv::priv
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
     }
 
-#ifdef VIAME_ENABLE_VXL
-    if( m_poly_to_mask && found_optional_field )
-    {
-      std::vector< std::string > poly_strings;
+    std::vector< std::string > poly_strings;
 
+    if( found_optional_field )
+    {
       for( unsigned i = COL_TOT; i < col.size(); i++ )
       {
         if( ( col[i].size() >= 6 && col[i].substr( 0, 6 ) == "(poly)" ) ||
@@ -400,6 +399,25 @@ read_detected_object_set_viame_csv::priv
           poly_strings.push_back( col[i] );
         }
       }
+    }
+
+    std::vector< std::string > poly_string_vertices;
+    std::vector< double > poly_floats;
+
+    if( !poly_strings.empty() )
+    {
+      // Only use the first polygon
+      kwiver::vital::tokenize( poly_strings[0], poly_string_vertices, " ", true );
+      for( size_t i = 1; i < poly_string_vertices.size(); ++i )
+      {
+        poly_floats.push_back( std::stof( poly_string_vertices[ i ] ) );
+      }
+      dob->set_flattened_polygon( poly_floats );
+    }
+
+#ifdef VIAME_ENABLE_VXL
+    if( m_poly_to_mask && found_optional_field )
+    {
 
       if( !poly_strings.empty() )
       {

@@ -62,7 +62,7 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 # Add core utilities enable flags
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
-option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             ON )
+option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
 option( VIAME_ENABLE_SEAL_TK        "Enable Seal-TK GUI"            OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
@@ -210,6 +210,12 @@ option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled" 
 mark_as_advanced( VIAME_BUILD_TESTS )
 
 ###
+# Helper macros used across all cmakelists files in this project
+##
+include( common_macros )
+include( old_version_checks )
+
+###
 # Add logic and error checking relating to enable flags
 ##
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
@@ -251,18 +257,17 @@ if( VIAME_ENABLE_PYTHON )
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        NOT EXISTS ${Python_INCLUDE_DIR}/pyconfig.h )
-      message( FATAL_ERROR "pyconfig.h does not exist in your Python_INCLUDE_DIR "
-        "make sure the variable is set correctly and you have python-dev installed." )
-    endif()
-
-    if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
         NOT Python_VERSION VERSION_EQUAL "3.6.5" )
       message( FATAL_ERROR "Short-term, the only tested python distribution is "
         "Anaconda3 5.2.0, either install that version or set the cmake flag "
         "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
     endif()
   endif()
+
+  # Backwards compatibility for sub-projects which use "PYTHON_" cmake
+  # variables and the old find_package( PythonInterp ) commands instead
+  # of the newer find Python. Copies all Python_* to PYTHON_* vars.
+  CopyVarsToAllCaps( "Python" )
 
   if( VIAME_ENABLE_PYTHON-NETHARN AND NOT VIAME_ENABLE_PYTHON-MMDET )
     message( FATAL_ERROR "Netharn currently also required mmdet enabled" )
@@ -326,11 +331,6 @@ if( VIAME_ENABLE_CUDA )
         set( CUDA_VERSION_PATCH "${CMAKE_MATCH_3}" )
       endif()
     endif()
-  endif()
-
-  if( CUDA_VERSION_MAJOR GREATER_EQUAL "11" )
-    message( FATAL_ERROR "CUDA 11 is not fully tested and likely has compiler errors, \
-      though will be supported soon. If feeling adventurous you can disable this error." )
   endif()
 
   if( CUDA_VERSION VERSION_EQUAL "10.1" AND CUDA_VERSION_PATCH EQUAL "168" )
@@ -417,8 +417,14 @@ if( VIAME_ENABLE_CUDNN )
     set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
   endif()
 
-  if( EXISTS "${CUDNN_INCLUDE_FILE}" )
-    file( READ "${CUDNN_INCLUDE_FILE}" TMP_CUDNN_VERSION_FILE_CONTENTS )
+  if( EXISTS "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
+    set( CUDNN_VERSION_FILE "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
+  else()
+    set( CUDNN_VERSION_FILE "${CUDNN_INCLUDE_FILE}" )
+  endif()
+
+  if( EXISTS "${CUDNN_VERSION_FILE}" )
+    file( READ "${CUDNN_VERSION_FILE}" TMP_CUDNN_VERSION_FILE_CONTENTS )
 
     string( REGEX MATCH "define CUDNN_MAJOR * +([0-9]+)"
             CUDNN_VERSION_MAJOR "${TMP_CUDNN_VERSION_FILE_CONTENTS}" )
@@ -464,12 +470,6 @@ if( CMAKE_SIZEOF_VOID_P EQUAL 4 )
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT")
 endif()
-
-# Include internal common CMake macros used across all CMakeLists.txt
-include( common_macros )
-
-# Include checks across all prior versions of the code
-include( old_version_checks )
 
 ###
 # Main build loop for when we are building both VIAME and all dependencies

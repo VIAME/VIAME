@@ -14,7 +14,7 @@ set( VIAME_FLETCH_BUILD_DIR "${VIAME_BUILD_PREFIX}/src/fletch-build"
 mark_as_advanced( VIAME_FLETCH_BUILD_DIR )
 
 if( VIAME_ENABLE_PYTHON )
-  FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
+  FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
 endif()
 
 if( VIAME_ENABLE_CUDA )

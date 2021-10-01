@@ -10,4 +10,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
 
 # Run pipeline
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/measurement.gmm_only.pipe
+kwiver runner ${VIAME_INSTALL}/configs/pipelines/measurement_gmm_only.pipe

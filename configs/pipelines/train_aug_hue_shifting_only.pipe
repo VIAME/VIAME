@@ -1,0 +1,65 @@
+# ============================ GLOBAL PROPERTIES ===============================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==============================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+process image_reader
+ :: image_file_reader
+ :image_reader:type                            vxl
+
+connect from in_adapt.input_file_name
+        to   image_reader.image_file_name
+
+# ==============================================================================
+
+process random_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :random_grayscale                          0.20
+    :force_three_channel                       true
+  endblock
+
+connect from image_reader.image
+        to   random_grey.image
+
+process random_hue
+  :: image_filter
+  :filter:type                                 ocv_random_hue_shift
+
+  block filter:ocv_random_hue_shift
+    :trigger_percent                           0.33
+    :hue_range                                 10.0
+    :rgb_shift_range                           25.0
+  endblock
+
+connect from random_grey.image
+        to   random_hue.image
+
+# ==============================================================================
+
+process image_writer
+ :: image_writer
+ :image_writer:type                             vxl
+ :image_writer:vxl:split_channels               false
+ 
+connect from in_adapt.output_file_name
+        to   image_writer.image_file_name
+connect from random_hue.image
+        to   image_writer.image
+
+connect from image_writer.success_flag
+        to   out_adapt.success_flag
+
+
+# -- end of file --

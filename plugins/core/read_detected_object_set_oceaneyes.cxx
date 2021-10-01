@@ -48,16 +48,6 @@
 namespace viame
 {
 
-enum
-{
-  COL_FRAME_ID=0,      // 0: Object ID
-  COL_SPECIES_ID=4,    // 4: Species Label
-  COL_FISH_CONF=6,     // 6: Fish confidence
-  COL_SPEC_CONF=7,     // 7: Species confidence
-  COL_IS_HEAD_TAIL=10, // 10: Is head tail valid
-  COL_HEAD_TAIL=11     // 11: Head tail locations
-};
-
 double filter_number( std::string str )
 {
   str.erase( std::remove( str.begin(), str.end(), '('), str.end() );
@@ -216,17 +206,45 @@ read_detected_object_set_oceaneyes::priv
   // Read detections
   m_detection_by_str.clear();
 
+  // Determine version based on header type
+  unsigned version = 1;
+
   while( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
     kwiver::vital::tokenize( line, col, ",", false );
 
-    if( col.empty() ||
-        ( !col[0].empty() && col[0][0] == '#' ) ||
-        ( col[0] == "filename" ) )
+    if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
     {
       continue;
     }
+
+    if( col[0] == "filename"  )
+    {
+      if( line.find( "\"photo location\"" ) != std::string::npos )
+      {
+        version = 2;
+      }
+      continue;
+    }
+    else if( col[0] == "photo location" )
+    {
+      version = 3;
+      continue;
+    }
+
+    // Object ID
+    const unsigned  COL_FRAME_ID = ( version == 3 ? 1 : ( version == 2 ? 0 : 0 ) );
+    // Species Label
+    const unsigned  COL_SPECIES_ID = ( version == 3 ? 5 : ( version == 2 ? 4 : 4 ) );
+    // Fish confidence
+    const int COL_FISH_CONF = ( version == 3 ? -1 : ( version == 2 ? -1 : 6 ) );
+    // Species confidence
+    const int COL_SPEC_CONF = ( version == 3 ? 8 : ( version == 2 ? -1 : 7 ) );
+    // Is head tail valid
+    const int COL_IS_HEAD_TAIL = ( version == 3 ? 11 : ( version == 2 ? -1 : 10 ) );
+    // Head tail locations
+    const int COL_HEAD_TAIL = ( version == 3 ? 12 : ( version == 2 ? 5 : 11 ) );
 
     if( col.size() < COL_SPECIES_ID )
     {
@@ -248,7 +266,7 @@ read_detected_object_set_oceaneyes::priv
         std::make_shared<kwiver::vital::detected_object_set>();
     }
 
-    if( col[ COL_SPECIES_ID ] == c_no_fish_string )
+    if( COL_SPECIES_ID > 0 && col[ COL_SPECIES_ID ] == c_no_fish_string )
     {
       continue;
     }
@@ -258,7 +276,8 @@ read_detected_object_set_oceaneyes::priv
     double x2 = filter_number( col[ COL_HEAD_TAIL + 2 ] );
     double y2 = filter_number( col[ COL_HEAD_TAIL + 3 ] );
 
-    bool is_valid_head_tail = ( col[ COL_IS_HEAD_TAIL ] == "yes" );
+    bool is_valid_head_tail =
+      ( COL_IS_HEAD_TAIL < 0 || col[ COL_IS_HEAD_TAIL ] == "yes" );
 
     double x_min = std::min( x1, x2 );
     double y_min = std::min( y1, y2 );
@@ -297,8 +316,17 @@ read_detected_object_set_oceaneyes::priv
 
     std::string species_label = col[ COL_SPECIES_ID ];
 
-    double species_conf = std::max( std::stod( col[ COL_SPEC_CONF ] ),
-                                    std::stod( col[ COL_FISH_CONF ] ) );
+    double species_conf = 1.0;
+
+    if( COL_SPEC_CONF > 0 && COL_FISH_CONF > 0 )
+    {
+      species_conf = std::max( std::stod( col[ COL_SPEC_CONF ] ),
+                               std::stod( col[ COL_FISH_CONF ] ) );
+    }
+    else if( COL_SPEC_CONF > 0 )
+    {
+      species_conf = std::stod( col[ COL_SPEC_CONF ] );
+    }
 
     species_label = ( species_label.empty() ? "other" : species_label );
     species_conf = ( species_conf == 0.0 ? 0.10 : species_conf );
