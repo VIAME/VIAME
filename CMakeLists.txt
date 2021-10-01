@@ -417,8 +417,14 @@ if( VIAME_ENABLE_CUDNN )
     set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
   endif()
 
-  if( EXISTS "${CUDNN_INCLUDE_FILE}" )
-    file( READ "${CUDNN_INCLUDE_FILE}" TMP_CUDNN_VERSION_FILE_CONTENTS )
+  if( EXISTS "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
+    set( CUDNN_VERSION_FILE "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
+  else()
+    set( CUDNN_VERSION_FILE "${CUDNN_INCLUDE_FILE}" )
+  endif()
+
+  if( EXISTS "${CUDNN_VERSION_FILE}" )
+    file( READ "${CUDNN_VERSION_FILE}" TMP_CUDNN_VERSION_FILE_CONTENTS )
 
     string( REGEX MATCH "define CUDNN_MAJOR * +([0-9]+)"
             CUDNN_VERSION_MAJOR "${TMP_CUDNN_VERSION_FILE_CONTENTS}" )
