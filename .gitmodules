@@ -39,7 +39,7 @@
 	url = https://github.com/VIAME/netharn.git
 [submodule "packages/pytorch-libs/pysot"]
 	path = packages/pytorch-libs/pysot
-	url = https://github.com/VIAME/pysot
+	url = https://github.com/VIAME/pysot.git
 [submodule "packages/seal-tk"]
 	path = packages/seal-tk
 	url = https://github.com/Kitware/seal-tk.git
@@ -51,7 +51,7 @@
 	url = https://github.com/Kitware/keypointgui.git
 [submodule "packages/pytorch-libs/bioharn"]
 	path = packages/pytorch-libs/bioharn
-	url = https://gitlab.kitware.com/viame/bioharn
+	url = https://gitlab.kitware.com/viame/bioharn.git
 [submodule "packages/pytorch-libs/imgaug"]
 	path = packages/pytorch-libs/imgaug
 	url = https://github.com/VIAME/imgaug.git
