@@ -468,7 +468,7 @@ video_input_image_list::priv
   if ( stream_reader.getline( line ) )
   {
     auto resolved_file = line;
-    if ( !ksst::FileExists( resolved_file ) )
+    if ( !ksst::FileExists( resolved_file ) && ! c_disable_image_load )
     {
       // Resolve against specified path
       resolved_file = ksst::FindFile( line, this->c_search_path, true );
@@ -492,7 +492,7 @@ video_input_image_list::priv
   while ( stream_reader.getline( line ) )
   {
     auto resolved_file = line;
-    if ( !ksst::FileExists( resolved_file ) )
+    if ( !ksst::FileExists( resolved_file ) && ! c_disable_image_load )
     {
       resolved_file = data_dir + line;
       if ( !ksst::FileExists( resolved_file ) )
