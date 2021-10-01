@@ -16,7 +16,7 @@ process image_reader
   :video_reader:type                                    image_list
   :video_reader:image_list:image_reader:type                   vxl
   :video_reader:image_list:disable_image_load                 true
-  
+
 process detection_reader
   :: detected_object_input
   :file_name                                             input.csv
