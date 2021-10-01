@@ -9,6 +9,7 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded( module_name ):
       return
 
-    process_factory.add_process('example_filter', 'Example external filter', example_filter)
+    process_factory.add_process( 'example_filter',
+      'Example external filter', example_filter )
 
     process_factory.mark_process_module_as_loaded( module_name )

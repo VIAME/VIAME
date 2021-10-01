@@ -50,12 +50,22 @@ import numpy as np
 import torch
 import pickle
 import os
+import shutil
 import signal
 import sys
 import subprocess
 import threading
 import time
 import random
+
+def copytree( src, dst, symlinks=False, ignore=None ):
+    for item in os.listdir( src ):
+        s = os.path.join( src, item )
+        d = os.path.join( dst, item )
+        if os.path.isdir( s ):
+            shutil.copytree( s, d, symlinks, ignore )
+        else:
+            shutil.copy2( s, d )
 
 class NetHarnTrainer( TrainDetector ):
     """
@@ -71,6 +81,7 @@ class NetHarnTrainer( TrainDetector ):
         self._train_directory = "deep_training"
         self._output_directory = "category_models"
         self._output_prefix = "custom_cfrnn"
+        self._output_plots = True
         self._pipeline_template = ""
         self._gpu_count = -1
         self._tmp_training_file = "training_truth.json"
@@ -99,7 +110,8 @@ class NetHarnTrainer( TrainDetector ):
         self._min_overlap_for_association = 0.90
         self._max_overlap_for_negative = 0.05
         self._max_neg_per_frame = 5
-        self._negative_category = "BACKGROUND"
+        self._negative_category = "background"
+        self._reduce_category = ""
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -112,6 +124,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "output_directory", self._output_directory )
         cfg.set_value( "output_prefix", self._output_prefix )
+        cfg.set_value( "output_plots", str( self._output_plots ) )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
@@ -135,6 +148,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "detector_model", str( self._detector_model ) )
         cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
         cfg.set_value( "negative_category", self._negative_category )
+        cfg.set_value( "reduce_category", self._reduce_category )
 
         return cfg
 
@@ -150,6 +164,7 @@ class NetHarnTrainer( TrainDetector ):
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._output_directory = str( cfg.get_value( "output_directory" ) )
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
+        self._output_plots = strtobool( cfg.get_value( "output_plots" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
@@ -173,6 +188,7 @@ class NetHarnTrainer( TrainDetector ):
         self._detector_model = str( cfg.get_value( "detector_model" ) )
         self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
         self._negative_category = str( cfg.get_value( "negative_category" ) )
+        self._reduce_category = str( cfg.get_value( "reduce_category" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -416,6 +432,11 @@ class NetHarnTrainer( TrainDetector ):
                 if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
                     continue
 
+                if self._reduce_category and gt.type() and \
+                  gt.type().get_most_likely_class() == self._reduce_category and \
+                  random.uniform( 0, 1 ) < 0.90:
+                    continue
+
                 if self._border_exclude > 0:
                     if bbox_min_x <= self._border_exclude:
                         continue
@@ -629,6 +650,14 @@ class NetHarnTrainer( TrainDetector ):
                 sys.exit( 0 )
 
             copyfile( final_model, output_model )
+
+            if self._output_plots:
+                eval_folder = os.path.join( self._train_directory,
+                   "fit", "nice", self._identifier, "eval" )
+                eval_output = os.path.join( self._output_directory,
+                   "eval" )
+                if os.path.exists( eval_folder ):
+                    copytree( eval_folder, eval_output )
 
             # Copy pipeline file
             fin = open( self._pipeline_template )

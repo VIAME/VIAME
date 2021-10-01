@@ -1,0 +1,81 @@
+# Set Input Detections to Contain at Most 25 Output Polygon Points Per Mask
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                             5
+
+# =================================== READERS ======================================
+
+process input
+  :: video_input
+  :video_filename                                       input_list.txt
+  :frame_time                                           1
+  :exit_on_invalid                                      false
+
+  :video_reader:type                                    image_list
+
+  block video_reader:vidl_ffmpeg
+    :time_source                                        start_at_0
+  endblock
+
+  block video_reader:image_list
+    :image_reader:type                                  vxl
+    :skip_bad_images                                    true
+    :disable_image_load                                 false
+
+    block image_reader:vxl
+      :force_byte                                       false
+    endblock
+
+    block image_reader:add_timestamp_from_filename
+      :image_reader:type                                vxl
+
+      block image_reader:vxl
+        :force_byte                                     true
+      endblock
+    endblock
+  endblock
+
+process downsampler
+  :: downsample
+  :target_frame_rate                                    5
+  :burst_frame_count                                    0
+  :burst_frame_break                                    0
+  :renumber_frames                                      true
+
+connect from input.image
+        to   downsampler.input_1
+connect from input.file_name
+        to   downsampler.input_2
+connect from input.frame_rate
+        to   downsampler.frame_rate
+connect from input.timestamp
+        to   downsampler.timestamp
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                            [INSERT_ME]
+  :reader:type                                          viame_csv
+  :reader:viame_csv:poly_to_mask                        true
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
+# ==================================== WRITER ======================================
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                            computed_detections.csv
+  :writer:type                                          viame_csv
+  :writer:viame_csv:mask_to_poly_points                 10
+
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from detection_reader.detected_object_set
+        to   detector_writer.detected_object_set
+
+# -- end of file --

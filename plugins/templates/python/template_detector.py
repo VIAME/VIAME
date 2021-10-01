@@ -1,34 +1,8 @@
-#ckwg +28
-# Copyright 2017 by Kitware, Inc.
-# All rights reserved.
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# INSERT COPYRIGHT STATEMENT OR DELETE THIS
 #
-#  * Redistributions of source code must retain the above copyright notice,
-#    this list of conditions and the following disclaimer.
-#
-#  * Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-#  * Neither name of Kitware, Inc. nor the names of any contributors may be used
-#    to endorse or promote products derived from this software without specific
-#    prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
-# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
+from vital.algo import ImageObjectDetector
 
 from vital.types import Image
 from vital.types import ImageContainer
@@ -36,50 +10,91 @@ from vital.types import DetectedObject
 from vital.types import DetectedObjectSet
 from vital.types import BoundingBox
 
-class @template@_detector(KwiverProcess):
+class @template@Detector( ImageObjectDetector ):
     """
-    This process gets an image as input, does some stuff to it and
-    sends the modified version to the output port.
+    Implementation of ImageObjectDetector class
     """
-    # ----------------------------------------------
-    def __init__(self, conf):
-        KwiverProcess.__init__(self, conf)
+    def __init__( self ):
+        ImageObjectDetector.__init__( self )
 
-        self.add_config_trait("example_param",
-          "example_param",
-          'Default Value',
-          'Text to display to user.')
+        # TODO: Keep these config variables or make new ones
+        self._net_config = ""
+        self._weight_file = ""
+        self._class_names = ""
 
-        self.declare_config_using_trait('example_param')
+    def get_configuration(self):
+        # Inherit from the base class
+        cfg = super( ImageObjectDetector, self ).get_configuration()
 
-        # set up required flags
-        optional = process.PortFlags()
-        required = process.PortFlags()
-        required.add(self.flag_required)
+        # TODO: Keep these config variables or make new ones
+        cfg.set_value( "net_config", self._net_config )
+        cfg.set_value( "weight_file", self._weight_file )
+        cfg.set_value( "class_names", self._class_names )
+        return cfg
 
-        #  declare our input port (port-name,flags)
-        self.declare_input_port_using_trait('image', required)
-        self.declare_output_port_using_trait('detected_object_set', optional)
+    def set_configuration( self, cfg_in ):
+        cfg = self.get_configuration()
+        cfg.merge_config( cfg_in )
 
-    # ----------------------------------------------
-    def _configure(self):
-        self.example_param = self.config_value('example_param')
+        # TODO: Keep these config variables or make new ones
+        self._net_config = str( cfg.get_value( "net_config" ) )
+        self._weight_file = str( cfg.get_value( "weight_file" ) )
+        self._class_names = str( cfg.get_value( "class_names" ) )
 
-        self._base_configure()
+    def check_configuration( self, cfg ):
 
-    # ----------------------------------------------
-    def _step(self):
-        # grab image container from port using traits
-        in_img_c = self.grab_input_using_trait('image')
+        # TODO: Keep these config variables or make new ones
+        if not cfg.has_value( "net_config" ):
+            print( "A network config file must be specified!" )
+            return False
+        if not cfg.has_value( "class_names" ):
+            print( "A class file must be specified!" )
+            return False
+        if not cfg.has_value( "weight_file" ):
+            print( "No weight file specified" )
+            return False
+        return True
 
-        # Get python image from conatiner (just for show)
-        in_img = in_img_c.image()
+    def detect( self, image_data ):
 
-        # Print out example_param to screen
-        print('Example parameter: ' + str(self.example_param))
+        # Convert image to 8-bit numpy
+        input_image = image_data.asarray().astype( 'uint8' )
 
-        # push dummy (empty) detections object to output port
-        detections = DetectedObjectSet()
-        self.push_to_port_using_trait('detected_object_set', detections)
+        # TODO: do something with numpy image producing detections
+        bboxes = []
+        labels = []
 
-        self._base_step()
+        # Convert detections to kwiver format
+        output = DetectedObjectSet()
+
+        for bbox, label in zip( bboxes, labels ):
+
+            bbox_int = bbox.astype( np.int32 )
+
+            bounding_box = BoundingBox( bbox_int[0], bbox_int[1],
+                                        bbox_int[2], bbox_int[3] )
+
+            detected_object_type = DetectedObjectType( label, 1.0 )
+
+            detected_object = DetectedObject( bounding_box,
+                                              np.max( class_confidence ),
+                                              detected_object_type )
+
+            output.add( detected_object )
+
+        return output
+
+def __vital_algorithm_register__():
+    from vital.algo import algorithm_factory
+
+    # Register Algorithm
+    implementation_name = "@template@"
+
+    if algorithm_factory.has_algorithm_impl_name(
+      @template@Detector.static_type_name(), implementation_name ):
+        return
+
+    algorithm_factory.add_algorithm( implementation_name,
+      "@template@ dection inference routine", @template@Detector )
+
+    algorithm_factory.mark_algorithm_as_loaded( implementation_name )

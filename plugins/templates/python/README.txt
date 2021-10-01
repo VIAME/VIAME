@@ -1,6 +1,13 @@
 This directory contains the source files needed to make a loadable
-detector algorithm implementation. The intent is to copy the contents
-of this directory to a new folder in the plugins directory.
+detector algorithm implementation in Python. The intent is to copy the
+contents of this directory to a new folder in the plugins directory or
+and existing folder.
+
+Note: if made in a new plugins directory, the setup_viame.sh or .bat
+script should also be modified to include an import for the new plugin
+(e.g. SPROKIT_PYTHON_MODULES should contain viame.arrows.@template_dir@
+either via adding it to setup_viame script or alternatively the environment
+to load the new python plugin folder).
 
 
 

@@ -130,14 +130,6 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-yolo_v3_seed_model-v1.3.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
-    if( VIAME_DOWNLOAD_MODELS-MOUSS )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5bad56158d777f06b908c473/download
-        00aa39ecdc321b205ed54766441c65aa
-        ${VIAME_DOWNLOAD_DIR}/models-mouss-v2.1.0.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-    endif()
-
     if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/5cbb84d08d777f072b53ab46/download
@@ -161,9 +153,16 @@ if( VIAME_DOWNLOAD_MODELS )
   # Mixed pipelines and models provided by add-on packages
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     DownloadAndInstallAddOn(
-      https://viame.kitware.com/api/v1/item/60d3c198b91def413908961a/download
-      2b0ae73c1adf7ad0e0d476d169c1bd64
-      ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.7.zip )
+      https://viame.kitware.com/api/v1/item/613ed525a28c6cb53f3a0601/download
+      6582b5dd9485727dd40e5582defc0389
+      ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.8.zip )
+  endif()
+
+  if( VIAME_DOWNLOAD_MODELS-MOUSS )
+    DownloadAndInstallAddOn(
+      https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download
+      b597f71305cc446cbbae8421ab7ad798
+      ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.0.zip )
   endif()
 
   # Transformation Models
@@ -270,7 +269,9 @@ set( CORE_PIPELINE_FILES
   pipelines/utility_empty_frame_lbls_1fr.pipe
   pipelines/utility_empty_frame_lbls_10fr.pipe
   pipelines/utility_empty_frame_lbls_100fr.pipe
-  pipelines/utility_empty_frame_lbls_1000fr.pipe )
+  pipelines/utility_empty_frame_lbls_1000fr.pipe
+  pipelines/utility_max_10_points_per_poly.pipe
+  pipelines/utility_max_25_points_per_poly.pipe )
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
@@ -307,12 +308,6 @@ if( VIAME_ENABLE_VIVIA )
   if( VIAME_ENABLE_PYTORCH )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       pipelines/embedded_single_stream/train_deep_detector_cfrnn.pipe )
-  endif()
-
-  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-MOUSS )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/embedded_single_stream/mouss_detector.pipe
-      pipelines/embedded_single_stream/mouss_tracker.pipe )
   endif()
 
   if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
@@ -429,17 +424,6 @@ if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     pipelines/detector_arctic_seal_fusion_yolo.pipe
     pipelines/detector_arctic_seal_eo_yolo.pipe
     pipelines/detector_arctic_seal_ir_yolo.pipe )
-endif()
-
-if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-MOUSS )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/common_mouss_detector.pipe
-    pipelines/common_mouss_detector_with_filter.pipe
-    pipelines/index_mouss.pipe
-    pipelines/index_mouss.no_desc.pipe
-    pipelines/index_mouss.trk.no_desc.pipe
-    pipelines/index_mouss.trk.pipe
-    pipelines/tracker_mouss.pipe )
 endif()
 
 if( VIAME_ENABLE_MATLAB )

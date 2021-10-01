@@ -19,12 +19,23 @@ include common_default_input_with_downsampler.pipe
 
 # Input detections for user initializations
 process detection_reader
-  :: detected_object_input
+  :: read_object_track
   :file_name                                   [INSERT_ME]
   :reader:type                                 viame_csv
+  :reader:viame_csv:single_state_only          true
 
 connect from downsampler.output_2
         to   detection_reader.image_file_name
+
+# Input tracks to merge into set and keep as-is
+process track_reader
+  :: read_object_track
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+  :reader:viame_csv:multi_state_only           true
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
 
 # Tracker algorithm
 include common_short_term_tracker.pipe
@@ -34,10 +45,18 @@ connect from downsampler.output_1
         to   short_term_tracker.image
 connect from downsampler.timestamp
         to   short_term_tracker.timestamp
-connect from detection_reader.detected_object_set
-        to   short_term_tracker.detected_object_set
+connect from detection_reader.object_track_set
+        to   short_term_tracker.initializations
 
 # ================================= OUTPUT TRK DATA ================================
+
+process track_merger
+  :: merge_track_sets
+
+connect from short_term_tracker.object_track_set
+        to   track_merger.object_track_set1
+connect from track_reader.object_track_set
+        to   track_merger.object_track_set2
 
 process track_writer
   :: write_object_track
@@ -46,7 +65,7 @@ process track_writer
   :writer:viame_csv:stream_identifier          input_list.txt
 
 # Connect inputs to track writer
-connect from short_term_tracker.object_track_set
+connect from track_merger.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp
