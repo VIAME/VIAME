@@ -188,12 +188,12 @@ on, it's best to just leave the default enable and disable flags which will buil
 
 <center>
 
-| Flag                         | Description                                                                        |
-|------------------------------|------------------------------------------------------------------------------------|
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)              |
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                  |
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                  |
-| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                  |
+| Flag                         | Description                                                                    |
+|------------------------------|--------------------------------------------------------------------------------|
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)          |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)              |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)              |
+| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)              |
 
 </center>
 
@@ -203,16 +203,17 @@ And a number of flags which control which system utilities and optimizations are
 
 <center>
 
-| Flag                         | Description                                                                        |
-|------------------------------|------------------------------------------------------------------------------------|
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (PyTorch, etc...)            |
-| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                             |
-| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)            |
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                        |
-| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install tree)       |
-| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)         |
-| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                 |
-| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and interfaces              |
+| Flag                         | Description                                                                    |
+|------------------------------|--------------------------------------------------------------------------------|
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all packages                           |
+| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                         |
+| VIAME_ENABLE_DIVE            | Builds DIVE GUI (annotation and training on multiple sequences)                |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (VIEW and SEARCH for annotation and video search)            |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                    |
+| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation (puts in install tree)                |
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default)              |
+| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree             |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and interfaces          |
 
 </center>
 
@@ -222,18 +223,18 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 
 <center>
 
-| Flag                         | Description                                                                        |
-|------------------------------|------------------------------------------------------------------------------------|
-| VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                           |
-| VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                       |
-| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                      |
-| VIAME_ENABLE_SMQTK           | Builds SMQTK plugins to support image/video indexing and search                    |
-| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                     |
-| VIAME_ENABLE_SEAL_TK         | Builds Seal multi-modality GUI                                                     |
-| VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                       |
-| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                   |
-| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                             |
-| VIAME_ENABLE_LANL            | Builds an additional (Matlab) scallop detector                                     |
+| Flag                         | Description                                                                    |
+|------------------------------|--------------------------------------------------------------------------------|
+| VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                       |
+| VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                   |
+| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                  |
+| VIAME_ENABLE_SMQTK           | Builds SMQTK plugins to support image/video indexing and search                |
+| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                 |
+| VIAME_ENABLE_SEAL_TK         | Builds Seal multi-modality GUI                                                 |
+| VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                   |
+| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                               |
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                         |
+| VIAME_ENABLE_LANL            | Builds an additional (Matlab) scallop detector                                 |
 
 </center>
 

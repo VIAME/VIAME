@@ -2,7 +2,7 @@
 #
 # Required symbols are:
 #   VIAME_BUILD_PREFIX - where packages are built
-#   VIAME_BUILD_INSTALL_PREFIX - directory install target
+#   VIAME_INSTALL_PREFIX - directory install target
 #   VIAME_PACKAGES_DIR - location of git submodule packages
 #   VIAME_ARGS_COMMON -
 ##
@@ -22,7 +22,7 @@ if( VIAME_ENABLE_MATLAB )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
+  FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
 endif()
 
 ExternalProject_Add(viame
@@ -50,8 +50,8 @@ ExternalProject_Add(viame
     -DVIAME_CREATE_PACKAGE:BOOL=${VIAME_CREATE_PACKAGE}
     -DVIAME_FIRST_CONFIGURATION:BOOL=${VIAME_FIRST_CONFIGURATION}
     -DVIAME_IN_SUPERBUILD:BOOL=ON
-    -DKWIVER_PYTHON_MAJOR_VERSION:STRING=${PYTHON_VERSION_MAJOR}
-  INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
+    -DKWIVER_PYTHON_MAJOR_VERSION:STRING=${Python_VERSION_MAJOR}
+  INSTALL_DIR ${VIAME_INSTALL_PREFIX}
   )
 
 #if ( VIAME_FORCEBUILD )
