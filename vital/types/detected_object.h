@@ -326,6 +326,15 @@ public:
   void clear_keypoints();
 
   /**
+   * @brief Set length value for this detection
+   *
+   * Set length value for this particular detection.
+   *
+   * @param l Length
+   */
+  void set_length( double l );
+
+  /**
    * @brief Get detection polygon.
    *
    * This method returns the polygon associated with this detection.

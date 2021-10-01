@@ -222,6 +222,7 @@ PYBIND11_MODULE(detected_object, m)
   // Must go through the setter. This is because of the const-issue discussed above.
   .def("descriptor_copy", &python::det_obj_const_safe_descriptor)
   .def("set_descriptor", &python::det_obj_const_safe_set_descriptor)
+  .def("set_length", &det_obj::set_length, py::arg("l"))
   .def_property("bounding_box", &det_obj::bounding_box, &det_obj::set_bounding_box)
   .def_property("geo_point", &det_obj::geo_point, &det_obj::set_geo_point)
   .def_property("confidence", &det_obj::confidence, &det_obj::set_confidence)

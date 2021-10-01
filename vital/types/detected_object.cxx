@@ -252,6 +252,14 @@ detected_object
 }
 
 // ----------------------------------------------------------------------------
+void
+detected_object
+::set_length( double l )
+{
+  m_notes.push_back( ":length=" + std::to_string( l ) );
+}
+
+// ----------------------------------------------------------------------------
 std::vector< vital::point_2d >
 detected_object
 ::polygon() const
