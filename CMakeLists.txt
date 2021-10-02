@@ -437,6 +437,10 @@ if( VIAME_ENABLE_CUDNN )
     set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
   endif()
 
+  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
+    message( FATAL_ERROR "Unable to locate cudnn.h include header" )
+  endif()
+
   set( CUDNN_INCLUDE_DIR "${CUDNN_ROOT_DIR}/include" CACHE INTERNAL "CUDNN include" FORCE )
 
   if( EXISTS "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
