@@ -430,6 +430,10 @@ if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
   set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
 
+  if( CUDNN_ROOT_DIR STREQUAL "/" )
+    set( CUDNN_INCLUDE_FILE "/include/cudnn.h" CACHE INTERNAL "" FORCE )
+  endif()
+
   if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
     get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_ROOT_DIR_TMP}" DIRECTORY )
 
@@ -438,7 +442,7 @@ if( VIAME_ENABLE_CUDNN )
   endif()
 
   if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
-    message( WARNING "Unable to locate cudnn.h include header" )
+    message( ERROR "Unable to locate cudnn.h include header" )
   endif()
 
   set( CUDNN_INCLUDE_DIR "${CUDNN_ROOT_DIR}/include" CACHE INTERNAL "CUDNN include" FORCE )
