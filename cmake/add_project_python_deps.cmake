@@ -31,7 +31,7 @@ if( VIAME_ENABLE_TENSORFLOW )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "dataclasses" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "dataclasses" "typing-extensions" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
