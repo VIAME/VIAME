@@ -416,6 +416,8 @@ if( VIAME_ENABLE_CUDNN )
           ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
     PATH_SUFFIXES lib lib64 )
 
+  get_filename_component( CUDNN_LIBRARY "${CUDNN_LIBRARY}" REALPATH )
+
   if( NOT CUDNN_LIBRARY )
     message( FATAL_ERROR "Unable to locate CUDNN library" )
   endif()
