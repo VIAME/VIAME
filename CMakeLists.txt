@@ -407,9 +407,13 @@ if( VIAME_ENABLE_CUDNN )
   find_library( CUDNN_LIBRARY REQUIRED
     NAMES cudnn libcudnn.so libcudnn.so.8 libcudnn.so.7 libcudnn.so.6
     HINTS ${CUDNN_ROOT_DIR}
-          ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
+          ${CUDNN_ROOT_DIR}/lib
+          ${CUDNN_ROOT_DIR}/lib/x64
           ${CUDA_TOOLKIT_ROOT_DIR}
+          ${CUDA_TOOLKIT_ROOT_DIR}/lib
+          ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
           ${CUDA_TOOLKIT_ROOT_DIR}/lib64
+          ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
     PATH_SUFFIXES lib lib64 )
 
   if( NOT CUDNN_LIBRARY )

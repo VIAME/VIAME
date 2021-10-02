@@ -14,7 +14,7 @@ include(CTestUseLaunchers)
 set(OPTIONS 
   "-DCMAKE_BUILD_TYPE=Release"
   "-DCUDA_TOOLKIT_ROOT_DIR=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.1"
-  "-DCUDNN_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.1/lib/x64"
+  "-DCUDNN_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.1"
   "-DVIAME_CREATE_PACKAGE=ON"
   "-DVIAME_ENABLE_CUDNN=ON"
   "-DVIAME_ENABLE_CUDA=ON"
