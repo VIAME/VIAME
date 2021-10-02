@@ -123,12 +123,15 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_ADV_DEPS pytorch )
 
   set( ARGS_TORCH )
-
-  set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
   set( PYTORCH_VERSION ${VIAME_PYTORCH_VERSION} )
-
   set( CUDA_VER_STR "" )
   set( TORCHVISION_STR "" )
+
+  if( PYTORCH_VERSION VERSION_EQUAL "1.8.2" )
+    set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/lts/1.8/torch_lts.html )
+  else()
+    set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
+  endif()
 
   if( CUDA_VERSION VERSION_EQUAL "11.1" )
     set( CUDA_VER_STR "+cu111" )
