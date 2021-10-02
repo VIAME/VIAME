@@ -137,8 +137,8 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 1.9.1 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.6.0" "1.7.1" "1.9.1" )
+  set( VIAME_PYTORCH_VERSION 1.8.2 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.7.1" "1.8.2" "1.9.1" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   if( WIN32 )
@@ -299,8 +299,8 @@ if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.9.1" AND VIAME_ENABLE_PYTORCH-INTERNAL )
-    message( FATAL_ERROR "Only PyTorch v1.9.1 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
+  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.8.2" AND VIAME_ENABLE_PYTORCH-INTERNAL )
+    message( FATAL_ERROR "Only PyTorch v1.8.2 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
   endif()
 endif()
 
