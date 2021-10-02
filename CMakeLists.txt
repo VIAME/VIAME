@@ -433,6 +433,8 @@ if( VIAME_ENABLE_CUDNN )
     set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
   endif()
 
+  set( CUDNN_INCLUDE_DIR "${CUDNN_ROOT_DIR}/include" CACHE INTERNAL "CUDNN include" FORCE )
+
   if( EXISTS "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
     set( CUDNN_VERSION_FILE "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
   else()
