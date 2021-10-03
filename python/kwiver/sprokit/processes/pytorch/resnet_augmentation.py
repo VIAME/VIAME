@@ -58,7 +58,7 @@ from timeit import default_timer as timer
 from kwiver.vital.util.VitalPIL import get_pil_image
 
 from .utils.grid import Grid
-from .utils.augmented_resnet_feature_extractor import AugmentedResnetFeatureExtractor
+from .utils.resnet_augmenter import AugmentedResnetFeatureExtractor
 from .utils.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 def to_vital(raw_data):
