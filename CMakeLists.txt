@@ -304,9 +304,9 @@ if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER )
 
   if( KWIVER_BUILD_DIR_LENGTH LESS 12 OR PLUGINS_BUILD_DIR_LENGTH LESS 12 )
     message( FATAL_ERROR "VIAME_KWIVER_BUILD_DIR and VIAME_PLUGINS_BUILD_DIR \
-      must be set to a short path (e.g. C:\tmp\kv1 and C:\tmp\vm1) on Windows \
+      must be set to a short path (e.g. C:\\tmp\\kv1 and C:\\tmp\\vm1) on Windows \
       due to a current issue with nesting KWIVER exceeding the 260 character \
-      default filepath size on Windows" )
+      default filepath size." )
   endif()
 endif()
 
@@ -503,8 +503,8 @@ mark_as_advanced( VIAME_FIRST_CONFIGURATION )
 if( MSVC AND VIAME_FIRST_CONFIGURATION )
   set( CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "This specifies what \
     build types (configurations) will be available for selection within \
-	Visual Studio. Options are: Release, RelWithDebInfo, Debug etc. in a \
-	semi-colon seperated list." FORCE )
+	  Visual Studio. Options are: Release, RelWithDebInfo, Debug etc. in a \
+	  semi-colon seperated list." FORCE )
 
   set( VIAME_FIRST_CONFIGURATION FALSE CACHE BOOL "Project has been configured." FORCE )
 endif()
@@ -529,8 +529,8 @@ if( VIAME_BUILD_DEPENDENCIES )
   list( LENGTH fletch_files fletch_length )
 
   if( ${fletch_length} LESS 3 )
-    message( FATAL_ERROR "Fletch directory empty, did you not run the following in your source tree: \n\
-     git submodule update --init --recursive" )
+    message( FATAL_ERROR "Fletch directory empty, did you not run the following in \
+     your source tree: \n git submodule update --init --recursive" )
   endif()
 
   # Include for CMake external project add command
