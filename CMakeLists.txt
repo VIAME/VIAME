@@ -298,6 +298,18 @@ if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
   message( FATAL_ERROR "Building core VIAME plugins require KWIVER" )
 endif()
 
+if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER )
+  string( LENGTH "${VIAME_KWIVER_BUILD_DIR}" KWIVER_BUILD_DIR_LENGTH )
+  string( LENGTH "${VIAME_PLUGINS_BUILD_DIR}" PLUGINS_BUILD_DIR_LENGTH )
+
+  if( KWIVER_BUILD_DIR_LENGTH LESS 12 OR PLUGINS_BUILD_DIR_LENGTH LESS 12 )
+    message( FATAL_ERROR "VIAME_KWIVER_BUILD_DIR and VIAME_PLUGINS_BUILD_DIR \
+      must be set to a short path (e.g. C:\tmp\kv1 and C:\tmp\vm1) on Windows \
+      due to a current issue with nesting KWIVER exceeding the 260 character \
+      default filepath size on Windows" )
+  endif()
+endif()
+
 if( VIAME_ENABLE_PYTORCH )
   if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.8.2" AND VIAME_ENABLE_PYTORCH-INTERNAL )
     message( FATAL_ERROR "Only PyTorch v1.8.2 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
