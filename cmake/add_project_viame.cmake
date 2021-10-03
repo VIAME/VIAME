@@ -7,10 +7,6 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-set( VIAME_PLUGINS_BUILD_DIR "${VIAME_BUILD_PREFIX}/src/viame-build"
-     CACHE STRING "Alternative VIAME plugins build dir" )
-mark_as_advanced( VIAME_PLUGINS_BUILD_DIR )
-
 FormatPassdowns( "VIAME_ENABLE" VIAME_ENABLE_FLAGS )
 FormatPassdowns( "VIAME_DISABLE" VIAME_DISABLE_FLAGS )
 FormatPassdowns( "VIAME_INSTALL" VIAME_INSTALL_FLAGS )

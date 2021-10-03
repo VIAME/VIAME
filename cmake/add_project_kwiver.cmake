@@ -9,10 +9,6 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwiver )
 
-set( VIAME_KWIVER_BUILD_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
-     CACHE STRING "Alternative KWIVER build dir" )
-mark_as_advanced( VIAME_KWIVER_BUILD_DIR )
-
 set( VIAME_KWIVER_DEPS fletch )
 
 if( VIAME_ENABLE_MATLAB )
