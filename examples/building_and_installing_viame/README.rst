@@ -69,8 +69,8 @@ e.g.:
 
    sudo apt-get install python3.6 python3.6-dev && sudo pip install numpy
 
-If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 9.0 or above
-is required, 9.2 or 10.1 being the tested versions. Other versions may work depending
+If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 10.0 or above
+is required, 11.1 or 10.1 being the tested versions. Other versions may work depending
 on your build settings but are not officially supported yet):
 
 .. code-block:: bash
