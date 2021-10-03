@@ -40,7 +40,6 @@ endif()
 # not have this issue, but we need pthreads and it likes static for some reason
 if( WIN32 )
   add_definitions( -D_TIMESPEC_DEFINED )
-  set( darknet_linked_libs ${darknet_linked_libs} pthreadVC2 )
 
   if( Darknet_USING_GPU )
     set( darknet_linked_libs
