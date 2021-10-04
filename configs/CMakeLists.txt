@@ -66,9 +66,9 @@ if( VIAME_DOWNLOAD_MODELS )
     # Default annotation assist tracking models
     if( VIAME_ENABLE_PYTORCH-PYSOT )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5d2f87ac877dfcc90212d12c/download
-        0bc80c5f339620255fb977e22a159bc7
-        ${VIAME_DOWNLOAD_DIR}/models-pysot_tracking_models-v1.0.0.tar.gz
+        https://viame.kitware.com/api/v1/item/615a7c928c5a9e551dc3c4ef/download
+        c4578d6195e827dc6c4fa2f1c4044939
+        ${VIAME_DOWNLOAD_DIR}/models-pysot_tracking_models-v1.1.0.zip
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
 
@@ -82,9 +82,9 @@ if( VIAME_DOWNLOAD_MODELS )
 
     # Default multi-target tracking models
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5facb1bb50a41e3d194d2af6/download
-      eb66d389e7fd58529b5cd4b00d6b5058
-      ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.2.0.tar.gz
+      https://viame.kitware.com/api/v1/item/615a7c8d9d9b103173c56b46/download
+      b5b54ce63166d13878012387703f4896
+      ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.3.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     # Default descriptor models
