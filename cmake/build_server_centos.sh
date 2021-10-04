@@ -126,6 +126,18 @@ cp -P /usr/local/cuda/lib64/libnvToolsExt.so* install/lib
 
 cp -P /usr/lib64/libnccl.so* install/lib
 
+# HACK: Copy in CUDNN missing .so files not included by
+# create_package, should be removed when this issue is fixed
+cp -P /usr/lib64/libcudnn.so.8* install/lib
+cp -P /usr/lib64/libcudnn_cnn_infer.so.8* install/lib
+cp -P /usr/lib64/libcudnn_ops_infer.so.8* install/lib
+rm install/lib/libcudnn.so || true
+rm install/lib/libcudnn_cnn_infer.so || true
+rm install/lib/libcudnn_ops_infer.so || true
+ln -s libcudnn.so.8 install/lib/libcudnn.so
+ln -s libcudnn_cnn_infer.so.8 install/lib/libcudnn_cnn_infer.so
+ln -s libcudnn_ops_infer.so.8 install/lib/libcudnn_ops_infer.so
+
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
 cp /usr/lib64/libva.so.1 install/lib || true
@@ -141,8 +153,3 @@ cp /usr/lib64/liblapack.so.3 install/lib || true
 cp /usr/lib64/libgfortran.so.3 install/lib || true
 cp /usr/lib64/libquadmath.so.0 install/lib || true
 cp /usr/lib64/libpng15.so.15 install/lib || true
-
-#cp /usr/lib64/libX11.so.6 install/lib || true
-#cp /usr/lib64/libXau.so.6 install/lib || true
-#cp /usr/lib64/libxcb.so.1 install/lib || true
-#cp /usr/lib64/libXext.so.6 install/lib || true

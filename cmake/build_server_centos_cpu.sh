@@ -132,8 +132,3 @@ cp /usr/lib64/libquadmath.so.0 install/lib || true
 wget https://data.kitware.com/api/v1/item/5e33b852af2e2eed35535b92/download
 mv download download.tar.gz
 tar -xvf download.tar.gz
-
-#cp /usr/lib64/libX11.so.6 install/lib || true
-#cp /usr/lib64/libXau.so.6 install/lib || true
-#cp /usr/lib64/libxcb.so.1 install/lib || true
-#cp /usr/lib64/libXext.so.6 install/lib || true
