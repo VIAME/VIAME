@@ -129,16 +129,19 @@ cp -P /usr/lib64/libnccl.so* install/lib
 # HACK: Copy in CUDNN missing .so files not included by
 # create_package, should be removed when this issue is fixed
 cp -P /usr/lib64/libcudnn.so.8* install/lib
+cp -P /usr/lib64/libcudnn_adv_infer.so.8* install/lib
 cp -P /usr/lib64/libcudnn_cnn_infer.so.8* install/lib
 cp -P /usr/lib64/libcudnn_ops_infer.so.8* install/lib
 cp -P /usr/lib64/libcudnn_cnn_train.so.8* install/lib
 cp -P /usr/lib64/libcudnn_ops_train.so.8* install/lib
 rm install/lib/libcudnn.so || true
+rm install/lib/libcudnn_adv_infer.so || true
 rm install/lib/libcudnn_cnn_infer.so || true
 rm install/lib/libcudnn_ops_infer.so || true
 rm install/lib/libcudnn_cnn_train.so || true
 rm install/lib/libcudnn_ops_train.so || true
 ln -s libcudnn.so.8 install/lib/libcudnn.so
+ln -s libcudnn_adv_infer.so.8 install/lib/libcudnn_adv_infer.so
 ln -s libcudnn_cnn_infer.so.8 install/lib/libcudnn_cnn_infer.so
 ln -s libcudnn_ops_infer.so.8 install/lib/libcudnn_ops_infer.so
 ln -s libcudnn_cnn_train.so.8 install/lib/libcudnn_cnn_train.so
