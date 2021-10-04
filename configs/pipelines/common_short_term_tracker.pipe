@@ -4,9 +4,7 @@
 process short_term_tracker
   :: pysot_tracker
 
-  relativepath config_file =                   models/pysot_siammask_r50_l3_config.yaml
-  relativepath model_file =                    models/pysot_siammask_r50_l3_model.pth
-  #relativepath config_file =                  models/pysot_siamrpn_r50_l234_dwxcorr_config.yaml
-  #relativepath model_file =                   models/pysot_siamrpn_r50_l234_dwxcorr_model.pth
+  relativepath config_file =                   models/pysot_default_siamrpn.yaml
+  relativepath model_file =                    models/pysot_default_siamrpn.pth
 
   :threshold                                   0.90
