@@ -131,12 +131,18 @@ cp -P /usr/lib64/libnccl.so* install/lib
 cp -P /usr/lib64/libcudnn.so.8* install/lib
 cp -P /usr/lib64/libcudnn_cnn_infer.so.8* install/lib
 cp -P /usr/lib64/libcudnn_ops_infer.so.8* install/lib
+cp -P /usr/lib64/libcudnn_cnn_train.so.8* install/lib
+cp -P /usr/lib64/libcudnn_ops_train.so.8* install/lib
 rm install/lib/libcudnn.so || true
 rm install/lib/libcudnn_cnn_infer.so || true
 rm install/lib/libcudnn_ops_infer.so || true
+rm install/lib/libcudnn_cnn_train.so || true
+rm install/lib/libcudnn_ops_train.so || true
 ln -s libcudnn.so.8 install/lib/libcudnn.so
 ln -s libcudnn_cnn_infer.so.8 install/lib/libcudnn_cnn_infer.so
 ln -s libcudnn_ops_infer.so.8 install/lib/libcudnn_ops_infer.so
+ln -s libcudnn_cnn_train.so.8 install/lib/libcudnn_cnn_train.so
+ln -s libcudnn_ops_train.so.8 install/lib/libcudnn_ops_train.so
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
