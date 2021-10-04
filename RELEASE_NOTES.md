@@ -11,6 +11,9 @@ v0.17.0 - 10/4/2021
 -YOLOv3 => v4-CSP
 
 
+-Update default tracker models
+
+
 
 v0.16.1 - 7/12/2021
 ===================
