@@ -115,6 +115,10 @@ cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 rm install/lib/libsvm.so
 cp install/lib/libsvm.so.2 install/lib/libsvm.so
 
+# HACK: Copy in darknet executable
+# Should be removed when this issue is fixed
+cp build/src/darknet-build/darknet install/bin || true
+
 # HACK: Copy in CUDA dlls missed by create_package
 # Should be removed when this issue is fixed
 cp -P /usr/local/cuda/lib64/libcudart.so* install/lib
