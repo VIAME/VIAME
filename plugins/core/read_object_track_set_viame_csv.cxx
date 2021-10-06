@@ -175,9 +175,9 @@ read_object_track_set_viame_csv
 {
   if( d->m_multi_state_only && d->m_single_state_only )
   {
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
 
 
