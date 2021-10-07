@@ -92,10 +92,13 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
-import vital.types
-
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObjectType
+from kwiver.vital.types import (
+    BoundingBoxD,
+    DetectedObject,
+    DetectedObjectSet,
+    DetectedObjectType,
+    ImageContainer,
+)
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
@@ -107,9 +110,9 @@ import itertools as it
 
 from . import algos as ctalgo
 
-from sprokit import sprokit_logging
+from kwiver.vital import vital_logging
 
-logger = sprokit_logging.getLogger(__name__)
+logger = vital_logging.getLogger(__name__)
 print = logger.info
 
 
@@ -196,7 +199,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
         Example:
             >>> from viame.processes.camtrawl.processes import *
-            >>> from vital.types import ImageContainer
+            >>> from kwiver.vital.types import ImageContainer
             >>> import kwiver.sprokit.pipeline.config
             >>> # construct dummy process instance
             >>> conf = kwiver.sprokit.pipeline.config.empty_config()
@@ -222,15 +225,15 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         # This should be read as np.uint8
         np_img = img_container.asarray()
 
-        detection_set = vital.types.DetectedObjectSet()
+        detection_set = DetectedObjectSet()
         ct_detections = self.detector.detect(np_img)
 
         for detection in ct_detections:
-            bbox = vital.types.BoundingBox(*detection.bbox.coords)
+            bbox = BoundingBoxD(*detection.bbox.coords)
             mask = detection.mask.astype(np.uint8)
-            vital_mask = vital.types.ImageContainer.fromarray(mask)
+            vital_mask = ImageContainer.fromarray(mask)
             dot = DetectedObjectType("Motion", 1.0)
-            obj = vital.types.DetectedObject(bbox, 1.0, dot, mask=vital_mask)
+            obj = DetectedObject(bbox, 1.0, dot, mask=vital_mask)
             detection_set.add(obj)
         return detection_set
 
@@ -365,7 +368,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
         # Convert back to the format the algorithm understands
         def _detections_from_vital(detection_set):
             for vital_det in detection_set:
-                bbox = vital_det.bounding_box()
+                bbox = vital_det.bounding_box
                 coords = [bbox.min_x(), bbox.min_y(),
                           bbox.max_x(), bbox.max_y()]
                 mask = vital_det.mask.asarray()
