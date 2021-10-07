@@ -14,5 +14,5 @@ set( _rel_modnames
 foreach( rel_modname IN ITEMS ${_rel_modnames} )
   string( REPLACE "." "/" rel_modpath_noext ${rel_modname} )
   kwiver_add_python_module( "${CMAKE_CURRENT_SOURCE_DIR}/${rel_modpath_noext}.py"
-    "viame/processes/camtrawl" "${rel_modname}" )
+    "processes/camtrawl" "${rel_modname}" )
 endforeach()
