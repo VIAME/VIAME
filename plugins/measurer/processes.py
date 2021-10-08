@@ -98,6 +98,7 @@ from kwiver.vital.types import (
     DetectedObjectSet,
     DetectedObjectType,
     ImageContainer,
+    Point2d,
 )
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
@@ -421,9 +422,11 @@ class CamtrawlMeasureProcess(KwiverProcess):
             output1[i1].set_length(match["fishlen"])
             output2[i2].set_length(match["fishlen"])
             head, tail = detections1[i1].center_keypoints()
-            output1[i1].set_head_tail( head[0], head[1], tail[0], tail[1] )
+            output1[i1].add_keypoint('head', Point2d(head))
+            output1[i1].add_keypoint('tail', Point2d(tail))
             head, tail = detections2[i2].center_keypoints()
-            output2[i2].set_head_tail( head[0], head[1], tail[0], tail[1] )
+            output2[i2].add_keypoint('head', Point2d(head))
+            output2[i2].add_keypoint('tail', Point2d(tail))
 
         output1 = DetectedObjectSet(output1)
         output2 = DetectedObjectSet(output2)
