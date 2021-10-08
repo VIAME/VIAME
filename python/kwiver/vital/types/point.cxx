@@ -27,8 +27,8 @@ void declare_point( py::module &m, std::string const& typestr )
   py::class_< Class,
               std::shared_ptr< Class > > p( m, pyclass_name.c_str() );
   p.def( py::init<>() );
-  p.def( py::init< vector_type const& >() );
-  p.def( py::init< vector_type const&, covariance_type const& >() );
+  p.def( py::init< vector_type const&, covariance_type const& >(),
+         py::arg( "value" ), py::arg( "covariance" ) = covariance_type{} );
   p.def( "__str__", [] ( Class const& self )
   {
     std::stringstream s;
