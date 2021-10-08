@@ -62,22 +62,29 @@ class TestVitalPoint(object):
 
     def test_non_default_constructors(self):
         vector_init = np.array([-5, 10])
+        Point2i(vector_init)
         Point2i(vector_init, Covar2f())
         Point2i(vector_init, Covar2f(20))
 
         vector_init = np.random.uniform(low=-10, high=10, size=2)
+        Point2d(vector_init)
+        Point2f(vector_init)
         Point2d(vector_init, Covar2f())
         Point2f(vector_init, Covar2f())
         Point2d(vector_init, Covar2f(20))
         Point2f(vector_init, Covar2f(20))
 
         vector_init = np.random.uniform(low=-10, high=10, size=3)
+        Point3d(vector_init)
+        Point3f(vector_init)
         Point3d(vector_init, Covar3f())
         Point3f(vector_init, Covar3f())
         Point3d(vector_init, Covar3f(20))
         Point3f(vector_init, Covar3f(20))
 
         vector_init = np.random.uniform(low=-10, high=10, size=4)
+        Point4d(vector_init)
+        Point4f(vector_init)
         Point4d(vector_init, Covar4f())
         Point4f(vector_init, Covar4f())
         Point4d(vector_init, Covar4f(20))
@@ -109,7 +116,9 @@ class TestVitalPoint(object):
 
     def test_initial_covariance(self):
         eye2, eye3, eye4 = np.eye(2), np.eye(3), np.eye(4)
+        loc2, loc3, loc4 = np.ones(2), np.ones(3), np.ones(4)
 
+        # Use constructor without arguments
         np.testing.assert_array_equal(Point2i().covariance.matrix(), eye2)
         np.testing.assert_array_equal(Point2d().covariance.matrix(), eye2)
         np.testing.assert_array_equal(Point2f().covariance.matrix(), eye2)
@@ -118,8 +127,16 @@ class TestVitalPoint(object):
         np.testing.assert_array_equal(Point4d().covariance.matrix(), eye4)
         np.testing.assert_array_equal(Point4f().covariance.matrix(), eye4)
 
+        # Use other constructor with location only
+        np.testing.assert_array_equal(Point2i(loc2).covariance.matrix(), eye2)
+        np.testing.assert_array_equal(Point2d(loc2).covariance.matrix(), eye2)
+        np.testing.assert_array_equal(Point2f(loc2).covariance.matrix(), eye2)
+        np.testing.assert_array_equal(Point3d(loc3).covariance.matrix(), eye3)
+        np.testing.assert_array_equal(Point3f(loc3).covariance.matrix(), eye3)
+        np.testing.assert_array_equal(Point4d(loc4).covariance.matrix(), eye4)
+        np.testing.assert_array_equal(Point4f(loc4).covariance.matrix(), eye4)
+
         # Use other constructor with a location and covariance
-        loc2, loc3, loc4 = np.ones(2), np.ones(3), np.ones(4)
         rand_coeff = np.random.uniform(-10, 10)
         cov2, cov3, cov4 = Covar2f(rand_coeff), Covar3f(rand_coeff), Covar4f(rand_coeff)
         cov2_mat, cov3_mat, cov4_mat = cov2.matrix(), cov3.matrix(), cov4.matrix()
