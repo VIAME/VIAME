@@ -393,7 +393,8 @@ endif()
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_short_term_tracker.pipe
-    pipelines/utility_track_user_selections.pipe )
+    pipelines/utility_track_selections_default_mask.pipe
+    pipelines/utility_track_selections_fish_box_only.pipe )
 endif()
 
 if( VIAME_ENABLE_ITK )
