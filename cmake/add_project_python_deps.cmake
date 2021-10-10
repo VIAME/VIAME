@@ -22,12 +22,20 @@ list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.1.1" )
 
 if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "humanfriendly" )
+  set( TF_ARGS "" )
 
-  if( VIAME_ENABLE_CUDA )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow-gpu==1.14" )
+  if( VIAME_TENSORFLOW_VERSION VERSION_LESS "2.0" )
+    if( VIAME_ENABLE_CUDA )
+      set( TF_ARGS "-gpu" )
+    endif()
   else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow==1.14" )
+    if( NOT VIAME_ENABLE_CUDA )
+      set( TF_ARGS "-cpu" )
+    endif()
   endif()
+
+  set( TF_ARGS "${TF_ARGS}==${VIAME_TENSORFLOW_VERSION}" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow${TF_ARGS}" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )

@@ -169,6 +169,15 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
 endif()
 
+###
+# Additional libraries built on tensorflow and versioning
+##
+if( VIAME_ENABLE_TENSORFLOW )
+  set( VIAME_TENSORFLOW_VERSION 2.6.0 CACHE STRING "Tensorflow version to use" )
+  set_property( CACHE VIAME_TENSORFLOW_VERSION PROPERTY STRINGS "1.14.0" "2.6.0" )
+  mark_as_advanced( VIAME_TENSORFLOW_VERSION )
+endif()
+
 # Additional libraries built for ffmpeg
 ##
 if( VIAME_ENABLE_FFMPEG )
