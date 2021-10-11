@@ -223,6 +223,13 @@ else()
   )
 endif()
 
+if( VIAME_ENABLE_TENSORFLOW-MODELS AND NOT VIAME_ENABLE_PYTORCH )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Protobuf:BOOL=ON
+  )
+endif()
+
 if( EXTERNAL_OpenCV )
   set( FLETCH_BUILD_OPENCV OFF )
 else()

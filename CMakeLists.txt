@@ -176,6 +176,8 @@ if( VIAME_ENABLE_TENSORFLOW )
   set( VIAME_TENSORFLOW_VERSION 2.6.0 CACHE STRING "Tensorflow version to use" )
   set_property( CACHE VIAME_TENSORFLOW_VERSION PROPERTY STRINGS "1.14.0" "2.6.0" )
   mark_as_advanced( VIAME_TENSORFLOW_VERSION )
+
+  option( VIAME_ENABLE_TENSORFLOW-MODELS "Enable TensorFlow models repo"   ON )
 endif()
 
 # Additional libraries built for ffmpeg
@@ -604,6 +606,10 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_PYTORCH )
     include( add_project_pytorch )
+  endif()
+
+  if( VIAME_ENABLE_TENSORFLOW )
+    include( add_project_tensorflow )
   endif()
 
   if( VIAME_ENABLE_ITK_EXTRAS )
