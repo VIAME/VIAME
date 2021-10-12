@@ -82,7 +82,7 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS )
     set( PROJECT_DEPS ${PROJECT_DEPS} smqtk )
   endif()
 
-  ExternalProject_Add( ${LIB}
+  ExternalProject_Add( tensorflow-models
     DEPENDS ${PROJECT_DEPS}
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LIBRARY_LOCATION}
@@ -94,7 +94,7 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS )
     )
 
   if( VIAME_FORCEBUILD )
-    ExternalProject_Add_Step( ${LIB} forcebuild
+    ExternalProject_Add_Step( tensorflow-models forcebuild
       COMMAND ${CMAKE_COMMAND}
         -E remove ${VIAME_BUILD_PREFIX}/src/{LIB}-stamp
       COMMENT "Removing build stamp file for build update (forcebuild)."
