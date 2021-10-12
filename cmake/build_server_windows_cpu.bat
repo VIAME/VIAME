@@ -25,12 +25,11 @@ REM ---------------------------------------------------
 SET CPU_ADD_ON_PACKAGE=C:\tmp\VIAME-Windows-CPU.zip
 SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
 
-move "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
+MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
 "C:\Program Files\7-Zip\7z.exe" x -aoa %CPU_ADD_ON_PACKAGE% -o%VIAME_BUILD_DIR%
-move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
+MOVE %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 
-copy /y "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Performance Tools\msvcr120.dll" %VIAME_BUILD_DIR%\VIAME\bin
-copy /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
+COPY /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
 REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
