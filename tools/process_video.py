@@ -405,9 +405,7 @@ def add_final_list_csv( args, video_list ):
 def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='',
                           cpu=0, gpu=None, write_track_time=True ):
 
-  if gpu is None:
-    gpu = 0
-
+  # Generic settings
   multi_threaded = ( options.gpu_count * options.pipes > 1 )
   auto_detect_gt = ( len( options.auto_detect_gt ) > 0 )
   use_gt = ( len( options.gt_file ) > 0 or auto_detect_gt )
@@ -415,10 +413,27 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   input_basename = os.path.basename( input_name )
   input_ext = os.path.splitext( input_name )[1]
 
-  if multi_threaded:
-    log_info( 'Processing: {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+  # GPU checks for logging statements
+  try:
+    import torch
+    has_gpu = torch.cuda.is_available()
+  except Exception as e:
+    has_gpu = False
+
+  if gpu is None and has_gpu:
+    gpu = 0
+
+  # Main logging statements
+  if has_gpu:
+    if multi_threaded:
+      log_info( 'Processing: {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+    else:
+      log_info( 'Processing: {} on GPU... '.format( input_basename ) )
   else:
-    log_info( 'Processing: {} on GPU... '.format( input_basename ) )
+    if multi_threaded:
+      log_info( 'Processing: {} on CPU {}'.format( input_basename, gpu ) + lb1 )
+    else:
+      log_info( 'Processing: {} on CPU... '.format( input_basename ) )
 
   # Get video name without extension and full path
   if len( base_ovrd ) > 0:
