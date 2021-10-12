@@ -10,7 +10,7 @@ from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObjectType
 from kwiver.vital.types import BoundingBoxD
 
-from vital.util.VitalPIL import get_pil_image
+from kwiver.vital.util.VitalPIL import get_pil_image
 
 import numpy as np
 import time
