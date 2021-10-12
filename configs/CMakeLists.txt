@@ -264,16 +264,16 @@ if( VIAME_ENABLE_CUDA )
     pipelines/query_augment_image.pipe
     pipelines/tracker_fish.sfd.pipe )
 else()
-  install( FILE pipelines/common_default_descriptor.cpu.pipe
+  install( FILES pipelines/common_default_descriptor.cpu.pipe
     DESTINATION configs/pipelines
     RENAME common_default_descriptor.pipe )
-  install( FILE pipelines/common_default_tracker.cpu.pipe
+  install( FILES pipelines/common_default_tracker.cpu.pipe
     DESTINATION configs/pipelines
     RENAME common_default_tracker.pipe )
-  install( FILE pipelines/query_augment_image.cpu.pipe
+  install( FILES pipelines/query_augment_image.cpu.pipe
     DESTINATION configs/pipelines
     RENAME query_augment_image.pipe )
-  install( FILE pipelines/tracker_fish.sfd.cpu.pipe
+  install( FILES pipelines/tracker_fish.sfd.cpu.pipe
     DESTINATION configs/pipelines
     RENAME tracker_fish.sfd.pipe )
 endif()
