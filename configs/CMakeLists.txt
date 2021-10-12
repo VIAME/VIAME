@@ -107,7 +107,7 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
-  # Caffe Model Files
+  # Caffe model files
   if( VIAME_ENABLE_CAFFE )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5afe6e1e8d777f15ebe1d6fc/download
@@ -116,7 +116,7 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
-  # YOLO Model Files
+  # YOLO model files
   if( VIAME_ENABLE_DARKNET )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/602b56c72fa25629b9788909/download
@@ -133,7 +133,7 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
-  # Tensorflow Models
+  # Tensorflow models
   if( VIAME_ENABLE_TENSORFLOW )
     if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       DownloadAndExtract(
@@ -159,7 +159,7 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.0.zip )
   endif()
 
-  # Transformation Models
+  # Transformation models
   if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5d6edf99d35580e6dcddbc3b/download
@@ -184,11 +184,9 @@ install( DIRECTORY prj-windows
 ##
 set( CORE_PIPELINE_FILES
   pipelines/classify_detections_svm.pipe
-  pipelines/common_default_descriptor.pipe
   pipelines/common_default_initializer.pipe
   pipelines/common_default_input.pipe
   pipelines/common_default_input_with_downsampler.pipe
-  pipelines/common_default_tracker.pipe
   pipelines/common_fish_detector.pipe
   pipelines/common_fish_detector_with_filter.pipe
   pipelines/common_generic_detector.pipe
@@ -226,7 +224,6 @@ set( CORE_PIPELINE_FILES
   pipelines/index_full_frame.svm.annot_only.pipe
   pipelines/measurement_default.trk.pipe
   pipelines/measurement_gmm_only.pipe
-  pipelines/query_augment_image.pipe
   pipelines/query_image_exemplar.cfe.pipe
   pipelines/query_image_exemplar.pipe
   pipelines/query_retrieval_and_iqr.cfe.pipe
@@ -234,7 +231,6 @@ set( CORE_PIPELINE_FILES
   pipelines/query_video_exemplar.pipe
   pipelines/sql_init_table.sql
   pipelines/tracker_fish.pipe
-  pipelines/tracker_fish.sfd.pipe
   pipelines/tracker_generic.pipe
   pipelines/tracker_local.pipe
   pipelines/tracker_stabilized_iou.pipe
@@ -260,6 +256,29 @@ set( CORE_PIPELINE_FILES
   pipelines/utility_max_10_points_per_poly.pipe
   pipelines/utility_max_25_points_per_poly.pipe )
 
+# Configs which differ based on CPU vs GPU
+if( VIAME_ENABLE_CUDA )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/common_default_descriptor.pipe
+    pipelines/common_default_tracker.pipe
+    pipelines/query_augment_image.pipe
+    pipelines/tracker_fish.sfd.pipe )
+else()
+  install( FILE pipelines/common_default_descriptor.cpu.pipe
+    DESTINATION configs/pipelines
+    RENAME common_default_descriptor.pipe )
+  install( FILE pipelines/common_default_tracker.cpu.pipe
+    DESTINATION configs/pipelines
+    RENAME common_default_tracker.pipe )
+  install( FILE pipelines/query_augment_image.cpu.pipe
+    DESTINATION configs/pipelines
+    RENAME query_augment_image.pipe )
+  install( FILE pipelines/tracker_fish.sfd.cpu.pipe
+    DESTINATION configs/pipelines
+    RENAME tracker_fish.sfd.pipe )
+endif()
+
+# Pytorch specific configs
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/train_detector_default.viame_csv.conf
@@ -267,6 +286,7 @@ if( VIAME_ENABLE_PYTORCH )
     pipelines/train_object_classifier_default.viame_csv.conf )
 endif()
 
+# Darknet specific configs
 if( VIAME_ENABLE_DARKNET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/train_yolo_640.viame_csv.conf
@@ -275,6 +295,7 @@ if( VIAME_ENABLE_DARKNET )
     pipelines/train_yolo_full_res.viame_csv.conf )
 endif()
 
+# Configs used exclusively for VIEW
 if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
     pipelines/embedded_single_stream/filter_debayer.pipe

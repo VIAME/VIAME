@@ -1,0 +1,41 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   5
+
+config _scheduler
+   :type                                       pythread_per_process
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+process augmenter
+  :: pytorch_augmentation
+  :resnet_model_input_size                     224
+  :resnet_batch_size                           32
+  :gpu_list                                    None
+  :negative_sample_count                       500
+  :use_historical_database                     false
+  relativepath resnet_model_path =             models/pytorch-resnet50.pt
+
+connect from in_adapt.image
+        to   augmenter.image
+connect from in_adapt.positive_descriptors
+        to   augmenter.descriptor_set
+connect from in_adapt.positive_detections
+        to   augmenter.detected_object_set
+
+connect from augmenter.new_positive_descriptors
+        to   out_adapt.new_positive_descriptors
+connect from augmenter.new_positive_ids
+        to   out_adapt.new_positive_ids
+connect from augmenter.new_negative_descriptors
+        to   out_adapt.new_negative_descriptors
+connect from augmenter.new_negative_ids
+        to   out_adapt.new_negative_ids
