@@ -727,6 +727,10 @@ else()
       install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_seal_interface.bat"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
+    if( VIAME_ENABLE_DIVE )
+      install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_dive_interface.bat"
+               DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+    endif()
   else()
     set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 
@@ -746,6 +750,10 @@ else()
 
     if( VIAME_ENABLE_SEAL_TK )
       install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
+               DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+    endif()
+    if( VIAME_ENABLE_DIVE )
+      install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_dive_interface.sh"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
   endif()
