@@ -149,8 +149,8 @@ Installing Python and CUDA is also recommended. If using CUDA, version 11.1 or 1
 with CUDNN 8.0. Other CUDA or CUDNN versions may or may not work. On both Windows and Linux it
 is also highly recommended to use [Anaconda3 5.2.0](https://repo.anaconda.com/archive/) for python,
 which is the most tested distribution used by developers. If using other python distributions
-having numpy installed, at a minimum, is necessary and there some issues on certain versions with
-the plugin system used on different version to be fixed on future versions.
+having numpy installed, at a minimum, is necessary, and there may be issues on some other versions
+of python with the plugin loading system VIAME uses depending on the version.
 
 To build on the command line in Linux, use the following commands, only replacing [source-directory]
 and [build-directory] with locations of your choice. While these directories can be the same,
