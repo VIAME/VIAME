@@ -121,12 +121,6 @@ cp -P /usr/local/cuda/lib64/libnppc* install/lib
 
 cp -P /usr/lib64/libnccl.so* install/lib
 
-# HACK: Copy in CUDNN dlls missing by create_package
-# Should be removed when this issue is fixed
-cp -P /usr/lib/x86_64-linux-gnu/libcudnn*so.7* install/lib
-rm install/lib/libcudnn.so || true
-ln -s libcudnn.so.7 install/lib/libcudnn.so
-
 # HACK: Copy in CUDNN missing .so files not included by
 # create_package, should be removed when this issue is fixed
 cp -P /usr/lib/x86_64-linux-gnu/libcudnn.so.8* install/lib
