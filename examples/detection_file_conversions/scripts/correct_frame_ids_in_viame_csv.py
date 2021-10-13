@@ -48,7 +48,7 @@ def read_records(path):
 
                 classifiers = row[len(field_types):]
                 while len(classifiers) >= 2:
-                    record += [classifiers[:2]]
+                    record += classifiers[:2]
                     classifiers = classifiers[2:]
 
                 if len(classifiers):
