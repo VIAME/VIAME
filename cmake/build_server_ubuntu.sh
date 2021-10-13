@@ -104,6 +104,10 @@ cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 rm install/lib/libsvm.so
 cp install/lib/libsvm.so.2 install/lib/libsvm.so
 
+# HACK: Copy in darknet executable
+# Should be removed when this issue is fixed
+cp build/src/darknet-build/darknet install/bin || true
+
 # HACK: Copy in CUDA dlls missed by create_package
 # Should be removed when this issue is fixed
 cp -P /usr/local/cuda/lib64/libcudart.so* install/lib
@@ -115,11 +119,34 @@ cp -P /usr/local/cuda/lib64/libnvToolsExt.so* install/lib
 cp -P /usr/local/cuda/lib64/libnppi* install/lib
 cp -P /usr/local/cuda/lib64/libnppc* install/lib
 
+cp -P /usr/lib64/libnccl.so* install/lib
+
 # HACK: Copy in CUDNN dlls missing by create_package
 # Should be removed when this issue is fixed
 cp -P /usr/lib/x86_64-linux-gnu/libcudnn*so.7* install/lib
 rm install/lib/libcudnn.so || true
 ln -s libcudnn.so.7 install/lib/libcudnn.so
+
+# HACK: Copy in CUDNN missing .so files not included by
+# create_package, should be removed when this issue is fixed
+cp -P /usr/lib/x86_64-linux-gnu/libcudnn.so.8* install/lib
+cp -P /usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8* install/lib
+cp -P /usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8* install/lib
+cp -P /usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8* install/lib
+cp -P /usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8* install/lib
+cp -P /usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8* install/lib
+rm install/lib/libcudnn.so || true
+rm install/lib/libcudnn_adv_infer.so || true
+rm install/lib/libcudnn_cnn_infer.so || true
+rm install/lib/libcudnn_ops_infer.so || true
+rm install/lib/libcudnn_cnn_train.so || true
+rm install/lib/libcudnn_ops_train.so || true
+ln -s libcudnn.so.8 install/lib/libcudnn.so
+ln -s libcudnn_adv_infer.so.8 install/lib/libcudnn_adv_infer.so
+ln -s libcudnn_cnn_infer.so.8 install/lib/libcudnn_cnn_infer.so
+ln -s libcudnn_ops_infer.so.8 install/lib/libcudnn_ops_infer.so
+ln -s libcudnn_cnn_train.so.8 install/lib/libcudnn_cnn_train.so
+ln -s libcudnn_ops_train.so.8 install/lib/libcudnn_ops_train.so
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed

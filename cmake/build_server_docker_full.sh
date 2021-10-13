@@ -112,6 +112,10 @@ cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 rm install/lib/libsvm.so
 cp install/lib/libsvm.so.2 install/lib/libsvm.so
 
+# HACK: Copy in darknet executable
+# Should be removed when this issue is fixed
+cp build/src/darknet-build/darknet install/bin || true
+
 # Remove all source files used for the build to save space and mode
 # viame install to default linux install location
 cd /viame/build
