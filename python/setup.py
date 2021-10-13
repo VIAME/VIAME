@@ -125,12 +125,15 @@ setup(
                 'print_number_process=kwiver.sprokit.processes.kw_print_number_process',
                 'homography_reader=kwiver.sprokit.processes.homography_reader',
                 'homography_writer=kwiver.sprokit.processes.homography_writer',
+                'multicam_homog_det_suppressor=kwiver.sprokit.processes.multicam_homog_det_suppressor',
+                'multicam_homog_tracker=kwiver.sprokit.processes.multicam_homog_tracker',
                 'simple_homog_tracker=kwiver.sprokit.processes.simple_homog_tracker',
                 'alexnet_descriptors=kwiver.sprokit.processes.pytorch.alexnet_descriptors',
                 'resnet_augmentation=kwiver.sprokit.processes.pytorch.resnet_augmentation',
                 'resnet_descriptors=kwiver.sprokit.processes.pytorch.resnet_descriptors',
                 'srnn_tracker=kwiver.sprokit.processes.pytorch.srnn_tracker',
-                'simple_object_detector=kwiver.vital.tests.alg.simple_image_object_detector'
+                'stabilize_many_images=kwiver.sprokit.processes.stabilize_many_images',
+                'simple_object_detector=kwiver.vital.tests.alg.simple_image_object_detector',
                 ],
             'kwiver.cpp_search_paths': [
                 'sprokit_process=kwiver.vital.util.entrypoint:sprokit_process_path',

@@ -72,15 +72,6 @@ PYBIND11_MODULE(feature_track_set, m)
   py::class_<feat_track_set, kwiver::vital::track_set, kwiver::vital::python::feature_track_set_trampoline, std::shared_ptr<feat_track_set>>(m, "FeatureTrackSet")
   .def(py::init<>())
   .def(py::init<std::vector<std::shared_ptr<kwiver::vital::track>>>())
-  .def("all_frame_ids", &feat_track_set::all_frame_ids)
-  .def("get_track", &get_track,
-    py::arg("id"))
-  .def("first_frame", &feat_track_set::first_frame)
-  .def("last_frame", &feat_track_set::last_frame)
-  .def("size", &feat_track_set::size)
-  .def("tracks", &feat_track_set::tracks)
-  // this will require an override in an inheriting python class
-  .def("__len__", &feat_track_set::size)
   // this will still require an override in an inheriting python class
   .def("clone", ([] (feat_track_set& self)
   {

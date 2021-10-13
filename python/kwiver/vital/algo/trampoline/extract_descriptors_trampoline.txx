@@ -53,14 +53,16 @@ class extract_descriptors_trampoline :
              kwiver::vital::feature_set_sptr& features,
              kwiver::vital::image_container_sptr image_mask ) const override
     {
-      VITAL_PYBIND11_OVERLOAD_PURE(
-        kwiver::vital::descriptor_set_sptr,
-        kwiver::vital::algo::extract_descriptors,
-        extract,
-        image_data,
-        features,
-        image_mask
-      );
+      kwiver::vital::python::gil_scoped_acquire gil;
+      pybind11::function overload = pybind11::get_overload( static_cast< const kwiver::vital::algo::extract_descriptors* > ( this ), "extract" );
+      if( overload )
+      {
+        auto o = overload( image_data, features, image_mask );
+        auto r = o.cast< std::pair< kwiver::vital::descriptor_set_sptr, kwiver::vital::feature_set_sptr > >();
+        features = std::move( r.second );
+        return r.first;
+      }
+      pybind11::pybind11_fail( "Tried to call pure virtual function \"kwiver::vital::algo::extract_descriptors::extract\"" );
     }
 };
 

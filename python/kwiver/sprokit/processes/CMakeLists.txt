@@ -18,9 +18,21 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/homography_writer.py
   sprokit/processes
   homography_writer )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
+  sprokit/processes
+  multicam_homog_tracker)
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
+  sprokit/processes
+  multicam_homog_det_suppressor)
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/simple_homog_tracker.py
   sprokit/processes
   simple_homog_tracker)
+
+kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/stabilize_many_images.py
+  sprokit/processes
+  stabilize_many_images)
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/kw_print_number_process.py
   sprokit/processes

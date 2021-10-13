@@ -1,5 +1,5 @@
 # ckwg +29
-# Copyright 2019 by Kitware, Inc.
+# Copyright 2019-2020 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -53,39 +53,83 @@ class Homography(_Homography):
     def transform(self, array):
         """Given a ...x2xN numpy.ndarray of points (row order x, y)
         return a ...x2xN array of transformed points"""
+        return self.matrix_transform(self.matrix, array)
+
+    @staticmethod
+    def matrix_transform(matrix, array):
+        """Like Homography(matrix).transform(array), but broadcasts over
+        matrix
+
+        """
         ones = np.ones(array.shape[:-2] + (1, array.shape[-1]), dtype=array.dtype)
         # Add z coordinate
         array = np.concatenate((array, ones), axis=-2)
-        result = np.matmul(self.matrix, array)
+        result = np.matmul(matrix, array)
         # Remove z coordinate
         return result[..., :-1, :] / result[..., -1:, :]
+
+HomographyF2F = namedtuple('HomographyF2F', [
+    'homog',  # Homography instance
+    'from_id',  # Source coordinate space ID
+    'to_id',  # Destination coordinate space ID
+])
 
 _BBox = namedtuple('_BBox', ['xmin', 'ymin', 'xmax', 'ymax'])
 
 class BBox(_BBox):
     @classmethod
-    def from_points(cls, array):
-        """Given a 2xN numpy.ndarray of points (row order x, y)
-        return the smallest enclosing bounding box"""
-        xmin, ymin = array.min(1)
-        xmax, ymax = array.max(1)
+    def from_matrix(cls, matrix):
+        [[xmin, xmax], [ymin, ymax]] = matrix
         return cls(xmin, ymin, xmax, ymax)
-
-    @property
-    def corners(self):
-        """Return a 2x4 numpy.ndarray of the corner points (row order x, y)"""
-        return np.array([
-            [self.xmin, self.xmin, self.xmax, self.xmax],
-            [self.ymin, self.ymax, self.ymin, self.ymax],
-        ])
 
     @property
     def matrix(self):
         """Return a 2x2 numpy.ndarray (column order min, max; row order x, y)"""
-        return np.array([
-            [self.xmin, self.xmax],
-            [self.ymin, self.ymax],
-        ])
+        return np.array([[self.xmin, self.xmax], [self.ymin, self.ymax]])
+
+    @staticmethod
+    def matrix_area(array):
+        """Like BBox.from_matrix(array).area, but broadcasts"""
+        return (array[..., 1] - array[..., 0]).prod(-1)
+
+    @property
+    def area(self):
+        """Return the area of the bounding box"""
+        return self.matrix_area(self.matrix)
+
+    @staticmethod
+    def matrix_from_points(array):
+        """Like BBox.from_points(array).matrix, but broadcasts"""
+        return np.stack([array.min(-1), array.max(-1)], axis=-1)
+
+    @classmethod
+    def from_points(cls, array):
+        """Given a 2xN numpy.ndarray of points (row order x, y)
+        return the smallest enclosing bounding box"""
+        return cls.from_matrix(cls.matrix_from_points(array))
+
+    @staticmethod
+    def matrix_corners(array):
+        """Like BBox.from_matrix(array).corners, but broadcasts"""
+        if array.shape[-2:] != (2, 2):
+            raise ValueError
+        x, y, m, M = 0, 1, 0, 1  # x, y, min, and max
+        return array[..., [[x], [y]], [[m, m, M, M], [m, M, m, M]]]
+
+    @property
+    def corners(self):
+        """Return a 2x4 numpy.ndarray of the corner points (row order x, y)"""
+        return self.matrix_corners(self.matrix)
+
+    @staticmethod
+    def matrix_center(array):
+        """Like BBox.from_matrix(array).center, but broadcasts"""
+        return array.mean(-1)
+
+    @property
+    def center(self):
+        """Return a length-2 numpy.ndarray of the center point (order x, y)"""
+        return self.matrix_center(self.matrix)
 
 class Transformer(object):
     """A Transformer is a stateful object that receives one tuple of
@@ -117,108 +161,128 @@ class Transformer(object):
 def transform_box(homog, bbox):
     """Transform the bounding box with the given Homography,
     returning the smallest enclosing bounding box"""
-    return BBox.from_points(homog.transform(bbox.corners))
+    return BBox.from_matrix(transform_matrix_box(homog.matrix, bbox.matrix))
 
-def ious(x, y):
+def transform_matrix_box(homog, bbox):
+    """A broadcasting version of
+    transform_box(Homography(homog), BBox.from_matrix(bbox)).matrix
+
+    """
+    tcorners = Homography.matrix_transform(homog, BBox.matrix_corners(bbox))
+    return BBox.matrix_from_points(tcorners)
+
+def ious(x, y, x_area=None, y_area=None):
     """Given two ...x2x2 numpy.ndarrays corresponding to bounding boxes
-    (cf. BBox.matrix), return a ... array of IOU scores"""
+    (cf. BBox.matrix), return a ... array of IOU scores
+
+    If provided, x_area and y_area should be BBox.matrix_area(x) and
+    BBox.matrix_area(y) respectively.
+
+    """
     maxmin = np.maximum(x[..., 0], y[..., 0])
     minmax = np.minimum(x[..., 1], y[..., 1])
     i = (minmax - maxmin).prod(-1)
-    def area(x): return (x[..., 1] - x[..., 0]).prod(-1)
-    u = area(x) + area(y) - i
+    if x_area is None: x_area = BBox.matrix_area(x)
+    if y_area is None: y_area = BBox.matrix_area(y)
+    u = x_area + y_area - i
     return np.where((maxmin < minmax).all(-1), i / u, 0)
 
-def match_boxes_homog(homog, boxes, prev_boxes, min_iou):
+def optimize_iou_based_assignment(iou_array, min_iou):
+    """Given an NxM numpy.ndarray of IOU scores between N source objects
+    and M target objects, return an optimal assignment as an N-length
+    list result such that the ith source object is assigned to the
+    result[i]'th target object, or unassigned if result[i] is None.
+
+    min_iou is the minimum IOU required for a match.
+
+    """
+    # linear_sum_assignment finds a minimum assignment, so subtract
+    # IOUs from 1 (the max)
+    weights = np.where(iou_array < min_iou, 1, 1 - iou_array)
+    source_ind, target_ind = scipy.optimize.linear_sum_assignment(weights)
+    result = [None] * len(iou_array)
+    for si, ti in zip(source_ind, target_ind):
+        if weights[si, ti] < 1:
+            result[si] = ti
+    return result
+
+def match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou):
     """Return a list of indices into prev_boxes, where each index
     identifies the entry of prev_boxes that matches the
     corresponding box in boxes.  A returned value may be None in the
     case of no match.
 
-    homog is a Homography transforming the coordinates of boxes
-    to those of prev_boxes.
+    homog and prev_homog are HomographyF2Fs transforming the
+    coordinates of boxes and prev_boxes, respectively, to
+    reference-frame coordinates.
 
     min_iou is the minimum IOU required for a match."""
-    if not boxes:
-        return []
-    if not prev_boxes:
+    if prev_homog.to_id != homog.to_id:
+        logger.debug("Returning no matches due to break in homography stream")
         return [None] * len(boxes)
+    if not (boxes and prev_boxes):
+        return [None] * len(boxes)
+    prev_homog_, homog_ = prev_homog.homog.matrix, homog.homog.matrix
+    rel_homog = Homography(np.matmul(np.linalg.inv(prev_homog_), homog_))
     # Because aligned bounding boxes are easy to work with, we transform to
     # approximate aligned bounding boxes instead of an arbitrary quadrilateral
-    boxes = [transform_box(homog, b) for b in boxes]
+    boxes = [transform_box(rel_homog, b) for b in boxes]
     # Now boxes and prev_boxes are in the same coordinate system.
     # iou has shape (len(boxes), len(prev_boxes))
     iou = ious(
         np.array([[b.matrix] for b in boxes]),
         np.array([[pb.matrix for pb in prev_boxes]]),
     )
-    # linear_sum_assignment finds a minimum assignment, so subtract
-    # IOUs from 1 (the max)
-    weights = np.where(iou < min_iou, 1, 1 - iou)
-    box_ind, prev_box_ind = scipy.optimize.linear_sum_assignment(weights)
-    result = [None] * len(boxes)
-    for bi, pbi in zip(box_ind, prev_box_ind):
-        if weights[bi, pbi] < 1:
-            result[bi] = pbi
-    return result
+    return optimize_iou_based_assignment(iou, min_iou)
+
+@Transformer.decorate
+def min_track(match):
+    """Create a Transformer that performs minimalistic tracking
+
+    Arguments:
+    - A matching function of signature (context1, seq1, context2,
+      seq2, /) -> result, with:
+      - seq1 and seq2 sequences of some specified type
+      - context1 and context2 arbitrary context objects
+      - result an iterable containing the index of the match in the
+        seq2 for each element in seq1 (or None if no match)
+
+    The .step call expects two arguments:
+    - A sequence of the type expected by the matching function
+    - An additional context object of the type expected by the
+      matching function
+    and returns:
+    - a list of (integer) track IDs
+
+    """
+    def new_id(_c=itertools.count(1)): return next(_c)
+    output = None
+    prev_input = None
+    while True:
+        input_, state = yield output
+        if prev_input is None:
+            track_ids = [new_id() for _ in input_]
+        else:
+            mi = match(state, input_, prev_state, prev_input)
+            track_ids = [new_id() if i is None else track_ids[i] for i in mi]
+        prev_input, prev_state = input_, state
+        output = track_ids
 
 DEFAULT_MIN_IOU = 0.2
 
-@Transformer.decorate
 def core_track(min_iou=None):
     """Create a Transformer that performs tracking (only associating
     tracks with the given minimum IOU).  The .step call expects two
     arguments:
     - A list of BBoxes
-    - A Homography from this-frame coordinates to previous-frame
-      coordinates (or None)
+    - A HomographyF2F from this-frame coordinates to reference-frame
+      coordinates
     and returns:
     - a list of (integer) track IDs corresponding to the input boxes
 
     """
     if min_iou is None: min_iou = DEFAULT_MIN_IOU  # Default value
-    # new_id() gets a new track ID, starting from 1
-    def new_id(_c=itertools.count(1)): return next(_c)
-    output = None
-    prev_boxes = None
-    while True:
-        boxes, homog = yield output
-        if prev_boxes is not None and homog is None:
-            logger.debug("Breaking all tracks after break in homography stream")
-            prev_boxes = None
-        if prev_boxes is None:
-            track_ids = [new_id() for _ in boxes]
-        else:
-            mi = match_boxes_homog(homog, boxes, prev_boxes, min_iou)
-            track_ids = [new_id() if i is None else track_ids[i] for i in mi]
-        prev_boxes = boxes
-        output = track_ids
-
-HomographyF2F = namedtuple('HomographyF2F', [
-    'homog',  # Homography instance
-    'from_id',  # Source coordinate space ID
-    'to_id',  # Destination coordinate space ID
-])
-
-@Transformer.decorate
-def convert_homographies():
-    """Create a Transformer that converts frame-to-frame homographies to
-    homographies to the previous frame, or None if not possible.  The
-    .step call expects one argument:
-    - a HomographyF2F (from this frame to reference frame)
-    and returns a Homography.
-
-    """
-    output = None
-    prev = None
-    while True:
-        curr, = yield output
-        if prev is not None and prev.to_id == curr.to_id:
-            homog = Homography(np.matmul(np.linalg.inv(prev.homog.matrix), curr.homog.matrix))
-        else:
-            homog = None
-        prev = curr
-        output = homog
+    return min_track(functools.partial(match_boxes_homog, min_iou=min_iou))
 
 @Transformer.decorate
 def build_tracks():
@@ -260,7 +324,7 @@ def to_DetectedObject_list(dos):
 
 def get_DetectedObject_bbox(do):
     """Get the bounding box of a Kwiver DetectedObject as a BBox"""
-    bbox = do.bounding_box()
+    bbox = do.bounding_box
     return BBox(bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y())
 
 def to_ObjectTrackSet(tracks):
@@ -290,17 +354,15 @@ def track(min_iou=None):
     - a Kwiver F2FHomography
     - a Kwiver timestamp
     and returns a Kwiver ObjectTrackSet"""
-    ch = convert_homographies()
     ct = core_track(min_iou)
     bt = build_tracks()
 
     output = None
     while True:
         do_set, homog_s2r, ts = yield output
-        homog = ch.step(wrap_F2FHomography(homog_s2r))
         dos = to_DetectedObject_list(do_set)
         boxes = [get_DetectedObject_bbox(do) for do in dos]
-        track_ids = ct.step(boxes, homog)
+        track_ids = ct.step(boxes, wrap_F2FHomography(homog_s2r))
         tracks = bt.step(track_ids, dos, ts)
         output = to_ObjectTrackSet(tracks)
 
