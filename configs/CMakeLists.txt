@@ -82,9 +82,9 @@ if( VIAME_DOWNLOAD_MODELS )
 
     # Default multi-target tracking models
     DownloadAndExtract(
-      https://viame.kitware.com/api/v1/item/615a7c8d9d9b103173c56b46/download
-      b5b54ce63166d13878012387703f4896
-      ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.3.0.zip
+      https://data.kitware.com/api/v1/item/5facb1bb50a41e3d194d2af6/download
+      eb66d389e7fd58529b5cd4b00d6b5058
+      ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.2.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     # Default descriptor models
