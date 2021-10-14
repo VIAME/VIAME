@@ -164,7 +164,7 @@ class NetharnRefiner(RefineDetections):
 
         for i, det in enumerate(detections):
             # Extract chip for this detection
-            bbox = det.bounding_box()
+            bbox = det.bounding_box
 
             bbox_min_x = int(bbox.min_x())
             bbox_max_x = int(bbox.max_x())
@@ -230,7 +230,7 @@ class NetharnRefiner(RefineDetections):
                     class_scores[i] = class_scores[i] * 0.5
 
             detected_object_type = DetectedObjectType(class_names, class_scores)
-            det.set_type(detected_object_type)
+            det.type = detected_object_type
 
             output.add(det)
             detection_ids.pop(0)
