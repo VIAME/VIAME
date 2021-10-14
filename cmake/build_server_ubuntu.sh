@@ -118,6 +118,7 @@ cp -P /usr/local/cuda/lib64/libnvrtc* install/lib
 cp -P /usr/local/cuda/lib64/libnvToolsExt.so* install/lib
 cp -P /usr/local/cuda/lib64/libnppi* install/lib
 cp -P /usr/local/cuda/lib64/libnppc* install/lib
+cp -P /usr/local/cuda/lib64/libcurand.so* install/lib
 
 cp -P /usr/lib64/libnccl.so* install/lib
 
