@@ -1,7 +1,7 @@
 from pathlib import Path
 from textwrap import dedent
 
-PIPELINE_DIR = Path(__file__).parent
+PIPELINE_DIR = Path(__file__).parent / '../configs/pipelines'
 
 def enum1(it): return enumerate(it, 1)
 def range1(x): return range(1, x + 1)
