@@ -42,21 +42,23 @@ Installations
 -------------
 
 For a full installation guide and description of the various flavors of VIAME, see the
-quick-start guide, above. The desktop version is provided as either a .msi, .zip or .tar file.
-Alternatively, docker files are available for both VIAME Desktop and Web (below).
-A sample instance of VIAME Web is also online, hosted at [viame.kitware.com](https://viame.kitware.com).
-For desktop installs, extract the binaries (or use the msi Windows installation wizard)
-and place them in a directory of your choosing, for example /opt/noaa/viame on Linux or
-C:\Program Files\VIAME on Windows. If using packages built with GPU support, make sure to have
-sufficient video drivers installed, version 456.38 or higher. The best way to install drivers
-depends on your operating system, see below. Lastly, run through some of the examples to validate
-the installation. The binaries are quite large, in terms of disk space, due to the inclusion of
-multiple default model files and programs, but if just building your desired features from
-source (e.g. for embedded apps) they are much smaller.
+quick-start guide, above. The desktop version is provided as either a .msi, .zip or .tar
+file. Alternatively, docker files are available for both VIAME Desktop and Web (below).
+A sample instance of VIAME Web is also online alongside an annotation archive, at
+[viame.kitware.com](https://viame.kitware.com). For desktop installs, extract the binaries
+(or use the msi Windows installation wizard) and place them in a directory of your choosing,
+for example /opt/noaa/viame on Linux or C:\Program Files\VIAME on Windows. If using packages
+built with GPU support, make sure to have sufficient video drivers installed, version 456.38
+or higher. The best way to install drivers depends on your operating system, see below. Lastly,
+run through some of the examples to validate the installation. The binaries are quite large,
+in terms of disk space, due to the inclusion of multiple default model files and programs,
+but if just building your desired features from source (e.g. for embedded apps) they are
+much smaller.
 
 **Installation Requirements:** <br>
-Windows 7\*, 8, 10, or 11 64-Bit, RHEL/CentOS 7/8 64-Bit, or Ubuntu 16.04/18.04/20.04 64-Bit <br>
 8 Gb of Disk Space for the Full Installation <br>
+Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
+(MacOS is only supported for running annotators standalone currently, see below). <br>
 
 **Installation Recommendations:** <br>
 NVIDIA Drivers (Version 456.38 or above, 
@@ -71,14 +73,14 @@ CentOS
 [\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)) <br>
 A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
-**Windows Desktop Binaries:** <br>
+**Windows Full Desktop Binaries:** <br>
 VIAME v0.17.1 Windows, GPU Enabled, Wizard (.msi) (Rebuilding) <br>
 [VIAME v0.17.1 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1bb5r6pmUNRZcUrsXGxlYOI0rjVf5IQf1/view?usp=sharing) <br>
 [VIAME v0.17.1 Windows, GPU Enabled, Mirror2 (.zip)](https://viame.kitware.com/api/v1/item/6168c92bc3f32f29923ac324/download) <br>
 [VIAME v0.17.0 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/12fMumVOYme0TtzJ4i2tzAbp0f7c154Av/view?usp=sharing) <br>
 [VIAME v0.17.0 Windows, CPU Only, Mirror2 (.zip)](https://viame.kitware.com/api/v1/item/616885d729b7bf5cd08a88dd/download)
 
-**Linux Desktop Binaries:** <br>
+**Linux Full Desktop Binaries:** <br>
 [VIAME v0.17.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1e0tZ-9WODZZNvDu-wQjkWHOiq_3Z5jaA/view?usp=sharing) <br>
 [VIAME v0.17.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://viame.kitware.com/api/v1/item/61688682af1b84d0cc5c8d58/download) <br>
 VIAME v0.17.1 Linux, CPU Only, Mirror1 (.tar.gz) (Rebuilding) <br>
