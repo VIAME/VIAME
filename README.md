@@ -58,7 +58,8 @@ much smaller.
 **Installation Requirements:** <br>
 * 8 Gb of Disk Space for the Full Installation <br>
 * Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
-  (MacOS is currently only supported running standalone annotation tools, see below). <br>
+  * MacOS is currently only supported running standalone annotation tools, see below. <br>
+  * Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
 **Installation Recommendations:** <br>
 * NVIDIA Drivers (Version 456.38 or above, 
@@ -85,8 +86,6 @@ CentOS
 * [VIAME v0.17.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://viame.kitware.com/api/v1/item/61688682af1b84d0cc5c8d58/download) <br>
 * VIAME v0.17.1 Linux, CPU Only, Mirror1 (.tar.gz) (Rebuilding) <br>
 * VIAME v0.17.1 Linux, CPU Only, Mirror2 (.tar.gz) (Rebuilding)
-
-\*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
