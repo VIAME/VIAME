@@ -56,12 +56,12 @@ but if just building your desired features from source (e.g. for embedded apps) 
 much smaller.
 
 **Installation Requirements:** <br>
-8 Gb of Disk Space for the Full Installation <br>
-Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
-(MacOS is only supported for running annotators standalone currently, see below). <br>
+* 8 Gb of Disk Space for the Full Installation <br>
+* Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
+  (MacOS is only supported for running annotators standalone currently, see below). <br>
 
 **Installation Recommendations:** <br>
-NVIDIA Drivers (Version 456.38 or above, 
+* NVIDIA Drivers (Version 456.38 or above, 
 Windows 
 [\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
 [\[2\]](https://developer.nvidia.com/cuda-downloads)
@@ -71,7 +71,7 @@ Ubuntu
 CentOS 
 [\[1\]](https://developer.nvidia.com/cuda-downloads)
 [\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)) <br>
-A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
+* A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
 VIAME v0.17.1 Windows, GPU Enabled, Wizard (.msi) (Rebuilding) <br>
