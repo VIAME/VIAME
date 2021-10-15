@@ -1,16 +1,18 @@
 
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
 
-VIAME is a computer vision application designed for do-it-yourself artificial intelligence including
-object detection, object tracking, image/video annotation, image/video search, image mosaicing,
-size measurement, rapid model generation, and tools for the evaluation of different algorithms.
-Both a desktop and web version exist for deployments in different types of environments, with
-an open annotation archive and example of the web platform available at
-[viame.kitware.com](https://viame.kitware.com). Originally targetting marine species analytics,
-VIAME now contains many common algorithms and libraries, and is also useful as a generic computer
-vision toolkit. It contains a number of standalone tools for accomplishing the above, a pipeline
-framework which can connect C/C++, python, and matlab nodes together in a multi-threaded fashion,
-and, lastly, multiple algorithms resting on top of the pipeline infrastructure.
+VIAME ([viametoolkit.org](viametoolkit.org)) is a computer vision application designed
+for do-it-yourself artificial intelligence including object detection, object
+tracking, image/video annotation, image/video search, image mosaicing, size measurement,
+rapid model generation, and tools for the evaluation of different algorithms. Both a
+desktop and web version exist for deployments in different types of environments,
+with an open annotation archive and example of the web platform available at
+[viame.kitware.com](https://viame.kitware.com). Originally targetting marine species
+analytics, VIAME now contains many common algorithms and libraries, and is also useful as
+a generic computer vision toolkit. It contains a number of standalone tools for
+accomplishing the above, a pipeline framework which can connect C/C++, python, and matlab
+nodes together in a multi-threaded fashion, and, lastly, multiple algorithms resting on
+top of the pipeline infrastructure.
 
 
 Documentation
