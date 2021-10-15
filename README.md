@@ -58,7 +58,7 @@ much smaller.
 **Installation Requirements:** <br>
 * 8 Gb of Disk Space for the Full Installation <br>
 * Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
-  (MacOS is only supported for running annotators standalone currently, see below). <br>
+  (MacOS is currently only supported running standalone annotation tools, see below). <br>
 
 **Installation Recommendations:** <br>
 * NVIDIA Drivers (Version 456.38 or above, 
@@ -74,46 +74,46 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-VIAME v0.17.1 Windows, GPU Enabled, Wizard (.msi) (Rebuilding) <br>
-[VIAME v0.17.1 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1bb5r6pmUNRZcUrsXGxlYOI0rjVf5IQf1/view?usp=sharing) <br>
-[VIAME v0.17.1 Windows, GPU Enabled, Mirror2 (.zip)](https://viame.kitware.com/api/v1/item/6168c92bc3f32f29923ac324/download) <br>
-[VIAME v0.17.0 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/12fMumVOYme0TtzJ4i2tzAbp0f7c154Av/view?usp=sharing) <br>
-[VIAME v0.17.0 Windows, CPU Only, Mirror2 (.zip)](https://viame.kitware.com/api/v1/item/616885d729b7bf5cd08a88dd/download)
+* VIAME v0.17.1 Windows, GPU Enabled, Wizard (.msi) (Rebuilding) <br>
+* [VIAME v0.17.1 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1bb5r6pmUNRZcUrsXGxlYOI0rjVf5IQf1/view?usp=sharing) <br>
+* [VIAME v0.17.1 Windows, GPU Enabled, Mirror2 (.zip)](https://viame.kitware.com/api/v1/item/6168c92bc3f32f29923ac324/download) <br>
+* [VIAME v0.17.0 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/12fMumVOYme0TtzJ4i2tzAbp0f7c154Av/view?usp=sharing) <br>
+* [VIAME v0.17.0 Windows, CPU Only, Mirror2 (.zip)](https://viame.kitware.com/api/v1/item/616885d729b7bf5cd08a88dd/download)
 
 **Linux Full Desktop Binaries:** <br>
-[VIAME v0.17.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1e0tZ-9WODZZNvDu-wQjkWHOiq_3Z5jaA/view?usp=sharing) <br>
-[VIAME v0.17.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://viame.kitware.com/api/v1/item/61688682af1b84d0cc5c8d58/download) <br>
-VIAME v0.17.1 Linux, CPU Only, Mirror1 (.tar.gz) (Rebuilding) <br>
-VIAME v0.17.1 Linux, CPU Only, Mirror2 (.tar.gz) (Rebuilding)
+* [VIAME v0.17.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1e0tZ-9WODZZNvDu-wQjkWHOiq_3Z5jaA/view?usp=sharing) <br>
+* [VIAME v0.17.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://viame.kitware.com/api/v1/item/61688682af1b84d0cc5c8d58/download) <br>
+* VIAME v0.17.1 Linux, CPU Only, Mirror1 (.tar.gz) (Rebuilding) <br>
+* VIAME v0.17.1 Linux, CPU Only, Mirror2 (.tar.gz) (Rebuilding)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
 **Web Applications**: <br>
-[VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
-[VIAME Web Local Installation Instructions](https://kitware.github.io/dive/Deployment-Overview/) <br>
-[VIAME Web Source Repository](https://github.com/Kitware/dive)
+* [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
+* [VIAME Web Local Installation Instructions](https://kitware.github.io/dive/Deployment-Overview/) <br>
+* [VIAME Web Source Repository](https://github.com/Kitware/dive)
 
 **DIVE Standalone Desktop Annotator:** <br>
-[DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
+* [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
 
 **SEAL Custom Annotator Distribution:** <br>
-[SEAL v0.14.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
-[SEAL v0.14.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
-[SEAL v0.14.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
-[SEAL v0.14.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
+* [SEAL v0.14.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
+* [SEAL v0.14.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
+* [SEAL v0.14.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
+* [SEAL v0.14.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
 
 **Optional Patches:** <br>
-[Motion Detector Models, All OS](https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download) <br>
-[Alternative Generic Detector for IQR, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
-[Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
-[Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
-[HabCam Models (Scallop, Skate, Flatfish), All OS](https://viame.kitware.com/api/v1/item/613ed525a28c6cb53f3a0601/download) <br>
-[Low Memory GPU (For 4+ Gb Cards), All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
-[MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download) <br>
-[Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
-[Sea Lion Models, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download) <br>
-[SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download) <br>
-[EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
+* [Motion Detector Models, All OS](https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download) <br>
+* [Alternative Generic Detector for IQR, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
+* [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
+* [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
+* [HabCam Models (Scallop, Skate, Flatfish), All OS](https://viame.kitware.com/api/v1/item/613ed525a28c6cb53f3a0601/download) <br>
+* [Low Memory GPU (For 4+ Gb Cards), All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
+* [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download) <br>
+* [Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
+* [Sea Lion Models, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download) <br>
+* [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download) <br>
+* [EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom distributions 
