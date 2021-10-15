@@ -4,11 +4,14 @@
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence including
 object detection, object tracking, image/video annotation, image/video search, image mosaicing,
 size measurement, rapid model generation, and tools for the evaluation of different algorithms.
-Originally targetting marine species analytics, it now contains many common algorithms and libraries,
-and is also useful as a generic computer vision toolkit. It contains a number of standalone tools for
-accomplishing the above, a pipeline framework which can connect C/C++, python, and matlab nodes together
-in a multi-threaded fashion, and, lastly, multiple algorithms resting on top of the pipeline infrastructure.
-Both a desktop and web version exist for deployments in different types of environments.
+Both a desktop and web version exist for deployments in different types of environments, with
+an open annotation archive and example of the web platform available at
+[viame.kitware.com](https://viame.kitware.com). Originally targetting marine species analytics,
+VIAME now contains many common algorithms and libraries, and is also useful as a generic computer
+vision toolkit. It contains a number of standalone tools for accomplishing the above, a pipeline
+framework which can connect C/C++, python, and matlab nodes together in a multi-threaded fashion,
+and, lastly, multiple algorithms resting on top of the pipeline infrastructure.
+
 
 Documentation
 -------------
@@ -44,15 +47,14 @@ Installations
 For a full installation guide and description of the various flavors of VIAME, see the
 quick-start guide, above. The desktop version is provided as either a .msi, .zip or .tar
 file. Alternatively, docker files are available for both VIAME Desktop and Web (below).
-A sample instance of VIAME Web is also online alongside an annotation archive, at
-[viame.kitware.com](https://viame.kitware.com). For desktop installs, extract the binaries
-(or use the msi Windows installation wizard) and place them in a directory of your choosing,
-for example /opt/noaa/viame on Linux or C:\Program Files\VIAME on Windows. If using packages
-built with GPU support, make sure to have sufficient video drivers installed, version 456.38
-or higher. The best way to install drivers depends on your operating system, see below. Lastly,
-run through some of the examples to validate the installation. The binaries are quite large,
-in terms of disk space, due to the inclusion of multiple default model files and programs,
-but if just building your desired features from source (e.g. for embedded apps) they are
+For desktop installs, extract the binaries (or use the msi Windows installation wizard)
+and place them in a directory of your choosing, for example /opt/noaa/viame on Linux
+or C:\Program Files\VIAME on Windows. If using packages built with GPU support, make sure
+to have sufficient video drivers installed, version 456.38 or higher. The best way to
+install drivers depends on your operating system, see below. Lastly, run through some
+of the examples to validate the installation. The binaries are quite large, in terms of
+disk space, due to the inclusion of multiple default model files and programs, but
+if just building your desired features from source (e.g. for embedded apps) they are
 much smaller.
 
 **Installation Requirements:** <br>
@@ -141,7 +143,7 @@ but the software can be built either as a super-build, which builds most of its 
 alongside itself, or standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
 Installing Python and CUDA is also recommended. If using CUDA, version 11.1 or 10.1 are preferred,
-with CUDNN 8.0. Other CUDA or CUDNN versions may or may not work. On both Windows and Linux it
+with CUDNN 8. Other CUDA or CUDNN versions may or may not work. On both Windows and Linux it
 is also highly recommended to use [Anaconda3 5.2.0](https://repo.anaconda.com/archive/) for python,
 which is the most tested distribution used by developers. If using other python distributions
 having numpy installed, at a minimum, is necessary, and there may be issues on some other versions
