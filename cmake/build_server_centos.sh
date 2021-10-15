@@ -97,14 +97,10 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Build VIAME first attempt
-make -j$(nproc) -k || true
+make -j$(nproc)
 
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
-
-# HACK: Double tap the build tree
-# Should be removed when non-determinism in kwiver python build fixed
-make -j$(nproc)
 
 # HACK: Copy setup_viame.sh.install over setup_viame.sh
 # Should be removed when this issue is fixed
