@@ -281,9 +281,19 @@ write_detected_object_set_viame_csv
       }
     }
 
+    // Preferentially write out the explicit polygon
+    if( !(*det)->polygon().empty() )
+    {
+      stream() << ",(poly)";
+      auto poly = (*det)->polygon();
+      for( auto&& p : poly )
+      {
+        stream() << " " << p[0] << " " << p[1];
+      }
+    }
 #ifdef VIAME_ENABLE_OPENCV
-    if( (*det)->mask() && ( d->m_mask_to_poly_tol >= 0 ||
-                            d->m_mask_to_poly_points >= 0 ) )
+    else if( (*det)->mask() && ( d->m_mask_to_poly_tol >= 0 ||
+                                 d->m_mask_to_poly_points >= 0 ) )
     {
       using ic = kwiver::arrows::ocv::image_container;
       auto ref_x = static_cast< int >( bbox.min_x() );
