@@ -79,14 +79,24 @@ class DetectedObjectSetInputCoco(DetectedObjectSetInput):
         for ann in annots:
             x, y, w, h = ann['bbox']
             score = ann.get('score', 1.)
-            det_objs.append(vt.DetectedObject(
+            do = vt.DetectedObject(
                 bbox=vt.BoundingBoxD(x, y, x + w, y + h),
                 confidence=score,
                 classifications=vt.DetectedObjectType(
                     self.categories[ann['category_id']],
                     score,
                 ),
-            ))
+            )
+            if 'segmentation' in ann:
+                seg = ann['segmentation']
+                # Support [x1, y1, ..., xn, yn] and [[x1, y1, ..., xn, yn]]
+                if len(seg) == 1:
+                    seg = seg[0]
+                if len(seg) % 2 != 0:
+                    msg = "Polygon must have an even number of coordinates"
+                    raise NotImplementedError(msg)
+                do.set_flattened_polygon(seg)
+            det_objs.append(do)
         return vt.DetectedObjectSet(det_objs)
 
     def _ensure_loaded(self):
