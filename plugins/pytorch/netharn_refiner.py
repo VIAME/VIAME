@@ -217,8 +217,8 @@ class NetharnRefiner(RefineDetections):
                 class_names = [ new_class.classes[new_class.cidx] ]
                 class_scores = [ new_class.conf ]
 
-            if self._average_prior and det.type() is not None:
-                priors = det.type()
+            if self._average_prior and det.type is not None:
+                priors = det.type
                 prior_names = priors.class_names()
                 for name in prior_names:
                     if name in class_names:
