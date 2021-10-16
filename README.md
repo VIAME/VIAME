@@ -77,17 +77,17 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* VIAME v0.17.1 Windows, GPU Enabled, Wizard (.msi) (Rebuilding) <br>
-* [VIAME v0.17.1 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1bb5r6pmUNRZcUrsXGxlYOI0rjVf5IQf1/view?usp=sharing) <br>
-* [VIAME v0.17.1 Windows, GPU Enabled, Mirror2 (.zip)](https://viame.kitware.com/api/v1/item/6168c92bc3f32f29923ac324/download) <br>
-* [VIAME v0.17.0 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/12fMumVOYme0TtzJ4i2tzAbp0f7c154Av/view?usp=sharing) <br>
-* [VIAME v0.17.0 Windows, CPU Only, Mirror2 (.zip)](https://viame.kitware.com/api/v1/item/616885d729b7bf5cd08a88dd/download)
+* VIAME v0.17.2 Windows, GPU Enabled, Wizard (.msi) (Rebuilding) <br>
+* [VIAME v0.17.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/13B6WnCRDOccYSBr8d7hpQPz61suphgSh/view?usp=sharing) <br>
+* [VIAME v0.17.2 Windows, GPU Enabled, Mirror2 (.zip)](https://viame.kitware.com/girder/api/v1/item/616ad7a32ce717e6f1fe42c3/download) <br>
+* [VIAME v0.17.2 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1_gFmGQCO83tC1bC4it2YWIjQNri8VM0n/view?usp=sharing) <br>
+* [VIAME v0.17.2 Windows, CPU Only, Mirror2 (.zip)](https://viame.kitware.com/girder/api/v1/item/616ad7d52e4943f0bdc0b657/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.17.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1e0tZ-9WODZZNvDu-wQjkWHOiq_3Z5jaA/view?usp=sharing) <br>
-* [VIAME v0.17.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://viame.kitware.com/api/v1/item/61688682af1b84d0cc5c8d58/download) <br>
-* VIAME v0.17.1 Linux, CPU Only, Mirror1 (.tar.gz) (Rebuilding) <br>
-* VIAME v0.17.1 Linux, CPU Only, Mirror2 (.tar.gz) (Rebuilding)
+* [VIAME v0.17.2 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1T55NNnzJwx9fdzyNoGCdUtFVD38FfdpY/view?usp=sharing) <br>
+* [VIAME v0.17.2 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://viame.kitware.com/girder/api/v1/item/616adb212e4943f0bdc0b659/download) <br>
+* VIAME v0.17.2 Linux, CPU Only, Mirror1 (.tar.gz) (Rebuilding) <br>
+* VIAME v0.17.2 Linux, CPU Only, Mirror2 (.tar.gz) (Rebuilding)
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
