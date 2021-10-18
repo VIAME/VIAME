@@ -154,8 +154,8 @@ if( VIAME_DOWNLOAD_MODELS )
 
   if( VIAME_DOWNLOAD_MODELS-MOUSS )
     DownloadAndInstallAddOn(
-      https://viame.kitware.com/api/v1/item/61494377a020b1e852638431/download
-      b597f71305cc446cbbae8421ab7ad798
+      https://viame.kitware.com/api/v1/item/616cff65b534940236805c83/download
+      fb2cc34ab913dfa2c2512d3f9a3eac56
       ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.0.zip )
   endif()
 
