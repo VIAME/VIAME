@@ -30,7 +30,7 @@ wget -O ${DOWNLOAD_LOCATION}/download5.zip https://data.kitware.com/api/v1/item/
 unzip -o ${DOWNLOAD_LOCATION}/download5.zip -d ${VIAME_INSTALL}
 
 # MOUSS Deep 7 -
-wget -O ${DOWNLOAD_LOCATION}/download6.zip https://viame.kitware.com/api/v1/item/616cff65b534940236805c83/download
+wget -O ${DOWNLOAD_LOCATION}/download6.zip https://viame.kitware.com/api/v1/item/616d8fb8c3f32f29923ace44/download
 unzip -o ${DOWNLOAD_LOCATION}/download6.zip -d ${VIAME_INSTALL}
 
 # Aerial Penguin
