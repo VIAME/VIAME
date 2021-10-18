@@ -156,7 +156,7 @@ if( VIAME_DOWNLOAD_MODELS )
     DownloadAndInstallAddOn(
       https://viame.kitware.com/api/v1/item/616d9bf7b53494023680648c/download
       c1200d203ba07eaeddf03633d0eb1bf9
-      ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.0.zip )
+      ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.1.zip )
   endif()
 
   # Transformation models
