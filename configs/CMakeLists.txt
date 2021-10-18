@@ -289,10 +289,10 @@ endif()
 # Darknet specific configs
 if( VIAME_ENABLE_DARKNET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/train_yolo_640.viame_csv.conf
-    pipelines/train_yolo_704.habcam.conf
-    pipelines/train_yolo_704.kw18.conf
-    pipelines/train_yolo_full_res.viame_csv.conf )
+    pipelines/train_detector_darknet_yolo_640.viame_csv.conf
+    pipelines/train_detector_darknet_yolo_704.habcam.conf
+    pipelines/train_detector_darknet_yolo_704.kw18.conf
+    pipelines/train_detector_darknet_yolo_full.viame_csv.conf )
 endif()
 
 # Configs used exclusively for VIEW

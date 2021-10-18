@@ -14,7 +14,7 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 
 viame_train_detector.exe ^
   -i "%INPUT_DIRECTORY%" ^
-  -c "%VIAME_INSTALL%\configs\pipelines\train_yolo_704.viame_csv.conf" ^
+  -c "%VIAME_INSTALL%\configs\pipelines\train_detector_darknet_yolo_640.viame_csv.conf" ^
   --threshold 0.0
 
 pause

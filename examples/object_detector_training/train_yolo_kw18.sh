@@ -11,5 +11,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 # Run pipeline
 viame_train_detector \
   -i training_data_mouss \
-  -c ${VIAME_INSTALL}/configs/pipelines/train_yolo_704.kw18.conf \
+  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_darknet_yolo_704.kw18.conf \
   --threshold 0.0
