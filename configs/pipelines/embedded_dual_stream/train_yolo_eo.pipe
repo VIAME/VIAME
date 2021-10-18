@@ -18,11 +18,11 @@ process detector_trainer
   :trainer:type                               darknet
 
   block trainer:darknet
-    relativepath net_config =                 ../models/yolo_v3_train.cfg
-    relativepath seed_weights =               ../models/yolo_v3_seed.wt
+    relativepath net_config =                 ../models/yolo_train.cfg
+    relativepath seed_weights =               ../models/yolo_seed.wt
     relativepath pipeline_template =          ../templates/embedded_yolo.pipe
 
-    :model_type                               yolov3
+    :model_type                               yolov4
     :image_reader:type                        vxl
     :image_reader:vxl:force_byte              true
     :image_reader:vxl:split_channels          false
