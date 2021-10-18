@@ -1,9 +1,9 @@
 #! /bin/bash
 
-# debugging and logging
+# Debugging and logging
 set -x
  
-# install Fletch & VIAME system deps
+# Install Fletch & VIAME system deps
 yum update -y
 yum -y groupinstall 'Development Tools'
 yum install -y zip \
@@ -25,7 +25,15 @@ curl \
 curl-devel \
 atlas-devel \
 file \
-which
+which \
+bzip2 \
+bzip2-devel \
+xz-devel
+
+# Install and use more recent compiler
+yum -y install centos-release-scl
+yum -y install devtoolset-7
+source /opt/rh/devtoolset-7/enable
 
 # Install CMAKE
 wget https://cmake.org/files/v3.17/cmake-3.17.0.tar.gz
@@ -61,7 +69,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DIVE:BOOL=ON \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
 -DVIAME_ENABLE_FFMPEG:BOOL=ON \
--DVIAME_ENABLE_FFMPEG-X264:BOOL=ON \
+-DVIAME_ENABLE_FFMPEG-X264:BOOL=OFF \
 -DVIAME_ENABLE_GDAL:BOOL=ON \
 -DVIAME_ENABLE_FLASK:BOOL=OFF \
 -DVIAME_ENABLE_ITK:BOOL=OFF \
@@ -72,9 +80,9 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
 -DVIAME_ENABLE_PYTHON-INTERNAL:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
--DVIAME_ENABLE_PYTORCH-INTERNAL:BOOL=OFF \
--DVIAME_ENABLE_PYTORCH-MMDET:BOOL=ON \
--DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-INTERNAL:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-MMDET:BOOL=OFF \
+-DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=OFF \
 -DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
 -DVIAME_ENABLE_SEAL_TK:BOOL=OFF \
@@ -86,14 +94,10 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Build VIAME first attempt
-make -j$(nproc) -k || true
+make -j$(nproc)
 
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
-
-# HACK: Double tap the build tree
-# Should be removed when non-determinism in kwiver python build fixed
-make -j$(nproc)
 
 # HACK: Copy setup_viame.sh.install over setup_viame.sh
 # Should be removed when this issue is fixed
@@ -104,14 +108,9 @@ cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 rm install/lib/libsvm.so
 cp install/lib/libsvm.so.2 install/lib/libsvm.so
 
-# HACK: Copy in CUDA dlls missed by create_package
+# HACK: Copy in darknet executable
 # Should be removed when this issue is fixed
-cp -P /usr/local/cuda/lib64/libcudart.so* install/lib
-cp -P /usr/local/cuda/lib64/libcusparse.so* install/lib
-cp -P /usr/local/cuda/lib64/libcufft.so* install/lib
-cp -P /usr/local/cuda/lib64/libcusolver.so* install/lib
-cp -P /usr/local/cuda/lib64/libnvrtc* install/lib
-cp -P /usr/local/cuda/lib64/libnvToolsExt.so* install/lib
+cp build/src/darknet-build/darknet install/bin || true
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
@@ -127,8 +126,4 @@ cp /usr/lib64/libblas.so.3 install/lib || true
 cp /usr/lib64/liblapack.so.3 install/lib || true
 cp /usr/lib64/libgfortran.so.3 install/lib || true
 cp /usr/lib64/libquadmath.so.0 install/lib || true
-
-# HACK: CPU Online Models
-wget https://data.kitware.com/api/v1/item/5e33b852af2e2eed35535b92/download
-mv download download.tar.gz
-tar -xvf download.tar.gz
+cp /usr/lib64/libpng15.so.15 install/lib || true
