@@ -372,6 +372,10 @@ if( VIAME_ENABLE_CUDA )
     message( FATAL_ERROR "Caffe does not support CUDA 10 or above" )
   endif()
 
+  if( CUDA_VERSION_MAJOR VERSION_LESS "10" AND VIAME_ENABLE_DARKNET )
+    message( FATAL_ERROR "Darknet does not support CUDA versions under v10.0" )
+  endif()
+
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
   mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
 
