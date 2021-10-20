@@ -58,3 +58,6 @@
 [submodule "packages/tensorflow-libs/models"]
 	path = packages/tensorflow-libs/models
 	url = https://github.com/tensorflow/models.git
+[submodule "packages/pytorch-libs/mmdet-to-tensorrt"]
+	path = packages/pytorch-libs/mmdet-to-tensorrt
+	url = https://github.com/grimoire/mmdetection-to-tensorrt.git
