@@ -1,3 +1,14 @@
+v0.17.4 - 10/22/2021
+====================
+
+
+-Fix local project folder run in DIVE
+
+
+-Other config file renames
+
+
+
 v0.17.3 - 10/19/2021
 ====================
 
