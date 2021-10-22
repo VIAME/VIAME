@@ -17,22 +17,29 @@ if( VIAME_DOWNLOAD_MODELS )
 
     # Default default and generic detection models
     if( VIAME_ENABLE_PYTORCH-NETHARN )
-      if( VIAME_DOWNLOAD_MODELS-GENERIC )
-        DownloadAndExtract(
-          https://data.kitware.com/api/v1/item/5fb1926250a41e3d1956a3c5/download
-          f4349546a7618366ec75a46291f052a1
-          ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.tar.gz
-          ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-      endif()
-      if( VIAME_DOWNLOAD_MODELS-FISH )
-        DownloadAndExtract(
-          https://data.kitware.com/api/v1/item/5fb1924a50a41e3d1956a3b3/download
-          b2b8406cb14bf1c890fdd79e269404d1
-          ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.tar.gz
-          ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+      if( VIAME_ENABLE_CUDA )
+        if( VIAME_DOWNLOAD_MODELS-GENERIC )
+          DownloadAndExtract(
+            https://data.kitware.com/api/v1/item/5fb1926250a41e3d1956a3c5/download
+            f4349546a7618366ec75a46291f052a1
+            ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.tar.gz
+            ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+        endif()
+        if( VIAME_DOWNLOAD_MODELS-FISH )
+          DownloadAndExtract(
+            https://data.kitware.com/api/v1/item/5fb1924a50a41e3d1956a3b3/download
+            b2b8406cb14bf1c890fdd79e269404d1
+            ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.tar.gz
+            ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+        endif()
+      else()
+        DownloadAndInstallAddOn(
+          https://viame.kitware.com/api/v1/item/6172423562e0e5717e22cc21/download
+          5b8a947d4d9de3ecc7acd8e729652ada
+          ${VIAME_DOWNLOAD_DIR}/VIAME-Default-CPU-Detectors-v1.0.zip )
       endif()
       if( VIAME_DOWNLOAD_MODELS-MOTION )
-         DownloadAndInstallAddOn(
+        DownloadAndInstallAddOn(
           https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download
           6524dd85334d569d30fa9ca7eb570517
           ${VIAME_DOWNLOAD_DIR}/VIAME-Motion-Models-v1.0.zip )
@@ -187,9 +194,7 @@ set( CORE_PIPELINE_FILES
   pipelines/common_default_initializer.pipe
   pipelines/common_default_input.pipe
   pipelines/common_default_input_with_downsampler.pipe
-  pipelines/common_fish_detector.pipe
   pipelines/common_fish_detector_with_filter.pipe
-  pipelines/common_generic_detector.pipe
   pipelines/common_generic_detector_with_filter.pipe
   pipelines/common_image_stabilizer.pipe
   pipelines/common_stabilized_iou_tracker.pipe
@@ -261,6 +266,8 @@ if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_default_descriptor.pipe
     pipelines/common_default_tracker.pipe
+    pipelines/common_fish_detector.pipe
+    pipelines/common_generic_detector.pipe
     pipelines/query_augment_image.pipe
     pipelines/tracker_fish.sfd.pipe )
 else()
@@ -270,6 +277,12 @@ else()
   install( FILES pipelines/common_default_tracker.cpu.pipe
     DESTINATION configs/pipelines
     RENAME common_default_tracker.pipe )
+  install( FILES pipelines/common_fish_detector.cpu.pipe
+    DESTINATION configs/pipelines
+    RENAME common_fish_detector.pipe )
+  install( FILES pipelines/common_generic_detector.cpu.pipe
+    DESTINATION configs/pipelines
+    RENAME common_generic_detector.pipe )
   install( FILES pipelines/query_augment_image.cpu.pipe
     DESTINATION configs/pipelines
     RENAME query_augment_image.pipe )
