@@ -21,7 +21,10 @@ export PIPES_PER_GPU=1
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
+# Set current directory for project folder pipe
+export VIAME_WORKING_DIR="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
+
 python ${VIAME_INSTALL}/configs/process_video.py \
   -l ${INPUT_LIST} -ifrate ${INPUT_FRAME_RATE} -frate ${PROCESS_FRAME_RATE} \
-  -p pipelines/detector_local.pipe -o ${OUTPUT_DIRECTORY} --no-reset-prompt \
+  -p pipelines/detector_project_folder.pipe -o ${OUTPUT_DIRECTORY} --no-reset-prompt \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}

@@ -17,5 +17,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/process_video.py \
   -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
-  -p pipelines/full_frame_classifier_local.pipe -o ${OUTPUT_DIRECTORY} \
+  -p pipelines/frame_classifier_project_folder.pipe -o ${OUTPUT_DIRECTORY} \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}

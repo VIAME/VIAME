@@ -198,8 +198,8 @@ set( CORE_PIPELINE_FILES
   pipelines/detector_extract_chips.pipe
   pipelines/detector_fish_without_motion.pipe
   pipelines/detector_generic_proposals.pipe
-  pipelines/detector_local.pipe
-  pipelines/detector_local_left.pipe
+  pipelines/detector_project_folder.pipe
+  pipelines/detector_project_folder_left.pipe
   pipelines/detector_simple_hough.pipe
   pipelines/detector_svm_models.pipe
   pipelines/display_annotations.pipe
@@ -212,16 +212,16 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_split_and_debayer.pipe
   pipelines/filter_stereo_depth_map.pipe
   pipelines/filter_to_kwa.pipe
-  pipelines/full_frame_classifier_local.pipe
-  pipelines/full_frame_classifier_svm.pipe
+  pipelines/frame_classifier_project_folder.pipe
+  pipelines/frame_classifier_svm.pipe
   pipelines/index_default.pipe
   pipelines/index_default.svm.pipe
   pipelines/index_default.trk.pipe
   pipelines/index_existing.pipe
   pipelines/index_fish.svm.pipe
-  pipelines/index_full_frame.pipe
-  pipelines/index_full_frame.svm.pipe
-  pipelines/index_full_frame.svm.annot_only.pipe
+  pipelines/index_frame.pipe
+  pipelines/index_frame.svm.pipe
+  pipelines/index_frame.svm.annot_only.pipe
   pipelines/measurement_default.trk.pipe
   pipelines/measurement_gmm_only.pipe
   pipelines/query_image_exemplar.cfe.pipe
@@ -232,7 +232,7 @@ set( CORE_PIPELINE_FILES
   pipelines/sql_init_table.sql
   pipelines/tracker_fish.pipe
   pipelines/tracker_generic.pipe
-  pipelines/tracker_local.pipe
+  pipelines/tracker_project_folder.pipe
   pipelines/tracker_stabilized_iou.pipe
   pipelines/tracker_svm_models.pipe
   pipelines/train_aug_add_color_freq.pipe

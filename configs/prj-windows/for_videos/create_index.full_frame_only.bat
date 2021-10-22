@@ -14,6 +14,6 @@ SET PIPES_PER_GPU=1
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -d "%INPUT_DIRECTORY%" -frate %FRAME_RATE% -p pipelines\index_full_frame.pipe -o database -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU% --build-index -install "%VIAME_INSTALL%"
+python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -d "%INPUT_DIRECTORY%" -frate %FRAME_RATE% -p pipelines\index_frame.pipe -o database -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU% --build-index -install "%VIAME_INSTALL%"
 
 pause
