@@ -416,16 +416,16 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/train_detector_netharn_cfrnn.viame_csv.conf
+    pipelines/train_detector_netharn_cfrnn.continue.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn.habcam.conf
     pipelines/train_detector_netharn_cfrnn_motion.viame_csv.conf
-    pipelines/train_detector_netharn_cfrnn_nf.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn_special.viame_csv.conf
-    pipelines/train_detector_netharn_cfrnn.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn_wtf.viame_csv.conf
     pipelines/train_detector_netharn_mask_rcnn.viame_csv.conf
     pipelines/train_object_classifier_netharn_resnet.viame_csv.conf
-    pipelines/train_frame_classifier_netharn_resnet_nf.viame_csv.conf
-    pipelines/train_frame_classifier_netharn_resnet.viame_csv.conf )
+    pipelines/train_frame_classifier_netharn_resnet.viame_csv.conf
+    pipelines/train_frame_classifier_netharn_resnet.continue.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )

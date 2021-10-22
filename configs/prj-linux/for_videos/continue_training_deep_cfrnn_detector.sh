@@ -22,7 +22,7 @@ if [ -f ${INITIAL_MODEL} ]; then
 elif [ -d deep_training ]; then
   viame_train_detector \
     -i ${INPUT_DIRECTORY} \
-    -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn_nf.viame_csv.conf \
+    -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.continue.viame_csv.conf \
     -s detector_trainer:ocv_windowed:skip_format=true \
     --threshold 0.0
 else
