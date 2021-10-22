@@ -17,7 +17,7 @@ include common_default_input_with_downsampler.pipe
 
 # ==================================== DETECTOR ====================================
 
-include $ENV{VIAME_WORKING_DIR}/category_models/detector.pipe
+include $ENV{VIAME_PROJECT_DIR}/category_models/detector.pipe
 
 # Create one-length tracks from detections for timestamp inclusion on videos
 process track_initializer

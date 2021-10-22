@@ -67,7 +67,7 @@ connect from downsampler.output_1
 
 # ==================================== DETECTOR ====================================
 
-include $ENV{VIAME_WORKING_DIR}/category_models/detector.pipe
+include $ENV{VIAME_PROJECT_DIR}/category_models/detector.pipe
 
 process detector_writer
   :: detected_object_output
