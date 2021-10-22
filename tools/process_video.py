@@ -768,14 +768,14 @@ if __name__ == "__main__" :
       log_info( lb1 )
 
     # Check for local pipelines and pre-reqs present
-    if "_local.pipe" in args.pipeline:
+    if "_project_folder.pipe" in args.pipeline:
       if not os.path.exists( "category_models/detector.pipe" ):
         if has_file_with_extension( "category_models", "svm" ):
-          if args.pipeline.endswith( "detector_local.pipe" ):
+          if args.pipeline.endswith( "detector_project_folder.pipe" ):
             args.pipeline = os.path.join( "pipelines", "detector_svm_models.pipe" )
-          elif args.pipeline.endswith( "full_frame_classifier_local.pipe" ):
-            args.pipeline = os.path.join( "pipelines", "full_frame_classifier_svm.pipe" )
-          elif args.pipeline.endswith( "tracker_local.pipe" ):
+          elif args.pipeline.endswith( "frame_classifier_project_folder.pipe" ):
+            args.pipeline = os.path.join( "pipelines", "frame_classifier_svm.pipe" )
+          elif args.pipeline.endswith( "tracker_project_folder.pipe" ):
             args.pipeline = os.path.join( "pipelines", "tracker_svm_models.pipe" )
           else:
             exit_with_error( "Use of this script requires training a detector first" )
