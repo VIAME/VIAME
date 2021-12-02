@@ -14,12 +14,20 @@ python_scheduler = dedent("""\
 
 def make_input_creator():
     default_input = (PIPELINE_DIR / 'common_default_input.pipe').read_text()
-    default_input += '\n'
+    include = '\ninclude common_default_input.pipe\n'
+    downsampler = PIPELINE_DIR / 'common_default_input_with_downsampler.pipe'
+    downsampler = downsampler.read_text().replace(include, '')
+    template = default_input + '\n' + downsampler + '\n'
     def create_input(i):
-        text = (default_input
+        text = (template
                 .replace('process input', f'process input{i}')
-                .replace('input_list.txt', f'input_list_{i}.txt'))
-        ports = [f'input{i}.{p}' for p in ['image', 'file_name', 'timestamp']]
+                .replace('input_list.txt', f'input_list_{i}.txt')
+                .replace('process downsampler', f'process downsampler{i}')
+                .replace('from input', f'from input{i}')
+                .replace('to   downsampler', f'to   downsampler{i}'))
+        # Ports are image, file name, and timestamp
+        ports = 'output_1', 'output_2', 'timestamp'
+        ports = [f'downsampler{i}.{p}' for p in ports]
         return text, ports
     return create_input
 
