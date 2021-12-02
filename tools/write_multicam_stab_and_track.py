@@ -169,18 +169,19 @@ def make_track_initializer():
     return initialize_tracks
 
 def write_tracks(i, track_port, timestamp, file_name):
+    proc = f'track_writer{i}'
     return dedent(f"""\
-        process write_tracks_{i} :: write_object_track
+        process {proc} :: write_object_track
           file_name = tracks{i}.csv
           frame_list_output = track_images_{i}.txt
           writer:type = viame_csv
 
         connect from {track_port}
-                to write_tracks_{i}.object_track_set
+                to {proc}.object_track_set
         connect from {timestamp}
-                to write_tracks_{i}.timestamp
+                to {proc}.timestamp
         connect from {file_name}
-                to write_tracks_{i}.image_file_name
+                to {proc}.image_file_name
 
     """), None
 
@@ -200,12 +201,12 @@ def outadapt(track_sets, timestamps, file_names):
 
 def write_homogs(i, homog_port):
     return dedent(f"""\
-        process write_homogs_{i}
+        process homog_writer{i}
           :: kw_write_homography
           output = homogs{i}.txt
 
         connect from {homog_port}
-                to write_homogs_{i}.homography
+                to homog_writer{i}.homography
 
      """), None
 
