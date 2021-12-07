@@ -1734,9 +1734,11 @@ main( int argc, char* argv[] )
   {
     model_labels.reset( new kwiver::vital::category_hierarchy() );
 
+    int id = 0;
+
     for( auto label : label_counts )
     {
-      model_labels->add_class( label.first );
+      model_labels->add_class( label.first, "", id++ );
     }
   }
 
