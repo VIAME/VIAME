@@ -14,12 +14,20 @@ python_scheduler = dedent("""\
 
 def make_input_creator():
     default_input = (PIPELINE_DIR / 'common_default_input.pipe').read_text()
-    default_input += '\n'
+    include = '\ninclude common_default_input.pipe\n'
+    downsampler = PIPELINE_DIR / 'common_default_input_with_downsampler.pipe'
+    downsampler = downsampler.read_text().replace(include, '')
+    template = default_input + '\n' + downsampler + '\n'
     def create_input(i):
-        text = (default_input
+        text = (template
                 .replace('process input', f'process input{i}')
-                .replace('input_list.txt', f'input_list_{i}.txt'))
-        ports = [f'input{i}.{p}' for p in ['image', 'file_name', 'timestamp']]
+                .replace('input_list.txt', f'input_list_{i}.txt')
+                .replace('process downsampler', f'process downsampler{i}')
+                .replace('from input', f'from input{i}')
+                .replace('to   downsampler', f'to   downsampler{i}'))
+        # Ports are image, file name, and timestamp
+        ports = 'output_1', 'output_2', 'timestamp'
+        ports = [f'downsampler{i}.{p}' for p in ports]
         return text, ports
     return create_input
 
@@ -169,18 +177,19 @@ def make_track_initializer():
     return initialize_tracks
 
 def write_tracks(i, track_port, timestamp, file_name):
+    proc = f'track_writer{i}'
     return dedent(f"""\
-        process write_tracks_{i} :: write_object_track
+        process {proc} :: write_object_track
           file_name = tracks{i}.csv
           frame_list_output = track_images_{i}.txt
           writer:type = viame_csv
 
         connect from {track_port}
-                to write_tracks_{i}.object_track_set
+                to {proc}.object_track_set
         connect from {timestamp}
-                to write_tracks_{i}.timestamp
+                to {proc}.timestamp
         connect from {file_name}
-                to write_tracks_{i}.image_file_name
+                to {proc}.image_file_name
 
     """), None
 
@@ -200,12 +209,12 @@ def outadapt(track_sets, timestamps, file_names):
 
 def write_homogs(i, homog_port):
     return dedent(f"""\
-        process write_homogs_{i}
+        process homog_writer{i}
           :: kw_write_homography
           output = homogs{i}.txt
 
         connect from {homog_port}
-                to write_homogs_{i}.homography
+                to homog_writer{i}.homography
 
      """), None
 

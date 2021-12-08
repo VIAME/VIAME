@@ -112,7 +112,7 @@ CentOS
 * [Low Memory GPU (For 4+ Gb Cards), All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/616d9bf7b53494023680648c/download) <br>
 * [Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
-* [Sea Lion Models, All OS](https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download) <br>
+* [Sea Lion Models, All OS](https://data.kitware.com/api/v1/item/61b0ab024acac99f426f9352/download) <br>
 * [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download) <br>
 * [EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
 
