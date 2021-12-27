@@ -355,6 +355,9 @@ class NetHarnTrainer( TrainDetector ):
 
             if len( groundtruth ) > 0:
                 img = cv2.imread( filename )
+
+                if len( np.shape( img ) ) < 2:
+                    continue
   
                 img_max_x = np.shape( img )[1]
                 img_max_y = np.shape( img )[0]
@@ -372,7 +375,7 @@ class NetHarnTrainer( TrainDetector ):
             det_boxes = []
 
             for det in detections:
-                bbox = det.bounding_box()
+                bbox = det.bounding_box
                 det_boxes.append( ( int( bbox.min_x() ),
                                     int( bbox.min_y() ),
                                     int( bbox.width() ),
@@ -380,7 +383,7 @@ class NetHarnTrainer( TrainDetector ):
 
             for i, gt in enumerate( groundtruth ):
                 # Extract chip for this detection
-                bbox = gt.bounding_box()
+                bbox = gt.bounding_box
 
                 bbox_min_x = int( bbox.min_x() )
                 bbox_max_x = int( bbox.max_x() )
@@ -454,8 +457,7 @@ class NetHarnTrainer( TrainDetector ):
                 cv2.imwrite( new_file, crop )
 
                 # Set new box size for this detection
-                gt.set_bounding_box(
-                  BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] ) )
+                gt.bounding_box = BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] )
                 new_set = DetectedObjectSet()
                 new_set.add( gt )
 
@@ -469,7 +471,7 @@ class NetHarnTrainer( TrainDetector ):
                 if max( overlaps[j] ) >= self._max_overlap_for_negative:
                     continue
 
-                bbox = det.bounding_box()
+                bbox = det.bounding_box
 
                 bbox_min_x = int( bbox.min_x() )
                 bbox_max_x = int( bbox.max_x() )
@@ -507,10 +509,8 @@ class NetHarnTrainer( TrainDetector ):
                 cv2.imwrite( new_file, crop )
 
                 # Set new box size for this detection
-                det.set_bounding_box(
-                  BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] ) )
-                det.set_type(
-                  DetectedObjectType( self._negative_category, 1.0 ) )
+                det.bounding_box = BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] )
+                det.type = DetectedObjectType( self._negative_category, 1.0 )
                 new_set = DetectedObjectSet()
                 new_set.add( det )
 
