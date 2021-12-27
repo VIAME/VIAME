@@ -1,3 +1,17 @@
+v0.17.5 - 12/27/2021
+====================
+
+
+-Updated DIVE for multi-camera pipeline processing and other
+
+
+-Darknet and netharn resnet parameter tuning
+
+
+-Fix linux runtime issues if certain version of CUDA 11 locally installed
+
+
+
 v0.17.4 - 10/22/2021
 ====================
 
