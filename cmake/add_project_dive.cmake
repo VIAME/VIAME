@@ -6,14 +6,14 @@ file( MAKE_DIRECTORY ${VIAME_DIVE_BUILD_DIR} )
 
 if( WIN32 )
   DownloadAndExtract(
-    https://github.com/Kitware/dive/releases/download/1.7.0/DIVE-Desktop-1.7.0.zip
-    6dda3db9f3fed01304caefd6400b64f2
+    https://github.com/Kitware/dive/releases/download/1.7.5/DIVE-Desktop-1.7.5.zip
+    9ea650807e4d6f9f2505fab64b478bcc
     ${VIAME_DOWNLOAD_DIR}/dive_interface_binaries.zip
     ${VIAME_DIVE_BUILD_DIR} )
 elseif( UNIX )
   DownloadAndExtract(
-    https://github.com/Kitware/dive/releases/download/1.7.0/DIVE-Desktop-1.7.0.tar.gz
-    42eb7fa8346ee1ea32b0f81701de023f
+    https://github.com/Kitware/dive/releases/download/1.7.5/DIVE-Desktop-1.7.5.tar.gz
+    9bff9f83ac6b6f4bdc0063fdd1acee82
     ${VIAME_DOWNLOAD_DIR}/dive_interface_binaries.tar.gz
     ${VIAME_DIVE_BUILD_DIR} )
 endif()
