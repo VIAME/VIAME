@@ -31,9 +31,9 @@ process detector1
 
     # Image scaling parameters
     :resize_option                             adaptive
-    :scale                                     1.25
-    :chip_step                                 650
-    :chip_edge_filter                          10
+    :scale                                     1.0
+    :chip_step                                 500
+    :chip_edge_filter                          5
 
   endblock
 
