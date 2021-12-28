@@ -143,6 +143,10 @@ ln -s libcudnn_ops_infer.so.8 install/lib/libcudnn_ops_infer.so
 ln -s libcudnn_cnn_train.so.8 install/lib/libcudnn_cnn_train.so
 ln -s libcudnn_ops_train.so.8 install/lib/libcudnn_ops_train.so
 
+# HACK: Symlink CUDA so file link in pytorch directory for some
+# systems with multiple CUDA 11s this is necessary
+ln -s ../../../../libcublas.so.11 install/lib/python3.6/site-packages/torch/lib/libcublas.so.11
+
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
 cp /lib/x86_64-linux-gnu/libreadline.so.6 install/lib || true
