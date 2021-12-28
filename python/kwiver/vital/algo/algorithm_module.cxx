@@ -48,6 +48,7 @@
 #include <python/kwiver/vital/algo/trampoline/keyframe_selection_trampoline.txx>
 #include <python/kwiver/vital/algo/trampoline/match_descriptor_sets_trampoline.txx>
 #include <python/kwiver/vital/algo/trampoline/match_features_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/merge_detections_trampoline.txx>
 #include <python/kwiver/vital/algo/trampoline/merge_images_trampoline.txx>
 #include <python/kwiver/vital/algo/trampoline/optimize_cameras_trampoline.txx>
 #include <python/kwiver/vital/algo/trampoline/read_object_track_set_trampoline.txx>
@@ -101,6 +102,7 @@
 #include <python/kwiver/vital/algo/keyframe_selection.h>
 #include <python/kwiver/vital/algo/match_descriptor_sets.h>
 #include <python/kwiver/vital/algo/match_features.h>
+#include <python/kwiver/vital/algo/merge_detections.h>
 #include <python/kwiver/vital/algo/merge_images.h>
 #include <python/kwiver/vital/algo/optimize_cameras.h>
 #include <python/kwiver/vital/algo/read_object_track_set.h>
@@ -201,6 +203,8 @@ PYBIND11_MODULE(algos, m)
             algorithm_def_mds_trampoline<>>(m, "match_descriptor_sets");
   register_algorithm<kwiver::vital::algo::match_features,
             algorithm_def_mf_trampoline<>>(m, "match_features");
+  register_algorithm<kwiver::vital::algo::merge_detections,
+            algorithm_def_md_trampoline<>>(m, "merge_detections");
   register_algorithm<kwiver::vital::algo::merge_images,
             algorithm_def_mi_trampoline<>>(m, "merge_images");
   register_algorithm<kwiver::vital::algo::optimize_cameras,
@@ -269,6 +273,7 @@ PYBIND11_MODULE(algos, m)
   keyframe_selection(m);
   match_descriptor_sets(m);
   match_features(m);
+  merge_detections(m);
   merge_images(m);
   optimize_cameras(m);
   read_object_track_set(m);
