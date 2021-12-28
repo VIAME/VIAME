@@ -150,6 +150,12 @@ if( VIAME_ENABLE_PYTHON )
     npy_image_normalization )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
+    arrows/core
+    merge_detections_nms_fusion )
+
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     processes/core
     __init__ )
