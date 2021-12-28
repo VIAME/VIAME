@@ -7,11 +7,13 @@
 #include <kwiver_type_traits.h>
 
 #include <vital/types/detected_object_set.h>
+#include <vital/algo/merge_detections.h>
 #include <vital/util/string.h>
 
-#include <set>
 
 namespace kwiver {
+
+create_algorithm_name_config_trait( merger );
 
 // ----------------------------------------------------------------------------
 class merge_detection_sets_process::priv
@@ -20,6 +22,9 @@ public:
 
   // This is the list of input ports we are reading from.
   std::set< std::string > p_port_list;
+
+  // Possible algorithm for merging
+  vital::algo::merge_detections_sptr m_merger;
 };
 
 // ----------------------------------------------------------------------------
@@ -44,6 +49,20 @@ merge_detection_sets_process
 void merge_detection_sets_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
+  vital::config_block_sptr algo_config = get_config();
+
+  // Check config so it will give run-time diagnostic of config problems
+  if( vital::algo::merge_detections::check_nested_algo_configuration_using_trait(
+         merger,
+         algo_config ) )
+  {
+    vital::algo::merge_detections::set_nested_algo_configuration_using_trait(
+      merger,
+      algo_config,
+      d->m_merger );
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -66,20 +85,33 @@ merge_detection_sets_process
   // sum up all the time spent adding the input sets to the output
   // sets, but that is not very interesting.
 
-  auto set_out = std::make_shared< vital::detected_object_set > ();
+  std::vector< vital::detected_object_set_sptr > inputs;
+  vital::detected_object_set_sptr output;
 
   for ( const auto port_name : d->p_port_list )
   {
-    vital::detected_object_set_sptr set_in =
-      grab_from_port_as< vital::detected_object_set_sptr >( port_name );
+    inputs.push_back(
+      grab_from_port_as< vital::detected_object_set_sptr >( port_name ) );
+  }
 
-    if( set_in )
+  if( d->m_merger )
+  {
+    output = d->m_merger->merge( inputs );
+  }
+  else
+  {
+    output = std::make_shared< vital::detected_object_set >();
+
+    for( auto set : inputs )
     {
-      set_out->add( set_in );
+      if( set )
+      {
+        output->add( set );
+      }
     }
-  } // end for
+  }
 
-  push_to_port_using_trait(detected_object_set, set_out);
+  push_to_port_using_trait( detected_object_set, output );
 }
 
 // ----------------------------------------------------------------------------
@@ -92,7 +124,7 @@ merge_detection_sets_process
   required.insert( flag_required );
 
   // -- output --
-  declare_output_port_using_trait(detected_object_set, required);
+  declare_output_port_using_trait( detected_object_set, required );
 }
 
 // ----------------------------------------------------------------------------
@@ -105,24 +137,24 @@ merge_detection_sets_process
 // ----------------------------------------------------------------------------
 void
 merge_detection_sets_process
-::input_port_undefined(port_t const& port_name)
+::input_port_undefined( port_t const& port_name )
 {
   LOG_TRACE( logger(), "Processing undefined input port: \"" << port_name << "\"" );
 
   // Just create an input port to read detections from
-  if (! kwiver::vital::starts_with( port_name, "_" ) )
+  if( !kwiver::vital::starts_with( port_name, "_" ) )
   {
     // Check for unique port name
-    if ( d->p_port_list.count( port_name ) == 0 )
+    if( d->p_port_list.count( port_name ) == 0 )
     {
       port_flags_t required;
       required.insert( flag_required );
 
       // Create input port
       declare_input_port(
-        port_name,                                // port name
+        port_name,                                 // port name
         detected_object_set_port_trait::type_name, // port type
-        required,                                 // port flags
+        required,                                  // port flags
         "detected object set input" );
 
       d->p_port_list.insert( port_name );
