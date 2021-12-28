@@ -55,12 +55,28 @@ class MergeDetectionsNMSFusion( MergeDetections ):
   def check_configuration( self, cfg ):
     return True
 
-  def merge( self, sets ):
+  def merge( self, det_sets ):
 
-    outputs = []
+    output = DetectedObjectSet()
 
-    for dets in sets:
-        []
+    for det_set in det_sets:
+        for det in det_set:
+            # Extract box info for this det
+            bbox = det.bounding_box
+
+            bbox_min_x = int( bbox.min_x() )
+            bbox_max_x = int( bbox.max_x() )
+            bbox_min_y = int( bbox.min_y() )
+            bbox_max_y = int( bbox.max_y() )
+
+            # Extract type info for this det
+            if det.type is not None:
+                class_names = list( det.type.class_names() )
+                class_scores = [ det.type.score( n ) for n in class_names ]
+
+            # Determine if detection should be added to output
+            copied_det = det
+            output.add( copied_det )
 
     return output
 
