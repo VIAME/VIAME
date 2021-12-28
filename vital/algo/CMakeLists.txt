@@ -51,6 +51,7 @@ set( public_headers
   metadata_map_io.h
   match_descriptor_sets.h
   match_features.h
+  merge_detections.h
   merge_images.h
   optimize_cameras.h
   query_track_descriptor_set.h
@@ -115,6 +116,7 @@ set( sources
   metadata_map_io.cxx
   match_descriptor_sets.cxx
   match_features.cxx
+  merge_detections.cxx
   merge_images.cxx
   optimize_cameras.cxx
   query_track_descriptor_set.cxx
