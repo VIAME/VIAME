@@ -91,17 +91,21 @@ public:
   {
     explicit region_info( cv::Rect r, double s1 )
      : original_roi( r ), edge_filter( 0 ),
+       right_border( false ), bottom_border( false ),
        scale1( s1 ), shiftx( 0 ), shifty( 0 ), scale2( 1.0 )
     {}
 
-    explicit region_info( cv::Rect r, int ef,
+    explicit region_info( cv::Rect r, int ef, bool rb, bool bb,
       double s1, int sx, int sy, double s2 )
      : original_roi( r ), edge_filter( ef ),
+       right_border( rb ), bottom_border( bb ),
        scale1( s1 ), shiftx( sx ), shifty( sy ), scale2( s2 )
     {}
 
     cv::Rect original_roi;
     int edge_filter;
+    bool right_border;
+    bool bottom_border;
     double scale1;
     int shiftx, shifty;
     double scale2;
@@ -353,6 +357,10 @@ windowed_detector
         region_properties.push_back(
           priv::region_info( original_roi,
             d->m_chip_edge_filter,
+            ( li + d->m_chip_step_width ) >=
+              ( cv_resized_image.cols - d->m_chip_width + d->m_chip_step_width ),
+            ( lj + d->m_chip_step_height ) >=
+              ( cv_resized_image.rows - d->m_chip_height + d->m_chip_step_height ),
             1.0 / scaled_crop_scale,
             li, lj,
             1.0 / scale_factor ) );
@@ -470,11 +478,11 @@ windowed_detector::priv
     {
       continue;
     }
-    if( det->bounding_box().max_x() > roi.x + roi.width - dist )
+    if( !info.right_border && det->bounding_box().max_x() > roi.x + roi.width - dist )
     {
       continue;
     }
-    if( det->bounding_box().max_y() > roi.y + roi.height - dist )
+    if( !info.bottom_border && det->bounding_box().max_y() > roi.y + roi.height - dist )
     {
       continue;
     }
