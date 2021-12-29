@@ -1,3 +1,11 @@
+v0.17.6 - 12/29/2021
+====================
+
+
+-Updated NMS option and fix for detector fusion approaches
+
+
+
 v0.17.5 - 12/27/2021
 ====================
 
