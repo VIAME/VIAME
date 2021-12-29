@@ -2,11 +2,12 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/functional.h>
+
 #include <python/kwiver/vital/algo/trampoline/merge_detections_trampoline.txx>
 #include <python/kwiver/vital/algo/merge_detections.h>
-
-#include <pybind11/pybind11.h>
-#include <pybind11/functional.h>
 
 namespace kwiver {
 namespace vital  {

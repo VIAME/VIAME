@@ -14,6 +14,7 @@
 
 #include <python/kwiver/vital/util/pybind11.h>
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
+
 #include <vital/algo/merge_detections.h>
 
 namespace kwiver {
