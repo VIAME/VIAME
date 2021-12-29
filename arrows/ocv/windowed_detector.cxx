@@ -62,7 +62,8 @@ public:
     , m_chip_height( 1000 )
     , m_chip_step_width( 500 )
     , m_chip_step_height( 500 )
-    , m_chip_edge_filter( 0 )
+    , m_chip_edge_filter( -1 )
+    , m_chip_edge_max_prob( -1.0 )
     , m_chip_adaptive_thresh( 2000000 )
     , m_batch_size( 1 )
     , m_min_detection_dim( 2 )
@@ -80,6 +81,7 @@ public:
   int m_chip_step_width;
   int m_chip_step_height;
   int m_chip_edge_filter;
+  double m_chip_edge_max_prob;
   int m_chip_adaptive_thresh;
   int m_batch_size;
   int m_min_detection_dim;
@@ -90,7 +92,7 @@ public:
   struct region_info
   {
     explicit region_info( cv::Rect r, double s1 )
-     : original_roi( r ), edge_filter( 0 ),
+     : original_roi( r ), edge_filter( -1 ),
        right_border( false ), bottom_border( false ),
        scale1( s1 ), shiftx( 0 ), shifty( 0 ), scale2( 1.0 )
     {}
@@ -159,6 +161,8 @@ windowed_detector
     "When in chip mode, the chip step size between chips." );
   config->set_value( "chip_edge_filter", d->m_chip_edge_filter,
     "If using chipping, filter out detections this pixel count near borders." );
+  config->set_value( "chip_edge_max_prob", d->m_chip_edge_max_prob,
+    "If using chipping, maximum type probability for edge detections" );
   config->set_value( "chip_adaptive_thresh", d->m_chip_adaptive_thresh,
     "If using adaptive selection, total pixel count at which we start to chip." );
   config->set_value( "batch_size", d->m_batch_size,
@@ -196,6 +200,7 @@ windowed_detector
   this->d->m_chip_step_width = config->get_value< int >( "chip_step_width" );
   this->d->m_chip_step_height = config->get_value< int >( "chip_step_height" );
   this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
+  this->d->m_chip_edge_max_prob = config->get_value< double >( "chip_edge_max_prob" );
   this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
   this->d->m_batch_size = config->get_value< int >( "batch_size" );
   this->d->m_min_detection_dim = config->get_value< int >( "min_detection_dim" );
@@ -455,7 +460,7 @@ windowed_detector::priv
 
   const int dist = info.edge_filter;
 
-  if( dist <= 0 )
+  if( dist < 0 )
   {
     return dets;
   }
@@ -470,21 +475,38 @@ windowed_detector::priv
     {
       continue;
     }
-    if( roi.x > 0 && det->bounding_box().min_x() < roi.x + dist )
+
+    if( ( roi.x > 0 && det->bounding_box().min_x() < roi.x + dist ) ||
+        ( roi.y > 0 && det->bounding_box().min_y() < roi.y + dist ) ||
+        ( !info.right_border && det->bounding_box().max_x() > roi.x + roi.width - dist ) ||
+        ( !info.bottom_border && det->bounding_box().max_y() > roi.y + roi.height - dist ) )
     {
-      continue;
-    }
-    if( roi.y > 0 && det->bounding_box().min_y() < roi.y + dist )
-    {
-      continue;
-    }
-    if( !info.right_border && det->bounding_box().max_x() > roi.x + roi.width - dist )
-    {
-      continue;
-    }
-    if( !info.bottom_border && det->bounding_box().max_y() > roi.y + roi.height - dist )
-    {
-      continue;
+      if( m_chip_edge_max_prob <= 0.0 )
+      {
+        continue;
+      }
+
+      if( det->confidence() > m_chip_edge_max_prob )
+      {
+        det->set_confidence( m_chip_edge_max_prob );
+      }
+      if( det->type() )
+      {
+        auto dot = det->type();
+        std::string top_class;
+        dot->get_most_likely( top_class );
+        double score = dot->score( top_class );
+
+        if( score > m_chip_edge_max_prob )
+        {
+          double scale = m_chip_edge_max_prob / score;
+
+          for( auto name : dot->class_names() )
+          {
+            dot->set_score( name, dot->score( name ) * scale );
+          }
+        }
+      }
     }
 
     filtered_dets.push_back( det );
