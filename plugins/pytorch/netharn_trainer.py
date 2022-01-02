@@ -552,6 +552,18 @@ class NetHarnTrainer( TrainDetector ):
 
                 bbox_area = bbox_width * bbox_height
 
+                if self._chip_method == "fixed_width":
+                    chip_width = int( self._chip_width )
+                    half_width = int( chip_width / 2 )
+
+                    bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 ) - half_width
+                    bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 ) - half_width
+                    bbox_max_x = bbox_min_x + chip_width
+                    bbox_max_y = bbox_min_y + chip_width
+
+                    bbox_width = chip_width
+                    bbox_height = chip_width
+
                 if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
                     continue
                 if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
