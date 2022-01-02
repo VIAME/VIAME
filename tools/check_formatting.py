@@ -100,9 +100,9 @@ if __name__ == "__main__" :
                     box_width = float( parsed_line[5] ) - float( parsed_line[3] )
                     box_height = float( parsed_line[6] ) - float( parsed_line[4] )
                     if parsed_line[9] in type_sizes:
-                        type_sizes[ parsed_line[9] ] = ( box_width * box_height )
-                    else:
                         type_sizes[ parsed_line[9] ] += ( box_width * box_height )
+                    else:
+                        type_sizes[ parsed_line[9] ] = ( box_width * box_height )
             output.append( ','.join( parsed_line ) + '\n' )
         fin.close()
 
@@ -112,10 +112,12 @@ if __name__ == "__main__" :
         if args.filter_single:
             output = [ e for e in output if id_states[ e.split(',')[ 0 ] ] > 1 ]
 
-        fout = open( input_file, "w" )
-        for line in output:
-            fout.write( line )
-        fout.close()
+        if args.filter_single or args.increase_fid or args.decrease_fid \
+          or args.assign_uid or args.consolidate_ids or args.filter_single: 
+            fout = open( input_file, "w" )
+            for line in output:
+                fout.write( line )
+            fout.close()
 
     if args.print_types:
         print( ','.join( type_counts.keys() ) )
@@ -124,5 +126,5 @@ if __name__ == "__main__" :
         print( "Type - Average Box Area - Total Count" )
         for i in type_sizes:
             size_str = str( float( type_sizes[ i ] ) / type_counts[ i ] )
-            print( i + " " + size_str + " " + type_counts[ i ] )
+            print( i + " " + size_str + " " + str( type_counts[ i ] ) )
   
