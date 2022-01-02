@@ -57,6 +57,7 @@ import subprocess
 import threading
 import time
 import random
+import math
 
 def copytree( src, dst, symlinks=False, ignore=None ):
     for item in os.listdir( src ):
@@ -90,6 +91,7 @@ class NetHarnTrainer( TrainDetector ):
         self._gt_frames_only = False
         self._chip_width = "640"
         self._chip_overlap = "0.20"
+        self._chip_method = "use_box"
         self._max_epochs = "50"
         self._batch_size = "auto"
         self._learning_rate = "auto"
@@ -132,6 +134,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "augmentation", str( self._augmentation ) )
         cfg.set_value( "chip_width", str( self._chip_width ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
+        cfg.set_value( "chip_method", str( self._chip_method ) )
         cfg.set_value( "max_epochs", str( self._max_epochs ) )
         cfg.set_value( "batch_size", self._batch_size )
         cfg.set_value( "learning_rate", self._learning_rate )
@@ -173,6 +176,7 @@ class NetHarnTrainer( TrainDetector ):
         self._augmentation = str( cfg.get_value( "augmentation" ) )
         self._chip_width = str( cfg.get_value( "chip_width" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
+        self._chip_method = str( cfg.get_value( "chip_method" ) )
         self._max_epochs = str( cfg.get_value( "max_epochs" ) )
         self._batch_size = str( cfg.get_value( "batch_size" ) )
         self._learning_rate = str( cfg.get_value( "learning_rate" ) )
@@ -307,7 +311,7 @@ class NetHarnTrainer( TrainDetector ):
             for line in fin.readlines():
                 line = line.rstrip()
                 parsed_line = line.split()
-                if len( parsed_line < 1 ):
+                if len( parsed_line ) < 1:
                     continue
                 target_area = float( parsed_line[-1] )
                 type_str = str( ' '.join( parsed_line[:-1] ) )
@@ -373,7 +377,7 @@ class NetHarnTrainer( TrainDetector ):
             box_area = float( box_width * box_height )
             if box_area < 1.0:
                 continue
-            cumulative += sqrt( self._target_type_scales[ class_lbl ] / box_area )
+            cumulative += math.sqrt( self._target_type_scales[ class_lbl ] / box_area )
             count += 1
         if count == 0:
             output = 1.0
@@ -381,7 +385,7 @@ class NetHarnTrainer( TrainDetector ):
             output = cumulative / count
         if output >= max_scale:
             output = max_scale
-        if output <= min_scale
+        if output <= min_scale:
             output = min_scale
         print( "Computed image dim scale factor: " + str( output ) )
         return output
@@ -398,7 +402,7 @@ class NetHarnTrainer( TrainDetector ):
             scale = 1.0
 
             if self._target_type_scales:
-                scale = compute_scale_factor( groundtruth )
+                scale = self.compute_scale_factor( groundtruth )
 
             if len( groundtruth ) > 0:
                 img = cv2.imread( filename )
@@ -480,6 +484,18 @@ class NetHarnTrainer( TrainDetector ):
 
                         bbox_width = det_width
                         bbox_height = det_height
+
+                if self._chip_method == "fixed_width":
+                    chip_width = int( self._chip_width )
+                    half_width = int( chip_width / 2 )
+
+                    bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 ) - half_width
+                    bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 ) - half_width
+                    bbox_max_x = bbox_min_x + chip_width
+                    bbox_max_y = bbox_min_y + chip_width
+
+                    bbox_width = chip_width
+                    bbox_height = chip_width
 
                 bbox_area = bbox_width * bbox_height
 
