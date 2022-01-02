@@ -112,6 +112,7 @@ class NetHarnTrainer( TrainDetector ):
         self._max_neg_per_frame = 5
         self._negative_category = "background"
         self._reduce_category = ""
+        self._scale_type_file = ""
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -149,6 +150,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
         cfg.set_value( "negative_category", self._negative_category )
         cfg.set_value( "reduce_category", self._reduce_category )
+        cfg.set_value( "scale_type_file", self._scale_type_file )
 
         return cfg
 
@@ -189,6 +191,7 @@ class NetHarnTrainer( TrainDetector ):
         self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
         self._negative_category = str( cfg.get_value( "negative_category" ) )
         self._reduce_category = str( cfg.get_value( "reduce_category" ) )
+        self._scale_type_file = str( cfg.get_value( "scale_type_file" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -297,6 +300,19 @@ class NetHarnTrainer( TrainDetector ):
                 print( "Unable to configure detector" )
                 return False
 
+        # Load scale based on type file if enabled
+        self._target_type_scales = dict()
+        if self._scale_type_file:
+            fin = open( self._scale_type_file, 'r' )
+            for line in fin.readlines():
+                line = line.rstrip()
+                parsed_line = line.split()
+                if len( parsed_line < 1 ):
+                    continue
+                target_area = float( parsed_line[-1] )
+                type_str = str( ' '.join( parsed_line[:-1] ) )
+                self._target_type_scales[type_str] = target_area
+
         # Initialize persistent variables
         self._training_data = []
         self._validation_data = []
@@ -343,6 +359,33 @@ class NetHarnTrainer( TrainDetector ):
 
         return filtered_truth, use_frame
 
+    def compute_scale_factor( self, detections, min_scale = 0.10, max_scale = 10.0 ):
+        cumulative = 0.0
+        count = 0
+        for i, item in enumerate( detections ):
+            if item.type is None:
+                continue
+            class_lbl = item.type.get_most_likely_class()
+            if not class_lbl in self._target_type_scales:
+                continue
+            box_width = item.bounding_box.width()
+            box_height = item.bounding_box.height()
+            box_area = float( box_width * box_height )
+            if box_area < 1.0:
+                continue
+            cumulative += sqrt( self._target_type_scales[ class_lbl ] / box_area )
+            count += 1
+        if count == 0:
+            output = 1.0
+        else:
+            output = cumulative / count
+        if output >= max_scale:
+            output = max_scale
+        if output <= min_scale
+            output = min_scale
+        print( "Computed image dim scale factor: " + str( output ) )
+        return output
+
     def extract_chips_for_dets( self, image_files, truth_sets ):
         import cv2
         output_files = []
@@ -352,6 +395,10 @@ class NetHarnTrainer( TrainDetector ):
             filename = image_files[ i ]
             groundtruth = truth_sets[ i ]
             detections = []
+            scale = 1.0
+
+            if self._target_type_scales:
+                scale = compute_scale_factor( groundtruth )
 
             if len( groundtruth ) > 0:
                 img = cv2.imread( filename )
@@ -361,6 +408,12 @@ class NetHarnTrainer( TrainDetector ):
   
                 img_max_x = np.shape( img )[1]
                 img_max_y = np.shape( img )[0]
+
+                # Optionally scale image
+                if scale != 1.0:
+                    img_max_x = int( scale * img_max_x )
+                    img_max_y = int( scale * img_max_y )
+                    img = cv2.resize( img, ( img_max_x, img_max_y ) )
 
                 # Run optional background detector on data
                 if self._detector_model:
@@ -385,10 +438,10 @@ class NetHarnTrainer( TrainDetector ):
                 # Extract chip for this detection
                 bbox = gt.bounding_box
 
-                bbox_min_x = int( bbox.min_x() )
-                bbox_max_x = int( bbox.max_x() )
-                bbox_min_y = int( bbox.min_y() )
-                bbox_max_y = int( bbox.max_y() )
+                bbox_min_x = int( bbox.min_x() * scale )
+                bbox_max_x = int( bbox.max_x() * scale )
+                bbox_min_y = int( bbox.min_y() * scale )
+                bbox_max_y = int( bbox.max_y() * scale )
 
                 bbox_width = bbox_max_x - bbox_min_x
                 bbox_height = bbox_max_y - bbox_min_y

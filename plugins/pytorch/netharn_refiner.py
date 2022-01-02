@@ -77,6 +77,7 @@ class NetharnRefiner(RefineDetections):
             'area_upper_bound': "0",
             'border_exclude': "-1",
             'average_prior': "False"
+            'scale_type_file': ""
         }
 
         # netharn variables
@@ -124,8 +125,8 @@ class NetharnRefiner(RefineDetections):
         pred_config['batch_size'] = self._kwiver_config['batch_size']
         pred_config['deployed'] = self._kwiver_config['deployed']
         pred_config['xpu'] = self._kwiver_config['xpu']
-        pred_config['input_dims'] = 'native'
-        # (256, 256)
+        pred_config['input_dims'] = 'native' # (256, 256)
+
         self.predictor = clf_predict.ClfPredictor(pred_config)
         self.predictor._ensure_model()
         self._area_pivot = int(self._kwiver_config['area_pivot'])
@@ -138,6 +139,18 @@ class NetharnRefiner(RefineDetections):
             self._area_upper_bound = -self._area_pivot
         elif self._area_pivot > 0:
             self._area_lower_bound = self._area_pivot
+
+        self._scale_on_type = dict()
+        if self._kwiver_config['scale_type_file']:
+            fin = open( kwiver_config['scale_type_file'], 'r' )
+            for line in fin.readlines():
+                line = line.rstrip()
+                parsed_line = line.split()
+                if len( parsed_line < 1 ):
+                    continue
+                target_area = float(parsed_line[-1])
+                type_str = str(' '.join(parsed_line[:-1]))
+                self._scale_on_type[type_str] = target_area
 
         return True
 

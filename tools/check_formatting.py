@@ -33,6 +33,9 @@ if __name__ == "__main__" :
     parser.add_argument("--print-types", dest="print_types", action="store_true",
                       help="Print unique list of target types")
 
+    parser.add_argument("--average-box-size", dest="average_box_size", action="store_true",
+                      help="Print average box size per type")
+
     args = parser.parse_args()
 
     input_files = []
@@ -48,6 +51,7 @@ if __name__ == "__main__" :
 
     id_counter = 1
     type_counts = dict()
+    type_sizes = dict()
 
     for input_file in input_files:
 
@@ -86,11 +90,19 @@ if __name__ == "__main__" :
                 else:
                     id_states[ parsed_line[0] ] = id_states[ parsed_line[0] ] + 1
                     has_non_single = True
-            if args.print_types and len( parsed_line ) > 9:
-                if parsed_line[9] in type_counts:
-                    type_counts[ parsed_line[9] ] += 1
-                else:
-                    type_counts[ parsed_line[9] ] = 1
+            if len( parsed_line ) > 9:
+                if args.print_types or args.average_box_size:
+                    if parsed_line[9] in type_counts:
+                        type_counts[ parsed_line[9] ] += 1
+                    else:
+                        type_counts[ parsed_line[9] ] = 1
+                if args.average_box_size:
+                    box_width = float( parsed_line[5] ) - float( parsed_line[3] )
+                    box_height = float( parsed_line[6] ) - float( parsed_line[4] )
+                    if parsed_line[9] in type_sizes:
+                        type_sizes[ parsed_line[9] ] = ( box_width * box_height )
+                    else:
+                        type_sizes[ parsed_line[9] ] += ( box_width * box_height )
             output.append( ','.join( parsed_line ) + '\n' )
         fin.close()
 
@@ -108,4 +120,9 @@ if __name__ == "__main__" :
     if args.print_types:
         print( ','.join( type_counts.keys() ) )
 
+    if args.average_box_size:
+        print( "Type - Average Box Area - Total Count" )
+        for i in type_sizes:
+            size_str = str( float( type_sizes[ i ] ) / type_counts[ i ] )
+            print( i + " " + size_str + " " + type_counts[ i ] )
   
