@@ -76,7 +76,9 @@ class NetharnRefiner(RefineDetections):
             'area_lower_bound': "0",
             'area_upper_bound': "0",
             'border_exclude': "-1",
-            'average_prior': "False"
+            'chip_method' : "",
+            'chip_width' : "",
+            'average_prior': "False",
             'scale_type_file': ""
         }
 
@@ -140,17 +142,18 @@ class NetharnRefiner(RefineDetections):
         elif self._area_pivot > 0:
             self._area_lower_bound = self._area_pivot
 
-        self._scale_on_type = dict()
+        # Load scale based on type file if enabled
+        self._target_type_scales = dict()
         if self._kwiver_config['scale_type_file']:
-            fin = open( kwiver_config['scale_type_file'], 'r' )
+            fin = open(self._kwiver_config['scale_type_file'], 'r')
             for line in fin.readlines():
                 line = line.rstrip()
                 parsed_line = line.split()
-                if len( parsed_line < 1 ):
+                if len(parsed_line) < 1:
                     continue
                 target_area = float(parsed_line[-1])
-                type_str = str(' '.join(parsed_line[:-1]))
-                self._scale_on_type[type_str] = target_area
+                type_str = str( ' '.join(parsed_line[:-1]))
+                self._target_type_scales[type_str] = target_area
 
         return True
 
@@ -160,6 +163,33 @@ class NetharnRefiner(RefineDetections):
             return False
         return True
 
+    def compute_scale_factor(self, detections, min_scale = 0.10, max_scale = 10.0):
+        cumulative = 0.0
+        count = 0
+        for i, item in enumerate(detections):
+            if item.type is None:
+                continue
+            class_lbl = item.type.get_most_likely_class()
+            if not class_lbl in self._target_type_scales:
+                continue
+            box_width = item.bounding_box.width()
+            box_height = item.bounding_box.height()
+            box_area = float(box_width * box_height)
+            if box_area < 1.0:
+                continue
+            cumulative += math.sqrt(self._target_type_scales[ class_lbl ] / box_area)
+            count += 1
+        if count == 0:
+            output = 1.0
+        else:
+            output = cumulative / count
+        if output >= max_scale:
+            output = max_scale
+        if output <= min_scale:
+            output = min_scale
+        print("Computed image dim scale factor: " + str( output ))
+        return output
+
     def refine(self, image_data, detections):
 
         if len(detections) == 0:
@@ -167,9 +197,17 @@ class NetharnRefiner(RefineDetections):
 
         img = image_data.asarray().astype('uint8')
         predictor = self.predictor
+        scale = 1.0
 
         img_max_x = np.shape(img)[1]
         img_max_y = np.shape(img)[0]
+
+        if self._target_type_scales:
+            scale = self.compute_scale_factor(detections)
+            if scale != 1.0:
+                img_max_x = int(img_max_x * scale)
+                img_max_y = int(img_max_y * scale)
+                img = cv2.resize(img, (img_max_x, img_max_y))
 
         # Extract patches for ROIs
         image_chips = []
@@ -179,20 +217,19 @@ class NetharnRefiner(RefineDetections):
             # Extract chip for this detection
             bbox = det.bounding_box
 
-            bbox_min_x = int(bbox.min_x())
-            bbox_max_x = int(bbox.max_x())
-            bbox_min_y = int(bbox.min_y())
-            bbox_max_y = int(bbox.max_y())
+            bbox_min_x = int(bbox.min_x() * scale)
+            bbox_max_x = int(bbox.max_x() * scale)
+            bbox_min_y = int(bbox.min_y() * scale)
+            bbox_max_y = int(bbox.max_y() * scale)
 
-            bbox_width = bbox_max_x - bbox_min_x
-            bbox_height = bbox_max_y - bbox_min_y
+            if self._kwiver_config['chip_method'] == "fixed_width":
+                chip_width = int(self._kwiver_config['chip_width'])
+                half_width = int(chip_width / 2)
 
-            bbox_area = bbox_width * bbox_height
-
-            if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
-                continue
-            if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
-                continue
+                bbox_min_x = int((bbox_min_x + bbox_max_x) / 2) - half_width
+                bbox_min_y = int((bbox_min_y + bbox_max_y) / 2) - half_width
+                bbox_max_x = bbox_min_x + chip_width
+                bbox_max_y = bbox_min_y + chip_width
 
             if self._border_exclude > 0:
                 if bbox_min_x <= self._border_exclude:
@@ -203,8 +240,24 @@ class NetharnRefiner(RefineDetections):
                     continue
                 if bbox_max_y >= img_max_y - self._border_exclude:
                     continue
+            else:
+                if bbox_min_x < 0:
+                    bbox_min_x = 0
+                if bbox_min_y < 0:
+                    bbox_min_y = 0
+                if bbox_max_x > img_max_x:
+                    bbox_max_x = img_max_x
+                if bbox_max_y > img_max_y:
+                    bbox_max_y = img_max_y
+  
+            bbox_area = ( bbox_max_x - bbox_min_x ) * ( bbox_max_y - bbox_min_y )
 
-            crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
+            if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
+                continue
+            if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
+                continue
+  
+            crop = img[bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x]
             image_chips.append(crop)
             detection_ids.append(i)
 
