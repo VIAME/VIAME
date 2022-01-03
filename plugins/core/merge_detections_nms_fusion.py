@@ -44,9 +44,6 @@ import ast
 import time
 import random
 
-from map_boxes import *
-from ensemble_boxes import *
-
 ##############################################################################
 # Inspired by https://github.com/ZFTurbo/Weighted-Boxes-Fusion
 # Using metrics from https://github.com/ZFTurbo/Mean-Average-Precision-for-Boxes
@@ -203,6 +200,10 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         self._skip_box_thr = float( cfg.get_value( "skip_box_thr" ) )
         self._sigma = float( cfg.get_value( "sigma" ) )
         self._fusion_weights = ast.literal_eval( cfg.get_value( "fusion_weights" ) )
+
+        from map_boxes import *
+        from ensemble_boxes import *
+
         return True
 
     def check_configuration( self, cfg ):
