@@ -41,6 +41,9 @@ from distutils.util import strtobool
 import numpy as np  # NOQA
 import ubelt as ub
 
+import math
+import cv2
+
 
 class NetharnRefiner(RefineDetections):
     """
