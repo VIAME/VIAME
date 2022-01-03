@@ -37,5 +37,9 @@ unzip -o ${DOWNLOAD_LOCATION}/download6.zip -d ${VIAME_INSTALL}
 wget -O ${DOWNLOAD_LOCATION}/download7.zip https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download
 unzip -o ${DOWNLOAD_LOCATION}/download7.zip -d ${VIAME_INSTALL}
 
+# Sea Lion
+wget -O ${DOWNLOAD_LOCATION}/download8.zip https://viame.kitware.com/api/v1/item/61d341fa2a5486eb4d8d7933/download
+unzip -o ${DOWNLOAD_LOCATION}/download8.zip -d ${VIAME_INSTALL}
+
 # Ensure Download Location is Removed
 rm -rf ${DOWNLOAD_LOCATION}
