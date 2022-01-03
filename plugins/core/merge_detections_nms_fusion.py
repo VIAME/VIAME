@@ -237,8 +237,9 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             pred_sets.append( pred_set )
   
         # Run merging algorithm
-        ensemble_preds = ensemble_box( preds_set, self._fusion_weights,
-          self._iou_thr, self._skip_box_thr, self._sigma, self._fusion_type )
+        #ensemble_preds = ensemble_box( preds_set, self._fusion_weights,
+        #  self._iou_thr, self._skip_box_thr, self._sigma, self._fusion_type )
+        ensemble_preds = []
   
         # Compile output detections
         output = DetectedObjectSet()
