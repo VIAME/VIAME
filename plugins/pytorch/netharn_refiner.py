@@ -280,7 +280,7 @@ class NetharnRefiner(RefineDetections):
             if new_class.data.get('prob', None) is not None:
                 # If we have a probability for each class, uses that
                 class_names = list(new_class.classes)
-                class_scores = new_class.prob
+                class_scores = list(new_class.prob)
             else:
                 # Otherwise we only have the score for the predicted class
                 class_names = [ new_class.classes[new_class.cidx] ]
