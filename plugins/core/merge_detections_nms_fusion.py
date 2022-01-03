@@ -1,5 +1,5 @@
 # ckwg +29
-# Copyright 2021 by Kitware, Inc.
+# Copyright 2022 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,19 +37,19 @@ from kwiver.vital.types import DetectedObject
 from kwiver.vital.types import DetectedObjectType
 
 import numpy as np
+import pandas as pd
 
-# Inspired by https://github.com/ZFTurbo/Weighted-Boxes-Fusion
-# Use metrics from https://github.com/ZFTurbo/Mean-Average-Precision-for-Boxes
-#####################################################################################
 import os
-import numpy as np
 import time
 import random
-import pandas as pd
+
 from map_boxes import *
 from ensemble_boxes import *
-import csv
-import pdb
+
+##############################################################################
+# Inspired by https://github.com/ZFTurbo/Weighted-Boxes-Fusion
+# Using metrics from https://github.com/ZFTurbo/Mean-Average-Precision-for-Boxes
+##############################################################################
 
 def bb_intersection_over_union(A, B):
     xA = max(A[0], B[0])
@@ -82,33 +82,6 @@ def find_matching_box(boxes_list, new_box, match_iou):
 
     return best_index, best_iou
 
-
-def read_csv(csv_path, height, width, single_flag):
-    label_dic = {'generic_object_proposal':-1, 'sealion':0, 'Bull':1, 'Dead Pup':2, 'Fem':3, 'furseal':4, 'Juv':5, 'Pup':6, 'SAM':7}
-    ImageID, LabelName, Conf, XMin, XMax, YMin, YMax = [], [], [], [], [], [], []
-    with open(csv_path, 'r') as csv_file:
-        all_lines = csv.reader(csv_file)
-        # normalized box
-        for line in all_lines:
-            if line[0].isnumeric():
-                ImageID.append(line[2])
-                label_index = 0 if single_flag else label_dic[line[9]]
-                LabelName.append(label_index)
-                Conf.append(float(line[7]))
-                XMin.append(float(line[3])/width)
-                XMax.append(float(line[5])/width)
-                YMin.append(float(line[4])/height)
-                YMax.append(float(line[6])/height)
-        res = pd.DataFrame(ImageID, columns=['ImageId'])
-        res['LabelName'] = LabelName
-        res['Conf'] = Conf
-        res['XMin'] = XMin
-        res['XMax'] = XMax
-        res['YMin'] = YMin
-        res['YMax'] = YMax
-    
-    return res
-
 def get_pseudo_label(single_preds, multi_preds, img_ids, match_iou, label_flag, single_flag, file_path):
     if label_flag:
         if os.path.exists(file_path):
@@ -136,6 +109,7 @@ def get_pseudo_label(single_preds, multi_preds, img_ids, match_iou, label_flag, 
     return single_preds
 
 def collect_boxlist(preds_set, cur_id):
+    label_dic = {'generic_object_proposal':-1, 'sealion':0, 'Bull':1, 'Dead Pup':2, 'Fem':3, 'furseal':4, 'Juv':5, 'Pup':6, 'SAM':7}
     boxes_list, scores_list, labels_list = [], [], []
     for i in range(len(preds_set)):
         preds = preds_set[i]
@@ -150,29 +124,31 @@ def collect_boxlist(preds_set, cur_id):
 
     return boxes_list, scores_list, labels_list
 
-def ensemble_box(preds_set, img_ids, height, width, weights, iou_thr, skip_box_thr, sigma, fusion_type):
+def ensemble_box(preds_set, weights, iou_thr, skip_box_thr, sigma, fusion_type):
     assert len(preds_set) == len(weights)
     all_boxes = []
     all_labels = []
     all_ids = []
-    for cur_id in img_ids:
-        boxes_list, scores_list, labels_list = collect_boxlist(preds_set, cur_id)
-        if fusion_type == 'nmw':
-            boxes, scores, labels = non_maximum_weighted(boxes_list, scores_list, labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
-        elif fusion_type == 'wbf':
-            boxes, scores, labels = weighted_boxes_fusion(boxes_list, scores_list, labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
 
-        ids = np.tile(cur_id, (boxes.shape[0], 1))
-        cur_boxes = np.concatenate((np.expand_dims(scores, 1), boxes[:,[0,2,1,3]]), 1)
+    boxes_list, scores_list, labels_list = collect_boxlist(preds_set, cur_id)
+    if fusion_type == 'nmw':
+        boxes, scores, labels = non_maximum_weighted(boxes_list, scores_list,
+          labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
+    elif fusion_type == 'wbf':
+        boxes, scores, labels = weighted_boxes_fusion(boxes_list, scores_list,
+          labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
 
-        if len(all_boxes):
-            all_boxes = np.append(all_boxes, cur_boxes, 0)
-            all_labels = np.append(all_labels, labels, 0)
-            all_ids = np.append(all_ids, ids, 0)
-        else:
-            all_boxes = cur_boxes
-            all_labels = labels
-            all_ids = ids
+    ids = np.tile(cur_id, (boxes.shape[0], 1))
+    cur_boxes = np.concatenate((np.expand_dims(scores, 1), boxes[:,[0,2,1,3]]), 1)
+
+    if len(all_boxes):
+        all_boxes = np.append(all_boxes, cur_boxes, 0)
+        all_labels = np.append(all_labels, labels, 0)
+        all_ids = np.append(all_ids, ids, 0)
+    else:
+        all_boxes = cur_boxes
+        all_labels = labels
+        all_ids = ids
            
     all_labels = np.array([int(label) for label in all_labels])
 
@@ -206,9 +182,12 @@ class MergeDetectionsNMSFusion( MergeDetections ):
 
   def merge( self, det_sets ):
 
-    output = DetectedObjectSet()
+    # Get detection HL info in a list
+    pred_sets = []
 
     for det_set in det_sets:
+        pred_set = []
+
         for det in det_set:
             # Extract box info for this det
             bbox = det.bounding_box
@@ -219,13 +198,24 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             bbox_max_y = int( bbox.max_y() )
 
             # Extract type info for this det
-            if det.type is not None:
-                class_names = list( det.type.class_names() )
-                class_scores = [ det.type.score( n ) for n in class_names ]
+            if det.type is None:
+                continue
+  
+            class_names = list( det.type.class_names() )
+            class_scores = [ det.type.score( n ) for n in class_names ]
+        
+        pred_sets.append( pred_set )
 
-            # Determine if detection should be added to output
-            copied_det = det
-            output.add( copied_det )
+    # Run merging algorithm
+    ensemble_preds = ensemble_box(preds_set, img_ids,
+      fusion_weights, iou_thr, skip_box_thr, sigma, fusion_type)
+
+    # Compile output detections
+    output = DetectedObjectSet()
+
+    for pred in ensemble_preds:
+        det = DetectedObject()
+        output.add( det )
 
     return output
 

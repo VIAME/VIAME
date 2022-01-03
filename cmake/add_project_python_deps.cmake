@@ -18,7 +18,11 @@ else()
   set( VIAME_PYTHON_BASIC_DEPS "numpy" )
 endif()
 
+# For plotting scripts and scoring
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.1.1" )
+
+# For fusion classifier
+list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "dataclasses" "typing-extensions" )
