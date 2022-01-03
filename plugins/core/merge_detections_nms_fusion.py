@@ -40,6 +40,7 @@ import numpy as np
 import pandas as pd
 
 import os
+import ast
 import time
 import random
 
@@ -164,72 +165,104 @@ def ensemble_box(preds_set, weights, iou_thr, skip_box_thr, sigma, fusion_type):
     return res
 
 class MergeDetectionsNMSFusion( MergeDetections ):
-  """
-  Implementation of MergeDetections class
-  """
-  def __init__( self ):
-    MergeDetections.__init__( self )
+    """
+    Implementation of MergeDetections class
+    """
+    def __init__( self ):
+        MergeDetections.__init__( self )
 
-  def get_configuration( self ):
-    cfg = super( MergeDetections, self ).get_configuration()
-    return cfg
+        self._fusion_type = 'nmw' # 'nmw', 'wbf'
+        self._match_iou = 0.6
+        self._iou_thr = 0.5
+        self._skip_box_thr = 0.0001
+        self._sigma = 0.1
+        self._fusion_weights = [2, 0.5]
 
-  def set_configuration( self, cfg_in ):
-    return
+        # TODO: Delete
+        self._height = 3840
+        self._width = 5760
 
-  def check_configuration( self, cfg ):
-    return True
+    def get_configuration( self ):
+        cfg = super( MergeDetections, self ).get_configuration()
 
-  def merge( self, det_sets ):
+        cfg.set_value( "fusion_type", self._fusion_type )
+        cfg.set_value( "match_iou", str( self._match_iou ) )
+        cfg.set_value( "iou_thr", str( self._iou_thr ) )
+        cfg.set_value( "skip_box_thr", str( self._skip_box_thr ) )
+        cfg.set_value( "sigma", str( self._sigma ) )
+        cfg.set_value( "fusion_weights", str( self._fusion_weights ) )
+        return cfg
 
-    # Get detection HL info in a list
-    pred_sets = []
+    def set_configuration( self, cfg_in ):
+        cfg = self.get_configuration()
+        cfg.merge_config( cfg_in )
 
-    for det_set in det_sets:
-        pred_set = []
+        self._fusion_type = str( cfg.get_value( "fusion_type" ) )
+        self._match_iou = float( cfg.get_value( "match_iou" ) )
+        self._iou_thr = float( cfg.get_value( "iou_thr" ) )
+        self._skip_box_thr = float( cfg.get_value( "skip_box_thr" ) )
+        self._sigma = float( cfg.get_value( "sigma" ) )
+        self._fusion_weights = ast.literal_eval( cfg.get_value( "fusion_weights" ) )
+        return True
 
-        for det in det_set:
-            # Extract box info for this det
-            bbox = det.bounding_box
+    def check_configuration( self, cfg ):
+        return True
 
-            bbox_min_x = int( bbox.min_x() )
-            bbox_max_x = int( bbox.max_x() )
-            bbox_min_y = int( bbox.min_y() )
-            bbox_max_y = int( bbox.max_y() )
+    def merge( self, det_sets ):
 
-            # Extract type info for this det
-            if det.type is None:
-                continue
+        # Get detection HL info in a list
+        pred_sets = []
+        for det_set in det_sets:
+            pred_set = []
+            for det in det_set:
+                # Extract box info for this det
+                bbox = det.bounding_box
+
+                bbox_min_x = int( bbox.min_x() )
+                bbox_max_x = int( bbox.max_x() )
+                bbox_min_y = int( bbox.min_y() )
+                bbox_max_y = int( bbox.max_y() )
+
+                # Extract type info for this det
+                if det.type is None:
+                    continue
+
+                #class_names = list( det.type.class_names() )
+                #class_scores = [ det.type.score( n ) for n in class_names ]
+                class_name = det.type.get_most_likely_class()
+                class_score = det.type.score( class_name )
+
+                pred_set.append( [ bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y,
+                  class_name, class_score ] )
+            pred_sets.append( pred_set )
   
-            class_names = list( det.type.class_names() )
-            class_scores = [ det.type.score( n ) for n in class_names ]
-        
-        pred_sets.append( pred_set )
+        # Run merging algorithm
+        ensemble_preds = ensemble_box( preds_set, self._fusion_weights,
+          self._iou_thr, self._skip_box_thr, self._sigma, self._fusion_type )
+  
+        # Compile output detections
+        output = DetectedObjectSet()
 
-    # Run merging algorithm
-    ensemble_preds = ensemble_box(preds_set, img_ids,
-      fusion_weights, iou_thr, skip_box_thr, sigma, fusion_type)
+        for pred in ensemble_preds:
+            score = pred[5]
+            bbox = BoundingBoxD( pred[0], pred[1], pred[2], pred[3] )
+            dot = DetectedObjectType( pred[4], score )
+            det = DetectedObject( bbox, score, dot )
+            output.add( det )
 
-    # Compile output detections
-    output = DetectedObjectSet()
-
-    for pred in ensemble_preds:
-        det = DetectedObject()
-        output.add( det )
-
-    return output
+        return output
 
 def __vital_algorithm_register__():
-  from kwiver.vital.algo import algorithm_factory
+    from kwiver.vital.algo import algorithm_factory
 
-  # Register Algorithm
-  implementation_name  = "nms_fusion"
+    # Register Algorithm
+    implementation_name  = "nms_fusion"
 
-  if algorithm_factory.has_algorithm_impl_name(
+    if algorithm_factory.has_algorithm_impl_name(
       MergeDetectionsNMSFusion.static_type_name(), implementation_name ):
-    return
+        return
 
-  algorithm_factory.add_algorithm( implementation_name,
-    "Fusion of multiple different detections", MergeDetectionsNMSFusion )
+    algorithm_factory.add_algorithm( implementation_name,
+      "Fusion of multiple different detections", MergeDetectionsNMSFusion )
 
-  algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+    algorithm_factory.mark_algorithm_as_loaded( implementation_name )
