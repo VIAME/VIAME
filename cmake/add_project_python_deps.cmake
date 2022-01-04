@@ -7,7 +7,7 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-# --------------------- ADD ANY BASIC PYTHON DEPS HERE -------------------------
+# ------------------------- ADD ANY BASIC PYTHON DEPS HERE -----------------------------
 # Basic dependencies are installed jointly in one local pip installation call
 
 set( PYTHON_DEP_ENV_VARS )
@@ -22,7 +22,7 @@ endif()
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.1.1" )
 
 # For fusion classifier
-list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "dataclasses" "typing-extensions" )
@@ -97,7 +97,7 @@ if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow${TF_ARGS}" )
 endif()
 
-# ---------------------- ADD ANY ADV PYTHON DEPS HERE --------------------------
+# ------------------------- ADD ANY ADV PYTHON DEPS HERE -------------------------------
 # Advanced python dependencies are installed individually due to special reqs
 
 set( VIAME_PYTHON_ADV_DEPS python-deps )
@@ -202,7 +202,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
   endif()
 endif()
 
-# ---------------------------- INSTALL ROUTINES --------------------------------
+# -------------------------------- INSTALL ROUTINES ------------------------------------
 
 if( WIN32 )
   set( EXTRA_INCLUDE_DIRS "${VIAME_INSTALL_PREFIX}/include;$ENV{INCLUDE}" )
