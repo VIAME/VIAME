@@ -74,12 +74,21 @@ def list_files_in_dir_w_exts( folder, extensions ):
   ext_list = extensions.split(";")
   return [ f for f in list_files_in_dir( folder ) if has_valid_ext( f, ext_list ) ]
 
-def list_videos_in_dir( folder, extensions ):
+def recurse_folders( folder, extensions ):
   files = list_files_in_dir_w_exts( folder, extensions )
-  if len( files ) == 0:
-    files = [ f for f in list_files_in_dir( folder ) if os.path.isdir( f ) ]
+  folders = [ f for f in list_files_in_dir( folder ) if os.path.isdir( f ) ]
+  files.extend( folders )
+  for f in folders:
+    files.extend( recurse_folders( f, extensions ) )
+  return files
+
+def list_videos_in_dir( folder, extensions ):
+  files = recurse_folders( folder, extensions )
   if len( files ) == 0:
     files = list_files_in_dir( folder )
+  print( "\nFound " + str( len( files ) ) + " items for possibl processing\n" )
+  for i in files:
+    print( i )
   return files
 
 # Default message logging
@@ -410,7 +419,12 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   auto_detect_gt = ( len( options.auto_detect_gt ) > 0 )
   use_gt = ( len( options.gt_file ) > 0 or auto_detect_gt )
 
-  input_basename = os.path.basename( input_name )
+  if os.path.isdir( input_name ):
+    input_basename = input_name
+    if not os.path.exists( options.output_directory + div + input_basename ):
+      os.makedirs( options.output_directory + div + input_basename )
+  else:
+    input_basename = os.path.basename( input_name )
   input_ext = os.path.splitext( input_name )[1]
 
   # GPU checks for logging statements
@@ -528,6 +542,8 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   log_base = ""
   if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
     log_base = options.output_directory + div + options.log_directory + div + basename_no_ext
+    if os.path.sep in basename_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
+      os.makedirs( os.path.dirname( log_base ) )
     with get_log_output_files( log_base ) as kwargs:
       res = execute_command( command, gpu=gpu, **kwargs )
   else:
