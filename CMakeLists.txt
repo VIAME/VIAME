@@ -183,7 +183,7 @@ endif()
 # Additional libraries built for ffmpeg
 ##
 if( VIAME_ENABLE_FFMPEG )
-  option( VIAME_ENABLE_FFMPEG-X264 "Enable libx264 codec in FFmpeg" OFF )
+  option( VIAME_ENABLE_FFMPEG-X264 "Enable libx264 codec in FFmpeg" ON )
   mark_as_advanced( VIAME_ENABLE_FFMPEG-X264 )
 endif()
 
