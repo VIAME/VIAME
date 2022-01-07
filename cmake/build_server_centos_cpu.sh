@@ -28,7 +28,8 @@ file \
 which \
 bzip2 \
 bzip2-devel \
-xz-devel
+xz-devel \
+libx264-devel
 
 # Install and use more recent compiler
 yum -y install centos-release-scl
