@@ -46,16 +46,16 @@ from .stabilize_many_images import (
 
 logger = logging.getLogger(__name__)
 
-def arg_suppress_boxes(
-        box_lists, multihomog, sizes, prev_multihomog, prev_sizes):
-    """Return a list of iterables of bools, False when the corresponding
-    BBox should have been in the previous frame.
+def get_suppression_homogs_and_sizes(
+        multihomog, sizes, prev_multihomog, prev_sizes):
+    """Compute for each camera transformations to other frames that
+    suppress its detections and their sizes
+
+    Returns a list of pairs, one per camera, where the first element
+    is an ndarray of homographies from the camera to suppressing
+    frames and the second is an ndarray of those frames' sizes.
 
     """
-    def center_in_bounds(box, homogs, sizes):
-        transform = Homography.matrix_transform
-        tc = np.squeeze(transform(homogs, box.center[:, np.newaxis]), -1)
-        return ((0 <= tc) & (tc < sizes)).all(-1).any(-1)
     zero_homog_and_size = (np.empty((0, 3, 3)), np.empty((0, 2), dtype=int))
     if prev_multihomog is None or multihomog.to_id != prev_multihomog.to_id:
         prev_homogs_and_sizes = len(multihomog) * [zero_homog_and_size]
@@ -77,12 +77,22 @@ def arg_suppress_boxes(
         # stabilize_many_images works
         for s in [np.s_[min(cam + 1, hc):max(cam, hc + 1)]]
     ]
-    homogs_and_sizes = [(np.concatenate([ph, ch]), np.concatenate([ps, cs]))
-                        for (ph, ps), (ch, cs)
-                        in zip(prev_homogs_and_sizes, curr_homogs_and_sizes)]
+    return [(np.concatenate([ph, ch]), np.concatenate([ps, cs]))
+            for (ph, ps), (ch, cs)
+            in zip(prev_homogs_and_sizes, curr_homogs_and_sizes)]
+
+def arg_suppress_boxes(box_lists, suppression_homogs_and_sizes):
+    """Return a list of iterables of bools, False when the corresponding
+    BBox should have been in the previous frame.
+
+    """
+    def center_in_bounds(box, homogs, sizes):
+        transform = Homography.matrix_transform
+        tc = np.squeeze(transform(homogs, box.center[:, np.newaxis]), -1)
+        return ((0 <= tc) & (tc < sizes)).all(-1).any(-1)
     # XXX This could perhaps be vectorized with Numpy
-    return [[not center_in_bounds(b, *homogs_and_sizes[c]) for b in boxes]
-            for c, boxes in enumerate(box_lists)]
+    return [[not center_in_bounds(b, *shs) for b in boxes]
+            for boxes, shs in zip(box_lists, suppression_homogs_and_sizes)]
 
 @Transformer.decorate
 def suppress():
@@ -95,8 +105,9 @@ def suppress():
         multihomog = MultiHomographyF2F.from_homographyf2fs(map(wrap_F2FHomography, homogs))
         do_lists = list(map(to_DetectedObject_list, do_sets))
         boxes = (map(get_DetectedObject_bbox, dos) for dos in do_lists)
-        keep_its = arg_suppress_boxes(boxes, multihomog, sizes,
-                                      prev_multihomog, prev_sizes)
+        shs = get_suppression_homogs_and_sizes(multihomog, sizes,
+                                               prev_multihomog, prev_sizes)
+        keep_its = arg_suppress_boxes(boxes, shs)
         prev_multihomog, prev_sizes = multihomog, sizes
         output = [DetectedObjectSet([do for k, do in zip(keep, dos) if k])
                   for keep, dos in zip(keep_its, do_lists)]
