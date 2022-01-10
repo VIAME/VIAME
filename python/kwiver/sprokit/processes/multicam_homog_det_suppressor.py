@@ -52,33 +52,36 @@ def arg_suppress_boxes(
     BBox should have been in the previous frame.
 
     """
-    def in_bounds(centers, sizes):
-        """Signature (n, m), (n, m) -> ()"""
-        return ((0 <= centers) & (centers < sizes)).all(-1).any(-1)
-    def trans_center(homog, box):
+    def center_in_bounds(box, homogs, sizes):
         transform = Homography.matrix_transform
-        return np.squeeze(transform(homog, box.center[:, np.newaxis]), -1)
+        tc = np.squeeze(transform(homogs, box.center[:, np.newaxis]), -1)
+        return ((0 <= tc) & (tc < sizes)).all(-1).any(-1)
+    zero_homog_and_size = (np.empty((0, 3, 3)), np.empty((0, 2), dtype=int))
     if prev_multihomog is None or multihomog.to_id != prev_multihomog.to_id:
-        def in_prev(cam, box):
-            return False
+        prev_homogs_and_sizes = len(multihomog) * [zero_homog_and_size]
     else:
-        curr_to_prev = diff_homogs(multihomog.homogs, prev_multihomog.homogs)
-        # XXX This could perhaps be vectorized with Numpy
-        def in_prev(cam, box):
-            s = np.s_[max(0, cam - 1):min(cam + 2, len(prev_multihomog))]
-            # XXX This could handle behind-camera points specially.
-            return in_bounds(trans_center(curr_to_prev[cam, s], box),
-                             prev_sizes[s])
-    curr_to_curr = diff_homogs(multihomog.homogs, multihomog.homogs)
-    def in_curr(cam, box):
-        hc = len(multihomog) // 2
-        if cam == hc:
-            return False
+        prev_homogs_and_sizes = [
+            (to_prev[s], prev_sizes[s])
+            for cam, to_prev in enumerate(diff_homogs(
+                    multihomog.homogs, prev_multihomog.homogs,
+            ))
+            for s in [np.s_[max(0, cam - 1):min(cam + 2, len(prev_multihomog))]]
+        ]
+    curr_homogs_and_sizes = [
+        zero_homog_and_size if cam == hc else (to_curr[s], sizes[s])
+        for cam, to_curr in enumerate(diff_homogs(
+                multihomog.homogs, multihomog.homogs,
+        ))
+        for hc in [len(multihomog) // 2]
         # XXX This choice of suppression is very tied to how
         # stabilize_many_images works
-        s = np.s_[min(cam + 1, hc):max(cam, hc + 1)]
-        return in_bounds(trans_center(curr_to_curr[cam, s], box), sizes[s])
-    return [[not (in_prev(c, b) or in_curr(c, b)) for b in boxes]
+        for s in [np.s_[min(cam + 1, hc):max(cam, hc + 1)]]
+    ]
+    homogs_and_sizes = [(np.concatenate([ph, ch]), np.concatenate([ps, cs]))
+                        for (ph, ps), (ch, cs)
+                        in zip(prev_homogs_and_sizes, curr_homogs_and_sizes)]
+    # XXX This could perhaps be vectorized with Numpy
+    return [[not center_in_bounds(b, *homogs_and_sizes[c]) for b in boxes]
             for c, boxes in enumerate(box_lists)]
 
 @Transformer.decorate
