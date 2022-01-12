@@ -176,7 +176,12 @@ def suppress(suppression_poly_class=None):
         if suppression_poly_class is None:
             poly_dets = [()] * len(do_lists)
         else:
-            poly_dets = ((wrap_poly(p, suppression_poly_class) for p in ps)
+            def n(p):
+                # Normalize poly.  This works around DIVE issue #993
+                # (https://github.com/Kitware/dive/issues/993)
+                assert (p >= 0).all()
+                return np.where(p, p, 0)  # Replace -0 with 0
+            poly_dets = ((wrap_poly(n(p), suppression_poly_class) for p in ps)
                          for ps in suppression_polys(shs, sizes))
         prev_multihomog, prev_sizes = multihomog, sizes
         output = [
