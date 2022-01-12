@@ -46,7 +46,7 @@ def make_detector_creator(embedded):
               :detector:type            netharn
 
               block detector:netharn
-                relativepath deployed = {model_dir}/sea_lion_multi_class.zip
+                relativepath deployed = {model_dir}/sea_lion_v2_cfrnn_all_classes.zip
               endblock
 
             connect from {image_port}
