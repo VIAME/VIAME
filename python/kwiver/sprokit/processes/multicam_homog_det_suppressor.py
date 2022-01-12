@@ -33,7 +33,9 @@ import numpy as np
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
-from kwiver.vital.types import DetectedObjectSet
+from kwiver.vital.types import (
+    BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
+)
 
 from .multicam_homog_tracker import MultiHomographyF2F, diff_homogs
 from .simple_homog_tracker import (
@@ -46,43 +48,119 @@ from .stabilize_many_images import (
 
 logger = logging.getLogger(__name__)
 
-def arg_suppress_boxes(
-        box_lists, multihomog, sizes, prev_multihomog, prev_sizes):
+def get_suppression_homogs_and_sizes(
+        multihomog, sizes, prev_multihomog, prev_sizes):
+    """Compute for each camera transformations to other frames that
+    suppress its detections and their sizes
+
+    Returns a list of pairs, one per camera, where the first element
+    is an ndarray of homographies from the camera to suppressing
+    frames and the second is an ndarray of those frames' sizes.
+
+    """
+    zero_homog_and_size = (np.empty((0, 3, 3)), np.empty((0, 2), dtype=int))
+    if prev_multihomog is None or multihomog.to_id != prev_multihomog.to_id:
+        prev_homogs_and_sizes = len(multihomog) * [zero_homog_and_size]
+    else:
+        prev_homogs_and_sizes = [
+            (to_prev[s], prev_sizes[s])
+            for cam, to_prev in enumerate(diff_homogs(
+                    multihomog.homogs, prev_multihomog.homogs,
+            ))
+            for s in [np.s_[max(0, cam - 1):min(cam + 2, len(prev_multihomog))]]
+        ]
+    curr_homogs_and_sizes = [
+        zero_homog_and_size if cam == hc else (to_curr[s], sizes[s])
+        for cam, to_curr in enumerate(diff_homogs(
+                multihomog.homogs, multihomog.homogs,
+        ))
+        for hc in [len(multihomog) // 2]
+        # XXX This choice of suppression is very tied to how
+        # stabilize_many_images works
+        for s in [np.s_[min(cam + 1, hc):max(cam, hc + 1)]]
+    ]
+    return [(np.concatenate([ph, ch]), np.concatenate([ps, cs]))
+            for (ph, ps), (ch, cs)
+            in zip(prev_homogs_and_sizes, curr_homogs_and_sizes)]
+
+def arg_suppress_boxes(box_lists, suppression_homogs_and_sizes):
     """Return a list of iterables of bools, False when the corresponding
     BBox should have been in the previous frame.
 
     """
-    def in_bounds(centers, sizes):
-        """Signature (n, m), (n, m) -> ()"""
-        return ((0 <= centers) & (centers < sizes)).all(-1).any(-1)
-    def trans_center(homog, box):
+    def center_in_bounds(box, homogs, sizes):
         transform = Homography.matrix_transform
-        return np.squeeze(transform(homog, box.center[:, np.newaxis]), -1)
-    if prev_multihomog is None or multihomog.to_id != prev_multihomog.to_id:
-        def in_prev(cam, box):
-            return False
-    else:
-        curr_to_prev = diff_homogs(multihomog.homogs, prev_multihomog.homogs)
-        # XXX This could perhaps be vectorized with Numpy
-        def in_prev(cam, box):
-            s = np.s_[max(0, cam - 1):min(cam + 2, len(prev_multihomog))]
-            # XXX This could handle behind-camera points specially.
-            return in_bounds(trans_center(curr_to_prev[cam, s], box),
-                             prev_sizes[s])
-    curr_to_curr = diff_homogs(multihomog.homogs, multihomog.homogs)
-    def in_curr(cam, box):
-        hc = len(multihomog) // 2
-        if cam == hc:
-            return False
-        # XXX This choice of suppression is very tied to how
-        # stabilize_many_images works
-        s = np.s_[min(cam + 1, hc):max(cam, hc + 1)]
-        return in_bounds(trans_center(curr_to_curr[cam, s], box), sizes[s])
-    return [[not (in_prev(c, b) or in_curr(c, b)) for b in boxes]
-            for c, boxes in enumerate(box_lists)]
+        tc = np.squeeze(transform(homogs, box.center[:, np.newaxis]), -1)
+        return ((0 <= tc) & (tc < sizes)).all(-1).any(-1)
+    # XXX This could perhaps be vectorized with Numpy
+    return [[not center_in_bounds(b, *shs) for b in boxes]
+            for boxes, shs in zip(box_lists, suppression_homogs_and_sizes)]
+
+def clip_poly(poly, scores):
+    """Clip a poly, only keeping points with a nonnegative score"""
+    result = []
+    for i in range(len(poly)):
+        p1, p2 = poly[i], poly[(i + 1) % len(poly)]
+        s1, s2 = scores[i], scores[(i + 1) % len(poly)]
+        if s1 == 0:
+            result.append(p1)
+        else:
+            if s1 > 0:
+                result.append(p1)
+            if s2 != 0 and (s1 > 0) != (s2 > 0):
+                result.append((s2 * p1 - s1 * p2) / (s2 - s1))
+    return result and np.stack(result)
+
+def transform_poly_to_polys(poly, homog, clip_size):
+    """Transform a convex polygon into zero to two clipped polygons
+
+    Polygons are represented as Nx2 array-likes
+
+    """
+    # Convert to homogeneous coordinates
+    poly = np.concatenate([poly, np.ones((len(poly), 1))], axis=1)
+    # Transform (ensuring homog has a non-negative determinant)
+    tpoly = poly @ (-homog if np.linalg.det(homog) < 0 else homog).T
+    # Cut polygon if needed
+    tpolys = [
+        clip_poly(tpoly, tpoly[:, 2]),
+        clip_poly(-tpoly, -tpoly[:, 2])[::-1],
+    ]
+    tpolys = [poly for poly in tpolys if len(poly) and (poly[:, 2] != 0).any()]
+    if not tpolys:
+        raise ValueError("All transformed points lie in camera ground plane")
+    # Clip to size
+    def clip(poly, scorers):
+        for scorer in scorers:
+            poly = clip_poly(poly, poly @ scorer)
+            if len(poly) == 0:
+                break
+        return poly
+    cpolys = [clip(poly, [
+        [1, 0, 0], [0, 1, 0], [-1, 0, clip_size[0]], [0, -1, clip_size[1]],
+    ]) for poly in tpolys]
+    # Convert from homogeneous coordinates
+    return [poly[:, :2] / poly[:, 2:] for poly in cpolys if len(poly) > 2]
+
+def suppression_polys(suppression_homogs_and_sizes, sizes):
+    def size_to_poly(size):
+        w, h = size
+        return [[0, 0], [0, h], [w, h], [w, 0]]
+    return [[
+        r for h, s in zip(homogs, sizes) for r
+        in transform_poly_to_polys(size_to_poly(s), np.linalg.inv(h), size)
+    ] for (homogs, sizes), size in zip(suppression_homogs_and_sizes, sizes)]
+
+def wrap_poly(poly, class_):
+    result = DetectedObject(
+        bbox=BoundingBoxD(*poly.min(0), *poly.max(0)),
+        classifications=DetectedObjectType(class_, 1),
+    )
+    result.set_flattened_polygon(poly.reshape(-1))
+    return result
 
 @Transformer.decorate
-def suppress():
+def suppress(suppression_poly_class=None):
     prev_multihomog = prev_sizes = None
     output = None
     while True:
@@ -92,17 +170,33 @@ def suppress():
         multihomog = MultiHomographyF2F.from_homographyf2fs(map(wrap_F2FHomography, homogs))
         do_lists = list(map(to_DetectedObject_list, do_sets))
         boxes = (map(get_DetectedObject_bbox, dos) for dos in do_lists)
-        keep_its = arg_suppress_boxes(boxes, multihomog, sizes,
-                                      prev_multihomog, prev_sizes)
+        shs = get_suppression_homogs_and_sizes(multihomog, sizes,
+                                               prev_multihomog, prev_sizes)
+        keep_its = arg_suppress_boxes(boxes, shs)
+        if suppression_poly_class is None:
+            poly_dets = [()] * len(do_lists)
+        else:
+            def n(p):
+                # Normalize poly.  This works around DIVE issue #993
+                # (https://github.com/Kitware/dive/issues/993)
+                assert (p >= 0).all()
+                return np.where(p, p, 0)  # Replace -0 with 0
+            poly_dets = ((wrap_poly(n(p), suppression_poly_class) for p in ps)
+                         for ps in suppression_polys(shs, sizes))
         prev_multihomog, prev_sizes = multihomog, sizes
-        output = [DetectedObjectSet([do for k, do in zip(keep, dos) if k])
-                  for keep, dos in zip(keep_its, do_lists)]
+        output = [
+            DetectedObjectSet([*(do for k, do in zip(keep, dos) if k), *pd])
+            for keep, dos, pd in zip(keep_its, do_lists, poly_dets)
+        ]
 
 class MulticamHomogDetSuppressor(KwiverProcess):
     def __init__(self, config):
         KwiverProcess.__init__(self, config)
 
         add_declare_config(self, 'n_input', '2', 'Number of inputs')
+        add_declare_config(self, 'suppression_poly_class', '',
+                           'If not empty, include polygons indicating the'
+                           ' suppressed area with this class')
 
         optional = process.PortFlags()
         required = process.PortFlags()
@@ -123,7 +217,8 @@ class MulticamHomogDetSuppressor(KwiverProcess):
     def _configure(self):
         # XXX actually use this
         self._n_input = int(self.config_value('n_input'))
-        self._suppressor = suppress()
+        spc = self.config_value('suppression_poly_class') or None
+        self._suppressor = suppress(spc)
         self._base_configure()
 
     def _step(self):
