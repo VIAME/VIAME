@@ -193,6 +193,21 @@ def write_tracks(i, track_port, timestamp, file_name):
 
     """), None
 
+def write_dets(i, det_port, file_name):
+    proc = f'detector_writer{i}'
+    return dedent(f"""\
+        process {proc} :: detected_object_output
+          file_name = detections{i}.csv
+          frame_list_output = det_images_{i}.txt
+          writer:type = viame_csv
+
+        connect from {det_port}
+                to {proc}.detected_object_set
+        connect from {file_name}
+                to {proc}.image_file_name
+
+    """), None
+
 def outadapt(track_sets, timestamps, file_names):
     result = []
     result.append('process out_adapt :: output_adapter\n\n')
@@ -238,17 +253,20 @@ def create_file(type_, ncams, *, embedded):
     objects = [do(create_detector(i, im)) for i, im in enum1(images)]
     if type_ == 'tracker':
         track_sets = do(multitrack(homogs, objects, timestamps[0]))
+        for i, ts, t, fn in zip(rncams, track_sets, timestamps, file_names):
+            do(write_tracks(i, ts, t, fn))
     elif type_ == 'suppressor':
         objects_supp = do(suppressor(homogs, objects, images))
-        initialize_tracks = make_track_initializer()
-        track_sets = [do(initialize_tracks(i, o, t)) for i, o, t
-                      in zip(rncams, objects_supp, timestamps)]
+        for i, o, fn in zip(rncams, objects_supp, file_names):
+            do(write_dets(i, o, fn))
+        if embedded:
+            initialize_tracks = make_track_initializer()
+            track_sets = [do(initialize_tracks(i, o, t)) for i, o, t
+                          in zip(rncams, objects_supp, timestamps)]
     else:
         raise ValueError
     for i, h in enum1(homogs):
         do(write_homogs(i, h))
-    for i, ts, t, fn in zip(rncams, track_sets, timestamps, file_names):
-        do(write_tracks(i, ts, t, fn))
     if embedded:
         do(outadapt(track_sets, timestamps, file_names))
     return ''.join(result).rstrip('\n') + '\n'
