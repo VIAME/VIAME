@@ -160,7 +160,7 @@ def wrap_poly(poly, class_):
     return result
 
 @Transformer.decorate
-def suppress():
+def suppress(suppression_poly_class=None):
     prev_multihomog = prev_sizes = None
     output = None
     while True:
@@ -173,15 +173,25 @@ def suppress():
         shs = get_suppression_homogs_and_sizes(multihomog, sizes,
                                                prev_multihomog, prev_sizes)
         keep_its = arg_suppress_boxes(boxes, shs)
+        if suppression_poly_class is None:
+            poly_dets = [()] * len(do_lists)
+        else:
+            poly_dets = ((wrap_poly(p, suppression_poly_class) for p in ps)
+                         for ps in suppression_polys(shs, sizes))
         prev_multihomog, prev_sizes = multihomog, sizes
-        output = [DetectedObjectSet([do for k, do in zip(keep, dos) if k])
-                  for keep, dos in zip(keep_its, do_lists)]
+        output = [
+            DetectedObjectSet([*(do for k, do in zip(keep, dos) if k), *pd])
+            for keep, dos, pd in zip(keep_its, do_lists, poly_dets)
+        ]
 
 class MulticamHomogDetSuppressor(KwiverProcess):
     def __init__(self, config):
         KwiverProcess.__init__(self, config)
 
         add_declare_config(self, 'n_input', '2', 'Number of inputs')
+        add_declare_config(self, 'suppression_poly_class', '',
+                           'If not empty, include polygons indicating the'
+                           ' suppressed area with this class')
 
         optional = process.PortFlags()
         required = process.PortFlags()
@@ -202,7 +212,8 @@ class MulticamHomogDetSuppressor(KwiverProcess):
     def _configure(self):
         # XXX actually use this
         self._n_input = int(self.config_value('n_input'))
-        self._suppressor = suppress()
+        spc = self.config_value('suppression_poly_class') or None
+        self._suppressor = suppress(spc)
         self._base_configure()
 
     def _step(self):
