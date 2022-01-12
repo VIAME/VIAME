@@ -148,6 +148,7 @@ def suppressor(homogs, objects, images):
     result.append(dedent(f"""\
         process suppressor :: multicam_homog_det_suppressor
           n_input = {ncams}
+          suppression_poly_class = Suppressed
 
     """))
     for prefix, ports in [('homog', homogs),
