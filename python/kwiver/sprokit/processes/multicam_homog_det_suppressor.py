@@ -33,7 +33,9 @@ import numpy as np
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
-from kwiver.vital.types import DetectedObjectSet
+from kwiver.vital.types import (
+    BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
+)
 
 from .multicam_homog_tracker import MultiHomographyF2F, diff_homogs
 from .simple_homog_tracker import (
@@ -93,6 +95,69 @@ def arg_suppress_boxes(box_lists, suppression_homogs_and_sizes):
     # XXX This could perhaps be vectorized with Numpy
     return [[not center_in_bounds(b, *shs) for b in boxes]
             for boxes, shs in zip(box_lists, suppression_homogs_and_sizes)]
+
+def clip_poly(poly, scores):
+    """Clip a poly, only keeping points with a nonnegative score"""
+    result = []
+    for i in range(len(poly)):
+        p1, p2 = poly[i], poly[(i + 1) % len(poly)]
+        s1, s2 = scores[i], scores[(i + 1) % len(poly)]
+        if s1 == 0:
+            result.append(p1)
+        else:
+            if s1 > 0:
+                result.append(p1)
+            if s2 != 0 and (s1 > 0) != (s2 > 0):
+                result.append((s2 * p1 - s1 * p2) / (s2 - s1))
+    return result and np.stack(result)
+
+def transform_poly_to_polys(poly, homog, clip_size):
+    """Transform a convex polygon into zero to two clipped polygons
+
+    Polygons are represented as Nx2 array-likes
+
+    """
+    # Convert to homogeneous coordinates
+    poly = np.concatenate([poly, np.ones((len(poly), 1))], axis=1)
+    # Transform (ensuring homog has a non-negative determinant)
+    tpoly = poly @ (-homog if np.linalg.det(homog) < 0 else homog).T
+    # Cut polygon if needed
+    tpolys = [
+        clip_poly(tpoly, tpoly[:, 2]),
+        clip_poly(-tpoly, -tpoly[:, 2])[::-1],
+    ]
+    tpolys = [poly for poly in tpolys if len(poly) and (poly[:, 2] != 0).any()]
+    if not tpolys:
+        raise ValueError("All transformed points lie in camera ground plane")
+    # Clip to size
+    def clip(poly, scorers):
+        for scorer in scorers:
+            poly = clip_poly(poly, poly @ scorer)
+            if len(poly) == 0:
+                break
+        return poly
+    cpolys = [clip(poly, [
+        [1, 0, 0], [0, 1, 0], [-1, 0, clip_size[0]], [0, -1, clip_size[1]],
+    ]) for poly in tpolys]
+    # Convert from homogeneous coordinates
+    return [poly[:, :2] / poly[:, 2:] for poly in cpolys if len(poly) > 2]
+
+def suppression_polys(suppression_homogs_and_sizes, sizes):
+    def size_to_poly(size):
+        w, h = size
+        return [[0, 0], [0, h], [w, h], [w, 0]]
+    return [[
+        r for h, s in zip(homogs, sizes) for r
+        in transform_poly_to_polys(size_to_poly(s), np.linalg.inv(h), size)
+    ] for (homogs, sizes), size in zip(suppression_homogs_and_sizes, sizes)]
+
+def wrap_poly(poly, class_):
+    result = DetectedObject(
+        bbox=BoundingBoxD(*poly.min(0), *poly.max(0)),
+        classifications=DetectedObjectType(class_, 1),
+    )
+    result.set_flattened_polygon(poly.reshape(-1))
+    return result
 
 @Transformer.decorate
 def suppress():
