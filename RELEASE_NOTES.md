@@ -1,3 +1,17 @@
+v0.17.7 - 1/15/2022
+===================
+
+
+-Fix issue in running user-initialized tracking on videos
+
+
+-Fix issues with reclassifier pipelines on certain datasets
+
+
+-Fix issue with DIVE and loading certain videos in desktop linux
+
+
+
 v0.17.6 - 1/3/2022
 ==================
 
