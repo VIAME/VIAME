@@ -28,8 +28,13 @@ file \
 which \
 bzip2 \
 bzip2-devel \
-xz-devel \
-libx264-devel
+xz-devel
+
+# Install x264 codec
+wget https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm
+rpm -Uvh rpmfusion-free-release-7.noarch.rpm
+yum -y install rpmfusion-free-release
+yum -y install x264-devel
 
 # Install and use more recent compiler
 yum -y install centos-release-scl
@@ -128,3 +133,5 @@ cp /usr/lib64/liblapack.so.3 install/lib || true
 cp /usr/lib64/libgfortran.so.3 install/lib || true
 cp /usr/lib64/libquadmath.so.0 install/lib || true
 cp /usr/lib64/libpng15.so.15 install/lib || true
+cp /usr/lib64/libx264.so.148 install/lib || true
+cp /usr/lib64/libx26410b.so.148 install/lib || true
