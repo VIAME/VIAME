@@ -1,11 +1,5 @@
 
-REM You no longer need to set install or set Anaconda or CUDA
-REM
-REM They are now packaged in VIAME
-REM
-REM Because people kept installing the wrong versions (not naming any names)
-REM
-REM Do not edit this or the below anymore
+REM This script sets up all paths required for standard VIAME Usage
 
 SET VIAME_INSTALL=%~dp0
 

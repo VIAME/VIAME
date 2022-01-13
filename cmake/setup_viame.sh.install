@@ -1,16 +1,7 @@
-#
-# Script to set up environment to use VIAME
-#
-# Note: You no longer need to set install or set Anaconda or CUDA
-#
-# They are now packaged in VIAME
-#
-# Because people kept installing the wrong versions (not naming any names)
-#
-# The below variables specify search paths for plugins and modules within the VIAME
-# framework. It is not recommended to modify any of the below paths, unless you know
-# what you're doing.
-#
+###############################################################################
+#       This script sets up all paths required for standard VIAME Usage       #
+###############################################################################
+
 this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
 
 # Setup VIAME install path

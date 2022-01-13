@@ -1,6 +1,6 @@
-#
-# Script to set up environment to use VIAME
-#
+###############################################################################
+#       This script sets up all paths required for standard VIAME Usage       #
+###############################################################################
 
 @SETUP_PYTHON_LOCATION@
 
