@@ -15,6 +15,9 @@ SET PIPES_PER_GPU=1
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
+REM Set current directory for project folder pipe
+SET VIAME_PROJECT_DIR=%~dp0
+
 python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
   -d "%INPUT_DIRECTORY%" -frate %FRAME_RATE% ^
   -p pipelines\frame_classifier_project_folder.pipe -o %OUTPUT_DIRECTORY% ^
