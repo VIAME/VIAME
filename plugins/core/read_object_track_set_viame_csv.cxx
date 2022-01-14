@@ -67,7 +67,7 @@ public:
   priv( read_object_track_set_viame_csv* parent )
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "read_object_track_set_viame_csv" ) )
-    , m_batch_load( true )
+    , m_batch_load( false )
     , m_delim( "," )
     , m_confidence_override( -1.0 )
     , m_frame_id_adjustment( 0 )
