@@ -408,7 +408,7 @@ if( VIAME_ENABLE_OPENCV )
     pipelines/register_multimodal_unsync_ocv.pipe )
 endif()
 
-if( VIAME_ENABLE_PYTORCH )
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
 #  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
 #    pipelines/train_detector_mmdet_cfrnn.habcam.conf
 #    pipelines/train_detector_mmdet_cfrnn.viame_csv.conf)
