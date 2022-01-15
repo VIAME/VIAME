@@ -57,7 +57,8 @@ Integrated Detection Formats
 |  and 15, etc...). In the case of tracks, which may span multiple lines and thus
 |  have multiple probabilities per line, the probabilities from the last state in
 |  the track should be treated as the aggregate probability for the track and it's
-|  okay for prior states to have no probability to prevent respecifying it.
+|  okay for prior states to have no probability to prevent respecifying it. In the
+|  class and score list, the highest scoring entries should typically be listed first.
 |
 |  Lastly, optional categorical values associated with each detection in the file
 |  after species/class pairs. Attributes are given via a keyword followed by any
