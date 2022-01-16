@@ -34,23 +34,29 @@ endif()
 
 # Move any misinstalled python files
 if( PYTHON_VERSION )
+
+  # Sometimes fletch subpackages install python files to incorrect python
+  # subdirectories, like lib/site-packages instead of lib/pythonX.Y/site-packages
   set( ROOT_PYTHON_DIR "${VIAME_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}" )
   set( OUTPUT_PYTHON_DIR "${ROOT_PYTHON_DIR}/site-packages/" )
 
+  file( GLOB OTHER_PYTHON_DIRS "${ROOT_PYTHON_DIR}.*" )
+
   if( EXISTS ${VIAME_INSTALL_PREFIX}/lib/site-packages )
-    set( DIR_TO_MOVE "${VIAME_INSTALL_PREFIX}/lib/site-packages" )
-    file( GLOB FILES_TO_MOVE "${DIR_TO_MOVE}/*" )
-    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
-    file( REMOVE_RECURSE  ${DIR_TO_MOVE} )
+    list( APPEND OTHER_PYTHON_DIRS "${VIAME_INSTALL_PREFIX}/lib/site-packages" )
   endif()
 
   if( EXISTS ${VIAME_INSTALL_PREFIX}/lib/python/site-packages )
-    set( DIR_TO_MOVE "${VIAME_INSTALL_PREFIX}/lib/python/site-packages" )
-    file( GLOB FILES_TO_MOVE "${DIR_TO_MOVE}/*" )
-    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
-    file( REMOVE_RECURSE  ${DIR_TO_MOVE} )
+    list( APPEND OTHER_PYTHON_DIRS "${VIAME_INSTALL_PREFIX}/lib/python/site-packages" )
   endif()
 
+  foreach( ALT_PYTHON_FOLDER ${OTHER_PYTHON_DIRS} )
+    file( GLOB FILES_TO_MOVE "${ALT_PYTHON_FOLDER}/*" )
+    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( REMOVE_RECURSE "${ALT_PYTHON_FOLDER}" )
+  endforeach()
+
+  # OpenCV often installs just a .so without proper python headers
   if( NOT WIN32 AND VIAME_ENABLE_OPENCV )
     set( PATCH_DIR ${VIAME_CMAKE_DIR}/../packages/patches/fletch )
     file( COPY ${PATCH_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
