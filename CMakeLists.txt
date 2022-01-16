@@ -64,7 +64,7 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
 option( VIAME_ENABLE_SEAL_TK        "Enable Seal-TK GUI"            OFF )
-option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               OFF )
+option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
 mark_as_advanced( VIAME_ENABLE_SEAL_TK )
