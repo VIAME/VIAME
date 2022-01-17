@@ -224,7 +224,8 @@ read_object_track_set_viame_csv
 
   if( d->m_current_idx > d->m_last_idx )
   {
-    return false;
+    set = std::make_shared< kwiver::vital::object_track_set>();
+    return true;
   }
 
   // Return detection set at current index if there is one
@@ -246,7 +247,6 @@ read_object_track_set_viame_csv
   }
 
   ++d->m_current_idx;
-
   return true;
 }
 
