@@ -73,9 +73,9 @@ if( VIAME_DOWNLOAD_MODELS )
     # Default annotation assist tracking models
     if( VIAME_ENABLE_PYTORCH-PYSOT )
       DownloadAndExtract(
-        https://viame.kitware.com/api/v1/item/615a7c928c5a9e551dc3c4ef/download
-        c4578d6195e827dc6c4fa2f1c4044939
-        ${VIAME_DOWNLOAD_DIR}/models-pysot_tracking_models-v1.1.0.zip
+        https://viame.kitware.com/api/v1/item/61e4e0ebe90592181da06a79/download
+        39c2a4de745edbed0452f8e951c57537
+        ${VIAME_DOWNLOAD_DIR}/models-pysot_tracking_models-v1.2.zip
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
 

@@ -38,7 +38,13 @@ connect from downsampler.output_2
         to   track_reader.image_file_name
 
 # Tracker algorithm
-include common_short_term_tracker.pipe
+process short_term_tracker
+  :: pysot_tracker
+
+  relativepath config_file =                   models/pysot_default_siammask.yaml
+  relativepath model_file =                    models/pysot_default_siammask.pth
+
+  :threshold                                   0.80
 
 # Connect inputs to tracker
 connect from downsampler.output_1
