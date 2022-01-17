@@ -34,24 +34,29 @@ endif()
 
 # Move any misinstalled python files
 if( PYTHON_VERSION )
-
   # Sometimes fletch subpackages install python files to incorrect python
   # subdirectories, like lib/site-packages instead of lib/pythonX.Y/site-packages
   set( ROOT_PYTHON_DIR "${VIAME_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}" )
   set( OUTPUT_PYTHON_DIR "${ROOT_PYTHON_DIR}/site-packages/" )
 
-  file( GLOB OTHER_PYTHON_DIRS "${ROOT_PYTHON_DIR}.*" )
-
   if( EXISTS ${VIAME_INSTALL_PREFIX}/lib/site-packages )
-    list( APPEND OTHER_PYTHON_DIRS "${VIAME_INSTALL_PREFIX}/lib/site-packages" )
+    set( DIR_TO_MOVE "${VIAME_INSTALL_PREFIX}/lib/site-packages" )
+    file( GLOB FILES_TO_MOVE "${DIR_TO_MOVE}/*" )
+    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( REMOVE_RECURSE ${DIR_TO_MOVE} )
   endif()
 
   if( EXISTS ${VIAME_INSTALL_PREFIX}/lib/python/site-packages )
-    list( APPEND OTHER_PYTHON_DIRS "${VIAME_INSTALL_PREFIX}/lib/python/site-packages" )
+    set( DIR_TO_MOVE "${VIAME_INSTALL_PREFIX}/lib/python/site-packages" )
+    file( GLOB FILES_TO_MOVE "${DIR_TO_MOVE}/*" )
+    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( REMOVE_RECURSE ${DIR_TO_MOVE} )
   endif()
 
+  file( GLOB OTHER_PYTHON_DIRS "${ROOT_PYTHON_DIR}.*" )
+
   foreach( ALT_PYTHON_FOLDER ${OTHER_PYTHON_DIRS} )
-    file( GLOB FILES_TO_MOVE "${ALT_PYTHON_FOLDER}/*" )
+    file( GLOB FILES_TO_MOVE "${ALT_PYTHON_FOLDER}/site-packages/*" )
     file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
     file( REMOVE_RECURSE "${ALT_PYTHON_FOLDER}" )
   endforeach()
