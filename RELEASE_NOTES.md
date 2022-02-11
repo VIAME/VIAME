@@ -1,3 +1,14 @@
+v0.17.8 - 2/11/2022
+===================
+
+
+-Fixes to DIVE interface, add track trails
+
+
+-Fix issues with running multiple user initialized trackers
+
+
+
 v0.17.7 - 1/15/2022
 ===================
 
