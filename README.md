@@ -94,16 +94,7 @@ CentOS
 * [VIAME Web Local Installation Instructions](https://kitware.github.io/dive/Deployment-Overview/) <br>
 * [VIAME Web Source Repository](https://github.com/Kitware/dive)
 
-**DIVE Standalone Desktop Annotator:** <br>
-* [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
-
-**SEAL Custom Annotator Distribution:** <br>
-* [SEAL v0.14.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
-* [SEAL v0.14.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
-* [SEAL v0.14.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
-* [SEAL v0.14.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
-
-**Optional Patches:** <br>
+**Optional Add-Ons and Model Files:** <br>
 * [Motion Detector Models, All OS](https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download) <br>
 * [Alternative Generic Detector for IQR, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
 * [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
@@ -116,10 +107,19 @@ CentOS
 * [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download) <br>
 * [EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
 
+**DIVE Standalone Desktop Annotator:** <br>
+* [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
+
+**SEAL Standalone Desktop Annotator:** <br>
+* [SEAL v0.14.0 Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
+* [SEAL v0.14.0 Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
+* [SEAL v0.14.0 CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
+* [SEAL v0.14.0 Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
+
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
-To use project files extract them into your working directory of choice. Custom distributions 
-contain a full installation, only with non-default features turned on, and should not be copied
-into existing installations because they are a full installation and bad things will happen.
+Folders should match, for example, the Add-On packages contains a 'configs' folder, and the
+main installation also contains a 'configs' folder so they should just be merged.
+
 
 Docker Images
 -------------
