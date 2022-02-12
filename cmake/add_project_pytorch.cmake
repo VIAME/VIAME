@@ -39,6 +39,10 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} netharn bioharn )
 endif()
 
+if( VIAME_ENABLE_TENSORRT )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torch2rt )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-MMDET )
   if( VIAME_ENABLE_CUDA AND CUDA_VERSION VERSION_LESS "9.0" )
     message( FATAL_ERROR "To use mmdetection you must have at least CUDA 9.0.\n\n"

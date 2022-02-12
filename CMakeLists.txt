@@ -83,6 +83,7 @@ option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 # Add secondary plugin enable flags
 ##
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
+option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
@@ -610,6 +611,10 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_PYTORCH )
     include( add_project_pytorch )
+  endif()
+
+  if( VIAME_ENABLE_TENSORRT )
+    include( add_project_tensor_rt )
   endif()
 
   if( VIAME_ENABLE_TENSORFLOW )
