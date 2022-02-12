@@ -54,8 +54,8 @@ to have sufficient video drivers installed, version 456.38 or higher. The best w
 install drivers depends on your operating system, see below. Lastly, run through some
 of the examples to validate the installation. The binaries are quite large, in terms of
 disk space, due to the inclusion of multiple default model files and programs, but
-if just building your desired features from source (e.g. for embedded apps) they are
-much smaller.
+if just building your desired features from source (e.g. for embedded apps), or
+installing standalone annotators, they are much smaller.
 
 **Installation Requirements:** <br>
 * 8 Gb of Disk Space for the Full Installation <br>
