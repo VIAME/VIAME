@@ -7,7 +7,7 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} tensorrt )
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} tensor_rt )
 
 if( VIAME_ENABLE_CUDA )
   FormatPassdowns( "CUDA" VIAME_TENSOR_RT_CUDA_FLAGS )
@@ -17,7 +17,7 @@ if( VIAME_ENABLE_CUDNN )
   FormatPassdowns( "CUDNN" VIAME_TENSOR_RT_CUDNN_FLAGS )
 endif()
 
-ExternalProject_Add(tensorrt
+ExternalProject_Add( tensor_rt
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/tensor-rt
@@ -32,7 +32,7 @@ ExternalProject_Add(tensorrt
   )
 
 if( VIAME_FORCEBUILD )
-ExternalProject_Add_Step(tensorrt forcebuild
+ExternalProject_Add_Step( tensor_rt forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/tensor-rt-stamp/tensor-rt-build
   COMMENT "Removing build stamp file for build update (forcebuild)."
