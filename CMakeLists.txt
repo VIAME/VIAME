@@ -614,7 +614,7 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 
   if( VIAME_ENABLE_TENSORRT )
-    include( add_project_tensor_rt )
+    include( add_project_tensorrt )
   endif()
 
   if( VIAME_ENABLE_TENSORFLOW )
