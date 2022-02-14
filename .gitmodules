@@ -61,6 +61,6 @@
 [submodule "packages/pytorch-libs/mmdet-to-tensorrt"]
 	path = packages/pytorch-libs/mmdet-to-tensorrt
 	url = https://github.com/grimoire/mmdetection-to-tensorrt.git
-[submodule "packages/tensor-rt"]
-	path = packages/tensor-rt
+[submodule "packages/tensorrt"]
+	path = packages/tensorrt
 	url = https://github.com/NVIDIA/TensorRT.git
