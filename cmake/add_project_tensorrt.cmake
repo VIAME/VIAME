@@ -9,6 +9,13 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} tensorrt )
 
+option( TENSORRT_LIB_DIR "TensorRT Non-Public Binary Path" "" )
+
+if( NOT TENSORRT_LIB_DIR )
+  message( FATAL_ERROR "TensorRT LIB DIR must be set.\n"
+    "Download from https://github.com/NVIDIA/TensorRT.\n" )
+endif()
+
 if( VIAME_ENABLE_CUDA )
   FormatPassdowns( "CUDA" VIAME_TENSORRT_CUDA_FLAGS )
 endif()
@@ -28,6 +35,8 @@ ExternalProject_Add( tensorrt
     ${VIAME_ARGS_fletch}
     ${VIAME_TENSORRT_CUDA_FLAGS}
     ${VIAME_TENSORRT_CUDNN_FLAGS}
+    -DTRT_LIB_DIR:PATH=${TENSORRT_LIB_DIR}
+    -DTRT_OUT_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 

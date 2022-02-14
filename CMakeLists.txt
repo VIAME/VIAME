@@ -609,12 +609,12 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_kwant )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH )
-    include( add_project_pytorch )
-  endif()
-
   if( VIAME_ENABLE_TENSORRT )
     include( add_project_tensorrt )
+  endif()
+
+  if( VIAME_ENABLE_PYTORCH )
+    include( add_project_pytorch )
   endif()
 
   if( VIAME_ENABLE_TENSORFLOW )
