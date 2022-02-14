@@ -64,3 +64,6 @@
 [submodule "packages/tensorrt"]
 	path = packages/tensorrt
 	url = https://github.com/NVIDIA/TensorRT.git
+[submodule "packages/pytorch-libs/torch2rt"]
+	path = packages/pytorch-libs/torch2rt
+	url = https://github.com/NVIDIA-AI-IOT/torch2trt
