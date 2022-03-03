@@ -16,6 +16,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 python.exe "%VIAME_INSTALL%\configs\extract_video_frames.py" ^
   -d "%INPUT_DIRECTORY%" -o %OUTPUT_DIR% ^
-  -r %FRAME_RATE% -s %START_TIME% -t %DURATION% -m %METHOD%
+  -r %FRAME_RATE% -s %START_TIME% -t %DURATION%
 
 pause
