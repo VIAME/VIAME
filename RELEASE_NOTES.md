@@ -1,3 +1,13 @@
+v0.17.9 - 3/2/2022
+------------------
+
+-Updates to DIVE interface
+
+
+-Fix frame extract script
+
+
+
 v0.17.8 - 2/11/2022
 ===================
 
