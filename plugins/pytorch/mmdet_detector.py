@@ -2,20 +2,15 @@
 # OSI-approved BSD 3-Clause License. See top-level LICENSE.txt file or
 # https://github.com/VIAME/VIAME/blob/master/LICENSE.txt for details.
 
-from __future__ import print_function
+import sys
 
+from distutils.util import strtobool
 from kwiver.vital.algo import ImageObjectDetector
-
 from kwiver.vital.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType
 )
-
-from distutils.util import strtobool
-
-import numpy as np
-import sys
-
 import mmcv
+import numpy as np
 
 
 class MMDetDetector(ImageObjectDetector):
