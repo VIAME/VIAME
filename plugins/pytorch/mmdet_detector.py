@@ -32,6 +32,7 @@ class MMDetDetector(ImageObjectDetector):
         _Option('_gpu_index', 'gpu_index', "0", str),
         _Option('_display_detections', 'display_detections', False, strtobool),
         _Option('_template', 'template', "", str),
+        _Option('_auto_update_model', 'auto_update_model', True, strtobool),
     ]
 
     def __init__(self):
@@ -53,8 +54,9 @@ class MMDetDetector(ImageObjectDetector):
         for opt in self._options:
             setattr(self, opt.attr, opt.parse(cfg.get_value(opt.config)))
 
-        from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
-        check_config_compatibility(self._net_config, self._weight_file, self._template)
+        if self._auto_update_model:
+            from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
+            check_config_compatibility(self._net_config, self._weight_file, self._template)
 
         import matplotlib
         matplotlib.use('PS') # bypass multiple Qt load issues
