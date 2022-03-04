@@ -2,6 +2,7 @@
 # OSI-approved BSD 3-Clause License. See top-level LICENSE.txt file or
 # https://github.com/VIAME/VIAME/blob/master/LICENSE.txt for details.
 
+from collections import namedtuple
 import sys
 
 from distutils.util import strtobool
@@ -13,43 +14,44 @@ import mmcv
 import numpy as np
 
 
+_Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
+
+
 class MMDetDetector(ImageObjectDetector):
     """
     Implementation of ImageObjectDetector class
     """
+
+    # Config-option-based attribute specifications, used in __init__,
+    # get_configuration, and set_configuration
+    _options = [
+        _Option('_net_config', 'net_config', '', str),
+        _Option('_weight_file', 'weight_file', '', str),
+        _Option('_class_names', 'class_names', '', str),
+        _Option('_thresh', 'thresh', 0.01, float),
+        _Option('_gpu_index', 'gpu_index', "0", str),
+        _Option('_display_detections', 'display_detections', False, strtobool),
+        _Option('_template', 'template', "", str),
+    ]
+
     def __init__(self):
         ImageObjectDetector.__init__(self)
-        self._net_config = ""
-        self._weight_file = ""
-        self._class_names = ""
-        self._thresh = 0.01
-        self._gpu_index = "0"
-        self._display_detections = False
-        self._template = ""
+        for opt in self._options:
+            setattr(self, opt.attr, opt.default)
 
     def get_configuration(self):
         # Inherit from the base class
         cfg = super(ImageObjectDetector, self).get_configuration()
-        cfg.set_value("net_config", self._net_config)
-        cfg.set_value("weight_file", self._weight_file)
-        cfg.set_value("class_names", self._class_names)
-        cfg.set_value("thresh", str(self._thresh))
-        cfg.set_value("gpu_index", self._gpu_index)
-        cfg.set_value("display_detections", str(self._display_detections))
-        cfg.set_value("template", str(self._template))
+        for opt in self._options:
+            cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
 
-        self._net_config = str(cfg.get_value("net_config"))
-        self._weight_file = str(cfg.get_value("weight_file"))
-        self._class_names = str(cfg.get_value("class_names"))
-        self._thresh = float(cfg.get_value("thresh"))
-        self._gpu_index = str(cfg.get_value("gpu_index"))
-        self._display_detections = strtobool(cfg.get_value("display_detections"))
-        self._template = str(cfg.get_value("template"))
+        for opt in self._options:
+            setattr(self, opt.attr, opt.parse(cfg.get_value(opt.config)))
 
         from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
         check_config_compatibility(self._net_config, self._weight_file, self._template)
