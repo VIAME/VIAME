@@ -5,6 +5,7 @@
 from collections import namedtuple
 import sys
 
+import cv2
 from distutils.util import strtobool
 from kwiver.vital.algo import ImageObjectDetector
 from kwiver.vital.types import (
@@ -33,6 +34,7 @@ class MMDetDetector(ImageObjectDetector):
         _Option('_display_detections', 'display_detections', False, strtobool),
         _Option('_template', 'template', "", str),
         _Option('_auto_update_model', 'auto_update_model', True, strtobool),
+        _Option('_rgb_to_bgr', 'rgb_to_bgr', True, strtobool),
     ]
 
     def __init__(self):
@@ -81,6 +83,8 @@ class MMDetDetector(ImageObjectDetector):
 
     def detect(self, image_data):
         input_image = image_data.asarray().astype('uint8')
+        if self._rgb_to_bgr:
+            input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
 
         from mmdet.apis import inference_detector
         detections = inference_detector(self._model, input_image)
