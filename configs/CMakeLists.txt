@@ -208,6 +208,8 @@ set( CORE_PIPELINE_FILES
   pipelines/common_default_input.pipe
   pipelines/common_default_input_with_downsampler.pipe
   pipelines/common_fish_detector.pipe
+  pipelines/common_stereo_input.pipe
+  pipelines/common_stereo_input_with_downsampler.pipe
   pipelines/common_fish_detector_with_filter.pipe
   pipelines/common_generic_detector.pipe
   pipelines/common_generic_detector_with_filter.pipe
