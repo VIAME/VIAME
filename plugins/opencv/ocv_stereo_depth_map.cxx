@@ -54,6 +54,8 @@ public:
   int num_disparities;
   int sad_window_size;
   int block_size;
+  int speckle_window_size;
+  int speckle_range;
 
 #ifdef VIAME_OPENCV_VER_2
   cv::StereoBM algo;
@@ -67,6 +69,8 @@ public:
     , num_disparities( 16 )
     , sad_window_size( 21 )
     , block_size( 3 )
+    , speckle_window_size( 50 )
+    , speckle_range( 5 )
   {}
 
   ~priv()
@@ -98,6 +102,8 @@ ocv_stereo_depth_map
   config->set_value( "num_disparities", d->num_disparities, "Disparity count" );
   config->set_value( "sad_window_size", d->sad_window_size, "SAD window size" );
   config->set_value( "block_size", d->block_size, "Block size" );
+  config->set_value( "speckle_window_size", d->speckle_window_size, "Speckle Window Size" );
+  config->set_value( "speckle_range", d->speckle_range, "Speckle Range" );
 
   return config;
 }
@@ -114,6 +120,8 @@ void ocv_stereo_depth_map
   d->num_disparities = config->get_value< int >( "num_disparities" );
   d->sad_window_size = config->get_value< int >( "sad_window_size" );
   d->block_size = config->get_value< int >( "block_size" );
+  d->speckle_window_size = config->get_value< int >( "speckle_window_size" );
+  d->speckle_range = config->get_value< int >( "speckle_range" );
 
 #ifdef VIAME_OPENCV_VER_2
   if( d->algorithm == "BM" )
@@ -132,10 +140,14 @@ void ocv_stereo_depth_map
   if( d->algorithm == "BM" )
   {
     d->algo = cv::StereoBM::create( d->num_disparities, d->sad_window_size );
+    d->algo->setSpeckleWindowSize(d->speckle_window_size);
+    d->algo->setSpeckleRange (d->speckle_range);
   }
   else if( d->algorithm == "SGBM" )
   {
     d->algo = cv::StereoSGBM::create( d->min_disparity, d->num_disparities, d->block_size );
+    d->algo->setSpeckleWindowSize(d->speckle_window_size);
+    d->algo->setSpeckleRange (d->speckle_range);
   }
   else
   {
