@@ -1,0 +1,109 @@
+# ==================================================================================
+# Stereo fish detector.
+# ==================================================================================
+
+process detector_input1
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detector_image_filter1
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+
+  block filter:ocv_enhancer
+    :auto_balance                              true
+    :apply_smoothing                           false
+    :apply_denoising                           false
+    :force_8bit                                false
+    :apply_clahe                               false
+    :clip_limit                                3
+    :saturation                                1.0
+  endblock
+
+connect from detector_input1.image
+        to   detector_image_filter1.image
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                640
+    :chip_height                               640
+    :chip_adaptive_thresh                      1200000
+
+    block detector:netharn
+      relativepath deployed =                  models/fish_no_motion_detector.zip
+    endblock
+  endblock
+
+connect from detector_image_filter1.image
+        to   detector1.image
+
+process detector_output1
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_output1.detected_object_set
+
+# ==================================================================================
+
+process detector_input2
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detector_image_filter2
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+
+  block filter:ocv_enhancer
+    :auto_balance                              true
+    :apply_smoothing                           false
+    :apply_denoising                           false
+    :force_8bit                                false
+    :apply_clahe                               false
+    :clip_limit                                3
+    :saturation                                1.0
+  endblock
+
+connect from detector_input2.image
+        to   detector_image_filter2.image
+
+process detector2
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                640
+    :chip_height                               640
+    :chip_adaptive_thresh                      1200000
+
+    block detector:netharn
+      relativepath deployed =                  models/fish_no_motion_detector.zip
+    endblock
+  endblock
+
+connect from detector_image_filter2.image
+        to   detector2.image
+
+process detector_output2
+  :: merge_detection_sets
+
+connect from detector2.detected_object_set
+        to   detector_output2.detected_object_set

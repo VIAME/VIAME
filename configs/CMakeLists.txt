@@ -299,6 +299,12 @@ if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_default_descriptor.pipe
     pipelines/common_default_tracker.pipe
+    pipelines/common_fish_detector.pipe
+    pipelines/common_stereo_fish_detector_with_filter.pipe
+    pipelines/common_stereo_fish_detector.pipe
+    pipelines/common_generic_detector.pipe
+    pipelines/measurement_gmm_stereo_detect_fish.pipe
+    pipelines/measurement_gmm_stereo_track_fish.pipe
     pipelines/query_augment_image.pipe
     pipelines/tracker_fish.sfd.pipe )
 else()
