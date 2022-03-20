@@ -1,5 +1,17 @@
+v0.18.0 - 3/20/2022
+===================
+
+
+-Fix system issue in CFRNN detector train
+
+
+-Default YOLO parameter tweak
+
+
+
 v0.17.9 - 3/2/2022
-------------------
+==================
+
 
 -Updates to DIVE interface
 
