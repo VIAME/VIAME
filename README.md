@@ -45,10 +45,11 @@ Installations
 -------------
 
 For a full installation guide and description of the various flavors of VIAME, see the
-quick-start guide, above. The desktop version is provided as either a .msi, .zip or .tar
-file. Alternatively, docker files are available for both VIAME Desktop and Web (below).
-For desktop installs, extract the binaries (or use the msi Windows installation wizard)
-and place them in a directory of your choosing, for example /opt/noaa/viame on Linux
+quick-start guide, above. The full desktop version is provided as either a .msi, .zip or
+.tar file. Alternatively, standalone annotators (without any processing algorithms)
+are available via smaller installers. Lastly, docker files are available for both VIAME
+Desktop and Web (below). For full desktop installs, extract the binaries and place them
+in a directory of your choosing, for example /opt/noaa/viame on Linux
 or C:\Program Files\VIAME on Windows. If using packages built with GPU support, make sure
 to have sufficient video drivers installed, version 456.38 or higher. The best way to
 install drivers depends on your operating system, see below. Lastly, run through some
@@ -94,6 +95,15 @@ CentOS
 * [VIAME Web Local Installation Instructions](https://kitware.github.io/dive/Deployment-Overview/) <br>
 * [VIAME Web Source Repository](https://github.com/Kitware/dive)
 
+**DIVE Standalone Desktop Annotator:** <br>
+* [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
+
+**SEAL Standalone Desktop Annotator:** <br>
+* [SEAL Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
+* [SEAL Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
+* [SEAL CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
+* [SEAL Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
+
 **Optional Add-Ons and Model Files:** <br>
 * [Motion Detector Models, All OS](https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download) <br>
 * [Alternative Generic Detector for IQR, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
@@ -106,15 +116,6 @@ CentOS
 * [Sea Lion Models, All OS](https://viame.kitware.com/api/v1/item/61eea8fee5fc4ec3c8150860/download) <br>
 * [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download) <br>
 * [EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
-
-**DIVE Standalone Desktop Annotator:** <br>
-* [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
-
-**SEAL Standalone Desktop Annotator:** <br>
-* [SEAL Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
-* [SEAL Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
-* [SEAL CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
-* [SEAL Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 Folders should match, for example, the Add-On packages contains a 'configs' folder, and the
@@ -224,6 +225,7 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 |------------------------------|--------------------------------------------------------------------------------|
 | VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                       |
 | VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                   |
+| VIAME_ENABLE_TENSORRT        | Builds TensorRT object detector plugin                                         |
 | VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                  |
 | VIAME_ENABLE_SMQTK           | Builds SMQTK plugins to support image/video indexing and search                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                 |
