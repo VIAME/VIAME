@@ -20,6 +20,7 @@ set( plugin_headers
   ocv_debayer_filter.h
   ocv_random_hue_shift.h
   ocv_stereo_depth_map.h
+  ocv_target_detector.h  
   split_image_habcam.h
   )
 
@@ -28,6 +29,7 @@ set( plugin_sources
   ocv_debayer_filter.cxx
   ocv_random_hue_shift.cxx
   ocv_stereo_depth_map.cxx
+  ocv_target_detector.cxx  
   split_image_habcam.cxx
   )
 
@@ -77,8 +79,6 @@ algorithms_create_plugin( viame_opencv
 target_link_libraries( viame_opencv_plugin
   PUBLIC               kwiver::vital_vpm
   )
-
-if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames
     __init__
     ocv_multimodal_registration

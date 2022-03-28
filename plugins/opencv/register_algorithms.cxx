@@ -40,6 +40,7 @@
 #include "ocv_debayer_filter.h"
 #include "ocv_random_hue_shift.h"
 #include "ocv_image_enhancement.h"
+#include "ocv_target_detector.h"
 
 #include "split_image_habcam.h"
 
@@ -62,8 +63,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< ocv_image_enhancement >();
   reg.register_algorithm< ocv_random_hue_shift >();
   reg.register_algorithm< split_image_habcam >();
+  reg.register_algorithm< ocv_target_detector >();
 
-   reg.mark_module_as_loaded();
+  reg.mark_module_as_loaded();
 }
 
 } // end namespace viame
