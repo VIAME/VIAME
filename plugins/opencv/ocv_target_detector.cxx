@@ -23,7 +23,8 @@ public:
   priv()
     : m_target_width(7),
       m_target_height(5),
-      m_square_size(1.0)
+      m_square_size(1.0),
+      m_object_type("unknown")
   {}
 
   /// Destructor
@@ -34,6 +35,7 @@ public:
   unsigned m_target_width;
   unsigned m_target_height;
   float m_square_size;
+  std::string m_object_type;
 
   kwiver::vital::logger_handle_t m_logger;
 }; // end class ocv_target_detector::priv
@@ -70,6 +72,7 @@ get_configuration() const
   config->set_value( "target_width", d->m_target_width, "Number of width corners of the detected ocv target" );
   config->set_value( "target_height", d->m_target_height, "Number of height corners of the detected ocv target" );
   config->set_value( "square_size", d->m_square_size, "Square size of the detected ocv target" );
+  config->set_value( "object_type", d->m_object_type, "The detected object type" );
   
   return config;
 }
@@ -87,6 +90,7 @@ set_configuration( kwiver::vital::config_block_sptr config_in )
   d->m_target_width = config->get_value< unsigned >( "target_width" );
   d->m_target_height = config->get_value< unsigned >( "target_height" );
   d->m_square_size = config->get_value< float >( "square_size" );
+  d->m_object_type = config->get_value< std::string >( "object_type" );
 }
 
 
@@ -133,7 +137,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
     kwiver::vital::bounding_box_d bbox( kwiver::vital::bounding_box_d::vector_type( corner.x - targetWidth/2.0, corner.y - targetWidth/2.0), targetWidth, targetWidth );
     
     // Create possible object types.
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >( "c", 1.0 );
+    auto dot = std::make_shared< kwiver::vital::detected_object_type >( d->m_object_type, 1.0 );
     
     // Create detection
     detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );

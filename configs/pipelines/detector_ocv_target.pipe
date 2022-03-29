@@ -22,6 +22,7 @@ process detector1
     :target_width                              9
     :target_height                             6
     :square_size                               1
+    :object_type                               "corner"
   endblock
 
 #process detector_output
