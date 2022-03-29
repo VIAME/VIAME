@@ -71,10 +71,6 @@ get_configuration() const
   config->set_value( "target_height", d->m_target_height, "Number of height corners of the detected ocv target" );
   config->set_value( "square_size", d->m_square_size, "Square size of the detected ocv target" );
   
-  LOG_INFO(d->m_logger, "target_width : " << d->m_target_width);
-  LOG_INFO(d->m_logger, "target_height : " << d->m_target_height);
-  LOG_INFO(d->m_logger, "square_size : " << d->m_square_size);
-  
   return config;
 }
 
@@ -91,10 +87,6 @@ set_configuration( kwiver::vital::config_block_sptr config_in )
   d->m_target_width = config->get_value< unsigned >( "target_width" );
   d->m_target_height = config->get_value< unsigned >( "target_height" );
   d->m_square_size = config->get_value< float >( "square_size" );
-  
-  LOG_INFO(d->m_logger, "target_width : " << d->m_target_width);
-  LOG_INFO(d->m_logger, "target_height : " << d->m_target_height);
-  LOG_INFO(d->m_logger, "square_size : " << d->m_square_size);
 }
 
 
@@ -112,7 +104,7 @@ kwiver::vital::detected_object_set_sptr
 ocv_target_detector::
 detect( kwiver::vital::image_container_sptr image_data ) const
 {
-  LOG_INFO( d->m_logger, "Start OCV target detection." );
+  LOG_DEBUG( d->m_logger, "Start OCV target detection." );
   
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
   std::vector<cv::Point2f> corners;
@@ -147,8 +139,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
     detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
   }
   
-  LOG_INFO( d->m_logger, "End of OCV target detection." );
-  LOG_INFO(d->m_logger, "Found " << detected_set->size() << " corners in target");
+  LOG_DEBUG( d->m_logger, "End of OCV target detection. Found " << detected_set->size() << " corners" );
   return detected_set;
 }
 
