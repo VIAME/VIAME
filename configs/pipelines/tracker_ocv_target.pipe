@@ -1,0 +1,74 @@
+# OCV target Tracker Pipeline
+#
+# Runs automated ocv target detection on image then generate corners tracks
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_default_input_with_downsampler.pipe
+
+# =================================== DETECTOR =====================================
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_target_detector
+  
+  block detector:ocv_target_detector
+    :target_width                              9
+    :target_height                             6
+    :square_size                               1
+  endblock
+
+#process detector_output
+#  :: merge_detection_sets
+
+#connect from detector1.detected_object_set
+#        to   detector_output.detected_object_set1
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from downsampler.output_1
+        to   detector1.image
+
+connect from detector1.detected_object_set
+        to   detector_writer.detected_object_set
+
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+
+# ================================= CORE TRACKER ===================================
+
+process append_detections
+  ::append_detections_to_tracks
+  :fixed_frame_count                           0
+  
+connect from downsampler.timestamp
+        to   append_detections.timestamp
+connect from detector1.detected_object_set
+        to   append_detections.detected_object_set
+
+# ================================= OUTPUT DATA ====================================
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+
+# Connect inputs to track writer
+connect from append_detections.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+
+# -- end of file --

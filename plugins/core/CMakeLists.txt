@@ -111,6 +111,7 @@ set( process_headers
   refine_measurements_process.h
   track_conductor_process.h
   write_homography_list_process.h
+  append_detections_to_tracks_process.h
 )
 
 set( process_sources
@@ -125,6 +126,7 @@ set( process_sources
   refine_measurements_process.cxx
   track_conductor_process.cxx
   write_homography_list_process.cxx
+  append_detections_to_tracks_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_core

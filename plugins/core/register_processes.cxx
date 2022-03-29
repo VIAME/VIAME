@@ -42,6 +42,7 @@
 #include "refine_measurements_process.h"
 #include "track_conductor_process.h"
 #include "write_homography_list_process.h"
+#include "append_detections_to_tracks_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -120,7 +121,17 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Generate tracks covering entire input frames" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
-
+  
+  fact = vpm.ADD_PROCESS( viame::core::append_detections_to_tracks_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "append_detections_to_tracks" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Append consistent detected object set to an object track set" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+  
   fact = vpm.ADD_PROCESS( viame::core::read_habcam_metadata_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "read_habcam_metadata" )

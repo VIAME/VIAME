@@ -434,7 +434,8 @@ if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/register_using_homographies.pipe
     pipelines/register_multimodal_unsync_ocv.pipe 
-    pipelines/detector_ocv_target.pipe)
+    pipelines/detector_ocv_target.pipe
+    pipelines/tracker_ocv_target.pipe)
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
