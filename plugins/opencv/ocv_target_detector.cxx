@@ -119,8 +119,12 @@ detect( kwiver::vital::image_container_sptr image_data ) const
 
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image(),
     kwiver::arrows::ocv::image_container::RGB_COLOR );
+  if(src.channels() == 3)
+  {
+    cv::cvtColor( src, src, cv::COLOR_RGB2GRAY );
+  }
 
-  cornersFound = cv::findChessboardCorners(src, boardSize, corners, cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE);
+  cornersFound = cv::findChessboardCorners(src, boardSize, corners, cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_FAST_CHECK);
     
   if( !cornersFound )
   {
