@@ -12,6 +12,7 @@
 #include <vital/types/object_track_set.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
+#include <sprokit/pipeline/process_exception.h>
 
 
 namespace kv = kwiver::vital;
@@ -22,8 +23,10 @@ namespace viame
 namespace core
 {
 
-create_config_trait( fixed_frame_count, unsigned, "0",
-  "If set, generate an appended object track set for this many detected object set" );
+create_config_trait( min_frame_count, unsigned, "0",
+  "If set, generate an appended detected object to an object track set for frames after min_frame_count" );
+create_config_trait( max_frame_count, unsigned, "0",
+  "If set, generate an appended detected object to an object track set for frames before max_frame_count" );
 
 // =============================================================================
 // Private implementation class
@@ -34,10 +37,10 @@ public:
   ~priv();
 
   // Configuration settings
-  unsigned m_fixed_frame_count;
+  unsigned m_min_frame_count;
+  unsigned m_max_frame_count;
   
   // Internal variables
-  unsigned m_frame_counter;
   unsigned m_track_counter;
   std::vector<std::vector< kv::track_state_sptr >> m_states;
 
@@ -49,9 +52,9 @@ public:
 // -----------------------------------------------------------------------------
 append_detections_to_tracks_process::priv
 ::priv( append_detections_to_tracks_process* ptr )
-  : m_fixed_frame_count( 0 )
-  , m_frame_counter( 0 )
-  , m_track_counter( 1 )
+  : m_min_frame_count( 0 )
+  , m_max_frame_count( 0 )
+  , m_track_counter( 0 )
   , parent( ptr )
 {
 }
@@ -93,12 +96,12 @@ append_detections_to_tracks_process
 
   // -- inputs --
   declare_input_port_using_trait( image, optional );
-  declare_input_port_using_trait( timestamp, optional );
+  declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( detected_object_set, required );
 
   // -- outputs --
   declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( object_track_set, optional );
+  declare_output_port_using_trait( object_track_set, required );
 }
 
 // -----------------------------------------------------------------------------
@@ -106,7 +109,8 @@ void
 append_detections_to_tracks_process
 ::make_config()
 {
-  declare_config_using_trait( fixed_frame_count );
+  declare_config_using_trait( min_frame_count );
+  declare_config_using_trait( max_frame_count );
 }
 
 // -----------------------------------------------------------------------------
@@ -114,7 +118,13 @@ void
 append_detections_to_tracks_process
 ::_configure()
 {
-  d->m_fixed_frame_count = config_value_using_trait( fixed_frame_count );
+  d->m_min_frame_count = config_value_using_trait( min_frame_count );
+  d->m_max_frame_count = config_value_using_trait( max_frame_count );
+  
+  if ( d->m_min_frame_count < d->m_max_frame_count )
+  {
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Invalid min/max frame count limits" );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -140,13 +150,15 @@ append_detections_to_tracks_process
     detections = grab_from_port_using_trait( detected_object_set );
   }
   
-  if(!d->m_frame_counter && detections->size()) 
+  if( !d->m_max_frame_count || 
+      (timestamp.get_frame() >= d->m_min_frame_count && timestamp.get_frame() <= d->m_max_frame_count))
   {
-    d->m_states.resize(detections->size());
-  }
-
-  if( !d->m_fixed_frame_count || d->m_frame_counter <= d->m_fixed_frame_count)
-  {
+    // init track states if m_track_counter == 0
+    if(!d->m_track_counter && detections->size()) 
+    {
+      d->m_states.resize(detections->size());
+    }
+    
     if( d->m_states.size() &&  d->m_states.size() == detections->size())
     {
       std::vector< kv::track_sptr > all_tracks;
@@ -168,8 +180,7 @@ append_detections_to_tracks_process
       }
       
       output = kv::object_track_set_sptr(new kv::object_track_set(all_tracks));
-      
-      d->m_frame_counter++;
+      d->m_track_counter++;
     }
   }
   

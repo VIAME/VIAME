@@ -51,7 +51,8 @@ connect from downsampler.output_2
 
 process append_detections
   ::append_detections_to_tracks
-  :fixed_frame_count                           0
+  :min_frame_count                           0
+  :max_frame_count                           0
   
 connect from downsampler.timestamp
         to   append_detections.timestamp
