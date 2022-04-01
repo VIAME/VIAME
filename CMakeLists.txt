@@ -146,8 +146,8 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 1.8.2 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.7.1" "1.8.2" "1.9.1" )
+  set( VIAME_PYTORCH_VERSION 1.11.0 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.8.2" "1.9.1" "1.11.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   if( WIN32 )
