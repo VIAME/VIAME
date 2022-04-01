@@ -95,14 +95,14 @@ append_detections_to_tracks_process
   required.insert( flag_required );
 
   // -- inputs --
-  declare_input_port_using_trait( image, optional );
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( detected_object_set, required );
 
   // -- outputs --
   declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( object_track_set, required );
+  declare_output_port_using_trait( object_track_set, optional );
 }
+
 
 // -----------------------------------------------------------------------------
 void
@@ -112,6 +112,7 @@ append_detections_to_tracks_process
   declare_config_using_trait( min_frame_count );
   declare_config_using_trait( max_frame_count );
 }
+
 
 // -----------------------------------------------------------------------------
 void
@@ -137,18 +138,8 @@ append_detections_to_tracks_process
   kv::detected_object_set_sptr detections;
   kv::object_track_set_sptr output;
   
-  if( has_input_port_edge_using_trait( timestamp ) )
-  {
-    timestamp = grab_from_port_using_trait( timestamp );
-  }
-  if( has_input_port_edge_using_trait( image ) )
-  {
-    image = grab_from_port_using_trait( image );
-  }
-  if( has_input_port_edge_using_trait( detected_object_set ) )
-  {
-    detections = grab_from_port_using_trait( detected_object_set );
-  }
+  timestamp = grab_from_port_using_trait( timestamp );
+  detections = grab_from_port_using_trait( detected_object_set );
   
   if( !d->m_max_frame_count || 
       (timestamp.get_frame() >= d->m_min_frame_count && timestamp.get_frame() <= d->m_max_frame_count))
@@ -165,7 +156,7 @@ append_detections_to_tracks_process
       for( unsigned detectId = 0; detectId < detections->size(); ++detectId )
       {
         d->m_states[detectId].push_back(
-              std::make_shared< kwiver::vital::object_track_state >(
+              std::make_shared< kv::object_track_state >(
                 timestamp, detections->at( detectId ) ) );
         
         kv::track_sptr ot = kv::track::create();

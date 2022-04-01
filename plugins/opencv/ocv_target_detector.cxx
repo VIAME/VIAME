@@ -9,6 +9,8 @@
 
 #include <cmath>
 
+namespace kv = kwiver::vital;
+
 namespace viame {
 
 // -----------------------------------------------------------------------------------------------
@@ -37,7 +39,7 @@ public:
   float m_square_size;
   std::string m_object_type;
 
-  kwiver::vital::logger_handle_t m_logger;
+  kv::logger_handle_t m_logger;
 }; // end class ocv_target_detector::priv
 
 
@@ -59,12 +61,12 @@ ocv_target_detector::
 
 
 // -------------------------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+kv::config_block_sptr
 ocv_target_detector::
 get_configuration() const
 {
   // Get base config from base class
-  kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
+  kv::config_block_sptr config = kv::algorithm::get_configuration();
 
   config->set_value( "config_file", d->m_config_file,
                      "Name of OCV Target Detector configuration file." );
@@ -81,9 +83,9 @@ get_configuration() const
 // -------------------------------------------------------------------------------------------------
 void
 ocv_target_detector::
-set_configuration( kwiver::vital::config_block_sptr config_in )
+set_configuration( kv::config_block_sptr config_in )
 {
-  kwiver::vital::config_block_sptr config = this->get_configuration();
+  kv::config_block_sptr config = this->get_configuration();
   config->merge_config( config_in );
 
   d->m_config_file = config->get_value< std::string >( "config_file" );
@@ -97,26 +99,36 @@ set_configuration( kwiver::vital::config_block_sptr config_in )
 // -------------------------------------------------------------------------------------------------
 bool
 ocv_target_detector::
-check_configuration( kwiver::vital::config_block_sptr config ) const
+check_configuration( kv::config_block_sptr config ) const
 {
   return true;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+kv::detected_object_set_sptr
 ocv_target_detector::
-detect( kwiver::vital::image_container_sptr image_data ) const
+detect( kv::image_container_sptr image_data ) const
 {
   LOG_DEBUG( d->m_logger, "Start OCV target detection." );
   
-  auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
+  auto detected_set = std::make_shared< kv::detected_object_set >();
   std::vector<cv::Point2f> corners;
   
   const cv::Size boardSize(d->m_target_width, d->m_target_height);
   const unsigned targetWidth = 5;
   bool cornersFound = false;
-
+  
+  // Construct corners in world coordinate space (with board in Z = 0) corresponding to leftImgCorners
+  std::vector<cv::Point3f> world_corners;
+  for( int j = 0; j < boardSize.height; j++ )
+  {
+    for( int k = 0; k < boardSize.width; k++ )
+    {
+      world_corners.push_back(cv::Point3f(k* d->m_square_size, j* d->m_square_size, 0));
+    }
+  }
+  
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image(),
     kwiver::arrows::ocv::image_container::RGB_COLOR );
   if(src.channels() == 3)
@@ -126,25 +138,29 @@ detect( kwiver::vital::image_container_sptr image_data ) const
 
   cornersFound = cv::findChessboardCorners(src, boardSize, corners, cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_FAST_CHECK);
     
-  if( !cornersFound )
+  if( !cornersFound && corners.size() != world_corners.size() )
   {
-    LOG_WARN( d->m_logger, "Unable to find an OCV target. Corners : " << corners.size() );
+    LOG_WARN( d->m_logger, "Unable to find an OCV target. Found " << corners.size() << " corners" );
     return detected_set;
   }
   
   // refine subpixel corner location
   cv::cornerSubPix(src, corners, cv::Size(11,11), cv::Size(-1,-1), cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01));
 
-  for(const auto corner: corners)
+  for(unsigned i = 0; i < corners.size();i++)
   {
     // Create kwiver style bounding box
-    kwiver::vital::bounding_box_d bbox( kwiver::vital::bounding_box_d::vector_type( corner.x - targetWidth/2.0, corner.y - targetWidth/2.0), targetWidth, targetWidth );
+    kv::bounding_box_d bbox( kv::bounding_box_d::vector_type( corners[i].x - targetWidth/2.0, corners[i].y - targetWidth/2.0), targetWidth, targetWidth );
     
     // Create possible object types.
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >( d->m_object_type, 1.0 );
+    auto dot = std::make_shared< kv::detected_object_type >( d->m_object_type, 1.0 );
     
-    // Create detection
-    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+    // Add detected OCV target corners and world coordinates corners into notes
+    kv::detected_object_sptr detected_object = std::make_shared< kv::detected_object >( bbox, 1.0, dot );
+    detected_object->add_note(":x=" + std::to_string( world_corners[i].x ));
+    detected_object->add_note(":y=" + std::to_string( world_corners[i].y ));
+    detected_object->add_note(":z=" + std::to_string( world_corners[i].z ));
+    detected_set->add( detected_object );
   }
   
   LOG_DEBUG( d->m_logger, "End of OCV target detection. Found " << detected_set->size() << " corners" );
