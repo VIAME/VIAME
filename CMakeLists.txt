@@ -225,11 +225,19 @@ if( VIAME_PACKAGING_CONT_BUILD )
 endif()
 
 ###
-# Add external package build instructions
+# Add macro-level package build options
 ##
 option( VIAME_BUILD_DEPENDENCIES    "Build all required dependencies in a super-build" ON )
-option( VIAME_CREATE_PACKAGE        "Build a release package at the end of build"      OFF )
-mark_as_advanced( VIAME_CREATE_PACKAGE )
+
+option( VIAME_FIXUP_BUNDLE          "Build a release package at the end of build"      OFF )
+mark_as_advanced( VIAME_FIXUP_BUNDLE )
+
+option( VIAME_CREATE_INSTALLER      "Build a msi prototype installer using wix"        OFF )
+mark_as_advanced( VIAME_CREATE_INSTALLER )
+
+if( VIAME_CREATE_INSTALLER )
+  set( VIAME_FIXUP_BUNDLE ON CACHE BOOL "Flag forced due to create_package enable" FORCE )
+endif()
 
 ###
 # Add extra options
@@ -646,7 +654,7 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 
   # Fixup installer package
-  if( VIAME_CREATE_PACKAGE )
+  if( VIAME_FIXUP_BUNDLE )
     include( build_package )
   endif()
 else()
@@ -781,7 +789,7 @@ else()
   ###
   # Install system libs if packaging enabled
   ##
-  if( VIAME_CREATE_PACKAGE )
+  if( VIAME_FIXUP_BUNDLE )
     set( VIAME_RELEASE_NOTES_FILE "RELEASE_NOTES.md" )
 
     install( PROGRAMS      ${VIAME_RELEASE_NOTES_FILE}
