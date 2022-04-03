@@ -58,7 +58,7 @@ inclusion of multiple default model files and programs, but if just building you
 features from source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
-* 8 Gb of Disk Space for the Full Installation <br>
+* Up to 8 Gb of Disk Space for the Full Installation <br>
 * Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
   * Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764). <br>
   * MacOS is currently only supported running standalone annotation tools, see below.
