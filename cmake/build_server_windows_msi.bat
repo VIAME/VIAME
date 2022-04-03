@@ -36,4 +36,32 @@ DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages\torch\lib\cu*"
 
 COPY /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
-MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_BUILD_DIR%\install"
+"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%\VIAME-BASE.zip" "%VIAME_BUILD_DIR%\VIAME"
+
+MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_BUILD_DIR%\VIAME-Base"
+
+REM ---------------------------------------------------
+REM Round2 - Build with torch
+REM ---------------------------------------------------
+
+XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Base" "%VIAME_BUILD_DIR%\install"
+
+git apply "%VIAME_SOURCE_DIR%\cmake\"
+
+"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+git diff "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-Base" > zip-list.lst
+
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-TORCH.zip" @zip-list.lst 
+
+REM ---------------------------------------------------
+REM Round3 - Build with vivia
+REM ---------------------------------------------------
+
+
+
+REM ---------------------------------------------------
+REM Round4 - Build with seal
+REM ---------------------------------------------------
+
+[]
