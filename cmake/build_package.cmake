@@ -97,14 +97,12 @@ if( WIN32 )
   install( FILES ${VIAME_CMAKE_DIR}/setup_viame.bat.install
     DESTINATION .
     RENAME setup_viame.bat
-    COMPONENT VIAME 
-    )
+    COMPONENT VIAME )
 else()
   install( FILES ${VIAME_CMAKE_DIR}/setup_viame.sh.install
     DESTINATION .
     RENAME setup_viame.sh
-    COMPONENT VIAME 
-    )
+    COMPONENT VIAME )
 endif()
 
 #    if( WIN32 AND NOT UNIX )
