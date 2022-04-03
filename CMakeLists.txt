@@ -213,6 +213,17 @@ option( VIAME_ENABLE_VIAME_PLUGINS  "Enable VIAME plugins"          ON )
 mark_as_advanced( VIAME_ENABLE_KWIVER )
 mark_as_advanced( VIAME_ENABLE_VIAME_PLUGINS )
 
+# A continuation build allows building of new plugins using an existing
+# VIAME build in another folder or build tree, for the purpose of making
+# chained windows MSI installers
+option( VIAME_PACKAGING_CONT_BUILD  "Enable continuation build"     OFF )
+mark_as_advanced( VIAME_PACKAGING_CONT_BUILD )
+
+if( VIAME_PACKAGING_CONT_BUILD )
+  set( VIAME_PRIOR_BUILD "" CACHE PATH "Location of prior VIAME build" )
+  mark_as_advanced( VIAME_PRIOR_BUILD )
+endif()
+
 ###
 # Add external package build instructions
 ##
