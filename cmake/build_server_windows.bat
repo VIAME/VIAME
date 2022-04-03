@@ -12,7 +12,7 @@ IF EXIST C:\tmp\kv1 rmdir /s /q C:\tmp\kv1
 IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
 
 SET "PATH=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\libnvvp;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR"
-SET "PYTHONPATH=%VIAME_BUILD_DIR%\install\lib\python3.6;%VIAME_BUILD_DIR%\install\lib\python3.6\site-packages"
+SET "PYTHONPATH=%VIAME_BUILD_DIR%\install\lib\python3.10;%VIAME_BUILD_DIR%\install\lib\python3.10\site-packages"
 SET "CUDA_BIN_PATH=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1"
 
 git submodule update --init --recursive
@@ -32,7 +32,7 @@ MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
 MOVE %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 MOVE %MISSING_DNET_EXE% %VIAME_BUILD_DIR%\VIAME\bin
 
-DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages\torch\lib\cu*"
+DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.10\site-packages\torch\lib\cu*"
 
 COPY /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
