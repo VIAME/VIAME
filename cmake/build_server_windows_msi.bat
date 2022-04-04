@@ -104,6 +104,7 @@ REM ---------------------------------------------------
 XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_BUILD_DIR%\install"
 DIR /S /B "%VIAME_BUILD_DIR%\install" > files-core.txt
 
+git reset --hard
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-seal.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
