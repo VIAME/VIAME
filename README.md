@@ -32,7 +32,7 @@ but select entries are also listed below broken down by individual functionality
 [Object Tracker CLI](examples/object_tracking) <>
 [Detector Training CLI](examples/object_detector_training) <>
 [Evaluation of Detectors](examples/scoring_and_roc_generation) <>
-[Track File Formats](https://viame.readthedocs.io/en/latest/section_links/detection_file_conversions.html) <>
+[Detection File Formats](https://viame.readthedocs.io/en/latest/section_links/detection_file_conversions.html) <>
 [Calibration and Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/image_registration)  <>
 [Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <>
