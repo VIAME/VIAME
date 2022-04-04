@@ -63,11 +63,11 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
-option( VIAME_ENABLE_SEAL_TK        "Enable Seal-TK GUI"            OFF )
+option( VIAME_ENABLE_SEAL           "Enable Seal GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
-mark_as_advanced( VIAME_ENABLE_SEAL_TK )
+mark_as_advanced( VIAME_ENABLE_SEAL )
 
 ###
 # Add default-enabled algorithmic plugin enable flags
@@ -268,7 +268,7 @@ if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA OR
 endif()
 
 if( VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR
-    VIAME_ENABLE_SEAL_TK )
+    VIAME_ENABLE_SEAL )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"   FORCE )
 endif()
 
@@ -329,7 +329,7 @@ if( VIAME_ENABLE_PYTHON )
   endif()
 endif()
 
-if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL_TK )
+if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL )
   message( FATAL_ERROR "Cannot yet enable both VIVIA and Seal-TK GUIs" )
 endif()
 
@@ -616,7 +616,7 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_vivia )
   endif()
 
-  if( VIAME_ENABLE_SEAL_TK )
+  if( VIAME_ENABLE_SEAL )
     include( add_project_seal_tk )
   endif()
 
@@ -751,7 +751,7 @@ else()
     install( PROGRAMS      ${VIAME_SETUP_SCRIPT}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
-    if( VIAME_ENABLE_SEAL_TK )
+    if( VIAME_ENABLE_SEAL )
       install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_seal_interface.bat"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
@@ -776,7 +776,7 @@ else()
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
-    if( VIAME_ENABLE_SEAL_TK )
+    if( VIAME_ENABLE_SEAL )
       install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()

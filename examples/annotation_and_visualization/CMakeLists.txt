@@ -52,7 +52,7 @@ if( VIAME_ENABLE_DIVE )
   endif()
 endif()
 
-if( VIAME_ENABLE_SEAL_TK )
+if( VIAME_ENABLE_SEAL )
   if( WIN32 )
     set( example_files
          ${example_files}
