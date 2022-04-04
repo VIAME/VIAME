@@ -57,20 +57,30 @@ FOR /f "delims=" %A in (files-torch.txt) do @find "%A" "file-core.txt" >nul2>nul
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-Torch.zip" @diff-torch.lst
 
 REM ---------------------------------------------------
-REM Round3 - Build with dive
+REM Round3 - Build with darknet
+REM ---------------------------------------------------
+
+git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-darknet.diff"
+
+"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-darknet.txt
+FOR /f "delims=" %A in (files-darknet.txt) do @find "%A" "file-torch.txt" >nul2>nul || echo %A>>diff-darknet.lst
+
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-Darknet.zip" @diff-darknet.lst
+
+REM ---------------------------------------------------
+REM Round4 - Build with dive
 REM ---------------------------------------------------
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-dive.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-DIR /S /B "%VIAME_BUILD_DIR%\install" > files-view.txt
-FOR /f "delims=" %A in (files-view.txt) do @find "%A" "file-core.txt" >nul2>nul || echo %A>>diff-view.lst
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-dive.txt
+FOR /f "delims=" %A in (files-dive.txt) do @find "%A" "file-darknet.txt" >nul2>nul || echo %A>>diff-dive.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-VIEW.zip" @diff-view.lst
-
-MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-VIEW"
-
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-DIVE.zip" @diff-dive.lst
 
 REM ---------------------------------------------------
 REM Round5 - Build with vivia
@@ -81,20 +91,20 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-view.diff"
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
 DIR /S /B "%VIAME_BUILD_DIR%\install" > files-view.txt
-FOR /f "delims=" %A in (files-view.txt) do @find "%A" "file-core.txt" >nul2>nul || echo %A>>diff-view.lst
+FOR /f "delims=" %A in (files-view.txt) do @find "%A" "file-darknet.txt" >nul2>nul || echo %A>>diff-view.lst
 
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-VIEW.zip" @diff-view.lst
 
 MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-VIEW"
 
 REM ---------------------------------------------------
-REM Round4 - Build with seal
+REM Round6 - Build with seal
 REM ---------------------------------------------------
 
 XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_BUILD_DIR%\install"
 DIR /S /B "%VIAME_BUILD_DIR%\install" > files-core.txt
 
-git apply "%VIAME_SOURCE_DIR%\cmake\"
+git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-seal.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
