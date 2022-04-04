@@ -1,0 +1,13 @@
+diff --git a/cmake/build_server_windows_msi.cmake b/cmake/build_server_windows_msi.cmake
+index f26dab8..4344066 100644
+--- a/cmake/build_server_windows_msi.cmake
++++ b/cmake/build_server_windows_msi.cmake
+@@ -23,7 +23,7 @@ set(OPTIONS
+   "-DVIAME_ENABLE_PYTHON-INTERNAL=ON"
+   "-DVIAME_ENABLE_SMQTK=ON"
+   "-DVIAME_ENABLE_PYTORCH=OFF"
+-  "-DVIAME_ENABLE_DIVE=OFF"
++  "-DVIAME_ENABLE_DIVE=ON"
+   "-DVIAME_ENABLE_GDAL=OFF"
+   "-DVIAME_ENABLE_VIVIA=OFF"
+   "-DVIAME_ENABLE_DARKNET=OFF"
