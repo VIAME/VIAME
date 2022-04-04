@@ -16,6 +16,7 @@ zlib-devel \
 freeglut-devel \
 mesa-libGLU-devel \
 lapack-devel \
+libffi-devel \
 libXt-devel \
 libXmu-devel \
 libXi-devel \
