@@ -36,7 +36,10 @@ DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages\torch\lib\cu*"
 
 COPY /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
-"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%\VIAME-Core.zip" "%VIAME_BUILD_DIR%\VIAME"
+DIR /S /B "%VIAME_BUILD_DIR%\VIAME" > tmp.txt
+TYPE tmp.txt | findstr /v "install\include" > files-core.lst
+
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Core.zip" @files-core.lst
 
 MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_BUILD_DIR%\VIAME-Core"
 
@@ -54,11 +57,12 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-torch.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-DIR /S /B "%VIAME_BUILD_DIR%\install" > files-torch.txt
+DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
+TYPE tmp.txt | findstr /v "install\include" > files-torch.txt
 
 FOR /f "delims=" %A in (files-torch.txt) do @find "%A" "files-core.txt" >nul2>nul || echo %A>>diff-torch.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-Torch.zip" @diff-torch.lst
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Torch.zip" @diff-torch.lst
 
 REM ---------------------------------------------------
 REM Round3 - Build with darknet
@@ -71,11 +75,12 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-darknet.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-DIR /S /B "%VIAME_BUILD_DIR%\install" > files-darknet.txt
+DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
+TYPE tmp.txt | findstr /v "install\include" > files-darknet.txt
 
 FOR /f "delims=" %A in (files-darknet.txt) do @find "%A" "files-torch.txt" >nul2>nul || echo %A>>diff-darknet.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-Darknet.zip" @diff-darknet.lst
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Darknet.zip" @diff-darknet.lst
 
 REM ---------------------------------------------------
 REM Round4 - Build with dive
@@ -88,11 +93,12 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-dive.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-DIR /S /B "%VIAME_BUILD_DIR%\install" > files-dive.txt
+DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
+TYPE tmp.txt | findstr /v "install\include" > files-dive.txt
 
 FOR /f "delims=" %A in (files-dive.txt) do @find "%A" "files-darknet.txt" >nul2>nul || echo %A>>diff-dive.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-DIVE.zip" @diff-dive.lst
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-DIVE.zip" @diff-dive.lst
 
 REM ---------------------------------------------------
 REM Round5 - Build with vivia
@@ -105,11 +111,12 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-view.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-DIR /S /B "%VIAME_BUILD_DIR%\install" > files-view.txt
+DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
+TYPE tmp.txt | findstr /v "install\include" > files-view.txt
 
 FOR /f "delims=" %A in (files-view.txt) do @find "%A" "files-dive.txt" >nul2>nul || echo %A>>diff-view.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-VIEW.zip" @diff-view.lst
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-VIEW.zip" @diff-view.lst
 
 MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-VIEW"
 
@@ -128,10 +135,11 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-seal.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-DIR /S /B "%VIAME_BUILD_DIR%\install" > files-seal.txt
+DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
+TYPE tmp.txt | findstr /v "install\include" > files-seal.txt
 
 FOR /f "delims=" %A in (files-seal.txt) do @find "%A" "files-core.txt" >nul2>nul || echo %A>>diff-seal.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-Torch.zip" @diff-seal.lst
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Torch.zip" @diff-seal.lst
 
 MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-SEAL"
