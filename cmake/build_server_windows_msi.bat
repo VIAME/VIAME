@@ -58,7 +58,7 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-torch.diff"
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
 DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
-TYPE tmp.txt | findstr /v "install\include" > files-torch.txt
+TYPE tmp.txt | findstr /v "VIAME\include" > files-torch.txt
 
 FOR /f "delims=" %A in (files-torch.txt) do @find "%A" "files-core.txt" >nul2>nul || echo %A>>diff-torch.lst
 
