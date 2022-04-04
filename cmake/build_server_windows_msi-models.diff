@@ -2,9 +2,9 @@ diff --git a/cmake/build_server_windows_msi.cmake b/cmake/build_server_windows_m
 index f26dab8..718d050 100644
 --- a/cmake/build_server_windows_msi.cmake
 +++ b/cmake/build_server_windows_msi.cmake
-@@ -28,7 +28,7 @@ set(OPTIONS
+@@ -33,7 +33,7 @@ set(OPTIONS
    "-DVIAME_ENABLE_VIVIA=OFF"
-   "-DVIAME_ENABLE_DARKNET=OFF"
+   "-DVIAME_ENABLE_DARKNET=ON"
    "-DVIAME_ENABLE_SCALLOP_TK=OFF"
 -  "-DVIAME_DOWNLOAD_MODELS=OFF"
 +  "-DVIAME_DOWNLOAD_MODELS=ON"
