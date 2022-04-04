@@ -22,24 +22,25 @@ and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more compre
 but select entries are also listed below broken down by individual functionality:
 
 
-[Build and Install Guide](examples/building_and_installing_viame) <> 
-[All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
-[GUIs for Annotation and Visualization](examples/annotation_and_visualization) <>
-[Object Detectors](examples/object_detection) <>
-[Object Trackers](examples/object_tracking) <>
-[Detector Training API](examples/object_detector_training) <>
-[Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
-[Scoring of Detectors](examples/scoring_and_roc_generation) <>
-[Detection File Formats](examples/detection_file_conversions) <>
+[Overview](https://viame.readthedocs.io/en/latest/section_links/documentation_overview.html) <>
+[DIVE Interface](https://kitware.github.io/dive) <>
+[Install or Build](examples/building_and_installing_viame) <>
+[All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
+[VIEW Interface](examples/annotation_and_visualization) <>
+[Object Detector CLI](examples/object_detection) <>
+[Object Tracker CLI](examples/object_tracking) <>
+[Detector Training CLI](examples/object_detector_training) <>
+[Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
+[Evaluation of Detectors](examples/scoring_and_roc_generation) <>
+[Track File Formats](https://viame.readthedocs.io/en/latest/section_links/detection_file_conversions.html) <>
 [Calibration and Image Enhancement](examples/image_enhancement) <>
-[Image Registration and Mosaicing](examples/image_registration)  <>
+[Registration and Mosaicing](examples/image_registration)  <>
 [Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <>
-[KWIVER Pipelining Overview](https://github.com/Kitware/kwiver) <>
-[Core Class and Pipelining Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <>
-[Web Interface](https://github.com/VIAME/VIAME-Web) <>
-[How to Integrate Your Own Plugin](examples/hello_world_pipeline) <>
+[Pipelining Overview](https://github.com/Kitware/kwiver) <>
+[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <>
+[Plugin Integration](examples/hello_world_pipeline) <>
 [Example Plugin Templates](plugins/templates) <>
-[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code)
+[Embedding Algorithms](examples/using_detectors_in_cxx_code)
 
 Installations
 -------------
