@@ -91,7 +91,7 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-view.diff"
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
 DIR /S /B "%VIAME_BUILD_DIR%\install" > files-view.txt
-FOR /f "delims=" %A in (files-view.txt) do @find "%A" "file-darknet.txt" >nul2>nul || echo %A>>diff-view.lst
+FOR /f "delims=" %A in (files-view.txt) do @find "%A" "file-dive.txt" >nul2>nul || echo %A>>diff-view.lst
 
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-VIEW.zip" @diff-view.lst
 
