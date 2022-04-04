@@ -1,5 +1,5 @@
 REM ---------------------------------------------------
-REM CORE BUILD PIPELINE
+REM Round1 - VIAME Core
 REM ---------------------------------------------------
 
 SET VIAME_SOURCE_DIR=C:\workspace\VIAME-Windows-GPU-MSI
@@ -36,32 +36,60 @@ DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages\torch\lib\cu*"
 
 COPY /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
-"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%\VIAME-BASE.zip" "%VIAME_BUILD_DIR%\VIAME"
+"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%\VIAME-Core.zip" "%VIAME_BUILD_DIR%\VIAME"
 
-MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_BUILD_DIR%\VIAME-Base"
+MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_BUILD_DIR%\VIAME-Core"
 
 REM ---------------------------------------------------
 REM Round2 - Build with torch
 REM ---------------------------------------------------
 
-XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Base" "%VIAME_BUILD_DIR%\install"
+XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_BUILD_DIR%\install"
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-core.txt
 
 git apply "%VIAME_SOURCE_DIR%\cmake\"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-git diff "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-Base" > zip-list.lst
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-torch.txt
+FOR /f "delims=" %A in (files-torch.txt) do @find "%A" "file-core.txt" >nul2>nul || echo %A>>diff-torch.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-TORCH.zip" @zip-list.lst 
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-Torch.zip" @diff-torch.lst
+
+MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-Torch"
 
 REM ---------------------------------------------------
 REM Round3 - Build with vivia
 REM ---------------------------------------------------
 
+XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_BUILD_DIR%\install"
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-core.txt
 
+git apply "%VIAME_SOURCE_DIR%\cmake\"
+
+"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-view.txt
+FOR /f "delims=" %A in (files-view.txt) do @find "%A" "file-core.txt" >nul2>nul || echo %A>>diff-view.lst
+
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-VIEW.zip" @diff-view.lst
+
+MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-VIEW"
 
 REM ---------------------------------------------------
 REM Round4 - Build with seal
 REM ---------------------------------------------------
 
-[]
+XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_BUILD_DIR%\install"
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-core.txt
+
+git apply "%VIAME_SOURCE_DIR%\cmake\"
+
+"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-seal.txt
+FOR /f "delims=" %A in (files-seal.txt) do @find "%A" "file-core.txt" >nul2>nul || echo %A>>diff-seal.lst
+
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-Torch.zip" @diff-seal.lst
+
+MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-SEAL"
