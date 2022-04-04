@@ -57,10 +57,26 @@ FOR /f "delims=" %A in (files-torch.txt) do @find "%A" "file-core.txt" >nul2>nul
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-Torch.zip" @diff-torch.lst
 
 REM ---------------------------------------------------
-REM Round3 - Build with vivia
+REM Round3 - Build with dive
 REM ---------------------------------------------------
 
-git apply "%VIAME_SOURCE_DIR%\cmake\"
+git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-dive.diff"
+
+"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+DIR /S /B "%VIAME_BUILD_DIR%\install" > files-view.txt
+FOR /f "delims=" %A in (files-view.txt) do @find "%A" "file-core.txt" >nul2>nul || echo %A>>diff-view.lst
+
+"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%/VIAME-VIEW.zip" @diff-view.lst
+
+MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-VIEW"
+
+
+REM ---------------------------------------------------
+REM Round5 - Build with vivia
+REM ---------------------------------------------------
+
+git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-view.diff"
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
