@@ -22,15 +22,15 @@ and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more compre
 but select entries are also listed below broken down by individual functionality:
 
 
-[Overview](https://viame.readthedocs.io/en/latest/section_links/documentation_overview.html) <>
+[Documentation Overview](https://viame.readthedocs.io/en/latest/section_links/documentation_overview.html) <>
 [DIVE Interface](https://kitware.github.io/dive) <>
-[Install or Build](examples/building_and_installing_viame) <>
+[Install or Build Instructions](examples/building_and_installing_viame) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
 [VIEW Interface](examples/annotation_and_visualization) <>
+[Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Object Detector CLI](examples/object_detection) <>
 [Object Tracker CLI](examples/object_tracking) <>
 [Detector Training CLI](examples/object_detector_training) <>
-[Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Evaluation of Detectors](examples/scoring_and_roc_generation) <>
 [Track File Formats](https://viame.readthedocs.io/en/latest/section_links/detection_file_conversions.html) <>
 [Calibration and Image Enhancement](examples/image_enhancement) <>
@@ -40,7 +40,7 @@ but select entries are also listed below broken down by individual functionality
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <>
 [Plugin Integration](examples/hello_world_pipeline) <>
 [Example Plugin Templates](plugins/templates) <>
-[Embedding Algorithms](examples/using_detectors_in_cxx_code)
+[Embedding Algorithms in C++](examples/using_detectors_in_cxx_code)
 
 Installations
 -------------
