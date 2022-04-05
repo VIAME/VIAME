@@ -54,7 +54,7 @@ in a directory of your choosing, for example /opt/noaa/viame on Linux
 or C:\Program Files\VIAME on Windows. If using packages built with GPU support, make sure
 to have sufficient video drivers installed, version 456.38 or higher. The best way to
 install drivers depends on your operating system. This isn't required if just using
-manual annotators (or a smaller subset of algorithms). The binaries are quite large,
+manual annotators (or frame classifiers only). The binaries are quite large,
 in terms of disk space, due to the inclusion of multiple default model files and
 programs, but if just building your desired features from source (e.g. for embedded
 apps) they are much smaller.
