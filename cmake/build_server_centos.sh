@@ -14,6 +14,7 @@ openssl-devel \
 zlib \
 zlib-devel \
 freeglut-devel \
+freetype-devel \
 mesa-libGLU-devel \
 lapack-devel \
 libffi-devel \
