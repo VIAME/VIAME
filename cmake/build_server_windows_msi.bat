@@ -60,7 +60,7 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
 TYPE tmp.txt | findstr /v "VIAME\include" > files-torch.txt
 
-FOR /f "delims=" %A in (files-torch.txt) do @find "%A" "files-core.txt" >nul2>nul || echo %A>>diff-torch.lst
+FOR /f "delims=" %%A in (files-torch.txt) do @find "%%A" "files-core.txt" >nul2>nul || echo %%A>>diff-torch.lst
 
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Torch.zip" @diff-torch.lst
 
@@ -78,7 +78,7 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-darknet.txt
 
-FOR /f "delims=" %A in (files-darknet.txt) do @find "%A" "files-torch.txt" >nul2>nul || echo %A>>diff-darknet.lst
+FOR /f "delims=" %%A in (files-darknet.txt) do @find "%%A" "files-torch.txt" >nul2>nul || echo %%A>>diff-darknet.lst
 
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Darknet.zip" @diff-darknet.lst
 
@@ -96,7 +96,7 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-dive.txt
 
-FOR /f "delims=" %A in (files-dive.txt) do @find "%A" "files-darknet.txt" >nul2>nul || echo %A>>diff-dive.lst
+FOR /f "delims=" %%A in (files-dive.txt) do @find "%%A" "files-darknet.txt" >nul2>nul || echo %%A>>diff-dive.lst
 
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-DIVE.zip" @diff-dive.lst
 
@@ -114,7 +114,7 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-view.txt
 
-FOR /f "delims=" %A in (files-view.txt) do @find "%A" "files-dive.txt" >nul2>nul || echo %A>>diff-view.lst
+FOR /f "delims=" %%A in (files-view.txt) do @find "%%A" "files-dive.txt" >nul2>nul || echo %%A>>diff-view.lst
 
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-VIEW.zip" @diff-view.lst
 
@@ -138,7 +138,7 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 DIR /S /B "%VIAME_BUILD_DIR%\install" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-seal.txt
 
-FOR /f "delims=" %A in (files-seal.txt) do @find "%A" "files-core.txt" >nul2>nul || echo %A>>diff-seal.lst
+FOR /f "delims=" %%A in (files-seal.txt) do @find "%%A" "files-core.txt" >nul2>nul || echo %%A>>diff-seal.lst
 
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Torch.zip" @diff-seal.lst
 
