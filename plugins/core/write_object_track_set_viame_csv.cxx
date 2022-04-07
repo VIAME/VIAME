@@ -149,8 +149,8 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
     {
       double weight = ( weighted ? ts->detection()->confidence() : 1.0 );
 
-      bool ignore = ( dot->output_names().size == 1 &&
-                      dot->output_names()[0] == ignore_class );
+      bool ignore = ( dot->class_names().size() == 1 &&
+                      dot->class_names()[0] == ignore_class );
 
       if( ignore )
       {
@@ -159,7 +159,7 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
       }
       else
       {
-        for( const auto name : dot->output_names() )
+        for( const auto name : dot->class_names() )
         {
           class_sum[ name ] += ( dot->score( name ) * weight );
         }
@@ -182,7 +182,7 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
   }
   else if( total_ignore_mass > 0.0 )
   {
-    class_sum[ ignore_name ] = ignore_sum;
+    class_sum[ ignore_class ] = ignore_sum;
     norm_weight = total_ignore_mass;
   }
 
