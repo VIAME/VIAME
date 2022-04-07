@@ -1,3 +1,14 @@
+v0.18.1 - 4/7/2022
+==================
+
+
+-Updated DIVE interface
+
+
+-Minor tweaks to track moving average type scoring
+
+
+
 v0.18.0 - 3/20/2022
 ===================
 
