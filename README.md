@@ -230,7 +230,7 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                  |
 | VIAME_ENABLE_SMQTK           | Builds SMQTK plugins to support image/video indexing and search                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                 |
-| VIAME_ENABLE_SEAL_TK         | Builds Seal multi-modality GUI                                                 |
+| VIAME_ENABLE_SEAL            | Builds Seal multi-modality GUI                                                 |
 | VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                   |
 | VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                               |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                         |

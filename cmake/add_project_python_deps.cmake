@@ -12,7 +12,7 @@
 
 set( PYTHON_DEP_ENV_VARS )
 
-if( VIAME_CREATE_PACKAGE )
+if( VIAME_FIXUP_BUNDLE )
   set( VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
 else()
   set( VIAME_PYTHON_BASIC_DEPS "numpy" )
