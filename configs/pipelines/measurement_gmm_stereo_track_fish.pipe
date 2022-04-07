@@ -22,7 +22,7 @@ include common_stereo_fish_detector_with_filter.pipe
 connect from downsampler.output_1
         to   detector_input1.image
 
-connect from downsampler.output_2
+connect from downsampler.output_3
         to   detector_input2.image
 
 # ================================ CORE TRACKER ====================================
