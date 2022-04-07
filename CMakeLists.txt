@@ -146,8 +146,8 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 1.8.2 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.7.1" "1.8.2" "1.9.1" )
+  set( VIAME_PYTORCH_VERSION 1.11.0 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.8.2" "1.9.1" "1.11.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   if( WIN32 )
@@ -296,7 +296,7 @@ if( VIAME_ENABLE_PYTHON )
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        NOT Python_VERSION VERSION_EQUAL "3.6.5" )
+        NOT Python_VERSION VERSION_EQUAL "3.10.4" )
       message( FATAL_ERROR "Short-term, the only tested python distribution is "
         "Anaconda3 5.2.0, either install that version or set the cmake flag "
         "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
@@ -350,8 +350,8 @@ if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.8.2" AND VIAME_ENABLE_PYTORCH-INTERNAL )
-    message( FATAL_ERROR "Only PyTorch v1.8.2 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
+  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND VIAME_ENABLE_PYTORCH-INTERNAL )
+    message( FATAL_ERROR "Only PyTorch v1.11.0 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
   endif()
 endif()
 

@@ -14,8 +14,10 @@ openssl-devel \
 zlib \
 zlib-devel \
 freeglut-devel \
+freetype-devel \
 mesa-libGLU-devel \
 lapack-devel \
+libffi-devel \
 libXt-devel \
 libXmu-devel \
 libXi-devel \
@@ -63,9 +65,9 @@ cp /viame/packages/patches/cuda/cuComplex.h /usr/local/cuda/include/
 
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$PATH:/viame/build/install/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.6
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.6m
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.6m
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.8
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.8
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.8
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -159,7 +161,7 @@ ln -s libcudnn_ops_train.so.8 install/lib/libcudnn_ops_train.so
 
 # HACK: Symlink CUDA so file link in pytorch directory for some
 # systems with multiple CUDA 11s this is necessary
-ln -s ../../../../libcublas.so.11 install/lib/python3.6/site-packages/torch/lib/libcublas.so.11
+ln -s ../../../../libcublas.so.11 install/lib/python3.8/site-packages/torch/lib/libcublas.so.11
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed

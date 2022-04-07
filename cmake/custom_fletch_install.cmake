@@ -32,6 +32,11 @@ if( NOT WIN32 AND VIAME_ENABLE_CAFFE )
                  ${VIAME_INSTALL_PREFIX}/lib/libleveldb.so.1 )
 endif()
 
+if( NOT WIN32 AND EXISTS ${VIAME_INSTALL_PREFIX}/lib/libpng.so.16 )
+  CreateSymlink( ${VIAME_INSTALL_PREFIX}/lib/libpng.so.16
+                 ${VIAME_INSTALL_PREFIX}/lib/libpng16.so )
+endif()
+
 # Move any misinstalled python files
 if( PYTHON_VERSION )
   # Sometimes fletch subpackages install python files to incorrect python
