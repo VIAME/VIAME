@@ -117,96 +117,91 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
                      bool weighted,
                      std::string ignore_class = "" )
 {
-  std::map< std::string, double > class_map;
-
-  std::vector< std::string > class_names;
-  std::vector< double > scores;
-
-  if( trk_ptr )
-  {
-    double total_mass = 0.0;
-
-    double total_non_ignore_mass = 0.0;
-    double total_ignore_mass = 0.0;
-
-    for( auto ts_ptr : *trk_ptr )
-    {
-      kwiver::vital::object_track_state* ts =
-        static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
-
-      if( !ts->detection() )
-      {
-        continue;
-      }
-
-      kwiver::vital::detected_object_type_sptr dot = ts->detection()->type();
-
-      if( dot )
-      {
-        double weight = ( weighted ? ts->detection()->confidence() : 1.0 );
-
-        bool ignore_found = false;
-        bool other_found = false;
-
-        for( const auto name : dot->class_names() )
-        {
-          class_map[ name ] += ( dot->score( name ) * weight );
-
-          if( name == ignore_class )
-          {
-            ignore_found = true;
-          }
-          else
-          {
-            other_found = true;
-          }
-        }
-
-        total_mass += weight;
-
-        if( ignore_found )
-        {
-          total_ignore_mass += weight;
-        }
-        if( other_found )
-        {
-          total_non_ignore_mass += weight;
-        }
-      }
-    }
-
-    double norm_weight = 0.0;
-
-    if( total_mass > 0.0 && total_ignore_mass == 0.0 )
-    {
-      norm_weight = total_mass;
-    }
-    else if( total_ignore_mass > 0.0 && total_non_ignore_mass > 0.0 )
-    {
-      class_map.erase( ignore_class );
-      norm_weight = total_non_ignore_mass;
-    }
-    else if( total_ignore_mass > 0.0 )
-    {
-      norm_weight = total_ignore_mass;
-    }
-
-    if( norm_weight > 0.0 )
-    {
-      for( auto itr : class_map )
-      {
-        class_names.push_back( itr.first );
-        scores.push_back( itr.second / norm_weight );
-      }
-    }
-  }
-
-  if( class_names.empty() )
+  if( !trk_ptr )
   {
     return kwiver::vital::detected_object_type_sptr();
   }
 
-  return std::make_shared< kwiver::vital::detected_object_type >( class_names, scores );
+  std::vector< std::string > output_names;
+  std::vector< double > output_scores;
+
+  double total_mass = 0.0;
+
+  double total_non_ignore_mass = 0.0;
+  double total_ignore_mass = 0.0;
+
+  std::map< std::string, double > class_sum;
+  double ignore_sum = 0.0;
+
+  for( auto ts_ptr : *trk_ptr )
+  {
+    kwiver::vital::object_track_state* ts =
+      static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
+
+    if( !ts->detection() )
+    {
+      continue;
+    }
+
+    kwiver::vital::detected_object_type_sptr dot = ts->detection()->type();
+
+    if( dot )
+    {
+      double weight = ( weighted ? ts->detection()->confidence() : 1.0 );
+
+      bool ignore = ( dot->output_names().size == 1 &&
+                      dot->output_names()[0] == ignore_class );
+
+      if( ignore )
+      {
+        ignore_sum += ( dot->score( ignore_class ) * weight );
+        total_ignore_mass += weight;
+      }
+      else
+      {
+        for( const auto name : dot->output_names() )
+        {
+          class_sum[ name ] += ( dot->score( name ) * weight );
+        }
+        total_non_ignore_mass += weight;
+      }
+
+      total_mass += weight;
+    }
+  }
+
+  double norm_weight = 0.0;
+
+  if( total_mass > 0.0 && total_ignore_mass == 0.0 )
+  {
+    norm_weight = total_mass;
+  }
+  else if( total_ignore_mass > 0.0 && total_non_ignore_mass > 0.0 )
+  {
+    norm_weight = total_non_ignore_mass;
+  }
+  else if( total_ignore_mass > 0.0 )
+  {
+    class_sum[ ignore_name ] = ignore_sum;
+    norm_weight = total_ignore_mass;
+  }
+
+  if( norm_weight > 0.0 )
+  {
+    for( auto itr : class_sum )
+    {
+      output_names.push_back( itr.first );
+      output_scores.push_back( itr.second / norm_weight );
+    }
+  }
+
+  if( output_names.empty() )
+  {
+    return kwiver::vital::detected_object_type_sptr();
+  }
+
+  return std::make_shared< kwiver::vital::detected_object_type >(
+    output_names, output_scores );
 }
 
 
