@@ -182,7 +182,7 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
 
   if( scale_by_conf && conf_count > 0 )
   {
-    prob_scale_factor = conf_sum / conf_count;
+    prob_scale_factor = 0.1 + 0.9 * ( conf_sum / conf_count );
   }
 
   if( weighted_mass > 0.0 && weighted_ignore_mass == 0.0 )
