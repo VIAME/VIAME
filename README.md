@@ -23,9 +23,9 @@ but select entries are also listed below broken down by individual functionality
 
 
 [Documentation Overview](https://viame.readthedocs.io/en/latest/section_links/documentation_overview.html) <>
-[DIVE Interface](https://kitware.github.io/dive) <>
 [Install or Build Instructions](examples/building_and_installing_viame) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
+[DIVE Interface](https://kitware.github.io/dive) <>
 [VIEW Interface](examples/annotation_and_visualization) <>
 [Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Object Detector CLI](examples/object_detection) <>
