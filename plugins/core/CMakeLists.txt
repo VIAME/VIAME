@@ -113,6 +113,7 @@ set( process_headers
   track_conductor_process.h
   write_homography_list_process.h
   append_detections_to_tracks_process.h
+  split_object_track_to_feature_landmark_process.h
 )
 
 set( process_sources
@@ -129,6 +130,7 @@ set( process_sources
   track_conductor_process.cxx
   write_homography_list_process.cxx
   append_detections_to_tracks_process.cxx
+  split_object_track_to_feature_landmark_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_core

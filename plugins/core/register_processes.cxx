@@ -44,6 +44,7 @@
 #include "write_homography_list_process.h"
 #include "append_detections_to_tracks_process.h"
 #include "filter_frame_index_process.h"
+#include "split_object_track_to_feature_landmark_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -143,6 +144,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
   
+  fact = vpm.ADD_PROCESS( viame::core::split_object_track_to_feature_landmark_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "split_object_track_to_feature_landmark" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Split an object track set into a feature_track_set and a landmark_map" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+      
   fact = vpm.ADD_PROCESS( viame::core::read_habcam_metadata_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "read_habcam_metadata" )
