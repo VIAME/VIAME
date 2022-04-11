@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - name: "VIAME Contributors"
+title: "VIAME: Video and Image Analytics for Marine Environments"
+date-released: 2017-05-23
+url: "https://github.com/open-mmlab/mmcv"
+license: Apache-2.0
