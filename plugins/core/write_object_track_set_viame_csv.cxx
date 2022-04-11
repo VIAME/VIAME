@@ -247,7 +247,7 @@ void write_object_track_set_viame_csv
           ( d->m_tot_option == "detection" ? kwiver::vital::detected_object_type_sptr()
             : compute_average_tot( trk_ptr,
                 d->m_tot_option.find( "weighted" ) != std::string::npos,
-                d->m_tot_option == "weighted_scaled_by_conf",
+                d->m_tot_option.find( "scaled_by_conf" ) != std::string::npos,
                 d->m_tot_ignore_class ) );
 
     for( auto ts_ptr : *trk_ptr )
@@ -465,7 +465,7 @@ write_object_track_set_viame_csv
           ( d->m_tot_option == "detection" ? det->type() :
             compute_average_tot( trk_ptr,
               d->m_tot_option.find( "weighted" ) != std::string::npos,
-              d->m_tot_option == "weighted_scaled_by_conf",
+              d->m_tot_option.find( "scaled_by_conf" ) != std::string::npos,
               d->m_tot_ignore_class ) );
 
         if( dot )
