@@ -114,7 +114,8 @@ write_object_track_set_viame_csv::priv
 
 kwiver::vital::detected_object_type_sptr
 compute_average_tot( kwiver::vital::track_sptr trk_ptr,
-                     bool weighted,
+                     bool weighted = false,
+                     bool scale_by_conf = false,
                      std::string ignore_class = "" )
 {
   if( !trk_ptr )
@@ -125,13 +126,14 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
   std::vector< std::string > output_names;
   std::vector< double > output_scores;
 
-  double total_mass = 0.0;
-
-  double total_non_ignore_mass = 0.0;
-  double total_ignore_mass = 0.0;
+  double weighted_mass = 0.0;
+  double weighted_non_ignore_mass = 0.0;
+  double weighted_ignore_mass = 0.0;
 
   std::map< std::string, double > class_sum;
   double ignore_sum = 0.0;
+  double conf_sum = 0.0;
+  unsigned conf_count = 0;
 
   for( auto ts_ptr : *trk_ptr )
   {
@@ -149,13 +151,19 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
     {
       double weight = ( weighted ? ts->detection()->confidence() : 1.0 );
 
+      if( scale_by_conf )
+      {
+        conf_sum += ts->detection()->confidence();
+        conf_count += 1;
+      }
+
       bool ignore = ( dot->class_names().size() == 1 &&
                       dot->class_names()[0] == ignore_class );
 
       if( ignore )
       {
         ignore_sum += ( dot->score( ignore_class ) * weight );
-        total_ignore_mass += weight;
+        weighted_ignore_mass += weight;
       }
       else
       {
@@ -163,36 +171,38 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
         {
           class_sum[ name ] += ( dot->score( name ) * weight );
         }
-        total_non_ignore_mass += weight;
+        weighted_non_ignore_mass += weight;
       }
 
-      total_mass += weight;
+      weighted_mass += weight;
     }
   }
 
-  double norm_weight = 0.0;
+  double prob_scale_factor = 1.0;
 
-  if( total_mass > 0.0 && total_ignore_mass == 0.0 )
+  if( scale_by_conf && conf_count > 0 )
   {
-    norm_weight = total_mass;
+    prob_scale_factor = 0.1 + 0.9 * ( conf_sum / conf_count );
   }
-  else if( total_ignore_mass > 0.0 && total_non_ignore_mass > 0.0 )
+
+  if( weighted_mass > 0.0 && weighted_ignore_mass == 0.0 )
   {
-    norm_weight = total_non_ignore_mass;
+    prob_scale_factor /= weighted_mass;
   }
-  else if( total_ignore_mass > 0.0 )
+  else if( weighted_ignore_mass > 0.0 && weighted_non_ignore_mass > 0.0 )
+  {
+    prob_scale_factor /= weighted_non_ignore_mass;
+  }
+  else if( weighted_ignore_mass > 0.0 )
   {
     class_sum[ ignore_class ] = ignore_sum;
-    norm_weight = total_ignore_mass;
+    prob_scale_factor /= weighted_ignore_mass;
   }
 
-  if( norm_weight > 0.0 )
+  for( auto itr : class_sum )
   {
-    for( auto itr : class_sum )
-    {
-      output_names.push_back( itr.first );
-      output_scores.push_back( itr.second / norm_weight );
-    }
+    output_names.push_back( itr.first );
+    output_scores.push_back( prob_scale_factor * itr.second );
   }
 
   if( output_names.empty() )
@@ -236,8 +246,9 @@ void write_object_track_set_viame_csv
     const kwiver::vital::detected_object_type_sptr trk_average_tot =
           ( d->m_tot_option == "detection" ? kwiver::vital::detected_object_type_sptr()
             : compute_average_tot( trk_ptr,
-                                   d->m_tot_option == "weighted_average",
-                                   d->m_tot_ignore_class ) );
+                d->m_tot_option.find( "weighted" ) != std::string::npos,
+                d->m_tot_option.find( "scaled_by_conf" ) != std::string::npos,
+                d->m_tot_ignore_class ) );
 
     for( auto ts_ptr : *trk_ptr )
     {
@@ -453,8 +464,9 @@ write_object_track_set_viame_csv
         const kwiver::vital::detected_object_type_sptr dot =
           ( d->m_tot_option == "detection" ? det->type() :
             compute_average_tot( trk_ptr,
-                                 d->m_tot_option == "weighted_average",
-                                 d->m_tot_ignore_class ) );
+              d->m_tot_option.find( "weighted" ) != std::string::npos,
+              d->m_tot_option.find( "scaled_by_conf" ) != std::string::npos,
+              d->m_tot_ignore_class ) );
 
         if( dot )
         {

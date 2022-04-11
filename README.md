@@ -23,9 +23,9 @@ but select entries are also listed below broken down by individual functionality
 
 
 [Documentation Overview](https://viame.readthedocs.io/en/latest/section_links/documentation_overview.html) <>
-[DIVE Interface](https://kitware.github.io/dive) <>
 [Install or Build Instructions](examples/building_and_installing_viame) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
+[DIVE Interface](https://kitware.github.io/dive) <>
 [VIEW Interface](examples/annotation_and_visualization) <>
 [Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Object Detector CLI](examples/object_detection) <>
@@ -79,17 +79,17 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* VIAME v0.18.0 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
-* [VIAME v0.18.0 Windows, GPU Enabled, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/623b46544acac99f42c4a2b8/download) <br>
-* [VIAME v0.18.0 Windows, GPU Enabled, Mirror2 (.zip)](https://drive.google.com/file/d/1pBCdYPbo9O6jNLLybA9r4GZyUz9hmo_T/view?usp=sharing) <br>
-* [VIAME v0.18.0 Windows, CPU Only, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/623b46864acac99f42c4a2de/download) <br>
-* [VIAME v0.18.0 Windows, CPU Only, Mirror2 (.zip)](https://drive.google.com/file/d/1HKE2P90kP4B49jP_liYNQtQM8xqmn5lf/view?usp=sharing)
+* VIAME v0.18.2 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
+* [VIAME v0.18.2 Windows, GPU Enabled, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/62521b374acac99f42e92943/download) <br>
+* [VIAME v0.18.2 Windows, GPU Enabled, Mirror2 (.zip)](https://drive.google.com/file/d/12a5GCu1OTlGAZGUvZ52oq_v_rPF6gasV/view?usp=sharing) <br>
+* [VIAME v0.18.1 Windows, CPU Only, Mirror1 (.zip)](https://data.kitware.com/api/v1/item/624f558a4acac99f42cda984/download) <br>
+* [VIAME v0.18.1 Windows, CPU Only, Mirror2 (.zip)](https://drive.google.com/file/d/1HWy1kEeR_JJzPlVAIH59I6_zYvAaIg9i/view?usp=sharing)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.18.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/623dd0054acac99f42ef0f22/download) <br>
-* [VIAME v0.18.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1ywQMgeSYw8EuUuGy8UNGy-HEtEH6PL-2/view?usp=sharing) <br>
-* [VIAME v0.18.0 Linux, CPU Only, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/623dcf744acac99f42ef0dd8/download) <br>
-* [VIAME v0.18.0 Linux, CPU Only, Mirror2 (.tar.gz)](https://drive.google.com/file/d/15O27rEDpBsR_xphXqNubVNUu5ucPxjUj/view?usp=sharing)
+* [VIAME v0.18.1 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/624f50314acac99f42cd9b0a/download) <br>
+* [VIAME v0.18.1 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1C6JXopF2oybDTuH3JHuGVgV_9raX_Z4_/view?usp=sharing) <br>
+* [VIAME v0.18.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://data.kitware.com/api/v1/item/624f4fb44acac99f42cd9a92/download) <br>
+* [VIAME v0.18.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://drive.google.com/file/d/1mblkewGtERY604z2zDRKTucMkt-Zn5AY/view?usp=sharing)
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
@@ -115,7 +115,7 @@ CentOS
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/616d9bf7b53494023680648c/download) <br>
 * [Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
 * [Sea Lion Models, All OS](https://viame.kitware.com/api/v1/item/61eea8fee5fc4ec3c8150860/download) <br>
-* [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/60b3a58b8438b3b7ffd7032f/download) <br>
+* [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/6252405656394432c3c225e4/download) <br>
 * [EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
