@@ -25,7 +25,7 @@ list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.1.1" )
 #list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "dataclasses" "typing-extensions" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "typing-extensions" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
