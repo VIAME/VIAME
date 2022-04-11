@@ -43,6 +43,7 @@
 #include "track_conductor_process.h"
 #include "write_homography_list_process.h"
 #include "append_detections_to_tracks_process.h"
+#include "filter_frame_index_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -119,6 +120,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Generate tracks covering entire input frames" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+  
+  fact = vpm.ADD_PROCESS( viame::core::filter_frame_index_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "filter_frame_index" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Pass frame in min max index limits" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
   
