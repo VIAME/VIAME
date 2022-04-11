@@ -1,8 +1,8 @@
 diff --git a/cmake/build_server_windows_msi.cmake b/cmake/build_server_windows_msi.cmake
-index f26dab8..9cee513 100644
+index 718d050..e71a201 100644
 --- a/cmake/build_server_windows_msi.cmake
 +++ b/cmake/build_server_windows_msi.cmake
-@@ -28,6 +28,7 @@ set(OPTIONS
+@@ -28,9 +28,11 @@ set(OPTIONS
    "-DVIAME_ENABLE_VIVIA=OFF"
    "-DVIAME_ENABLE_DARKNET=OFF"
    "-DVIAME_ENABLE_SCALLOP_TK=OFF"
@@ -10,3 +10,7 @@ index f26dab8..9cee513 100644
    "-DVIAME_DOWNLOAD_MODELS=ON"
    "-DVIAME_KWIVER_BUILD_DIR=C:/tmp/kv5"
    "-DVIAME_PLUGINS_BUILD_DIR=C:/tmp/vm5"
++  "-DVIAME_FLETCH_BUILD_DIR=C:/tmp/fl5"
+ )
+ 
+ set(platform Windows7)
