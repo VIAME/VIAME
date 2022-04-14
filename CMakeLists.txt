@@ -296,7 +296,7 @@ if( VIAME_ENABLE_PYTHON )
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        NOT Python_VERSION VERSION_EQUAL "3.9.3" )
+        NOT Python_VERSION VERSION_EQUAL "3.9.7" )
       message( FATAL_ERROR "Short-term, the only tested python distribution is "
         "Miniconda 4.11.0, either install that version or set the cmake flag "
         "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
