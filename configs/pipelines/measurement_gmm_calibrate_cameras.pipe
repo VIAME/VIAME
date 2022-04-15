@@ -1,0 +1,27 @@
+# Estimate calibration from read inputs object track set
+#
+# Runs automated ocv target detection on image then generate corners tracks
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+config global
+   :output_directory                           /home/jerome/Desktop
+   :target_width_value                         9
+   :target_height_value                        6
+   :square_size_value                          1. #mm
+
+# =============================== INPUT FRAME LIST =================================
+
+process cameras_calibration
+  :: calibrate_cameras_from_tracks
+  :tracks_left                                 [INSERT_ME]
+  :tracks_right                                [INSERT_ME]
+  :output_cameras_directory                    $CONFIG{global:output_directory}
+  :image_width                                 $CONFIG{global:target_width_value}
+  :image_height                                $CONFIG{global:target_height_value}
+
+# -- end of file --
