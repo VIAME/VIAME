@@ -435,7 +435,11 @@ if( VIAME_ENABLE_OPENCV )
     pipelines/register_using_homographies.pipe
     pipelines/register_multimodal_unsync_ocv.pipe 
     pipelines/detector_ocv_target.pipe
-    pipelines/tracker_ocv_target.pipe)
+    pipelines/tracker_ocv_target.pipe
+    pipelines/measurement_gmm_stereo_track_ocv_target.pipe
+    pipelines/measurement_gmm_rectify_stereo_depth.pipe
+    pipelines/measurement_gmm_rectify_stereo_depth_and_pairing.pipe
+    pipelines/measurement_gmm_calibrate_cameras.pipe)
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
