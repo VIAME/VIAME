@@ -110,11 +110,17 @@ kv::detected_object_set_sptr
 ocv_target_detector::
 detect( kv::image_container_sptr image_data ) const
 {
+  auto detected_set = std::make_shared< kv::detected_object_set >();
+  
+  if(!image_data)
+  {
+    return detected_set;
+  }
+  
   LOG_DEBUG( d->m_logger, "Start OCV target detection." );
   
-  auto detected_set = std::make_shared< kv::detected_object_set >();
-  std::vector<cv::Point2f> corners;
   
+  std::vector<cv::Point2f> corners;
   const cv::Size boardSize(d->m_target_width, d->m_target_height);
   const unsigned targetWidth = 5;
   bool cornersFound = false;
