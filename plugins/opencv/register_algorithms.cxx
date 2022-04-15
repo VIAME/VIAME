@@ -41,6 +41,7 @@
 #include "ocv_random_hue_shift.h"
 #include "ocv_image_enhancement.h"
 #include "ocv_target_detector.h"
+#include "ocv_optimize_stereo_cameras.h"
 
 #include "split_image_habcam.h"
 
@@ -50,7 +51,6 @@ extern "C"
 VIAME_OPENCV_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
-{
   kwiver::vital::algorithm_registrar reg( vpm, "viame.opencv" );
 
   if( reg.is_module_loaded() ) 
@@ -64,6 +64,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< ocv_random_hue_shift >();
   reg.register_algorithm< split_image_habcam >();
   reg.register_algorithm< ocv_target_detector >();
+  reg.register_algorithm< ocv_optimize_stereo_cameras >();
 
   reg.mark_module_as_loaded();
 }
