@@ -115,6 +115,7 @@ set( process_headers
   append_detections_to_tracks_process.h
   split_object_track_to_feature_landmark_process.h
   calibrate_cameras_from_tracks_process.h
+  tracks_pairing_from_stereo_process.h
 )
 
 set( process_sources
@@ -133,6 +134,7 @@ set( process_sources
   append_detections_to_tracks_process.cxx
   split_object_track_to_feature_landmark_process.cxx
   calibrate_cameras_from_tracks_process.cxx
+  tracks_pairing_from_stereo_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_core
