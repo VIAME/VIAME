@@ -1,6 +1,6 @@
 /**
  * \file
- * \brief Pass frame in min max index limits
+ * \brief Pass frame with step index and in min max limits
  */
 
 #include "filter_frame_index_process.h"
@@ -26,6 +26,8 @@ create_config_trait( min_frame_count, unsigned, "0",
   "If set, Require frame index higher than to pass frame" );
 create_config_trait( max_frame_count, unsigned, "0",
   "If set, Require frame index lower than to pass frame" );
+create_config_trait( frame_step, unsigned, "0",
+  "If set, Pass frame at each frame step" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -35,16 +37,24 @@ public:
   priv();
   ~priv();
 
+  // Internal variable
+  kv::frame_id_t m_last_frame_id;
+  bool m_first_frame;
+  
   // Configuration settings
-  unsigned m_min_frame_count;
-  unsigned m_max_frame_count;
+  kv::frame_id_t m_min_frame_count;
+  kv::frame_id_t m_max_frame_count;
+  kv::frame_id_t m_frame_step;
 };
 
 // =============================================================================
 filter_frame_index_process::priv
 ::priv()
-  : m_min_frame_count( 0 )
+  : m_last_frame_id(0)
+  , m_first_frame(true)
+  , m_min_frame_count( 0 )
   , m_max_frame_count( 0 )
+  , m_frame_step( 0 )
 {
 }
 
@@ -102,6 +112,7 @@ filter_frame_index_process
 {
   declare_config_using_trait( min_frame_count );
   declare_config_using_trait( max_frame_count );
+  declare_config_using_trait( frame_step );
 }
 
 
@@ -110,8 +121,11 @@ void
 filter_frame_index_process
 ::_configure()
 {
+  d->m_last_frame_id = 0;
+  d->m_first_frame = true;
   d->m_min_frame_count = config_value_using_trait( min_frame_count );
   d->m_max_frame_count = config_value_using_trait( max_frame_count );
+  d->m_frame_step = config_value_using_trait( frame_step );
   
   if ( d->m_min_frame_count > d->m_max_frame_count )
   {
@@ -131,20 +145,30 @@ filter_frame_index_process
 
   timestamp = grab_from_port_using_trait( timestamp );
   
-  if(!d->m_max_frame_count ||
+  if(!d->m_max_frame_count && !d->m_frame_step ||
      timestamp.get_frame() >= d->m_min_frame_count && 
      timestamp.get_frame() <= d->m_max_frame_count)
   {
-    push_to_port_using_trait( timestamp, timestamp );
+    if(d->m_first_frame ||
+       (timestamp.get_frame() - d->m_last_frame_id) >= d->m_frame_step)
+    {
+      push_to_port_using_trait( timestamp, timestamp );
+      image_name = grab_from_port_using_trait( image_file_name );
+      push_to_port_using_trait( image_file_name, image_name );
+      image = grab_from_port_using_trait( image );
+      push_to_port_using_trait( image, image );
+      
+      d->m_first_frame = false;
+      d->m_last_frame_id = timestamp.get_frame();
+    }
+    else
+    {
+      push_to_port_using_trait( image, kwiver::vital::image_container_sptr() );
+    }
     
-    image_name = grab_from_port_using_trait( image_file_name );
-    push_to_port_using_trait( image_file_name, image_name );
-    
-    image = grab_from_port_using_trait( image );
-    push_to_port_using_trait( image, image );
   }
   
-  process::_step();
+//  process::_step();
 }
 
 

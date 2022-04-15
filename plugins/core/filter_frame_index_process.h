@@ -1,6 +1,6 @@
 /**
  * \file
- * \brief Pass frame in min max index limits
+ * \brief Pass frame with step index and in min max limits
  */
 
 #ifndef VIAME_FILTER_FRAME_INDEX_PROCESS_H
@@ -20,7 +20,7 @@ namespace core
 
 // -----------------------------------------------------------------------------
 /**
- * @brief Pass frame in min max index limits
+ * @brief Pass frame with step index and in min max limits
  */
 class VIAME_PROCESSES_CORE_NO_EXPORT filter_frame_index_process
   : public sprokit::process
