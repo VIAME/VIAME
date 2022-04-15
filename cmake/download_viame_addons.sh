@@ -14,7 +14,7 @@ wget -O ${DOWNLOAD_LOCATION}/download1.zip https://viame.kitware.com/api/v1/item
 unzip -o ${DOWNLOAD_LOCATION}/download1.zip -d ${VIAME_INSTALL}
 
 # SEFSC -
-wget -O ${DOWNLOAD_LOCATION}/download2.zip https://viame.kitware.com/api/v1/item/6252405656394432c3c225e4/download
+wget -O ${DOWNLOAD_LOCATION}/download2.zip https://viame.kitware.com/api/v1/item/6259b6d7c80b21e1b28c06a4/download
 unzip -o ${DOWNLOAD_LOCATION}/download2.zip -d ${VIAME_INSTALL}
 
 # PengHead -

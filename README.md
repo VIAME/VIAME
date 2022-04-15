@@ -115,7 +115,7 @@ CentOS
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/616d9bf7b53494023680648c/download) <br>
 * [Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
 * [Sea Lion Models, All OS](https://viame.kitware.com/api/v1/item/61eea8fee5fc4ec3c8150860/download) <br>
-* [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/6252405656394432c3c225e4/download) <br>
+* [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/6259b6d7c80b21e1b28c06a4/download) <br>
 * [EM Tuna Detectors, All OS](https://data.kitware.com/api/v1/item/601afdde2fa25629b9390c41/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
