@@ -8,6 +8,9 @@
 config _pipeline:_edge
   :capacity                                    5
 
+config _scheduler
+  :type                                        pythread_per_process
+
 # =============================== INPUT FRAME LIST =================================
 
 include common_default_input_with_downsampler.pipe

@@ -2,7 +2,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-   :capacity                                   10
+  :capacity                                    10
 
 # ==============================================================================
 process in_adapt

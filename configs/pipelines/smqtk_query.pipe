@@ -2,14 +2,14 @@
 # global pipeline config
 #
 config _pipeline:_edge
-   :capacity                                   5
+  :capacity                                    5
 
 config _scheduler
-   :type                                       pythread_per_process
+  :type                                        pythread_per_process
 
 config global
-   :database_folder                            database
-   :query_folder                               database/Queries
+  :database_folder                             database
+  :query_folder                                database/Queries
 
 # ==================================================================================
 process in_adapt

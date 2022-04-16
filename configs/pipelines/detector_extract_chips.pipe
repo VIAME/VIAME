@@ -5,7 +5,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity                               5
+  :capacity                                    5
 
 # ================================= INPUT VIDEO ====================================
 
