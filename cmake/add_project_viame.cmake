@@ -18,7 +18,7 @@ if( VIAME_ENABLE_MATLAB )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
+  FormatPassdownsCS( "Python" VIAME_PYTHON_FLAGS )
 endif()
 
 ExternalProject_Add(viame
