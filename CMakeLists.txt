@@ -150,12 +150,7 @@ if( VIAME_ENABLE_PYTORCH )
   set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.8.2" "1.9.1" "1.11.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  if( WIN32 )
-    option( VIAME_ENABLE_PYTORCH-INTERNAL   "Enable internal PyTorch build" OFF )
-  else()
-    option( VIAME_ENABLE_PYTORCH-INTERNAL   "Enable internal PyTorch build" ON )
-  endif()
-
+  option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
   option( VIAME_ENABLE_PYTORCH-MMDET        "Enable mmdet PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-NETHARN      "Enable netharn PyTorch code"   ON )
@@ -349,12 +344,6 @@ if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH )
-  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND VIAME_ENABLE_PYTORCH-INTERNAL )
-    message( FATAL_ERROR "Only PyTorch v1.11.0 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
-  endif()
-endif()
-
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
   if( NOT Python_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
@@ -527,6 +516,22 @@ endif()
 if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
   message( FATAL_ERROR "Cannot build in Debug on Windows with Python enabled, \
     build in RelWithDebInfo or Release until fixed." )
+endif()
+
+if( VIAME_ENABLE_PYTORCH )
+  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND VIAME_ENABLE_PYTORCH-INTERNAL )
+    message( FATAL_ERROR "Only PyTorch v1.11.0 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
+  endif()
+  if( VIAME_ENABLE_CUDA AND
+      VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
+      NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
+        NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
+              CUDA_VERSION VERSION_EQUAL "11.3" OR
+              CUDA_VERSION VERSION_EQUAL "11.5" ) )
+    message( FATAL_ERROR "CUDA 11.5, 11.3 or 10.2 is required for VIAME_ENABLE_PYTORCH "
+      "with no VIAME_ENABLE_PYTORCH-INTERNAL flag set, otherwise CUDA 10.1+ is okay, "
+      "but builds will take longer to build pytorch instead of using prebuilt versions." )
+  endif()
 endif()
 
 if( VIAME_ENABLE_OPENCV )
