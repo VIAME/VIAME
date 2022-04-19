@@ -21,6 +21,9 @@ if __name__ == "__main__" :
     parser.add_argument("-height", dest="image_height", default="1024",
                       help="Input image height")
 
+    parser.add_argument("--ff-only", dest="ff_only", action="store_true",
+                      help="Output full frame only annotations")
+
     args = parser.parse_args()
 
     input_files = []
@@ -66,6 +69,7 @@ if __name__ == "__main__" :
 
             image_name = line[0]
             substrate = line[4].replace( ",", "|" )
+            substrate = substrate.replace( " ", "_" )
 
             if line[11] == "NA":
                 poly = default_poly
@@ -77,6 +81,17 @@ if __name__ == "__main__" :
 
             annotations[ image_name ].append( [ substrate, poly ] )
         fin.close()
+
+        if args.ff_only:
+            for index, image in enumerate( annotations ):
+                uid = []
+                for cat in annotations[ image ]:
+                    uid.extend( cat[0].split("|") )
+                res = []
+                [ res.append(x) for x in uid if x not in res ]
+                annotations[ image ] = []
+                for cat in res:
+                    annotations[ image ].append( [ cat, default_poly ] )
 
         fout = open( output_file, "w" )
         flist = open( output_list, "w" )
