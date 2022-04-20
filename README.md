@@ -144,12 +144,11 @@ branch. More in-depth build instructions can be found [here](examples/building_a
 but the software can be built either as a super-build, which builds most of its dependencies
 alongside itself, or standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
-Installing Python and CUDA is also recommended. If using CUDA, version 11.1 or 10.2 are preferred,
-with CUDNN 8. Other CUDA or CUDNN versions may or may not work. On both Windows and Linux it
-is also highly recommended to use [Anaconda3 5.2.0](https://repo.anaconda.com/archive/) for python,
-which is the most tested distribution used by developers. If using other python distributions
-having numpy installed, at a minimum, is necessary, and there may be issues on some other versions
-of python with the plugin loading system VIAME uses depending on the version.
+Installing Python and CUDA is also recommended. If using CUDA, versions 11.5, 11.3, or 10.2 are
+preferred, with CUDNN 8. Other CUDA or CUDNN versions may or may not work. On both Windows and Linux
+it is also recommended to use [Anaconda3 2021.05](https://repo.anaconda.com/archive/) for python,
+which is the most tested distribution used by developers. If using other python distributions,
+at a minimum Python3.7, Numpy, and Cython is necessary.
 
 To build on the command line in Linux, use the following commands, only replacing [source-directory]
 and [build-directory] with locations of your choice. While these directories can be the same,
@@ -175,8 +174,8 @@ Or alternatively by building it in Visual Studio or your compiler of choice on
 Windows. On Linux, '-j8' tells the build to run multi-threaded using 8 threads, this
 is useful for a faster build though if you get an error it can be difficult to see
 it, in which case running just 'make' might be more helpful. For Windows,
-currently VS2017 is the desired compiler, though select versions of 2015 and 2019
-also work.
+currently VS2017 is the most tested compiler, though some versions of 2019 is
+also known to work.
 
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency
@@ -230,7 +229,7 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                  |
 | VIAME_ENABLE_SMQTK           | Builds SMQTK plugins to support image/video indexing and search                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                 |
-| VIAME_ENABLE_SEAL_TK         | Builds Seal multi-modality GUI                                                 |
+| VIAME_ENABLE_SEAL            | Builds Seal multi-modality GUI                                                 |
 | VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                   |
 | VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                               |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                         |

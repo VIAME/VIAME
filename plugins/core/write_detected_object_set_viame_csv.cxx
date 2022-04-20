@@ -282,7 +282,10 @@ write_detected_object_set_viame_csv
     }
 
     // Preferentially write out the explicit polygon
-    if( !(*det)->polygon().empty() )
+    if( !(*det)->polygon().empty() &&
+        ( ( d->m_mask_to_poly_tol < 0 &&
+            d->m_mask_to_poly_points < 0 ) ||
+           !(*det)->mask() ) )
     {
       stream() << ",(poly)";
       auto poly = (*det)->polygon();

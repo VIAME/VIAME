@@ -60,14 +60,14 @@ cd build
 
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$PATH:/viame/build/install/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.6
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.6m
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.6m
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.8
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.8
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.8
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
--DVIAME_CREATE_PACKAGE:BOOL=ON \
+-DVIAME_FIXUP_BUNDLE:BOOL=ON \
 -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
 -DVIAME_ENABLE_CAFFE:BOOL=OFF \
 -DVIAME_ENABLE_CAMTRAWL:BOOL=ON \
@@ -92,7 +92,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=OFF \
 -DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
--DVIAME_ENABLE_SEAL_TK:BOOL=OFF \
+-DVIAME_ENABLE_SEAL:BOOL=OFF \
 -DVIAME_ENABLE_SMQTK:BOOL=ON \
 -DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
 -DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \

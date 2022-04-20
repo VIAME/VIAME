@@ -2,7 +2,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity                               1
+  :capacity                                    1
 
 # ==================================================================================
 

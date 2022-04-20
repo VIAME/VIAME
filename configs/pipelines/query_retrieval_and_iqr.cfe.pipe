@@ -2,11 +2,11 @@
 # global pipeline config
 #
 config _pipeline:_edge
-   :capacity                                   10
+  :capacity                                    10
 
 config global
-   :database_folder                            database
-   :query_folder                               database/Queries
+  :database_folder                             database
+  :query_folder                                database/Queries
 
 # ==================================================================================
 process in_adapt

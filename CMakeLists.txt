@@ -63,11 +63,11 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
-option( VIAME_ENABLE_SEAL_TK        "Enable Seal-TK GUI"            OFF )
+option( VIAME_ENABLE_SEAL           "Enable Seal GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
-mark_as_advanced( VIAME_ENABLE_SEAL_TK )
+mark_as_advanced( VIAME_ENABLE_SEAL )
 
 ###
 # Add default-enabled algorithmic plugin enable flags
@@ -146,16 +146,11 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 1.8.2 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.7.1" "1.8.2" "1.9.1" )
+  set( VIAME_PYTORCH_VERSION 1.11.0 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.8.2" "1.9.1" "1.11.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  if( WIN32 )
-    option( VIAME_ENABLE_PYTORCH-INTERNAL   "Enable internal PyTorch build" OFF )
-  else()
-    option( VIAME_ENABLE_PYTORCH-INTERNAL   "Enable internal PyTorch build" ON )
-  endif()
-
+  option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
   option( VIAME_ENABLE_PYTORCH-MMDET        "Enable mmdet PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-NETHARN      "Enable netharn PyTorch code"   ON )
@@ -213,12 +208,31 @@ option( VIAME_ENABLE_VIAME_PLUGINS  "Enable VIAME plugins"          ON )
 mark_as_advanced( VIAME_ENABLE_KWIVER )
 mark_as_advanced( VIAME_ENABLE_VIAME_PLUGINS )
 
+# A continuation build allows building of new plugins using an existing
+# VIAME build in another folder or build tree, for the purpose of making
+# chained windows MSI installers
+option( VIAME_PACKAGING_CONT_BUILD  "Enable continuation build"     OFF )
+mark_as_advanced( VIAME_PACKAGING_CONT_BUILD )
+
+if( VIAME_PACKAGING_CONT_BUILD )
+  set( VIAME_PRIOR_BUILD "" CACHE PATH "Location of prior VIAME build" )
+  mark_as_advanced( VIAME_PRIOR_BUILD )
+endif()
+
 ###
-# Add external package build instructions
+# Add macro-level package build options
 ##
 option( VIAME_BUILD_DEPENDENCIES    "Build all required dependencies in a super-build" ON )
-option( VIAME_CREATE_PACKAGE        "Build a release package at the end of build"      OFF )
-mark_as_advanced( VIAME_CREATE_PACKAGE )
+
+option( VIAME_FIXUP_BUNDLE          "Build a release package at the end of build"      OFF )
+mark_as_advanced( VIAME_FIXUP_BUNDLE )
+
+option( VIAME_CREATE_INSTALLER      "Build a msi prototype installer using wix"        OFF )
+mark_as_advanced( VIAME_CREATE_INSTALLER )
+
+if( VIAME_CREATE_INSTALLER )
+  set( VIAME_FIXUP_BUNDLE ON CACHE BOOL "Flag forced due to create_package enable" FORCE )
+endif()
 
 ###
 # Add extra options
@@ -249,7 +263,7 @@ if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA OR
 endif()
 
 if( VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR
-    VIAME_ENABLE_SEAL_TK )
+    VIAME_ENABLE_SEAL )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"   FORCE )
 endif()
 
@@ -277,10 +291,10 @@ if( VIAME_ENABLE_PYTHON )
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
 
     if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
-        NOT Python_VERSION VERSION_EQUAL "3.6.5" )
-      message( FATAL_ERROR "Short-term, the only tested python distribution is "
-        "Anaconda3 5.2.0, either install that version or set the cmake flag "
-        "VIAME_DISABLE_PYTHON_CHECKS to attempt to use your current version" )
+        ( Python_VERSION VERSION_LESS "3.7" AND VIAME_ENABLE_PYTORCH ) )
+      message( FATAL_ERROR "Only python distributions  >= 3.7.0 are currently "
+        "supported with pytorch enabled. Set VIAME_DISABLE_PYTHON_CHECKS to "
+        "attempt to use your current version." )
     endif()
   endif()
 
@@ -310,7 +324,7 @@ if( VIAME_ENABLE_PYTHON )
   endif()
 endif()
 
-if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL_TK )
+if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL )
   message( FATAL_ERROR "Cannot yet enable both VIVIA and Seal-TK GUIs" )
 endif()
 
@@ -327,12 +341,6 @@ if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER )
       must be set to a short path (e.g. C:\\tmp\\kv1 and C:\\tmp\\vm1) on Windows \
       due to a current issue with nesting KWIVER exceeding the 260 character \
       default filepath size." )
-  endif()
-endif()
-
-if( VIAME_ENABLE_PYTORCH )
-  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.8.2" AND VIAME_ENABLE_PYTORCH-INTERNAL )
-    message( FATAL_ERROR "Only PyTorch v1.8.2 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
   endif()
 endif()
 
@@ -510,6 +518,22 @@ if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
     build in RelWithDebInfo or Release until fixed." )
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND VIAME_ENABLE_PYTORCH-INTERNAL )
+    message( FATAL_ERROR "Only PyTorch v1.11.0 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
+  endif()
+  if( VIAME_ENABLE_CUDA AND
+      VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
+      NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
+        NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
+              CUDA_VERSION VERSION_EQUAL "11.3" OR
+              CUDA_VERSION VERSION_EQUAL "11.5" ) )
+    message( FATAL_ERROR "CUDA 11.5, 11.3 or 10.2 is required for VIAME_ENABLE_PYTORCH "
+      "with no VIAME_ENABLE_PYTORCH-INTERNAL flag set, otherwise CUDA 10.1+ is okay, "
+      "but builds will take longer to build pytorch instead of using prebuilt versions." )
+  endif()
+endif()
+
 if( VIAME_ENABLE_OPENCV )
   set( VIAME_OPENCV_VERSION 3.4.0 CACHE STRING "Version of OpenCV to use" )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.13 3.4.0 )
@@ -597,7 +621,7 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_vivia )
   endif()
 
-  if( VIAME_ENABLE_SEAL_TK )
+  if( VIAME_ENABLE_SEAL )
     include( add_project_seal_tk )
   endif()
 
@@ -635,7 +659,7 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 
   # Fixup installer package
-  if( VIAME_CREATE_PACKAGE )
+  if( VIAME_FIXUP_BUNDLE )
     include( build_package )
   endif()
 else()
@@ -732,7 +756,7 @@ else()
     install( PROGRAMS      ${VIAME_SETUP_SCRIPT}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
-    if( VIAME_ENABLE_SEAL_TK )
+    if( VIAME_ENABLE_SEAL )
       install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_seal_interface.bat"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
@@ -757,7 +781,7 @@ else()
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
-    if( VIAME_ENABLE_SEAL_TK )
+    if( VIAME_ENABLE_SEAL )
       install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
@@ -770,7 +794,7 @@ else()
   ###
   # Install system libs if packaging enabled
   ##
-  if( VIAME_CREATE_PACKAGE )
+  if( VIAME_FIXUP_BUNDLE )
     set( VIAME_RELEASE_NOTES_FILE "RELEASE_NOTES.md" )
 
     install( PROGRAMS      ${VIAME_RELEASE_NOTES_FILE}

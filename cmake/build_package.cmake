@@ -71,51 +71,41 @@ set( CPACK_RESOURCE_FILE_LICENSE       "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt"
 set( CPACK_PACKAGE_VERSION_MAJOR       "${VIAME_VERSION_MAJOR}" )
 set( CPACK_PACKAGE_VERSION_MINOR       "${VIAME_VERSION_MINOR}" )
 set( CPACK_PACKAGE_VERSION_PATCH       "${VIAME_VERSION_PATCH}" )
-set( CPACK_PACKAGE_INSTALL_DIRECTORY   "VIAME-${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}" )
+set( CPACK_PACKAGE_INSTALL_DIRECTORY   "VIAME" )
 
 include( InstallRequiredSystemLibraries )
-
-#foreach( path_id ${FIXUP_DIRS} )
-#  if( WIN32 )
-#    file( GLOB FILES_TO_ADD "${path_id}/*.dll" )
-#    set( FIXUP_LIBS ${FIXUP_LIBS} ${FILES_TO_ADD} )
-#  else()
-#    file( GLOB FILES_TO_ADD "${path_id}/*.so" )
-#    set( FIXUP_LIBS ${FIXUP_LIBS} ${FILES_TO_ADD} )
-#  endif()
-#endforeach()
 
 if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
   set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
   install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
 endif()
 
-install( DIRECTORY ${VIAME_INSTALL_DIR}/ DESTINATION . )
+install( DIRECTORY ${VIAME_INSTALL_DIR}/ DESTINATION .
+         COMPONENT VIAME )
 
 if( WIN32 )
   install( FILES ${VIAME_CMAKE_DIR}/setup_viame.bat.install
     DESTINATION .
     RENAME setup_viame.bat
-    )
+    COMPONENT VIAME )
 else()
   install( FILES ${VIAME_CMAKE_DIR}/setup_viame.sh.install
     DESTINATION .
     RENAME setup_viame.sh
-    )
+    COMPONENT VIAME )
 endif()
 
-#    if( WIN32 AND NOT UNIX )
-#      set( CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
-#      set( CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
-#      set( CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} My Famous Project")
-#      set( CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
-#      set( CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
-#      set( CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
-#      set( CPACK_NSIS_MODIFY_PATH ON)
-#   else( WIN32 AND NOT UNIX )
-#      set( CPACK_STRIP_FILES "bin/MyExecutable" )
-#      set( CPACK_SOURCE_STRIP_FILES "" )
-#   endif()
-
-#SET( CPACK_PACKAGE_EXECUTABLES "MyExecutable" "My Executable" )
-include( CPack )
+if( VIAME_CREATE_INSTALLER )
+  if( WIN32 )
+    set( CPACK_BINARY_WIX ON )
+    if( VIAME_DOWNLOAD_MODELS )
+      message( WARNING "Disabling model downloading for packaging" )
+      set( VIAME_DOWNLOAD_MODELS OFF FORCE )
+    endif()
+    set( CPACK_WIX_UPGRADE_GUID "91A46E15-EE49-4411-9836-583499D9C12D" )
+    set( CPACK_WIX_COMPONENT_INSTALL ON )
+    get_cmake_property( CPACK_COMPONENTS_ALL COMPONENTS )
+    list( REMOVE_ITEM CPACK_COMPONENTS_ALL "System" "Unspecified" "runtime" )
+  endif()
+  include( CPack )
+endif()

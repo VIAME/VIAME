@@ -60,17 +60,17 @@ And on CentOS 7:
      mesa-libGLU-devel lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel \
      curl curl-devel atlas-devel file which
 
-If using VIAME_ENABLE_PYTHON, [Anaconda3 5.2.0](https://repo.anaconda.com/archive/) is
+If using VIAME_ENABLE_PYTHON, [Anaconda3 2021.05](https://repo.anaconda.com/archive/) is
 recommended, though you also try using native python, e.g. install python3, python3-dev,
 and numpy (or alternatively whatever python distribution you want to use),
 e.g.:
 
 .. code-block:: bash
 
-   sudo apt-get install python3.6 python3.6-dev && sudo pip install numpy
+   sudo apt-get install python3.8 python3.8-dev && sudo pip install numpy cython
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 10.0 or above
-is required, 11.1 or 10.2 being the tested versions. Other versions may work depending
+is required, 11.5 or 10.2 being the most tested versions. Other versions may work depending
 on your build settings but are not officially supported yet):
 
 .. code-block:: bash
@@ -183,7 +183,7 @@ And lastly, a number of flags which build algorithms with more specialized funct
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                              |
 +------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_SEAL_TK         | Builds Seal Multi-Modality GUI                                                              |
+| VIAME_ENABLE_SEAL            | Builds Seal Multi-Modality GUI                                                              |
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                                |
 +------------------------------+---------------------------------------------------------------------------------------------+
@@ -247,7 +247,7 @@ right click on the folder you checked out the source into, move to the TortoiseG
 menu section, and select ``Submodule Update``.
 
 Next, install any required dependencies for items you want to build. If using CUDA,
-version 9.0 or above is desired, along with Python 3.6+. Other versions have yet to
+version 9.0 or above is desired, along with Python 3.7+. Other versions have yet to
 be tested extensively, though may work. On Windows it can also be beneficial to use
 Anaconda to get multiple python packages. Boost Python (turned on by default when
 Python is enabled) requires Numpy and a few other dependencies.
@@ -304,7 +304,7 @@ for sub-projects (say, for example, if one doesn't build).
 
 **Python:**
 
-The default Python used is 3.6, though other versions may work as well. It depends on
+The default Python used is 3.8, though other versions may work as well. It depends on
 your build settings, operating system, and which dependency projects are turned on.
 
 
