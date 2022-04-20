@@ -106,7 +106,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Build VIAME first attempt
-make -j$(nproc)
+make -j$(nproc) > build_log.txt 2>&1
 
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
