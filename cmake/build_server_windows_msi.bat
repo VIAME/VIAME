@@ -27,16 +27,13 @@ REM ----------------------------------------------------------------------------
 REM HACKS UNTIL THESE THINGS ARE BETTER HANDLED IN CODE
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-SET GPU_ADD_ON_PACKAGE=C:\tmp\VIAME-Windows-GPU.zip
+MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
+
 SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
 SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.exe
 
-MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
-"C:\Program Files\7-Zip\7z.exe" x -aoa %GPU_ADD_ON_PACKAGE% -o%VIAME_BUILD_DIR%
 MOVE %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 MOVE %MISSING_DNET_EXE% %VIAME_BUILD_DIR%\VIAME\bin
-
-DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.8\site-packages\torch\lib\cu*"
 
 COPY /Y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
@@ -51,15 +48,14 @@ REM ----------------------------------------------------------------------------
 REM Round2 - Build with torch
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-REM DEL "%VIAME_BUILD_DIR%\CMakeCache.txt"
-REM RD /S /Q "%VIAME_BUILD_DIR%\build\src\fletch-stamp"
-
 XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_BUILD_DIR%\install"
 powershell.exe "Get-ChildItem -Recurse %VIAME_BUILD_DIR%\install | Resolve-Path -Relative" > files-core.txt
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-torch.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.8\site-packages\torch\lib\cu*"
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_BUILD_DIR%\install | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "VIAME\include" > files-torch.txt
@@ -71,9 +67,6 @@ FOR /f "delims=" %%A in (files-torch.txt) do @find "%%A" "files-core.txt" >nul2>
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
 REM Round3 - Build with darknet
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-REM DEL "%VIAME_BUILD_DIR%\CMakeCache.txt"
-REM RD /S /Q "%VIAME_BUILD_DIR%\build\src\fletch-stamp"
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-darknet.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
@@ -90,9 +83,6 @@ REM ----------------------------------------------------------------------------
 REM Round4 - Build with dive
 REM -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-REM DEL "%VIAME_BUILD_DIR%\CMakeCache.txt"
-REM RD /S /Q "%VIAME_BUILD_DIR%\build\src\fletch-stamp"
-
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-dive.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
@@ -107,9 +97,6 @@ FOR /f "delims=" %%A in (files-dive.txt) do @find "%%A" "files-darknet.txt" >nul
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
 REM Round5 - Build with vivia
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-REM DEL "%VIAME_BUILD_DIR%\CMakeCache.txt"
-REM RD /S /Q "%VIAME_BUILD_DIR%\build\src\fletch-stamp"
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-view.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
@@ -127,9 +114,6 @@ MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME-VIEW"
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
 REM Round6 - Build with seal
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-REM DEL "%VIAME_BUILD_DIR%\CMakeCache.txt"
-REM RD /S /Q "%VIAME_BUILD_DIR%\build\src\fletch-stamp"
 
 XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_BUILD_DIR%\install"
 powershell.exe "Get-ChildItem -Recurse %VIAME_BUILD_DIR%\install | Resolve-Path -Relative" > files-core.txt

@@ -25,12 +25,11 @@ REM ----------------------------------------------------------------------------
 REM HACKS UNTIL THESE THINGS ARE BETTER HANDLED IN CODE
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-SET CPU_ADD_ON_PACKAGE=C:\tmp\VIAME-Windows-CPU.zip
+MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
+
 SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
 SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.exe
 
-MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
-"C:\Program Files\7-Zip\7z.exe" x -aoa %CPU_ADD_ON_PACKAGE% -o%VIAME_BUILD_DIR%
 MOVE %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 MOVE %MISSING_DNET_EXE% %VIAME_BUILD_DIR%\VIAME\bin
 
