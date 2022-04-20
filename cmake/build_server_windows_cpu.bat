@@ -11,7 +11,10 @@ IF NOT EXIST C:\tmp mkdir C:\tmp
 IF EXIST C:\tmp\kv2 rmdir /s /q C:\tmp\kv2
 IF EXIST C:\tmp\vm2 rmdir /s /q C:\tmp\vm2
 
-SET "PATH=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\libnvvp;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR"
+SET "WIN32_ROOT=C:\Windows\System32"
+SET "PATH=%WIN32_ROOT%;C:\Windows;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
+SET "PATH=C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;%PATH%"
+
 SET "PYTHONPATH=%VIAME_BUILD_DIR%\install\lib\python3.8;%VIAME_BUILD_DIR%\install\lib\python3.8\site-packages"
 
 git submodule update --init --recursive
