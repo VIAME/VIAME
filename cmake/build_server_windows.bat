@@ -17,6 +17,8 @@ SET "PATH=%WIN32_ROOT%;C:\Windows;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShe
 SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;%PATH%"
 SET "PATH=C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;%PATH%"
 
+ECHO %PATH%
+
 SET "PYTHONPATH=%VIAME_BUILD_DIR%\install\lib\python3.8;%VIAME_BUILD_DIR%\install\lib\python3.8\site-packages"
 SET "CUDA_BIN_PATH=%CUDA_ROOT%"
 
