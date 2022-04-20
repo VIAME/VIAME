@@ -1,5 +1,5 @@
 pycocotools/__init__.py,sha256=SS5A792GOS_MAQn5esSKCV_NWaYq-7p8FkLcKzcAxOg,22
-pycocotools/_mask.cp36-win_amd64.pyd,sha256=K-b1cInR8jvK0namh0P30ko0lTQbhBTYVSqmTxL8Oes,144896
+pycocotools/_mask.cp38-win_amd64.pyd,sha256=K-b1cInR8jvK0namh0P30ko0lTQbhBTYVSqmTxL8Oes,144896
 pycocotools/coco.py,sha256=3hBoQs8v4Suih3utQuxMcltU1QmFazbEN3MflN6-6R4,19095
 pycocotools/cocoeval.py,sha256=eCQGSEmNMcTPcN3ynLP1nlpoP4UOP6HZ8Q6TJz7u1Qk,24676
 pycocotools/mask.py,sha256=EoHOC1Q2_-kkyWUhsq4dWJ9vDip7coG2uyhPeyJFVFw,4693
@@ -8,7 +8,7 @@ pycocotools-2.0.dist-info/RECORD,,
 pycocotools-2.0.dist-info/WHEEL,sha256=xq3J6sB2oJqjv0tDC7tGUGvne1fOugw1JUmk86QA7UM,106
 pycocotools-2.0.dist-info/top_level.txt,sha256=kySwJ77O9VF1E0aiCb621tEfHF9AUYDMhf2L7FYJnVM,12
 pycocotools-2.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
-pycocotools/__pycache__/coco.cpython-36.pyc,,
-pycocotools/__pycache__/cocoeval.cpython-36.pyc,,
-pycocotools/__pycache__/mask.cpython-36.pyc,,
-pycocotools/__pycache__/__init__.cpython-36.pyc,,
+pycocotools/__pycache__/coco.cpython-38.pyc,,
+pycocotools/__pycache__/cocoeval.cpython-38.pyc,,
+pycocotools/__pycache__/mask.cpython-38.pyc,,
+pycocotools/__pycache__/__init__.cpython-38.pyc,,
