@@ -148,7 +148,7 @@ Installing Python and CUDA is also recommended. If using CUDA, versions 11.5, 11
 preferred, with CUDNN 8. Other CUDA or CUDNN versions may or may not work. On both Windows and Linux
 it is also recommended to use [Anaconda3 2021.05](https://repo.anaconda.com/archive/) for python,
 which is the most tested distribution used by developers. If using other python distributions,
-at a minimum Python3.7+, Numpy, and Cython is necessary.
+at a minimum Python3.7 or above, Numpy, and Cython is necessary.
 
 To build on the command line in Linux, use the following commands, only replacing [source-directory]
 and [build-directory] with locations of your choice. While these directories can be the same,
