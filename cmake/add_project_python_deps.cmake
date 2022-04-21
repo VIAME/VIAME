@@ -64,7 +64,7 @@ endif()
 
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" "pygments" "bezier==2020.1.14" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.5.13" "kwcoco==0.1.13" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.6.7" "kwcoco==0.2.30" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.15.0" )
 endif()
 
