@@ -20,7 +20,7 @@ else()
 endif()
 
 # For plotting scripts and scoring
-list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.1.1" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.5.1" )
 
 # For fusion classifier
 #list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
