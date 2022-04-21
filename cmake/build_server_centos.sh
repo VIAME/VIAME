@@ -4,7 +4,6 @@
 set -x
  
 # Install Fletch & VIAME system deps
-yum update -y
 yum -y groupinstall 'Development Tools'
 yum install -y zip \
 git \
