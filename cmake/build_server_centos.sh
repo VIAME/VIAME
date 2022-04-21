@@ -108,6 +108,15 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 # Build VIAME first attempt
 make -j$(nproc) > build_log.txt 2>&1
 
+# Output statments
+if [ grep -q "[100%] Built target viame" build_log.txt ] && \
+   [ grep -q "fixup_bundle: preparing..." build_log.txt ]; then
+  echo "Build succeeded"
+else
+  echo "Build failed"
+  exit 1
+fi
+
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 
