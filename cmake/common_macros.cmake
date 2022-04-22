@@ -33,7 +33,7 @@ function( FormatPassdownsWithIgnore _str _varResult _ignoreStr )
   set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
 endfunction()
 
-function( FormatPassdownsCS _str _varResult )
+function( FormatPassdownsCaseSensitive _str _varResult )
   FormatPassdownsCond( ${_str} _tmpResult OFF "" )
   set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
 endfunction()
