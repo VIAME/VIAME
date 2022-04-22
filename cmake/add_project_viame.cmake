@@ -7,7 +7,7 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-FormatPassdowns( "VIAME" VIAME_VIAME_FLAGS )
+FormatPassdownsWithIgnore( "VIAME" VIAME_VIAME_FLAGS "PYTHON" )
 
 if( VIAME_ENABLE_MATLAB )
   FormatPassdowns( "Matlab" VIAME_MATLAB_FLAGS )
