@@ -185,10 +185,14 @@ endif()
 ##
 install( DIRECTORY gui-params
          DESTINATION configs )
-install( DIRECTORY prj-linux
-         DESTINATION configs )
-install( DIRECTORY prj-windows
-         DESTINATION configs )
+
+if( WIN32 )
+  install( DIRECTORY prj-windows/
+           DESTINATION configs/prj-template )
+else()
+  install( DIRECTORY prj-linux/
+           DESTINATION configs/prj-template )
+endif()
 
 ###
 # All config files manually-included by default or based on options
