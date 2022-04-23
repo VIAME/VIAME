@@ -59,9 +59,6 @@ git submodule update --init --recursive
 mkdir build
 cd build 
 
-# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
-cp /viame/packages/patches/cuda/cuComplex.h /usr/local/cuda/include/
-
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$PATH:/viame/build/install/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.8
