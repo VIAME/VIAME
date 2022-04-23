@@ -1,3 +1,17 @@
+v0.19.0 - 4/27/2022
+===================
+
+
+-Update default generic model for IQR
+
+
+-Update CUDA, torch, mmdet, netharn versions
+
+
+-Make mmdet/netharn detectors have disk size (no duplicate weights stored)
+
+
+
 v0.18.2 - 4/9/2022
 ==================
 
