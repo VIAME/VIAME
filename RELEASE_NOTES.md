@@ -8,7 +8,7 @@ v0.19.0 - 4/27/2022
 -Update CUDA, torch, mmdet, netharn versions
 
 
--Make mmdet/netharn detectors have disk size (no duplicate weights stored)
+-Make mmdet/netharn detectors be half disk size (no duplicate weights stored)
 
 
 
