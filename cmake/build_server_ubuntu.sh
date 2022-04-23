@@ -25,7 +25,6 @@ bzip2 \
 libbz2-dev \
 liblzma-dev
 
-
 # Install CMAKE
 wget https://cmake.org/files/v3.23/cmake-3.23.1.tar.gz
 tar zxvf cmake-3.*
@@ -85,102 +84,20 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
-# Build VIAME first attempt
-make -j$(nproc) -k || true
+# Build VIAME, pipe output to file
+../cmake/linux_release_build.sh > build_log.txt 2>&1
 
-# Below be krakens
-# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
+# Output check statments
+if grep -q "[100%] Built target viame" build_log.txt; then
+  echo "VIAME Build Succeeded"
+else
+  echo "VIAME Build Failed"
+  exit 1
+fi
 
-# HACK: Double tap the build tree
-# Should be removed when non-determinism in kwiver python build fixed
-make -j$(nproc)
-
-# HACK: Copy setup_viame.sh.install over setup_viame.sh
-# Should be removed when this issue is fixed
-cp ../cmake/setup_viame.sh.install install/setup_viame.sh
-
-# HACK: Ensure invalid libsvm symlink isn't created
-# Should be removed when this issue is fixed
-rm install/lib/libsvm.so
-cp install/lib/libsvm.so.2 install/lib/libsvm.so
-
-# HACK: Copy in darknet executable
-# Should be removed when this issue is fixed
-cp build/src/darknet-build/darknet install/bin || true
-
-# HACK: Copy in CUDA dlls missed by create_package
-# Should be removed when this issue is fixed
-cp -P /usr/local/cuda/lib64/libcudart.so* install/lib
-cp -P /usr/local/cuda/lib64/libcusparse.so* install/lib
-cp -P /usr/local/cuda/lib64/libcufft.so* install/lib
-cp -P /usr/local/cuda/lib64/libcusolver.so* install/lib
-cp -P /usr/local/cuda/lib64/libnvrtc* install/lib
-cp -P /usr/local/cuda/lib64/libnvToolsExt.so* install/lib
-cp -P /usr/local/cuda/lib64/libnppi* install/lib
-cp -P /usr/local/cuda/lib64/libnppc* install/lib
-cp -P /usr/local/cuda/lib64/libcurand.so* install/lib
-
-cp -P /usr/lib64/libnccl.so* install/lib
-
-# HACK: Copy in CUDNN missing .so files not included by
-# create_package, should be removed when this issue is fixed
-cp -P /usr/lib/x86_64-linux-gnu/libcudnn.so.8* install/lib
-cp -P /usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8* install/lib
-cp -P /usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8* install/lib
-cp -P /usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8* install/lib
-cp -P /usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8* install/lib
-cp -P /usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8* install/lib
-rm install/lib/libcudnn.so || true
-rm install/lib/libcudnn_adv_infer.so || true
-rm install/lib/libcudnn_cnn_infer.so || true
-rm install/lib/libcudnn_ops_infer.so || true
-rm install/lib/libcudnn_cnn_train.so || true
-rm install/lib/libcudnn_ops_train.so || true
-ln -s libcudnn.so.8 install/lib/libcudnn.so
-ln -s libcudnn_adv_infer.so.8 install/lib/libcudnn_adv_infer.so
-ln -s libcudnn_cnn_infer.so.8 install/lib/libcudnn_cnn_infer.so
-ln -s libcudnn_ops_infer.so.8 install/lib/libcudnn_ops_infer.so
-ln -s libcudnn_cnn_train.so.8 install/lib/libcudnn_cnn_train.so
-ln -s libcudnn_ops_train.so.8 install/lib/libcudnn_ops_train.so
-
-# HACK: Symlink CUDA so file link in pytorch directory for some
-# systems with multiple CUDA 11s this is necessary
-ln -s ../../../../libcublas.so.11 install/lib/python3.8/site-packages/torch/lib/libcublas.so.11
-
-# HACK: Copy in other possible library requirements if present
-# Should be removed when this issue is fixed
-cp /lib/x86_64-linux-gnu/libreadline.so.6 install/lib || true
-cp /lib/x86_64-linux-gnu/libreadline.so.7 install/lib || true
-cp /lib/x86_64-linux-gnu/libpcre.so.3 install/lib || true
-cp /lib/x86_64-linux-gnu/libexpat.so.1 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libharfbuzz.so.0 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libcrypto.so install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libfreetype.so.6 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libx264.so.152 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libSM.so.6 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libICE.so.6 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libblas.so.3 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/liblapack.so.3 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libgfortran.so.3 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libgfortran.so.4 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libquadmath.so.0 install/lib || true
-
-cp -P /usr/lib/x86_64-linux-gnu/libnccl.so* install/lib || true
-
-# HACK: Okay these are a bit much
-cp /usr/lib/x86_64-linux-gnu/libharfbuzz.so.0 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libpng16.so.16 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libglib-2.0.so.0 install/lib || true
-cp /usr/lib/x86_64-linux-gnu/libgraphite2.so.3 install/lib || true
-
-# HACK: Copy in ubuntu 18.04 specific libraries
-source /etc/lsb-release
-
-if [ "${DISTRIB_DESCRIPTION}" == "Ubuntu 18.04.3 LTS" ]; then
-    wget https://data.kitware.com/api/v1/item/5e2cdcbbaf2e2eed353a323e/download
-    mv download download.tar.gz
-    tar -xvf download.tar.gz
-    rm download.tar.gz
+if  grep -q "fixup_bundle: preparing..." build_log.txt; then
+  echo "Fixup Bundle Called Succesfully"
+else
+  echo "Error: Fixup Bundle Not Called"
+  exit 1
 fi
