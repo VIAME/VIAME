@@ -1,3 +1,4 @@
+#! /bin/bash
 
 # Perform multi-threaded build
 make -j$(nproc)
@@ -107,7 +108,7 @@ if [ is_ubuntu ]; then
   cp ${LIBBASE}/libcrypto.so.1.1 install/lib || true
   cp ${LIBBASE}/libfreetype.so.6 install/lib || true
   cp ${LIBBASE}/libx264.so.152 install/lib || true
-  cp ${LIBBASE}/libgfortran.so.4 install/lib || true\
+  cp ${LIBBASE}/libgfortran.so.4 install/lib || true
   cp ${LIBBASE}/libharfbuzz.so.0 install/lib || true
   cp ${LIBBASE}/libpng16.so.16 install/lib || true
   cp ${LIBBASE}/libglib-2.0.so.0 install/lib || true
