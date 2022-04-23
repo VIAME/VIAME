@@ -21,7 +21,7 @@ cp build/src/darknet-build/darknet install/bin || true
 
 # HACK: Copy in CUDA dlls missed by create_package
 # Should be removed when this issue is fixed
-if [ is_ubuntu ]; then
+if cat /etc/os-release | grep 'Ubuntu'; then
   export LIBBASE=/usr/lib/x86_64-linux-gnu
   export CUDABASE=/usr/local/cuda
 else
@@ -98,7 +98,7 @@ cp ${LIBBASE}/libx26410b.so.148 install/lib || true
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
-if [ is_ubuntu ]; then
+if cat /etc/os-release | grep 'Ubuntu'; then
   cp /lib/x86_64-linux-gnu/libreadline.so.6 install/lib || true
   cp /lib/x86_64-linux-gnu/libreadline.so.7 install/lib || true
   cp /lib/x86_64-linux-gnu/libpcre.so.3 install/lib || true
@@ -114,7 +114,7 @@ if [ is_ubuntu ]; then
   cp ${LIBBASE}/libglib-2.0.so.0 install/lib || true
   cp ${LIBBASE}/libgraphite2.so.3 install/lib || true
 
-  # HACK: Copy in ubuntu 18.04 specific libraries
+  # HACK: Copy in ubuntu 18.04 specific libraries (vs 16.04)
   source /etc/lsb-release
 
   if [ "${DISTRIB_DESCRIPTION}" == "Ubuntu 18.04.3 LTS" ]; then
