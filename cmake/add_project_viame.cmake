@@ -7,14 +7,19 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-FormatPassdownsWithIgnore( "VIAME" VIAME_VIAME_FLAGS "PYTHON" )
+FormatPassdowns( "VIAME_ENABLE" VIAME_ENABLE_FLAGS )
+FormatPassdowns( "VIAME_DISABLE" VIAME_DISABLE_FLAGS )
+FormatPassdowns( "VIAME_INSTALL" VIAME_INSTALL_FLAGS )
+FormatPassdowns( "VIAME_DOWNLOAD" VIAME_DOWNLOAD_FLAGS )
+FormatPassdowns( "VIAME_VERSION" VIAME_VERSION_FLAGS )
 
 if( VIAME_ENABLE_MATLAB )
   FormatPassdowns( "Matlab" VIAME_MATLAB_FLAGS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  FormatPassdownsCaseSensitive( "Python" VIAME_PYTHON_FLAGS )
+  set( VIAME_PYTHON_FLAGS
+    -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE} )
 endif()
 
 ExternalProject_Add(viame
@@ -30,7 +35,11 @@ ExternalProject_Add(viame
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_scallop_tk}
     ${VIAME_ARGS_ITK}
-    ${VIAME_VIAME_FLAGS}
+    ${VIAME_ENABLE_FLAGS}
+    ${VIAME_DISABLE_FLAGS}
+    ${VIAME_INSTALL_FLAGS}
+    ${VIAME_DOWNLOAD_FLAGS}
+    ${VIAME_VERSION_FLAGS}
     ${VIAME_MATLAB_FLAGS}
     ${VIAME_PYTHON_FLAGS}
     -DBUILD_SHARED_LIBS:BOOL=ON
