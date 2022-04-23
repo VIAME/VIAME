@@ -104,13 +104,13 @@ mark_as_advanced( VIAME_ENABLE_ITK_EXTRAS )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 mark_as_advanced( VIAME_ENABLE_GDAL )
 
-set( VIAME_KWIVER_BUILD_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
+set( VIAME_BUILD_KWIVER_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
      CACHE STRING "VIAME superbuild KWIVER build location" )
-mark_as_advanced( VIAME_KWIVER_BUILD_DIR )
+mark_as_advanced( VIAME_BUILD_KWIVER_DIR )
 
-set( VIAME_PLUGINS_BUILD_DIR "${VIAME_BUILD_PREFIX}/src/viame-build"
+set( VIAME_BUILD_PLUGINS_DIR "${VIAME_BUILD_PREFIX}/src/viame-build"
      CACHE STRING "VIAME superbuild plugins build location" )
-mark_as_advanced( VIAME_PLUGINS_BUILD_DIR )
+mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 
 ###
 # Flags relating to examples and model downloads
@@ -333,11 +333,11 @@ if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
 endif()
 
 if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER )
-  string( LENGTH "${VIAME_KWIVER_BUILD_DIR}" KWIVER_BUILD_DIR_LENGTH )
-  string( LENGTH "${VIAME_PLUGINS_BUILD_DIR}" PLUGINS_BUILD_DIR_LENGTH )
+  string( LENGTH "${VIAME_BUILD_KWIVER_DIR}" KWIVER_BUILD_DIR_LENGTH )
+  string( LENGTH "${VIAME_BUILD_PLUGINS_DIR}" PLUGINS_BUILD_DIR_LENGTH )
 
   if( KWIVER_BUILD_DIR_LENGTH GREATER 12 OR PLUGINS_BUILD_DIR_LENGTH GREATER 12 )
-    message( FATAL_ERROR "VIAME_KWIVER_BUILD_DIR and VIAME_PLUGINS_BUILD_DIR \
+    message( FATAL_ERROR "VIAME_BUILD_KWIVER_DIR and VIAME_BUILD_PLUGINS_DIR \
       must be set to a short path (e.g. C:\\tmp\\kv1 and C:\\tmp\\vm1) on Windows \
       due to a current issue with nesting KWIVER exceeding the 260 character \
       default filepath size." )
