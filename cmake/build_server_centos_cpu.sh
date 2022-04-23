@@ -101,48 +101,20 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
-# Build VIAME first attempt
-make -j$(nproc) > build_log.txt 2>&1
+# Build VIAME, pipe output to file
+../cmake/linux_release_build.sh > build_log.txt 2>&1
 
-# Output statments
-if grep -q "[100%] Built target viame" build_log.txt && \
-   grep -q "fixup_bundle: preparing..." build_log.txt; then
-  echo "Build succeeded"
+# Output check statments
+if grep -q "[100%] Built target viame" build_log.txt; then
+  echo "VIAME Build Succeeded"
 else
-  echo "Build failed"
+  echo "VIAME Build Failed"
   exit 1
 fi
 
-# Below be krakens
-# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
-
-# HACK: Copy setup_viame.sh.install over setup_viame.sh
-# Should be removed when this issue is fixed
-cp ../cmake/setup_viame.sh.install install/setup_viame.sh
-
-# HACK: Ensure invalid libsvm symlink isn't created
-# Should be removed when this issue is fixed
-rm install/lib/libsvm.so
-cp install/lib/libsvm.so.2 install/lib/libsvm.so
-
-# HACK: Copy in darknet executable
-# Should be removed when this issue is fixed
-cp build/src/darknet-build/darknet install/bin || true
-
-# HACK: Copy in other possible library requirements if present
-# Should be removed when this issue is fixed
-cp /usr/lib64/libva.so.1 install/lib || true
-cp /usr/lib64/libreadline.so.6 install/lib || true
-cp /usr/lib64/libdc1394.so.22 install/lib || true
-cp /usr/lib64/libcrypto.so.10 install/lib || true
-cp /usr/lib64/libpcre.so.1 install/lib || true
-cp /usr/lib64/libgomp.so.1 install/lib || true
-cp /usr/lib64/libSM.so.6 install/lib || true
-cp /usr/lib64/libICE.so.6 install/lib || true
-cp /usr/lib64/libblas.so.3 install/lib || true
-cp /usr/lib64/liblapack.so.3 install/lib || true
-cp /usr/lib64/libgfortran.so.3 install/lib || true
-cp /usr/lib64/libquadmath.so.0 install/lib || true
-cp /usr/lib64/libpng15.so.15 install/lib || true
-cp /usr/lib64/libx264.so.148 install/lib || true
-cp /usr/lib64/libx26410b.so.148 install/lib || true
+if  grep -q "fixup_bundle: preparing..." build_log.txt; then
+  echo "Fixup Bundle Called Succesfully"
+else
+  echo "Error: Fixup Bundle Not Called"
+  exit 1
+fi
