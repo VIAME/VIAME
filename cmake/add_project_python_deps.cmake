@@ -19,7 +19,7 @@ else()
   set( VIAME_PYTHON_BASIC_DEPS "numpy" )
 endif()
 
-# Setuptools < 58.0 required for current version of gdal
+# Setuptools < 58.0 required for current version of gdal on windows
 if( WIN32 AND VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
 endif()
