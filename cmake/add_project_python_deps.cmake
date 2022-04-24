@@ -13,15 +13,19 @@
 
 set( PYTHON_DEP_ENV_VARS )
 
-if( WIN32 AND VIAME_FIXUP_BUNDLE AND VIAME_ENABLE_PYTORCH-NETHARN )
-  set( VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
-endif()
-
 if( VIAME_FIXUP_BUNDLE )
   set( VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
 else()
   set( VIAME_PYTHON_BASIC_DEPS "numpy" )
 endif()
+
+# Setuptools < 58.0 required for current version of gdal
+if( WIN32 AND VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
+endif()
+
+# Installation requirement for some dependencies
+list( APPEND VIAME_PYTHON_BASIC_DEPS "Cython" "ordered_set" )
 
 # For plotting scripts and scoring
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.5.1" )
