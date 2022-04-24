@@ -5,7 +5,7 @@ VIAME Network Installer Creation
 Step 1: Generate VIAME Installer
 --------------------------------
 
-Use the ``VIAME_CREATE_PACKAGE`` option in CMake to direct CPack to create an
+Use the ``VIAME_CREATE_INSTALLER`` option in CMake to direct CPack to create an
 MSI for the VIAME code.  On Windows, this will entail the building of the
 ``PACKAGE`` target in Visual Studio.
 
