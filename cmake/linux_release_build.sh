@@ -124,3 +124,9 @@ if cat /etc/os-release | grep 'Ubuntu'; then
     rm download.tar.gz
   fi
 fi
+
+# Compress file
+mv install viame
+rm VIAME-v1.0.0-Linux-64Bit.tar.gz ||:
+tar -zcvf VIAME-v1.0.0-Linux-64Bit.tar.gz viame
+mv viame install
