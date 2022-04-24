@@ -1,6 +1,6 @@
-###
-# top level build file for the VIAME super-build
-#
+###    (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <><     (V) (°,,,°) (V)
+# Top-level CMakeLists.txt build file for the VIAME super-build and project
+##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <>< 
 
 cmake_minimum_required( VERSION 3.13.0 )
 set( CMAKE_CXX_STANDARD 11 )
@@ -231,7 +231,7 @@ option( VIAME_CREATE_INSTALLER      "Build a msi prototype installer using wix" 
 mark_as_advanced( VIAME_CREATE_INSTALLER )
 
 if( VIAME_CREATE_INSTALLER )
-  set( VIAME_FIXUP_BUNDLE ON CACHE BOOL "Flag forced due to create_package enable" FORCE )
+  set( VIAME_FIXUP_BUNDLE ON CACHE BOOL "Flag forced due to create_package enable"     FORCE )
 endif()
 
 ###
@@ -240,7 +240,7 @@ endif()
 option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libtiff and libjpeg" ON )
 mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
-option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled" OFF )
+option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled"        OFF )
 mark_as_advanced( VIAME_BUILD_TESTS )
 
 ###
@@ -254,17 +254,17 @@ include( old_version_checks )
 ##
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
     VIAME_ENABLE_DARKNET )
-  set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"   FORCE )
+  set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
 if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA OR
     VIAME_ENABLE_ITK )
-  set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"      FORCE )
+  set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"     FORCE )
 endif()
 
 if( VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR
     VIAME_ENABLE_SEAL )
-  set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"   FORCE )
+  set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"  FORCE )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
