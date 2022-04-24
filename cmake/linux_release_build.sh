@@ -80,6 +80,7 @@ fi
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
+cp ${LIBBASE}/libffi.so.6 install/lib || true
 cp ${LIBBASE}/libva.so.1 install/lib || true
 cp ${LIBBASE}/libreadline.so.6 install/lib || true
 cp ${LIBBASE}/libdc1394.so.22 install/lib || true
