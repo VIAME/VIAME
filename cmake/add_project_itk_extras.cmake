@@ -58,7 +58,7 @@ if( VIAME_ENABLE_PYTHON )
   set( KEYPOINTGUI_INSTALL
     ${CMAKE_COMMAND} -E env "PYTHONPATH=${VIAME_PYTHON_PATH}"
                             "PATH=${VIAME_EXECUTABLES_PATH}"
-                            "PYTHONUSERBASE=${VIAME_INSTALL_PREFIX}"
+                            "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}"
       ${Python_EXECUTABLE} -m ${KEYPOINTGUI_PIP_CMD}
     )
 

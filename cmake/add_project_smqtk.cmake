@@ -35,7 +35,7 @@ endif()
 set( SMQTK_PYTHON_INSTALL
   ${CMAKE_COMMAND} -E env "PYTHONPATH=${VIAME_PYTHON_PATH}"
                           "PATH=${VIAME_EXECUTABLES_PATH}"
-                          "PYTHONUSERBASE=${VIAME_INSTALL_PREFIX}"
+                          "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}"
     ${Python_EXECUTABLE} -m ${SMQTK_PIP_CMD}
   )
 

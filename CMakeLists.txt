@@ -312,8 +312,11 @@ if( VIAME_ENABLE_PYTHON )
 
   set( PYBASE ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${VIAME_PYTHON_VERSION} )
   set( VIAME_PYTHON_INSTALL ${PYBASE} CACHE INTERNAL "VIAME Python install path" )
+  set( VIAME_PYTHON_USERBASE "${VIAME_INSTALL_PREFIX}" )
 
   if( WIN32 )
+    string( REPLACE "/" "\\" VIAME_PYTHON_USERBASE "${VIAME_PYTHON_USERBASE}" )
+
     set( VIAME_PYTHON_PATH
       ${PYBASE};${PYBASE}/site-packages;${PYBASE}/dist-packages
       CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME" )
