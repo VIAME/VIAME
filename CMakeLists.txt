@@ -224,7 +224,7 @@ endif()
 ##
 option( VIAME_BUILD_DEPENDENCIES    "Build all required dependencies in a super-build" ON )
 
-option( VIAME_FIXUP_BUNDLE          "Build a release package at the end of build"      OFF )
+option( VIAME_FIXUP_BUNDLE          "Run fixup bundle on top of generated binaries"    OFF )
 mark_as_advanced( VIAME_FIXUP_BUNDLE )
 
 option( VIAME_CREATE_INSTALLER      "Build a msi prototype installer using wix"        OFF )
