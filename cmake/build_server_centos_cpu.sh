@@ -105,7 +105,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 ../cmake/linux_release_build.sh > build_log.txt 2>&1
 
 # Output check statments
-if grep -q "[100%] Built target viame" build_log.txt; then
+if grep -q "Built target viame" build_log.txt; then
   echo "VIAME Build Succeeded"
 else
   echo "VIAME Build Failed"
