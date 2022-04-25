@@ -140,6 +140,11 @@ class NetharnDetector(ImageObjectDetector):
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
 
+        # Imports used across this func
+        import os
+        import torch
+        from bioharn import detect_predict
+
         # HACK: merge config doesn't support dictionary input
         _vital_config_update(cfg, cfg_in)
 
@@ -151,7 +156,7 @@ class NetharnDetector(ImageObjectDetector):
 
         if self._kwiver_config['batch_size'] == "auto":
             self._kwiver_config['batch_size'] = 2
-            import torch
+
             if torch.cuda.is_available():
                 gpu_mem = 0
                 if len(self._kwiver_config['xpu']) == 1 and \
@@ -171,15 +176,16 @@ class NetharnDetector(ImageObjectDetector):
                 elif gpu_mem >= 7e9:
                     self._kwiver_config['batch_size'] = 3
 
-        import os
         if os.name == 'nt':
             os.environ["KWIMAGE_DISABLE_TORCHVISION_NMS"] = "1"
 
-        from bioharn import detect_predict
         pred_config = detect_predict.DetectPredictConfig()
         pred_config['batch_size'] = self._kwiver_config['batch_size']
         pred_config['deployed'] = self._kwiver_config['deployed']
-        pred_config['xpu'] = self._kwiver_config['xpu']
+        if torch.cuda.is_available():
+            pred_config['xpu'] = self._kwiver_config['xpu']
+        else:
+            pred_config['xpu'] = "cpu"
         self.predictor = detect_predict.DetectPredictor(pred_config)
 
         self.predictor._ensure_model()
