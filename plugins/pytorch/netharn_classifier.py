@@ -178,7 +178,10 @@ class NetharnClassifier(ImageObjectDetector):
         pred_config = clf_predict.ClfPredictConfig()
         pred_config['batch_size'] = self._kwiver_config['batch_size']
         pred_config['deployed'] = self._kwiver_config['deployed']
-        pred_config['xpu'] = self._kwiver_config['xpu']
+        if torch.cuda.is_available():
+            pred_config['xpu'] = self._kwiver_config['xpu']
+        else:
+            pred_config['xpu'] = "cpu"
         pred_config['input_dims'] = 'native'
         # (256, 256)
         self.predictor = clf_predict.ClfPredictor(pred_config)
