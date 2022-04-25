@@ -82,6 +82,7 @@ fi
 # Should be removed when this issue is fixed
 cp ${LIBBASE}/libffi.so.6 install/lib || true
 cp ${LIBBASE}/libva.so.1 install/lib || true
+cp ${LIBBASE}/libssl.so.10 install/lib || true
 cp ${LIBBASE}/libreadline.so.6 install/lib || true
 cp ${LIBBASE}/libdc1394.so.22 install/lib || true
 cp ${LIBBASE}/libcrypto.so.10 install/lib || true
