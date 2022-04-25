@@ -13,7 +13,7 @@ if( VIAME_DOWNLOAD_MODELS )
   endif()
 
   # Default, motion, and generic detection models
-  if( VIAME_ENABLE_CUDA AND VIAME_ENABLE_PYTORCH-NETHARN )
+  if( VIAME_ENABLE_PYTORCH-NETHARN )
     if( VIAME_DOWNLOAD_MODELS-GENERIC )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/5fb1926250a41e3d1956a3c5/download
@@ -34,7 +34,7 @@ if( VIAME_DOWNLOAD_MODELS )
         6524dd85334d569d30fa9ca7eb570517
         ${VIAME_DOWNLOAD_DIR}/VIAME-Motion-Models-v1.0.zip )
     endif()
-  elseif( VIAME_ENABLE_CUDA AND VIAME_ENABLE_PYTORCH-MMDET )
+  elseif( VIAME_ENABLE_PYTORCH-MMDET )
     if( VIAME_DOWNLOAD_MODELS-GENERIC )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/5fb1922650a41e3d1956a389/download
