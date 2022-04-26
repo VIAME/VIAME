@@ -103,21 +103,18 @@ if( VIAME_DOWNLOAD_MODELS )
       3fe6c43e8bf6ab49cb8f6687f38bdbd6
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-
-    # Project specific pytorch models
-    if( VIAME_DOWNLOAD_MODELS-SEA-LION )
-      DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download
-        cccd42702eead4148de7d26c53bb3718
-        ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v1.3.zip )
-    endif()
-  else()
-    if( VIAME_DOWNLOAD_MODELS-SEA-LION )
-      message( FATAL_ERROR "Sea Lion models require pytorch" )
-    endif()
   endif()
 
-  # Caffe model files
+  # Darknet training seed models
+  if( VIAME_ENABLE_DARKNET )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/602b56c72fa25629b9788909/download
+      a4a7805499527c58b5165f0901fc0ec3
+      ${VIAME_DOWNLOAD_DIR}/models-yolo_v4_seed_model-v1.0.0.zip
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+  endif()
+
+  # Caffe generic descriptor
   if( VIAME_ENABLE_CAFFE )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5afe6e1e8d777f15ebe1d6fc/download
@@ -126,39 +123,7 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
-  # YOLO model files
-  if( VIAME_ENABLE_DARKNET )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/602b56c72fa25629b9788909/download
-      a4a7805499527c58b5165f0901fc0ec3
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v4_seed_model-v1.0.0.zip
-      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-
-    if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5cbb84d08d777f072b53ab46/download
-        5d92853d93e758260dfefbf12ab70ab5
-        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_yolo-v1.3.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-    endif()
-  else()
-    if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-      message( FATAL_ERROR "Arctic seal models require darknet" )
-    endif()
-  endif()
-
-  # Tensorflow models
-  if( VIAME_ENABLE_TENSORFLOW )
-    if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5cb74eeb8d777f072b40f904/download
-        5af19ef3d8c29d3726674421912a44dc
-        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.1.1.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-    endif()
-  endif()
-
-  # Mixed pipelines and models provided by add-on packages
+  # Mixed project specific models and add-ons
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     DownloadAndInstallAddOn(
       https://viame.kitware.com/api/v1/item/613ed525a28c6cb53f3a0601/download
@@ -173,13 +138,37 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.1.zip )
   endif()
 
-  # Transformation models
   if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+    if( NOT VIAME_ENABLE_DARKNET )
+      message( FATAL_ERROR "Arctic seal models require darknet" )
+    endif()
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5d6edf99d35580e6dcddbc3b/download
       1a122a8a5ab5e59ca8a149954da8a252
       ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_transforms-v0.2.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5cbb84d08d777f072b53ab46/download
+      5d92853d93e758260dfefbf12ab70ab5
+      ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_yolo-v1.3.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    if( VIAME_ENABLE_TENSORFLOW )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5cb74eeb8d777f072b40f904/download
+        5af19ef3d8c29d3726674421912a44dc
+        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.1.1.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
+  endif()
+
+  if( VIAME_DOWNLOAD_MODELS-SEA-LION )
+    if( NOT VIAME_ENABLE_PYTORCH )
+      message( FATAL_ERROR "Sea Lion models require pytorch" )
+    endif()
+    DownloadAndInstallAddOn(
+      https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download
+      cccd42702eead4148de7d26c53bb3718
+      ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v1.3.zip )
   endif()
 endif()
 
