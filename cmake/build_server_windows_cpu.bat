@@ -40,7 +40,7 @@ XCOPY /E /I "%VIAME_SOURCE_DIR%\packages\patches\pycocotools" %VIAME_BUILD_DIR%\
 COPY %WIN32_ROOT%\msvcr100.dll %VIAME_BUILD_DIR%\VIAME\bin
 COPY %WIN32_ROOT%\vcruntime140_1.dll %VIAME_BUILD_DIR%\VIAME\bin
 COPY C:\Windows\SysWOW64\msvcr120.dll %VIAME_BUILD_DIR%\VIAME\bin
-COPY %VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\pthreadVC2.dll %VIAME_BUILD_DIR%\VIAME\bin
+COPY %VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll %VIAME_BUILD_DIR%\VIAME\bin
 
 REM ------------------------------------------------------------------------------------------------------------------------------------------------------------
 REM COMPRESS FINAL PACKAGE
