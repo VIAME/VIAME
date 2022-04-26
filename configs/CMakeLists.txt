@@ -12,49 +12,52 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/gui-params )
   endif()
 
-  # Default, motion, and generic detection models
-  if( VIAME_ENABLE_PYTORCH-NETHARN )
-    if( VIAME_DOWNLOAD_MODELS-GENERIC )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/62682a514acac99f420f6883/download
-        c71f276ac893502803504dad10150cc8
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.zip
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-    endif()
-    if( VIAME_DOWNLOAD_MODELS-FISH )
+  # Default fish detection model
+  if( VIAME_DOWNLOAD_MODELS-FISH )
+    if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/62682a574acac99f420f6891/download
         4971e8b78003d51796a07f864dbf5591
         ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.zip
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-    endif()
-    if( VIAME_DOWNLOAD_MODELS-MOTION )
+    elseif( VIAME_ENABLE_PYTORCH-MMDET )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5fb196f250a41e3d1956a407/download
+        c6e0cdf1e903dbe3e261977378a97223
+        ${VIAME_DOWNLOAD_DIR}/models-mmdet_default-v1.4.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    elseif( VIAME_ENABLE_DARKNET )
       DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download
-        6524dd85334d569d30fa9ca7eb570517
-        ${VIAME_DOWNLOAD_DIR}/VIAME-Motion-Models-v1.0.zip )
+        https://viame.kitware.com/api/v1/item/6172423562e0e5717e22cc21/download
+        5b8a947d4d9de3ecc7acd8e729652ada
+        ${VIAME_DOWNLOAD_DIR}/VIAME-Default-CPU-Detectors-v1.0.zip )
     endif()
-  elseif( VIAME_ENABLE_PYTORCH-MMDET )
-    if( VIAME_DOWNLOAD_MODELS-GENERIC )
+  endif()
+
+  # Generic object detection model
+  if( VIAME_DOWNLOAD_MODELS-GENERIC )
+    if( VIAME_ENABLE_PYTORCH-NETHARN )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/62682a514acac99f420f6883/download
+        c71f276ac893502803504dad10150cc8
+        ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.zip
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    elseif( VIAME_ENABLE_PYTORCH-MMDET )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/5fb1922650a41e3d1956a389/download
         bf2df19944c55e8a7dc757520c607893
         ${VIAME_DOWNLOAD_DIR}/models-mmdet_generic-v1.4.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
-    if( VIAME_DOWNLOAD_MODELS-FISH )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb196f250a41e3d1956a407/download
-        c6e0cdf1e903dbe3e261977378a97223
-        ${VIAME_DOWNLOAD_DIR}/models-mmdet_default-v1.4.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-    endif()
-  elseif( VIAME_ENABLE_DARKNET )
-    if( VIAME_DOWNLOAD_MODELS-GENERIC OR VIAME_DOWNLOAD_MODELS-FISH )
+  endif()
+
+  # Motion detection model
+  if( VIAME_DOWNLOAD_MODELS-MOTION )
+    if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndInstallAddOn(
-        https://viame.kitware.com/api/v1/item/6172423562e0e5717e22cc21/download
-        5b8a947d4d9de3ecc7acd8e729652ada
-        ${VIAME_DOWNLOAD_DIR}/VIAME-Default-CPU-Detectors-v1.0.zip )
+        https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download
+        6524dd85334d569d30fa9ca7eb570517
+        ${VIAME_DOWNLOAD_DIR}/VIAME-Motion-Models-v1.0.zip )
     endif()
   endif()
 
