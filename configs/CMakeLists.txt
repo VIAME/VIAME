@@ -16,16 +16,16 @@ if( VIAME_DOWNLOAD_MODELS )
   if( VIAME_ENABLE_PYTORCH-NETHARN )
     if( VIAME_DOWNLOAD_MODELS-GENERIC )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb1926250a41e3d1956a3c5/download
-        f4349546a7618366ec75a46291f052a1
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.tar.gz
+        https://data.kitware.com/api/v1/item/62682a514acac99f420f6883/download
+        c71f276ac893502803504dad10150cc8
+        ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.zip
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
     if( VIAME_DOWNLOAD_MODELS-FISH )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb1924a50a41e3d1956a3b3/download
-        b2b8406cb14bf1c890fdd79e269404d1
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.tar.gz
+        https://data.kitware.com/api/v1/item/62682a574acac99f420f6891/download
+        4971e8b78003d51796a07f864dbf5591
+        ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.zip
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
     if( VIAME_DOWNLOAD_MODELS-MOTION )
