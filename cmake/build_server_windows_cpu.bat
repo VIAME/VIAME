@@ -35,8 +35,6 @@ MOVE %MISSING_DNET_EXE% %VIAME_BUILD_DIR%\VIAME\bin
 
 COPY /y "%VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install" %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
-XCOPY /E /I "%VIAME_SOURCE_DIR%\packages\patches\pycocotools" %VIAME_BUILD_DIR%\VIAME\lib\python3.8\site-packages
-
 COPY %WIN32_ROOT%\msvcr100.dll %VIAME_BUILD_DIR%\VIAME\bin
 COPY %WIN32_ROOT%\vcruntime140_1.dll %VIAME_BUILD_DIR%\VIAME\bin
 COPY C:\Windows\SysWOW64\msvcr120.dll %VIAME_BUILD_DIR%\VIAME\bin
