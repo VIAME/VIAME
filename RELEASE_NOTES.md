@@ -1,5 +1,5 @@
-v0.19.0 - 4/27/2022
-===================
+v0.19.0 - 5/2/2022
+==================
 
 
 -Update default generic model for IQR
@@ -9,6 +9,9 @@ v0.19.0 - 4/27/2022
 
 
 -Make mmdet/netharn detectors be half disk size (no duplicate weights stored)
+
+
+-Reduce YOLOv4-CSP model size, parameter tuning
 
 
 
