@@ -33,13 +33,13 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         continue_training_deep_resnet.bat
-         train_deep_resnet_viame_csv.bat )
+         continue_training_deep_classifier.bat
+         train_deep_frame_classifier.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         continue_training_deep_resnet.sh
-         train_deep_resnet_viame_csv.sh )
+         continue_training_deep_classifier.sh
+         train_deep_frame_classifier.sh )
   endif()
 endif()
 
@@ -47,11 +47,11 @@ if( VIAME_ENABLE_SMQTK )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_svm_resnet_viame_csv.bat )
+         train_svm_frame_classifier.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_svm_resnet_viame_csv.sh )
+         train_svm_frame_classifier.sh )
   endif()
 endif()
 
