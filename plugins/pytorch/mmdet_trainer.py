@@ -213,7 +213,7 @@ class MMDetTrainer( TrainDetector ):
         self._logger = get_root_logger( self._cfg.log_level )
         self._logger.info( 'Distributed training: {}'.format( self._distributed ) )
 
-        if self._random_seed is not 'none':
+        if self._random_seed != 'none':
             self._logger.info( 'Set random seed to {}'.format( self._random_seed ) )
             from mmdet.apis import set_random_seed
             if isinstance( self._random_seed, int ):
