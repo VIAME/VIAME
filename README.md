@@ -52,7 +52,7 @@ are available via smaller installers. Lastly, docker files are available for bot
 Desktop and Web (below). For full desktop installs, extract the binaries and place them
 in a directory of your choosing, for example /opt/noaa/viame on Linux
 or C:\Program Files\VIAME on Windows. If using packages built with GPU support, make sure
-to have sufficient video drivers installed, version 456.38 or higher. The best way to
+to have sufficient video drivers installed, version 465.19 or higher. The best way to
 install drivers depends on your operating system. This isn't required if just using
 manual annotators (or frame classifiers only). The binaries are quite large,
 in terms of disk space, due to the inclusion of multiple default model files and
@@ -66,7 +66,7 @@ apps) they are much smaller.
   * MacOS is currently only supported running standalone annotation tools, see below.
 
 **Installation Recommendations:** <br>
-* NVIDIA Drivers (Version 456.38 or above, 
+* NVIDIA Drivers (Version 465.19 or above, 
 Windows 
 [\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
 [\[2\]](https://developer.nvidia.com/cuda-downloads)
