@@ -11,7 +11,7 @@ IF NOT EXIST C:\tmp mkdir C:\tmp
 IF EXIST C:\tmp\kv1 rmdir /s /q C:\tmp\kv1
 IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
 
-SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.5"
+SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3"
 SET "WIN32_ROOT=C:\Windows\System32"
 SET "PATH=%WIN32_ROOT%;C:\Windows;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;%PATH%"
