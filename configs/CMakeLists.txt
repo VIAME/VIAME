@@ -194,7 +194,9 @@ set( CORE_PIPELINE_FILES
   pipelines/common_default_initializer.pipe
   pipelines/common_default_input.pipe
   pipelines/common_default_input_with_downsampler.pipe
+  pipelines/common_fish_detector.pipe
   pipelines/common_fish_detector_with_filter.pipe
+  pipelines/common_generic_detector.pipe
   pipelines/common_generic_detector_with_filter.pipe
   pipelines/common_image_stabilizer.pipe
   pipelines/common_stabilized_iou_tracker.pipe
@@ -266,8 +268,6 @@ if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_default_descriptor.pipe
     pipelines/common_default_tracker.pipe
-    pipelines/common_fish_detector.pipe
-    pipelines/common_generic_detector.pipe
     pipelines/query_augment_image.pipe
     pipelines/tracker_fish.sfd.pipe )
 else()
@@ -277,12 +277,6 @@ else()
   install( FILES pipelines/common_default_tracker.cpu.pipe
     DESTINATION configs/pipelines
     RENAME common_default_tracker.pipe )
-  install( FILES pipelines/common_fish_detector.cpu.pipe
-    DESTINATION configs/pipelines
-    RENAME common_fish_detector.pipe )
-  install( FILES pipelines/common_generic_detector.cpu.pipe
-    DESTINATION configs/pipelines
-    RENAME common_generic_detector.pipe )
   install( FILES pipelines/query_augment_image.cpu.pipe
     DESTINATION configs/pipelines
     RENAME query_augment_image.pipe )
