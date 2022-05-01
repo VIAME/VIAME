@@ -1,4 +1,4 @@
-v0.19.0 - 5/3/2022
+v0.19.0 - 5/4/2022
 ==================
 
 
@@ -15,6 +15,9 @@ v0.19.0 - 5/3/2022
 
 
 -Allow CPU releases to use all GPU models regardless of type
+
+
+-Update classifiers from resnet50/resnext101 to efficentnet_v2_s by default
 
 
 
