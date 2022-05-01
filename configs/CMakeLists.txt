@@ -105,9 +105,9 @@ if( VIAME_DOWNLOAD_MODELS )
 
     # Default descriptor models
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5bad56178d777f06b908c47c/download
-      3fe6c43e8bf6ab49cb8f6687f38bdbd6
-      ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.1.0.tar.gz
+      https://data.kitware.com/api/v1/item/626f19d54acac99f42607319/download
+      e08fe2cba91f5b0eed6177f8a0262196
+      ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.2.zip
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
