@@ -16,9 +16,9 @@ if( VIAME_DOWNLOAD_MODELS )
   if( VIAME_DOWNLOAD_MODELS-FISH )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/62682a574acac99f420f6891/download
+        https://data.kitware.com/api/v1/item/626e0c9e4acac99f425acf1e/download
         4971e8b78003d51796a07f864dbf5591
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.4.zip
+        ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.5.zip
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     elseif( VIAME_ENABLE_PYTORCH-MMDET )
       DownloadAndExtract(
