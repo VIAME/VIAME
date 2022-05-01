@@ -36,7 +36,13 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # Generic object detection model
   if( VIAME_DOWNLOAD_MODELS-GENERIC )
-    if( VIAME_ENABLE_PYTORCH-NETHARN )
+    if( VIAME_ENABLE_DARKNET )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/626e05b54acac99f425acc46/download
+        72fe8f6cc1653b350154e32d03efd6c0
+        ${VIAME_DOWNLOAD_DIR}/models-yolo_generic-v1.5.zip
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    elseif( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/62682a514acac99f420f6883/download
         c71f276ac893502803504dad10150cc8

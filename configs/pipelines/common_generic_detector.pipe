@@ -14,19 +14,24 @@ process detector_input
 
 process detector1
   :: image_object_detector
-  :detector:type                               ocv_windowed
+  :detector:type                               darknet
 
-  block detector:ocv_windowed
-    :detector:type                             netharn
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                 models/generic_detector.cfg
+    relativepath weight_file =                 models/generic_detector.weights
+    relativepath class_names =                 models/generic_detector.lbl
 
-    :mode                                      original_and_resized
-    :chip_width                                640
-    :chip_height                               640
-    :chip_adaptive_thresh                      1200000
+    # Detector parameters
+    :thresh                                    0.010
+    :gpu_index                                 0
 
-    block detector:netharn
-      relativepath deployed =                  models/generic_detector.zip
-    endblock
+    # Image scaling parameters
+    :resize_option                             adaptive
+    :scale                                     1.0
+    :chip_step                                 520
+    :chip_edge_filter                          5
+
   endblock
 
 connect from detector_input.image
