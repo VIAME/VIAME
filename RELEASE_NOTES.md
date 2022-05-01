@@ -1,4 +1,4 @@
-v0.19.0 - 5/2/2022
+v0.19.0 - 5/3/2022
 ==================
 
 
@@ -12,6 +12,9 @@ v0.19.0 - 5/2/2022
 
 
 -Reduce YOLOv4-CSP model size, parameter tuning
+
+
+-Allow CPU releases to use all GPU models regardless of type
 
 
 
