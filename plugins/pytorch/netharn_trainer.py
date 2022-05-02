@@ -74,7 +74,7 @@ def depth_move( src, dst ):
     os.rmdir( src )
 
 def squash_and_remove_json( src ):
-    if len( os.listdir( src ) ) == 1:
+    if os.path.isdir( src ) and len( os.listdir( src ) ) == 1:
         item = os.path.join( src, os.listdir( src )[0] )
         depth_move( item, src )
     for entry in os.listdir( src ):
