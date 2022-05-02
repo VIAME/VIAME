@@ -660,9 +660,6 @@ class NetHarnTrainer( TrainDetector ):
             if os.name == 'nt':
                 cmd.append( "--test_on_finish=False" )
 
-            if len( self._backbone ) > 0:
-                cmd.append( "--backbone_init=" + self._backbone )
-
         cmd += [ "--train_dataset=" + self._training_file,
                  "--vali_dataset=" + self._validation_file,
                  "--workdir=" + self._train_directory,
@@ -680,6 +677,9 @@ class NetHarnTrainer( TrainDetector ):
 
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )
+
+        if len( self._backbone ) > 0:
+            cmd.append( "--backbone_init=" + self._backbone )
 
         if self._allow_unicode != "auto":
             cmd.append( "--allow_unicode=" + self._allow_unicode  )
