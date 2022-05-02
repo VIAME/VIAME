@@ -655,7 +655,8 @@ class NetHarnTrainer( TrainDetector ):
                      "--window_dims=" + self._chip_width + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
                      "--multiscale=False",
-                     "--bstep=4" ]
+                     "--bstep=4",
+                     "--patience=10" ]
 
             if os.name == 'nt':
                 cmd.append( "--test_on_finish=False" )
