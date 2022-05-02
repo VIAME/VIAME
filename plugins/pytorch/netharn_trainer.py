@@ -59,33 +59,18 @@ import time
 import random
 import math
 
-def copytree( src, dst, symlinks=False, ignore=None ):
-    for item in os.listdir( src ):
-        s = os.path.join( src, item )
-        d = os.path.join( dst, item )
-        if os.path.isdir( s ):
-            shutil.copytree( s, d, symlinks, ignore )
-        else:
-            shutil.copy2( s, d )
-
-def depth_move( src, dst ):
+def recurse_copy( src, dst, max_depth = 10, ignore = ".json" ):
+    if max_depth < 0:
+        return src
     if os.path.isdir( src ):
         for entry in os.listdir( src ):
-            shutil.move( os.path.join( src, entry ), dst )
-        os.rmdir( src )
-    else:
-        shutil.move( src, dst )
-
-def squash_and_remove_json( src ):
-    if os.path.isdir( src ) and len( os.listdir( src ) ) == 1:
-        item = os.path.join( src, os.listdir( src )[0] )
-        depth_move( item, src )
-    for entry in os.listdir( src ):
-        item = os.path.join( src, entry )
-        if os.path.isdir( item ):
-            squash_and_remove_json( item )
-        elif item.endswith( ".json" ):
-            os.remove( item )
+            recurse_copy(
+              os.path.join( src, entry ),
+              dst,
+              max_depth - 1,
+              ignore )
+    elif not src.endswith( ignore ):
+        shutil.copy2( src, dst )
 
 class NetHarnTrainer( TrainDetector ):
     """
@@ -759,9 +744,9 @@ class NetHarnTrainer( TrainDetector ):
                    "model_evaluation" )
                 if os.path.exists( eval_output ):
                     shutil.rmtree( eval_output )
+                os.mkdir( eval_output )
                 if os.path.exists( eval_folder ):
-                    copytree( eval_folder, eval_output )
-                    squash_and_remove_json( eval_output )
+                    recurse_copy( eval_folder, eval_output )
 
             # Copy pipeline file
             fin = open( self._pipeline_template )
