@@ -69,9 +69,12 @@ def copytree( src, dst, symlinks=False, ignore=None ):
             shutil.copy2( s, d )
 
 def depth_move( src, dst ):
-    for entry in os.listdir( src ):
-        shutil.move( os.path.join( src, entry ), dst )
-    os.rmdir( src )
+    if os.path.isdir( src ):
+        for entry in os.listdir( src ):
+            shutil.move( os.path.join( src, entry ), dst )
+        os.rmdir( src )
+    else:
+        shutil.move( src, dst )
 
 def squash_and_remove_json( src ):
     if os.path.isdir( src ) and len( os.listdir( src ) ) == 1:
