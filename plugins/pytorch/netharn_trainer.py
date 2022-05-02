@@ -737,8 +737,10 @@ class NetHarnTrainer( TrainDetector ):
                 eval_folder = os.path.join( self._train_directory,
                    "fit", "nice", self._identifier, "eval" )
                 eval_output = os.path.join( self._output_directory,
-                   "eval" )
+                   "model_evaluation" )
                 if os.path.exists( eval_folder ):
+                    if os.path.exists( eval_output ):
+                        shutil.rmtree( eval_output )
                     copytree( eval_folder, eval_output )
 
             # Copy pipeline file
