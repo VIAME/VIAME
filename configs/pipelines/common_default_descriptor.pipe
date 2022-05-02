@@ -5,9 +5,9 @@
 # Current incumbent is the last layer of the EfficientNet_V2_S network in PyTorch.
 
 process descriptor
-  :: efficientnet_descriptors
+  :: resnet_descriptors
   :resnet_model_input_size                     224
   :resnet_batch_size                           16
   :gpu_list                                    0
-  relativepath resnet_model_path =             models/pytorch_efficientnet_v2_s.pth
+  relativepath resnet_model_path =             models/pytorch-resnet50.pth
 
