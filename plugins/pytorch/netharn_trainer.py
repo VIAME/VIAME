@@ -68,6 +68,17 @@ def copytree( src, dst, symlinks=False, ignore=None ):
         else:
             shutil.copy2( s, d )
 
+def squash_and_remove_json( src ):
+    if len( os.listdir( src ) ) == 1:
+        item = os.path.join( src, os.listdir( src )[0] )
+        shutil.movetree( item, src )
+    for entry in os.listdir( src ):
+        item = os.path.join( src, entry )
+        if os.path.isdir( item ):
+            squash_and_remove_json( item )
+        elif item.endswith( ".json" ):
+            os.remove( item )
+
 class NetHarnTrainer( TrainDetector ):
     """
     Implementation of TrainDetector class
@@ -742,6 +753,7 @@ class NetHarnTrainer( TrainDetector ):
                     if os.path.exists( eval_output ):
                         shutil.rmtree( eval_output )
                     copytree( eval_folder, eval_output )
+                    squash_and_remove_json( eval_output )
 
             # Copy pipeline file
             fin = open( self._pipeline_template )
