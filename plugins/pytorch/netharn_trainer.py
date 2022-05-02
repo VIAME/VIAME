@@ -749,9 +749,9 @@ class NetHarnTrainer( TrainDetector ):
                    "fit", "nice", self._identifier, "eval" )
                 eval_output = os.path.join( self._output_directory,
                    "model_evaluation" )
+                if os.path.exists( eval_output ):
+                    shutil.rmtree( eval_output )
                 if os.path.exists( eval_folder ):
-                    if os.path.exists( eval_output ):
-                        shutil.rmtree( eval_output )
                     copytree( eval_folder, eval_output )
                     squash_and_remove_json( eval_output )
 
