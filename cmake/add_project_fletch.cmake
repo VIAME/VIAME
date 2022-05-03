@@ -83,31 +83,46 @@ endif()
 if( VIAME_ENABLE_GDAL )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_PROJ:BOOL=${DEP_COND_ENABLE}
     -Dfletch_ENABLE_libgeotiff:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_GDAL:BOOL=${DEP_COND_ENABLE}
     -Dfletch_ENABLE_openjpeg:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_GDAL:BOOL=${DEP_COND_ENABLE}
   )
 else()
   if( VIAME_ENABLE_VXL )
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
       -Dfletch_ENABLE_libgeotiff:BOOL=${IMAGE_DEP_COND_ENABLE}
-      -Dfletch_ENABLE_SQLite3:BOOL=${IMAGE_DEP_COND_ENABLE}
-      -Dfletch_ENABLE_PROJ:BOOL=${IMAGE_DEP_COND_ENABLE}
     )
   else()
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
       -Dfletch_ENABLE_libgeotiff:BOOL=OFF
-      -Dfletch_ENABLE_SQLite3:BOOL=OFF
-      -Dfletch_ENABLE_PROJ:BOOL=OFF
     )
   endif()
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_GDAL:BOOL=OFF
     -Dfletch_ENABLE_openjpeg:BOOL=OFF
+  )
+endif()
+
+if( VIAME_ENABLE_GDAL OR VIAME_ENABLE_VIVIA )
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_PROJ:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_SQLite3:BOOL=${DEP_COND_ENABLE}
+  )
+elseif( VIAME_ENABLE_VXL )
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_PROJ:BOOL=${IMAGE_DEP_COND_ENABLE}
+    -Dfletch_ENABLE_SQLite3:BOOL=${IMAGE_DEP_COND_ENABLE}
+  )
+else()
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_PROJ:BOOL=OFF
+    -Dfletch_ENABLE_SQLite3:BOOL=OFF
   )
 endif()
 
@@ -233,7 +248,6 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_qtExtensions:BOOL=ON
     -DVTK_SELECT_VERSION:STRING=8.0
     -DQt_SELECT_VERSION:STRING=4.8.6
-    -Dfletch_ENABLE_PROJ4:BOOL=ON
     -Dfletch_ENABLE_libkml:BOOL=ON
   )
   if( NOT WIN32 )
@@ -455,6 +469,9 @@ if( VIAME_ENABLE_VIVIA )
      ${VIAME_ARGS_VTK}
     -DVTK_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}/build/src/VTK-build
     )
+endif()
+
+if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_GDAL )
   set( VIAME_ARGS_PROJ4
      ${VIAME_ARGS_PROJ4}
     -DPROJ4_INCLUDE_DIR:PATH=${VIAME_INSTALL_PREFIX}/include
