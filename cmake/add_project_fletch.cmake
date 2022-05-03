@@ -83,6 +83,7 @@ endif()
 if( VIAME_ENABLE_GDAL )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_PROJ:BOOL=${DEP_COND_ENABLE}
     -Dfletch_ENABLE_libgeotiff:BOOL=${DEP_COND_ENABLE}
     -Dfletch_ENABLE_GDAL:BOOL=${DEP_COND_ENABLE}
     -Dfletch_ENABLE_openjpeg:BOOL=${DEP_COND_ENABLE}
@@ -92,11 +93,15 @@ else()
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
       -Dfletch_ENABLE_libgeotiff:BOOL=${IMAGE_DEP_COND_ENABLE}
+      -Dfletch_ENABLE_SQLite3:BOOL=${IMAGE_DEP_COND_ENABLE}
+      -Dfletch_ENABLE_PROJ:BOOL=${IMAGE_DEP_COND_ENABLE}
     )
   else()
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
       -Dfletch_ENABLE_libgeotiff:BOOL=OFF
+      -Dfletch_ENABLE_SQLite3:BOOL=OFF
+      -Dfletch_ENABLE_PROJ:BOOL=OFF
     )
   endif()
   set( FLETCH_DEP_FLAGS
