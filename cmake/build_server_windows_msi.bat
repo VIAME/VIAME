@@ -55,7 +55,7 @@ git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-torch.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.8\site-packages\torch\lib\cu*"
+DEL "%VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages\torch\lib\cu*"
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_BUILD_DIR%\install | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "VIAME\include" > files-torch.txt

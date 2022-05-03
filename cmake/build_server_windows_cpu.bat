@@ -15,7 +15,7 @@ SET "WIN32_ROOT=C:\Windows\System32"
 SET "PATH=%WIN32_ROOT%;C:\Windows;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;%PATH%"
 
-SET "PYTHONPATH=%VIAME_BUILD_DIR%\install\lib\python3.8;%VIAME_BUILD_DIR%\install\lib\python3.8\site-packages"
+SET "PYTHONPATH=%VIAME_BUILD_DIR%\install\lib\python3.6;%VIAME_BUILD_DIR%\install\lib\python3.6\site-packages"
 
 git submodule update --init --recursive
 
