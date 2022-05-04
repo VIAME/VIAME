@@ -27,8 +27,14 @@ endif()
 # Installation requirement for some dependencies
 list( APPEND VIAME_PYTHON_BASIC_DEPS "Cython" "ordered_set" )
 
-# For plotting scripts and scoring
-list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" "matplotlib==3.5.1" )
+# For scoring and plotting
+list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" )
+
+if( Python_VERSION VERSION_GREATER_EQUAL "3.7" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib==3.5.1" )
+else()
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib==3.3.4" ) 
+endif()
 
 # For fusion classifier
 #list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
