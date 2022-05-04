@@ -443,7 +443,7 @@ ocv_optimize_stereo_cameras::priv
                                   image_size,
                                   cv_R, cv_T, cv_E, cv_F,
                                   cv::CALIB_ZERO_TANGENT_DIST +
-                                  cv::CALIB_USE_INTRINSIC_GUESS +
+                                  cv::CALIB_FIX_FOCAL_LENGTH +
                                   cv::CALIB_RATIONAL_MODEL,
                                   cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 200, 1e-5)
                                   );
