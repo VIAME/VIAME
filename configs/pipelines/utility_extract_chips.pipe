@@ -27,7 +27,7 @@ connect from downsampler.output_2
 process chipper
   :: refine_detections
   :refiner:type                                ocv_write
-  :refiner:ocv_write:pattern                   tiles/detection_%05d_%fx%f+%f+%f.png
+  :refiner:ocv_write:pattern                   output/%s_%s_%f_%f_%fx%f.png
 
 connect from detection_reader.detected_object_set
         to   chipper.detected_object_set
