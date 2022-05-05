@@ -8,4 +8,4 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\detector_extract_chips.pipe"
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\utility_extract_chips.pipe"
