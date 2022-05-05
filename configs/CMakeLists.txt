@@ -208,7 +208,6 @@ set( CORE_PIPELINE_FILES
   pipelines/common_stabilized_iou_tracker.pipe
   pipelines/database_apply_svm_models.pipe
   pipelines/detector_camtrawl.pipe
-  pipelines/detector_extract_chips.pipe
   pipelines/detector_fish_without_motion.pipe
   pipelines/detector_generic_proposals.pipe
   pipelines/detector_project_folder.pipe
@@ -266,6 +265,7 @@ set( CORE_PIPELINE_FILES
   pipelines/utility_empty_frame_lbls_10fr.pipe
   pipelines/utility_empty_frame_lbls_100fr.pipe
   pipelines/utility_empty_frame_lbls_1000fr.pipe
+  pipelines/utility_extract_chips.pipe
   pipelines/utility_max_10_points_per_poly.pipe
   pipelines/utility_max_25_points_per_poly.pipe )
 

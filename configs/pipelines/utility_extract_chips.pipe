@@ -13,7 +13,14 @@ include common_default_input_with_downsampler.pipe
 
 # ================================== DETECTOR ======================================
 
-include common_fish_detector_with_filter.pipe
+process detection_reader
+  :: detected_object_input
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+  :reader:viame_csv:poly_to_mask               false
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
 
 # ================================ IMAGE CHIPPER ===================================
 
@@ -22,29 +29,7 @@ process chipper
   :refiner:type                                ocv_write
   :refiner:ocv_write:pattern                   tiles/detection_%05d_%fx%f+%f+%f.png
 
-connect from detector_filter.detected_object_set
+connect from detection_reader.detected_object_set
         to   chipper.detected_object_set
-
-# ============================ NO DOWNSAMPLER OPTION ===============================
-
-connect from downsampler.output_1
-        to   detector_input.image
 connect from downsampler.output_1
         to   chipper.image
-
-# ============================== DOWNSAMPLER OPTION ================================
-
-#process downsampler
-#  :: image_object_detector
-#  :downsampler:type                            core
-#  :downsampler:frame_rate                      10
-#
-#connect from downsampler.output_1
-#        to   downsampler.image
-#
-#connect from downsampler.image
-#        to   detector_input.image
-#connect from downsampler.image
-#        to   chipper.image
-
-# -- end of file --
