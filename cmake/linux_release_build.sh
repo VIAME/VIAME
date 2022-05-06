@@ -130,5 +130,5 @@ fi
 # Compress file
 mv install viame
 rm VIAME-v1.0.0-Linux-64Bit.tar.gz ||:
-tar -zcvf VIAME-v1.0.0-Linux-64Bit.tar.gz viame
+tar -zcvf VIAME.tar.gz viame
 mv viame install

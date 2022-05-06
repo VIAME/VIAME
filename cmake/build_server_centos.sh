@@ -104,6 +104,9 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 # Build VIAME, pipe output to file
 ../cmake/linux_release_build.sh > build_log.txt 2>&1
 
+# Rename output
+mv VIAME.tar.gz VIAME-v1.0.0-Linux-64Bit.tar.gz
+
 # Output check statments
 if grep -q "Built target viame" build_log.txt; then
   echo "VIAME Build Succeeded"
