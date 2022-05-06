@@ -33,6 +33,7 @@ set( VIAME_CMAKE_DIR                "${CMAKE_SOURCE_DIR}/cmake" )
 set( VIAME_BINARY_DIR               "${CMAKE_BINARY_DIR}/build" )
 set( VIAME_BUILD_PREFIX             "${CMAKE_BINARY_DIR}/build" )
 set( VIAME_PACKAGES_DIR             "${VIAME_SOURCE_DIR}/packages" )
+set( VIAME_PATCHES_DIR              "${VIAME_PACKAGES_DIR}/patches" )
 set( VIAME_DOWNLOAD_DIR             "${VIAME_PACKAGES_DIR}/downloads" )
 
 ###

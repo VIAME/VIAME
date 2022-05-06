@@ -180,6 +180,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
     ${LIBRARY_PIP_INSTALL_CMD} )
 
+  set( LIBRARY_PATCH_COMMAND "" )
+
   if( "${LIB}" STREQUAL "bioharn" )
     set( PROJECT_DEPS netharn )
   elseif( "${LIB}" STREQUAL "netharn" )
@@ -193,6 +195,13 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS fletch python-deps )
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
+  elseif( "${LIB}" STREQUAL "torchvision" )
+    set( PROJECT_DEPS fletch python-deps pytorch )
+    if( VIAME_PYTORCH_VERSION VERSION_LESS "1.11" )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/torchvision
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
+    endif()
   else()
     set( PROJECT_DEPS fletch python-deps pytorch )
   endif()
@@ -206,6 +215,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LIBRARY_LOCATION}
     BUILD_IN_SOURCE 1
+    PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
