@@ -308,10 +308,10 @@ if( VIAME_ENABLE_PYTHON )
     message( FATAL_ERROR "Netharn currently also required mmdet enabled" )
   endif()
 
-  set( VIAME_PYTHON_VERSION "${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}"
+  set( VIAME_PYTHON_STRING "python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}"
     CACHE INTERNAL "Version ID used in python install paths" )
 
-  set( PYBASE ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${VIAME_PYTHON_VERSION} )
+  set( PYBASE ${VIAME_BUILD_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING} )
   set( VIAME_PYTHON_INSTALL ${PYBASE} CACHE INTERNAL "VIAME Python install path" )
   set( VIAME_PYTHON_USERBASE "${VIAME_INSTALL_PREFIX}" )
 

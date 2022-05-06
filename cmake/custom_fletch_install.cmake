@@ -38,10 +38,10 @@ if( NOT WIN32 AND EXISTS ${VIAME_INSTALL_PREFIX}/lib/libpng.so.16 )
 endif()
 
 # Move any misinstalled python files
-if( PYTHON_VERSION )
+if( PYTHON_VERSION_STRING )
   # Sometimes fletch subpackages install python files to incorrect python
   # subdirectories, like lib/site-packages instead of lib/pythonX.Y/site-packages
-  set( ROOT_PYTHON_DIR "${VIAME_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}" )
+  set( ROOT_PYTHON_DIR "${VIAME_INSTALL_PREFIX}/lib/${PYTHON_VERSION_STRING}" )
   set( OUTPUT_PYTHON_DIR "${ROOT_PYTHON_DIR}/site-packages/" )
 
   if( EXISTS ${VIAME_INSTALL_PREFIX}/lib/site-packages )
