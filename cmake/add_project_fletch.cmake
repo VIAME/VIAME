@@ -479,7 +479,7 @@ if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_GDAL )
   if( WIN32 )
     set( VIAME_ARGS_PROJ4
        ${VIAME_ARGS_PROJ4}
-      -DPROJ4_LIBRARY:PATH=${VIAME_INSTALL_PREFIX}/lib/proj_4_9.lib
+      -DPROJ4_LIBRARY:PATH=${VIAME_INSTALL_PREFIX}/lib/proj.lib
       )
   endif()
 endif()
