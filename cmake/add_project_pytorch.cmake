@@ -201,6 +201,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/torchvision
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
+    elseif( Python_VERSION VERSION_LESS "3.7" )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy
+        ${VIAME_PATCHES_DIR}/torchvision/setup.py
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
     endif()
   else()
     set( PROJECT_DEPS fletch python-deps pytorch )
