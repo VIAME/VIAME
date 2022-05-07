@@ -36,6 +36,7 @@ COPY %WIN32_ROOT%\msvcr100.dll %VIAME_INSTALL_DIR%\bin
 COPY %WIN32_ROOT%\vcruntime140_1.dll %VIAME_INSTALL_DIR%\bin
 COPY C:\Windows\SysWOW64\msvcr120.dll %VIAME_INSTALL_DIR%\bin
 COPY %VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll %VIAME_INSTALL_DIR%\bin
+COPY "C:\Program Files\ZLib\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
 
 REM -------------------------------------------------------------------------------------------------------
 REM COMPRESS FINAL PACKAGE
