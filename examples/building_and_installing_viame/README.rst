@@ -235,7 +235,7 @@ Building on Windows
 Building on windows can be very similar to Linux if using a shell like cygwin
 (``https://www.cygwin.com/``), though if not you may want to go grab the GUI
 ersions of CMake (``https://cmake.org/``) and TortoiseGit (``https://tortoisegit.org/``).
-Currently Visual Studio 2015 and some versions of 2017 are supported.
+Currently Visual Studio 2019 is supported and the most tested version.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this
 involves right clicking in your folder of choice, selecting Git Clone, and then

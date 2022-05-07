@@ -174,8 +174,7 @@ Or alternatively by building it in Visual Studio or your compiler of choice on
 Windows. On Linux, '-j8' tells the build to run multi-threaded using 8 threads, this
 is useful for a faster build though if you get an error it can be difficult to see
 it, in which case running just 'make' might be more helpful. For Windows,
-currently VS2017 is the most tested compiler, though some versions of 2019 is
-also known to work.
+currently VS2019 is the most tested compiler.
 
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency
