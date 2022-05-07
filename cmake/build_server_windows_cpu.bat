@@ -16,7 +16,6 @@ SET "WIN32_ROOT=C:\Windows\System32"
 SET "PYTHON_SUBDIR=lib\python3.6"
 SET "PATH=%WIN32_ROOT%;C:\Windows;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;%PATH%"
-
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 git submodule update --init --recursive
@@ -42,8 +41,8 @@ REM ----------------------------------------------------------------------------
 REM COMPRESS FINAL PACKAGE
 REM -------------------------------------------------------------------------------------------------------
 
-MOVE "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
+MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
 
 "C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%/VIAME-v1.0.0-Windows-64Bit-CPU.zip" "%VIAME_BUILD_DIR%/VIAME
 
-MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_BUILD_DIR%\install"
+MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"
