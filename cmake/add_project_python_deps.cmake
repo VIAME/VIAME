@@ -36,6 +36,11 @@ else()
   list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib==3.3.4" ) 
 endif()
 
+# For netharn and mmdet de-pickle on older versions
+if( Python_VERSION VERSION_LESS "3.8" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pickle5" )
+endif()
+
 # For fusion classifier
 #list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
 
@@ -260,6 +265,12 @@ foreach( ID RANGE ${DEP_COUNT} )
       -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
       -DVIAME_PYTORCH_VERSION:STRING=${VIAME_PYTORCH_VERSION}
       -P ${VIAME_SOURCE_DIR}/cmake/custom_pytorch_install.cmake )
+  elseif( "${DEP}" STREQUAL "python-deps" )
+    set( PYTHON_DEP_INSTALL ${CMAKE_COMMAND}
+      -DVIAME_PYTHON_BASE:PATH=${VIAME_PYTHON_INSTALL}
+      -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
+      -DVIAME_PYTHON_VERSION:STRING=${Python_VERSION}
+      -P ${VIAME_SOURCE_DIR}/cmake/custom_python_deps_install.cmake )
   else()
     set( PYTHON_DEP_INSTALL "" )
   endif()

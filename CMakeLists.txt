@@ -729,7 +729,7 @@ else()
 
     # Setup python directories for plugin processes in same style as KWIVER
     if( VIAME_ENABLE_PYTHON )
-      set( kwiver_python_subdir "python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" )
+      set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
       set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
       set( viame_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
     endif()
