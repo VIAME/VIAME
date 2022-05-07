@@ -90,9 +90,9 @@ class SMQTKTrainer( TrainDetector ):
             if self._mode == "detector":
                 pipe_file = "index_default.svm.pipe"
             elif self._gt_frames_only:
-                pipe_file = "index_full_frame.svm.annot_only.pipe"
+                pipe_file = "index_frame.svm.annot_only.pipe"
             else:
-                pipe_file = "index_full_frame.svm.pipe"
+                pipe_file = "index_frame.svm.pipe"
             self._ingest_pipeline = os.path.join( "pipelines", pipe_file )
 
         self._viame_install = os.environ['VIAME_INSTALL']
