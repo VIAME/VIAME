@@ -197,13 +197,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS fletch python-deps tensorrt )
   elseif( "${LIB}" STREQUAL "torchvision" )
     set( PROJECT_DEPS fletch python-deps pytorch )
-    if( VIAME_PYTORCH_VERSION VERSION_LESS "1.11" )
+    if( VIAME_PYTORCH_VERSION VERSION_LESS "1.11" OR
+        Python_VERSION VERSION_LESS "3.7" )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/torchvision
-        ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
-    elseif( Python_VERSION VERSION_LESS "3.7" )
-      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy
-        ${VIAME_PATCHES_DIR}/torchvision/setup.py
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
     endif()
   else()
