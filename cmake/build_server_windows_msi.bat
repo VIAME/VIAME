@@ -35,8 +35,6 @@ SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.e
 MOVE %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 MOVE %MISSING_DNET_EXE% %VIAME_BUILD_DIR%\VIAME\bin
 
-COPY /Y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
-
 powershell.exe "Get-ChildItem -Recurse %VIAME_BUILD_DIR%\install | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-core.lst
 

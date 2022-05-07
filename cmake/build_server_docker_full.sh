@@ -53,6 +53,7 @@ export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/pytho
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
 -DVIAME_FIXUP_BUNDLE:BOOL=OFF \
+-DVIAME_VERSION_RELEASE:BOOL=ON \
 -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
 -DVIAME_ENABLE_CAFFE:BOOL=OFF \
 -DVIAME_ENABLE_CAMTRAWL:BOOL=ON \
@@ -100,10 +101,6 @@ make -j$(nproc) -k || true
 # HACK: Double tap the build tree
 # Should be removed when non-determinism in kwiver python build fixed
 make -j$(nproc)
-
-# HACK: Copy setup_viame.sh.install over setup_viame.sh
-# Should be removed when this issue is fixed
-cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed

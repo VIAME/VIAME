@@ -33,8 +33,6 @@ SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.e
 MOVE %MISSING_SVM_DLL% %VIAME_INSTALL_DIR%\bin
 MOVE %MISSING_DNET_EXE% %VIAME_INSTALL_DIR%\bin
 
-COPY /y "%VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install" %VIAME_INSTALL_DIR%\setup_viame.bat
-
 COPY %WIN32_ROOT%\msvcr100.dll %VIAME_INSTALL_DIR%\bin
 COPY %WIN32_ROOT%\vcruntime140_1.dll %VIAME_INSTALL_DIR%\bin
 COPY C:\Windows\SysWOW64\msvcr120.dll %VIAME_INSTALL_DIR%\bin

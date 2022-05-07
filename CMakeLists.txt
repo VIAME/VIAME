@@ -231,8 +231,15 @@ mark_as_advanced( VIAME_FIXUP_BUNDLE )
 option( VIAME_CREATE_INSTALLER      "Build a msi prototype installer using wix"        OFF )
 mark_as_advanced( VIAME_CREATE_INSTALLER )
 
+option( VIAME_VERSION_RELEASE       "Install release scripts instead of development"   OFF )
+mark_as_advanced( VIAME_VERSION_RELEASE )
+
 if( VIAME_CREATE_INSTALLER )
   set( VIAME_FIXUP_BUNDLE ON CACHE BOOL "Flag forced due to create_package enable"     FORCE )
+endif()
+
+if( VIAME_FIXUP_BUNDLE )
+  set( VIAME_VERSION_RELEASE ON CACHE BOOL "Flag forced due to fixup_bundle enable"    FORCE )
 endif()
 
 ###
@@ -750,12 +757,19 @@ else()
   include( setup_viame_paths )
 
   if( WIN32 )
-    set( VIAME_SETUP_SCRIPT             "${VIAME_BINARY_DIR}/setup_viame.bat" )
+    set( VIAME_SETUP_SCRIPT "${VIAME_BINARY_DIR}/setup_viame.bat" )
 
-    configure_file(
-      ${VIAME_CMAKE_DIR}/setup_viame.bat.in
-      ${VIAME_SETUP_SCRIPT}
-    )
+    if( VIAME_FIXUP_BUNDLE OR VIAME_VERSION_RELEASE )
+      configure_file(
+        ${VIAME_CMAKE_DIR}/setup_viame.rel.bat.in
+        ${VIAME_SETUP_SCRIPT}
+      )
+    else()
+      configure_file(
+        ${VIAME_CMAKE_DIR}/setup_viame.dev.bat.in
+        ${VIAME_SETUP_SCRIPT}
+      )
+    endif()
 
     install( PROGRAMS      ${VIAME_SETUP_SCRIPT}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
@@ -771,10 +785,17 @@ else()
   else()
     set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 
-    configure_file(
-      ${VIAME_CMAKE_DIR}/setup_viame.sh.in
-      ${VIAME_SETUP_SCRIPT_FILE}
-    )
+    if( VIAME_FIXUP_BUNDLE OR VIAME_VERSION_RELEASE )
+      configure_file(
+        ${VIAME_CMAKE_DIR}/setup_viame.rel.sh.in
+        ${VIAME_SETUP_SCRIPT_FILE}
+      )
+    else()
+      configure_file(
+        ${VIAME_CMAKE_DIR}/setup_viame.dev.sh.in
+        ${VIAME_SETUP_SCRIPT_FILE}
+      )
+    endif()
 
     install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )

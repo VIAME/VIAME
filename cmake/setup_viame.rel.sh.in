@@ -30,10 +30,10 @@ export VG_PLUGIN_PATH=$this_dir
 export VIDTK_MODULE_PATH=$this_dir/lib/modules
 
 # Core python locations
-export PYTHON_LIBRARY=$this_dir/lib/libpython3.8.so
-export PYTHONPATH=$this_dir/python:$this_dir/lib/python3.8
-export PYTHONPATH=$this_dir/lib/python3.8/site-packages:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python3.8/dist-packages:$PYTHONPATH
+export PYTHON_LIBRARY=$this_dir/lib/lib@VIAME_PYTHON_STRING@.so
+export PYTHONPATH=$this_dir/python:$this_dir/lib/@VIAME_PYTHON_STRING@
+export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/site-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/dist-packages:$PYTHONPATH
 
 # Excessive KWIVER python arrow and process import locations
 export SPROKIT_PYTHON_MODULES=kwiver.sprokit.processes:kwiver.sprokit.schedulers

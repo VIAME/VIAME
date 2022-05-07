@@ -6,10 +6,6 @@ make -j$(nproc)
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 
-# HACK: Copy setup_viame.sh.install over setup_viame.sh
-# Should be removed when this issue is fixed
-cp ../cmake/setup_viame.sh.install install/setup_viame.sh
-
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed
 rm install/lib/libsvm.so
