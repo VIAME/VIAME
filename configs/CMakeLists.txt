@@ -394,7 +394,7 @@ if( VIAME_ENABLE_SMQTK )
     pipelines/smqtk_train_itq.json
     pipelines/train_detector_svm_over_fish_detections.viame_csv.conf
     pipelines/train_detector_svm_over_generic_detections.viame_csv.conf
-    pipelines/train_frame_classifier_svm_over_resnet.viame_csv.conf )
+    pipelines/train_frame_classifier_libsvm_svm.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
