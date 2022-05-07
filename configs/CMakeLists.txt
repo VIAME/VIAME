@@ -216,7 +216,6 @@ set( CORE_PIPELINE_FILES
   pipelines/detector_svm_models.pipe
   pipelines/display_annotations.pipe
   pipelines/draw_detections_on_images.pipe
-  pipelines/extract_chips_from_detections.pipe
   pipelines/filter_debayer_and_enhance.pipe
   pipelines/filter_enhance.pipe
   pipelines/filter_extract_frames.pipe
