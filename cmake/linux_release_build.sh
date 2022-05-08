@@ -45,7 +45,7 @@ if [ -d "${CUDABASE}" ]; then
 
   # HACK: Symlink CUDA library in pytorch directory
   # For some systems with multiple CUDA 11s installed this is necessary
-  export TORCHBASE=install/lib/python3.8/site-packages/torch
+  export TORCHBASE=install/lib/python3.6/site-packages/torch
   if [ -d "${TORCHBASE}" ]; then
     ln -s ../../../../libcublas.so.11 ${TORCHBASE}/lib/libcublas.so.11
   fi
