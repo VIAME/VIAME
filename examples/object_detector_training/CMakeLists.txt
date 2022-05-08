@@ -27,15 +27,15 @@ if( VIAME_ENABLE_DARKNET )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_yolo_habcam.bat
-         train_yolo_viame_csv.bat
-         train_yolo_kw18.bat )
+         train_yolo_from_habcam_csv.bat
+         train_yolo_from_viame_csv.bat
+         train_yolo_from_kw18.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_yolo_habcam.sh
-         train_yolo_viame_csv.sh
-         train_yolo_kw18.sh )
+         train_yolo_from_habcam_csv.sh
+         train_yolo_from_viame_csv.sh
+         train_yolo_from_kw18.sh )
   endif()
 endif()
 
@@ -44,18 +44,18 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.bat
-         train_cfrnn_viame_csv.bat
-         train_cfrnn_habcam.bat
-         train_mask_rcnn_viame_csv.bat
-         train_motion_cfrnn_viame_csv.bat )
+         train_cfrnn_from_viame_csv.bat
+         train_cfrnn_from_habcam_csv.bat
+         train_mask_rcnn_from_viame_csv.bat
+         train_motion_cfrnn_from_viame_csv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.sh
-         train_cfrnn_viame_csv.sh
-         train_cfrnn_habcam.sh
-         train_mask_rcnn_viame_csv.sh
-         train_motion_cfrnn_viame_csv.sh )
+         train_cfrnn_from_viame_csv.sh
+         train_cfrnn_from_habcam_csv.sh
+         train_mask_rcnn_from_viame_csv.sh
+         train_motion_cfrnn_from_viame_csv.sh )
   endif()
 endif()
 
@@ -63,13 +63,13 @@ if( VIAME_ENABLE_SMQTK )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_fish_svm_viame_csv.bat
-         train_generic_svm_viame_csv.bat )
+         train_svm_over_fish_dets_from_viame_csv.bat
+         train_svm_over_generic_dets_from_viame_csv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_fish_svm_viame_csv.sh
-         train_generic_svm_viame_csv.sh )
+         train_svm_over_fish_dets_from_viame_csv.sh
+         train_svm_over_generic_dets_from_viame_csv.sh )
   endif()
 endif()
 
