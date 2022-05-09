@@ -45,7 +45,7 @@ endif()
 #list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "typing-extensions" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "typing-extensions" "bs4" "thread6" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
