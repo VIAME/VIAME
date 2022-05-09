@@ -312,7 +312,7 @@ if( VIAME_ENABLE_PYTHON )
   CopyVarsToAllCaps( "Python" )
 
   if( VIAME_ENABLE_PYTHON-NETHARN AND NOT VIAME_ENABLE_PYTHON-MMDET )
-    message( FATAL_ERROR "Netharn currently also required mmdet enabled" )
+    message( FATAL_ERROR "Netharn currently also requires mmdet enabled" )
   endif()
 
   set( VIAME_PYTHON_STRING "python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}"
@@ -336,7 +336,7 @@ if( VIAME_ENABLE_PYTHON )
 endif()
 
 if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL )
-  message( FATAL_ERROR "Cannot yet enable both VIVIA and Seal-TK GUIs" )
+  message( FATAL_ERROR "Cannot enable both VIVIA and Seal-TK GUIs" )
 endif()
 
 if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
@@ -349,18 +349,19 @@ if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER )
 
   if( KWIVER_BUILD_DIR_LENGTH GREATER 12 OR PLUGINS_BUILD_DIR_LENGTH GREATER 12 )
     message( FATAL_ERROR "VIAME_BUILD_KWIVER_DIR and VIAME_BUILD_PLUGINS_DIR \
-      must be set to a short path (e.g. C:\\tmp\\kv1 and C:\\tmp\\vm1) on Windows \
-      due to a current issue with nesting KWIVER exceeding the 260 character \
-      default filepath size." )
+      must be set to a short path (e.g. C:\\tmp\\kv1 and C:\\tmp\\vm1) on \
+      Windows due to a current issue with nesting KWIVER exceeding the 260 \
+      character default filepath size." )
   endif()
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
   if( NOT Python_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
-    message( FATAL_ERROR "If VXL is enabled, there must be some python install located \
-      on the system to build, even if VIAME_ENABLE_PYTHON is turned off for all other \
-      packages. A python binary could not be found. Please install at least python." )
+    message( FATAL_ERROR "If VXL is enabled, there must be some python install \
+      located on the system to build, even if VIAME_ENABLE_PYTHON is turned off \
+      for all other packages. A python binary could not be found. Please install \
+      at least python." )
   endif()
 endif()
 
