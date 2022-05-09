@@ -193,7 +193,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     endif()
   elseif( "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS fletch python-deps )
-    if( Python_VERSION VERSION_LESS "3.7" )
+    if( Python_VERSION VERSION_LESS "3.7" AND
+        VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL 1.11.0 )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/pytorch
         ${VIAME_PACKAGES_DIR}/pytorch )
