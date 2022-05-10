@@ -11,6 +11,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/eigen.hpp>
 #include <arrows/ocv/camera_intrinsics.h>
 #include <arrows/ocv/image_container.h>
@@ -34,7 +35,7 @@ public:
   bool m_computed_rectification = false;
   kv::camera_map::map_camera_t m_cameras;
   std::string m_cameras_directory;
-  
+
   // intermadiate variables
   cv::Mat m_rectification_map11;
   cv::Mat m_rectification_map12;
@@ -65,7 +66,7 @@ public:
 
   ~priv()
   {}
-  
+
   kv::camera_map::map_camera_t
   load_camera_map(std::string const& camera1_name,
                   std::string const& camera2_name,
@@ -82,7 +83,7 @@ public:
     {
       VITAL_THROW( kv::invalid_data, "Calibration file not found" );
     }
-    
+
     if ( cameras.empty() )
     {
       VITAL_THROW( kv::invalid_data, "No krtd files found" );
@@ -121,7 +122,7 @@ ocv_rectify_stereo_depth_map
   config->set_value( "block_size", d->block_size, "Block size" );
   config->set_value( "speckle_window_size", d->speckle_window_size, "Speckle Window Size" );
   config->set_value( "speckle_range", d->speckle_range, "Speckle Range" );
-  
+
   config->set_value("input_cameras_directory", d->m_cameras_directory,
     "Path to a directory to read cameras from.");
 
@@ -147,7 +148,7 @@ void ocv_rectify_stereo_depth_map
   d->m_cameras_directory = config->get_value< std::string >( "input_cameras_directory" );
 
   d->m_cameras = d->load_camera_map("camera1", "camera2", d->m_cameras_directory);
-  
+
 #ifdef VIAME_OPENCV_VER_2
   if( d->algorithm == "BM" )
   {
@@ -218,35 +219,25 @@ kv::image_container_sptr ocv_rectify_stereo_depth_map
     cv::Mat cv_K1;
     cv::eigen2cv( K1, cv_K1 );
     auto dist_coeffs1 = kwiver::arrows::ocv::get_ocv_dist_coeffs( cam1->intrinsics() );
-    
+
     kv::matrix_3x3d K2 = cam2->intrinsics()->as_matrix();
     cv::Mat cv_K2;
     cv::eigen2cv( K2, cv_K2 );
     auto dist_coeffs2 = kwiver::arrows::ocv::get_ocv_dist_coeffs( cam2->intrinsics() );
-    
+
     kv::matrix_3x3d R = cam2->rotation().matrix();
     kv::vector_3d T = cam2->translation();
     cv::Mat cv_R, cv_T;
     cv::eigen2cv( R, cv_R );
     cv::eigen2cv( T, cv_T );
 
-    std::cout << "cv_K1 !!!!!!" << std::endl;
-    std::cout << cv_K1 << std::endl;
-    std::cout << cv_K2 << std::endl;
-    std::cout << cv_R << std::endl;
-    std::cout << cv_T << std::endl;
-    for(auto dist_coef : dist_coeffs1)
-      std::cout << dist_coef << std::endl;
-    for(auto dist_coef : dist_coeffs2)
-      std::cout << dist_coef << std::endl;
-    
     cv::Size img_size = cv::Size(left_image->get_image().width(),left_image->get_image().height());
     cv::Mat cv_R1, cv_P1, cv_R2, cv_P2, cv_Q;
-    cv::stereoRectify(cv_K1, dist_coeffs1, 
-                      cv_K2, dist_coeffs2, 
-                      img_size, 
-                      cv_R, cv_T, 
-                      cv_R1, cv_R2, cv_P1, cv_P2, cv_Q, 
+    cv::stereoRectify(cv_K1, dist_coeffs1,
+                      cv_K2, dist_coeffs2,
+                      img_size,
+                      cv_R, cv_T,
+                      cv_R1, cv_R2, cv_P1, cv_P2, cv_Q,
                       cv::CALIB_ZERO_DISPARITY);
 
     // compute rectification maps to be used for each new stereo frames
@@ -255,9 +246,9 @@ kv::image_container_sptr ocv_rectify_stereo_depth_map
     std::cout << "cv_R2\n" << cv_R2 << std::endl;
     std::cout << "cv_P2\n" << cv_P2 << std::endl;
     std::cout << "cv_Q\n" << cv_Q << std::endl;
-    cv::initUndistortRectifyMap(cv_K1, dist_coeffs1, cv_R1, cv_P1, 
+    cv::initUndistortRectifyMap(cv_K1, dist_coeffs1, cv_R1, cv_P1,
                                 img_size, CV_16SC2, d->m_rectification_map11, d->m_rectification_map12);
-    cv::initUndistortRectifyMap(cv_K2, dist_coeffs2, cv_R2, cv_P2, 
+    cv::initUndistortRectifyMap(cv_K2, dist_coeffs2, cv_R2, cv_P2,
                                 img_size, CV_16SC2, d->m_rectification_map21, d->m_rectification_map22);
 
     if(!d->m_rectification_map11.empty() ||
@@ -267,14 +258,14 @@ kv::image_container_sptr ocv_rectify_stereo_depth_map
     {
       d->m_computed_rectification = true;
     }
-  }  
-  
+  }
+
   // apply rectification then compute depth map
   cv::Mat ocv1 = kwiver::arrows::ocv::image_container::vital_to_ocv( left_image->get_image(),
     kwiver::arrows::ocv::image_container::BGR_COLOR );
   cv::Mat ocv2 = kwiver::arrows::ocv::image_container::vital_to_ocv( right_image->get_image(),
     kwiver::arrows::ocv::image_container::BGR_COLOR  );
-  
+
   cv::Mat ocv1_gray, ocv2_gray;
 
   if( ocv1.channels() > 1 )
@@ -291,7 +282,15 @@ kv::image_container_sptr ocv_rectify_stereo_depth_map
   cv::Mat img1r, img2r;
   cv::remap(ocv1_gray, img1r, d->m_rectification_map11, d->m_rectification_map12, cv::INTER_LINEAR);
   cv::remap(ocv2_gray, img2r, d->m_rectification_map21, d->m_rectification_map22, cv::INTER_LINEAR);
-   
+
+  // DEBUG ONLY
+  // std::cout << "Writing debug images" << std::endl;
+  // cv::imwrite("/home/jerome/Desktop/debug_ocv1_gray.jpg", ocv1_gray);
+  // cv::imwrite("/home/jerome/Desktop/debug_img1r.jpg", img1r);
+  // cv::imwrite("/home/jerome/Desktop/debug_ocv2_gray.jpg", ocv2_gray);
+  // cv::imwrite("/home/jerome/Desktop/debug_img2r.jpg", img2r);
+
+
   // computed disparity map
   cv::Mat disparity_map;
 

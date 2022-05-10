@@ -9,19 +9,18 @@ config _pipeline:_edge
   :capacity                                    5
 
 config global
-   :output_directory                           /home/jerome/Desktop
-   :target_width_value                         9
-   :target_height_value                        6
-   :square_size_value                          1. #mm
+   :output_directory                           /home/<user>/Desktop/camera_calibrations/
+   :image_width                                640
+   :image_height                               480
 
 # =============================== INPUT FRAME LIST =================================
 
 process cameras_calibration
   :: calibrate_cameras_from_tracks
-  :tracks_left                                 [INSERT_ME]
-  :tracks_right                                [INSERT_ME]
+  :tracks_left                                 [INSERT_ME]  # Should be automatically replaced by dive
+  :tracks_right                                [INSERT_ME]  # Should be automatically replaced by dive
   :output_cameras_directory                    $CONFIG{global:output_directory}
-  :image_width                                 $CONFIG{global:target_width_value}
-  :image_height                                $CONFIG{global:target_height_value}
+  :image_width                                 $CONFIG{global:image_width}
+  :image_height                                $CONFIG{global:image_height}
 
 # -- end of file --

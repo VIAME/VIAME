@@ -1,6 +1,6 @@
-# OCV target Tracker Pipeline
+# Rectify stereo depth
 #
-# Runs automated ocv target detection on image then generate corners tracks
+# Runs images retification (using camera1.krtd / camera2.krtd files) and generates depth maps
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -9,12 +9,8 @@ config _pipeline:_edge
        :capacity                               5
 
 config global
-   :input_cameras_directory                    /home/jerome/Desktop
-   :output_depths_directory                    /home/jerome/Desktop/depthMap
-   :output_directory                           ./
-   :target_width_value                         9
-   :target_height_value                        6
-   :square_size_value                          10.
+   :input_cameras_directory                    /home/<user>/Desktop/camera_calibrations
+   :output_depths_directory                    /home/<user>/Desktop/depthMap
 
 # ================================== VIDEO INPUT ==================================
 
@@ -64,7 +60,7 @@ connect from depth_map.depth_map
 process output
   :: image_writer
   :file_name_template                          $CONFIG{global:output_depths_directory}/depth_map%06d.png
-  :image_writer:type                           vxl
+  :image_writer:type                           ocv
 
 connect from filter.image
         to   output.image

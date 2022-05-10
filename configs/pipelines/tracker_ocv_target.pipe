@@ -17,20 +17,20 @@ process filter_frame_index
   :min_frame_count                           0
   :max_frame_count                           0
   :frame_step                                0
-  
+
 connect from downsampler.timestamp
         to   filter_frame_index.timestamp
 connect from downsampler.output_1
         to   filter_frame_index.image
 connect from downsampler.output_2
         to   filter_frame_index.image_file_name
-        
+
 # =================================== DETECTOR =====================================
 
 process detector1
   :: image_object_detector
   :detector:type                               ocv_target_detector
-  
+
   block detector:ocv_target_detector
     :target_width                              9
     :target_height                             6
@@ -58,7 +58,7 @@ process append_detections
   ::append_detections_to_tracks
   :min_frame_count                           0
   :max_frame_count                           0
-  
+
 connect from filter_frame_index.timestamp
         to   append_detections.timestamp
 connect from detector1.detected_object_set

@@ -214,31 +214,31 @@ ocv_optimize_stereo_cameras::priv
                       image_size,
                       cv_K1, dist_coeffs, rvec1, tvec1);
 
-  std::cout << suffix << "rvec: " << std::endl;
-  cv::Mat tmp;
-  cv::Rodrigues(rvec1.row(0), tmp);
-  std::cout << tmp << std::endl;
-  std::cout << suffix << "tvec: " << std::endl;
-  std::cout << tvec1 << std::endl;
+  // std::cout << suffix << "rvec: " << std::endl;
+  // cv::Mat tmp;
+  // cv::Rodrigues(rvec1.row(0), tmp);
+  // std::cout << tmp << std::endl;
+  // std::cout << suffix << "tvec: " << std::endl;
+  // std::cout << tvec1 << std::endl;
 
-  std::cout << "1st occurence K1" << cv_K1 << std::endl;
-  for(auto dcoef : dist_coeffs)
-    std::cout << dcoef << "\t";
-  std::cout << std::endl;
+  // std::cout << "K1" << cv_K1 << std::endl;
+  // for(auto dcoef : dist_coeffs)
+  //   std::cout << dcoef << "\t";
+  // std::cout << std::endl;
 
 
   // DEBUG
-  for(unsigned f_id = 0; f_id < frame_count; f_id++)
-  {
-    for(unsigned t_id = 0; t_id < track_count; t_id++)
-    {
-      cv::circle(DebugImgRaw, image_pts_temp[t_id][f_id], 3, (0, 10 * f_id, 10 * f_id), 2);
-    }
-  }
-  cv::Mat rectCamDebug1;
-  cv::undistort(DebugImgRaw, rectCamDebug1, cv_K1, dist_coeffs);
-  cv::imwrite("/home/jerome/Desktop/debug_rectCamDebug1_" + suffix + ".jpg", rectCamDebug1);
-  cv::imwrite("/home/jerome/Desktop/debug_detPtsDebug1_" + suffix + ".jpg", DebugImgRaw);
+  // for(unsigned f_id = 0; f_id < frame_count; f_id++)
+  // {
+  //   for(unsigned t_id = 0; t_id < track_count; t_id++)
+  //   {
+  //     cv::circle(DebugImgRaw, image_pts_temp[t_id][f_id], 3, (0, 10 * f_id, 10 * f_id), 2);
+  //   }
+  // }
+  // cv::Mat rectCamDebug1;
+  // cv::undistort(DebugImgRaw, rectCamDebug1, cv_K1, dist_coeffs);
+  // cv::imwrite("/home/jerome/Desktop/debug_rectCamDebug1_" + suffix + ".jpg", rectCamDebug1);
+  // cv::imwrite("/home/jerome/Desktop/debug_detPtsDebug1_" + suffix + ".jpg", DebugImgRaw);
 
   // Setup calibrate stereo camera1
   kv::matrix_3x3d K1;
@@ -411,16 +411,6 @@ ocv_optimize_stereo_cameras::priv
   LOG_DEBUG(m_logger, "image_points1.size() : " << image_points1.size());
   LOG_DEBUG(m_logger, "image_points2.size() : " << image_points1.size());
   LOG_DEBUG(m_logger, "world_points.size() : " << image_points1.size());
-  // for(unsigned f_id = 0; f_id < frame_count; f_id++)
-  // {
-
-  //   for(unsigned t_id = 0; t_id < track_count; t_id++)
-  //   {
-  //     std::cout << "img1 " << image_pts1_temp[t_id][f_id] << "\t\t";
-  //     std::cout << "img2 " << image_pts2_temp[t_id][f_id] << "\t\t";
-  //     std::cout << "world " << world_pts_temp[t_id][f_id] << std::endl;
-  //   }
-  // }
 
   // Get mono camera calibration params
   LOG_DEBUG(m_logger, "Launch camera calibration...");
@@ -461,40 +451,41 @@ ocv_optimize_stereo_cameras::priv
   cv::initUndistortRectifyMap(cv_K2, dist_coeffs2, cv_R2, cv_P2,
                                 image_size, CV_16SC2, rectMap21, rectMap22);
 
-  cv::Mat rectCamDebug2, rectCamDebug1;
-  cv::undistort(DebugImage0raw, rectCamDebug1, cv_K1, dist_coeffs1);
-  cv::imwrite("/home/jerome/Desktop/debug_rectCamDebug2_left.jpg", rectCamDebug1);
-  cv::undistort(DebugImage1raw, rectCamDebug2, cv_K2, dist_coeffs2);
-  cv::imwrite("/home/jerome/Desktop/debug_rectPtsDebug2_right.jpg", rectCamDebug2);
+// For debug purpose, display rectified images
+  // cv::Mat rectCamDebug2, rectCamDebug1;
+  // cv::undistort(DebugImage0raw, rectCamDebug1, cv_K1, dist_coeffs1);
+  // cv::imwrite("/home/jerome/Desktop/debug_rectCamDebug2_left.jpg", rectCamDebug1);
+  // cv::undistort(DebugImage1raw, rectCamDebug2, cv_K2, dist_coeffs2);
+  // cv::imwrite("/home/jerome/Desktop/debug_rectPtsDebug2_right.jpg", rectCamDebug2);
 
-  std::cout << "undistortion map init done" << std::endl;
-  std::cout << "cv_K1 dc1 R1 P1!!!!!!" << std::endl;
-  std::cout << cv_K1 << std::endl;
-  for(auto dist_coef : dist_coeffs1)
-      std::cout << dist_coef << "\t";
-  std::cout << std::endl;
-  std::cout << cv_R1 << std::endl;
-  std::cout << cv_P1 << std::endl;
-  std::cout << "cv_K2 R2 P2!!!!!!" << std::endl;
-  std::cout << cv_K2 << std::endl;
-  for(auto dist_coef : dist_coeffs2)
-      std::cout << dist_coef << "\t";
-  std::cout << std::endl;
-  std::cout << cv_R2 << std::endl;
-  std::cout << cv_P2 << std::endl;
-  std::cout << "cv_r: " << cv_R << std::endl;
-  std::cout << "cv_T: " << cv_T << std::endl;
-  std::cout << "disp to depth: " << cv_Q << std::endl;
+  // std::cout << "undistortion map init done" << std::endl;
+  // std::cout << "cv_K1 dc1 R1 P1" << std::endl;
+  // std::cout << cv_K1 << std::endl;
+  // for(auto dist_coef : dist_coeffs1)
+  //     std::cout << dist_coef << "\t";
+  // std::cout << std::endl;
+  // std::cout << cv_R1 << std::endl;
+  // std::cout << cv_P1 << std::endl;
+  // std::cout << "cv_K2 R2 P2" << std::endl;
+  // std::cout << cv_K2 << std::endl;
+  // for(auto dist_coef : dist_coeffs2)
+  //     std::cout << dist_coef << "\t";
+  // std::cout << std::endl;
+  // std::cout << cv_R2 << std::endl;
+  // std::cout << cv_P2 << std::endl;
+  // std::cout << "cv_r: " << cv_R << std::endl;
+  // std::cout << "cv_T: " << cv_T << std::endl;
+  // std::cout << "disp to depth: " << cv_Q << std::endl;
 
-  cv::remap(DebugImage0raw, img1r, rectMap11, rectMap12, cv::INTER_LINEAR);
-  std::cout << "remap 1 done" << std::endl;
-  cv::imwrite("/home/jerome/Desktop/debug_rectified_left.jpg", img1r);
+  // cv::remap(DebugImage0raw, img1r, rectMap11, rectMap12, cv::INTER_LINEAR);
+  // std::cout << "remap 1 done" << std::endl;
+  // cv::imwrite("/home/jerome/Desktop/debug_rectified_left.jpg", img1r);
 
-  cv::remap(DebugImage1raw, img2r, rectMap21, rectMap22, cv::INTER_LINEAR);
-  std::cout << "remap 2 done" << std::endl;
-  cv::imwrite("/home/jerome/Desktop/debug_rectified_right.jpg", img2r);
+  // cv::remap(DebugImage1raw, img2r, rectMap21, rectMap22, cv::INTER_LINEAR);
+  // std::cout << "remap 2 done" << std::endl;
+  // cv::imwrite("/home/jerome/Desktop/debug_rectified_right.jpg", img2r);
 
-  std::cout << "Resume normal codepath" << std::endl;
+  // std::cout << "Resume normal codepath" << std::endl;
 
   LOG_DEBUG(m_logger, "Stereo calibration run with RMS error = " << rms);
 

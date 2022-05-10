@@ -1,6 +1,5 @@
-# OCV stereo rectification and pairing
-#
-# Runs stereo image rectification, compute depthmap then apply tracks pairing
+# Stereo track OCV targets
+# Runs automated ocv target detection on each of the images of a stereo camera
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -12,7 +11,7 @@ config global
    :output_directory                           ./
    :target_width_value                         9
    :target_height_value                        6
-   :square_size_value                          10.
+   :square_size_value                          1.
 
 # =============================== INPUT FRAME LIST =================================
 
@@ -23,7 +22,7 @@ include common_stereo_input_with_downsampler.pipe
 process detector1
   :: image_object_detector
   :detector:type                               ocv_target_detector
-  
+
   block detector:ocv_target_detector
     :target_width                              $CONFIG{global:target_width_value}
     :target_height                             $CONFIG{global:target_height_value}
@@ -34,7 +33,7 @@ process detector1
 process detector2
   :: image_object_detector
   :detector:type                               ocv_target_detector
-  
+
   block detector:ocv_target_detector
   :target_width                                $CONFIG{global:target_width_value}
   :target_height                               $CONFIG{global:target_height_value}
@@ -76,7 +75,7 @@ process append_detections1
   ::append_detections_to_tracks
   :min_frame_count                           0
   :max_frame_count                           0
-  
+
 connect from downsampler.timestamp
         to   append_detections1.timestamp
 connect from detector1.detected_object_set
@@ -86,7 +85,7 @@ process append_detections2
   ::append_detections_to_tracks
   :min_frame_count                           0
   :max_frame_count                           0
-  
+
 connect from downsampler.timestamp
         to   append_detections2.timestamp
 connect from detector2.detected_object_set
@@ -121,5 +120,5 @@ connect from append_detections2.timestamp
         to   track_writer2.timestamp
 connect from downsampler.output_4
         to   track_writer2.image_file_name
-        
+
 # -- end of file --
