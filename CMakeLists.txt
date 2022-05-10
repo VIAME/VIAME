@@ -764,11 +764,13 @@ else()
       configure_file(
         ${VIAME_CMAKE_DIR}/setup_viame.rel.bat.in
         ${VIAME_SETUP_SCRIPT}
+        @ONLY
       )
     else()
       configure_file(
         ${VIAME_CMAKE_DIR}/setup_viame.dev.bat.in
         ${VIAME_SETUP_SCRIPT}
+        @ONLY
       )
     endif()
 
@@ -790,11 +792,13 @@ else()
       configure_file(
         ${VIAME_CMAKE_DIR}/setup_viame.rel.sh.in
         ${VIAME_SETUP_SCRIPT_FILE}
+        @ONLY
       )
     else()
       configure_file(
         ${VIAME_CMAKE_DIR}/setup_viame.dev.sh.in
         ${VIAME_SETUP_SCRIPT_FILE}
+        @ONLY
       )
     endif()
 
