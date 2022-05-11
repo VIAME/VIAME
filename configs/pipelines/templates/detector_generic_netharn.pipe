@@ -1,7 +1,5 @@
 # ==============================================================================
-#
-# ResNet Classifier over Generic Object Detections
-#
+# NetHarn Classifier over Generic Object Detections
 # ==============================================================================
 
 config _pipeline:_edge
