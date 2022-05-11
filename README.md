@@ -87,8 +87,8 @@ CentOS
 
 **Linux Full Desktop Binaries:** <br>
 * [VIAME v0.19.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/167me341D7vWC7J2LcPVdqxx5aaCOPPk6/view?usp=sharing) <br>
-* [VIAME v0.19.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/627b087c4acac99f420957ce/download) <br>
-* [VIAME v0.19.0 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1ME6bTFthqwoioq40AdcSsOy9c4JS_sha/view?usp=sharing) <br>
+* [VIAME v0.19.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/627b34a34acac99f420b0fc9/download) <br>
+* [VIAME v0.19.0 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1IzR4lcgR05bK-RmmJDaGUGFaSkNhxq-u/view?usp=sharing) <br>
 * [VIAME v0.19.0 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/627b07f24acac99f42095764/download)
 
 **Web Applications**: <br>
@@ -108,13 +108,13 @@ CentOS
 **Optional Add-Ons and Model Files:** <br>
 * [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
 * [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
+* [EM Tuna Detectors, All OS](https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download) <br>
 * [HabCam Models (Scallop, Skate, Flatfish), All OS](https://viame.kitware.com/api/v1/item/627b145487bad2e19a4c4697/download) <br>
-* [Motion Detection Model, All OS](https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download) <br>
+* [Motion Detector Model, All OS](https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download) <br>
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download) <br>
 * [Penguin Head FF Models, All OS](https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download) <br>
 * [Sea Lion Models, All OS](https://viame.kitware.com/girder/api/v1/item/627b0b877b5df7aa226545ef/download) <br>
-* [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download) <br>
-* [EM Tuna Detectors, All OS](https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download)
+* [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 Folders should match, for example, the Add-On packages contains a 'configs' folder, and the
