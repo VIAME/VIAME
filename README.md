@@ -106,12 +106,9 @@ CentOS
 * [SEAL Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
 
 **Optional Add-Ons and Model Files:** <br>
-* [Motion Detector Models, All OS](https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download) <br>
-* [Alternative Generic Detector for IQR, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
 * [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
 * [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
 * [HabCam Models (Scallop, Skate, Flatfish), All OS](https://viame.kitware.com/api/v1/item/627b145487bad2e19a4c4697/download) <br>
-* [Low Memory GPU (For 4+ Gb Cards), All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/616d9bf7b53494023680648c/download) <br>
 * [Penguin Head FF Models, All OS](https://data.kitware.com/api/v1/item/6011ebf72fa25629b91aef03/download) <br>
 * [Sea Lion Models, All OS](https://viame.kitware.com/girder/api/v1/item/627b0b877b5df7aa226545ef/download) <br>
