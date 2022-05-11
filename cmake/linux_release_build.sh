@@ -94,6 +94,8 @@ cp ${LIBBASE}/libquadmath.so.0 install/lib || true
 cp ${LIBBASE}/libpng15.so.15 install/lib || true
 cp ${LIBBASE}/libx264.so.148 install/lib || true
 cp ${LIBBASE}/libx26410b.so.148 install/lib || true
+cp ${LIBBASE}/libxcb.so.1 install/lib || true
+cp ${LIBBASE}/libXau.so.6 install/lib || true
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
