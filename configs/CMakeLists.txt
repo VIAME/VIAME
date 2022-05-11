@@ -61,8 +61,8 @@ if( VIAME_DOWNLOAD_MODELS )
   if( VIAME_DOWNLOAD_MODELS-MOTION )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndInstallAddOn(
-        https://data.kitware.com/api/v1/item/601b00d02fa25629b9391ad6/download
-        6524dd85334d569d30fa9ca7eb570517
+        https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download
+        eff47c8693b936514cc98674a2c0c3b7
         ${VIAME_DOWNLOAD_DIR}/VIAME-Motion-Models-v1.0.zip )
     endif()
   endif()
@@ -139,8 +139,8 @@ if( VIAME_DOWNLOAD_MODELS )
 
   if( VIAME_DOWNLOAD_MODELS-MOUSS )
     DownloadAndInstallAddOn(
-      https://viame.kitware.com/api/v1/item/616d9bf7b53494023680648c/download
-      c1200d203ba07eaeddf03633d0eb1bf9
+      https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download
+      87b9f9bf5088dbce46eb73e03f1597e2
       ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.1.zip )
   endif()
 
