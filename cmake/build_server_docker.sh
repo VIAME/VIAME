@@ -45,9 +45,9 @@ cd build
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.8
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.8
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.8
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.6
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.6m
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.6m
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -73,9 +73,10 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
 -DVIAME_ENABLE_PYTHON-INTERNAL:BOOL=ON \
--DVIAME_PYTHON_VERSION:STRING=3.8.13 \
+-DVIAME_PYTHON_VERSION:STRING=3.6.15 \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
--DVIAME_ENABLE_PYTORCH-INTERNAL:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-INTERNAL:BOOL=OFF \
+-DVIAME_PYTORCH_VERSION:STRING=1.10.2 \
 -DVIAME_ENABLE_PYTORCH-MMDET:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=ON \
