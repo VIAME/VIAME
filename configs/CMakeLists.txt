@@ -132,9 +132,9 @@ if( VIAME_DOWNLOAD_MODELS )
   # Mixed project specific models and add-ons
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     DownloadAndInstallAddOn(
-      https://viame.kitware.com/api/v1/item/613ed525a28c6cb53f3a0601/download
-      6582b5dd9485727dd40e5582defc0389
-      ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.8.zip )
+      https://viame.kitware.com/api/v1/item/627b145487bad2e19a4c4697/download
+      79651287bf9554a2ff20fe7715ddcf12
+      ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v1.9.zip )
   endif()
 
   if( VIAME_DOWNLOAD_MODELS-MOUSS )
@@ -172,9 +172,9 @@ if( VIAME_DOWNLOAD_MODELS )
       message( FATAL_ERROR "Sea Lion models require pytorch" )
     endif()
     DownloadAndInstallAddOn(
-      https://data.kitware.com/api/v1/item/6011b1bc2fa25629b91a5e3c/download
-      cccd42702eead4148de7d26c53bb3718
-      ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v1.3.zip )
+      https://viame.kitware.com/api/v1/item/627b0b877b5df7aa226545ef/download
+      ecdb3c872bebd8bf52fe9da7ddbf4b48
+      ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v2.4.zip )
   endif()
 endif()
 
