@@ -454,7 +454,7 @@ else()
 endif()
 
 if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
-  message( FATAL_ERROR "Cannot enable CUDNN without CUDA support" )
+  message( FATAL_ERROR "Cannot enable CUDNN without CUDA, disable VIAME_ENABLE_CUDNN" )
 endif()
 
 if( VIAME_ENABLE_CUDNN )
