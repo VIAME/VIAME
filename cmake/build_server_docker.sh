@@ -94,15 +94,11 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
 
-# Build VIAME first attempt
-make -j$(nproc) -k || true
+# Perform multi-threaded build
+make -j$(nproc)
 
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
-
-# HACK: Double tap the build tree
-# Should be removed when non-determinism in kwiver python build fixed
-make -j$(nproc)
 
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed
