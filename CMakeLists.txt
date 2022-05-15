@@ -147,7 +147,7 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 1.10.2 CACHE STRING "PyTorch version to use" )
+  set( VIAME_PYTORCH_VERSION 1.11.0 CACHE STRING "PyTorch version to use" )
   set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.8.2" "1.10.2" "1.11.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
@@ -532,7 +532,9 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH )
   if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.10.2" AND VIAME_ENABLE_PYTORCH-INTERNAL )
-    message( FATAL_ERROR "Only PyTorch v1.10.2 support with VIAME_ENABLE_PYTORCH-INTERNAL" )
+    message( FATAL_ERROR "Only PyTorch v1.10.2 support with VIAME_ENABLE_PYTORCH-INTERNAL "
+      "set. Either change VIAME_PYTORCH_VERSION to 1.10.2, or turn disable the flag "
+      "VIAME_ENABLE_PYTORCH-INTERNAL." )
   endif()
   if( VIAME_ENABLE_CUDA AND
       VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
@@ -541,8 +543,21 @@ if( VIAME_ENABLE_PYTORCH )
               CUDA_VERSION VERSION_EQUAL "11.3" OR
               CUDA_VERSION VERSION_EQUAL "11.5" ) )
     message( FATAL_ERROR "CUDA 11.5, 11.3 or 10.2 is required for VIAME_ENABLE_PYTORCH "
-      "with no VIAME_ENABLE_PYTORCH-INTERNAL flag set, otherwise CUDA 10.1+ is okay, "
-      "but builds will take longer to build pytorch instead of using prebuilt versions." )
+      "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.11.0. Either modify "
+      "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
+  elseif( VIAME_ENABLE_CUDA AND
+          VIAME_PYTORCH_VERSION VERSION_EQUAL "1.10.2" AND
+          NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
+          NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
+                CUDA_VERSION VERSION_EQUAL "11.1" OR
+                CUDA_VERSION VERSION_EQUAL "11.3" ) )
+    message( FATAL_ERROR "CUDA 11.3, 11.1 or 10.2 is required for VIAME_ENABLE_PYTORCH "
+      "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.10.2. Either modify "
+      "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
+  elseif( VIAME_ENABLE_CUDA AND
+          CUDA_VERSION VERSION_LESS "10.1" )
+    message( FATAL_ERROR "At least CUDA 10.1 required for VIAME_ENABLE_PYTORCH. "
+      "Upgrading your CUDA version is recommended." )
   endif()
 endif()
 
@@ -550,7 +565,7 @@ if( VIAME_ENABLE_OPENCV )
   set( VIAME_OPENCV_VERSION 3.4.0 CACHE STRING "Version of OpenCV to use" )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.13 3.4.0 )
 
-  # Version 2.4.11 no longer present fletch
+  # Version 2.4.11 no longer present fletch, here for auto-update from old cmake ver
   if( ${VIAME_OPENCV_VERSION} EQUAL "2.4.11" )
     set( VIAME_OPENCV_VERSION "2.4.13" CACHE STRING "Version of OpenCV to use" FORCE )
   endif()
