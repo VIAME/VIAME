@@ -7,12 +7,19 @@ set( CMAKE_CXX_STANDARD 11 )
 
 project( VIAME )
 
+###
+# Core versioning flags
+##
+
 set( VIAME_VERSION_MAJOR 1 )
 set( VIAME_VERSION_MINOR 0 )
 set( VIAME_VERSION_PATCH 0 )
 
 set( VIAME_VERSION "${VIAME_VERSION_MAJOR}.${VIAME_VERSION_MINOR}.${VIAME_VERSION_PATCH}" )
 
+###
+# Add global cmake properties
+##
 include( CMakeDependentOption )
 
 if( POLICY CMP0053 )
@@ -24,10 +31,16 @@ if( POLICY CMP0074 )
 endif()
 
 ###
-# Add common paths usable throughout all CMakeLists files
+# Add script folders for cmake functions
 ##
-list( INSERT CMAKE_MODULE_PATH 0    "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${KWIVER_CMAKE_DIR}" )
-
+list( INSERT CMAKE_MODULE_PATH 0
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/find_scripts"
+      "${KWIVER_CMAKE_DIR}" )
+ 
+###
+# Add other common paths usable throughout all CMakeLists files
+##
 set( VIAME_SOURCE_DIR               "${CMAKE_SOURCE_DIR}" )
 set( VIAME_CMAKE_DIR                "${CMAKE_SOURCE_DIR}/cmake" )
 set( VIAME_BINARY_DIR               "${CMAKE_BINARY_DIR}/build" )
@@ -182,6 +195,14 @@ endif()
 if( VIAME_ENABLE_FFMPEG )
   option( VIAME_ENABLE_FFMPEG-X264 "Enable libx264 codec in FFmpeg" ON )
   mark_as_advanced( VIAME_ENABLE_FFMPEG-X264 )
+
+  if( VIAME_ENABLE_FFMPEG-X264 )
+    find_package( x264 REQUIRED )
+  endif()
+
+  if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
+    message( FATAL_ERROR "VIAME_ENABLE_DIVE requires FFMPEG-X264 flag )
+  endif()
 endif()
 
 # ##
@@ -570,12 +591,7 @@ endif()
 
 if( VIAME_ENABLE_OPENCV )
   set( VIAME_OPENCV_VERSION 3.4.0 CACHE STRING "Version of OpenCV to use" )
-  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.13 3.4.0 )
-
-  # Version 2.4.11 no longer present fletch, here for auto-update from old cmake ver
-  if( ${VIAME_OPENCV_VERSION} EQUAL "2.4.11" )
-    set( VIAME_OPENCV_VERSION "2.4.13" CACHE STRING "Version of OpenCV to use" FORCE )
-  endif()
+  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.5.1" )
 endif()
 
 # Set default windows configuration mode to be 'Release'
