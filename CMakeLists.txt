@@ -534,31 +534,37 @@ if( VIAME_ENABLE_PYTORCH )
   if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.10.2" AND
       VIAME_ENABLE_PYTORCH-INTERNAL )
     message( FATAL_ERROR "Only PyTorch v1.10.2 support with VIAME_ENABLE_PYTORCH-INTERNAL "
-      "set. Either change VIAME_PYTORCH_VERSION to 1.10.2, or turn disable the flag "
+      "flag set. Either change VIAME_PYTORCH_VERSION to 1.10.2, or disable the flag "
       "VIAME_ENABLE_PYTORCH-INTERNAL." )
   endif()
-  if( VIAME_ENABLE_CUDA AND
-      VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
-      NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
+  if( VIAME_ENABLE_CUDA )
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
+        NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
         NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
               CUDA_VERSION VERSION_EQUAL "11.3" OR
               CUDA_VERSION VERSION_EQUAL "11.5" ) )
-    message( FATAL_ERROR "CUDA 11.5, 11.3 or 10.2 is required for VIAME_ENABLE_PYTORCH "
-      "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.11.0. Either modify "
-      "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
-  elseif( VIAME_ENABLE_CUDA AND
-          VIAME_PYTORCH_VERSION VERSION_EQUAL "1.10.2" AND
-          NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
-          NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
-                CUDA_VERSION VERSION_EQUAL "11.1" OR
-                CUDA_VERSION VERSION_EQUAL "11.3" ) )
-    message( FATAL_ERROR "CUDA 11.3, 11.1 or 10.2 is required for VIAME_ENABLE_PYTORCH "
-      "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.10.2. Either modify "
-      "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
-  elseif( VIAME_ENABLE_CUDA AND
-          CUDA_VERSION VERSION_LESS "10.1" )
-    message( FATAL_ERROR "At least CUDA 10.1 required for VIAME_ENABLE_PYTORCH. "
-      "Upgrading your CUDA version is recommended." )
+      message( FATAL_ERROR "CUDA 11.5, 11.3 or 10.2 is required for VIAME_ENABLE_PYTORCH "
+        "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.11.0. Either modify "
+        "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
+    elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.10.2" AND
+            NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
+            NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
+                  CUDA_VERSION VERSION_EQUAL "11.1" OR
+                  CUDA_VERSION VERSION_EQUAL "11.3" ) )
+      message( FATAL_ERROR "CUDA 11.3, 11.1 or 10.2 is required for VIAME_ENABLE_PYTORCH "
+        "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.10.2. Either modify "
+        "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
+    elseif( CUDA_VERSION VERSION_LESS "10.1" )
+      message( FATAL_ERROR "At least CUDA 10.1 required for VIAME_ENABLE_PYTORCH. "
+        "Upgrading your CUDA version is recommended." )
+    elseif( VIAME_ENABLE_PYTORCH-VIS-INTERNAL AND
+           CUDA_VERSION VERSION_LESS "11.0" )
+      message( FATAL_ERROR "VIAME_ENABLE_PYTORCH-VIS-INTERNAL requires at least CUDA 11.0" )
+    elseif( VIAME_ENABLE_PYTORCH-INTERNAL AND
+            VIAME_ENABLE_CUDNN AND
+            CUDNN_VERSION_MAJOR VERSION_LESS "7.0.0" )
+      message( FATAL_ERROR "CUDNN 7.0 or higher required for internal pytorch build" )
+    endif()
   endif()
 endif()
 

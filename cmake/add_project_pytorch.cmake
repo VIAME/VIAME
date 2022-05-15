@@ -43,24 +43,10 @@ if( VIAME_ENABLE_TENSORRT )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torch2rt )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-MMDET )
-  if( VIAME_ENABLE_CUDA AND CUDA_VERSION VERSION_LESS "9.0" )
-    message( FATAL_ERROR "To use mmdetection you must have at least CUDA 9.0.\n\n"
-                         "Install CUDA 9.0+ or disable VIAME_ENABLE_PYTORCH-MMDET" )
-  endif()
-  if( NOT VIAME_ENABLE_PYTHON-INTERNAL AND Python_VERSION VERSION_LESS "3.0" )
-    message( FATAL_ERROR "To use mmdetection you must have at least Python 3.0.\n\n"
-                         "Use Python3 or disable VIAME_ENABLE_PYTORCH-MMDET" )
-  endif()
-endif()
-
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${PYTORCH_LIBS_TO_BUILD} )
 set( PYTORCH_ENV_VARS )
 
 if( VIAME_ENABLE_CUDNN )
-  if( VIAME_ENABLE_PYTORCH-INTERNAL AND "${CUDNN_VERSION_MAJOR}" VERSION_LESS "7.0.0" )
-    message( FATAL_ERROR "CUDNN version 7.0 or higher required for internal pytorch" )
-  endif()
   list( APPEND PYTORCH_ENV_VARS "CUDNN_LIBRARY=${CUDNN_LIBRARIES}" )
   if( WIN32 )
     string( REPLACE ";" "----" PYTORCH_ENV_VARS "${PYTORCH_ENV_VARS}" )
@@ -79,13 +65,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 endif()
 
 if( VIAME_ENABLE_CUDA )
-  if( CUDA_VERSION VERSION_LESS "9.0" AND VIAME_ENABLE_PYTORCH-NETHARN )
-    message( FATAL_ERROR "VIAME_ENABLE_PYTORCH-NETHARN requires CUDA 9 or above" )
-  endif()
-  if( CUDA_VERSION VERSION_LESS "11.0" AND VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
-    message( FATAL_ERROR "VIAME_ENABLE_PYTORCH-VIS-INTERNAL requires CUDA 11 or above" )
-  endif()
-
   list( APPEND PYTORCH_ENV_VARS "USE_CUDA=1" )
   list( APPEND PYTORCH_ENV_VARS "FORCE_CUDA=1" )
   list( APPEND PYTORCH_ENV_VARS "CUDA_VISIBLE_DEVICES=0" )
