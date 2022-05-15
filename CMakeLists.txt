@@ -201,7 +201,7 @@ if( VIAME_ENABLE_FFMPEG )
   endif()
 
   if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
-    message( FATAL_ERROR "VIAME_ENABLE_DIVE requires FFMPEG-X264 flag )
+    message( FATAL_ERROR "VIAME_ENABLE_DIVE requires VIAME_ENABLE_FFMPEG-X264 flag" )
   endif()
 endif()
 
