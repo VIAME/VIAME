@@ -237,7 +237,11 @@ ocv_image_enhancement
 
     if( output_ocv.channels() == 3 )
     {
+#if CV_MAJOR_VERSION < 4
       cv::cvtColor( output_ocv, lab_image, CV_BGR2Lab );
+#else
+      cv::cvtColor( output_ocv, lab_image, cv::COLOR_BGR2Lab );
+#endif
     }
     else
     {
@@ -272,7 +276,11 @@ ocv_image_enhancement
     if( output_ocv.channels() != 1 )
     {
       cv::merge( lab_planes, lab_image );
+#if CV_MAJOR_VERSION < 4
       cv::cvtColor( lab_image, output_ocv, CV_Lab2BGR );
+#else
+      cv::cvtColor( lab_image, output_ocv, cv::COLOR_Lab2BGR );
+#endif
     }
     else
     {
@@ -288,7 +296,11 @@ ocv_image_enhancement
     }
 
     cv::Mat hsv_image;
+#if CV_MAJOR_VERSION < 4
     cv::cvtColor( output_ocv, hsv_image, CV_BGR2HSV );
+#else
+    cv::cvtColor( output_ocv, hsv_image, cv::COLOR_BGR2HSV );
+#endif
 
     std::vector< cv::Mat > hsv_channels( 3 );
 
@@ -301,7 +313,11 @@ ocv_image_enhancement
     sat *= d->m_saturation;
 
     cv::merge( hsv_channels, output_ocv );
+#if CV_MAJOR_VERSION < 4
     cv::cvtColor( output_ocv, output_ocv, CV_HSV2BGR );
+#else
+    cv::cvtColor( output_ocv, output_ocv, cv::COLOR_HSV2BGR );
+#endif
   }
 
   if( d->m_apply_sharpening )

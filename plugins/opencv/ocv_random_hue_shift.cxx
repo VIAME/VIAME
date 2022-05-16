@@ -148,7 +148,11 @@ ocv_random_hue_shift
   // Shift Hue
   cv::Mat hsv_image, output_ocv;
 
+#if CV_MAJOR_VERSION < 4
   cv::cvtColor( input_ocv, hsv_image, CV_BGR2HSV );
+#else
+  cv::cvtColor( input_ocv, hsv_image, cv::COLOR_BGR2HSV );
+#endif
 
   double hue_shift = d->m_hue_range * ( rand() / ( RAND_MAX + 1.0 ) ) - ( d->m_hue_range / 2.0 );
 
@@ -225,7 +229,11 @@ ocv_random_hue_shift
     }
   }
 
+#if CV_MAJOR_VERSION < 4
   cv::cvtColor( hsv_image, output_ocv, CV_HSV2BGR );
+#else
+  cv::cvtColor( hsv_image, output_ocv, cv::COLOR_HSV2BGR );
+#endif
 
   if( d->m_rgb_shift_range )
   {

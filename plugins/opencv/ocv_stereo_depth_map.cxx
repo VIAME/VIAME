@@ -167,8 +167,13 @@ kwiver::vital::image_container_sptr ocv_stereo_depth_map
 
   if( ocv1.channels() > 1 )
   {
-    cvtColor(ocv1, ocv1_gray, CV_BGR2GRAY);
-    cvtColor(ocv2, ocv2_gray, CV_BGR2GRAY);
+#if CV_MAJOR_VERSION < 4
+    cvtColor( ocv1, ocv1_gray, CV_BGR2GRAY );
+    cvtColor( ocv2, ocv2_gray, CV_BGR2GRAY );
+#else
+    cv::cvtColor( ocv1, ocv1_gray, cv::COLOR_BGR2GRAY );
+    cv::cvtColor( ocv2, ocv2_gray, cv::COLOR_BGR2GRAY );
+#endif
   }
   else
   {
@@ -178,7 +183,7 @@ kwiver::vital::image_container_sptr ocv_stereo_depth_map
 
   cv::Mat output;
 
-#ifdef VIAME_OPENCV_VER_2
+#if CV_MAJOR_VERSION == 2
   d->algo( ocv1_gray, ocv2_gray, output );
 #else
   d->algo->compute( ocv1_gray, ocv2_gray, output );
