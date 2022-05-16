@@ -196,6 +196,11 @@ if( VIAME_ENABLE_FFMPEG )
       ${FLETCH_DEP_FLAGS}
       -DFFmpeg_SELECT_VERSION:STRING=2.6.2
     )
+  else()
+    set( FLETCH_DEP_FLAGS
+      ${FLETCH_DEP_FLAGS}
+      -DFFmpeg_SELECT_VERSION:STRING=3.3.3
+    )
   endif()
 else()
   set( FLETCH_DEP_FLAGS
