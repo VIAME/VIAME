@@ -190,6 +190,7 @@ if( VIAME_ENABLE_FFMPEG )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_FFmpeg:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_x264:BOOL=${VIAME_ENABLE_FFMPEG-X264}
   )
   if( APPLE )
     set( FLETCH_DEP_FLAGS
@@ -206,6 +207,7 @@ else()
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_FFmpeg:BOOL=OFF
+    -Dfletch_ENABLE_x264:BOOL=OFF
   )
 endif()
 

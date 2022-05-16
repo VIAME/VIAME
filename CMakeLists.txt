@@ -35,7 +35,6 @@ endif()
 ##
 list( INSERT CMAKE_MODULE_PATH 0
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/find_scripts"
       "${KWIVER_CMAKE_DIR}" )
  
 ###
@@ -195,10 +194,6 @@ endif()
 if( VIAME_ENABLE_FFMPEG )
   option( VIAME_ENABLE_FFMPEG-X264 "Enable libx264 codec in FFmpeg" ON )
   mark_as_advanced( VIAME_ENABLE_FFMPEG-X264 )
-
-  if( VIAME_ENABLE_FFMPEG-X264 )
-    find_package( x264 REQUIRED )
-  endif()
 endif()
 
 # ##
