@@ -199,10 +199,6 @@ if( VIAME_ENABLE_FFMPEG )
   if( VIAME_ENABLE_FFMPEG-X264 )
     find_package( x264 REQUIRED )
   endif()
-
-  if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
-    message( FATAL_ERROR "VIAME_ENABLE_DIVE requires VIAME_ENABLE_FFMPEG-X264 flag" )
-  endif()
 endif()
 
 # ##
@@ -592,6 +588,10 @@ endif()
 if( VIAME_ENABLE_OPENCV )
   set( VIAME_OPENCV_VERSION 3.4.0 CACHE STRING "Version of OpenCV to use" )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.5.1" )
+endif()
+
+if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
+  message( FATAL_ERROR "VIAME_ENABLE_DIVE requires VIAME_ENABLE_FFMPEG-X264 flag" )
 endif()
 
 # Set default windows configuration mode to be 'Release'
