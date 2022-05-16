@@ -456,6 +456,16 @@ if( VIAME_ENABLE_CUDA )
       ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDA_TOOLKIT_ROOT_DIR}/bin:$ENV{PATH}
       CACHE INTERNAL "All compiled and system-related runnable executables" )
   endif()
+
+  if( CMAKE_COMPILER_IS_GNUCC AND
+      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 AND
+      CUDA_VERSION VERSION_LESS "11.6" )
+    message( FATAL_ERROR "GCC compiler version 12 is very new. VIAME likely won't "
+      "build with your current CUDA, though you can try to delete '#error -- "
+      "unsupported GNU version! gcc versions later than 11 are not supported!' "
+      "from your CUDA install file host_config.h then delete this cmake error "
+      "message." )
+  endif()
 else()
   set( VIAME_FORCE_CUDA_CSTD98 CACHE INTERNAL FALSE )
   set( CUDA_ARCHITECTURES "" CACHE INTERNAL "CUDA Architectures" )
