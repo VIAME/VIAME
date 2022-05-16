@@ -49,7 +49,8 @@ a starting point:
 .. code-block:: bash
 
    sudo apt-get install git zip git wget curl libcurl4-openssl-dev libgl1-mesa-dev libexpat1-dev \
-     libgtk2.0-dev libxt-dev libxml2-dev libssl-dev liblapack-dev openssl libssl-dev g++ zlib1g-dev 
+     libgtk2.0-dev libxt-dev libxml2-dev libssl-dev liblapack-dev openssl libssl-dev g++ zlib1g-dev \
+     x264 x264-dev
 
 And on CentOS 7:
 
@@ -58,7 +59,7 @@ And on CentOS 7:
    sudo yum -y groupinstall 'Development Tools'
    sudo yum install -y zip git wget openssl openssl-devel zlib zlib-devel freeglut-devel \
      mesa-libGLU-devel lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel \
-     curl curl-devel atlas-devel file which
+     curl curl-devel atlas-devel file which x264 x264-devel
 
 If using VIAME_ENABLE_PYTHON, [Anaconda3 2021.05](https://repo.anaconda.com/archive/) is
 recommended, though you also try using native python, e.g. install python3, python3-dev,
@@ -76,6 +77,11 @@ on your build settings but are not officially supported yet):
 .. code-block:: bash
 
    https://developer.nvidia.com/cuda-toolkit-archive
+
+If using VIAME_ENABLE_DIVE for visualization, the x264 video codec should also be installed
+(typically via sudo apt install x264 x264-dev on linux, or sudo yum install x264-devel on
+other linux distributions).
+
 
 Install CMAKE
 =============
