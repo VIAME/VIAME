@@ -31,13 +31,6 @@ bzip2 \
 bzip2-devel \
 xz-devel
 
-# Install x264 codec
-yum -y install epel-release
-wget https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm
-rpm -Uvh rpmfusion-free-release-7.noarch.rpm
-yum -y install rpmfusion-free-release
-yum -y install x264-devel
-
 # Install and use more recent compiler
 yum -y install centos-release-scl
 yum -y install devtoolset-7

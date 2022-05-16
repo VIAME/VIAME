@@ -92,8 +92,6 @@ cp ${LIBBASE}/libgfortran.so.3 install/lib || true
 cp ${LIBBASE}/libgfortran.so.4 install/lib || true
 cp ${LIBBASE}/libquadmath.so.0 install/lib || true
 cp ${LIBBASE}/libpng15.so.15 install/lib || true
-cp ${LIBBASE}/libx264.so.148 install/lib || true
-cp ${LIBBASE}/libx26410b.so.148 install/lib || true
 cp ${LIBBASE}/libxcb.so.1 install/lib || true
 cp ${LIBBASE}/libXau.so.6 install/lib || true
 
@@ -108,7 +106,6 @@ if cat /etc/os-release | grep 'Ubuntu'; then
   cp ${LIBBASE}/libcrypto.so install/lib || true
   cp ${LIBBASE}/libcrypto.so.1.1 install/lib || true
   cp ${LIBBASE}/libfreetype.so.6 install/lib || true
-  cp ${LIBBASE}/libx264.so.152 install/lib || true
   cp ${LIBBASE}/libharfbuzz.so.0 install/lib || true
   cp ${LIBBASE}/libpng16.so.16 install/lib || true
   cp ${LIBBASE}/libglib-2.0.so.0 install/lib || true

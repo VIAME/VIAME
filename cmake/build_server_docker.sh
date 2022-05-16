@@ -17,7 +17,6 @@ libgtk2.0-dev \
 libxt-dev \
 libxml2-dev \
 liblapack-dev \
-libx264-dev \
 openssl \
 libssl-dev \
 g++ \
@@ -63,7 +62,6 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
 -DVIAME_ENABLE_FFMPEG:BOOL=ON \
 -DVIAME_ENABLE_FFMPEG-X264:BOOL=ON \
--DVIAME_ENABLE_FASTER_RCNN:BOOL=OFF \
 -DVIAME_ENABLE_GDAL:BOOL=OFF \
 -DVIAME_ENABLE_FLASK:BOOL=OFF \
 -DVIAME_ENABLE_ITK:BOOL=OFF \
