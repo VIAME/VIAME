@@ -93,37 +93,30 @@ option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 
 ###
-# Add secondary plugin enable flags
+# Add secondary plugin enable flags (non-advanced)
 ##
-option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
-option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
-option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
+option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
-option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
-option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
-option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
-option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
-option( VIAME_ENABLE_ITK_EXTRAS     "Enable ITK GUI and extra algs" OFF )
-
-mark_as_advanced( VIAME_ENABLE_CAFFE )
-mark_as_advanced( VIAME_ENABLE_BURNOUT )
-mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
-mark_as_advanced( VIAME_ENABLE_ITK_EXTRAS )
+option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
+option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
 
 ###
-# Add assorted other enable flags
+# Add secondary plugin enable flags (advanced)
 ##
+option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
+option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
+option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
+option( VIAME_ENABLE_ITK_EXTRAS     "Enable ITK GUI and extra algs" OFF )
+option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
+
+mark_as_advanced( VIAME_ENABLE_BURNOUT )
+mark_as_advanced( VIAME_ENABLE_CAFFE )
 mark_as_advanced( VIAME_ENABLE_GDAL )
-
-set( VIAME_BUILD_KWIVER_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
-     CACHE STRING "VIAME superbuild KWIVER build location" )
-mark_as_advanced( VIAME_BUILD_KWIVER_DIR )
-
-set( VIAME_BUILD_PLUGINS_DIR "${VIAME_BUILD_PREFIX}/src/viame-build"
-     CACHE STRING "VIAME superbuild plugins build location" )
-mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
+mark_as_advanced( VIAME_ENABLE_ITK )
+mark_as_advanced( VIAME_ENABLE_ITK_EXTRAS )
+mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
 ###
 # Flags relating to examples and model downloads
@@ -189,6 +182,7 @@ if( VIAME_ENABLE_TENSORFLOW )
   option( VIAME_ENABLE_TENSORFLOW-MODELS "Enable TensorFlow models repo"   ON )
 endif()
 
+###
 # Additional libraries built for ffmpeg
 ##
 if( VIAME_ENABLE_FFMPEG )
@@ -196,9 +190,19 @@ if( VIAME_ENABLE_FFMPEG )
   mark_as_advanced( VIAME_ENABLE_FFMPEG-X264 )
 endif()
 
-# ##
+###
 # Core build settings advanced flags
-#
+##
+
+# Alternative build directories for specific components
+set( VIAME_BUILD_KWIVER_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
+     CACHE STRING "VIAME superbuild KWIVER build location" )
+mark_as_advanced( VIAME_BUILD_KWIVER_DIR )
+
+set( VIAME_BUILD_PLUGINS_DIR "${VIAME_BUILD_PREFIX}/src/viame-build"
+     CACHE STRING "VIAME superbuild plugins build location" )
+mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
+
 # If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
 # other superbuild projects (except for viame). This makes development builds
 # much quicker if just doing development only in VIAME plugins if OFF.
