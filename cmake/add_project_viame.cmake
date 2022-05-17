@@ -19,7 +19,8 @@ if( VIAME_ENABLE_MATLAB )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  FormatPassdownsCaseSensitive( "Python" VIAME_PYTHON_FLAGS )
+  set( VIAME_PYTHON_FLAGS
+    -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE} )
 endif()
 
 ExternalProject_Add(viame
