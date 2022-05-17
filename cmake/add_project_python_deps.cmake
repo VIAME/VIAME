@@ -67,7 +67,11 @@ if( VIAME_ENABLE_ITK_EXTRAS )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.16.2" )
+  if( Python_VERSION VERSION_LESS "3.10" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.16.2" )
+  else()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.19.2" )
+  endif()
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
