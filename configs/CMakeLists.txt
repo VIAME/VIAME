@@ -259,6 +259,8 @@ set( CORE_PIPELINE_FILES
   pipelines/train_aug_split_and_stereo.pipe
   pipelines/train_aug_split.pipe
   pipelines/train_aug_warp_ir_to_eo.pipe
+  pipelines/transcode_standard.pipe
+  pipelines/transcode_enhance.pipe
   pipelines/utility_add_head_tail_keypoints.pipe
   pipelines/utility_add_segmentations_watershed.pipe
   pipelines/utility_empty_frame_lbls_1fr.pipe

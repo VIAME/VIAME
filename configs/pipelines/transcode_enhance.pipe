@@ -12,12 +12,29 @@ include common_default_input_with_downsampler.pipe
 
 # ==================================== OUTPUT ======================================
 
+process filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+  :filter:ocv_enhancer:apply_smoothing         false
+  :filter:ocv_enhancer:smooth_kernel           3
+  :filter:ocv_enhancer:apply_denoising         false
+  :filter:ocv_enhancer:denoise_kernel          3
+  :filter:ocv_enhancer:denoise_coeff           2
+  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:force_8bit              false
+  :filter:ocv_enhancer:apply_clahe             true
+  :filter:ocv_enhancer:clip_limit              3
+  :filter:ocv_enhancer:saturation              1.20
+
+connect from downsampler.output_1
+        to   filter.image
+
 process output
   :: video_output
   :video_filename                              output.mp4
   :video_writer:type                           ffmpeg
 
-connect from downsampler.output_1
+connect from filter.image
         to   output.image
 connect from downsampler.timestamp
         to   output.timestamp
