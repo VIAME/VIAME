@@ -223,6 +223,7 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_split_and_debayer.pipe
   pipelines/filter_stereo_depth_map.pipe
   pipelines/filter_to_kwa.pipe
+  pipelines/filter_to_video.pipe
   pipelines/frame_classifier_project_folder.pipe
   pipelines/frame_classifier_svm.pipe
   pipelines/index_default.pipe

@@ -1,0 +1,23 @@
+# Reads image from an arbitrary input source then dumps them out again
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_default_input_with_downsampler.pipe
+
+# ==================================== OUTPUT ======================================
+
+process output
+  :: video_output
+  :video_filename                              output.mp4
+  :video_writer:type                           ffmpeg
+
+connect from downsampler.output_1
+        to   output.image
+
+# -- end of file --
