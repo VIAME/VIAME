@@ -9,10 +9,10 @@ include common_default_input.pipe
 
 process downsampler
   :: downsample
-  :target_frame_rate                                    5
-  :burst_frame_count                                    0
-  :burst_frame_break                                    0
-  :renumber_frames                                      true
+  :target_frame_rate                           5
+  :burst_frame_count                           0
+  :burst_frame_break                           0
+  :renumber_frames                             true
 
 connect from input.image
         to   downsampler.input_1
