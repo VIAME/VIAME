@@ -38,5 +38,7 @@ connect from filter.image
         to   output.image
 connect from downsampler.timestamp
         to   output.timestamp
+connect from downsampler.frame_rate
+        to   output.frame_rate
 
 # -- end of file --
