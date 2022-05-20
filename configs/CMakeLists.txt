@@ -218,8 +218,8 @@ set( CORE_PIPELINE_FILES
   pipelines/draw_detections_on_images.pipe
   pipelines/filter_debayer_and_enhance.pipe
   pipelines/filter_enhance.pipe
+  pipelines/filter_extract_default.pipe
   pipelines/filter_extract_dets_only.pipe
-  pipelines/filter_extract_frames.pipe
   pipelines/filter_extract_left.pipe
   pipelines/filter_split_and_debayer.pipe
   pipelines/filter_stereo_depth_map.pipe
@@ -260,8 +260,8 @@ set( CORE_PIPELINE_FILES
   pipelines/train_aug_split_and_stereo.pipe
   pipelines/train_aug_split.pipe
   pipelines/train_aug_warp_ir_to_eo.pipe
-  pipelines/transcode_standard.pipe
-  pipelines/transcode_compressed.pipe
+  pipelines/transcode_default.pipe
+  pipelines/transcode_compress.pipe
   pipelines/transcode_enhance.pipe
   pipelines/utility_add_head_tail_keypoints.pipe
   pipelines/utility_add_segmentations_watershed.pipe
