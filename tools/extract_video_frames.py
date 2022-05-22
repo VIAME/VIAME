@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import os
 import argparse
@@ -35,6 +37,12 @@ def get_ffmpeg_cmd():
   else:
     return ['ffmpeg']
 
+def get_kwiver_cmd():
+  if os.name == 'nt':
+    return ['kwiver.exe', 'runner', ]
+  else:
+    return ['kwiver', 'runner', ]
+
 def exit_with_error( error_str ):
   sys.stdout.write( '\n\nERROR: ' + error_str + '\n\n' )
   sys.stdout.flush()
@@ -64,23 +72,54 @@ if __name__ == "__main__" :
   parser.add_argument("-p", dest="pattern", default="frame%06d.png",
                       help="Frame pattern to dump frames into")
 
+  parser.add_argument("-m", dest="method", default="kwiver",
+                      help="Can either be kwiver or ffmpeg")
+
   args = parser.parse_args()
 
   files = list_files_in_dir( args.input_dir )
   create_dir( args.output_dir )
 
-  for file_with_path in files:
-    file_no_path = os.path.basename( file_with_path )
-    output_folder = args.output_dir + div + file_no_path
-    create_dir( output_folder )
-    cmd = get_ffmpeg_cmd() + [ "-i", file_with_path ]
-    if len( args.frame_rate ) > 0:
-      cmd += [ "-r", args.frame_rate ]
-    if len( args.start_time ) > 0:
-      cmd += [ "-ss", args.start_time ]
-    if len( args.duration ) > 0 and args.duration != invalid_time:
-      cmd += [ "-t", args.duration ]
-    cmd += [ output_folder + div + args.pattern ]
-    subprocess.call( cmd )
+  if args.method == "ffmpeg":
+    for file_with_path in files:
+      file_no_path = os.path.basename( file_with_path )
+      output_folder = args.output_dir + div + file_no_path
+      create_dir( output_folder )
+      cmd = get_ffmpeg_cmd() + [ "-i", file_with_path ]
+      if len( args.frame_rate ) > 0:
+        cmd += [ "-r", args.frame_rate ]
+      if len( args.start_time ) > 0:
+        cmd += [ "-ss", args.start_time ]
+      if len( args.duration ) > 0 and args.duration != invalid_time:
+        cmd += [ "-t", args.duration ]
+      cmd += [ output_folder + div + args.pattern ]
+      subprocess.call( cmd )
+  else:
+    for file_with_path in files:
+      file_no_path = os.path.basename( file_with_path )
+      output_folder = args.output_dir + div + file_no_path
+      create_dir( output_folder )
+      cmd = get_kwiver_cmd() + [ "-i", file_with_path ]
+      if len( args.frame_rate ) > 0:
+        cmd += [ "-r", args.frame_rate ]
+      if len( args.start_time ) > 0:
+        cmd += [ "-ss", args.start_time ]
+      if len( args.duration ) > 0 and args.duration != invalid_time:
+        cmd += [ "-t", args.duration ]
+      cmd += [ output_folder + div + args.pattern ]
+
+  cmd = cmd + " runner " + add_quotes( pipeline_filename ) + " ";
+  cmd = cmd + "-s input:video_filename=" + add_quotes( video_filename ) + " ";
+  cmd = cmd + "-s input:video_reader:type=vidl_ffmpeg ";
+  cmd = cmd + "-s downsampler:target_frame_rate=" + frame_rate_str + " ";
+  cmd = cmd + "-s output:file_name_template=" + add_quotes( output_path ) + " ";
+
+  if( max_frame_count > 0 )
+  {
+    cmd = cmd + "-s input:video_reader:vidl_ffmpeg:stop_after_frame="
+              + boost::lexical_cast< std::string >( max_frame_count );
+  }
+
+      subprocess.call( cmd )
 
   print( "\n\nFrame extraction complete, exiting.\n\n" )
