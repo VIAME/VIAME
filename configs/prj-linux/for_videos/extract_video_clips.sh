@@ -12,8 +12,8 @@ export OUTPUT_DIR=video_clips
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/extract_video_frames.py \
+python ${VIAME_INSTALL}/configs/process_video.py \
   -p "pipelines/transcode_default.pipe" \
   -d ${INPUT_DIRECTORY} -o ${OUTPUT_DIR} \
-  -r ${DEFAULT_FRAME_RATE} \
+  -frate ${DEFAULT_FRAME_RATE} \
   -s "output:maximum_length="${MAX_DURATION}
