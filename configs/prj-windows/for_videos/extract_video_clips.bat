@@ -13,7 +13,9 @@ REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 python.exe "%VIAME_INSTALL%\configs\process_videos.py" ^
+  -p "pipelines/transcode_default.pipe" ^
   -d "%INPUT_DIRECTORY%" -o %OUTPUT_DIR% ^
-  -r %FRAME_RATE% -s sadasdsa=%MAX_DURATION%
+  -r %DEFAULT_FRAME_RATE% ^
+  -s "output:maximum_length=%MAX_DURATION%"
 
 pause

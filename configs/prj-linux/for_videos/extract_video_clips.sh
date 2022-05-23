@@ -5,15 +5,15 @@ export VIAME_INSTALL=/opt/noaa/viame
 
 # Core processing options - 
 export INPUT_DIRECTORY=videos
-export FRAME_RATE=5
-export START_TIME=00:00:00.00
-export DURATION=99:99:99.99
-export OUTPUT_DIR=frames
-export METHOD=kwiver
+export DEFAULT_FRAME_RATE=5
+export MAX_DURATION=05:00.00
+export OUTPUT_DIR=video_clips
 
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/extract_video_frames.py \
+  -p "pipelines/transcode_default.pipe" \
   -d ${INPUT_DIRECTORY} -o ${OUTPUT_DIR} \
-  -r ${FRAME_RATE} -s ${START_TIME} -t ${DURATION} -m ${METHOD}
+  -r ${DEFAULT_FRAME_RATE} \
+  -s "output:maximum_length="${MAX_DURATION}
