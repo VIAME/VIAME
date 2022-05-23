@@ -192,6 +192,17 @@ def find_file( filename ):
   else:
     exit_with_error( "Unable to find " + filename )
 
+def rate_from_gt( filename ):
+  if not os.path.exists( filename ):
+    return ""
+  with open( filename ) as fin:
+    head = [ next( fin ) for x in range( 2 ) ]
+    for line in head:
+      if "fps:" in line:
+        fps = line.split( "fps:", 1 )[1].split( "," )[0]
+        return fps
+  return ""
+
 def make_filelist_for_dir( input_dir, output_dir, output_name ):
   # The most common extension in the folder is most likely images.
   # Sometimes people have small text files alongside the images
@@ -328,11 +339,13 @@ def object_tracker_settings_list( options ):
     ))
   return []
 
-def video_frame_rate_settings_list( options ):
+def video_frame_rate_settings_list( options, frame_rate = "" ):
   output = []
   if len( options.input_frame_rate ) > 0:
     output += fset( 'input:frame_time=' + str( 1.0 / float( options.input_frame_rate ) ) )
-  if len( options.frame_rate ) > 0:
+  if len( frame_rate ) > 0:
+    output += fset( 'downsampler:target_frame_rate=' + frame_rate )
+  elif len( options.frame_rate ) > 0:
     output += fset( 'downsampler:target_frame_rate=' + options.frame_rate )
   if len( options.batch_size ) > 0:
     output += fset( 'downsampler:burst_frame_count=' + options.batch_size )
@@ -514,7 +527,11 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
               [ find_file( options.pipeline ) ] +
               input_settings )
 
-  command += video_frame_rate_settings_list( options )
+  if use_gt and len( gt_files ) > 0:
+    command += video_frame_rate_settings_list( options, rate_from_gt( gt_files[0] ) )
+  else:
+    command += video_frame_rate_settings_list( options )
+
   command += video_output_settings_list( options, basename_no_ext )
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
