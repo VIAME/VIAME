@@ -86,7 +86,7 @@ def list_videos_in_dir( folder, extensions ):
   files = recurse_folders( folder, extensions )
   if len( files ) == 0:
     files = list_files_in_dir( folder )
-  print( "\nFound " + str( len( files ) ) + " items for possibl processing\n" )
+  print( "\nFound " + str( len( files ) ) + " items for possible processing\n" )
   for i in files:
     print( i )
   return files
