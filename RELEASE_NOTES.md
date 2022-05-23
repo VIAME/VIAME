@@ -8,6 +8,9 @@ v0.19.1 - 5/24/2022
 -Add scripts to prj to chunk long videos into smaller segments
 
 
+-Add script to extract frames with detections only
+
+
 
 v0.19.0 - 5/8/2022
 ==================
