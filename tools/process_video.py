@@ -338,6 +338,10 @@ def video_frame_rate_settings_list( options ):
     output += fset( 'downsampler:burst_frame_count=' + options.batch_size )
   if len( options.batch_skip ) > 0:
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
+  if len( options.start_time ) > 0:
+    output += fset( 'downsampler:start_time=' + options.start_time )
+  if len( options.duration ) > 0:
+    output += fset( 'downsampler:duration=' + options.duration )
   return output
 
 def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id, gt_type ):
@@ -570,10 +574,10 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
         exit_with_error( lb1 + 'Out of disk space. Clean up space and then re-run.' )
 
       log_info( lb1 + 'Pipeline failed with code 11. This is typically indicative of an '
-                'issue with system resources, e.g. low disk space or running out of '
-                'memory, but could be indicative of a pipeline issue. It\'s also possible '
-                'the pipeline you are running just had a shutdown issue. Attempting to '
-                'continue processing.' + lb1 )
+        'issue with system resources, e.g. low disk space or running out of '
+        'memory, but could be indicative of a pipeline issue. It\'s also possible '
+        'the pipeline you are running just had a shutdown issue. Attempting to '
+        'continue processing.' + lb1 )
 
       any_video_complete = True
 
@@ -589,123 +593,133 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 if __name__ == "__main__" :
 
   parser = argparse.ArgumentParser(description="Process new videos",
-                       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-  parser.add_argument("-v", dest="input_video", default="",
-                      help="Input single video to process")
+  parser.add_argument( "-v", dest="input_video", default="",
+    help="Input single video to process" )
 
-  parser.add_argument("-d", dest="input_dir", default="",
-                      help="Input directory of videos or image folders to process")
+  parser.add_argument( "-d", dest="input_dir", default="",
+    help="Input directory of videos or image folders to process" )
 
-  parser.add_argument("-l", dest="input_list", default="",
-                      help="Input list of image files to process")
+  parser.add_argument( "-l", dest="input_list", default="",
+    help="Input list of image files to process" )
 
-  parser.add_argument("-p", dest="pipeline", default=default_pipeline,
-                      help="Input pipeline for processing video or image data")
+  parser.add_argument( "-p", dest="pipeline", default=default_pipeline,
+    help="Input pipeline for processing video or image data" )
 
-  parser.add_argument("-s", dest="extra_settings", action='append', nargs='*',
-                      help="Extra command line arguments for the pipeline runner")
+  parser.add_argument( "-s", dest="extra_settings", action='append', nargs='*',
+    help="Extra command line arguments for the pipeline runner" )
 
-  parser.add_argument("-id", dest="input_detections", default="",
-                      help="Input detections around which to create descriptors")
+  parser.add_argument( "-id", dest="input_detections", default="",
+    help="Input detections around which to create descriptors" )
 
-  parser.add_argument("-o", dest="output_directory", default=".",
-                      help="Output directory to store files in")
+  parser.add_argument( "-o", dest="output_directory", default=".",
+    help="Output directory to store files in" )
 
-  parser.add_argument("-logs", dest="log_directory", default="logs",
-                      help="Output sub-directory for log files, if empty will not use files")
+  parser.add_argument( "-logs", dest="log_directory", default="logs",
+    help="Output sub-directory for log files, if empty will not use files" )
 
-  parser.add_argument("-video-exts", dest="video_exts", default="3qp;3g2;amv;asf;avi;drc;gif;gifv;"
-                      "f4v;f4p;f4a;f4bflv;m4v;mkv;mp4;m4p;m4v;mpg;mpg2;mp2;mpeg;mpe;mpv;mng;mts;"
-                      "m2ts;mov;mxf;nsv;ogg;ogv;qt;roq;rm;rmvb;svi;webm;wmv;vob;yuv",
-                      help="Allowable video extensions")
+  parser.add_argument( "-video-exts", dest="video_exts", default="3qp;3g2;amv;"
+         "asf;avi;drc;gif;gifv;f4v;f4p;f4a;f4bflv;m4v;mkv;mp4;m4p;m4v;mpg;mpg2;"
+         "mp2;mpeg;mpe;mpv;mng;mts;m2ts;mov;mxf;nsv;ogg;ogv;qt;roq;rm;rmvb;svi;"
+         "webm;wmv;vob;yuv",
+    help="Allowable video extensions" )
 
-  parser.add_argument("-image-exts", dest="image_exts", default="bmp;dds;gif;heic;jpg;jpeg;png;psd;"
-                      "psp;pspimage;tga;thm;tif;tiff;yuv",
-                      help="Allowable image extensions")
+  parser.add_argument( "-image-exts", dest="image_exts", default="bmp;dds;gif;"
+         "heic;jpg;jpeg;png;psd;psp;pspimage;tga;thm;tif;tiff;yuv",
+    help="Allowable image extensions" )
 
-  parser.add_argument("-frate", dest="frame_rate", default="",
-                      help="Processing frame rate over-ride to process videos at, specified "
-                      "in hertz (frames per second)" )
+  parser.add_argument( "-frate", dest="frame_rate", default="",
+    help="Processing frame rate over-ride to process videos at, specified "
+         "in hertz (frames per second)" )
 
-  parser.add_argument("-fbatch", dest="batch_size", default="",
-                      help="Optional number of frames to process in batches")
+  parser.add_argument( "-fbatch", dest="batch_size", default="",
+    help="Optional number of frames to process in batches" )
 
-  parser.add_argument("-fskip", dest="batch_skip", default="",
-                      help="If batching frames, number of frames to skip between batches")
+  parser.add_argument( "-fskip", dest="batch_skip", default="",
+    help="If batching frames, number of frames to skip between batches" )
 
-  parser.add_argument("-ifrate", dest="input_frame_rate", default="",
-                      help="Input frame rate over-ride to process videos at. This is useful "
-                      "for specifying the frame rate of input image lists, which typically "
-                      "don't have frame rates")
+  parser.add_argument( "-ifrate", dest="input_frame_rate", default="",
+    help="Input frame rate over-ride to process videos at. This is useful "
+         "for specifying the frame rate of input image lists, which typically "
+         "don't have frame rates" )
 
-  parser.add_argument("-detection-threshold", dest="detection_threshold", default="",
-                      help="Optional detection threshold over-ride parameter")
+  parser.add_argument( "-detection-threshold", dest="detection_threshold", default="",
+    help="Optional detection threshold over-ride parameter" )
 
-  parser.add_argument("-tracker-threshold", dest="tracker_threshold", default="",
-                      help="Optional tracking threshold over-ride parameter")
+  parser.add_argument( "-tracker-threshold", dest="tracker_threshold", default="",
+    help="Optional tracking threshold over-ride parameter" )
 
-  parser.add_argument("-archive-height", dest="archive_height", default="",
-                      help="Advanced: Optional video archive height over-ride")
+  parser.add_argument( "-archive-height", dest="archive_height", default="",
+    help="Advanced: Optional video archive height over-ride" )
 
-  parser.add_argument("-archive-width", dest="archive_width", default="",
-                      help="Advanced: Optional video archive width over-ride")
+  parser.add_argument( "-archive-width", dest="archive_width", default="",
+    help="Advanced: Optional video archive width over-ride" )
 
-  parser.add_argument("-gpus", "--gpu-count", default=1, type=int, metavar='N',
-                      help="Parallelize the ingest by using the first N GPUs in parallel")
+  parser.add_argument( "-gpus", "--gpu-count", default=1, type=int, metavar='N',
+    help="Parallelize the ingest by using the first N GPUs in parallel" )
 
-  parser.add_argument("-pipes-per-gpu", "--pipes", default=1, type=int, metavar='N',
-                      help="Parallelize the ingest by using the first N GPUs in parallel")
+  parser.add_argument( "-pipes-per-gpu", "--pipes", default=1, type=int, metavar='N',
+    help="Parallelize the ingest by using the first N GPUs in parallel" )
 
-  parser.add_argument("--detection-plots", dest="detection_plots", action="store_true",
-                      help="Produce per-video detection plot summaries")
+  parser.add_argument( "-pattern", dest="pattern", default="frame%06d.png",
+    help="Pattern to use for output names for pipes outputting frames" )
 
-  parser.add_argument("--track-plots", dest="track_plots", action="store_true",
-                      help="Produce per-video track plot summaries")
+  parser.add_argument( "-start-time", dest="start_time", default="",
+    help="Optional video start time for processing or conversion" )
 
-  parser.add_argument("-plot-objects", dest="objects", default="fish",
-                      help="Objects to generate plots for")
+  parser.add_argument( "-duration", dest="duration", default="",
+    help="Optional video duration for processing or conversion" )
 
-  parser.add_argument("-plot-threshold", dest="plot_threshold", default=0.25, type=float,
-                      help="Threshold to generate plots for")
+  parser.add_argument( "--detection-plots", dest="detection_plots", action="store_true",
+    help="Produce per-video detection plot summaries" )
 
-  parser.add_argument("-plot-smooth", dest="smooth", default=1, type=int,
-                      help="Smoothing factor for plots")
+  parser.add_argument( "--track-plots", dest="track_plots", action="store_true",
+    help="Produce per-video track plot summaries" )
 
-  parser.add_argument("-gt-file", dest="gt_file", default="",
-                      help="Pass this groundtruth files to pipes")
+  parser.add_argument( "-plot-objects", dest="objects", default="fish",
+    help="Objects to generate plots for" )
 
-  parser.add_argument("-auto-detect-gt", dest="auto_detect_gt", default="",
-                      help="Automatically pass to pipes GT of this type if present")
+  parser.add_argument( "-plot-threshold", dest="plot_threshold", default=0.25, type=float,
+    help="Threshold to generate plots for" )
 
-  parser.add_argument("-lbl-file", dest="label_file", default="",
-                      help="Pass this label file to pipes")
+  parser.add_argument( "-plot-smooth", dest="smooth", default=1, type=int,
+    help="Smoothing factor for plots" )
 
-  parser.add_argument("--init-db", dest="init_db", action="store_true",
-                      help="Re-initialize database")
+  parser.add_argument( "-gt-file", dest="gt_file", default="",
+    help="Pass this groundtruth files to pipes" )
 
-  parser.add_argument("--build-index", dest="build_index", action="store_true",
-                      help="Build searchable index on completion")
+  parser.add_argument( "-auto-detect-gt", dest="auto_detect_gt", default="",
+    help="Automatically pass to pipes GT of this type if present" )
 
-  parser.add_argument("--ball-tree", dest="ball_tree", action="store_true",
-                      help="Use a ball tree for the searchable index")
+  parser.add_argument( "-lbl-file", dest="label_file", default="",
+    help="Pass this label file to pipes" )
 
-  parser.add_argument("--no-reset-prompt", dest="no_reset_prompt", action="store_true",
-                      help="Don't prompt if the output folder should be reset")
+  parser.add_argument( "--init-db", dest="init_db", action="store_true",
+    help="Re-initialize database" )
 
-  parser.add_argument("--ts-from-file", dest="ts_from_file", action="store_true",
-                      help="Attempt to retrieve timestamps from image filenames.")
+  parser.add_argument( "--build-index", dest="build_index", action="store_true",
+    help="Build searchable index on completion" )
 
-  parser.add_argument("--write-svm-info", dest="write_svm_info", action="store_true",
-                      help="Write out header information used for training SVMs")
+  parser.add_argument( "--ball-tree", dest="ball_tree", action="store_true",
+    help="Use a ball tree for the searchable index" )
 
-  parser.add_argument("--debug", dest="debug", action="store_true",
-                      help="Run with debugger attached to process")
+  parser.add_argument( "--no-reset-prompt", dest="no_reset_prompt", action="store_true",
+    help="Don't prompt if the output folder should be reset" )
 
-  parser.add_argument("-install", dest="install_dir", default="",
-                      help="Optional install dir over-ride for all application "
-                      "binaries. If this is not specified, it is expected that all "
-                      "viame binaries are already in our path.")
+  parser.add_argument( "--ts-from-file", dest="ts_from_file", action="store_true",
+    help="Attempt to retrieve timestamps from image filenames." )
+
+  parser.add_argument( "--write-svm-info", dest="write_svm_info", action="store_true",
+    help="Write out header information used for training SVMs" )
+
+  parser.add_argument( "--debug", dest="debug", action="store_true",
+    help="Run with debugger attached to process" )
+
+  parser.add_argument( "-install", dest="install_dir", default="",
+    help="Optional install dir over-ride for all application "
+         "binaries. If this is not specified, it is expected that all "
+         "viame binaries are already in our path." )
 
   args = parser.parse_args()
 
@@ -741,8 +755,8 @@ if __name__ == "__main__" :
         sys.exit( 0 )
       elif len( args.log_directory ) > 0:
         exit_with_error( "Unable to initialize database, check " + init_log_file + lb2 +
-                         "You may have another database running on your system, or ran "
-                         "a failed operation in the past and need to re-log or restart." )
+         "You may have another database running on your system, or ran "
+         "a failed operation in the past and need to re-log or restart." )
       else:
         exit_with_error( "Unable to initialize database" )
     log_info( lb1 )
@@ -813,7 +827,7 @@ if __name__ == "__main__" :
         except queue.Empty:
           break
         process_video_kwiver( video_name, args, is_image_list,
-                              cpu=cpu, gpu=gpu, write_track_time=not is_image_list )
+            cpu=cpu, gpu=gpu, write_track_time=not is_image_list )
 
     gpu_thread_list = [ i for i in range( args.gpu_count ) for _ in range( args.pipes ) ]
     cpu_thread_list = list( range( args.pipes ) ) * args.gpu_count

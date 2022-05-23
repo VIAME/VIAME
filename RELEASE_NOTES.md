@@ -1,3 +1,14 @@
+v0.19.1 - 5/24/2022
+===================
+
+
+-Sync project folder extract_frames with other downsamplers (web, desktop GUIs)
+
+
+-Add scripts to prj to chunk long videos into smaller segments
+
+
+
 v0.19.0 - 5/8/2022
 ==================
 
