@@ -216,11 +216,12 @@ set( CORE_PIPELINE_FILES
   pipelines/detector_svm_models.pipe
   pipelines/display_annotations.pipe
   pipelines/draw_detections_on_images.pipe
+  pipelines/filter_debayer.pipe
   pipelines/filter_debayer_and_enhance.pipe
+  pipelines/filter_default.pipe
+  pipelines/filter_dets_only.pipe
   pipelines/filter_enhance.pipe
-  pipelines/filter_extract_default.pipe
-  pipelines/filter_extract_dets_only.pipe
-  pipelines/filter_extract_left.pipe
+  pipelines/filter_left.pipe
   pipelines/filter_split_and_debayer.pipe
   pipelines/filter_stereo_depth_map.pipe
   pipelines/filter_to_kwa.pipe

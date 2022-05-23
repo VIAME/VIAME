@@ -1,0 +1,43 @@
+# Filters input images via debayering them and running basic image filtering
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# ================================= INPUT VIDEO ====================================
+
+process input
+  :: video_input
+  :video_filename                                       input_list.txt
+  :frame_time                                           1
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type            vxl
+  :video_reader:image_list:image_reader:vxl:force_byte  false
+  :video_reader:vidl_ffmpeg:time_source                 current
+
+# =================================== DEBAYER ======================================
+
+process debayer
+  :: image_filter
+  :filter:type                                 ocv_debayer
+  :filter:ocv_debayer:pattern                  BG
+  :filter:ocv_debayer:force_8bit               true
+
+connect from input.image
+        to   debayer.image
+
+# ==================================== OUTPUT ======================================
+
+process output
+  :: image_writer
+  :file_name_template                          .png
+  :image_writer:type                           vxl
+
+connect from debayer.image
+        to   output.image
+connect from input.file_name
+        to   output.image_file_name
+
+# -- end of file --
