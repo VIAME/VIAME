@@ -1,0 +1,46 @@
+# Link or re-link detections into tracks using the default tracker
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                                      5
+
+config _scheduler
+  :type                                       pythread_per_process
+
+# ====================== INPUT FRAME LIST ========================
+include common_default_input_with_downsampler.pipe
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                        detections.csv
+  :reader:type                                           viame_csv
+  :reader:viame_csv:poly_to_mask                              true
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
+# =========================== TRACKER ============================
+include common_default_tracker.pipe
+
+connect from downsampler.output_1
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from detector_reader.detected_object_set
+        to   tracker.detected_object_set
+
+# ========================= OUTPUT WRITER ========================
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                           viame_csv
+  :writer:viame_csv:stream_identifier               input_list.txt
+
+connect from tracker.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+
+

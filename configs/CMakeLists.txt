@@ -271,6 +271,7 @@ set( CORE_PIPELINE_FILES
   pipelines/utility_empty_frame_lbls_100fr.pipe
   pipelines/utility_empty_frame_lbls_1000fr.pipe
   pipelines/utility_extract_chips.pipe
+  pipelines/utility_link_detections_default.pipe
   pipelines/utility_max_10_points_per_poly.pipe
   pipelines/utility_max_25_points_per_poly.pipe )
 
