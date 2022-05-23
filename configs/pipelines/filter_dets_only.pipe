@@ -14,7 +14,6 @@ process downsampler
   :: downsample
   :target_frame_rate                           5
   :renumber_frames                             true
-  :only_frames_with_dets                       true
 
 connect from input.image
         to   downsampler.input_1
