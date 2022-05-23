@@ -3,7 +3,7 @@
 # Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
 
-# Core processing options
+# Processing options - method can be 'kwiver' or 'ffmpeg'
 export INPUT_DIRECTORY=videos
 export FRAME_RATE=5
 export START_TIME=00:00:00.00

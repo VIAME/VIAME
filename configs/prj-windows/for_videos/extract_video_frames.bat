@@ -3,7 +3,7 @@
 REM Path to VIAME installation
 SET VIAME_INSTALL=C:\Program Files\VIAME
 
-REM Processing options
+REM Processing options - method can be 'kwiver' or 'ffmpeg'
 SET INPUT_DIRECTORY=videos
 SET FRAME_RATE=5
 SET START_TIME=00:00:00.00
