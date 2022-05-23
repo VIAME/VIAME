@@ -423,13 +423,19 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   auto_detect_gt = ( len( options.auto_detect_gt ) > 0 )
   use_gt = ( len( options.gt_file ) > 0 or auto_detect_gt )
 
+  # Output naming and directory formation if necessary
   if os.path.isdir( input_name ):
     input_basename = input_name
-    if not os.path.exists( options.output_directory + div + input_basename ):
-      os.makedirs( options.output_directory + div + input_basename )
   else:
     input_basename = os.path.basename( input_name )
+  output_subdir = options.output_directory + div + input_basename
   input_ext = os.path.splitext( input_name )[1]
+
+  if not os.path.exists( output_subdir ):
+    if os.path.isdir( input_name ):
+      os.makedirs( output_subdir )
+    if "filter_" in options.pipeline or "transcode_" in options.pipeline:
+      os.makedirs( output_subdir )
 
   # GPU checks for logging statements
   try:
@@ -534,6 +540,14 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   if len( options.input_detections ) > 0:
     command += fset( "detection_reader:file_name=" + options.input_detections )
+
+  if len( options.pattern ) > 0:
+    full_pattern = output_subdir + div + options.pattern
+    command += fset( "output:file_name_template=" + full_pattern )
+
+  if "transcode_" in options.pipeline:
+    full_pattern = output_subdir + div + input_basename + ".mp4"
+    command += fset( "output:video_filename=" + full_pattern )
 
   try:
     if len( options.extra_settings ) > 0:
