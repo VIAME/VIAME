@@ -21,7 +21,7 @@ process filter
   :filter:ocv_enhancer:denoise_kernel          3
   :filter:ocv_enhancer:denoise_coeff           2
   :filter:ocv_enhancer:auto_balance            true
-  :filter:ocv_enhancer:force_8bit              false
+  :filter:ocv_enhancer:force_8bit              true
   :filter:ocv_enhancer:apply_clahe             true
   :filter:ocv_enhancer:clip_limit              3
   :filter:ocv_enhancer:saturation              1.20
