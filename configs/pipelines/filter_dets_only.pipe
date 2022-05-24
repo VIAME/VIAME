@@ -35,7 +35,7 @@ connect from downsampler.output_2
 
 process downsampler2
   :: downsample
-  :renumber_frames                             true
+  :renumber_frames                             false
   :only_frames_with_dets                       true
 
 connect from detection_reader.detected_object_set
@@ -54,6 +54,8 @@ process image_writer
   :file_name_template                          frame%06d.jpg
   :image_writer:type                           vxl
 
+connect from downsampler2.timestamp
+        to   image_writer.timestamp
 connect from downsampler2.output_1
         to   image_writer.image
 
