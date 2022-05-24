@@ -316,23 +316,23 @@ write_object_track_set_viame_csv
 ::set_configuration( kwiver::vital::config_block_sptr config )
 {
   d->m_delim =
-    config->get_value<std::string>( "delimiter", d->m_delim );
+    config->get_value< std::string >( "delimiter", d->m_delim );
   d->m_stream_identifier =
-    config->get_value<std::string>( "stream_identifier", d->m_stream_identifier );
+    config->get_value< std::string >( "stream_identifier", d->m_stream_identifier );
   d->m_model_identifier =
     config->get_value< std::string >( "model_identifier", d->m_model_identifier );
   d->m_version_identifier =
     config->get_value< std::string >( "version_identifier", d->m_version_identifier );
   d->m_active_writing =
-    config->get_value<bool>( "active_writing", d->m_active_writing );
+    config->get_value< bool >( "active_writing", d->m_active_writing );
   d->m_write_time_as_uid =
-    config->get_value<bool>( "write_time_as_uid", d->m_write_time_as_uid );
+    config->get_value< bool >( "write_time_as_uid", d->m_write_time_as_uid );
   d->m_tot_option =
-    config->get_value<std::string>( "tot_option", d->m_tot_option );
+    config->get_value< std::string> ( "tot_option", d->m_tot_option );
   d->m_tot_ignore_class =
-    config->get_value<std::string>( "tot_ignore_class", d->m_tot_ignore_class );
+    config->get_value< std::string >( "tot_ignore_class", d->m_tot_ignore_class );
   d->m_frame_id_adjustment =
-    config->get_value<int>( "frame_id_adjustment", d->m_frame_id_adjustment );
+    config->get_value< int >( "frame_id_adjustment", d->m_frame_id_adjustment );
 }
 
 
