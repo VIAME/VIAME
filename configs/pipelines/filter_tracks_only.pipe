@@ -76,7 +76,7 @@ process track_writer
   :: write_object_track
   :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
-  :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:write_time_as_uid          false
 
 connect from downsampler2.output_4
         to   track_writer.object_track_set

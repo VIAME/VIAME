@@ -102,7 +102,8 @@ def create_dir( dirname, logging=True, recreate=False, prompt=True ):
     return
   if recreate:
     if os.path.exists( dirname ):
-      if not prompt or database_tool.query_yes_no( lb1 + "Reset folder: " + dirname + "?" ):
+      if not prompt or \
+         database_tool.query_yes_no( lb1 + "Reset output folder: " + dirname + "?" ):
         if logging:
           log_info( "Removing " + dirname + lb )
         shutil.rmtree( dirname )
@@ -383,6 +384,8 @@ def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id, gt_ty
 
     output += fset( 'detection_reader:file_name=' + gt_files[0] )
     output += fset( 'detection_reader:reader:type=' + gt_type )
+    output += fset( 'track_reader:file_name=' + gt_files[0] )
+    output += fset( 'track_reader:reader:type=' + gt_type )
     output += fset( 'write_descriptor_ids:category_file=' + lbl_file )
     output += fset( 'write_descriptor_ids:output_directory=' + options.output_directory )
     output += fset( 'write_descriptor_ids:output_extension=' + output_extension )
@@ -433,8 +436,8 @@ def add_final_list_csv( args, video_list ):
     is_first = False
 
 # Process a single video
-def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='',
-                          cpu=0, gpu=None, write_track_time=True ):
+def process_using_kwiver( input_name, options, is_image_list=False,
+                          base_ovrd='', cpu=0, gpu=None ):
 
   # Generic settings
   multi_threaded = ( options.gpu_count * options.pipes > 1 )
@@ -562,21 +565,25 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     gt_files = [ options.gt_file ] if not auto_detect_gt else gt_files
     command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu, gt_type )
 
-  if write_track_time:
+  def pipe_starts_with( filename, substr ):
+    return os.path.basename( filename ).startswith( substr )
+
+  if not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ):
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
     command += fset( 'detector_writer:writer:viame_csv:write_time_as_uid=true' )
   else:
     command += fset( 'track_writer:writer:viame_csv:stream_identifier=' + input_basename )
     command += fset( 'detector_writer:writer:viame_csv:stream_identifier=' + input_basename )
 
-  if len( options.input_detections ) > 0:
+  if options.input_detections:
     command += fset( "detection_reader:file_name=" + options.input_detections )
+    command += fset( "track_reader:file_name=" + options.input_detections )
 
-  if len( options.pattern ) > 0:
+  if options.pattern:
     full_pattern = output_subdir + div + options.pattern
     command += fset( "image_writer:file_name_template=" + full_pattern )
 
-  if "transcode_" in options.pipeline:
+  if pipe_starts_with( options.pipeline, "transcode_" ):
     full_pattern = output_subdir + div + input_basename
     command += fset( "video_writer:video_filename=" + full_pattern )
 
@@ -882,19 +889,18 @@ if __name__ == "__main__" :
       else:
         log_info( "Skipping unknown input: " + video_name + lb )
 
-    def process_video_thread( gpu, cpu ):
+    def process_on_thread( gpu, cpu ):
       while True:
         try:
           video_name = video_queue.get_nowait()
         except queue.Empty:
           break
-        process_video_kwiver( video_name, args, is_image_list,
-            cpu=cpu, gpu=gpu, write_track_time=not is_image_list )
+        process_using_kwiver( video_name, args, is_image_list, cpu=cpu, gpu=gpu )
 
     gpu_thread_list = [ i for i in range( args.gpu_count ) for _ in range( args.pipes ) ]
     cpu_thread_list = list( range( args.pipes ) ) * args.gpu_count
 
-    threads = [ threading.Thread( target = process_video_thread, args = (gpu,cpu,) )
+    threads = [ threading.Thread( target = process_on_thread, args = (gpu,cpu,) )
                 for gpu, cpu in zip( gpu_thread_list, cpu_thread_list ) ]
 
     for thread in threads:
