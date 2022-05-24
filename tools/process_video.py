@@ -200,7 +200,8 @@ def rate_from_gt( filename ):
     for line in head:
       if "fps:" in line:
         fps = line.split( "fps:", 1 )[1].split( "," )[0]
-        print( "Parsed FPS value: " + fps + " from CSV header" )
+        fps = fps[1:] if len( fps ) > 1 and fps[0] == " " else fps
+        log_info( "Using FPS " + fps + "..." )
         return fps
   return ""
 
