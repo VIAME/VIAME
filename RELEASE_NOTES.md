@@ -14,6 +14,10 @@ v0.19.1 - 5/24/2022
 -Consolidate image and video project templates
 
 
+-Update DIVE version in VIAME: multi-cam, checkboxes for right type
+
+
+
 v0.19.0 - 5/8/2022
 ==================
 
