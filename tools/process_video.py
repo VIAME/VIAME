@@ -536,7 +536,8 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     source_rate = gt_rate if not args.input_frame_rate and is_image_list else None
     command += video_frame_rate_settings_list( options, gt_rate, source_rate )
   else:
-    command += video_frame_rate_settings_list( options )
+    source_rate = args.frame_rate if not args.input_frame_rate and is_image_list else None
+    command += video_frame_rate_settings_list( options, source_rate=source_rate )
 
   command += video_output_settings_list( options, basename_no_ext )
   command += archive_dimension_settings_list( options )
