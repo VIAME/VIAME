@@ -89,13 +89,13 @@ def create_pipelines_list( glob_str ):
 
   f = os.fdopen(fd, 'w')
 
-  f.write("[EmbeddedPipelines]\n")
-  f.write("size=" + str( total_entries ) + "\n")
+  f.write( "[EmbeddedPipelines]\n" )
+  f.write( "size=" + str( total_entries ) + "\n" )
 
   for ind, full_path in enumerate( pipeline_files ):
     name_id = os.path.splitext( os.path.basename( full_path ) )[0]
-    f.write("%s\\Name=\"%s\"\n" % (ind+1, name_id) )
-    f.write("%s\\Path=\"%s\"\n" % (ind+1, full_path.replace("\\","\\\\") ) )
+    f.write( "%s\\Name=\"%s\"\n" % (ind+1, name_id) )
+    f.write( "%s\\Path=\"%s\"\n" % (ind+1, full_path.replace( "\\","\\\\" ) ) )
 
   f.close()
   return name
@@ -281,9 +281,9 @@ def process_video_dir( args ):
                                 text=True, dir=temp_dir)
 
   ftmp = os.fdopen(fd, 'w')
-  ftmp.write( "DataSetSpecifier=" + os.path.abspath( file_path ).replace("\\","\\\\") + "\n" )
+  ftmp.write( "DataSetSpecifier=" + os.path.abspath( file_path ).replace( "\\","\\\\" ) + "\n" )
   if len( detection_file ) > 0:
-    ftmp.write( "TracksFile=" + os.path.abspath( detection_file ).replace("\\","\\\\") + "\n" )
+    ftmp.write( "TracksFile=" + os.path.abspath( detection_file ).replace( "\\","\\\\" ) + "\n" )
   ftmp.close()
 
   execute_command( get_gui_cmd( args.debug ) + [ "-p", name ] + default_annotator_args( args ) )
@@ -292,40 +292,40 @@ def process_video_dir( args ):
 if __name__ == "__main__" :
 
   parser = argparse.ArgumentParser(description="Launch annotation GUI",
-                       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-  parser.add_argument("-d", dest="video_dir", default="",
-                      help="Input directory containing videos to run annotator on")
+  parser.add_argument( "-d", dest="video_dir", default="",
+    help="Input directory containing videos to run annotator on" )
 
-  parser.add_argument("-c", dest="cache_dir", default="",
-                      help="Input directory containing cached video .index files")
+  parser.add_argument( "-c", dest="cache_dir", default="",
+    help="Input directory containing cached video .index files" )
 
-  parser.add_argument("-o", dest="output_directory", default="database",
-                      help="Output directory to store files in")
+  parser.add_argument( "-o", dest="output_directory", default="database",
+    help="Output directory to store files in" )
 
-  parser.add_argument("-v", dest="input_video", default="",
-                      help="Input video file to run annotator on")
+  parser.add_argument( "-v", dest="input_video", default="",
+    help="Input video file to run annotator on" )
 
-  parser.add_argument("-l", dest="input_list", default="",
-                      help="Input image list file to run annotator on")
+  parser.add_argument( "-l", dest="input_list", default="",
+    help="Input image list file to run annotator on" )
 
-  parser.add_argument("-theme", dest="gui_theme",
-                      default="gui-params" + div + "dark_gui_settings.ini",
-                      help="Predefined query directory, if present")
+  parser.add_argument( "-theme", dest="gui_theme",
+    default="gui-params" + div + "dark_gui_settings.ini",
+    help="Predefined query directory, if present" )
 
-  parser.add_argument("-pipelines", dest="pipelines",
-                      default="pipelines" + div + "embedded_single_stream" + div + "*.pipe",
-                      help="Glob pattern for runable processing pipelines")
+  parser.add_argument( "-pipelines", dest="pipelines",
+    default="pipelines" + div + "embedded_single_stream" + div + "*.pipe",
+    help="Glob pattern for runable processing pipelines" )
 
-  parser.add_argument("-cache-pipe", dest="cache_pipeline",
-                      default="pipelines" + div + "filter_to_kwa.pipe",
-                      help="Pipeline used for generative video .index files")
+  parser.add_argument( "-cache-pipe", dest="cache_pipeline",
+    default="pipelines" + div + "filter_to_kwa.pipe",
+    help="Pipeline used for generative video .index files" )
 
-  parser.add_argument("-frate", dest="frame_rate", default="",
-                      help="Frame rate over-ride to process videos at")
+  parser.add_argument( "-frate", dest="frame_rate", default="",
+    help="Frame rate over-ride to process videos at" )
 
-  parser.add_argument("--debug", dest="debug", action="store_true",
-                      help="Run with debugger attached to process")
+  parser.add_argument( "--debug", dest="debug", action="store_true",
+    help="Run with debugger attached to process" )
 
   parser.set_defaults( debug=False )
 
