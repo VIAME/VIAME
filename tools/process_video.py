@@ -563,7 +563,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     command += fset( "output:file_name_template=" + full_pattern )
 
   if "transcode_" in options.pipeline:
-    full_pattern = output_subdir + div + input_basename + ".mp4"
+    full_pattern = output_subdir + div + input_basename
     command += fset( "output:video_filename=" + full_pattern )
 
   try:
