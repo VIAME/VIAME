@@ -4,8 +4,8 @@
 export VIAME_INSTALL=/opt/noaa/viame
 
 # Core processing options
-export INPUT_DIRECTORY=videos
-export OUTPUT_DIRECTORY=output
+export INPUT=videos
+export OUTPUT=output
 export FRAME_RATE=5
 
 # Extra resource utilization options
@@ -19,6 +19,6 @@ source ${VIAME_INSTALL}/setup_viame.sh
 export VIAME_PROJECT_DIR="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
 
 python ${VIAME_INSTALL}/configs/process_video.py \
-  -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
-  -p pipelines/frame_classifier_project_folder.pipe -o ${OUTPUT_DIRECTORY} \
+  -i ${INPUT} -o ${OUTPUT} -frate ${FRAME_RATE} \
+  -p pipelines/frame_classifier_project_folder.pipe \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}

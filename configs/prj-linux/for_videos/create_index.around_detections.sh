@@ -4,7 +4,7 @@
 export VIAME_INSTALL=/opt/noaa/viame
 
 # Core processing options
-export INPUT_DIRECTORY=videos
+export INPUT=videos
 export FRAME_RATE=5
 
 # Extra resource utilization options
@@ -15,7 +15,7 @@ export PIPES_PER_GPU=1
 source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/process_video.py --init \
-  -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
-  -p pipelines/index_default.pipe -o database \
+  -i ${INPUT} -o database -frate ${FRAME_RATE} \
+  -p pipelines/index_default.pipe \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU} \
   --build-index -install ${VIAME_INSTALL}

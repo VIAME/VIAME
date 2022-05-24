@@ -5,7 +5,7 @@ SET VIAME_INSTALL=C:\Program Files\VIAME
 
 REM Processing options
 SET INPUT_DIRECTORY=training_data
-SET INITIAL_MODEL=category_models\trained_detector.zip
+SET SEED_MODEL=category_models\trained_detector.zip
 
 REM Disable warnings
 SET KWIMAGE_DISABLE_C_EXTENSIONS=1
@@ -16,11 +16,11 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 REM Adjust log level
 SET KWIVER_DEFAULT_LOG_LEVEL=info
 
-IF EXIST "%INITIAL_MODEL%" (
+IF EXIST "%SEED_MODEL%" (
   viame_train_detector.exe ^
     -i "%INPUT_DIRECTORY%" ^
     -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn.viame_csv.conf" ^
-    -s "detector_trainer:ocv_windowed:trainer:netharn:seed_model=%INITIAL_MODEL%" ^
+    -s "detector_trainer:ocv_windowed:trainer:netharn:seed_model=%SEED_MODEL%" ^
     --threshold 0.0
 ) ELSE (
   IF EXIST "deep_training" (

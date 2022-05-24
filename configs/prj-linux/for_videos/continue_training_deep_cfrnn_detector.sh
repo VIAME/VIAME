@@ -5,7 +5,7 @@ export VIAME_INSTALL=/opt/noaa/viame
 
 # Core processing options
 export INPUT_DIRECTORY=training_data
-export INITIAL_MODEL=category_models/trained_detector.zip
+export SEED_MODEL=category_models/trained_detector.zip
 
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
@@ -13,13 +13,13 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # Adjust log level
 export KWIVER_DEFAULT_LOG_LEVEL=info
 
-if [ -f ${INITIAL_MODEL} ]; then
+if [ -f ${SEED_MODEL} ]; then
   viame_train_detector \
     -i ${INPUT_DIRECTORY} \
     -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.viame_csv.conf \
-    -s detector_trainer:ocv_windowed:trainer:netharn:seed_model=${INITIAL_MODEL} \
+    -s detector_trainer:ocv_windowed:trainer:netharn:seed_model=${SEED_MODEL} \
     --threshold 0.0
-elif [ -d deep_training ]; then
+elif [ -i deep_training ]; then
   viame_train_detector \
     -i ${INPUT_DIRECTORY} \
     -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.continue.viame_csv.conf \

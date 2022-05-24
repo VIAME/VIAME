@@ -4,7 +4,7 @@ REM Path to VIAME installation
 SET VIAME_INSTALL=C:\Program Files\VIAME
 
 REM Processing options
-SET INPUT_DIRECTORY=videos
+SET INPUT=videos
 SET FRAME_RATE=5
 
 REM Setup paths and run command

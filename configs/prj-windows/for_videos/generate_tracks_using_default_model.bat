@@ -4,10 +4,10 @@ REM Path to VIAME installation
 SET VIAME_INSTALL=C:\Program Files\VIAME
 
 REM Processing options
-SET INPUT_DIRECTORY=videos
-SET TRACKER_MODEL=pipelines\tracker_fish.pipe
-SET OUTPUT_DIRECTORY=output
+SET INPUT=videos
+SET OUTPUT=output
 SET FRAME_RATE=5
+SET PIPELINE=pipelines\tracker_fish.pipe
 
 REM Extra resource utilization options
 SET TOTAL_GPU_COUNT=1
@@ -17,8 +17,8 @@ REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
-  -d "%INPUT_DIRECTORY%" -frate %FRAME_RATE% ^
-  -p %TRACKER_MODEL% -o %OUTPUT_DIRECTORY% --no-reset-prompt ^
+  -i "%INPUT%" -o %OUTPUT% -frate %FRAME_RATE% ^
+  -p %PIPELINE% --no-reset-prompt ^
   -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU%
 
 pause
