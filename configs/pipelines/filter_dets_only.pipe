@@ -30,7 +30,7 @@ process detection_reader
   :reader:type                                 viame_csv
   :reader:viame_csv:poly_to_mask               false
 
-connect from downsampler.input_2
+connect from downsampler.output_2
         to   detection_reader.image_file_name
 
 process downsampler2
@@ -38,14 +38,17 @@ process downsampler2
   :renumber_frames                             true
   :only_frames_with_dets                       true
 
-connect from input.image
-        to   downsampler.input_1
-connect from input.file_name
-        to   downsampler.input_2
-connect from input.frame_rate
-        to   downsampler.frame_rate
-connect from input.timestamp
-        to   downsampler.timestamp
+connect from downsampler.output_1
+        to   downsampler2.input_1
+connect from downsampler.output_2
+        to   downsampler2.input_2
+connect from downsampler.frame_rate
+        to   downsampler2.frame_rate
+connect from downsampler.timestamp
+        to   downsampler2.timestamp
+
+connect from detection_reader.detected_object_set
+        to   downsampler2.input_3
 
 # ==================================== OUTPUT ======================================
 
@@ -56,5 +59,17 @@ process output
 
 connect from downsampler2.output_1
         to   output.image
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   detections.csv
+  :writer:type                                 viame_csv
+
+connect from downsampler2.output_3
+        to   detector_writer.detected_object_set
+connect from downsampler2.output_2
+        to   detector_writer.image_file_name
 
 # -- end of file --

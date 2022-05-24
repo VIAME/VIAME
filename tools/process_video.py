@@ -823,6 +823,8 @@ if __name__ == "__main__" :
         args.input_dir = args.input
 
     if len( args.input_list ) > 0:
+      if args.frame_rate and not args.input_frame_rate:
+        args.input_frame_rate = args.frame_rate
       if args.gpu_count > 1:
         video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
       else:
