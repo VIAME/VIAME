@@ -200,6 +200,7 @@ def rate_from_gt( filename ):
     for line in head:
       if "fps:" in line:
         fps = line.split( "fps:", 1 )[1].split( "," )[0]
+        print( "Parsed FPS value: " + fps + " from CSV header" )
         return fps
   return ""
 
@@ -313,7 +314,7 @@ def plot_settings_list( options, basename ):
   ))
 
 def archive_dimension_settings_list( options ):
-  if len( options.archive_width ) > 0:
+  if options.archive_width:
     return list(itertools.chain(
       fset( 'kwa_writer:fixed_col_count=' + options.archive_width ),
       fset( 'kwa_writer:fixed_row_count=' + options.archive_height ),
@@ -321,7 +322,7 @@ def archive_dimension_settings_list( options ):
   return []
 
 def object_detector_settings_list( options ):
-  if len( options.detection_threshold ) > 0:
+  if options.detection_threshold:
     return list( itertools.chain(
       fset( 'detector:detector:darknet:thresh=' + options.detection_threshold ),
       fset( 'detector1:detector:darknet:thresh=' + options.detection_threshold ),
@@ -331,7 +332,7 @@ def object_detector_settings_list( options ):
   return []
 
 def object_tracker_settings_list( options ):
-  if len( options.tracker_threshold ) > 0:
+  if options.tracker_threshold:
     return list( itertools.chain(
       fset( 'track_initializer:track_initializer:threshold:'
             'filter:class_probablity_filter:threshold=' + options.tracker_threshold ),
@@ -339,21 +340,24 @@ def object_tracker_settings_list( options ):
     ))
   return []
 
-def video_frame_rate_settings_list( options, frame_rate = "" ):
+def video_frame_rate_settings_list( options, frame_rate = None, source_rate = None ):
   output = []
-  if len( options.input_frame_rate ) > 0:
+  if source_rate:
+    output += fset( 'input:frame_time=' + str( 1.0 / float( source_rate ) ) )
+  elif options.input_frame_rate:
     output += fset( 'input:frame_time=' + str( 1.0 / float( options.input_frame_rate ) ) )
-  if len( frame_rate ) > 0:
+  if frame_rate:
     output += fset( 'downsampler:target_frame_rate=' + frame_rate )
-  elif len( options.frame_rate ) > 0:
+  elif options.frame_rate:
     output += fset( 'downsampler:target_frame_rate=' + options.frame_rate )
-  if len( options.batch_size ) > 0:
+
+  if options.batch_size:
     output += fset( 'downsampler:burst_frame_count=' + options.batch_size )
-  if len( options.batch_skip ) > 0:
+  if options.batch_skip:
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
-  if len( options.start_time ) > 0:
+  if options.start_time:
     output += fset( 'downsampler:start_time=' + options.start_time )
-  if len( options.duration ) > 0:
+  if options.duration:
     output += fset( 'downsampler:duration=' + options.duration )
   return output
 
@@ -528,7 +532,9 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
               input_settings )
 
   if use_gt and len( gt_files ) > 0:
-    command += video_frame_rate_settings_list( options, rate_from_gt( gt_files[0] ) )
+    gt_rate = rate_from_gt( gt_files[0] )
+    source_rate = gt_rate if not args.input_frame_rate and is_image_list else None
+    command += video_frame_rate_settings_list( options, gt_rate, source_rate )
   else:
     command += video_frame_rate_settings_list( options )
 
@@ -823,8 +829,6 @@ if __name__ == "__main__" :
         args.input_dir = args.input
 
     if len( args.input_list ) > 0:
-      if args.frame_rate and not args.input_frame_rate:
-        args.input_frame_rate = args.frame_rate
       if args.gpu_count > 1:
         video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
       else:
