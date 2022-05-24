@@ -808,6 +808,20 @@ if __name__ == "__main__" :
       create_dir( args.output_directory + div + args.log_directory, logging=False )
 
     # Identify all videos to process
+    if len( args.input ) > 0:
+      # Auto-identify input source
+      if not os.path.exists( args.input ):
+        exit_with_error( "Input folder \"" + args.input + "\" does not exist" )
+      if os.path.isfile( args.input ):
+        textchars = bytearray( {7,8,9,10,12,13,27} | set( range(0x20, 0x100) ) - {0x7f} )
+        is_binary_string = lambda bytes: bool( bytes.translate( None, textchars ) )
+        if is_binary_string( open( args.input, 'rb' ).read( 1024 ) )
+          args.input_video = args.input
+        else:
+          args.input_list = args.input
+      else:
+        args.input_dir = args.input
+
     if len( args.input_list ) > 0:
       if args.gpu_count > 1:
         video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
