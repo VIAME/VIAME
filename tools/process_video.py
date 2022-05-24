@@ -201,7 +201,7 @@ def rate_from_gt( filename ):
       if "fps:" in line:
         fps = line.split( "fps:", 1 )[1].split( "," )[0]
         fps = fps[1:] if len( fps ) > 1 and fps[0] == " " else fps
-        log_info( "Using FPS " + fps + "..." )
+        log_info( "Using FPS " + fps + "... " )
         return fps
   return ""
 
