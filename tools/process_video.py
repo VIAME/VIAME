@@ -533,11 +533,17 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   if use_gt and len( gt_files ) > 0:
     gt_rate = rate_from_gt( gt_files[0] )
-    source_rate = gt_rate if not args.input_frame_rate and is_image_list else None
+    if not args.input_frame_rate and is_image_list:
+      source_rate = gt_rate if gt_rate else args.frame_rate
+    else:
+      source_rate = None
     command += video_frame_rate_settings_list( options, gt_rate, source_rate )
   else:
-    source_rate = args.frame_rate if not args.input_frame_rate and is_image_list else None
-    command += video_frame_rate_settings_list( options, source_rate=source_rate )
+    if not args.input_frame_rate and is_image_list:
+      source_rate = args.frame_rate
+    else:
+      source_rate = None
+    command += video_frame_rate_settings_list( options, None, source_rate )
 
   command += video_output_settings_list( options, basename_no_ext )
   command += archive_dimension_settings_list( options )
