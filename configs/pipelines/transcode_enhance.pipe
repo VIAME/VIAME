@@ -29,16 +29,16 @@ process filter
 connect from downsampler.output_1
         to   filter.image
 
-process output
+process video_writer
   :: video_output
-  :video_filename                              output.mp4
+  :video_filename                              video_writer.mp4
   :video_writer:type                           ffmpeg
 
 connect from filter.image
-        to   output.image
+        to   video_writer.image
 connect from downsampler.timestamp
-        to   output.timestamp
+        to   video_writer.timestamp
 connect from downsampler.frame_rate
-        to   output.frame_rate
+        to   video_writer.frame_rate
 
 # -- end of file --

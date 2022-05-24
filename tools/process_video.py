@@ -573,11 +573,11 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   if len( options.pattern ) > 0:
     full_pattern = output_subdir + div + options.pattern
-    command += fset( "output:file_name_template=" + full_pattern )
+    command += fset( "image_writer:file_name_template=" + full_pattern )
 
   if "transcode_" in options.pipeline:
     full_pattern = output_subdir + div + input_basename
-    command += fset( "output:video_filename=" + full_pattern )
+    command += fset( "video_writer:video_filename=" + full_pattern )
 
   try:
     if len( options.extra_settings ) > 0:

@@ -15,4 +15,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 python ${VIAME_INSTALL}/configs/process_video.py \
   -i ${INPUT} -o ${OUTPUT} -frate ${FRAME_RATE} \
   -p "pipelines/transcode_default.pipe" \
-  -s "output:maximum_length="${MAX_DURATION}
+  -s "video_writer:maximum_length="${MAX_DURATION}

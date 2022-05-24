@@ -31,14 +31,14 @@ connect from input.image
 
 # ==================================== OUTPUT ======================================
 
-process output
+process image_writer
   :: image_writer
   :file_name_template                          frame%06d.png
   :image_writer:type                           vxl
 
 connect from filter.image
-        to   output.image
+        to   image_writer.image
 connect from input.file_name
-        to   output.image_file_name
+        to   image_writer.image_file_name
 
 # -- end of file --

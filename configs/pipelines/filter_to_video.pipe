@@ -12,16 +12,16 @@ include common_default_input_with_downsampler.pipe
 
 # ==================================== OUTPUT ======================================
 
-process output
+process image_writer
   :: video_output
-  :video_filename                              output.mp4
+  :video_filename                              image_writer.mp4
   :video_writer:type                           ffmpeg
 
 connect from downsampler.output_1
-        to   output.image
+        to   image_writer.image
 connect from downsampler.timestamp
-        to   output.timestamp
+        to   image_writer.timestamp
 connect from downsampler.frame_rate
-        to   output.frame_rate
+        to   image_writer.frame_rate
 
 # -- end of file --

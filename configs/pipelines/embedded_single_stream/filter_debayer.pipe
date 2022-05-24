@@ -24,13 +24,13 @@ connect from in_adapt.image
 
 # ==================================== OUTPUT ======================================
 
-process output
+process image_writer
   :: image_writer
   :file_name_template                          output%06d.png
   :image_writer:type                           vxl
 
 connect from debayer.image
-        to   output.image
+        to   image_writer.image
 
 connect from debayer.image
         to   out_adapt.image

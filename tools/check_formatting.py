@@ -10,31 +10,31 @@ import glob
 if __name__ == "__main__" :
 
     parser = argparse.ArgumentParser(description="Perform a filtering action on a csv",
-                       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("-i", dest="input_file", default="",
-                      help="Input file or glob pattern to process")
+      help="Input file or glob pattern to process")
 
     parser.add_argument("--consolidate-ids", dest="consolidate_ids", action="store_true",
-                      help="Use a ball tree for the searchable index")
+      help="Use a ball tree for the searchable index")
 
     parser.add_argument("--decrease-fid", dest="decrease_fid", action="store_true",
-                      help="Use a ball tree for the searchable index")
+      help="Use a ball tree for the searchable index")
 
     parser.add_argument("--increase-fid", dest="increase_fid", action="store_true",
-                      help="Use a ball tree for the searchable index")
+      help="Use a ball tree for the searchable index")
 
     parser.add_argument("--assign-uid", dest="assign_uid", action="store_true",
-                      help="Assign unique detection ids to all entries in volume")
+      help="Assign unique detection ids to all entries in volume")
 
     parser.add_argument("--filter-single", dest="filter_single", action="store_true",
-                      help="Filter single state tracks")
+      help="Filter single state tracks")
 
     parser.add_argument("--print-types", dest="print_types", action="store_true",
-                      help="Print unique list of target types")
+      help="Print unique list of target types")
 
     parser.add_argument("--average-box-size", dest="average_box_size", action="store_true",
-                      help="Print average box size per type")
+      help="Print average box size per type")
 
     args = parser.parse_args()
 

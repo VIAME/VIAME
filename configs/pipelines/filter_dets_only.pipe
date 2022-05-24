@@ -38,27 +38,24 @@ process downsampler2
   :renumber_frames                             true
   :only_frames_with_dets                       true
 
+connect from detection_reader.detected_object_set
+        to   downsampler2.input_3
 connect from downsampler.output_1
         to   downsampler2.input_1
 connect from downsampler.output_2
         to   downsampler2.input_2
-connect from downsampler.frame_rate
-        to   downsampler2.frame_rate
 connect from downsampler.timestamp
         to   downsampler2.timestamp
 
-connect from detection_reader.detected_object_set
-        to   downsampler2.input_3
-
 # ==================================== OUTPUT ======================================
 
-process output
+process image_writer
   :: image_writer
   :file_name_template                          frame%06d.jpg
   :image_writer:type                           vxl
 
 connect from downsampler2.output_1
-        to   output.image
+        to   image_writer.image
 
 process detector_writer
   :: detected_object_output
@@ -67,9 +64,9 @@ process detector_writer
   :file_name                                   detections.csv
   :writer:type                                 viame_csv
 
+connect from image_writer.image_file_name
+        to   detector_writer.image_file_name
 connect from downsampler2.output_3
         to   detector_writer.detected_object_set
-connect from downsampler2.output_2
-        to   detector_writer.image_file_name
 
 # -- end of file --

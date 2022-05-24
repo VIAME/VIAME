@@ -12,12 +12,12 @@ include common_default_input_with_downsampler.pipe
 
 # ==================================== OUTPUT ======================================
 
-process output
+process image_writer
   :: image_writer
   :file_name_template                          frame%06d.jpg
   :image_writer:type                           vxl
 
 connect from downsampler.output_1
-        to   output.image
+        to   image_writer.image
 
 # -- end of file --

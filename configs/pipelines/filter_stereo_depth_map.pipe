@@ -50,12 +50,12 @@ connect from depth_map.depth_map
 
 # ==================================== OUTPUT ======================================
 
-process output
+process image_writer
   :: image_writer
   :file_name_template                          depth_map%06d.png
   :image_writer:type                           vxl
 
 connect from filter.image
-        to   output.image
+        to   image_writer.image
 
 # -- end of file --
