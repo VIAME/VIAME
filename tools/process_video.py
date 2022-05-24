@@ -626,6 +626,9 @@ if __name__ == "__main__" :
   parser = argparse.ArgumentParser(description="Process new videos",
      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+  parser.add_argument( "-i", dest="input", default="",
+    help="Input folder, video, or input list (autodetect)" )
+
   parser.add_argument( "-v", dest="input_video", default="",
     help="Input single video to process" )
 
@@ -664,16 +667,16 @@ if __name__ == "__main__" :
     help="Processing frame rate over-ride to process videos at, specified "
          "in hertz (frames per second)" )
 
+  parser.add_argument( "-ifrate", dest="input_frame_rate", default="",
+    help="Input frame rate over-ride to process videos at. This is useful "
+         "for specifying the frame rate of input image lists, which typically "
+         "don't have frame rates" )
+
   parser.add_argument( "-fbatch", dest="batch_size", default="",
     help="Optional number of frames to process in batches" )
 
   parser.add_argument( "-fskip", dest="batch_skip", default="",
     help="If batching frames, number of frames to skip between batches" )
-
-  parser.add_argument( "-ifrate", dest="input_frame_rate", default="",
-    help="Input frame rate over-ride to process videos at. This is useful "
-         "for specifying the frame rate of input image lists, which typically "
-         "don't have frame rates" )
 
   parser.add_argument( "-detection-threshold", dest="detection_threshold", default="",
     help="Optional detection threshold over-ride parameter" )
@@ -757,16 +760,16 @@ if __name__ == "__main__" :
   # Assorted error checking up front
   process_data = True
 
-  number_input_args = sum(len(inp_x) > 0 for inp_x in [args.input_video, args.input_dir, args.input_list])
+  number_input_args = sum( len( inp_x ) > 0 for inp_x in \
+    [ args.input, args.input_video, args.input_dir, args.input_list ] )
 
   if number_input_args == 0 or args.pipeline == no_pipeline:
     if not args.build_index and not args.detection_plots and not args.track_plots:
       exit_with_error( "Either input video or input directory must be specified" )
     else:
       process_data = False
-
   elif number_input_args > 1:
-    exit_with_error( "Only one of input video, directory, or list should be specified, not more" )
+    exit_with_error( "Only one of input video, directory, or list should be specified" )
 
   if ( args.detection_plots or args.track_plots ) and len( args.frame_rate ) == 0:
     exit_with_error( "Must specify frame rate if generating detection or track plots" )
