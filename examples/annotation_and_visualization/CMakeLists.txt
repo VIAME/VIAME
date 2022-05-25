@@ -9,21 +9,23 @@ set( example_files
 if( WIN32 )
   set( example_files
        ${example_files}
-       run_chip_pipe.bat
-       run_display_pipe.bat
-       run_draw_pipe.bat )
+       draw_detections_on_frames.bat
+       extract_chips_from_detections.bat
+       extract_frames_with_tracks.bat
+       simple_pipeline_display.bat )
 else()
   set( example_files
        ${example_files}
-       run_chip_pipe.sh
-       run_display_pipe.sh
-       run_draw_pipe.sh )
+       draw_detections_on_frames.sh
+       extract_chips_from_detections.sh
+       extract_frames_with_tracks.sh
+       simple_pipeline_display.sh )
 endif()
 
 if( VIAME_ENABLE_VIVIA )
   set( example_files
     ${example_files}
-    example_vpview.prj )
+    vpview_example_project.prj )
 
   if( WIN32 )
     set( example_files
@@ -68,5 +70,5 @@ if( VIAME_ENABLE_SEAL )
   endif()
 endif()
 
-install( FILES       ${example_files}
-         DESTINATION examples/annotation_and_visualization )
+install( FILES        ${example_files}
+         DESTINATION  examples/annotation_and_visualization )
