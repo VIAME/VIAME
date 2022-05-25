@@ -85,14 +85,11 @@ process track_writer
   :: write_object_track
   :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
-  :writer:viame_csv:write_time_as_uid          false
+  :writer:viame_csv:write_time_as_uid          true
 
 connect from downsampler2.output_4
         to   track_writer.object_track_set
 connect from downsampler2.timestamp
         to   track_writer.timestamp
-connect from image_writer.image_file_name
-        to   track_writer.image_file_name
-
 
 # -- end of file --
