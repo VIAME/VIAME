@@ -1,17 +1,19 @@
-#!/bin/bash
+@echo off
 
-# Path to VIAME installation
-export VIAME_INSTALL=/home/matt/Dev/viame/build/install
+REM Path to VIAME installation
+SET VIAME_INSTALL=C:\Program Files\VIAME
 
-# Core processing options
-export INPUT=videos
-export OUTPUT=frames
-export FRAME_RATE=5
+REM Processing options
+SET INPUT=videos
+SET OUTPUT=frames
+SET FRAME_RATE=5
 
-# Setup paths and run command
-source ${VIAME_INSTALL}/setup_viame.sh
+REM Setup paths and run command
+CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python ${VIAME_INSTALL}/configs/process_video.py \
-  -i ${INPUT} -o ${OUTPUT} -frate ${FRAME_RATE} \
-  -p "pipelines/filter_tracks_only.pipe" \
+python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
+  -i "%INPUT%" -o %OUTPUT% -frate %FRAME_RATE% ^
+  -p "pipelines/filter_tracks_only.pipe" ^
   -auto-detect-gt viame_csv
+
+pause
