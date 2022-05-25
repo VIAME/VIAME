@@ -573,6 +573,16 @@ std::string replace_ext_with( std::string file_name, std::string ext )
   return file_name.substr( 0, file_name.find_last_of( '.' ) ) + ext;
 }
 
+std::string add_ext_unto( std::string path, std::string ext )
+{
+  if( !path.empty() && ( path.back() == '/' || path.back() == '\\' ) )
+  {
+    return path.substr( 0, path.size() - 1 ) + ext;
+  }
+
+  return path + ext;
+}
+
 std::string add_aux_ext( std::string file_name, unsigned id )
 {
   std::size_t last_index = file_name.find_last_of( "." );
@@ -1380,8 +1390,14 @@ main( int argc, char* argv[] )
 
       if( !does_file_exist( video_truth ) )
       {
-        std::cout << "Error: cannot find " << video_truth << std::endl;
-        return EXIT_FAILURE;
+        std::string error_msg = "Error: cannot find " + video_truth;
+        video_truth = add_ext_unto( data_item, groundtruth_exts[0] );
+
+        if( !does_file_exist( video_truth ) )
+        {
+          std::cout << error_msg << std::endl;
+          return EXIT_FAILURE;
+        }
       }
 
       gt_files.resize( 1, video_truth );
@@ -1391,6 +1407,16 @@ main( int argc, char* argv[] )
       list_files_in_folder( data_item, gt_files, false, groundtruth_exts );
       std::sort( gt_files.begin(), gt_files.end() );
 
+      if( gt_files.empty() )
+      {
+        std::string truth = add_ext_unto( data_item, groundtruth_exts[0] );
+
+        if( does_file_exist( truth ) )
+        {
+          gt_files.push_back( truth );
+        }
+      }
+
       if( one_file_per_image && ( image_files.size() != gt_files.size() ) )
       {
         std::cout << "Error: item " << data_item << " contains unequal truth and "
@@ -1398,7 +1424,7 @@ main( int argc, char* argv[] )
                   << "the one_per_folder groundtruth style" << std::endl;
         return EXIT_FAILURE;
       }
-      else if( gt_files.size() < 1 )
+      else if( gt_files.empty() )
       {
         std::cout << "Error reading item " << data_item << ", no groundtruth." << std::endl;
         return EXIT_FAILURE;
