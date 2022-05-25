@@ -3,8 +3,8 @@
 ##
 
 set( example_files
-  example_output.csv
-  input_list.txt )
+  example_detections.csv
+  example_image_list.txt )
 
 if( WIN32 )
   set( example_files
@@ -25,7 +25,7 @@ endif()
 if( VIAME_ENABLE_VIVIA )
   set( example_files
     ${example_files}
-    vpview_example_project.prj )
+    view_example_project.prj )
 
   if( WIN32 )
     set( example_files

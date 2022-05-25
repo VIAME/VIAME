@@ -1,0 +1,2 @@
+DataSetSpecifier = example_image_list.txt
+TracksFile = example_detections.csv
