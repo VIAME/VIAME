@@ -34,10 +34,13 @@ lb1 = lb
 lb2 = lb * 2
 lb3 = lb * 3
 
-detection_ext = "_detections.csv"
-track_ext = "_tracks.csv"
+default_gt_ext = ".csv"
+default_pipe_ext = ".pipe"
 
-default_pipeline = "pipelines" + div + "index_default.pipe"
+detection_ext = "_detections" + default_gt_ext
+track_ext = "_tracks" + default_gt_ext
+
+default_pipeline = "pipelines" + div + "index_default" + default_pipe_ext
 no_pipeline = "none"
 
 # Global flag to see if any video has successfully completed processing
@@ -288,13 +291,24 @@ def split_image_list( image_list_file, n, dir ):
 def fset( setting_str ):
   return ['-s', setting_str]
 
+def pipe_starts_with( filename, substr ):
+  return os.path.basename( filename ).startswith( substr )
+
 def video_output_settings_list( options, basename ):
   output_dir = options.output_directory
 
+  if pipe_starts_with( options.pipeline, "filter_" ) or \
+     pipe_starts_with( options.pipeline, "transcode_" ):
+    detection_file = output_dir + div + basename + default_gt_ext
+    track_file = output_dir + div + basename + default_gt_ext
+  else:
+    detection_file = output_dir + div + basename + detection_ext
+    track_file = output_dir + div + basename + track_ext
+
   return list(itertools.chain(
-    fset( 'detector_writer:file_name=' + output_dir + div + basename + detection_ext ),
+    fset( 'detector_writer:file_name=' + detection_file ),
     fset( 'detector_writer:stream_identifier=' + basename ),
-    fset( 'track_writer:file_name=' + output_dir + div + basename + track_ext ),
+    fset( 'track_writer:file_name=' + track_file ),
     fset( 'track_writer:stream_identifier=' + basename ),
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
@@ -572,9 +586,6 @@ def process_using_kwiver( input_name, options, is_image_list=False,
     gt_type = options.auto_detect_gt if auto_detect_gt else "viame_csv"
     gt_files = [ options.gt_file ] if not auto_detect_gt else gt_files
     command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu, gt_type )
-
-  def pipe_starts_with( filename, substr ):
-    return os.path.basename( filename ).startswith( substr )
 
   if not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ):
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
