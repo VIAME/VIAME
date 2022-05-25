@@ -368,7 +368,7 @@ def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id, gt_ty
   if len( gt_files ) == 0:
     exit_with_error( "Directory " + basename + " contains no GT files" )
   elif len( gt_files ) > 1:
-    exit_with_error( "Directory " + basename + " contains multiple GT files" )
+    exit_with_error( "Directory " + basename + " contains ambiguous annotation files" )
   else:
     if gpu_id > 0:
       output_extension = str( gpu_id ) + '.lbl'
@@ -521,7 +521,15 @@ def process_using_kwiver( input_name, options, is_image_list=False,
     is_image_list = True
   elif auto_detect_gt:
     input_path = os.path.dirname( os.path.abspath( input_name ) )
-    gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
+    all_gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
+    better_fit = [ i for i in all_gt_files if basename_no_ext in i ]
+    best_fit = [ i for i in better_fit if basename_no_ext + ".csv" in i ]
+    if len( best_fit ) > 0:
+      gt_files = best_fit
+    elif len( better_fit ) > 0:
+      gt_files = better_fit
+    else:
+      gt_files = all_gt_files
 
   # Formulate command
   input_settings = fset( 'input:video_filename=' + input_name )
