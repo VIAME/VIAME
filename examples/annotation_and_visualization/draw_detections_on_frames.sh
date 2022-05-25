@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run draw pipeline
 
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/draw_detections_on_images.pipe
+kwiver runner ${VIAME_INSTALL}/configs/pipelines/filter_draw_dets.pipe

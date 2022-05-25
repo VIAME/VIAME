@@ -12,7 +12,7 @@ include common_default_input_with_downsampler.pipe
 
 # ==================================== OUTPUT ======================================
 
-process image_writer
+process video_writer
   :: video_output
   :video_filename                              image_writer.mp4
   :video_writer:type                           ffmpeg

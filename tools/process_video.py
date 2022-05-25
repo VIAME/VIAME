@@ -587,7 +587,8 @@ def process_using_kwiver( input_name, options, is_image_list=False,
     gt_files = [ options.gt_file ] if not auto_detect_gt else gt_files
     command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu, gt_type )
 
-  if not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ):
+  if ( not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ) ) or \
+       pipe_starts_with( options.pipeline, "transcode_" ):
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
     command += fset( 'detector_writer:writer:viame_csv:write_time_as_uid=true' )
   else:
