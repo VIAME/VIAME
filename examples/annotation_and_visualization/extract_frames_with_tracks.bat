@@ -1,7 +1,7 @@
 @echo off
 
 REM Path to VIAME installation
-SET VIAME_INSTALL=C:\Program Files\VIAME
+SET VIAME_INSTALL=.\..\..
 
 REM Input and output folders
 SET INPUT=videos

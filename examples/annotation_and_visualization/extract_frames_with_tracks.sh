@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Path to VIAME installation
-export VIAME_INSTALL=/home/matt/Dev/viame/build/install
+export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 # Input and output folders
 export INPUT=videos
