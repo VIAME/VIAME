@@ -37,4 +37,4 @@ process image_writer
   :image_writer:type                           ocv
 
 connect from draw_box.image
-        to   writer.image
+        to   image_writer.image
