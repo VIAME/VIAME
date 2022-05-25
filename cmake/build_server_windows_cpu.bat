@@ -44,6 +44,6 @@ REM ----------------------------------------------------------------------------
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
 
-"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%/VIAME-v1.0.0-Windows-64Bit-CPU.zip" "%VIAME_BUILD_DIR%/VIAME
+"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%/VIAME-CPU-v1.0.0-Windows-64Bit.zip" "%VIAME_BUILD_DIR%/VIAME
 
 MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"
