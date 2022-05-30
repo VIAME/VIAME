@@ -46,8 +46,7 @@ no_pipeline = "none"
 # Global flag to see if any video has successfully completed processing
 any_video_complete = False
 
-# Helper class to list files with a given extension in a directory
-def list_files_in_dir( folder ):
+def list_elems_in_dir( folder ):
   if not os.path.exists( folder ) and os.path.exists( folder + ".lnk" ):
     folder = folder + ".lnk"
   folder = folder if not os.path.islink( folder ) else os.readlink( folder )
@@ -59,7 +58,7 @@ def list_files_in_dir( folder ):
   ]
 
 def list_files_in_dir_w_ext( folder, extension ):
-  return [ f for f in list_files_in_dir( folder ) if f.endswith( extension ) ]
+  return [ f for f in list_elems_in_dir( folder ) if f.endswith( extension ) ]
 
 def has_valid_ext( f, ext_list ):
   for ext in ext_list:
@@ -75,24 +74,56 @@ def has_file_with_extension( folder, extension ):
 
 def list_files_in_dir_w_exts( folder, extensions ):
   ext_list = extensions.split(";")
-  return [ f for f in list_files_in_dir( folder ) if has_valid_ext( f, ext_list ) ]
+  return [ f for f in list_elems_in_dir( folder ) if has_valid_ext( f, ext_list ) ]
 
-def recurse_folders( folder, extensions ):
-  files = list_files_in_dir_w_exts( folder, extensions )
-  folders = [ f for f in list_files_in_dir( folder ) if os.path.isdir( f ) ]
-  files.extend( folders )
-  for f in folders:
-    files.extend( recurse_folders( f, extensions ) )
+def ordered_return( retvar, refvar, cats ):
+  output = []
+  for cat in cats:
+    output.append( retvar[ refvar.index( cat ) ] )
+  return output
+
+def check_for_multicam_folder( folder, subfolders = None ):
+  if subfolders is None:
+    subfolders = [ f for f in list_elems_in_dir( folder ) if os.path.isdir( f ) ]
+  lowercase = [ os.path.basename( f ).lower().replace( "/", "" ) for f in subfolders ]
+  if len( subfolders ) == 3:
+    if "left" in lowercase and "center" in lowercase "right" in lowercase:
+      return True, ordered_return( subfolder, lowercase, [ "left", "center", "right" ] )
+    if "star" in lowercase and "center" in lowercase "port" in lowercase:
+      return True, ordered_return( subfolder, lowercase, [ "star", "center", "port" ] )
+  elif len( subfolders ) == 2:
+    if "left" in lowercase and "right" in lowercase:
+      return True, ordered_return( subfolder, lowercase, [ "left", "right" ] )
+  return False, []
+
+def auto_folder_recurse( folder, video_exts, image_exts ):
+  files = list_files_in_dir_w_exts( folder, video_exts )
+  has_video_files = len( files ) > 0
+  image_files = list_files_in_dir_w_exts( folder, image_exts )
+  has_image_files = len( image_files ) > 0
+  has_several_images = len( image_files ) > 2
+  subfolders = [ f for f in list_elems_in_dir( folder ) if os.path.isdir( f ) ]
+  has_subfolders = len( subfolders ) > 0
+  is_multi_cam_folder, _ = check_for_multicam_folder( folder, subfolders )
+  if is_multi_cam_folder or has_several_images or \
+     ( has_image_files and not has_video_files ):
+    files.extend( folder )
+  if is_multi_cam_folder:
+    return files
+  elif has_subfolders:
+    for f in subfolders:
+      files.extend( auto_folder_recurse( f, video_exts, image_exts ) )
+  elif not has_subfolders and not has_image_files and not has_video_files:
+    if len( list_elems_in_dir( folder ) ) > 2:
+      files.extend( folder )
   return files
 
-def list_videos_in_dir( folder, extensions ):
-  files = recurse_folders( folder, extensions )
-  if len( files ) == 0:
-    files = list_files_in_dir( folder )
-  print( "\nFound " + str( len( files ) ) + " items for possible processing\n" )
-  for i in files:
+def auto_identify_data( folder, video_exts, image_exts ):
+  entries = auto_folder_recurse( folder, video_exts, image_exts )
+  print( "\nFound " + str( len( entries ) ) + " items for possible processing\n" )
+  for i in entries:
     print( i )
-  return files
+  return entries
 
 # Default message logging
 def log_info( msg ):
@@ -702,7 +733,7 @@ if __name__ == "__main__" :
 
   parser.add_argument( "-image-exts", dest="image_exts", default="bmp;dds;gif;"
          "heic;jpg;jpeg;png;psd;psp;pspimage;tga;thm;tif;tiff;yuv",
-    help="Allowable image extensions" )
+    help="Expected image extensions, used first before fallback." )
 
   parser.add_argument( "-frate", dest="frame_rate", default="",
     help="Processing frame rate over-ride to process videos at, specified "
@@ -870,7 +901,7 @@ if __name__ == "__main__" :
         video_list = [ args.input_list ]
       is_image_list = True
     elif len( args.input_dir ) > 0:
-      video_list = list_videos_in_dir( args.input_dir, args.video_exts )
+      video_list = auto_identify_data( args.input_dir, args.video_exts, args.image_exts )
       is_image_list = False
     else:
       video_list = [ args.input_video ]
