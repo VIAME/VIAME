@@ -94,7 +94,7 @@ def check_for_multicam_folder( folder, subfolders = None ):
       return True, ordered_return( subfolders, lowercase, [ "left", "right" ] )
   return False, []
 
-def auto_folder_recurse( folder, video_exts, image_exts ):
+def auto_folder_recurse( folder, video_exts, image_exts, check_mc ):
   files = list_files_in_dir_w_exts( folder, video_exts )
   has_video_files = len( files ) > 0
   image_files = list_files_in_dir_w_exts( folder, image_exts )
@@ -102,7 +102,10 @@ def auto_folder_recurse( folder, video_exts, image_exts ):
   has_several_images = len( image_files ) > 2
   subfolders = [ f for f in list_elems_in_dir( folder ) if os.path.isdir( f ) ]
   has_subfolders = len( subfolders ) > 0
-  is_multi_cam_folder, _ = check_for_multicam_folder( folder, subfolders )
+  if check_mc:
+    is_multi_cam_folder, _ = check_for_multicam_folder( folder, subfolders )
+  else:
+    is_multi_cam_folder = False
   if is_multi_cam_folder or has_several_images or \
      ( has_image_files and not has_video_files ):
     files.append( folder )
@@ -116,8 +119,8 @@ def auto_folder_recurse( folder, video_exts, image_exts ):
       files.extend( folder )
   return files
 
-def auto_identify_data( folder, video_exts, image_exts ):
-  entries = auto_folder_recurse( folder, video_exts, image_exts )
+def auto_identify_data( folder, video_exts, image_exts, check_mc = True ):
+  entries = auto_folder_recurse( folder, video_exts, image_exts, check_mc )
   print( "\nFound " + str( len( entries ) ) + " items for possible processing\n" )
   for i in entries:
     print( i )
@@ -766,6 +769,9 @@ if __name__ == "__main__" :
   parser.add_argument( "-id", dest="input_detections", default="",
     help="Input detections around which to create descriptors" )
 
+  parser.add_argument( "-r", dest="recursive", action="store_true",
+    help="Ensure all subdirectories are run, disable multi-cam checks" )
+
   parser.add_argument( "-o", dest="output_directory", default=".",
     help="Output directory to store files in" )
 
@@ -951,7 +957,7 @@ if __name__ == "__main__" :
         video_list = [ args.input_list ]
       is_image_list = True
     elif len( args.input_dir ) > 0:
-      video_list = auto_identify_data( args.input_dir, args.video_exts, args.image_exts )
+      video_list = auto_identify_data( args.input_dir, args.video_exts, args.image_exts, not args.recursive )
       is_image_list = False
     else:
       video_list = [ args.input_video ]
