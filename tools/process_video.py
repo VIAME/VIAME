@@ -83,6 +83,8 @@ def ordered_return( retvar, refvar, cats ):
   return output
 
 def check_for_multicam_folder( folder, subfolders = None ):
+  if not os.path.isdir( folder );
+    return False, []
   if subfolders is None:
     subfolders = [ f for f in list_elems_in_dir( folder ) if os.path.isdir( f ) ]
   lowercase = [ os.path.basename( f ).lower().replace( "/", "" ) for f in subfolders ]
@@ -174,7 +176,7 @@ def execute_command( cmd, stdout=None, stderr=None, gpu=None ):
   if gpu is None:
     env = None
   else:
-    env = dict(os.environ)
+    env = dict( os.environ )
     env[ CUDA_VISIBLE_DEVICES ] = get_real_gpu_index( gpu )
   return subprocess.call( cmd, stdout=stdout, stderr=stderr, env=env )
 
@@ -192,6 +194,12 @@ def get_pipeline_cmd( debug=False ):
       return [ 'gdb', '--args', 'kwiver', 'runner' ]
     else:
       return [ 'kwiver', 'runner' ]
+
+def get_python_cmd():
+  if os.name == 'nt':
+    return [ 'python.exe' ]
+  else:
+    return [ 'python' ]
 
 def exit_with_error( error_str, force=False ):
   log_info( lb1 + 'ERROR: ' + error_str + lb2 )
@@ -325,8 +333,11 @@ def fset( setting_str ):
 def pipe_starts_with( filename, substr ):
   return os.path.basename( filename ).startswith( substr )
 
-def video_output_settings_list( options, basename ):
+def detection_output_settings_list( options, basename, cid = None ):
   output_dir = options.output_directory
+
+  det_writer_str = 'detector_writer' + ( str( cid ) + ':' if cid else ':' )
+  trk_writer_str = 'track_writer' + ( str( cid ) + ':' if cid else ':' )
 
   if pipe_starts_with( options.pipeline, "filter_" ) or \
      pipe_starts_with( options.pipeline, "transcode_" ):
@@ -337,10 +348,15 @@ def video_output_settings_list( options, basename ):
     track_file = output_dir + div + basename + track_ext
 
   return list(itertools.chain(
-    fset( 'detector_writer:file_name=' + detection_file ),
-    fset( 'detector_writer:stream_identifier=' + basename ),
-    fset( 'track_writer:file_name=' + track_file ),
-    fset( 'track_writer:stream_identifier=' + basename ),
+    fset( det_writer_str + 'file_name=' + detection_file ),
+    fset( det_writer_str + 'stream_identifier=' + basename ),
+    fset( trk_writer_str + 'file_name=' + track_file ),
+    fset( trk_writer_str + 'stream_identifier=' + basename ),
+  ))
+
+def search_output_settings_list( options, basename ):
+  output_dir = options.output_directory
+  return list(itertools.chain(
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
     fset( 'descriptor_writer_db:writer:db:video_name=' + basename ),
@@ -480,28 +496,32 @@ def add_final_list_csv( args, video_list ):
     input_stream.close()
     is_first = False
 
-# Process a single video
-def process_using_kwiver( input_name, options, is_image_list=False,
-                          base_ovrd='', cpu=0, gpu=None ):
+# Process a single data item (image list, folder, or video)
+def process_using_kwiver( input_path, options, is_image_list=False,
+                          base_name_override='', cpu=0, gpu=None ):
 
-  # Generic settings
+  # Generic settings shared across function
   multi_threaded = ( options.gpu_count * options.pipes > 1 )
-  auto_detect_gt = ( len( options.auto_detect_gt ) > 0 )
-  use_gt = ( len( options.gt_file ) > 0 or auto_detect_gt )
+  auto_detect_gt = ( options.auto_detect_gt )
+  use_gt = ( options.gt_file or auto_detect_gt )
+  output_dir = options.output_directory
+  is_multi_cam, camera_folders = check_for_multicam_folder( input_path )
+  input_paths = []
+  camera_names = []
 
   # Output naming and directory formation if necessary
-  if os.path.isdir( input_name ):
-    input_basename = input_name
+  if os.path.isdir( input_path ):
+    input_basename = input_path
   else:
-    input_basename = os.path.basename( input_name )
-  output_subdir = options.output_directory + div + input_basename
-  input_ext = os.path.splitext( input_name )[1]
+    input_basename = os.path.basename( input_path )
+  output_subdir = output_dir + div + input_basename
+  input_ext = os.path.splitext( input_path )[1]
 
-  if not os.path.exists( output_subdir ):
-    if os.path.isdir( input_name ):
-      os.makedirs( output_subdir )
-    if "filter_" in options.pipeline or "transcode_" in options.pipeline:
-      os.makedirs( output_subdir )
+  if not os.path.exists( output_subdir ) and
+     ( os.path.isdir( input_path ) or 
+       "filter_" in options.pipeline or 
+       "transcode_" in options.pipeline ):
+    os.makedirs( output_subdir )
 
   # GPU checks for logging statements
   try:
@@ -509,7 +529,6 @@ def process_using_kwiver( input_name, options, is_image_list=False,
     has_gpu = torch.cuda.is_available()
   except Exception as e:
     has_gpu = False
-
   if gpu is None and has_gpu:
     gpu = 0
 
@@ -526,8 +545,8 @@ def process_using_kwiver( input_name, options, is_image_list=False,
       log_info( 'Processing: {} on CPU... '.format( input_basename ) )
 
   # Get video name without extension and full path
-  if len( base_ovrd ) > 0:
-    basename_no_ext = base_ovrd
+  if base_name_override:
+    basename_no_ext = base_name_override
   else:
     basename_no_ext = os.path.splitext( input_basename )[0]
 
@@ -541,23 +560,30 @@ def process_using_kwiver( input_name, options, is_image_list=False,
       gt_ext = options.auto_detect_gt
 
   if not is_image_list and \
-      ( input_ext == '.csv' or input_ext == '.txt' or input_name == "__pycache__" ):
+      ( input_ext == '.csv' or input_ext == '.txt' or input_path == "__pycache__" ):
     if multi_threaded:
       log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
     else:
       log_info( 'Skipped' + lb1 )
     return
-  elif not os.path.exists( input_name ):
+  elif not os.path.exists( input_path ):
     if multi_threaded:
       log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
     else:
       log_info( 'Skipped' + lb1 )
     return
-  elif os.path.isdir( input_name ):
+  elif os.path.isdir( input_path ):
     if auto_detect_gt:
-      gt_files = list_files_in_dir_w_ext( input_name, gt_ext )
-    input_name = make_filelist_for_dir( input_name, options.output_directory, basename_no_ext )
-    if len( input_name ) == 0:
+      gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
+    if is_multi_cam:
+      for camera_folder in camera_folders:
+        camera_name = os.path.basename( camera_folders )
+        camera_names.append( camera_name )
+        input_paths.append( make_filelist_for_dir( camera_folder, output_dir, camera_name ) )
+      input_path = input_paths[0]
+    else:
+      input_path = make_filelist_for_dir( input_path, output_dir, basename_no_ext )
+    if not input_path:
       if multi_threaded:
         log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
       else:
@@ -565,7 +591,7 @@ def process_using_kwiver( input_name, options, is_image_list=False,
       return
     is_image_list = True
   elif auto_detect_gt:
-    input_path = os.path.dirname( os.path.abspath( input_name ) )
+    input_path = os.path.dirname( os.path.abspath( input_path ) )
     all_gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
     better_fit = [ i for i in all_gt_files if basename_no_ext in i ]
     best_fit = [ i for i in better_fit if basename_no_ext + ".csv" in i ]
@@ -576,14 +602,23 @@ def process_using_kwiver( input_name, options, is_image_list=False,
     else:
       gt_files = all_gt_files
 
-  # Formulate command
-  input_settings = fset( 'input:video_filename=' + input_name )
+  # Begin to formulate external CLI call
 
+  # For single camera case
+  input_settings = fset( 'input:video_filename=' + input_path )
   if not is_image_list:
     input_settings += fset( 'input:video_reader:type=vidl_ffmpeg' )
   elif options.ts_from_file:
     input_settings += fset( 'input:video_reader:type=add_timestamp_from_filename' )
 
+  # For multi camera case
+  for idx, path in enumerate( input_paths ):
+    input_str = 'input' + str( idx ) + ':'
+    input_settings = fset( input_str + 'video_filename=' + input_path )
+    if not is_image_list:
+      input_settings += fset( input_str + 'video_reader:type=vidl_ffmpeg' )
+
+  # Base command
   command = ( get_pipeline_cmd( options.debug ) +
               [ find_file( options.pipeline ) ] +
               input_settings )
@@ -602,10 +637,15 @@ def process_using_kwiver( input_name, options, is_image_list=False,
       source_rate = None
     command += video_frame_rate_settings_list( options, None, source_rate )
 
-  command += video_output_settings_list( options, basename_no_ext )
+  # Additional options
+  command += detection_output_settings_list( options, basename_no_ext )
+  command += search_output_settings_list( options, basename_no_ext )
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
+
+  for camera_id, camera_name in enumerate( camera_names ):
+    command += detection_output_settings_list( options, camera_name, camera_id)
 
   if options.write_svm_info and not use_gt:
     if len( options.input_detections ) == 0:
@@ -648,7 +688,7 @@ def process_using_kwiver( input_name, options, is_image_list=False,
   # Process command, possibly with logging
   log_base = ""
   if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
-    log_base = options.output_directory + div + options.log_directory + div + basename_no_ext
+    log_base = output_dir + div + options.log_directory + div + basename_no_ext
     if os.path.sep in basename_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
       os.makedirs( os.path.dirname( log_base ) )
     with get_log_output_files( log_base ) as kwargs:
@@ -657,6 +697,11 @@ def process_using_kwiver( input_name, options, is_image_list=False,
     res = execute_command( command, gpu=gpu )
 
   global any_video_complete
+
+  # Generate optional mosaic for sequence
+  if options.mosaic:
+    log_info( "Building mosaic... " )
+    cmd2 = []
 
   if res == 0:
     if multi_threaded:
@@ -671,7 +716,7 @@ def process_using_kwiver( input_name, options, is_image_list=False,
       log_info( 'Failure' + lb1 )
 
     if res == -11:
-      s = os.statvfs( options.output_directory )
+      s = os.statvfs( output_dir )
 
       if s.f_bavail * s.f_frsize < 100000000:
         exit_with_error( lb1 + 'Out of disk space. Clean up space and then re-run.' )
@@ -691,6 +736,7 @@ def process_using_kwiver( input_name, options, is_image_list=False,
         exit_with_error( 'Processing failed, terminating.' )
     elif len( log_base ) > 0:
       log_info( lb1 + 'Check ' + log_base + '.txt for error messages' + lb2 )
+    
 
 # Main Function
 if __name__ == "__main__" :
@@ -782,6 +828,9 @@ if __name__ == "__main__" :
 
   parser.add_argument( "--track-plots", dest="track_plots", action="store_true",
     help="Produce per-video track plot summaries" )
+
+  parser.add_argument( "--mosaics", dest="mosaics", action="store_true",
+    help="Generate mosaics for the supplied sequences where applicable" )
 
   parser.add_argument( "-plot-objects", dest="objects", default="fish",
     help="Objects to generate plots for" )
