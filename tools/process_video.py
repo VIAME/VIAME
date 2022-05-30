@@ -507,13 +507,18 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   # Output naming and directory formation if necessary
   if os.path.isdir( input_path ):
-    input_basename = input_path
+    input_dir = os.path.abspath( options.input if options.input else options.input_dir )
+    input_basename = os.path.relpath( os.path.abspath( input_path ), input_dir )
+    if options.build_index:
+      input_basename = input_basename.replace( div, "_" )
+      input_basename = input_basename.replace( " ", "_" )
   else:
     input_basename = os.path.basename( input_path )
   output_subdir = output_dir + div + input_basename
   input_ext = os.path.splitext( input_path )[1]
 
   if not os.path.exists( output_subdir ) and \
+     not options.build_index and \
      ( os.path.isdir( input_path ) or \
        "filter_" in options.pipeline or \
        "transcode_" in options.pipeline ):
