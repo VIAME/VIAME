@@ -829,7 +829,7 @@ if __name__ == "__main__" :
   parser.add_argument( "--track-plots", dest="track_plots", action="store_true",
     help="Produce per-video track plot summaries" )
 
-  parser.add_argument( "--mosaics", dest="mosaics", action="store_true",
+  parser.add_argument( "--mosaic", dest="mosaic", action="store_true",
     help="Generate mosaics for the supplied sequences where applicable" )
 
   parser.add_argument( "-plot-objects", dest="objects", default="fish",
