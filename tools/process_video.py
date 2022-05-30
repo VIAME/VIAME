@@ -86,12 +86,12 @@ def check_for_multicam_folder( folder, subfolders = None ):
   lowercase = [ os.path.basename( f ).lower().replace( "/", "" ) for f in subfolders ]
   if len( subfolders ) == 3:
     if "left" in lowercase and "center" in lowercase and "right" in lowercase:
-      return True, ordered_return( subfolder, lowercase, [ "left", "center", "right" ] )
+      return True, ordered_return( subfolders, lowercase, [ "left", "center", "right" ] )
     if "star" in lowercase and "center" in lowercase and "port" in lowercase:
-      return True, ordered_return( subfolder, lowercase, [ "star", "center", "port" ] )
+      return True, ordered_return( subfolders, lowercase, [ "star", "center", "port" ] )
   elif len( subfolders ) == 2:
     if "left" in lowercase and "right" in lowercase:
-      return True, ordered_return( subfolder, lowercase, [ "left", "right" ] )
+      return True, ordered_return( subfolders, lowercase, [ "left", "right" ] )
   return False, []
 
 def auto_folder_recurse( folder, video_exts, image_exts ):
@@ -105,7 +105,7 @@ def auto_folder_recurse( folder, video_exts, image_exts ):
   is_multi_cam_folder, _ = check_for_multicam_folder( folder, subfolders )
   if is_multi_cam_folder or has_several_images or \
      ( has_image_files and not has_video_files ):
-    files.extend( folder )
+    files.append( folder )
   if is_multi_cam_folder:
     return files
   elif has_subfolders:
@@ -578,7 +578,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
     if is_multi_cam:
       for camera_folder in camera_folders:
-        camera_name = os.path.basename( camera_folders )
+        camera_name = os.path.basename( camera_folder )
         camera_names.append( camera_name )
         input_paths.append( make_filelist_for_dir( camera_folder, output_dir, camera_name ) )
       input_path = input_paths[0]
