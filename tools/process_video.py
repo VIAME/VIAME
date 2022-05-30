@@ -83,15 +83,15 @@ def ordered_return( retvar, refvar, cats ):
   return output
 
 def check_for_multicam_folder( folder, subfolders = None ):
-  if not os.path.isdir( folder );
+  if not os.path.isdir( folder ):
     return False, []
   if subfolders is None:
     subfolders = [ f for f in list_elems_in_dir( folder ) if os.path.isdir( f ) ]
   lowercase = [ os.path.basename( f ).lower().replace( "/", "" ) for f in subfolders ]
   if len( subfolders ) == 3:
-    if "left" in lowercase and "center" in lowercase "right" in lowercase:
+    if "left" in lowercase and "center" in lowercase and "right" in lowercase:
       return True, ordered_return( subfolder, lowercase, [ "left", "center", "right" ] )
-    if "star" in lowercase and "center" in lowercase "port" in lowercase:
+    if "star" in lowercase and "center" in lowercase and "port" in lowercase:
       return True, ordered_return( subfolder, lowercase, [ "star", "center", "port" ] )
   elif len( subfolders ) == 2:
     if "left" in lowercase and "right" in lowercase:
@@ -517,9 +517,9 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   output_subdir = output_dir + div + input_basename
   input_ext = os.path.splitext( input_path )[1]
 
-  if not os.path.exists( output_subdir ) and
-     ( os.path.isdir( input_path ) or 
-       "filter_" in options.pipeline or 
+  if not os.path.exists( output_subdir ) and \
+     ( os.path.isdir( input_path ) or \
+       "filter_" in options.pipeline or \
        "transcode_" in options.pipeline ):
     os.makedirs( output_subdir )
 
