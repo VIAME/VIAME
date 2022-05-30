@@ -1,3 +1,17 @@
+v0.19.2 - 5/30/2022
+===================
+
+
+-Fix for DIVE multi-camera locked zooming
+
+
+-Add support for bulk processing multi-camera data in project folders
+
+
+-Add additional mosaicing helper scripts and examples
+
+
+
 v0.19.1 - 5/24/2022
 ===================
 
