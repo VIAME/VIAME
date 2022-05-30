@@ -23,11 +23,7 @@ sys.dont_write_bytecode = True
 import database_tool
 
 # Character short-cuts and global constants
-if os.name == 'nt':
-  div = '\\'
-else:
-  div = '/'
-
+div = os.path.sep
 lb  = '\n'
 
 lb1 = lb
