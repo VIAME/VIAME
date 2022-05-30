@@ -113,7 +113,7 @@ def auto_folder_recurse( folder, video_exts, image_exts, check_mc ):
     return files
   elif has_subfolders:
     for f in subfolders:
-      files.extend( auto_folder_recurse( f, video_exts, image_exts ) )
+      files.extend( auto_folder_recurse( f, video_exts, image_exts, check_mc ) )
   elif not has_subfolders and not has_image_files and not has_video_files:
     if len( list_elems_in_dir( folder ) ) > 2:
       files.extend( folder )
