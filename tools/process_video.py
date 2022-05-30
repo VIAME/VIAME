@@ -334,14 +334,11 @@ def fset( setting_str ):
 def pipe_starts_with( filename, substr ):
   return os.path.basename( filename ).startswith( substr )
 
-def detection_output_settings_list( options, basename, cid = None ):
-  output_dir = options.output_directory
-
+def detection_output_settings_list( output_dir, basename, no_ext = False, cid = None ):
   det_writer_str = 'detector_writer' + ( str( cid ) + ':' if cid else ':' )
   trk_writer_str = 'track_writer' + ( str( cid ) + ':' if cid else ':' )
 
-  if pipe_starts_with( options.pipeline, "filter_" ) or \
-     pipe_starts_with( options.pipeline, "transcode_" ):
+  if no_ext:
     detection_file = output_dir + div + basename + default_gt_ext
     track_file = output_dir + div + basename + default_gt_ext
   else:
@@ -355,9 +352,7 @@ def detection_output_settings_list( options, basename, cid = None ):
     fset( trk_writer_str + 'stream_identifier=' + basename ),
   ))
 
-def homography_output_settings_list( options, basename, cid = None ):
-  output_dir = options.output_directory
-
+def homography_output_settings_list( output_dir, basename, cid = None ):
   homog_writer_str = 'homog_writer' + ( str( cid ) + ':' if cid else ':' )
   homog_file = output_dir + div + basename + homography_ext
 
@@ -365,8 +360,7 @@ def homography_output_settings_list( options, basename, cid = None ):
     fset( homog_writer_str + 'output=' + homog_file ),
   ))
 
-def search_output_settings_list( options, basename ):
-  output_dir = options.output_directory
+def search_output_settings_list( output_dir, basename ):
   return list(itertools.chain(
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
@@ -377,9 +371,7 @@ def search_output_settings_list( options, basename ):
     fset( 'kwa_writer:stream_id=' + basename ),
   ))
 
-def plot_settings_list( options, basename ):
-  output_dir = options.output_directory
-
+def plot_settings_list( output_dir, basename ):
   return list(itertools.chain(
     fset( 'detector_writer:file_name=' + output_dir + div + basename + detection_ext ),
     fset( 'kwa_writer:output_directory=' + output_dir ),
@@ -515,10 +507,11 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   multi_threaded = ( options.gpu_count * options.pipes > 1 )
   auto_detect_gt = ( options.auto_detect_gt )
   use_gt = ( options.gt_file or auto_detect_gt )
-  output_dir = options.output_directory
-  input_paths = []
-  camera_names = []
   is_multi_cam, camera_folders = check_for_multicam_folder( input_path )
+  input_paths = []    # Only for multi-camera input
+  camera_names = []   # Only for multi-camera input
+  output_dir = options.output_directory
+  outputs_images = ( "filter_" in options.pipeline or "transcode_" in options.pipeline )
 
   # Output naming and directory formation if necessary
   if os.path.isdir( input_path ):
@@ -534,9 +527,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   if not os.path.exists( output_subdir ) and \
      not options.build_index and \
-     ( os.path.isdir( input_path ) or \
-       "filter_" in options.pipeline or \
-       "transcode_" in options.pipeline ):
+     ( os.path.isdir( input_path ) or outputs_images ):
     os.makedirs( output_subdir )
 
   # GPU checks for logging statements
@@ -562,9 +553,9 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   # Get video name without extension and full path
   if base_name_override:
-    basename_no_ext = base_name_override
+    input_id_no_ext = base_name_override
   else:
-    basename_no_ext = os.path.splitext( input_id )[0]
+    input_id_no_ext = os.path.splitext( input_id )[0]
 
   # Formulate input setting string
   if auto_detect_gt:
@@ -598,7 +589,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
         input_paths.append( make_filelist_for_dir( camera_folder, output_dir, camera_name ) )
       input_path = input_paths[0]
     else:
-      input_path = make_filelist_for_dir( input_path, output_dir, basename_no_ext )
+      input_path = make_filelist_for_dir( input_path, output_dir, input_id_no_ext )
     if not input_path:
       if multi_threaded:
         log_info( 'Skipped {} on GPU {}'.format( input_id, gpu ) + lb1 )
@@ -609,8 +600,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   elif auto_detect_gt:
     input_path = os.path.dirname( os.path.abspath( input_path ) )
     all_gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
-    better_fit = [ i for i in all_gt_files if basename_no_ext in i ]
-    best_fit = [ i for i in better_fit if basename_no_ext + ".csv" in i ]
+    better_fit = [ i for i in all_gt_files if input_id_no_ext in i ]
+    best_fit = [ i for i in better_fit if input_id_no_ext + ".csv" in i ]
     if len( best_fit ) > 0:
       gt_files = best_fit
     elif len( better_fit ) > 0:
@@ -654,16 +645,19 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     command += video_frame_rate_settings_list( options, None, source_rate )
 
   # Additional options
-  command += detection_output_settings_list( options, basename_no_ext )
-  command += homography_output_settings_list( options, basename_no_ext )
-  command += search_output_settings_list( options, basename_no_ext )
+  command += detection_output_settings_list( output_dir, input_id_no_ext, output_images )
+  command += homography_output_settings_list( output_dir, input_id_no_ext )
+  command += search_output_settings_list( output_dir, input_id_no_ext )
+
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
 
   for camera_id, camera_name in enumerate( camera_names ):
-    command += detection_output_settings_list( options, camera_name, camera_id )
-    command += homography_output_settings_list( options, camera_name, camera_id )
+    command += detection_output_settings_list(
+      output_subdir, camera_name, output_images, camera_id )
+    command += homography_output_settings_list(
+      output_subdir, camera_name, output_images, camera_id )
 
   if options.write_svm_info and not use_gt:
     if len( options.input_detections ) == 0:
@@ -674,7 +668,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   if use_gt or options.write_svm_info:
     gt_type = options.auto_detect_gt if auto_detect_gt else "viame_csv"
     gt_files = [ options.gt_file ] if not auto_detect_gt else gt_files
-    command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu, gt_type )
+    command += groundtruth_reader_settings_list( options, gt_files, input_id_no_ext, gpu, gt_type )
 
   if ( not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ) ) or \
        pipe_starts_with( options.pipeline, "transcode_" ):
@@ -706,8 +700,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   # Process command, possibly with logging
   log_base = ""
   if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
-    log_base = output_dir + div + options.log_directory + div + basename_no_ext
-    if os.path.sep in basename_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
+    log_base = output_dir + div + options.log_directory + div + input_id_no_ext
+    if os.path.sep in input_id_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
       os.makedirs( os.path.dirname( log_base ) )
     with get_log_output_files( log_base ) as kwargs:
       res = execute_command( command, gpu=gpu, **kwargs )
