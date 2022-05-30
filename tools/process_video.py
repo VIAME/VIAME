@@ -38,8 +38,10 @@ detection_ext = "_detections" + default_gt_ext
 track_ext = "_tracks" + default_gt_ext
 homography_ext = "_homogs" + default_homography_ext
 
-default_pipeline = "pipelines" + div + "index_default" + default_pipe_ext
+pipeline_dir = "pipelines"
+default_pipeline = pipeline_dir + div + "index_default" + default_pipe_ext
 no_pipeline = "none"
+auto_pipeline = "auto"
 
 # Global flag to see if any video has successfully completed processing
 any_video_complete = False
@@ -127,6 +129,16 @@ def auto_identify_data( folder, video_exts, image_exts, check_mc = True ):
   for i in entries:
     print( i )
   return entries
+
+def auto_select_registration_pipe( folder ):
+  camera_count = 1
+  if os.path.isdir( folder ):
+    is_multi, camera_ids = check_for_multicam_folder( folder )
+    if is_multi:
+      camera_count = len( camera_ids )
+  if camera_count > 1:
+    return pipeline_dir + div + "utility_register_frames_" + str( camera_count) + "-cam.pipe"
+  return pipeline_dir + div + "utility_register_frames.pipe"
 
 # Default message logging
 def log_info( msg ):
@@ -271,7 +283,7 @@ def make_filelist_for_dir( input_dir, output_dir, output_name ):
   top_ext = sorted( exts, key=exts.get, reverse=True )[0]
 
   # Write out list to file
-  output_file = os.path.join( output_dir, output_name + ".txt" )
+  output_file = os.path.join( output_dir, output_name + "_images.txt" )
   fout = open( output_file, "w" )
   for f in files[top_ext]:
     fout.write( os.path.abspath( f + lb1 ) )
@@ -458,12 +470,12 @@ def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id, gt_ty
 def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
-def add_final_list_csv( args, video_list ):
-  if len( video_list ) == 0:
+def add_final_list_csv( args, data_list ):
+  if len( data_list ) == 0:
     return
-  for video in video_list:
+  for video in data_list:
     if video.endswith( "_part0.txt" ):
-      output_file = video_list[0].replace( "_part0.txt", detection_ext )
+      output_file = data_list[0].replace( "_part0.txt", detection_ext )
       output_stream = open( output_file, "w" )
       id_adjustment = 0
       is_first = True
@@ -511,7 +523,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   input_paths = []    # Only for multi-camera input
   camera_names = []   # Only for multi-camera input
   output_dir = options.output_directory
-  outputs_images = ( "filter_" in options.pipeline or "transcode_" in options.pipeline )
+  output_images = ( "filter_" in options.pipeline or "transcode_" in options.pipeline )
 
   # Output naming and directory formation if necessary
   if os.path.isdir( input_path ):
@@ -522,12 +534,13 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       input_id = input_id.replace( " ", "_" )
   else:
     input_id = os.path.basename( input_path )
+
   output_subdir = output_dir + div + input_id
   input_ext = os.path.splitext( input_path )[1]
 
   if not os.path.exists( output_subdir ) and \
      not options.build_index and \
-     ( os.path.isdir( input_path ) or outputs_images ):
+     ( os.path.isdir( input_path ) or output_images ):
     os.makedirs( output_subdir )
 
   # GPU checks for logging statements
@@ -586,7 +599,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       for camera_folder in camera_folders:
         camera_name = os.path.basename( camera_folder )
         camera_names.append( camera_name )
-        input_paths.append( make_filelist_for_dir( camera_folder, output_dir, camera_name ) )
+        camera_list = make_filelist_for_dir( camera_folder, output_subdir, camera_name )
+        input_paths.append( camera_list )
       input_path = input_paths[0]
     else:
       input_path = make_filelist_for_dir( input_path, output_dir, input_id_no_ext )
@@ -619,9 +633,9 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     input_settings += fset( 'input:video_reader:type=add_timestamp_from_filename' )
 
   # For multi camera case
-  for idx, path in enumerate( input_paths ):
-    input_str = 'input' + str( idx ) + ':'
-    input_settings = fset( input_str + 'video_filename=' + input_path )
+  for idx, camera_path in enumerate( input_paths ):
+    input_str = 'input' + str( idx + 1 ) + ':'
+    input_settings += fset( input_str + 'video_filename=' + camera_path )
     if not is_image_list:
       input_settings += fset( input_str + 'video_reader:type=vidl_ffmpeg' )
 
@@ -654,10 +668,10 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   command += object_tracker_settings_list( options )
 
   for camera_id, camera_name in enumerate( camera_names ):
-    command += detection_output_settings_list(
-      output_subdir, camera_name, output_images, camera_id )
-    command += homography_output_settings_list(
-      output_subdir, camera_name, output_images, camera_id )
+    command += detection_output_settings_list( \
+      output_subdir, camera_name, output_images, camera_id + 1 )
+    command += homography_output_settings_list( \
+      output_subdir, camera_name, camera_id + 1 )
 
   if options.write_svm_info and not use_gt:
     if len( options.input_detections ) == 0:
@@ -713,7 +727,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   # Generate optional mosaic for sequence
   if options.mosaic:
     log_info( "Building mosaic... " )
-    cmd2 = []
+    import create_mosaic
 
   if res == 0:
     if multi_threaded:
@@ -960,24 +974,24 @@ if __name__ == "__main__" :
 
     if len( args.input_list ) > 0:
       if args.gpu_count > 1:
-        video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
+        data_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
       else:
-        video_list = [ args.input_list ]
+        data_list = [ args.input_list ]
       is_image_list = True
     elif len( args.input_dir ) > 0:
-      video_list = auto_identify_data( args.input_dir, args.video_exts, args.image_exts, not args.recursive )
+      data_list = auto_identify_data( args.input_dir, args.video_exts, args.image_exts, not args.recursive )
       is_image_list = False
     else:
-      video_list = [ args.input_video ]
+      data_list = [ args.input_video ]
       is_image_list = False
 
-    if len( video_list ) == 0:
+    if len( data_list ) == 0:
       exit_with_error( "No videos found for ingest in given folder, exiting." )
     elif not is_image_list:
       if not args.init_db:
         log_info( lb1 )
-      video_str = " video" if len( video_list ) == 1 else " videos"
-      log_info( "Processing " + str( len( video_list ) ) + video_str + lb2 )
+      video_str = " video" if len( data_list ) == 1 else " videos"
+      log_info( "Processing " + str( len( data_list ) ) + video_str + lb2 )
     elif not args.build_index:
       log_info( lb1 )
 
@@ -997,20 +1011,28 @@ if __name__ == "__main__" :
           exit_with_error( "Use of this script requires training a detector first" )
 
     # Process videos in parallel, one per GPU
-    video_queue = queue.Queue()
-    for video_name in video_list:
+    data_queue = queue.Queue()
+    for video_name in data_list:
       if os.path.isfile( video_name ) or os.path.isdir( video_name ):
-        video_queue.put( video_name )
+        data_queue.put( video_name )
       else:
         log_info( "Skipping unknown input: " + video_name + lb )
+
+    # Automatically determine pipe when needed
+    auto_select_pipe = ( args.pipeline == auto_pipeline )
+
+    if auto_select_pipe and not args.mosaic:
+      exit_with_error( "Auto-pipeline selection only valid for mosaicing" )
 
     def process_on_thread( gpu, cpu ):
       while True:
         try:
-          video_name = video_queue.get_nowait()
+          entry_name = data_queue.get_nowait()
         except queue.Empty:
           break
-        process_using_kwiver( video_name, args, is_image_list, cpu=cpu, gpu=gpu )
+        if auto_select_pipe:
+          args.pipeline = auto_select_registration_pipe( entry_name )
+        process_using_kwiver( entry_name, args, is_image_list, cpu=cpu, gpu=gpu )
 
     gpu_thread_list = [ i for i in range( args.gpu_count ) for _ in range( args.pipes ) ]
     cpu_thread_list = list( range( args.pipes ) ) * args.gpu_count
@@ -1025,11 +1047,11 @@ if __name__ == "__main__" :
 
     if is_image_list:
       if args.gpu_count > 1: # Each thread outputs 1 list, add multiple
-        add_final_list_csv( args, video_list )
-        for image_list in video_list: # Clean up after split_image_list
+        add_final_list_csv( args, data_list )
+        for image_list in data_list: # Clean up after split_image_list
           os.unlink( image_list )
 
-    if not video_queue.empty():
+    if not data_queue.empty():
       exit_with_error( "Some videos were not processed!" )
 
   # Build out detection vs time plots for both detections and tracks
