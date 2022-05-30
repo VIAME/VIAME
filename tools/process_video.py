@@ -32,9 +32,11 @@ lb3 = lb * 3
 
 default_gt_ext = ".csv"
 default_pipe_ext = ".pipe"
+default_homography_ext = ".txt"
 
 detection_ext = "_detections" + default_gt_ext
 track_ext = "_tracks" + default_gt_ext
+homography_ext = "_homogs" + default_homography_ext
 
 default_pipeline = "pipelines" + div + "index_default" + default_pipe_ext
 no_pipeline = "none"
@@ -353,6 +355,16 @@ def detection_output_settings_list( options, basename, cid = None ):
     fset( trk_writer_str + 'stream_identifier=' + basename ),
   ))
 
+def homography_output_settings_list( options, basename, cid = None ):
+  output_dir = options.output_directory
+
+  homog_writer_str = 'homog_writer' + ( str( cid ) + ':' if cid else ':' )
+  homog_file = output_dir + div + basename + homography_ext
+
+  return list(itertools.chain(
+    fset( homog_writer_str + 'output=' + homog_file ),
+  ))
+
 def search_output_settings_list( options, basename ):
   output_dir = options.output_directory
   return list(itertools.chain(
@@ -643,13 +655,15 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   # Additional options
   command += detection_output_settings_list( options, basename_no_ext )
+  command += homography_output_settings_list( options, basename_no_ext )
   command += search_output_settings_list( options, basename_no_ext )
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
 
   for camera_id, camera_name in enumerate( camera_names ):
-    command += detection_output_settings_list( options, camera_name, camera_id)
+    command += detection_output_settings_list( options, camera_name, camera_id )
+    command += homography_output_settings_list( options, camera_name, camera_id )
 
   if options.write_svm_info and not use_gt:
     if len( options.input_detections ) == 0:
