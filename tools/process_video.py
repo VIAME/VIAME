@@ -516,20 +516,20 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   auto_detect_gt = ( options.auto_detect_gt )
   use_gt = ( options.gt_file or auto_detect_gt )
   output_dir = options.output_directory
-  is_multi_cam, camera_folders = check_for_multicam_folder( input_path )
   input_paths = []
   camera_names = []
+  is_multi_cam, camera_folders = check_for_multicam_folder( input_path )
 
   # Output naming and directory formation if necessary
   if os.path.isdir( input_path ):
     input_dir = os.path.abspath( options.input if options.input else options.input_dir )
-    input_basename = os.path.relpath( os.path.abspath( input_path ), input_dir )
+    input_id = os.path.relpath( os.path.abspath( input_path ), input_dir )
     if options.build_index:
-      input_basename = input_basename.replace( div, "_" )
-      input_basename = input_basename.replace( " ", "_" )
+      input_id = input_id.replace( div, "_" )
+      input_id = input_id.replace( " ", "_" )
   else:
-    input_basename = os.path.basename( input_path )
-  output_subdir = output_dir + div + input_basename
+    input_id = os.path.basename( input_path )
+  output_subdir = output_dir + div + input_id
   input_ext = os.path.splitext( input_path )[1]
 
   if not os.path.exists( output_subdir ) and \
@@ -551,20 +551,20 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   # Main logging statements
   if has_gpu:
     if multi_threaded:
-      log_info( 'Processing: {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+      log_info( 'Processing: {} on GPU {}'.format( input_id, gpu ) + lb1 )
     else:
-      log_info( 'Processing: {} on GPU... '.format( input_basename ) )
+      log_info( 'Processing: {} on GPU... '.format( input_id ) )
   else:
     if multi_threaded:
-      log_info( 'Processing: {} on CPU {}'.format( input_basename, gpu ) + lb1 )
+      log_info( 'Processing: {} on CPU {}'.format( input_id, gpu ) + lb1 )
     else:
-      log_info( 'Processing: {} on CPU... '.format( input_basename ) )
+      log_info( 'Processing: {} on CPU... '.format( input_id ) )
 
   # Get video name without extension and full path
   if base_name_override:
     basename_no_ext = base_name_override
   else:
-    basename_no_ext = os.path.splitext( input_basename )[0]
+    basename_no_ext = os.path.splitext( input_id )[0]
 
   # Formulate input setting string
   if auto_detect_gt:
@@ -578,13 +578,13 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   if not is_image_list and \
       ( input_ext == '.csv' or input_ext == '.txt' or input_path == "__pycache__" ):
     if multi_threaded:
-      log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+      log_info( 'Skipped {} on GPU {}'.format( input_id, gpu ) + lb1 )
     else:
       log_info( 'Skipped' + lb1 )
     return
   elif not os.path.exists( input_path ):
     if multi_threaded:
-      log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+      log_info( 'Skipped {} on GPU {}'.format( input_id, gpu ) + lb1 )
     else:
       log_info( 'Skipped' + lb1 )
     return
@@ -601,7 +601,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       input_path = make_filelist_for_dir( input_path, output_dir, basename_no_ext )
     if not input_path:
       if multi_threaded:
-        log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+        log_info( 'Skipped {} on GPU {}'.format( input_id, gpu ) + lb1 )
       else:
         log_info( 'Skipped' + lb1 )
       return
@@ -681,8 +681,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
     command += fset( 'detector_writer:writer:viame_csv:write_time_as_uid=true' )
   else:
-    command += fset( 'track_writer:writer:viame_csv:stream_identifier=' + input_basename )
-    command += fset( 'detector_writer:writer:viame_csv:stream_identifier=' + input_basename )
+    command += fset( 'track_writer:writer:viame_csv:stream_identifier=' + input_id )
+    command += fset( 'detector_writer:writer:viame_csv:stream_identifier=' + input_id )
 
   if options.input_detections:
     command += fset( "detection_reader:file_name=" + options.input_detections )
@@ -693,7 +693,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     command += fset( "image_writer:file_name_template=" + full_pattern )
 
   if pipe_starts_with( options.pipeline, "transcode_" ):
-    full_pattern = output_subdir + div + input_basename
+    full_pattern = output_subdir + div + input_id
     command += fset( "video_writer:video_filename=" + full_pattern )
 
   try:
@@ -723,13 +723,13 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   if res == 0:
     if multi_threaded:
-      log_info( 'Completed: {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+      log_info( 'Completed: {} on GPU {}'.format( input_id, gpu ) + lb1 )
     else:
       log_info( 'Success' + lb1 )
     any_video_complete = True
   else:
     if multi_threaded:
-      log_info( 'Failure: {} on GPU {} Failed'.format( input_basename, gpu ) + lb1 )
+      log_info( 'Failure: {} on GPU {} Failed'.format( input_id, gpu ) + lb1 )
     else:
       log_info( 'Failure' + lb1 )
 
