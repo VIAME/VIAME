@@ -748,15 +748,15 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     if os.path.sep in input_id_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
       os.makedirs( os.path.dirname( log_base ) )
     with get_log_output_files( log_base ) as kwargs:
-      res = execute_command( command, gpu=gpu, **kwargs )
+      return_id = execute_command( command, gpu=gpu, **kwargs )
   else:
-    res = execute_command( command, gpu=gpu )
+    return_id = execute_command( command, gpu=gpu )
 
   global any_video_complete
 
   # Generate optional mosaic for sequence
   if options.mosaic:
-    log_info( "Building mosaic... " + lb2 )
+    log_info( "Building mosaic... " )
     import create_mosaic
     mosaic_args = []
     frame_id_ranges = []
@@ -765,13 +765,21 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       mosaic_args.append( [ camera_homog, camera_list ] )
       frame_id_ranges.append( load_mosaic_ranges( camera_homog ) )
     frame_id_ranges = consolidate_mosaic_ranges( frame_id_ranges )
+    any_mosaic_attempted = False
     for fid_pair in frame_id_ranges:
+      if fid_pair[1] - fid_pair[0] <= 1:
+        continue
+      if not any_mosaic_attempted:
+        log_info( lb )
       output_mosaic_file = output_subdir + div + "mosaic" + str( fid_pair[0] ) + ".jpg"
       create_mosaic.main_multi( output_mosaic_file, \
         mosaic_args, step=1, start=fid_pair[0], stop=fid_pair[1] )
-    log_info( lb )
+    if any_mosaic_attempted:
+      log_info( lb )
+    else:
+      return_id = 1234
 
-  if res == 0:
+  if return_id == 0:
     if multi_threaded:
       log_info( 'Completed: {} on GPU {}'.format( input_id, gpu ) + lb1 )
     else:
@@ -783,7 +791,10 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     else:
       log_info( 'Failure' + lb1 )
 
-    if res == -11:
+    if return_id == 1234: # Mosaic failure hack
+      return
+
+    if return_id == -11:
       s = os.statvfs( output_dir )
 
       if s.f_bavail * s.f_frsize < 100000000:
