@@ -4,7 +4,7 @@
 export VIAME_INSTALL=/home/matt/Dev/viame/build/install
 
 # Core processing options
-export INPUT="20210627_JACOB ROCK"
+export INPUT=insert_here
 export OUTPUT=output
 
 # Extra resource utilization options

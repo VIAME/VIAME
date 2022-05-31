@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Path to VIAME installation
-export VIAME_INSTALL=/home/matt/Dev/viame/build/install
+export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 # Core processing options
-export INPUT="20210627_JACOB ROCK"
+export INPUT=insert_foldername_here
 export OUTPUT=output
 
 # Extra resource utilization options
