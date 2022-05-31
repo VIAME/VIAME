@@ -33,10 +33,12 @@ lb3 = lb * 3
 default_gt_ext = ".csv"
 default_pipe_ext = ".pipe"
 default_homography_ext = ".txt"
+default_list_ext = ".txt"
 
 detection_ext = "_detections" + default_gt_ext
 track_ext = "_tracks" + default_gt_ext
 homography_ext = "_homogs" + default_homography_ext
+image_list_ext = "_images" + default_list_ext
 
 pipeline_dir = "pipelines"
 default_pipeline = pipeline_dir + div + "index_default" + default_pipe_ext
@@ -137,7 +139,7 @@ def auto_select_registration_pipe( folder ):
     if is_multi:
       camera_count = len( camera_ids )
   if camera_count > 1:
-    return pipeline_dir + div + "utility_register_frames_" + str( camera_count) + "-cam.pipe"
+    return pipeline_dir + div + "utility_register_frames_" + str( camera_count ) + "-cam.pipe"
   return pipeline_dir + div + "utility_register_frames.pipe"
 
 # Default message logging
@@ -261,6 +263,34 @@ def rate_from_gt( filename ):
         return fps
   return ""
 
+def load_mosaic_ranges( homog_file ):
+  counter = 0
+  last_ref_id = 0
+  output = [ 0 ]
+  with open( homog_file, 'r' ) as fin:
+    for line in fin.readlines():
+      parsed_line = line.rstrip().split( ' ' )
+      if len( line ) < 11:
+        break
+      counter += 1
+      ref_id = int( parsed_line[ 10 ] )
+      if ref_id != last_ref_id:
+        last_ref_id = ref_id
+        output.append( last_ref_id )
+  if output[-1] != counter and counter > output[-1]:
+    output.append( counter )
+  return output
+  
+def consolidate_mosaic_ranges( mosaic_ranges ):
+  output = []
+  merged_range = set()
+  for mosaic_range in mosaic_ranges:
+    merged_range.update( mosaic_range )
+  merged_range = list( merged_range )
+  for i in range( len( merged_range ) - 1 ):
+    output.append( [ merged_range[i], merged_range[i+1] ] )
+  return output
+
 def make_filelist_for_dir( input_dir, output_dir, output_name ):
   # The most common extension in the folder is most likely images.
   # Sometimes people have small text files alongside the images
@@ -283,7 +313,7 @@ def make_filelist_for_dir( input_dir, output_dir, output_name ):
   top_ext = sorted( exts, key=exts.get, reverse=True )[0]
 
   # Write out list to file
-  output_file = os.path.join( output_dir, output_name + "_images.txt" )
+  output_file = os.path.join( output_dir, output_name + image_list_ext )
   fout = open( output_file, "w" )
   for f in files[top_ext]:
     fout.write( os.path.abspath( f + lb1 ) )
@@ -728,6 +758,17 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   if options.mosaic:
     log_info( "Building mosaic... " )
     import create_mosaic
+    mosaic_args = []
+    frame_id_ranges = []
+    for camera_list in input_paths:
+      camera_homog = camera_list.replace( image_list_ext, homography_ext )
+      mosaic_args.append( [ camera_homog, camera_list ] )
+      frame_id_ranges.append( load_mosaic_ranges( camera_homog ) )
+    frame_id_ranges = consolidate_mosaic_ranges( frame_id_ranges )
+    for fid_pair in frame_id_ranges:
+      output_mosaic_file = output_subdir + div + "mosaic" + str( fid_pair[0] ) + ".jpg"
+      create_mosaic.main_multi( output_mosaic_file, \
+        mosaic_args, step=1, start=fid_pair[0], stop=fid_pair[1] )
 
   if res == 0:
     if multi_threaded:
