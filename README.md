@@ -97,7 +97,7 @@ CentOS
 * [VIAME Web Source Repository](https://github.com/Kitware/dive)
 
 **DIVE Standalone Desktop Annotator:** <br>
-* [DIVE Installers (Linux, Mac, Windows)](https://github.com/VIAME/VIAME-Web/releases)
+* [DIVE Installers (Linux, Mac, Windows)](https://github.com/Kitware/dive/releases/tag/1.8.0-beta.3)
 
 **SEAL Standalone Desktop Annotator:** <br>
 * [SEAL Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
