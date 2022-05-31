@@ -1,20 +1,19 @@
-#!/bin/bash
+@echo off
 
-# Path to VIAME installation
-export VIAME_INSTALL=/home/matt/Dev/viame/build/install
+REM Path to VIAME installation
+SET VIAME_INSTALL=.\..\..
 
-# Core processing options
-export INPUT=insert_here
-export OUTPUT=output
+REM Processing options
+SET INPUT=insert_here
+SET OUTPUT=output
 
-# Extra resource utilization options
-export TOTAL_GPU_COUNT=1
-export PIPES_PER_GPU=1
+REM Extra resource utilization options
+SET TOTAL_GPU_COUNT=1
+SET PIPES_PER_GPU=1
 
-# Setup paths and run command
-source ${VIAME_INSTALL}/setup_viame.sh
+REM Setup paths and run command
+CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python ${VIAME_INSTALL}/configs/process_video.py \
-  -i "${INPUT}" -o "${OUTPUT}" -p auto --mosaic \
-  -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU} \
-  -install ${VIAME_INSTALL}
+python.exe "%VIAME_INSTALL%\configs\process_video.py" -i "%INPUT%" -o "%OUTPUT%" -p auto --mosaic -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU% -install "%VIAME_INSTALL%"
+
+pause
