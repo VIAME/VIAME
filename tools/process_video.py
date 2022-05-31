@@ -756,7 +756,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   # Generate optional mosaic for sequence
   if options.mosaic:
-    log_info( "Building mosaic... " )
+    log_info( "Building mosaic... " + lb2 )
     import create_mosaic
     mosaic_args = []
     frame_id_ranges = []
@@ -769,6 +769,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       output_mosaic_file = output_subdir + div + "mosaic" + str( fid_pair[0] ) + ".jpg"
       create_mosaic.main_multi( output_mosaic_file, \
         mosaic_args, step=1, start=fid_pair[0], stop=fid_pair[1] )
+    log_info( lb )
 
   if res == 0:
     if multi_threaded:
