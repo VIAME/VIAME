@@ -15,12 +15,12 @@ if( VIAME_ENABLE_OPENCV )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}
-      generate_mosaic_for_folder.bat
+      generate_mosaics_for_folder.bat
       generate_mosaic_for_list.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}
-      generate_mosaic_for_folder.sh
+      generate_mosaics_for_folder.sh
       generate_mosaic_for_list.sh )
   endif()
 endif()
