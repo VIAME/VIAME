@@ -59,4 +59,4 @@ endif()
 # Install pipelines to example directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/image_registration )
+         DESTINATION examples/registration_and_mosaicing )
