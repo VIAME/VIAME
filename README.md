@@ -80,16 +80,16 @@ CentOS
 
 **Windows Full Desktop Binaries:** <br>
 * VIAME v0.19.2 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
-* [VIAME v0.19.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1TNjh6SNGlqiJalI3TP9G6f9Fb4JdaAOI/view?usp=sharing) <br>
-* [VIAME v0.19.2 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/62959ad24acac99f425986c3/download) <br>
-* [VIAME v0.19.2 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1_UHnGEJCIgEzT6XjXs-BUyYOLOGj6XPj/view?usp=sharing) <br>
-* [VIAME v0.19.2 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/62959a274acac99f42595bd6/download)
+* [VIAME v0.19.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1IcS6xy-ankDDxf1iWgW8q8Q3HdRp8YM3/view?usp=sharing) <br>
+* [VIAME v0.19.2 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6297a6084acac99f427fea8e/download) <br>
+* [VIAME v0.19.2 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1EJz3qdWl4tMyr6hyRG5XYO-3wJ0f4U2I/view?usp=sharing) <br>
+* [VIAME v0.19.2 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6297a64a4acac99f427ffc2d/download)
 
 **Linux Full Desktop Binaries:** <br>
 * [VIAME v0.19.1 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1WEbhikwwIFtfBeCFaQkRHm4x7-nJHz-n/view?usp=sharing) <br>
 * [VIAME v0.19.1 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/628ed3f74acac99f4216c690/download) <br>
-* [VIAME v0.19.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1DXzEV7Lf2qgN9JqnCxHrkdNRKvblwl5-/view?usp=sharing) <br>
-* [VIAME v0.19.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/628ed38a4acac99f4216c631/download)
+* [VIAME v0.19.2 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1B2nvtUpKeFXReIoBamPIL3wCMiGB0mo1/view?usp=sharing) <br>
+* [VIAME v0.19.2 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6297a7a14acac99f427ffdf8/download)
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
