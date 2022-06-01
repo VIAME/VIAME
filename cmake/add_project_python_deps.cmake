@@ -48,6 +48,10 @@ if( VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "typing-extensions" "bs4" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-PYSOT )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf==3.20.1" )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf" )
 endif()
