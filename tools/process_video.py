@@ -766,7 +766,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       camera_homog = camera_list.replace( image_list_ext, homography_ext )
       mosaic_args.append( [ camera_homog, camera_list ] )
       frame_id_ranges.append( load_mosaic_ranges( camera_homog ) )
-    if options.only_spatial:
+    if options.xcamera_only:
       max_id = max( frame_id_ranges )
       max_id = max( max_id ) if type( max_id ) is list else max_id
       frame_id_ranges = [ [ *range( 0, max_id + 1 ) ] ]
@@ -775,7 +775,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     for fid_pair in frame_id_ranges:
       if options.no_singles and \
          fid_pair[1] - fid_pair[0] <= 1 and \
-         not options.only_spatial:
+         not options.xcamera_only:
         continue
       if not any_mosaic_attempted:
         log_info( lb )
@@ -927,8 +927,8 @@ if __name__ == "__main__" :
   parser.add_argument( "--mosaic", dest="mosaic", action="store_true",
     help="Generate mosaics for the supplied sequences where applicable" )
 
-  parser.add_argument( "--only-spatial", dest="only_spatial", action="store_true",
-    help="When generating mosaics only mosaic at the same timestamp, not temporally" )
+  parser.add_argument( "--xcamera-only", dest="xcamera_only", action="store_true",
+    help="When generating mosaics, only generate mosaics cross camera at one slice" )
 
   parser.add_argument( "--no-singles", dest="no_singles", action="store_true",
     help="Do not output any mosaics that have no temporal matches" )
