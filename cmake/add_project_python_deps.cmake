@@ -39,6 +39,10 @@ endif()
 # For netharn and mmdet de-pickle on older versions
 if( Python_VERSION VERSION_LESS "3.8" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pickle5" )
+
+  if( VIAME_ENABLE_PYTORCH-PYSOT )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf==3.19.4" )
+  endif()
 endif()
 
 # For fusion classifier
@@ -46,10 +50,6 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "typing-extensions" "bs4" )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-PYSOT )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf==3.19.4" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
