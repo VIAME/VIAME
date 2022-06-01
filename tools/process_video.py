@@ -773,9 +773,9 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     frame_id_ranges = consolidate_mosaic_ranges( frame_id_ranges )
     any_mosaic_attempted = False
     for fid_pair in frame_id_ranges:
-      if fid_pair[1] - fid_pair[0] <= 1 and \
-         not options.only_spatial and \
-         not options.no_singles:
+      if options.no_singles and \
+         fid_pair[1] - fid_pair[0] <= 1 and \
+         not options.only_spatial:
         continue
       if not any_mosaic_attempted:
         log_info( lb )
