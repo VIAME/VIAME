@@ -773,7 +773,9 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     frame_id_ranges = consolidate_mosaic_ranges( frame_id_ranges )
     any_mosaic_attempted = False
     for fid_pair in frame_id_ranges:
-      if fid_pair[1] - fid_pair[0] <= 1 and not options.only_spatial:
+      if fid_pair[1] - fid_pair[0] <= 1 and \
+         not options.only_spatial and \
+         not options.no_singles:
         continue
       if not any_mosaic_attempted:
         log_info( lb )
@@ -926,6 +928,9 @@ if __name__ == "__main__" :
 
   parser.add_argument( "--only-spatial", dest="only_spatial", action="store_true",
     help="When generating mosaics only mosaic at the same timestamp, not temporally" )
+
+  parser.add_argument( "--no-singles", dest="no_singles", action="store_true",
+    help="Do not output any mosaics that have no temporal matches" )
 
   parser.add_argument( "-plot-objects", dest="objects", default="fish",
     help="Objects to generate plots for" )
