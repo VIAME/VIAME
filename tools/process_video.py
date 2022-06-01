@@ -785,7 +785,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
         create_mosaic.main_multi( output_mosaic_file, \
           mosaic_args, step=1, start=fid_pair[0], stop=fid_pair[1] )
       except Exception as e:
-        print( e )
+        log_info( "Critical error computing mosaic starting on frame " + str( fid_pair[0] ) + lb )
+        log_info( "Error: " + str( e ) + lb )
     if any_mosaic_attempted:
       log_info( lb )
     else:
