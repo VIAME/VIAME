@@ -227,11 +227,6 @@ def exit_with_error( error_str, force=False ):
   # Default exit case, if main thread
   sys.exit(0)
 
-def check_file( filename ):
-  if not os.path.exists( filename ):
-    exit_with_error( "Unable to find: " + filename )
-  return filename
-
 @contextlib.contextmanager
 def get_log_output_files( output_prefix ):
   if os.name == 'nt':
@@ -242,13 +237,14 @@ def get_log_output_files( output_prefix ):
     with open( output_prefix + '.txt', 'w' ) as fo:
       yield dict( stdout=fo, stderr=fo )
 
-def find_file( filename ):
+def find_file( filename, hard_error=True ):
   if( os.path.exists( filename ) ):
     return filename
   elif os.path.exists( get_script_path() + div + filename ):
     return get_script_path() + div + filename
-  else:
+  elif hard_error:
     exit_with_error( "Unable to find " + filename )
+  return filename
 
 def rate_from_gt( filename ):
   if not os.path.exists( filename ):
@@ -286,7 +282,7 @@ def consolidate_mosaic_ranges( mosaic_ranges ):
   merged_range = set()
   for mosaic_range in mosaic_ranges:
     merged_range.update( mosaic_range )
-  merged_range = list( merged_range )
+  merged_range = sorted( list( merged_range ) )
   for i in range( len( merged_range ) - 1 ):
     output.append( [ merged_range[i], merged_range[i+1] ] )
   return output
@@ -543,7 +539,8 @@ def add_final_list_csv( args, data_list ):
 
 # Process a single data item (image list, folder, or video)
 def process_using_kwiver( input_path, options, is_image_list=False,
-                          base_name_override='', cpu=0, gpu=None ):
+                          base_name_override='', cpu=0, gpu=None,
+                          run_pipeline=True ):
 
   # Generic settings shared across function
   multi_threaded = ( options.gpu_count * options.pipes > 1 )
@@ -671,7 +668,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   # Base command
   command = ( get_pipeline_cmd( options.debug ) +
-              [ find_file( options.pipeline ) ] +
+              [ find_file( options.pipeline, run_pipeline ) ] +
               input_settings )
 
   if use_gt and len( gt_files ) > 0:
@@ -742,15 +739,18 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     pass
 
   # Process command, possibly with logging
-  log_base = ""
-  if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
-    log_base = output_dir + div + options.log_directory + div + input_id_no_ext
-    if os.path.sep in input_id_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
-      os.makedirs( os.path.dirname( log_base ) )
-    with get_log_output_files( log_base ) as kwargs:
-      return_id = execute_command( command, gpu=gpu, **kwargs )
+  if run_pipeline:
+    log_base = ""
+    if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
+      log_base = output_dir + div + options.log_directory + div + input_id_no_ext
+      if os.path.sep in input_id_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
+        os.makedirs( os.path.dirname( log_base ) )
+      with get_log_output_files( log_base ) as kwargs:
+        return_id = execute_command( command, gpu=gpu, **kwargs )
+    else:
+      return_id = execute_command( command, gpu=gpu )
   else:
-    return_id = execute_command( command, gpu=gpu )
+     return_id = 0
 
   global any_video_complete
 
@@ -760,14 +760,20 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     import create_mosaic
     mosaic_args = []
     frame_id_ranges = []
+    if len( input_paths ) == 0:
+      input_paths.append( input_path )
     for camera_list in input_paths:
       camera_homog = camera_list.replace( image_list_ext, homography_ext )
       mosaic_args.append( [ camera_homog, camera_list ] )
       frame_id_ranges.append( load_mosaic_ranges( camera_homog ) )
+    if options.only_spatial:
+      max_id = max( frame_id_ranges )
+      max_id = max( max_id ) if type( max_id ) is list else max_id
+      frame_id_ranges = [ [ *range( 0, max_id + 1 ) ] ]
     frame_id_ranges = consolidate_mosaic_ranges( frame_id_ranges )
     any_mosaic_attempted = False
     for fid_pair in frame_id_ranges:
-      if fid_pair[1] - fid_pair[0] <= 1:
+      if fid_pair[1] - fid_pair[0] <= 1 and not options.only_spatial:
         continue
       if not any_mosaic_attempted:
         log_info( lb )
@@ -915,6 +921,9 @@ if __name__ == "__main__" :
   parser.add_argument( "--mosaic", dest="mosaic", action="store_true",
     help="Generate mosaics for the supplied sequences where applicable" )
 
+  parser.add_argument( "--only-spatial", dest="only_spatial", action="store_true",
+    help="When generating mosaics only mosaic at the same timestamp, not temporally" )
+
   parser.add_argument( "-plot-objects", dest="objects", default="fish",
     help="Objects to generate plots for" )
 
@@ -963,12 +972,16 @@ if __name__ == "__main__" :
 
   # Assorted error checking up front
   process_data = True
+  call_pipeline = True
 
   number_input_args = sum( len( inp_x ) > 0 for inp_x in \
     [ args.input, args.input_video, args.input_dir, args.input_list ] )
 
   if number_input_args == 0 or args.pipeline == no_pipeline:
-    if not args.build_index and not args.detection_plots and not args.track_plots:
+    call_pipeline = False
+    if args.mosaic:
+      process_data = True
+    elif not args.build_index and not args.detection_plots and not args.track_plots:
       exit_with_error( "Either input video or input directory must be specified" )
     else:
       process_data = False
@@ -1004,8 +1017,8 @@ if __name__ == "__main__" :
 
     # Handle output directory creation if necessary
     if len( args.output_directory ) > 0:
-      recreate_dir = ( not args.init_db and not args.no_reset_prompt )
-      prompt_user = ( not args.no_reset_prompt )
+      recreate_dir = ( not args.init_db and not args.no_reset_prompt and call_pipeline )
+      prompt_user = ( not args.no_reset_prompt and call_pipeline )
       create_dir( args.output_directory, logging=False, recreate=recreate_dir, prompt=prompt_user )
 
     if len( args.log_directory ) > 0:
@@ -1086,7 +1099,7 @@ if __name__ == "__main__" :
           break
         if auto_select_pipe:
           args.pipeline = auto_select_registration_pipe( entry_name )
-        process_using_kwiver( entry_name, args, is_image_list, cpu=cpu, gpu=gpu )
+        process_using_kwiver( entry_name, args, is_image_list, cpu=cpu, gpu=gpu, run_pipeline=call_pipeline )
 
     gpu_thread_list = [ i for i in range( args.gpu_count ) for _ in range( args.pipes ) ]
     cpu_thread_list = list( range( args.pipes ) ) * args.gpu_count
