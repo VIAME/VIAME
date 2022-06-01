@@ -1,0 +1,254 @@
+config _scheduler
+  type = pythread_per_process
+
+
+# ==================================================================================
+# Commonly used default input file source.
+#
+# By default, this is an image list reader, but this can be over-riden by changing
+# :video_reader:type to be vidl_ffmpeg for videos
+
+process input1
+  :: video_input
+  :video_filename                                       input_list_1.txt
+  :frame_time                                           1
+  :exit_on_invalid                                      false
+
+  :video_reader:type                                    image_list
+
+  block video_reader:vidl_ffmpeg
+    :time_source                                        start_at_0
+  endblock
+
+  block video_reader:image_list
+    :image_reader:type                                  vxl
+    :skip_bad_images                                    true
+
+    block image_reader:vxl
+      :force_byte                                       true
+    endblock
+
+    block image_reader:add_timestamp_from_filename
+      :image_reader:type                                vxl
+
+      block image_reader:vxl
+        :force_byte                                     true
+      endblock
+    endblock
+  endblock
+
+
+# ==================================================================================
+# Commonly used default input file source with included downsampler process.
+#
+# By default, this is an image list reader, but this can be over-riden by changing
+# :video_reader:type to be vidl_ffmpeg for videos
+
+process downsampler1
+  :: downsample
+  :target_frame_rate                                    5
+  :burst_frame_count                                    0
+  :burst_frame_break                                    0
+  :renumber_frames                                      true
+
+connect from input1.image
+        to   downsampler1.input_1
+connect from input1.file_name
+        to   downsampler1.input_2
+connect from input1.frame_rate
+        to   downsampler1.frame_rate
+connect from input1.timestamp
+        to   downsampler1.timestamp
+
+
+# ==================================================================================
+# Commonly used default input file source.
+#
+# By default, this is an image list reader, but this can be over-riden by changing
+# :video_reader:type to be vidl_ffmpeg for videos
+
+process input2
+  :: video_input
+  :video_filename                                       input_list_2.txt
+  :frame_time                                           1
+  :exit_on_invalid                                      false
+
+  :video_reader:type                                    image_list
+
+  block video_reader:vidl_ffmpeg
+    :time_source                                        start_at_0
+  endblock
+
+  block video_reader:image_list
+    :image_reader:type                                  vxl
+    :skip_bad_images                                    true
+
+    block image_reader:vxl
+      :force_byte                                       true
+    endblock
+
+    block image_reader:add_timestamp_from_filename
+      :image_reader:type                                vxl
+
+      block image_reader:vxl
+        :force_byte                                     true
+      endblock
+    endblock
+  endblock
+
+
+# ==================================================================================
+# Commonly used default input file source with included downsampler process.
+#
+# By default, this is an image list reader, but this can be over-riden by changing
+# :video_reader:type to be vidl_ffmpeg for videos
+
+process downsampler2
+  :: downsample
+  :target_frame_rate                                    5
+  :burst_frame_count                                    0
+  :burst_frame_break                                    0
+  :renumber_frames                                      true
+
+connect from input2.image
+        to   downsampler2.input_1
+connect from input2.file_name
+        to   downsampler2.input_2
+connect from input2.frame_rate
+        to   downsampler2.frame_rate
+connect from input2.timestamp
+        to   downsampler2.timestamp
+
+
+# ==================================================================================
+# Commonly used default input file source.
+#
+# By default, this is an image list reader, but this can be over-riden by changing
+# :video_reader:type to be vidl_ffmpeg for videos
+
+process input3
+  :: video_input
+  :video_filename                                       input_list_3.txt
+  :frame_time                                           1
+  :exit_on_invalid                                      false
+
+  :video_reader:type                                    image_list
+
+  block video_reader:vidl_ffmpeg
+    :time_source                                        start_at_0
+  endblock
+
+  block video_reader:image_list
+    :image_reader:type                                  vxl
+    :skip_bad_images                                    true
+
+    block image_reader:vxl
+      :force_byte                                       true
+    endblock
+
+    block image_reader:add_timestamp_from_filename
+      :image_reader:type                                vxl
+
+      block image_reader:vxl
+        :force_byte                                     true
+      endblock
+    endblock
+  endblock
+
+
+# ==================================================================================
+# Commonly used default input file source with included downsampler process.
+#
+# By default, this is an image list reader, but this can be over-riden by changing
+# :video_reader:type to be vidl_ffmpeg for videos
+
+process downsampler3
+  :: downsample
+  :target_frame_rate                                    5
+  :burst_frame_count                                    0
+  :burst_frame_break                                    0
+  :renumber_frames                                      true
+
+connect from input3.image
+        to   downsampler3.input_1
+connect from input3.file_name
+        to   downsampler3.input_2
+connect from input3.frame_rate
+        to   downsampler3.frame_rate
+connect from input3.timestamp
+        to   downsampler3.timestamp
+
+process stabilizer
+  :: many_image_stabilizer
+  n_input = 3
+
+  feature_detector:type = filtered
+  block feature_detector:filtered
+    detector:type = ocv_SURF
+    block detector:ocv_SURF
+      extended           = false
+      hessian_threshold  = 400
+      n_octave_layers    = 3
+      n_octaves          = 4
+      upright            = false
+    endblock
+
+    filter:type = nonmax
+    block filter:nonmax
+      num_features_target = 5000
+      num_features_range = 500
+    endblock
+  endblock
+
+  descriptor_extractor:type = ocv_SURF
+  block descriptor_extractor:ocv_SURF
+    extended           = false
+    hessian_threshold  = 400 # 5000
+    n_octave_layers    = 3
+    n_octaves          = 4
+    upright            = false
+  endblock
+
+  feature_matcher:type = ocv_flann_based
+
+  homography_estimator:type = vxl
+
+  ref_homography_computer:type = core
+  block ref_homography_computer:core
+    backproject_threshold = 4
+    allow_ref_frame_regression = false
+    min_matches_threshold = 50
+    estimator:type = vxl
+    forget_track_threshold = 5
+    inlier_scale = 10
+    min_track_length = 1
+    use_backproject_error = false
+  endblock
+
+connect from downsampler1.output_1
+        to stabilizer.image1
+connect from downsampler2.output_1
+        to stabilizer.image2
+connect from downsampler3.output_1
+        to stabilizer.image3
+
+process homog_writer1
+  :: kw_write_homography
+  output = homogs1.txt
+
+connect from stabilizer.homog1
+        to homog_writer1.homography
+
+process homog_writer2
+  :: kw_write_homography
+  output = homogs2.txt
+
+connect from stabilizer.homog2
+        to homog_writer2.homography
+
+process homog_writer3
+  :: kw_write_homography
+  output = homogs3.txt
+
+connect from stabilizer.homog3
+        to homog_writer3.homography
