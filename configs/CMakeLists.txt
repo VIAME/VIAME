@@ -278,6 +278,7 @@ set( CORE_PIPELINE_FILES
   pipelines/utility_link_detections_default.pipe
   pipelines/utility_max_10_points_per_poly.pipe
   pipelines/utility_max_25_points_per_poly.pipe
+  pipelines/utility_remove_dets_in_ignore_regions.pipe
   pipelines/utility_register_frames.pipe
   pipelines/utility_register_frames_2-cam.pipe
   pipelines/utility_register_frames_3-cam.pipe )
