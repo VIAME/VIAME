@@ -211,11 +211,11 @@ def create_parser():
                    ' homography files and paths to files with'
                    ' newline-separated image paths, one pair per camera')
     p.add_argument('--frames', type=int, help='Number of frames represented in output')
+    p.add_argument('--optimize-fit', action='store_true', help='Apply an additional transformation to all images to minimize distortion')
+    p.add_argument('--reverse', action='store_true', help='Render images in reverse order')
     p.add_argument('--start', type=int, metavar='N', help='Ignore first N frames')
     p.add_argument('--stop', type=int, metavar='N', help='Ignore frames after the Nth')
     p.add_argument('--step', type=int, metavar='N', help='Write every Nth frame')
-    p.add_argument('--reverse', action='store_true', help='Render images in reverse order')
-    p.add_argument('--optimize-fit', action='store_true', help='Apply an additional transformation to all images to minimize distortion')
     p.add_argument('--zoom', type=float, metavar='Z', help='Scale the output image by a factor of Z')
     return p
 
