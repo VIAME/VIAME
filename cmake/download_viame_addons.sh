@@ -38,7 +38,7 @@ wget -O ${DOWNLOAD_LOCATION}/download7.zip https://viame.kitware.com/api/v1/item
 unzip -o ${DOWNLOAD_LOCATION}/download7.zip -d ${VIAME_INSTALL}
 
 # Sea Lion
-wget -O ${DOWNLOAD_LOCATION}/download8.zip https://viame.kitware.com/girder/api/v1/item/627b0b877b5df7aa226545ef/download
+wget -O ${DOWNLOAD_LOCATION}/download8.zip https://viame.kitware.com/api/v1/item/629807c192adc2f0ecfa5b54/download
 unzip -o ${DOWNLOAD_LOCATION}/download8.zip -d ${VIAME_INSTALL}
 
 # Ensure Download Location is Removed

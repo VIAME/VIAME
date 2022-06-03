@@ -172,9 +172,9 @@ if( VIAME_DOWNLOAD_MODELS )
       message( FATAL_ERROR "Sea Lion models require pytorch" )
     endif()
     DownloadAndInstallAddOn(
-      https://viame.kitware.com/api/v1/item/627b0b877b5df7aa226545ef/download
+      https://viame.kitware.com/api/v1/item/629807c192adc2f0ecfa5b54/download
       ecdb3c872bebd8bf52fe9da7ddbf4b48
-      ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v2.4.zip )
+      ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v2.6.zip )
   endif()
 endif()
 
