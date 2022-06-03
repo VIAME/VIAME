@@ -23,6 +23,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include <numeric>
 
 namespace kv = kwiver::vital;
 
@@ -179,10 +180,16 @@ ocv_optimize_stereo_cameras::priv
   LOG_DEBUG(m_logger, "track_count : " << track_count);
   LOG_DEBUG(m_logger, "frame_count : " << frame_count);
 
+  // select frames to be used for calibration
+  std::vector<unsigned int> selected_frames(frame_count);
+  std::iota(selected_frames.begin(), selected_frames.end(), 0);
+
   if(frame_count > 50)
   {
-    LOG_WARN(m_logger, "Detected target number too high to launch calibration process.");
-    return;
+    // TODO: choose selection process
+    LOG_WARN(m_logger, "Detected target number too high to launch calibration process. Running calibration on 50 random frames");
+    std::random_shuffle( selected_frames.begin(), selected_frames.end());
+    frame_count = 50;
   }
 
   std::vector<std::vector< cv::Point2f >> image_points(frame_count);
@@ -191,8 +198,8 @@ ocv_optimize_stereo_cameras::priv
   {
     for(unsigned t_id = 0; t_id < track_count; t_id++)
     {
-      image_points[f_id].push_back(image_pts_temp[t_id][f_id]);
-      world_points[f_id].push_back(world_pts_temp[t_id][f_id]);
+      image_points[f_id].push_back(image_pts_temp[t_id][selected_frames[f_id]]);
+      world_points[f_id].push_back(world_pts_temp[t_id][selected_frames[f_id]]);
     }
   }
 
@@ -387,10 +394,16 @@ ocv_optimize_stereo_cameras::priv
   LOG_DEBUG(m_logger, "track_count : " << track_count);
   LOG_DEBUG(m_logger, "frame_count : " << frame_count);
 
+  // select frames to be used for calibration
+  std::vector<unsigned int> selected_frames(frame_count);
+  std::iota(selected_frames.begin(), selected_frames.end(), 0);
+
   if(frame_count > 50)
   {
-    LOG_WARN(m_logger, "Detected target number too high to launch calibration process.");
-    return;
+    // TODO: choose selection process
+    LOG_WARN(m_logger, "Detected target number too high to launch calibration process. Running calibration on 50 random frames");
+    std::random_shuffle( selected_frames.begin(), selected_frames.end());
+    frame_count = 50;
   }
 
   std::vector<std::vector< cv::Point2f >> image_points1(frame_count);
@@ -400,9 +413,9 @@ ocv_optimize_stereo_cameras::priv
   {
     for(unsigned t_id = 0; t_id < track_count; t_id++)
     {
-      image_points1[f_id].push_back(image_pts1_temp[t_id][f_id]);
-      image_points2[f_id].push_back(image_pts2_temp[t_id][f_id]);
-      world_points[f_id].push_back(world_pts_temp[t_id][f_id]);
+      image_points1[f_id].push_back(image_pts1_temp[t_id][selected_frames[f_id]]);
+      image_points2[f_id].push_back(image_pts2_temp[t_id][selected_frames[f_id]]);
+      world_points[f_id].push_back(world_pts_temp[t_id][selected_frames[f_id]]);
     }
   }
 
