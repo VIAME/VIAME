@@ -1,8 +1,8 @@
-https://data.kitware.com/api/v1/item/6011e3452fa25629b91ade60/download,habcam
-https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download,SEFSC
-https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download,PengHead
-https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download,Motion
-https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download,EM Tuna
-https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download,MOUSS Deep 7
-https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download,Aerial Penguin
-https://viame.kitware.com/api/v1/item/627b0b877b5df7aa226545ef/download,Sea Lion
+HabCam,https://viame.kitware.com/api/v1/item/627b145487bad2e19a4c4697/download,Detect scallops, flatfish, and roundfish
+SEFSC,https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download,200 species fish detector and trackers for Gulf of Mexico
+SWFSC-PengHead,https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download,Penguin headcam classification
+Motion,https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download,Generic moving object detectors
+EM Tuna,https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download,On-board deck camera for tuna box and head/tail detection
+MOUSS Deep 7,https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download,MOUSS deep7 fish detection in hawaii
+Aerial Penguin,https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download,Aerial penguin detection from fixed wings/drones
+Sea Lion,https://viame.kitware.com/api/v1/item/629807c192adc2f0ecfa5b54/download,Sea lion aerial detection data

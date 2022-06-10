@@ -8,7 +8,7 @@ export DOWNLOAD_LOCATION=/tmp/VIAME-Addons
 mkdir -p ${DOWNLOAD_LOCATION}
 
 # Download All Optional Packages
-while IFS=, read -r DOWNLOAD_URL ADDON_NAME
+while IFS=, read -r ADDON_NAME DOWNLOAD_URL DESCRIPTION
 do
   wget -O "${DOWNLOAD_LOCATION}/${ADDON_NAME}.zip" ${DOWNLOAD_URL}
   unzip -o "${DOWNLOAD_LOCATION}/${ADDON_NAME}.zip" -d ${VIAME_INSTALL}
