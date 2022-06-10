@@ -867,6 +867,8 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+    install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.csv
+             DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/filter_non_web_pipelines.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
