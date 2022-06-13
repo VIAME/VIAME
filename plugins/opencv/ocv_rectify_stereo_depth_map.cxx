@@ -283,15 +283,7 @@ kv::image_container_sptr ocv_rectify_stereo_depth_map
   cv::remap(ocv1_gray, img1r, d->m_rectification_map11, d->m_rectification_map12, cv::INTER_LINEAR);
   cv::remap(ocv2_gray, img2r, d->m_rectification_map21, d->m_rectification_map22, cv::INTER_LINEAR);
 
-  // DEBUG ONLY
-  // std::cout << "Writing debug images" << std::endl;
-  // cv::imwrite("/home/jerome/Desktop/debug_ocv1_gray.jpg", ocv1_gray);
-  // cv::imwrite("/home/jerome/Desktop/debug_img1r.jpg", img1r);
-  // cv::imwrite("/home/jerome/Desktop/debug_ocv2_gray.jpg", ocv2_gray);
-  // cv::imwrite("/home/jerome/Desktop/debug_img2r.jpg", img2r);
-
-
-  // computed disparity map
+  // compute disparity map
   cv::Mat disparity_map;
 
 #ifdef VIAME_OPENCV_VER_2
@@ -300,7 +292,14 @@ kv::image_container_sptr ocv_rectify_stereo_depth_map
   d->algo->compute( img1r, img2r, disparity_map );
 #endif
 
-  return kv::image_container_sptr( new kwiver::arrows::ocv::image_container( disparity_map,
+  // Convert 16 bits fixed-point disparity map (where each disparity value has 4 fractional bits)
+  // from  StereoBM or StereoSGBM
+  // cf https://docs.opencv.org/3.4/d2/d6e/classcv_1_1StereoMatcher.html
+  cv::Mat disparity_map_float;
+  disparity_map.convertTo(disparity_map_float, CV_32F);
+  disparity_map_float *= std::pow(2.0, -4.0);
+
+  return kv::image_container_sptr( new kwiver::arrows::ocv::image_container( disparity_map_float,
     kwiver::arrows::ocv::image_container::BGR_COLOR ) );
 }
 
