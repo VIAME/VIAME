@@ -1,6 +1,6 @@
-# Example simple tracker pipeline
+# Stereo detect fish
 #
-# Runs a 8-node object tracking pipeline
+# Basic stereo detector for each image of a stereo pair
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config

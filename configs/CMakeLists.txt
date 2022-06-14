@@ -247,7 +247,6 @@ set( CORE_PIPELINE_FILES
   pipelines/index_frame.svm.annot_only.pipe
   pipelines/measurement_default.trk.pipe
   pipelines/measurement_gmm_only.pipe
-  pipelines/measurement_gmm_stereo_depth_map.pipe
   pipelines/query_image_exemplar.cfe.pipe
   pipelines/query_image_exemplar.pipe
   pipelines/query_retrieval_and_iqr.cfe.pipe
@@ -433,12 +432,12 @@ endif()
 if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/register_using_homographies.pipe
-    pipelines/register_multimodal_unsync_ocv.pipe 
+    pipelines/register_multimodal_unsync_ocv.pipe
     pipelines/detector_ocv_target.pipe
     pipelines/tracker_ocv_target.pipe
     pipelines/measurement_gmm_stereo_track_ocv_target.pipe
-    pipelines/measurement_gmm_rectify_stereo_depth.pipe
-    pipelines/measurement_gmm_rectify_stereo_depth_and_pairing.pipe
+    pipelines/measurement_gmm_stereo_rectified_disparity.pipe
+    pipelines/measurement_gmm_stereo_track_fish_3d_from_detections_and_rectified_disparity.pipe
     pipelines/measurement_gmm_calibrate_cameras.pipe)
 endif()
 

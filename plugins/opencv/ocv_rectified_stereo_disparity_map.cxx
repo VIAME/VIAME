@@ -1,4 +1,4 @@
-#include "ocv_rectify_stereo_depth_map.h"
+#include "ocv_rectified_stereo_disparity_map.h"
 
 #include <vital/vital_config.h>
 #include <vital/types/image_container.h>
@@ -20,7 +20,7 @@ namespace kv = kwiver::vital;
 
 namespace viame {
 
-class ocv_rectify_stereo_depth_map::priv
+class ocv_rectified_stereo_disparity_map::priv
 {
 public:
 
@@ -94,22 +94,22 @@ public:
 };
 
 
-ocv_rectify_stereo_depth_map
-::ocv_rectify_stereo_depth_map()
+ocv_rectified_stereo_disparity_map
+::ocv_rectified_stereo_disparity_map()
 : d( new priv() )
 {
 }
 
 
-ocv_rectify_stereo_depth_map
-::~ocv_rectify_stereo_depth_map()
+ocv_rectified_stereo_disparity_map
+::~ocv_rectified_stereo_disparity_map()
 {
 }
 
 
 // ---------------------------------------------------------------------------------------
 kv::config_block_sptr
-ocv_rectify_stereo_depth_map
+ocv_rectified_stereo_disparity_map
 ::get_configuration() const
 {
   // Get base config from base class
@@ -130,7 +130,7 @@ ocv_rectify_stereo_depth_map
 }
 
 // ---------------------------------------------------------------------------------------
-void ocv_rectify_stereo_depth_map
+void ocv_rectified_stereo_disparity_map
 ::set_configuration( kv::config_block_sptr config_in )
 {
   kv::config_block_sptr config = this->get_configuration();
@@ -184,7 +184,7 @@ void ocv_rectify_stereo_depth_map
 
 
 // ---------------------------------------------------------------------------------------
-bool ocv_rectify_stereo_depth_map
+bool ocv_rectified_stereo_disparity_map
 ::check_configuration( kv::config_block_sptr config ) const
 {
   return true;
@@ -192,7 +192,7 @@ bool ocv_rectify_stereo_depth_map
 
 
 // ---------------------------------------------------------------------------------------
-kv::image_container_sptr ocv_rectify_stereo_depth_map
+kv::image_container_sptr ocv_rectified_stereo_disparity_map
 ::compute( kv::image_container_sptr left_image,
            kv::image_container_sptr right_image ) const
 {

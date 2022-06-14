@@ -1,6 +1,6 @@
-# Example simple tracker pipeline
+# Tracker piepline for fish on stereo cameras
 #
-# Runs a 8-node object tracking pipeline
+# Runs a tracking ipeline on each of the 2 images of a stereo pair
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -28,11 +28,11 @@ connect from downsampler.output_3
 # ================================ CORE TRACKER ====================================
 
 process detection_descriptor1
-  :: resnet_descriptors
-  :resnet_model_input_size                     224
-  :resnet_batch_size                           16
-  :gpu_list                                    0
-  relativepath resnet_model_path =             models/pytorch-resnet50.pt
+  :: pytorch_descriptors
+  :model_arch                                  efficientnet
+  :model_input_size                            224
+  :batch_size                                  16
+  relativepath model_path =                    models/pytorch_efficientnet_v2_s.pth
 
 # Connect inputs to detection descriptor
 connect from downsampler.output_1
@@ -41,7 +41,6 @@ connect from downsampler.timestamp
         to   detection_descriptor1.timestamp
 connect from detector_filter1.detected_object_set
         to   detection_descriptor1.detected_object_set
-        
 
 process tracker1
  :: compute_association_matrix
@@ -61,6 +60,7 @@ process track_associator1
   :track_associator:threshold:threshold        100.0
   :track_associator:threshold:higher_is_better false
 
+# Create new tracks for unused detections
 process track_initializer1
   :: initialize_object_tracks
   :track_initializer:type                      threshold
@@ -104,23 +104,20 @@ connect from track_associator1.object_track_set
 connect from track_associator1.unused_detections
         to   track_initializer1.detected_object_set
 
-
-
 process detection_descriptor2
-  :: resnet_descriptors
-  :resnet_model_input_size                     224
-  :resnet_batch_size                           16
-  :gpu_list                                    0
-  relativepath resnet_model_path =             models/pytorch-resnet50.pt
+  :: pytorch_descriptors
+  :model_arch                                  efficientnet
+  :model_input_size                            224
+  :batch_size                                  16
+  relativepath model_path =                    models/pytorch_efficientnet_v2_s.pth
 
 # Connect inputs to detection descriptor
 connect from downsampler.output_3
         to   detection_descriptor2.image
 connect from downsampler.timestamp
         to   detection_descriptor2.timestamp
-connect from detector_filter1.detected_object_set
-        to   detection_descriptor2.detected_object_set
-        
+connect from detector_filter2.detected_object_set
+      to   detection_descriptor2.detected_object_set
 
 process tracker2
  :: compute_association_matrix
@@ -183,7 +180,7 @@ connect from track_associator2.object_track_set
 connect from track_associator2.unused_detections
         to   track_initializer2.detected_object_set
 
-# ================================= OUTPUT DATA ====================================
+## ================================= OUTPUT DATA ====================================
 
 process track_writer1
   :: write_object_track

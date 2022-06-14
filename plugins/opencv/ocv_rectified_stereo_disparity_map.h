@@ -8,14 +8,14 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT ocv_rectify_stereo_depth_map :
+class VIAME_OPENCV_EXPORT ocv_rectified_stereo_disparity_map :
   public kwiver::vital::algorithm_impl<
-    ocv_rectify_stereo_depth_map, kwiver::vital::algo::compute_stereo_depth_map >
+    ocv_rectified_stereo_disparity_map, kwiver::vital::algo::compute_stereo_depth_map >
 {
 public:
 
-  ocv_rectify_stereo_depth_map();
-  virtual ~ocv_rectify_stereo_depth_map();
+  ocv_rectified_stereo_disparity_map();
+  virtual ~ocv_rectified_stereo_disparity_map();
 
   virtual kwiver::vital::config_block_sptr get_configuration() const;
 
