@@ -429,11 +429,13 @@ tracks_pairing_from_stereo_process
           center3d, bbox1_center, bbox1_size, cv_pos_3d_map);
 
         // Add 3d estimations
-        state1->detection()->add_note(":x=" + std::to_string( center3d.x ));
-        state1->detection()->add_note(":y=" + std::to_string( center3d.y ));
-        state1->detection()->add_note(":z=" + std::to_string( center3d.z ));
-        state1->detection()->add_note(":score=" + std::to_string( score ));
-
+        if (score > 0)
+        {
+          state1->detection()->add_note(":x=" + std::to_string( center3d.x ));
+          state1->detection()->add_note(":y=" + std::to_string( center3d.y ));
+          state1->detection()->add_note(":z=" + std::to_string( center3d.z ));
+          state1->detection()->add_note(":score=" + std::to_string( score ));
+        }
         filtered_tracks1.push_back( track_3d_left );
       }
     }
