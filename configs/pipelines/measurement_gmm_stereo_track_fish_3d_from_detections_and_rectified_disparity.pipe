@@ -64,9 +64,9 @@ connect from downsampler.timestamp
         to   stereo_pairing.timestamp
 connect from depth_map.depth_map
         to   stereo_pairing.depth_map
-connect from track_initializer1.object_track_set
+connect from tracker1.object_track_set
         to   stereo_pairing.object_track_set1
-connect from track_initializer2.object_track_set
+connect from tracker2.object_track_set
         to   stereo_pairing.object_track_set2
 
 # ==================================== OUTPUT ======================================
@@ -79,28 +79,28 @@ process output
 connect from filter.image
         to   output.image
 
-# process filtered_track_writer1
-#   :: write_object_track
-#   :file_name                                   computed_tracks1.csv
-#   :writer:type                                 viame_csv
-#   :writer:viame_csv:stream_identifier          input_list.txt
-#
-# # Connect inputs to track writer
-# connect from stereo_pairing.filtered_object_track_set1
-#         to   filtered_track_writer1.object_track_set
-# connect from stereo_pairing.timestamp
-#         to   filtered_track_writer1.timestamp
-#
-# process filtered_track_writer2
-#   :: write_object_track
-#   :file_name                                   computed_tracks2.csv
-#   :writer:type                                 viame_csv
-#   :writer:viame_csv:stream_identifier          input_list.txt
-#
-# # Connect inputs to track writer
-# connect from stereo_pairing.filtered_object_track_set2
-#         to   filtered_track_writer2.object_track_set
-# connect from stereo_pairing.timestamp
-#         to   filtered_track_writer2.timestamp
+process filtered_track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+
+# Connect inputs to track writer
+connect from stereo_pairing.filtered_object_track_set1
+        to   filtered_track_writer1.object_track_set
+connect from stereo_pairing.timestamp
+        to   filtered_track_writer1.timestamp
+
+process filtered_track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+
+# Connect inputs to track writer
+connect from stereo_pairing.filtered_object_track_set2
+        to   filtered_track_writer2.object_track_set
+connect from stereo_pairing.timestamp
+        to   filtered_track_writer2.timestamp
 
 # -- end of file --

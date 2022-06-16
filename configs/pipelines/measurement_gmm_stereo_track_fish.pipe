@@ -27,158 +27,66 @@ connect from downsampler.output_3
 
 # ================================ CORE TRACKER ====================================
 
-process detection_descriptor1
-  :: pytorch_descriptors
-  :model_arch                                  efficientnet
-  :model_input_size                            224
-  :batch_size                                  16
-  relativepath model_path =                    models/pytorch_efficientnet_v2_s.pth
-
-# Connect inputs to detection descriptor
-connect from downsampler.output_1
-        to   detection_descriptor1.image
-connect from downsampler.timestamp
-        to   detection_descriptor1.timestamp
-connect from detector_filter1.detected_object_set
-        to   detection_descriptor1.detected_object_set
-
 process tracker1
- :: compute_association_matrix
-  :matrix_generator:type                       from_features
-  :matrix_generator:from_features:max_distance 40
+  :: srnn_tracker
+  :siamese_model_input_size                    224
+  :detection_select_threshold                  0.001
+  :similarity_threshold                        0.200
+  :terminate_track_threshold                   10
+  :add_features_to_detections                  False
+  :IOU_tracker_flag                            True
+  :IOU_accept_threshold                        0.500
+  :IOU_reject_threshold                        0.100
+  :track_search_threshold                      2
+  :gpu_list                                    0
 
-  block matrix_generator:from_features:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
-  endblock
+  relativepath siamese_model_path =            models/siamese_model.pt
+  :siamese_batch_size                          64
 
-process track_associator1
-  :: associate_detections_to_tracks
-  :track_associator:type                       threshold
-  :track_associator:threshold:threshold        100.0
-  :track_associator:threshold:higher_is_better false
+  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
+  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
+  :targetRNN_normalized_models                 True
+  :targetRNN_batch_size                        128
 
-# Create new tracks for unused detections
-process track_initializer1
-  :: initialize_object_tracks
-  :track_initializer:type                      threshold
 
-  block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.30
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
-  endblock
-
-# Connect inputs to tracker1
+# Connect inputs to tracker
 connect from downsampler.output_1
         to   tracker1.image
 connect from downsampler.timestamp
         to   tracker1.timestamp
-connect from detection_descriptor1.detected_object_set
+connect from detector_filter1.detected_object_set
         to   tracker1.detected_object_set
-connect from track_initializer1.object_track_set
-        to   tracker1.object_track_set
-
-# Connect inputs to track_associator1
-connect from downsampler.output_1
-        to   track_associator1.image
-connect from downsampler.timestamp
-        to   track_associator1.timestamp
-connect from tracker1.matrix_d
-        to   track_associator1.matrix_d
-connect from tracker1.object_track_set
-        to   track_associator1.object_track_set
-connect from tracker1.detected_object_set
-        to   track_associator1.detected_object_set
-
-# Connect inputs to track_initializer1
-connect from downsampler.output_1
-        to   track_initializer1.image
-connect from downsampler.timestamp
-        to   track_initializer1.timestamp
-connect from track_associator1.object_track_set
-        to   track_initializer1.object_track_set
-connect from track_associator1.unused_detections
-        to   track_initializer1.detected_object_set
-
-process detection_descriptor2
-  :: pytorch_descriptors
-  :model_arch                                  efficientnet
-  :model_input_size                            224
-  :batch_size                                  16
-  relativepath model_path =                    models/pytorch_efficientnet_v2_s.pth
-
-# Connect inputs to detection descriptor
-connect from downsampler.output_3
-        to   detection_descriptor2.image
-connect from downsampler.timestamp
-        to   detection_descriptor2.timestamp
-connect from detector_filter2.detected_object_set
-      to   detection_descriptor2.detected_object_set
 
 process tracker2
- :: compute_association_matrix
-  :matrix_generator:type                       from_features
-  :matrix_generator:from_features:max_distance 40
+  :: srnn_tracker
+  :siamese_model_input_size                    224
+  :detection_select_threshold                  0.001
+  :similarity_threshold                        0.200
+  :terminate_track_threshold                   10
+  :add_features_to_detections                  False
+  :IOU_tracker_flag                            True
+  :IOU_accept_threshold                        0.500
+  :IOU_reject_threshold                        0.100
+  :track_search_threshold                      2
+  :gpu_list                                    0
 
-  block matrix_generator:from_features:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
-  endblock
+  relativepath siamese_model_path =            models/siamese_model.pt
+  :siamese_batch_size                          64
 
-process track_associator2
-  :: associate_detections_to_tracks
-  :track_associator:type                       threshold
-  :track_associator:threshold:threshold        100.0
-  :track_associator:threshold:higher_is_better false
+  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
+  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
+  :targetRNN_normalized_models                 True
+  :targetRNN_batch_size                        128
 
-process track_initializer2
-  :: initialize_object_tracks
-  :track_initializer:type                      threshold
 
-  block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.30
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
-  endblock
-
-# Connect inputs to tracker2
+# Connect inputs to tracker
 connect from downsampler.output_3
         to   tracker2.image
 connect from downsampler.timestamp
         to   tracker2.timestamp
-connect from detection_descriptor2.detected_object_set
+connect from detector_filter2.detected_object_set
         to   tracker2.detected_object_set
-connect from track_initializer2.object_track_set
-        to   tracker2.object_track_set
 
-# Connect inputs to track_associator2
-connect from downsampler.output_3
-        to   track_associator2.image
-connect from downsampler.timestamp
-        to   track_associator2.timestamp
-connect from tracker2.matrix_d
-        to   track_associator2.matrix_d
-connect from tracker2.object_track_set
-        to   track_associator2.object_track_set
-connect from tracker2.detected_object_set
-        to   track_associator2.detected_object_set
-
-# Connect inputs to track_initializer2
-connect from downsampler.output_3
-        to   track_initializer2.image
-connect from downsampler.timestamp
-        to   track_initializer2.timestamp
-connect from track_associator2.object_track_set
-        to   track_initializer2.object_track_set
-connect from track_associator2.unused_detections
-        to   track_initializer2.detected_object_set
 
 ## ================================= OUTPUT DATA ====================================
 
@@ -189,7 +97,7 @@ process track_writer1
   :writer:viame_csv:stream_identifier          input_list.txt
 
 # Connect inputs to track writer
-connect from track_initializer1.object_track_set
+connect from tracker1.object_track_set
         to   track_writer1.object_track_set
 connect from downsampler.timestamp
         to   track_writer1.timestamp
@@ -201,7 +109,7 @@ process track_writer2
   :writer:viame_csv:stream_identifier          input_list.txt
 
 # Connect inputs to track writer
-connect from track_initializer2.object_track_set
+connect from tracker2.object_track_set
         to   track_writer2.object_track_set
 connect from downsampler.timestamp
         to   track_writer2.timestamp
