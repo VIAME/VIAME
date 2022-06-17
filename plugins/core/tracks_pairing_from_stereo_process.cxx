@@ -221,30 +221,49 @@ public:
     cv::split(crop, channels);
     cv::Mat sort_indices;
 
-    // Check for valid points (with z > 0)
+    // Select for valid points (with z > 0 and z != inf ) and compute xs, ys, zs
+    // median from those
+    cv::Mat xs = channels[0].reshape(1, 1);
+    cv::Mat ys = channels[1].reshape(1, 1);
     cv::Mat zs = channels[2].reshape(1, 1);
-
-    // TODO: tried to move inf, nan values to negative values to remove it later,
-    // but the algo gets stuck at this point
-    // zs.setTo(-1, cv::Mat(zs == zs));
-
-    cv::sortIdx(zs, sort_indices, cv::SORT_DESCENDING);
-    size_t valid_indices = cv::countNonZero(zs > 0);
-    float x, y, z;
-    if (valid_indices > 0)
+    int nb_val = zs.size().width;
+    if (zs.depth() != CV_32F)
     {
-      std::vector<float> sorted_xs(valid_indices), sorted_ys(valid_indices), sorted_zs(valid_indices);
+      throw std::runtime_error( "depth values are not of type cv::CV_32F." );
+    }
 
-      for( int i = 0; i < valid_indices; i++)
+    std::vector<bool> is_valid(nb_val);
+    for (int i=0; i< nb_val; i++)
+    {
+      is_valid[i] = ((zs.at<float>(i) > 0)
+        && std::isfinite(xs.at<float>(i))
+        && std::isfinite(ys.at<float>(i))
+        && std::isfinite(zs.at<float>(i))
+        );
+    }
+
+    size_t nb_valid = std::count(is_valid.begin(), is_valid.end() , true);
+
+    float x, y, z;
+    if (nb_valid > 0)
+    {
+      std::vector<float> valid_xs(nb_valid), valid_ys(nb_valid), valid_zs(nb_valid);
+
+      int next_valid_idx = 0;
+      for( int i = 0; i < nb_val; i++)
       {
-        sorted_xs[i] = channels[0].at<float>(sort_indices.at<int>(i));
-        sorted_ys[i] = channels[1].at<float>(sort_indices.at<int>(i));
-        sorted_zs[i] = channels[2].at<float>(sort_indices.at<int>(i));
+        if (is_valid[i])
+        {
+          valid_xs[next_valid_idx] = xs.at<float>(i);
+          valid_ys[next_valid_idx] = ys.at<float>(i);
+          valid_zs[next_valid_idx] = zs.at<float>(i);
+          next_valid_idx++;
+        }
       }
 
-      x = compute_median(sorted_xs);
-      y = compute_median(sorted_ys);
-      z = compute_median(sorted_zs);
+      x = compute_median(valid_xs);
+      y = compute_median(valid_ys);
+      z = compute_median(valid_zs);
 
     }
     else
@@ -255,7 +274,7 @@ public:
     }
     point3d = cv::Point3f(x, y, z);
 
-    return ((float)valid_indices) / (crop_width * crop_height);
+    return ((float)nb_valid) / (crop_width * crop_height);
 
   }
 };
