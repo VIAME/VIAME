@@ -24,7 +24,7 @@ process video_writer
   :: video_output
   :video_filename                              video_writer.mp4
   :video_writer:type                           ffmpeg
-  :video_writer:ffmpeg:crf                     28
+  :video_writer:ffmpeg:crf                     30
 #  :video_writer:ffmpeg:bitrate                 100000
 
 connect from filter.image
