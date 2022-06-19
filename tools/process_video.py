@@ -255,7 +255,7 @@ def rate_from_gt( filename ):
       if "fps:" in line:
         fps = line.split( "fps:", 1 )[1].split( "," )[0]
         fps = fps[1:] if len( fps ) > 1 and fps[0] == " " else fps
-        log_info( "Using FPS " + fps + "... " )
+        log_info( "Using FPS " + fps.rstrip() + "... " )
         return fps
   return ""
 
@@ -639,8 +639,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       return
     is_image_list = True
   elif auto_detect_gt:
-    input_path = os.path.dirname( os.path.abspath( input_path ) )
-    all_gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
+    gt_search_path = os.path.dirname( os.path.abspath( input_path ) )
+    all_gt_files = list_files_in_dir_w_ext( gt_search_path, gt_ext )
     better_fit = [ i for i in all_gt_files if input_id_no_ext in i ]
     best_fit = [ i for i in better_fit if input_id_no_ext + ".csv" in i ]
     if len( best_fit ) > 0:
