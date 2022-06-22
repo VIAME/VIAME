@@ -79,11 +79,11 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* VIAME v0.19.2 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
-* [VIAME v0.19.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1IcS6xy-ankDDxf1iWgW8q8Q3HdRp8YM3/view?usp=sharing) <br>
-* [VIAME v0.19.2 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6297a6084acac99f427fea8e/download) <br>
-* [VIAME v0.19.2 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1EJz3qdWl4tMyr6hyRG5XYO-3wJ0f4U2I/view?usp=sharing) <br>
-* [VIAME v0.19.2 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6297a64a4acac99f427ffc2d/download)
+* VIAME v0.19.3 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
+* [VIAME v0.19.3 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1U0Ygg3JRRAmon7f0SREyDMFVzPYd3zkE/view?usp=sharing) <br>
+* [VIAME v0.19.3 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/62b391dbbddec9d0c453843b/download) <br>
+* [VIAME v0.19.3 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1dQcell3MioGlhFrwhyNwbSDvpssVDXp7/view?usp=sharing) <br>
+* [VIAME v0.19.3 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/62b3920abddec9d0c453848d/download)
 
 **Linux Full Desktop Binaries:** <br>
 * [VIAME v0.19.2 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/11KiTxcHj448fJJfuP3Hb5O80K4DgMPU4/view?usp=sharing) <br>
