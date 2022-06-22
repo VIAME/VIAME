@@ -33,6 +33,21 @@ process detection_reader
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
+process detection_filter
+  :: detected_object_filter
+  :filter:type                                 class_probablity_filter
+
+  block filter:class_probablity_filter
+    :threshold                                 0.001
+    :keep_all_classes                          true
+    :keep_classes                              vertebrate;invertebrate
+    :required_count                            0
+    :top_category_only                         false
+  endblock
+
+connect from detection_reader.detected_object_set
+             detection_filter.detected_object_set
+
 process track_reader
   :: read_object_track
   :file_name                                   [INSERT_ME]
@@ -54,7 +69,7 @@ connect from downsampler.output_1
         to   downsampler2.input_1
 connect from downsampler.output_2
         to   downsampler2.input_2
-connect from detection_reader.detected_object_set
+connect from detection_filter.detected_object_set
         to   downsampler2.input_3
 connect from track_reader.object_track_set
         to   downsampler2.input_4
