@@ -1,0 +1,122 @@
+# ==============================================================================
+# YOLO Detector
+# ==============================================================================
+
+process input
+  :: video_input
+  :video_filename                              input_list.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+
+  :video_reader:type                           image_list
+
+  block video_reader:vidl_ffmpeg
+    :time_source                               start_at_0
+  endblock
+
+  block video_reader:image_list
+    :image_reader:type                         vxl
+    :skip_bad_images                           true
+
+    block image_reader:vxl
+      :force_byte                              true
+    endblock
+
+    block image_reader:add_timestamp_from_filename
+      :image_reader:type                       vxl
+
+      block image_reader:vxl
+        :force_byte                            true
+      endblock
+    endblock
+  endblock
+
+process downsampler
+  :: downsample
+  :target_frame_rate                           5
+  :burst_frame_count                           0
+  :burst_frame_break                           0
+  :renumber_frames                             true
+
+connect from input.image
+        to   downsampler.input_1
+connect from input.file_name
+        to   downsampler.input_2
+connect from input.frame_rate
+        to   downsampler.frame_rate
+connect from input.timestamp
+        to   downsampler.timestamp
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   detector_input.image
+
+# ==============================================================================
+
+process detector1
+  :: image_object_detector
+  :detector:type                               darknet
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                 [-NETWORK-CONFIG-]
+    relativepath weight_file =                 [-NETWORK-WEIGHTS-]
+    relativepath class_names =                 [-NETWORK-CLASSES-]
+
+    # Detector parameters
+    :thresh                                    0.010
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             chip
+    :scale                                     1.25
+    :chip_step                                 520
+    :chip_edge_filter                          5
+
+  endblock
+
+connect from detector_input.image
+        to   detector1.image
+
+# ==============================================================================
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+
+process detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   detector_output.detected_object_set
+
+# ==============================================================================
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from detector_output.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name

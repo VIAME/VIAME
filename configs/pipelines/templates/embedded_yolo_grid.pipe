@@ -1,0 +1,60 @@
+# ==============================================================================
+# YOLO Detector
+# ==============================================================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+# ==============================================================================
+
+process detector1
+  :: image_object_detector
+  :detector:type                               darknet
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                 [-NETWORK-CONFIG-]
+    relativepath weight_file =                 [-NETWORK-WEIGHTS-]
+    relativepath class_names =                 [-NETWORK-CLASSES-]
+
+    # Detector parameters
+    :thresh                                    0.010
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             chip
+    :scale                                     1.25
+    :chip_step                                 520
+    :chip_edge_filter                          5
+
+  endblock
+
+connect from detector_input.image
+        to   detector1.image
+
+# ==============================================================================
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+
+process detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   detector_output.detected_object_set
