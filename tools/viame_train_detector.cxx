@@ -157,10 +157,8 @@ bool list_all_subfolders( const std::string& location,
 }
 
 bool list_files_in_folder( std::string location,
-                           std::vector< std::string >& filepaths,
-                           bool search_subfolders = false,
-                           std::vector< std::string > extensions =
-                             std::vector< std::string >() )
+  std::vector< std::string >& filepaths, bool search_subfolders = false,
+  std::vector< std::string > extensions = std::vector< std::string >() )
 {
   filepaths.clear();
 
@@ -279,8 +277,7 @@ bool ends_with_extension( const std::string& str,
 
 template< typename T >
 bool string_to_vector( const std::string& str,
-                       std::vector< T >& out,
-                       const std::string delims = "\n\t\v ," )
+  std::vector< T >& out, const std::string delims = "\n\t\v ," )
 {
   out.clear();
 
@@ -509,11 +506,9 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 }
 
 std::vector< std::string > extract_video_frames( const std::string& video_filename,
-                                                 const std::string& pipeline_filename,
-                                                 const double& frame_rate,
-                                                 const std::string& output_directory,
-                                                 bool skip_extract_if_exists = false,
-                                                 unsigned max_frame_count = 0 )
+  const std::string& pipeline_filename, const double& frame_rate,
+  const std::string& output_directory, bool skip_extract_if_exists = false,
+  unsigned max_frame_count = 0 )
 {
   std::cout << "Extracting frames from " << video_filename
             << " at rate " << frame_rate << std::endl;
@@ -1439,6 +1434,12 @@ main( int argc, char* argv[] )
     if( is_video )
     {
       double file_frame_rate = get_file_frame_rate( gt_files[0] );
+
+      if( video_extractor.find( "_only" ) != std::string::npos )
+      {
+        std::cout << "Detection and track only frame extractors not yet supported" << std::endl;
+        return EXIT_FAILURE;
+      }
 
       image_files = extract_video_frames( data_item, video_extractor,
         ( file_frame_rate > 0 ? file_frame_rate : frame_rate ),
