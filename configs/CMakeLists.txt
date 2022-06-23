@@ -317,6 +317,7 @@ endif()
 if( VIAME_ENABLE_DARKNET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/train_detector_darknet_yolo_640.viame_csv.conf
+    pipelines/train_detector_darknet_yolo_640.grid_only.viame_csv.conf
     pipelines/train_detector_darknet_yolo_704.habcam.conf
     pipelines/train_detector_darknet_yolo_704.kw18.conf
     pipelines/train_detector_darknet_yolo_full.viame_csv.conf )
@@ -427,6 +428,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/train_detector_netharn_cfrnn.viame_csv.conf
+    pipelines/train_detector_netharn_cfrnn.grid_only.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn.continue.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn.habcam.conf
     pipelines/train_detector_netharn_cfrnn_motion.viame_csv.conf
