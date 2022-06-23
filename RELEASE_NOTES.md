@@ -5,6 +5,9 @@ v0.19.3 - 6/21/2022
 -Add extra option for track only frame extraction script
 
 
+-Extra default YOLO hyperpameter tuning
+
+
 
 v0.19.2 - 5/30/2022
 ===================
