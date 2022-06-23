@@ -218,7 +218,6 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_debayer.pipe
   pipelines/filter_debayer_and_enhance.pipe
   pipelines/filter_default.pipe
-  pipelines/filter_dets_only.pipe
   pipelines/filter_draw_dets.pipe
   pipelines/filter_enhance.pipe
   pipelines/filter_left.pipe
@@ -263,7 +262,6 @@ set( CORE_PIPELINE_FILES
   pipelines/train_aug_split.pipe
   pipelines/train_aug_warp_ir_to_eo.pipe
   pipelines/transcode_default.pipe
-  pipelines/transcode_dets_only.pipe
   pipelines/transcode_draw_dets.pipe
   pipelines/transcode_compress.pipe
   pipelines/transcode_enhance.pipe
