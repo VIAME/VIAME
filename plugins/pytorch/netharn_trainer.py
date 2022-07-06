@@ -99,6 +99,7 @@ class NetHarnTrainer( TrainDetector ):
         self._max_epochs = "50"
         self._batch_size = "auto"
         self._learning_rate = "auto"
+        self._scheduler = "auto"
         self._timeout = "1209600"
         self._backbone = ""
         self._pipeline_template = ""
@@ -142,6 +143,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "max_epochs", str( self._max_epochs ) )
         cfg.set_value( "batch_size", self._batch_size )
         cfg.set_value( "learning_rate", self._learning_rate )
+        cfg.set_value( "scheduler", self._scheduler )
         cfg.set_value( "timeout", self._timeout )
         cfg.set_value( "backbone", self._backbone )
         cfg.set_value( "pipeline_template", self._pipeline_template )
@@ -183,7 +185,7 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_method = str( cfg.get_value( "chip_method" ) )
         self._max_epochs = str( cfg.get_value( "max_epochs" ) )
         self._batch_size = str( cfg.get_value( "batch_size" ) )
-        self._learning_rate = str( cfg.get_value( "learning_rate" ) )
+        self._scheduler = str( cfg.get_value( "scheduler" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
         self._backbone = str( cfg.get_value( "backbone" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
@@ -233,6 +235,8 @@ class NetHarnTrainer( TrainDetector ):
                     self._batch_size = str( 1 * gpu_param_adj )
             if self._learning_rate == "auto":
                 self._learning_rate = str( 1e-3 )
+            if self._scheduler == "auto":
+                self._scheduler = "ReduceLROnPlateau-p2-c2"
         elif self._mode == "frame_classifier" or self._mode == "detection_refiner":
             if self._batch_size == "auto":
                 if gpu_memory_available > 9.5e9:
@@ -245,6 +249,8 @@ class NetHarnTrainer( TrainDetector ):
                     self._batch_size = str( 8 * gpu_param_adj )
             if self._learning_rate == "auto":
                 self._learning_rate = str( 5e-3 )
+            if self._scheduler == "auto":
+                self._scheduler = "ReduceLROnPlateau-p3-c3"
         else:
             print( "Invalid mode string " + self._mode )
             return False
@@ -647,14 +653,12 @@ class NetHarnTrainer( TrainDetector ):
             cmd += [ "bioharn.clf_fit",
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
-                     "--schedule=ReduceLROnPlateau-p3-c3",
                      "--input_dims=" + self._chip_width + "," + self._chip_width,
                      "--patience=20" ]
         else:
             cmd += [ "bioharn.detect_fit",
                      "--nice=" + self._identifier,
                      "--arch=" + self._arch,
-                     "--schedule=ReduceLROnPlateau-p2-c2",
                      "--input_dims=window",
                      "--window_dims=" + self._chip_width + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
@@ -669,6 +673,7 @@ class NetHarnTrainer( TrainDetector ):
                  "--vali_dataset=" + self._validation_file,
                  "--workdir=" + self._train_directory,
                  "--xpu=" + gpu_string,
+                 "--schedule=" + self._scheduler,
                  "--workers=4",
                  "--normalize_inputs=True",
                  "--init=noop",
