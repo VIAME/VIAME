@@ -1557,18 +1557,9 @@ main( int argc, char* argv[] )
       {
         std::string read_fn = get_filename_no_path( image_file );
 
-        std::string hold = read_fn;
-        std::cout << "~~ " << hold << std::endl;
-
         try
         {
           gt_reader->read_set( frame_dets, read_fn );
-
-          if( read_fn != hold )
-          {
-            std::cout << "~~ " << read_fn << std::endl;
-            std::cout << "!! DIFFERENCE" << std::endl;
-          }
 
           correct_manual_annotations( frame_dets );
         }
