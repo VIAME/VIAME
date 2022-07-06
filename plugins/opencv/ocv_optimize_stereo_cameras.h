@@ -50,7 +50,13 @@ public:
            kwiver::vital::feature_track_set_sptr tracks,
            kwiver::vital::landmark_map_sptr landmarks,
            kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
-  
+
+  /// @brief Left / Right camera optimization
+  void
+  optimize(kwiver::vital::camera_map::map_camera_t cams,
+           const std::vector<kwiver::vital::feature_track_set_sptr>& tracks,
+           const std::vector<kwiver::vital::landmark_map_sptr>& landmarks) const;
+
   /// Optimize a single camera given corresponding features and landmarks
   /**
    * This function assumes that 2D features viewed by this camera have

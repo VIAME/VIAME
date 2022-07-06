@@ -145,7 +145,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Append consistent detected object set to an object track set" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
-  
+
   fact = vpm.ADD_PROCESS( viame::core::split_object_track_to_feature_landmark_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "split_object_track_to_feature_landmark" )

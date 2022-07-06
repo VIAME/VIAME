@@ -142,16 +142,17 @@ detect( kv::image_container_sptr image_data ) const
     cv::cvtColor( src, src, cv::COLOR_RGB2GRAY );
   }
 
-  cornersFound = cv::findChessboardCorners(src, boardSize, corners, cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_FAST_CHECK);
+  cornersFound = cv::findChessboardCorners(src, boardSize, corners, cv::CALIB_CB_ADAPTIVE_THRESH);
     
-  if( !cornersFound && corners.size() != world_corners.size() )
+  if( !cornersFound || (corners.size() != world_corners.size()) )
   {
     LOG_WARN( d->m_logger, "Unable to find an OCV target. Found " << corners.size() << " corners" );
     return detected_set;
   }
   
   // refine subpixel corner location
-  cv::cornerSubPix(src, corners, cv::Size(11,11), cv::Size(-1,-1), cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01));
+  auto term_criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 30, 0.001);
+  cv::cornerSubPix(src, corners, cv::Size(11,11), cv::Size(-1,-1), term_criteria);
 
   for(unsigned i = 0; i < corners.size();i++)
   {

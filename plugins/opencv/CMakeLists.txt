@@ -23,7 +23,9 @@ set( plugin_headers
   ocv_rectified_stereo_disparity_map.h
   ocv_target_detector.h
   ocv_optimize_stereo_cameras.h
-  split_image_habcam.h
+  ocv_stereo_feature_track_filter.h
+  ocv_kmedians.h
+  split_image_habcam.h  
   )
 
 set( plugin_sources
@@ -34,6 +36,8 @@ set( plugin_sources
   ocv_rectified_stereo_disparity_map.cxx
   ocv_target_detector.cxx
   ocv_optimize_stereo_cameras.cxx
+  ocv_stereo_feature_track_filter.cxx
+  ocv_kmedians.cxx
   split_image_habcam.cxx
   )
 
@@ -72,6 +76,10 @@ target_link_libraries( viame_opencv
                        ${OpenCV_LIBRARIES}
   )
 
+target_include_directories(viame_opencv PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR})
+
 set_target_properties( viame_opencv PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
@@ -103,3 +111,5 @@ target_link_libraries( viame_opencv_plugin
       "${rel_modname}" )
   endforeach()
 endif()
+
+add_subdirectory(tests)

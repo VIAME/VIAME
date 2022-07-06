@@ -31,8 +31,8 @@ public:
   virtual ~tracks_pairing_from_stereo_process();
 
 protected:
-  virtual void _configure();
-  virtual void _step();
+  void _configure() override;
+  void _step() override;
 
 private:
   void make_ports();

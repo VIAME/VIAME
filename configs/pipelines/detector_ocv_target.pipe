@@ -25,12 +25,6 @@ process detector1
     :object_type                               "corner"
   endblock
 
-#process detector_output
-#  :: merge_detection_sets
-
-#connect from detector1.detected_object_set
-#        to   detector_output.detected_object_set1
-
 process detector_writer
   :: detected_object_output
 

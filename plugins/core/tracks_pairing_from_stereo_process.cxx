@@ -381,9 +381,6 @@ tracks_pairing_from_stereo_process
       depth_map->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
   // Compute utils for 3d reconstruction from calibration values
-  auto dm_width = (int)cv_disparity.size[1];
-  auto dm_height = (int)cv_disparity.size[0];
-
   d->compute_ocv_rectification_utils(cv_disparity.size());
 
   // Disparity to 3d map
@@ -404,13 +401,6 @@ tracks_pairing_from_stereo_process
         track_3d_left = track1;
         d->m_tracks_with_3d_left.insert({track1->id(), track_3d_left});
     }
-
-    // Debug log
-    // std::cout << "Track " << track1->id() << "all states:" << std::endl;
-    // for(auto state1 : *track1 | kv::as_object_track)
-    // {
-    //   std::cout << "\t" << state1->frame() << std::endl;
-    // }
 
     // Replace tracks that are present without having a current state
     // TODO: check that there is no change in the tracks
@@ -433,11 +423,6 @@ tracks_pairing_from_stereo_process
         {
           track_3d_left->append(state1);
         }
-        // Debug log
-        // std::cout << " Track1 " << track1->id() ;
-        // std::cout << " state1 " << state1->frame();
-        // std::cout << " det " << state1->detection();
-        // std::cout << " timestamp is " << timestamp << std::endl;
 
         kv::bounding_box_d bbox1 = state1->detection()->bounding_box();
         cv::Point2f bbox1_center;

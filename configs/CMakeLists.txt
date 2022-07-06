@@ -438,6 +438,7 @@ if( VIAME_ENABLE_OPENCV )
     pipelines/measurement_gmm_stereo_track_ocv_target.pipe
     pipelines/measurement_gmm_stereo_rectified_disparity.pipe
     pipelines/measurement_gmm_stereo_track_fish_3d_from_detections_and_rectified_disparity.pipe
+    pipelines/measurement_gmm_stereo_calibrate_cameras.pipe
     pipelines/measurement_gmm_calibrate_cameras.pipe)
 endif()
 
