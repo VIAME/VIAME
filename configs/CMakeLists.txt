@@ -427,6 +427,8 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/train_detector_netharn_cfrnn.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn.grid_only.viame_csv.conf
+    pipelines/train_detector_netharn_cfrnn.grid_only.20ep.viame_csv.conf
+    pipelines/train_detector_netharn_cfrnn.grid_only.40ep.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn.continue.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn.habcam.conf
     pipelines/train_detector_netharn_cfrnn_motion.viame_csv.conf
