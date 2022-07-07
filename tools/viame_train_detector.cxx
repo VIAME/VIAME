@@ -1826,7 +1826,7 @@ main( int argc, char* argv[] )
         adj_train_image_fn.push_back( train_image_fn[i] );
         adj_train_gt.push_back( train_gt[i] );
         found_second = true;
-        initial_override = true;
+        initial_override = ( train_segment != total_segment - 1 );
       }
       else if( initial_override || i % total_segment < train_segment )
       {
