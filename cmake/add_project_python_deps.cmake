@@ -46,7 +46,7 @@ if( Python_VERSION VERSION_LESS "3.8" )
 endif()
 
 # For fusion classifier
-#list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "typing-extensions" "bs4" )
@@ -92,7 +92,7 @@ endif()
 
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" "pygments" "bezier==2020.1.14" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.6.7" "kwcoco==0.2.30" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.6.7" "kwcoco==0.2.31" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.15.0" )
 endif()
 
