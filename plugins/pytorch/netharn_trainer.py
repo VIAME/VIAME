@@ -675,6 +675,7 @@ class NetHarnTrainer( TrainDetector ):
                  "--workdir=" + self._train_directory,
                  "--xpu=" + gpu_string,
                  "--schedule=" + self._scheduler,
+                 "--ignore_first_epochs=2",
                  "--workers=4",
                  "--normalize_inputs=True",
                  "--init=noop",
