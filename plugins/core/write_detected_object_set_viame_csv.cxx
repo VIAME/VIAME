@@ -73,7 +73,7 @@ public:
     , m_model_identifier( "" )
     , m_version_identifier( "" )
     , m_mask_to_poly_tol( -1 )
-    , m_mask_to_poly_points( -1 )
+    , m_mask_to_poly_points( 20 )
   {}
 
   ~priv() {}
