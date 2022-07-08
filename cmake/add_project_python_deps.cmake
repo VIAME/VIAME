@@ -46,7 +46,8 @@ if( Python_VERSION VERSION_LESS "3.8" )
 endif()
 
 # For fusion classifier
-list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "map_boxes" "ensemble_boxes" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "numba==0.47" "llvmlite==0.31.0" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "typing-extensions" "bs4" )
