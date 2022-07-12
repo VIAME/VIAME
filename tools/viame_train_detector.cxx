@@ -1854,6 +1854,24 @@ main( int argc, char* argv[] )
     train_gt = adj_train_gt;
   }
 
+  // Backup case for small datasets
+  if( percent_test > 0.0 && test_image_fn.empty() && !train_image_fn.empty() )
+  {
+    for( unsigned i = 0; i < train_image_fn.size()-1; i++ )
+    {
+      test_image_fn.push_back( train_image_fn.back() );
+      test_gt.push_back( train_gt.back() );
+
+      train_image_fn.pop_back();
+      train_gt.pop_back();
+
+      if( test_gt.back() && !test_gt.back()->empty() )
+      {
+        break;
+      }
+    }
+  }
+
   // Run training algorithm
   std::cout << "Beginning Training Process" << std::endl;
   std::string error;
