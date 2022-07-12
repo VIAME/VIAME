@@ -1869,8 +1869,8 @@ main( int argc, char* argv[] )
   {
     invalid_validation_set = is_empty( test_gt );
 
-    if( ( test_image_fn.empty() && !train_image_fn.empty() )
-        || invalid_validation_set )
+    if( !train_image_fn.empty() &&
+       ( test_image_fn.empty() || invalid_validation_set ) )
     {
       for( unsigned i = 0; i < train_image_fn.size() - 1; i++ )
       {
