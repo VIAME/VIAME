@@ -332,7 +332,7 @@ bool is_empty( const std::vector< kwiver::vital::detected_object_set_sptr >& set
 {
   for( const auto& set : sets )
   {
-    if( set && set->empty() )
+    if( set && !set->empty() )
     {
       return false;
     }
