@@ -328,6 +328,18 @@ bool file_to_vector( const std::string& fn, std::vector< T >& out )
   return true;
 }
 
+bool is_empty( const std::vector< kwiver::vital::detected_object_set_sptr >& sets )
+{
+  for( const auto& set : sets )
+  {
+    if( set && set->empty() )
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
 {
   if( !dos )
@@ -1789,6 +1801,8 @@ main( int argc, char* argv[] )
   }
 
   // Generate a testing and validation set automatically if enabled
+  bool invalid_train_set = false, invalid_validation_set = false;
+
   if( percent_test > 0.0 && test_image_fn.empty() )
   {
     unsigned total_images = train_image_fn.size();
@@ -1813,8 +1827,7 @@ main( int argc, char* argv[] )
 
     for( unsigned i = 0; i < train_image_fn.size(); ++i )
     {
-      // First 2 conditionals are hack to ensure at least 1 truth frame
-      // in both train and test sets, could be done better in future.
+      // First 2 conditionals are hack to ensure at least 1 truth frame.
       if( !found_first && !train_gt[i]->empty() )
       {
         test_image_fn.push_back( train_image_fn[i] );
@@ -1826,7 +1839,7 @@ main( int argc, char* argv[] )
         adj_train_image_fn.push_back( train_image_fn[i] );
         adj_train_gt.push_back( train_gt[i] );
         found_second = true;
-        initial_override = ( train_segment != total_segment - 1 );
+        initial_override = true;
       }
       else if( initial_override || i % total_segment < train_segment )
       {
@@ -1844,32 +1857,44 @@ main( int argc, char* argv[] )
       }
     }
 
-    if( !found_first || !found_second )
-    {
-      std::cout << "Error: not enough data diversity to generate model" << std::endl;
-      return EXIT_FAILURE;
-    }
+    invalid_validation_set = !found_first;
+    invalid_train_set = !found_second;
 
     train_image_fn = adj_train_image_fn;
     train_gt = adj_train_gt;
   }
 
   // Backup case for small datasets
-  if( percent_test > 0.0 && test_image_fn.empty() && !train_image_fn.empty() )
+  if( percent_test > 0.0 )
   {
-    for( unsigned i = 0; i < train_image_fn.size()-1; i++ )
+    invalid_validation_set = is_empty( test_gt );
+
+    if( ( test_image_fn.empty() && !train_image_fn.empty() )
+        || invalid_validation_set )
     {
-      test_image_fn.push_back( train_image_fn.back() );
-      test_gt.push_back( train_gt.back() );
-
-      train_image_fn.pop_back();
-      train_gt.pop_back();
-
-      if( test_gt.back() && !test_gt.back()->empty() )
+      for( unsigned i = 0; i < train_image_fn.size() - 1; i++ )
       {
-        break;
+        test_image_fn.push_back( train_image_fn.back() );
+        test_gt.push_back( train_gt.back() );
+
+        train_image_fn.pop_back();
+        train_gt.pop_back();
+
+        if( test_gt.back() && !test_gt.back()->empty() )
+        {
+          invalid_validation_set = false;
+          break;
+        }
       }
     }
+  
+    invalid_train_set = is_empty( train_gt );
+  }
+
+  if( invalid_train_set || invalid_validation_set )
+  {
+    std::cout << "Error: not enough data diversity to generate model" << std::endl;
+    return EXIT_FAILURE;
   }
 
   // Run training algorithm
