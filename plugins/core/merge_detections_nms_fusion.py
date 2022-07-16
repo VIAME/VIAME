@@ -40,12 +40,13 @@ import numpy as np
 import pandas as pd
 
 import os
-import ast
 import time
 import random
+import csv
+import pdb
 
-#from map_boxes import *
-#from ensemble_boxes import *
+from map_boxes import *
+from ensemble_boxes import *
 
 ##############################################################################
 # Inspired by https://github.com/ZFTurbo/Weighted-Boxes-Fusion
@@ -83,7 +84,39 @@ def find_matching_box(boxes_list, new_box, match_iou):
 
     return best_index, best_iou
 
-def get_pseudo_label(single_preds, multi_preds, img_ids, match_iou, label_flag, single_flag, file_path):
+
+def read_csv(csv_path, height, width, two_flag):
+    label_dic = {'unknown':-1, 'background':0, 'Bull':1, 'Fem':2, 'Juv':3, 'Pup':4, 'SAM':5, 'Furseal':6, 'Pup':7, 'Adult':8}
+    ImageID, LabelName, Conf, XMin, XMax, YMin, YMax = [], [], [], [], [], [], []
+    with open(csv_path, 'r') as csv_file:
+        all_lines = csv.reader(csv_file)
+        # normalized box
+        for line in all_lines:
+            if line[0].isnumeric() and float(line[5])-float(line[3]) > 0 and float(line[6])-float(line[4]) > 0: # filter out boxes
+                label_index = label_dic[line[9]]
+                if label_index > 0:
+                    if two_flag:
+                        label_index = 1 if line[9] == 'Pup' else 0
+                    if label_index != 6:
+                        ImageID.append(line[2])
+                        LabelName.append(label_index)
+                        Conf.append(float(line[7]))
+                        XMin.append(float(line[3])/width)
+                        XMax.append(float(line[5])/width)
+                        YMin.append(float(line[4])/height)
+                        YMax.append(float(line[6])/height)
+
+        res = pd.DataFrame(ImageID, columns=['ImageId'])
+        res['LabelName'] = LabelName
+        res['Conf'] = Conf
+        res['XMin'] = XMin
+        res['XMax'] = XMax
+        res['YMin'] = YMin
+        res['YMax'] = YMax
+
+    return res
+
+def get_pseudo_label(single_preds, multi_preds, img_ids, match_iou, label_flag, two_flag, file_path):
     if label_flag:
         if os.path.exists(file_path):
             with open(file_path,'rb') as f:
@@ -101,56 +134,58 @@ def get_pseudo_label(single_preds, multi_preds, img_ids, match_iou, label_flag, 
 
             single_preds[idx1,1] = cur_preds[:,1]
 
-          idx = single_preds[:,1] > -1 if single_flag else single_preds[:,1] > 0
-          single_preds = single_preds[idx]
-        
+          if two_flag:
+              idx = single_preds[:,1] < 2
+              single_preds = single_preds[idx]
+          else: 
+              idx = single_preds[:,1] < 8
+              single_preds = single_preds[idx]
+              idx = single_preds[:,1] > 0
+              single_preds = single_preds[idx]
+          
           with open(file_path,'wb') as f:
             np.save(f, single_preds)
             
     return single_preds
 
-def collect_boxlist(preds_set, cur_id):
-    label_dic = {'generic_object_proposal':-1, 'sealion':0, 'Bull':1, 'Dead Pup':2, 'Fem':3, 'furseal':4, 'Juv':5, 'Pup':6, 'SAM':7}
+def collect_boxlist(preds_set):
     boxes_list, scores_list, labels_list = [], [], []
     for i in range(len(preds_set)):
         preds = preds_set[i]
-        idx = preds[:,0] == cur_id
-        boxes = preds[idx,3:]
+        boxes = preds[:,3:]
         boxes = boxes[:,[0,2,1,3]]
-        scores = preds[idx,2].T
-        labels = preds[idx,1].T
+        scores = preds[:,2].T
+        labels = preds[:,1].T
         boxes_list.append(boxes)
         scores_list.append(scores)
         labels_list.append(labels)
 
     return boxes_list, scores_list, labels_list
 
-def ensemble_box(preds_set, weights, iou_thr, skip_box_thr, sigma, fusion_type):
+def ensemble_box(preds_set, img_ids, height, width, weights, iou_thr, skip_box_thr, sigma, fusion_type):
     assert len(preds_set) == len(weights)
     all_boxes = []
     all_labels = []
     all_ids = []
+    for cur_id in img_ids:
+        boxes_list, scores_list, labels_list = collect_boxlist(preds_set, cur_id)
+        if fusion_type == 'nmw':
+            boxes, scores, labels = non_maximum_weighted(boxes_list, scores_list, labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
+        elif fusion_type == 'wbf':
+            boxes, scores, labels = weighted_boxes_fusion(boxes_list, scores_list, labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
 
-    boxes_list, scores_list, labels_list = collect_boxlist(preds_set, cur_id)
-    if fusion_type == 'nmw':
-        boxes, scores, labels = non_maximum_weighted(boxes_list, scores_list,
-          labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
-    elif fusion_type == 'wbf':
-        boxes, scores, labels = weighted_boxes_fusion(boxes_list, scores_list,
-          labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
+        ids = np.tile(cur_id, (boxes.shape[0], 1))
+        cur_boxes = np.concatenate((np.expand_dims(scores, 1), boxes[:,[0,2,1,3]]), 1)
 
-    ids = np.tile(cur_id, (boxes.shape[0], 1))
-    cur_boxes = np.concatenate((np.expand_dims(scores, 1), boxes[:,[0,2,1,3]]), 1)
+        if len(all_boxes):
+            all_boxes = np.append(all_boxes, cur_boxes, 0)
+            all_labels = np.append(all_labels, labels, 0)
+            all_ids = np.append(all_ids, ids, 0)
+        else:
+            all_boxes = cur_boxes
+            all_labels = labels
+            all_ids = ids
 
-    if len(all_boxes):
-        all_boxes = np.append(all_boxes, cur_boxes, 0)
-        all_labels = np.append(all_labels, labels, 0)
-        all_ids = np.append(all_ids, ids, 0)
-    else:
-        all_boxes = cur_boxes
-        all_labels = labels
-        all_ids = ids
-           
     all_labels = np.array([int(label) for label in all_labels])
 
     res = pd.DataFrame(all_ids, columns=['ImageId'])
@@ -171,14 +206,15 @@ class MergeDetectionsNMSFusion( MergeDetections ):
     def __init__( self ):
         MergeDetections.__init__( self )
 
+        # Configuration settings for fusion
         self._fusion_type = 'nmw' # 'nmw', 'wbf'
         self._match_iou = 0.6
-        self._iou_thr = 0.5
+        self._iou_thr = 0.75
         self._skip_box_thr = 0.0001
         self._sigma = 0.1
-        self._fusion_weights = [2, 0.5]
+        self._fusion_weights = [1, 4, 4]
 
-        # TODO: Delete
+        # These parameters should be deprecated longer term
         self._height = 3840
         self._width = 5760
 
@@ -191,6 +227,10 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         cfg.set_value( "skip_box_thr", str( self._skip_box_thr ) )
         cfg.set_value( "sigma", str( self._sigma ) )
         cfg.set_value( "fusion_weights", str( self._fusion_weights ) )
+
+        cfg.set_value( "height", str( self._height ) )
+        cfg.set_value( "width", str( self._width ) )
+
         return cfg
 
     def set_configuration( self, cfg_in ):
@@ -204,6 +244,9 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         self._sigma = float( cfg.get_value( "sigma" ) )
         self._fusion_weights = ast.literal_eval( cfg.get_value( "fusion_weights" ) )
 
+        self._height = int( cfg.get_value( "height" ) )
+        self._width = int( cfg.get_value( "width" ) )
+
         return True
 
     def check_configuration( self, cfg ):
@@ -213,6 +256,7 @@ class MergeDetectionsNMSFusion( MergeDetections ):
 
         # Get detection HL info in a list
         pred_sets = []
+
         for det_set in det_sets:
             pred_set = []
             for det in det_set:
@@ -228,20 +272,19 @@ class MergeDetectionsNMSFusion( MergeDetections ):
                 if det.type is None:
                     continue
 
-                #class_names = list( det.type.class_names() )
-                #class_scores = [ det.type.score( n ) for n in class_names ]
                 class_name = det.type.get_most_likely_class()
                 class_score = det.type.score( class_name )
 
                 pred_set.append( [ bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y,
                   class_name, class_score ] )
             pred_sets.append( pred_set )
-  
+
         # Run merging algorithm
-        #ensemble_preds = ensemble_box( preds_set, self._fusion_weights,
-        #  self._iou_thr, self._skip_box_thr, self._sigma, self._fusion_type )
-        ensemble_preds = []
-  
+        ensemble_set = ensemble_box( preds_set,
+          self._height, self._width,
+          self._fusion_weights, self._iou_thr, self._skip_box_thr,
+          self._sigma, self._fusion_type )
+
         # Compile output detections
         output = DetectedObjectSet()
 
