@@ -208,8 +208,8 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         self._sigma = float( cfg.get_value( "sigma" ) )
         self._fusion_weights = ast.literal_eval( cfg.get_value( "fusion_weights" ) )
 
-        self._height = int( cfg.get_value( "height" ) )
-        self._width = int( cfg.get_value( "width" ) )
+        self._height = float( cfg.get_value( "height" ) )
+        self._width = float( cfg.get_value( "width" ) )
 
         return True
 
@@ -231,16 +231,19 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             for det in det_set:
                 bbox = det.bounding_box
 
-                bbox_min_x = int( bbox.min_x() )
-                bbox_max_x = int( bbox.max_x() )
-                bbox_min_y = int( bbox.min_y() )
-                bbox_max_y = int( bbox.max_y() )
+                bbox_min_x = float( bbox.min_x() ) / self._width
+                bbox_max_x = float( bbox.max_x() ) / self._width
+                bbox_min_y = float( bbox.min_y() ) / self._height
+                bbox_max_y = float( bbox.max_y() ) / self._height
 
                 if det.type is None:
                     continue
 
                 class_name = det.type.get_most_likely_class()
                 class_score = det.type.score( class_name )
+
+                if not class_name in self._label_dic:
+                    continue
 
                 box_list.append( [ bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y ] )
                 score_list.append( class_score )
