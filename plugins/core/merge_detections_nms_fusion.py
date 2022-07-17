@@ -85,39 +85,8 @@ def find_matching_box(boxes_list, new_box, match_iou):
 
     return best_index, best_iou
 
-
-def read_csv(csv_path, height, width, two_flag):
-    label_dic = {'unknown':-1, 'background':0, 'Bull':1, 'Fem':2, 'Juv':3, 'Pup':4, 'SAM':5, 'Furseal':6, 'Pup':7, 'Adult':8}
-    ImageID, LabelName, Conf, XMin, XMax, YMin, YMax = [], [], [], [], [], [], []
-    with open(csv_path, 'r') as csv_file:
-        all_lines = csv.reader(csv_file)
-        # normalized box
-        for line in all_lines:
-            if line[0].isnumeric() and float(line[5])-float(line[3]) > 0 and float(line[6])-float(line[4]) > 0: # filter out boxes
-                label_index = label_dic[line[9]]
-                if label_index > 0:
-                    if two_flag:
-                        label_index = 1 if line[9] == 'Pup' else 0
-                    if label_index != 6:
-                        ImageID.append(line[2])
-                        LabelName.append(label_index)
-                        Conf.append(float(line[7]))
-                        XMin.append(float(line[3])/width)
-                        XMax.append(float(line[5])/width)
-                        YMin.append(float(line[4])/height)
-                        YMax.append(float(line[6])/height)
-
-        res = pd.DataFrame(ImageID, columns=['ImageId'])
-        res['LabelName'] = LabelName
-        res['Conf'] = Conf
-        res['XMin'] = XMin
-        res['XMax'] = XMax
-        res['YMin'] = YMin
-        res['YMax'] = YMax
-
-    return res
-
-def get_pseudo_label(single_preds, multi_preds, img_ids, match_iou, label_flag, two_flag, file_path):
+def get_pseudo_label(single_preds, multi_preds, img_ids, match_iou,
+                     label_flag, two_flag, file_path):
     if label_flag:
         if os.path.exists(file_path):
             with open(file_path,'rb') as f:
@@ -149,43 +118,35 @@ def get_pseudo_label(single_preds, multi_preds, img_ids, match_iou, label_flag, 
             
     return single_preds
 
-def collect_boxlist(preds_set):
-    boxes_list, scores_list, labels_list = [], [], []
-    for i in range(len(preds_set)):
-        preds = preds_set[i]
-        boxes = preds[:,3:]
-        boxes = boxes[:,[0,2,1,3]]
-        scores = preds[:,2].T
-        labels = preds[:,1].T
-        boxes_list.append(boxes)
-        scores_list.append(scores)
-        labels_list.append(labels)
+def ensemble_box(boxes_list, scores_list, labels_list, height, width, 
+                 weights, iou_thr, skip_box_thr, sigma, fusion_type):
 
-    return boxes_list, scores_list, labels_list
+    assert len(boxes_list) == len(weights)
+    assert len(boxes_list) == len(scores_list)
+    assert len(boxes_list) == len(labels_list)
 
-def ensemble_box(preds_set, img_ids, height, width, weights, iou_thr, skip_box_thr, sigma, fusion_type):
-    assert len(preds_set) == len(weights)
     all_boxes = []
     all_labels = []
     all_ids = []
-    for cur_id in img_ids:
-        boxes_list, scores_list, labels_list = collect_boxlist(preds_set, cur_id)
-        if fusion_type == 'nmw':
-            boxes, scores, labels = non_maximum_weighted(boxes_list, scores_list, labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
-        elif fusion_type == 'wbf':
-            boxes, scores, labels = weighted_boxes_fusion(boxes_list, scores_list, labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
 
-        ids = np.tile(cur_id, (boxes.shape[0], 1))
-        cur_boxes = np.concatenate((np.expand_dims(scores, 1), boxes[:,[0,2,1,3]]), 1)
+    if fusion_type == 'nmw':
+        boxes, scores, labels = non_maximum_weighted(boxes_list, scores_list, \
+          labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
+    elif fusion_type == 'wbf':
+        boxes, scores, labels = weighted_boxes_fusion(boxes_list, scores_list, \
+          labels_list, weights=weights, iou_thr=iou_thr, skip_box_thr=skip_box_thr)
 
-        if len(all_boxes):
-            all_boxes = np.append(all_boxes, cur_boxes, 0)
-            all_labels = np.append(all_labels, labels, 0)
-            all_ids = np.append(all_ids, ids, 0)
-        else:
-            all_boxes = cur_boxes
-            all_labels = labels
-            all_ids = ids
+    ids = np.tile("frame",(boxes.shape[0], 1))
+    cur_boxes = np.concatenate((np.expand_dims(scores, 1), boxes[:,[0,2,1,3]]), 1)
+
+    if len(all_boxes):
+        all_boxes = np.append(all_boxes, cur_boxes, 0)
+        all_labels = np.append(all_labels, labels, 0)
+        all_ids = np.append(all_ids, ids, 0)
+    else:
+        all_boxes = cur_boxes
+        all_labels = labels
+        all_ids = ids
 
     all_labels = np.array([int(label) for label in all_labels])
 
@@ -213,11 +174,13 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         self._iou_thr = 0.75
         self._skip_box_thr = 0.0001
         self._sigma = 0.1
-        self._fusion_weights = [1, 4, 4]
+        self._fusion_weights = [1, 1.5, 1]
 
         # These parameters should be deprecated longer term
         self._height = 3840
         self._width = 5760
+        self._label_dic = {'unknown':-1, 'background':0, 'Bull':1, 'Fem':2,
+          'Juv':3, 'Pup':4, 'SAM':5, 'Furseal':6, 'Pup':7, 'Adult':8}
 
     def get_configuration( self ):
         cfg = super( MergeDetections, self ).get_configuration()
@@ -255,13 +218,17 @@ class MergeDetectionsNMSFusion( MergeDetections ):
 
     def merge( self, det_sets ):
 
-        # Get detection HL info in a list
-        pred_sets = []
+        # Get detection HL info in a few lists
+        boxes_list = []
+        scores_list = []
+        labels_list = []
 
         for det_set in det_sets:
-            pred_set = []
+            box_list = []
+            score_list = []
+            label_list = []
+
             for det in det_set:
-                # Extract box info for this det
                 bbox = det.bounding_box
 
                 bbox_min_x = int( bbox.min_x() )
@@ -269,27 +236,29 @@ class MergeDetectionsNMSFusion( MergeDetections ):
                 bbox_min_y = int( bbox.min_y() )
                 bbox_max_y = int( bbox.max_y() )
 
-                # Extract type info for this det
                 if det.type is None:
                     continue
 
                 class_name = det.type.get_most_likely_class()
                 class_score = det.type.score( class_name )
 
-                pred_set.append( [ bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y,
-                  class_name, class_score ] )
-            pred_sets.append( pred_set )
+                box_list.append( [ bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y ] )
+                score_list.append( class_score )
+                label_list.append( self._label_dic[ class_name ] )
+
+            boxes_list.append( box_list )
+            scores_list.append( score_list )
+            labels_list.append( label_list )
 
         # Run merging algorithm
-        ensemble_set = ensemble_box( preds_set,
-          self._height, self._width,
-          self._fusion_weights, self._iou_thr, self._skip_box_thr,
-          self._sigma, self._fusion_type )
+        ensemble_set = ensemble_box( boxes_list, scores_list, labels_list,
+          self._height, self._width, self._fusion_weights, self._iou_thr,
+          self._skip_box_thr, self._sigma, self._fusion_type )
 
         # Compile output detections
         output = DetectedObjectSet()
 
-        for pred in ensemble_preds:
+        for pred in ensemble_set:
             score = pred[5]
             bbox = BoundingBoxD( pred[0], pred[1], pred[2], pred[3] )
             dot = DetectedObjectType( pred[4], score )
