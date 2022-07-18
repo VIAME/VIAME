@@ -762,6 +762,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     frame_id_ranges = []
     if len( input_paths ) == 0:
       input_paths.append( input_path )
+    if len( input_paths ) == 3: # Hack around drawing issue in mosaic script
+      input_paths = [ input_paths[i] for i in [ 0, 2, 1 ] ]
     for camera_list in input_paths:
       camera_homog = camera_list.replace( image_list_ext, homography_ext )
       mosaic_args.append( [ camera_homog, camera_list ] )
