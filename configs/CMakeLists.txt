@@ -105,18 +105,18 @@ if( VIAME_DOWNLOAD_MODELS )
 
     # Default descriptor models
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/626f19d54acac99f42607319/download
-      e08fe2cba91f5b0eed6177f8a0262196
-      ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.2.zip
+      https://data.kitware.com/api/v1/item/62d4dc10bddec9d0c45560b9/download
+      c2a966ee5b48cb123ff6e3739c00b9bf
+      ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.3.zip
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
   # Darknet training seed models
   if( VIAME_ENABLE_DARKNET )
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/627342854acac99f42a37c62/download
-      89b7a3b0fcdec5779b4d398118b7f934
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v4_seed_model-v1.0.zip
+      https://data.kitware.com/api/v1/item/62d4dce1bddec9d0c45562d1/download
+      e53ba94e313e24b62ef05455e4a1e334
+      ${VIAME_DOWNLOAD_DIR}/models-yolo_v7_seed_model-v1.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
