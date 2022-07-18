@@ -113,7 +113,7 @@ class MergeDetectionsNMSFusion( MergeDetections ):
 
         # Configuration settings for fusion
         self._fusion_type = 'nmw' # 'nmw', 'wbf'
-        self._match_iou = 0.6
+        self._match_iou = 0.5
         self._iou_thr = 0.75
         self._skip_box_thr = 0.0001
         self._sigma = 0.1
@@ -124,10 +124,9 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         self._width = 5760
 
         # Complex parameters
-        self._label_dic = { 'Background':0, 'Bull':1, 'Fem':2,
-          'Juv':3, 'Pup':4, 'SAM':5, 'Furseal':6, 'Pup':7, 'Adult':8 }
-        self._pseudo_dic = { 8: [ 1, 2, 3, 5 ] }
-        self._pseudo_ind = { 1: [ 2, 0 ] }
+        self._label_dic = {}
+        self._pseudo_dic = {}
+        self._pseudo_ind = {}
         self._id_dic = {}
 
     def get_configuration( self ):
