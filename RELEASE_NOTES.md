@@ -1,3 +1,23 @@
+v0.19.4 - 7/18/2022
+===================
+
+
+-Fix multi-camera mosaic issue when only < 2 cams succesfully mosaic
+
+
+-Loop closure option for registration-based tracking and duplicate suppression
+
+
+-Upgrade YOLOv4-tiny to YOLOv7-tiny
+
+
+-Extra train video input folder options
+
+
+-Fix Mask-RCNN test (inference) pipeline running
+
+
+
 v0.19.3 - 6/21/2022
 ===================
 
