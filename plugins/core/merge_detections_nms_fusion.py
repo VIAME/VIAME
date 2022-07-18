@@ -144,8 +144,8 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         cfg.set_value( "width", str( self._width ) )
 
         cfg.set_value( "label_dic", str( self._label_dic ) )
-        cfg.set_value( "pseudo_dic", str( self._psuedo_dic ) )
-        cfg.set_value( "pseudo_ind", str( self._psuedo_ind ) )
+        cfg.set_value( "pseudo_dic", str( self._pseudo_dic ) )
+        cfg.set_value( "pseudo_ind", str( self._pseudo_ind ) )
 
         return cfg
 
@@ -164,11 +164,11 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         self._width = float( cfg.get_value( "width" ) )
 
         self._label_dic = ast.literal_eval( cfg.get_value( "label_dic" ) )
-        self._psuedo_dic = ast.literal_eval( cfg.get_value( "psuedo_dic" ) )
-        self._psuedo_ind = ast.literal_eval( cfg.get_value( "psuedo_ind" ) )
+        self._pseudo_dic = ast.literal_eval( cfg.get_value( "pseudo_dic" ) )
+        self._pseudo_ind = ast.literal_eval( cfg.get_value( "pseudo_ind" ) )
 
         for label in self._label_dic:
-            label_id = self._label_dic[ind]
+            label_id = self._label_dic[ label ]
             if not label_id in self._id_dic:
                 self._id_dic[ label_id ] = label
 
@@ -214,20 +214,20 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             scores_list.append( score_list )
             labels_list.append( label_list )
 
-        # Utilize psuedonym lists when upsampling categories
-        for chk_list_ind in self._psuedo_ind:
+        # Utilize pseudonym lists when upsampling categories
+        for chk_list_ind in self._pseudo_ind:
             for chk_ind in range( len( boxes_list[ chk_list_ind ] ) ):
                 orig_label = labels_list[ chk_list_ind ][ chk_ind ]
-                if not orig_label in self._psuedo_dic:
+                if not orig_label in self._pseudo_dic:
                     continue
-                for other_list_ind in self._psuedo_ind[ chk_list_ind ]:
+                for other_list_ind in self._pseudo_ind[ chk_list_ind ]:
                     best_idx, best_iou = find_matching_box(
                         boxes_list[ other_list_ind ],
                         boxes_list[ chk_list_ind ][ chk_ind ],
-                        match_iou )
+                        self._match_iou )
                     if best_idx > 0:
                         new_label = labels_list[ other_list_ind ][ best_idx ]
-                        if new_label in self._psuedo_dic[ orig_label ]:
+                        if new_label in self._pseudo_dic[ orig_label ]:
                             labels_list[ chk_list_ind ][ chk_ind ] = new_label
                             break
 
