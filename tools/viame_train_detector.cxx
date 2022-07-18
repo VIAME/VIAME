@@ -1383,7 +1383,7 @@ main( int argc, char* argv[] )
   for( unsigned i = 0; i < train_data.size(); i++ )
   {
     // Get next data entry to process
-    const std::string& data_item = train_data[i];
+    std::string data_item = train_data[i];
     std::cout << "Processing " << data_item << std::endl;
 
     // Identify all truth files for this entry
