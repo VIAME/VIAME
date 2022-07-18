@@ -244,8 +244,11 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             score = scores_list[i]
             box = boxes_list[i]
             label_id = labels_list[i]
-            bbox = BoundingBoxD( box[0] * self._width, box[2] * self._height,
-                                 box[1] * self._width, box[3] * self._height )
+            bbox = BoundingBoxD(
+              box[0] * self._width,
+              box[1] * self._height,
+              box[2] * self._width,
+              box[3] * self._height )
             dot = DetectedObjectType( self._id_dic[ label_id ], score )
             det = DetectedObject( bbox, score, dot )
             output.add( det )
