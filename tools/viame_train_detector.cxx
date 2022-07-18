@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2021 by Kitware, Inc.
+ * Copyright 2017-2022 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1387,7 +1387,7 @@ main( int argc, char* argv[] )
     std::cout << "Processing " << data_item << std::endl;
 
     // Identify all truth files for this entry
-    std::vector< std::string > image_files, gt_files;
+    std::vector< std::string > image_files, video_files, gt_files;
 
     bool is_video = ends_with_extension( data_item, video_exts );
 
@@ -1442,7 +1442,22 @@ main( int argc, char* argv[] )
       gt_files.resize( 1, train_truth[i] );
     }
 
-    // Find images for this entry
+    // Either the input is a video file directly, or a directory containing images or video
+    //  - In case of the latter, autodetect presence of images or video
+    list_files_in_folder( data_item, video_files, true, video_exts );
+
+    if( !is_video )
+    {
+      list_files_in_folder( data_item, image_files, true, image_exts );
+
+      if( video_files.size() == 1 && image_files.size() < 2 )
+      {
+        image_files.clear();
+        is_video = true;
+        data_item = video_files[0];
+      }
+    }
+
     if( is_video )
     {
       double file_frame_rate = get_file_frame_rate( gt_files[0] );
@@ -1462,10 +1477,7 @@ main( int argc, char* argv[] )
         break;
       }
     }
-    else
-    {
-      list_files_in_folder( data_item, image_files, true, image_exts );
-    }
+
     std::sort( image_files.begin(), image_files.end() );
 
     // Load groundtruth file for this entry
