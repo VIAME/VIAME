@@ -11,21 +11,12 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/camera_perspective_map.h>
-#include <vital/io/camera_io.h>
-#include <vital/algo/image_io.h>
 #include <vital/types/bounding_box.h>
-
-#include <Eigen/Core>
-
-#include <arrows/mvg/triangulate.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/core/eigen.hpp>
 #include <arrows/ocv/image_container.h>
-#include <arrows/ocv/camera_intrinsics.h>
-
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
@@ -65,90 +56,42 @@ public:
   tracks_pairing_from_stereo_process* parent;
 
   // Camera depth informations
-  cv::Mat m_R1, m_P1, m_R2, m_P2, m_Q, m_K1,  m_K2;
-  std::vector<double> m_dist_coeffs1, m_dist_coeffs2;
+  cv::Mat m_Q, m_K1, m_D1, m_R1, m_P1;
 
   // Tracks status
   // TODO: FORGET TRACKS AT SOME POINT
   std::map<int, kv::track_sptr > m_tracks_with_3d_left;
 
-  kv::camera_map::map_camera_t
-  load_camera_map(std::string const& camera1_name,
-                  std::string const& camera2_name,
-                  std::string const& cameras_dir)
-  {
-    kv::camera_map::map_camera_t cameras;
-
-    try
-    {
-      cameras[0] = kv::read_krtd_file( camera1_name, cameras_dir );
-      cameras[1] = kv::read_krtd_file( camera2_name, cameras_dir );
-    }
-    catch ( const kv::file_not_found_exception& )
-    {
-      VITAL_THROW( kv::invalid_data, "Calibration file not found" );
-    }
-
-    if ( cameras.empty() )
-    {
-      VITAL_THROW( kv::invalid_data, "No krtd files found" );
-    }
-
-    return cameras;
-  }
-
-  int
-  nearest_index(int max, double value)
-  {
-    if (abs(value - 0.0) < 1e-6)
-    {
-      return 0;
-    }
-    else if (abs(value - (double)max) < 1e-6)
-    {
-      return max - 1;
-    }
-    else
-    {
-      return (int)round(value - 0.5);
-    }
-  }
-
-
   void
-  compute_ocv_rectification_utils
-  (const cv::Size img_size)
+  load_camera_calibration()
   {
-    if(m_cameras.size() != 2)
-    {
-      LOG_WARN(m_logger, "Only works with two cameras as inputs.");
-      return;
+    try {
+      auto intrinsics_path = m_cameras_directory + "/intrinsics.yml";
+      auto extrinsics_path = m_cameras_directory + "/extrinsics.yml";
+      auto fs = cv::FileStorage(intrinsics_path, cv::FileStorage::Mode::READ);
+
+      // load left camera intrinsic parameters
+      if (!fs.isOpened())
+        VITAL_THROW(kv::file_not_found_exception, intrinsics_path, "could not locate file in path");
+
+      fs["M1"] >> m_K1;
+      fs["D1"] >> m_D1;
+      fs.release();
+
+      // load extrinsic parameters
+      fs = cv::FileStorage(extrinsics_path, cv::FileStorage::Mode::READ);
+      if (!fs.isOpened())
+        VITAL_THROW(kv::file_not_found_exception, extrinsics_path, "could not locate file in path");
+
+      fs["Q"] >> m_Q;
+      fs["R1"] >> m_R1;
+      fs["P1"] >> m_P1;
+      fs.release();
     }
-
-    kv::simple_camera_perspective_sptr cam1, cam2;
-    cam1 = std::dynamic_pointer_cast<kv::simple_camera_perspective>(m_cameras[0]);
-    cam2 = std::dynamic_pointer_cast<kv::simple_camera_perspective>(m_cameras[1]);
-
-    kv::matrix_3x3d K1 = cam1->intrinsics()->as_matrix();
-    cv::eigen2cv( K1, m_K1 );
-    m_dist_coeffs1 = kwiver::arrows::ocv::get_ocv_dist_coeffs( cam1->intrinsics() );
-
-    kv::matrix_3x3d K2 = cam2->intrinsics()->as_matrix();
-    cv::eigen2cv( K2, m_K2 );
-    m_dist_coeffs2 = kwiver::arrows::ocv::get_ocv_dist_coeffs( cam2->intrinsics() );
-
-    kv::matrix_3x3d R = cam2->rotation().matrix();
-    kv::vector_3d T = cam2->translation();
-    cv::Mat cv_R, cv_T;
-    cv::eigen2cv( R, cv_R );
-    cv::eigen2cv( T, cv_T );
-
-    cv::stereoRectify(m_K1, m_dist_coeffs1,
-                      m_K2, m_dist_coeffs2,
-                      img_size,
-                      cv_R, cv_T,
-                      m_R1, m_R2, m_P1, m_P2, m_Q,
-                      cv::CALIB_ZERO_DISPARITY);
+    catch ( const kv::file_not_found_exception& e)
+    {
+      VITAL_THROW( kv::invalid_data, "Calibration file not found : " + std::string(e.what()) );
+    }
   }
 
   float
@@ -187,7 +130,7 @@ public:
 
     cv::Mat_<cv::Point2f> points_undist(1, 5);
     cv::undistortPoints(points_raw, points_undist,
-                        m_K1, m_dist_coeffs1, m_R1, m_P1);
+                        m_K1, m_D1, m_R1, m_P1);
 
     // As the undistorted corners may not be an axis-aligned box, estimate the
     // height and width from average measures
@@ -211,10 +154,13 @@ public:
     float ratio = 1./3;
     float crop_width = ratio * bbox_size.width;
     float crop_height = ratio * bbox_size.height;
-    auto crop = pos_3d_map(cv::Rect((int)(bbox_center.x - crop_width/2),
-                                    (int)(bbox_center.y - crop_height/2),
-                                    (int)crop_width, (int)crop_height));
+    cv::Rect crop_rect{(int)(bbox_center.x - crop_width/2),
+                       (int)(bbox_center.y - crop_height/2),
+                       (int)crop_width, (int)crop_height};
 
+    // Intersect crop rectangle with 3D map rect to avoid out of bounds crop
+    crop_rect = crop_rect & cv::Rect(0, 0, pos_3d_map.size().width, pos_3d_map.size().height);
+    auto crop = pos_3d_map(crop_rect);
 
     // Compute medians in cropped patch
     cv::Mat channels[3];
@@ -350,77 +296,63 @@ void
 tracks_pairing_from_stereo_process
 ::_configure()
 {
-
   d->m_cameras_directory = config_value_using_trait( cameras_directory );
-  d->m_cameras = d->load_camera_map("camera1", "camera2", d->m_cameras_directory);
+  d->load_camera_calibration();
 }
 
 // -----------------------------------------------------------------------------
-void
-tracks_pairing_from_stereo_process
-::_step()
-{
+void tracks_pairing_from_stereo_process::_step() {
   kv::object_track_set_sptr input_tracks1, input_tracks2;
   kv::image_container_sptr depth_map;
   kv::timestamp timestamp;
 
-  input_tracks1 = grab_from_port_using_trait( object_track_set1 );
-  input_tracks2 = grab_from_port_using_trait( object_track_set2 );
+  input_tracks1 = grab_from_port_using_trait(object_track_set1);
+  input_tracks2 = grab_from_port_using_trait(object_track_set2);
 
-  if( has_input_port_edge_using_trait( timestamp ) )
-  {
-    timestamp = grab_from_port_using_trait( timestamp );
+  if (has_input_port_edge_using_trait(timestamp)) {
+    timestamp = grab_from_port_using_trait(timestamp);
   }
-  if( has_input_port_edge_using_trait( depth_map ) )
-  {
-    depth_map = grab_from_port_using_trait( depth_map );
+  if (has_input_port_edge_using_trait(depth_map)) {
+    depth_map = grab_from_port_using_trait(depth_map);
   }
 
   // convert disparity map to opencv for further computing
-  cv::Mat cv_disparity = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      depth_map->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-  // Compute utils for 3d reconstruction from calibration values
-  d->compute_ocv_rectification_utils(cv_disparity.size());
+  cv::Mat cv_disparity = kwiver::arrows::ocv::image_container::vital_to_ocv(depth_map->get_image(),
+                                                                            kwiver::arrows::ocv::image_container::BGR_COLOR);
 
   // Disparity to 3d map
   cv::Mat cv_pos_3d_map;
   cv::reprojectImageTo3D(cv_disparity, cv_pos_3d_map, d->m_Q, false);
 
-  std::vector< kv::track_sptr > filtered_tracks1, filtered_tracks2;
+  std::vector<kv::track_sptr> filtered_tracks1, filtered_tracks2;
 
-  for(auto track1 : input_tracks1->tracks())
-  {
+  for (const auto &track1: input_tracks1->tracks()) {
     // Check if a 3d track already exists with this id in order to update it
     // instead of generating a new track
     kv::track_sptr track_3d_left;
     auto t_ptr = d->m_tracks_with_3d_left.find(track1->id());
     if (t_ptr != d->m_tracks_with_3d_left.end()) {
-        track_3d_left = t_ptr->second;
+      track_3d_left = t_ptr->second;
     } else {
-        track_3d_left = track1;
-        d->m_tracks_with_3d_left.insert({track1->id(), track_3d_left});
+      track_3d_left = track1;
+      d->m_tracks_with_3d_left.insert({track1->id(), track_3d_left});
     }
 
     // Replace tracks that are present without having a current state
     // TODO: check that there is no change in the tracks
-    if (track1->last_frame() < timestamp.get_frame())
-    {
-      filtered_tracks1.push_back( track_3d_left );
+    if (track1->last_frame() < timestamp.get_frame()) {
+      filtered_tracks1.push_back(track_3d_left);
     }
 
     // Vanilla implem:
     // At each frame, compute 3d position for the bounding boxes on the left
     // camera and add this value to the output track
-    for (auto state1 : *track1 | kv::as_object_track)
-    {
+    for (auto state1: *track1 | kv::as_object_track) {
       // run only for current frame (tracks with ho current frame have already
       // been forwarded)
-      if (timestamp.get_frame() == state1->frame())
-      {
+      if (timestamp.get_frame() == state1->frame()) {
         // If not a new track, add state to existing track
-        if (state1->frame() > track_3d_left->last_frame())
-        {
+        if (state1->frame() > track_3d_left->last_frame()) {
           track_3d_left->append(state1);
         }
 
@@ -429,30 +361,26 @@ tracks_pairing_from_stereo_process
         cv::Size bbox1_size;
         d->get_bbox_3d_position_size_left(bbox1_center, bbox1_size, bbox1);
         cv::Point3f center3d;
-        float score = d->estimate_3d_position_from_left_bbox(
-          center3d, bbox1_center, bbox1_size, cv_pos_3d_map);
+        float score = d->estimate_3d_position_from_left_bbox(center3d, bbox1_center, bbox1_size, cv_pos_3d_map);
 
         // Add 3d estimations
-        if (score > 0)
-        {
-          state1->detection()->add_note(":x=" + std::to_string( center3d.x ));
-          state1->detection()->add_note(":y=" + std::to_string( center3d.y ));
-          state1->detection()->add_note(":z=" + std::to_string( center3d.z ));
-          state1->detection()->add_note(":score=" + std::to_string( score ));
+        if (score > 0) {
+          state1->detection()->add_note(":x=" + std::to_string(center3d.x));
+          state1->detection()->add_note(":y=" + std::to_string(center3d.y));
+          state1->detection()->add_note(":z=" + std::to_string(center3d.z));
+          state1->detection()->add_note(":score=" + std::to_string(score));
         }
-        filtered_tracks1.push_back( track_3d_left );
+        filtered_tracks1.push_back(track_3d_left);
       }
     }
   }
 
-  kv::object_track_set_sptr output1(
-    new kv::object_track_set( filtered_tracks1 ) );
-  kv::object_track_set_sptr output2(
-    new kv::object_track_set( filtered_tracks2 ) );
+  kv::object_track_set_sptr output1(new kv::object_track_set(filtered_tracks1));
+  kv::object_track_set_sptr output2(new kv::object_track_set(filtered_tracks2));
 
-  push_to_port_using_trait( timestamp, timestamp );
-  push_to_port_using_trait( filtered_object_track_set1, output1 );
-  push_to_port_using_trait( filtered_object_track_set2, output2 );
+  push_to_port_using_trait(timestamp, timestamp);
+  push_to_port_using_trait(filtered_object_track_set1, output1);
+  push_to_port_using_trait(filtered_object_track_set2, output2);
 }
 
 } // end namespace core
