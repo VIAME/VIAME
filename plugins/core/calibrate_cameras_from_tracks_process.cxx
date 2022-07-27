@@ -24,10 +24,6 @@
 
 #include <memory>
 #include <arrows/ocv/camera_intrinsics.h>
-#include <opencv2/core/persistence.hpp>
-#include <opencv2/core/eigen.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
 
 
 #include "read_object_track_set_viame_csv.h"

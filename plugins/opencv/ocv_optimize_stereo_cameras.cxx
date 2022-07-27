@@ -57,6 +57,11 @@ public:
   convert_features_and_landmarks_to_calib_points(const FeatureTracks &features, const Landmarks &landmarks,
                                                  bool &success);
 
+  bool try_improve_camera_calibration(const std::vector<std::vector<cv::Point3f >> &world_points,
+                                      const std::vector<std::vector<cv::Point2f >> &image_points,
+                                      const cv::Size &image_size, cv::Mat &K1, cv::Mat &D1, cv::Mat &R1, cv::Mat &T1,
+                                      int flags, double max_error, double &error, const std::string &context);
+
   void write_stereo_calibration_file(const cv::Mat &M1, const cv::Mat &M2, const std::vector<double> &D1,
                                      const std::vector<double> &D2, const cv::Mat &R, const cv::Mat &T,
                                      const cv::Mat &R1, const cv::Mat &R2, const cv::Mat &P1, const cv::Mat &P2,
@@ -126,6 +131,35 @@ ocv_optimize_stereo_cameras::priv::merge_features_track(const kv::feature_track_
   return std::make_shared<kv::feature_track_set>(tracks);
 }
 
+
+bool ocv_optimize_stereo_cameras::priv::try_improve_camera_calibration(
+    const std::vector<std::vector<cv::Point3f >> &world_points,
+    const std::vector<std::vector<cv::Point2f >> &image_points, const cv::Size &image_size, cv::Mat &K1, cv::Mat &D1,
+    cv::Mat &R1, cv::Mat &T1, int flags, double max_error, double &error, const std::string &context) {
+  cv::Mat prev_K1, prev_D1, prev_R1, prev_T1;
+  prev_K1 = K1.clone();
+  prev_D1 = D1.clone();
+  prev_R1 = R1.clone();
+  prev_T1 = T1.clone();
+
+  LOG_DEBUG(m_logger, "Running intrinsic calibration : " << context);
+  error = cv::calibrateCamera(world_points, image_points, image_size, K1, D1, R1, T1, flags);
+  LOG_DEBUG(m_logger, "Calibration error (" << context << ") : " << error);
+
+  if (error < max_error)
+    return true;
+
+  // Rollback parameters
+  LOG_DEBUG(m_logger, "Calibration error is too high. Keeping previous calibration parameters.");
+  K1 = prev_K1.clone();
+  D1 = prev_D1.clone();
+  R1 = prev_R1.clone();
+  T1 = prev_T1.clone();
+
+  return false;
+}
+
+
 void ocv_optimize_stereo_cameras::priv::calibrate_camera(const kv::camera_sptr &camera,
                                                          const kv::feature_track_set_sptr &features,
                                                          const kv::landmark_map_sptr &landmarks,
@@ -149,7 +183,7 @@ void ocv_optimize_stereo_cameras::priv::calibrate_camera(const kv::camera_sptr &
   // Init left/right camera matrix
   cv::Size image_size = cv::Size(m_image_width, m_image_height);
   cv::Mat cv_K1 = cv::Mat(3, 3, CV_64F);
-  std::vector<double> dist_coeffs = cv::Mat(1, 7, CV_64F);
+  auto dist_coeffs = cv::Mat(1, 7, CV_64F);
   cv_K1 = cv::initCameraMatrix2D(world_points, image_points, image_size, 0);
 
   // Run intrinsic calibration of left camera
@@ -161,18 +195,19 @@ void ocv_optimize_stereo_cameras::priv::calibrate_camera(const kv::camera_sptr &
   LOG_DEBUG(m_logger, "Running intrinsic calibration of " << suffix << " camera ...");
 
   int flags{};
-  auto error = cv::calibrateCamera(world_points, image_points, image_size, cv_K1, dist_coeffs, rvec1, tvec1, flags);
-  LOG_DEBUG(m_logger, "Calibration error : " << error);
+  double error{};
+  double no_error_threshold{std::numeric_limits<double>::max()};
+  try_improve_camera_calibration(world_points, image_points, image_size, cv_K1, dist_coeffs, rvec1, tvec1, flags,
+                                 no_error_threshold, error, "Initial");
 
   // Fix aspect ratio if necessary
   auto aspect_ratio = cv_K1.at<double>(0, 0) / cv_K1.at<double>(1, 1);
   LOG_DEBUG(m_logger, "Aspect ratio : " << aspect_ratio);
 
   if (1.0 - std::min(aspect_ratio, 1.0 / aspect_ratio) < 0.01) {
-    LOG_DEBUG(m_logger, "Fixing aspect ratio at 1.0");
     flags |= cv::CALIB_FIX_ASPECT_RATIO;
-    error = cv::calibrateCamera(world_points, image_points, image_size, cv_K1, dist_coeffs, rvec1, tvec1, flags);
-    LOG_DEBUG(m_logger, "Fixed aspect ratio calibration error : " << error);
+    try_improve_camera_calibration(world_points, image_points, image_size, cv_K1, dist_coeffs, rvec1, tvec1, flags,
+                                   no_error_threshold, error, "Fixing aspect ratio at 1.0");
   }
 
   // Fix principal point to center if necessary
@@ -185,20 +220,30 @@ void ocv_optimize_stereo_cameras::priv::calibrate_camera(const kv::camera_sptr &
   auto rel_pp_diff = std::max(rel_pp_diff_1, rel_pp_diff_2);
   LOG_DEBUG(m_logger, "Relative principal point diff : " << rel_pp_diff);
   if (rel_pp_diff < 0.05) {
-    LOG_DEBUG(m_logger, "Fixed principal point to image center");
-    flags += cv::CALIB_FIX_PRINCIPAL_POINT;
-    error = cv::calibrateCamera(world_points, image_points, image_size, cv_K1, dist_coeffs, rvec1, tvec1, flags);
-    LOG_DEBUG(m_logger, "Fixed principal point calibration error : " << error);
+    flags |= cv::CALIB_FIX_PRINCIPAL_POINT;
+    try_improve_camera_calibration(world_points, image_points, image_size, cv_K1, dist_coeffs, rvec1, tvec1, flags,
+                                   no_error_threshold, error, "Fixed principal point to image center");
   }
 
-  // Setup calibrate stereo camera1
+  // For each distortion, if error is less than 25% of previous error, fix the distortion parameter
+  std::vector<std::string> dist_context{"No tangential distortion", "No K3 distortion", "No K2 distortion",
+                                        "No K1 distortion"};
+  std::vector<int> dist_flags{cv::CALIB_ZERO_TANGENT_DIST, cv::CALIB_FIX_K3, cv::CALIB_FIX_K2, cv::CALIB_FIX_K1};
+  auto max_error = 1.25 * error;
+  for (size_t i_flag = 0; i_flag < dist_flags.size(); i_flag++) {
+    flags |= dist_flags[i_flag];
+    if (!try_improve_camera_calibration(world_points, image_points, image_size, cv_K1, dist_coeffs, rvec1, tvec1, flags,
+                                        max_error, error, dist_context[i_flag]))
+      break;
+  }
+
+  // Push calibration results to perspective camera
   kv::matrix_3x3d K1;
   auto res_cam1 = std::make_shared<kv::simple_camera_perspective>();
-  auto const dc_size1 = dist_coeffs.size();
 
-  Eigen::VectorXd dist_eig1(dist_coeffs.size());
-  for (auto const i: kv::range::iota(dc_size1)) {
-    dist_eig1[static_cast< int >( i )] = dist_coeffs.at(i);
+  Eigen::VectorXd dist_eig1(dist_coeffs.cols);
+  for (auto const i: kv::range::iota(dist_coeffs.cols)) {
+    dist_eig1[static_cast< int >( i )] = dist_coeffs.at<double>(i);
   }
   cv::cv2eigen(cv_K1, K1);
 
@@ -332,12 +377,43 @@ void ocv_optimize_stereo_cameras::priv::calibrate_stereo_camera(kv::camera_map::
   float epipolarError = err / nPoints;
   LOG_DEBUG(m_logger, "Average epipolar err = " << epipolarError);
 
-  // Update right camera rotation and translation (left cam is supposed fixed)
-  Eigen::Vector3d R_eig, T_eig;
-  cv::cv2eigen(cv_R, R_eig);
-  cv::cv2eigen(cv_T, T_eig);
-  cam2->set_rotation(kv::rotation_d{R_eig});
-  cam2->set_translation(T_eig);
+  // Setup calibrate stereo camera1
+  auto res_cam1 = std::make_shared<kv::simple_camera_perspective>();
+  auto const dc_size1 = dist_coeffs1.size();
+
+  Eigen::VectorXd dist_eig1(dist_coeffs1.size());
+  for (auto const i: kv::range::iota(dc_size1)) {
+    dist_eig1[static_cast< int >( i )] = dist_coeffs1.at(i);
+  }
+  cv::cv2eigen(cv_K1, K1);
+
+  kv::camera_intrinsics_sptr cal1;
+  cal1 = std::make_shared<kv::simple_camera_intrinsics>(K1, dist_eig1);
+  res_cam1->set_intrinsics(cal1);
+
+  // Setup calibrate stereo camera2
+  cv::Mat rvec2;
+  auto res_cam2 = std::make_shared<kv::simple_camera_perspective>();
+  cv::Rodrigues(cv_R, rvec2);
+  Eigen::Vector3d rvec_eig2, tvec_eig2;
+  auto const dc_size2 = dist_coeffs2.size();
+
+  Eigen::VectorXd dist_eig2(dist_coeffs2.size());
+  for (auto const i: kv::range::iota(dc_size2)) {
+    dist_eig2[static_cast< int >( i )] = dist_coeffs2[i];
+  }
+  cv::cv2eigen(rvec2, rvec_eig2);
+  cv::cv2eigen(cv_T, tvec_eig2);
+  cv::cv2eigen(cv_K2, K2);
+  kv::rotation_d rot2{rvec_eig2};
+  res_cam2->set_rotation(rot2);
+  res_cam2->set_translation(tvec_eig2);
+  kv::camera_intrinsics_sptr cal2;
+  cal2 = std::make_shared<kv::simple_camera_intrinsics>(K2, dist_eig2);
+  res_cam2->set_intrinsics(cal2);
+
+  *cam1 = *res_cam1;
+  *cam2 = *res_cam2;
 
   LOG_DEBUG(m_logger, "Camera Essential :\n" << cv_E);
   LOG_DEBUG(m_logger, "Camera Fundamental :\n" << cv_F);

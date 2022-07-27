@@ -6,9 +6,9 @@
 #ifndef VIAME_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
 #define VIAME_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
 
-#include <sprokit/src/sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process.h>
 
-#include "plugins/core/viame_processes_core_export.h"
+#include <plugins/core/viame_processes_core_export.h>
 
 #include <memory>
 
