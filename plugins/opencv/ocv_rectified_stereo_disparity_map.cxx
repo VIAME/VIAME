@@ -10,6 +10,7 @@
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/ximgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/eigen.hpp>
@@ -23,7 +24,6 @@ namespace viame {
 class ocv_rectified_stereo_disparity_map::priv
 {
 public:
-
   std::string algorithm;
   int min_disparity;
   int num_disparities;
@@ -33,10 +33,11 @@ public:
   int speckle_range;
 
   bool m_computed_rectification = false;
-  kv::camera_map::map_camera_t m_cameras;
+  bool use_filtered_disparity{};
   std::string m_cameras_directory;
 
-  // intermadiate variables
+  // intermediate variables
+  cv::Mat M1, M2, P1, P2, Q, R1, R2, R, T, D1, D2;
   cv::Mat m_rectification_map11;
   cv::Mat m_rectification_map12;
   cv::Mat m_rectification_map21;
@@ -44,12 +45,9 @@ public:
 
   kv::logger_handle_t m_logger;
 
-
-#ifdef VIAME_OPENCV_VER_2
-  cv::StereoBM algo;
-#else
-  cv::Ptr< cv::StereoMatcher > algo;
-#endif
+  cv::Ptr< cv::StereoMatcher > left_matcher;
+  cv::Ptr< cv::StereoMatcher > right_matcher;
+  cv::Ptr< cv::ximgproc::DisparityWLSFilter > disparity_filter;
 
   priv()
     : algorithm( "BM" )
@@ -60,36 +58,48 @@ public:
     , speckle_window_size( 50 )
     , speckle_range( 5 )
     , m_computed_rectification(false)
-    , m_cameras()
     , m_cameras_directory( "" )
   {}
 
   ~priv()
   {}
 
-  kv::camera_map::map_camera_t
-  load_camera_map(std::string const& camera1_name,
-                  std::string const& camera2_name,
-                  std::string const& cameras_dir)
+  void
+  load_camera_calibration()
   {
-    kv::camera_map::map_camera_t cameras;
+    try {
+      auto intrinsics_path = m_cameras_directory + "/intrinsics.yml";
+      auto extrinsics_path = m_cameras_directory + "/extrinsics.yml";
+      auto fs = cv::FileStorage(intrinsics_path, cv::FileStorage::Mode::READ);
 
-    try
-    {
-      cameras[0] = kv::read_krtd_file( camera1_name, cameras_dir );
-      cameras[1] = kv::read_krtd_file( camera2_name, cameras_dir );
-    }
-    catch ( const kv::file_not_found_exception& )
-    {
-      VITAL_THROW( kv::invalid_data, "Calibration file not found" );
-    }
+      // load intrinsic parameters
+      if (!fs.isOpened())
+        VITAL_THROW(kv::file_not_found_exception, intrinsics_path, "could not locate file in path");
 
-    if ( cameras.empty() )
-    {
-      VITAL_THROW( kv::invalid_data, "No krtd files found" );
-    }
+      fs["M1"] >> M1;
+      fs["M2"] >> M2;
+      fs["D1"] >> D1;
+      fs["D2"] >> D2;
+      fs.release();
 
-    return cameras;
+      // load extrinsic parameters
+      fs = cv::FileStorage(extrinsics_path, cv::FileStorage::Mode::READ);
+      if (!fs.isOpened())
+        VITAL_THROW(kv::file_not_found_exception, extrinsics_path, "could not locate file in path");
+
+      fs["R"] >> R;
+      fs["T"] >> T;
+      fs["R1"] >> R1;
+      fs["R2"] >> R2;
+      fs["P1"] >> P1;
+      fs["P2"] >> P2;
+      fs["Q"] >> Q;
+      fs.release();
+    }
+    catch ( const kv::file_not_found_exception& e)
+    {
+      VITAL_THROW( kv::invalid_data, "Calibration file not found : " + std::string(e.what()) );
+    }
   }
 };
 
@@ -98,6 +108,8 @@ ocv_rectified_stereo_disparity_map
 ::ocv_rectified_stereo_disparity_map()
 : d( new priv() )
 {
+  attach_logger("viame.opencv.ocv_rectified_stereo_disparity_map");
+  d->m_logger = logger();
 }
 
 
@@ -122,9 +134,10 @@ ocv_rectified_stereo_disparity_map
   config->set_value( "block_size", d->block_size, "Block size" );
   config->set_value( "speckle_window_size", d->speckle_window_size, "Speckle Window Size" );
   config->set_value( "speckle_range", d->speckle_range, "Speckle Range" );
+  config->set_value("use_filtered_disparity", d->use_filtered_disparity,
+                    "(bool) if true, returns WLS filtered disparity. Raw disparity otherwise.");
 
-  config->set_value("input_cameras_directory", d->m_cameras_directory,
-    "Path to a directory to read cameras from.");
+  config->set_value("cameras_directory", d->m_cameras_directory, "Path to a directory to read cameras from.");
 
   return config;
 }
@@ -143,43 +156,42 @@ void ocv_rectified_stereo_disparity_map
   d->block_size = config->get_value< int >( "block_size" );
   d->speckle_window_size = config->get_value< int >( "speckle_window_size" );
   d->speckle_range = config->get_value< int >( "speckle_range" );
+  d->use_filtered_disparity = config->get_value< bool >( "use_filtered_disparity" );
 
   d->m_computed_rectification = false;
-  d->m_cameras_directory = config->get_value< std::string >( "input_cameras_directory" );
+  d->m_cameras_directory = config->get_value< std::string >( "cameras_directory" );
 
-  d->m_cameras = d->load_camera_map("camera1", "camera2", d->m_cameras_directory);
+  d->load_camera_calibration();
 
-#ifdef VIAME_OPENCV_VER_2
   if( d->algorithm == "BM" )
   {
-    d->algo.init( 0, d->num_disparities, d->sad_window_size );
+    d->left_matcher = cv::StereoBM::create(d->num_disparities, d->sad_window_size );
+    d->left_matcher->setSpeckleWindowSize(d->speckle_window_size);
+    d->left_matcher->setSpeckleRange (d->speckle_range);
   }
   else if( d->algorithm == "SGBM" )
   {
-    throw std::runtime_error( "Unable to use type SGBM with OpenCV 2" );
+    int block_size_squared = d->block_size * d->block_size;
+    int p1{8 * block_size_squared};
+    int p2{32 * block_size_squared};
+    int disp12_max_diff{0};
+    int prefilter_cap{0};
+    int uniqueness_ratio{10};
+    d->left_matcher = cv::StereoSGBM::create(d->min_disparity, d->num_disparities, d->block_size, p1, p2, disp12_max_diff,
+                                             prefilter_cap, uniqueness_ratio, d->speckle_window_size, d->speckle_range);
   }
   else
   {
     throw std::runtime_error( "Invalid algorithm type " + d->algorithm );
   }
-#else
-  if( d->algorithm == "BM" )
-  {
-    d->algo = cv::StereoBM::create( d->num_disparities, d->sad_window_size );
-    d->algo->setSpeckleWindowSize(d->speckle_window_size);
-    d->algo->setSpeckleRange (d->speckle_range);
+
+  if(d->use_filtered_disparity) {
+    d->disparity_filter = cv::ximgproc::createDisparityWLSFilter(d->left_matcher);
+    d->right_matcher = cv::ximgproc::createRightMatcher(d->left_matcher);
+  }else{
+    d->disparity_filter.release();
+    d->right_matcher.release();
   }
-  else if( d->algorithm == "SGBM" )
-  {
-    d->algo = cv::StereoSGBM::create( d->min_disparity, d->num_disparities, d->block_size );
-    d->algo->setSpeckleWindowSize(d->speckle_window_size);
-    d->algo->setSpeckleRange (d->speckle_range);
-  }
-  else
-  {
-    throw std::runtime_error( "Invalid algorithm type " + d->algorithm );
-  }
-#endif
 }
 
 
@@ -196,12 +208,6 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
 ::compute( kv::image_container_sptr left_image,
            kv::image_container_sptr right_image ) const
 {
-  if(d->m_cameras.size() != 2)
-  {
-    LOG_WARN(d->m_logger, "Only works with two cameras as inputs.");
-    return kwiver::vital::image_container_sptr();
-  }
-
   if(left_image->get_image().size() != right_image->get_image().size())
   {
     LOG_WARN(d->m_logger, "Inconsistent left/right images size.");
@@ -211,44 +217,11 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
   // Load cameras and compute needed rectification matrix
   if( !d->m_computed_rectification )
   {
-    kv::simple_camera_perspective_sptr cam1, cam2;
-    cam1 = std::dynamic_pointer_cast<kv::simple_camera_perspective>(d->m_cameras[0]);
-    cam2 = std::dynamic_pointer_cast<kv::simple_camera_perspective>(d->m_cameras[1]);
-
-    kv::matrix_3x3d K1 = cam1->intrinsics()->as_matrix();
-    cv::Mat cv_K1;
-    cv::eigen2cv( K1, cv_K1 );
-    auto dist_coeffs1 = kwiver::arrows::ocv::get_ocv_dist_coeffs( cam1->intrinsics() );
-
-    kv::matrix_3x3d K2 = cam2->intrinsics()->as_matrix();
-    cv::Mat cv_K2;
-    cv::eigen2cv( K2, cv_K2 );
-    auto dist_coeffs2 = kwiver::arrows::ocv::get_ocv_dist_coeffs( cam2->intrinsics() );
-
-    kv::matrix_3x3d R = cam2->rotation().matrix();
-    kv::vector_3d T = cam2->translation();
-    cv::Mat cv_R, cv_T;
-    cv::eigen2cv( R, cv_R );
-    cv::eigen2cv( T, cv_T );
-
+    LOG_DEBUG(d->m_logger, "Compute rectification matrix");
     cv::Size img_size = cv::Size(left_image->get_image().width(),left_image->get_image().height());
-    cv::Mat cv_R1, cv_P1, cv_R2, cv_P2, cv_Q;
-    cv::stereoRectify(cv_K1, dist_coeffs1,
-                      cv_K2, dist_coeffs2,
-                      img_size,
-                      cv_R, cv_T,
-                      cv_R1, cv_R2, cv_P1, cv_P2, cv_Q,
-                      cv::CALIB_ZERO_DISPARITY);
-
-    // compute rectification maps to be used for each new stereo frames
-    std::cout << "cv_R1\n" << cv_R1 << std::endl;
-    std::cout << "cv_P1\n" << cv_P1 << std::endl;
-    std::cout << "cv_R2\n" << cv_R2 << std::endl;
-    std::cout << "cv_P2\n" << cv_P2 << std::endl;
-    std::cout << "cv_Q\n" << cv_Q << std::endl;
-    cv::initUndistortRectifyMap(cv_K1, dist_coeffs1, cv_R1, cv_P1,
+    cv::initUndistortRectifyMap(d->M1, d->D1, d->R1, d->P1,
                                 img_size, CV_16SC2, d->m_rectification_map11, d->m_rectification_map12);
-    cv::initUndistortRectifyMap(cv_K2, dist_coeffs2, cv_R2, cv_P2,
+    cv::initUndistortRectifyMap(d->M2, d->D2, d->R2, d->P2,
                                 img_size, CV_16SC2, d->m_rectification_map21, d->m_rectification_map22);
 
     if(!d->m_rectification_map11.empty() ||
@@ -284,23 +257,26 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
   cv::remap(ocv2_gray, img2r, d->m_rectification_map21, d->m_rectification_map22, cv::INTER_LINEAR);
 
   // compute disparity map
-  cv::Mat disparity_map;
+  cv::Mat left_disparity_map, left_disparity_float;
+  d->left_matcher->compute(img1r, img2r, left_disparity_map);
+  left_disparity_map.convertTo(left_disparity_float, CV_32F);
 
-#ifdef VIAME_OPENCV_VER_2
-  d->algo( ocv1_gray, ocv2_gray, disparity_map );
-#else
-  d->algo->compute( img1r, img2r, disparity_map );
-#endif
+  // Filter disparity map
+  if (d->use_filtered_disparity && d->right_matcher && d->disparity_filter) {
+    auto roi = cv::Rect();
+    cv::Mat right_disparity_map, left_filtered_disparity;
+    d->right_matcher->compute(img2r, img1r, right_disparity_map);
+    d->disparity_filter->filter(left_disparity_map, img1r, left_filtered_disparity, right_disparity_map, roi, img2r);
+    left_filtered_disparity.convertTo(left_disparity_float, CV_32F);
+  }
 
   // Convert 16 bits fixed-point disparity map (where each disparity value has 4 fractional bits)
   // from  StereoBM or StereoSGBM
   // cf https://docs.opencv.org/3.4/d2/d6e/classcv_1_1StereoMatcher.html
-  cv::Mat disparity_map_float;
-  disparity_map.convertTo(disparity_map_float, CV_32F);
-  disparity_map_float *= std::pow(2.0, -4.0);
+  left_disparity_float /= 16.0;
 
-  return kv::image_container_sptr( new kwiver::arrows::ocv::image_container( disparity_map_float,
-    kwiver::arrows::ocv::image_container::BGR_COLOR ) );
+  return kv::image_container_sptr(
+      new kwiver::arrows::ocv::image_container(left_disparity_float, kwiver::arrows::ocv::image_container::BGR_COLOR));
 }
 
 } //end namespace viame
