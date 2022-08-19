@@ -46,7 +46,7 @@ process detection_filter
   endblock
 
 connect from detection_reader.detected_object_set
-             detection_filter.detected_object_set
+        to   detection_filter.detected_object_set
 
 process track_reader
   :: read_object_track
