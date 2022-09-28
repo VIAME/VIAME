@@ -28,7 +28,7 @@ connect from downsampler.output_1
         to   tracker.image
 connect from downsampler.timestamp
         to   tracker.timestamp
-connect from detector_reader.detected_object_set
+connect from detection_reader.detected_object_set
         to   tracker.detected_object_set
 
 # ========================= OUTPUT WRITER ========================
