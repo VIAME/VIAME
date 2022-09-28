@@ -671,6 +671,10 @@ def process_using_kwiver( input_path, options, is_image_list=False,
               [ find_file( options.pipeline, run_pipeline ) ] +
               input_settings )
 
+  if use_gt or options.write_svm_info:
+    gt_type = options.auto_detect_gt if auto_detect_gt else "viame_csv"
+    gt_files = [ options.gt_file ] if not auto_detect_gt else gt_files
+
   if use_gt and len( gt_files ) > 0:
     gt_rate = rate_from_gt( gt_files[0] )
     if not args.input_frame_rate and is_image_list:
@@ -707,8 +711,6 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       exit_with_error( "Unable to find input detections" )
     gt_files = [ options.input_detections ]
   if use_gt or options.write_svm_info:
-    gt_type = options.auto_detect_gt if auto_detect_gt else "viame_csv"
-    gt_files = [ options.gt_file ] if not auto_detect_gt else gt_files
     command += groundtruth_reader_settings_list( options, gt_files, input_id_no_ext, gpu, gt_type )
 
   if ( not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ) ) or \
