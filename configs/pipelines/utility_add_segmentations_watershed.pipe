@@ -42,6 +42,7 @@ process detector_writer
   :file_name                               computed_detections.csv
   :writer:type                                           viame_csv
   :writer:viame_csv:mask_to_poly_tol                          0.05
+  :writer:viame_csv:mask_to_poly_points                         -1
 
 connect from downsampler.output_2
         to   detector_writer.image_file_name
