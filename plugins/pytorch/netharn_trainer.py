@@ -91,6 +91,7 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_expansion = 1.0
         self._max_epochs = "50"
         self._batch_size = "auto"
+        self._bstep = "4"
         self._learning_rate = "auto"
         self._scheduler = "auto"
         self._timeout = "1209600"
@@ -139,6 +140,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "chip_expansion", str( self._chip_expansion ) )
         cfg.set_value( "max_epochs", str( self._max_epochs ) )
         cfg.set_value( "batch_size", self._batch_size )
+        cfg.set_value( "bstep", self._bstep )
         cfg.set_value( "learning_rate", self._learning_rate )
         cfg.set_value( "scheduler", self._scheduler )
         cfg.set_value( "timeout", self._timeout )
@@ -186,6 +188,7 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_expansion = float( cfg.get_value( "chip_expansion" ) )
         self._max_epochs = str( cfg.get_value( "max_epochs" ) )
         self._batch_size = str( cfg.get_value( "batch_size" ) )
+        self._bstep = str( cfg.get_value( "bstep" ) )
         self._scheduler = str( cfg.get_value( "scheduler" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
         self._epoch_ignore_count = str( cfg.get_value( "epoch_ignore_count" ) )
@@ -655,6 +658,8 @@ class NetHarnTrainer( TrainDetector ):
         return [ output_files, output_dets ]
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
+        print("Number of selected test files : ", len(test_files))
+
         if self._no_format:
             return
         if len( train_files ) != len( train_dets ):
@@ -704,7 +709,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--window_dims=" + self._chip_width + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
                      "--multiscale=False",
-                     "--bstep=4" ]
+                     "--bstep=" + self._bstep]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=16" )
             if os.name == 'nt':
