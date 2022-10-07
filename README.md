@@ -79,11 +79,11 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* VIAME v0.19.4 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
-* [VIAME v0.19.4 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1XaKWnaL3K-j98Yvk3diUYEcOC3mOJglj/view?usp=sharing) <br>
-* [VIAME v0.19.4 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/62d580febddec9d0c45bf62f/download) <br>
-* [VIAME v0.19.4 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/106BCdISlTn7FOtd2H38wJ43B5pgAclKZ/view?usp=sharing) <br>
-* [VIAME v0.19.4 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/62d58096bddec9d0c45bf506/download)
+* VIAME v0.19.5 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
+* [VIAME v0.19.5 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1MY6ViHUNV-yQnZMmynTYcvM7eUs-AsN3/view?usp=sharing) <br>
+* [VIAME v0.19.5 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6340404511dab81428208b23/download) <br>
+* [VIAME v0.19.5 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1-Aq-5I58qbHtJJf07AkCO7kJNv13XTjN/view?usp=sharing) <br>
+* [VIAME v0.19.5 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6340406711dab81428208b26/download)
 
 **Linux Full Desktop Binaries:** <br>
 * [VIAME v0.19.4 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1UWxH-m8VPxYMKYuTMMs_ICFwryM92Bhe/view?usp=sharing) <br>
@@ -106,7 +106,6 @@ CentOS
 * [SEAL Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
 
 **Optional Add-Ons and Model Files:** <br>
-* [SVM and Segmentation Quick Fix, All OS](https://data.kitware.com/api/v1/item/63352a7a11dab814282086a0/download) <br>
 * [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
 * [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
 * [EM Tuna Detectors, All OS](https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download) <br>
