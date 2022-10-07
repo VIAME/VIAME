@@ -1,3 +1,11 @@
+v0.19.6 - 10/9/2022
+===================
+
+
+-Fix issue with 15hz video downsampled to 15hz and some other derivatives
+
+
+
 v0.19.5 - 10/7/2022
 ===================
 
@@ -9,9 +17,6 @@ v0.19.5 - 10/7/2022
 
 
 -Add second watershed segmentation process
-
-
--Fix issue with 15hz video downsampled to 15hz and some other derivatives
 
 
 
