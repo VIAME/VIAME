@@ -1,3 +1,20 @@
+v0.19.5 - 10/7/2022
+===================
+
+
+-Fix issues in SVM train introduced in v0.19.*
+
+
+-Fix issues in utility pipelines introduced in last
+
+
+-Add second watershed segmentation process
+
+
+-Fix issue with 15hz video downsampled to 15hz and some other derivatives
+
+
+
 v0.19.4 - 7/18/2022
 ===================
 
