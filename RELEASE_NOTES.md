@@ -1,3 +1,11 @@
+v0.19.7 - 10/17/2022
+====================
+
+
+-Update DIVE GUI with a number of improvements and windows authentication
+
+
+
 v0.19.6 - 10/9/2022
 ===================
 
