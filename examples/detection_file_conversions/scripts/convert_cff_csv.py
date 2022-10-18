@@ -24,6 +24,9 @@ if __name__ == "__main__" :
     parser.add_argument("--ff-only", dest="ff_only", action="store_true",
                       help="Output full frame only annotations")
 
+    parser.add_argument("--fn-only", dest="fn_only", action="store_true",
+                      help="Output unique image names only")
+
     args = parser.parse_args()
 
     input_files = []
@@ -64,22 +67,39 @@ if __name__ == "__main__" :
                 continue
             if line[0][0:5] == 'Image':
                 continue
-            if len( line ) < 11:
+            if len( line ) < 4:
                 continue
 
             image_name = line[0]
-            substrate = line[4].replace( ",", "|" )
-            substrate = substrate.replace( " ", "_" )
-
-            if line[11] == "NA":
-                poly = default_poly
-            else:
-                poly = [ int( float( i ) + 0.5 ) for i in line[11].split( "," ) ]
 
             if image_name not in annotations:
                 annotations[ image_name ] = []
 
+            if len( line ) < 11:
+                continue
+
+            substrate = line[4].strip().replace( ",", "|" )
+            substrate = substrate.replace( " ", "_" )
+
+            if "unreadable" in substrate:
+                continue
+
+            biotic = line[6].strip().replace( ",", "|" )
+            biotic = biotic.replace( " ", "_" )
+
+            if len( line ) < 12 or line[11] == "NA" or line[11] == "":
+                poly = default_poly
+            else:
+                poly_list = line[11].split( "," )
+                if "" in poly_list:
+                    poly_list.remove( "" )
+                poly = [ int( float( i ) + 0.5 ) for i in poly_list ]
+
             annotations[ image_name ].append( [ substrate, poly ] )
+
+            if biotic != "NA" and biotic != "":
+                annotations[ image_name ].append( [ biotic, poly ] )
+
         fin.close()
 
         if args.ff_only:
@@ -93,13 +113,26 @@ if __name__ == "__main__" :
                 for cat in res:
                     annotations[ image ].append( [ cat, default_poly ] )
 
-        fout = open( output_file, "w" )
+        if not args.fn_only:
+            fout = open( output_file, "w" )
+
         flist = open( output_list, "w" )
 
         det_counter = 0
         for index, image in enumerate( annotations ):
             flist.write( image + "\n" )
+
+            if args.fn_only:
+                continue
+
             for poly in annotations[ image ]:
+                cat = poly[0]
+
+                if not cat:
+                    continue
+                if cat[0] == "_":
+                    cat = cat[1:]
+
                 x_coord = poly[1][0::2]
                 y_coord = poly[1][1::2]
 
@@ -112,10 +145,16 @@ if __name__ == "__main__" :
                 fout.write( str( max( y_coord ) ) + "," )
                 fout.write( "1.0," )
                 fout.write( "-1," )
-                fout.write( poly[0] + ",1.0," )
-                fout.write( "(poly) " + " ".join( [ str( i ) for i in poly[1] ] ) )
+                fout.write( poly[0] + ",1.0" )
+
+                if not args.ff_only:
+                    fout.write( ",(poly) " + " ".join( [ str( i ) for i in poly[1] ] ) )
+
                 fout.write( "\n" )
 
                 det_counter = det_counter + 1
-        fout.close()
+
+        if not args.fn_only:
+            fout.close()
+
         flist.close()
