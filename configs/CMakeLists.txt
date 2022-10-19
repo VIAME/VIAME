@@ -309,6 +309,7 @@ if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/train_detector_default.viame_csv.conf
     pipelines/train_frame_classifier_default.viame_csv.conf
+    pipelines/train_frame_classifier_multi_output.viame_csv.conf
     pipelines/train_reclassifier_default.viame_csv.conf )
 endif()
 
@@ -438,7 +439,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     pipelines/train_detector_netharn_mask_rcnn.viame_csv.conf
     pipelines/train_frame_classifier_netharn_efficientnet.viame_csv.conf
     pipelines/train_frame_classifier_netharn_efficientnet.continue.viame_csv.conf
-    pipelines/train_frame_classifier_netharn_multi_class.viame_csv.conf
     pipelines/train_frame_classifier_netharn_resnet.viame_csv.conf
     pipelines/train_frame_classifier_netharn_resnet.continue.viame_csv.conf
     pipelines/train_reclassifier_netharn_efficientnet.viame_csv.conf
