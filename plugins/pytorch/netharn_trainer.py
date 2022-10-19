@@ -121,7 +121,7 @@ class NetHarnTrainer( TrainDetector ):
         self._negative_category = "background"
         self._reduce_category = ""
         self._scale_type_file = ""
-        self._multi_class = False
+        self._multi_output = False
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -163,7 +163,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "negative_category", self._negative_category )
         cfg.set_value( "reduce_category", self._reduce_category )
         cfg.set_value( "scale_type_file", self._scale_type_file )
-        cfg.set_value( "multi_class", str( self._multi_class ) )
+        cfg.set_value( "multi_output", str( self._multi_output ) )
 
         return cfg
 
@@ -207,7 +207,7 @@ class NetHarnTrainer( TrainDetector ):
         self._negative_category = str( cfg.get_value( "negative_category" ) )
         self._reduce_category = str( cfg.get_value( "reduce_category" ) )
         self._scale_type_file = str( cfg.get_value( "scale_type_file" ) )
-        self._multi_class = strtobool( cfg.get_value( "multi_class" ) )
+        self._multi_output = strtobool( cfg.get_value( "multi_output" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -660,7 +660,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
                      "--input_dims=" + self._chip_width + "," + self._chip_width,
-                     "--multiclass=" + str( self._multi_class ) ]
+                     "--multiclass=" + str( self._multi_output ) ]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=8" )
         else:
