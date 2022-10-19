@@ -660,7 +660,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
                      "--input_dims=" + self._chip_width + "," + self._chip_width,
-                     "--multiclass=" + str( self._multi_output ) ]
+                     "--multiclass=" + "True" if self._multi_output else "False" ]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=8" )
         else:
