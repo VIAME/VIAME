@@ -65,6 +65,7 @@
 #include <map>
 #include <cctype>
 #include <regex>
+#include <unordered_set>
 
 // =======================================================================================
 // Class storing all input parameters and private variables for tool
@@ -306,6 +307,17 @@ bool string_to_vector( const std::string& str,
 }
 
 template< typename T >
+bool string_to_set( const std::string& str,
+  std::unordered_set< T >& out, const std::string delims = "\n\t\v ," )
+{
+  out.clear();
+  std::vector< T > tmp;
+  bool retval = string_to_vector( str, tmp, delims );
+  out.insert( tmp.begin(), tmp.end() );
+  return retval;
+}
+
+template< typename T >
 bool file_to_vector( const std::string& fn, std::vector< T >& out )
 {
   std::ifstream in( fn.c_str() );
@@ -449,6 +461,17 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "max_frame_count", "0",
     "Maximum number of frames to use in training, useful for debugging and speed "
     "optimization purposes." );
+  config->set_value( "use_labels", "true",
+    "Adjust labels based on labels.txt file in this loader instead of passing the "
+    "responsibility to individual detector trainer classes." );
+  config->set_value( "secondary_frame_labels", "",
+    "Secondary categories should be suppressed if a primary category is present "
+    "on a particular frame." );
+  config->set_value( "ignore_secondary_burst_count", "0",
+    "After receiving a frame with a primary category, ignore this many secondary "
+    "category frames before using the next secondary frame." );
+  config->set_value( "secondary_downsample", "0",
+    "Downsample factor for frames containing only secondary classes." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
   config->set_value( "data_warning_file", "",
@@ -765,6 +788,162 @@ std::string get_augmented_filename( std::string name,
   return mod_path;
 }
 
+bool adjust_labels( kwiver::vital::detected_object_set_sptr input,
+                    kwiver::vital::category_hierarchy_sptr cats_to_use,
+                    const std::unordered_set< std::string >& background )
+{
+  if( !input )
+  {
+    return false;
+  }
+
+  if( cats_to_use )
+  {
+    std::unordered_set< std::string > frame_cats;
+
+    // Remove detections not present in labels and use synonym table to update labels
+    input->filter( [&frame_cats, cats_to_use]( kwiver::vital::detected_object_sptr& det )
+    {
+      if( !det || !det->type() )
+      {
+        return true;
+      }
+
+      std::string cat, new_cat;
+      double score;
+
+      det->type()->get_most_likely( cat, score );
+
+      if( !cats_to_use->has_class_name( cat ) )
+      {
+        return true;
+      }
+
+      new_cat = std::to_string( cats_to_use->get_class_id( cat ) );
+      if( new_cat != cat )
+      {
+        det->set_type(
+          std::make_shared< kwiver::vital::detected_object_type >(
+            new_cat, score ) );
+      }
+      frame_cats.insert( new_cat );
+      return false;
+    } );
+
+    if( !background.empty() )
+    {
+      // Are any FG more important categories present on frame
+      bool has_fg = false;
+      for( auto lbl : frame_cats )
+      {
+        if( background.count( lbl ) == 0 )
+        {
+          has_fg = true;
+          break;
+        }
+      }
+
+      // Remove background categories
+      if( has_fg )
+      {
+        input->filter( [background]( kwiver::vital::detected_object_sptr& det )
+        {
+          std::string cat;
+          det->type()->get_most_likely( cat );
+          return background.count( cat );
+        } );
+      }
+
+      frame_cats.clear();
+
+      // Remove duplicates if present
+      input->filter( [&frame_cats]( kwiver::vital::detected_object_sptr& det )
+      {
+        std::string cat;
+        det->type()->get_most_likely( cat );
+        if( frame_cats.count( cat ) )
+        {
+          return true;
+        }
+        frame_cats.insert( cat );
+        return false;
+      } );
+
+      return has_fg;
+    }
+  }
+  return !input->empty();
+}
+
+std::vector< bool >
+adjust_labels( std::vector< kwiver::vital::detected_object_set_sptr >& input,
+               kwiver::vital::category_hierarchy_sptr cats_to_use,
+               const std::unordered_set< std::string >& background )
+{
+  std::vector< bool > fg_mask;
+
+  for( auto set : input )
+  {
+    fg_mask.push_back( adjust_labels( set, cats_to_use, background ) );
+  }
+
+  return fg_mask;
+}
+
+template< typename T >
+std::vector< T >
+conditional_remove( std::vector< T >& input, std::vector< bool > remove )
+{
+  std::vector< T > output;
+  for( unsigned i = 0; i < input.size(); i++ )
+  {
+    if( !remove[i] )
+    {
+      output.push_back( input[i] );
+    }
+  }
+  return output;
+}
+
+void
+adjust_labels( std::vector< std::string >& input_files,
+               std::vector< kwiver::vital::detected_object_set_sptr >& input_dets,
+               const std::vector< bool >& fg_mask,
+               unsigned background_ds_rate = 0,
+               unsigned background_skip_count = 0 )
+{
+  if( !background_ds_rate && !background_skip_count )
+  {
+    return;
+  }
+
+  std::vector< bool > to_remove( fg_mask.size(), false );
+  unsigned since_last_fg = 0;
+  unsigned bg_counter = 0;
+
+  for( unsigned i = 0; i < input_files.size(); i++ )
+  {
+    if( fg_mask[i] )
+    {
+      since_last_fg = 0;
+    }
+    else
+    {
+      if( ( background_ds_rate && bg_counter % background_ds_rate != 0 ) ||
+          ( background_skip_count && since_last_fg < background_skip_count ) )
+      {
+        to_remove[i] = true;
+      }
+
+      bg_counter++;
+      since_last_fg++;
+    }
+  }
+
+  conditional_remove( input_files, to_remove );
+  conditional_remove( input_dets, to_remove );
+}
+
 // =======================================================================================
 /*                   _
  *   _ __ ___   __ _(_)_ __
@@ -1078,6 +1257,14 @@ main( int argc, char* argv[] )
     config->get_value< double >( "frame_rate" );
   unsigned max_frame_count =
     config->get_value< unsigned >( "max_frame_count" );
+  bool use_labels =
+    config->get_value< bool >( "use_labels" );
+  std::string secondary_frame_labels_str =
+    config->get_value< std::string >( "secondary_frame_labels" );
+  unsigned ignore_secondary_burst_count =
+    config->get_value< unsigned >( "ignore_secondary_burst_count" );
+  unsigned secondary_downsample =
+    config->get_value< unsigned >( "secondary_downsample" );
   double threshold =
     config->get_value< double >( "threshold" );
   bool check_override =
@@ -1122,6 +1309,7 @@ main( int argc, char* argv[] )
   }
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
+  std::unordered_set< std::string > secondary_frame_labels;
   bool one_file_per_image;
 
   if( groundtruth_style == "one_per_file" )
@@ -1147,6 +1335,8 @@ main( int argc, char* argv[] )
   string_to_vector( image_exts_str, image_exts, "\n\t\v,; " );
   string_to_vector( video_exts_str, video_exts, "\n\t\v,; " );
   string_to_vector( groundtruth_exts_str, groundtruth_exts, "\n\t\v,; " );
+
+  string_to_set( secondary_frame_labels_str, secondary_frame_labels, "\n\t\v,;" );
 
   // Load labels.txt file
   std::string label_fn;
@@ -1899,14 +2089,27 @@ main( int argc, char* argv[] )
         }
       }
     }
-  
+
     invalid_train_set = is_empty( train_gt );
   }
 
+  // Final validation check
   if( invalid_train_set || invalid_validation_set )
   {
     std::cout << "Error: not enough data diversity to generate model" << std::endl;
     return EXIT_FAILURE;
+  }
+
+  // Adjust labels 
+  if( use_labels )
+  {
+    std::vector< bool > fg_mask = adjust_labels( train_gt,
+      model_labels, secondary_frame_labels );
+
+    adjust_labels( train_image_fn, train_gt, fg_mask,
+      secondary_downsample, ignore_secondary_burst_count );
+
+    adjust_labels( test_gt, model_labels, secondary_frame_labels );
   }
 
   // Run training algorithm
@@ -1916,8 +2119,7 @@ main( int argc, char* argv[] )
   try
   {
     detector_trainer->add_data_from_disk( model_labels,
-                                          train_image_fn, train_gt,
-                                          test_image_fn, test_gt );
+      train_image_fn, train_gt, test_image_fn, test_gt );
 
     detector_trainer->update_model();
   }
