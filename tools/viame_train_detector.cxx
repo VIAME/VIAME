@@ -819,7 +819,7 @@ bool adjust_labels( kwiver::vital::detected_object_set_sptr input,
         return true;
       }
 
-      new_cat = std::to_string( cats_to_use->get_class_id( cat ) );
+      new_cat = cats_to_use->get_class_name( cat );
       if( new_cat != cat )
       {
         det->set_type(
