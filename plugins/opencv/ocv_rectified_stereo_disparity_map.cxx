@@ -32,8 +32,10 @@ public:
   int speckle_window_size;
   int speckle_range;
 
-  bool m_computed_rectification = false;
-  bool use_filtered_disparity{};
+  bool m_computed_rectification{};
+  bool m_use_filtered_disparity{};
+  bool m_set_disparity_as_alpha_chanel{};
+  bool m_invert_disparity_alpha_chanel{};
   std::string m_cameras_directory;
 
   // intermediate variables
@@ -134,8 +136,12 @@ ocv_rectified_stereo_disparity_map
   config->set_value( "block_size", d->block_size, "Block size" );
   config->set_value( "speckle_window_size", d->speckle_window_size, "Speckle Window Size" );
   config->set_value( "speckle_range", d->speckle_range, "Speckle Range" );
-  config->set_value("use_filtered_disparity", d->use_filtered_disparity,
+  config->set_value("use_filtered_disparity", d->m_use_filtered_disparity,
                     "(bool) if true, returns WLS filtered disparity. Raw disparity otherwise.");
+  config->set_value("set_disparity_as_alpha_chanel", d->m_use_filtered_disparity,
+                    "(bool) if true, combines disparity map with left image as alpha chanel.");
+  config->set_value("invert_disparity_alpha_chanel", d->m_invert_disparity_alpha_chanel,
+                    "(bool) if true, invert disparity map when used as alpha chanel.");
 
   config->set_value("cameras_directory", d->m_cameras_directory, "Path to a directory to read cameras from.");
 
@@ -156,7 +162,9 @@ void ocv_rectified_stereo_disparity_map
   d->block_size = config->get_value< int >( "block_size" );
   d->speckle_window_size = config->get_value< int >( "speckle_window_size" );
   d->speckle_range = config->get_value< int >( "speckle_range" );
-  d->use_filtered_disparity = config->get_value< bool >( "use_filtered_disparity" );
+  d->m_use_filtered_disparity = config->get_value< bool >("use_filtered_disparity" );
+  d->m_set_disparity_as_alpha_chanel = config->get_value< bool >("set_disparity_as_alpha_chanel" );
+  d->m_invert_disparity_alpha_chanel = config->get_value< bool >("invert_disparity_alpha_chanel" );
 
   d->m_computed_rectification = false;
   d->m_cameras_directory = config->get_value< std::string >( "cameras_directory" );
@@ -185,7 +193,7 @@ void ocv_rectified_stereo_disparity_map
     throw std::runtime_error( "Invalid algorithm type " + d->algorithm );
   }
 
-  if(d->use_filtered_disparity) {
+  if(d->m_use_filtered_disparity) {
     d->disparity_filter = cv::ximgproc::createDisparityWLSFilter(d->left_matcher);
     d->right_matcher = cv::ximgproc::createRightMatcher(d->left_matcher);
   }else{
@@ -262,7 +270,7 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
   left_disparity_map.convertTo(left_disparity_float, CV_32F);
 
   // Filter disparity map
-  if (d->use_filtered_disparity && d->right_matcher && d->disparity_filter) {
+  if (d->m_use_filtered_disparity && d->right_matcher && d->disparity_filter) {
     auto roi = cv::Rect();
     cv::Mat right_disparity_map, left_filtered_disparity;
     d->right_matcher->compute(img2r, img1r, right_disparity_map);
@@ -274,6 +282,34 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
   // from  StereoBM or StereoSGBM
   // cf https://docs.opencv.org/3.4/d2/d6e/classcv_1_1StereoMatcher.html
   left_disparity_float /= 16.0;
+
+  if (d->m_set_disparity_as_alpha_chanel){
+    // Convert left image to RGBA
+    cv::Mat left_rgba, dest_tmp;
+
+    cv::remap(ocv1, left_rgba, d->m_rectification_map11, d->m_rectification_map12, cv::INTER_LINEAR);
+    cv::cvtColor(left_rgba, left_rgba, left_rgba.channels() > 1 ? cv::COLOR_BGR2BGRA :  cv::COLOR_GRAY2BGRA);
+
+    // Convert disparity to 8bit for compatibility with alpha chanel output
+    left_disparity_float.convertTo(dest_tmp, CV_8UC1);
+
+    // Invert disparity map and keep out of focus pixels as black if needed
+    if(d->m_invert_disparity_alpha_chanel) {
+      // Set black pixels to white
+      cv::Mat mask;
+      inRange(dest_tmp, cv::Scalar(0, 0, 0), cv::Scalar(0, 0, 0), mask);
+      dest_tmp.setTo(cv::Scalar(255, 255, 255), mask);
+
+      // Invert mat
+      cv::bitwise_not(dest_tmp, dest_tmp);
+    }
+
+    // Set inverted disparity map as alpha value of left image
+    std::vector<cv::Mat>channels(4);
+    cv::split(left_rgba, channels);
+    channels[3] = dest_tmp;
+    cv::merge(channels, left_disparity_float);
+  }
 
   return kv::image_container_sptr(
       new kwiver::arrows::ocv::image_container(left_disparity_float, kwiver::arrows::ocv::image_container::BGR_COLOR));

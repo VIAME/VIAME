@@ -112,4 +112,6 @@ target_link_libraries( viame_opencv_plugin
   endforeach()
 endif()
 
-add_subdirectory(tests)
+if (VIAME_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
