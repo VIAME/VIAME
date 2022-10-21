@@ -74,7 +74,7 @@ process cameras_calibration
   :output_cameras_directory                    $CONFIG{global:output_directory}
   :image_width                                 $CONFIG{global:image_width}
   :image_height                                $CONFIG{global:image_height}
-  :frame_count_threshold                      $CONFIG{global:frame_count_threshold}
+  :frame_count_threshold                       $CONFIG{global:frame_count_threshold}
 
 # =============================== PROCESS CONNECTION ===================================
 # Detect tracks left camera

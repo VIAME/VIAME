@@ -35,9 +35,12 @@ process detector1
   block detector:ocv_windowed
     :detector:type                             netharn
 
-    :mode                                      original_and_resized
-    :chip_width                                640
-    :chip_height                               640
+    :mode                                      chip
+    :chip_width                                720
+    :chip_height                               720
+    :chip_step_width                           360 # 50% overlap with previous chip
+    :chip_step_height                          360 # 50% overlap with previous chip
+    :chip_edge_filter                          -10
     :chip_adaptive_thresh                      1200000
 
     block detector:netharn
@@ -89,9 +92,12 @@ process detector2
   block detector:ocv_windowed
     :detector:type                             netharn
 
-    :mode                                      original_and_resized
-    :chip_width                                640
-    :chip_height                               640
+    :mode                                      chip
+    :chip_width                                720
+    :chip_height                               720
+    :chip_step_width                           360 # 50% overlap with previous chip
+    :chip_step_height                          360 # 50% overlap with previous chip
+    :chip_edge_filter                          -10
     :chip_adaptive_thresh                      1200000
 
     block detector:netharn

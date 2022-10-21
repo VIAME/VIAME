@@ -25,6 +25,7 @@ process detector_writer1
   # Type of file to output
   :file_name                                   computed_detections_cam1.csv
   :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
 
 connect from downsampler.output_1
         to   detector_input1.image
@@ -41,6 +42,7 @@ process detector_writer2
   # Type of file to output
   :file_name                                   computed_detections_cam2.csv
   :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
 
 connect from downsampler.output_3
         to   detector_input2.image

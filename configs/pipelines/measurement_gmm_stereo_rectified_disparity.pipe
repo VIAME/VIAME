@@ -1,6 +1,7 @@
 # Rectified stereo disparity
 #
-# Runs images retification (using camera1.krtd / camera2.krtd files) and generates disparity maps
+# Runs images retification (using intrinsics.yml / extrinsics.yml files) and generates disparity maps
+# The depth directory needs to be created prior to the pipeline execution
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -9,8 +10,8 @@ config _pipeline:_edge
        :capacity                               5
 
 config global
-   :input_cameras_directory                    /home/lea/Desktop/viame_tests/camera_calibrations
-   :output_depths_directory                    /home/lea/Desktop/viame_tests/depthMap
+   :input_cameras_directory                    /home/<user>/Desktop/viame_tests/camera_calibrations
+   :output_depths_directory                    /home/<user>/Desktop/viame_tests/depthMap
 
 # ================================== VIDEO INPUT ==================================
 
@@ -25,35 +26,19 @@ process depth_map
 block computer:ocv_rectified_stereo_disparity
   :algorithm                                 	SGBM
   :min_disparity                             	0
-  :num_disparities                           	384 # 192
-  :sad_window_size                           	31  # 5
-  :block_size                                	21  # 5
-  :speckle_window_size			                  50  # 30
-  :speckle_range				                      51  # 5
-  :input_cameras_directory                      $CONFIG{global:input_cameras_directory}
+  :num_disparities                           	240
+  :sad_window_size                           	11
+  :block_size                                	11
+  :speckle_window_size			                0
+  :speckle_range				                0
+  :cameras_directory                            $CONFIG{global:input_cameras_directory}
+  :use_filtered_disparity                       true
 endblock
 
 connect from downsampler.output_1
         to   depth_map.left_image
 connect from downsampler.output_3
         to   depth_map.right_image
-
-process filter
-  :: image_filter
-  :filter:type                                  ocv_enhancer
-  :filter:ocv_enhancer:apply_smoothing          false
-  :filter:ocv_enhancer:smooth_kernel            3
-  :filter:ocv_enhancer:apply_denoising          false
-  :filter:ocv_enhancer:denoise_kernel           5
-  :filter:ocv_enhancer:denoise_coeff            2
-  :filter:ocv_enhancer:auto_balance             false
-  :filter:ocv_enhancer:force_8bit               true
-  :filter:ocv_enhancer:apply_clahe              true
-  :filter:ocv_enhancer:clip_limit               2
-  :filter:ocv_enhancer:saturation               1.0
-
-connect from depth_map.depth_map
-        to   filter.image
 
 # ==================================== OUTPUT ======================================
 
@@ -62,7 +47,7 @@ process output
   :file_name_template                          $CONFIG{global:output_depths_directory}/depth_map%06d.png
   :image_writer:type                           ocv
 
-connect from filter.image
+connect from depth_map.depth_map
         to   output.image
 
 # -- end of file --

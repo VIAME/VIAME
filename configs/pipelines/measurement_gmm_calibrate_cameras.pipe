@@ -12,15 +12,15 @@ config global
    :output_directory                           /home/<user>/Desktop/camera_calibrations/
    :image_width                                640
    :image_height                               480
+   :frame_count_threshold                      50
 
 # =============================== INPUT FRAME LIST =================================
 
 process cameras_calibration
   :: calibrate_cameras_from_tracks
-  :tracks_left                                 [INSERT_ME]  # Should be automatically replaced by dive
-  :tracks_right                                [INSERT_ME]  # Should be automatically replaced by dive
   :output_cameras_directory                    $CONFIG{global:output_directory}
   :image_width                                 $CONFIG{global:image_width}
   :image_height                                $CONFIG{global:image_height}
+  :frame_count_threshold                       $CONFIG{global:frame_count_threshold}
 
 # -- end of file --

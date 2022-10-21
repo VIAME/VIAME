@@ -439,7 +439,11 @@ if( VIAME_ENABLE_OPENCV )
     pipelines/measurement_gmm_stereo_rectified_disparity.pipe
     pipelines/measurement_gmm_stereo_track_fish_3d_from_detections_and_rectified_disparity.pipe
     pipelines/measurement_gmm_stereo_calibrate_cameras.pipe
-    pipelines/measurement_gmm_calibrate_cameras.pipe)
+    pipelines/measurement_gmm_calibrate_cameras.pipe
+    pipelines/ifremer_stereo_calibrate_cameras.conf
+    pipelines/ifremer_stereo_track_fish_720.conf
+    pipelines/ifremer_stereo_track_fish_1280.conf
+    )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
@@ -460,6 +464,8 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     pipelines/train_detector_netharn_cfrnn_special.viame_csv.conf
     pipelines/train_detector_netharn_cfrnn_wtf.viame_csv.conf
     pipelines/train_detector_netharn_mask_rcnn.viame_csv.conf
+    pipelines/train_detector_netharn_mask_rcnn_720.viame_csv.conf
+    pipelines/train_detector_netharn_mask_rcnn_1280.viame_csv.conf
     pipelines/train_frame_classifier_netharn_efficientnet.viame_csv.conf
     pipelines/train_frame_classifier_netharn_efficientnet.continue.viame_csv.conf
     pipelines/train_frame_classifier_netharn_resnet.viame_csv.conf
