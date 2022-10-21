@@ -891,8 +891,7 @@ adjust_labels( std::vector< kwiver::vital::detected_object_set_sptr >& input,
 }
 
 template< typename T >
-std::vector< T >
-conditional_remove( std::vector< T >& input, std::vector< bool > remove )
+void conditional_remove( std::vector< T >& input, std::vector< bool > remove )
 {
   std::vector< T > output;
   for( unsigned i = 0; i < input.size(); i++ )
@@ -902,7 +901,7 @@ conditional_remove( std::vector< T >& input, std::vector< bool > remove )
       output.push_back( input[i] );
     }
   }
-  return output;
+  input = output;
 }
 
 void
@@ -918,14 +917,17 @@ adjust_labels( std::vector< std::string >& input_files,
   }
 
   std::vector< bool > to_remove( fg_mask.size(), false );
-  unsigned since_last_fg = 0;
-  unsigned bg_counter = 0;
+  unsigned since_last_fg = 0, bg_counter = 0;
 
   for( unsigned i = 0; i < input_files.size(); i++ )
   {
     if( fg_mask[i] )
     {
       since_last_fg = 0;
+    }
+    else if( !input_dets[i] || input_dets[i]->empty() )
+    {
+      to_remove[i] = true;
     }
     else
     {
