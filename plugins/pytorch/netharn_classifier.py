@@ -174,6 +174,8 @@ class NetharnClassifier(ImageObjectDetector):
                     self._kwiver_config['batch_size'] = 4
                 elif gpu_mem >= 7e9:
                     self._kwiver_config['batch_size'] = 3
+        else:
+          self._kwiver_config['batch_size'] = int( self._kwiver_config['batch_size'] )
 
         pred_config = clf_predict.ClfPredictConfig()
         pred_config['batch_size'] = self._kwiver_config['batch_size']
