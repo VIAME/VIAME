@@ -110,6 +110,8 @@ process track_writer1
   :file_name                                   computed_tracks1.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        25
+
 
 # Connect inputs to track writer
 connect from tracker1.object_track_set
@@ -122,6 +124,8 @@ process track_writer2
   :file_name                                   computed_tracks2.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        25
+
 
 # Connect inputs to track writer
 connect from tracker2.object_track_set

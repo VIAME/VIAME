@@ -41,6 +41,18 @@
 #include <sstream>
 #include <iomanip>
 
+#ifdef VIAME_ENABLE_OPENCV
+#include <arrows/ocv/image_container.h>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <queue>
+
+static std::vector< cv::Point >
+simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points );
+#endif
+
 namespace viame {
 
 
@@ -61,6 +73,8 @@ public:
     , m_tot_option( "weighted_average" )
     , m_tot_ignore_class( "" )
     , m_frame_id_adjustment( 0 )
+    , m_mask_to_poly_tol( -1 )
+    , m_mask_to_poly_points( 20 )
   { }
 
   ~priv() { }
@@ -80,8 +94,11 @@ public:
   std::string m_tot_ignore_class;
   int m_frame_id_adjustment;
   std::map< unsigned, std::string > m_frame_uids;
+  double m_mask_to_poly_tol;
+  int m_mask_to_poly_points;
 
   std::string format_image_id( const kwiver::vital::object_track_state* ts );
+  void write_detection_info(std::ostream& stream, const kwiver::vital::detected_object_sptr& det);
 };
 
 std::string
@@ -117,6 +134,89 @@ write_object_track_set_viame_csv::priv
   else
   {
     return m_stream_identifier;
+  }
+}
+
+void write_object_track_set_viame_csv::priv::write_detection_info(std::ostream &stream,
+                                                                  const kwiver::vital::detected_object_sptr &det) {
+  // Sanity return in case method was called with empty detection
+  if(!det)
+    return;
+
+  auto bbox = det->bounding_box();
+
+  // Preferentially write out the explicit polygon
+  if( !det->polygon().empty() &&
+      ( ( m_mask_to_poly_tol < 0 &&
+          m_mask_to_poly_points < 0 ) ||
+        !det->mask() ) )
+  {
+    stream << m_delim << "(poly)";
+    auto poly = det->polygon();
+    for( auto&& p : poly )
+    {
+      stream << " " << p[0] << " " << p[1];
+    }
+  }
+#ifdef VIAME_ENABLE_OPENCV
+  else if( det->mask() && ( m_mask_to_poly_tol >= 0 ||
+                            m_mask_to_poly_points >= 0 ) )
+  {
+    using ic = kwiver::arrows::ocv::image_container;
+    auto ref_x = static_cast< int >( bbox.min_x() );
+    auto ref_y = static_cast< int >( bbox.min_y() );
+    cv::Mat mask = ic::vital_to_ocv( det->mask()->get_image(),
+                                     ic::OTHER_COLOR );
+    std::vector< std::vector< cv::Point > > contours;
+    std::vector< cv::Vec4i > hierarchy;
+    // Pre-3.2 OpenCV may modify the passed image, so we clone it.
+    cv::findContours( mask.clone(), contours, hierarchy,
+                      cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE );
+    for( size_t i = 0; i < contours.size(); ++i )
+    {
+      auto& contour = contours[i];
+      int x_min, x_max, y_min, y_max;
+      x_min = x_max = contour[0].x;
+      y_min = y_max = contour[0].y;
+      for( size_t j = 1; j < contour.size(); ++j )
+      {
+        x_min = std::min( x_min, contour[j].x );
+        x_max = std::max( x_max, contour[j].x );
+        y_min = std::min( y_min, contour[j].y );
+        y_max = std::max( y_max, contour[j].y );
+      }
+      std::vector< cv::Point > simp_contour;
+      if( m_mask_to_poly_tol >= 0 )
+      {
+        double tol = m_mask_to_poly_tol * std::min( x_max - x_min + 1,
+                                                    y_max - y_min + 1 );
+        cv::approxPolyDP( contour, simp_contour, tol, /*closed:*/ true );
+      }
+      else
+      {
+        simp_contour = simplify_polygon( contour, m_mask_to_poly_points );
+      }
+      stream << ( hierarchy[i][3] < 0 ? m_delim  + "(poly)" : m_delim  + "(hole)" );
+      for( auto&& p : simp_contour )
+      {
+        stream << " " << p.x + ref_x << " " << p.y + ref_y;
+      }
+    }
+  }
+#endif
+
+  if( !det->keypoints().empty() )
+  {
+    for( const auto& kp : det->keypoints() )
+    {
+      stream << m_delim << "(kp) " << kp.first;
+      stream << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+    }
+  }
+
+  if( !det->notes().empty() )
+  {
+    stream << notes_to_attributes( det->notes(), m_delim );
   }
 }
 
@@ -301,10 +401,7 @@ void write_object_track_set_viame_csv
           }
         }
 
-        if( !det->notes().empty() )
-        {
-          stream() << notes_to_attributes( det->notes(), d->m_delim );
-        }
+        d->write_detection_info(stream(), det);
 
         stream() << std::endl;
       }
@@ -341,6 +438,24 @@ write_object_track_set_viame_csv
     config->get_value< std::string >( "tot_ignore_class", d->m_tot_ignore_class );
   d->m_frame_id_adjustment =
     config->get_value< int >( "frame_id_adjustment", d->m_frame_id_adjustment );
+  d->m_mask_to_poly_tol =
+      config->get_value< double >( "mask_to_poly_tol", d->m_mask_to_poly_tol );
+  d->m_mask_to_poly_points =
+      config->get_value< int >( "mask_to_poly_points", d->m_mask_to_poly_points );
+
+  if( d->m_mask_to_poly_tol >= 0 && d->m_mask_to_poly_points >= 0 )
+  {
+    throw std::runtime_error(
+        "At most one of use mask_to_poly_tol and mask_to_poly_points "
+        "can be enabled (nonnegative)" );
+  }
+#ifndef VIAME_ENABLE_OPENCV
+  if( d->m_mask_to_poly_tol >= 0 || d->m_mask_to_poly_points >= 0 )
+  {
+    throw std::runtime_error(
+      "Must have OpenCV enabled to use mask_to_poly_tol or mask_to_poly_points" );
+  }
+#endif
 }
 
 
@@ -485,19 +600,7 @@ write_object_track_set_viame_csv
           }
         }
 
-        if( !det->keypoints().empty() )
-        {
-          for( const auto& kp : det->keypoints() )
-          {
-            stream() << d->m_delim << "(kp) " << kp.first;
-            stream() << " " << kp.second.value()[0] << " " << kp.second.value()[1];
-          }
-        }
-
-        if( !det->notes().empty() )
-        {
-          stream() << notes_to_attributes( det->notes(), d->m_delim );
-        }
+        d->write_detection_info(stream(), det);
 
         stream() << std::endl;
       }
@@ -509,3 +612,109 @@ write_object_track_set_viame_csv
 }
 
 } // end namespace
+
+#ifdef VIAME_ENABLE_OPENCV
+static std::vector< cv::Point >
+simplify_polygon( std::vector< cv::Point > const& curve, size_t max_points )
+{
+  // Modified Ramer-Douglas-Peucker.  Instead of keeping points out of
+  // tolerance, we add points until we reach the max.
+  size_t size = curve.size();
+  max_points = std::max( max_points, size_t( 2 ) );
+  if( size <= max_points )
+  {
+    return curve;
+  }
+
+  // Find approximate diameter endpoints
+  size_t start = 0, opposite;
+  for( int diameter_iter = 0; diameter_iter < 3; ++diameter_iter )
+  {
+    auto& ps = curve[ start ];
+    size_t i_max = start; int sq_dist_max = 0;
+    for( size_t i = 0; i < size; ++i ) {
+      int dx = curve[ i ].x - ps.x, dy = curve[ i ].y - ps.y;
+      int sq_dist = dx * dx + dy * dy;
+      if( sq_dist > sq_dist_max )
+      {
+        i_max = i;
+        sq_dist_max = sq_dist;
+      }
+    }
+    opposite = start;
+    start = i_max;
+  }
+
+  // Indices for rec and find_max are relative to start
+  auto to_rel = [&]( size_t i ) { return ( i + size - start ) % size; };
+  auto from_rel = [&]( size_t i ) { return ( i + start ) % size; };
+
+  struct rec
+  {
+    double sq_dist; size_t l, r, i;
+    bool operator <( rec const& other ) const
+    {
+      return this->sq_dist < other.sq_dist;
+    }
+  };
+
+  auto find_max = [&]( size_t l, size_t r )
+  {
+    auto& pl = curve[ from_rel( l ) ]; auto& pr = curve[ from_rel( r ) ];
+    double dx = pr.x - pl.x, dy = pr.y - pl.y;
+    double sq_dist_den = dx * dx + dy * dy;
+
+    auto sqrt_sq_dist_num = [&]( size_t i )
+    {
+      auto& p = curve[ from_rel( i ) ];
+      return std::abs( ( p.x - pl.x ) * dy - ( p.y - pl.y ) * dx );
+    };
+
+    size_t i = l + 1;
+    size_t i_max = i; double ssdn_max = sqrt_sq_dist_num( i );
+
+    for( ++i; i < r; ++i )
+    {
+      auto ssdn = sqrt_sq_dist_num( i );
+      if( ssdn > ssdn_max )
+      {
+        i_max = i;
+        ssdn_max = ssdn;
+      }
+    }
+    return rec{ ssdn_max * ssdn_max / sq_dist_den, l, r, i_max };
+  };
+
+  // Initialize using the two approximate diameter endpoints and the
+  // parts of the curve between them.
+  std::vector< bool > keep( size, false );
+  keep[ start ] = keep[ opposite ] = true;
+  std::priority_queue< rec > queue;
+  queue.push( find_max( 0, to_rel( opposite ) ) );
+  queue.push( find_max( to_rel( opposite ), size ) );
+
+  for( size_t keep_count = 2; keep_count < max_points; ++keep_count )
+  {
+    auto max_rec = queue.top(); queue.pop();
+    keep[ from_rel( max_rec.i ) ] = true;
+    if( max_rec.i - max_rec.l > 1 )
+    {
+      queue.push( find_max( max_rec.l, max_rec.i ) );
+    }
+    if( max_rec.r - max_rec.i > 1 )
+    {
+      queue.push( find_max( max_rec.i, max_rec.r ) );
+    }
+  }
+
+  std::vector< cv::Point > result;
+  for( size_t i = 0; i < size; ++i )
+  {
+    if( keep[ i ] )
+    {
+      result.push_back( curve[ i ] );
+    }
+  }
+  return result;
+}
+#endif
