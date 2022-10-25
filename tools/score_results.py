@@ -14,6 +14,17 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from kwiver.vital.algo import (
+    DetectedObjectSetInput,
+    DetectedObjectSetOutput
+)
+
+from kwiver.vital.types import (
+    Image, ImageContainer,
+    BoundingBoxD, CategoryHierarchy,
+    DetectedObjectSet, DetectedObject, DetectedObjectType
+)
+
 temp_dir = tempfile.mkdtemp(prefix='score-tmp')
 atexit.register(lambda: shutil.rmtree(temp_dir))
 
@@ -107,6 +118,89 @@ def filter_by_category( filename, category, threshold=0.0 ):
 
   return fd, handle
 
+def synethesize_list_from_csvs( computed, truth ):
+
+  (fd, handle) = tempfile.mkstemp( prefix='viame-list-',
+                                   suffix='.txt',
+                                   text=True,
+                                   dir=temp_dir )
+
+  tmp_str = "unnamed_image"
+  fns = dict()
+
+  with open( computed ) as f:
+    for line in f:
+      lis = line.strip().split(',')
+      if len( lis ) < 6:
+        continue
+      if len( lis[0] ) > 0 and lis[0][0] == '#':
+        continue
+      fns[ int( lis[2] ) ] = lis[1]
+  with open( truth ) as f:
+    for line in f:
+      lis = line.strip().split(',')
+      if len( lis ) < 6:
+        continue
+      if len( lis[0] ) > 0 and lis[0][0] == '#':
+        continue
+      fns[ int( lis[2] ) ] = lis[1]
+
+  out = []
+  pos = 0
+  for fid, fn in fns.items():
+    if fid > pos:
+      for i in range( pos, fid ):
+        tmp_fn = tmp_str + str( i )
+        out.append( tmp_fn )
+      pos = fid + 1
+    out.append( fn )
+
+  return out
+
+def convert_to_kwcoco( csv_file, image_list ):
+
+  (fd, handle) = tempfile.mkstemp( prefix='viame-coco-',
+                                   suffix='.json',
+                                   text=True,
+                                   dir=temp_dir )
+
+  csv_reader =  DetectedObjectSetInput.create( "viame_csv" )
+  reader_conf = csv_reader.get_configuration()
+  csv_reader.set_configuration( reader_conf )
+  csv_reader.open( handle )
+
+  coco_writer =  DetectedObjectSetOutput.create( "coco" )
+  writer_conf = coco_writer.get_configuration()
+  coco_writer.set_configuration( writer_conf )
+  coco_writer.open( handle )
+
+  for img in image_list:
+    truth = csv_reader.read_set( img )
+    coco_writer.write_set( truth, img )
+  coco_writer.complete()
+
+  return fd, handle
+
+def generate_conf( args, categories ):
+
+  from kwiver.vital.modules import load_known_modules
+  load_known_modules()
+
+  if args.list:
+    image_list = read_list_from_file( args.list )
+  else:
+    image_list = synethesize_list_from_csvs( args.computed, args.truth )
+
+  for cat in categories:
+    _, filtered_computed_csv = filter_by_category( args.computed, cat, args.threshold )
+    _, filtered_truth_csv = filter_by_category( args.truth, cat, args.threshold )
+    _, filtered_computed_json = convert_to_kwcoco( filtered_computed_csv, image_list )
+    _, filtered_truth_json = convert_to_kwcoco( filtered_truth_csv, image_list )
+
+    cmd = [ 'kwcoco' ] + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
+    with open( stat_file, 'w' ) as fout:
+      subprocess.call( cmd, stdout=fout, stderr=fout )
+
 def generate_stats( args, categories ):
 
   # Generate roc files
@@ -166,7 +260,7 @@ def generate_rocs( args, categories ):
       subprocess.call( cmd )
       roc_files.append( net_roc_file )
 
-  # Generate plot
+  # Generate roc plot
   fig = plt.figure()
 
   xscale_arg = 'log' if args.logx else 'linear'
@@ -243,12 +337,16 @@ if __name__ == "__main__":
              help='Input filename for computed file.' )
   parser.add_argument( '-truth', default=None,
              help='Input filename for groundtruth file.' )
+  parser.add_argument( '-list', default=None,
+             help='Input filename for optional image list file.' )
   parser.add_argument( '-threshold', type=float, default=0.05,
              help='Input threshold for statistics.' )
-  parser.add_argument( '-input-format', dest="input_format", default="noaa-csv",
+  parser.add_argument( '-input-format', dest="input_format", default="viame-csv",
              help='Input file format.' )
 
   # Outputs
+  parser.add_argument( '-conf', default=None,
+             help='Filename for conf matrix and related stats.' )
   parser.add_argument( '-stats', default=None,
              help='Filename for output track statistics.' )
   parser.add_argument( '-roc', default=None,
@@ -293,13 +391,16 @@ if __name__ == "__main__":
   categories = []
 
   if args.per_category:
-    if args.input_format != "noaa-csv":
-      print( "Error: only noaa-csv currently supported for multi-category" )
+    if args.input_format != "viame-csv":
+      print( "Error: only viame-csv currently supported for multi-category" )
       sys.exit( 0 )
     categories = list_categories( args.truth )
 
   if args.stats:
     generate_stats( args, categories )
+
+  if args.conf:
+    generate_conf( args, categories )
 
   if args.roc:
     generate_rocs( args, categories )
