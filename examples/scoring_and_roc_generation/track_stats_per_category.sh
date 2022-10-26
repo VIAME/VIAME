@@ -10,11 +10,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/score_results.py \
  -computed detections.csv -truth groundtruth.csv \
- -threshold 0.05 -stats output_score_tracks.txt \
+ -threshold 0.10 -track-stats track_stats.txt \
  --per-category
-
-# Generate ROC
-
-python ${VIAME_INSTALL}/configs/score_results.py \
- -computed detections.csv -truth groundtruth.csv \
- -roc output_roc.png --per-category

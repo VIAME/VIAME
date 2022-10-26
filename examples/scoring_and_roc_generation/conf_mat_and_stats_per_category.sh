@@ -6,15 +6,8 @@ export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 source ${VIAME_INSTALL}/setup_viame.sh
 
-# Run score tracks on data for singular metrics
-
-python ${VIAME_INSTALL}/configs/score_results.py \
- -computed detections.csv -truth groundtruth.csv \
- -threshold 0.05 -stats output_score_tracks.txt
-
 # Generate ROC
 
 python ${VIAME_INSTALL}/configs/score_results.py \
  -computed detections.csv -truth groundtruth.csv \
- -roc output_roc.png
-
+ -det-conf conf_mat_per_category.png --per-category
