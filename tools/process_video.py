@@ -169,7 +169,7 @@ def create_dir( dirname, logging=True, recreate=False, prompt=True ):
 
 CUDA_VISIBLE_DEVICES = "CUDA_VISIBLE_DEVICES"
 
-def get_real_gpu_index(n):
+def get_real_gpu_index( n ):
   """Return the real index for the nth GPU as a string.  This respects
   CUDA_VISIBLE_DEVICES
 
@@ -383,7 +383,7 @@ def detection_output_settings_list( output_dir, basename, no_ext = False, cid = 
     detection_file = output_dir + div + basename + detection_ext
     track_file = output_dir + div + basename + track_ext
 
-  return list(itertools.chain(
+  return list( itertools.chain(
     fset( det_writer_str + 'file_name=' + detection_file ),
     fset( det_writer_str + 'stream_identifier=' + basename ),
     fset( trk_writer_str + 'file_name=' + track_file ),
@@ -394,12 +394,12 @@ def homography_output_settings_list( output_dir, basename, cid = None ):
   homog_writer_str = 'homog_writer' + ( str( cid ) + ':' if cid else ':' )
   homog_file = output_dir + div + basename + homography_ext
 
-  return list(itertools.chain(
+  return list( itertools.chain(
     fset( homog_writer_str + 'output=' + homog_file ),
   ))
 
 def search_output_settings_list( output_dir, basename ):
-  return list(itertools.chain(
+  return list( itertools.chain(
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
     fset( 'descriptor_writer_db:writer:db:video_name=' + basename ),
@@ -410,7 +410,7 @@ def search_output_settings_list( output_dir, basename ):
   ))
 
 def plot_settings_list( output_dir, basename ):
-  return list(itertools.chain(
+  return list( itertools.chain(
     fset( 'detector_writer:file_name=' + output_dir + div + basename + detection_ext ),
     fset( 'kwa_writer:output_directory=' + output_dir ),
     fset( 'kwa_writer:base_filename=' + basename ),
@@ -419,7 +419,7 @@ def plot_settings_list( output_dir, basename ):
 
 def archive_dimension_settings_list( options ):
   if options.archive_width:
-    return list(itertools.chain(
+    return list( itertools.chain(
       fset( 'kwa_writer:fixed_col_count=' + options.archive_width ),
       fset( 'kwa_writer:fixed_row_count=' + options.archive_height ),
     ))

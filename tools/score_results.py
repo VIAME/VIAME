@@ -43,6 +43,9 @@ def get_roc_cmd():
   else:
     return ['score_events']
 
+def format_cat_fn( fn ):
+  return fn.replace( "/", "-" )
+
 def load_roc( fn ):
 
   x_fa = np.array( [] )
@@ -198,20 +201,19 @@ def generate_conf( args, categories ):
     _, filtered_truth_json = convert_to_kwcoco( filtered_truth_csv, image_list )
 
     cmd = [ 'kwcoco' ] + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
-    with open( stat_file, 'w' ) as fout:
-      subprocess.call( cmd, stdout=fout, stderr=fout )
+    subprocess.call( cmd )
 
 def generate_stats( args, categories ):
 
   # Generate roc files
-  base, ext = os.path.splitext( args.stats )
+  base, ext = os.path.splitext( args.track_stats )
 
   base_cmd = get_stat_cmd()
   base_cmd += [ '--computed-format', args.input_format, '--truth-format', args.input_format ]
   base_cmd += [ '--fn2ts' ]
 
   for cat in categories:
-    stat_file = base + "." + cat + ext
+    stat_file = base + "." + format_cat_fn( cat ) + ext
     _, filtered_computed = filter_by_category( args.computed, cat, args.threshold )
     _, filtered_truth = filter_by_category( args.truth, cat, args.threshold )
     cmd = base_cmd + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
@@ -220,13 +222,13 @@ def generate_stats( args, categories ):
 
   if len( categories ) != 1:
     cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
-    with open( args.stats, 'w' ) as fout:
+    with open( args.track_stats, 'w' ) as fout:
       subprocess.call( cmd, stdout=fout, stderr=fout )
 
 def generate_rocs( args, categories ):
 
   # Generate roc files
-  base, ext = os.path.splitext( args.roc )
+  base, ext = os.path.splitext( args.det_roc )
 
   roc_files = []
 
@@ -241,7 +243,7 @@ def generate_rocs( args, categories ):
 
   for filename in input_files:
     for cat in categories:
-      roc_file = base + "." + cat + ".txt"
+      roc_file = base + "." + format_cat_fn( cat ) + ".txt"
       if len( input_files ) > 1:
         roc_file = filename + '.' + roc_file
       _, filtered_computed = filter_by_category( filename, cat )
@@ -260,7 +262,7 @@ def generate_rocs( args, categories ):
       subprocess.call( cmd )
       roc_files.append( net_roc_file )
 
-  # Generate roc plot
+  # Generate plot
   fig = plt.figure()
 
   xscale_arg = 'log' if args.logx else 'linear'
@@ -288,45 +290,53 @@ def generate_rocs( args, categories ):
       display_label = display_label.replace( base, "" )
       if len( display_label ) == 0:
         display_label = "aggregate"
-      if display_label.endswith("."):
+      if display_label.endswith( "." ):
         display_label = display_label[:-1]
-    sys.stderr.write("Info: %d: loading %s as '%s'...\n" % (i, fn, display_label) )
+    sys.stderr.write( "Info: %d: loading %s as '%s'...\n" % ( i, fn, display_label ) )
     stl = linestyles[ i % len(linestyles) ]
-    if i < len(linecolors):
+    if i < len( linecolors ):
       cl = linecolors[ i ]
     else:
-      cl = np.random.rand(3)
+      cl = np.random.rand( 3 )
     if len( display_label ) > 0:
       rocplot.plot( x, y, linestyle=stl, color=cl, linewidth=args.lw, label=display_label )
     else:
       rocplot.plot( x, y, linestyle=stl, color=cl, linewidth=args.lw )
-    rocplot.set_xlim(xmin=0)
+    rocplot.set_xlim( xmin=0 )
     i += 1
 
   if args.autoscale:
     rocplot.autoscale()
   else:
-    tmp = args.rangey.split(':')
-    if len(tmp) != 2:
-      sys.stderr.write('Error: rangey option must be two floats ')
-      sys.stderr.write('separated by a colon, e.g. 0.2:0.7\n')
-      sys.exit(1)
-    (ymin, ymax) = (float(tmp[0]), float(tmp[1]))
-    rocplot.set_ylim(ymin,ymax)
+    tmp = args.rangey.split( ':' )
+    if len( tmp ) != 2:
+      sys.stderr.write( 'Error: rangey option must be two floats ' )
+      sys.stderr.write( 'separated by a colon, e.g. 0.2:0.7\n' )
+      sys.exit( 1 )
+    ( ymin, ymax ) = ( float( tmp[0] ), float( tmp[1]) )
+    rocplot.set_ylim( ymin, ymax )
 
     if args.rangex:
-      tmp = args.rangex.split(':')
-      if len(tmp) != 2:
-        sys.stderr.write('Error: rangex option must be two floats ')
-        sys.stderr.write('separated by a colon, e.g. 0.2:0.7\n')
-        sys.exit(1)
-      (xmin, xmax) = (float(tmp[0]), float(tmp[1]))
-      rocplot.set_xlim(xmin,xmax)
+      tmp = args.rangex.split( ':' )
+      if len( tmp ) != 2:
+        sys.stderr.write( 'Error: rangex option must be two floats ' )
+        sys.stderr.write( 'separated by a colon, e.g. 0.2:0.7\n' )
+        sys.exit( 1 )
+      ( xmin, xmax ) = ( float(tmp[0]), float(tmp[1]) )
+      rocplot.set_xlim( xmin,xmax )
 
   if not args.nokey:
-    plt.legend( loc=args.keyloc )
+    legend_loc = args.keyloc
+    if legend_loc == "auto":
+      if len( categories ) < 15:
+        plt.legend( loc="best" )
+      else:
+        colcount = int( 1 + len( categories ) / 15 )
+        plt.legend( loc='center right', bbox_to_anchor = ( 1.75, 0.6 ), ncol = colcount )
+    else:
+      plt.legend( loc=args.keyloc )
 
-  plt.savefig( args.roc )
+  plt.savefig( args.det_roc, bbox_inches='tight' )
 
 
 if __name__ == "__main__":
@@ -345,12 +355,12 @@ if __name__ == "__main__":
              help='Input file format.' )
 
   # Outputs
-  parser.add_argument( '-conf', default=None,
+  parser.add_argument( '-det-conf', dest="det_conf", default=None,
              help='Filename for conf matrix and related stats.' )
-  parser.add_argument( '-stats', default=None,
-             help='Filename for output track statistics.' )
-  parser.add_argument( '-roc', default=None,
+  parser.add_argument( '-det-roc', dest="det_roc", default=None,
              help='Filename for output roc curves.' )
+  parser.add_argument( '-track-stats', dest="track_stats", default=None,
+             help='Filename for output track statistics.' )
   parser.add_argument("--per-category", dest="per_category", action="store_true",
              help="Utilize categories in the files and generate plots per category")
 
@@ -373,7 +383,7 @@ if __name__ == "__main__":
              help='line width' )
   parser.add_argument( '-key', nargs='?', default=None,
              help='comma-separated set of strings labeling each line in order read' )
-  parser.add_argument( '-keyloc', nargs='?', default='best',
+  parser.add_argument( '-keyloc', nargs='?', default='auto',
              help='Key location ("upper left", "lower right", etc; help for list)' )
   parser.add_argument( '-nokey', action='store_true',
              help='Set to suppress plot legend' )
@@ -384,7 +394,7 @@ if __name__ == "__main__":
     print( "Error: both computed and truth file must be specified" )
     sys.exit( 0 )
 
-  if not args.roc and not args.stats:
+  if not args.det_roc and not args.track_stats:
     print( "Error: either 'stats' or 'roc' output files must be specified" )
     sys.exit( 0 )
 
@@ -396,11 +406,11 @@ if __name__ == "__main__":
       sys.exit( 0 )
     categories = list_categories( args.truth )
 
-  if args.stats:
+  if args.track_stats:
     generate_stats( args, categories )
 
-  if args.conf:
+  if args.det_conf:
     generate_conf( args, categories )
 
-  if args.roc:
+  if args.det_roc:
     generate_rocs( args, categories )
