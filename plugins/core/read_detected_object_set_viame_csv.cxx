@@ -113,6 +113,9 @@ public:
   // contains all detections for a single frame.
   std::map< std::string, kwiver::vital::detected_object_set_sptr > m_detection_by_str;
 
+  // Alternative basepaths for strings as the above frame name might ref a full path.
+  std::map< std::string, std::string > m_alt_filenames;
+
   // A list of all input filename strings used for error checking.
   std::vector< std::string > m_searched_filenames;
 };
@@ -212,12 +215,24 @@ read_detected_object_set_viame_csv
     // return detection set at current index if there is one
     if( d->m_detection_by_str.find( image_name ) == d->m_detection_by_str.end() )
     {
-      // return empty set
-      set = std::make_shared< kwiver::vital::detected_object_set>();
+      // backup case, an alternative specification of the filename exists
+      auto alt_itr = d->m_alt_filenames.find( image_name );
 
-      if( d->m_error_writer )
+      if( alt_itr != d->m_alt_filenames.end() &&
+          d->m_detection_by_str.find( alt_itr->second ) != d->m_detection_by_str.end() )
       {
-        *d->m_error_writer << "No annotations for file: " << image_name << std::endl;
+        // Return detections for this frame.
+        set = d->m_detection_by_str[ alt_itr->second ];
+      }
+      else
+      {
+        // return empty set
+        set = std::make_shared< kwiver::vital::detected_object_set>();
+
+        if( d->m_error_writer )
+        {
+          *d->m_error_writer << "No annotations for file: " << image_name << std::endl;
+        }
       }
     }
     else
@@ -322,6 +337,18 @@ read_detected_object_set_viame_csv::priv
       // create a new detection set entry
       m_detection_by_str[ str_id ] =
         std::make_shared<kwiver::vital::detected_object_set>();
+
+      // if this name contains a path, populate synonyms
+      std::string tmp = str_id;
+      while( tmp.find( '/' ) != std::string::npos ||
+             tmp.find( '\\' ) != std::string::npos )
+      {
+        tmp = tmp.substr( tmp.find_first_of( "/\\" ) + 1 );
+        if( !tmp.empty() )
+        {
+          m_alt_filenames[ tmp ] = str_id;
+        }
+      }
     }
 
     kwiver::vital::bounding_box_d bbox(
