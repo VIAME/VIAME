@@ -10,6 +10,6 @@ REM Run score tracks on data for singular metrics
 
 python "%VIAME_INSTALL%\configs\score_results.py" ^
  -computed detections.csv -truth groundtruth.csv ^
- -threshold 0.10 -track-stats track_stats_nocls.txt
+ -threshold 0.10 -track-stats stats_nocls.txt
 
 pause

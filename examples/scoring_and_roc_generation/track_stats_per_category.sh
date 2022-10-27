@@ -10,5 +10,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/score_results.py \
  -computed detections.csv -truth groundtruth.csv \
- -threshold 0.10 -track-stats track_stats.txt \
+ -threshold 0.10 -track-stats stats.txt \
  --per-category
