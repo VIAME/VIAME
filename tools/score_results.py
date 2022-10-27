@@ -210,6 +210,7 @@ def generate_conf( args, categories ):
 
     cmd = get_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
     cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
+    cmd = cmd + [  '--iou_thresh', args.iou_thresh ]
     cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
     subprocess.call( cmd )
 
@@ -375,8 +376,12 @@ if __name__ == "__main__":
              help='Filename for output roc curves.' )
   parser.add_argument( '-track-stats', dest="track_stats", default=None,
              help='Filename for output track statistics.' )
-  parser.add_argument("--per-category", dest="per_category", action="store_true",
-             help="Utilize categories in the files and generate plots per category")
+
+  # Scoring settings
+  parser.add_argument( "-iou-thresh", dest="iou_thresh", default=0.5,
+             help="IOU threshold for detection conf matrices and stats option" )
+  parser.add_argument( "--per-category", dest="per_category", action="store_true",
+             help="Utilize categories in the files and generate plots per category" )
 
   # Plot settings
   parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
