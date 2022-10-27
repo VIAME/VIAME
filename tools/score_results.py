@@ -400,10 +400,13 @@ if __name__ == "__main__":
 
   categories = []
 
+  if args.input_format != "viame-csv":
+    print( "Error: only viame-csv currently supported for multi-category" )
+    sys.exit( 0 )
+  else:
+    args.input_format = "noaa-csv"
+
   if args.per_category:
-    if args.input_format != "viame-csv":
-      print( "Error: only viame-csv currently supported for multi-category" )
-      sys.exit( 0 )
     categories = list_categories( args.truth )
 
   if args.track_stats:
