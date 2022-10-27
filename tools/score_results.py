@@ -53,7 +53,6 @@ def format_cat_fn( fn ):
   return fn.replace( "/", "-" )
 
 def load_roc( fn ):
-
   x_fa = np.array( [] )
   y_pd = np.array( [] )
 
@@ -65,13 +64,10 @@ def load_roc( fn ):
       fields = raw_line.split()
       x_fa = np.append( x_fa, float( fields[47] ) )
       y_pd = np.append( y_pd, float( fields[7] ) )
-
   return ( x_fa, y_pd )
 
 def list_categories( filename ):
-
   unique_ids = set()
-
   with open( filename ) as f:
     for line in f:
       lis = line.strip().split(',')
@@ -83,11 +79,9 @@ def list_categories( filename ):
       while idx < len( lis ):
         unique_ids.add( lis[idx] )
         idx = idx + 2
-
   return list( unique_ids )
 
 def filter_by_category( filename, category, threshold=0.0 ):
-
   (fd, handle) = tempfile.mkstemp( prefix='viame-score-',
                                    suffix='.csv',
                                    text=True,
@@ -122,63 +116,52 @@ def filter_by_category( filename, category, threshold=0.0 ):
           fout.write( lis[8] + ',' + object_label + ',' + str( confidence ) + '\n' )
         else:
           fout.write( lis[8] + '\n' )
-
   fout.close()
-
   return fd, handle
 
 def synethesize_list_from_csvs( computed, truth ):
-
   (fd, handle) = tempfile.mkstemp( prefix='viame-list-',
                                    suffix='.txt',
                                    text=True,
                                    dir=temp_dir )
 
-  tmp_str = "unnamed_image"
   fns = dict()
-
   with open( computed ) as f:
     for line in f:
       lis = line.strip().split(',')
-      if len( lis ) < 6:
+      if len( lis ) < 6 or len( lis[0] ) > 0 and lis[0][0] == '#':
         continue
-      if len( lis[0] ) > 0 and lis[0][0] == '#':
-        continue
-      fns[ int( lis[2] ) ] = lis[1]
+      fid = int( lis[2] )
+      if lis[1] or not fid in fns:
+        fns[ fid ] = lis[1]
   with open( truth ) as f:
     for line in f:
       lis = line.strip().split(',')
-      if len( lis ) < 6:
+      if len( lis ) < 6 or len( lis[0] ) > 0 and lis[0][0] == '#':
         continue
-      if len( lis[0] ) > 0 and lis[0][0] == '#':
-        continue
-      fns[ int( lis[2] ) ] = lis[1]
-
+      fid = int( lis[2] )
+      if lis[1] or not fid in fns:
+        fns[ fid ] = lis[1]
   out = []
-  pos = 0
+  last_id = 0
   for fid, fn in fns.items():
-    if fid > pos:
-      for i in range( pos, fid ):
-        tmp_fn = tmp_str + str( i )
-        out.append( tmp_fn )
-      pos = fid + 1
+    if fid > last_id:
+      for i in range( last_id, fid ):
+        out.append( "unnamed_frame" + str(i) )
     out.append( fn )
-
+    last_id = fid + 1
   return out
 
 def read_list_from_file( filename ):
-
   out = []
   with open( filename ) as f:
     for line in f:
       line = line.rstrip()
       if len( line ) > 0:
         out.append( line )
-
   return out
 
 def convert_to_kwcoco( csv_file, image_list ):
-
   (fd, handle) = tempfile.mkstemp( prefix='viame-coco-',
                                    suffix='.json',
                                    text=True,
@@ -187,7 +170,7 @@ def convert_to_kwcoco( csv_file, image_list ):
   csv_reader =  DetectedObjectSetInput.create( "viame_csv" )
   reader_conf = csv_reader.get_configuration()
   csv_reader.set_configuration( reader_conf )
-  csv_reader.open( handle )
+  csv_reader.open( csv_file )
 
   coco_writer =  DetectedObjectSetOutput.create( "coco" )
   writer_conf = coco_writer.get_configuration()
@@ -198,7 +181,6 @@ def convert_to_kwcoco( csv_file, image_list ):
     truth = csv_reader.read_set_by_path( img )
     coco_writer.write_set( truth, img )
   coco_writer.complete()
-
   return fd, handle
 
 def generate_conf( args, categories ):
