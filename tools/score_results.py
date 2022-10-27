@@ -174,6 +174,7 @@ def convert_to_kwcoco( csv_file, image_list ):
 
   coco_writer =  DetectedObjectSetOutput.create( "coco" )
   writer_conf = coco_writer.get_configuration()
+  writer_conf.set_value( "global_categories", "False" )
   coco_writer.set_configuration( writer_conf )
   coco_writer.open( handle )
 
@@ -201,6 +202,7 @@ def generate_conf( args, categories ):
 
     cmd = get_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
     cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
+    cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
     cmd = cmd + [  '--out_dpath', "conf-" + format_cat_fn( cat ) ]
     subprocess.call( cmd )
 
@@ -210,7 +212,7 @@ def generate_conf( args, categories ):
 
     cmd = get_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
     cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
-    cmd = cmd + [  '--iou_thresh', args.iou_thresh ]
+    cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
     cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
     subprocess.call( cmd )
 
