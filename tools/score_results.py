@@ -37,6 +37,12 @@ def get_stat_cmd():
   else:
     return ['score_tracks','--hadwav']
 
+def get_conf_cmd():
+  if os.name == 'nt':
+    return ['kwcoco.exe', 'eval' ]
+  else:
+    return ['kwcoco', 'eval' ]
+
 def get_roc_cmd():
   if os.name == 'nt':
     return ['score_events.exe']
@@ -160,6 +166,17 @@ def synethesize_list_from_csvs( computed, truth ):
 
   return out
 
+def read_list_from_file( filename ):
+
+  out = []
+  with open( filename ) as f:
+    for line in f:
+      line = line.rstrip()
+      if len( line ) > 0:
+        out.append( line )
+
+  return out
+
 def convert_to_kwcoco( csv_file, image_list ):
 
   (fd, handle) = tempfile.mkstemp( prefix='viame-coco-',
@@ -178,7 +195,7 @@ def convert_to_kwcoco( csv_file, image_list ):
   coco_writer.open( handle )
 
   for img in image_list:
-    truth = csv_reader.read_set( img )
+    truth = csv_reader.read_set_by_path( img )
     coco_writer.write_set( truth, img )
   coco_writer.complete()
 
@@ -200,7 +217,9 @@ def generate_conf( args, categories ):
     _, filtered_computed_json = convert_to_kwcoco( filtered_computed_csv, image_list )
     _, filtered_truth_json = convert_to_kwcoco( filtered_truth_csv, image_list )
 
-    cmd = [ 'kwcoco' ] + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
+    cmd = get_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
+    cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
+    cmd = cmd + [  '--out_dpath', "conf-" + format_cat_fn( cat ) ]
     subprocess.call( cmd )
 
 def generate_stats( args, categories ):
@@ -400,8 +419,8 @@ if __name__ == "__main__":
     print( "Error: both computed and truth file must be specified" )
     sys.exit( 0 )
 
-  if not args.det_roc and not args.track_stats:
-    print( "Error: either 'stats' or 'roc' output files must be specified" )
+  if not args.det_roc and not args.track_stats and not args.det_conf:
+    print( "Error: either 'track-stats', 'det-roc', or 'det-conf' must be specified" )
     sys.exit( 0 )
 
   categories = []
