@@ -204,6 +204,15 @@ def generate_conf( args, categories ):
     cmd = cmd + [  '--out_dpath', "conf-" + format_cat_fn( cat ) ]
     subprocess.call( cmd )
 
+  if not categories:
+    _, filtered_computed_json = convert_to_kwcoco( args.computed, image_list )
+    _, filtered_truth_json = convert_to_kwcoco( args.truth, image_list )
+
+    cmd = get_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
+    cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
+    cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
+    subprocess.call( cmd )
+
 def generate_stats( args, categories ):
 
   # Generate roc files
