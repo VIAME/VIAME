@@ -218,12 +218,14 @@ def generate_stats( args, categories ):
     _, filtered_truth = filter_by_category( args.truth, cat, args.threshold )
     cmd = base_cmd + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
     with open( stat_file, 'w' ) as fout:
-      subprocess.call( cmd, stdout=fout, stderr=fout )
+      if not args.use_cache:
+        subprocess.call( cmd, stdout=fout, stderr=fout )
 
   if len( categories ) != 1:
     cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
     with open( args.track_stats, 'w' ) as fout:
-      subprocess.call( cmd, stdout=fout, stderr=fout )
+      if not args.use_cache:
+        subprocess.call( cmd, stdout=fout, stderr=fout )
 
 def generate_rocs( args, categories ):
 
@@ -246,20 +248,22 @@ def generate_rocs( args, categories ):
       roc_file = base + "." + format_cat_fn( cat ) + ".txt"
       if len( input_files ) > 1:
         roc_file = filename + '.' + roc_file
-      _, filtered_computed = filter_by_category( filename, cat )
-      _, filtered_truth = filter_by_category( args.truth, cat )
-      cmd = base_cmd + [ '--roc-dump', roc_file ]
-      cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
-      subprocess.call( cmd )
+      if not args.use_cache:
+        _, filtered_computed = filter_by_category( filename, cat )
+        _, filtered_truth = filter_by_category( args.truth, cat )
+        cmd = base_cmd + [ '--roc-dump', roc_file ]
+        cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
+        subprocess.call( cmd )
       roc_files.append( roc_file )
 
     if len( categories ) != 1:
       net_roc_file = base + ".txt"
       if len( input_files ) > 1:
         net_roc_file = filename + '.' + net_roc_file
-      cmd = base_cmd + [ '--roc-dump', net_roc_file ]
-      cmd += [ '--computed-tracks', filename, '--truth-tracks', args.truth ]
-      subprocess.call( cmd )
+      if not args.use_cache:
+        cmd = base_cmd + [ '--roc-dump', net_roc_file ]
+        cmd += [ '--computed-tracks', filename, '--truth-tracks', args.truth ]
+        subprocess.call( cmd )
       roc_files.append( net_roc_file )
 
   # Generate plot
@@ -385,8 +389,10 @@ if __name__ == "__main__":
              help='comma-separated set of strings labeling each line in order read' )
   parser.add_argument( '-keyloc', nargs='?', default='auto',
              help='Key location ("upper left", "lower right", etc; help for list)' )
-  parser.add_argument( '-nokey', action='store_true',
+  parser.add_argument( '--nokey', action='store_true',
              help='Set to suppress plot legend' )
+  parser.add_argument( '--use-cache', dest="use_cache", action='store_true',
+             help='Do not recompute roc or conf intermediate files' )
 
   args = parser.parse_args()
 
