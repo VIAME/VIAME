@@ -39,7 +39,6 @@ from kwiver.vital.types import DetectedObjectType
 import numpy as np  # NOQA
 import ubelt as ub
 
-
 class NetharnClassifier(ImageObjectDetector):
     """
     Full-Frame Classifier
@@ -74,7 +73,7 @@ class NetharnClassifier(ImageObjectDetector):
             'deployed': "",
             'xpu': "0",
             'batch_size': "auto",
-            'negative_class:', ""
+            'negative_class': ""
         }
 
         # netharn variables
@@ -157,7 +156,7 @@ class NetharnClassifier(ImageObjectDetector):
                     if gpu_mem == 0:
                         gpu_mem = single_gpu_mem
                     else:
-                        gpu_mem = min(gpu_mem, single_gpu_mem)
+                        gpu_mem = min( gpu_mem, single_gpu_mem )
                 if gpu_mem > 9e9:
                     self._kwiver_config['batch_size'] = 4
                 elif gpu_mem >= 7e9:
@@ -173,10 +172,16 @@ class NetharnClassifier(ImageObjectDetector):
         else:
             pred_config['xpu'] = "cpu"
         pred_config['input_dims'] = 'native'
-        # (256, 256)
         self.predictor = clf_predict.ClfPredictor(pred_config)
 
         self.predictor._ensure_model()
+
+        if self._kwiver_config['negative_class']:
+            import os
+            basename = os.path.basename( self._kwiver_config['deployed'] )
+            basename = os.path.splitext( basename )[0]
+            self._negative_name = "no_" + basename
+
         return True
 
     def check_configuration(self, cfg):
@@ -193,8 +198,49 @@ class NetharnClassifier(ImageObjectDetector):
         classification = list(predictor.predict([path_or_image]))[0]
         # Hack: use the image size to coerce a classification as a detection
         h, w = full_rgb.shape[0:2]
-        output = _classification_to_kwiver_detections(classification, w, h)
+        output = self.netharn_to_kwiver(classification, w, h)
         return output
+
+    def rename_classes(self, classnames):
+        return [ self.rename_class(i) for i in classnames ]
+
+    def rename_class(self, classname):
+        if self._kwiver_config['negative_class'] and \
+           classname == self._kwiver_config['negative_class']:
+            return self._negative_name
+        else:
+            return classname
+
+    def netharn_to_kwiver(self, classification, w, h):
+        """
+        Convert kwarray classifications to kwiver deteted object sets
+    
+        Args:
+            classification (bioharn.clf_predict.Classification)
+            w (int): width of image
+            h (int): height of image
+    
+        Returns:
+            kwiver.vital.types.DetectedObjectSet
+        """
+        detected_objects = DetectedObjectSet()
+
+        if classification.data.get('prob', None) is not None:
+            # If we have a probability for each class, uses that
+            class_names = self.rename_classes(list(classification.classes))
+            class_prob = classification.prob
+            detected_object_type = DetectedObjectType(class_names, class_prob)
+        else:
+            # Otherwise we only have the score for the predicted class
+            class_name = self.rename_class(classification.classes[classification.cidx])
+            class_score = classification.conf
+            detected_object_type = DetectedObjectType(class_name, class_score)
+
+        bounding_box = BoundingBoxD(0, 0, w, h)
+        detected_object = DetectedObject(
+            bounding_box, classification.conf, detected_object_type)
+        detected_objects.add(detected_object)
+        return detected_objects
 
 
 def _vital_config_update(cfg, cfg_in):
@@ -215,38 +261,6 @@ def _vital_config_update(cfg, cfg_in):
     else:
         cfg.merge_config(cfg_in)
     return cfg
-
-
-def _classification_to_kwiver_detections(classification, w, h):
-    """
-    Convert kwarray classifications to kwiver deteted object sets
-
-    Args:
-        classification (bioharn.clf_predict.Classification)
-        w (int): width of image
-        h (int): height of image
-
-    Returns:
-        kwiver.vital.types.DetectedObjectSet
-    """
-    detected_objects = DetectedObjectSet()
-
-    if classification.data.get('prob', None) is not None:
-        # If we have a probability for each class, uses that
-        class_names = list(classification.classes)
-        class_prob = classification.prob
-        detected_object_type = DetectedObjectType(class_names, class_prob)
-    else:
-        # Otherwise we only have the score for the predicted calss
-        class_name = classification.classes[classification.cidx]
-        class_score = classification.conf
-        detected_object_type = DetectedObjectType(class_name, class_score)
-
-    bounding_box = BoundingBoxD(0, 0, w, h)
-    detected_object = DetectedObject(
-        bounding_box, classification.conf, detected_object_type)
-    detected_objects.add(detected_object)
-    return detected_objects
 
 
 def __vital_algorithm_register__():
