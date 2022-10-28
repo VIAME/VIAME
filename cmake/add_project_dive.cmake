@@ -12,8 +12,8 @@ if( WIN32 )
     ${VIAME_DIVE_BUILD_DIR} )
 elseif( UNIX )
   DownloadAndExtract(
-    https://github.com/Kitware/dive/releases/download/1.8.0-beta.3/DIVE-Desktop-1.8.0-beta.2.tar.gz
-    9eeb08b50bc7b2f35aa797e40f6cac09
+    https://github.com/Kitware/dive/releases/download/1.9.2/DIVE-Desktop-1.9.2.tar.gz
+    ab9d3446c55e080ee9c16c8b7d82b5b4
     ${VIAME_DOWNLOAD_DIR}/dive_interface_binaries.tar.gz
     ${VIAME_DIVE_BUILD_DIR} )
 endif()
