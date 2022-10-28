@@ -309,7 +309,6 @@ if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/train_detector_default.viame_csv.conf
     pipelines/train_frame_classifier_default.viame_csv.conf
-    pipelines/train_frame_classifier_multi_output.viame_csv.conf
     pipelines/train_reclassifier_default.viame_csv.conf )
 endif()
 
