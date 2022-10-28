@@ -50,7 +50,7 @@ class NetharnRefiner(RefineDetections):
     Full-Frame Classifier around Detection Sets
 
     CommandLine:
-        xdoctest -m ~/code/VIAME/plugins/pytorch/netharn_classifier.py NetharnRefiner
+        xdoctest -m plugins/pytorch/netharn_classifier.py NetharnRefiner
 
     Example:
         >>> self = NetharnRefiner()
@@ -64,7 +64,6 @@ class NetharnRefiner(RefineDetections):
         >>> detected_objects = self.classify(image_data)
         >>> object_type = detected_objects[0].type()
         >>> class_names = object_type.all_class_names()
-        >>> cname_to_prob = {cname: object_type.score(cname) for cname in class_names}
     """
 
     def __init__(self):
@@ -328,52 +327,6 @@ def _vital_config_update(cfg, cfg_in):
     return cfg
 
 def __vital_algorithm_register__():
-    """
-    Note:
-
-        We may be able to refactor somethign like this
-
-        # In vital.py
-
-        def _register_algorithm(cls, name=None, desc=''):
-            if name is None:
-                name = cls.__name__
-            from kwiver.vital.algo import algorithm_factory
-            if not algorithm_factory.has_algorithm_impl_name(cls.static_type_name(), name):
-                algorithm_factory.add_algorithm(name, desc, cls)
-                algorithm_factory.mark_algorithm_as_loaded(name)
-
-        def register_algorithm(name=None, desc=''):
-            '''
-            POC refactor of __vital_algorithm_register__ into a decorator
-            '''
-            def _wrapper(cls):
-                _register_algorithm(cls, name, desc)
-                return cls
-            return _wrapper
-
-        def lazy_register(cls, name=None, desc=''):
-            ''' Alternate Proof-of-Concept '''
-            def __vital_algorithm_register__():
-                return _register_algorithm(cls, name, desc)
-            return __vital_algorithm_register__
-
-        # Then in your class
-        import vital
-        @vial.register_algorithm(desc="PyTorch Netharn classification routine")
-        class MyAlgorithm(BaseAlgo):
-            ...
-
-        # OR if the currenty lazy structure is important
-        import vital
-        class MyAlgorithm(BaseAlgo):
-            ...
-
-        __vital_algorithm_register__ = vital.lazy_register(MyAlgorithm, desc="PyTorch Netharn classification routine")
-
-        # We could also play with adding class member variables for the lazy
-        # initialization. There is lots of room to make this better / easier.
-    """
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm

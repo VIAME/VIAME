@@ -29,20 +29,6 @@
 
 from __future__ import print_function
 
-"""
-Notes:
-    pip install ~/remote/videonas/fouo/projects/diva/kwiver-wheels/kwiver-1.4.0-cp37-cp37m-linux_x86_64.whl
-    pip install ~/remote/videonas/fouo/projects/diva/kwiver-wheels/external_arrow-0.0.1-cp37-cp37m-linux_x86_64.whl
-
-
-    pip install ~/remote/videonas/fouo/projects/diva/kwiver-wheels/kwiver-1.4.0-cp35-cp35m-linux_x86_64.whl
-
-    pip install netharn kwimage kwarray ndsampler
-
-
-    git submodule add -b release git@gitlab.kitware.com:computer-vision/kwimage.git packages/kwimage
-"""
-
 from kwiver.vital.algo import ImageObjectDetector
 
 from kwiver.vital.types import BoundingBoxD
@@ -58,7 +44,7 @@ class NetharnDetector(ImageObjectDetector):
     Implementation of ImageObjectDetector class
 
     CommandLine:
-        xdoctest -m ~/code/VIAME/plugins/pytorch/netharn_detector.py NetharnDetector --show
+        xdoctest -m plugins/pytorch/netharn_detector.py NetharnDetector --show
 
     Example:
         >>> self = NetharnDetector()
@@ -70,14 +56,6 @@ class NetharnDetector(ImageObjectDetector):
         >>> )
         >>> self.set_configuration(cfg_in)
         >>> detected_objects = self.detect(image_data)
-        >>> # xdoctest: +REQUIRES(--show)
-        >>> import kwplot
-        >>> kwplot.autompl()
-        >>> full_rgb = image_data.asarray().astype('uint8')
-        >>> dets = _kwiver_to_kwimage_detections(detected_objects)
-        >>> canvas = dets.draw_on(full_rgb)
-        >>> kwplot.imshow(canvas)
-        >>> kwplot.show_if_requested()
     """
 
     def __init__(self):
