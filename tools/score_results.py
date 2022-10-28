@@ -161,7 +161,7 @@ def read_list_from_file( filename ):
         out.append( line )
   return out
 
-def convert_to_kwcoco( csv_file, image_list ):
+def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-coco-',
                                    suffix='.json',
                                    text=True,
@@ -174,7 +174,7 @@ def convert_to_kwcoco( csv_file, image_list ):
 
   coco_writer =  DetectedObjectSetOutput.create( "coco" )
   writer_conf = coco_writer.get_configuration()
-  writer_conf.set_value( "global_categories", "False" )
+  writer_conf.set_value( "global_categories", str( retain_labels ) )
   coco_writer.set_configuration( writer_conf )
   coco_writer.open( handle )
 
@@ -207,8 +207,8 @@ def generate_conf( args, categories ):
     subprocess.call( cmd )
 
   if not categories:
-    _, filtered_computed_json = convert_to_kwcoco( args.computed, image_list )
-    _, filtered_truth_json = convert_to_kwcoco( args.truth, image_list )
+    _, filtered_computed_json = convert_to_kwcoco( args.computed, image_list, True )
+    _, filtered_truth_json = convert_to_kwcoco( args.truth, image_list, True )
 
     cmd = get_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
     cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
