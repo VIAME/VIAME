@@ -29,19 +29,6 @@
 
 from __future__ import print_function
 
-"""
-Notes:
-    pip install ~/remote/videonas/fouo/projects/diva/kwiver-wheels/kwiver-1.4.0-cp37-cp37m-linux_x86_64.whl
-    pip install ~/remote/videonas/fouo/projects/diva/kwiver-wheels/external_arrow-0.0.1-cp37-cp37m-linux_x86_64.whl
-
-
-    pip install ~/remote/videonas/fouo/projects/diva/kwiver-wheels/kwiver-1.4.0-cp35-cp35m-linux_x86_64.whl
-
-    pip install netharn kwimage kwarray ndsampler
-
-    git submodule add -b release git@gitlab.kitware.com:computer-vision/kwimage.git packages/kwimage
-"""
-
 from kwiver.vital.algo import ImageObjectDetector
 
 from kwiver.vital.types import BoundingBoxD
@@ -61,7 +48,7 @@ class NetharnClassifier(ImageObjectDetector):
     detector interface.
 
     CommandLine:
-        xdoctest -m ~/code/VIAME/plugins/pytorch/netharn_classifier.py NetharnClassifier --show
+        xdoctest -m plugins/pytorch/netharn_classifier.py NetharnClassifier --show
 
     Example:
         >>> self = NetharnClassifier()
@@ -86,7 +73,8 @@ class NetharnClassifier(ImageObjectDetector):
         self._kwiver_config = {
             'deployed': "",
             'xpu': "0",
-            'batch_size': "auto"
+            'batch_size': "auto",
+            'negative_class:', ""
         }
 
         # netharn variables
@@ -262,52 +250,6 @@ def _classification_to_kwiver_detections(classification, w, h):
 
 
 def __vital_algorithm_register__():
-    """
-    Note:
-
-        We may be able to refactor somethign like this
-
-        # In vital.py
-
-        def _register_algorithm(cls, name=None, desc=''):
-            if name is None:
-                name = cls.__name__
-            from kwiver.vital.algo import algorithm_factory
-            if not algorithm_factory.has_algorithm_impl_name(cls.static_type_name(), name):
-                algorithm_factory.add_algorithm(name, desc, cls)
-                algorithm_factory.mark_algorithm_as_loaded(name)
-
-        def register_algorithm(name=None, desc=''):
-            '''
-            POC refactor of __vital_algorithm_register__ into a decorator
-            '''
-            def _wrapper(cls):
-                _register_algorithm(cls, name, desc)
-                return cls
-            return _wrapper
-
-        def lazy_register(cls, name=None, desc=''):
-            ''' Alternate Proof-of-Concept '''
-            def __vital_algorithm_register__():
-                return _register_algorithm(cls, name, desc)
-            return __vital_algorithm_register__
-
-        # Then in your class
-        import vital
-        @vial.register_algorithm(desc="PyTorch Netharn classification routine")
-        class MyAlgorithm(BaseAlgo):
-            ...
-
-        # OR if the currenty lazy structure is important
-        import vital
-        class MyAlgorithm(BaseAlgo):
-            ...
-
-        __vital_algorithm_register__ = vital.lazy_register(MyAlgorithm, desc="PyTorch Netharn classification routine")
-
-        # We could also play with adding class member variables for the lazy
-        # initialization. There is lots of room to make this better / easier.
-    """
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
