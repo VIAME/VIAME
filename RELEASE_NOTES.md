@@ -1,3 +1,14 @@
+v0.19.8 - 10/30/2022
+====================
+
+
+-Add extra scripts for scoring (confusion matrices, PRC curves)
+
+
+-Extra classifier options (default back to efficiencynetv2, multi-cat infa)
+
+
+
 v0.19.7 - 10/17/2022
 ====================
 
