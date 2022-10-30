@@ -12,4 +12,4 @@ export VIAME_PROJECT_DIR="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
 # Set fixed path to VIAME algorithms for DIVE
 export DIVE_VIAME_INSTALL_PATH="${VIAME_INSTALL}"
 
-exec ${VIAME_INSTALL}/dive/vue-media-annotator
+exec ${VIAME_INSTALL}/dive/dive-desktop

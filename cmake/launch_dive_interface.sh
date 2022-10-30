@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh || exit $?
 # Run the DIVE GUI
 export DIVE_VIAME_INSTALL_PATH="${VIAME_INSTALL}"
 
-exec ${VIAME_INSTALL}/dive/vue-media-annotator
+exec ${VIAME_INSTALL}/dive/dive-desktop
