@@ -39,7 +39,7 @@ def get_stat_cmd():
 
 def get_conf_cmd():
   if os.name == 'nt':
-    return ['kwcoco.exe', 'eval' ]
+    return ['python.exe', '-m', 'kwcoco', 'eval' ]
   else:
     return ['kwcoco', 'eval' ]
 
