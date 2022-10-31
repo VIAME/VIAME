@@ -88,8 +88,8 @@ CentOS
 **Linux Full Desktop Binaries:** <br>
 * [VIAME v0.19.8 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1tXUCq-qkiYR8dOA9caGILsS4DAipT9d_/view?usp=share_link) <br>
 * [VIAME v0.19.8 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/635fe7a811dab8142820ad61/download) <br>
-* [VIAME v0.19.6 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1huAe3akG1LgOG47j8tEh0-xIZcGll4-y/view?usp=sharing) <br>
-* [VIAME v0.19.6 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/634d74ce11dab8142820939c/download)
+* [VIAME v0.19.8 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1oT81-AZUgWrqQJq4OnScBJ_x0ir-sy6S/view?usp=share_link) <br>
+* [VIAME v0.19.8 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/636042e211dab8142820ad81/download)
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
