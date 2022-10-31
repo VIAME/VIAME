@@ -79,15 +79,15 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* VIAME v0.19.7 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
-* [VIAME v0.19.7 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/16JBXe0sOeCl5bfPkpjdj1YII7WSm4IHv/view?usp=sharing) <br>
-* [VIAME v0.19.7 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/634d76b811dab814282093a3/download) <br>
-* [VIAME v0.19.7 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/14p9sfeNG5IQ3VMQwrdmXWA3FmrlOWkc3/view?usp=sharing) <br>
-* [VIAME v0.19.7 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/634d76db11dab814282093a6/download)
+* VIAME v0.19.8 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
+* [VIAME v0.19.8 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1kcLyInTk38NFpjRf34CjYex6YExOJhgc/view?usp=share_link) <br>
+* [VIAME v0.19.8 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/635feb8c11dab8142820ad6a/download) <br>
+* [VIAME v0.19.8 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/15zyb50-aFh1SfWdkZPtJuDTSbstHPZAg/view?usp=share_link) <br>
+* [VIAME v0.19.8 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/635feb3411dab8142820ad67/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.19.6 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1VGnaUk9kJaNFmBSueD-okT-GmOjZc-JR/view?usp=sharing) <br>
-* [VIAME v0.19.6 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/634d752111dab8142820939f/download) <br>
+* [VIAME v0.19.8 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1tXUCq-qkiYR8dOA9caGILsS4DAipT9d_/view?usp=share_link) <br>
+* [VIAME v0.19.8 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/635fe7a811dab8142820ad61/download) <br>
 * [VIAME v0.19.6 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1huAe3akG1LgOG47j8tEh0-xIZcGll4-y/view?usp=sharing) <br>
 * [VIAME v0.19.6 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/634d74ce11dab8142820939c/download)
 
