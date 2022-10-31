@@ -216,6 +216,11 @@ def generate_conf( args, categories ):
     cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
     subprocess.call( cmd )
 
+  print( "\nConf matrix and PRC plot generation is complete\n" )
+
+  if os.name == "nt":
+    print( "On windows, ignore the following temp file error\n" )
+
 def generate_stats( args, categories ):
 
   # Generate roc files
