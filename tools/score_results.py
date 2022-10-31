@@ -440,8 +440,8 @@ if __name__ == "__main__":
   if args.track_stats:
     generate_stats( args, categories )
 
-  if args.det_conf:
-    generate_conf( args, categories )
-
   if args.det_roc:
     generate_rocs( args, categories )
+
+  if args.det_conf:
+    generate_conf( args, categories )
