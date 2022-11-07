@@ -58,7 +58,7 @@ if __name__ == "__main__" :
             if parsed_line[0] == '#' or parsed_line[0][0:2] == 'id':
                 continue
 
-            image_id = int( line[1] ) - 1
+            image_id = int( parsed_line[1] ) - 1
 
             if image_id not in annotations:
                 annotations[ image_id ] = []
@@ -68,7 +68,7 @@ if __name__ == "__main__" :
                     int( float( parsed_line[2] ) + default_width_half ),
                     int( float( parsed_line[3] ) + default_height_half ) ]
 
-            annotations[ image_name ].append( [ args.default_type, box ] )
+            annotations[ image_id ].append( [ args.default_type, box ] )
 
         fin.close()
 
@@ -76,7 +76,7 @@ if __name__ == "__main__" :
         det_counter = 0
 
         for index, image_id in enumerate( annotations ):
-            for annot in annotations[ image ]:
+            for annot in annotations[ image_id ]:
                 cat = annot[0]
                 if not cat:
                     continue
@@ -87,7 +87,7 @@ if __name__ == "__main__" :
                 fout.write( "," )
                 fout.write( str( image_id ) + "," )
                 fout.write( str( annot[1][0] ) + "," )
-                fout.write( str( annot[1][1] ) ) + "," )
+                fout.write( str( annot[1][1] ) + "," )
                 fout.write( str( annot[1][2] ) + "," )
                 fout.write( str( annot[1][3] ) + "," )
                 fout.write( "1.0," )
