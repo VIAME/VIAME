@@ -13,9 +13,9 @@ config global
    :input_cameras_directory                    /home/<user>/Desktop/viame_tests/camera_calibrations
    :output_depths_directory                    /home/<user>/Desktop/viame_tests/depthMap
 
-# ================================== VIDEO INPUT ==================================
+## ================================= DETECTION AND TRACKING =========================
 
-include measurement_gmm_stereo_track_fish.pipe
+include common_measurement_gmm_stereo_track_fish.pipe
 
 # =================================== DEPTH MAP ====================================
 
@@ -63,28 +63,31 @@ process output
 connect from depth_map.depth_map
         to   output.image
 
-process filtered_track_writer1
+process track_writer1
   :: write_object_track
   :file_name                                   computed_tracks1.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        25
+
 
 # Connect inputs to track writer
 connect from stereo_pairing.filtered_object_track_set1
-        to   filtered_track_writer1.object_track_set
+        to   track_writer1.object_track_set
 connect from stereo_pairing.timestamp
-        to   filtered_track_writer1.timestamp
+        to   track_writer1.timestamp
 
-process filtered_track_writer2
+process track_writer2
   :: write_object_track
   :file_name                                   computed_tracks2.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        25
 
 # Connect inputs to track writer
 connect from stereo_pairing.filtered_object_track_set2
-        to   filtered_track_writer2.object_track_set
+        to   track_writer2.object_track_set
 connect from stereo_pairing.timestamp
-        to   filtered_track_writer2.timestamp
+        to   track_writer2.timestamp
 
 # -- end of file --

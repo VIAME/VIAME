@@ -18,6 +18,8 @@ namespace viame
 namespace core
 {
 
+class tracks_pairing_from_stereo;
+
 // -----------------------------------------------------------------------------
 /**
  * @brief Compute object tracks pair from stereo depth map information
@@ -38,8 +40,7 @@ private:
   void make_ports();
   void make_config();
 
-  class priv;
-  const std::unique_ptr<priv> d;
+  const std::unique_ptr<tracks_pairing_from_stereo> d;
 
 }; // end class tracks_pairing_from_stereo_process
 

@@ -14,6 +14,7 @@ set( plugin_headers
   read_object_track_set_viame_csv.h
   write_detected_object_set_viame_csv.h
   write_object_track_set_viame_csv.h
+  tracks_pairing_from_stereo.h
   )
 
 set( plugin_sources
@@ -30,6 +31,7 @@ set( plugin_sources
   read_object_track_set_viame_csv.cxx
   write_detected_object_set_viame_csv.cxx
   write_object_track_set_viame_csv.cxx
+  tracks_pairing_from_stereo.cxx
   )
 
 kwiver_install_headers(
@@ -47,6 +49,15 @@ kwiver_add_library( viame_core
   ${plugin_sources}
   )
 
+find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
+  COMPONENTS
+  chrono
+  filesystem
+  system)
+
+include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+link_directories( ${Boost_LIBRARY_DIRS} )
+
 set( CORE_LINK_LIBRARIES
   kwiver::vital
   kwiver::vital_algo
@@ -54,7 +65,10 @@ set( CORE_LINK_LIBRARIES
   kwiver::vital_exceptions
   kwiver::vital_logger
   kwiver::vital_util
-  kwiver::kwiversys )
+  kwiver::kwiversys
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  )
 
 # Eigen is used by metadata parsers
 find_package( Eigen3 REQUIRED NO_MODULE )
@@ -154,12 +168,14 @@ kwiver_add_plugin( viame_processes_core
                    kwiver::sprokit_pipeline
                    kwiver::kwiver_algo_core
                    kwiver::kwiver_adapter
+                   kwiver::vital_util
                    kwiver::vital_vpm
                    Eigen3::Eigen                   
                    kwiver::kwiver_algo_mvg
                    kwiver::kwiver_algo_ocv
                    ${Boost_SYSTEM_LIBRARY}
                    ${Boost_FILESYSTEM_LIBRARY}
+                   viame_core
  )
 
 if( VIAME_ENABLE_PYTHON )
@@ -187,3 +203,7 @@ if( VIAME_ENABLE_PYTHON )
     utility_processes )
 
 endif()
+
+#if (VIAME_BUILD_TESTS)
+  add_subdirectory(tests)
+#endif()

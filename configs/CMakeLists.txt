@@ -215,6 +215,7 @@ set( CORE_PIPELINE_FILES
   pipelines/common_generic_detector_with_filter.pipe
   pipelines/common_image_stabilizer.pipe
   pipelines/common_stabilized_iou_tracker.pipe
+  pipelines/common_measurement_gmm_stereo_track_fish.pipe
   pipelines/database_apply_svm_models.pipe
   pipelines/detector_camtrawl.pipe
   pipelines/detector_fish_without_motion.pipe
