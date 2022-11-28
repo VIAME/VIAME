@@ -66,7 +66,7 @@ kwiver::vital::bounding_box_d viame::core::tracks_pairing_from_stereo::mask_rect
 }
 
 
-std::tuple <cv::Mat, cv::Rect>
+std::tuple<cv::Mat, cv::Rect>
 viame::core::tracks_pairing_from_stereo::get_standard_mask(const kwiver::vital::detected_object_sptr &det) {
   auto vital_mask = det->mask();
   if (!vital_mask) {
@@ -210,7 +210,7 @@ viame::core::tracks_pairing_from_stereo::estimate_3d_position_from_mask(const cv
     return {};
 
   // Find all distorted positions where mask is not empty
-  std::vector <cv::Point2d> mask_distorted_coords;
+  std::vector<cv::Point2d> mask_distorted_coords;
   const auto mask_tl = bbox.tl();
   for (int i_x = 0; i_x < mask.size().width; i_x++) {
     for (int i_y = 0; i_y < mask.size().height; i_y++) {
@@ -264,8 +264,8 @@ viame::core::tracks_pairing_from_stereo::create_3d_position(const std::vector<fl
                                                             const kwiver::vital::bounding_box_d &bbox,
                                                             const cv::Mat &pos_3d_map, float score) const {
   const auto saturate_corner = [&pos_3d_map](const Eigen::Matrix<double, 2, 1> &corner) {
-    return Eigen::Matrix < double, 2, 1 > {std::max(0., std::min(pos_3d_map.size().width - 1., corner.x())),
-                                           std::max(0., std::min(pos_3d_map.size().height - 1., corner.y()))};
+    return Eigen::Matrix<double, 2, 1>{std::max(0., std::min(pos_3d_map.size().width - 1., corner.x())),
+                                       std::max(0., std::min(pos_3d_map.size().height - 1., corner.y()))};
   };
 
   const auto saturate_bbox = [&saturate_corner](const kwiver::vital::bounding_box_d &bbox) {
@@ -291,7 +291,7 @@ viame::core::tracks_pairing_from_stereo::create_3d_position(const std::vector<fl
       br_3d[1] = std::max(br_3d[1], ys[i_pt]);
       br_3d[2] = std::max(br_3d[2], zs[i_pt]);
     }
-    return std::vector < cv::Vec3f > {tl_3d, br_3d};
+    return std::vector<cv::Vec3f>{tl_3d, br_3d};
   };
 
   Tracks3DPositions position;
@@ -323,7 +323,7 @@ viame::core::tracks_pairing_from_stereo::project_to_right_image(const kwiver::vi
     auto x = std::min(std::max(corner.x(), 0.), pos_3d_map.size().width - 1.);
     auto y = std::min(std::max(corner.y(), 0.), pos_3d_map.size().height - 1.);
 
-    return Eigen::Matrix < double, 2, 1 > {x, y};
+    return Eigen::Matrix<double, 2, 1>{x, y};
   };
 
   // Saturate upper left and lower right coordinates to image coordinates
@@ -339,37 +339,37 @@ viame::core::tracks_pairing_from_stereo::project_to_right_image(const kwiver::vi
     return {};
 
   // Project points to right camera coordinates
-  return project_to_right_image(std::vector < cv::Vec3f > {tl_3d, br_3d});
+  return project_to_right_image(std::vector<cv::Vec3f>{tl_3d, br_3d});
 }
 
 kwiver::vital::bounding_box_d
-viame::core::tracks_pairing_from_stereo::project_to_right_image(const std::vector <cv::Vec3f> &points_3d) const {
+viame::core::tracks_pairing_from_stereo::project_to_right_image(const std::vector<cv::Vec3f> &points_3d) const {
   // Sanity check on input vect list
   if (points_3d.size() != 2)
     VITAL_THROW(kwiver::vital::invalid_data,
                 "Wrong input 3D point number. Expected 2, got : " + std::to_string(points_3d.size()));
 
   // Project points to right camera coordinates
-  std::vector <cv::Point2f> projectedPoints;
+  std::vector<cv::Point2f> projectedPoints;
   cv::projectPoints(points_3d, m_Rvec, m_T, m_K2, m_D2, projectedPoints);
   return {projectedPoints[0].x, projectedPoints[0].y, projectedPoints[1].x, projectedPoints[1].y};
 }
 
 cv::Point2f viame::core::tracks_pairing_from_stereo::project_to_right_image(const cv::Point3f &points_3d) const {
-  std::vector <cv::Point2f> projectedPoints;
-  cv::projectPoints(std::vector < cv::Point3f > {points_3d}, m_Rvec, m_T, m_K2, m_D2, projectedPoints);
+  std::vector<cv::Point2f> projectedPoints;
+  cv::projectPoints(std::vector<cv::Point3f>{points_3d}, m_Rvec, m_T, m_K2, m_D2, projectedPoints);
   return projectedPoints[0];
 }
 
 
-std::tuple <std::vector<kwiver::vital::track_sptr>, std::vector<viame::core::Tracks3DPositions>>
+std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<viame::core::Tracks3DPositions>>
 viame::core::tracks_pairing_from_stereo::update_left_tracks_3d_position(
-    const std::vector <kwiver::vital::track_sptr> &tracks, const cv::Mat &cv_disparity_map,
+    const std::vector<kwiver::vital::track_sptr> &tracks, const cv::Mat &cv_disparity_map,
     const kwiver::vital::timestamp &timestamp) {
   const auto cv_pos_3d_map = reproject_3d_depth_map(cv_disparity_map);
 
-  std::vector <kwiver::vital::track_sptr> filtered_tracks;
-  std::vector <Tracks3DPositions> tracks_positions;
+  std::vector<kwiver::vital::track_sptr> filtered_tracks;
+  std::vector<Tracks3DPositions> tracks_positions;
 
   for (const auto &track: tracks) {
     // Check if a 3d track already exists with this id in order to update it
@@ -418,9 +418,9 @@ viame::core::tracks_pairing_from_stereo::update_left_tracks_3d_position(
   return {filtered_tracks, tracks_positions};
 }
 
-std::vector <kwiver::vital::track_sptr> viame::core::tracks_pairing_from_stereo::keep_right_tracks_in_current_frame(
-    const std::vector <kwiver::vital::track_sptr> &tracks, const kwiver::vital::timestamp &timestamp) {
-  std::vector <kwiver::vital::track_sptr> filtered_tracks;
+std::vector<kwiver::vital::track_sptr> viame::core::tracks_pairing_from_stereo::keep_right_tracks_in_current_frame(
+    const std::vector<kwiver::vital::track_sptr> &tracks, const kwiver::vital::timestamp &timestamp) {
+  std::vector<kwiver::vital::track_sptr> filtered_tracks;
 
   for (const auto &track: tracks) {
     // Get corresponding track in right track map or add track to map if not present yet
@@ -445,8 +445,8 @@ std::vector <kwiver::vital::track_sptr> viame::core::tracks_pairing_from_stereo:
 }
 
 double
-viame::core::tracks_pairing_from_stereo::iou_distance(const std::shared_ptr <kwiver::vital::object_track_state> &t1,
-                                                      const std::shared_ptr <kwiver::vital::object_track_state> &t2) {
+viame::core::tracks_pairing_from_stereo::iou_distance(const std::shared_ptr<kwiver::vital::object_track_state> &t1,
+                                                      const std::shared_ptr<kwiver::vital::object_track_state> &t2) {
   if (!t1 || !t2)
     return 0.;
 
@@ -467,11 +467,11 @@ double viame::core::tracks_pairing_from_stereo::iou_distance(const kwiver::vital
   return bbox_intersection / bbox_union;
 }
 
-std::vector <std::vector<size_t>>
+std::vector<std::vector<size_t>>
 viame::core::tracks_pairing_from_stereo::group_overlapping_tracks_indexes_in_current_frame(
-    const std::vector <kwiver::vital::track_sptr> &tracks, const kwiver::vital::timestamp &timestamp) const {
+    const std::vector<kwiver::vital::track_sptr> &tracks, const kwiver::vital::timestamp &timestamp) const {
   // Init set of processed tracks
-  std::set <kwiver::vital::track_id_t> processed;
+  std::set<kwiver::vital::track_id_t> processed;
 
   auto processed_contains = [&](const kwiver::vital::track_sptr &track) -> bool {
     return processed.find(track->id()) != std::end(processed);
@@ -481,7 +481,7 @@ viame::core::tracks_pairing_from_stereo::group_overlapping_tracks_indexes_in_cur
     return processed_contains(track) || (track->last_frame() < timestamp.get_frame());
   };
 
-  std::vector <std::vector<size_t>> tracks_group;
+  std::vector<std::vector<size_t>> tracks_group;
 
   // For each track
   for (size_t i_t1 = 0; i_t1 < tracks.size(); i_t1++) {
@@ -495,7 +495,7 @@ viame::core::tracks_pairing_from_stereo::group_overlapping_tracks_indexes_in_cur
     processed.emplace(track1->id());
 
     // Init group with current track
-    std::vector <size_t> group{i_t1};
+    std::vector<size_t> group{i_t1};
 
     // For each track
     for (size_t i_t2 = 0; i_t2 < tracks.size(); i_t2++) {
@@ -522,19 +522,19 @@ viame::core::tracks_pairing_from_stereo::group_overlapping_tracks_indexes_in_cur
   return tracks_group;
 }
 
-std::vector <std::vector<kwiver::vital::track_sptr>>
+std::vector<std::vector<kwiver::vital::track_sptr>>
 viame::core::tracks_pairing_from_stereo::group_overlapping_tracks_in_current_frame(
-    const std::vector <kwiver::vital::track_sptr> &tracks, const kwiver::vital::timestamp &timestamp) const {
+    const std::vector<kwiver::vital::track_sptr> &tracks, const kwiver::vital::timestamp &timestamp) const {
   return group_vector_by_ids(tracks, group_overlapping_tracks_indexes_in_current_frame(tracks, timestamp));
 }
 
-std::vector <kwiver::vital::bounding_box_d> viame::core::tracks_pairing_from_stereo::merge_clustered_bbox(
-    const std::vector <std::vector<kwiver::vital::track_sptr>> &clusters) {
-  std::vector <std::vector<kwiver::vital::bounding_box_d>> clusters_bboxs;
+std::vector<kwiver::vital::bounding_box_d> viame::core::tracks_pairing_from_stereo::merge_clustered_bbox(
+    const std::vector<std::vector<kwiver::vital::track_sptr>> &clusters) {
+  std::vector<std::vector<kwiver::vital::bounding_box_d>> clusters_bboxs;
 
   // Extract bounding boxes from grouped tracks
   for (const auto &cluster: clusters) {
-    std::vector <kwiver::vital::bounding_box_d> cluster_bboxs;
+    std::vector<kwiver::vital::bounding_box_d> cluster_bboxs;
 
     for (const auto &track: cluster) {
       auto track_state = std::dynamic_pointer_cast<kwiver::vital::object_track_state>(track->back());
@@ -549,8 +549,8 @@ std::vector <kwiver::vital::bounding_box_d> viame::core::tracks_pairing_from_ste
   return merge_clustered_bbox(clusters_bboxs);
 }
 
-std::vector <kwiver::vital::bounding_box_d> viame::core::tracks_pairing_from_stereo::merge_clustered_bbox(
-    const std::vector <std::vector<kwiver::vital::bounding_box_d>> &clusters) {
+std::vector<kwiver::vital::bounding_box_d> viame::core::tracks_pairing_from_stereo::merge_clustered_bbox(
+    const std::vector<std::vector<kwiver::vital::bounding_box_d>> &clusters) {
   auto merge = [=](const kwiver::vital::bounding_box_d &bbox, const kwiver::vital::bounding_box_d &other_rect_bbox) {
     if (!other_rect_bbox.is_valid())
       return bbox;
@@ -561,7 +561,7 @@ std::vector <kwiver::vital::bounding_box_d> viame::core::tracks_pairing_from_ste
     return kwiver::vital::bounding_box_d{merged_eig_bbox.min(), merged_eig_bbox.max()};
   };
 
-  std::vector <kwiver::vital::bounding_box_d> merged_bboxs;
+  std::vector<kwiver::vital::bounding_box_d> merged_bboxs;
   int i_merge{};
   for (const auto &cluster: clusters) {
     kwiver::vital::bounding_box_d merged;
@@ -578,14 +578,14 @@ std::vector <kwiver::vital::bounding_box_d> viame::core::tracks_pairing_from_ste
   return merged_bboxs;
 }
 
-std::vector <kwiver::vital::bounding_box_d>
+std::vector<kwiver::vital::bounding_box_d>
 viame::core::tracks_pairing_from_stereo::merge_3d_left_projected_to_right_bbox(
-    const std::vector <std::vector<viame::core::Tracks3DPositions>> &clusters) {
-  std::vector <std::vector<kwiver::vital::bounding_box_d>> clusters_bboxs;
+    const std::vector<std::vector<viame::core::Tracks3DPositions>> &clusters) {
+  std::vector<std::vector<kwiver::vital::bounding_box_d>> clusters_bboxs;
 
   // Extract left bounding boxes projected in right image from grouped positions
   for (const auto &cluster: clusters) {
-    std::vector <kwiver::vital::bounding_box_d> cluster_bboxs;
+    std::vector<kwiver::vital::bounding_box_d> cluster_bboxs;
 
     for (const auto &position: cluster) {
       cluster_bboxs.emplace_back(position.left_bbox_proj_to_right_image);
@@ -600,7 +600,7 @@ viame::core::tracks_pairing_from_stereo::merge_3d_left_projected_to_right_bbox(
 
 kwiver::vital::track_id_t
 viame::core::tracks_pairing_from_stereo::most_likely_paired_right_cluster(const kwiver::vital::bounding_box_d &bbox,
-                                                                          const std::vector <kwiver::vital::bounding_box_d> &other_bboxs) const {
+                                                                          const std::vector<kwiver::vital::bounding_box_d> &other_bboxs) const {
   double max_iou = std::numeric_limits<double>::lowest();
   kwiver::vital::track_id_t i_max_iou = -1;
 
@@ -615,15 +615,13 @@ viame::core::tracks_pairing_from_stereo::most_likely_paired_right_cluster(const 
   return i_max_iou;
 }
 
-std::vector <std::tuple<std::vector <
-                        kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>, std::vector<viame::core::Tracks3DPositions>>>
+std::vector<std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>, std::vector<viame::core::Tracks3DPositions>>>
 viame::core::tracks_pairing_from_stereo::pair_left_right_clusters(
-    const std::vector <std::vector<kwiver::vital::track_sptr>> &left_cluster,
-    const std::vector <std::vector<kwiver::vital::track_sptr>> &right_cluster,
-    const std::vector <std::vector<viame::core::Tracks3DPositions>> &left_3d_pos) const {
+    const std::vector<std::vector<kwiver::vital::track_sptr>> &left_cluster,
+    const std::vector<std::vector<kwiver::vital::track_sptr>> &right_cluster,
+    const std::vector<std::vector<viame::core::Tracks3DPositions>> &left_3d_pos) const {
   // Init output clusters
-  std::vector < std::tuple < std::vector < kwiver::vital::track_sptr > , std::vector < kwiver::vital::track_sptr >,
-      std::vector < Tracks3DPositions>>> clusters;
+  std::vector<std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>, std::vector<Tracks3DPositions>>> clusters;
 
   // For each left cluster, merge bbox in right image
   std::cout << "LEFT BBOXES" << std::endl;
@@ -634,7 +632,7 @@ viame::core::tracks_pairing_from_stereo::pair_left_right_clusters(
   auto merged_right_bbox = merge_clustered_bbox(right_cluster);
 
   // For each left cluster, calculate IOU with each right cluster and push result which are above threshold
-  std::set <kwiver::vital::track_id_t> processed;
+  std::set<kwiver::vital::track_id_t> processed;
   for (size_t i_left = 0; i_left < left_cluster.size(); i_left++) {
     auto i_most_likely = most_likely_paired_right_cluster(merged_proj_left_bbox[i_left], merged_right_bbox);
 
@@ -651,8 +649,8 @@ viame::core::tracks_pairing_from_stereo::pair_left_right_clusters(
 }
 
 kwiver::vital::track_id_t viame::core::tracks_pairing_from_stereo::last_left_right_track_id() const {
-  auto get_map_ids = [](const std::map <kwiver::vital::track_id_t, kwiver::vital::track_sptr> &map) {
-    std::set <kwiver::vital::track_id_t> track_ids;
+  auto get_map_ids = [](const std::map<kwiver::vital::track_id_t, kwiver::vital::track_sptr> &map) {
+    std::set<kwiver::vital::track_id_t> track_ids;
     for (const auto &track: map) {
       track_ids.emplace(track.second->id());
     }
@@ -669,9 +667,9 @@ kwiver::vital::track_id_t viame::core::tracks_pairing_from_stereo::last_left_rig
 
 
 void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks_in_each_cluster(
-    const std::vector <kwiver::vital::track_sptr> &left_tracks,
-    const std::vector <kwiver::vital::track_sptr> &right_tracks,
-    const std::vector <viame::core::Tracks3DPositions> &left_positions) {
+    const std::vector<kwiver::vital::track_sptr> &left_tracks,
+    const std::vector<kwiver::vital::track_sptr> &right_tracks,
+    const std::vector<viame::core::Tracks3DPositions> &left_positions) {
   // Initialize processed right tracks
   std::set<int> processed;
 
@@ -726,9 +724,9 @@ void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks_in_each_clu
 
 
 void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks_using_bbox(
-    const std::vector <kwiver::vital::track_sptr> &left_tracks,
-    const std::vector <viame::core::Tracks3DPositions> &left_3d_pos,
-    const std::vector <kwiver::vital::track_sptr> &right_tracks, const kwiver::vital::timestamp &timestamp) {
+    const std::vector<kwiver::vital::track_sptr> &left_tracks,
+    const std::vector<viame::core::Tracks3DPositions> &left_3d_pos,
+    const std::vector<kwiver::vital::track_sptr> &right_tracks, const kwiver::vital::timestamp &timestamp) {
 
   // Cluster overlapping left/right tracks
   auto left_tracks_clusters_ids = group_overlapping_tracks_indexes_in_current_frame(left_tracks, timestamp);
@@ -745,16 +743,13 @@ void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks_using_bbox(
 }
 
 
-void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks_in_each_cluster(const std::vector <std::tuple<
-    std::vector < kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>, std::vector<Tracks3DPositions>>
-> &left_right_clusters) {
-for (
-auto left_right_cluster
-: left_right_clusters) {
-pair_left_right_tracks_in_each_cluster(std::get<0>(left_right_cluster), std::get<1>(left_right_cluster), std::get<2>(
-    left_right_cluster)
-);
-}}
+void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks_in_each_cluster(
+    const std::vector<std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>, std::vector<Tracks3DPositions>>> &left_right_clusters) {
+  for (auto left_right_cluster: left_right_clusters) {
+    pair_left_right_tracks_in_each_cluster(std::get<0>(left_right_cluster), std::get<1>(left_right_cluster),
+                                           std::get<2>(left_right_cluster));
+  }
+}
 
 
 cv::Mat viame::core::tracks_pairing_from_stereo::reproject_3d_depth_map(const cv::Mat &cv_disparity_left) const {
@@ -764,22 +759,22 @@ cv::Mat viame::core::tracks_pairing_from_stereo::reproject_3d_depth_map(const cv
 }
 
 cv::Point2d viame::core::tracks_pairing_from_stereo::undistort_point(const cv::Point2d &point) const {
-  return undistort_point(std::vector < cv::Point2d > {point})[0];
+  return undistort_point(std::vector<cv::Point2d>{point})[0];
 }
 
-std::vector <cv::Point2d>
-viame::core::tracks_pairing_from_stereo::undistort_point(const std::vector <cv::Point2d> &point) const {
-  std::vector <cv::Point2d> points_undist;
-  cv::undistortPoints(std::vector < cv::Point2d > {point}, points_undist, m_K1, m_D1, m_R1, m_P1);
+std::vector<cv::Point2d>
+viame::core::tracks_pairing_from_stereo::undistort_point(const std::vector<cv::Point2d> &point) const {
+  std::vector<cv::Point2d> points_undist;
+  cv::undistortPoints(std::vector<cv::Point2d>{point}, points_undist, m_K1, m_D1, m_R1, m_P1);
   return points_undist;
 }
 
-std::tuple <std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>>
+std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>>
 viame::core::tracks_pairing_from_stereo::get_left_right_tracks_with_pairing() {
-  std::vector <kwiver::vital::track_sptr> left_tracks, right_tracks;
+  std::vector<kwiver::vital::track_sptr> left_tracks, right_tracks;
 
   // Iterate over all paired tracks first
-  std::set <kwiver::vital::track_id_t> proc_left, proc_right;
+  std::set<kwiver::vital::track_id_t> proc_left, proc_right;
   auto last_track_id = last_left_right_track_id() + 1;
   for (const auto &pair: m_left_to_right_pairing) {
     if (proc_right.find(pair.second) != std::end(proc_right)) {
@@ -809,8 +804,8 @@ viame::core::tracks_pairing_from_stereo::get_left_right_tracks_with_pairing() {
 
   // Append other tracks
   const auto append_unprocessed_tracks = [](
-      const std::map <kwiver::vital::track_id_t, kwiver::vital::track_sptr> &tracks_map,
-      std::set <kwiver::vital::track_id_t> &processed, std::vector <kwiver::vital::track_sptr> &vect) {
+      const std::map<kwiver::vital::track_id_t, kwiver::vital::track_sptr> &tracks_map,
+      std::set<kwiver::vital::track_id_t> &processed, std::vector<kwiver::vital::track_sptr> &vect) {
     for (const auto &pair: tracks_map) {
       if (processed.find(pair.first) != std::end(processed))
         continue;
@@ -823,7 +818,7 @@ viame::core::tracks_pairing_from_stereo::get_left_right_tracks_with_pairing() {
   append_unprocessed_tracks(m_tracks_with_3d_left, proc_left, left_tracks);
   append_unprocessed_tracks(m_right_tracks_memo, proc_right, right_tracks);
 
-  return {left_tracks, right_tracks};
+  return {filter_tracks_with_threshold(left_tracks), filter_tracks_with_threshold(right_tracks)};
 }
 
 bool viame::core::tracks_pairing_from_stereo::is_left_track_paired(const kwiver::vital::track_sptr &left_track) const {
@@ -833,15 +828,15 @@ bool viame::core::tracks_pairing_from_stereo::is_left_track_paired(const kwiver:
 bool
 viame::core::tracks_pairing_from_stereo::is_right_track_paired(const kwiver::vital::track_sptr &right_track) const {
   return std::any_of(std::begin(m_left_to_right_pairing), std::end(m_left_to_right_pairing),
-                     [&](const std::pair <kwiver::vital::track_id_t, kwiver::vital::track_id_t> &pair) {
+                     [&](const std::pair<kwiver::vital::track_id_t, kwiver::vital::track_id_t> &pair) {
                        return pair.second == right_track->id();
                      });
 }
 
 void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks_using_3d_center(
-    const std::vector <kwiver::vital::track_sptr> &left_tracks,
-    const std::vector <viame::core::Tracks3DPositions> &left_3d_pos,
-    const std::vector <kwiver::vital::track_sptr> &right_tracks, const kwiver::vital::timestamp &timestamp) {
+    const std::vector<kwiver::vital::track_sptr> &left_tracks,
+    const std::vector<viame::core::Tracks3DPositions> &left_3d_pos,
+    const std::vector<kwiver::vital::track_sptr> &right_tracks, const kwiver::vital::timestamp &timestamp) {
 
   const auto most_probable_right_track = [&](const Eigen::Matrix<double, 2, 1> &left_point) {
     int i_best = -1;
@@ -888,6 +883,33 @@ void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks_using_3d_ce
     std::cout << "PAIRING : " << left_track->id() << ", " << right_tracks[i_right]->id() << std::endl;
     m_left_to_right_pairing[left_track->id()] = right_tracks[i_right]->id();
   }
+}
+
+std::vector<kwiver::vital::track_sptr> viame::core::tracks_pairing_from_stereo::filter_tracks_with_threshold(
+    std::vector<kwiver::vital::track_sptr> tracks) const {
+  const auto is_outside_detection_number_threshold = [this](const kwiver::vital::track_sptr &track) {
+    return ((int) track->size() < m_min_detection_number_threshold) ||
+           ((int) track->size() > m_max_detection_number_threshold);
+  };
+
+  const auto is_outside_detection_area_threshold = [this](const kwiver::vital::track_sptr &track) {
+    double avg_area{};
+    for (const auto &state: *track | kwiver::vital::as_object_track) {
+      if (state->detection())
+        avg_area += state->detection()->bounding_box().area();
+    }
+    avg_area /= (double) track->size();
+
+    return ((int) avg_area < m_min_detection_surface_threshold_pix) ||
+           ((int) avg_area > m_max_detection_surface_threshold_pix);
+  };
+
+  tracks.erase(std::remove_if(std::begin(tracks), std::end(tracks), is_outside_detection_number_threshold),
+               std::end(tracks));
+  tracks.erase(std::remove_if(std::begin(tracks), std::end(tracks), is_outside_detection_area_threshold),
+               std::end(tracks));
+
+  return tracks;
 }
 
 

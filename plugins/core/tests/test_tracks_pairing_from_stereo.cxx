@@ -269,3 +269,49 @@ TEST(TracksPairingFromStereoTest, left_bounding_box_can_be_projected_to_right_im
   ASSERT_BBOX_NEAR(act, exp, 100);
 }
 
+TEST(TracksPairingFromStereoTest, tracks_not_fitting_detection_number_threshold_number_are_filtered_out) {
+  auto pairing = create_pairing();
+
+  kv::bounding_box_d a_bbox{0, 0, 1, 1};
+  auto tracks = create_test_tracks(std::vector<DetectionInfo>{{42, 1, a_bbox},
+                                                              {42, 2, a_bbox},
+                                                              {2,  1, a_bbox},
+                                                              {3,  1, a_bbox},
+                                                              {3,  2, a_bbox},
+                                                              {3,  3, a_bbox},
+                                                              {3,  4, a_bbox},
+                                                              {3,  5, a_bbox},
+                                                              {58, 1, a_bbox},
+                                                              {58, 2, a_bbox},
+                                                              {58, 3, a_bbox},
+                                                              {58, 4, a_bbox}});
+  ASSERT_EQ(tracks.size(), 4);
+
+  pairing.m_min_detection_number_threshold = 2;
+  pairing.m_max_detection_number_threshold = 4;
+
+  auto filtered = pairing.filter_tracks_with_threshold(tracks);
+  ASSERT_EQ(filtered.size(), 2);
+  ASSERT_EQ(filtered[0]->id(), 42);
+  ASSERT_EQ(filtered[1]->id(), 58);
+}
+
+TEST(TracksPairingFromStereoTest, tracks_not_fitting_detection_threshold_number_are_filtered_out) {
+  auto pairing = create_pairing();
+
+  kv::bounding_box_d a_bbox{0, 0, 1, 1};
+  auto tracks = create_test_tracks(std::vector<DetectionInfo>{{42, 1, {0, 0, 1, 100}},
+                                                              {2,  1, {0, 0, 1, 99}},
+                                                              {3,  1, {0, 0, 1, 201}},
+                                                              {58, 1, {0, 0, 1, 200}}});
+  ASSERT_EQ(tracks.size(), 4);
+
+  pairing.m_min_detection_surface_threshold_pix = 100;
+  pairing.m_max_detection_surface_threshold_pix = 200;
+
+
+  auto filtered = pairing.filter_tracks_with_threshold(tracks);
+  ASSERT_EQ(filtered.size(), 2);
+  ASSERT_EQ(filtered[0]->id(), 42);
+  ASSERT_EQ(filtered[1]->id(), 58);
+}

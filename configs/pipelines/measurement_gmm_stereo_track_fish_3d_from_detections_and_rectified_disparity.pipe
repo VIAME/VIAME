@@ -12,6 +12,10 @@ config _pipeline:_edge
 config global
    :input_cameras_directory                    /home/<user>/Desktop/viame_tests/camera_calibrations
    :output_depths_directory                    /home/<user>/Desktop/viame_tests/depthMap
+   :min_detection_number_threshold              0
+   :max_detection_number_threshold              1000000
+   :min_detection_surface_threshold_pix         0
+   :max_detection_surface_threshold_pix         1000000
 
 ## ================================= DETECTION AND TRACKING =========================
 
@@ -43,6 +47,11 @@ connect from downsampler.output_3
 process stereo_pairing
   ::tracks_pairing_from_stereo
   :cameras_directory                      $CONFIG{global:input_cameras_directory}
+  :min_detection_number_threshold         $CONFIG{global:min_detection_number_threshold}
+  :max_detection_number_threshold         $CONFIG{global:max_detection_number_threshold}
+  :min_detection_surface_threshold_pix    $CONFIG{global:min_detection_surface_threshold_pix}
+  :max_detection_surface_threshold_pix    $CONFIG{global:max_detection_surface_threshold_pix}
+
 
 connect from downsampler.timestamp
         to   stereo_pairing.timestamp

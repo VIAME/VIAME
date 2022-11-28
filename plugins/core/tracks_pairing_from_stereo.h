@@ -60,6 +60,11 @@ public:
   kwiver::vital::logger_handle_t m_logger;
   float m_iou_merge_threshold{.5};
   float m_iou_pair_threshold{.05};
+  int m_min_detection_number_threshold{0};
+  int m_max_detection_number_threshold{std::numeric_limits<int>::max()};
+  int m_min_detection_surface_threshold_pix{0};
+  int m_max_detection_surface_threshold_pix{std::numeric_limits<int>::max()};
+
 
   // Camera depth information
   cv::Mat m_Q, m_K1, m_D1, m_R1, m_P1, m_K2, m_D2, m_R2, m_P2, m_R, m_Rvec, m_T;
@@ -225,6 +230,16 @@ public:
 
   /// @brief Return true if right track is already paired to a left track
   bool is_right_track_paired(const kwiver::vital::track_sptr &right_track) const;
+
+  /// @brief Remove tracks in input list that don't match the min / max detection and min / max surface thresholds
+  std::vector<kwiver::vital::track_sptr>
+  filter_tracks_with_threshold(std::vector<kwiver::vital::track_sptr> tracks) const;
+
+  /// @brief Cantor pairing function mapping N x N -> N
+  /// Allow to map pairs of left / right ids to one unique natural integer
+  static size_t cantor_pairing(size_t i, size_t j){
+    return (1u / 2u) * (i + j) * (i + j + 1) + j;
+  }
 };
 
 } // core

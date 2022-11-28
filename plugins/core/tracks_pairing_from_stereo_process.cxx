@@ -11,13 +11,9 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/object_track_set.h>
-#include <vital/types/bounding_box.h>
 
 #include <memory>
 #include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
 
 #include <arrows/ocv/image_container.h>
 #include <sprokit/processes/kwiver_type_traits.h>
@@ -31,6 +27,10 @@ namespace viame {
 namespace core {
 
 create_config_trait(cameras_directory, std::string, "", "The calibrated cameras files directory")
+create_config_trait(min_detection_number_threshold, int, "0", "Filters out tracks with less detections than this threshold.")
+create_config_trait(max_detection_number_threshold, int, "std::numeric_limits<int>::max()", "Filters out tracks with more detections than this threshold.")
+create_config_trait(min_detection_surface_threshold_pix, int, "0", "Filters out tracks with less average mask area than this threshold.")
+create_config_trait(max_detection_surface_threshold_pix, int, "std::numeric_limits<int>::max()", "Filters out tracks with more average mask area than this threshold.")
 
 create_port_trait(object_track_set1, object_track_set, "Set of object tracks1.")
 create_port_trait(object_track_set2, object_track_set, "Set of object tracks2.")
@@ -74,11 +74,19 @@ void tracks_pairing_from_stereo_process::make_ports() {
 // -----------------------------------------------------------------------------
 void tracks_pairing_from_stereo_process::make_config() {
   declare_config_using_trait(cameras_directory);
+  declare_config_using_trait(min_detection_number_threshold);
+  declare_config_using_trait(max_detection_number_threshold);
+  declare_config_using_trait(min_detection_surface_threshold_pix);
+  declare_config_using_trait(max_detection_surface_threshold_pix);
 }
 
 // -----------------------------------------------------------------------------
 void tracks_pairing_from_stereo_process::_configure() {
   d->m_cameras_directory = config_value_using_trait(cameras_directory);
+  d->m_min_detection_number_threshold = config_value_using_trait(min_detection_number_threshold);
+  d->m_max_detection_number_threshold = config_value_using_trait(max_detection_number_threshold);
+  d->m_min_detection_surface_threshold_pix = config_value_using_trait(min_detection_surface_threshold_pix);
+  d->m_max_detection_surface_threshold_pix = config_value_using_trait(max_detection_surface_threshold_pix);
   d->load_camera_calibration();
 }
 
