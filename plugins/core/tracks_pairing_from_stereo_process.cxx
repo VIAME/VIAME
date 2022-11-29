@@ -27,10 +27,17 @@ namespace viame {
 namespace core {
 
 create_config_trait(cameras_directory, std::string, "", "The calibrated cameras files directory")
-create_config_trait(min_detection_number_threshold, int, "0", "Filters out tracks with less detections than this threshold.")
-create_config_trait(max_detection_number_threshold, int, "std::numeric_limits<int>::max()", "Filters out tracks with more detections than this threshold.")
-create_config_trait(min_detection_surface_threshold_pix, int, "0", "Filters out tracks with less average mask area than this threshold.")
-create_config_trait(max_detection_surface_threshold_pix, int, "std::numeric_limits<int>::max()", "Filters out tracks with more average mask area than this threshold.")
+create_config_trait(pairing_method, std::string, "PAIRING_3D", "One of PAIRING_3D, PAIRING_IOU, PAIRING_RECTIFIED_IOU")
+create_config_trait(min_detection_number_threshold, int, "0",
+                    "Filters out tracks with less detections than this threshold.")
+create_config_trait(max_detection_number_threshold, int, "std::numeric_limits<int>::max()",
+                    "Filters out tracks with more detections than this threshold.")
+create_config_trait(min_detection_surface_threshold_pix, int, "0",
+                    "Filters out tracks with less average mask area than this threshold.")
+create_config_trait(max_detection_surface_threshold_pix, int, "std::numeric_limits<int>::max()",
+                    "Filters out tracks with more average mask area than this threshold.")
+create_config_trait(iou_pair_threshold, double, "0.1",
+                    "Used with IOU pairing_method. Minimum IOU threshold below which left and right tracks will not be paired.")
 
 create_port_trait(object_track_set1, object_track_set, "Set of object tracks1.")
 create_port_trait(object_track_set2, object_track_set, "Set of object tracks2.")
@@ -78,6 +85,8 @@ void tracks_pairing_from_stereo_process::make_config() {
   declare_config_using_trait(max_detection_number_threshold);
   declare_config_using_trait(min_detection_surface_threshold_pix);
   declare_config_using_trait(max_detection_surface_threshold_pix);
+  declare_config_using_trait(pairing_method);
+  declare_config_using_trait(iou_pair_threshold);
 }
 
 // -----------------------------------------------------------------------------
@@ -87,6 +96,8 @@ void tracks_pairing_from_stereo_process::_configure() {
   d->m_max_detection_number_threshold = config_value_using_trait(max_detection_number_threshold);
   d->m_min_detection_surface_threshold_pix = config_value_using_trait(min_detection_surface_threshold_pix);
   d->m_max_detection_surface_threshold_pix = config_value_using_trait(max_detection_surface_threshold_pix);
+  d->m_pairing_method = config_value_using_trait(pairing_method);
+  d->m_iou_pair_threshold = config_value_using_trait(iou_pair_threshold);
   d->load_camera_calibration();
 }
 
@@ -119,7 +130,7 @@ void tracks_pairing_from_stereo_process::_step() {
   auto right_tracks = d->keep_right_tracks_in_current_frame(input_tracks2->tracks(), timestamp);
 
   // Pair right and left tracks
-  d->pair_left_right_tracks_using_3d_center(left_tracks, left_3d_pos, right_tracks, timestamp);
+  d->pair_left_right_tracks(left_tracks, left_3d_pos, right_tracks, timestamp);
 
   auto port_info = peek_at_port_using_trait(object_track_set1);
   auto is_input_complete = port_info.datum->type() == sprokit::datum::complete;

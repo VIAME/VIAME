@@ -44,6 +44,17 @@ struct VIAME_CORE_EXPORT Tracks3DPositions {
   bool is_valid() const { return score > 1e-6f; }
 };
 
+/// @brief Structure storing the different frames left and right tracks have been paired at
+struct IdPair {
+  kwiver::vital::track_id_t left_id;
+  kwiver::vital::track_id_t right_id;
+};
+
+struct VIAME_CORE_EXPORT Pairing {
+  std::set<size_t> frame_set;
+  IdPair left_right_id_pair;
+};
+
 
 /// @brief Class responsible for the tracks stereo pairing logic
 /// Uses camera calibration information, left and right tracks and disparity map to find corresponding tracks from left
@@ -58,13 +69,12 @@ public:
   // Configuration settings
   std::string m_cameras_directory;
   kwiver::vital::logger_handle_t m_logger;
-  float m_iou_merge_threshold{.5};
-  float m_iou_pair_threshold{.05};
+  float m_iou_pair_threshold{.1};
   int m_min_detection_number_threshold{0};
   int m_max_detection_number_threshold{std::numeric_limits<int>::max()};
   int m_min_detection_surface_threshold_pix{0};
   int m_max_detection_surface_threshold_pix{std::numeric_limits<int>::max()};
-
+  std::string m_pairing_method{"PAIRING_3D"};
 
   // Camera depth information
   cv::Mat m_Q, m_K1, m_D1, m_R1, m_P1, m_K2, m_D2, m_R2, m_P2, m_R, m_Rvec, m_T;
@@ -73,7 +83,7 @@ public:
   std::map<kwiver::vital::track_id_t, kwiver::vital::track_sptr> m_tracks_with_3d_left, m_right_tracks_memo;
 
   // Track ID pairing
-  std::map<kwiver::vital::track_id_t, kwiver::vital::track_id_t> m_left_to_right_pairing;
+  std::map<size_t, Pairing> m_left_to_right_pairing;
 
   /// @brief Project depth map as 3 channel 3D image
   cv::Mat reproject_3d_depth_map(const cv::Mat &cv_disparity_left) const;
@@ -99,14 +109,14 @@ public:
                                                         const cv::Mat &pos_3d_map) const;
 
   /// @brief Rectify bounding box positions given loaded camera properties
-  kwiver::vital::bounding_box_d get_rectified_bbox(const kwiver::vital::bounding_box_d &bbox) const;
+  kwiver::vital::bounding_box_d get_rectified_bbox(const kwiver::vital::bounding_box_d &bbox, bool is_left_image) const;
 
   /// @brief Rectify bounding box positions using OpenCV Rect
   cv::Rect get_rectified_bbox(const cv::Rect &bbox) const;
 
   /// @brief Undistort input point coordinate in left camera
-  cv::Point2d undistort_point(const cv::Point2d &point) const;
-  std::vector<cv::Point2d> undistort_point(const std::vector<cv::Point2d> &point) const;
+  cv::Point2d undistort_point(const cv::Point2d &point, bool is_left_image) const;
+  std::vector<cv::Point2d> undistort_point(const std::vector<cv::Point2d> &point, bool is_left_image) const;
 
   static bool point_is_valid(float x, float y, float z);
   static bool point_is_valid(const cv::Vec3f &pt);
@@ -147,70 +157,8 @@ public:
   /// @brief Calculates intersection over union for two bounding boxes
   static double iou_distance(const kwiver::vital::bounding_box_d &bbox1, const kwiver::vital::bounding_box_d &bbox2);
 
-
-  std::vector<std::vector<size_t>>
-  group_overlapping_tracks_indexes_in_current_frame(const std::vector<kwiver::vital::track_sptr> &tracks,
-                                                    const kwiver::vital::timestamp &timestamp) const;
-
-  template<typename T>
-  static std::vector<std::vector<T>>
-  group_vector_by_ids(const std::vector<T> &vector, const std::vector<std::vector<size_t>> &group_ids) {
-    std::vector<std::vector<T>> groups;
-    for (const auto &ids: group_ids) {
-      std::vector<T> group;
-      for (const auto &id: ids) {
-        group.emplace_back(vector[id]);
-      }
-      groups.emplace_back(group);
-    }
-    return groups;
-  }
-
-  /// @brief Group overlapping tracks by IOU of last detection in given input track pointer.
-  std::vector<std::vector<kwiver::vital::track_sptr>>
-  group_overlapping_tracks_in_current_frame(const std::vector<kwiver::vital::track_sptr> &tracks,
-                                            const kwiver::vital::timestamp &timestamp) const;
-
-  /// @brief Union of all the bounding boxes defined in input clustered tracks.
-  /// Stereo rectifies the bounding boxes before merging them
-  static std::vector<kwiver::vital::bounding_box_d>
-  merge_clustered_bbox(const std::vector<std::vector<kwiver::vital::track_sptr>> &clusters);
-
-  static std::vector<kwiver::vital::bounding_box_d>
-  merge_clustered_bbox(const std::vector<std::vector<kwiver::vital::bounding_box_d>> &clusters);
-
-  static std::vector<kwiver::vital::bounding_box_d>
-  merge_3d_left_projected_to_right_bbox(const std::vector<std::vector<Tracks3DPositions>> &clusters);
-
-  kwiver::vital::track_id_t most_likely_paired_right_cluster(const kwiver::vital::bounding_box_d &bbox,
-                                                             const std::vector<kwiver::vital::bounding_box_d> &other_bboxs) const;
-
-  /// @brief Pair left and right clusters using IOU between each cluster
-  /// IOU is processed using stereo rectification
-  std::vector<std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>, std::vector<Tracks3DPositions>>>
-  pair_left_right_clusters(const std::vector<std::vector<kwiver::vital::track_sptr>> &left_cluster,
-                           const std::vector<std::vector<kwiver::vital::track_sptr>> &right_cluster,
-                           const std::vector<std::vector<Tracks3DPositions>> &left_3d_pos) const;
-
-  void pair_left_right_tracks_in_each_cluster(
-      const std::vector<std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>, std::vector<Tracks3DPositions>>> &left_right_clusters);
-
-  void pair_left_right_tracks_in_each_cluster(const std::vector<kwiver::vital::track_sptr> &left_tracks,
-                                              const std::vector<kwiver::vital::track_sptr> &right_tracks,
-                                              const std::vector<Tracks3DPositions> &left_positions);
-
   /// @brief returns last track id available in both left and right track map
   kwiver::vital::track_id_t last_left_right_track_id() const;
-
-  /// @brief Update left and right tracks pairs using left and right bounding boxes
-  ///     - Projects left 3D bounding box to right image
-  ///     - Groups left and right overlapping bounding boxes
-  ///     - Cluster corresponding left and right groups
-  ///     - In each group, find best match between left and right track
-  void pair_left_right_tracks_using_bbox(const std::vector<kwiver::vital::track_sptr> &left_tracks,
-                                         const std::vector<viame::core::Tracks3DPositions> &left_3d_pos,
-                                         const std::vector<kwiver::vital::track_sptr> &right_tracks,
-                                         const kwiver::vital::timestamp &timestamp);
 
 
   /// @brief Update left and right tracks pairs using left 3D coordinates and right bounding boxes
@@ -221,25 +169,42 @@ public:
                                               const std::vector<kwiver::vital::track_sptr> &right_tracks,
                                               const kwiver::vital::timestamp &timestamp);
 
+  /// @brief Update left and right tracks pairs using left and right bounding boxes
+  ///     - For each left / right tracks, finds the pair having the highest IOU
+  void pair_left_right_tracks_using_bbox_iou(const std::vector<kwiver::vital::track_sptr> &left_tracks,
+                                             const std::vector<kwiver::vital::track_sptr> &right_tracks,
+                                             const kwiver::vital::timestamp &timestamp, bool do_rectify_bbox);
+
+  /// @brief Update left and right tracks pairs using the currently set pairing method.
+  ///     If pairing is set to 3D, uses @ref pair_left_right_tracks_using_3d_center.
+  ///     Otherwise, uses @ref pair_left_right_tracks_using_bbox_iou.
+  void pair_left_right_tracks(const std::vector<kwiver::vital::track_sptr> &left_tracks,
+                              const std::vector<viame::core::Tracks3DPositions> &left_3d_pos,
+                              const std::vector<kwiver::vital::track_sptr> &right_tracks,
+                              const kwiver::vital::timestamp &timestamp);
+
   /// @brief Apply pairing to dict of left and right tracks and pair left and right tracks given accumulated information
   std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>>
   get_left_right_tracks_with_pairing();
-
-  /// @brief Return true if track is already paired to a right track
-  bool is_left_track_paired(const kwiver::vital::track_sptr &left_track) const;
-
-  /// @brief Return true if right track is already paired to a left track
-  bool is_right_track_paired(const kwiver::vital::track_sptr &right_track) const;
 
   /// @brief Remove tracks in input list that don't match the min / max detection and min / max surface thresholds
   std::vector<kwiver::vital::track_sptr>
   filter_tracks_with_threshold(std::vector<kwiver::vital::track_sptr> tracks) const;
 
+  /// @brief Returns most likely detection class associated with input track
+  /// Assumes the most likely detection class doesn't change in the lifetime of the input track
+  static std::string most_likely_detection_class(const kwiver::vital::track_sptr &track);
+
   /// @brief Cantor pairing function mapping N x N -> N
   /// Allow to map pairs of left / right ids to one unique natural integer
-  static size_t cantor_pairing(size_t i, size_t j){
+  static size_t cantor_pairing(size_t i, size_t j) {
     return (1u / 2u) * (i + j) * (i + j + 1) + j;
   }
+
+  void append_paired_frame(const kwiver::vital::track_sptr &left_track, const kwiver::vital::track_sptr &right_track,
+                           const kwiver::vital::timestamp &timestamp);
+
+  static kwiver::vital::bounding_box_d get_last_detection_bbox(const kwiver::vital::track_sptr &track);
 };
 
 } // core

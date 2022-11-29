@@ -66,7 +66,6 @@ inline tracks_pairing_from_stereo create_pairing() {
   tracks_pairing_from_stereo pairing;
   pairing.m_cameras_directory = std::string(TEST_DATA_DIR);
   pairing.load_camera_calibration();
-  pairing.m_iou_merge_threshold = 0.5;
   pairing.m_iou_pair_threshold = 0.05;
   return pairing;
 }
@@ -115,63 +114,39 @@ TEST(TracksPairingFromStereoTest, test_util_sanity_check) {
   ASSERT_EQ(first_bbox, tracks_def_left[0].bbox);
 }
 
-TEST(TracksPairingFromStereoTest, smoke_test_bounding_box_pairing) {
-  auto pairing = create_pairing();
+
+TEST(TracksPairingFromStereoTest, smoke_test_pair_left_right_tracks) {
 
   auto tracks_def_left = left_tracks_detections();
   auto [tracks_left, tracks_right, timestamp] = create_test_tracks();
   auto cv_disparity_left = load_disparity_map();
 
-  // Estimate 3D positions in left image with disparity
-  auto [left_tracks, left_3d_pos] = pairing.update_left_tracks_3d_position(tracks_left, cv_disparity_left, timestamp);
-  ASSERT_EQ(left_tracks.size(), 2);
-  ASSERT_EQ(left_tracks.size(), left_3d_pos.size());
-  ASSERT_BBOX_NEAR(left_3d_pos[1].rectified_left_bbox, tracks_def_left[tracks_def_left.size() - 1].bbox, 100);
+  std::vector<std::string> pairing_methods{"PAIRING_3D", "PAIRING_IOU", "PAIRING_RECTIFIED_IOU"};
+  for (const auto &method: pairing_methods) {
+    // Create clean pairing
+    auto pairing = create_pairing();
 
-  // Filter tracks visible only in current timestamp
-  auto right_tracks = pairing.keep_right_tracks_in_current_frame(tracks_right, timestamp);
-  ASSERT_EQ(right_tracks.size(), 2);
+    // Estimate 3D positions in left image with disparity
+    auto [left_tracks, left_3d_pos] = pairing.update_left_tracks_3d_position(tracks_left, cv_disparity_left, timestamp);
+    ASSERT_EQ(left_tracks.size(), 2);
+    ASSERT_EQ(left_tracks.size(), left_3d_pos.size());
+    ASSERT_BBOX_NEAR(left_3d_pos[1].rectified_left_bbox, tracks_def_left[tracks_def_left.size() - 1].bbox, 100);
 
-  // Pair right and left tracks
-  pairing.pair_left_right_tracks_using_bbox(left_tracks, left_3d_pos, right_tracks, timestamp);
+    // Filter tracks visible only in current timestamp
+    auto right_tracks = pairing.keep_right_tracks_in_current_frame(tracks_right, timestamp);
+    ASSERT_EQ(right_tracks.size(), 2);
 
-  // Get updated pairs
-  auto [updated_left_tracks, updated_right_tracks] = pairing.get_left_right_tracks_with_pairing();
-  ASSERT_EQ(updated_left_tracks.size(), 2);
-  ASSERT_EQ(updated_right_tracks.size(), 2);
+    // Pair right and left tracks
+    pairing.pair_left_right_tracks(left_tracks, left_3d_pos, right_tracks, timestamp);
 
-  // Expect second track to have been paired with left track
-  ASSERT_EQ(updated_left_tracks[0]->id(), updated_right_tracks[0]->id());
-}
+    // Get updated pairs
+    auto [updated_left_tracks, updated_right_tracks] = pairing.get_left_right_tracks_with_pairing();
+    ASSERT_EQ(updated_left_tracks.size(), 2);
+    ASSERT_EQ(updated_right_tracks.size(), 2);
 
-
-TEST(TracksPairingFromStereoTest, smoke_test_3d_center_pairing) {
-  auto pairing = create_pairing();
-
-  auto tracks_def_left = left_tracks_detections();
-  auto [tracks_left, tracks_right, timestamp] = create_test_tracks();
-  auto cv_disparity_left = load_disparity_map();
-
-  // Estimate 3D positions in left image with disparity
-  auto [left_tracks, left_3d_pos] = pairing.update_left_tracks_3d_position(tracks_left, cv_disparity_left, timestamp);
-  ASSERT_EQ(left_tracks.size(), 2);
-  ASSERT_EQ(left_tracks.size(), left_3d_pos.size());
-  ASSERT_BBOX_NEAR(left_3d_pos[1].rectified_left_bbox, tracks_def_left[tracks_def_left.size() - 1].bbox, 100);
-
-  // Filter tracks visible only in current timestamp
-  auto right_tracks = pairing.keep_right_tracks_in_current_frame(tracks_right, timestamp);
-  ASSERT_EQ(right_tracks.size(), 2);
-
-  // Pair right and left tracks
-  pairing.pair_left_right_tracks_using_3d_center(left_tracks, left_3d_pos, right_tracks, timestamp);
-
-  // Get updated pairs
-  auto [updated_left_tracks, updated_right_tracks] = pairing.get_left_right_tracks_with_pairing();
-  ASSERT_EQ(updated_left_tracks.size(), 2);
-  ASSERT_EQ(updated_right_tracks.size(), 2);
-
-  // Expect second track to have been paired with left track
-  ASSERT_EQ(updated_left_tracks[0]->id(), updated_right_tracks[0]->id());
+    // Expect second track to have been paired with left track
+    ASSERT_EQ(updated_left_tracks[0]->id(), updated_right_tracks[0]->id());
+  }
 }
 
 
@@ -185,22 +160,6 @@ TEST(TracksPairingFromStereoTest, can_be_called_with_obsolete_tracks) {
   // Estimate 3D positions in left image with disparity
   pairing.update_left_tracks_3d_position(tracks_left, cv_disparity_left, timestamp);
   pairing.update_left_tracks_3d_position(tracks_left, cv_disparity_left, kv::timestamp(42, 42));
-}
-
-TEST(TracksPairingFromStereoTest, track_group_returns_one_per_track_given_non_overlapping) {
-  auto pairing = create_pairing();
-
-  auto [tracks_left, tracks_right, timestamp] = create_test_tracks();
-  auto cv_disparity_left = load_disparity_map();
-
-  // Estimate 3D positions in left image with disparity
-  auto [left_tracks, left_3d_pos] = pairing.update_left_tracks_3d_position(tracks_left, cv_disparity_left, timestamp);
-  auto left_tracks_clusters_ids = pairing.group_overlapping_tracks_indexes_in_current_frame(left_tracks, timestamp);
-  auto left_tracks_clusters = pairing.group_vector_by_ids(left_tracks, left_tracks_clusters_ids);
-  auto left_clusters_3dpos = pairing.group_vector_by_ids(left_3d_pos, left_tracks_clusters_ids);
-  ASSERT_EQ(left_tracks_clusters_ids.size(), 2);
-  ASSERT_EQ(left_tracks_clusters.size(), left_tracks_clusters_ids.size());
-  ASSERT_EQ(left_clusters_3dpos.size(), left_tracks_clusters_ids.size());
 }
 
 TEST(TracksPairingFromStereoTest, position_3d_estimation_returns_valid_bbox_value) {
@@ -228,14 +187,14 @@ TEST(TracksPairingFromStereoTest, unistort_point_preserves_global_image_corners)
   auto pairing = create_pairing();
 
   int tol = 100;
-  EXPECT_NEAR(pairing.undistort_point({0, 0}).x, 0, tol);
-  EXPECT_NEAR(pairing.undistort_point({0, 0}).y, 0, tol);
+  EXPECT_NEAR(pairing.undistort_point({0, 0}, true).x, 0, tol);
+  EXPECT_NEAR(pairing.undistort_point({0, 0}, true).y, 0, tol);
 
-  EXPECT_NEAR(pairing.undistort_point({1280, 0}).x, 1280, tol);
-  EXPECT_NEAR(pairing.undistort_point({1280, 0}).y, 0, tol);
+  EXPECT_NEAR(pairing.undistort_point({1280, 0}, true).x, 1280, tol);
+  EXPECT_NEAR(pairing.undistort_point({1280, 0}, true).y, 0, tol);
 
-  EXPECT_NEAR(pairing.undistort_point({1280, 720}).x, 1280, tol);
-  EXPECT_NEAR(pairing.undistort_point({1280, 720}).y, 720, tol);
+  EXPECT_NEAR(pairing.undistort_point({1280, 720}, true).x, 1280, tol);
+  EXPECT_NEAR(pairing.undistort_point({1280, 720}, true).y, 720, tol);
 }
 
 TEST(TracksPairingFromStereoTest, project_to_right_image_saturates_input_bbox_to_bounds) {
