@@ -193,7 +193,7 @@ if( VIAME_ENABLE_FFMPEG )
   option( VIAME_ENABLE_FFMPEG-FFNV "Enable ffnv codec in FFmpeg"    OFF )
   mark_as_advanced( VIAME_ENABLE_FFMPEG-X264 )
   mark_as_advanced( VIAME_ENABLE_FFMPEG-X265 )
-  mark_as_advanced( VIAME_ENABLE_FFMPEG-FFNVs )
+  mark_as_advanced( VIAME_ENABLE_FFMPEG-FFNV )
 endif()
 
 ###
