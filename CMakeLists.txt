@@ -3,7 +3,7 @@
 ##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <>< 
 
 cmake_minimum_required( VERSION 3.13.0 )
-set( CMAKE_CXX_STANDARD 11 )
+set( CMAKE_CXX_STANDARD 17 )
 
 project( VIAME )
 
