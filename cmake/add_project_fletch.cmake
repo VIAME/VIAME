@@ -196,18 +196,21 @@ if( VIAME_ENABLE_FFMPEG )
       ${FLETCH_DEP_FLAGS}
       -DFFmpeg_SELECT_VERSION:STRING=2.6.2
       -Dfletch_ENABLE_x264:BOOL=${VIAME_ENABLE_FFMPEG-X264}
+      -Dfletch_ENABLE_x265:BOOL=${VIAME_ENABLE_FFMPEG-X265}
     )
   elseif( WIN32 )
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
       -DFFmpeg_SELECT_VERSION:STRING=3.3.3
       -Dfletch_ENABLE_x264:BOOL=OFF
+      -Dfletch_ENABLE_x265:BOOL=OFF
     )
   else()
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
       -DFFmpeg_SELECT_VERSION:STRING=3.3.3
       -Dfletch_ENABLE_x264:BOOL=${VIAME_ENABLE_FFMPEG-X264}
+      -Dfletch_ENABLE_x265:BOOL=${VIAME_ENABLE_FFMPEG-X265}
     )
   endif()
 else()
@@ -215,18 +218,7 @@ else()
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_FFmpeg:BOOL=OFF
     -Dfletch_ENABLE_x264:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_FFMPEG-X264 )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_FFmpeg_libx264:BOOL=${DEP_COND_ENABLE}
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_FFmpeg_libx264:BOOL=OFF
+    -Dfletch_ENABLE_x265:BOOL=OFF
   )
 endif()
 
