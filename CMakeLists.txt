@@ -3,7 +3,7 @@
 ##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <>< 
 
 cmake_minimum_required( VERSION 3.13.0 )
-set( CMAKE_CXX_STANDARD 11 )
+set( CMAKE_CXX_STANDARD 17 )
 
 project( VIAME )
 
@@ -189,7 +189,11 @@ endif()
 ##
 if( VIAME_ENABLE_FFMPEG )
   option( VIAME_ENABLE_FFMPEG-X264 "Enable libx264 codec in FFmpeg" ON )
+  option( VIAME_ENABLE_FFMPEG-X265 "Enable libx265 codec in FFmpeg" ON )
+  option( VIAME_ENABLE_FFMPEG-FFNV "Enable ffnv codec in FFmpeg"    OFF )
   mark_as_advanced( VIAME_ENABLE_FFMPEG-X264 )
+  mark_as_advanced( VIAME_ENABLE_FFMPEG-X265 )
+  mark_as_advanced( VIAME_ENABLE_FFMPEG-FFNV )
 endif()
 
 ###
