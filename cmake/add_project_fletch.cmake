@@ -190,30 +190,19 @@ if( VIAME_ENABLE_FFMPEG )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_FFmpeg:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_x264:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_x265:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_ffnvcodec:BOOL=${DEP_COND_ENABLE}
   )
   if( APPLE )
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
       -DFFmpeg_SELECT_VERSION:STRING=2.6.2
-      -Dfletch_ENABLE_x264:BOOL=${VIAME_ENABLE_FFMPEG-X264}
-      -Dfletch_ENABLE_x265:BOOL=${VIAME_ENABLE_FFMPEG-X265}
-      -Dfletch_ENABLE_ffnvcodec:BOOL=${VIAME_ENABLE_FFMPEG-FFNV}
-    )
-  elseif( WIN32 )
-    set( FLETCH_DEP_FLAGS
-      ${FLETCH_DEP_FLAGS}
-      -DFFmpeg_SELECT_VERSION:STRING=3.3.3
-      -Dfletch_ENABLE_x264:BOOL=OFF
-      -Dfletch_ENABLE_x265:BOOL=OFF
-      -Dfletch_ENABLE_ffnvcodec:BOOL=OFF
     )
   else()
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
       -DFFmpeg_SELECT_VERSION:STRING=3.3.3
-      -Dfletch_ENABLE_x264:BOOL=${VIAME_ENABLE_FFMPEG-X264}
-      -Dfletch_ENABLE_x265:BOOL=${VIAME_ENABLE_FFMPEG-X265}
-      -Dfletch_ENABLE_ffnvcodec:BOOL=${VIAME_ENABLE_FFMPEG-FFNV}
     )
   endif()
 else()
