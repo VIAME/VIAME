@@ -46,17 +46,13 @@
 #include <vital/types/image_container.h>
 #include <vital/logger/logger.h>
 
-#include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/processes/adapters/embedded_pipeline.h>
 #include <sprokit/processes/adapters/adapter_types.h>
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -66,6 +62,9 @@
 #include <cctype>
 #include <regex>
 #include <unordered_set>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 // =======================================================================================
 // Class storing all input parameters and private variables for tool
@@ -122,14 +121,14 @@ typedef std::unique_ptr< kwiver::embedded_pipeline > pipeline_t;
 // Assorted filesystem related helper functions
 bool does_file_exist( const std::string& location )
 {
-  return boost::filesystem::exists( location ) &&
-         !boost::filesystem::is_directory( location );
+  return std::filesystem::exists( location ) &&
+         !std::filesystem::is_directory( location );
 }
 
 bool does_folder_exist( const std::string& location )
 {
-  return boost::filesystem::exists( location ) &&
-         boost::filesystem::is_directory( location );
+  return std::filesystem::exists( location ) &&
+         std::filesystem::is_directory( location );
 }
 
 bool list_all_subfolders( const std::string& location,
@@ -142,13 +141,13 @@ bool list_all_subfolders( const std::string& location,
     return false;
   }
 
-  boost::filesystem::path dir( location );
+  std::filesystem::path dir( location );
 
-  for( boost::filesystem::directory_iterator dir_iter( dir );
-       dir_iter != boost::filesystem::directory_iterator();
+  for( std::filesystem::directory_iterator dir_iter( dir );
+       dir_iter != std::filesystem::directory_iterator();
        ++dir_iter )
   {
-    if( boost::filesystem::is_directory( *dir_iter ) )
+    if( std::filesystem::is_directory( *dir_iter ) )
     {
       subfolders.push_back( dir_iter->path().string() );
     }
@@ -180,13 +179,13 @@ bool list_files_in_folder( std::string location,
   }
 #endif
 
-  boost::filesystem::path dir( location );
+  std::filesystem::path dir( location );
 
-  for( boost::filesystem::directory_iterator file_iter( dir );
-       file_iter != boost::filesystem::directory_iterator();
+  for( std::filesystem::directory_iterator file_iter( dir );
+       file_iter != std::filesystem::directory_iterator();
        ++file_iter )
   {
-    if( boost::filesystem::is_regular_file( *file_iter ) )
+    if( std::filesystem::is_regular_file( *file_iter ) )
     {
       if( extensions.empty() )
       {
@@ -204,7 +203,7 @@ bool list_files_in_folder( std::string location,
         }
       }
     }
-    else if( boost::filesystem::is_directory( *file_iter ) && search_subfolders )
+    else if( std::filesystem::is_directory( *file_iter ) && search_subfolders )
     {
       std::vector< std::string > subfiles;
       list_files_in_folder( file_iter->path().string(),
@@ -219,11 +218,11 @@ bool list_files_in_folder( std::string location,
 
 bool create_folder( const std::string& location )
 {
-  boost::filesystem::path dir( location );
+  std::filesystem::path dir( location );
 
-  if( !boost::filesystem::exists( dir ) )
+  if( !std::filesystem::exists( dir ) )
   {
-    return boost::filesystem::create_directories( dir );
+    return std::filesystem::create_directories( dir );
   }
 
   return false;
@@ -236,13 +235,13 @@ std::string append_path( std::string p1, std::string p2 )
 
 std::string get_filename_with_last_path( std::string path )
 {
-  return append_path( boost::filesystem::path( path ).parent_path().filename().string(),
-                      boost::filesystem::path( path ).filename().string() );
+  return append_path( std::filesystem::path( path ).parent_path().filename().string(),
+                      std::filesystem::path( path ).filename().string() );
 }
 
 std::string get_filename_no_path( std::string path )
 {
-  return boost::filesystem::path( path ).filename().string();
+  return std::filesystem::path( path ).filename().string();
 }
 
 std::string add_quotes( const std::string& str )
@@ -401,7 +400,7 @@ void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
 
 bool folder_contains_less_than_n_files( const std::string& folder, unsigned n )
 {
-  auto dir = boost::filesystem::directory_iterator( folder );
+  auto dir = std::filesystem::directory_iterator( folder );
   unsigned count = 0;
 
   for( auto i : dir )
@@ -508,7 +507,7 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 
   if( !pipeline_filename.empty() )
   {
-    auto dir = boost::filesystem::path( pipeline_filename ).parent_path();
+    auto dir = std::filesystem::path( pipeline_filename ).parent_path();
 
     std::unique_ptr< kwiver::embedded_pipeline > new_pipeline =
       std::unique_ptr< kwiver::embedded_pipeline >( new kwiver::embedded_pipeline() );
@@ -553,13 +552,13 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   std::string video_no_path = get_filename_no_path( video_filename );
   std::string output_dir = append_path( output_directory, video_no_path );
   std::string output_path = append_path( output_dir, "frame%06d.png" );
-  std::string frame_rate_str = boost::lexical_cast< std::string >( frame_rate );
+  std::string frame_rate_str = std::to_string( frame_rate );
 
   if( !skip_extract_if_exists )
   {
     if( does_folder_exist( output_dir ) )
     {
-      boost::filesystem::remove_all( output_dir );
+      std::filesystem::remove_all( output_dir );
     }
 
     if( !create_folder( output_dir ) )
@@ -584,7 +583,7 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   if( max_frame_count > 0 )
   {
     cmd = cmd + "-s input:video_reader:vidl_ffmpeg:stop_after_frame="
-              + boost::lexical_cast< std::string >( max_frame_count );
+              + std::to_string( max_frame_count );
   }
 
   if( !skip_extract_if_exists ||
@@ -774,7 +773,7 @@ std::string get_augmented_filename( std::string name,
 
   if( output_dir.empty() )
   {
-    full_path.push_back( boost::filesystem::temp_directory_path().string() );
+    full_path.push_back( std::filesystem::temp_directory_path().string() );
   }
   else
   {
@@ -1398,8 +1397,8 @@ main( int argc, char* argv[] )
 
     if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
     {
-      input_dir = boost::filesystem::canonical(
-        boost::filesystem::path( input_dir + ".lnk" ) ).string();
+      input_dir = std::filesystem::canonical(
+        std::filesystem::path( input_dir + ".lnk" ) ).string();
     }
 
     if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
@@ -1739,7 +1738,7 @@ main( int argc, char* argv[] )
         }
         else
         {
-          use_image = boost::filesystem::exists( filtered_image_file );
+          use_image = std::filesystem::exists( filtered_image_file );
         }
       }
       else
