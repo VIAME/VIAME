@@ -18,7 +18,6 @@ Set "PYTHON_SUBDIR=lib\python3.6"
 SET "PATH=%WIN32_ROOT%;C:\Windows;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;%PATH%"
 SET "PATH=C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;%PATH%"
-SET "PATH=C:\msys64\mingw32\bin;C:\msys64\usr\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 git submodule update --init --recursive
