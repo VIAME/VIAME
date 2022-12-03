@@ -92,15 +92,6 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
     WarpImageProcess.h
   )
 
-  find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
-    COMPONENTS
-      chrono
-      filesystem
-      system)
-
-  include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-  link_directories( ${Boost_LIBRARY_DIRS} )
-
   kwiver_add_plugin( viame_processes_itk
     SUBDIR           ${viame_plugin_process_subdir}
     SOURCES          ${process_sources}
@@ -113,8 +104,6 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
                      ITKIOTransformBase ITKTransformFactory
                      ITKIOTransformInsightLegacy
                      ITKIOHDF5 ITKIOTransformHDF5 ITKIOTransformMatlab
-                     ${Boost_SYSTEM_LIBRARY}
-                     ${Boost_FILESYSTEM_LIBRARY}
    )
 endif()
 

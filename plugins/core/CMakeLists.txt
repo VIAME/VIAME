@@ -96,15 +96,6 @@ target_link_libraries( viame_core_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
-find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
-    COMPONENTS
-      chrono
-      filesystem
-      system)
-
-include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-link_directories( ${Boost_LIBRARY_DIRS} )
-
 # Add process library
 set( process_headers
   align_multimodal_imagery_process.h
@@ -138,8 +129,6 @@ kwiver_add_plugin( viame_processes_core
                    kwiver::kwiver_algo_core
                    kwiver::kwiver_adapter
                    kwiver::vital_vpm
-                   ${Boost_SYSTEM_LIBRARY}
-                   ${Boost_FILESYSTEM_LIBRARY}
  )
 
 if( VIAME_ENABLE_PYTHON )

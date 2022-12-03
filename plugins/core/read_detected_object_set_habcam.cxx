@@ -43,8 +43,6 @@
 #include <algorithm>
 #include <string>
 
-#include <boost/algorithm/string.hpp>
-
 namespace viame {
 
 /// Expected format
@@ -246,9 +244,14 @@ read_detected_object_set_habcam::priv
   {
     class_name = parsed_line[2];
 
-    boost::replace_all( class_name , " ", "_" );
-    boost::replace_all( class_name , "(", "" );
-    boost::replace_all( class_name , ")", "" );
+    std::replace( class_name.begin(), class_name.end(), ' ', '_' );
+
+    class_name.erase(
+      std::remove( class_name.begin(), class_name.end(), '(' ),
+      class_name.end() );
+    class_name.erase(
+      std::remove( class_name.begin(), class_name.end(), ')' ),
+      class_name.end() );
   }
   else if( m_use_internal_table )
   {

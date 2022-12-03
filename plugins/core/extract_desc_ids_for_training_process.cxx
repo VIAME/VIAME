@@ -42,8 +42,7 @@
 
 #include <fstream>
 #include <iostream>
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace viame
 {
@@ -138,9 +137,9 @@ extract_desc_ids_for_training_process
   {
     filename = d->m_output_directory + "/" + filename;
 
-    if( !boost::filesystem::exists( d->m_output_directory ) )
+    if( !std::filesystem::exists( d->m_output_directory ) )
     {
-      boost::filesystem::create_directories( d->m_output_directory );
+      std::filesystem::create_directories( d->m_output_directory );
     }
   }
 
