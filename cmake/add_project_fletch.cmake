@@ -277,6 +277,7 @@ elseif( VIAME_ENABLE_SEAL)
 else()
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_qtExtensions:BOOL=OFF
     -Dfletch_ENABLE_VTK:BOOL=OFF
   )
 endif()
