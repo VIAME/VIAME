@@ -46,17 +46,25 @@ if( Python_VERSION VERSION_LESS "3.8" )
 endif()
 
 # For fusion classifier
-list( APPEND VIAME_PYTHON_BASIC_DEPS "numba==0.47" "llvmlite==0.31.0" )
-list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "numba==0.47" "map_boxes" "ensemble_boxes" )
 
+if( Python_VERSION VERSION_LESS "3.8" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.31.0" )
+else()
+  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.39.1" )
+endif()
+
+# For pytorch building
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "typing-extensions" "bs4" )
 endif()
 
+# For mmdetection
 if( VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf" )
 endif()
 
+# For measurement scripts
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_OPENCV )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tqdm" "scipy" )
 endif()
