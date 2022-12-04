@@ -50,18 +50,18 @@
 #include <sprokit/processes/adapters/embedded_pipeline.h>
 #include <sprokit/processes/adapters/adapter_types.h>
 
-#include <iostream>
-#include <fstream>
-#include <filesystem>
 #include <vector>
+#include <unordered_set>
 #include <string>
+#include <map>
+#include <fstream>
+#include <iostream>
 #include <sstream>
+#include <filesystem>
 #include <iterator>
 #include <memory>
-#include <map>
 #include <cctype>
 #include <regex>
-#include <unordered_set>
 
 #include <boost/algorithm/string.hpp>
 
@@ -275,8 +275,8 @@ bool ends_with_extension( const std::string& str,
 }
 
 bool string_to_vector( const std::string& str,
-  std::vector< std::string >& out,
-  const std::string delims = "\n\t\v ," )
+                       std::vector< std::string >& out,
+                       const std::string delims = "\n\t\v ," )
 {
   out.clear();
 
@@ -288,8 +288,8 @@ bool string_to_vector( const std::string& str,
 }
 
 bool string_to_set( const std::string& str,
-  std::unordered_set< std::string >& out,
-  const std::string delims = "\n\t\v ," )
+                    std::unordered_set< std::string >& out,
+                    const std::string delims = "\n\t\v ," )
 {
   out.clear();
   std::vector< std::string > tmp;
