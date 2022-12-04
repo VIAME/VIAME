@@ -64,7 +64,6 @@
 #include <unordered_set>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 
 // =======================================================================================
 // Class storing all input parameters and private variables for tool
@@ -275,49 +274,31 @@ bool ends_with_extension( const std::string& str,
   return false;
 }
 
-template< typename T >
 bool string_to_vector( const std::string& str,
-  std::vector< T >& out, const std::string delims = "\n\t\v ," )
+  std::vector< std::string >& out,
+  const std::string delims = "\n\t\v ," )
 {
   out.clear();
 
-  std::vector< std::string > parsed_string;
-
-  boost::split( parsed_string, str,
+  boost::split( out, str,
                 boost::is_any_of( delims ),
                 boost::token_compress_on );
-
-  try
-  {
-    for( std::string s : parsed_string )
-    {
-      if( !s.empty() )
-      {
-        out.push_back( boost::lexical_cast< T >( s ) );
-      }
-    }
-  }
-  catch( boost::bad_lexical_cast& )
-  {
-    return false;
-  }
 
   return true;
 }
 
-template< typename T >
 bool string_to_set( const std::string& str,
-  std::unordered_set< T >& out, const std::string delims = "\n\t\v ," )
+  std::unordered_set< std::string >& out,
+  const std::string delims = "\n\t\v ," )
 {
   out.clear();
-  std::vector< T > tmp;
+  std::vector< std::string > tmp;
   bool retval = string_to_vector( str, tmp, delims );
   out.insert( tmp.begin(), tmp.end() );
   return retval;
 }
 
-template< typename T >
-bool file_to_vector( const std::string& fn, std::vector< T >& out )
+bool file_to_vector( const std::string& fn, std::vector< std::string >& out )
 {
   std::ifstream in( fn.c_str() );
   out.clear();
@@ -333,7 +314,7 @@ bool file_to_vector( const std::string& fn, std::vector< T >& out )
   {
     if( !line.empty() )
     {
-      out.push_back( boost::lexical_cast< T >( line ) );
+      out.push_back( line );
     }
   }
   return true;
