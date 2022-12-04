@@ -274,28 +274,49 @@ bool ends_with_extension( const std::string& str,
   return false;
 }
 
-bool string_to_vector( const std::string& str,
+void string_to_vector( const std::string& str,
                        std::vector< std::string >& out,
                        const std::string delims = "\n\t\v ," )
 {
   out.clear();
 
-  boost::split( out, str,
-                boost::is_any_of( delims ),
-                boost::token_compress_on );
+  std::stringstream ss( str );
+  std::string line;
 
-  return true;
+  while( std::getline( ss, line ) ) 
+  {
+    std::size_t prev = 0, pos;
+    while( ( pos = line.find_first_of( delims, prev ) ) != std::string::npos )
+    {
+      if( pos > prev )
+      {
+        std::string word = line.substr( prev, pos-prev );
+        if( !word.empty() )
+        {
+          out.push_back( word );
+        }
+      }
+      prev = pos + 1;
+    }
+    if( prev < line.length() )
+    {
+      std::string word = line.substr( prev, std::string::npos );
+      if( !word.empty() )
+      {
+        out.push_back( word );
+      }
+    }
+  }
 }
 
-bool string_to_set( const std::string& str,
+void string_to_set( const std::string& str,
                     std::unordered_set< std::string >& out,
                     const std::string delims = "\n\t\v ," )
 {
   out.clear();
   std::vector< std::string > tmp;
-  bool retval = string_to_vector( str, tmp, delims );
+  string_to_vector( str, tmp, delims );
   out.insert( tmp.begin(), tmp.end() );
-  return retval;
 }
 
 bool file_to_vector( const std::string& fn, std::vector< std::string >& out )

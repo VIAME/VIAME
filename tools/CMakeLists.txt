@@ -40,14 +40,6 @@ kwiver_add_executable( viame_train_detector
   viame_train_detector.cxx
   )
 
-find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
-    COMPONENTS
-      chrono
-      system)
-
-include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-link_directories( ${Boost_LIBRARY_DIRS} )
-
 target_link_libraries( viame_train_detector
   PRIVATE      kwiver::vital
                kwiver::vital_vpm
@@ -59,8 +51,6 @@ target_link_libraries( viame_train_detector
                kwiver::kwiversys
                kwiver::sprokit_pipeline
                kwiver::kwiver_adapter
-               ${Boost_SYSTEM_LIBRARY}
-               ${Boost_FILESYSTEM_LIBRARY}
   )
 
 if( VIAME_ENABLE_PYTHON )
