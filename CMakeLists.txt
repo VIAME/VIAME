@@ -464,7 +464,7 @@ if( VIAME_ENABLE_CUDA )
   if( CMAKE_COMPILER_IS_GNUCC AND
       CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 AND
       CUDA_VERSION VERSION_LESS "11.6" )
-    message( FATAL_ERROR "If using GCC 12.0 or greater, enable CUDA 11.6 or "
+    message( FATAL_ERROR "If using GCC 12.0 or greater, enable CUDA 11.7 or "
       "greater, alongside pytorch 1.12 or greater unless you know enough to "
       "hack around this requirement and disable this error." )
   endif()
