@@ -155,7 +155,7 @@ endif()
 ##
 if( VIAME_ENABLE_PYTORCH )
   set( VIAME_PYTORCH_VERSION 1.11.0 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.8.2" "1.10.2" "1.11.0" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.11.0" "1.13.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
@@ -464,11 +464,9 @@ if( VIAME_ENABLE_CUDA )
   if( CMAKE_COMPILER_IS_GNUCC AND
       CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 AND
       CUDA_VERSION VERSION_LESS "11.6" )
-    message( FATAL_ERROR "GCC compiler version 12 is very new. VIAME likely won't "
-      "build with your current CUDA, though you can try to delete '#error -- "
-      "unsupported GNU version! gcc versions later than 11 are not supported!' "
-      "from your CUDA install file host_config.h then delete this cmake error "
-      "message." )
+    message( FATAL_ERROR "If using GCC 12.0 or greater, enable CUDA 11.6 or "
+      "greater, alongside pytorch 1.12 or greater unless you know enough to "
+      "hack around this requirement and disable this error." )
   endif()
 else()
   set( VIAME_FORCE_CUDA_CSTD98 CACHE INTERNAL FALSE )
