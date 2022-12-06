@@ -48,7 +48,7 @@ endif()
 # For fusion classifier
 list( APPEND VIAME_PYTHON_BASIC_DEPS "numba==0.47" "map_boxes" "ensemble_boxes" )
 
-if( Python_VERSION VERSION_LESS "3.8" )
+if( Python_VERSION VERSION_LESS "3.9" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.31.0" )
 else()
   list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.39.1" )
