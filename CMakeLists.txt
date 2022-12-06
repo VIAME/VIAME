@@ -377,6 +377,12 @@ if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER )
   endif()
 endif()
 
+# Check for compilers with only partial C++17 support
+if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0" )
+  link_libraries( stdc++fs )
+endif()
+
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
   if( NOT Python_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )

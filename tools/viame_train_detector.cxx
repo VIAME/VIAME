@@ -57,11 +57,18 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <filesystem>
 #include <iterator>
 #include <memory>
 #include <cctype>
 #include <regex>
+
+#if __cplusplus >= 201703L && __has_include(<filesystem>)
+  #include <filesystem>
+  namespace filesystem = filesystem;
+#elif __has_include(<experimental/filesystem>)
+  #include <experimental/filesystem>
+  namespace filesystem = std::experimental::filesystem;
+#endif
 
 #include <boost/algorithm/string.hpp>
 
@@ -120,14 +127,14 @@ typedef std::unique_ptr< kwiver::embedded_pipeline > pipeline_t;
 // Assorted filesystem related helper functions
 bool does_file_exist( const std::string& location )
 {
-  return std::filesystem::exists( location ) &&
-         !std::filesystem::is_directory( location );
+  return filesystem::exists( location ) &&
+         !filesystem::is_directory( location );
 }
 
 bool does_folder_exist( const std::string& location )
 {
-  return std::filesystem::exists( location ) &&
-         std::filesystem::is_directory( location );
+  return filesystem::exists( location ) &&
+         filesystem::is_directory( location );
 }
 
 bool list_all_subfolders( const std::string& location,
@@ -140,13 +147,13 @@ bool list_all_subfolders( const std::string& location,
     return false;
   }
 
-  std::filesystem::path dir( location );
+  filesystem::path dir( location );
 
-  for( std::filesystem::directory_iterator dir_iter( dir );
-       dir_iter != std::filesystem::directory_iterator();
+  for( filesystem::directory_iterator dir_iter( dir );
+       dir_iter != filesystem::directory_iterator();
        ++dir_iter )
   {
-    if( std::filesystem::is_directory( *dir_iter ) )
+    if( filesystem::is_directory( *dir_iter ) )
     {
       subfolders.push_back( dir_iter->path().string() );
     }
@@ -178,13 +185,13 @@ bool list_files_in_folder( std::string location,
   }
 #endif
 
-  std::filesystem::path dir( location );
+  filesystem::path dir( location );
 
-  for( std::filesystem::directory_iterator file_iter( dir );
-       file_iter != std::filesystem::directory_iterator();
+  for( filesystem::directory_iterator file_iter( dir );
+       file_iter != filesystem::directory_iterator();
        ++file_iter )
   {
-    if( std::filesystem::is_regular_file( *file_iter ) )
+    if( filesystem::is_regular_file( *file_iter ) )
     {
       if( extensions.empty() )
       {
@@ -202,7 +209,7 @@ bool list_files_in_folder( std::string location,
         }
       }
     }
-    else if( std::filesystem::is_directory( *file_iter ) && search_subfolders )
+    else if( filesystem::is_directory( *file_iter ) && search_subfolders )
     {
       std::vector< std::string > subfiles;
       list_files_in_folder( file_iter->path().string(),
@@ -217,11 +224,11 @@ bool list_files_in_folder( std::string location,
 
 bool create_folder( const std::string& location )
 {
-  std::filesystem::path dir( location );
+  filesystem::path dir( location );
 
-  if( !std::filesystem::exists( dir ) )
+  if( !filesystem::exists( dir ) )
   {
-    return std::filesystem::create_directories( dir );
+    return filesystem::create_directories( dir );
   }
 
   return false;
@@ -234,13 +241,13 @@ std::string append_path( std::string p1, std::string p2 )
 
 std::string get_filename_with_last_path( std::string path )
 {
-  return append_path( std::filesystem::path( path ).parent_path().filename().string(),
-                      std::filesystem::path( path ).filename().string() );
+  return append_path( filesystem::path( path ).parent_path().filename().string(),
+                      filesystem::path( path ).filename().string() );
 }
 
 std::string get_filename_no_path( std::string path )
 {
-  return std::filesystem::path( path ).filename().string();
+  return filesystem::path( path ).filename().string();
 }
 
 std::string add_quotes( const std::string& str )
@@ -402,7 +409,7 @@ void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
 
 bool folder_contains_less_than_n_files( const std::string& folder, unsigned n )
 {
-  auto dir = std::filesystem::directory_iterator( folder );
+  auto dir = filesystem::directory_iterator( folder );
   unsigned count = 0;
 
   for( auto i : dir )
@@ -509,7 +516,7 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 
   if( !pipeline_filename.empty() )
   {
-    auto dir = std::filesystem::path( pipeline_filename ).parent_path();
+    auto dir = filesystem::path( pipeline_filename ).parent_path();
 
     std::unique_ptr< kwiver::embedded_pipeline > new_pipeline =
       std::unique_ptr< kwiver::embedded_pipeline >( new kwiver::embedded_pipeline() );
@@ -560,7 +567,7 @@ std::vector< std::string > extract_video_frames( const std::string& video_filena
   {
     if( does_folder_exist( output_dir ) )
     {
-      std::filesystem::remove_all( output_dir );
+      filesystem::remove_all( output_dir );
     }
 
     if( !create_folder( output_dir ) )
@@ -775,7 +782,7 @@ std::string get_augmented_filename( std::string name,
 
   if( output_dir.empty() )
   {
-    full_path.push_back( std::filesystem::temp_directory_path().string() );
+    full_path.push_back( filesystem::temp_directory_path().string() );
   }
   else
   {
@@ -1399,8 +1406,8 @@ main( int argc, char* argv[] )
 
     if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
     {
-      input_dir = std::filesystem::canonical(
-        std::filesystem::path( input_dir + ".lnk" ) ).string();
+      input_dir = filesystem::canonical(
+        filesystem::path( input_dir + ".lnk" ) ).string();
     }
 
     if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
@@ -1740,7 +1747,7 @@ main( int argc, char* argv[] )
         }
         else
         {
-          use_image = std::filesystem::exists( filtered_image_file );
+          use_image = filesystem::exists( filtered_image_file );
         }
       }
       else

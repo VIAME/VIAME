@@ -42,7 +42,14 @@
 
 #include <fstream>
 #include <iostream>
-#include <filesystem>
+
+#if __cplusplus >= 201703L && __has_include(<filesystem>)
+  #include <filesystem>
+  namespace filesystem = filesystem;
+#elif __has_include(<experimental/filesystem>)
+  #include <experimental/filesystem>
+  namespace filesystem = std::experimental::filesystem;
+#endif
 
 namespace viame
 {
@@ -137,9 +144,9 @@ extract_desc_ids_for_training_process
   {
     filename = d->m_output_directory + "/" + filename;
 
-    if( !std::filesystem::exists( d->m_output_directory ) )
+    if( !filesystem::exists( d->m_output_directory ) )
     {
-      std::filesystem::create_directories( d->m_output_directory );
+      filesystem::create_directories( d->m_output_directory );
     }
   }
 
