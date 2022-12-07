@@ -46,12 +46,12 @@ if( Python_VERSION VERSION_LESS "3.8" )
 endif()
 
 # For fusion classifier
-list( APPEND VIAME_PYTHON_BASIC_DEPS "numba==0.47" "map_boxes" "ensemble_boxes" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
 
 if( Python_VERSION VERSION_LESS "3.9" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.31.0" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.31.0" "numba==0.47" )
 else()
-  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.39.1" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.39.1" "numba==0.56" )
 endif()
 
 # For pytorch building
