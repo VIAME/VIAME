@@ -50,7 +50,7 @@ process detector_fuser
 
 connect from detection_filter.detected_object_set
         to   detector_fuser.detected_object_set1
-connect from detection_filter.detected_object_set
+connect from detection_reader.detected_object_set
         to   detector_fuser.detected_object_set2
 
 # ==================================================================================
