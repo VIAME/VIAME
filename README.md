@@ -113,7 +113,7 @@ CentOS
 * [Motion Detector Model, All OS](https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download) <br>
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download) <br>
 * [Penguin Head FF Models, All OS](https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download) <br>
-* [Sea Lion Models, All OS](https://viame.kitware.com/api/v1/item/62d5da95fd05facb6e178bdd/download) <br>
+* [Sea Lion Models, All OS](https://viame.kitware.com/api/v1/item/639bf8e896854b6293a11687/download) <br>
 * [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
