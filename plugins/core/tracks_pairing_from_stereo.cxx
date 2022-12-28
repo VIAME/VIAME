@@ -445,15 +445,6 @@ std::vector<kwiver::vital::track_sptr> viame::core::tracks_pairing_from_stereo::
   return filtered_tracks;
 }
 
-double
-viame::core::tracks_pairing_from_stereo::iou_distance(const std::shared_ptr<kwiver::vital::object_track_state> &t1,
-                                                      const std::shared_ptr<kwiver::vital::object_track_state> &t2) {
-  if (!t1 || !t2)
-    return 0.;
-
-  return iou_distance(t1->detection()->bounding_box(), t2->detection()->bounding_box());
-}
-
 double viame::core::tracks_pairing_from_stereo::iou_distance(const kwiver::vital::bounding_box_d &bbox1,
                                                              const kwiver::vital::bounding_box_d &bbox2) {
   Eigen::AlignedBox<double, 2> bbox1_eig{bbox1.upper_left(), bbox1.lower_right()};
@@ -522,25 +513,50 @@ struct MostLikelyPair {
 std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>>
 viame::core::tracks_pairing_from_stereo::get_left_right_tracks_with_pairing() {
   std::vector<kwiver::vital::track_sptr> left_tracks, right_tracks;
-  std::map<kwiver::vital::track_id_t, MostLikelyPair> left_to_right_pairings;
 
+  auto proc_tracks = m_do_split_detections ? split_paired_tracks_to_new_tracks(left_tracks, right_tracks)
+                                           : select_most_likely_pairing(left_tracks, right_tracks);
+
+  // Append other tracks
+  const auto append_unprocessed_tracks = [](
+      const std::map<kwiver::vital::track_id_t, kwiver::vital::track_sptr> &tracks_map,
+      std::set<kwiver::vital::track_id_t> &processed, std::vector<kwiver::vital::track_sptr> &vect) {
+    for (const auto &pair: tracks_map) {
+      if (processed.find(pair.first) != std::end(processed))
+        continue;
+
+      processed.emplace(pair.first);
+      vect.emplace_back(pair.second->clone());
+    }
+  };
+
+  append_unprocessed_tracks(m_tracks_with_3d_left, std::get<0>(proc_tracks), left_tracks);
+  append_unprocessed_tracks(m_right_tracks_memo, std::get<1>(proc_tracks), right_tracks);
+
+  return {filter_tracks_with_threshold(left_tracks), filter_tracks_with_threshold(right_tracks)};
+}
+
+std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
+viame::core::tracks_pairing_from_stereo::select_most_likely_pairing(std::vector<kwiver::vital::track_sptr> &left_tracks,
+                                                                    std::vector<kwiver::vital::track_sptr> &right_tracks) {
+  std::map<kwiver::vital::track_id_t, MostLikelyPair> most_likely_left_to_right_pair;
   // Find the most likely pair from all pairs across all frames
   for (const auto &pair: m_left_to_right_pairing) {
     const auto id_pair = pair.second.left_right_id_pair;
-    if (left_to_right_pairings.find(id_pair.left_id) == std::end(left_to_right_pairings))
-      left_to_right_pairings[id_pair.left_id] = MostLikelyPair{};
+    if (most_likely_left_to_right_pair.find(id_pair.left_id) == std::end(most_likely_left_to_right_pair))
+      most_likely_left_to_right_pair[id_pair.left_id] = MostLikelyPair{};
 
     const auto pair_frame_count = (int) pair.second.frame_set.size();
-    if (pair_frame_count > left_to_right_pairings[id_pair.left_id].frame_count) {
-      left_to_right_pairings[id_pair.left_id].frame_count = (int) pair_frame_count;
-      left_to_right_pairings[id_pair.left_id].right_id = id_pair.right_id;
+    if (pair_frame_count > most_likely_left_to_right_pair[id_pair.left_id].frame_count) {
+      most_likely_left_to_right_pair[id_pair.left_id].frame_count = (int) pair_frame_count;
+      most_likely_left_to_right_pair[id_pair.left_id].right_id = id_pair.right_id;
     }
   }
 
   // Iterate over all paired tracks first
   std::set<kwiver::vital::track_id_t> proc_left, proc_right;
   auto last_track_id = last_left_right_track_id() + 1;
-  for (const auto &pair: left_to_right_pairings) {
+  for (const auto &pair: most_likely_left_to_right_pair) {
     const auto right_id = pair.second.right_id;
     const auto left_id = pair.first;
     if (proc_right.find(right_id) != std::end(proc_right)) {
@@ -568,23 +584,14 @@ viame::core::tracks_pairing_from_stereo::get_left_right_tracks_with_pairing() {
     right_tracks.emplace_back(right_track);
   }
 
-  // Append other tracks
-  const auto append_unprocessed_tracks = [](
-      const std::map<kwiver::vital::track_id_t, kwiver::vital::track_sptr> &tracks_map,
-      std::set<kwiver::vital::track_id_t> &processed, std::vector<kwiver::vital::track_sptr> &vect) {
-    for (const auto &pair: tracks_map) {
-      if (processed.find(pair.first) != std::end(processed))
-        continue;
+  return {proc_left, proc_right};
+}
 
-      processed.emplace(pair.first);
-      vect.emplace_back(pair.second->clone());
-    }
-  };
-
-  append_unprocessed_tracks(m_tracks_with_3d_left, proc_left, left_tracks);
-  append_unprocessed_tracks(m_right_tracks_memo, proc_right, right_tracks);
-
-  return {filter_tracks_with_threshold(left_tracks), filter_tracks_with_threshold(right_tracks)};
+std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
+viame::core::tracks_pairing_from_stereo::split_paired_tracks_to_new_tracks(
+    std::vector<kwiver::vital::track_sptr> &left_tracks, std::vector<kwiver::vital::track_sptr> &right_tracks) {
+  const auto ranges = create_split_ranges_from_track_pairs(m_left_to_right_pairing);
+  return split_ranges_to_tracks(ranges, left_tracks, right_tracks);
 }
 
 
@@ -592,9 +599,9 @@ void viame::core::tracks_pairing_from_stereo::append_paired_frame(const kwiver::
                                                                   const kwiver::vital::track_sptr &right_track,
                                                                   const kwiver::vital::timestamp &timestamp) {
   // Pair left to right for given frame
-  std::cout << "PAIRING : " << left_track->id() << ", " << right_track->id() << std::endl;
-
   auto pairing = cantor_pairing(left_track->id(), right_track->id());
+  std::cout << "PAIRING (" << pairing << "): " << left_track->id() << ", " << right_track->id() << std::endl;
+
   if (m_left_to_right_pairing.find(pairing) == std::end(m_left_to_right_pairing))
     m_left_to_right_pairing[pairing] = Pairing{{},
                                                {left_track->id(), right_track->id()}};
@@ -774,6 +781,213 @@ viame::core::tracks_pairing_from_stereo::most_likely_detection_class(const kwive
   return most_likely;
 }
 
+/// @brief Helper function to erase elements from container given predicate
+template<typename ContainerT, typename PredicateT>
+void erase_if(ContainerT &items, const PredicateT &predicate) {
+  for (auto it = items.begin(); it != items.end();) {
+    if (predicate(*it)) it = items.erase(it);
+    else ++it;
+  }
+}
+
+inline std::string to_string(const std::map<size_t, viame::core::Pairing> &left_to_right_pairing) {
+  std::stringstream ss;
+
+  ss << "PAIRINGS TO SPLIT : " << std::endl;
+  for (const auto &pair: left_to_right_pairing) {
+    std::string print_frames{"{"};
+    for (const auto &frame_id: pair.second.frame_set)
+      print_frames += "," + std::to_string(frame_id);
+    print_frames += "}";
+
+    ss << "ID: " << pair.first << ", left: " << pair.second.left_right_id_pair.left_id << ", right: "
+       << pair.second.left_right_id_pair.right_id << ", frames: " << print_frames << std::endl;
+  }
+  return ss.str();
+}
+
+std::vector<viame::core::tracks_pairing_from_stereo::Range>
+viame::core::tracks_pairing_from_stereo::create_split_ranges_from_track_pairs(
+    const std::map<size_t, Pairing> &left_to_right_pairing) const {
+
+  std::cout << to_string(left_to_right_pairing) << std::endl;
+
+  // Find last pairing frame id from all saved pairings
+  kwiver::vital::frame_id_t last_pairings_frame_id{};
+
+  for (const auto &pairing: left_to_right_pairing) {
+    if (pairing.second.frame_set.empty())
+      continue;
+
+    const auto pairing_frame_id = *(pairing.second.frame_set.rbegin());
+    if (pairing_frame_id > last_pairings_frame_id)
+      last_pairings_frame_id = pairing_frame_id;
+  }
+
+  // Init output ID as last unused track ID
+  auto last_track_id = last_left_right_track_id() + 1;
+
+  // Initialize ranges being processed, pending ranges, and ranges which have been closed
+  std::map<size_t, std::shared_ptr<Range>> open_ranges;
+  std::set<std::shared_ptr<Range>> pending_ranges;
+  std::vector<Range> ranges;
+
+  // Helper function to find the ranges which are associated with input and need to be removed
+  const auto get_pending_ranges_to_remove = [&](const std::shared_ptr<Range> &source_range) {
+    std::set<std::shared_ptr<Range >> to_remove;
+
+    if (source_range->detection_count < m_detection_split_threshold)
+      return to_remove;
+
+    for (const auto &pending: pending_ranges) {
+      if (pending == source_range)
+        continue;
+
+      if ((pending->left_id == source_range->left_id) || (pending->right_id == source_range->right_id))
+        to_remove.emplace(pending);
+    }
+
+    return to_remove;
+  };
+
+  // Helper function to remove list of ranges from pending ranges
+  const auto remove_pending = [&](const std::shared_ptr<Range> &source_range,
+                                  const std::set<std::shared_ptr<Range>> &to_remove) {
+    // Remove source range if still pending while detection count is bigger than threshold
+    if ((source_range->detection_count >= m_detection_split_threshold) &&
+        (pending_ranges.find(source_range) != std::end(pending_ranges)))
+      pending_ranges.erase(source_range);
+
+    erase_if(pending_ranges,
+             [&](const std::shared_ptr<Range> &range) { return to_remove.find(range) != std::end(to_remove); });
+  };
+
+  // Helper function to move input ranges to processed ranges and update open ranges map
+  const auto move_open_ranges_to_processed_ranges = [&](const std::set<std::shared_ptr<Range>> &to_remove,
+                                                        const std::shared_ptr<Range> &range) {
+    auto id_last = range->frame_id_first - 1;
 
 
+    // Update output ranges
+    for (const auto &range_to_remove: to_remove) {
+      if (range_to_remove->detection_count < m_detection_split_threshold)
+        continue;
 
+      range_to_remove->frame_id_last = id_last;
+      ranges.push_back(*range_to_remove);
+    }
+
+    // Update open ranges map
+    erase_if(open_ranges, [&](const std::pair<size_t, std::shared_ptr<Range>> &pair) {
+      return to_remove.find(pair.second) != std::end(to_remove);
+    });
+  };
+
+  const auto get_overlapping_ranges = [&](const Pairing &pairing) {
+    std::vector<std::shared_ptr<Range>> overlapping;
+    for (auto &pair: open_ranges) {
+      if (pair.second->left_id == pairing.left_right_id_pair.left_id ||
+          pair.second->right_id == pairing.left_right_id_pair.right_id)
+        overlapping.push_back(pair.second);
+    }
+
+    return overlapping;
+  };
+
+  const auto create_range_from_pairing = [&](const Pairing &pairing,
+                                             kwiver::vital::frame_id_t i_frame) {
+    auto range = std::make_shared<Range>();
+    range->left_id = pairing.left_right_id_pair.left_id;
+    range->right_id = pairing.left_right_id_pair.right_id;
+    range->new_track_id = last_track_id++;
+    range->detection_count = 1;
+    range->frame_id_first = i_frame;
+    range->frame_id_last = range->frame_id_first + 1;
+    return range;
+  };
+
+  const auto mark_overlapping_as_pending = [&](const std::vector<std::shared_ptr<Range>> &overlapping) {
+    for (const auto &range: overlapping)
+      pending_ranges.emplace(range);
+  };
+
+
+  // For each frame
+  for (kwiver::vital::frame_id_t i_frame = 0; i_frame <= last_pairings_frame_id; i_frame++) {
+    // For each pairing
+    for (const auto &pairing: left_to_right_pairing) {
+      // If pairing not in current frame -> continue
+      if (pairing.second.frame_set.find(i_frame) == std::end(pairing.second.frame_set))
+        continue;
+
+      if (open_ranges.find(pairing.first) != std::end(open_ranges)) {
+        // If pairing in opened ranges -> Update range and process associated pending ranges
+        const auto &range = open_ranges.find(pairing.first)->second;
+        range->detection_count += 1;
+        range->frame_id_last = i_frame + 1;
+
+        // Remove pending ranges
+        const auto to_remove = get_pending_ranges_to_remove(range);
+        remove_pending(range, to_remove);
+        move_open_ranges_to_processed_ranges(to_remove, range);
+      } else {
+        // Get overlapping ranges from opened ranges
+        const auto overlapping = get_overlapping_ranges(pairing.second);
+
+        // Create new range and mark overlapping as pending
+        open_ranges[pairing.first] = create_range_from_pairing(pairing.second, i_frame);
+        pending_ranges.emplace(open_ranges[pairing.first]);
+        mark_overlapping_as_pending(overlapping);
+      }
+    }
+  }
+
+  for (auto &open_range: open_ranges) {
+    // Ignore pending results
+    if (open_range.second->detection_count < m_detection_split_threshold)
+      continue;
+
+    // Update last frame for all opened ranges to max value
+    open_range.second->frame_id_last = std::numeric_limits<int64_t>::max();
+
+    // Add range to ranges to return
+    ranges.push_back(*open_range.second);
+  }
+
+  // Return consolidated ranges
+  return ranges;
+}
+
+
+std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
+viame::core::tracks_pairing_from_stereo::split_ranges_to_tracks(const std::vector<Range> &ranges,
+                                                                std::vector<kwiver::vital::track_sptr> &left_tracks,
+                                                                std::vector<kwiver::vital::track_sptr> &right_tracks) {
+
+  const auto split_track = [](const kwiver::vital::track_sptr &track, const Range &range) {
+    auto new_track = kwiver::vital::track::create();
+    new_track->set_id(range.new_track_id);
+
+    for (const auto &state: *track | kwiver::vital::as_object_track)
+      if (state->frame() >= range.frame_id_first && state->frame() < range.frame_id_last)
+        new_track->append(state);
+
+    return new_track;
+  };
+
+  std::set<kwiver::vital::track_id_t> proc_left, proc_right;
+  for (const auto &range: ranges) {
+    const auto print_i_last =
+        range.frame_id_last == std::numeric_limits<int64_t>::max() ? "i_max" : std::to_string(range.frame_id_last);
+
+    std::cout << "PAIRING [" << range.frame_id_first << "," << print_i_last << "] " << range.left_id << ", "
+              << range.right_id << " TO " << range.new_track_id << std::endl;
+    proc_left.emplace(range.left_id);
+    proc_right.emplace(range.right_id);
+
+    left_tracks.push_back(split_track(m_tracks_with_3d_left[range.left_id], range));
+    right_tracks.push_back(split_track(m_right_tracks_memo[range.right_id], range));
+  }
+
+  return std::make_tuple(proc_left, proc_right);
+}

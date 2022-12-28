@@ -51,7 +51,7 @@ struct IdPair {
 };
 
 struct VIAME_CORE_EXPORT Pairing {
-  std::set<size_t> frame_set;
+  std::set<kwiver::vital::frame_id_t> frame_set;
   IdPair left_right_id_pair;
 };
 
@@ -74,6 +74,8 @@ public:
   int m_max_detection_number_threshold{std::numeric_limits<int>::max()};
   int m_min_detection_surface_threshold_pix{0};
   int m_max_detection_surface_threshold_pix{std::numeric_limits<int>::max()};
+  int m_detection_split_threshold{0};
+  bool m_do_split_detections{false};
   std::string m_pairing_method{"PAIRING_3D"};
 
   // Camera depth information
@@ -150,10 +152,6 @@ public:
   keep_right_tracks_in_current_frame(const std::vector<kwiver::vital::track_sptr> &tracks,
                                      const kwiver::vital::timestamp &timestamp);
 
-  /// @brief Calculates intersection over union of two tracks bounding box
-  static double iou_distance(const std::shared_ptr<kwiver::vital::object_track_state> &t1,
-                             const std::shared_ptr<kwiver::vital::object_track_state> &t2);
-
   /// @brief Calculates intersection over union for two bounding boxes
   static double iou_distance(const kwiver::vital::bounding_box_d &bbox1, const kwiver::vital::bounding_box_d &bbox2);
 
@@ -198,13 +196,35 @@ public:
   /// @brief Cantor pairing function mapping N x N -> N
   /// Allow to map pairs of left / right ids to one unique natural integer
   static size_t cantor_pairing(size_t i, size_t j) {
-    return (1u / 2u) * (i + j) * (i + j + 1) + j;
+    return ((i + j) * (i + j + 1u)) / 2u + j;
   }
 
   void append_paired_frame(const kwiver::vital::track_sptr &left_track, const kwiver::vital::track_sptr &right_track,
                            const kwiver::vital::timestamp &timestamp);
 
   static kwiver::vital::bounding_box_d get_last_detection_bbox(const kwiver::vital::track_sptr &track);
+
+  std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
+  split_paired_tracks_to_new_tracks(std::vector<kwiver::vital::track_sptr> &left_tracks,
+                                    std::vector<kwiver::vital::track_sptr> &right_tracks);
+
+  std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
+  select_most_likely_pairing(std::vector<kwiver::vital::track_sptr> &left_tracks,
+                             std::vector<kwiver::vital::track_sptr> &right_tracks);
+
+
+  struct Range {
+    kwiver::vital::track_id_t left_id, right_id, new_track_id;
+    kwiver::vital::frame_id_t frame_id_first, frame_id_last;
+    int detection_count;
+  };
+
+  std::vector<viame::core::tracks_pairing_from_stereo::Range>
+  create_split_ranges_from_track_pairs(const std::map<size_t, Pairing> &source_range) const;
+
+  std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
+  split_ranges_to_tracks(const std::vector<Range> &ranges, std::vector<kwiver::vital::track_sptr> &left_tracks,
+                         std::vector<kwiver::vital::track_sptr> &right_tracks);
 };
 
 } // core

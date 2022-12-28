@@ -67,6 +67,7 @@ inline tracks_pairing_from_stereo create_pairing() {
   pairing.m_cameras_directory = std::string(TEST_DATA_DIR);
   pairing.load_camera_calibration();
   pairing.m_iou_pair_threshold = 0.05;
+  pairing.m_detection_split_threshold = 3;
   return pairing;
 }
 
@@ -273,4 +274,92 @@ TEST(TracksPairingFromStereoTest, tracks_not_fitting_detection_threshold_number_
   ASSERT_EQ(filtered.size(), 2);
   ASSERT_EQ(filtered[0]->id(), 42);
   ASSERT_EQ(filtered[1]->id(), 58);
+}
+
+TEST(TracksPairingFromStereoTest, split_pairing_for_continuous_pair_yields_one_split_range) {
+  auto pairing = create_pairing();
+
+  std::map<size_t, Pairing> left_to_right_pairing{{1, {{1, 2, 3, 8}, {1, 3}}}};
+  auto ranges = pairing.create_split_ranges_from_track_pairs(left_to_right_pairing);
+  ASSERT_EQ(1, ranges.size());
+  ASSERT_EQ(4, ranges[0].detection_count);
+  ASSERT_EQ(1, ranges[0].left_id);
+  ASSERT_EQ(3, ranges[0].right_id);
+  ASSERT_EQ(1, ranges[0].frame_id_first);
+  ASSERT_GT(ranges[0].frame_id_last, 8);
+}
+
+TEST(TracksPairingFromStereoTest, split_pairing_for_inconclusive_pairs_yields_no_result) {
+  auto pairing = create_pairing();
+
+  std::map<size_t, Pairing> left_to_right_pairing{{1, {{1}, {1, 3}}},
+                                                  {2, {{2}, {1, 4}}},
+                                                  {3, {{3}, {1, 5}}}};
+  auto ranges = pairing.create_split_ranges_from_track_pairs(left_to_right_pairing);
+  ASSERT_EQ(0, ranges.size());
+}
+
+
+TEST(TracksPairingFromStereoTest, split_pairing_for_separate_pairs_keeps_both_ranges) {
+  auto pairing = create_pairing();
+
+  std::map<size_t, Pairing> left_to_right_pairing{{1, {{1, 2, 3, 4, 5}, {1, 3}}},
+                                                  {2, {{1, 2, 3, 4, 5}, {2, 6}}}};
+  auto ranges = pairing.create_split_ranges_from_track_pairs(left_to_right_pairing);
+  ASSERT_EQ(2, ranges.size());
+  ASSERT_EQ(1, ranges[0].left_id);
+  ASSERT_EQ(3, ranges[0].right_id);
+  ASSERT_GT(ranges[0].frame_id_last, 5);
+  ASSERT_EQ(2, ranges[1].left_id);
+  ASSERT_EQ(6, ranges[1].right_id);
+  ASSERT_GT(ranges[1].frame_id_last, 5);
+}
+
+
+TEST(TracksPairingFromStereoTest, split_pairing_for_conflicting_pairs_creates_multiple_ranges) {
+  auto pairing = create_pairing();
+
+  std::map<size_t, Pairing> left_to_right_pairing{{1, {{1, 2, 3, 7, 8, 9}, {1, 3}}},
+                                                  {2, {{4, 5, 6},          {1, 6}}}};
+
+  auto ranges = pairing.create_split_ranges_from_track_pairs(left_to_right_pairing);
+  ASSERT_EQ(3, ranges.size());
+  ASSERT_EQ(1, ranges[0].left_id);
+  ASSERT_EQ(3, ranges[0].right_id);
+  ASSERT_EQ(3, ranges[0].frame_id_last);
+  ASSERT_EQ(1, ranges[1].left_id);
+  ASSERT_EQ(6, ranges[1].right_id);
+  ASSERT_EQ(6, ranges[1].frame_id_last);
+  ASSERT_EQ(1, ranges[2].left_id);
+  ASSERT_EQ(3, ranges[2].right_id);
+  ASSERT_GT(ranges[2].frame_id_last, 9);
+}
+
+
+TEST(TracksPairingFromStereoTest, split_pairing_with_continuous_pair_and_interleaved_inconclusive_yields_one_range) {
+  auto pairing = create_pairing();
+
+  std::map<size_t, Pairing> left_to_right_pairing{{1, {{1, 2, 3, 5, 7, 9}, {1, 3}}},
+                                                  {2, {{4},                {1, 6}}},
+                                                  {3, {{6},                {1, 7}}}};
+
+  auto ranges = pairing.create_split_ranges_from_track_pairs(left_to_right_pairing);
+  ASSERT_EQ(1, ranges.size());
+  ASSERT_EQ(1, ranges[0].left_id);
+  ASSERT_EQ(3, ranges[0].right_id);
+  ASSERT_GT(ranges[0].frame_id_last, 9);
+}
+
+TEST(TracksPairingFromStereoTest, split_pairing_first_split_id_takes_closed_into_account) {
+  auto pairing = create_pairing();
+
+  std::map<size_t, Pairing> left_to_right_pairing{{1, {{1, 2, 3}, {1, 1}}},
+                                                  {2, {{4, 5, 6}, {1, 6}}},
+                                                  {3, {{7, 8, 9}, {6, 1}}}};
+
+  auto ranges = pairing.create_split_ranges_from_track_pairs(left_to_right_pairing);
+  ASSERT_EQ(3, ranges.size());
+  ASSERT_EQ(1, ranges[0].frame_id_first);
+  ASSERT_EQ(4, ranges[1].frame_id_first);
+  ASSERT_EQ(7, ranges[2].frame_id_first);
 }

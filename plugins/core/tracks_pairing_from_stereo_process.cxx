@@ -38,6 +38,10 @@ create_config_trait(max_detection_surface_threshold_pix, int, "std::numeric_limi
                     "Filters out tracks with more average mask area than this threshold.")
 create_config_trait(iou_pair_threshold, double, "0.1",
                     "Used with IOU pairing_method. Minimum IOU threshold below which left and right tracks will not be paired.")
+create_config_trait(do_split_detections, bool, "true",
+                    "If true, will split tracks with inconsistent detection pairings across frames.")
+create_config_trait(detection_split_threshold, int, "3",
+                    "Number of detections pairings required before split. Used when do_split_detections is set to true.")
 
 create_port_trait(object_track_set1, object_track_set, "Set of object tracks1.")
 create_port_trait(object_track_set2, object_track_set, "Set of object tracks2.")
@@ -87,6 +91,8 @@ void tracks_pairing_from_stereo_process::make_config() {
   declare_config_using_trait(max_detection_surface_threshold_pix);
   declare_config_using_trait(pairing_method);
   declare_config_using_trait(iou_pair_threshold);
+  declare_config_using_trait(do_split_detections);
+  declare_config_using_trait(detection_split_threshold);
 }
 
 // -----------------------------------------------------------------------------
@@ -98,6 +104,8 @@ void tracks_pairing_from_stereo_process::_configure() {
   d->m_max_detection_surface_threshold_pix = config_value_using_trait(max_detection_surface_threshold_pix);
   d->m_pairing_method = config_value_using_trait(pairing_method);
   d->m_iou_pair_threshold = config_value_using_trait(iou_pair_threshold);
+  d->m_do_split_detections = config_value_using_trait(do_split_detections);
+  d->m_detection_split_threshold = config_value_using_trait(detection_split_threshold);
   d->load_camera_calibration();
 }
 
