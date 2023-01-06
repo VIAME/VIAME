@@ -628,7 +628,7 @@ class NetHarnTrainer( TrainDetector ):
             print( "Error: train file and groundtruth count mismatch" )
             return
         if categories is not None:
-            if self._detector_model:
+            if self._detector_model and not categories.has_class_name( self._negative_category ):
                 categories.add_class( self._negative_category, "", -1 )
             self._categories = categories.all_class_names()
         if self._mode == "detection_refiner":
