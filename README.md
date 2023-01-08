@@ -143,9 +143,7 @@ but the software can be built either as a super-build, which builds most of its 
 alongside itself, or standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
 Installing Python and CUDA is also recommended. If using CUDA, versions 11.5, 11.3, or 10.2 are
-preferred, with CUDNN 8. Other CUDA or CUDNN versions may or may not work. On both Windows and Linux
-it is also recommended to use [Anaconda3 2021.05](https://repo.anaconda.com/archive/) for python,
-which is the most tested distribution used by developers. If using other python distributions,
+preferred, with CUDNN 8. Other CUDA or CUDNN versions may or may not work. For python distributions,
 at a minimum Python3.6 or above, Numpy, and Cython is necessary.
 
 To build on the command line in Linux, use the following commands, only replacing [source-directory]
