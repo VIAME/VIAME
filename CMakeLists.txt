@@ -306,8 +306,8 @@ if( VIAME_ENABLE_DOCS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  option( VIAME_DISABLE_PYTHON_CHECKS   "Disable python version checking" OFF )
-  mark_as_advanced( VIAME_DISABLE_PYTHON_CHECKS )
+  option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python" ON )
+  mark_as_advanced( VIAME_BUILD_CHECKS )
 
   if( NOT WIN32 )
     option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
@@ -320,10 +320,10 @@ if( VIAME_ENABLE_PYTHON )
   else()
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
 
-    if( NOT VIAME_DISABLE_PYTHON_CHECKS AND
+    if( VIAME_BUILD_CHECKS AND
         ( Python_VERSION VERSION_LESS "3.6.2" AND VIAME_ENABLE_PYTORCH ) )
       message( FATAL_ERROR "Only python distributions  >= 3.6.2 are currently "
-        "supported with pytorch enabled. Set VIAME_DISABLE_PYTHON_CHECKS to "
+        "supported with pytorch enabled. Disable VIAME_BUILD_CHECKS to "
         "attempt to use your current version." )
     endif()
   endif()
@@ -465,6 +465,12 @@ if( VIAME_ENABLE_CUDA )
     set( VIAME_EXECUTABLES_PATH
       ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDA_TOOLKIT_ROOT_DIR}/bin:$ENV{PATH}
       CACHE INTERNAL "All compiled and system-related runnable executables" )
+  endif()
+
+  if( VIAME_BUILD_CHECKS AND CMAKE_COMPILER_IS_GNUCC AND
+      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 )
+    message( FATAL_ERROR "GCC 12.0+ support is experimental and may not work. "
+      "To disable this warning, set VIAME_BUILD_CHECKS to FALSE." )
   endif()
 
   if( CMAKE_COMPILER_IS_GNUCC AND
