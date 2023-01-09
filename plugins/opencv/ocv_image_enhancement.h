@@ -37,11 +37,13 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT ocv_image_enhancement :
-  public kwiver::vital::algorithm_impl<
-    ocv_image_enhancement, kwiver::vital::algo::image_filter >
+class VIAME_OPENCV_EXPORT ocv_image_enhancement
+  : public kwiver::vital::algo::image_filter
 {
 public:
+  PLUGIN_INFO( "ocv_enhancer",
+               "Simple illumination normalization using Lab space and CLAHE" )
+
   ocv_image_enhancement();
   virtual ~ocv_image_enhancement();
 

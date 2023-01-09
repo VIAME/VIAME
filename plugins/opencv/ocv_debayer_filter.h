@@ -37,11 +37,13 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT ocv_debayer_filter :
-  public kwiver::vital::algorithm_impl<
-    ocv_debayer_filter, kwiver::vital::algo::image_filter >
+class VIAME_OPENCV_EXPORT ocv_debayer_filter
+  : public kwiver::vital::algo::image_filter
 {
 public:
+  PLUGIN_INFO( "ocv_debayer",
+               "OpenCV debayer filter for converting to RGB or grayscale" )
+  
   ocv_debayer_filter();
   virtual ~ocv_debayer_filter();
 

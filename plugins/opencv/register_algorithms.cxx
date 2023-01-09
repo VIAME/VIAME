@@ -50,56 +50,20 @@ VIAME_OPENCV_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "viame.opencv" );
+  kwiver::vital::algorithm_registrar reg( vpm, "viame.opencv" );
 
-  if( vpm.is_module_loaded( module_name ) )
+  if( reg.is_module_loaded() ) 
   {
     return;
   }
 
-  // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "ocv", viame::ocv_stereo_depth_map );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "OpenCV compute stereo depth map")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  reg.register_algorithm< ocv_stereo_depth_map >();
+  reg.register_algorithm< ocv_debayer_filter >();
+  reg.register_algorithm< ocv_image_enhancement >();
+  reg.register_algorithm< ocv_random_hue_shift >();
+  reg.register_algorithm< split_image_habcam >();
 
-  fact = vpm.ADD_ALGORITHM( "ocv_debayer", viame::ocv_debayer_filter );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "OpenCV debayer filter for converting to RGB or grayscale")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  fact = vpm.ADD_ALGORITHM( "ocv_enhancer", viame::ocv_image_enhancement );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Simple illumination normalization using Lab space and CLAHE")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  fact = vpm.ADD_ALGORITHM( "ocv_random_hue_shift", viame::ocv_random_hue_shift );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Add in a random hue shift to the imagery")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  fact = vpm.ADD_ALGORITHM( "habcam", viame::split_image_habcam );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Split habcam imagery into left and right images, when present")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  vpm.mark_module_as_loaded( module_name );
+   reg.mark_module_as_loaded();
 }
 
 } // end namespace viame

@@ -37,11 +37,12 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT ocv_stereo_depth_map :
-  public kwiver::vital::algorithm_impl<
-    ocv_stereo_depth_map, kwiver::vital::algo::compute_stereo_depth_map >
+class VIAME_OPENCV_EXPORT ocv_stereo_depth_map
+  : public kwiver::vital::algo::compute_stereo_depth_map
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "OpenCV compute stereo depth map" )
 
   ocv_stereo_depth_map();
   virtual ~ocv_stereo_depth_map();

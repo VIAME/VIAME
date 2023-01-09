@@ -37,11 +37,13 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT ocv_random_hue_shift :
-  public kwiver::vital::algorithm_impl<
-    ocv_random_hue_shift, kwiver::vital::algo::image_filter >
+class VIAME_OPENCV_EXPORT ocv_random_hue_shift
+  : public kwiver::vital::algo::image_filter
 {
 public:
+  PLUGIN_INFO( "ocv_random_hue_shift",
+               "Add in a random hue shift to the imagery" )
+
   ocv_random_hue_shift();
   virtual ~ocv_random_hue_shift();
 
