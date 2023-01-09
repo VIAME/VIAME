@@ -41,6 +41,8 @@
 #include "ocv_random_hue_shift.h"
 #include "ocv_image_enhancement.h"
 
+#include "split_image_habcam.h"
+
 namespace viame {
 
 extern "C"
@@ -49,6 +51,7 @@ void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
   static auto const module_name = std::string( "viame.opencv" );
+
   if( vpm.is_module_loaded( module_name ) )
   {
     return;
@@ -82,6 +85,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact = vpm.ADD_ALGORITHM( "ocv_random_hue_shift", viame::ocv_random_hue_shift );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Add in a random hue shift to the imagery")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "habcam", viame::split_image_habcam );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Split habcam imagery into left and right images, when present")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

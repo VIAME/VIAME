@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_OPENCV_DETECTOR_H
-#define VIAME_OPENCV_DETECTOR_H
+#ifndef VIAME_OPENCV_STEREO_DEPTH_MAP_H
+#define VIAME_OPENCV_STEREO_DEPTH_MAP_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -63,4 +63,4 @@ private:
 
 }
 
-#endif // VIAME_OPENCV_DETECTOR_H
+#endif // VIAME_OPENCV_STEREO_DEPTH_MAP_H
