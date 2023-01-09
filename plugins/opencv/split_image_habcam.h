@@ -28,12 +28,17 @@ public:
   /// Destructor
   virtual ~split_image_habcam();
 
-  virtual void set_configuration( kwiver::vital::config_block_sptr ) {}
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const { return true; }
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
+  virtual void set_configuration( kwiver::vital::config_block_sptr );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Split image
   virtual std::vector< kwiver::vital::image_container_sptr >
   split( kwiver::vital::image_container_sptr img ) const;
+
+private:
+  class priv;
+  const std::unique_ptr< priv > d;
 };
 
 } // end namespace viame
