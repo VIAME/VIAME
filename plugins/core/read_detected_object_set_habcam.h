@@ -45,8 +45,7 @@
 namespace viame {
 
 class VIAME_CORE_EXPORT read_detected_object_set_habcam
-  : public kwiver::vital::algorithm_impl< read_detected_object_set_habcam,
-      kwiver::vital::algo::detected_object_set_input >
+  : public kwiver::vital::algo::detected_object_set_input
 {
 public:
   static constexpr char const* name = "habcam";

@@ -38,8 +38,7 @@
 namespace viame {
 
 class VIAME_CORE_EXPORT convert_head_tail_points :
-  public kwiver::vital::algorithm_impl<
-    convert_head_tail_points, kwiver::vital::algo::refine_detections >
+  public kwiver::vital::algo::refine_detections
 {
 public:
   convert_head_tail_points();

@@ -45,8 +45,7 @@
 namespace viame {
 
 class VIAME_CORE_EXPORT read_detected_object_set_viame_csv
-  : public kwiver::vital::algorithm_impl<read_detected_object_set_viame_csv,
-      kwiver::vital::algo::detected_object_set_input>
+  : public kwiver::vital::algo::detected_object_set_input
 {
 public:
   static constexpr char const* name = "viame_csv";

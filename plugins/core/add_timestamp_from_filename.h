@@ -39,8 +39,7 @@ namespace viame
 {
 
 class VIAME_CORE_EXPORT add_timestamp_from_filename
-  : public kwiver::vital::algorithm_impl<
-      add_timestamp_from_filename, kwiver::vital::algo::image_io >
+  : public kwiver::vital::algo::image_io
 {
 public:
   static constexpr char const* name = "add_timestamp_from_filename";

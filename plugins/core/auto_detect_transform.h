@@ -42,8 +42,7 @@ namespace viame
 
 /// Automatically detect transform type and load it
 class VIAME_CORE_EXPORT auto_detect_transform_io
-  : public kwiver::vital::algorithm_impl<
-      auto_detect_transform_io, kwiver::vital::algo::transform_2d_io >
+  : public kwiver::vital::algo::transform_2d_io
 {
 public:
 

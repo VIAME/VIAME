@@ -40,8 +40,7 @@ namespace viame {
 // The worst detector in the world, always produces empty detections for debug
 // purposes, and to hack reseting into VIAME-web
 class VIAME_CORE_EXPORT empty_detector :
-  public kwiver::vital::algorithm_impl<
-    empty_detector, kwiver::vital::algo::image_object_detector >
+  public kwiver::vital::algo::image_object_detector
 {
 public:
   static constexpr char const* name = "empty";

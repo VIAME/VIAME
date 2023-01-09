@@ -45,8 +45,7 @@
 namespace viame {
 
 class VIAME_CORE_EXPORT write_object_track_set_viame_csv
-  : public kwiver::vital::algorithm_impl< write_object_track_set_viame_csv,
-      kwiver::vital::algo::write_object_track_set >
+  : public kwiver::vital::algo::write_object_track_set
 {
 public:
 

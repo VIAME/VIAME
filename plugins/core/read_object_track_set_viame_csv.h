@@ -45,8 +45,7 @@
 namespace viame {
 
 class VIAME_CORE_EXPORT read_object_track_set_viame_csv
-  : public kwiver::vital::algorithm_impl< read_object_track_set_viame_csv,
-      kwiver::vital::algo::read_object_track_set >
+  : public kwiver::vital::algo::read_object_track_set
 {
 public:
 
