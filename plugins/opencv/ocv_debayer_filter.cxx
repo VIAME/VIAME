@@ -51,12 +51,14 @@ public:
   priv()
     : m_pattern( "BG" )
     , m_force_8bit( false )
+    , m_is_first( true )
   {}
 
   ~priv() {}
 
   std::string m_pattern;
   bool m_force_8bit;
+  bool m_is_first;
 };
 
 // =================================================================================================
@@ -128,6 +130,12 @@ ocv_debayer_filter
 {
   if( image_data->depth() != 1 )
   {
+    if( d->m_is_first )
+    {
+      LOG_WARN( logger(), "Not running debayering on multi-channel input" );
+      d->m_is_first = false;
+    }
+
     return image_data;
   }
 
