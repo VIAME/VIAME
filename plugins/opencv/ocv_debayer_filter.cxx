@@ -126,6 +126,11 @@ kwiver::vital::image_container_sptr
 ocv_debayer_filter
 ::filter( kwiver::vital::image_container_sptr image_data )
 {
+  if( image_data->depth() != 1 )
+  {
+    return image_data;
+  }
+
   cv::Mat input_ocv =
     arrows::ocv::image_container::vital_to_ocv( image_data->get_image(),
       kwiver::arrows::ocv::image_container::BGR_COLOR );
