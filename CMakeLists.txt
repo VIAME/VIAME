@@ -158,7 +158,7 @@ if( VIAME_ENABLE_PYTORCH )
   set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.13.1" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  set( PYTORCH_INTERNAL_VERSION 1.13.1 CACHE INTERNAL STRING "Internal pytorch version" )
+  set( PYTORCH_INTERNAL_VERSION 1.13.1 CACHE INTERNAL "Internal pytorch version" )
 
   option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
@@ -275,7 +275,7 @@ mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled"        OFF )
 mark_as_advanced( VIAME_BUILD_TESTS )
 
-option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python" ON )
+option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python"                 ON )
 mark_as_advanced( VIAME_BUILD_CHECKS )
 
 ###
@@ -582,7 +582,14 @@ if( VIAME_ENABLE_PYTORCH )
       "to ${PYTORCH_INTERNAL_VERSION} or disable the flag VIAME_ENABLE_PYTORCH-INTERNAL." )
   endif()
   if( VIAME_ENABLE_CUDA )
-    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
+        NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
+        NOT ( CUDA_VERSION VERSION_EQUAL "11.6" OR
+              CUDA_VERSION VERSION_EQUAL "11.7" ) )
+      message( FATAL_ERROR "CUDA 11.7, or 11.6 is required for VIAME_ENABLE_PYTORCH "
+        "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.13.1. Either modify "
+        "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
+    elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
         NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
         NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
               CUDA_VERSION VERSION_EQUAL "11.3" OR
