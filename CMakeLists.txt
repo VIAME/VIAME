@@ -154,9 +154,11 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 1.11.0 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.11.0" "1.13.0" )
+  set( VIAME_PYTORCH_VERSION 1.13.1 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.13.1" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
+
+  set( PYTORCH_INTERNAL_VERSION 1.13.1 CACHE INTERNAL STRING "Internal pytorch version" )
 
   option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
@@ -273,6 +275,9 @@ mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled"        OFF )
 mark_as_advanced( VIAME_BUILD_TESTS )
 
+option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python" ON )
+mark_as_advanced( VIAME_BUILD_CHECKS )
+
 ###
 # Helper macros used across all cmakelists files in this project
 ##
@@ -306,9 +311,6 @@ if( VIAME_ENABLE_DOCS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python" ON )
-  mark_as_advanced( VIAME_BUILD_CHECKS )
-
   if( NOT WIN32 )
     option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
     mark_as_advanced( VIAME_SYMLINK_PYTHON )
@@ -573,11 +575,11 @@ if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "1.10.2" AND
-      VIAME_ENABLE_PYTORCH-INTERNAL )
-    message( FATAL_ERROR "Only PyTorch v1.10.2 support with VIAME_ENABLE_PYTORCH-INTERNAL "
-      "flag set. Either change VIAME_PYTORCH_VERSION to 1.10.2, or disable the flag "
-      "VIAME_ENABLE_PYTORCH-INTERNAL." )
+  if( VIAME_ENABLE_PYTORCH-INTERNAL AND
+      NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "${PYTORCH_INTERNAL_VERSION}" )
+    message( FATAL_ERROR "Only PyTorch ${PYTORCH_INTERNAL_VERSION} support with "
+      "VIAME_ENABLE_PYTORCH-INTERNAL flag set. Either change VIAME_PYTORCH_VERSION "
+      "to ${PYTORCH_INTERNAL_VERSION} or disable the flag VIAME_ENABLE_PYTORCH-INTERNAL." )
   endif()
   if( VIAME_ENABLE_CUDA )
     if( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
