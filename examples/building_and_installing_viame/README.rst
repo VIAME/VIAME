@@ -70,7 +70,7 @@ e.g.:
    sudo apt-get install python3.8 python3.8-dev && sudo pip install numpy cython
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 10.0 or above
-is required, 11.5 or 10.2 being the most tested versions. Other versions may work depending
+is required, 11.7 or 11.6 being the most tested versions. Other versions may work depending
 on your build settings but are not officially supported yet):
 
 .. code-block:: bash
@@ -208,7 +208,7 @@ and run the following commands:
 Depending on which enable flags you have set and your system configuration, you may
 need to set additional cmake variables to point to dependency locations. An example
 is below for a system with CUDA, Python, and Matlab enabled, though the versions are
-old. Please do not use CUDA 8 or python 2.7 anymore.
+old. Please do not use CUDA <10 or python 2.7 anymore.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2017/03/cmake-options.png
    :scale: 30 %
@@ -247,7 +247,7 @@ right click on the folder you checked out the source into, move to the TortoiseG
 menu section, and select ``Submodule Update``.
 
 Next, install any required dependencies for items you want to build. If using CUDA,
-version 9.0 or above is desired, along with Python 3.7+. Other versions have yet to
+version 11.0 or above is desired, along with Python 3.6+. Other versions have yet to
 be tested extensively, though may work. On Windows it can also be beneficial to use
 Anaconda to get multiple python packages. Boost Python (turned on by default when
 Python is enabled) requires Numpy and a few other dependencies.
