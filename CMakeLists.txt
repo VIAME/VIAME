@@ -155,7 +155,7 @@ endif()
 ##
 if( VIAME_ENABLE_PYTORCH )
   set( VIAME_PYTORCH_VERSION 1.13.1 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.13.1" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.11.0" "1.13.1" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   set( PYTORCH_INTERNAL_VERSION 1.13.1 CACHE INTERNAL "Internal pytorch version" )
