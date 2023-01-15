@@ -1,6 +1,5 @@
-from ._optical_flow import KittiFlow, Sintel, FlyingChairs, FlyingThings3D, HD1K
-
-from .mnist import MNIST, EMNIST, FashionMNIST, KMNIST, QMNIST
+from ._optical_flow import FlyingChairs, FlyingThings3D, HD1K, KittiFlow, Sintel
+from .mnist import EMNIST, FashionMNIST, KMNIST, MNIST, QMNIST
 
 __all__ = (
     "MNIST",
