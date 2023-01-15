@@ -8,14 +8,14 @@
 #ifndef VIAME_OPENCV_SPLIT_IMAGE_HABCAM_H
 #define VIAME_OPENCV_SPLIT_IMAGE_HABCAM_H
 
-#include <arrows/ocv/kwiver_algo_ocv_export.h>
+#include <plugins/opencv/viame_opencv_export.h>
 
 #include <vital/algo/split_image.h>
 
 namespace viame {
 
 /// A class for splitting an image in class horizontally, only when needed.
-class KWIVER_ALGO_OCV_EXPORT split_image_habcam
+class VIAME_OPENCV_EXPORT split_image_habcam
   : public kwiver::vital::algo::split_image
 {
 public:
