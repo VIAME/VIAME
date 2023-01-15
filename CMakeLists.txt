@@ -793,6 +793,18 @@ else()
     list( INSERT CMAKE_MODULE_PATH 0 "${KWIVER_CMAKE_DIR}" )
     include_directories( "${KWIVER_INCLUDE_DIRS}" )
 
+    # Setup python directories before call to import kwiver utils
+    #
+    # This will trigger use of our desired python output paths on latest
+    if( VIAME_ENABLE_PYTHON )
+      set( KWIVER_BINARY_DIR "${VIAME_BINARY_DIR}" )
+
+      set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
+      set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
+
+      set( viame_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
+    endif()
+
     include( kwiver-cmake-future )
     include( kwiver-utils )
 
@@ -816,13 +828,6 @@ else()
     set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
     set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
     set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
-
-    # Setup python directories for plugin processes in same style as KWIVER
-    if( VIAME_ENABLE_PYTHON )
-      set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
-      set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
-      set( viame_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
-    endif()
 
     ##
     # Build system hacks which should eventually be fixed better
