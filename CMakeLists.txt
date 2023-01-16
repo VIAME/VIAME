@@ -800,9 +800,10 @@ else()
       set( KWIVER_BINARY_DIR "${VIAME_BINARY_DIR}" )
 
       set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
-      set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
+      set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/${kwiver_python_subdir}" )
+      set( kwiver_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
 
-      set( viame_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
+      set( viame_python_install_path "${kwiver_python_install_path}" )
     endif()
 
     include( kwiver-cmake-future )
