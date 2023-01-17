@@ -144,7 +144,7 @@ alongside itself, or standalone. To build VIAME requires, at a minimum, [Git](ht
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
 Installing Python and CUDA is also recommended. If using CUDA, versions 11.7 or 11.6 are
 preferred, with CUDNN 8. Other CUDA or CUDNN versions may or may not work. For python distributions,
-at a minimum Python3.6 or above, and Pip is necessary.
+at a minimum Python3.6 or above, Pip, and Numpy is necessary.
 
 To build on the command line in Linux, use the following commands, only replacing [source-directory]
 and [build-directory] with locations of your choice. While these directories can be the same,

@@ -16,7 +16,7 @@ set( PYTHON_DEP_ENV_VARS )
 if( VIAME_FIXUP_BUNDLE )
   set( VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
 else()
-  set( VIAME_PYTHON_BASIC_DEPS "numpy" )
+  set( VIAME_PYTHON_BASIC_DEPS "numpy<=1.23.5" )
 endif()
 
 # Setuptools < 58.0 required for current version of gdal on windows
