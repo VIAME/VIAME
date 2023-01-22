@@ -158,7 +158,7 @@ if( VIAME_ENABLE_PYTORCH )
   set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.11.0" "1.13.1" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  set( PYTORCH_INTERNAL_VERSION 1.10.2 CACHE INTERNAL "Internal pytorch version" )
+  set( PYTORCH_INTERNAL_VERSION 1.13.1 CACHE INTERNAL "Internal pytorch version" )
 
   option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
