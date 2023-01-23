@@ -72,7 +72,8 @@ def recurse_copy( src, dst, max_depth = 10, ignore = ".json" ):
     elif not src.endswith( ignore ):
         shutil.copy2( src, dst )
 
-def pad_img_to_fit_bbox( img, x1, y1, x2, y2 ) :
+def pad_img_to_fit_bbox( img, x1, y1, x2, y2 ):
+    import cv2
     img = cv2.copyMakeBorder( img, - min( 0, y1 ), max( y2 - img.shape[0], 0),
             -min( 0, x1 ), max( x2 - img.shape[1], 0), cv2.BORDER_CONSTANT )
 
