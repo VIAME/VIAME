@@ -72,6 +72,22 @@ def recurse_copy( src, dst, max_depth = 10, ignore = ".json" ):
     elif not src.endswith( ignore ):
         shutil.copy2( src, dst )
 
+def pad_img_to_fit_bbox( img, x1, y1, x2, y2 ) :
+    img = cv2.copyMakeBorder( img, - min( 0, y1 ), max( y2 - img.shape[0], 0),
+            -min( 0, x1 ), max( x2 - img.shape[1], 0), cv2.BORDER_CONSTANT )
+
+    y2 += -min( 0, y1 )
+    y1 += -min( 0, y1 )
+    x2 += -min( 0, x1 )
+    x1 += -min( 0, x1 )
+
+    return img, x1, x2, y1, y2
+
+def safe_crop( img, x1, y1, x2, y2 ):
+   if x1 < 0 or y1 < 0 or x2 > img.shape[1] or y2 > img.shape[0]:
+        img, x1, x2, y1, y2 = pad_img_to_fit_bbox( img, x1, y1, x2, y2 )
+   return img[ y1:y2, x1:x2, : ]
+
 class NetHarnTrainer( TrainDetector ):
     """
     Implementation of TrainDetector class
@@ -96,6 +112,8 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_width = "640"
         self._chip_overlap = "0.20"
         self._chip_method = "use_box"
+        self._chip_extension = ".png"
+        self._chip_expansion = 1.0
         self._max_epochs = "50"
         self._batch_size = "auto"
         self._learning_rate = "auto"
@@ -142,6 +160,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "chip_width", str( self._chip_width ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
         cfg.set_value( "chip_method", str( self._chip_method ) )
+        cfg.set_value( "chip_extension", self._chip_extension )
+        cfg.set_value( "chip_expansion", str( self._chip_expansion ) )
         cfg.set_value( "max_epochs", str( self._max_epochs ) )
         cfg.set_value( "batch_size", self._batch_size )
         cfg.set_value( "learning_rate", self._learning_rate )
@@ -187,6 +207,8 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_width = str( cfg.get_value( "chip_width" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
         self._chip_method = str( cfg.get_value( "chip_method" ) )
+        self._chip_extension = str( cfg.get_value( "chip_extension" ) )
+        self._chip_expansion = float( cfg.get_value( "chip_expansion" ) )
         self._max_epochs = str( cfg.get_value( "max_epochs" ) )
         self._batch_size = str( cfg.get_value( "batch_size" ) )
         self._scheduler = str( cfg.get_value( "scheduler" ) )
@@ -332,6 +354,10 @@ class NetHarnTrainer( TrainDetector ):
                 target_area = float( parsed_line[-1] )
                 type_str = str( ' '.join( parsed_line[:-1] ) )
                 self._target_type_scales[type_str] = target_area
+
+        # Other misc setting adjustments
+        if self._chip_extension and self._chip_extension[0] != '.':
+            self._chip_extension = '.' + self._chip_extension
 
         # Initialize persistent variables
         self._training_data = []
@@ -501,8 +527,11 @@ class NetHarnTrainer( TrainDetector ):
                         bbox_width = det_width
                         bbox_height = det_height
 
-                if self._chip_method == "fixed_width":
-                    chip_width = int( self._chip_width )
+                if self._chip_method == "fixed_width" or self._chip_method == "native_square":
+                    if self._chip_method == "fixed_width":
+                        chip_width = int( self._chip_width )
+                    else:
+                        chip_width = max( bbox_width, bbox_height )
                     half_width = int( chip_width / 2 )
 
                     bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 ) - half_width
@@ -512,6 +541,15 @@ class NetHarnTrainer( TrainDetector ):
 
                     bbox_width = chip_width
                     bbox_height = chip_width
+
+                if self._chip_expansion != 1.0:
+                    bbox_width = int( bbox_width * self._chip_expansion )
+                    bbox_height = int( bbox_height * self._chip_expansion )
+
+                    bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 - bbox_width / 2 )
+                    bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 - bbox_height / 2 )
+                    bbox_max_x = bbox_min_x + bbox_width 
+                    bbox_max_y = bbox_min_y + bbox_height
 
                 bbox_area = bbox_width * bbox_height
 
@@ -535,9 +573,13 @@ class NetHarnTrainer( TrainDetector ):
                     if bbox_max_y >= img_max_y - self._border_exclude:
                         continue
 
-                crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
+                crop = safe_crop( img, bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y )
+
+                if crop.shape[0] < 4 or crop.shape[1] < 4:
+                    continue
+
                 self._sample_count = self._sample_count + 1
-                crop_str = ( '%09d' %  self._sample_count ) + ".png"
+                crop_str = ( '%09d' %  self._sample_count ) + self._chip_extension
                 new_file = os.path.join( self._chip_directory, crop_str )
                 cv2.imwrite( new_file, crop )
 
@@ -568,8 +610,11 @@ class NetHarnTrainer( TrainDetector ):
 
                 bbox_area = bbox_width * bbox_height
 
-                if self._chip_method == "fixed_width":
-                    chip_width = int( self._chip_width )
+                if self._chip_method == "fixed_width" or self._chip_method == "native_square":
+                    if self._chip_method == "fixed_width":
+                        chip_width = int( self._chip_width )
+                    else:
+                        chip_width = max( bbox_width, bbox_height )
                     half_width = int( chip_width / 2 )
 
                     bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 ) - half_width
@@ -579,6 +624,15 @@ class NetHarnTrainer( TrainDetector ):
 
                     bbox_width = chip_width
                     bbox_height = chip_width
+
+                if self._chip_expansion != 1.0:
+                    bbox_width = int( bbox_width * self._chip_expansion )
+                    bbox_height = int( bbox_height * self._chip_expansion )
+
+                    bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 - bbox_width / 2 )
+                    bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 - bbox_height / 2 )
+                    bbox_max_x = bbox_min_x + bbox_width 
+                    bbox_max_y = bbox_min_y + bbox_height
 
                 if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
                     continue
@@ -599,9 +653,13 @@ class NetHarnTrainer( TrainDetector ):
                 if self._max_neg_per_frame < 1.0 and random.uniform( 0, 1 ) > self._max_neg_per_frame:
                     break
 
-                crop = img[ bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x ]
+                crop = safe_crop( img, bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y )
+
+                if crop.shape[0] < 4 or crop.shape[1] < 4:
+                    continue
+
                 self._sample_count = self._sample_count + 1
-                crop_str = ( '%09d' %  self._sample_count ) + ".png"
+                crop_str = ( '%09d' %  self._sample_count ) + self._chip_extension
                 new_file = os.path.join( self._chip_directory, crop_str )
                 cv2.imwrite( new_file, crop )
 
