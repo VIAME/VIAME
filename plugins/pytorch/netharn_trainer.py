@@ -651,7 +651,7 @@ class NetHarnTrainer( TrainDetector ):
                         continue
 
                 # Handle random factor
-                if self._max_neg_per_frame < 1.0 and random.uniform( 0, 1 ) <= self._max_neg_per_frame:
+                if self._max_neg_per_frame < 1.0 and random.uniform( 0, 1 ) >= self._max_neg_per_frame:
                     continue
 
                 crop = safe_crop( img, bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y )
