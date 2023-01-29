@@ -63,19 +63,19 @@ connect from input2.file_name
         to   downsampler.input_4
 
 process detector1
-  :: camtrawl_detect_fish
+  :: gmm_motion_detector
 
 connect from downsampler.output_1
         to   detector1.image
 
 process detector2
-  :: camtrawl_detect_fish
+  :: gmm_motion_detector
 
 connect from downsampler.output_3
         to   detector2.image
 
 process measurer
-  :: camtrawl_measure
+  :: measure_using_stereo
   :calibration_file                            ./calibration_matrices.npz
 
 connect from detector1.detected_object_set

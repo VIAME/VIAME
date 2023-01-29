@@ -56,7 +56,7 @@ This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017
 i7 2.8Ghz Dell laptop.
 
 
-Running via installed camtrawl python module 
+Running via installed opencv python module 
 --------------------------------------------
 
 The above pipeline can alternatively be run as a python script.
@@ -71,20 +71,20 @@ The above pipeline can alternatively be run as a python script.
     # you may also want to set these environment variables
     # export KWIVER_DEFAULT_LOG_LEVEL=debug
     export KWIVER_DEFAULT_LOG_LEVEL=info
-    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
+    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
 
 You should be able to run the help command
 
 :: 
 
-    python -m viame.processes.camtrawl.demo --help
+    python -m viame.processes.opencv.ocv_stereo_demo --help
 
 The script can be run on the demodata via
 
 ::
 
-    python -m viame.processes.camtrawl.demo \
+    python -m viame.processes.opencv.ocv_stereo_demo \
         --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
         --cal=camtrawl_demodata/cal.npz \
         --out=out --draw -f
@@ -93,7 +93,7 @@ The script can be run on the demodata via
 Running via the standalone script
 ---------------------------------
 
-Alternatively you can run by specifying the path to camtrawl module (if you
+Alternatively you can run by specifying the path to opencv module (if you
 have a python environment you should be able to run this without even building
 VIAME)
 
@@ -105,7 +105,7 @@ VIAME)
     cd [viame-source]/examples/measurement_using_stereo
 
     # Run the camtrawl module directly via the path
-    python ../../plugins/camtrawl/python/viame/processes/camtrawl \
+    python ../../plugins/opencv/python/viame/processes/opencv \
         --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
         --cal=camtrawl_demodata/cal.npz \
         --out=out --draw -f
