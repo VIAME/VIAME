@@ -351,7 +351,7 @@ class DetectedObject(ub.NiceRepr):
         """
         if __OPENCV_VERSION_2__:
             return np.array(cv2.cv.BoxPoints(self.oriented_bbox()),
-                            dtype=float32)
+                            dtype=float)
         else:
             return cv2.boxPoints(self.oriented_bbox())
 
