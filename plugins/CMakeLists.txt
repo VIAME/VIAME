@@ -25,10 +25,6 @@ if( VIAME_ENABLE_SCALLOP_TK )
   add_subdirectory( scallop_tk )
 endif()
 
-if( VIAME_ENABLE_CAMTRAWL )
-  add_subdirectory( measurer )
-endif()
-
 if( VIAME_ENABLE_MATLAB )
   add_subdirectory( matlab )
 endif()

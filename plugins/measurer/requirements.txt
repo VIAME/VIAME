@@ -1,7 +1,0 @@
-ubelt>=0.0.40
-numpy
-#python-opencv
-pyfiglet
-tqdm
-xdoctest
-scikit-image  # only if opencv is less than 3.0
