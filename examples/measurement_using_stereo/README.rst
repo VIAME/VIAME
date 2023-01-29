@@ -26,7 +26,7 @@ Setup:
 ------
 
 Make sure you build VIAME with `VIAME_ENABLE_PYTHON=True` and
-`VIAME_ENABLE_CAMTRAWL=True`.
+`VIAME_ENABLE_OPENCV=True`.
 
 For simplicity this tutorial will assume that the VIAME source directory is
 `[viame-source]` and the build directory is `[viame-build]`. Please modify

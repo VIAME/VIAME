@@ -158,7 +158,7 @@ def tmp_smart_cast_config(self):
 
 @tmp_sprokit_register_process(name='opencv_detect_fish',
                               doc='preliminatry fish detection')
-class CamtrawlDetectFishProcess(KwiverProcess):
+class GMMDetectFishProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
     does postprocessing and then sends the extracted chip to the output port.
@@ -196,7 +196,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         Helper to decouple the algorithm and pipeline logic
 
         CommandLine:
-            xdoctest viame.processes.opencv.processes CamtrawlDetectFishProcess._dowork
+            xdoctest viame.processes.opencv.processes GMMDetectFishProcess._dowork
 
         Example:
             >>> from viame.processes.opencv.processes import *
@@ -204,7 +204,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
             >>> import kwiver.sprokit.pipeline.config
             >>> # construct dummy process instance
             >>> conf = kwiver.sprokit.pipeline.config.empty_config()
-            >>> self = CamtrawlDetectFishProcess(conf)
+            >>> self = GMMDetectFishProcess(conf)
             >>> self._configure()
             >>> # construct test data
             >>> from vital.util import VitalPIL
@@ -254,7 +254,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
 @tmp_sprokit_register_process(name='opencv_measure',
                               doc='preliminatry fish length measurement')
-class CamtrawlMeasureProcess(KwiverProcess):
+class MeasureProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
     does postprocessing and then sends the extracted chip to the output port.
@@ -446,25 +446,10 @@ def __sprokit_register__():
 
     module_name = 'python_' + __name__
 
-    # module_name = 'python:opencv.processes'
-    # module_name = 'python' + __name__
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    # print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
-
     for name, doc, cls in TMP_SPROKIT_PROCESS_REGISTRY:
-        # print("REGISTER PROCESS:")
-        # print(' * name = {!r}'.format(name))
-        # print(' * cls = {!r}'.format(cls))
         process_factory.add_process(name, doc, cls)
-
-    # process_factory.add_process('opencv_detect_fish',
-    #                             'preliminatry detection / feature extraction',
-    #                             CamtrawlDetectFishProcess)
-
-    # process_factory.add_process('opencv_measure',
-    #                             'preliminatry measurement',
-    #                             CamtrawlMeasureProcess)
 
     process_factory.mark_process_module_as_loaded(module_name)
