@@ -156,7 +156,7 @@ def tmp_smart_cast_config(self):
     return config
 
 
-@tmp_sprokit_register_process(name='opencv_detect_fish',
+@tmp_sprokit_register_process(name='gmm_motion_detector',
                               doc='preliminatry fish detection')
 class GMMDetectFishProcess(KwiverProcess):
     """
@@ -252,8 +252,8 @@ class GMMDetectFishProcess(KwiverProcess):
         self._base_step()
 
 
-@tmp_sprokit_register_process(name='opencv_measure',
-                              doc='preliminatry fish length measurement')
+@tmp_sprokit_register_process(name='measure_using_stereo',
+                              doc='preliminatry length measurement process')
 class MeasureProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,

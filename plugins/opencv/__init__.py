@@ -50,4 +50,7 @@ def __sprokit_register__():
         ocv_fft_filter_based_on_ref.filter_based_on_ref_process
     )
 
+    from . import ocv_stereo_processes
+    ocv_stereo_processes.__sprokit_register__()
+
     process_factory.mark_process_module_as_loaded( module_name )
