@@ -14,6 +14,9 @@ v0.20.0 - 02/01/2023
 -Update DIVE to support large image processing
 
 
+-Secondary detector refinement and frame classifier training parameter tweaks
+
+
 
 v0.19.8 - 10/30/2022
 ====================
