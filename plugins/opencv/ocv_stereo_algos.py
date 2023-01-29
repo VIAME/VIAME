@@ -241,7 +241,7 @@ class DetectedObject(ub.NiceRepr):
             >>> print(self.hull().tolist())
             [[[6, 4]], [[2, 4]], [[2, 3]], [[6, 3]]]
         """
-        if not self.mask:
+        if self.mask is None:
             hull = []
             hull = hull + [[self.bbox.xmin, self.bbox.ymin]]
             hull = hull + [[self.bbox.xmax, self.bbox.ymin]]
@@ -258,7 +258,7 @@ class DetectedObject(ub.NiceRepr):
             if self.bbox_factor != 1.0:
                 hull = hull * self.bbox_factor
             hull = hull + [[self.bbox.xmin, self.bbox.ymin]]
-        hull = np.round(hull).astype(np.int)
+        hull = np.round(hull).astype(np.int64)
         return hull
 
     def oriented_bbox(self):
@@ -351,7 +351,7 @@ class DetectedObject(ub.NiceRepr):
         """
         if __OPENCV_VERSION_2__:
             return np.array(cv2.cv.BoxPoints(self.oriented_bbox()),
-                            dtype=np.float32)
+                            dtype=float32)
         else:
             return cv2.boxPoints(self.oriented_bbox())
 
@@ -547,7 +547,7 @@ class GMMForegroundObjectDetector(object):
         """ remove noise from detection intensity masks """
         logger.debug('postprocess mask')
         ksize = np.array(detector.config['smooth_ksize'])
-        ksize = tuple(np.round(ksize / detector.config['factor']).astype(np.int))
+        ksize = tuple(np.round(ksize / detector.config['factor']).astype(np.int64))
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize)
         # opening is erosion followed by dilation
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, dst=mask)
@@ -896,8 +896,8 @@ class StereoLengthMeasurments(object):
         # Move into opencv point format (num x 1 x dim)
         pts1_cv = np.array([pts1[k] for k in keys]).reshape(-1, 1, 2)
         pts2_cv = np.array([pts2[k] for k in keys]).reshape(-1, 1, 2)
-        pts1_cv = pts1_cv.astype(np.float)
-        pts2_cv = pts2_cv.astype(np.float)
+        pts1_cv = pts1_cv.astype(float)
+        pts2_cv = pts2_cv.astype(float)
 
         # Grab camera parameters
         K1, K2 = cal.intrinsic_matrices()
@@ -1150,11 +1150,11 @@ class StereoCalibration(object):
         for cam in [data['left'], data['right']]:
             in_mat = cam['intrinsic']
             ex_mat = cam['extrinsic']
-            ex_mat['om'] = np.array(ex_mat['om'], dtype=np.float)
-            ex_mat['T'] = np.array(ex_mat['T'], dtype=np.float)
-            in_mat['fc'] = np.array(in_mat['fc'], dtype=np.float)
-            in_mat['cc'] = np.array(in_mat['cc'], dtype=np.float)
-            in_mat['kc'] = np.array(in_mat['kc'], dtype=np.float)
+            ex_mat['om'] = np.array(ex_mat['om'], dtype=float)
+            ex_mat['T'] = np.array(ex_mat['T'], dtype=float)
+            in_mat['fc'] = np.array(in_mat['fc'], dtype=float)
+            in_mat['cc'] = np.array(in_mat['cc'], dtype=float)
+            in_mat['kc'] = np.array(in_mat['kc'], dtype=float)
 
         cal = StereoCalibration()
         cal.data = data

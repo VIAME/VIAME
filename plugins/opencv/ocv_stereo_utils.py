@@ -13,7 +13,7 @@ def downsample_average_blocks(img, factor):
     `factor`.  Unfortunately scipy doesn't seem to have a strided
     implementation
     """
-    dsize = tuple(np.divide(img.shape, factor).astype(np.int)[0:2])
+    dsize = tuple(np.divide(img.shape, factor).astype(np.int64)[0:2])
     temp_img = np.zeros(dsize)
     for r, c in it.product(range(factor), range(factor)):
         temp_img += img[r::factor, c::factor]
@@ -111,7 +111,7 @@ def ensure_grayscale(img):
     return img_gray
 
 
-def ensure_float01(img, dtype=np.float32):
+def ensure_float01(img, dtype=float):
     """ Ensure that an image is encoded using a float properly """
     if img.dtype.kind in ('i', 'u'):
         if img.max() > 255:

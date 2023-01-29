@@ -58,15 +58,15 @@ def compare_results():
     py_df = pd.DataFrame.from_csv(measure_fpath, index_col=None)
     # Convert python length output from mm into cm for consistency
     py_df['fishlen'] = py_df['fishlen'] / 10
-    py_df['current_frame'] = py_df['current_frame'].astype(np.int)
+    py_df['current_frame'] = py_df['current_frame'].astype(np.int64)
 
     # janky CSV parsing
     py_df['box_pts1'] = py_df['box_pts1'].map(lambda p: eval(p.replace(';', ','), np.__dict__))
     py_df['box_pts2'] = py_df['box_pts2'].map(lambda p: eval(p.replace(';', ','), np.__dict__))
 
-    py_df['obox1'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int)))
+    py_df['obox1'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int64)))
                       for pts in py_df['box_pts1']]
-    py_df['obox2'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int)))
+    py_df['obox2'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int64)))
                       for pts in py_df['box_pts2']]
     py_df.drop(['box_pts1', 'box_pts2'], axis=1, inplace=True)
 
@@ -95,7 +95,7 @@ def compare_results():
         py_df = py_df[(py_df.current_frame >= min_frame) &
                       (py_df.current_frame <= max_frame)]
 
-    intersect_frames = np.intersect1d(mat_df.current_frame, py_df.current_frame)
+    intersect_frames = np.int64ersect1d(mat_df.current_frame, py_df.current_frame)
     print('intersecting frames = {} / {} (matlab)'.format(
         len(intersect_frames), len(set(mat_df.current_frame))))
     print('intersecting frames = {} / {} (python)'.format(
@@ -236,9 +236,9 @@ def _read_kresimir_results():
     data = mat['lengthsqc']
 
     mat_df = pd.DataFrame(data, columns=header)
-    mat_df['current_frame'] = mat_df['current_frame'].astype(np.int)
-    mat_df['Species'] = mat_df['Species'].astype(np.int)
-    mat_df['QC'] = mat_df['QC'].astype(np.int)
+    mat_df['current_frame'] = mat_df['current_frame'].astype(np.int64)
+    mat_df['Species'] = mat_df['Species'].astype(np.int64)
+    mat_df['QC'] = mat_df['QC'].astype(np.int64)
 
     # Transform so each row corresponds to one set of (x, y) points per detection
     bbox_cols1 = ['LX1', 'LX2', 'LX3', 'LX4', 'LY1', 'LY2', 'LY3', 'LY4', 'Lar', 'LboxL', 'WboxL', 'aveL']
@@ -253,9 +253,9 @@ def _read_kresimir_results():
     bbox_pts2_ = bbox_pts2_.reshape(len(bbox_pts2_), 2, 4).transpose((0, 2, 1))
 
     # Convert matlab bboxes into python-style bboxes
-    mat_df['obox1'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int)))
+    mat_df['obox1'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int64)))
                        for pts in bbox_pts1_]
-    mat_df['obox2'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int)))
+    mat_df['obox2'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int64)))
                        for pts in bbox_pts2_]
 
     mat_df.drop(bbox_cols2, axis=1, inplace=True)

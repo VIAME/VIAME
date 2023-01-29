@@ -80,7 +80,7 @@ class DrawHelper(object):
         }
 
         # Create detection heatmap
-        draw_mask = np.zeros(shape, dtype=np.float)
+        draw_mask = np.zeros(shape, dtype=float)
 
         if 'orig' in masks2:
             draw_mask[masks2['orig'] > 0] = .4
@@ -106,7 +106,7 @@ class DrawHelper(object):
         # Draw bounding boxes and contours
         for i, detection in enumerate(detections):
             # Points come back in (x, y), but we want to draw in (r, c)
-            box_points = np.round(detection.box_points()).astype(np.int)
+            box_points = np.round(detection.box_points()).astype(np.int64)
             hull_points = detection.hull()
             hull_color = BGR_BLUE
             bbox_color = BGR_GREEN if i in assigned else BGR_PURPLE
@@ -169,8 +169,8 @@ class DrawHelper(object):
                 # Offset center2 to the right image
                 center2_ = center2 + [draw1.shape[1], 0]
 
-                center1 = tuple(center1.astype(np.int))
-                center2_ = tuple(center2_.astype(np.int))
+                center1 = tuple(center1.astype(np.int64))
+                center2_ = tuple(center2_.astype(np.int64))
 
                 text = textwrap.dedent(
                     '''
@@ -210,8 +210,8 @@ class DrawHelper(object):
                 # Offset center2 to the right image
                 center2_ = center2 + [draw1.shape[1], 0]
 
-                center1 = tuple(center1.astype(np.int))
-                center2_ = tuple(center2_.astype(np.int))
+                center1 = tuple(center1.astype(np.int64))
+                center2_ = tuple(center2_.astype(np.int64))
 
                 text = textwrap.dedent(
                     '''
