@@ -51,26 +51,26 @@ def simple_pipeline():
     Processing_with_species_id.m is their main file
 
     OpenCV2:
-        cd ~/code/VIAME/plugins/camtrawl/python
+        cd ~/code/VIAME/plugins/opencv/python
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
         # Ensure python and sprokit knows about our module
         export PYTHONPATH=$(pwd):$PYTHONPATH
         export KWIVER_DEFAULT_LOG_LEVEL=info
-        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
+        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:opencv_processes
 
-        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py --dataset=demo
+        python ~/code/VIAME/plugins/opencv/python/run_opencv.py --dataset=demo
 
     OpenCV3:
-        cd ~/code/VIAME/plugins/camtrawl/python
+        cd ~/code/VIAME/plugins/opencv/python
         workon_py2
         source ~/code/VIAME/build-cv3-py2/install/setup_viame.sh
         # Ensure python and sprokit knows about our module
         export PYTHONPATH=$(pwd):$PYTHONPATH
         export KWIVER_DEFAULT_LOG_LEVEL=info
-        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
+        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:opencv_processes
 
-        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py --dataset=demo
+        python ~/code/VIAME/plugins/opencv/python/run_opencv.py --dataset=demo
 
         /home/joncrall/code/VIAME/build-cv3-py2/install/bin/kwiver runner /home/joncrall/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe -S pythread_per_process
     """
@@ -82,9 +82,9 @@ def simple_pipeline():
     if dataset == 'demo':
         import zipfile
         from os.path import commonprefix
-        dpath = ub.ensure_app_cache_dir('camtrawl')
+        dpath = ub.ensure_app_cache_dir('opencv')
         try:
-            demodata_zip = ub.grabdata('http://acidalia:8000/data/camtrawl_demodata.zip', dpath=dpath)
+            demodata_zip = ub.grabdata('http://acidalia:8000/data/opencv_demodata.zip', dpath=dpath)
         except Exception:
             raise ValueError(
                 'Demo data is currently only available on Kitware VPN')
@@ -112,7 +112,7 @@ def simple_pipeline():
             'img_path2': join(data_fpath, 'image_data/right'),
         }
     elif dataset == 'haul83-small':
-        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data_small')
+        data_fpath = expanduser('~/data/opencv_stereo_sample_data_small')
         cal_fpath = join(data_fpath, '201608_calibration_data/selected/Camtrawl_2016.npz')
         datakw = {
             'data_fpath': data_fpath,
@@ -120,7 +120,7 @@ def simple_pipeline():
             'img_path2': join(data_fpath, 'Haul_83/right'),
         }
     elif dataset == 'haul83':
-        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data/')
+        data_fpath = expanduser('~/data/opencv_stereo_sample_data/')
         cal_fpath = join(data_fpath, '201608_calibration_data/selected/Camtrawl_2016.npz')
         datakw = {
             'data_fpath': data_fpath,
@@ -176,7 +176,7 @@ def simple_pipeline():
 
         # --- Node ---
         cam['detect'] = detect = pipe.add_process(
-            name=prefix + 'detect', type='camtrawl_detect_fish', config={ })
+            name=prefix + 'detect', type='opencv_detect_fish', config={ })
         detect.iports.connect({
             'image': imread.oports['image'],
             # 'image_file_name': imread.oports['image_file_name'],
@@ -195,9 +195,9 @@ def simple_pipeline():
     #     })
 
     # ------
-    pipe.add_process(name='measure', type='camtrawl_measure', config={
+    pipe.add_process(name='measure', type='opencv_measure', config={
         'cal_fpath': cal_fpath,
-        'output_fpath': './camtrawl_out.csv',
+        'output_fpath': './opencv_out.csv',
     })
     pipe['measure'].iports.connect({
         # 'camera1': stereo_cameras.oports['camera1'],
@@ -231,10 +231,10 @@ if __name__ == '__main__':
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
         export KWIVER_DEFAULT_LOG_LEVEL=DEBUG
-        export PYTHONPATH=$HOME/code/VIAME/plugins/camtrawl:$PYTHONPATH
-        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
+        export PYTHONPATH=$HOME/code/VIAME/plugins/opencv:$PYTHONPATH
+        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:opencv_processes
 
-        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
+        python ~/code/VIAME/plugins/opencv/python/run_opencv.py
 
     Ignore:
         kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe -S pythread_per_process
@@ -250,13 +250,13 @@ if __name__ == '__main__':
         export KWIVER_DEFAULT_LOG_LEVEL=info
 
         # Ensure python and sprokit knows about our module
-        export PYTHONPATH=$HOME/code/VIAME/plugins/camtrawl:$PYTHONPATH
-        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
-        cd ~/code/VIAME/plugins/camtrawl/
+        export PYTHONPATH=$HOME/code/VIAME/plugins/opencv:$PYTHONPATH
+        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:opencv_processes
+        cd ~/code/VIAME/plugins/opencv/
 
-        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
+        python ~/code/VIAME/plugins/opencv/python/run_opencv.py
 
-        cd ~/code/VIAME/plugins/camtrawl/
+        cd ~/code/VIAME/plugins/opencv/
         cls && python -c "from sprokit import pipeline; print(pipeline.process_factory.types())"
 
         # Issue with sprokit python

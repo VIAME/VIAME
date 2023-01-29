@@ -79,20 +79,23 @@ target_link_libraries( viame_opencv_plugin
   )
 
 if( VIAME_ENABLE_PYTHON )
+  set( _rel_modnames
+    __init__
+    ocv_multimodal_registration
+    ocv_fft_filter_based_on_ref
+    ocv_stereo_algos
+    ocv_stereo_demo
+    ocv_stereo_expt
+    ocv_stereo_pipeline
+    ocv_stereo_processes
+    ocv_stereo_utils
+    )
 
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    processes/opencv
-    __init__ )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_multimodal_registration.py
-    processes/opencv
-    ocv_multimodal_registration )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_fft_filter_based_on_ref.py
-    processes/opencv
-    ocv_fft_filter_based_on_ref )
-
+  foreach( rel_modname IN ITEMS ${_rel_modnames} )
+    string( REPLACE "." "/" rel_modpath_noext ${rel_modname} )
+    kwiver_add_python_module(
+      "${CMAKE_CURRENT_SOURCE_DIR}/${rel_modpath_noext}.py"
+      "processes/opencv"
+      "${rel_modname}" )
+  endforeach()
 endif()

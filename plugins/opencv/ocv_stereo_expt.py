@@ -4,15 +4,16 @@
 Experimental scripts
 """
 from __future__ import division, print_function, unicode_literals
+
 import cv2
 import numpy as np
 import ubelt as ub
 import sklearn.metrics
 import scipy.io
 import pandas as pd
-from os.path import expanduser
-from . import algos as ctalgo
 
+from os.path import expanduser
+from . import ocv_stereo_algos as ctalgo
 
 def to_mat_format():
     import pandas as pd
@@ -230,8 +231,8 @@ def compare_results():
 
 def _read_kresimir_results():
     # Load downloaded matlab csv results
-    mat = scipy.io.loadmat(expanduser('~/data/camtrawl_stereo_sample_data/Haul_83/Haul_083_qcresult.mat'))
-    header = ub.readfrom(expanduser('~/data/camtrawl_stereo_sample_data/Haul_83/mat_file_header.csv')).strip().split(',')
+    mat = scipy.io.loadmat(expanduser('~/data/opencv_stereo_sample_data/Haul_83/Haul_083_qcresult.mat'))
+    header = ub.readfrom(expanduser('~/data/opencv_stereo_sample_data/Haul_83/mat_file_header.csv')).strip().split(',')
     data = mat['lengthsqc']
 
     mat_df = pd.DataFrame(data, columns=header)
@@ -265,6 +266,6 @@ def _read_kresimir_results():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python ~/code/VIAME/plugins/camtrawl/python/camtrawl_expt.py
+        python ~/code/VIAME/plugins/opencv/python/opencv_expt.py
     """
     compare_results()

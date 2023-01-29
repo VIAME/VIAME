@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Runs camtrawl algos with no dependency on kwiver
+Runs opencv algos with no dependency on kwiver
 """
 from __future__ import division, print_function, unicode_literals
+
 from os.path import expanduser, basename, join
 from os.path import exists
 from functools import partial
+
 import textwrap
 import glob
 import cv2
 import numpy as np
 import ubelt as ub
 import threading
-from .imutils import (imscale, overlay_heatmask, putMultiLineText)
-from . import algos as ctalgo
 import logging
+
+from .ocv_stereo_utils import (imscale, overlay_heatmask, putMultiLineText)
+from . import ocv_stereo_algos as ctalgo
 from six.moves import zip, range
 
 logger = logging.getLogger(__name__)
@@ -25,7 +28,6 @@ try:
 except ImportError:
     # python 2 support
     import Queue as queue
-
 
 class DrawHelper(object):
     """
@@ -48,12 +50,12 @@ class DrawHelper(object):
             cd ~/code/VIAME/build
             source install/setup_viame.sh
 
-            cd ~/code/VIAME/plugins/camtrawl/python/
-            python -m xdoctest viame.processes.camtrawl.demo DrawHelper.draw_detections --show
+            cd ~/code/VIAME/plugins/opencv/python/
+            python -m xdoctest viame.processes.opencv.demo DrawHelper.draw_detections --show
 
         Example:
-            >>> from viame.processes.camtrawl.algos import *
-            >>> from viame.processes.camtrawl.demo import *
+            >>> from viame.processes.opencv.algos import *
+            >>> from viame.processes.opencv.demo import *
             >>> cc = np.zeros((110, 110), dtype=np.uint8)
             >>> cc[30:50, 20:70] = 1
             >>> detections = [DetectedObject.from_connected_component(cc)]
@@ -62,7 +64,7 @@ class DrawHelper(object):
             >>> assigned = {}
             >>> draw_img = DrawHelper.draw_detections(img, detections, masks, assigned)
             >>> # xdoc: +REQUIRES(--show)
-            >>> fpath = ub.ensure_app_cache_dir('camtrawl') + '/DrawHelper.draw_detections.png'
+            >>> fpath = ub.ensure_app_cache_dir('opencv') + '/DrawHelper.draw_detections.png'
             >>> cv2.imwrite(fpath, draw_img)
             >>> ub.startfile(fpath)
 
@@ -342,7 +344,7 @@ def _imreader_thread(image_path_list, buffer):
 class StereoFrameStream(object):
     """
     Exmaple:
-        >>> from viame.processes.camtrawl.demo import *
+        >>> from viame.processes.opencv.demo import *
         >>> img_path1, img_path2, cal = demodata_input(dataset='haul83')
         >>> self = StereoFrameStream(img_path1, img_path2)
         >>> self.preload()
@@ -463,9 +465,9 @@ def demodata_input(dataset='demo'):
     if dataset == 'demo':
         import zipfile
         from os.path import commonprefix
-        dpath = ub.ensure_app_cache_dir('camtrawl')
+        dpath = ub.ensure_app_cache_dir('opencv')
         try:
-            demodata_zip = ub.grabdata('http://acidalia:8000/data/camtrawl_demodata.zip', dpath=dpath)
+            demodata_zip = ub.grabdata('http://acidalia:8000/data/opencv_demodata.zip', dpath=dpath)
         except Exception:
             raise ValueError(
                 'Demo data is currently only available on Kitware VPN')
@@ -484,12 +486,12 @@ def demodata_input(dataset='demo'):
         img_path1 = join(data_fpath, 'image_data/left')
         img_path2 = join(data_fpath, 'image_data/right')
     elif dataset == 'haul83-small':
-        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data_small')
+        data_fpath = expanduser('~/data/opencv_stereo_sample_data_small')
         cal_fpath = join(data_fpath, '201608_calibration_data/selected/Camtrawl_2016.npz')
         img_path1 = join(data_fpath, 'Haul_83/left')
         img_path2 = join(data_fpath, 'Haul_83/right')
     elif dataset == 'haul83':
-        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data/')
+        data_fpath = expanduser('~/data/opencv_stereo_sample_data/')
         cal_fpath = join(data_fpath, '201608_calibration_data/selected/Camtrawl_2016.npz')
         img_path1 = join(data_fpath, 'Haul_83/D20160709-T021759/images/AB-800GE_00-0C-DF-06-40-BF')  # left
         img_path2 = join(data_fpath, 'Haul_83/D20160709-T021759/images/AM-800GE_00-0C-DF-06-20-47')  # right
@@ -612,7 +614,7 @@ def demo(config=None):
 
     if config is None:
         import argparse
-        parser = argparse.ArgumentParser(description='Standalone camtrawl demo')
+        parser = argparse.ArgumentParser(description='Standalone opencv demo')
 
         parser.add_argument('--cal', help='path to matlab or numpy stereo calibration file', default='cal.npz')
         parser.add_argument('--left', help='path to directory containing left images', default='left')
@@ -716,12 +718,12 @@ def demo(config=None):
 
     measurements = []
 
-    logger.info('begin camtrawl iteration')
+    logger.info('begin opencv iteration')
 
     import tqdm
-    # prog = ub.ProgIter(iter(stream), total=len(stream), desc='camtrawl demo',
+    # prog = ub.ProgIter(iter(stream), total=len(stream), desc='opencv demo',
     #                    clearline=False, freq=1, adjust=False)
-    prog = tqdm.tqdm(iter(stream), total=len(stream), desc='camtrawl demo',
+    prog = tqdm.tqdm(iter(stream), total=len(stream), desc='opencv demo',
                      leave=True)
 
     def csv_repr(d):
@@ -811,10 +813,10 @@ if __name__ == '__main__':
         workon_py2
         source ~/code/VIAME/build-py2.7/install/setup_viame.sh
 
-        cd ~/code/VIAME/plugins/camtrawl/python/camtrawl
+        cd ~/code/VIAME/plugins/opencv/python/opencv
 
-        python -m viame.processes.camtrawl.demo --dataset=haul83-small
-        python -m viame.processes.camtrawl.demo --level=DEBUG
+        python -m viame.processes.opencv.demo --dataset=haul83-small
+        python -m viame.processes.opencv.demo --level=DEBUG
 
         # Create a movie rom the frames
         ffmpeg -y -f image2 -i out/visual/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
@@ -823,25 +825,25 @@ if __name__ == '__main__':
         # Runs in about 2-3 it/s
         workon_py2
         source ~/code/VIAME/build-py2.7/install/setup_viame.sh
-        python -m viame.processes.camtrawl.demo --dataset=demo --out=out-py2 -f
-        python -m viame.processes.camtrawl.demo --dataset=demo --draw --out=out-py2
+        python -m viame.processes.opencv.demo --dataset=demo --out=out-py2 -f
+        python -m viame.processes.opencv.demo --dataset=demo --draw --out=out-py2
 
     Python3:
         # Runs in about 3-4 it/s
         workon_py3
-        cd ~/code/VIAME/plugins/camtrawl/python
-        python -m viame.processes.camtrawl.demo --dataset=demo --out=out-py3 -f
-        python -m viame.processes.camtrawl.demo --dataset=demo --draw --out=out-py3
+        cd ~/code/VIAME/plugins/opencv/python
+        python -m viame.processes.opencv.demo --dataset=demo --out=out-py3 -f
+        python -m viame.processes.opencv.demo --dataset=demo --draw --out=out-py3
 
 
     CommandLine:
-        python -m viame.processes.camtrawl.demo --help
+        python -m viame.processes.opencv.demo --help
 
         # Move to the data directory
-        cd ~/data/camtrawl_stereo_sample_data_small
+        cd ~/data/opencv_stereo_sample_data_small
 
         # Run with args specific to that data directory
-        python -m viame.processes.camtrawl.demo \
+        python -m viame.processes.opencv.demo \
             --left=Haul_83/left --right=Haul_83/right \
             --cal=201608_calibration_data/selected/Camtrawl_2016.npz \
             --out=out_haul83 --draw

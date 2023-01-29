@@ -31,7 +31,7 @@
 Ignore:
     workon_py2
     source ~/code/VIAME/build/install/setup_viame.sh
-    cd ~/code/VIAME/plugins/camtrawl
+    cd ~/code/VIAME/plugins/opencv
 
     feat1 = vital.types.Feature(loc=(10, 1))
     feat2 = vital.types.Feature(loc=(2, 3))
@@ -40,7 +40,7 @@ Ignore:
 
 CommandLine:
     # OPENCV 3.X VERSION
-    cd ~/code/VIAME/plugins/camtrawl/python
+    cd ~/code/VIAME/plugins/opencv/python
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
     workon_py2
@@ -55,15 +55,15 @@ CommandLine:
     export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=info
     export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
-    python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
-    python run_camtrawl.py
+    python ~/code/VIAME/plugins/opencv/python/run_opencv.py
+    python run_opencv.py
 
     ~/code/VIAME/build/install/bin/kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
-    ~/code/VIAME/build/install/bin/kwiver runner camtrawl.pipe -S pythread_per_process
+    ~/code/VIAME/build/install/bin/kwiver runner opencv.pipe -S pythread_per_process
 
 CommandLine:
     # OPENCV 2.4 VERSION
-    cd ~/code/VIAME/plugins/camtrawl/python
+    cd ~/code/VIAME/plugins/opencv/python
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
     workon_py2
@@ -79,11 +79,11 @@ CommandLine:
 
     # export KWIVER_PYTHON_COLOREDLOGS=1
 
-    python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
-    python run_camtrawl.py
+    python ~/code/VIAME/plugins/opencv/python/run_opencv.py
+    python run_opencv.py
 
     ~/code/VIAME/build/install/bin/kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe  -S pythread_per_process
-    ~/code/VIAME/build/install/bin/kwiver runner camtrawl.pipe -S pythread_per_process
+    ~/code/VIAME/build/install/bin/kwiver runner opencv.pipe -S pythread_per_process
 
 SeeAlso
     ~/code/VIAME/packages/kwiver/vital/bindings/python/vital/types
@@ -109,7 +109,7 @@ import ubelt as ub
 import os
 import itertools as it
 
-from . import algos as ctalgo
+from . import ocv_stereo_algos as ctalgo
 
 from kwiver.vital import vital_logging
 
@@ -131,7 +131,7 @@ def tmp_sprokit_register_process(name=None, doc=''):
     return _wrp
 
 
-def camtrawl_setup_config(self, default_params):
+def opencv_setup_config(self, default_params):
     if isinstance(default_params, dict):
         default_params = list(it.chain(*default_params.values()))
     for pi in default_params:
@@ -156,7 +156,7 @@ def tmp_smart_cast_config(self):
     return config
 
 
-@tmp_sprokit_register_process(name='camtrawl_detect_fish',
+@tmp_sprokit_register_process(name='opencv_detect_fish',
                               doc='preliminatry fish detection')
 class CamtrawlDetectFishProcess(KwiverProcess):
     """
@@ -170,7 +170,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         logger.debug(' ----- init ' + self.__class__.__name__)
         KwiverProcess.__init__(self, conf)
 
-        camtrawl_setup_config(self, ctalgo.GMMForegroundObjectDetector.default_params())
+        opencv_setup_config(self, ctalgo.GMMForegroundObjectDetector.default_params())
 
         # set up required flags
         optional = process.PortFlags()
@@ -196,10 +196,10 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         Helper to decouple the algorithm and pipeline logic
 
         CommandLine:
-            xdoctest viame.processes.camtrawl.processes CamtrawlDetectFishProcess._dowork
+            xdoctest viame.processes.opencv.processes CamtrawlDetectFishProcess._dowork
 
         Example:
-            >>> from viame.processes.camtrawl.processes import *
+            >>> from viame.processes.opencv.processes import *
             >>> from kwiver.vital.types import ImageContainer
             >>> import kwiver.sprokit.pipeline.config
             >>> # construct dummy process instance
@@ -252,7 +252,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         self._base_step()
 
 
-@tmp_sprokit_register_process(name='camtrawl_measure',
+@tmp_sprokit_register_process(name='opencv_measure',
                               doc='preliminatry fish length measurement')
 class CamtrawlMeasureProcess(KwiverProcess):
     """
@@ -265,7 +265,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         KwiverProcess.__init__(self, conf)
 
-        camtrawl_setup_config(self, ctalgo.StereoLengthMeasurments.default_params())
+        opencv_setup_config(self, ctalgo.StereoLengthMeasurments.default_params())
 
         self.add_config_trait('measurement_file', 'measurement_file', '',
                               'output file to write detection measurements')
@@ -446,7 +446,7 @@ def __sprokit_register__():
 
     module_name = 'python_' + __name__
 
-    # module_name = 'python:camtrawl.processes'
+    # module_name = 'python:opencv.processes'
     # module_name = 'python' + __name__
     if process_factory.is_process_module_loaded(module_name):
         return
@@ -459,11 +459,11 @@ def __sprokit_register__():
         # print(' * cls = {!r}'.format(cls))
         process_factory.add_process(name, doc, cls)
 
-    # process_factory.add_process('camtrawl_detect_fish',
+    # process_factory.add_process('opencv_detect_fish',
     #                             'preliminatry detection / feature extraction',
     #                             CamtrawlDetectFishProcess)
 
-    # process_factory.add_process('camtrawl_measure',
+    # process_factory.add_process('opencv_measure',
     #                             'preliminatry measurement',
     #                             CamtrawlMeasureProcess)
 

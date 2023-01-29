@@ -8,16 +8,19 @@ TODO:
 """
 from __future__ import division, print_function
 from collections import namedtuple, OrderedDict
+
 import cv2
 import itertools as it
 import numpy as np
 import ubelt as ub
 import logging
 import warnings
+
 from os.path import splitext
 from six.moves import zip
-from .imutils import (imscale, ensure_grayscale, from_homog, to_homog)
-from .util_algo import minimum_weight_assignment
+
+from .ocv_stereo_utils import (imscale, ensure_grayscale, from_homog, to_homog)
+from .ocv_stereo_utils import minimum_weight_assignment
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +125,7 @@ class DetectedObject(ub.NiceRepr):
             indicates a set of named special points that could be matched
 
     Example:
-        >>> from viame.processes.camtrawl.algos import *
+        >>> from viame.processes.opencv.algos import *
         >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
         >>> cc_mask[3:5, 2:7] = 1
         >>> self = DetectedObject.from_connected_component(cc_mask)
@@ -211,7 +214,7 @@ class DetectedObject(ub.NiceRepr):
                 space)
 
         Example:
-            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.opencv.algos import *
             >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
             >>> cc_mask[3:5, 2:7] = 1
             >>> self = DetectedObject.from_connected_component(cc_mask)
@@ -231,7 +234,7 @@ class DetectedObject(ub.NiceRepr):
             ndarray
 
         Example:
-            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.opencv.algos import *
             >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
             >>> cc_mask[3:5, 2:7] = 1
             >>> self = DetectedObject.from_connected_component(cc_mask)
@@ -266,7 +269,7 @@ class DetectedObject(ub.NiceRepr):
             OrientedBBox
 
         Example:
-            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.opencv.algos import *
             >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
             >>> cc_mask[3:5, 2:7] = 1
             >>> self = DetectedObject.from_connected_component(cc_mask)
@@ -282,7 +285,7 @@ class DetectedObject(ub.NiceRepr):
         Finds oriented box corner points of `self.oriented_bbox`
 
         CommandLine:
-            python -m viame.processes.camtrawl.algos DetectedObject.box_points
+            python -m viame.processes.opencv.algos DetectedObject.box_points
 
         Returns:
             ndarray: pts: [4x2] matrix where each item pts[i] is in x,y
@@ -292,7 +295,7 @@ class DetectedObject(ub.NiceRepr):
                  duplicated)
 
         Example:
-            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.opencv.algos import *
             >>> _, o = 0, 1
             >>> A = B = C = D = 1
             >>> cc_mask = np.array([             # Y
@@ -312,7 +315,7 @@ class DetectedObject(ub.NiceRepr):
             [[4.00, 6.00], [1.00, 3.00], [3.00, 1.00], [6.00, 4.00]]
 
         Example:
-            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.opencv.algos import *
             >>> _, o = 0, 1
             >>> A = B = C = D = 1
             >>> cc_mask = np.array([     # Y
@@ -329,7 +332,7 @@ class DetectedObject(ub.NiceRepr):
             [[3.00, 3.00], [1.00, 3.00], [1.00, 1.00], [3.00, 1.00]]
 
         Example:
-            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.opencv.algos import *
             >>> _, o = 0, 1
             >>> A = B = C = D = 1
             >>> cc_mask = np.array([        # Y
@@ -465,14 +468,14 @@ class GMMForegroundObjectDetector(object):
             detections : List[DetectedObjects]
 
         CommandLine:
-            python -m viame.processes.camtrawl.algos GMMForegroundObjectDetector.detect
+            python -m viame.processes.opencv.algos GMMForegroundObjectDetector.detect
 
         Example:
             >>> # xdoctest: +SKIP
             >>> import matplotlib as mpl
             >>> mpl.use('agg')
-            >>> from viame.processes.camtrawl.algos import *
-            >>> from viame.processes.camtrawl.demo import *
+            >>> from viame.processes.opencv.algos import *
+            >>> from viame.processes.opencv.demo import *
             >>> detector, img = demodata_detections(
             >>>     target_step='detect', target_frame_num=7)
             >>> detections = detector.detect(img)
@@ -480,7 +483,7 @@ class GMMForegroundObjectDetector(object):
             >>> masks = detector._masks
             >>> # xdoctest: REQUIRES(--show)
             >>> draw_img = DrawHelper.draw_detections(img, detections, masks)
-            >>> fpath = ub.ensure_app_cache_dir('camtrawl') + '/GMMForegroundObjectDetector.detect.png'
+            >>> fpath = ub.ensure_app_cache_dir('opencv') + '/GMMForegroundObjectDetector.detect.png'
             >>> cv2.imwrite(fpath, draw_img)
             >>> ub.startfile(fpath)
             >>> #from matplotlib import pyplot as plt
@@ -564,7 +567,7 @@ class GMMForegroundObjectDetector(object):
             DetectedObject
 
         Example:
-            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.opencv.algos import *
             >>> detector = GMMForegroundObjectDetector()
             >>> detector.config['min_num_pixels'] = 2
             >>> x, y = np.indices((10, 10))
@@ -744,8 +747,8 @@ class StereoLengthMeasurments(object):
 
         Example:
             >>> # Rows are detections in img1, cols are detections in img2
-            >>> from viame.processes.camtrawl.algos import *
-            >>> from viame.processes.camtrawl.demo import *
+            >>> from viame.processes.opencv.algos import *
+            >>> from viame.processes.opencv.demo import *
             >>> cal, detections1, detections2 = demodata_detections2()
             >>> self = StereoLengthMeasurments()
             >>> _tup  = self.find_matches(cal, detections1, detections2)
@@ -862,8 +865,8 @@ class StereoLengthMeasurments(object):
 
         Example:
             >>> # Rows are detections in img1, cols are detections in img2
-            >>> from viame.processes.camtrawl.algos import *
-            >>> from viame.processes.camtrawl.demo import *
+            >>> from viame.processes.opencv.algos import *
+            >>> from viame.processes.opencv.demo import *
             >>> cal = demodata_calibration()
             >>> pts1 = {'head': [0, 0], 'tail': [1, 1]}
             >>> pts2 = {'head': [1, 0], 'tail': [2, 1]}
@@ -1015,8 +1018,8 @@ class StereoCalibration(object):
 
         Example:
             >>> # xdoctest: +SKIP
-            >>> from viame.processes.camtrawl.algos import *
-            >>> cal_fpath = ub.expandpath('~/data/camtrawl_stereo_sample_data/201608_calibration_data/selected/Camtrawl_2016.npz')
+            >>> from viame.processes.opencv.algos import *
+            >>> cal_fpath = ub.expandpath('~/data/opencv_stereo_sample_data/201608_calibration_data/selected/Camtrawl_2016.npz')
             >>> cal = StereoCalibration.from_file(cal_fpath)
         """
         ext = splitext(cal_fpath)[1].lower()
@@ -1093,8 +1096,8 @@ class StereoCalibration(object):
 
         Example:
             >>> # xdoctest: +SKIP
-            >>> from viame.processes.camtrawl.algos import *
-            >>> from viame.processes.camtrawl.demo import *
+            >>> from viame.processes.opencv.algos import *
+            >>> from viame.processes.opencv.demo import *
             >>> cal_fpath = ub.expandpath('~/data/autoprocess_test_set/cal_201608.mat')
             >>> cal = StereoCalibration.from_matfile(cal_fpath)
             >>> print('cal = {}'.format(cal))
@@ -1161,16 +1164,16 @@ class StereoCalibration(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m viame.processes.camtrawl.algos
+        python -m viame.processes.opencv.algos
 
-        xdoctest ~/code/VIAME/plugins/camtrawl/python/viame/processes/camtrawl/algos.py
+        xdoctest ~/code/VIAME/plugins/opencv/python/viame/processes/opencv/algos.py
 
     Ignore:
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
-        export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
+        export SPROKIT_PYTHON_MODULES=opencv_processes:kwiver.processes:viame.processes
         export PYTHONPATH=$(pwd):$PYTHONPATH
-        python ~/code/VIAME/plugins/camtrawl/python/camtrawl_demo.py
+        python ~/code/VIAME/plugins/opencv/python/opencv_demo.py
         ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
     """
     import xdoctest

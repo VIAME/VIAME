@@ -1,19 +1,18 @@
 
 ''' attempt at writing a triangulation function to mimic matlab camera calibration toolbox'''
 
-
 from scipy.io import matlab
+
 import numpy as np
 import string
 import cv2
-
 
 class pyStereoComp(object):
 
     """
 
     import sys
-    sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
+    sys.path.append('/home/joncrall/code/VIAME/plugins/opencv/python')
     from pyStereoComp import *
     import glob
     from os.path import expanduser, join
