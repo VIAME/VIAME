@@ -1,3 +1,20 @@
+v0.20.0 - 02/01/2023
+====================
+
+
+-Updates to support refined scallop measurements
+
+
+-Additional updates to fusion classifiers
+
+
+-Utility pipeline updates: add enhancement utility, retain IDs in remove in regions
+
+
+-Update DIVE to support large image processing
+
+
+
 v0.19.8 - 10/30/2022
 ====================
 
