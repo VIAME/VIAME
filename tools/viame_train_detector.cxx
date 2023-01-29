@@ -2013,7 +2013,7 @@ main( int argc, char* argv[] )
   }
 
   // Generate a testing and validation set automatically if enabled
-  bool invalid_train_set = false, invalid_validation_set = false;
+  bool invalid_train_set = false, invalid_validation_set = false, found_any = false;
 
   if( percent_test > 0.0 && test_image_fn.empty() )
   {
@@ -2045,6 +2045,7 @@ main( int argc, char* argv[] )
         test_image_fn.push_back( train_image_fn[i] );
         test_gt.push_back( train_gt[i] );
         found_first = true;
+        found_any = true;
       }
       else if( !found_second && !train_gt[i]->empty() )
       {
@@ -2103,10 +2104,30 @@ main( int argc, char* argv[] )
     invalid_train_set = is_empty( train_gt );
   }
 
-  // Final validation check
+  // Final validation checks
+  if( !found_any )
+  {
+    for( const auto& dets : train_gt )
+    {
+      if( !dets->empty() )
+      {
+        found_any = true;
+        break;
+      }
+    }
+
+    if( !found_any )
+    {
+      std::cout << "Error: training set contains no truth detections to use. "
+        "Check to make sure you have appropriately formatted inputs." << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+
   if( invalid_train_set || invalid_validation_set )
   {
-    std::cout << "Error: not enough data diversity to generate model" << std::endl;
+    std::cout << "Error: Either not enough input diversity to train model, "
+      "or improperly formatted input supplied." << std::endl;
     return EXIT_FAILURE;
   }
 
