@@ -372,7 +372,10 @@ class CamtrawlMeasureProcess(KwiverProcess):
                 bbox = vital_det.bounding_box
                 coords = [bbox.min_x(), bbox.min_y(),
                           bbox.max_x(), bbox.max_y()]
-                mask = vital_det.mask.asarray()
+                if vital_det.mask:
+                    mask = vital_det.mask.asarray()
+                else:
+                    mask = None
                 ct_bbox = ctalgo.BoundingBox(coords)
 
                 # TODO: to measure distances between special keypoint
