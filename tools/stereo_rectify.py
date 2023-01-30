@@ -89,8 +89,6 @@ def main():
     rect_pair = np.hstack((left_rect, right_rect))
     cv2.imwrite(args[1], rect_pair)
 
-
-
 if __name__ == "__main__":
     main()
 

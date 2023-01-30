@@ -46,7 +46,7 @@ from optparse import OptionParser
 
 def main():
     usage = "usage: %prog [options] stereo-image extrinsics\n\n"
-    usage += "  Estimate disparity between a pair of rectified images\n"
+    usage += "  Estimate depth between a pair of rectified images\n"
     parser = OptionParser(usage=usage)
 
     (options, args) = parser.parse_args()
@@ -87,10 +87,6 @@ def main():
     color["blue"] = bgr[:,0]
 
     write_ply_file(pts3d, basename+"-points.ply", color, color.keys())
-
-
-
-
 
 if __name__ == "__main__":
     main()
