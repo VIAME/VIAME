@@ -1,11 +1,5 @@
-v0.20.0 - 02/01/2023
+v0.20.0 - 02/10/2023
 ====================
-
-
--Updates to support refined scallop measurements
-
-
--Additional updates to fusion classifiers
 
 
 -Utility pipeline updates: add enhancement utility, retain IDs in remove in regions
@@ -15,6 +9,17 @@ v0.20.0 - 02/01/2023
 
 
 -Secondary detector refinement and frame classifier training parameter tweaks
+
+
+
+v0.19.9 - 02/06/2023
+====================
+
+
+-Updates to support refined scallop measurements
+
+
+-Additional updates to fusion classifiers
 
 
 
