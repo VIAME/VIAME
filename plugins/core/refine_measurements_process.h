@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2020 by Kitware, Inc.
+ * Copyright 2023 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,8 @@
  * \brief Filter object tracks process
  */
 
-#ifndef VIAME_FILTER_OBJECT_TRACKS_PROCESS_H
-#define VIAME_FILTER_OBJECT_TRACKS_PROCESS_H
+#ifndef VIAME_REFINE_MEASUREMENTS_PROCESS_H
+#define VIAME_REFINE_MEASUREMENTS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -76,4 +76,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_FILTER_OBJECT_TRACKS_PROCESS_H
+#endif // VIAME_REFINE_MEASUREMENTS_PROCESS_H

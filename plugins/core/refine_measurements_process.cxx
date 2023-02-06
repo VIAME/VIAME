@@ -52,8 +52,9 @@ namespace viame
 namespace core
 {
 
-create_config_trait( required_states, unsigned, "0",
-  "If set, number of track states required for a track"  );
+create_config_trait( recompute_all, bool, "false",
+  "If set, recompute lengths for all detections using GSD, even those "
+  "already containing lengths." );
 create_config_trait( buffer_frames, unsigned, "0",
   "Number of frames to buffer offer"  );
 
@@ -66,8 +67,11 @@ public:
   ~priv();
 
   // Configuration settings
-  unsigned m_required_states;
+  bool m_recompute_all;
   unsigned m_buffer_frames;
+
+  // Internal variables
+  double m_last_gsd;
 
   // Other variables
   refine_measurements_process* parent;
@@ -77,8 +81,9 @@ public:
 // -----------------------------------------------------------------------------
 refine_measurements_process::priv
 ::priv( refine_measurements_process* ptr )
-  : m_required_states( 0 )
+  : m_recompute_all( false )
   , m_buffer_frames( 0 )
+  , m_last_gsd( -1.0 )
   , parent( ptr )
 {
 }
@@ -121,10 +126,12 @@ refine_measurements_process
   // -- inputs --
   declare_input_port_using_trait( image, optional );
   declare_input_port_using_trait( timestamp, optional );
-  declare_input_port_using_trait( object_track_set, required );
+  declare_input_port_using_trait( detected_object_set, optional );
+  declare_input_port_using_trait( object_track_set, optional );
 
   // -- outputs --
   declare_output_port_using_trait( timestamp, optional );
+  declare_output_port_using_trait( detected_object_set, optional );
   declare_output_port_using_trait( object_track_set, optional );
 }
 
@@ -133,7 +140,7 @@ void
 refine_measurements_process
 ::make_config()
 {
-  declare_config_using_trait( required_states );
+  declare_config_using_trait( recompute_all );
   declare_config_using_trait( buffer_frames );
 }
 
@@ -142,7 +149,7 @@ void
 refine_measurements_process
 ::_configure()
 {
-  d->m_required_states = config_value_using_trait( required_states );
+  d->m_recompute_all = config_value_using_trait( recompute_all );
   d->m_buffer_frames = config_value_using_trait( buffer_frames );
 }
 
@@ -152,12 +159,18 @@ refine_measurements_process
 ::_step()
 {
   kv::object_track_set_sptr input_tracks;
-
+  kv::detected_object_set_sptr input_dets;
   kv::image_container_sptr image;
   kv::timestamp timestamp;
 
-  input_tracks = grab_from_port_using_trait( object_track_set );
-
+  if( has_input_port_edge_using_trait( detected_object_set ) )
+  {
+    input_dets = grab_from_port_using_trait( detected_object_set );
+  }
+  if( has_input_port_edge_using_trait( object_track_set ) )
+  {
+    input_tracks = grab_from_port_using_trait( object_track_set );
+  }
   if( has_input_port_edge_using_trait( timestamp ) )
   {
     timestamp = grab_from_port_using_trait( timestamp );
@@ -167,22 +180,56 @@ refine_measurements_process
     image = grab_from_port_using_trait( image );
   }
 
-  std::vector< kv::track_sptr > filtered_tracks;
+  double cumulative_sum = 0.0;
+  unsigned sample_count = 0;
 
-  for( auto trk : input_tracks->tracks() )
+  double usable_gsd = -1.0;
+
+  if( input_dets )
   {
-    if( trk && trk->size() >= d->m_required_states )
+    for( auto det : *input_dets )
     {
-      filtered_tracks.push_back( trk );
+      if( !det->notes().empty() && det->bounding_box().width() > 0 )
+      {
+        for( auto note : det->notes() )
+        {
+          if( note.size() > 8 && note.substr( 0, 8 ) == ":length=" )
+          {
+            double l = std::stod( note.substr( 8 ) );
+
+            cumulative_sum += ( l / det->bounding_box().width() );
+            sample_count++;
+          }
+        }
+      }
     }
   }
 
-  kv::object_track_set_sptr output(
-    new kv::object_track_set(
-      filtered_tracks ) );
+  if( sample_count > 0 )
+  {
+    usable_gsd = cumulative_sum / sample_count;
+    d->m_last_gsd = usable_gsd;
+  }
+  else if( d->m_last_gsd > 0 )
+  {
+    usable_gsd = d->m_last_gsd;
+  }
 
+  if( input_dets && usable_gsd > 0.0 )
+  {
+    for( auto det : *input_dets )
+    {
+      if( ( d->m_recompute_all || det->notes().empty() ) &&
+          det->bounding_box().width() > 0 )
+      {
+        det->clear_notes();
+        det->set_length( det->bounding_box().width() * usable_gsd );
+      }
+    }
+  }
+
+  push_to_port_using_trait( detected_object_set, input_dets );
   push_to_port_using_trait( timestamp, timestamp );
-  push_to_port_using_trait( object_track_set, output );
 }
 
 } // end namespace core
