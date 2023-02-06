@@ -242,8 +242,8 @@ class NetharnRefiner(RefineDetections):
                 bbox_max_y = bbox_min_y + chip_width
 
             if self._chip_expansion != 1.0:
-                bbox_width = int( bbox_width * self._chip_expansion )
-                bbox_height = int( bbox_height * self._chip_expansion )
+                bbox_width = int( ( bbox_max_x - bbox_min_x ) * self._chip_expansion )
+                bbox_height = int( ( bbox_max_y - bbox_min_y ) * self._chip_expansion )
 
                 bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 - bbox_width / 2 )
                 bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 - bbox_height / 2 )

@@ -55,8 +55,8 @@ namespace core
 create_config_trait( recompute_all, bool, "false",
   "If set, recompute lengths for all detections using GSD, even those "
   "already containing lengths." );
-create_config_trait( buffer_frames, unsigned, "0",
-  "Number of frames to buffer offer"  );
+create_config_trait( output_multiple, bool, "false",
+  "Allow outputting multiple possible lengths for each detection"  );
 
 // =============================================================================
 // Private implementation class
@@ -68,7 +68,7 @@ public:
 
   // Configuration settings
   bool m_recompute_all;
-  unsigned m_buffer_frames;
+  bool m_output_multiple;
 
   // Internal variables
   double m_last_gsd;
@@ -82,7 +82,7 @@ public:
 refine_measurements_process::priv
 ::priv( refine_measurements_process* ptr )
   : m_recompute_all( false )
-  , m_buffer_frames( 0 )
+  , m_output_multiple( false )
   , m_last_gsd( -1.0 )
   , parent( ptr )
 {
@@ -103,6 +103,8 @@ refine_measurements_process
 {
   make_ports();
   make_config();
+
+  set_data_checking_level( check_valid );
 }
 
 
@@ -141,7 +143,7 @@ refine_measurements_process
 ::make_config()
 {
   declare_config_using_trait( recompute_all );
-  declare_config_using_trait( buffer_frames );
+  declare_config_using_trait( output_multiple );
 }
 
 // -----------------------------------------------------------------------------
@@ -150,7 +152,7 @@ refine_measurements_process
 ::_configure()
 {
   d->m_recompute_all = config_value_using_trait( recompute_all );
-  d->m_buffer_frames = config_value_using_trait( buffer_frames );
+  d->m_output_multiple = config_value_using_trait( output_multiple );
 }
 
 // -----------------------------------------------------------------------------
@@ -162,6 +164,19 @@ refine_measurements_process
   kv::detected_object_set_sptr input_dets;
   kv::image_container_sptr image;
   kv::timestamp timestamp;
+
+  auto port_info = peek_at_port_using_trait( detected_object_set );
+
+  if( port_info.datum->type() == sprokit::datum::complete )
+  {
+    mark_process_as_complete();
+
+    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+
+    push_datum_to_port_using_trait( detected_object_set, dat );
+    push_datum_to_port_using_trait( object_track_set, dat );
+    return;
+  }
 
   if( has_input_port_edge_using_trait( detected_object_set ) )
   {
@@ -222,7 +237,10 @@ refine_measurements_process
       if( ( d->m_recompute_all || det->notes().empty() ) &&
           det->bounding_box().width() > 0 )
       {
-        det->clear_notes();
+        if( !d->m_output_multiple )
+        {
+          det->clear_notes();
+        }
         det->set_length( det->bounding_box().width() * usable_gsd );
       }
     }
