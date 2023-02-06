@@ -59,35 +59,9 @@ import time
 import random
 import math
 
-def recurse_copy( src, dst, max_depth = 10, ignore = ".json" ):
-    if max_depth < 0:
-        return src
-    if os.path.isdir( src ):
-        for entry in os.listdir( src ):
-            recurse_copy(
-              os.path.join( src, entry ),
-              dst,
-              max_depth - 1,
-              ignore )
-    elif not src.endswith( ignore ):
-        shutil.copy2( src, dst )
+from .netharn_utils import safe_crop
+from .netharn_utils import recurse_copy
 
-def pad_img_to_fit_bbox( img, x1, y1, x2, y2 ):
-    import cv2
-    img = cv2.copyMakeBorder( img, - min( 0, y1 ), max( y2 - img.shape[0], 0),
-            -min( 0, x1 ), max( x2 - img.shape[1], 0), cv2.BORDER_CONSTANT )
-
-    y2 += -min( 0, y1 )
-    y1 += -min( 0, y1 )
-    x2 += -min( 0, x1 )
-    x1 += -min( 0, x1 )
-
-    return img, x1, x2, y1, y2
-
-def safe_crop( img, x1, y1, x2, y2 ):
-   if x1 < 0 or y1 < 0 or x2 > img.shape[1] or y2 > img.shape[0]:
-        img, x1, x2, y1, y2 = pad_img_to_fit_bbox( img, x1, y1, x2, y2 )
-   return img[ y1:y2, x1:x2, : ]
 
 class NetHarnTrainer( TrainDetector ):
     """

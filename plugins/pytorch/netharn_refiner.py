@@ -44,6 +44,8 @@ import ubelt as ub
 import math
 import cv2
 
+from .netharn_utils import safe_crop
+
 
 class NetharnRefiner(RefineDetections):
     """
@@ -80,6 +82,7 @@ class NetharnRefiner(RefineDetections):
             'border_exclude': "-1",
             'chip_method' : "",
             'chip_width' : "",
+            'chip_expansion' : "1.0",
             'average_prior': "False",
             'scale_type_file': ""
         }
@@ -133,11 +136,12 @@ class NetharnRefiner(RefineDetections):
 
         self.predictor = clf_predict.ClfPredictor(pred_config)
         self.predictor._ensure_model()
+        self._average_prior = strtobool(self._kwiver_config['average_prior'])
         self._area_pivot = int(self._kwiver_config['area_pivot'])
         self._area_lower_bound = int(self._kwiver_config['area_lower_bound'])
         self._area_upper_bound = int(self._kwiver_config['area_upper_bound'])
         self._border_exclude = int(self._kwiver_config['border_exclude'])
-        self._average_prior = strtobool(self._kwiver_config['average_prior'])
+        self._chip_expansion = float(self._kwiver_config['chip_expansion'])
 
         if self._area_pivot < 0:
             self._area_upper_bound = -self._area_pivot
@@ -224,14 +228,27 @@ class NetharnRefiner(RefineDetections):
             bbox_min_y = int(bbox.min_y() * scale)
             bbox_max_y = int(bbox.max_y() * scale)
 
-            if self._kwiver_config['chip_method'] == "fixed_width":
-                chip_width = int(self._kwiver_config['chip_width'])
-                half_width = int(chip_width / 2)
+            if self._kwiver_config['chip_method'] == "fixed_width" or \
+               self._kwiver_config['chip_method'] == "native_square":
+                if self._kwiver_config['chip_method'] == "fixed_width":
+                    chip_width = int( self._kwiver_config['chip_width'] )
+                else:
+                    chip_width = max( ( bbox_max_x - bbox_min_x ), ( bbox_max_y - bbox_min_y ) )
+                half_width = int( chip_width / 2 )
 
-                bbox_min_x = int((bbox_min_x + bbox_max_x) / 2) - half_width
-                bbox_min_y = int((bbox_min_y + bbox_max_y) / 2) - half_width
+                bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 ) - half_width
+                bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 ) - half_width
                 bbox_max_x = bbox_min_x + chip_width
                 bbox_max_y = bbox_min_y + chip_width
+
+            if self._chip_expansion != 1.0:
+                bbox_width = int( bbox_width * self._chip_expansion )
+                bbox_height = int( bbox_height * self._chip_expansion )
+
+                bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 - bbox_width / 2 )
+                bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 - bbox_height / 2 )
+                bbox_max_x = bbox_min_x + bbox_width 
+                bbox_max_y = bbox_min_y + bbox_height
 
             if self._border_exclude > 0:
                 if bbox_min_x <= self._border_exclude:
@@ -259,9 +276,9 @@ class NetharnRefiner(RefineDetections):
             if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
                 continue
   
-            crop = img[bbox_min_y:bbox_max_y, bbox_min_x:bbox_max_x]
-            image_chips.append(crop)
-            detection_ids.append(i)
+            crop = safe_crop( img, bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y )
+            image_chips.append( crop )
+            detection_ids.append( i )
 
         # Run classifier on ROIs
         classifications = list(predictor.predict(image_chips))
