@@ -79,7 +79,7 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* VIAME v0.19.8 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
+* VIAME v0.19.9 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
 * [VIAME v0.19.9 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1xQ41bgcLlL8sVgGctm9WTNqRh9T4QPAI/view?usp=share_link) <br>
 * [VIAME v0.19.9 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/63e1da78046e924d0df19716/download) <br>
 * [VIAME v0.19.8 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1sl7VrBFqnsGWXROAFwyNJuAcHG1XY2DG/view?usp=share_link) <br>
@@ -109,7 +109,8 @@ CentOS
 * [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
 * [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
 * [EM Tuna Detectors, All OS](https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download) <br>
-* [HabCam Models (Scallop, Skate, Flatfish), All OS](https://viame.kitware.com/api/v1/item/635f043f06c734de4c7d47d2/download) <br>
+* [HabCam Models (Scallop, Skate, Flatfish), Windows](https://viame.kitware.com/api/v1/item/63e1e605ef73c03d10a77531/download) <br>
+* [HabCam Models (Scallop, Skate, Flatfish), Linux](https://viame.kitware.com/api/v1/item/63e1e447ef2786c937ddcf4d/download) <br>
 * [Motion Detector Model, All OS](https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download) <br>
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download) <br>
 * [Penguin Head FF Models, All OS](https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download) <br>
