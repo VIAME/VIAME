@@ -346,6 +346,8 @@ refine_measurements_process
 
     for( auto det : *input_dets )
     {
+      unsigned conf_cat = 0;
+
       if( ( d->m_recompute_all ||
             det->notes().empty() ||
             length_conf[ ind ] <= 2 ) &&
@@ -357,27 +359,35 @@ refine_measurements_process
         }
 
         double lth = det->bounding_box().width() * gsd_to_use;
-        bool bad = false;
 
         if( ( d->m_min_valid <= 0.0 || lth >= d->m_min_valid ) &&
             ( d->m_max_valid <= 0.0 || lth <= d->m_max_valid ) )
         {
           det->set_length( lth );
+          conf_cat = ( length_conf[ ind ] ? length_conf[ ind ] : 3 );
+        }
+      }
+      else
+      {
+        if( det->bounding_box().width() > 0 )
+        {
+          double l1 = det->bounding_box().width() * gsd_to_use;
+          double l2 = gsd_estimates[ ind ];
+
+          if( std::abs( ( l1 - l2 ) / l2 ) < 0.10 )
+          {
+            conf_cat = 4;
+          }
         }
         else
         {
-          bad = true;
-        }
-
-        if( d->m_output_conf_level )
-        {
-          det->add_note( ":length_conf=" + ( bad ? conf_str[0] : conf_str[3] ) );
+          conf_cat = length_conf[ ind ];
         }
       }
-      else if( d->m_output_conf_level )
+
+      if( d->m_output_conf_level )
       {
-        unsigned cat = ( length_conf[ ind ] == 3 ? 4 : length_conf[ ind ] );
-        det->add_note( ":length_conf=" + conf_str[ cat ] );
+        det->add_note( ":length_conf=" + conf_str[ conf_cat ] );
       }
 
       ind++;
