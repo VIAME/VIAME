@@ -269,10 +269,12 @@ set( CORE_PIPELINE_FILES
   pipelines/utility_add_head_tail_keypoints.pipe
   pipelines/utility_add_segmentations_watershed.pipe
   pipelines/utility_add_segmentations_watershed_2x.pipe
+  pipelines/utility_debayer_and_enhance.pipe
   pipelines/utility_empty_frame_lbls_1fr.pipe
   pipelines/utility_empty_frame_lbls_10fr.pipe
   pipelines/utility_empty_frame_lbls_100fr.pipe
   pipelines/utility_empty_frame_lbls_1000fr.pipe
+  pipelines/utility_enhance.pipe
   pipelines/utility_extract_chips.pipe
   pipelines/utility_link_detections_default.pipe
   pipelines/utility_max_10_points_per_poly.pipe
