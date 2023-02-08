@@ -274,7 +274,7 @@ refine_measurements_process
   const unsigned img_width = ( image ? image->width() : 0 );
 
   std::vector< unsigned > length_conf( detection_count, 0 );
-  std::vector< double > gsd_estimates( detection_count, -1.0 );
+  std::vector< double > lengths( detection_count, -1.0 );
 
   const std::string conf_str[5] = { "none", "very_low", "low", "medium", "high" };
   std::vector< double > conf_ests[5];
@@ -295,7 +295,7 @@ refine_measurements_process
             double lth = std::stod( note.substr( 8 ) );
             double est = lth / det->bounding_box().width();
 
-            gsd_estimates[ ind ] = est;
+            lengths[ ind ] = lth;
 
             if( ( d->m_min_valid > 0.0 && lth < d->m_min_valid ) ||
                 ( d->m_max_valid > 0.0 && lth > d->m_max_valid ) )
@@ -372,11 +372,15 @@ refine_measurements_process
         if( det->bounding_box().width() > 0 )
         {
           double l1 = det->bounding_box().width() * gsd_to_use;
-          double l2 = gsd_estimates[ ind ];
+          double l2 = lengths[ ind ];
 
           if( std::abs( ( l1 - l2 ) / l2 ) < 0.10 )
           {
             conf_cat = 4;
+          }
+          else
+          {
+            conf_cat = length_conf[ ind ];
           }
         }
         else
