@@ -133,7 +133,7 @@ double
 refine_measurements_process::priv
 ::percentile( std::vector< double >& vec )
 {
-  if( vec.empty() || m_percentile < 1.0 )
+  if( vec.empty() || m_percentile >= 1.0 )
   {
     return -1.0;
   }
@@ -330,6 +330,7 @@ refine_measurements_process
   if( highest_conf > 1 )
   {
     initial_gsd_est = d->percentile( conf_ests[ highest_conf ] );
+
     d->m_last_gsd = initial_gsd_est;
   }
   else if( d->m_last_gsd > 0 )
@@ -368,14 +369,15 @@ refine_measurements_process
           bad = true;
         }
 
-        if( d->m_output_conf_level && !bad )
+        if( d->m_output_conf_level )
         {
-          det->add_note( ":length_conf=" + conf_str[ length_conf[ ind ] ] );
+          det->add_note( ":length_conf=" + ( bad ? conf_str[0] : conf_str[3] ) );
         }
       }
       else if( d->m_output_conf_level )
       {
-        det->add_note( ":length_conf=" + conf_str[ length_conf[ ind ] ] );
+        unsigned cat = ( length_conf[ ind ] == 3 ? 4 : length_conf[ ind ] );
+        det->add_note( ":length_conf=" + conf_str[ cat ] );
       }
 
       ind++;
