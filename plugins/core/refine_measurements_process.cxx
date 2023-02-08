@@ -300,6 +300,7 @@ refine_measurements_process
             if( ( d->m_min_valid > 0.0 && lth < d->m_min_valid ) ||
                 ( d->m_max_valid > 0.0 && lth > d->m_max_valid ) )
             {
+
               length_conf[ ind ] = 1;
               highest_conf = std::max( highest_conf, 1u );
               conf_ests[1].push_back( est );
@@ -336,7 +337,7 @@ refine_measurements_process
     initial_gsd_est = d->m_last_gsd;
   }
 
-  double gsd_to_use = -1.0;
+  double gsd_to_use = initial_gsd_est;
 
   if( input_dets && gsd_to_use > 0.0 )
   {
