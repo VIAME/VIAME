@@ -109,7 +109,7 @@ CentOS
 * [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
 * [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
 * [EM Tuna Detectors, All OS](https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download) <br>
-* [HabCam Models (Scallop, Skate, Flatfish), Linux](https://viame.kitware.com/api/v1/item/63e1e447ef2786c937ddcf4d/download) <br>
+* [HabCam Models (Scallop, Skate, Flatfish), Linux](https://viame.kitware.com/api/v1/item/63e48c8fec466af45d3033eb/download) <br>
 * [Motion Detector Model, All OS](https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download) <br>
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download) <br>
 * [Penguin Head FF Models, All OS](https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download) <br>
