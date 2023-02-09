@@ -86,8 +86,8 @@ CentOS
 * [VIAME v0.19.8 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/63603cc111dab8142820ad7a/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.19.9 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1FJXyJyKm4kYXqDEQ_OBf48_XqHo-tCTR/view?usp=share_link) <br>
-* [VIAME v0.19.9 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/63e1dca8046e924d0df1971a/download) <br>
+* [VIAME v0.20.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1qFpHVfLBSCdOONhWpPRSxGmzdKVk79qQ/view?usp=share_link) <br>
+* [VIAME v0.20.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/63e47330046e924d0df1989d/download) <br>
 * [VIAME v0.19.8 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1oT81-AZUgWrqQJq4OnScBJ_x0ir-sy6S/view?usp=share_link) <br>
 * [VIAME v0.19.8 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/636042e211dab8142820ad81/download)
 
@@ -109,7 +109,6 @@ CentOS
 * [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
 * [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
 * [EM Tuna Detectors, All OS](https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download) <br>
-* [HabCam Models (Scallop, Skate, Flatfish), Windows](https://viame.kitware.com/api/v1/item/63e1e605ef73c03d10a77531/download) <br>
 * [HabCam Models (Scallop, Skate, Flatfish), Linux](https://viame.kitware.com/api/v1/item/63e1e447ef2786c937ddcf4d/download) <br>
 * [Motion Detector Model, All OS](https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download) <br>
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download) <br>
