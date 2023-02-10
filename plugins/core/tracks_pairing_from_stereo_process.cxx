@@ -5,6 +5,7 @@
 
 #include "tracks_pairing_from_stereo_process.h"
 #include "tracks_pairing_from_stereo.h"
+#include "detections_pairing_from_stereo.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/image_container.h>
@@ -17,8 +18,6 @@
 
 #include <arrows/ocv/image_container.h>
 #include <sprokit/processes/kwiver_type_traits.h>
-
-#include "write_object_track_set_viame_csv.h"
 
 namespace kv = kwiver::vital;
 
@@ -42,6 +41,7 @@ create_config_trait(do_split_detections, bool, "true",
                     "If true, will split tracks with inconsistent detection pairings across frames.")
 create_config_trait(detection_split_threshold, int, "3",
                     "Number of detections pairings required before split. Used when do_split_detections is set to true.")
+create_config_trait(verbose, bool, "false", "If true, will print debug information to the pipeline console.")
 
 create_port_trait(object_track_set1, object_track_set, "Set of object tracks1.")
 create_port_trait(object_track_set2, object_track_set, "Set of object tracks2.")
@@ -93,6 +93,7 @@ void tracks_pairing_from_stereo_process::make_config() {
   declare_config_using_trait(iou_pair_threshold);
   declare_config_using_trait(do_split_detections);
   declare_config_using_trait(detection_split_threshold);
+  declare_config_using_trait(verbose);
 }
 
 // -----------------------------------------------------------------------------
@@ -106,15 +107,8 @@ void tracks_pairing_from_stereo_process::_configure() {
   d->m_iou_pair_threshold = config_value_using_trait(iou_pair_threshold);
   d->m_do_split_detections = config_value_using_trait(do_split_detections);
   d->m_detection_split_threshold = config_value_using_trait(detection_split_threshold);
+  d->m_verbose = config_value_using_trait(verbose);
   d->load_camera_calibration();
-}
-
-inline void write_tracks_to_file(const kwiver::vital::object_track_set_sptr &set, const kwiver::vital::timestamp &ts,
-                                 const std::string &file_path) {
-  viame::write_object_track_set_viame_csv writer;
-  writer.open(file_path);
-  writer.write_set(set, ts, "");
-  writer.close();
 }
 
 // -----------------------------------------------------------------------------
