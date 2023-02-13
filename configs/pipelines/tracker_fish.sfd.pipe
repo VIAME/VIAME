@@ -37,10 +37,11 @@ connect from downsampler.output_2
 
 process detection_descriptor
   :: pytorch_descriptors
+  :model_arch                                  resnet
   :model_input_size                            224
   :batch_size                                  16
   :gpu_list                                    0
-  relativepath resnet_model_path =             models/pytorch-resnet50.pt
+  relativepath model_path =                    models/pytorch-resnet50.pt
 
 process tracker
  :: compute_association_matrix
