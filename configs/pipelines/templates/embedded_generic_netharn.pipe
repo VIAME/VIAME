@@ -1,5 +1,5 @@
 # ========================================================================================
-# ResNet Classifier on Generic Object Proposals
+# Secondary Classifier After Generic Object Proposals
 # ========================================================================================
 
 process detector_input

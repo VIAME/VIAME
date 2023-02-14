@@ -1,5 +1,5 @@
 # ==============================================================================
-# NetHarn Classifier over Generic Object Detections
+# Secondary Classifier After Generic Object Proposals
 # ==============================================================================
 
 config _pipeline:_edge
