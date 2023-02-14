@@ -71,7 +71,7 @@ process classifier
     :border_exclude                            0
     :chip_method                               native_square
     :chip_width                                224
-    :chip_expansion                            1.6
+    :chip_expansion                            1.4
     :average_prior                             False
   endblock
 
