@@ -67,8 +67,12 @@ process classifier
     relativepath deployed =                    [-MODEL-FILE-]
 
     :batch_size                                auto
-    :area_pivot                                5000
-    :border_exclude                            1
+    :area_pivot                                0
+    :border_exclude                            0
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.6
+    :average_prior                             False
   endblock
 
 process nms_refiner

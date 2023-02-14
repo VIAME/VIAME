@@ -13,19 +13,23 @@ process detector_input
 
 process generic_detector
   :: image_object_detector
-  :detector:type                               ocv_windowed
+  :detector:type                               darknet
 
-  block detector:ocv_windowed
-    :detector:type                             netharn
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  = $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_detector.cfg
+    relativepath weight_file = $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_detector.weights
+    relativepath class_names = $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_detector.lbl
 
-    :mode                                      original_and_resized
-    :chip_width                                640
-    :chip_height                               640
-    :chip_adaptive_thresh                      1200000
+    # Detector parameters
+    :thresh                                    0.010
+    :gpu_index                                 0
 
-    block detector:netharn
-      :deployed $ENV{VIAME_INSTALL}/configs/pipelines/models/generic_detector.zip
-    endblock
+    # Image scaling parameters
+    :resize_option                             adaptive
+    :scale                                     1.0
+    :chip_step                                 520
+    :chip_edge_filter                          5
   endblock
 
 connect from detector_input.image
@@ -41,8 +45,12 @@ process classifier
     relativepath deployed =                    [-MODEL-FILE-]
 
     :batch_size                                auto
-    :area_pivot                                5000
-    :border_exclude                            1
+    :area_pivot                                0
+    :border_exclude                            0
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.6
+    :average_prior                             False
   endblock
 
 connect from detector_input.image
