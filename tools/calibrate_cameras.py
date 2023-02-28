@@ -52,14 +52,13 @@ def make_object_points(grid_size=(6,5)):
     return objp
 
 
-def detect_grid_image(image, grid_size=(6,5)):
+def detect_grid_image(image, grid_size=(6,5), max_dim=1000):
     """Detect a grid in a grayscale image"""
     min_len = min(image.shape)
     scale = 1.0
-    while scale*min_len > 1000:
+    while scale*min_len > max_dim:
         scale /= 2.0
     print("scale = ", scale)
-
 
     # termination criteria
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -168,20 +167,6 @@ def detect_grid_video(video_file, grid_size=(6,5), frame_step=1, gui=False, baye
     return img_shape, left_data, right_data
 
 
-def save_calibration(outfile, cal_result):
-    ret, mtx, dist, rvecs, tvecs = cal_result
-
-    print("error ", ret)
-    print("K = ", mtx.get())
-    print("distortion ", dist.get())
-
-    with open(outfile,'w') as f_handle:
-        np.savetxt(f_handle, mtx.get())
-        f_handle.write("\n")
-        np.savetxt(f_handle, dist.get())
-        f_handle.write("\nError: %g" % ret)
-
-
 def evaluate_error(imgpoints, objp, frames, cal_result):
     ret, mtx, dist, rvecs, tvecs = cal_result
     new_frames = []
@@ -209,8 +194,8 @@ def calibrate_single_camera(data, object_points, img_shape):
     imgpoints = list(data.values())
 
     flags = 0
-    K = np.matrix([[1000, 0 , img_shape[1]/2],[0, 1000, img_shape[0]/2],[0, 0, 1]])
-    d = np.matrix([0,0,0,0])
+    K = np.matrix([[1000, 0 , img_shape[1]/2],[0, 1000, img_shape[0]/2],[0, 0, 1]], dtype=np.float32)
+    d = np.matrix([0,0,0,0], dtype=np.float32)
     cal_result = cv2.calibrateCamera(objpoints, imgpoints, img_shape, K, d, flags=flags)
     print("initial calibration error: ", cal_result[0])
 
@@ -218,7 +203,7 @@ def calibrate_single_camera(data, object_points, img_shape):
     #frames, imgpoints, objpoints = evaluate_error(imgpoints, object_points, frames, cal_result)
 
     ret, mtx, dist, rvecs, tvecs = cal_result
-    aspect_ratio = mtx.get()[0,0] / mtx.get()[1,1]
+    aspect_ratio = mtx[0,0] / mtx[1,1]
     print("aspect ratio: ",aspect_ratio)
     if 1.0 - min(aspect_ratio, 1.0/aspect_ratio) < 0.01:
         print("fixing aspect ratio at 1.0")
@@ -227,7 +212,7 @@ def calibrate_single_camera(data, object_points, img_shape):
         ret, mtx, dist, rvecs, tvecs = cal_result
         print("Fixed aspect ratio error: ", cal_result[0])
 
-    pp = np.array([mtx.get()[0,2], mtx.get()[1,2]])
+    pp = np.array([mtx[0,2], mtx[1,2]])
     print("principal point: ",pp)
     rel_pp_diff = (pp - np.array(img_shape)/2) / np.array(img_shape)
     print("rel_pp_diff", max(abs(rel_pp_diff)))
@@ -331,10 +316,10 @@ def main():
     # write the intrinsics file
     fs = cv2.FileStorage("intrinsics.yml", cv2.FILE_STORAGE_WRITE)
     if (fs.isOpened()):
-        fs.write("M1", K_left.get())
-        fs.write("D1", dist_left.get())
-        fs.write("M2", K_right.get())
-        fs.write("D2", dist_right.get())
+        fs.write("M1", K_left)
+        fs.write("D1", dist_left)
+        fs.write("M2", K_right)
+        fs.write("D2", dist_right)
     fs.release()
 
     # find frames that detected the target in both left and right views
@@ -353,25 +338,24 @@ def main():
     # write the extrinsics file
     fs = cv2.FileStorage("extrinsics.yml", cv2.FILE_STORAGE_WRITE)
     if (fs.isOpened()):
-        fs.write("R", R.get())
-        fs.write("T", T.get())
-        fs.write("R1", R1.get())
-        fs.write("R2", R2.get())
-        fs.write("P1", P1.get())
-        fs.write("P2", P2.get())
-        fs.write("Q", Q.get())
+        fs.write("R", R)
+        fs.write("T", T)
+        fs.write("R1", R1)
+        fs.write("R2", R2)
+        fs.write("P1", P1)
+        fs.write("P2", P2)
+        fs.write("Q", Q)
     fs.release()
 
     # write joint npz file usable with default VIAME measurement pipeline
     npz_dict = dict()
-    npz_dict[ 'cameraMatrixL' ] = K_left.get()
-    npz_dict[ 'cameraMatrixR' ] = K_right.get()
-    npz_dict[ 'distCoeffsL' ] = dist_left.get()
-    npz_dict[ 'distCoeffsR' ] = dist_right.get()
-    npz_dict[ 'R' ] = R.get()
-    npz_dict[ 'T' ] = T.get()
+    npz_dict[ 'cameraMatrixL' ] = K_left
+    npz_dict[ 'cameraMatrixR' ] = K_right
+    npz_dict[ 'distCoeffsL' ] = dist_left
+    npz_dict[ 'distCoeffsR' ] = dist_right
+    npz_dict[ 'R' ] = R
+    npz_dict[ 'T' ] = T
     np.savez("calibration.npz", **npz_dict)
 
 if __name__ == "__main__":
     main()
-
