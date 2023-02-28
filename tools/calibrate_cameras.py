@@ -350,6 +350,7 @@ def main():
                              flags=cv2.CALIB_ZERO_DISPARITY, alpha=0)
     R1, R2, P1, P2, Q = ret2[:5]
 
+    # write the extrinsics file
     fs = cv2.FileStorage("extrinsics.yml", cv2.FILE_STORAGE_WRITE)
     if (fs.isOpened()):
         fs.write("R", R.get())
@@ -361,6 +362,15 @@ def main():
         fs.write("Q", Q.get())
     fs.release()
 
+    # write joint npz file usable with default VIAME measurement pipeline
+    npz_dict = dict()
+    npz_dict[ 'cameraMatrixL' ] = K_left.get()
+    npz_dict[ 'cameraMatrixR' ] = K_right.get()
+    npz_dict[ 'distCoeffsL' ] = dist_left.get()
+    npz_dict[ 'distCoeffsR' ] = dist_right.get()
+    npz_dict[ 'R' ] = R.get()
+    npz_dict[ 'T' ] = T.get()
+    np.savez("calibration.npz", **npz_dict)
 
 if __name__ == "__main__":
     main()
