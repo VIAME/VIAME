@@ -52,7 +52,7 @@ def make_object_points(grid_size=(6,5)):
     return objp
 
 
-def detect_grid_image(image, grid_size=(6,5), max_dim=1000):
+def detect_grid_image(image, grid_size=(6,5), max_dim=5000):
     """Detect a grid in a grayscale image"""
     min_len = min(image.shape)
     scale = 1.0
@@ -270,7 +270,10 @@ def main():
                       help="input images are Bayer patterned")
     parser.add_option("-c", "--corners-file", type='string', default=None,
                       action="store", dest="corners_file",
-                      help="width of the grid to detect")
+                      help="corner file input path")
+    parser.add_option("-i", "--intr-file", type='string', default=None,
+                      action="store", dest="intr_file",
+                      help="input intrinsics file if only recomputing extr")
     parser.add_option("-q", "--square-size", type='float', default=85,
                       action="store", dest="square_size",
                       help="width of a single calibration square (mm)")
@@ -314,13 +317,20 @@ def main():
     (_, K_right, dist_right, _, _), _ = calibrate_single_camera(right_data, objp, img_shape)
 
     # write the intrinsics file
-    fs = cv2.FileStorage("intrinsics.yml", cv2.FILE_STORAGE_WRITE)
-    if (fs.isOpened()):
-        fs.write("M1", K_left)
-        fs.write("D1", dist_left)
-        fs.write("M2", K_right)
-        fs.write("D2", dist_right)
-    fs.release()
+    if not options.intr_file:
+        fs = cv2.FileStorage("intrinsics.yml", cv2.FILE_STORAGE_WRITE)
+        if (fs.isOpened()):
+            fs.write("M1", K_left)
+            fs.write("D1", dist_left)
+            fs.write("M2", K_right)
+            fs.write("D2", dist_right)
+        fs.release()
+    else:
+        npz_dict = dict(np.load(options.intr_file))
+        K_left = npz_dict[ 'cameraMatrixL' ]
+        K_right = npz_dict[ 'cameraMatrixR' ]
+        dist_left = npz_dict[ 'distCoeffsL' ]
+        dist_right = npz_dict[ 'distCoeffsR' ]
 
     # find frames that detected the target in both left and right views
     frames = set(left_data.keys()).intersection(set(right_data.keys()))
