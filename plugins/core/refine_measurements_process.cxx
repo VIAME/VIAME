@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2020 by Kitware, Inc.
+ * Copyright 2023 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -189,6 +189,7 @@ refine_measurements_process
   declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( detected_object_set, optional );
   declare_input_port_using_trait( object_track_set, optional );
+  declare_input_port_using_trait( gsd, optional );
 
   // -- outputs --
   declare_output_port_using_trait( timestamp, optional );
@@ -237,6 +238,7 @@ refine_measurements_process
   kv::detected_object_set_sptr input_dets;
   kv::image_container_sptr image;
   kv::timestamp timestamp;
+  double external_gsd = -1.0;
 
   auto port_info = peek_at_port_using_trait( detected_object_set );
 
@@ -266,6 +268,10 @@ refine_measurements_process
   if( has_input_port_edge_using_trait( image ) )
   {
     image = grab_from_port_using_trait( image );
+  }
+  if( has_input_port_edge_using_trait( gsd ) )
+  {
+    external_gsd = grab_from_port_using_trait( gsd );
   }
 
   const unsigned detection_count = ( input_dets ? input_dets->size() : 0 );
@@ -327,10 +333,14 @@ refine_measurements_process
 
   double initial_gsd_est = -1.0;
 
-  if( highest_conf > 1 )
+  if( external_gsd > 0.0 )
+  {
+    initial_gsd_est = external_gsd;
+    d->m_last_gsd = initial_gsd_est;
+  }
+  else if( highest_conf > 1 )
   {
     initial_gsd_est = d->percentile( conf_ests[ highest_conf ] );
-
     d->m_last_gsd = initial_gsd_est;
   }
   else if( d->m_last_gsd > 0 )
