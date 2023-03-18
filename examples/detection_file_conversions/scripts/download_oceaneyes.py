@@ -8,7 +8,7 @@ last_fname = ''
 
 with open( input_csv, newline='' ) as fin:
   spamreader = csv.reader( fin )
-  all_files = {}
+  all_files = set({})
   for row in spamreader:
     if len( row ) == 0 or row[0][0:5] == "photo":
       continue
