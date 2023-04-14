@@ -70,3 +70,9 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
     mdnet_tracker_process )
 
 endif()
+
+if( VIAME_ENABLE_PYTORCH-CUTLER )
+  
+  add_subdirectory( cutler )
+
+endif()
