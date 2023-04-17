@@ -77,6 +77,8 @@ def list_categories( filename ):
         continue
       idx = 9
       while idx < len( lis ):
+        if lis[idx][0] == '(':
+          break
         unique_ids.add( lis[idx] )
         idx = idx + 2
   return list( unique_ids )
