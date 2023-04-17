@@ -67,3 +67,6 @@
 [submodule "packages/pytorch-libs/torch2rt"]
 	path = packages/pytorch-libs/torch2rt
 	url = https://github.com/NVIDIA-AI-IOT/torch2trt
+[submodule "packages/pytorch-libs/segment-anything"]
+	path = packages/pytorch-libs/segment-anything
+	url = https://github.com/facebookresearch/segment-anything.git
