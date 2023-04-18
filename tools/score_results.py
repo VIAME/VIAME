@@ -103,6 +103,8 @@ def filter_by_category( filename, category, threshold=0.0 ):
       confidence = 0.0
       object_label = ""
       while idx < len( lis ):
+        if lis[idx][0] == '(':
+          break
         if lis[idx] == category and \
            ( args.threshold == 0.0 or float( lis[idx+1] ) >= float( args.threshold ) ):
           use_detection = True
