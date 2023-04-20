@@ -104,6 +104,7 @@ option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 # Add secondary plugin enable flags (advanced)
 ##
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
+option( VIAME_ENABLE_LEARN          "Enable LEARN build"            OFF )
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
@@ -111,6 +112,7 @@ option( VIAME_ENABLE_ITK_EXTRAS     "Enable ITK GUI and extra algs" OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 mark_as_advanced( VIAME_ENABLE_BURNOUT )
+mark_as_advanced( VIAME_ENABLE_LEARN )
 mark_as_advanced( VIAME_ENABLE_CAFFE )
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
@@ -741,6 +743,10 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_PYTORCH )
     include( add_project_pytorch )
+  endif()
+
+  if( VIAME_ENABLE_LEARN )
+    include( add_project_learn )
   endif()
 
   if( VIAME_ENABLE_TENSORFLOW )

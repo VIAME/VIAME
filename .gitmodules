@@ -70,3 +70,7 @@
 [submodule "packages/pytorch-libs/segment-anything"]
 	path = packages/pytorch-libs/segment-anything
 	url = https://github.com/facebookresearch/segment-anything.git
+[submodule "packages/learn"]
+	path = packages/learn
+	url = https://gitlab.kitware.com/darpa_learn/learn.git
+	branch = object_detection_2023

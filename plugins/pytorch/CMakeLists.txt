@@ -1,8 +1,7 @@
 
+kwiver_create_python_init( arrows/pytorch )
+
 if( VIAME_ENABLE_PYTORCH-MMDET )
-
-  kwiver_create_python_init( arrows/pytorch )
-
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_compatibility.py
     arrows/pytorch
@@ -72,7 +71,12 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-CUTLER )
-  
   add_subdirectory( cutler )
+  #message("Adding CutLER")
+
+  #kwiver_add_python_module(
+  #  ${CMAKE_CURRENT_SOURCE_DIR}/maskcut_detector.py
+  #  arrows/pytorch
+  #  maskcut_detector )
 
 endif()
