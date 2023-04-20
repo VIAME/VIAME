@@ -13,14 +13,21 @@ from scipy import ndimage
 from torchvision import transforms
 from collections import namedtuple
 
-from vital.algo import ImageObjectDetector
+from kwiver.vital.algo import ImageObjectDetector
 
-from vital.types import Image
-from vital.types import ImageContainer
-from vital.types import DetectedObject
-from vital.types import DetectedObjectSet
+from kwiver.vital.types import Image
+from kwiver.vital.types import ImageContainer
+from kwiver.vital.types import DetectedObject
+from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObjectType
-from vital.types import BoundingBox
+from kwiver.vital.types import BoundingBox
+
+# modfied by Xudong Wang based on third_party/TokenCut
+from learn.algorithms.CutLER.CutLER_main.third_party.TokenCut.unsupervised_saliency_detection import utils, metric
+from learn.algorithms.CutLER.CutLER_main.third_party.TokenCut.unsupervised_saliency_detection.object_discovery import detect_box
+
+from learn.algorithms.CutLER.CutLER_main.maskcut import maskcut, dino
+
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
 
@@ -41,6 +48,7 @@ class MaskCutDetector( ImageObjectDetector ):
     ]
 
     def __init__( self ):
+        print("initialized MaskCutDetector")
         ImageObjectDetector.__init__( self )
 
         for opt in self._options:
@@ -121,7 +129,7 @@ class MaskCutDetector( ImageObjectDetector ):
         bipartitions, eigvecs = [], []
         feat = self.backbone(tensor)[0]
 
-        _, bipartition, eigvec = maskcut_forward(feat, [feat_h, feat_w], 
+        _, bipartition, eigvec = maskcut.maskcut_forward(feat, [feat_h, feat_w], 
                                                  [self._patch_size, self._patch_size], 
                                                  [h,w], self._tau, N=self._N, cpu=self._cpu)
         bipartitions += bipartition
@@ -147,8 +155,8 @@ class MaskCutDetector( ImageObjectDetector ):
             pseudo_mask = np.asarray(pseudo_mask.resize((width, height)))
 
             # create coco-style annotation info
-            annotation_info = create_annotation_info(
-                idx, 0, category_info, 
+            annotation_info = maskcut.create_annotation_info(
+                idx, 0, maskcut.category_info, 
                 pseudo_mask.astype(np.uint8), None)
 
             # Convert detections to kwiver format
@@ -173,7 +181,7 @@ class MaskCutDetector( ImageObjectDetector ):
         return output
 
 def __vital_algorithm_register__():
-    from vital.algo import algorithm_factory
+    from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
     implementation_name = "maskcut"
