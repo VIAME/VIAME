@@ -20,6 +20,10 @@ endif()
 
 if( VIAME_ENABLE_PYTHON )
   set( VIAME_PYTHON_FLAGS
+    # Backwards compatibility for sub-projects which use "PYTHON_" cmake
+    # variables and the old find_package( PythonInterp ) commands instead
+    # of the newer find Python. CMake fills in other python vars from exec.
+    -DPython_EXECUTABLE:PATH=${Python_EXECUTABLE}
     -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE} )
 endif()
 
