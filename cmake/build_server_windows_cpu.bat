@@ -13,6 +13,7 @@ IF EXIST C:\tmp\kv2 rmdir /s /q C:\tmp\kv2
 IF EXIST C:\tmp\vm2 rmdir /s /q C:\tmp\vm2
 
 SET "WIN32_ROOT=C:\Windows\System32"
+SET "WIN64_ROOT=C:\Windows\SysWOW64"
 SET "PYTHON_SUBDIR=lib\python3.6"
 SET "PATH=%WIN32_ROOT%;C:\Windows;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;%PATH%"
@@ -34,7 +35,8 @@ MOVE %MISSING_DNET_EXE% %VIAME_INSTALL_DIR%\bin
 
 COPY %WIN32_ROOT%\msvcr100.dll %VIAME_INSTALL_DIR%\bin
 COPY %WIN32_ROOT%\vcruntime140_1.dll %VIAME_INSTALL_DIR%\bin
-COPY C:\Windows\SysWOW64\msvcr120.dll %VIAME_INSTALL_DIR%\bin
+COPY %WIN64_ROOT%\vcomp140.dll %VIAME_INSTALL_DIR%\bin
+COPY %WIN64_ROOT%\msvcr120.dll %VIAME_INSTALL_DIR%\bin
 COPY %VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll %VIAME_INSTALL_DIR%\bin
 COPY "C:\Program Files\ZLib\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
 
