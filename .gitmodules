@@ -73,4 +73,4 @@
 [submodule "packages/learn"]
 	path = packages/learn
 	url = https://gitlab.kitware.com/darpa_learn/learn.git
-	branch = object_detection_2023
+	branch = dev/viame # object_detection_2023

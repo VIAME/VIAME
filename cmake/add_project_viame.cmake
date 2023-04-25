@@ -19,7 +19,6 @@ if( VIAME_ENABLE_MATLAB )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-
   set( VIAME_PYTHON_FLAGS
     # Backwards compatibility for sub-projects which use "PYTHON_" cmake
     # variables and the old find_package( PythonInterp ) commands instead
