@@ -3,30 +3,33 @@
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
 #
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
 
 # =============================== INPUT FRAME LIST =================================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
-process detector
-  :: image_object_detector
-  :detector:type                               ocv_windowed
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
 
-  block detector:ocv_windowed
-    :detector:type                             maskcut
-    :mode                                      original_and_resized
-    :chip_width                                640
-    :chip_height                               640
-    :chip_adaptive_thresh                      1600000
-    
-    block detector:maskcut
-      :vit_arch                                base
-    endblock
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
   endblock
 
-process detector_merger
-  :: merge_detection_sets
+# =================================== DETECTOR =====================================
+process detector1
+  :: image_object_detector
+  :detector:type                               maskcut
+    
+  #block detector:maskcut
+  #  #:vit_arch                                base
+  #endblock
 
 # ==================================== WRITER ======================================
 process detector_writer
@@ -36,19 +39,19 @@ process detector_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
-
 # ==================================== CONNECTIONS ======================================
 # input 
 connect from downsampler.output_1
-        to   detector.image
+        to   detector_input.image
+
+connect from detector_input.image
+        to   detector1.image
 
 # output
-connect from detector.detected_object_set
-        to   detector_merger.detected_object_set1
+#connect from downsampler.output_2
+#        to   detector_writer.image_file_name
 
-# writer
-connect from detector_merger.detected_object_set
-        to detector_writer.detected_object_set
+connect from detector1.detected_object_set
+        to   detector_writer.detected_object_set
 
-connect from downsampler.output_2
-        to   detector_writer.image_file_name
+# -- end of file --
