@@ -5,6 +5,8 @@ REM ----------------------------------------------------------------------------
 SET "VIAME_SOURCE_DIR=C:\workspace\VIAME-Windows-GPU-Release"
 SET "OUTPUT_FILE=VIAME-v1.0.0-Windows-64Bit.zip"
 
+REM Make sure to have all of these things installed (and cuDNN in CUDA)
+
 SET "CMAKE_ROOT=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
 SET "7ZIP_ROOT=C:\Program Files\7-Zip"
@@ -87,7 +89,7 @@ COPY "%CUDA_ROOT%\bin\cusolverMg64_11.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cusparse64_11.dll" %VIAME_INSTALL_DIR%\bin
 
 REM -------------------------------------------------------------------------------------------------------
-REM COMPRESS FINAL PACKAGE
+REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"

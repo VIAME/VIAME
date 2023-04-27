@@ -5,6 +5,8 @@ REM ----------------------------------------------------------------------------
 SET "VIAME_SOURCE_DIR=C:\workspace\VIAME-Windows-CPU-Release"
 SET "OUTPUT_FILE=VIAME-CPU-v1.0.0-Windows-64Bit.zip"
 
+REM Make sure to have all of these things installed
+
 SET "CMAKE_ROOT=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
 SET "7ZIP_ROOT=C:\Program Files\7-Zip"
@@ -65,7 +67,7 @@ COPY %VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll %V
 COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
 
 REM -------------------------------------------------------------------------------------------------------
-REM COMPRESS FINAL PACKAGE
+REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
