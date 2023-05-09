@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Filter object tracks process
+ * \brief Refine measurements in object detections via multiple methods
  */
 
 #ifndef VIAME_REFINE_MEASUREMENTS_PROCESS_H
