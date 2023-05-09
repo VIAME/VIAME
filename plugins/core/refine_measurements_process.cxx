@@ -77,6 +77,8 @@ create_config_trait( border_factor, unsigned, "0",
   "Treat detections this many pixels near image border as ambiguous" );
 create_config_trait( percentile, double, "0.45",
   "Percentile GSD to use when combining multiple estimates" );
+create_config_trait( intrinsics, std::string, "1 0 0 0 1 0 0 0 1",
+  "Camera calibration for use with metadata" );
 
 typedef std::pair< double, double > point_t;
 
@@ -249,6 +251,7 @@ refine_measurements_process
   declare_config_using_trait( exp_factor );
   declare_config_using_trait( border_factor );
   declare_config_using_trait( percentile );
+  declare_config_using_trait( intrinsics );
 }
 
 // -----------------------------------------------------------------------------
@@ -265,6 +268,13 @@ refine_measurements_process
   d->m_exp_factor = config_value_using_trait( exp_factor );
   d->m_border_factor = config_value_using_trait( border_factor );
   d->m_percentile = config_value_using_trait( percentile );
+
+  std::string intrinsics_str = config_value_using_trait( intrinsics );
+
+  double a11, a12, a13, a21, a22, a23, a31, a32, a33;
+  std::istringstream ss( intrinsics_str );
+  ss >> a11 >> a12 >> a13 >> a21 >> a22 >> a23 >> a31 >> a32 >> a33;
+  d->m_intrinsics << a11, a12, a13, a21, a22, a23, a31, a32, a33;
 }
 
 // -----------------------------------------------------------------------------

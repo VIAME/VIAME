@@ -67,7 +67,7 @@ public:
   ~priv();
 
   // Configuration settings
-  unsigned m_scan_length;
+  int m_scan_length;
 
   // Other variables
   read_habcam_metadata_process* parent;
@@ -158,7 +158,10 @@ read_habcam_metadata_process
     throw std::runtime_error( "Unable to load: " + file_name );
   }
 
-  std::string ascii_snippet; // = fin.readline(); // TODO
+  std::stringstream buffer;
+  fin.seekg( -d->m_scan_length, std::ios_base::end );
+  buffer << fin.rdbuf();
+  std::string ascii_snippet = buffer.str();
 
   auto meta_start = ascii_snippet.find( "pixelformat=" );
 
@@ -205,25 +208,25 @@ read_habcam_metadata_process
     }
   }
 
-#define CHECK_FIELD( STR, METAID )                       \
-  {                                                      \
-    std::string field = STR ;                            \
-    std::size_t pos = field.size() + 1;                  \
-    if( token.substr( 0, pos ) == field + "=" )          \
-    {                                                    \
-      try                                                \
-      {                                                  \
-        double value = std::stod( token.substr( pos ) ); \
-                                                         \
-        if( value > 0.0 )                                \
-        {                                                \
-          output_md->add< METAID >( value );             \
-        }                                                \
-      }                                                  \
-      catch( ... )                                       \
-      {                                                  \
-      }                                                  \
-    }                                                    \
+#define CHECK_FIELD( STR, METAID )                          \
+  {                                                         \
+    std::string field = STR ;                               \
+    std::size_t pos = field.size() + 1;                     \
+    if( token.substr( 0, pos ) == field + "=" )             \
+    {                                                       \
+      try                                                   \
+      {                                                     \
+        std::string str_val = token.substr( pos );          \
+                                                            \
+        if( str_val != "-99.99" )                           \
+        {                                                   \
+          output_md->add< METAID >( std::stod( str_val ) ); \
+        }                                                   \
+      }                                                     \
+      catch( ... )                                          \
+      {                                                     \
+      }                                                     \
+    }                                                       \
   }
 
   for( std::string token : tokens )
