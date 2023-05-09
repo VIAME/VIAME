@@ -490,14 +490,14 @@ refine_measurements_process
       goto output_objs;
     }
 
-    Eigen::AngleAxisd roll_angle( roll, Eigen::Vector3d::UnitZ() );
-    Eigen::AngleAxisd yaw_angle( yaw, Eigen::Vector3d::UnitY() );
-    Eigen::AngleAxisd pitch_angle( pitch, Eigen::Vector3d::UnitX() );
+    Eigen::AngleAxisd roll_angle( roll * 0.017453, Eigen::Vector3d::UnitZ() );
+    Eigen::AngleAxisd yaw_angle( yaw * 0.017453, Eigen::Vector3d::UnitY() );
+    Eigen::AngleAxisd pitch_angle( pitch * 0.017453, Eigen::Vector3d::UnitX() );
 
     Eigen::Quaternion<double> q = roll_angle * yaw_angle * pitch_angle;
 
     Eigen::Matrix3d rotation_matrix = q.matrix();
-    Eigen::Vector3d translation_matrix( 0, 0, alt );
+    Eigen::Vector3d translation_matrix( 0, 0, alt * 1000 );
 
     Eigen::MatrixXd perspective( 3, 4 );
     perspective << rotation_matrix, translation_matrix;
