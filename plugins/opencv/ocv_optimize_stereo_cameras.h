@@ -20,6 +20,9 @@ class VIAME_OPENCV_EXPORT ocv_optimize_stereo_cameras :
     ocv_optimize_stereo_cameras, kwiver::vital::algo::optimize_cameras >
 {
 public:
+  PLUGIN_INFO( "ocv_optimize_stereo_cameras",
+               "Camera optimizer for stereo configurations." )
+
   /// Constructor
   ocv_optimize_stereo_cameras();
 

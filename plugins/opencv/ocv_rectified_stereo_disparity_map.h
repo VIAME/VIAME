@@ -13,6 +13,8 @@ class VIAME_OPENCV_EXPORT ocv_rectified_stereo_disparity_map :
     ocv_rectified_stereo_disparity_map, kwiver::vital::algo::compute_stereo_depth_map >
 {
 public:
+  PLUGIN_INFO( "ocv_rectified_stereo_disparity_map",
+               "Rectifies and computes the stereo disparity of two input images" )
 
   ocv_rectified_stereo_disparity_map();
   virtual ~ocv_rectified_stereo_disparity_map();

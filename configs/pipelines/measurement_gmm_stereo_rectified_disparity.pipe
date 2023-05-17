@@ -21,9 +21,9 @@ include common_stereo_input_with_downsampler.pipe
 
 process depth_map
   :: compute_stereo_depth_map
-  :computer:type                              ocv_rectified_stereo_disparity
+  :computer:type                              ocv_rectified_stereo_disparity_map
 
-block computer:ocv_rectified_stereo_disparity
+block computer:ocv_rectified_stereo_disparity_map
   :algorithm                                 	SGBM
   :min_disparity                             	0
   :num_disparities                           	240

@@ -12,6 +12,9 @@ class VIAME_OPENCV_EXPORT ocv_target_detector :
     ocv_target_detector, kwiver::vital::algo::image_object_detector >
 {
 public:
+  PLUGIN_INFO( "ocv_target_detector",
+               "Detects checkerboard corners in input images for camera calibration processes." )
+
   ocv_target_detector();
   virtual ~ocv_target_detector();
 

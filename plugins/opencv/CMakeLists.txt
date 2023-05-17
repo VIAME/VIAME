@@ -91,6 +91,8 @@ algorithms_create_plugin( viame_opencv
 target_link_libraries( viame_opencv_plugin
   PUBLIC               kwiver::vital_vpm
   )
+
+if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames
     __init__
     ocv_multimodal_registration

@@ -52,6 +52,7 @@ extern "C"
 VIAME_OPENCV_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
+{
   kwiver::vital::algorithm_registrar reg( vpm, "viame.opencv" );
 
   if( reg.is_module_loaded() ) 
@@ -60,13 +61,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   reg.register_algorithm< ocv_stereo_depth_map >();
-  reg.register_algorithm< ocv_rectified_stereo_disparity >();
   reg.register_algorithm< ocv_debayer_filter >();
   reg.register_algorithm< ocv_image_enhancement >();
   reg.register_algorithm< ocv_random_hue_shift >();
-  reg.register_algorithm< split_image_habcam >();
+  reg.register_algorithm< ocv_rectified_stereo_disparity_map >();
   reg.register_algorithm< ocv_target_detector >();
   reg.register_algorithm< ocv_optimize_stereo_cameras >();
+  reg.register_algorithm< split_image_habcam >();
 
   reg.mark_module_as_loaded();
 }
