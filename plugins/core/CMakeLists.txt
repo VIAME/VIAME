@@ -56,6 +56,9 @@ set( CORE_LINK_LIBRARIES
   kwiver::vital_util
   kwiver::kwiversys )
 
+# Eigen is used by metadata parsers
+find_package( Eigen3 REQUIRED NO_MODULE )
+
 # VXL is used in some parsers for aux functionality if enabled
 if( VIAME_ENABLE_VXL )
   find_package( VXL REQUIRED )
@@ -133,6 +136,7 @@ kwiver_add_plugin( viame_processes_core
                    kwiver::kwiver_algo_core
                    kwiver::kwiver_adapter
                    kwiver::vital_vpm
+                   Eigen3::Eigen
  )
 
 if( VIAME_ENABLE_PYTHON )

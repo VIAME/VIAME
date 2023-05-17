@@ -245,9 +245,20 @@ write_detected_object_set_viame_csv
     static std::atomic<unsigned> id_counter( 0 );
     const unsigned det_id = id_counter++;
 
-    const std::string video_id = ( !d->m_stream_identifier.empty() ?
-                                    d->m_stream_identifier :
-                                    image_name );
+    std::string video_id;
+    if( !d->m_stream_identifier.empty() )
+    {
+      video_id = d->m_stream_identifier;
+    }
+    else
+    {
+      video_id = image_name;
+      const size_t last_slash_idx = video_id.find_last_of("\\/");
+      if ( std::string::npos != last_slash_idx )
+      {
+        video_id.erase( 0, last_slash_idx + 1 );
+      }
+    }
 
     stream() << det_id << ","               // 1: track id
              << video_id << ",";            // 2: video or image id
