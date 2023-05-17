@@ -16,8 +16,8 @@ process downsampler
 
 connect from input.image
         to   downsampler.input_1
-connect from input.file_name
-        to   downsampler.input_2
+#connect from input.file_name
+#        to   downsampler.input_2
 connect from input.frame_rate
         to   downsampler.frame_rate
 connect from input.timestamp

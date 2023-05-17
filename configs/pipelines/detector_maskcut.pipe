@@ -1,0 +1,57 @@
+# CutLer's MaskCut Pipeline
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_default_input_with_downsampler.pipe
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+# =================================== DETECTOR =====================================
+process detector1
+  :: image_object_detector
+  :detector:type                               maskcut
+    
+  #block detector:maskcut
+  #  #:vit_arch                                base
+  #endblock
+
+# ==================================== WRITER ======================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+# ==================================== CONNECTIONS ======================================
+# input 
+connect from downsampler.output_1
+        to   detector_input.image
+
+connect from detector_input.image
+        to   detector1.image
+
+# output
+#connect from downsampler.output_2
+#        to   detector_writer.image_file_name
+
+connect from detector1.detected_object_set
+        to   detector_writer.detected_object_set
+
+# -- end of file --

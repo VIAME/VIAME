@@ -1,8 +1,7 @@
 
+kwiver_create_python_init( arrows/pytorch )
+
 if( VIAME_ENABLE_PYTORCH-MMDET )
-
-  kwiver_create_python_init( arrows/pytorch )
-
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_compatibility.py
     arrows/pytorch
@@ -68,5 +67,11 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
     ${CMAKE_CURRENT_SOURCE_DIR}/mdnet_tracker_process.py
     processes/pytorch
     mdnet_tracker_process )
+
+endif()
+
+if( VIAME_ENABLE_PYTORCH-CUTLER )
+
+  add_subdirectory( cutler )
 
 endif()

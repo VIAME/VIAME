@@ -104,6 +104,7 @@ option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 # Add secondary plugin enable flags (advanced)
 ##
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
+option( VIAME_ENABLE_LEARN          "Enable LEARN build"            OFF )
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
@@ -111,6 +112,7 @@ option( VIAME_ENABLE_ITK_EXTRAS     "Enable ITK GUI and extra algs" OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 mark_as_advanced( VIAME_ENABLE_BURNOUT )
+mark_as_advanced( VIAME_ENABLE_LEARN )
 mark_as_advanced( VIAME_ENABLE_CAFFE )
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
@@ -165,6 +167,7 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-NETHARN      "Enable netharn PyTorch code"   ON )
   option( VIAME_ENABLE_PYTORCH-PYSOT        "Enable pysot PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-MDNET        "Enable mdnet PyTorch code"     OFF )
+  option( VIAME_ENABLE_PYTORCH-CUTLER       "Enable CutLer PyTorch code"    OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
@@ -172,6 +175,7 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-CUTLER )
 endif()
 
 ###
@@ -739,6 +743,10 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_PYTORCH )
     include( add_project_pytorch )
+  endif()
+
+  if( VIAME_ENABLE_LEARN )
+    include( add_project_learn )
   endif()
 
   if( VIAME_ENABLE_TENSORFLOW )
