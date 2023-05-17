@@ -79,6 +79,7 @@ option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
 option( VIAME_ENABLE_SEAL           "Enable Seal GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
+option( VIAME_ENABLE_IFREMER        "Enable IFREMER pipeline conf"  OFF )
 
 mark_as_advanced( VIAME_ENABLE_SEAL )
 
@@ -756,6 +757,10 @@ if( VIAME_BUILD_DEPENDENCIES )
   # VIAME plugins, adds this project causing the below else() block to run
   if( VIAME_ENABLE_VIAME_PLUGINS )
     include( add_project_viame )
+  endif()
+
+  if( VIAME_ENABLE_IFREMER )
+    include( add_project_ifremer )
   endif()
 
   # Fixup installer package
