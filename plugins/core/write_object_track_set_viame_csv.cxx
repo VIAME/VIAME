@@ -104,7 +104,15 @@ write_object_track_set_viame_csv::priv
   }
   else if( !m_frame_uids.empty() )
   {
-    return m_frame_uids[ ts->frame() ];
+    std::string fileuid = m_frame_uids[ ts->frame() ];
+
+    const size_t last_slash_idx = fileuid.find_last_of("\\/");
+    if ( std::string::npos != last_slash_idx )
+    {
+      fileuid.erase( 0, last_slash_idx + 1 );
+    }
+
+    return fileuid;
   }
   else
   {

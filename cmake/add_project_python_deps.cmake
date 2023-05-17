@@ -56,7 +56,11 @@ endif()
 
 # For mmdetection
 if( VIAME_ENABLE_PYTORCH-MMDET )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf" )
+  if( Python_VERSION VERSION_LESS "3.8" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf<=0.32.0" )
+  else()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf" )
+  endif()
 endif()
 
 # For measurement scripts
