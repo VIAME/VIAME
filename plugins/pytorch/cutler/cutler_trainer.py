@@ -67,7 +67,7 @@ from functools import partial
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
 
-class CutLERTrainer( TrainDetector ):
+class ConvNextCascadeRCNNTrainer( TrainDetector ):
     """
     Implementation of TrainDetector class
     """
@@ -533,13 +533,13 @@ def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "cutler_supervised_mmdet"
+    implementation_name = "convnext_cascade_rcnn_supervised_mmdet"
 
     if algorithm_factory.has_algorithm_impl_name(
-      CutLERTrainer.static_type_name(), implementation_name ):
+      ConvNextCascadeRCNNTrainer.static_type_name(), implementation_name ):
         return
 
     algorithm_factory.add_algorithm( implementation_name,
-      "PyTorch CutLER supervised mmdet training routine", CutLERTrainer )
+      "PyTorch ConvNext CascadeRcnn supervised mmdet training routine", ConvNextCascadeRCNNTrainer )
 
     algorithm_factory.mark_algorithm_as_loaded( implementation_name )

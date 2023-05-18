@@ -56,83 +56,8 @@ class MMDetDetector(ImageObjectDetector):
             cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
     def register_new_losses(self):
-        LOSSES._module_dict.pop('ReducedFocalLoss', None)
+        # need to register EQL loss with mmdet to use regardless of training or inference
         LOSSES._module_dict.pop('EQLv2', None)
-
-        # https://github.com/facebookresearch/fvcore/blob/main/fvcore/nn/focal_loss.py
-        def reduced_focal_loss(inputs, targets, threshold=0.5, alpha=0.25, gamma=2.0):
-            
-            targets = F.one_hot(targets, num_classes=inputs.shape[-1]).type_as(inputs)
-            p = torch.sigmoid(inputs)
-            ce_loss = F.binary_cross_entropy_with_logits(
-                inputs, targets, reduction="none"
-            )
-            p_t = p * targets + (1 - p) * (1 - targets)
-            ones_mask = p_t < threshold
-            other_mask = p_t >= threshold
-            other_mask = other_mask * (((1 - p_t) ** gamma) / threshold ** gamma)
-            f_x = ones_mask + other_mask
-            
-            loss = ce_loss * f_x
-
-            if alpha >= 0:
-                alpha_t = alpha * targets + (1 - alpha) * (1 - targets)
-                loss = alpha_t * loss
-
-            return loss
-
-        @LOSSES.register_module()
-        class ReducedFocalLoss(torch.nn.Module):
-            def __init__(self,
-                        threshold=0.5,
-                        gamma=2.0,
-                        alpha=0.25,
-                        reduction='mean',
-                        loss_weight=1.0):
-                super(ReducedFocalLoss, self).__init__()
-                self.alpha = alpha
-                self.gamma = gamma
-                self.reduction = reduction
-                self.loss_weight = loss_weight
-                self.threshold = threshold
-
-
-            def forward(self,
-                        pred,
-                        target,
-                        weight=None,
-                        avg_factor=None,
-                        reduction_override=None):
-                """Forward function.
-                Args:
-                    pred (torch.Tensor): The prediction.
-                    target (torch.Tensor): The learning target of the prediction
-                        in gaussian distribution.
-                    weight (torch.Tensor, optional): The weight of loss for each
-                        prediction. Defaults to None.
-                    avg_factor (int, optional): Average factor that is used to average
-                        the loss. Defaults to None.
-                    reduction_override (str, optional): The reduction method used to
-                        override the original reduction method of the loss.
-                        Defaults to None.
-                """
-                assert reduction_override in (None, 'none', 'mean', 'sum')
-                reduction = (
-                    reduction_override if reduction_override else self.reduction)
-                loss_reg = self.loss_weight * reduced_focal_loss(
-                    pred,
-                    target,
-                    threshold=self.threshold,
-                    alpha=self.alpha,
-                    gamma=self.gamma)
-                
-                if reduction == 'mean':
-                    return loss_reg.mean()
-                if reduction == 'sum':
-                    return loss_reg.sum()
-
-                return loss_reg
-
 
         @LOSSES.register_module()
         class EQLv2(torch.nn.Module):
@@ -257,7 +182,6 @@ class MMDetDetector(ImageObjectDetector):
         from mmdet.apis import init_detector
 
         gpu_string = 'cuda:' + str(self._gpu_index)
-        print("******************************************************************")
         mmdet_config = mmcv.Config.fromfile(self._net_config)
         def replace(conf, depth):
             if depth <= 0:
@@ -278,9 +202,7 @@ class MMDetDetector(ImageObjectDetector):
             except:
                 pass
 
-        replace(mmdet_config, 500)
         self._model = init_detector(mmdet_config, self._weight_file, device=gpu_string)
-        print(self._model)
         with open(self._class_names, "r") as in_file:
             self._labels = in_file.read().splitlines()
 

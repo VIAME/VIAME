@@ -33,16 +33,6 @@ ExternalProject_Add( learn
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
     LIST_SEPARATOR "----"
     )
-execute_process(
-    COMMAND
-        ${PYTHON_LEARN_DEP_BUILD} 
-        -r ${LEARN_DIR}/requirements.txt
-)
-execute_process(
-    COMMAND
-        ${PYTHON_LEARN_DEP_BUILD} 
-        -e ${LEARN_DIR}
-)
 
 #####################
 # Individual algos
@@ -58,23 +48,5 @@ if( VIAME_ENABLE_PYTORCH-CUTLER )
             "git+https://github.com/lucasb-eyer/pydensecrf.git" 
             "git+https://github.com/cocodataset/panopticapi.git"
             "git+https://github.com/mcordts/cityscapesScripts.git"
-    )
-    execute_process(
-        COMMAND
-            ${PYTHON_LEARN_DEP_BUILD} 
-            --upgrade --force-reinstall Pillow
-    )
-    # mmdet for training
-    execute_process(
-        COMMAND
-            MMCV_WITH_OPS=1 FORCE_CUDA=1 
-            ${PYTHON_LEARN_DEP_BUILD} 
-            mmcv-full==1.5.3 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.10.0/index.html
-            
-    )
-    execute_process(
-        COMMAND
-            ${PYTHON_LEARN_DEP_BUILD} 
-            mmdet==2.25.0
     )
 endif()
