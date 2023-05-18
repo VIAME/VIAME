@@ -74,24 +74,4 @@ if( VIAME_ENABLE_PYTORCH-CUTLER )
 
   add_subdirectory( cutler )
 
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_compatibility.py
-    arrows/pytorch
-    mmdet_compatibility )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_detector.py
-    arrows/pytorch
-    mmdet_detector )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_trainer.py
-    arrows/pytorch
-    mmdet_trainer )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_launcher.py
-    arrows/pytorch
-    mmdet_launcher )
-
 endif()
