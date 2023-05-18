@@ -28,6 +28,36 @@ detection, object classification, and full-frame
 classification. Tracker training will be added in a future
 update.
 
+-  Full-frame classifiers can be trained on arbitrary
+   multi-class labels. It's helpful to start with
+   ``empty frame lbls`` utility pipe and add type
+   annotations to each generated frame.
+-  Object classifiers and detectors are trained on bounding
+   boxes with arbitrary multi-class labels.
+
+.. rubric:: Overview
+   :name: overview
+
+-  SVM (`Support Vector
+   Machine <https://en.wikipedia.org/wiki/Support-vector_machine>`__)
+   configurations are usable with the smallest amount of
+   ground-truth and train relatively quickly.
+-  `NetHarn <https://gitlab.kitware.com/computer-vision/netharn>`__
+   is a pytorch deep learning framework that requires more
+   input data: on the order of thousands of target examples.
+   There are two architectures used. Netharn models can take
+   up to several days to train.
+
+   -  Cascade Faster R-CNN (cfrnn) for training box
+      detectors
+   -  Mask R-CNN for training pixel classification and box
+      detection
+   -  ResNet (Residual Network) for training full frame or
+      secondary object classifiers
+
+.. rubric:: Options
+   :name: options
+
 
 **********************
 Command Line Interface
