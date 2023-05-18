@@ -8,6 +8,144 @@ object_detector_training example folder in a VIAME installation.
 
 .. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/object_detector_training
 
+********
+Overview
+********
+
+There are a number of ways that models can be trained within the VIAME platform:
+
+1) In the DIVE interface, either through the web or desktop
+2) In the command-line interface examples contained within this example
+3) SEARCH interface...
+
+*******************
+Configuration Files
+*******************
+
+Run model training on ground truth annotations. Currently,
+training configurations are available to do object
+detection, object classification, and full-frame
+classification. Tracker training will be added in a future
+update.
+
+-  Full-frame classifiers can be trained on arbitrary
+   multi-class labels. It's helpful to start with
+   ``empty frame lbls`` utility pipe and add type
+   annotations to each generated frame.
+-  Object classifiers and detectors are trained on bounding
+   boxes with arbitrary multi-class labels.
+
+.. rubric:: Overview
+   :name: overview
+
+-  SVM (`Support Vector
+   Machine <https://en.wikipedia.org/wiki/Support-vector_machine>`__)
+   configurations are usable with the smallest amount of
+   ground-truth and train relatively quickly.
+-  `NetHarn <https://gitlab.kitware.com/computer-vision/netharn>`__
+   is a pytorch deep learning framework that requires more
+   input data: on the order of thousands of target examples.
+   There are two architectures used. Netharn models can take
+   up to several days to train.
+
+   -  Cascade Faster R-CNN (cfrnn) for training box
+      detectors
+   -  Mask R-CNN for training pixel classification and box
+      detection
+   -  ResNet (Residual Network) for training full frame or
+      secondary object classifiers
+
+.. rubric:: Options
+   :name: options
+
+|Training options dialog|
+
+.. rubric:: New Model Name
+   :name: new-model-name
+
+A recognizable name for the pipeline that results from the
+training run.
+
+.. rubric:: Configuration File
+   :name: configuration-file
+
+One of the configuration options in the table below.
+
+.. rubric:: Labels.txt file
+   :name: labelstxt-file
+
+This **optional** file controls the output classes that a
+newly trained model will generate.
+
+-  Use if you annotated using higher granularity labels
+   (such as species names) and want to train a classifier
+   using more
+-  Or you want to restrict your training session to only
+   train on certain kinds of ground-truth data.
+
+The following example ``labels.txt`` shows how to train a
+``FISH`` classifier by combining ``redfish`` and
+``bluefish``, preserve the ``ROCK`` label, and omit every
+other label.
+
+.. container:: highlight
+
+   +-----------------------------------+-----------------------------------+
+   | .. container:: linenodiv          | .. container::                    |
+   |                                   |                                   |
+   |    ::                             |    ::                             |
+   |                                   |                                   |
+   |       1                           |       FISH redfish bluefish       |
+   |       2                           |       ROCK                        |
+   +-----------------------------------+-----------------------------------+
+
+By default, all classes from all input datasets are
+preserved in the output model.
+
+.. rubric:: Use annotation frames only
+   :name: use-annotation-frames-only
+
+By default, training runs include all frames from the chosen
+input datasets, and frames without annotations are
+considered negative examples. If you choose to use annotated
+frames only, frames or images with zero annotations will be
+discarded. This option is useful for trying to train on
+datasets that are only partially annotated.
+
+.. rubric:: Configurations
+   :name: configurations
+
+.. container:: md-typeset__scrollwrap
+
+   .. container:: md-typeset__table
+
+      =================================================================================================================================================================
+      ============
+      ===================================================================
+      Configuration                                                                                                                                                     Availability Use Case
+      =================================================================================================================================================================
+      ============
+      ===================================================================
+      detector_default                                                                                                                                                  both         alias: train detector netharn cfrnn
+      `detector_netharn_cfrnn <https://github.com/VIAME/VIAME/blob/master/configs/pipelines/train_detector_netharn_cfrnn.viame_csv.conf>`__                             both        
+      `detector_netharn_mask_rcnn <https://github.com/VIAME/VIAME/blob/master/configs/pipelines/train_detector_netharn_mask_rcnn.viame_csv.conf>`__                     both        
+      `detector_svm_over_generic_detections <https://github.com/VIAME/VIAME/blob/master/configs/pipelines/train_detector_svm_over_generic_detections.viame_csv.conf>`__ both         general purpose svm
+      `detector_svm_over_fish_detections <https://github.com/VIAME/VIAME/blob/master/configs/pipelines/train_detector_svm_over_fish_detections.viame_csv.conf>`__       both         fish svm
+      frame_classifier_default                                                                                                                                          both         alias: frame classifier netharn resnet
+      `frame_classifier_netharn_resnet <https://github.com/VIAME/VIAME/blob/master/configs/pipelines/train_frame_classifier_netharn_resnet.viame_csv.conf>`__           both         full-frame
+      `frame_classifier_svm_overn_resnet <https://github.com/VIAME/VIAME/blob/master/configs/pipelines/train_frame_classifier_svm_over_resnet.viame_csv.conf>`__        both         full-frame
+      object_classifier_default                                                                                                                                         both         alias: netharn resnet object classifier
+      `object_classifier_netharn_resnet <https://github.com/VIAME/VIAME/blob/master/configs/pipelines/train_object_classifier_netharn_resnet.viame_csv.conf>`__         both        
+      yolo                                                                                                                                                              desktop only can train, but resulting model **is not runnable with desktop** yet
+      =================================================================================================================================================================
+      ============
+      ===================================================================
+
+
+**********************
+Command Line Interface
+**********************
+
 The common detector training API is used for training multiple object
 detectors from the same input format for both experimentation and
 deployment purposes. By default, each detector has a default training
