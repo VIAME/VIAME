@@ -6,9 +6,7 @@ cmake_minimum_required( VERSION 3.13.0 )
 set( CMAKE_CXX_STANDARD 17 )
 
 project( VIAME )
-INCLUDE(CMakeForceCompiler)
-CMAKE_FORCE_C_COMPILER(gcc GNU)
-CMAKE_FORCE_CXX_COMPILER(g++ GNU)
+
 ###
 # Core versioning flags
 ##
@@ -70,7 +68,7 @@ set( CMAKE_INSTALL_PREFIX           "${VIAME_BUILD_INSTALL_PREFIX}"
 # GPU and FFMPEG utilization flags used across projects
 ##
 option( VIAME_ENABLE_CUDA           "Enable CUDA-Dependent Code"    ON )
-option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   OFF )
+option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   ON )
 option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 
 ###
