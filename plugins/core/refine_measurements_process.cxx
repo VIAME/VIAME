@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Consolidate the output of multiple object trackers
+ * \brief Refine measurements in object detections via multiple methods
  */
 
 #include "refine_measurements_process.h"
@@ -40,8 +40,14 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_traits.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
+
+#include <Eigen/Core>
+
+#include <cmath>
 
 
 namespace kv = kwiver::vital;
@@ -71,6 +77,10 @@ create_config_trait( border_factor, unsigned, "0",
   "Treat detections this many pixels near image border as ambiguous" );
 create_config_trait( percentile, double, "0.45",
   "Percentile GSD to use when combining multiple estimates" );
+create_config_trait( intrinsics, std::string, "1 0 0 0 1 0 0 0 1",
+  "Camera calibration for use with metadata" );
+
+typedef std::pair< double, double > point_t;
 
 // =============================================================================
 // Private implementation class
@@ -90,6 +100,7 @@ public:
   double m_exp_factor;
   unsigned m_border_factor;
   double m_percentile;
+  Eigen::Matrix3d m_intrinsics;
 
   // Internal variables
   double m_last_gsd;
@@ -116,6 +127,7 @@ refine_measurements_process::priv
   , m_exp_factor( -1.0 )
   , m_border_factor( 0 )
   , m_percentile( 0.45 )
+  , m_intrinsics()
   , m_last_gsd( -1.0 )
   , m_history()
   , parent( ptr )
@@ -151,6 +163,33 @@ refine_measurements_process::priv
            box.min_y() <= m_border_factor ||
            box.max_x() >= w - m_border_factor ||
            box.max_y() >= h - m_border_factor );
+}
+
+point_t
+compute_ground_position( const point_t& pos, const Eigen::MatrixXd& inv )
+{
+  Eigen::Vector3d unadj = inv * Eigen::Vector3d( pos.first, pos.second, 1.0 );  
+
+  if( unadj( 2 ) > 0 )
+  {
+    return point_t( unadj( 0 ) / unadj( 2 ), unadj( 1 ) / unadj( 2 ) );
+  }
+
+  return point_t( 0.0, 0.0 );
+}
+
+void
+remove_column( Eigen::MatrixXd& matrix, unsigned int col )
+{
+  unsigned int rows = matrix.rows();
+  unsigned int cols = matrix.cols()-1;
+
+  if( col < cols )
+  {
+    matrix.block( 0, col, rows, cols-col ) = matrix.block( 0, col+1, rows, cols-col );
+  }
+
+  matrix.conservativeResize( rows, cols );
 }
 
 
@@ -190,6 +229,7 @@ refine_measurements_process
   declare_input_port_using_trait( detected_object_set, optional );
   declare_input_port_using_trait( object_track_set, optional );
   declare_input_port_using_trait( gsd, optional );
+  declare_input_port_using_trait( metadata, optional );
 
   // -- outputs --
   declare_output_port_using_trait( timestamp, optional );
@@ -211,6 +251,7 @@ refine_measurements_process
   declare_config_using_trait( exp_factor );
   declare_config_using_trait( border_factor );
   declare_config_using_trait( percentile );
+  declare_config_using_trait( intrinsics );
 }
 
 // -----------------------------------------------------------------------------
@@ -227,6 +268,13 @@ refine_measurements_process
   d->m_exp_factor = config_value_using_trait( exp_factor );
   d->m_border_factor = config_value_using_trait( border_factor );
   d->m_percentile = config_value_using_trait( percentile );
+
+  std::string intrinsics_str = config_value_using_trait( intrinsics );
+
+  double a11, a12, a13, a21, a22, a23, a31, a32, a33;
+  std::istringstream ss( intrinsics_str );
+  ss >> a11 >> a12 >> a13 >> a21 >> a22 >> a23 >> a31 >> a32 >> a33;
+  d->m_intrinsics << a11, a12, a13, a21, a22, a23, a31, a32, a33;
 }
 
 // -----------------------------------------------------------------------------
@@ -238,6 +286,7 @@ refine_measurements_process
   kv::detected_object_set_sptr input_dets;
   kv::image_container_sptr image;
   kv::timestamp timestamp;
+  kv::metadata_vector metadata;
   double external_gsd = -1.0;
 
   auto port_info = peek_at_port_using_trait( detected_object_set );
@@ -272,6 +321,10 @@ refine_measurements_process
   if( has_input_port_edge_using_trait( gsd ) )
   {
     external_gsd = grab_from_port_using_trait( gsd );
+  }
+  if( has_input_port_edge_using_trait( metadata ) )
+  {
+    metadata = grab_from_port_using_trait( metadata );
   }
 
   const unsigned detection_count = ( input_dets ? input_dets->size() : 0 );
@@ -408,6 +461,84 @@ refine_measurements_process
     }
   }
 
+#define CHECK_FIELD( VAR, METAID )                                 \
+  {                                                                \
+    auto md_ret = md->find( METAID );                              \
+                                                                   \
+    if( md_ret.is_valid() )                                        \
+    {                                                              \
+      VAR = md_ret.as_double();                                    \
+      has_metadata = true;                                         \
+    }                                                              \
+  }
+
+  if( !metadata.empty() && input_dets )
+  {
+    double yaw = 0.0, pitch = 0.0, roll = 0.0, alt = 0.0;
+    bool has_metadata = false;
+
+    for( auto md : metadata )
+    {
+      CHECK_FIELD( yaw, kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+      CHECK_FIELD( pitch, kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+      CHECK_FIELD( roll, kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+      CHECK_FIELD( alt, kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+    }
+
+    if( !has_metadata )
+    {
+      goto output_objs;
+    }
+
+    Eigen::AngleAxisd roll_angle( roll * 0.017453, Eigen::Vector3d::UnitZ() );
+    Eigen::AngleAxisd yaw_angle( yaw * 0.017453, Eigen::Vector3d::UnitY() );
+    Eigen::AngleAxisd pitch_angle( pitch * 0.017453, Eigen::Vector3d::UnitX() );
+
+    Eigen::Quaternion<double> q = roll_angle * yaw_angle * pitch_angle;
+
+    Eigen::Matrix3d rotation_matrix = q.matrix();
+    Eigen::Vector3d translation_matrix( 0, 0, alt * 1000 );
+
+    Eigen::MatrixXd perspective( 3, 4 );
+    perspective << rotation_matrix, translation_matrix;
+
+    Eigen::MatrixXd camera = d->m_intrinsics * perspective;
+    remove_column( camera, 2 );
+
+    Eigen::MatrixXd inverse = camera.inverse();
+
+    for( auto det : *input_dets )
+    {
+      if( ( d->m_recompute_all ||
+            det->notes().empty() ) &&
+          det->bounding_box().width() > 0 )
+      {
+        if( !d->m_output_multiple )
+        {
+          det->clear_notes();
+        }
+
+        double img_y1 = ( det->bounding_box().min_y() + det->bounding_box().max_y() ) / 2;
+
+        double img_x1 = det->bounding_box().min_x();
+        double img_x2 = det->bounding_box().max_x();
+ 
+        point_t world_xy1 = compute_ground_position( point_t( img_x1, img_y1 ), inverse );
+        point_t world_xy2 = compute_ground_position( point_t( img_x2, img_y1 ), inverse );
+
+        double lth = std::sqrt( std::pow( world_xy1.first - world_xy2.first, 2 ) +
+                                std::pow( world_xy1.second - world_xy2.second, 2 ) );
+
+        if( ( d->m_min_valid <= 0.0 || lth >= d->m_min_valid ) &&
+            ( d->m_max_valid <= 0.0 || lth <= d->m_max_valid ) )
+        {
+          det->set_length( lth );
+        }
+      }
+    }
+  }
+
+  output_objs:
   push_to_port_using_trait( detected_object_set, input_dets );
   push_to_port_using_trait( timestamp, timestamp );
 }
