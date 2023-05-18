@@ -18,6 +18,8 @@ There are a number of ways that models can be trained within the VIAME platform:
 2) In the command-line interface examples contained within this example
 3) SEARCH interface...
 
+All of these methods used the same configuration files and training backends
+
 *******************
 Configuration Files
 *******************
@@ -112,6 +114,83 @@ frames only, frames or images with zero annotations will be
 discarded. This option is useful for trying to train on
 datasets that are only partially annotated.
 
+.. rubric:: Configurations
+   :name: configurations
+
+.. container:: md-typeset__scrollwrap
+
+   .. container:: md-typeset__table
+
+      +--------------------------+--------------+--------------------------+
+      | Configuration            | Availability | Use Case                 |
+      +==========================+==============+==========================+
+      | detector_default         | both         | alias: train detector    |
+      |                          |              | netharn cfrnn            |
+      +--------------------------+--------------+--------------------------+
+      | `detector_net            | both         |                          |
+      | harn_cfrnn <https://gith |              |                          |
+      | ub.com/VIAME/VIAME/blob/ |              |                          |
+      | master/configs/pipelines |              |                          |
+      | /train_detector_netharn_ |              |                          |
+      | cfrnn.viame_csv.conf>`__ |              |                          |
+      +--------------------------+--------------+--------------------------+
+      | `detector_netharn_mas    | both         |                          |
+      | k_rcnn <https://github.c |              |                          |
+      | om/VIAME/VIAME/blob/mast |              |                          |
+      | er/configs/pipelines/tra |              |                          |
+      | in_detector_netharn_mask |              |                          |
+      | _rcnn.viame_csv.conf>`__ |              |                          |
+      +--------------------------+--------------+--------------------------+
+      | `detector_svm_ove        | both         | general purpose svm      |
+      | r_generic_detections <ht |              |                          |
+      | tps://github.com/VIAME/V |              |                          |
+      | IAME/blob/master/configs |              |                          |
+      | /pipelines/train_detecto |              |                          |
+      | r_svm_over_generic_detec |              |                          |
+      | tions.viame_csv.conf>`__ |              |                          |
+      +--------------------------+--------------+--------------------------+
+      | `detector_s              | both         | fish svm                 |
+      | vm_over_fish_detections  |              |                          |
+      | <https://github.com/VIAM |              |                          |
+      | E/VIAME/blob/master/conf |              |                          |
+      | igs/pipelines/train_dete |              |                          |
+      | ctor_svm_over_fish_detec |              |                          |
+      | tions.viame_csv.conf>`__ |              |                          |
+      +--------------------------+--------------+--------------------------+
+      | frame_classifier_default | both         | alias: frame classifier  |
+      |                          |              | netharn resnet           |
+      +--------------------------+--------------+--------------------------+
+      | `frame_                  | both         | full-frame               |
+      | classifier_netharn_resne |              |                          |
+      | t <https://github.com/VI |              |                          |
+      | AME/VIAME/blob/master/co |              |                          |
+      | nfigs/pipelines/train_fr |              |                          |
+      | ame_classifier_netharn_r |              |                          |
+      | esnet.viame_csv.conf>`__ |              |                          |
+      +--------------------------+--------------+--------------------------+
+      | `frame_cla               | both         | full-frame               |
+      | ssifier_svm_overn_resnet |              |                          |
+      |  <https://github.com/VIA |              |                          |
+      | ME/VIAME/blob/master/con |              |                          |
+      | figs/pipelines/train_fra |              |                          |
+      | me_classifier_svm_over_r |              |                          |
+      | esnet.viame_csv.conf>`__ |              |                          |
+      +--------------------------+--------------+--------------------------+
+      | o                        | both         | alias: netharn resnet    |
+      | bject_classifier_default |              | object classifier        |
+      +--------------------------+--------------+--------------------------+
+      | `object_c                | both         |                          |
+      | lassifier_netharn_resnet |              |                          |
+      |  <https://github.com/VIA |              |                          |
+      | ME/VIAME/blob/master/con |              |                          |
+      | figs/pipelines/train_obj |              |                          |
+      | ect_classifier_netharn_r |              |                          |
+      | esnet.viame_csv.conf>`__ |              |                          |
+      +--------------------------+--------------+--------------------------+
+      | yolo                     | desktop only | can train, but resulting |
+      |                          |              | model **is not runnable  |
+      |                          |              | with desktop** yet       |
+      +--------------------------+--------------+--------------------------+
 
 **********************
 Command Line Interface
