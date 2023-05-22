@@ -20,10 +20,8 @@ try:
     import torch.nn.functional as F
     from mmdet.models.builder import LOSSES
     from functools import partial
-    use_learn = True
 except ModuleNotFoundError:
-    use_learn = False
-
+    pass
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
 
@@ -42,6 +40,7 @@ class MMDetDetector(ImageObjectDetector):
         _Option('_thresh', 'thresh', 0.01, float),
         _Option('_gpu_index', 'gpu_index', "0", str),
         _Option('_num_classes', 'num_classes', 1, int),
+        _Option('_use_learn', 'use_learn', False, strtobool),
         _Option('_display_detections', 'display_detections', False, strtobool),
         _Option('_template', 'template', "", str),
         _Option('_auto_update_model', 'auto_update_model', True, strtobool),
@@ -186,8 +185,8 @@ class MMDetDetector(ImageObjectDetector):
         from mmdet.apis import init_detector
 
         gpu_string = 'cuda:' + str(self._gpu_index)
+        mmdet_config = mmcv.Config.fromfile(self._net_config)
         if use_learn:
-            mmdet_config = mmcv.Config.fromfile(self._net_config)
             def replace(conf, depth):
                 if depth <= 0:
                     return

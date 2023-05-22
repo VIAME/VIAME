@@ -96,6 +96,8 @@ process detector1
       :thresh                                  0.001
       :gpu_index                               0
       :cutler_config_file                      'VIAME/src/packages/learn/configs/hydra_config/self_supervision_pretrain/CutLER.yaml'
+      :num_classes                             2
+      :use_learn                               true
     endblock
   endblock
 
