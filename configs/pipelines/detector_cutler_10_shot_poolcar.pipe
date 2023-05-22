@@ -3,7 +3,7 @@
 # ==============================================================================
 
 config _pipeline:_edge
-  :capacity                                    5
+  :capacity                                    1
 
 config _scheduler
   :type                                        pythread_per_process
@@ -71,9 +71,9 @@ connect from downsampler.output_1
 
 process detector1
   :: image_object_detector
-  :detector:type                               convnext
+  :detector:type                               ocv_windowed
 
-  block detector:convnext
+  block detector:ocv_windowed
     :detector:type                             mmdet
 
     :mode                                      adaptive
@@ -95,7 +95,6 @@ process detector1
       # Detector parameters
       :thresh                                  0.001
       :gpu_index                               0
-      :cutler_config_file                      'VIAME/src/packages/learn/configs/hydra_config/self_supervision_pretrain/CutLER.yaml'
     endblock
   endblock
 
