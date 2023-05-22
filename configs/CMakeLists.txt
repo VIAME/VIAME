@@ -55,8 +55,23 @@ if( VIAME_DOWNLOAD_MODELS )
         ${VIAME_DOWNLOAD_DIR}/models-mmdet_generic-v1.4.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
+    elseif( VIAME_ENABLE_PYTORCH-CUTLER )
+      DownloadAndExtract(
+        https://viame.kitware.com/api/v1/item/646b5af78790390715ac66a7/download
+        ${VIAME_DOWNLOAD_DIR}/VIAME_PoolCar_10_shot_models-V1.0.zip
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endiff()
   endif()
 
+  # Default fish detection model
+  if( VIAME_DOWNLOAD_MODELS-POOLCAR )
+    if( VIAME_ENABLE_PYTORCH-CUTLER )
+      DownloadAndExtract(
+        https://viame.kitware.com/api/v1/file/646b5abb4c19222431def881/download
+        ${VIAME_DOWNLOAD_DIR}/VIAME_PoolCar_10_shot_models-V1.0.zip
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endiff()
+  endif()
   # Motion detection model
   if( VIAME_DOWNLOAD_MODELS-MOTION )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
