@@ -14,11 +14,15 @@ from kwiver.vital.types import (
 import mmcv
 import numpy as np
 
-import learn.algorithms.MMDET.register_modules
-import torch
-import torch.nn.functional as F
-from mmdet.models.builder import LOSSES
-from functools import partial
+try:
+    import learn.algorithms.MMDET.register_modules
+    import torch
+    import torch.nn.functional as F
+    from mmdet.models.builder import LOSSES
+    from functools import partial
+    use_learn = True
+except ModuleNotFoundError:
+    use_learn = False
 
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
@@ -41,7 +45,7 @@ class MMDetDetector(ImageObjectDetector):
         _Option('_display_detections', 'display_detections', False, strtobool),
         _Option('_template', 'template', "", str),
         _Option('_auto_update_model', 'auto_update_model', True, strtobool),
-        _Option('_rgb_to_bgr', 'rgb_to_bgr', True, strtobool)
+        _Option('_rgb_to_bgr', 'rgb_to_bgr', True, strtobool),
     ]
 
     def __init__(self):
@@ -56,7 +60,6 @@ class MMDetDetector(ImageObjectDetector):
             cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
     def register_new_losses(self):
-        # need to register EQL loss with mmdet to use regardless of training or inference
         LOSSES._module_dict.pop('EQLv2', None)
 
         @LOSSES.register_module()
@@ -166,7 +169,8 @@ class MMDetDetector(ImageObjectDetector):
 
 
     def set_configuration(self, cfg_in):
-        self.register_new_losses()
+        if use_learn:
+            self.register_new_losses()
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
 
@@ -182,26 +186,28 @@ class MMDetDetector(ImageObjectDetector):
         from mmdet.apis import init_detector
 
         gpu_string = 'cuda:' + str(self._gpu_index)
-        mmdet_config = mmcv.Config.fromfile(self._net_config)
-        def replace(conf, depth):
-            if depth <= 0:
-                return
-            try:
-                for k,v in conf.items():
-                    if isinstance(v, dict):
-                        replace(v, depth-1)
-                    elif isinstance(v, list):
-                        for element in v:
-                            replace(element, depth-1)
-                    else:
-                        # print(k,v)
-                        if k == 'num_classes':
-                            conf[k] = self._num_classes
-                        if k == 'CLASSES':
-                            conf[k] = self.toolset['target_dataset'].categories
-            except:
-                pass
+        if use_learn:
+            mmdet_config = mmcv.Config.fromfile(self._net_config)
+            def replace(conf, depth):
+                if depth <= 0:
+                    return
+                try:
+                    for k,v in conf.items():
+                        if isinstance(v, dict):
+                            replace(v, depth-1)
+                        elif isinstance(v, list):
+                            for element in v:
+                                replace(element, depth-1)
+                        else:
+                            # print(k,v)
+                            if k == 'num_classes':
+                                conf[k] = self._num_classes
+                            if k == 'CLASSES':
+                                conf[k] = self.toolset['target_dataset'].categories
+                except:
+                    pass
 
+            replace(mmdet_config, 500)
         self._model = init_detector(mmdet_config, self._weight_file, device=gpu_string)
         with open(self._class_names, "r") as in_file:
             self._labels = in_file.read().splitlines()

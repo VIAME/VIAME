@@ -63,7 +63,7 @@ if( VIAME_DOWNLOAD_MODELS )
     endiff()
   endif()
 
-  # Default fish detection model
+  # 10 shot Poolcar detection model
   if( VIAME_DOWNLOAD_MODELS-POOLCAR )
     if( VIAME_ENABLE_PYTORCH-CUTLER )
       DownloadAndExtract(
