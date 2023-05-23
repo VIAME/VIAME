@@ -134,7 +134,7 @@ if( VIAME_DOWNLOAD_MODELS )
   option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"     OFF )
   option( VIAME_DOWNLOAD_MODELS-SEA-LION    "Download sea lion detection models" OFF )
   option( VIAME_DOWNLOAD_MODELS-CONVNEXT    "Download default CONVNEXT models"   OFF )
-  option( VIAME_DOWNLOAD_MODELS-POOLCAR    "Download default poolcar models"     OFF )
+  option( VIAME_DOWNLOAD_MODELS-POOLCAR     "Download default poolcar models"     OFF )
 
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-GENERIC )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-FISH )
