@@ -7,45 +7,21 @@ set( PYTHON_LEARN_DEP_BUILD
     ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
     ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD} )
 
-# Install learn
+# Install required dependencies and learn
 set( LEARN_DIR ${VIAME_SOURCE_DIR}/packages/learn )
-ExternalProject_Add( learn_requirements
-    DEPENDS ${PROJECT_DEPS}
+
+ExternalProject_Add( learn
+    DEPENDS python-deps
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LEARN_DIR}
     BUILD_IN_SOURCE 1
     PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ${PYTHON_LEARN_DEP_BUILD} -r ${LEARN_DIR}/requirements.txt
-    INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
+          COMMAND ${PYTHON_LEARN_DEP_BUILD}
+                  "git+https://github.com/lucasb-eyer/pydensecrf.git" 
+                  "git+https://github.com/cocodataset/panopticapi.git"
+                  "git+https://github.com/mcordts/cityscapesScripts.git"
+    INSTALL_COMMAND ${PYTHON_LEARN_DEP_BUILD} -e ${LEARN_DIR}
     LIST_SEPARATOR "----"
     )
-
-ExternalProject_Add( learn
-    DEPENDS ${PROJECT_DEPS}
-    PREFIX ${VIAME_BUILD_PREFIX}
-    SOURCE_DIR ${LEARN_DIR}
-    BUILD_IN_SOURCE 1
-    PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${PYTHON_LEARN_DEP_BUILD} -e ${LEARN_DIR}
-    INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-    LIST_SEPARATOR "----"
-    )
-
-#####################
-# Individual algos
-#####################
-# CutLer
-if( VIAME_ENABLE_PYTORCH-CUTLER )
-    set(CUTLER_DIR ${LEARN_DIR}/learn/algorithms/CutLER/CutLER_main)
-
-    # git repos
-    execute_process(
-        COMMAND
-            ${PYTHON_LEARN_DEP_BUILD} 
-            "git+https://github.com/lucasb-eyer/pydensecrf.git" 
-            "git+https://github.com/cocodataset/panopticapi.git"
-            "git+https://github.com/mcordts/cityscapesScripts.git"
-    )
-endif()
