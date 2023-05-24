@@ -133,8 +133,8 @@ if( VIAME_DOWNLOAD_MODELS )
   option( VIAME_DOWNLOAD_MODELS-MOUSS       "Download mouss detection models"    OFF )
   option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"     OFF )
   option( VIAME_DOWNLOAD_MODELS-SEA-LION    "Download sea lion detection models" OFF )
-  option( VIAME_DOWNLOAD_MODELS-CONVNEXT    "Download default CONVNEXT models"   OFF )
-  option( VIAME_DOWNLOAD_MODELS-POOLCAR    "Download default poolcar models"     OFF )
+  option( VIAME_DOWNLOAD_MODELS-CONVNEXT    "Download convnext low-shot models"  OFF )
+  option( VIAME_DOWNLOAD_MODELS-POOLCAR     "Download poolcar low-shot models"   OFF )
 
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-GENERIC )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-FISH )
@@ -173,7 +173,7 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-NETHARN      "Enable netharn PyTorch code"   ON )
   option( VIAME_ENABLE_PYTORCH-PYSOT        "Enable pysot PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-MDNET        "Enable mdnet PyTorch code"     OFF )
-  option( VIAME_ENABLE_PYTORCH-CUTLER       "Enable CutLer PyTorch code"    OFF )
+  option( VIAME_ENABLE_PYTORCH-CUTLER       "Enable cutler PyTorch code"    OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
@@ -635,6 +635,37 @@ if( VIAME_ENABLE_PYTORCH )
         "e.g. python3-dev or python3-devel." )
     endif()
   endif()
+
+  # Configure PYTHON_DEP_ENV_VARS, this is used to set the environment used for
+  # either building or installing python dependencies
+  set( PYTHON_DEP_ENV_VARS )
+
+  if( WIN32 )
+    set( EXTRA_INCLUDE_DIRS "${VIAME_INSTALL_PREFIX}/include;$ENV{INCLUDE}" )
+    set( EXTRA_LIBRARY_DIRS "${VIAME_INSTALL_PREFIX}/lib;$ENV{LIB}" )
+
+    if( VIAME_ENABLE_PYTHON-INTERNAL )
+      set( ENV{PYTHONPATH} "${VIAME_PYTHON_PATH};$ENV{PYTHONPATH}" )
+    endif()
+
+    string( REPLACE ";" "----" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
+    string( REPLACE ";" "----" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
+    string( REPLACE ";" "----" EXTRA_INCLUDE_DIRS "${EXTRA_INCLUDE_DIRS}" )
+    string( REPLACE ";" "----" EXTRA_LIBRARY_DIRS "${EXTRA_LIBRARY_DIRS}" )
+
+    list( APPEND PYTHON_DEP_ENV_VARS "INCLUDE=${EXTRA_INCLUDE_DIRS}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "LIB=${EXTRA_LIBRARY_DIRS}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "PYTHONIOENCODING=UTF-8" )
+  else()
+    list( APPEND PYTHON_DEP_ENV_VARS "PATH=${VIAME_EXECUTABLES_PATH}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "CPPFLAGS=-I${VIAME_INSTALL_PREFIX}/include" )
+    list( APPEND PYTHON_DEP_ENV_VARS "LDFLAGS=-L${VIAME_INSTALL_PREFIX}/lib" )
+    list( APPEND PYTHON_DEP_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
+  endif()
+
+  list( APPEND PYTHON_DEP_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
+  list( APPEND PYTHON_DEP_ENV_VARS "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}" )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
