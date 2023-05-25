@@ -61,7 +61,7 @@ if( VIAME_DOWNLOAD_MODELS )
   if( VIAME_ENABLE_PYTORCH-CUTLER )
     if( VIAME_DOWNLOAD_MODELS-POOLCAR )
       DownloadAndExtract(
-        https://viame.kitware.com/api/v1/file/646f69a390b43948effa3282/download
+        https://viame.kitware.com/api/v1/file/646f6bb78790390715ac6b13/download
         ${VIAME_DOWNLOAD_DIR}/VIAME_PoolCar_10_shot_models-V1.0.zip
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
