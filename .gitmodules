@@ -73,4 +73,3 @@
 [submodule "packages/learn"]
 	path = packages/learn
 	url = https://gitlab.kitware.com/darpa_learn/learn.git
-	branch = dev/VIAME_requirements
