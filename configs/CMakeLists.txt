@@ -224,11 +224,14 @@ set( CORE_PIPELINE_FILES
   pipelines/common_default_input.pipe
   pipelines/common_default_input_with_downsampler.pipe
   pipelines/common_fish_detector.pipe
+  pipelines/common_stereo_input.pipe
+  pipelines/common_stereo_input_with_downsampler.pipe
   pipelines/common_fish_detector_with_filter.pipe
   pipelines/common_generic_detector.pipe
   pipelines/common_generic_detector_with_filter.pipe
   pipelines/common_image_stabilizer.pipe
   pipelines/common_stabilized_iou_tracker.pipe
+  pipelines/common_measurement_gmm_stereo_track_fish.pipe
   pipelines/database_apply_svm_models.pipe
   pipelines/detector_camtrawl.pipe
   pipelines/detector_fish_without_motion.pipe
@@ -312,6 +315,12 @@ if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_default_descriptor.pipe
     pipelines/common_default_tracker.pipe
+    pipelines/common_fish_detector.pipe
+    pipelines/common_stereo_fish_detector_with_filter.pipe
+    pipelines/common_stereo_fish_detector.pipe
+    pipelines/common_generic_detector.pipe
+    pipelines/measurement_gmm_stereo_detect_fish.pipe
+    pipelines/measurement_gmm_stereo_track_fish.pipe
     pipelines/query_augment_image.pipe
     pipelines/tracker_fish.sfd.pipe )
 else()
@@ -440,7 +449,15 @@ endif()
 if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/register_using_homographies.pipe
-    pipelines/register_multimodal_unsync_ocv.pipe )
+    pipelines/register_multimodal_unsync_ocv.pipe
+    pipelines/detector_ocv_target.pipe
+    pipelines/tracker_ocv_target.pipe
+    pipelines/measurement_gmm_stereo_track_ocv_target.pipe
+    pipelines/measurement_gmm_stereo_rectified_disparity.pipe
+    pipelines/measurement_gmm_stereo_track_fish_3d_from_detections_and_rectified_disparity.pipe
+    pipelines/measurement_gmm_stereo_calibrate_cameras.pipe
+    pipelines/measurement_gmm_calibrate_cameras.pipe
+    )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )

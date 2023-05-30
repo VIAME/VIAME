@@ -2056,7 +2056,7 @@ main( int argc, char* argv[] )
       }
       else if( initial_override || i % total_segment < train_segment )
       {
-        if( initial_override && i % total_segment == 0 )
+        if( initial_override && i % train_segment == 0 )
         {
           initial_override = false;
         }

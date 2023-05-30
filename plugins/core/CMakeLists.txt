@@ -14,6 +14,8 @@ set( plugin_headers
   read_object_track_set_viame_csv.h
   write_detected_object_set_viame_csv.h
   write_object_track_set_viame_csv.h
+  detections_pairing_from_stereo.h
+  tracks_pairing_from_stereo.h
   )
 
 set( plugin_sources
@@ -30,6 +32,8 @@ set( plugin_sources
   read_object_track_set_viame_csv.cxx
   write_detected_object_set_viame_csv.cxx
   write_object_track_set_viame_csv.cxx
+  detections_pairing_from_stereo.cxx
+  tracks_pairing_from_stereo.cxx
   )
 
 kwiver_install_headers(
@@ -47,6 +51,15 @@ kwiver_add_library( viame_core
   ${plugin_sources}
   )
 
+find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
+  COMPONENTS
+  chrono
+  filesystem
+  system)
+
+include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+link_directories( ${Boost_LIBRARY_DIRS} )
+
 set( CORE_LINK_LIBRARIES
   kwiver::vital
   kwiver::vital_algo
@@ -54,7 +67,10 @@ set( CORE_LINK_LIBRARIES
   kwiver::vital_exceptions
   kwiver::vital_logger
   kwiver::vital_util
-  kwiver::kwiversys )
+  kwiver::kwiversys
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  )
 
 # Eigen is used by metadata parsers
 find_package( Eigen3 REQUIRED NO_MODULE )
@@ -99,11 +115,21 @@ target_link_libraries( viame_core_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
+find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
+    COMPONENTS
+      chrono
+      filesystem
+      system)
+
+include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+link_directories( ${Boost_LIBRARY_DIRS} )
+
 # Add process library
 set( process_headers
   align_multimodal_imagery_process.h
   extract_desc_ids_for_training_process.h
   filter_frame_process.h
+  filter_frame_index_process.h
   filter_object_tracks_process.h
   frame_stacker_process.h
   full_frame_tracker_process.h
@@ -111,6 +137,11 @@ set( process_headers
   refine_measurements_process.h
   track_conductor_process.h
   write_homography_list_process.h
+  append_detections_to_tracks_process.h
+  split_object_track_to_feature_landmark_process.h
+  calibrate_cameras_from_tracks_process.h
+  detections_pairing_from_stereo_process.h
+  tracks_pairing_from_stereo_process.h
 )
 
 set( process_sources
@@ -118,6 +149,7 @@ set( process_sources
   align_multimodal_imagery_process.cxx
   extract_desc_ids_for_training_process.cxx
   filter_frame_process.cxx
+  filter_frame_index_process.cxx
   filter_object_tracks_process.cxx
   frame_stacker_process.cxx
   full_frame_tracker_process.cxx
@@ -125,6 +157,11 @@ set( process_sources
   refine_measurements_process.cxx
   track_conductor_process.cxx
   write_homography_list_process.cxx
+  append_detections_to_tracks_process.cxx
+  split_object_track_to_feature_landmark_process.cxx
+  calibrate_cameras_from_tracks_process.cxx
+  detections_pairing_from_stereo_process.cxx
+  tracks_pairing_from_stereo_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_core
@@ -135,8 +172,14 @@ kwiver_add_plugin( viame_processes_core
                    kwiver::sprokit_pipeline
                    kwiver::kwiver_algo_core
                    kwiver::kwiver_adapter
+                   kwiver::vital_util
                    kwiver::vital_vpm
-                   Eigen3::Eigen
+                   Eigen3::Eigen                   
+                   kwiver::kwiver_algo_mvg
+                   kwiver::kwiver_algo_ocv
+                   ${Boost_SYSTEM_LIBRARY}
+                   ${Boost_FILESYSTEM_LIBRARY}
+                   viame_core
  )
 
 if( VIAME_ENABLE_PYTHON )
@@ -163,4 +206,8 @@ if( VIAME_ENABLE_PYTHON )
     processes/core
     utility_processes )
 
+endif()
+
+if (VIAME_BUILD_TESTS)
+  add_subdirectory(tests)
 endif()

@@ -42,6 +42,12 @@
 #include "refine_measurements_process.h"
 #include "track_conductor_process.h"
 #include "write_homography_list_process.h"
+#include "append_detections_to_tracks_process.h"
+#include "filter_frame_index_process.h"
+#include "calibrate_cameras_from_tracks_process.h"
+#include "split_object_track_to_feature_landmark_process.h"
+#include "tracks_pairing_from_stereo_process.h"
+#include "detections_pairing_from_stereo_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -120,7 +126,67 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Generate tracks covering entire input frames" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
+  
+  fact = vpm.ADD_PROCESS( viame::core::filter_frame_index_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "filter_frame_index" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Pass frame in min max index limits" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+  
+  fact = vpm.ADD_PROCESS( viame::core::append_detections_to_tracks_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "append_detections_to_tracks" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Append consistent detected object set to an object track set" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
+  fact = vpm.ADD_PROCESS( viame::core::split_object_track_to_feature_landmark_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "split_object_track_to_feature_landmark" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Split an object track set into a feature_track_set and a landmark_map" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+  
+  fact = vpm.ADD_PROCESS( viame::core::calibrate_cameras_from_tracks_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "calibrate_cameras_from_tracks" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Calibrate cameras from object track sets" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+  
+  fact = vpm.ADD_PROCESS( viame::core::tracks_pairing_from_stereo_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "tracks_pairing_from_stereo" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Compute object tracks pair from stereo depth map information" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::detections_pairing_from_stereo_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "detections_pairing_from_stereo" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Compute object detections pair from stereo depth map information" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+  
   fact = vpm.ADD_PROCESS( viame::core::read_habcam_metadata_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "read_habcam_metadata" )

@@ -1,0 +1,30 @@
+
+# ==================================================================================
+# Commonly used stereo input files source with included downsampler process.
+#
+# By default, this is an image list reader, but this can be over-riden by changing
+# :video_reader:type to be vidl_ffmpeg for videos
+
+include common_stereo_input.pipe
+
+process downsampler
+  :: downsample
+  :target_frame_rate                           5
+  :burst_frame_count                           0
+  :burst_frame_break                           0
+  :renumber_frames                             true
+
+connect from input1.image
+        to   downsampler.input_1
+connect from input1.file_name
+        to   downsampler.input_2
+
+connect from input1.frame_rate
+        to   downsampler.frame_rate
+connect from input1.timestamp
+        to   downsampler.timestamp
+
+connect from input2.image
+        to   downsampler.input_3
+connect from input2.file_name
+        to   downsampler.input_4
