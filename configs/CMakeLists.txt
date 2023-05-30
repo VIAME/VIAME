@@ -57,6 +57,22 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
+  # LEARN Related Models
+  if( VIAME_ENABLE_PYTORCH-CUTLER )
+    if( VIAME_DOWNLOAD_MODELS-POOLCAR )
+      DownloadAndExtract(
+        https://viame.kitware.com/api/v1/file/646f6bb78790390715ac6b13/download
+        ${VIAME_DOWNLOAD_DIR}/VIAME_PoolCar_10_shot_models-V1.0.zip
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
+    if( VIAME_DOWNLOAD_MODELS-CONVNEXT )
+      DownloadAndExtract(
+        https://viame.kitware.com/api/v1/file/646b5af78790390715ac66a8/download
+        ${VIAME_DOWNLOAD_DIR}/VIAME_ConvNext_baseline_models-V1.0.zip
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
+  endif()
+
   # Motion detection model
   if( VIAME_DOWNLOAD_MODELS-MOTION )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
@@ -451,6 +467,11 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     pipelines/train_frame_classifier_netharn_resnet.continue.viame_csv.conf
     pipelines/train_reclassifier_netharn_efficientnet.viame_csv.conf
     pipelines/train_reclassifier_netharn_resnet.viame_csv.conf )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-CUTLER )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/detector_maskcut.pipe )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
