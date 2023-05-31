@@ -331,7 +331,7 @@ read_habcam_metadata_process
     {
       throw std::runtime_error( "Unable to load: " + file_name );
     }
-    if( !get_jpeg_comments( fin, ascii_snippet ) )
+    if( get_jpeg_comments( fin, ascii_snippet ) ) // Note: returns 0 on success
     {
       throw std::runtime_error( "Unable to read metadata from: " + file_name );
     }
