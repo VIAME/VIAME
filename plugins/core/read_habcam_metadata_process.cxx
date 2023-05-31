@@ -46,6 +46,12 @@
 #include <fstream>
 #include <sstream>
 
+#include <stdio.h>
+
+#if defined( MSDOS ) || defined( WIN32 )
+  #include <fcntl.h>
+#endif
+
 
 namespace kv = kwiver::vital;
 
@@ -72,6 +78,110 @@ public:
   // Other variables
   read_habcam_metadata_process* parent;
 };
+
+
+// Read JPG comments from file
+int get_jpeg_comments( FILE *f, std::string& s )
+{
+  int c, m;
+  unsigned ss;
+  s = "";
+#if defined( MSDOS ) || defined( WIN32 )
+  setmode( fileno(f), O_BINARY );
+#endif
+  if( ferror( f ) ) return -1;
+  /* A typical JPEG file has markers in these order:
+   *   d8 e0_JFIF e1 e1 e2 db db fe fe c0 c4 c4 c4 c4 da d9.
+   *   The first fe marker (COM, comment) was near offset 30000.
+   * A typical JPEG file after filtering through jpegtran:
+   *   d8 e0_JFIF fe fe db db c0 c4 c4 c4 c4 da d9.
+   *   The first fe marker (COM, comment) was at offset 20.
+   */
+  if( (c = getc(f) ) < 0 ) return -2;  /* Truncated (empty). */
+  if( c != 0xff) return -3;
+  if( ( c = getc(f) ) < 0 ) return -2;  /* Truncated. */
+  if( c != 0xd8) return -3;  /* Not a JPEG file, SOI expected. */
+
+  for( ;; )
+  {
+    /* printf("@%ld\n", ftell(f)); */
+    if( (c = getc(f) ) < 0 ) return -2;  /* Truncated. */
+    if( c != 0xff ) return -3;  /* Not a JPEG file, marker expected. */
+    if( (m = getc(f) ) < 0 ) return -2;  /* Truncated. */
+    while( m == 0xff ) {  /* Padding. */
+      if( (m = getc(f) ) < 0 ) return -2;  /* Truncated. */
+    }
+    if( m == 0xd8 ) return -4;  /* SOI unexpected. */
+    if( m == 0xd9 ) break;  /* EOI. */
+    if( m == 0xda ) break;  /* SOS. Would need special escaping to process. */
+    /* printf("MARKER 0x%02x\n", m); */
+    if( (c = getc(f)) < 0 ) return -2;  /* Truncated. */
+    ss = (c + 0U) << 8;
+    if( (c = getc(f)) < 0 ) return -2;  /* Truncated. */
+    ss += c;
+    if( ss < 2 ) return -5;  /* Segment too short. */
+    for ( ss -= 2; ss > 0; --ss) {
+      if( ( c = getc(f) ) < 0 ) return -2;  /* Truncated. */
+      if( m == 0xfe ) s+=c;  /* Emit comment char. */
+    }
+    if( m == 0xfe ) s+='\n';  /* End of comment. */
+  }
+  return 0;
+}
+
+
+bool ends_with( std::string const &input, std::string const &ending )
+{
+  if( input.length() >= ending.length() )
+  {
+    return ( 0 == input.compare(input.length() - ending.length(), ending.length(), ending) );
+  }
+  else
+  {
+    return false;
+  }
+}
+
+
+bool is_tiff( std::string const &file_name )
+{
+  return ends_with( file_name, ".tif" ) || ends_with( file_name, ".tiff" ) ||
+         ends_with( file_name, ".TIF" ) || ends_with( file_name, ".TIFF" );
+}
+
+
+void tokenize( const std::string ascii_snippet, std::vector< std::string >& tokens )
+{
+  std::stringstream ss( ascii_snippet );
+  std::string line;
+  const std::string delims = "\n\t\v ,";
+  tokens.clear();
+
+  while( std::getline( ss, line ) )
+  {
+    std::size_t prev = 0, pos;
+    while( ( pos = line.find_first_of( delims, prev ) ) != std::string::npos )
+    {
+      if( pos > prev )
+      {
+        std::string token = line.substr( prev, pos-prev );
+        if( !token.empty() )
+        {
+          tokens.push_back( token );
+        }
+      }
+      prev = pos + 1;
+    }
+    if( prev < line.length() )
+    {
+      std::string token = line.substr( prev, std::string::npos );
+      if( !token.empty() )
+      {
+        tokens.push_back( token );
+      }
+    }
+  }
+}
 
 
 // -----------------------------------------------------------------------------
@@ -151,91 +261,110 @@ read_habcam_metadata_process
   kwiver::vital::metadata_vector output_md_vec;
   double output_gsd = -1.0;
 
-  std::ifstream fin( file_name.c_str() );
-
-  if( !fin )
-  {
-    throw std::runtime_error( "Unable to load: " + file_name );
-  }
-
-  std::stringstream buffer;
-  fin.seekg( -d->m_scan_length, std::ios_base::end );
-  buffer << fin.rdbuf();
-  std::string ascii_snippet = buffer.str();
-
-  auto meta_start = ascii_snippet.find( "pixelformat=" );
-
-  if( meta_start == std::string::npos )
-  {
-    push_to_port_using_trait( metadata, output_md_vec );
-    push_to_port_using_trait( gsd, output_gsd );
-    return;
-  }
-
   std::shared_ptr< kwiver::vital::metadata > output_md =
-    std::make_shared< kwiver::vital::metadata >(); 
+    std::make_shared< kwiver::vital::metadata >();
 
-  ascii_snippet = ascii_snippet.substr( meta_start );
-
-  std::vector< std::string > tokens;
-
-  std::stringstream ss( ascii_snippet );
-  std::string line;
-  const std::string delims = "\n\t\v ,";
-
-  while( std::getline( ss, line ) )
+  if( is_tiff( file_name ) )
   {
-    std::size_t prev = 0, pos;
-    while( ( pos = line.find_first_of( delims, prev ) ) != std::string::npos )
+    std::ifstream fin( file_name.c_str() );
+
+    if( !fin )
     {
-      if( pos > prev )
-      {
-        std::string token = line.substr( prev, pos-prev );
-        if( !token.empty() )
-        {
-          tokens.push_back( token );
-        }
-      }
-      prev = pos + 1;
+      throw std::runtime_error( "Unable to load: " + file_name );
     }
-    if( prev < line.length() )
+
+    std::stringstream buffer;
+    fin.seekg( -d->m_scan_length, std::ios_base::end );
+    buffer << fin.rdbuf();
+    std::string ascii_snippet = buffer.str();
+
+    auto meta_start = ascii_snippet.find( "pixelformat=" );
+
+    if( meta_start == std::string::npos )
     {
-      std::string token = line.substr( prev, std::string::npos );
-      if( !token.empty() )
-      {
-        tokens.push_back( token );
-      }
+      push_to_port_using_trait( metadata, output_md_vec );
+      push_to_port_using_trait( gsd, output_gsd );
+      return;
+    }
+
+    ascii_snippet = ascii_snippet.substr( meta_start );
+
+    std::vector< std::string > tokens;
+    tokenize( ascii_snippet, tokens );
+
+  #define CHECK_FIELD( STR, METAID )                              \
+    {                                                             \
+      std::string field = STR ;                                   \
+      std::size_t pos = field.size() + 1;                         \
+      if( token.substr( 0, pos ) == field + "=" )                 \
+      {                                                           \
+        try                                                       \
+        {                                                         \
+          std::string str_val = token.substr( pos );              \
+                                                                  \
+          if( str_val != "-99.99" )                               \
+          {                                                       \
+            output_md->add< METAID >( std::stod( str_val ) );     \
+          }                                                       \
+        }                                                         \
+        catch( ... )                                              \
+        {                                                         \
+        }                                                         \
+      }                                                           \
+    }
+
+    for( std::string token : tokens )
+    {
+      CHECK_FIELD( "hdg", kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE );
+      CHECK_FIELD( "pitch", kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE );
+      CHECK_FIELD( "roll", kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE );
+      CHECK_FIELD( "alt0", kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+      CHECK_FIELD( "alt1", kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
     }
   }
-
-#define CHECK_FIELD( STR, METAID )                          \
-  {                                                         \
-    std::string field = STR ;                               \
-    std::size_t pos = field.size() + 1;                     \
-    if( token.substr( 0, pos ) == field + "=" )             \
-    {                                                       \
-      try                                                   \
-      {                                                     \
-        std::string str_val = token.substr( pos );          \
-                                                            \
-        if( str_val != "-99.99" )                           \
-        {                                                   \
-          output_md->add< METAID >( std::stod( str_val ) ); \
-        }                                                   \
-      }                                                     \
-      catch( ... )                                          \
-      {                                                     \
-      }                                                     \
-    }                                                       \
-  }
-
-  for( std::string token : tokens )
+  else
   {
-    CHECK_FIELD( "hdg", kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE );
-    CHECK_FIELD( "pitch", kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE );
-    CHECK_FIELD( "roll", kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE );
-    CHECK_FIELD( "alt0", kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
-    CHECK_FIELD( "alt1", kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+    std::string ascii_snippet;
+    FILE *fin = fopen( file_name.c_str(), "r" );
+
+    if( !fin )
+    {
+      throw std::runtime_error( "Unable to load: " + file_name );
+    }
+    if( !get_jpeg_comments( fin, ascii_snippet ) )
+    {
+      throw std::runtime_error( "Unable to read metadata from: " + file_name );
+    }
+
+    std::vector< std::string > tokens;
+    tokenize( ascii_snippet, tokens );
+
+    int image_id_ind = -1;
+
+    for( int i = 0; i < static_cast<int>( tokens.size() ); ++i )
+    {
+      if( is_tiff( tokens[i] ) )
+      {
+        image_id_ind = i;
+        break;
+      }
+    }
+
+    if( image_id_ind > 0 && image_id_ind + 6 >= static_cast<int>( tokens.size() ) )
+    {
+      output_md->add< kwiver::vital::VITAL_META_SENSOR_ALTITUDE >(
+        std::stod( tokens[ image_id_ind + 2 ] ) );
+      output_md->add< kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE >(
+        std::stod( tokens[ image_id_ind + 3 ] ) );
+      output_md->add< kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE >(
+        std::stod( tokens[ image_id_ind + 4 ] ) );
+      output_md->add< kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE >(
+        std::stod( tokens[ image_id_ind + 5 ] ) );
+    }
+    else
+    {
+      throw std::runtime_error( "Insufficient metadata fields in " + file_name );
+    }
   }
 
   output_md_vec.push_back( output_md );
