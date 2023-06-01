@@ -355,7 +355,7 @@ read_habcam_metadata_process
       throw std::runtime_error( "TIF image file string not found in: " + file_name );
     }
 
-    if( image_id_ind + 6 >= static_cast<int>( tokens.size() ) )
+    if( image_id_ind + 6 <= static_cast<int>( tokens.size() ) )
     {
       output_md->add< kwiver::vital::VITAL_META_SENSOR_ALTITUDE >(
         std::stod( tokens[ image_id_ind + 2 ] ) );
