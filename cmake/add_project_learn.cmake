@@ -11,7 +11,7 @@ set( PYTHON_LEARN_DEP_BUILD
 set( LEARN_DIR ${VIAME_SOURCE_DIR}/packages/learn )
 
 ExternalProject_Add( learn
-    DEPENDS python-deps
+    DEPENDS python-deps detectron2
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LEARN_DIR}
     BUILD_IN_SOURCE 1
