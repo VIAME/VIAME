@@ -45,6 +45,7 @@ IF EXIST C:\tmp\kv1 rmdir /s /q C:\tmp\kv1
 IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
 
 git submodule update --init --recursive
+git checkout next
 
 REM If running locally instead of on Jenkins server, file jenkins_dashboard.cmake should be a renamed
 REM version of the file located at jenkins/CTestBuildOnlyPipeline, with 'platform.cmake' in the
