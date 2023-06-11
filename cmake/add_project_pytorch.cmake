@@ -193,6 +193,13 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PATCHES_DIR}/torchvision
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
     endif()
+  elseif( "${LIB}" STREQUAL "detectron2" )
+    set( PROJECT_DEPS fletch python-deps pytorch )
+    if( WIN32 )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/detectron2
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
+    endif()
   else()
     set( PROJECT_DEPS fletch python-deps pytorch )
   endif()
