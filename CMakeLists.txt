@@ -350,16 +350,7 @@ if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
   link_libraries( stdc++fs )
 endif()
 
-# VXL enabled triggers yasm to be built, requiring at least some python
-if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
-  if( NOT Python_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
-    message( FATAL_ERROR "If VXL is enabled, there must be some python install \
-      located on the system to build, even if VIAME_ENABLE_PYTHON is turned off \
-      for all other packages. A python binary could not be found. Please install \
-      at least python." )
-  endif()
-endif()
-
+# Check CUDA related paths
 if( VIAME_ENABLE_CUDA )
   find_package( CUDA QUIET REQUIRED )
 
@@ -613,6 +604,16 @@ endif()
 if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
   message( FATAL_ERROR "Cannot build in Debug on Windows with Python enabled, \
     build in RelWithDebInfo or Release until fixed." )
+endif()
+
+# VXL enabled triggers yasm to be built, requiring at least some python
+if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
+  if( NOT Python_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
+    message( FATAL_ERROR "If VXL is enabled, there must be some python install \
+      located on the system to build, even if VIAME_ENABLE_PYTHON is turned off \
+      for all other packages. A python binary could not be found. Please install \
+      at least python." )
+  endif()
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
