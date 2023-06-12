@@ -27,15 +27,8 @@ else()
     pip install --user file://${VIAME_PACKAGES_DIR}/smqtk\#egg=smqtk[postgres] )
 endif()
 
-if( WIN32 )
-  string( REPLACE ";" "----" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
-  string( REPLACE ";" "----" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
-endif()
-
 set( SMQTK_PYTHON_INSTALL
-  ${CMAKE_COMMAND} -E env "PYTHONPATH=${VIAME_PYTHON_PATH}"
-                          "PATH=${VIAME_EXECUTABLES_PATH}"
-                          "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}"
+  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
     ${Python_EXECUTABLE} -m ${SMQTK_PIP_CMD}
   )
 
@@ -77,7 +70,6 @@ ExternalProject_Add_Step(smqtk install_cleanup
   COMMENT "Performing SMQTK Cleanup."
   DEPENDEES build
   )
-
 
 if ( VIAME_FORCEBUILD )
 ExternalProject_Add_Step(smqtk forcebuild
