@@ -462,6 +462,78 @@ else()
   endif()
 endif()
 
+if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
+  message( FATAL_ERROR "Cannot enable CUDNN without CUDA, disable VIAME_ENABLE_CUDNN" )
+endif()
+
+if( VIAME_ENABLE_CUDNN )
+  set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
+
+  find_library( CUDNN_LIBRARY REQUIRED
+    NAMES cudnn libcudnn.so libcudnn.so.8 libcudnn.so.7 libcudnn.so.6
+    HINTS ${CUDNN_ROOT_DIR}
+          ${CUDNN_ROOT_DIR}/lib
+          ${CUDNN_ROOT_DIR}/lib/x64
+          ${CUDA_TOOLKIT_ROOT_DIR}
+          ${CUDA_TOOLKIT_ROOT_DIR}/lib
+          ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+          ${CUDA_TOOLKIT_ROOT_DIR}/lib64
+          ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
+    PATH_SUFFIXES lib lib64 )
+
+  get_filename_component( CUDNN_LIBRARY "${CUDNN_LIBRARY}" REALPATH )
+
+  if( NOT CUDNN_LIBRARY )
+    message( FATAL_ERROR "Unable to locate CUDNN library" )
+  endif()
+
+  # Different subprojects use each variable
+  set( CUDNN_LIBRARIES "${CUDNN_LIBRARY}" CACHE INTERNAL "" FORCE )
+
+  # Check version of CUDNN
+  get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_LIBRARY}" DIRECTORY )
+  get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_ROOT_DIR_TMP}" DIRECTORY )
+
+  set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
+  set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
+
+  if( CUDNN_ROOT_DIR STREQUAL "/" )
+    set( CUDNN_INCLUDE_FILE "/include/cudnn.h" CACHE INTERNAL "" FORCE )
+  endif()
+
+  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
+    get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_ROOT_DIR_TMP}" DIRECTORY )
+
+    set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
+    set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
+  endif()
+
+  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
+    message( ERROR "Unable to locate cudnn.h include header" )
+  endif()
+
+  if( CUDNN_ROOT_DIR STREQUAL "/" )
+    set( CUDNN_INCLUDE_DIR "/include" CACHE INTERNAL "CUDNN include" FORCE )
+  else()
+    set( CUDNN_INCLUDE_DIR "${CUDNN_ROOT_DIR}/include" CACHE INTERNAL "" FORCE )
+  endif()
+
+  if( EXISTS "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
+    set( CUDNN_VERSION_FILE "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
+  else()
+    set( CUDNN_VERSION_FILE "${CUDNN_INCLUDE_FILE}" )
+  endif()
+
+  if( EXISTS "${CUDNN_VERSION_FILE}" )
+    file( READ "${CUDNN_VERSION_FILE}" TMP_CUDNN_VERSION_FILE_CONTENTS )
+
+    string( REGEX MATCH "define CUDNN_MAJOR * +([0-9]+)"
+            CUDNN_VERSION_MAJOR "${TMP_CUDNN_VERSION_FILE_CONTENTS}" )
+    string( REGEX REPLACE "define CUDNN_MAJOR * +([0-9]+)" "\\1"
+            CUDNN_VERSION_MAJOR "${CUDNN_VERSION_MAJOR}" )
+  endif()
+endif()
+
 if( VIAME_ENABLE_PYTHON )
   if( NOT WIN32 )
     option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
@@ -536,78 +608,6 @@ if( VIAME_ENABLE_PYTHON )
 
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}" )
-endif()
-
-if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
-  message( FATAL_ERROR "Cannot enable CUDNN without CUDA, disable VIAME_ENABLE_CUDNN" )
-endif()
-
-if( VIAME_ENABLE_CUDNN )
-  set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
-
-  find_library( CUDNN_LIBRARY REQUIRED
-    NAMES cudnn libcudnn.so libcudnn.so.8 libcudnn.so.7 libcudnn.so.6
-    HINTS ${CUDNN_ROOT_DIR}
-          ${CUDNN_ROOT_DIR}/lib
-          ${CUDNN_ROOT_DIR}/lib/x64
-          ${CUDA_TOOLKIT_ROOT_DIR}
-          ${CUDA_TOOLKIT_ROOT_DIR}/lib
-          ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-          ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-          ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
-    PATH_SUFFIXES lib lib64 )
-
-  get_filename_component( CUDNN_LIBRARY "${CUDNN_LIBRARY}" REALPATH )
-
-  if( NOT CUDNN_LIBRARY )
-    message( FATAL_ERROR "Unable to locate CUDNN library" )
-  endif()
-
-  # Different subprojects use each variable
-  set( CUDNN_LIBRARIES "${CUDNN_LIBRARY}" CACHE INTERNAL "" FORCE )
-
-  # Check version of CUDNN
-  get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_LIBRARY}" DIRECTORY )
-  get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_ROOT_DIR_TMP}" DIRECTORY )
-
-  set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
-  set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
-
-  if( CUDNN_ROOT_DIR STREQUAL "/" )
-    set( CUDNN_INCLUDE_FILE "/include/cudnn.h" CACHE INTERNAL "" FORCE )
-  endif()
-
-  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
-    get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_ROOT_DIR_TMP}" DIRECTORY )
-
-    set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
-    set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
-  endif()
-
-  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
-    message( ERROR "Unable to locate cudnn.h include header" )
-  endif()
-
-  if( CUDNN_ROOT_DIR STREQUAL "/" )
-    set( CUDNN_INCLUDE_DIR "/include" CACHE INTERNAL "CUDNN include" FORCE )
-  else()
-    set( CUDNN_INCLUDE_DIR "${CUDNN_ROOT_DIR}/include" CACHE INTERNAL "" FORCE )
-  endif()
-
-  if( EXISTS "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
-    set( CUDNN_VERSION_FILE "${CUDNN_ROOT_DIR}/include/cudnn_version.h" )
-  else()
-    set( CUDNN_VERSION_FILE "${CUDNN_INCLUDE_FILE}" )
-  endif()
-
-  if( EXISTS "${CUDNN_VERSION_FILE}" )
-    file( READ "${CUDNN_VERSION_FILE}" TMP_CUDNN_VERSION_FILE_CONTENTS )
-
-    string( REGEX MATCH "define CUDNN_MAJOR * +([0-9]+)"
-            CUDNN_VERSION_MAJOR "${TMP_CUDNN_VERSION_FILE_CONTENTS}" )
-    string( REGEX REPLACE "define CUDNN_MAJOR * +([0-9]+)" "\\1"
-            CUDNN_VERSION_MAJOR "${CUDNN_VERSION_MAJOR}" )
-  endif()
 endif()
 
 if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
