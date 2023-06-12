@@ -52,9 +52,6 @@ set( PYTORCH_ENV_VARS ${PYTHON_DEP_ENV_VARS} )
 
 if( VIAME_ENABLE_CUDNN )
   list( APPEND PYTORCH_ENV_VARS "CUDNN_LIBRARY=${CUDNN_LIBRARIES}" )
-  if( WIN32 )
-    string( REPLACE ";" "----" PYTORCH_ENV_VARS "${PYTORCH_ENV_VARS}" )
-  endif()
   if( CUDNN_ROOT_DIR )
     list( APPEND PYTORCH_ENV_VARS "CUDNN_INCLUDE_DIR=${CUDNN_ROOT_DIR}/include" )
   endif()
@@ -81,6 +78,10 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND PYTORCH_ENV_VARS "MMCV_WITH_OPS=1" )
+endif()
+
+if( WIN32 )
+  string( REPLACE ";" "----" PYTORCH_ENV_VARS "${PYTORCH_ENV_VARS}" )
 endif()
 
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
