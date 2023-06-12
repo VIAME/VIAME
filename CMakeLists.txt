@@ -324,82 +324,6 @@ if( VIAME_ENABLE_DOCS )
   find_package( Doxygen REQUIRED )
 endif()
 
-if( VIAME_ENABLE_PYTHON )
-  if( NOT WIN32 )
-    option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
-    mark_as_advanced( VIAME_SYMLINK_PYTHON )
-  endif()
-  set( KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON} ) # Required for KWIVER scripts
-
-  if( VIAME_ENABLE_PYTHON-INTERNAL )
-    include( setup_internal_python )
-  else()
-    find_package( Python COMPONENTS Interpreter Development REQUIRED )
-  endif()
-
-  # Backwards compatibility for sub-projects which use "PYTHON_" cmake
-  # variables and the old find_package( PythonInterp ) commands instead
-  # of the newer find Python. Copies all Python_* to PYTHON_* vars.
-  CopyVarsToAllCaps( "Python" )
-
-  if( VIAME_ENABLE_PYTHON-NETHARN AND NOT VIAME_ENABLE_PYTHON-MMDET )
-    message( FATAL_ERROR "Netharn currently also requires mmdet enabled" )
-  endif()
-
-  set( VIAME_PYTHON_STRING "python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}"
-    CACHE INTERNAL "Version ID used in python install paths" )
-
-  set( PYBASE ${VIAME_BUILD_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING} )
-  set( VIAME_PYTHON_INSTALL ${PYBASE} CACHE INTERNAL "VIAME Python install path" )
-  set( VIAME_PYTHON_USERBASE "${VIAME_INSTALL_PREFIX}" )
-
-  if( WIN32 )
-    string( REPLACE "/" "\\" VIAME_PYTHON_USERBASE "${VIAME_PYTHON_USERBASE}" )
-
-    set( VIAME_PYTHON_PATH
-      ${PYBASE};${PYBASE}/site-packages;${PYBASE}/dist-packages
-      CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME" )
-  else()
-    set( VIAME_PYTHON_PATH
-      ${PYBASE}:${PYBASE}/site-packages:${PYBASE}/dist-packages
-      CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME")
-  endif()
-
-  # Configure PYTHON_DEP_ENV_VARS, this is used to set the environment used for
-  # either building or installing python dependencies
-  set( PYTHON_DEP_ENV_VARS )
-
-  if( WIN32 )
-    set( EXTRA_INCLUDE_DIRS "${VIAME_INSTALL_PREFIX}/include;$ENV{INCLUDE}" )
-    set( EXTRA_LIBRARY_DIRS "${VIAME_INSTALL_PREFIX}/lib;$ENV{LIB}" )
-    set( EXTRA_LD_LIBRARIES "${VIAME_INSTALL_PREFIX}/lib:$ENV{LD_LIBRARY_PATH}" )
-
-    if( VIAME_ENABLE_PYTHON-INTERNAL )
-      set( ENV{PYTHONPATH} "${VIAME_PYTHON_PATH};$ENV{PYTHONPATH}" )
-    endif()
-
-    string( REPLACE ";" "----" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
-    string( REPLACE ";" "----" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
-    string( REPLACE ";" "----" EXTRA_INCLUDE_DIRS "${EXTRA_INCLUDE_DIRS}" )
-    string( REPLACE ";" "----" EXTRA_LIBRARY_DIRS "${EXTRA_LIBRARY_DIRS}" )
-
-    list( APPEND PYTHON_DEP_ENV_VARS "INCLUDE=${EXTRA_INCLUDE_DIRS}" )
-    list( APPEND PYTHON_DEP_ENV_VARS "LIB=${EXTRA_LIBRARY_DIRS}" )
-    list( APPEND PYTHON_DEP_ENV_VARS "PYTHONHOME=${VIAME_PYTHON_USERBASE}" )
-    list( APPEND PYTHON_DEP_ENV_VARS "PYTHONIOENCODING=UTF-8" )
-  else()
-    list( APPEND PYTHON_DEP_ENV_VARS "PATH=${VIAME_EXECUTABLES_PATH}" )
-    list( APPEND PYTHON_DEP_ENV_VARS "CPPFLAGS=-I${VIAME_INSTALL_PREFIX}/include" )
-    list( APPEND PYTHON_DEP_ENV_VARS "LDFLAGS=-L${VIAME_INSTALL_PREFIX}/lib" )
-    list( APPEND PYTHON_DEP_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
-    list( APPEND PYTHON_DEP_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
-    list( APPEND PYTHON_DEP_ENV_VARS "LD_LIBRARY_PATH=${EXTRA_LD_LIBRARIES}" )
-  endif()
-
-  list( APPEND PYTHON_DEP_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
-  list( APPEND PYTHON_DEP_ENV_VARS "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}" )
-endif()
-
 if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL )
   message( FATAL_ERROR "Cannot enable both VIVIA and Seal-TK GUIs" )
 endif()
@@ -536,6 +460,82 @@ else()
       ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH}
       CACHE INTERNAL "All compiled and system-related runnable executables" )
   endif()
+endif()
+
+if( VIAME_ENABLE_PYTHON )
+  if( NOT WIN32 )
+    option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
+    mark_as_advanced( VIAME_SYMLINK_PYTHON )
+  endif()
+  set( KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON} ) # Required for KWIVER scripts
+
+  if( VIAME_ENABLE_PYTHON-INTERNAL )
+    include( setup_internal_python )
+  else()
+    find_package( Python COMPONENTS Interpreter Development REQUIRED )
+  endif()
+
+  # Backwards compatibility for sub-projects which use "PYTHON_" cmake
+  # variables and the old find_package( PythonInterp ) commands instead
+  # of the newer find Python. Copies all Python_* to PYTHON_* vars.
+  CopyVarsToAllCaps( "Python" )
+
+  if( VIAME_ENABLE_PYTHON-NETHARN AND NOT VIAME_ENABLE_PYTHON-MMDET )
+    message( FATAL_ERROR "Netharn currently also requires mmdet enabled" )
+  endif()
+
+  set( VIAME_PYTHON_STRING "python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}"
+    CACHE INTERNAL "Version ID used in python install paths" )
+
+  set( PYBASE ${VIAME_BUILD_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING} )
+  set( VIAME_PYTHON_INSTALL ${PYBASE} CACHE INTERNAL "VIAME Python install path" )
+  set( VIAME_PYTHON_USERBASE "${VIAME_INSTALL_PREFIX}" )
+
+  if( WIN32 )
+    string( REPLACE "/" "\\" VIAME_PYTHON_USERBASE "${VIAME_PYTHON_USERBASE}" )
+
+    set( VIAME_PYTHON_PATH
+      ${PYBASE};${PYBASE}/site-packages;${PYBASE}/dist-packages
+      CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME" )
+  else()
+    set( VIAME_PYTHON_PATH
+      ${PYBASE}:${PYBASE}/site-packages:${PYBASE}/dist-packages
+      CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME")
+  endif()
+
+  # Configure PYTHON_DEP_ENV_VARS, this is used to set the environment used for
+  # either building or installing python dependencies
+  set( PYTHON_DEP_ENV_VARS )
+
+  if( WIN32 )
+    set( EXTRA_INCLUDE_DIRS "${VIAME_INSTALL_PREFIX}/include;$ENV{INCLUDE}" )
+    set( EXTRA_LIBRARY_DIRS "${VIAME_INSTALL_PREFIX}/lib;$ENV{LIB}" )
+    set( EXTRA_LD_LIBRARIES "${VIAME_INSTALL_PREFIX}/lib:$ENV{LD_LIBRARY_PATH}" )
+
+    if( VIAME_ENABLE_PYTHON-INTERNAL )
+      set( ENV{PYTHONPATH} "${VIAME_PYTHON_PATH};$ENV{PYTHONPATH}" )
+    endif()
+
+    string( REPLACE ";" "----" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
+    string( REPLACE ";" "----" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
+    string( REPLACE ";" "----" EXTRA_INCLUDE_DIRS "${EXTRA_INCLUDE_DIRS}" )
+    string( REPLACE ";" "----" EXTRA_LIBRARY_DIRS "${EXTRA_LIBRARY_DIRS}" )
+
+    list( APPEND PYTHON_DEP_ENV_VARS "INCLUDE=${EXTRA_INCLUDE_DIRS}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "LIB=${EXTRA_LIBRARY_DIRS}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "PYTHONHOME=${VIAME_PYTHON_USERBASE}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "PYTHONIOENCODING=UTF-8" )
+  else()
+    list( APPEND PYTHON_DEP_ENV_VARS "PATH=${VIAME_EXECUTABLES_PATH}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "CPPFLAGS=-I${VIAME_INSTALL_PREFIX}/include" )
+    list( APPEND PYTHON_DEP_ENV_VARS "LDFLAGS=-L${VIAME_INSTALL_PREFIX}/lib" )
+    list( APPEND PYTHON_DEP_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
+    list( APPEND PYTHON_DEP_ENV_VARS "LD_LIBRARY_PATH=${EXTRA_LD_LIBRARIES}" )
+  endif()
+
+  list( APPEND PYTHON_DEP_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
+  list( APPEND PYTHON_DEP_ENV_VARS "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}" )
 endif()
 
 if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
