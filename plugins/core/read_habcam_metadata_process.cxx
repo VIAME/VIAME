@@ -50,6 +50,7 @@
 
 #if defined( MSDOS ) || defined( WIN32 )
   #include <fcntl.h>
+  #include <io.h>
 #endif
 
 
@@ -87,7 +88,7 @@ int get_jpeg_comments( FILE *f, std::string& s )
   unsigned ss;
   s = "";
 #if defined( MSDOS ) || defined( WIN32 )
-  setmode( fileno(f), O_BINARY );
+  _setmode( fileno(f), O_BINARY );
 #endif
   if( ferror( f ) ) return -1;
   /* A typical JPEG file has markers in these order:
