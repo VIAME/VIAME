@@ -1,26 +1,36 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn )
 
-# Setup python env vars and commands
-set( PYTHON_DEP_PIP_CMD pip install --user )
-
-set( PYTHON_LEARN_DEP_BUILD
-    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-    ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD} )
-
-# Install required dependencies and learn
 set( LEARN_DIR ${VIAME_SOURCE_DIR}/packages/learn )
 
+# Setup python env vars and commands
+set( LEARN_DEP_PIP_CMD
+    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+    ${Python_EXECUTABLE} -m pip install --user )
+
+if( VIAME_SYMLINK_PYTHON )
+  set( LEARN_PIP_BUILD
+    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+    ${Python_EXECUTABLE} -m pip install --user -e . )
+else()
+  # This is only required for no symlink install without a -e with older
+  # versions of pip, for never versions the above command works with no -e
+  set( LEARN_PIP_BUILD
+      ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+      ${Python_EXECUTABLE} -m pip install --user ${LEARN_DIR} )
+endif()
+
+# Install required dependencies and learn
 ExternalProject_Add( learn
     DEPENDS python-deps detectron2
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LEARN_DIR}
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${PYTHON_LEARN_DEP_BUILD} -r ${LEARN_DIR}/requirements.txt
-          COMMAND ${PYTHON_LEARN_DEP_BUILD}
+    BUILD_COMMAND ${LEARN_DEP_PIP_CMD} -r ${LEARN_DIR}/requirements.txt
+          COMMAND ${LEARN_DEP_PIP_CMD}
                   "git+https://github.com/lucasb-eyer/pydensecrf.git" 
                   "git+https://github.com/cocodataset/panopticapi.git"
-    INSTALL_COMMAND ${PYTHON_LEARN_DEP_BUILD} -e ${LEARN_DIR}
+    INSTALL_COMMAND ${LEARN_PIP_CMD}
     LIST_SEPARATOR "----"
     )
