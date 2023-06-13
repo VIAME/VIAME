@@ -22,7 +22,7 @@ endif()
 
 # Install required dependencies and learn
 ExternalProject_Add( learn
-    DEPENDS python-deps detectron2
+    DEPENDS python-deps detectron2 torchvideo
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LEARN_DIR}
     BUILD_IN_SOURCE 1
