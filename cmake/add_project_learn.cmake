@@ -1,4 +1,6 @@
 
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn )
+
 # Setup python env vars and commands
 set( PYTHON_DEP_PIP_CMD pip install --user )
 string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
