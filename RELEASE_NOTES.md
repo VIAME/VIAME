@@ -1,3 +1,14 @@
+v0.20.1 - 06/14/2023
+====================
+
+
+-Add low-shot learning techniques from Learn project
+
+
+-Add stereo changes from Ifremer project
+
+
+
 v0.20.0 - 02/10/2023
 ====================
 
