@@ -9,13 +9,13 @@ set( LEARN_DEP_PIP_CMD
     ${Python_EXECUTABLE} -m pip install --user )
 
 if( VIAME_SYMLINK_PYTHON )
-  set( LEARN_PIP_BUILD
+  set( LEARN_PIP_CMD
     ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip install --user -e . )
 else()
   # This is only required for no symlink install without a -e with older
   # versions of pip, for never versions the above command works with no -e
-  set( LEARN_PIP_BUILD
+  set( LEARN_PIP_CMD
       ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
       ${Python_EXECUTABLE} -m pip install --user ${LEARN_DIR} )
 endif()
