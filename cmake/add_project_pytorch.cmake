@@ -19,6 +19,10 @@ if( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-VIDEO )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvideo )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} imgaug )
 endif()
@@ -181,6 +185,13 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/detectron2
         ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
+    endif()
+  elseif( "${LIB}" STREQUAL "torchvideo" )
+    set( PROJECT_DEPS fletch python-deps pytorch )
+    if( WIN32 )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/torchvideo
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvideo )
     endif()
   else()
     set( PROJECT_DEPS fletch python-deps pytorch )
