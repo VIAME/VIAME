@@ -23,7 +23,6 @@ ExternalProject_Add( learn
           COMMAND ${PYTHON_LEARN_DEP_BUILD}
                   "git+https://github.com/lucasb-eyer/pydensecrf.git" 
                   "git+https://github.com/cocodataset/panopticapi.git"
-                  "git+https://github.com/mcordts/cityscapesScripts.git"
     INSTALL_COMMAND ${PYTHON_LEARN_DEP_BUILD} -e ${LEARN_DIR}
     LIST_SEPARATOR "----"
     )
