@@ -70,7 +70,7 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
 
 endif()
 
-if( VIAME_ENABLE_PYTORCH-CUTLER )
+if( VIAME_ENABLE_LEARN )
 
   add_subdirectory( cutler )
 

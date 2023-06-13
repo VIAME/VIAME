@@ -58,7 +58,7 @@ if( VIAME_DOWNLOAD_MODELS )
   endif()
 
   # LEARN Related Models
-  if( VIAME_ENABLE_PYTORCH-CUTLER )
+  if( VIAME_ENABLE_LEARN )
     if( VIAME_DOWNLOAD_MODELS-POOLCAR )
       DownloadAndExtract(
         https://viame.kitware.com/api/v1/file/646f6bb78790390715ac6b13/download
@@ -486,7 +486,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     pipelines/train_reclassifier_netharn_resnet.viame_csv.conf )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-CUTLER )
+if( VIAME_ENABLE_LEARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/detector_maskcut.pipe )
 endif()
