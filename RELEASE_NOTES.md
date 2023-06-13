@@ -2,11 +2,16 @@ v0.20.1 - 06/14/2023
 ====================
 
 
+-Additional metadata-based measurement techniques added
+
+
 -Add low-shot learning techniques from Learn project
 
 
 -Add stereo changes from Ifremer project
 
+
+-Add missed DLL for YOLO on certain windows OS
 
 
 v0.20.0 - 02/10/2023
