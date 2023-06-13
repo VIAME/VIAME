@@ -176,7 +176,6 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-PYSOT        "Enable pysot PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-DETECTRON    "Enable detectron PyTorch code" OFF )
   option( VIAME_ENABLE_PYTORCH-MDNET        "Enable mdnet PyTorch code"     OFF )
-  option( VIAME_ENABLE_PYTORCH-CUTLER       "Enable cutler PyTorch code"    OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
@@ -185,7 +184,6 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-DETECTRON )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
-  mark_as_advanced( VIAME_ENABLE_PYTORCH-CUTLER )
 endif()
 
 ###
