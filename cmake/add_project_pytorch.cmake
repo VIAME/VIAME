@@ -188,7 +188,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     endif()
   elseif( "${LIB}" STREQUAL "torchvideo" )
     set( PROJECT_DEPS fletch python-deps pytorch )
-    if( WIN32 )
+    if( Python_VERSION VERSION_LESS "3.7" )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/torchvideo
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvideo )
