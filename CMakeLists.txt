@@ -319,6 +319,10 @@ if( VIAME_ENABLE_LEARN )
   set( VIAME_ENABLE_PYTORCH-VIDEO      ON CACHE BOOL "Torch Video required for project" FORCE )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-VIDEO )
+  set( VIAME_ENABLE_FFMPEG  ON CACHE BOOL "FFMpeg required for project" FORCE )
+endif()
+
 if( VIAME_ENABLE_MATLAB )
   find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
 endif()
