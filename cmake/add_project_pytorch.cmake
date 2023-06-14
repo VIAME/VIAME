@@ -187,7 +187,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
     endif()
   elseif( "${LIB}" STREQUAL "torchvideo" )
-    set( PROJECT_DEPS fletch python-deps pytorch )
+    set( PROJECT_DEPS fletch python-deps pytorch pyav )
     if( Python_VERSION VERSION_LESS "3.7" )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/torchvideo
