@@ -37,10 +37,6 @@ REM ----------------------------------------------------------------------------
 REM Perform Actual Build
 REM -------------------------------------------------------------------------------------------------------
 
-git checkout next
-git pull
-git submodule update --init --recursive
-
 REM If running locally instead of on Jenkins server, file jenkins_dashboard.cmake should be a renamed
 REM version of the file located at jenkins/CTestBuildOnlyPipeline, with 'platform.cmake' in the
 REM file pointed to build_server_windows.cmake (or alternatively the latter renamed to platform.cmake).
