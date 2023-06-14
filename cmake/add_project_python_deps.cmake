@@ -145,6 +145,10 @@ if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow${TF_ARGS}" )
 endif()
 
+if( VIAME_ENABLE_LEARN )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "dino" )
+endif()
+
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
 # Advanced python dependencies are installed individually due to special reqs
 
