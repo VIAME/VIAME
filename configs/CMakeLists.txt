@@ -60,16 +60,16 @@ if( VIAME_DOWNLOAD_MODELS )
   # LEARN Related Models
   if( VIAME_ENABLE_LEARN )
     if( VIAME_DOWNLOAD_MODELS-POOLCAR )
-      DownloadAndExtract(
+      DownloadAndInstallAddOn(
         https://viame.kitware.com/api/v1/file/646f6bb78790390715ac6b13/download
-        ${VIAME_DOWNLOAD_DIR}/VIAME_PoolCar_10_shot_models-V1.0.zip
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+        1283fe1f7febf1a1456c1fb06b002674
+        ${VIAME_DOWNLOAD_DIR}/VIAME_PoolCar_10_shot_models-V1.0.zip )
     endif()
     if( VIAME_DOWNLOAD_MODELS-CONVNEXT )
-      DownloadAndExtract(
+      DownloadAndInstallAddOn(
         https://viame.kitware.com/api/v1/file/646b5af78790390715ac66a8/download
-        ${VIAME_DOWNLOAD_DIR}/VIAME_ConvNext_baseline_models-V1.0.zip
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+        dfe12e3b8f98ec65de3e190e986f1537
+        ${VIAME_DOWNLOAD_DIR}/VIAME_ConvNext_baseline_models-V1.0.zip )
     endif()
   endif()
 
