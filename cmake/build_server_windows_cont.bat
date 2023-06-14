@@ -29,6 +29,8 @@ SET "PYTHON_SUBDIR=lib\python3.6"
 SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%NVIDIA_ROOT%\PhysX\Common;%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
 SET "PATH=%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
+SET "PATH=%VIAME_INSTALL_DIR%\bin;%PATH%"
+SET "PYTHONHOME=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 REM -------------------------------------------------------------------------------------------------------
