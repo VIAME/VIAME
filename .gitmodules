@@ -79,3 +79,6 @@
 [submodule "packages/pytorch-libs/torchvideo"]
 	path = packages/pytorch-libs/torchvideo
 	url = https://github.com/facebookresearch/pytorchvideo.git
+[submodule "packages/pytorch-libs/pyav"]
+	path = packages/pytorch-libs/pyav
+	url = https://github.com/PyAV-Org/PyAV.git

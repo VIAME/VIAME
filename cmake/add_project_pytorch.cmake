@@ -20,7 +20,7 @@ if( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-VIDEO )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvideo )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pyav torchvideo )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
@@ -186,6 +186,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PATCHES_DIR}/detectron2
         ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
     endif()
+  elseif( "${LIB}" STREQUAL "pyav" )
+    set( PROJECT_DEPS fletch python-deps )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/pyav
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/pyav )
   elseif( "${LIB}" STREQUAL "torchvideo" )
     set( PROJECT_DEPS fletch python-deps pytorch pyav )
     if( Python_VERSION VERSION_LESS "3.7" )
