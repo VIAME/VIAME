@@ -331,12 +331,6 @@ cdef get_codec_names():
     names = set()
     cdef const lib.AVCodec *ptr
     cdef void *opaque = NULL
-    while True:
-        ptr = lib.av_codec_iterate(&opaque)
-        if ptr:
-            names.add(ptr.name)
-        else:
-            break
     return names
 
 codecs_available = get_codec_names()

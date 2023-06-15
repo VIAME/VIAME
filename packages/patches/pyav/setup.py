@@ -191,7 +191,7 @@ setup(
     url="https://github.com/PyAV-Org/PyAV",
     packages=find_packages(exclude=["build*", "examples*", "scratchpad*", "tests*"]),
     package_data=package_data,
-    python_requires='>=3.7',
+    python_requires='>=3.6',
     zip_safe=False,
     ext_modules=ext_modules,
     test_suite="tests",
