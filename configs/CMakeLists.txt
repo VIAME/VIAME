@@ -2,11 +2,13 @@
 # Root configuration file CMakeLists
 ##
 
+# Optional, project-specific add-ons
+if( VIAME_DOWNLOAD_MODELS )
+  add_subdirectory( add-ons )
+endif()
+
 # Core, default configuration files
 add_subdirectory( pipelines )
-
-# Optional, project-specific add-ons
-add_subdirectory( add-ons )
 
 # Default GUI config parameter files
 install( DIRECTORY gui-params

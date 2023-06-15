@@ -48,22 +48,6 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
-  # LEARN Related Models
-  if( VIAME_ENABLE_LEARN )
-    if( VIAME_DOWNLOAD_MODELS-POOLCAR )
-      DownloadAndInstallAddOn(
-        https://viame.kitware.com/api/v1/file/646f6bb78790390715ac6b13/download
-        1283fe1f7febf1a1456c1fb06b002674
-        ${VIAME_DOWNLOAD_DIR}/VIAME_PoolCar_10_shot_models-V1.0.zip )
-    endif()
-    if( VIAME_DOWNLOAD_MODELS-CONVNEXT )
-      DownloadAndInstallAddOn(
-        https://viame.kitware.com/api/v1/file/646b5af78790390715ac66a8/download
-        dfe12e3b8f98ec65de3e190e986f1537
-        ${VIAME_DOWNLOAD_DIR}/VIAME_ConvNext_baseline_models-V1.0.zip )
-    endif()
-  endif()
-
   # Motion detection model
   if( VIAME_DOWNLOAD_MODELS-MOTION )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
@@ -135,75 +119,6 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-default_caffe_descriptor-v1.0.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
-
-  # Mixed project specific models and add-ons
-  if( VIAME_DOWNLOAD_MODELS-HABCAM )
-    if( WIN32 )
-      DownloadAndInstallAddOn(
-        https://viame.kitware.com/api/v1/item/63e1e605ef73c03d10a77531/download
-        32ec45d7095f7c2f6a42ebbb11b2b212
-        ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v2.0.zip )
-    else()
-      DownloadAndInstallAddOn(
-        https://viame.kitware.com/api/v1/item/63e5b26163ed1fd08e734ba6/download
-        ef285bc3d055aaa2de7bcd0ca7dd5e45
-        ${VIAME_DOWNLOAD_DIR}/VIAME-HabCam-Models-v2.1.zip )
-    endif()
-  endif()
-
-  if( VIAME_DOWNLOAD_MODELS-MOUSS )
-    DownloadAndInstallAddOn(
-      https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download
-      87b9f9bf5088dbce46eb73e03f1597e2
-      ${VIAME_DOWNLOAD_DIR}/VIAME-MOUSS-Deep7-v2.1.zip )
-  endif()
-
-  if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-    if( NOT VIAME_ENABLE_DARKNET )
-      message( FATAL_ERROR "Arctic seal models require darknet" )
-    endif()
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5d6edf99d35580e6dcddbc3b/download
-      1a122a8a5ab5e59ca8a149954da8a252
-      ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_transforms-v0.2.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR} )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5cbb84d08d777f072b53ab46/download
-      5d92853d93e758260dfefbf12ab70ab5
-      ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_yolo-v1.3.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR} )
-    if( VIAME_ENABLE_TENSORFLOW )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5cb74eeb8d777f072b40f904/download
-        5af19ef3d8c29d3726674421912a44dc
-        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.1.1.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR} )
-    endif()
-  endif()
-
-  if( VIAME_DOWNLOAD_MODELS-SEA-LION )
-    if( NOT VIAME_ENABLE_PYTORCH )
-      message( FATAL_ERROR "Sea Lion models require pytorch" )
-    endif()
-    DownloadAndInstallAddOn(
-      https://viame.kitware.com/api/v1/item/63eaef6505b26996b9aa94cc/download
-      e66c96334778b10d2361106bd81c8374
-      ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v2.9.zip )
-  endif()
-endif()
-
-###
-# All subdirectories for this folder installed as-is
-##
-install( DIRECTORY gui-params
-         DESTINATION configs )
-
-if( WIN32 )
-  install( DIRECTORY prj-windows/
-           DESTINATION configs/prj-template )
-else()
-  install( DIRECTORY prj-linux/
-           DESTINATION configs/prj-template )
 endif()
 
 ###
@@ -378,23 +293,6 @@ if( VIAME_ENABLE_VIVIA )
       embedded_single_stream/train_deep_detector_cfrnn.pipe )
   endif()
 
-  if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      embedded_single_stream/arctic_seal_eo_tf_detector.pipe
-      embedded_single_stream/arctic_seal_ir_tf_detector.pipe )
-  endif()
-
-  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      embedded_single_stream/arctic_seal_eo_tiny_yolo_detector.pipe
-      embedded_single_stream/arctic_seal_eo_tiny_yolo_tracker.pipe
-      embedded_single_stream/arctic_seal_eo_tiny_yolo_tracker_alt2.pipe
-      embedded_single_stream/arctic_seal_eo_tiny_yolo_tracker_alt3.pipe
-      embedded_single_stream/arctic_seal_eo_yolo_detector.pipe
-      embedded_single_stream/arctic_seal_ir_tiny_yolo_detector.pipe
-      embedded_single_stream/arctic_seal_ir_yolo_detector.pipe )
-  endif()
-
   if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       embedded_single_stream/track_user_selections_fast.pipe )
@@ -477,11 +375,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_reclassifier_netharn_resnet.viame_csv.conf )
 endif()
 
-if( VIAME_ENABLE_LEARN )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    detector_maskcut.pipe )
-endif()
-
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_short_term_tracker.pipe
@@ -493,25 +386,6 @@ if( VIAME_ENABLE_ITK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     register_multimodal_sync_itk.pipe
     register_multimodal_unsync_itk.pipe )
-endif()
-
-if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_arctic_seal_eo_tf_detector.pipe
-    common_arctic_seal_ir_tf_detector.pipe
-    detector_arctic_seal_eo_tf.pipe
-    detector_arctic_seal_ir_tf.pipe )
-endif()
-
-if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_arctic_seal_eo_yolo_detector.pipe
-    common_arctic_seal_eo_tiny_yolo_detector.pipe
-    common_arctic_seal_ir_yolo_detector.pipe
-    common_arctic_seal_ir_tiny_yolo_detector.pipe
-    detector_arctic_seal_fusion_yolo.pipe
-    detector_arctic_seal_eo_yolo.pipe
-    detector_arctic_seal_ir_yolo.pipe )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
@@ -545,22 +419,6 @@ if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   if( VIAME_ENABLE_PYTORCH-PYSOT )
     set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
       embedded_dual_stream/track_user_selections_fast.pipe )
-  endif()
-
-  if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
-      embedded_dual_stream/arctic_seal_tf_eo_only.pipe
-      embedded_dual_stream/arctic_seal_tf_ir_only.pipe
-      embedded_dual_stream/arctic_seal_tf_ir_to_eo_frame_trigger.pipe
-      embedded_dual_stream/arctic_seal_tiny_yolo_eo_only.pipe
-      embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker.pipe
-      embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker_alt.pipe
-      embedded_dual_stream/arctic_seal_yolo_eo_ir_early_fusion.pipe
-      embedded_dual_stream/arctic_seal_yolo_eo_only.pipe
-      embedded_dual_stream/arctic_seal_yolo_ir_only.pipe
-      embedded_dual_stream/arctic_seal_yolo_ir_to_eo_frame_trigger.pipe
-      embedded_dual_stream/arctic_seal_yolo_ir_to_eo_region_trigger.pipe
-      embedded_dual_stream/arctic_seal_yolo_ir_to_tiny_eo_region_tigger.pipe )
   endif()
 
   install( FILES       ${DUAL_EMBEDDED_FILES}
