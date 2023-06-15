@@ -136,8 +136,7 @@ endif()
 
 if( ADD_ON_PIPELINE_FILES )
   foreach( ITEM ${ADD_ON_PIPELINE_FILES} )
-    
-
+    string( REGEX REPLACE "^[^/]+/" "" ITEM_NP "${ITEM}" )
     install( FILE ${ITEM_NP}
              DESTINATION configs/pipelines/${ITEM_NP} )
   endforeach()
