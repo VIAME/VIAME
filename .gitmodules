@@ -70,9 +70,6 @@
 [submodule "packages/pytorch-libs/segment-anything"]
 	path = packages/pytorch-libs/segment-anything
 	url = https://github.com/facebookresearch/segment-anything.git
-[submodule "packages/learn"]
-	path = packages/learn
-	url = https://gitlab.kitware.com/darpa_learn/learn.git
 [submodule "packages/pytorch-libs/detectron2"]
 	path = packages/pytorch-libs/detectron2
 	url = https://github.com/facebookresearch/detectron2.git
