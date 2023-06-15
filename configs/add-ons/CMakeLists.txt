@@ -135,12 +135,10 @@ if( VIAME_DOWNLOAD_MODELS-SEA-LION )
 endif()
 
 if( ADD_ON_PIPELINE_FILES )
-
   foreach( ITEM ${ADD_ON_PIPELINE_FILES} )
     
 
     install( FILE ${ITEM_NP}
              DESTINATION configs/pipelines/${ITEM_NP} )
   endforeach()
-
 endif()
