@@ -47,7 +47,7 @@ else()
     ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
     ${Python_EXECUTABLE} setup.py bdist_wheel -d ${LEARN_BUILD_DIR} )
   set( LEARN_INSTALL_CMD
-    ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
+    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
     ${CMAKE_COMMAND} -DWHEEL_DIR=${LEARN_BUILD_DIR}
     -DPYTHON_EXECUTABLE=${Python_EXECUTABLE} -DPython_EXECUTABLE=${Python_EXECUTABLE}
     -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
