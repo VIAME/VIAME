@@ -1,11 +1,12 @@
 import configparser
 import os.path
-from pathlib import Path
-
 import pytest
 
-from ifremer_tk.convert_zed_cam_to_npz_calibration import convert_npz_to_zed_conf, convert_zed_to_npz, convert_npz_to_cv_yml, \
+from pathlib import Path
+
+from ..convert_cam_zed_to_npz import convert_npz_to_zed_conf, convert_zed_to_npz, convert_npz_to_cv_yml, \
     convert_cv_yml_to_npz, get_extrinsics_parameters_from_np, convert_cv_yml_to_conf
+
 import numpy as np
 
 

@@ -57,3 +57,7 @@ if( VIAME_ENABLE_PYTHON )
   install( FILES       ${PYTHON_SCRIPTS}
            DESTINATION configs )
 endif()
+
+if( VIAME_BUILD_TESTS )
+  add_subdirectory( tests )
+endif()

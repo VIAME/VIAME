@@ -17,6 +17,10 @@ else()
   set( VIAME_PYTHON_BASIC_DEPS "numpy<=1.23.5" )
 endif()
 
+if( VIAME_BUILD_TESTS )
+  set( VIAME_PYTHON_BASIC_DEPS "pytest" )
+endif()
+
 # Setuptools < 58.0 required for current version of gdal on windows
 if( WIN32 AND VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
