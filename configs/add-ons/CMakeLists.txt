@@ -85,12 +85,19 @@ if( VIAME_ENABLE_LEARN )
       https://viame.kitware.com/api/v1/file/646f6bb78790390715ac6b13/download
       1283fe1f7febf1a1456c1fb06b002674
       ${VIAME_DOWNLOAD_DIR}/VIAME_PoolCar_10_shot_models-V1.0.zip )
+
+    set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
+      learn/detector_cutler_10_shot_poolcar.pipe )
   endif()
   if( VIAME_DOWNLOAD_MODELS-CONVNEXT )
     DownloadAndInstallAddOn(
       https://viame.kitware.com/api/v1/file/646b5af78790390715ac66a8/download
       dfe12e3b8f98ec65de3e190e986f1537
       ${VIAME_DOWNLOAD_DIR}/VIAME_ConvNext_baseline_models-V1.0.zip )
+
+    set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
+      learn/detector_convnext_xl.pipe
+      learn/train_detector_convnext_cascade_rcnn.viame_csv.conf )
   endif()
 endif()
 
