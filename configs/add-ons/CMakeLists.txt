@@ -1,0 +1,12 @@
+
+if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+
+endif()
+
+if( VIAME_DOWNLOAD_MODELS-IFREMER )
+
+endif()
+
+if( VIAME_ENABLE_LEARN )
+
+endif()
