@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # Perform multi-threaded build
+make -j$(nproc) || true
 make -j$(nproc)
 
 # Below be krakens
