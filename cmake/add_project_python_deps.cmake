@@ -75,6 +75,7 @@ if( VIAME_ENABLE_LEARN AND Python_VERSION VERSION_LESS "3.7" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "pyarrow==4.0.0" )
   else()
     list( APPEND VIAME_PYTHON_BASIC_DEPS "pyarrow==2.0.0" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "filelock==3.4.1" )
   endif()
 endif()
 
