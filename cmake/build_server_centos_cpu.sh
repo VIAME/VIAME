@@ -29,7 +29,8 @@ file \
 which \
 bzip2 \
 bzip2-devel \
-xz-devel
+xz-devel \
+vim
 
 # Install and use more recent compiler
 yum -y install centos-release-scl
@@ -45,6 +46,9 @@ make -j$(nproc)
 make install
 cd /
 rm -rf cmake-3.23.1.tar.gz
+
+# Install NINJA for faster builds of some dependencies
+rpm -ivh https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/n/ninja-build-1.10.2-3.el7.x86_64.rpm
 
 # Update VIAME sub git sources
 cd /viame/
