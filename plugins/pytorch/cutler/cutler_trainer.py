@@ -230,14 +230,18 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         if len(self.device) > torch.cuda.device_count():
             self.device = self.device[:torch.cuda.device_count()]
             
-        if self.config["checkpoint_override"] is not None:
+        if "checkpoint_override" in self.config and self.config["checkpoint_override"]:
             self.original_chkpt_file = self.config["checkpoint_override"]
         else:
             self.original_chkpt_file = self.config["model_checkpoint_file"]
-            
+
+        if not self.config["work_dir"]:
+            self.config["work_dir"] = "."
+
         if config_file["name"] == "CutLER/pretrain_algo.py":
-                if os.path.exists(str(os.path.join(self.config["work_dir"], "pretrain.pth"))):
-                    self.original_chkpt_file = os.path.join(self.config["work_dir"], "pretrain.pth")
+            if os.path.exists(os.path.join(str(self.config["work_dir"]), "pretrain.pth")):
+                self.original_chkpt_file = os.path.join(self.config["work_dir"], "pretrain.pth")
+
         print(f"Found CutLER weights at {self.original_chkpt_file}")
 
 
@@ -533,7 +537,7 @@ def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "convnext_cascade_rcnn_supervised_mmdet"
+    implementation_name = "mmdet_convnext"
 
     if algorithm_factory.has_algorithm_impl_name(
       ConvNextCascadeRCNNTrainer.static_type_name(), implementation_name ):
