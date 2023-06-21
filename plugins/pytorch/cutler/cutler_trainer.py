@@ -254,7 +254,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         mmdet_config = mmcv.Config.fromfile(mmcv_config_file)
         mmdet_config.dataset_type = 'CocoDataset'
         
-        mmdet_config.data_root = self.image_root
+        mmdet_config.data_root = None
         mmdet_config.data.ann_file = str(os.path.join(self.config["work_dir"], 'train_data_coco.json'))
         
         mmdet_config.classes = tuple(self.cats)
@@ -265,7 +265,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             print('using RepeatDataset')
             if self.config["use_class_balanced"] and mmdet_config.data.train.dataset.type != 'ClassBalancedDataset':
                 mmdet_config.data.train.dataset.type = 'CocoDataset'
-                mmdet_config.data.train.dataset.data_root = self.image_root
+                mmdet_config.data.train.dataset.data_root = None
                 mmdet_config.data.train.dataset.ann_file = str(os.path.join(self.config["work_dir"], 'train_data_coco.json'))
                 mmdet_config.data.train.dataset.img_prefix = self.image_root
                 mmdet_config.data.train.dataset.classes = mmdet_config.classes
@@ -277,13 +277,13 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
                     dataset=data)
             elif self.config["use_class_balanced"]:
                 mmdet_config.data.train.dataset.dataset.type = 'CocoDataset'
-                mmdet_config.data.train.dataset.dataset.data_root = self.image_root
+                mmdet_config.data.train.dataset.dataset.data_root = None
                 mmdet_config.data.train.dataset.dataset.ann_file = str(os.path.join(self.config["work_dir"], 'train_data_coco.json'))
                 mmdet_config.data.train.dataset.dataset.img_prefix = self.image_root
                 mmdet_config.data.train.dataset.dataset.classes = mmdet_config.classes
             else:
                 mmdet_config.data.train.dataset.type = 'CocoDataset'
-                mmdet_config.data.train.dataset.data_root = self.image_root
+                mmdet_config.data.train.dataset.data_root = None
                 mmdet_config.data.train.dataset.ann_file = os.path.join(self.config["work_dir"], 'train_data_coco.json')
                 mmdet_config.data.train.dataset.img_prefix = self.image_root
                 mmdet_config.data.train.dataset.classes = mmdet_config.classes
@@ -291,13 +291,13 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             print('using ClassBalancedDataset')
             mmdet_config.data.train.oversample_thr = self.config["oversample_thr"]
             mmdet_config.data.train.dataset.type = 'CocoDataset'
-            mmdet_config.data.train.dataset.data_root = self.image_root
+            mmdet_config.data.train.dataset.data_root = None
             mmdet_config.data.train.dataset.ann_file = str(os.path.join(self.config["work_dir"], 'train_data_coco.json'))
             mmdet_config.data.train.dataset.img_prefix = self.image_root
             mmdet_config.data.train.dataset.classes = mmdet_config.classes
         else:
             mmdet_config.data.train.type = 'CocoDataset'
-            mmdet_config.data.train.data_root = self.image_root
+            mmdet_config.data.train.data_root = None
             mmdet_config.data.train.ann_file = str(os.path.join(self.config["work_dir"], 'train_data_coco.json'))
             mmdet_config.data.train.img_prefix = self.image_root
             mmdet_config.data.train.classes = mmdet_config.classes # tuple(train_dataset.category_to_category_index.values())
@@ -310,13 +310,13 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
                     dataset=data)
                 
         mmdet_config.data.val.type = 'CocoDataset'
-        mmdet_config.data.val.data_root = self.image_root
+        mmdet_config.data.val.data_root = None
         mmdet_config.data.val.ann_file = str(os.path.join(self.config["work_dir"], 'train_data_coco.json'))
         mmdet_config.data.val.img_prefix = self.image_root
         mmdet_config.data.val.classes = mmdet_config.classes # tuple(train_dataset.category_to_category_index.values())
 
         mmdet_config.data.test.type = 'CocoDataset'
-        mmdet_config.data.test.data_root = self.image_root  # change back to test??
+        mmdet_config.data.test.data_root = None
         mmdet_config.data.test.ann_file = str(os.path.join(self.config["work_dir"], 'train_data_coco.json'))
         mmdet_config.data.test.img_prefix = self.image_root
         mmdet_config.data.test.classes = mmdet_config.classes
@@ -409,7 +409,8 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             self.mmdet_config.model, train_cfg=self.mmdet_config.get('train_cfg'), test_cfg=self.mmdet_config.get('test_cfg')
         )
         
-        checkpoint_file = self.original_chkpt_file
+        checkpoint_file = os.path.join(self.config_dir,
+          os.path.basename(self.original_chkpt_file))
         chkpt = load_checkpoint(model, checkpoint_file)
 
         print("training model")
