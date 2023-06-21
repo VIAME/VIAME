@@ -214,6 +214,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
         config_file = yaml.safe_load(Path(self._cutler_config_file).read_text())
         self.config = config_file['params']
+        self.config_dir = os.path.dirname(self._cutler_config_file)
         print('config:', self.config)
         
         self.ckpt = 0 # TODO: not sure about this
@@ -248,9 +249,9 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
     def set_mmdet_config(self):
         print('set_mmdet_config')
         self.register_new_losses()
-        # based on: https://gitlab.kitware.com/darpa_learn/learn/-/blob/object_detection_2023/learn/algorithms/MMDET/object_detection.py#L478
-        # make sure this runs after add_data_from_disk
-        mmdet_config = mmcv.Config.fromfile(self.config['mmdet_model_config_file'])
+        mmcv_config_file = os.path.join(self.config_dir,
+          os.path.basename(self.config['mmdet_model_config_file']))
+        mmdet_config = mmcv.Config.fromfile(mmcv_config_file)
         mmdet_config.dataset_type = 'CocoDataset'
         
         mmdet_config.data_root = self.image_root
@@ -329,12 +330,12 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
         
         if self.stage == "adapt":
-            if len(self.config["iters_per_ckpt_adapt"]) > 0 and self.ckpt < len(self.config["iters_per_ckpt_adapt"]):
+            if "iters_per_ckpt_adapt" in self.config and len(self.config["iters_per_ckpt_adapt"]) > 0 and self.ckpt < len(self.config["iters_per_ckpt_adapt"]):
                 num_iter = self.config["iters_per_ckpt_adapt"][self.ckpt]
             else:
                 num_iter = self.config["max_iters"]
         else:    
-            if len(self.config["iters_per_ckpt"]) > 0 and self.ckpt < len(self.config["iters_per_ckpt"]):
+            if "iters_per_ckpt" in self.config and len(self.config["iters_per_ckpt"]) > 0 and self.ckpt < len(self.config["iters_per_ckpt"]):
                 num_iter = self.config["iters_per_ckpt"][self.ckpt]
             else:
                 num_iter = self.config["max_iters"]
