@@ -7,14 +7,15 @@ set( PYDENSECRF_DIR ${LEARN_DIR}-deps/pydensecrf )
 set( PANOPTICAPI_DIR ${LEARN_DIR}-deps/panopticapi )
 
 set( LEARN_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/learn-build )
+set( LEARN_CLONE_CMD )
 
-if( NOT EXISTS ${PYDENSECRF_DIR} )
+if( NOT EXISTS "${PYDENSECRF_DIR}" )
   set( LEARN_CLONE_CMD git clone https://github.com/lucasb-eyer/pydensecrf.git ${PYDENSECRF_DIR} )
 else()
   set( LEARN_CLONE_CMD git -C ${PYDENSECRF_DIR} pull )
 endif()
 
-if( NOT EXISTS ${PANOPTICAPI_DIR} )
+if( NOT EXISTS "${PANOPTICAPI_DIR}" )
   set( LEARN_CLONE_CMD ${LEARN_CLONE_CMD} &&
     git clone https://github.com/cocodataset/panopticapi.git ${PANOPTICAPI_DIR} )
 else()
@@ -22,7 +23,7 @@ else()
     git -C ${PANOPTICAPI_DIR} pull )
 endif()
 
-if( NOT EXISTS ${LEARN_DIR} )
+if( NOT EXISTS "${LEARN_DIR}" )
   set( LEARN_CLONE_CMD ${LEARN_CLONE_CMD} &&
     git clone --branch viame/master https://gitlab.kitware.com/darpa_learn/learn.git ${LEARN_DIR} )
 else()
