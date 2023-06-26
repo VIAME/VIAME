@@ -321,8 +321,8 @@ cdef class Codec(object):
     avoid_probing = capabilities.flag_property('AVOID_PROBING')
     # intra_only = capabilities.flag_property('INTRA_ONLY')  # Dupes.
     # lossless = capabilities.flag_property('LOSSLESS')  # Dupes.
-    hardware = capabilities.flag_property('HARDWARE')
-    hybrid = capabilities.flag_property('HYBRID')
+    # hardware = capabilities.flag_property('HARDWARE')
+    # hybrid = capabilities.flag_property('HYBRID')
     encoder_reordered_opaque = capabilities.flag_property('ENCODER_REORDERED_OPAQUE')
     encoder_flush = capabilities.flag_property('ENCODER_FLUSH')
 
