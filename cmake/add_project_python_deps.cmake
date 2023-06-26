@@ -118,7 +118,7 @@ endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.2.3" "pygments" "bezier==2020.1.14" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.6.7" "kwcoco==0.2.31" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.6.7" "kwcoco==0.2.31" "pandas<=1.5.3" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.15.0" "networkx<=2.8.8" )
 endif()
 
