@@ -164,9 +164,9 @@ detect( kv::image_container_sptr image_data ) const
     
     // Add detected OCV target corners and world coordinates corners into notes
     kv::detected_object_sptr detected_object = std::make_shared< kv::detected_object >( bbox, 1.0, dot );
-    detected_object->add_note(":x=" + std::to_string( world_corners[i].x ));
-    detected_object->add_note(":y=" + std::to_string( world_corners[i].y ));
-    detected_object->add_note(":z=" + std::to_string( world_corners[i].z ));
+    detected_object->add_note(":stereo3d_x=" + std::to_string( world_corners[i].x ));
+    detected_object->add_note(":stereo3d_y=" + std::to_string( world_corners[i].y ));
+    detected_object->add_note(":stereo3d_z=" + std::to_string( world_corners[i].z ));
     detected_set->add( detected_object );
   }
   

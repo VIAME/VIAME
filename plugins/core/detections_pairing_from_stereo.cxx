@@ -398,9 +398,9 @@ viame::core::Detections3DPositions viame::core::detections_pairing_from_stereo::
 
   // Add 3d estimations to state if score is valid
   if (position.score > 0) {
-    detection->add_note(":x=" + std::to_string(position.center3d.x));
-    detection->add_note(":y=" + std::to_string(position.center3d.y));
-    detection->add_note(":z=" + std::to_string(position.center3d.z));
+    detection->add_note(":stereo3d_x=" + std::to_string(position.center3d.x));
+    detection->add_note(":stereo3d_y=" + std::to_string(position.center3d.y));
+    detection->add_note(":stereo3d_z=" + std::to_string(position.center3d.z));
     detection->add_note(":score=" + std::to_string(position.score));
   }
 
