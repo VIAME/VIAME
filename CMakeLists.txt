@@ -689,7 +689,7 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
-  set( VIAME_OPENCV_VERSION 4.5.1 CACHE STRING "Version of OpenCV to use" )
+  set( VIAME_OPENCV_VERSION 4.2.0 CACHE STRING "Version of OpenCV to use" )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.5.1" )
   mark_as_advanced( VIAME_OPENCV_VERSION )
 
