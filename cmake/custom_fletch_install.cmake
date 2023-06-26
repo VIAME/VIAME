@@ -1,4 +1,4 @@
-message( "Running fletch install" )
+message( "Running custom fletch install" )
 
 include( ${VIAME_CMAKE_DIR}/common_macros.cmake )
 
@@ -66,10 +66,20 @@ if( PYTHON_VERSION_STRING )
     file( REMOVE_RECURSE "${ALT_PYTHON_FOLDER}" )
   endforeach()
 
-  # OpenCV often installs just a .so without proper python headers
+  # OpenCV often installs just a .so without proper python headers or an absolute path in file
   if( NOT WIN32 AND VIAME_ENABLE_OPENCV )
     set( PATCH_DIR ${VIAME_CMAKE_DIR}/../packages/patches/fletch )
     file( COPY ${PATCH_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
+  endif()
+
+  set( PYTHON_ID "${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}" )
+  set( ANNOYING_FILE "${OUTPUT_PYTHON_DIR}/cv2/config-${PYTHON_ID}.py" )
+
+  if( EXISTS ${ANNOYING_FILE} )
+    file( WRITE "${ANNOYING_FILE}"
+"PYTHON_EXTENSIONS_PATHS = [\n\
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'python-${PYTHON_ID}')\n\
+] + PYTHON_EXTENSIONS_PATHS" )
   endif()
 
   # Required for certain versions of pytorch or netharn
@@ -97,4 +107,4 @@ except ImportError:\n\
   endif()
 endif()
 
-message( "Done" )
+message( "Finished fletch custom install" )
