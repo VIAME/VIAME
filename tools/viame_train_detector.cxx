@@ -88,6 +88,7 @@ public:
   bool opt_no_adv_print;
   bool opt_no_emb_pipe;
   bool opt_gt_only;
+  bool opt_convert_to_ff;
 
   std::string opt_config;
   std::string opt_input_dir;
@@ -109,6 +110,8 @@ public:
     opt_no_query = false;
     opt_no_adv_print = false;
     opt_no_emb_pipe = false;
+    opt_gt_only = false;
+    opt_convert_to_ff = false;
   }
 
   virtual ~trainer_vars()
@@ -482,6 +485,8 @@ static kwiver::vital::config_block_sptr default_config()
     "Downsample factor for frames containing only secondary classes." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
+  config->set_value( "convert_to_full_frame", "false",
+    "Convert input detections to full frame labels even if they're not." );
   config->set_value( "data_warning_file", "",
     "Optional file for storing possible data errors and warning." );
 
@@ -1279,6 +1284,8 @@ main( int argc, char* argv[] )
     config->get_value< double >( "threshold" );
   bool check_override =
     config->get_value< bool >( "check_override" );
+  bool convert_to_full_frame =
+    config->get_value< bool >( "convert_to_full_frame" );
   std::string data_warning_file =
     config->get_value< std::string >( "data_warning_file" );
 
