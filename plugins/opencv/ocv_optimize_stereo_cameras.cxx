@@ -20,11 +20,12 @@
 #include <vital/vital_config.h>
 
 #include <opencv2/calib3d/calib3d.hpp>
-#include <cmath>
 #include <opencv2/core/eigen.hpp>
+#include <opencv2/core/persistence.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include <cmath>
 #include <numeric>
 
 namespace kv = kwiver::vital;
@@ -75,8 +76,8 @@ public:
     if (fs.isOpened()) {
       fs.write("M1", M1);
       fs.write("M2", M2);
-      fs.write("D1", D1);
-      fs.write("D2", D2);
+      fs.write("D1", cv::Mat(D1));
+      fs.write("D2", cv::Mat(D2));
     }
     fs.release();
 

@@ -251,8 +251,8 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
 
   if( ocv1.channels() > 1 )
   {
-    cvtColor(ocv1, ocv1_gray, CV_BGR2GRAY);
-    cvtColor(ocv2, ocv2_gray, CV_BGR2GRAY);
+    cvtColor(ocv1, ocv1_gray, cv::COLOR_BGR2GRAY);
+    cvtColor(ocv2, ocv2_gray, cv::COLOR_BGR2GRAY);
   }
   else
   {
