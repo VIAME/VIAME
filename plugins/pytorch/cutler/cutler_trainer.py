@@ -237,6 +237,11 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         else:
             self._distributed = True
             from mmcv.runner import init_dist
+            if not "RANK" in os.environ or not "WORLD_SIZE" in os.environ:
+                os.environ[ "RANK" ] = "0"
+                os.environ[ "WORLD_SIZE" ] = "1"
+                os.environ[ "MASTER_ADDR" ] = "localhost"
+                os.environ[ "MASTER_PORT" ] = "12345"
             init_dist( self._launcher )
 
         if "checkpoint_override" in self.config and self.config["checkpoint_override"]:
