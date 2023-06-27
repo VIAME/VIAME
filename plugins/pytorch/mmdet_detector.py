@@ -168,13 +168,14 @@ class MMDetDetector(ImageObjectDetector):
 
 
     def set_configuration(self, cfg_in):
-        if use_learn:
-            self.register_new_losses()
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
 
         for opt in self._options:
             setattr(self, opt.attr, opt.parse(cfg.get_value(opt.config)))
+
+        if self._use_learn:
+            self.register_new_losses()
 
         if self._auto_update_model:
             from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
@@ -186,7 +187,7 @@ class MMDetDetector(ImageObjectDetector):
 
         gpu_string = 'cuda:' + str(self._gpu_index)
         mmdet_config = mmcv.Config.fromfile(self._net_config)
-        if use_learn:
+        if self._use_learn:
             def replace(conf, depth):
                 if depth <= 0:
                     return
