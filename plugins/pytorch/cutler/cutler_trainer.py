@@ -1,5 +1,5 @@
 # ckwg +29
-# Copyright 2019 by Kitware, Inc.
+# Copyright 2023 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
     _options = [
         _Option('_gpu_count', 'gpu_count', -1, int, ''),
-        _Option('_launcher', 'launcher', 'pytorch', str, ''), # "none, pytorch, slurm, or mpi" 
+        _Option('_launcher', 'launcher', 'none', str, ''), # "none, pytorch, slurm, or mpi" 
         
         _Option('_cutler_config_file', 'cutler_config_file', '', str, ''),
 
@@ -88,6 +88,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             setattr(self, opt.attr, opt.default)
 
         self.image_root = ''
+
     def register_new_losses(self):
         LOSSES._module_dict.pop('EQLv2', None)
 
@@ -230,7 +231,14 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
                 self.device = [device]
         if len(self.device) > torch.cuda.device_count():
             self.device = self.device[:torch.cuda.device_count()]
-            
+
+        if not self._launcher or self._launcher == 'none':
+            self._distributed = False
+        else:
+            self._distributed = True
+            from mmcv.runner import init_dist
+            init_dist( self._launcher )
+
         if "checkpoint_override" in self.config and self.config["checkpoint_override"]:
             self.original_chkpt_file = self.config["checkpoint_override"]
         else:
@@ -406,17 +414,24 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         
         print("building detector")
         model = mmdet.models.build_detector(
-            self.mmdet_config.model, train_cfg=self.mmdet_config.get('train_cfg'), test_cfg=self.mmdet_config.get('test_cfg')
+            self.mmdet_config.model,
+            train_cfg=self.mmdet_config.get('train_cfg'),
+            test_cfg=self.mmdet_config.get('test_cfg')
         )
         
         checkpoint_file = os.path.join(self.config_dir,
           os.path.basename(self.original_chkpt_file))
         chkpt = load_checkpoint(model, checkpoint_file)
 
-        print("training model")
+        print("training model\n")
         
         model.train()
-        train_detector(model, datasets, self.mmdet_config, distributed=False, validate=False, meta=meta)
+        train_detector(
+            model, datasets,
+            self.mmdet_config,
+            distributed=False,
+            validate=False, meta=meta
+        )
         
         self.model = model
         
