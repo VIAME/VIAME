@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2022 by Kitware, Inc.
+ * Copyright 2017-2023 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -410,6 +410,66 @@ void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
   }
 }
 
+kwiver::vital::detected_object_set_sptr
+adjust_to_full_frame( const kwiver::vital::detected_object_set_sptr dos,
+                      const unsigned width, const unsigned height )
+{
+  if( !dos )
+  {
+    return dos;
+  }
+
+  bool adj_required = false;
+
+  for( auto det : *dos )
+  {
+    if( det &&
+        ( det->bounding_box().min_x() != 0 ||
+          det->bounding_box().min_y() != 0 ||
+          det->bounding_box().width() != width ||
+          det->bounding_box().height() != height ) )
+    {
+      adj_required = true;
+    }
+  }
+
+  if( !adj_required )
+  {
+    return dos;
+  }
+
+  kwiver::vital::detected_object_set_sptr output =
+    std::make_shared< kwiver::vital::detected_object_set>();
+
+  kwiver::vital::bounding_box_d ff_box( 0, 0, width, height );
+
+  std::map< std::string, int > obs_labels;
+
+  for( auto det : *dos )
+  {
+    std::string label;
+    double score;
+
+    if( det->type() )
+    {
+      det->type()->get_most_likely( label, score );
+    }
+
+    obs_labels[ label ]++;
+
+    if( obs_labels[ label ] > 1 )
+    {
+      continue;
+    }
+
+    det->set_bounding_box( ff_box );
+
+    output->add( det );
+  }
+
+  return output;
+}
+
 bool folder_contains_less_than_n_files( const std::string& folder, unsigned n )
 {
   auto dir = filesystem::directory_iterator( folder );
@@ -492,6 +552,8 @@ static kwiver::vital::config_block_sptr default_config()
 
   kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
     ( "groundtruth_reader", config, kwiver::vital::algo::detected_object_set_input_sptr() );
+  kwiver::vital::algo::image_io::get_nested_algo_configuration
+    ( "image_reader", config, kwiver::vital::algo::image_io_sptr() );
   kwiver::vital::algo::train_detector::get_nested_algo_configuration
     ( "detector_trainer", config, kwiver::vital::algo::train_detector_sptr() );
 
@@ -1124,6 +1186,7 @@ main( int argc, char* argv[] )
   kwiver::vital::plugin_manager::instance().load_all_plugins();
   kwiver::vital::config_block_sptr config = default_config();
   kwiver::vital::algo::detected_object_set_input_sptr groundtruth_reader;
+  kwiver::vital::algo::image_io_sptr image_reader;
   kwiver::vital::algo::train_detector_sptr detector_trainer;
 
   // Read all configuration options and check settings
@@ -1399,6 +1462,18 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
     }
   }
+
+  // Image reader and width/height only required for certain operations
+  if( convert_to_full_frame )
+  {
+    kwiver::vital::algo::image_io::set_nested_algo_configuration
+      ( "image_reader", config, image_reader );
+    kwiver::vital::algo::image_io::get_nested_algo_configuration
+      ( "image_reader", config, image_reader );
+  }
+
+  unsigned image_width = 0, image_height = 0;
+  bool variable_resolution_sequences = false;
 
   // Data regardless of source - 
   std::vector< std::string > train_data;  // List of folders, image lists, or videos
@@ -1781,8 +1856,6 @@ main( int argc, char* argv[] )
 
         gt_reader->read_set( frame_dets, read_fn );
         gt_reader->close();
-
-        correct_manual_annotations( frame_dets );
       }
       else
       {
@@ -1791,8 +1864,6 @@ main( int argc, char* argv[] )
         try
         {
           gt_reader->read_set( frame_dets, read_fn );
-
-          correct_manual_annotations( frame_dets );
         }
         catch( const std::exception& e )
         {
@@ -1800,6 +1871,29 @@ main( int argc, char* argv[] )
                     << "Unable to load groundtruth file: " << read_fn << std::endl;
           return EXIT_FAILURE;
         }
+      }
+
+      correct_manual_annotations( frame_dets );
+
+      if( convert_to_full_frame )
+      {
+        if( i < 4 || variable_resolution_sequences )
+        {
+          auto image = image_reader->load( image_file );
+
+          unsigned new_width = image->width();
+          unsigned new_height = image->height();
+
+          if( i > 0 && ( new_width != image_width || new_height != image_height ) )
+          {
+            variable_resolution_sequences = true;
+          }
+
+          image_width = new_width;
+          image_height = new_height;
+        }
+
+        frame_dets = adjust_to_full_frame( frame_dets, image_width, image_height );
       }
 
       // Apply threshold to frame detections
