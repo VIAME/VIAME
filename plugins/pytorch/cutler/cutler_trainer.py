@@ -260,7 +260,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
 
     def set_mmdet_config(self):
-        print('set_mmdet_config')
+        print('set_mmdet_config\n')
         self.register_new_losses()
         mmcv_config_file = os.path.join(self.config_dir,
           os.path.basename(self.config['mmdet_model_config_file']))
@@ -395,7 +395,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
 
     def update_model( self ):
-        print('update_model')
+        print('update_model\n')
         # seed = np.random.randint(2**31)
         seed = self.config["seed"]
         random.seed(seed)
@@ -414,10 +414,10 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         meta['config'] = self.mmdet_config.pretty_text
         meta['seed'] = seed
         
-        print("building dataset")
+        print("building dataset\n")
         datasets = [build_dataset(self.mmdet_config.data.train)]
         
-        print("building detector")
+        print("building detector\n")
         model = mmdet.models.build_detector(
             self.mmdet_config.model,
             train_cfg=self.mmdet_config.get('train_cfg'),
