@@ -5,13 +5,16 @@ v0.20.1 - 06/14/2023
 -Additional metadata-based measurement techniques added
 
 
--Add low-shot learning techniques from Learn project
+-Add low-shot learning techniques from the DARPA Learn project
 
 
 -Add stereo changes from Ifremer project
 
 
 -Add missed DLL for YOLO on certain windows OS
+
+
+-Autoconvert detections to full frame labels when training a frame classifier
 
 
 
