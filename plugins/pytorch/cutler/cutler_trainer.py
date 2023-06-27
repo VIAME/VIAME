@@ -74,7 +74,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
     _options = [
         _Option('_gpu_count', 'gpu_count', -1, int, ''),
-        _Option('_launcher', 'launcher', 'none', str, ''), # "none, pytorch, slurm, or mpi" 
+        _Option('_launcher', 'launcher', 'pytorch', str, ''), # "none, pytorch, slurm, or mpi" 
         
         _Option('_cutler_config_file', 'cutler_config_file', '', str, ''),
 
@@ -565,7 +565,10 @@ def __vital_algorithm_register__():
       ConvNextCascadeRCNNTrainer.static_type_name(), implementation_name ):
         return
 
-    algorithm_factory.add_algorithm( implementation_name,
-      "PyTorch ConvNext CascadeRcnn supervised mmdet training routine", ConvNextCascadeRCNNTrainer )
+    algorithm_factory.add_algorithm(
+      implementation_name,
+      "PyTorch ConvNext CascadeRcnn supervised mmdet training routine",
+      ConvNextCascadeRCNNTrainer
+    )
 
     algorithm_factory.mark_algorithm_as_loaded( implementation_name )
