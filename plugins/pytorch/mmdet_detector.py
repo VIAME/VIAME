@@ -3,16 +3,19 @@
 # https://github.com/VIAME/VIAME/blob/master/LICENSE.txt for details.
 
 from collections import namedtuple
-import sys
 
+import sys
 import cv2
+import mmcv
+import numpy as np
+
 from distutils.util import strtobool
+
 from kwiver.vital.algo import ImageObjectDetector
+
 from kwiver.vital.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType
 )
-import mmcv
-import numpy as np
 
 try:
     import learn.algorithms.MMDET.register_modules
