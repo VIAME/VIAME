@@ -560,23 +560,6 @@ static kwiver::vital::config_block_sptr default_config()
   return config;
 }
 
-static bool check_config( kwiver::vital::config_block_sptr config )
-{
-  if( !kwiver::vital::algo::detected_object_set_input::
-        check_nested_algo_configuration( "groundtruth_reader", config ) )
-  {
-    return false;
-  }
-
-  if( !kwiver::vital::algo::train_detector::
-        check_nested_algo_configuration( "detector_trainer", config ) )
-  {
-    return false;
-  }
-
-  return true;
-}
-
 pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 {
   std::unique_ptr< kwiver::embedded_pipeline > external_pipeline;
@@ -1284,7 +1267,19 @@ main( int argc, char* argv[] )
   kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
     ( "groundtruth_reader", config, groundtruth_reader );
 
-  bool valid_config = check_config( config );
+  bool valid_config = true;
+
+  if( !kwiver::vital::algo::detected_object_set_input::
+        check_nested_algo_configuration( "groundtruth_reader", config ) )
+  {
+    valid_config = false;
+  }
+
+  if( !kwiver::vital::algo::train_detector::
+        check_nested_algo_configuration( "detector_trainer", config ) )
+  {
+    valid_config = false;
+  }
 
   if( !g_params.opt_out_config.empty() )
   {
@@ -1351,6 +1346,13 @@ main( int argc, char* argv[] )
     config->get_value< bool >( "convert_to_full_frame" );
   std::string data_warning_file =
     config->get_value< std::string >( "data_warning_file" );
+
+  if( convert_to_full_frame && !kwiver::vital::algo::image_io::
+        check_nested_algo_configuration( "image_reader", config ) )
+  {
+    std::cout << "Invalid image reader type specified" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   if( !g_params.opt_threshold.empty() )
   {
