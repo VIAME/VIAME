@@ -9,7 +9,7 @@ REM Make sure to have all of these things installed
 
 SET "CMAKE_ROOT=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
-SET "7ZIP_ROOT=C:\Program Files\7-Zip"
+SET "ZIP_ROOT=C:\Program Files\7-Zip"
 SET "ZLIB_ROOT=C:\Program Files\ZLib"
 
 SET "WIN_ROOT=C:\Windows"
@@ -72,6 +72,6 @@ REM ----------------------------------------------------------------------------
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
 
-"%7ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%/%OUTPUT_FILE%" "%VIAME_BUILD_DIR%/VIAME
+"%ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME
 
 MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"

@@ -9,7 +9,7 @@ REM Make sure to have all of these things installed (and cuDNN in CUDA)
 
 SET "CMAKE_ROOT=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
-SET "7ZIP_ROOT=C:\Program Files\7-Zip"
+SET "ZIP_ROOT=C:\Program Files\7-Zip"
 SET "ZLIB_ROOT=C:\Program Files\ZLib"
 SET "NVIDIA_ROOT=C:\Program Files (x86)\NVIDIA Corporation"
 SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3"
@@ -94,6 +94,6 @@ REM ----------------------------------------------------------------------------
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
 
-"%7ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%/%OUTPUT_FILE%" "%VIAME_BUILD_DIR%/VIAME
+"%ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME
 
 MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"
