@@ -88,9 +88,9 @@ process detector1
 
     block detector:mmdet
       # Network config, weights, and names
-      relativepath net_config  =               VIAME/src/packages/learn/learn/algorithms/MMDET/configs/convnext_extra_large_config.py
-      relativepath weight_file =               [-MODEL-WEIGHTS-FILE-]
-      relativepath class_names =               [-NETWORK-CLASSES-]
+      relativepath net_config  =               models/convnext_extra_large_config.py
+      relativepath weight_file =               models/convnext_cascade_mask_rcnn_xlarge_22k_3x.pth
+      relativepath class_names =               models/convnext_extra_large_labels.txt
 
       # Detector parameters
       :thresh                                  0.001
