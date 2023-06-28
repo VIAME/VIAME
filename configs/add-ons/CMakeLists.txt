@@ -78,7 +78,7 @@ if( VIAME_ENABLE_LEARN )
   endif()
 
   set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
-    learn/detector_maskcut.pipe )
+    learn/detector_maskcut_unspvr_segmenter.pipe )
 
   if( VIAME_DOWNLOAD_MODELS-POOLCAR )
     DownloadAndInstallAddOn(
@@ -96,8 +96,8 @@ if( VIAME_ENABLE_LEARN )
       ${VIAME_DOWNLOAD_DIR}/VIAME_ConvNext_baseline_models-V1.0.zip )
 
     set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
-      learn/detector_convnext_xl.pipe
-      learn/train_detector_convnext_cascade_rcnn.viame_csv.conf )
+      learn/detector_convnext_baseline_xl.pipe
+      learn/train_detector_mmdet_convnext_cascade.viame_csv.conf )
   endif()
 endif()
 
