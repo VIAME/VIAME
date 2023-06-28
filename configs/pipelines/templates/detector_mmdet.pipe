@@ -95,6 +95,7 @@ process detector1
       # Detector parameters
       :thresh                                  0.001
       :gpu_index                               0
+      :use_learn                               [-LEARN-FLAG-]
     endblock
   endblock
 
