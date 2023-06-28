@@ -71,7 +71,7 @@ connect from downsampler.output_1
 
 process detector1
   :: image_object_detector
-  :detector:type                               mmdet
+  :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
     :detector:type                             mmdet
