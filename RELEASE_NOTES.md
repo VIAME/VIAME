@@ -1,4 +1,4 @@
-v0.20.1 - 06/14/2023
+v0.20.1 - 06/29/2023
 ====================
 
 
@@ -15,6 +15,9 @@ v0.20.1 - 06/14/2023
 
 
 -Autoconvert detections to full frame labels when training a frame classifier
+
+
+-Fixed issue in last release with model training on certain configs on linux
 
 
 
