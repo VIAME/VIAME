@@ -366,7 +366,9 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_cfrnn_motion.viame_csv.conf
     train_detector_netharn_cfrnn_special.viame_csv.conf
     train_detector_netharn_cfrnn_wtf.viame_csv.conf
-    train_detector_netharn_mask_rcnn.viame_csv.conf
+    train_detector_netharn_mask_rcnn_720.viame_csv.conf
+    train_detector_netharn_mask_rcnn_1280.viame_csv.conf
+    train_detector_netharn_mask_rcnn_grid.viame_csv.conf
     train_frame_classifier_netharn_efficientnet.viame_csv.conf
     train_frame_classifier_netharn_efficientnet.continue.viame_csv.conf
     train_frame_classifier_netharn_resnet.viame_csv.conf
