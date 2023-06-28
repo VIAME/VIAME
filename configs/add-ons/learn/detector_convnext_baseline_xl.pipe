@@ -71,9 +71,9 @@ connect from downsampler.output_1
 
 process detector1
   :: image_object_detector
-  :detector:type                               convnext
+  :detector:type                               mmdet
 
-  block detector:convnext
+  block detector:ocv_windowed
     :detector:type                             mmdet
 
     :mode                                      adaptive
