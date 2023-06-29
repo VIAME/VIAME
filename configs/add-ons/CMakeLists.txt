@@ -92,8 +92,8 @@ if( VIAME_ENABLE_LEARN )
   endif()
   if( VIAME_DOWNLOAD_MODELS-POOLCAR )
     DownloadAndInstallAddOn(
-      https://viame.kitware.com/girder/api/v1/item/649cd846c2b0eca0bdca7fc7/download
-      909199235f434c4765cb34c207788b78
+      https://viame.kitware.com/girder/api/v1/item/649cde32fb1572b3599ec620/download
+      60a5249405577be31cdf39cce06c04f6
       ${VIAME_DOWNLOAD_DIR}/VIAME-PoolCar-Example-v1.0.zip )
 
     set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
