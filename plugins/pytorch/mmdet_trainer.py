@@ -446,7 +446,8 @@ class MMDetTrainer( TrainDetector ):
 
         repl_strs = [ [ "[-NETWORK-CONFIG-]", net ],
                       [ "[-NETWORK-WEIGHTS-]", wgt ],
-                      [ "[-NETWORK-CLASSES-]", cls ] ]
+                      [ "[-NETWORK-CLASSES-]", cls ],
+                      [ "[-LEARN-FLAG-]", "false" ] ]
 
         self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
 

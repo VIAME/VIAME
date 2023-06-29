@@ -79,6 +79,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         _Option('_cutler_config_file', 'cutler_config_file', '', str, ''),
 
         _Option('_output_directory', 'output_directory', '', str, '')
+        _Option('_pipeline_template', 'pipeline_template', '', str, '')
     ]
 
     def __init__( self ):
@@ -99,7 +100,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
                     reduction='mean',
                     class_weight=None,
                     loss_weight=1.0,
-                    num_classes=3,  # 1203 for lvis v1.0, 1230 for lvis v0.5
+                    num_classes=len(self.cats)
                     gamma=12,
                     mu=0.8,
                     alpha=4.0,
@@ -262,9 +263,9 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
     def set_mmdet_config(self):
         print('set_mmdet_config\n')
         self.register_new_losses()
-        mmcv_config_file = os.path.join(self.config_dir,
+        self.mmdet_config_file = os.path.join(self.config_dir,
           os.path.basename(self.config['mmdet_model_config_file']))
-        mmdet_config = mmcv.Config.fromfile(mmcv_config_file)
+        mmdet_config = mmcv.Config.fromfile(self.mmdet_config_file)
         mmdet_config.dataset_type = 'CocoDataset'
         
         mmdet_config.data_root = None
@@ -374,7 +375,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
                     else:
                         # print(k,v)
                         if k == 'num_classes':
-                            conf[k] = 3
+                            conf[k] = len(self.cats)
                         if k == 'CLASSES':
                             conf[k] = self.toolset['target_dataset'].categories
             except:
@@ -395,6 +396,9 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
 
     def update_model( self ):
+        print('set mmdet config')
+        self.set_mmdet_config()
+
         print('update_model\n')
         # seed = np.random.randint(2**31)
         seed = self.config["seed"]
@@ -453,6 +457,8 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             fname = str(self.stage) + "_" + str(self.ckpt) + "_train_data_coco.json"
             if os.path.exists(os.path.join(self.work_dir, "train_data_coco.json")):
                 shutil.copy(os.path.join(self.work_dir, "train_data_coco.json"), os.path.join(self.work_dir, fname))
+
+        self.save_final_model()
 
         gc.collect()  # Make sure all object have ben deallocated if not used
         torch.cuda.empty_cache()
@@ -538,8 +544,6 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             
             print(f"Transformed the dataset into COCO style: {output_file} "
                   f"Num Images {len(images)} and Num Annotations: {len(annotations)}")
-        
-            self.set_mmdet_config()
            
 
     def interupt_handler( self ):
@@ -551,9 +555,82 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             if timeout > 5:
                 self.proc.kill()
                 break
+        self.save_final_model()
         sys.exit( 0 )
 
+    def save_final_model( self ):
+        if not self._output_directory:
+            return
 
+        final_model = os.path.join( self.config["work_dir"], "latest.pth" )
+
+        net_fn = "convnext_xl_cascade_rcnn.py"
+        weight_fn = "convnext_xl_cascade_rcnn.pth"
+        label_fn = "convnext_xl_cascade_rcnn.txt"
+        pipe_fn = "detector.pipe"
+  
+        if not os.path.exists( self._output_directory ):
+            os.mkdir( self._output_directory )
+
+        output_net = os.path.join( self._output_directory, net_fn )
+        output_model = os.path.join( self._output_directory, weight_fn )
+        output_label = os.path.join( self._output_directory, label_fn )
+        output_pipe = os.path.join( self._output_directory, pipe_fn )
+
+        if not os.path.exists( final_model ):
+            print( "\nModel failed to finsh training\n" )
+            sys.exit( 0 )
+
+        # Copy final model weights
+        copyfile( final_model, output_model )
+
+        # Copy network py file
+        self.insert_training_params( self.mmdet_config_file, output_net )
+
+        # Write out labels file
+        with open( output_lbl_file_fp, "w" ) as fout:
+            for category in self.cats:
+                fout.write( category + "\n" )
+
+        # Write out pipeline template
+        if len( self._pipeline_template ) > 0:
+            self.insert_model_files( self._pipeline_template,
+                                     output_pipe,
+                                     net_fn,
+                                     weight_fn,
+                                     label_fn )
+
+        # Output additional completion text
+        print( "\nWrote finalized model to " + output_model )
+
+    def insert_training_params( self, input_cfg, output_cfg ):
+        repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self.cats)+1) ] ]
+        self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
+
+    def insert_model_files( self, input_cfg, output_cfg, net, wgt, cls ):
+        repl_strs = [ [ "[-NETWORK-CONFIG-]", net ],
+                      [ "[-NETWORK-WEIGHTS-]", wgt ],
+                      [ "[-NETWORK-CLASSES-]", cls ],
+                      [ "[-LEARN-FLAG-]", "true" ] ]
+        self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
+
+    def replace_strs_in_file( self, input_cfg, output_cfg, repl_strs ):
+
+        fin = open( input_cfg )
+        fout = open( output_cfg, 'w' )
+
+        all_lines = []
+        for s in list( fin ):
+            all_lines.append( s )
+
+        for repl in repl_strs:
+            for i, s in enumerate( all_lines ):
+                all_lines[i] = s.replace( repl[0], repl[1] )
+        for s in all_lines:
+            fout.write( s )
+
+        fout.close()
+        fin.close()
 
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
