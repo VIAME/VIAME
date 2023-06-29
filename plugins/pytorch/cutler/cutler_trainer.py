@@ -78,7 +78,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         
         _Option('_cutler_config_file', 'cutler_config_file', '', str, ''),
 
-        _Option('_output_directory', 'output_directory', '', str, '')
+        _Option('_output_directory', 'output_directory', '', str, ''),
         _Option('_pipeline_template', 'pipeline_template', '', str, '')
     ]
 
@@ -100,7 +100,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
                     reduction='mean',
                     class_weight=None,
                     loss_weight=1.0,
-                    num_classes=len(self.cats)
+                    num_classes=len(self.cats),
                     gamma=12,
                     mu=0.8,
                     alpha=4.0,
@@ -444,12 +444,12 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         
         self.model = model
         
-        if self.config["save_model_every_ckpt"]:
+        if "save_model_every_ckpt" in self.config and self.config["save_model_every_ckpt"]:
             if os.path.exists(os.path.join(self.config["work_dir"], "latest.pth")):
                 fname = str(self.stage) + "_" + str(self.ckpt) + "_model.pth"
                 shutil.copy(os.path.join(self.config["work_dir"], "latest.pth"), os.path.join(self.config["work_dir"], fname))
 
-        if self.config["eval_train_set"]:
+        if "eval_train_set" in self.config and self.config["eval_train_set"]:
             if os.path.exists(os.path.join(self.work_dir, "latest.pth")):
                 fname = str(self.stage) + "_" + str(self.ckpt) + "_model.pth"
                 shutil.copy(os.path.join(self.work_dir, "latest.pth"), os.path.join(self.work_dir, fname))
