@@ -78,7 +78,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         
         _Option('_cutler_config_file', 'cutler_config_file', '', str, ''),
 
-        _Option('_output_directory', 'output_directory', '', str, ''),
+        _Option('_output_directory', 'output_directory', 'category_models', str, ''),
         _Option('_pipeline_template', 'pipeline_template', '', str, '')
     ]
 
