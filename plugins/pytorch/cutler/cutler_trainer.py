@@ -588,7 +588,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         self.insert_training_params( self.mmdet_config_file, output_net )
 
         # Write out labels file
-        with open( output_lbl_file_fp, "w" ) as fout:
+        with open( output_label, "w" ) as fout:
             for category in self.cats:
                 fout.write( category + "\n" )
 
