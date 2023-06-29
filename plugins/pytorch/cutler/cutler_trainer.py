@@ -592,6 +592,9 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             for category in self.cats:
                 fout.write( category + "\n" )
 
+        with open( os.path.join( self._output_directory, "tmp.zip" ), "w" ) as fout:
+            fout.write( "placeholder\n" )
+
         # Write out pipeline template
         if len( self._pipeline_template ) > 0:
             self.insert_model_files( self._pipeline_template,
