@@ -80,15 +80,15 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* VIAME v0.20.0 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
-* [VIAME v0.20.0 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1Jdu4oYtPu7rOPnNABgaLez--9lv5ciHd/view?usp=share_link) <br>
-* [VIAME v0.20.0 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/63e3f5ff046e924d0df1989a/download) <br>
+* VIAME v0.20.1 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
+* [VIAME v0.20.1 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1HzDRq5Ughz2OFDZsVr2g78Pt-ylLIkDN/view?usp=sharing) <br>
+* [VIAME v0.20.1 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/64a2f70093a5dcdba24e0aa7/download) <br>
 * [VIAME v0.20.0 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1862S57V_fBVgn1tX4tEUPnRz2jj6LI9r/view?usp=share_link) <br>
 * [VIAME v0.20.0 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/63e5b6777b0dfcc98f6670d7/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.20.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1R1wQ6x1pp6h8oo71VUcQiEaLZh5nfmgr/view?usp=share_link) <br>
-* [VIAME v0.20.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/645a7a0458fefcae81a9f728/download) <br>
+* [VIAME v0.20.1 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/14gWzOSZK3_2ft32aYmUuP50IS4NTKqzX/view?usp=sharing) <br>
+* [VIAME v0.20.1 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/64a2f49e93a5dcdba24e0aa1/download) <br>
 * [VIAME v0.20.0 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/14ONeYjuK_7oyeZ50G8c9v45sKm6vCieg/view?usp=share_link) <br>
 * [VIAME v0.20.0 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/63e5b5ef7b0dfcc98f6670d3/download)
 
