@@ -20,6 +20,9 @@ v0.20.1 - 06/29/2023
 -Fixed issue in last release with model training on certain configs on linux
 
 
+-Remove development header files and share folder config files from default binaries
+
+
 
 v0.20.0 - 02/10/2023
 ====================
