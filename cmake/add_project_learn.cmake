@@ -54,6 +54,14 @@ else()
     -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
+if( Python_VERSION VERSION_EQUAL "3.6" )
+  set( FINAL_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/timm
+        ${VIAME_PYTHON_INSTALL}/site-packages/timm )
+else()
+  set( FINAL_PATCH_COMMAND )
+endif()
+
 # Install required dependencies and learn
 ExternalProject_Add( learn
     DEPENDS python-deps detectron2 torchvideo
@@ -64,6 +72,7 @@ ExternalProject_Add( learn
           COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_BUILD_CMD}
           COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_BUILD_CMD}
           COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_CMD}
+          COMMAND ${FINAL_PATCH_COMMAND}
     INSTALL_COMMAND ${LEARN_INSTALL_CMD}
     LIST_SEPARATOR "----"
     )
