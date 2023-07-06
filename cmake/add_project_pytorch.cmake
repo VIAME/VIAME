@@ -35,16 +35,16 @@ if( VIAME_ENABLE_PYTORCH-PYSOT )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pysot )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-DETECTRON )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} detectron2 )
-endif()
-
 if( VIAME_ENABLE_PYTORCH-MDNET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} roi-align )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} netharn bioharn )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-DETECTRON )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} detectron2 )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-SEGMENT-ANY )
@@ -183,7 +183,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "detectron2" )
     set( PROJECT_DEPS fletch python-deps pytorch )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
-      set( PROJECT_DEPS ${PROJECT_DEPS} netharn )
+      set( PROJECT_DEPS ${PROJECT_DEPS} bioharn )
     endif()
     if( WIN32 )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
