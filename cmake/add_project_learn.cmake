@@ -54,7 +54,7 @@ else()
     -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
-if( Python_VERSION VERSION_EQUAL "3.6" )
+if( Python_VERSION VERSION_LESS "3.7" )
   set( FINAL_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/timm
         ${VIAME_PYTHON_INSTALL}/site-packages/timm )
