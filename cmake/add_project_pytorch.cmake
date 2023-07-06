@@ -183,7 +183,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "detectron2" )
     set( PROJECT_DEPS fletch python-deps pytorch )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
-      set( PROJECT_DEPS {PROJECT_DEPS} netharn )
+      set( PROJECT_DEPS ${PROJECT_DEPS} netharn )
     endif()
     if( WIN32 )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
