@@ -140,24 +140,3 @@ FOR /f "delims=" %%A in (files-view.txt) do @find "%%A" "files-dive.txt" >nul2>n
 "C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-VIEW.zip" @diff-view.lst
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME-VIEW"
-
-REM -------------------------------------------------------------------------------------------------------
-REM Round6 - Build with seal
-REM -------------------------------------------------------------------------------------------------------
-
-XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_INSTALL_DIR%"
-powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > files-core.txt
-
-git reset --hard
-git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-seal.diff"
-COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
-"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
-
-powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
-TYPE tmp.txt | findstr /v "install\include" > files-seal.txt
-
-FOR /f "delims=" %%A in (files-seal.txt) do @find "%%A" "files-core.txt" >nul2>nul || echo %%A>>diff-seal.lst
-
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Torch.zip" @diff-seal.lst
-
-MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME-SEAL"
