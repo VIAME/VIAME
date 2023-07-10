@@ -47,7 +47,7 @@ IF EXIST C:\tmp\vm5 rmdir /s /q C:\tmp\vm5
 
 git submodule update --init --recursive
 
-"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
 REM -------------------------------------------------------------------------------------------------------
 REM HACKS UNTIL THESE THINGS ARE BETTER HANDLED IN CODE
@@ -68,7 +68,7 @@ COPY "C:\Program Files\ZLib\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
 powershell.exe "Get-ChildItem -Recurse "%VIAME_INSTALL_DIR%" | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-core.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Core.zip" @files-core.lst
+"%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Core.zip" @files-core.lst
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME-Core"
 
@@ -81,7 +81,8 @@ powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relat
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-torch.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
-"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
 DEL "%VIAME_INSTALL_DIR%\lib\python3.6\site-packages\torch\lib\cu*"
 
@@ -90,7 +91,7 @@ TYPE tmp.txt | findstr /v "install\include" > files-torch.txt
 
 FOR /f "delims=" %%A in (files-torch.txt) do @find "%%A" "files-core.txt" >nul2>nul || echo %%A>>diff-torch.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Torch.zip" @diff-torch.lst
+"%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Torch.zip" @diff-torch.lst
 
 REM -------------------------------------------------------------------------------------------------------
 REM Round3 - Build with darknet
@@ -98,7 +99,8 @@ REM ----------------------------------------------------------------------------
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-darknet.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
-"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
 COPY %VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll %VIAME_INSTALL_DIR%\bin
 
@@ -107,7 +109,7 @@ TYPE tmp.txt | findstr /v "install\include" > files-darknet.txt
 
 FOR /f "delims=" %%A in (files-darknet.txt) do @find "%%A" "files-torch.txt" >nul2>nul || echo %%A>>diff-darknet.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Darknet.zip" @diff-darknet.lst
+"%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Darknet.zip" @diff-darknet.lst
 
 REM -------------------------------------------------------------------------------------------------------
 REM Round4 - Build with dive
@@ -115,14 +117,15 @@ REM ----------------------------------------------------------------------------
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-dive.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
-"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-dive.txt
 
 FOR /f "delims=" %%A in (files-dive.txt) do @find "%%A" "files-darknet.txt" >nul2>nul || echo %%A>>diff-dive.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-DIVE.zip" @diff-dive.lst
+"%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-DIVE.zip" @diff-dive.lst
 
 REM -------------------------------------------------------------------------------------------------------
 REM Round5 - Build with vivia
@@ -130,13 +133,14 @@ REM ----------------------------------------------------------------------------
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-view.diff"
 COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
-"C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-view.txt
 
 FOR /f "delims=" %%A in (files-view.txt) do @find "%%A" "files-dive.txt" >nul2>nul || echo %%A>>diff-view.lst
 
-"C:\Program Files\7-Zip\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-VIEW.zip" @diff-view.lst
+"%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-VIEW.zip" @diff-view.lst
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME-VIEW"
