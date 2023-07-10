@@ -1,10 +1,41 @@
 REM -------------------------------------------------------------------------------------------------------
-REM Round1 - VIAME Core
+REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
 
 SET VIAME_SOURCE_DIR=C:\workspace\VIAME-Windows-GPU-MSI
+
 SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
 SET VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install
+
+REM Make sure to have all of these things installed (and cuDNN in CUDA)
+
+SET "CMAKE_ROOT=C:\Program Files\CMake"
+SET "GIT_ROOT=C:\Program Files\Git"
+SET "ZIP_ROOT=C:\Program Files\7-Zip"
+SET "ZLIB_ROOT=C:\Program Files\ZLib"
+SET "NVIDIA_ROOT=C:\Program Files (x86)\NVIDIA Corporation"
+SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3"
+
+SET "WIN_ROOT=C:\Windows"
+SET "WIN32_ROOT=%WIN_ROOT%\System32"
+SET "WIN64_ROOT=%WIN_ROOT%\SysWOW64"
+
+REM Do not modify the below unless you are changing python versions or have alternatively modified
+REM the build and install directories in cmake or the platforms.cmake file
+
+SET "VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build"
+SET "VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install"
+
+SET "PYTHON_SUBDIR=lib\python3.6"
+
+SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
+SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%NVIDIA_ROOT%\PhysX\Common;%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
+SET "PATH=%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
+SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
+
+REM -------------------------------------------------------------------------------------------------------
+REM Round1 - VIAME Core
+REM -------------------------------------------------------------------------------------------------------
 
 IF EXIST build rmdir /s /q build
 
@@ -13,14 +44,6 @@ IF NOT EXIST C:\tmp mkdir C:\tmp
 IF EXIST C:\tmp\fl5 rmdir /s /q C:\tmp\fl5
 IF EXIST C:\tmp\kv5 rmdir /s /q C:\tmp\kv5
 IF EXIST C:\tmp\vm5 rmdir /s /q C:\tmp\vm5
-
-SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3"
-SET "WIN32_ROOT=C:\Windows\System32"
-SET "WIN64_ROOT=C:\Windows\SysWOW64"
-SET "PATH=%WIN32_ROOT%;C:\Windows;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
-SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;%PATH%"
-SET "PATH=C:\Program Files\Git\cmd;C:\Program Files\CMake\bin;%PATH%"
-SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 git submodule update --init --recursive
 

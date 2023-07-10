@@ -1,13 +1,13 @@
 diff --git a/cmake/build_server_windows_msi.cmake b/cmake/build_server_windows_msi.cmake
-index f26dab8..b414a71 100644
+index 016127212..b9e231e81 100644
 --- a/cmake/build_server_windows_msi.cmake
 +++ b/cmake/build_server_windows_msi.cmake
-@@ -26,7 +26,7 @@ set(OPTIONS
-   "-DVIAME_ENABLE_DIVE=OFF"
-   "-DVIAME_ENABLE_GDAL=OFF"
-   "-DVIAME_ENABLE_VIVIA=OFF"
+@@ -16,7 +16,7 @@ set(OPTIONS
+   "-DVIAME_FIXUP_BUNDLE=ON"
+   "-DVIAME_ENABLE_CUDNN=ON"
+   "-DVIAME_ENABLE_CUDA=ON"
 -  "-DVIAME_ENABLE_DARKNET=OFF"
 +  "-DVIAME_ENABLE_DARKNET=ON"
-   "-DVIAME_ENABLE_SCALLOP_TK=OFF"
-   "-DVIAME_DOWNLOAD_MODELS=ON"
-   "-DVIAME_BUILD_KWIVER_DIR=C:/tmp/kv5"
+   "-DVIAME_ENABLE_DIVE=ON"
+   "-DVIAME_ENABLE_FFMPEG=ON"
+   "-DVIAME_ENABLE_GDAL=OFF"
