@@ -49,21 +49,14 @@ git submodule update --init --recursive
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-REM -------------------------------------------------------------------------------------------------------
-REM HACKS UNTIL THESE THINGS ARE BETTER HANDLED IN CODE
-REM -------------------------------------------------------------------------------------------------------
-
 SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
-SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.exe
+MOVE "%MISSING_SVM_DLL%" %VIAME_INSTALL_DIR%\bin
 
-MOVE %MISSING_SVM_DLL% %VIAME_INSTALL_DIR%\bin
-MOVE %MISSING_DNET_EXE% %VIAME_INSTALL_DIR%\bin
-
-COPY %WIN32_ROOT%\msvcr100.dll %VIAME_INSTALL_DIR%\bin
-COPY %WIN32_ROOT%\vcruntime140_1.dll %VIAME_INSTALL_DIR%\bin
-COPY %WIN64_ROOT%\vcomp140.dll %VIAME_INSTALL_DIR%\bin
-COPY %WIN64_ROOT%\msvcr120.dll %VIAME_INSTALL_DIR%\bin
-COPY "C:\Program Files\ZLib\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%WIN64_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
 
 powershell.exe "Get-ChildItem -Recurse "%VIAME_INSTALL_DIR%" | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-core.lst
@@ -86,6 +79,23 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 
 DEL "%VIAME_INSTALL_DIR%\lib\python3.6\site-packages\torch\lib\cu*"
 
+COPY "%CUDA_ROOT%\bin\cublas64_11.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cublasLt64_11.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudart64_110.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_adv_infer64_8.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_adv_train64_8.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_cnn_infer64_8.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_cnn_train64_8.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_ops_infer64_8.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_ops_train64_8.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn64_8.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cufft64_10.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cufftw64_10.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\curand64_10.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cusolver64_11.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cusolverMg64_11.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cusparse64_11.dll" %VIAME_INSTALL_DIR%\bin
+
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-torch.txt
 
@@ -102,7 +112,9 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-COPY %VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll %VIAME_INSTALL_DIR%\bin
+SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.exe
+MOVE "%MISSING_DNET_EXE%" %VIAME_INSTALL_DIR%\bin
+COPY "%VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll" %VIAME_INSTALL_DIR%\bin
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-darknet.txt
