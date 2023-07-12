@@ -1252,7 +1252,8 @@ main( int argc, char* argv[] )
     {
       if( conf.find( "timeout" ) != std::string::npos )
       {
-        if( config->get_value< std::string >( conf ) == "default" )
+        if( config->get_value< std::string >( conf ) == "default" ||
+            !g_params.opt_timeout.empty() )
         {
           if( !g_params.opt_timeout.empty() )
           {
