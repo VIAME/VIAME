@@ -1097,9 +1097,9 @@ main( int argc, char* argv[] )
   g_params.m_args.AddArgument( "-mfc",            argT::SPACE_ARGUMENT,
     &g_params.opt_max_frame_count, "Maximum frame count to use" );
   g_params.m_args.AddArgument( "--timeout",       argT::SPACE_ARGUMENT,
-    &g_params.opt_max_frame_count, "Maximum time in seconds" );
+    &g_params.opt_timeout, "Maximum time in seconds" );
   g_params.m_args.AddArgument( "-to",             argT::SPACE_ARGUMENT,
-    &g_params.opt_max_frame_count, "Maximum time in seconds" );
+    &g_params.opt_timeout, "Maximum time in seconds" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
