@@ -102,6 +102,7 @@ public:
   std::string opt_pipeline_file;
   std::string opt_frame_rate;
   std::string opt_max_frame_count;
+  std::string opt_timeout;
 
   trainer_vars()
   {
@@ -1095,6 +1096,10 @@ main( int argc, char* argv[] )
     &g_params.opt_max_frame_count, "Maximum frame count to use" );
   g_params.m_args.AddArgument( "-mfc",            argT::SPACE_ARGUMENT,
     &g_params.opt_max_frame_count, "Maximum frame count to use" );
+  g_params.m_args.AddArgument( "--timeout",       argT::SPACE_ARGUMENT,
+    &g_params.opt_max_frame_count, "Maximum time in seconds" );
+  g_params.m_args.AddArgument( "-to",             argT::SPACE_ARGUMENT,
+    &g_params.opt_max_frame_count, "Maximum time in seconds" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -1239,20 +1244,41 @@ main( int argc, char* argv[] )
     config->set_value( prefix2 + ":allow_unicode", "False" );
   }
 
-  if( g_params.opt_no_emb_pipe )
+  // No need for conf_values to be in scope for rest of func taking up stack
   {
     auto conf_values = config->available_values();
 
     for( auto conf : conf_values )
     {
-      if( conf.find( "pipeline_template" ) != std::string::npos )
+      if( conf.find( "timeout" ) != std::string::npos )
       {
-        std::string new_value = std::regex_replace(
-          config->get_value< std::string >( conf ),
-          std::regex( "embedded_" ),
-          "detector_" );
+        if( config->get_value< std::string >( conf ) == "default" )
+        {
+          if( !g_params.opt_timeout.empty() )
+          {
+            config->set_value( conf, g_params.opt_timeout );
+          }
+          else
+          {
+            config->set_value( conf, "1209600" );
+          }
+        }
+      }
+    }
 
-        config->set_value( conf, new_value );
+    if( g_params.opt_no_emb_pipe )
+    {
+      for( auto conf : conf_values )
+      {
+        if( conf.find( "pipeline_template" ) != std::string::npos )
+        {
+          std::string new_value = std::regex_replace(
+            config->get_value< std::string >( conf ),
+            std::regex( "embedded_" ),
+            "detector_" );
+
+          config->set_value( conf, new_value );
+        }
       }
     }
   }
