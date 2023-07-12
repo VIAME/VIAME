@@ -4,7 +4,9 @@ USER root
 
 WORKDIR /home
 
-RUN apt-get update \
+RUN export DEBIAN_FRONTEND=noninteractive 
+  && export TZ=Etc/UTC
+  && apt-get update \
   && apt-get install -y git \
   && git clone https://github.com/VIAME/VIAME.git /viame \
   && cd /viame \
