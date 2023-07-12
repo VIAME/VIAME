@@ -426,11 +426,12 @@ if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   install( FILES       ${DUAL_EMBEDDED_FILES}
            DESTINATION configs/pipelines/embedded_dual_stream )
 endif()
+
 ###
 # Perform actual installation steps
 ##
 if( VIAME_ENABLE_WEB_EXCLUDES )
-  set( VIAME_WEB_FILE_IGNORE
+  set( VIAME_WEB_FILES_TO_IGNORE
     classify_detections_svm.pipe
     database_apply_svm_models.pipe
     detector_project_folder.pipe
@@ -453,6 +454,10 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     train_detector_netharn_cfrnn_wtf.viame_csv.conf
     train_frame_classifier_netharn_efficientnet.continue.viame_csv.conf
     train_frame_classifier_netharn_resnet.continue.viame_csv.conf )
+
+  foreach( ITEM ${VIAME_WEB_FILES_TO_IGNORE} )
+    list( REMOVE_ITEM CORE_PIPELINE_FILES "${ITEM}" )
+  endforeach()
 endif()
 
 ###
