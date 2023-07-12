@@ -426,7 +426,38 @@ if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   install( FILES       ${DUAL_EMBEDDED_FILES}
            DESTINATION configs/pipelines/embedded_dual_stream )
 endif()
+###
+# Perform actual installation steps
+##
+if( VIAME_ENABLE_WEB_EXCLUDES )
+  set( VIAME_WEB_FILE_IGNORE
+    classify_detections_svm.pipe
+    database_apply_svm_models.pipe
+    detector_project_folder.pipe
+    detector_project_folder_left.pipe
+    detector_simple_hough.pipe
+    detector_svm_models.pipe
+    frame_classifier_project_folder.pipe
+    frame_classifier_svm.pipe
+    tracker_project_folder.pipe
+    tracker_svm_models.pipe
+    utility_add_head_tail_keypoints.pipe
+    utility_enhance.pipe
+    utility_extract_chips.pipe
+    train_detector_darknet_yolo_704.habcam.conf
+    train_detector_darknet_yolo_704.kw18.conf
+    train_detector_darknet_yolo_full.viame_csv.conf
+    train_detector_netharn_cfrnn.continue.viame_csv.conf
+    train_detector_netharn_cfrnn.habcam.conf
+    train_detector_netharn_cfrnn_special.viame_csv.conf
+    train_detector_netharn_cfrnn_wtf.viame_csv.conf
+    train_frame_classifier_netharn_efficientnet.continue.viame_csv.conf
+    train_frame_classifier_netharn_resnet.continue.viame_csv.conf )
+endif()
 
+###
+# Perform actual installation steps
+##
 install( FILES       ${CORE_PIPELINE_FILES}
          DESTINATION configs/pipelines )
 install( DIRECTORY   templates
