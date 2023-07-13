@@ -113,10 +113,12 @@ cp build/src/darknet-build/darknet install/bin || true
 
 # Remove all source files used for the build to save space and mode
 # viame install to default linux install location
-cd /viame/build
-mkdir /opt/noaa
-mv install viame
-mv viame /opt/noaa
-cd /
-rm -rf /viame
-chown -R 1099:1099 /opt/noaa/viame
+if [ -f "install/setup_viame.sh" ]; then
+  cd /viame/build
+  mkdir /opt/noaa
+  mv install viame
+  mv viame /opt/noaa
+  cd /
+  rm -rf /viame
+  chown -R 1099:1099 /opt/noaa/viame
+fi
