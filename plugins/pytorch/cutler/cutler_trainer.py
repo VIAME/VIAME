@@ -488,8 +488,6 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
             for index in range(num_images):
                 filename = split[index]
-                if not self.image_root:
-                    self.image_root = os.path.dirname(filename) # TODO: there might be a better way to get this?
                 img = mmcv.image.imread(filename)
                 height, width = img.shape[:2]
                 targets = train_dets[index] if is_train else test_dets[index]
