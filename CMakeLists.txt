@@ -182,6 +182,8 @@ if( VIAME_ENABLE_PYTORCH )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-SEGMENT-ANY )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-VIDEO )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
