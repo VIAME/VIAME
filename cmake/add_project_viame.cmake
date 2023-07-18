@@ -18,6 +18,14 @@ if( VIAME_ENABLE_MATLAB )
   FormatPassdowns( "Matlab" VIAME_MATLAB_FLAGS )
 endif()
 
+if( VIAME_ENABLE_CUDA )
+  FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
+endif()
+
+if( VIAME_ENABLE_CUDNN )
+  FormatPassdowns( "CUDNN" VIAME_CUDNN_FLAGS )
+endif()
+
 if( VIAME_ENABLE_PYTHON )
   set( VIAME_PYTHON_FLAGS
     # Backwards compatibility for sub-projects which use "PYTHON_" cmake
@@ -48,6 +56,8 @@ ExternalProject_Add(viame
     ${VIAME_VERSION_FLAGS}
     ${VIAME_MATLAB_FLAGS}
     ${VIAME_PYTHON_FLAGS}
+    ${VIAME_CUDA_FLAGS}
+    ${VIAME_CUDNN_FLAGS}
     -DBUILD_SHARED_LIBS:BOOL=ON
     -DVIAME_BUILD_DEPENDENCIES:BOOL=OFF
     -DVIAME_IN_SUPERBUILD:BOOL=ON
