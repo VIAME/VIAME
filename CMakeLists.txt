@@ -352,7 +352,8 @@ if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER AND VIAME_BUILD_C
       must be set to a short path (e.g. C:\\tmp\\kv1 and C:\\tmp\\vm1) on \
       Windows due to a current issue with nesting KWIVER exceeding the 260 \
       character default filepath size. Alternatively disable VIAME_BUILD_CHECKS \
-      to ignore this message." )
+      to ignore this message if you either increased the windows default path \
+      length, or think your build path is short enough." )
   endif()
 endif()
 
@@ -568,10 +569,19 @@ if( VIAME_ENABLE_PYTHON )
 
   if( WIN32 )
     string( REPLACE "/" "\\" VIAME_PYTHON_USERBASE "${VIAME_PYTHON_USERBASE}" )
-
+    # Add PYTHON_PATH variables internal to the VIAME build tree, e.g. things installed
+    # just for VIAME not in an external Python environment or install
     set( VIAME_PYTHON_PATH
       ${PYBASE};${PYBASE}/site-packages;${PYBASE}/dist-packages
       CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME" )
+    if( NOT VIAME_ENABLE_PYTHON-INTERNAL )
+      # If using system python on windows, add all possible path locations for
+      # python packages in the system install just so they can be used in addition
+      # to the ones within the VIAME install tree
+      set( VIAME_PYTHON_PATH
+        ${VIAME_PYTHON_PATH};${PYTHON_STDLIB};${PYTHON_SITELIB};${PYTHON_RUNTIME_LIBRARY_DIRS}/DLLs
+        CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME" )
+    endif()
   else()
     set( VIAME_PYTHON_PATH
       ${PYBASE}:${PYBASE}/site-packages:${PYBASE}/dist-packages
