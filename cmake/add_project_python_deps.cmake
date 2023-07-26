@@ -11,14 +11,16 @@
 # ------------------------------ ADD ANY BASIC PYTHON DEPS HERE ----------------------------------
 # Basic dependencies are installed jointly in one local pip installation call
 
+set( VIAME_PYTHON_BASIC_DEPS "wheel" )
+
 if( VIAME_FIXUP_BUNDLE )
-  set( VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
 else()
-  set( VIAME_PYTHON_BASIC_DEPS "numpy<=1.23.5" )
+  list( APPEND  VIAME_PYTHON_BASIC_DEPS "numpy<=1.23.5" )
 endif()
 
 if( VIAME_BUILD_TESTS )
-  set( VIAME_PYTHON_BASIC_DEPS "pytest" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
 endif()
 
 # Setuptools < 58.0 required for current version of gdal on windows or earlier python
@@ -132,9 +134,9 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-INTERNAL )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
-  if( WIN32 )
+  if( WIN32 AND Python_VERSION VERSION_LESS "3.9" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools-windows" )
-  else()
+  elseif( NOT WIN32 )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
   endif()
 endif()

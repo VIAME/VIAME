@@ -567,25 +567,33 @@ if( VIAME_ENABLE_PYTHON )
   set( VIAME_PYTHON_INSTALL ${PYBASE} CACHE INTERNAL "VIAME Python install path" )
   set( VIAME_PYTHON_USERBASE "${VIAME_INSTALL_PREFIX}" )
 
+  # Add PYTHON_PATH variables internal to the VIAME build tree, e.g. things installed
+  # just for VIAME not in an external Python environment or install
+  set( PYTHON_PATH_DESC "Pythonpath for all files installed as a part of VIAME" )
   if( WIN32 )
     string( REPLACE "/" "\\" VIAME_PYTHON_USERBASE "${VIAME_PYTHON_USERBASE}" )
-    # Add PYTHON_PATH variables internal to the VIAME build tree, e.g. things installed
-    # just for VIAME not in an external Python environment or install
     set( VIAME_PYTHON_PATH
       ${PYBASE};${PYBASE}/site-packages;${PYBASE}/dist-packages
-      CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME" )
+      CACHE INTERNAL ${PYTHON_PATH_DESC} )
     if( NOT VIAME_ENABLE_PYTHON-INTERNAL )
       # If using system python on windows, add all possible path locations for
       # python packages in the system install just so they can be used in addition
       # to the ones within the VIAME install tree
-      set( VIAME_PYTHON_PATH
-        ${VIAME_PYTHON_PATH};${PYTHON_STDLIB};${PYTHON_SITELIB};${PYTHON_RUNTIME_LIBRARY_DIRS}/DLLs
-        CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME" )
+      if( EXISTS "${PYTHON_STDLIB}" AND EXISTS "${PYTHON_SITELIB}" )
+        set( VIAME_PYTHON_PATH
+          ${VIAME_PYTHON_PATH};${PYTHON_STDLIB};${PYTHON_SITELIB}
+          CACHE INTERNAL ${PYTHON_PATH_DESC} )
+       endif()
+      if( EXISTS "${PYTHON_RUNTIME_LIBRARY_DIRS}/DLLs" )
+        set( VIAME_PYTHON_PATH
+          ${VIAME_PYTHON_PATH};${PYTHON_RUNTIME_LIBRARY_DIRS}/DLLs
+          CACHE INTERNAL ${PYTHON_PATH_DESC} )
+      endif()
     endif()
   else()
     set( VIAME_PYTHON_PATH
       ${PYBASE}:${PYBASE}/site-packages:${PYBASE}/dist-packages
-      CACHE INTERNAL "Pythonpath for all files installed as a part of VIAME")
+      CACHE INTERNAL ${PYTHON_PATH_DESC} )
   endif()
 
   # Configure PYTHON_DEP_ENV_VARS, this is used to set the environment used for
