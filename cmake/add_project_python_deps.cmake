@@ -11,7 +11,8 @@
 # ------------------------------ ADD ANY BASIC PYTHON DEPS HERE ----------------------------------
 # Basic dependencies are installed jointly in one local pip installation call
 
-set( VIAME_PYTHON_BASIC_DEPS "wheel" )
+# Core requirements used for building certain libraries
+set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "Cython" )
 
 if( VIAME_FIXUP_BUNDLE )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
@@ -29,9 +30,6 @@ if( ( WIN32 OR Python_VERSION VERSION_LESS "3.8" )
     AND VIAME_ENABLE_GDAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
 endif()
-
-# Installation requirement for some dependencies
-list( APPEND VIAME_PYTHON_BASIC_DEPS "Cython" "ordered_set" )
 
 # For scoring and plotting
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" )
