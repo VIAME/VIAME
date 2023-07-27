@@ -611,7 +611,7 @@ if( VIAME_ENABLE_PYTHON )
         set( ADJ_INCLUDE_PATH "${ADJ_INCLUDE_PATH};${PYTHON_INCLUDE_DIRS}" )
       endif()
       if( EXISTS "${PYTHON_LIBRARY_DIRS}" )
-        set( ADJ_LIBRARY_PATH "${ADJ_INCLUDE_PATH};${PYTHON_LIBRARY_DIRS}" )
+        set( ADJ_LIBRARY_PATH "${ADJ_LIBRARY_PATH};${PYTHON_LIBRARY_DIRS}" )
       endif()
     endif()
 
