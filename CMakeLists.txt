@@ -606,6 +606,13 @@ if( VIAME_ENABLE_PYTHON )
 
     if( VIAME_ENABLE_PYTHON-INTERNAL )
       set( ENV{PYTHONPATH} "${VIAME_PYTHON_PATH};$ENV{PYTHONPATH}" )
+    else()
+      if( EXISTS "${PYTHON_INCLUDE_DIRS}" )
+        set( ADJ_INCLUDE_PATH "${ADJ_INCLUDE_PATH};${PYTHON_INCLUDE_DIRS}" )
+      endif()
+      if( EXISTS "${PYTHON_LIBRARY_DIRS}" )
+        set( ADJ_LIBRARY_PATH "${ADJ_INCLUDE_PATH};${PYTHON_LIBRARY_DIRS}" )
+      endif()
     endif()
 
     string( REPLACE ";" "----" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
