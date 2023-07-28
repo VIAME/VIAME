@@ -37,7 +37,7 @@ function( FormatPassdownsPython _varResult )
   # different values for these fields across OS (some are lists, values).
   set( _tmpResult
     -DPython_EXECUTABLE:PATH=${Python_EXECUTABLE}
-    -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE})
+    -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE} )
 
   set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
 endfunction()
