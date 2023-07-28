@@ -28,9 +28,30 @@ function( FormatPassdownsCond _str _varResult _bothCases _ignoreStr )
   set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
 endfunction()
 
-function( FormatPassdowns _str _varResult )
-  FormatPassdownsCond( ${_str} _tmpResult ON "" )
+function( FormatPassdownsPython _varResult )
+  # Backwards compatibility for sub-projects which use "PYTHON_" cmake
+  # variables and the old find_package( PythonInterp ) commands instead
+  # of the newer find Python. CMake fills in other python vars from exec.
+  #
+  # We don't pass down all PYTHON_* variables due to confusion amongst
+  # different values for these fields across OS (some are lists, values).
+  set( _tmpResult
+    -DPython_EXECUTABLE:PATH=${Python_EXECUTABLE}
+    -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE})
+
   set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
+endfunction()
+
+function( FormatPassdowns _str _varResult )
+  # Special Cases
+  if( ${_str} MATCHES "PYTHON" )
+    FormatPassdownsPython( _tmpResult )
+    set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
+  # Default Case
+  else()
+    FormatPassdownsCond( ${_str} _tmpResult ON "" )
+    set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
+  endif()
 endfunction()
 
 function( FormatPassdownsWithIgnore _str _varResult _ignoreStr )
