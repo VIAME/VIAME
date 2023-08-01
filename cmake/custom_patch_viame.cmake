@@ -1,4 +1,4 @@
-message( "Patching VIAME python dependency install directories" )
+#message( "Patching VIAME python dependency install directories" )
 
 # Move any misinstalled python files
 if( PYTHON_VERSION_STRING )
