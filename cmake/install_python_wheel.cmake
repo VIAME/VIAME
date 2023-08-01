@@ -1,6 +1,6 @@
 file( GLOB _wheels LIST_DIRECTORIES FALSE ${WHEEL_DIR}/* )
 execute_process(
-  COMMAND ${Python_EXECUTABLE} -m pip install --user ${_wheels}
+  COMMAND ${Python_EXECUTABLE} -m pip install --target ${VIAME_SITE_PACKAGES} ${_wheels}
   RESULT_VARIABLE _result
   WORKING_DIRECTORY ${WHEEL_DIR}
   )

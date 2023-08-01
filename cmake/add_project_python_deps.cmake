@@ -265,7 +265,7 @@ foreach( ID RANGE ${DEP_COUNT} )
     list( GET VIAME_PYTHON_ADV_DEP_CMDS ${ID} CMD )
   endif()
 
-  set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
+  set( PYTHON_DEP_PIP_CMD pip install --target ${VIAME_SITE_PACKAGES} ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
   set( PYTHON_DEP_BUILD

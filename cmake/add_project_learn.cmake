@@ -34,12 +34,12 @@ endif()
 # Setup python env vars and commands
 set( LEARN_REQ_PIP_CMD
     ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-    ${Python_EXECUTABLE} -m pip install --user )
+    ${Python_EXECUTABLE} -m pip install --target ${VIAME_SITE_PACKAGES} )
 
 if( VIAME_SYMLINK_PYTHON )
   set( LEARN_BUILD_CMD
     ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-    ${Python_EXECUTABLE} -m pip install --user -e . )
+    ${Python_EXECUTABLE} -m pip install --target ${VIAME_SITE_PACKAGES} -e . )
   set( LEARN_INSTALL_CMD )
 else()
   # This is only required for no symlink install without a -e with older

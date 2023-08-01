@@ -51,7 +51,7 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS )
     set( LIBRARY_PIP_BUILD_CMD
       ${Python_EXECUTABLE} setup.py build )
     set( LIBRARY_PIP_INSTALL_CMD
-      ${Python_EXECUTABLE} -m pip install --user -e . )
+      ${Python_EXECUTABLE} -m pip install --target ${VIAME_SITE_PACKAGES} -e . )
   else()
     set( LIBRARY_PIP_BUILD_CMD
       ${Python_EXECUTABLE} setup.py build_ext

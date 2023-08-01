@@ -47,12 +47,12 @@ if( VIAME_ENABLE_PYTHON )
 
   if( VIAME_SYMLINK_PYTHON )
     set( KEYPOINTGUI_PIP_CMD
-      pip install --user -e . )
+      pip install --target ${VIAME_SITE_PACKAGES} -e . )
   else()
     # This is only required for no symlink install without a -e with older
     # versions of pip, for never versions the above command works with no -e
     set( KEYPOINTGUI_PIP_CMD
-      pip install --user file://${VIAME_PACKAGES_DIR}/itk-modules/keypointgui )
+      pip install --target ${VIAME_SITE_PACKAGES} file://${VIAME_PACKAGES_DIR}/itk-modules/keypointgui )
   endif()
 
   set( KEYPOINTGUI_INSTALL

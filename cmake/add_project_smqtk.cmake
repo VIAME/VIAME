@@ -19,12 +19,12 @@ endif()
 
 if( VIAME_SYMLINK_PYTHON )
   set( SMQTK_PIP_CMD
-    pip install --user -e .[postgres] )
+    pip install --target ${VIAME_SITE_PACKAGES} -e .[postgres] )
 else()
   # This is only required for no symlink install without a -e with older
   # versions of pip, for never versions the above command works with no -e
   set( SMQTK_PIP_CMD
-    pip install --user file://${VIAME_PACKAGES_DIR}/smqtk\#egg=smqtk[postgres] )
+    pip install --target ${VIAME_SITE_PACKAGES} file://${VIAME_PACKAGES_DIR}/smqtk\#egg=smqtk[postgres] )
 endif()
 
 set( SMQTK_PYTHON_INSTALL
