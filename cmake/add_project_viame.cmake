@@ -66,16 +66,19 @@ ExternalProject_Add(viame
   INSTALL_DIR ${VIAME_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(viame restructure_python
-  WORKING_DIRECTORY ${VIAME_PACKAGES_DIR}
-  COMMAND ${CMAKE_COMMAND}
-    -DVIAME_INSTALL_PREFIX:PATH=${VIAME_INSTALL_PREFIX}
-    -DPYTHON_VERSION_STRING=${PYTHON_VERSION_STRING}
-    -DPYTHON_MAJOR_VERSION=${Python_VERSION_MAJOR}
-    -DPYTHON_MINOR_VERSION=${Python_VERSION_MINOR}
-    -P ${VIAME_CMAKE_DIR}/custom_patch_viame.cmake
-  DEPENDEES build
-  )
+if( VIAME_ENABLE_PYTHON )
+  ExternalProject_Add_Step(viame restructure_python
+    WORKING_DIRECTORY ${VIAME_PACKAGES_DIR}
+    COMMAND ${CMAKE_COMMAND}
+      -DVIAME_INSTALL_PREFIX:PATH=${VIAME_INSTALL_PREFIX}
+      -DPYTHON_VERSION_STRING=${PYTHON_VERSION_STRING}
+      -DPYTHON_MAJOR_VERSION=${Python_VERSION_MAJOR}
+      -DPYTHON_MINOR_VERSION=${Python_VERSION_MINOR}
+      -P ${VIAME_CMAKE_DIR}/custom_patch_viame.cmake
+    MESSAGE "Final python directory check"
+    DEPENDEES build
+    )
+endif()
 
 #if ( VIAME_FORCEBUILD )
 ExternalProject_Add_Step(viame forcebuild
