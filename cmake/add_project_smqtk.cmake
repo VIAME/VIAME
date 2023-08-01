@@ -67,7 +67,7 @@ ExternalProject_Add_Step(smqtk install_cleanup
     -DVIAME_INSTALL_PREFIX:PATH=${VIAME_INSTALL_PREFIX}
     -DVIAME_ENABLE_SMQTK=${VIAME_ENABLE_SMQTK}
     -DVIAME_PYTHON_INSTALL=${VIAME_PYTHON_INSTALL}
-    -P ${VIAME_SOURCE_DIR}/cmake/custom_smqtk_install.cmake
+    -P ${VIAME_SOURCE_DIR}/cmake/custom_install_smqtk.cmake
   COMMENT "Performing SMQTK Cleanup."
   DEPENDEES build
   )

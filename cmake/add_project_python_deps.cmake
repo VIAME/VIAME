@@ -278,13 +278,13 @@ foreach( ID RANGE ${DEP_COUNT} )
       -DVIAME_PYTHON_BASE:PATH=${VIAME_PYTHON_INSTALL}
       -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
       -DVIAME_PYTORCH_VERSION:STRING=${VIAME_PYTORCH_VERSION}
-      -P ${VIAME_SOURCE_DIR}/cmake/custom_pytorch_install.cmake )
+      -P ${VIAME_SOURCE_DIR}/cmake/custom_install_pytorch.cmake )
   elseif( "${DEP}" STREQUAL "python-deps" )
     set( PYTHON_DEP_INSTALL ${CMAKE_COMMAND}
       -DVIAME_PYTHON_BASE:PATH=${VIAME_PYTHON_INSTALL}
       -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
       -DVIAME_PYTHON_VERSION:STRING=${Python_VERSION}
-      -P ${VIAME_SOURCE_DIR}/cmake/custom_python_deps_install.cmake )
+      -P ${VIAME_SOURCE_DIR}/cmake/custom_install_python_deps.cmake )
   else()
     set( PYTHON_DEP_INSTALL "" )
   endif()

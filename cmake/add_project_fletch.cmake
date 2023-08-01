@@ -436,7 +436,7 @@ ExternalProject_Add(fletch
     -DPYTHON_VERSION_STRING=${VIAME_PYTHON_STRING}
     -DPYTHON_MAJOR_VERSION=${Python_VERSION_MAJOR}
     -DPYTHON_MINOR_VERSION=${Python_VERSION_MINOR}
-    -P ${VIAME_SOURCE_DIR}/cmake/custom_fletch_install.cmake
+    -P ${VIAME_SOURCE_DIR}/cmake/custom_install_fletch.cmake
   )
 
 if( VIAME_FORCEBUILD )
