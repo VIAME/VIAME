@@ -48,7 +48,22 @@ if( VIAME_ENABLE_DARKNET )
   endif()
 endif()
 
-# Remove un-needed scripts
+# Remove OpenCV files
 if( EXISTS "${VIAME_INSTALL_PREFIX}/setup_vars_opencv4.cmd" )
+  message( WARNING "Cleaning up OpenCV files" )
   file( REMOVE "${VIAME_INSTALL_PREFIX}/setup_vars_opencv4.cmd" )
+endif()
+
+if( EXISTS "${VIAME_INSTALL_PREFIX}/LICENSE" )
+  file( REMOVE "${VIAME_INSTALL_PREFIX}/LICENSE" )
+endif()
+
+if( EXISTS "${VIAME_INSTALL_PREFIX}/OpenCVConfig.cmake" )
+  file( RENAME "${VIAME_INSTALL_PREFIX}/OpenCVConfig.cmake"
+    "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig.cmake" )
+endif()
+
+if( EXISTS "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake" )
+  file( RENAME "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake"
+    "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig-version.cmake" )
 endif()
