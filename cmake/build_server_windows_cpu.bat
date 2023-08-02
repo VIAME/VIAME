@@ -53,10 +53,7 @@ REM ----------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
 REM -------------------------------------------------------------------------------------------------------
 
-SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
 SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.exe
-
-MOVE %MISSING_SVM_DLL% %VIAME_INSTALL_DIR%\bin
 MOVE %MISSING_DNET_EXE% %VIAME_INSTALL_DIR%\bin
 
 COPY %WIN32_ROOT%\msvcr100.dll %VIAME_INSTALL_DIR%\bin

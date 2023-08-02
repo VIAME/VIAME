@@ -49,9 +49,6 @@ git submodule update --init --recursive
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
-MOVE "%MISSING_SVM_DLL%" %VIAME_INSTALL_DIR%\bin
-
 COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%WIN64_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin

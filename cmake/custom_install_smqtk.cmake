@@ -26,4 +26,11 @@ if( NOT WIN32 )
                  "${VIAME_INSTALL_PREFIX}/lib/libsvm.so" )
 endif()
 
+set( SVM_DLL_FILE "${VIAME_PACKAGES_DIR}/smqtk/TPL/libsvm-3.1-custom/libsvm.dll" )
+
+if( EXISTS "${SVM_DLL_FILE}" )
+  file( COPY ${SVM_DLL_FILE} DESTINATION ${VIAME_INSTALL_PREFIX}/bin )
+  file( REMOVE "${SVM_DLL_FILE}" )
+endif()
+
 message("Done")
