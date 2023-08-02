@@ -1,3 +1,4 @@
+
 # Move any misinstalled python files
 if( PYTHON_VERSION_STRING )
   # Sometimes VIAME subpackages install python files to incorrect python
@@ -21,22 +22,24 @@ if( PYTHON_VERSION_STRING )
   endif()
 endif()
 
+# Move any misinstalled darknet executables
 if( VIAME_ENABLE_DARKNET )
   set( OUTPUT_BIN_DIR "${VIAME_INSTALL_PREFIX}/bin" )
 
   if( WIN32 )
-    set( DARKNET_BIN_WIN "${VIAME_BUILD_PREFIX}/build/src/darknet-build/Release/darknet.exe" )
-    set( PTHREADS_DLL_WIN "${VIAME_SOURCE_DIR}/packages/darknet/3rdparty/pthreads/bin/pthreadVC2.dll" )
+    set( DARKNET_BIN_WIN "${VIAME_BUILD_PREFIX}/src/darknet-build/Release/darknet.exe" )
+    set( PTHREADS_DLL_WIN "${VIAME_SOURCE_PREFIX}/packages/darknet/3rdparty/pthreads/bin/pthreadVC2.dll" )
 
-    if( EXISTS ${DARKNET_BIN_WIN} )
+    if( EXISTS "${DARKNET_BIN_WIN}" )
       message( WARNING "Relocating misinstalled darknet executable" )
       file( COPY ${DARKNET_BIN_WIN} DESTINATION ${OUTPUT_BIN_DIR} )
     endif()
     if( EXISTS ${PTHREADS_DLL_WIN} )
+      message( WARNING "Relocating misinstalled pthreads executable" )
       file( COPY ${PTHREADS_DLL_WIN} DESTINATION ${OUTPUT_BIN_DIR} )
     endif()
   else()
-    set( DARKNET_BIN_LINUX "${VIAME_BUILD_PREFIX}/build/src/darknet-build/darknet" )
+    set( DARKNET_BIN_LINUX "${VIAME_BUILD_PREFIX}/src/darknet-build/darknet" )
 
     if( EXISTS ${DARKNET_BIN_LINUX} )
       message( WARNING "Relocating misinstalled darknet executable" )

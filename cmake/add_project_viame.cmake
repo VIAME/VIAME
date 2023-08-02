@@ -69,6 +69,7 @@ ExternalProject_Add(viame
 ExternalProject_Add_Step(viame restructuring_tests
   WORKING_DIRECTORY ${VIAME_PACKAGES_DIR}
   COMMAND ${CMAKE_COMMAND}
+    -DVIAME_SOURCE_PREFIX:PATH=${VIAME_SOURCE_DIR}
     -DVIAME_BUILD_PREFIX:PATH=${VIAME_BUILD_PREFIX}
     -DVIAME_INSTALL_PREFIX:PATH=${VIAME_INSTALL_PREFIX}
     -DPYTHON_VERSION_STRING=${VIAME_PYTHON_STRING}
@@ -76,7 +77,7 @@ ExternalProject_Add_Step(viame restructuring_tests
     -DPYTHON_MINOR_VERSION=${Python_VERSION_MINOR}
     -DVIAME_ENABLE_DARKNET:BOOL=${VIAME_ENABLE_DARKNET}
     -P ${VIAME_CMAKE_DIR}/custom_patch_viame.cmake
-  COMMENT "Final python directory check"
+  COMMENT "Performing final install directory checks"
   DEPENDEES install
   )
 
