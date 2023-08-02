@@ -76,7 +76,7 @@ ExternalProject_Add_Step(viame restructuring_tests
     -DPYTHON_MAJOR_VERSION=${Python_VERSION_MAJOR}
     -DPYTHON_MINOR_VERSION=${Python_VERSION_MINOR}
     -DVIAME_ENABLE_DARKNET:BOOL=${VIAME_ENABLE_DARKNET}
-    -P ${VIAME_CMAKE_DIR}/custom_patch_viame.cmake
+    -P ${VIAME_CMAKE_DIR}/custom_install_viame.cmake
   COMMENT "Performing final install directory checks"
   DEPENDEES install
   )
