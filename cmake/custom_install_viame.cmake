@@ -47,3 +47,8 @@ if( VIAME_ENABLE_DARKNET )
     endif()
   endif()
 endif()
+
+# Remove un-needed scripts
+if( EXISTS "${VIAME_INSTALL_PREFIX}/setup_vars_opencv4.cmd" )
+  file( REMOVE "${VIAME_INSTALL_PREFIX}/setup_vars_opencv4.cmd" )
+endif()
