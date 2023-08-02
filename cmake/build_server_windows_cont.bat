@@ -47,9 +47,6 @@ REM ----------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
 REM -------------------------------------------------------------------------------------------------------
 
-SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
-SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.exe
-
 MOVE "%MISSING_SVM_DLL%" %VIAME_INSTALL_DIR%\bin
 MOVE "%MISSING_DNET_EXE%" %VIAME_INSTALL_DIR%\bin
 
@@ -57,7 +54,6 @@ COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%WIN64_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
 
 DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"

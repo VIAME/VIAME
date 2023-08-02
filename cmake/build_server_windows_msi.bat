@@ -109,10 +109,6 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-SET MISSING_DNET_EXE=%VIAME_BUILD_DIR%\build\src\darknet-build\Release\darknet.exe
-MOVE "%MISSING_DNET_EXE%" %VIAME_INSTALL_DIR%\bin
-COPY "%VIAME_SOURCE_DIR%\packages\darknet\3rdparty\pthreads\bin\pthreadVC2.dll" %VIAME_INSTALL_DIR%\bin
-
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-darknet.txt
 
