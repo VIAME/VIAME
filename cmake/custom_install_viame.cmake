@@ -59,11 +59,11 @@ if( EXISTS "${VIAME_INSTALL_PREFIX}/LICENSE" )
 endif()
 
 if( EXISTS "${VIAME_INSTALL_PREFIX}/OpenCVConfig.cmake" )
-  file( RENAME "${VIAME_INSTALL_PREFIX}/OpenCVConfig.cmake"
-    "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig.cmake" )
+  file( COPY "${VIAME_INSTALL_PREFIX}/OpenCVConfig.cmake"
+        DESTINATION "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig.cmake" )
 endif()
 
 if( EXISTS "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake" )
-  file( RENAME "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake"
-    "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig-version.cmake" )
+  file( COPY "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake"
+        DESTINATION "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig-version.cmake" )
 endif()
