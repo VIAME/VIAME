@@ -60,14 +60,16 @@ And on CentOS 7:
      mesa-libGLU-devel lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel \
      curl curl-devel atlas-devel file which
 
-If using VIAME_ENABLE_PYTHON, [Anaconda3 2021.05](https://repo.anaconda.com/archive/) is
-recommended, though you also try using native python, e.g. install python3, python3-dev,
-and numpy (or alternatively whatever python distribution you want to use),
+If using VIAME_ENABLE_PYTHON, versions 3.6 or above is required with development packages and also
+pip installed, with 3.6, 3.8 and 3.10 the most tested versions. For example,
+[Anaconda3 2021.05](https://repo.anaconda.com/archive/) could be used, though you also try using
+native python, e.g. install python3, python3-dev, and numpy (or alternatively whatever python
+distribution you want to use),
 e.g.:
 
 .. code-block:: bash
 
-   sudo apt-get install python3.8 python3.8-dev && sudo pip install numpy cython
+   sudo apt-get install python3.8 python3.8-dev python3-pip
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 10.0 or above
 is required, 11.7 or 11.6 being the most tested versions. Other versions may work depending
@@ -80,22 +82,24 @@ on your build settings but are not officially supported yet):
 Install CMAKE
 =============
 
-Depending on the OS, the version of cmake you get with apt/yum/dnf is sometimes too old to
-use for building VIAME (you currently need at least CMake 3.11.3) so you may need to do a
-manual install of CMake. Go to the cmake website, ``https://cmake.org/download``, and download
-the appropriate binary distribution (for Ubuntu, this would be something like 
-cmake-3.11.3-Linux-x86_64.sh, though newer versions will be out by the time you read this).
-Alternatively, download the source code, e.g. cmake-3.11.3.tar.gz, and build the binaries
-from source. To untar and build the source, use the following set of commands. Keep in
-mind that if you're not using version 3.11.3, you'll need to update the version number in
-the below to match your downloaded version.
+Depending on the OS, the version of cmake you get with your local package manager (apt/yum/dnf)
+is sometimes too old to use for building VIAME (you currently need at least CMake 3.13) so you may
+or may not need to do a manual install of CMake. First you could try using the package manager
+then running 'cmake --version' to see if it's appropriate. If a manual install is required, go
+to the cmake website, ``https://cmake.org/download``, and download the appropriate binary
+distribution (for Ubuntu, this would be something like cmake-3.27.1-Linux-x86_64.sh,
+though newer versions will be out by the time you read this). Alternatively, download the
+appropriate binary distribution (for Ubuntu, this would be something like cmake-3.27.1-Linux-x86_64.sh,
+though newer versions will be out by the time you read this), or for windows the .msi or .zip
+installer. Lastly the source version could be built using the below instructions, though this
+is usually not necessary if a binary version is available for your platform.
 
 
 .. code-block:: bash
 
    cd ~/Downloads
-   tar zxfv cmake-3.11.3.tar.gz
-   cd cmake-3.11.3
+   tar zxfv cmake-3.27.1.tar.gz
+   cd cmake-3.27.1
    ./bootstrap --system-curl --no-system-libs
    make
    sudo make install
@@ -124,8 +128,8 @@ o whatever you want to name your VIAME source directory.
 Build VIAME
 ===========
 
-VIAME may be built with a number of optional plugins--VXL, Caffe, OpenCV,
-Scallop_TK, and Matlab--with a corresponding option called VIAME_ENABLE_[option],
+VIAME may be built with a number of optional plugins--VXL, PyTorch, OpenCV,
+Scallop-TK, and Matlab--with a corresponding option called VIAME_ENABLE_[option],
 in all caps. For each plugin to install, you need a cmake build flag setting the
 option. The flag looks like ``-DVIAME_ENABLE_OPENCV:BOOL=ON``, of course changing
 OPENCV to match the plugin. Multiple plugins may be used, or none. If uncertain what
@@ -151,7 +155,7 @@ And a number of flags which control which system utilities and optimizations are
 +------------------------------+---------------------------------------------------------------------------------------------+
 | Flag                         | Description                                                                                 |
 +==============================+=============================================================================================+
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, Caffe, etc...)               |
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, Torch, etc...)               |
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
 +------------------------------+---------------------------------------------------------------------------------------------+
@@ -380,7 +384,7 @@ You have python installed, but not numpy. Install numpy.
 
 VIAME contains a ``VIAME_DISABLE_GPU_SUPPORT`` flag due to numerous issues relating to
 GPU code building. Alternatively you can debug the issue (incorrect CUDA drivers for
-OpenCV, Caffe, etc...), or alternatively not having your CUDA headers set to be in your include path.
+OpenCV, Torch, etc...), or alternatively not having your CUDA headers set to be in your include path.
 
 
 **Issue:**
@@ -425,33 +429,4 @@ Make sure your matlab CMake paths are set to something like the following
    Matlab_MEX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmex.so
    Matlab_MX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmx.so
    Matlab_ROOT_DIR:PATH=[matlab_install_loc]
-
-
-
-**Issue:**
-
-When PYTHON is enabled, getting the below error.
-
-.. code-block:: console
-
-   [100%] Building CXX object python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o
-   _caffe.cpp:8:41: error: boost/python/raw_function.hpp: No such file or directory
-   _caffe.cpp: In function ‘void caffe::init_module__caffe()’:
-   _caffe.cpp:349: error: ‘raw_function’ is not a member of ‘bp’
-   _caffe.cpp:406: error: ‘raw_function’ is not a member of ‘bp’
-   make[2]: *** [python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o] Error 1
-   make[1]: *** [python/CMakeFiles/pycaffe.dir/all] Error 2
-   make: *** [all] Error 2
-
-
-
-**Solution:**
-
-raw_function.hpp doesn't get installed for some reason on some systems. Manually copy it from:
-
-``[VIAME_BUILD]/build/src/fletch-build/build/src/Boost/boost/python/raw_function.hpp``
-
-to
-
-``[VIAME_BUILD]/install/include/boost/python/``
 
