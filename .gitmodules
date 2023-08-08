@@ -73,6 +73,7 @@
 [submodule "packages/pytorch-libs/detectron2"]
 	path = packages/pytorch-libs/detectron2
 	url = https://github.com/facebookresearch/detectron2.git
+	ignore = dirty
 [submodule "packages/pytorch-libs/torchvideo"]
 	path = packages/pytorch-libs/torchvideo
 	url = https://github.com/facebookresearch/pytorchvideo.git
