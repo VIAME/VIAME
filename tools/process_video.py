@@ -784,7 +784,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       if not any_mosaic_attempted:
         log_info( lb )
         any_mosaic_attempted = True
-      output_mosaic_file = output_subdir + div + "mosaic" + str( fid_pair[0] ) + ".jpg"
+      padded_fid = str( fid_pair[0] ).rjust( 5, '0' )
+      output_mosaic_file = output_subdir + div + "mosaic" + padded_fid + ".jpg"
       try:
         create_mosaic.main_multi( output_mosaic_file, \
           mosaic_args, step=1, start=fid_pair[0], stop=fid_pair[1] )
