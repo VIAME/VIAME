@@ -138,7 +138,7 @@ else()
   )
 endif()
 
-if( VIAME_ENABLE_SMQTK )
+if( VIAME_ENABLE_POSTGRESQL )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_PostgreSQL:BOOL=${DEP_COND_ENABLE}
