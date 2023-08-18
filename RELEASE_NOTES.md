@@ -1,3 +1,17 @@
+v0.20.2 - 08/18/2023
+====================
+
+
+-Updated DIVE version with multi cam utility pipelines and fix for large resolution input
+
+
+-Fix for running fusion pipelines on large resolution images
+
+
+-Fix for recently integrated convnext detectors on large resolution images
+
+
+
 v0.20.1 - 06/29/2023
 ====================
 
