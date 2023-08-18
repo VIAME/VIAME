@@ -4,6 +4,8 @@ set( VIAME_POSTGRES_URL https://data.kitware.com/api/v1/item/5ba55cd58d777f06b90
 set( VIAME_POSTGRES_MD5 7648e722fda0fcc47c96ef8093a369be )
 set( VIAME_POSTGRES_FILENAME postgresql-9.5.1-1-windows-x64-binaries.zip )
 
+set( VIAME_POSTGRES_DIR ${VIAME_BUILD_PREFIX}/src/postgres )
+
 ExternalProject_Add( postgres
   URL ${VIAME_POSTGRES_URL}
   URL_MD5 ${VIAME_POSTGRES_MD5}
@@ -12,5 +14,8 @@ ExternalProject_Add( postgres
   PREFIX ${VIAME_BUILD_PREFIX}
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
-  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_BUILD_PREFIX}/src/postgres ${VIAME_BUILD_INSTALL_PREFIX}/postgres
+  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/bin ${VIAME_BUILD_INSTALL_PREFIX}/bin
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/lib ${VIAME_BUILD_INSTALL_PREFIX}/lib
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/include ${VIAME_BUILD_INSTALL_PREFIX}/include
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/share ${VIAME_BUILD_INSTALL_PREFIX}/share
   )
