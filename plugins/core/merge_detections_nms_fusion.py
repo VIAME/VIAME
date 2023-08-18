@@ -120,8 +120,8 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         self._fusion_weights = [1, 1.5, 1]
 
         # These parameters should be deprecated longer-term
-        self._height = 3840
-        self._width = 5760
+        self._height = 1
+        self._width = 1
 
         # Complex parameters
         self._label_dic = {}
@@ -188,13 +188,16 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             score_list = []
             label_list = []
 
+            norm_width = self._width
+            norm_height = self._height
+
             for det in det_set:
                 bbox = det.bounding_box
 
-                bbox_min_x = float( bbox.min_x() ) / self._width
-                bbox_max_x = float( bbox.max_x() ) / self._width
-                bbox_min_y = float( bbox.min_y() ) / self._height
-                bbox_max_y = float( bbox.max_y() ) / self._height
+                bbox_min_x = float( bbox.min_x() ) / norm_width
+                bbox_max_x = float( bbox.max_x() ) / norm_width
+                bbox_min_y = float( bbox.min_y() ) / norm_height
+                bbox_max_y = float( bbox.max_y() ) / norm_height
 
                 if det.type is None:
                     continue
@@ -212,6 +215,15 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             boxes_list.append( box_list )
             scores_list.append( score_list )
             labels_list.append( label_list )
+
+        if self._width == 1:
+            norm_width = max( [ x[2] for x in box_list ] ) + 1
+            box_list[:] = [ [ x[0] / norm_width, x[1], x[2] / norm_width, x[3] ]
+                            for x in box_list ]
+        if self._height == 1:
+            norm_height = max( [ x[3] for x in box_list ] ) + 1
+            box_list[:] = [ [ x[0], x[1] / norm_height, x[2], x[3] / norm_height ]
+                            for x in box_list ]
 
         # Utilize pseudonym lists when upsampling categories
         for chk_list_ind in self._pseudo_ind:
@@ -244,10 +256,10 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             box = boxes_list[i]
             label_id = labels_list[i]
             bbox = BoundingBoxD(
-              box[0] * self._width,
-              box[1] * self._height,
-              box[2] * self._width,
-              box[3] * self._height )
+              box[0] * norm_width,
+              box[1] * norm_height,
+              box[2] * norm_width,
+              box[3] * norm_height )
             dot = DetectedObjectType( self._id_dic[ label_id ], score )
             det = DetectedObject( bbox, score, dot )
             output.add( det )
