@@ -372,23 +372,34 @@ def fset( setting_str ):
 def pipe_starts_with( filename, substr ):
   return os.path.basename( filename ).startswith( substr )
 
-def detection_output_settings_list( output_dir, basename, no_ext = False, cid = None ):
-  det_writer_str = 'detector_writer' + ( str( cid ) + ':' if cid else ':' )
-  trk_writer_str = 'track_writer' + ( str( cid ) + ':' if cid else ':' )
+def detection_output_settings_list( output_dir, basename, stream_id='',
+                                    write_timecode = False,
+                                    no_extension = False, cid = None ):
 
-  if no_ext:
+  output = []
+
+  if no_extension:
     detection_file = output_dir + div + basename + default_gt_ext
     track_file = output_dir + div + basename + default_gt_ext
   else:
     detection_file = output_dir + div + basename + detection_ext
     track_file = output_dir + div + basename + track_ext
 
-  return list( itertools.chain(
-    fset( det_writer_str + 'file_name=' + detection_file ),
-    fset( det_writer_str + 'stream_identifier=' + basename ),
-    fset( trk_writer_str + 'file_name=' + track_file ),
-    fset( trk_writer_str + 'stream_identifier=' + basename ),
-  ))
+  det_writer_str = 'detector_writer' + ( str( cid ) + ':' if cid else ':' )
+  trk_writer_str = 'track_writer' + ( str( cid ) + ':' if cid else ':' )
+
+  output += fset( det_writer_str + 'file_name=' + detection_file )
+  output += fset( trk_writer_str + 'file_name=' + track_file )
+
+  if write_timecode:
+    output += fset( det_writer_str + 'writer:viame_csv:write_time_as_uid=true' )
+    output += fset( trk_writer_str + 'writer:viame_csv:write_time_as_uid=true' )
+
+  if stream_id:
+    output += fset( det_writer_str + 'writer:viame_csv:stream_identifier=' + stream_id )
+    output += fset( trk_writer_str + 'writer:viame_csv:stream_identifier=' + stream_id )
+
+  return output
 
 def homography_output_settings_list( output_dir, basename, cid = None ):
   homog_writer_str = 'homog_writer' + ( str( cid ) + ':' if cid else ':' )
@@ -690,7 +701,12 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     command += video_frame_rate_settings_list( options, None, source_rate )
 
   # Additional options
-  command += detection_output_settings_list( output_dir, input_id_no_ext, output_images )
+  write_timecode = pipe_starts_with( options.pipeline, "transcode_" ) or \
+    ( not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ) )
+
+  command += detection_output_settings_list( output_dir, input_id_no_ext,
+    input_id if not is_image_list else '', write_timecode, output_images )
+
   command += homography_output_settings_list( output_dir, input_id_no_ext )
   command += search_output_settings_list( output_dir, input_id_no_ext )
 
@@ -700,7 +716,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   for camera_id, camera_name in enumerate( camera_names ):
     command += detection_output_settings_list( \
-      output_subdir, camera_name, output_images, camera_id + 1 )
+      output_subdir, camera_name, camera_name if not is_image_list else '',
+      write_timecode, output_images, camera_id + 1 )
     command += homography_output_settings_list( \
       output_subdir, camera_name, camera_id + 1 )
 
@@ -712,14 +729,6 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     gt_files = [ options.input_detections ]
   if use_gt or options.write_svm_info:
     command += groundtruth_reader_settings_list( options, gt_files, input_id_no_ext, gpu, gt_type )
-
-  if ( not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ) ) or \
-       pipe_starts_with( options.pipeline, "transcode_" ):
-    command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
-    command += fset( 'detector_writer:writer:viame_csv:write_time_as_uid=true' )
-  else:
-    command += fset( 'track_writer:writer:viame_csv:stream_identifier=' + input_id )
-    command += fset( 'detector_writer:writer:viame_csv:stream_identifier=' + input_id )
 
   if options.input_detections:
     command += fset( "detection_reader:file_name=" + options.input_detections )
