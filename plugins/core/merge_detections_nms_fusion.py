@@ -216,11 +216,11 @@ class MergeDetectionsNMSFusion( MergeDetections ):
             scores_list.append( score_list )
             labels_list.append( label_list )
 
-        if self._width == 1:
+        if self._width == 1 and len( box_list ) > 0:
             norm_width = max( [ x[2] for x in box_list ] ) + 1
             box_list[:] = [ [ x[0] / norm_width, x[1], x[2] / norm_width, x[3] ]
                             for x in box_list ]
-        if self._height == 1:
+        if self._height == 1 and len( box_list ) > 0:
             norm_height = max( [ x[3] for x in box_list ] ) + 1
             box_list[:] = [ [ x[0], x[1] / norm_height, x[2], x[3] / norm_height ]
                             for x in box_list ]
