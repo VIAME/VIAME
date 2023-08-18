@@ -9,6 +9,8 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} smqtk )
 
+set( SMQTK_DEPENDS fletch python-deps )
+
 if( VIAME_ENABLE_PYTHON )
   FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
 endif()
@@ -27,13 +29,17 @@ else()
     pip install --user file://${VIAME_PACKAGES_DIR}/smqtk\#egg=smqtk[postgres] )
 endif()
 
+if( WIN32 )
+  list( APPEND SMQTK_DEPENDS postgres )
+endif()
+
 set( SMQTK_PYTHON_INSTALL
   ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
     ${Python_EXECUTABLE} -m ${SMQTK_PIP_CMD}
   )
 
 ExternalProject_Add( smqtk
-  DEPENDS fletch python-deps
+  DEPENDS ${SMQTK_DEPENDS}
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/smqtk
   USES_TERMINAL_BUILD 1
