@@ -776,10 +776,18 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Specifies internal arguments passed to all projects (CXX flag passdowns, etc)
   include( common_args )
 
-  # Hard VIAME requirements
+  # Core dependencies for other projects
   include( add_project_fletch )
 
-  # Add optional projects
+  if( VIAME_ENABLE_PYTHON )
+    include( add_project_python_deps )
+  endif()
+
+  if( WIN32 AND ( VIAME_ENABLE_KWIVER OR VIAME_ENABLE_SMQTK ) )
+    include( add_project_postgres )
+  endif()
+
+  # Add optional projects dependend on by other projects
   if( VIAME_ENABLE_DARKNET )
     include( add_project_darknet )
   endif()
@@ -788,15 +796,11 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_burnout )
   endif()
 
-  if( VIAME_ENABLE_PYTHON )
-    include( add_project_python_deps )
-  endif()
-
   if( VIAME_ENABLE_SMQTK )
     include( add_project_smqtk )
   endif()
 
-  # Add core (required) kwiver requirement
+  # Add (usually required) kwiver requirement
   if( VIAME_ENABLE_KWIVER )
     include( add_project_kwiver )
   endif()
@@ -840,10 +844,6 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_ITK_EXTRAS )
     include( add_project_itk_extras )
-  endif()
-
-  if( WIN32 )
-    include( add_project_postgres )
   endif()
 
   # VIAME plugins, adds this project causing the below else() block to run
