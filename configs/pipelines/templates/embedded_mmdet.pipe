@@ -21,8 +21,8 @@ process detector1
     :detector:type                             mmdet
 
     :mode                                      adaptive
-    :chip_adaptive_thresh                      2000000
-    :scale                                     1.25
+    :chip_adaptive_thresh                      4000000
+    :scale                                     1.00
     :chip_width                                1333
     :chip_height                               800
     :chip_step_height                          1100
