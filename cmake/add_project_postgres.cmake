@@ -7,7 +7,7 @@ set( VIAME_POSTGRES_FILENAME postgresql-9.5.1-1-windows-x64-binaries.zip )
 set( VIAME_POSTGRES_DIR ${VIAME_BUILD_PREFIX}/src/postgres )
 
 ExternalProject_Add( postgres
-  DEPENDS viame
+  DEPENDS kwiver
   URL ${VIAME_POSTGRES_URL}
   URL_MD5 ${VIAME_POSTGRES_MD5}
   DOWNLOAD_DIR ${VIAME_DOWNLOAD_DIR}
@@ -16,7 +16,6 @@ ExternalProject_Add( postgres
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/bin ${VIAME_BUILD_INSTALL_PREFIX}/bin
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/lib ${VIAME_BUILD_INSTALL_PREFIX}/lib
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/include ${VIAME_BUILD_INSTALL_PREFIX}/include
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/share ${VIAME_BUILD_INSTALL_PREFIX}/share
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/lib ${VIAME_BUILD_INSTALL_PREFIX}/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${VIAME_POSTGRES_DIR}/share ${VIAME_BUILD_INSTALL_PREFIX}/share
   )
