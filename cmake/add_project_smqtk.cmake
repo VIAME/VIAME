@@ -30,7 +30,7 @@ else()
 endif()
 
 if( WIN32 )
-  list( APPEND SMQTK_DEPENDS postgres )
+  #list( APPEND SMQTK_DEPENDS postgres )
 endif()
 
 set( SMQTK_PYTHON_INSTALL

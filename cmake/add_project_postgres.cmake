@@ -7,6 +7,7 @@ set( VIAME_POSTGRES_FILENAME postgresql-9.5.1-1-windows-x64-binaries.zip )
 set( VIAME_POSTGRES_DIR ${VIAME_BUILD_PREFIX}/src/postgres )
 
 ExternalProject_Add( postgres
+  DEPENDS kwiver
   URL ${VIAME_POSTGRES_URL}
   URL_MD5 ${VIAME_POSTGRES_MD5}
   DOWNLOAD_DIR ${VIAME_DOWNLOAD_DIR}
