@@ -261,7 +261,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
 
     def set_mmdet_config(self):
-        print('set_mmdet_config\n')
+        #print('set_mmdet_config\n')
         self.register_new_losses()
         self.mmdet_config_file = os.path.join(self.config_dir,
           os.path.basename(self.config['mmdet_model_config_file']))
@@ -466,7 +466,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
-        print('add_data_from_disk')
+        #print('add_data_from_disk')
 
         if len( train_files ) != len( train_dets ):
             print( "Error: train file and groundtruth count mismatch" )
