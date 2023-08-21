@@ -136,9 +136,9 @@ if( VIAME_DOWNLOAD_MODELS-SEA-LION )
   endif()
 
   DownloadAndInstallAddOn(
-    https://viame.kitware.com/api/v1/item/63eaef6505b26996b9aa94cc/download
-    e66c96334778b10d2361106bd81c8374
-    ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v2.9.zip )
+    https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download
+    384158dba64b53bed5c6f800b3c6d869
+    ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v2.11.zip )
 endif()
 
 if( ADD_ON_PIPELINE_FILES )

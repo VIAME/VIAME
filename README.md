@@ -80,9 +80,9 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* VIAME v0.20.1 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
-* [VIAME v0.20.1 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1HzDRq5Ughz2OFDZsVr2g78Pt-ylLIkDN/view?usp=sharing) <br>
-* [VIAME v0.20.1 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/64a2f70093a5dcdba24e0aa7/download) <br>
+* VIAME v0.20.2 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
+* [VIAME v0.20.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1wLUt09dzcOFBifGJWhH_FlKvnadWrtII/view?usp=sharing) <br>
+* [VIAME v0.20.2 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/64e38daedf16832d03257e39/download) <br>
 * [VIAME v0.20.1 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1lQdX9uXgzQbGnfXQ10mebWu2QLMLmDKF/view?usp=sharing) <br>
 * [VIAME v0.20.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/64ab74436cb8a983de7a3772/download)
 
@@ -114,7 +114,7 @@ CentOS
 * [Motion Detector Model, All OS](https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download) <br>
 * [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download) <br>
 * [Penguin Head FF Models, All OS](https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download) <br>
-* [Sea Lion Models, All OS](https://viame.kitware.com/api/v1/item/641d644abfe642e7e4f54655/download) <br>
+* [Sea Lion Models, All OS](https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download) <br>
 * [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download) <br>
 * [ConvNext Low-Shot Models, All OS](https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download)
 
