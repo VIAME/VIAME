@@ -1,0 +1,87 @@
+# Sea Lion Detection Pipeline
+#
+# This pipeline assumes we want to process the full input image.
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_default_input_with_downsampler.pipe
+
+# =================================== DETECTOR =====================================
+
+process detector
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      chip
+    :chip_width                                640
+    :chip_height                               640
+    :chip_step_width                           520
+    :chip_step_height                          520
+    :chip_edge_filter                          5
+
+    block detector:netharn
+      relativepath deployed =                  models/sea_lion_v3_cfrnn_all_class.zip
+    endblock
+  endblock
+
+connect from downsampler.output_1
+        to   detector.image
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+    :max_scale_difference                      2.0
+    :min_scale_difference                      0.5
+  endblock
+
+connect from detector.detected_object_set
+        to   nms_refiner.detected_object_set
+
+process classifier
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    models/sea_lion_v3_resnet_five_class.zip
+    relativepath scale_type_file =             models/sea_lion_v3_target_scales.txt
+
+    :batch_size                                auto
+    :area_pivot                                0
+    :border_exclude                            0
+    :chip_method                               fixed_width
+    :chip_width                                224
+  endblock
+
+connect from downsampler.output_1
+        to   classifier.image
+connect from nms_refiner.detected_object_set
+        to   classifier.detected_object_set
+
+# ==================================== WRITER ======================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   sea_lion_detections.csv
+  :writer:type                                 viame_csv
+
+connect from classifier.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+
+# -- end of file --

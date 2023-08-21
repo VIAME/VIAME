@@ -1,0 +1,47 @@
+config _scheduler
+  type = pythread_per_process
+
+config _pipeline:_edge
+  capacity = 5
+
+include common_default_input_with_downsampler.pipe
+
+include common_sea_lion_stabilizer_1cam.pipe
+
+connect from downsampler.output_1
+        to stabilizer.image1
+
+include common_sea_lion_fusion_all_class_cam1.pipe
+
+connect from downsampler.output_1
+        to detector_input_cam1.image
+
+process suppressor :: multicam_homog_det_suppressor
+  n_input = 1
+  suppression_poly_class = Suppressed
+
+connect from stabilizer.homog1
+        to suppressor.homog1
+
+connect from detector_output_cam1.detected_object_set
+        to suppressor.det_objs_1
+
+connect from downsampler.output_1
+        to suppressor.image1
+
+process detector_writer :: detected_object_output
+  file_name = detections.csv
+  frame_list_output = det_images.txt
+  writer:type = viame_csv
+
+connect from suppressor.det_objs_1
+        to detector_writer.detected_object_set
+connect from downsampler.output_2
+        to detector_writer.image_file_name
+
+process homog_writer
+  :: kw_write_homography
+  output = homogs.txt
+
+connect from stabilizer.homog1
+        to homog_writer.homography

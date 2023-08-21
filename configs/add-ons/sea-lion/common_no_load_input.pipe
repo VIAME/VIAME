@@ -1,0 +1,35 @@
+
+# ==================================================================================
+# Commonly used default input file source.
+#
+# By default, this is an image list reader, but this can be over-riden by changing
+# :video_reader:type to be vidl_ffmpeg for videos
+
+process input
+  :: video_input
+  :video_filename                                       input_list.txt
+  :frame_time                                           1
+  :exit_on_invalid                                      false
+
+  :video_reader:type                                    image_list
+
+  block video_reader:vidl_ffmpeg
+    :time_source                                        start_at_0
+  endblock
+
+  block video_reader:image_list
+    :image_reader:type                                  vxl
+    :disable_image_load                                 true
+
+    block image_reader:vxl
+      :force_byte                                       true
+    endblock
+
+    block image_reader:add_timestamp_from_filename
+      :image_reader:type                                vxl
+
+      block image_reader:vxl
+        :force_byte                                     true
+      endblock
+    endblock
+  endblock

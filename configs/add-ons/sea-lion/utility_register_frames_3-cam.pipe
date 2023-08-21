@@ -1,0 +1,37 @@
+config _scheduler
+  type = pythread_per_process
+
+config _pipeline:_edge
+  capacity = 5
+
+include common_three_camera_input_with_downsamplers.pipe
+
+include common_sea_lion_stabilizer_3cam.pipe
+
+connect from downsampler1.output_1
+        to stabilizer.image1
+connect from downsampler2.output_1
+        to stabilizer.image2
+connect from downsampler3.output_1
+        to stabilizer.image3
+
+process homog_writer1
+  :: kw_write_homography
+  output = homogs1.txt
+
+connect from stabilizer.homog1
+        to homog_writer1.homography
+
+process homog_writer2
+  :: kw_write_homography
+  output = homogs2.txt
+
+connect from stabilizer.homog2
+        to homog_writer2.homography
+
+process homog_writer3
+  :: kw_write_homography
+  output = homogs3.txt
+
+connect from stabilizer.homog3
+        to homog_writer3.homography

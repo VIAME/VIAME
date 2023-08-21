@@ -1,0 +1,78 @@
+config _scheduler
+  type = pythread_per_process
+
+config _pipeline:_edge
+  capacity = 5
+
+include common_two_camera_input_with_downsamplers.pipe
+
+include common_sea_lion_stabilizer_2cam.pipe
+
+connect from downsampler1.output_1
+        to stabilizer.image1
+connect from downsampler2.output_1
+        to stabilizer.image2
+
+include common_sea_lion_fusion_two_class_cam1.pipe
+
+connect from downsampler1.output_1
+        to   detector_input_cam1.image
+
+include common_sea_lion_fusion_two_class_cam2.pipe
+
+connect from downsampler2.output_1
+        to   detector_input_cam2.image
+
+process tracker :: multicam_homog_tracker
+  n_input = 2
+
+connect from stabilizer.homog1
+        to tracker.homog1
+connect from stabilizer.homog2
+        to tracker.homog2
+
+connect from detector_output_cam1.detected_object_set
+        to tracker.det_objs_1
+connect from detector_output_cam2.detected_object_set
+        to tracker.det_objs_2
+
+connect from downsampler1.timestamp
+        to tracker.timestamp
+
+process track_writer1 :: write_object_track
+  file_name = tracks1.csv
+  frame_list_output = track_images_1.txt
+  writer:type = viame_csv
+
+connect from tracker.obj_tracks_1
+        to track_writer1.object_track_set
+connect from downsampler1.timestamp
+        to track_writer1.timestamp
+connect from downsampler1.output_2
+        to track_writer1.image_file_name
+
+process track_writer2 :: write_object_track
+  file_name = tracks2.csv
+  frame_list_output = track_images_2.txt
+  writer:type = viame_csv
+
+connect from tracker.obj_tracks_2
+        to track_writer2.object_track_set
+connect from downsampler2.timestamp
+        to track_writer2.timestamp
+connect from downsampler2.output_2
+        to track_writer2.image_file_name
+
+process homog_writer1
+  :: kw_write_homography
+  output = homogs1.txt
+
+connect from stabilizer.homog1
+        to homog_writer1.homography
+
+process homog_writer2
+  :: kw_write_homography
+  output = homogs2.txt
+
+connect from stabilizer.homog2
+        to homog_writer2.homography

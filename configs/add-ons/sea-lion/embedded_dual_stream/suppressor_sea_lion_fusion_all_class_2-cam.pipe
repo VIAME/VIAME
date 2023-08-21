@@ -1,0 +1,286 @@
+config _scheduler
+  type = pythread_per_process
+
+process in_adapt :: input_adapter
+
+process stabilizer
+  :: many_image_stabilizer
+  n_input = 2
+
+  feature_detector:type = filtered
+  block feature_detector:filtered
+    detector:type = ocv_SURF
+    block detector:ocv_SURF
+      extended           = false
+      hessian_threshold  = 400
+      n_octave_layers    = 3
+      n_octaves          = 4
+      upright            = false
+    endblock
+
+    filter:type = nonmax
+    block filter:nonmax
+      num_features_target = 5000
+      num_features_range = 500
+    endblock
+  endblock
+
+  descriptor_extractor:type = ocv_SURF
+  block descriptor_extractor:ocv_SURF
+    extended           = false
+    hessian_threshold  = 400 # 5000
+    n_octave_layers    = 3
+    n_octaves          = 4
+    upright            = false
+  endblock
+
+  feature_matcher:type = ocv_flann_based
+
+  homography_estimator:type = vxl
+
+  ref_homography_computer:type = core
+  block ref_homography_computer:core
+    backproject_threshold = 4
+    allow_ref_frame_regression = false
+    min_matches_threshold = 50
+    estimator:type = vxl
+    forget_track_threshold = 5
+    inlier_scale = 10
+    min_track_length = 1
+    use_backproject_error = false
+  endblock
+
+connect from in_adapt.image
+        to stabilizer.image1
+connect from in_adapt.image2
+        to stabilizer.image2
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      chip
+    :chip_width                                640
+    :chip_height                               640
+    :chip_step_width                           520
+    :chip_step_height                          520
+    :chip_edge_filter                          5
+
+    block detector:netharn
+      relativepath deployed =                  ../models/sea_lion_v3_cfrnn_all_class.zip
+    endblock
+  endblock
+
+connect from in_adapt.image
+        to   detector1.image
+
+process nms_refiner1
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+    :max_scale_difference                      2.0
+    :min_scale_difference                      0.5
+  endblock
+
+connect from detector1.detected_object_set
+        to   nms_refiner1.detected_object_set
+
+process classifier1
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    ../models/sea_lion_v3_resnet_five_class.zip
+    relativepath scale_type_file =             ../models/sea_lion_v3_target_scales.txt
+
+    :batch_size                                auto
+    :area_pivot                                0
+    :border_exclude                            0
+    :chip_method                               fixed_width
+    :chip_width                                224
+    :average_prior                             True
+  endblock
+
+connect from in_adapt.image
+        to   classifier1.image
+connect from nms_refiner1.detected_object_set
+        to   classifier1.detected_object_set
+
+process detector2
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      chip
+    :chip_width                                640
+    :chip_height                               640
+    :chip_step_width                           520
+    :chip_step_height                          520
+    :chip_edge_filter                          5
+
+    block detector:netharn
+      relativepath deployed =                  ../models/sea_lion_v3_cfrnn_all_class.zip
+    endblock
+  endblock
+
+connect from in_adapt.image2
+        to   detector2.image
+
+process nms_refiner2
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+    :max_scale_difference                      2.0
+    :min_scale_difference                      0.5
+  endblock
+
+connect from detector2.detected_object_set
+        to   nms_refiner2.detected_object_set
+
+process classifier2
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    ../models/sea_lion_v3_resnet_five_class.zip
+    relativepath scale_type_file =             ../models/sea_lion_v3_target_scales.txt
+
+    :batch_size                                auto
+    :area_pivot                                0
+    :border_exclude                            0
+    :chip_method                               fixed_width
+    :chip_width                                224
+    :average_prior                             True
+  endblock
+
+connect from in_adapt.image2
+        to   classifier2.image
+connect from nms_refiner2.detected_object_set
+        to   classifier2.detected_object_set
+
+process suppressor :: multicam_homog_det_suppressor
+  n_input = 2
+  suppression_poly_class = Suppressed
+
+connect from stabilizer.homog1
+        to suppressor.homog1
+connect from stabilizer.homog2
+        to suppressor.homog2
+
+connect from classifier1.detected_object_set
+        to suppressor.det_objs_1
+connect from classifier2.detected_object_set
+        to suppressor.det_objs_2
+
+connect from in_adapt.image
+        to suppressor.image1
+connect from in_adapt.image2
+        to suppressor.image2
+
+process detector_writer1 :: detected_object_output
+  file_name = detections1.csv
+  frame_list_output = det_images_1.txt
+  writer:type = viame_csv
+
+connect from suppressor.det_objs_1
+        to detector_writer1.detected_object_set
+connect from in_adapt.file_name
+        to detector_writer1.image_file_name
+
+process detector_writer2 :: detected_object_output
+  file_name = detections2.csv
+  frame_list_output = det_images_2.txt
+  writer:type = viame_csv
+
+connect from suppressor.det_objs_2
+        to detector_writer2.detected_object_set
+connect from in_adapt.file_name2
+        to detector_writer2.image_file_name
+
+
+# ==================================================================================
+# Commonly used default initializer when the user hasn't specified one.
+#
+# Current incumbent is just a straight-up threshold on detection scores.
+
+process track_initializer_1
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_class  true
+    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+  endblock
+
+connect from suppressor.det_objs_1
+        to track_initializer_1.detected_object_set
+connect from in_adapt.timestamp
+        to track_initializer_1.timestamp
+
+
+# ==================================================================================
+# Commonly used default initializer when the user hasn't specified one.
+#
+# Current incumbent is just a straight-up threshold on detection scores.
+
+process track_initializer_2
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_class  true
+    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+  endblock
+
+connect from suppressor.det_objs_2
+        to track_initializer_2.detected_object_set
+connect from in_adapt.timestamp2
+        to track_initializer_2.timestamp
+
+process homog_writer1
+  :: kw_write_homography
+  output = homogs1.txt
+
+connect from stabilizer.homog1
+        to homog_writer1.homography
+
+process homog_writer2
+  :: kw_write_homography
+  output = homogs2.txt
+
+connect from stabilizer.homog2
+        to homog_writer2.homography
+
+process out_adapt :: output_adapter
+
+connect from track_initializer_1.object_track_set
+        to out_adapt.object_track_set
+connect from track_initializer_2.object_track_set
+        to out_adapt.object_track_set2
+
+connect from in_adapt.timestamp
+        to out_adapt.timestamp
+connect from in_adapt.timestamp2
+        to out_adapt.timestamp2
+
+connect from in_adapt.file_name
+        to out_adapt.file_name
+connect from in_adapt.file_name2
+        to out_adapt.file_name2

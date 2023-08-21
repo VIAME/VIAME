@@ -1,0 +1,52 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+process detector
+  :: image_object_detector
+  :detector:type                               netharn
+
+  block detector:netharn
+    relativepath deployed =                    ../models/sea_lion_v3_cfrnn_all_class.zip
+  endblock
+
+connect from in_adapt.image
+        to   detector.image
+
+# ==================================================================================
+
+process detection_writer_csv
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   [CURRENT_TIME]_camera1.csv
+  :frame_list_output                           [CURRENT_TIME]_camera1_images.txt
+  :writer:type                                 viame_csv
+
+connect from detector.detected_object_set
+        to   detection_writer_csv.detected_object_set
+connect from in_adapt.file_name
+        to   detection_writer_csv.image_file_name
+
+# ==================================================================================
+
+connect from in_adapt.timestamp
+        to   out_adapt.timestamp
+connect from in_adapt.file_name
+        to   out_adapt.file_name
+connect from detector.detected_object_set
+        to   out_adapt.detected_object_set
+
+# -- end of file --

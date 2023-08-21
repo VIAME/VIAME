@@ -1,0 +1,82 @@
+# Sea Lion Water Suppression
+#
+# This pipeline assumes we want to process the full input image.
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_default_input_with_downsampler.pipe
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+  :reader:viame_csv:poly_to_mask               true
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
+# =================================== DETECTOR =====================================
+
+process detector
+  :: image_object_detector
+  :detector:type                               full_frame
+  :detector:full_frame:detection_type          generic_object_proposal
+
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
+
+process svm_refiner
+  :: refine_detections
+  :refiner:type                                svm_refine
+  relativepath refiner:svm_refine:model_dir =  models/sea_lion_v3_bg_classifiers
+
+connect from downsampler.output_1
+        to   detector.image
+
+connect from downsampler.output_1
+        to   descriptor.image
+connect from downsampler.timestamp
+        to   descriptor.timestamp
+connect from detector.detected_object_set
+        to   descriptor.detected_object_set
+
+connect from downsampler.output_1
+        to   svm_refiner.image
+connect from descriptor.detected_object_set
+        to   svm_refiner.detected_object_set
+
+process detector_fuser
+  :: merge_detection_sets
+
+  :merger:type                                  suppress_in_regions
+  :merger:suppress_in_regions:suppression_class open_water
+  :merger:suppress_in_regions:borderline_class  seaweed_water
+  :merger:suppress_in_regions:borderline_scale_factor 0.5
+  :merger:suppress_in_regions:output_region_classes   1.0
+
+connect from svm_refiner.detected_object_set
+        to   detector_fuser.detected_object_set1
+connect from detection_reader.detected_object_set
+        to   detector_fuser.detected_object_set2
+
+# ==================================================================================
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                    computed_detections.csv
+  :writer:type                                  viame_csv
+
+connect from detector_fuser.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name

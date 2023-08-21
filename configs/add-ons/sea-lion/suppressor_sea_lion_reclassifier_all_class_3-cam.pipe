@@ -1,0 +1,107 @@
+config _scheduler
+  type = pythread_per_process
+
+config _pipeline:_edge
+  capacity = 5
+
+include common_three_camera_input_with_downsamplers.pipe
+
+include common_sea_lion_stabilizer_3cam.pipe
+
+connect from downsampler1.output_1
+        to stabilizer.image1
+connect from downsampler2.output_1
+        to stabilizer.image2
+connect from downsampler3.output_1
+        to stabilizer.image3
+
+include common_sea_lion_reclassifier_all_class_cam1.pipe
+
+connect from downsampler1.output_1
+        to   detector_input_cam1.image
+
+include common_sea_lion_reclassifier_all_class_cam2.pipe
+
+connect from downsampler2.output_1
+        to   detector_input_cam2.image
+
+include common_sea_lion_reclassifier_all_class_cam3.pipe
+
+connect from downsampler3.output_1
+        to   detector_input_cam3.image
+
+process suppressor :: multicam_homog_det_suppressor
+  n_input = 3
+  suppression_poly_class = Suppressed
+
+connect from stabilizer.homog1
+        to suppressor.homog1
+connect from stabilizer.homog2
+        to suppressor.homog2
+connect from stabilizer.homog3
+        to suppressor.homog3
+
+connect from detector_output_cam1.detected_object_set
+        to suppressor.det_objs_1
+connect from detector_output_cam2.detected_object_set
+        to suppressor.det_objs_2
+connect from detector_output_cam3.detected_object_set
+        to suppressor.det_objs_3
+
+connect from downsampler1.output_1
+        to suppressor.image1
+connect from downsampler2.output_1
+        to suppressor.image2
+connect from downsampler3.output_1
+        to suppressor.image3
+
+process detector_writer1 :: detected_object_output
+  file_name = detections1.csv
+  frame_list_output = det_images_1.txt
+  writer:type = viame_csv
+
+connect from suppressor.det_objs_1
+        to detector_writer1.detected_object_set
+connect from downsampler1.output_2
+        to detector_writer1.image_file_name
+
+process detector_writer2 :: detected_object_output
+  file_name = detections2.csv
+  frame_list_output = det_images_2.txt
+  writer:type = viame_csv
+
+connect from suppressor.det_objs_2
+        to detector_writer2.detected_object_set
+connect from downsampler2.output_2
+        to detector_writer2.image_file_name
+
+process detector_writer3 :: detected_object_output
+  file_name = detections3.csv
+  frame_list_output = det_images_3.txt
+  writer:type = viame_csv
+
+connect from suppressor.det_objs_3
+        to detector_writer3.detected_object_set
+connect from downsampler3.output_2
+        to detector_writer3.image_file_name
+
+process homog_writer1
+  :: kw_write_homography
+  output = homogs1.txt
+
+connect from stabilizer.homog1
+        to homog_writer1.homography
+
+process homog_writer2
+  :: kw_write_homography
+  output = homogs2.txt
+
+connect from stabilizer.homog2
+        to homog_writer2.homography
+
+process homog_writer3
+  :: kw_write_homography
+  output = homogs3.txt
+
+connect from stabilizer.homog3
+        to homog_writer3.homography

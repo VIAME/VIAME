@@ -1,0 +1,114 @@
+# Remove detections in regions indicated by fixed type string(s)
+#
+# This pipeline assumes we want to process the full input image.
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                             5
+
+config _scheduler
+  :type                                                 pythread_per_process
+
+# =============================== INPUT FRAME LIST =================================
+
+include utility_remove_dets_in_ignore_regions_2-cam.pipe
+
+process input3
+  :: video_input
+  :video_filename                                       input_list.txt
+  :frame_time                                           1
+  :exit_on_invalid                                      false
+
+  :video_reader:type                                    image_list
+
+  block video_reader:vidl_ffmpeg
+    :time_source                                        start_at_0
+  endblock
+
+  block video_reader:image_list
+    :image_reader:type                                  vxl
+    :disable_image_load                                 true
+
+    block image_reader:vxl
+      :force_byte                                       true
+    endblock
+
+    block image_reader:add_timestamp_from_filename
+      :image_reader:type                                vxl
+
+      block image_reader:vxl
+        :force_byte                                     true
+      endblock
+    endblock
+  endblock
+
+process downsampler3
+  :: downsample
+  :target_frame_rate                                    5
+  :burst_frame_count                                    0
+  :burst_frame_break                                    0
+  :renumber_frames                                      true
+
+connect from input3.image
+        to   downsampler3.input_1
+connect from input3.file_name
+        to   downsampler3.input_2
+connect from input3.frame_rate
+        to   downsampler3.frame_rate
+connect from input3.timestamp
+        to   downsampler3.timestamp
+
+connect from input.timestamp
+        to   downsampler3.input_3
+
+process detection_reader3
+  :: detected_object_input
+  :file_name                                            [INSERT_ME]
+  :reader:type                                          viame_csv
+  :reader:viame_csv:poly_to_mask                        true
+
+connect from downsampler3.output_2
+        to   detection_reader3.image_file_name
+
+# ==================================== FILTER2 =====================================
+
+process detection_filter3
+  :: detected_object_filter
+  :filter:type                                          class_probablity_filter
+
+  block filter:class_probablity_filter
+    :threshold                                          0.001
+    :keep_all_classes                                   false
+    :keep_classes                                       Ignore;Suppressed
+  endblock
+
+connect from detection_reader3.detected_object_set
+        to   detection_filter3.detected_object_set
+
+process detector_fuser3
+  :: merge_detection_sets
+
+  :merger:type                                          suppress_in_regions
+  :merger:suppress_in_regions:suppression_class         Ignore
+  :merger:suppress_in_regions:borderline_class          Suppressed
+  :merger:suppress_in_regions:borderline_scale_factor   0.10
+  :merger:suppress_in_regions:output_region_classes     1.0
+
+connect from detection_filter3.detected_object_set
+        to   detector_fuser3.detected_object_set1
+connect from detection_reader3.detected_object_set
+        to   detector_fuser3.detected_object_set2
+
+process detector_writer3
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                            computed_detections3.csv
+  :writer:type                                          viame_csv
+
+connect from detector_fuser3.detected_object_set
+        to   detector_writer3.detected_object_set
+connect from downsampler3.output_2
+        to   detector_writer3.image_file_name

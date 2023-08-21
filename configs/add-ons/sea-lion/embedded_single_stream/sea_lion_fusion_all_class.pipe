@@ -1,0 +1,34 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+include ../common_sea_lion_fusion_all_class_cam1.pipe
+
+connect from in_adapt.image
+        to   detector_input_cam1.image
+
+# ==================================================================================
+
+include ../common_default_initializer.pipe
+
+connect from in_adapt.timestamp
+        to   track_initializer.timestamp
+connect from detector_output_cam1.detected_object_set
+        to   track_initializer.detected_object_set
+
+connect from track_initializer.object_track_set
+        to   out_adapt.object_track_set
+
+# -- end of file --
