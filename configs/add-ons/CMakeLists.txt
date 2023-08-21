@@ -82,9 +82,9 @@ if( VIAME_ENABLE_LEARN )
 
   if( VIAME_DOWNLOAD_MODELS-CONVNEXT )
     DownloadAndInstallAddOn(
-      https://viame.kitware.com/girder/api/v1/item/649cd853c2b0eca0bdca7fc9/download
-      eeae848e3fc6edf98a4979f847f29862
-      ${VIAME_DOWNLOAD_DIR}/VIAME-ConvNeXT-Models-v1.0.zip )
+      https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download
+      485daf5a1a79ba73860334fbc36c58f5
+      ${VIAME_DOWNLOAD_DIR}/VIAME-ConvNeXT-Models-v1.1.zip )
 
     set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
       learn/detector_convnext_baseline_xl.pipe
