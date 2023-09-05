@@ -75,3 +75,19 @@ if( VIAME_ENABLE_LEARN )
   add_subdirectory( cutler )
 
 endif()
+
+if( VIAME_ENABLE_REMAX )
+
+  add_subdirectory( remax )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/remax_detector.py
+    arrows/pytorch
+    remax_detector )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/remax_trainer.py
+    arrows/pytorch
+    remax_trainer )
+
+endif()
