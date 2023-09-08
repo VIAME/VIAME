@@ -1297,8 +1297,8 @@ main( int argc, char* argv[] )
     std::map< std::string, std::vector< std::string > > weight_ext =
       {
         { ".zip", { "seed_model" } },
-        { ".pth", { "backbone" } },
-        { ".pt", { "backbone" } },
+        { ".pth", { "backbone", "seed_weights" } },
+        { ".pt", { "backbone", "seed_weights" } },
         { ".py", { "config" } },
         { ".weights", { "seed_weights" } },
         { ".wt", { "seed_weights" } }
