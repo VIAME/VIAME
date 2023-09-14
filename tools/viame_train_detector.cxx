@@ -103,6 +103,7 @@ public:
   std::string opt_frame_rate;
   std::string opt_max_frame_count;
   std::string opt_timeout;
+  std::string opt_init_weights;
 
   trainer_vars()
   {
@@ -1100,6 +1101,10 @@ main( int argc, char* argv[] )
     &g_params.opt_timeout, "Maximum time in seconds" );
   g_params.m_args.AddArgument( "-to",             argT::SPACE_ARGUMENT,
     &g_params.opt_timeout, "Maximum time in seconds" );
+  g_params.m_args.AddArgument( "--init-weights",  argT::SPACE_ARGUMENT,
+    &g_params.opt_init_weights, "Optional input seed weights over-ride" );
+  g_params.m_args.AddArgument( "-iw",             argT::SPACE_ARGUMENT,
+    &g_params.opt_init_weights, "Optional input seed weights over-ride" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -1281,6 +1286,92 @@ main( int argc, char* argv[] )
           config->set_value( conf, new_value );
         }
       }
+    }
+  }
+
+  if( !g_params.opt_init_weights.empty() )
+  {
+    bool any_config_found = false;
+    auto conf_values = config->available_values();
+
+    std::map< std::string, std::vector< std::string > > weight_ext =
+      {
+        { ".zip", { "seed_model" } },
+        { ".pth", { "backbone", "seed_weights" } },
+        { ".pt", { "backbone", "seed_weights" } },
+        { ".py", { "config" } },
+        { ".weights", { "seed_weights" } },
+        { ".wt", { "seed_weights" } }
+      };
+
+    std::map< std::string, std::string > found_files;
+
+    if( does_folder_exist( g_params.opt_init_weights ) )
+    {
+      for( auto itr : weight_ext )
+      {
+        std::vector< std::string > files_of_ext;
+
+        list_files_in_folder( g_params.opt_init_weights,
+                              files_of_ext,
+                              false,
+                              { itr.first } );
+
+        if( files_of_ext.size() == 1 )
+        {
+          found_files[ itr.first ] = files_of_ext[0];
+        }
+        else if( files_of_ext.size() > 1 )
+        {
+          std::cout << "Folder contains multiple files of type "
+                    << itr.first << std::endl;
+
+          return EXIT_FAILURE;
+        }
+      }
+    }
+    else if( does_file_exist( g_params.opt_init_weights ) )
+    {
+      for( auto ext_itr : weight_ext )
+      {
+        if( ends_with_extension( g_params.opt_init_weights, ext_itr.first ) )
+        {
+          found_files[ ext_itr.first ] = g_params.opt_init_weights;
+          break;
+        }
+      }
+    }
+    else
+    {
+      std::cout << "Seed weight path does not exist." << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    if( found_files.empty() )
+    {
+      std::cout << "Seed weight file or folder is of unknown type." << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    for( auto conf : conf_values )
+    {
+      for( auto found_itr : found_files )
+      {
+        for( auto search_str : weight_ext[ found_itr.first ] )
+        {
+          if( conf.find( search_str ) != std::string::npos )
+          {
+            config->set_value( conf, found_itr.second );
+            any_config_found = true;
+          }
+        }
+      }
+    }
+
+    if( !any_config_found )
+    {
+      std::cout << "Input seed weights are from a different model type." << std::endl;
+      return EXIT_FAILURE;
     }
   }
 
