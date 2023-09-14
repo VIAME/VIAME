@@ -1,8 +1,0 @@
-params:
-  device: cuda:0
-  dino_config: /home/local/KHQ/alexander.lynch/Projects/learn/pretrained_models/dino/DINO_4scale_swin.py
-  model_checkpoint_file: /home/local/KHQ/alexander.lynch/Projects/learn/pretrained_models/dino/pytorch_dino.pth
-  work_dir: /home/local/KHQ/alexander.lynch/Projects/learn/remax_testing
-  threshold: 0.15
-  img_folder:
-  ann_file:

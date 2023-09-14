@@ -65,8 +65,11 @@ class ReMaxTrainer( TrainDetector ):
         _Option('_gpu_count', 'gpu_count', -1, int, ''),
         _Option('_launcher', 'launcher', 'pytorch', str, ''), # "none, pytorch, slurm, or mpi" 
         
-        _Option('_remax_config_file', 'remax_config_file', '', str, ''),
-
+        _Option('_dino_config', 'dino_config', '', str, ''),
+        _Option('_device', 'device', '', str, ''),
+        _Option('_threshold', 'threshold', 0.0, float, ''),
+        _Option('_model_checkpoint_file', 'model_checkpoint_file', '', str, ''),
+        _Option('_work_dir', 'work_dir', '', str, ''),
         _Option('_output_directory', 'output_directory', '', str, ''),
         _Option('_feature_directory', 'feature_dir', '', str, ''),
         _Option('_debug_mode', 'debug_mode', False, bool, ''),
@@ -109,15 +112,11 @@ class ReMaxTrainer( TrainDetector ):
         cfg.merge_config( cfg_in )
         for opt in self._options:
             setattr(self, opt.attr, opt.parse(cfg.get_value(opt.config)))
-        p = Path(self._remax_config_file)
-        r = p.read_text()
-        config_file = yaml.safe_load(r)
-        self.config = config_file['params']
-        
+
         self.ckpt = 0 # TODO: not sure about this
         self.stage = 'base' # TODO: also not sure about this 
 
-        device = self.config['device']
+        device = self._device
         if ub.iterable(device):
             self.device = device
         else:
@@ -128,7 +127,7 @@ class ReMaxTrainer( TrainDetector ):
         if len(self.device) > torch.cuda.device_count():
             self.device = self.device[:torch.cuda.device_count()]
             
-        self.original_chkpt_file = self.config["model_checkpoint_file"]
+        self.original_chkpt_file = self._model_checkpoint_file
         self.load_model()
         
     def check_configuration( self, cfg ):
@@ -226,7 +225,7 @@ class ReMaxTrainer( TrainDetector ):
         return idx_gt_actual[sel_valid], idx_pred_actual[sel_valid], ious_actual[sel_valid], label
 
     def load_model( self ):
-        self.dino_config = SLConfig.fromfile(self.config['dino_config'])
+        self.dino_config = SLConfig.fromfile(self._dino_config)
         self.dino_config.device = 'cuda'
         self.dino_config.checkpoint_path = self.original_chkpt_file
         self.dino_config
@@ -236,7 +235,7 @@ class ReMaxTrainer( TrainDetector ):
         self.model.eval()
 
     def update_model( self ):
-        self.dino_config.coco_path = str(os.path.join(self.config["work_dir"], 'train_data_coco.json')) # the path of coco
+        self.dino_config.coco_path = str(os.path.join(self._work_dir, 'train_data_coco.json')) # the path of coco
         self.dino_config.fix_size = False
         self.dino_config.image_root = self.image_root
         dataset_train = build_dataset(image_set='train', args=self.dino_config)
@@ -253,7 +252,7 @@ class ReMaxTrainer( TrainDetector ):
                 t1 = time.time()
                 t0 = t1
                 count += 1
-                if count % 200 == 0:
+                if count % 50 == 0:
                     print("processed ", count, "images")
                 # build gt_dict for vis
                 gt_label = [str(int(item)) for item in targets['labels']]
@@ -272,7 +271,7 @@ class ReMaxTrainer( TrainDetector ):
                 labels = output['labels']
                 feats = output['feats']
                 boxes = box_ops.box_xyxy_to_cxcywh(output['boxes'])
-                select_mask = scores > self.config['threshold']
+                select_mask = scores > self._threshold
                 pred_label = [str(int(item)) for item in labels[select_mask]]
                 if len(pred_label) == 0 and len(gt_label) == 0:
                     continue
@@ -308,6 +307,8 @@ class ReMaxTrainer( TrainDetector ):
                             train_feats['-1'] = torch.cat((train_feats['-1'], pred_feats[i].unsqueeze(0)), 0)
                             train_bboxes['-1'] = torch.cat((train_bboxes['-1'], pred_boxes[i].unsqueeze(0)), 0)
 
+
+
             train_data = []
             train_boxes = []
             for cls in train_feats.keys():
@@ -315,14 +316,13 @@ class ReMaxTrainer( TrainDetector ):
                 train_data.append(train_feats[cls])
             train_data = torch.cat(train_data, dim=0)
             if self._debug_mode and not os.path.exists(self._feature_cache):
-                #with open(self._feature_cache, 'w+') as f:
                 train_data = torch.save(train_data, self._feature_cache)
-                train_boxes = torch.save(train_boxes, '/home/local/KHQ/alexander.lynch/Projects/learn/remax_testing/test_boxes.pt')
                 
-        #Need to do some kind of normalization here
+        # Normalization step        
         train_data = torch.linalg.norm(train_data, dim=1, ord=1)
 
         self.remax_model = ReMax(train_data)
+
 
         self.save_final_model()
 
@@ -330,7 +330,6 @@ class ReMaxTrainer( TrainDetector ):
         output_model_name = "remax.pkl"
         output_model = os.path.join( self._output_directory,
             output_model_name )
-        print(output_model, "output model")
         with open(output_model, 'wb') as f:
             pickle.dump(self.remax_model, f)
 
@@ -419,7 +418,7 @@ class ReMaxTrainer( TrainDetector ):
                 categories=cats)
 
             fn = 'train_data_coco.json' if is_train else 'test_data_coco.json'
-            output_file = os.path.join(self.config["work_dir"], fn)
+            output_file = os.path.join(self._work_dir, fn)
             mmcv.dump(coco_format_json, output_file)
             
             print(f"Transformed the dataset into COCO style: {output_file} "

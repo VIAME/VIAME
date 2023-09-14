@@ -50,18 +50,18 @@ class ReMaxDetector(ImageObjectDetector):
     # Config-option-based attribute specifications, used in __init__,
     # get_configuration, and set_configuration
     _options = [
+        _Option('_display_detections', 'display_detections', '', str),
         _Option('_net_config', 'net_config', '', str),
-        _Option('_remax_config_file', 'remax_config_file', '', str),
         _Option('_remax_model_file', 'remax_model_file', '', str),
         _Option('_weight_file', 'weight_file', '', str),
         _Option('_class_names', 'class_names', '', str),
-        _Option('_thresh', 'thresh', 0.01, float),
+        _Option('_thresh', 'thresh', 0.1, float),
         _Option('_gpu_index', 'gpu_index', "0", str),
-        _Option('_num_classes', 'num_classes', 1, int),
-        _Option('_display_detections', 'display_detections', False, strtobool),
         _Option('_template', 'template', "", str),
-        _Option('_auto_update_model', 'auto_update_model', True, strtobool),
-        _Option('_rgb_to_bgr', 'rgb_to_bgr', True, strtobool),
+        _Option('_device', 'device', "", str),
+        _Option('_rgb_to_bgr', 'rgb_to_bgr', "", str),
+        _Option('_norm_degree', 'norm_degree', "", int),
+
     ]
 
     def __init__(self):
@@ -79,7 +79,6 @@ class ReMaxDetector(ImageObjectDetector):
         checkpoint = torch.load(self._weight_file, map_location='cpu')
         self.model.load_state_dict(checkpoint['model'])
         self.model.eval()
-        print(self._remax_model_file)
         remax_file = open(self._remax_model_file, 'rb')
         self.remax = pickle.load(remax_file)
         remax_file.close()
@@ -97,15 +96,9 @@ class ReMaxDetector(ImageObjectDetector):
         cfg.merge_config( cfg_in )
         for opt in self._options:
             setattr(self, opt.attr, opt.parse(cfg.get_value(opt.config)))
-        p = Path(self._remax_config_file)
-        r = p.read_text()
-        config_file = yaml.safe_load(r)
-        self.config = config_file['params']
         
-        self.ckpt = 0 # TODO: not sure about this
-        self.stage = 'base' # TODO: also not sure about this 
-
-        device = self.config['device']
+        self.ckpt = 0
+        device = self._device
         if ub.iterable(device):
             self.device = device
         else:
@@ -139,12 +132,10 @@ class ReMaxDetector(ImageObjectDetector):
         inputs = torch.from_numpy(input_image).permute(2,0,1).unsqueeze(0).type(torch.float).cuda()
         output = self.model.cuda()(inputs)
         output = self.postprocessors['bbox'](output, torch.Tensor([[1.0, 1.0]]).cuda())[0]
-        logits = output['logits']
         scores = output['scores']
         labels = output['labels']
         feats = output['feats']
         bboxes = output['boxes']
-        #bboxes = box_ops.box_xyxy_to_cxcywh(output['boxes'])
         pred_label = [str(int(item)) for item in labels]
         pred_feats = feats  
         test_feats = {}
@@ -164,49 +155,42 @@ class ReMaxDetector(ImageObjectDetector):
             test_data.append(test_feats[cls])
 
         test_data = torch.cat(test_data, dim=0)
-        test_data = torch.linalg.norm(test_data, dim=1, ord=1)
+        test_data = torch.linalg.norm(test_data, dim=1, ord=self._norm_degree)
 
-        #max_index_test = torch.max(test_data, dim=1).indices
         # convert to kwiver format, apply threshold
         for row in test_data:
             max_value_row = torch.max(row, dim=0).values
-
-            sample_ReScore = self.remax.ReScore(max_value_row)
+            sample_ReScore = self.remax.ReScore(row)
             if sample_ReScore.isnan().any():
                 raise Exception
             prob_test.append(sample_ReScore.view(-1))
         
         prob_test = torch.cat(prob_test,dim=0)
         names = []
-        for bbox, score, novelty_prob in zip(bboxes, scores, prob_test):
-            class_confidence = float(bbox[-1])
-            if score < 0.1:
-                continue
+        for bbox, label, novelty_prob in zip(bboxes, labels, prob_test):
             new_bbox = torch.tensor([bbox[0]*inputs.shape[2], bbox[1]*inputs.shape[3], bbox[2]*inputs.shape[2], bbox[3]*inputs.shape[3]])
             bbox_int = new_bbox.type(torch.int32)
             bounding_box = BoundingBoxD(bbox_int[0], bbox_int[1],
                                         bbox_int[2], bbox_int[3])
-            class_name = str(score.item())
+            class_name = self._labels[label]
             if class_name not in names:
                 names.append(str(class_name))
-            #print(type(class_confidence), type(prob_test))
             detected_object_type = DetectedObjectType(class_name, novelty_prob)
             detected_object = DetectedObject(bounding_box,
                                              novelty_prob,
                                              detected_object_type)
-            #detected_object.add_note(":novelty_prob=" + str(novelty_prob))
+            
+            # add in novelty prob attribute to detected object
+            detected_object.add_note(":novelty_prob=" + str(novelty_prob))
             output.add(detected_object)
-        inds = []
-        for score in scores:
-            if str(score.item()) in names:
-                inds.append(names.index(str(score.item())))
+
         if labels.size()[0] > 0 and self._display_detections:
             mmcv.imshow_det_bboxes(
                 input_image,
                 bboxes,
-                inds,
-                class_names=names,
-                score_thr=novelty_prob,
+                labels,
+                class_names=self._labels,
+                score_thr=self._thresh,
                 show=True)
         return output
 
