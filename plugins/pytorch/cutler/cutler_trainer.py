@@ -78,6 +78,8 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         
         _Option('_cutler_config_file', 'cutler_config_file', '', str, ''),
 
+        _Option('_seed_weights', 'seed_weights', '', str, ''),
+
         _Option('_output_directory', 'output_directory', 'category_models', str, ''),
         _Option('_pipeline_template', 'pipeline_template', '', str, '')
     ]
@@ -245,7 +247,9 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
                 os.environ[ "MASTER_PORT" ] = "12345"
             init_dist( self._launcher )
 
-        if "checkpoint_override" in self.config and self.config["checkpoint_override"]:
+        if self._seed_weights:
+            self.original_chkpt_file = self._seed_weights
+        elif "checkpoint_override" in self.config and self.config["checkpoint_override"]:
             self.original_chkpt_file = self.config["checkpoint_override"]
         else:
             self.original_chkpt_file = self.config["model_checkpoint_file"]
