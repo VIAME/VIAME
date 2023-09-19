@@ -192,6 +192,9 @@ def build_backbone(args):
         }
         pretrainedpath = os.path.join(pretrained_dir, PTDICT[args.backbone])
         checkpoint = torch.load(args.checkpoint_path, map_location='cpu')['model']
+        for key in list(checkpoint.keys()):
+            if 'backbone' in key:
+                checkpoint[key[len('backbone.0.'):]] = checkpoint.pop(key)
         from collections import OrderedDict
         def key_select_function(keyname):
             if 'head' in keyname:

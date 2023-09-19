@@ -132,10 +132,12 @@ class ReMaxDetector(ImageObjectDetector):
         inputs = torch.from_numpy(input_image).permute(2,0,1).unsqueeze(0).type(torch.float).cuda()
         output = self.model.cuda()(inputs)
         output = self.postprocessors['bbox'](output, torch.Tensor([[1.0, 1.0]]).cuda())[0]
+        logits = output['logits']
         scores = output['scores']
         labels = output['labels']
         feats = output['feats']
         bboxes = output['boxes']
+        #bboxes = box_ops.box_xyxy_to_cxcywh(output['boxes'])
         pred_label = [str(int(item)) for item in labels]
         pred_feats = feats  
         test_feats = {}
@@ -155,35 +157,43 @@ class ReMaxDetector(ImageObjectDetector):
             test_data.append(test_feats[cls])
 
         test_data = torch.cat(test_data, dim=0)
-        test_data = torch.linalg.norm(test_data, dim=1, ord=self._norm_degree)
+        test_data = torch.linalg.norm(test_data, dim=1, ord=1)
 
+        #max_index_test = torch.max(test_data, dim=1).indices
         # convert to kwiver format, apply threshold
         for row in test_data:
             max_value_row = torch.max(row, dim=0).values
-            sample_ReScore = self.remax.ReScore(row)
+
+            sample_ReScore = self.remax.ReScore(max_value_row)
             if sample_ReScore.isnan().any():
                 raise Exception
             prob_test.append(sample_ReScore.view(-1))
-        
+
         prob_test = torch.cat(prob_test,dim=0)
         names = []
-        for bbox, label, novelty_prob in zip(bboxes, labels, prob_test):
+        for bbox, score, novelty_prob in zip(bboxes, scores, prob_test):
+            class_confidence = float(bbox[-1])
+            if score < self._thresh:
+                continue
             new_bbox = torch.tensor([bbox[0]*inputs.shape[2], bbox[1]*inputs.shape[3], bbox[2]*inputs.shape[2], bbox[3]*inputs.shape[3]])
             bbox_int = new_bbox.type(torch.int32)
             bounding_box = BoundingBoxD(bbox_int[0], bbox_int[1],
                                         bbox_int[2], bbox_int[3])
-            class_name = self._labels[label]
-            if class_name not in names:
-                names.append(str(class_name))
-            detected_object_type = DetectedObjectType(class_name, novelty_prob)
-            detected_object = DetectedObject(bounding_box,
-                                             novelty_prob,
-                                             detected_object_type)
+            class_name = str(score.item())
+            class_name = self._labels[int(label)]
             
-            # add in novelty prob attribute to detected object
+            #detected_object_type = DetectedObjectType(class_name, novelty_prob)
+            detected_object_type = DetectedObjectType(class_name, class_confidence)
+            detected_object = DetectedObject(bounding_box,
+                                             #novelty_prob,
+                                              np.max(class_confidence),
+                                             detected_object_type)
             detected_object.add_note(":novelty_prob=" + str(novelty_prob))
             output.add(detected_object)
-
+        inds = []
+        for score in scores:
+            if str(score.item()) in names:
+                inds.append(names.index(str(score.item())))
         if labels.size()[0] > 0 and self._display_detections:
             mmcv.imshow_det_bboxes(
                 input_image,
