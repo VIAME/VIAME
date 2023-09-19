@@ -239,7 +239,7 @@ class ReMaxTrainer( TrainDetector ):
         self.dino_config.fix_size = False
         self.dino_config.image_root = self.image_root
         dataset_train = build_dataset(image_set='train', args=self.dino_config)
-        if self._debug_mode and os.path.exists(self._feature_cache):
+        if False and os.path.exists(self._feature_cache):
             with open(self._feature_cache, 'rb') as f:
                 train_data = torch.load(f)
         else:
@@ -249,6 +249,7 @@ class ReMaxTrainer( TrainDetector ):
             import time
             t0 = time.time()
             for image, targets in dataset_train:
+                print("image")
                 t1 = time.time()
                 t0 = t1
                 count += 1
@@ -257,12 +258,7 @@ class ReMaxTrainer( TrainDetector ):
                 # build gt_dict for vis
                 gt_label = [str(int(item)) for item in targets['labels']]
                 iid = targets['image_id']
-                gt_dict = {
-                    'boxes': targets['boxes'],
-                    'image_id': iid,
-                    'size': targets['size'],
-                    'box_label': gt_label,
-                }
+
                 # build pred_dict for vis
 
                 output = self.model.cuda()(image[None].cuda())
@@ -286,33 +282,27 @@ class ReMaxTrainer( TrainDetector ):
                 }
                 idxs_true, idxs_pred, _, _ = self.match_bboxes(targets['boxes'].cuda(), boxes[select_mask])
                 pred_dict['tp_idx'] = idxs_pred
-                gt_dict['tp_idx'] = idxs_true
                 for i in range(idxs_pred.size):
                     label = gt_label[idxs_true[i]]
                     feats = pred_feats[idxs_pred[i]]
                     boxes = pred_boxes[idxs_pred[i]]
                     if label not in train_feats.keys():
                         train_feats[label] = feats.unsqueeze(0)
-                        train_bboxes[label] = boxes.unsqueeze(0)
                     else:
                         train_feats[label] = torch.cat((train_feats[label], feats.unsqueeze(0)), 0)
-                        train_bboxes[label] = torch.cat((train_bboxes[label], boxes.unsqueeze(0)), 0)
 
                 for i in range(len(pred_label)):
                     if i not in idxs_pred:
                         if '-1' not in train_feats.keys():
                             train_feats['-1'] = pred_feats[i].unsqueeze(0)
-                            train_bboxes['-1'] = pred_boxes[i].unsqueeze(0)
                         else:
                             train_feats['-1'] = torch.cat((train_feats['-1'], pred_feats[i].unsqueeze(0)), 0)
-                            train_bboxes['-1'] = torch.cat((train_bboxes['-1'], pred_boxes[i].unsqueeze(0)), 0)
 
 
 
             train_data = []
             train_boxes = []
             for cls in train_feats.keys():
-                
                 train_data.append(train_feats[cls])
             train_data = torch.cat(train_data, dim=0)
             if self._debug_mode and not os.path.exists(self._feature_cache):

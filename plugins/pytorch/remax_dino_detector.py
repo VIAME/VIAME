@@ -35,7 +35,7 @@ from .remax.util.slconfig import SLConfig
 from .remax.util import box_ops
 from .remax.model.dino import build_dino
 from .remax.util.coco import build as build_dataset
-
+from .remax.coco_eval import CocoEvaluator
 from .remax.ReMax import ReMax
 
 
@@ -198,7 +198,7 @@ def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "remax"
+    implementation_name = "detector_remax_dino"
 
     if algorithm_factory.has_algorithm_impl_name(
       ReMaxDetector.static_type_name(), implementation_name):
