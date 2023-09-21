@@ -74,6 +74,7 @@ class ReMaxTrainer( TrainDetector ):
         _Option('_feature_directory', 'feature_dir', '', str, ''),
         _Option('_debug_mode', 'debug_mode', False, bool, ''),
         _Option('_feature_cache', 'feature_cache', '', str, '')
+        _Option('_norm_degree', 'norm_degree', 1, int, '')
     ]
 
 
@@ -309,7 +310,7 @@ class ReMaxTrainer( TrainDetector ):
                 train_data = torch.save(train_data, self._feature_cache)
                 
         # Normalization step        
-        train_data = torch.linalg.norm(train_data, dim=1, ord=1)
+        train_data = torch.linalg.norm(train_data, dim=1, ord=self._norm_degree)
 
         self.remax_model = ReMax(train_data)
 

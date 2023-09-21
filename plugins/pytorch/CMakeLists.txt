@@ -73,6 +73,17 @@ endif()
 if( VIAME_ENABLE_LEARN )
 
   add_subdirectory( cutler )
+  add_subdirectory( remax )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/remax_convnext_detector.py
+    arrows/pytorch
+    remax_convnext_detector )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/remax_convnext_trainer.py
+    arrows/pytorch
+    remax_convnext_trainer )
 
 endif()
 
@@ -81,13 +92,13 @@ if( VIAME_ENABLE_REMAX )
   add_subdirectory( remax )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/remax_detector.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_detector.py
     arrows/pytorch
-    remax_detector )
+    remax_dino_detector )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/remax_trainer.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_trainer.py
     arrows/pytorch
-    remax_trainer )
+    remax_dino_trainer )
 
 endif()

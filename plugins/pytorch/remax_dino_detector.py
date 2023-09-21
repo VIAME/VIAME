@@ -157,7 +157,7 @@ class ReMaxDetector(ImageObjectDetector):
             test_data.append(test_feats[cls])
 
         test_data = torch.cat(test_data, dim=0)
-        test_data = torch.linalg.norm(test_data, dim=1, ord=1)
+        test_data = torch.linalg.norm(test_data, dim=1, ord=self._norm_degree)
 
         #max_index_test = torch.max(test_data, dim=1).indices
         # convert to kwiver format, apply threshold
@@ -188,7 +188,7 @@ class ReMaxDetector(ImageObjectDetector):
                                              #novelty_prob,
                                               np.max(class_confidence),
                                              detected_object_type)
-            detected_object.add_note(":novelty_prob=" + str(novelty_prob))
+            detected_object.add_note(":novelty=" + str(novelty_prob))
             output.add(detected_object)
         inds = []
         for score in scores:

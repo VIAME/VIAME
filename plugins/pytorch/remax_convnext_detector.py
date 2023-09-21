@@ -54,7 +54,7 @@ class ReMaxConvNextDetector(ImageObjectDetector):
         _Option('_template', 'template', "", str),
         _Option('_device', 'device', "", str),
         _Option('_rgb_to_bgr', 'rgb_to_bgr', "", str),
-        _Option('_norm_degree', 'norm_degree', 2, int),
+        _Option('_norm_degree', 'norm_degree', 1, int),
         _Option('_num_classes', 'num_classes', 60, int),
         _Option('_template', 'template', "", str),
         _Option('_auto_update_model', 'auto_update_model', True, strtobool),
@@ -305,7 +305,7 @@ class ReMaxConvNextDetector(ImageObjectDetector):
                                              detected_object_type)
             
             # add in novelty prob attribute to detected object
-            detected_object.add_note(":novelty_prob=" + str(novelty_prob))
+            detected_object.add_note(":novelty=" + str(novelty_prob))
             output.add(detected_object)
 
         #if labels.size()[0] > 0 and self._display_detections:

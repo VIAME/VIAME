@@ -74,7 +74,7 @@ class ReMaxConvNextTrainer( TrainDetector ):
         _Option('_weight_file', 'weight_file', '', str),
         _Option('_gpu_index', 'gpu_index', "0", str),
         _Option('_num_classes', 'num_classes', 60, int),
-        _Option('_norm_degree', 'norm_degree', 2, int),
+        _Option('_norm_degree', 'norm_degree', 1, int),
         _Option('_template', 'template', "", str),
         _Option('_auto_update_model', 'auto_update_model', True, strtobool),
     ]
