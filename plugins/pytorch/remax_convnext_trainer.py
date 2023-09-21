@@ -49,7 +49,6 @@ from kwiver.vital.algo import TrainDetector
 from .remax.util.coco import CocoDetection
 
 from .remax.ReMax import ReMax
-from .remax.remax_base_trainer import ReMaxBaseTrainer
 
 try:
     import learn.algorithms.MMDET.register_modules
@@ -69,7 +68,6 @@ class ReMaxConvNextTrainer( TrainDetector ):
         _Option('_output_directory', 'output_directory', '', str),
         _Option('_debug_mode', 'debug_mode', False, bool),
         _Option('_feature_cache', 'feature_cache', '', str),
-        _Option('_remax_config_file', 'remax_config_file', '', str),
         _Option('_net_config', 'net_config', '', str),
         _Option('_weight_file', 'weight_file', '', str),
         _Option('_gpu_index', 'gpu_index', "0", str),
@@ -267,7 +265,7 @@ class ReMaxConvNextTrainer( TrainDetector ):
         self._config = mmdet_config
         replace(mmdet_config, 500)
         self._model = init_detector(mmdet_config, self._weight_file, device=gpu_string)
-
+        
     def __getstate__( self ):
         return self.__dict__
 
@@ -415,9 +413,9 @@ class ReMaxConvNextTrainer( TrainDetector ):
             bboxes = torch.tensor(bboxes)
             _, idxs_pred, _, _ = self.match_bboxes(targets['boxes'], bboxes[:,:4])
             train_feats = bbox_feats[idxs_pred]
-            train_feats = torch.amax(train_feats, (2,3))
             train_data.append(train_feats.detach().cpu())
         train_data = torch.cat(train_data, dim=0)
+
         if self._debug_mode and not os.path.exists(self._feature_cache):
             train_data = torch.save(train_data, self._feature_cache)
         return train_data

@@ -48,21 +48,25 @@ from collections import namedtuple
 from kwiver.vital.algo import TrainDetector
 
 from .remax.util.slconfig import SLConfig
-from .remax.util import box_ops
 from .remax.model.dino import build_dino
 from .remax.util.coco import build as build_dataset
+from .remax.engine import evaluate
+from .remax.util.coco_eval import CocoEvaluator
+
+from .remax.util.box_ops import box_xyxy_to_cxcywh
 
 from .remax.ReMax import ReMax
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
 
 
-class ReMaxTrainer( TrainDetector ):
+class ReMaxDINOTrainer( TrainDetector ):
     '''
     Implementation of TrainDetector class for ReMax Training
     '''
     _options = [
         _Option('_gpu_count', 'gpu_count', -1, int, ''),
+        _Option('_norm_degree', 'norm_degree', 1, int, ''),
         _Option('_launcher', 'launcher', 'pytorch', str, ''), # "none, pytorch, slurm, or mpi" 
         
         _Option('_dino_config', 'dino_config', '', str, ''),
@@ -74,7 +78,6 @@ class ReMaxTrainer( TrainDetector ):
         _Option('_feature_directory', 'feature_dir', '', str, ''),
         _Option('_debug_mode', 'debug_mode', False, bool, ''),
         _Option('_feature_cache', 'feature_cache', '', str, '')
-        _Option('_norm_degree', 'norm_degree', 1, int, '')
     ]
 
 
@@ -137,7 +140,7 @@ class ReMaxTrainer( TrainDetector ):
             print( "A config file must be specified!" )
             return False
         return True
-
+    
     def __getstate__( self ):
         return self.__dict__
 
@@ -166,7 +169,6 @@ class ReMaxTrainer( TrainDetector ):
         boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
         boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
         iou = interArea / float(boxAArea + boxBArea - interArea)
-        t1 = time.time()
         return iou
 
 
@@ -240,53 +242,40 @@ class ReMaxTrainer( TrainDetector ):
         self.dino_config.fix_size = False
         self.dino_config.image_root = self.image_root
         dataset_train = build_dataset(image_set='train', args=self.dino_config)
-        if False and os.path.exists(self._feature_cache):
+        if self._debug_mode and os.path.exists(self._feature_cache):
             with open(self._feature_cache, 'rb') as f:
                 train_data = torch.load(f)
         else:
             train_feats = {}
-            train_bboxes = {}
             count = 0
-            import time
-            t0 = time.time()
             for image, targets in dataset_train:
-                print("image")
-                t1 = time.time()
-                t0 = t1
                 count += 1
                 if count % 50 == 0:
                     print("processed ", count, "images")
                 # build gt_dict for vis
                 gt_label = [str(int(item)) for item in targets['labels']]
                 iid = targets['image_id']
-
+                
                 # build pred_dict for vis
-
                 output = self.model.cuda()(image[None].cuda())
                 output = self.postprocessors['bbox'](output, torch.Tensor([[1.0, 1.0]]).cuda())[0]
                 scores = output['scores']
                 labels = output['labels']
                 feats = output['feats']
-                boxes = box_ops.box_xyxy_to_cxcywh(output['boxes'])
+                boxes = box_xyxy_to_cxcywh(output['boxes'])
                 select_mask = scores > self._threshold
+
                 pred_label = [str(int(item)) for item in labels[select_mask]]
                 if len(pred_label) == 0 and len(gt_label) == 0:
                     continue
-
-                pred_feats = feats[select_mask]    
+                pred_feats = feats[select_mask]
                 pred_boxes = boxes[select_mask]
-                pred_dict = {
-                    'boxes': boxes[select_mask],
-                    'image_id': iid,
-                    'size': targets['size'],
-                    'box_label': pred_label
-                }
-                idxs_true, idxs_pred, _, _ = self.match_bboxes(targets['boxes'].cuda(), boxes[select_mask])
-                pred_dict['tp_idx'] = idxs_pred
+                idxs_true, idxs_pred, _, _ = self.match_bboxes(targets['boxes'], pred_boxes)
                 for i in range(idxs_pred.size):
                     label = gt_label[idxs_true[i]]
                     feats = pred_feats[idxs_pred[i]]
                     boxes = pred_boxes[idxs_pred[i]]
+
                     if label not in train_feats.keys():
                         train_feats[label] = feats.unsqueeze(0)
                     else:
@@ -302,18 +291,17 @@ class ReMaxTrainer( TrainDetector ):
 
 
             train_data = []
-            train_boxes = []
             for cls in train_feats.keys():
                 train_data.append(train_feats[cls])
             train_data = torch.cat(train_data, dim=0)
             if self._debug_mode and not os.path.exists(self._feature_cache):
-                train_data = torch.save(train_data, self._feature_cache)
+                torch.save(train_data, self._feature_cache)
+
                 
         # Normalization step        
         train_data = torch.linalg.norm(train_data, dim=1, ord=self._norm_degree)
 
         self.remax_model = ReMax(train_data)
-
 
         self.save_final_model()
 
@@ -421,13 +409,13 @@ def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "remax"
+    implementation_name = "dino_remax_trainer"
 
     if algorithm_factory.has_algorithm_impl_name(
-      ReMaxTrainer.static_type_name(), implementation_name):
+      ReMaxDINOTrainer.static_type_name(), implementation_name):
         return
 
     algorithm_factory.add_algorithm(implementation_name,
-      "PyTorch MMDetection inference routine", ReMaxTrainer)
+      "PyTorch MMDetection inference routine", ReMaxDINOTrainer)
 
     algorithm_factory.mark_algorithm_as_loaded(implementation_name)

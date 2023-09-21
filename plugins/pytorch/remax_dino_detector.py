@@ -4,45 +4,29 @@
 from __future__ import print_function
 from __future__ import division
 from collections import namedtuple
-import sys
-
+import json
 import cv2
-from distutils.util import strtobool
 from kwiver.vital.algo import ImageObjectDetector
 from kwiver.vital.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType
 )
-
-from kwiver.vital.algo import TrainDetector
-
-
-import os
-from pathlib import Path
 import pickle
 import mmcv
 import numpy as np
 import torch
-import scipy
-from shutil import copyfile
 import sys
 import ubelt as ub
-import yaml
 
 from collections import namedtuple
 
 
 from .remax.util.slconfig import SLConfig
-from .remax.util import box_ops
 from .remax.model.dino import build_dino
-from .remax.util.coco import build as build_dataset
-from .remax.coco_eval import CocoEvaluator
-from .remax.ReMax import ReMax
-
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
 
 
-class ReMaxDetector(ImageObjectDetector):
+class ReMaxDINODetector(ImageObjectDetector):
     """
     Implementation of ImageObjectDetector class
     """
@@ -60,7 +44,7 @@ class ReMaxDetector(ImageObjectDetector):
         _Option('_template', 'template', "", str),
         _Option('_device', 'device', "", str),
         _Option('_rgb_to_bgr', 'rgb_to_bgr', "", str),
-        _Option('_norm_degree', 'norm_degree', "", int),
+        _Option('_norm_degree', 'norm_degree', 1, int),
 
     ]
 
@@ -74,7 +58,6 @@ class ReMaxDetector(ImageObjectDetector):
         self.dino_config = SLConfig.fromfile(self._net_config)
         self.dino_config.device = 'cuda'
         self.dino_config.checkpoint_path = self._weight_file
-        self.dino_config
         self.model, self.criterion, self.postprocessors = build_dino(self.dino_config)
         checkpoint = torch.load(self._weight_file, map_location='cpu')
         self.model.load_state_dict(checkpoint['model'])
@@ -82,7 +65,7 @@ class ReMaxDetector(ImageObjectDetector):
         remax_file = open(self._remax_model_file, 'rb')
         self.remax = pickle.load(remax_file)
         remax_file.close()
-
+        self.results = dict()
 
     def get_configuration(self):
         # Inherit from the base class
@@ -137,7 +120,6 @@ class ReMaxDetector(ImageObjectDetector):
         labels = output['labels']
         feats = output['feats']
         bboxes = output['boxes']
-        #bboxes = box_ops.box_xyxy_to_cxcywh(output['boxes'])
         pred_label = [str(int(item)) for item in labels]
         pred_feats = feats  
         test_feats = {}
@@ -171,7 +153,7 @@ class ReMaxDetector(ImageObjectDetector):
 
         prob_test = torch.cat(prob_test,dim=0)
         names = []
-        for bbox, score, novelty_prob in zip(bboxes, scores, prob_test):
+        for bbox, score, novelty_prob, label in zip(bboxes, scores, prob_test, labels):
             class_confidence = float(bbox[-1])
             if score < self._thresh:
                 continue
@@ -179,17 +161,14 @@ class ReMaxDetector(ImageObjectDetector):
             bbox_int = new_bbox.type(torch.int32)
             bounding_box = BoundingBoxD(bbox_int[0], bbox_int[1],
                                         bbox_int[2], bbox_int[3])
-            class_name = str(score.item())
             class_name = self._labels[int(label)]
-            
-            #detected_object_type = DetectedObjectType(class_name, novelty_prob)
             detected_object_type = DetectedObjectType(class_name, class_confidence)
             detected_object = DetectedObject(bounding_box,
-                                             #novelty_prob,
-                                              np.max(class_confidence),
+                                             np.max(class_confidence),
                                              detected_object_type)
             detected_object.add_note(":novelty=" + str(novelty_prob))
             output.add(detected_object)
+
         inds = []
         for score in scores:
             if str(score.item()) in names:
@@ -202,8 +181,8 @@ class ReMaxDetector(ImageObjectDetector):
                 class_names=self._labels,
                 score_thr=self._thresh,
                 show=True)
-        return output
 
+        return output
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
@@ -211,10 +190,10 @@ def __vital_algorithm_register__():
     implementation_name = "detector_remax_dino"
 
     if algorithm_factory.has_algorithm_impl_name(
-      ReMaxDetector.static_type_name(), implementation_name):
+      ReMaxDINODetector.static_type_name(), implementation_name):
         return
 
     algorithm_factory.add_algorithm(implementation_name,
-      "ReMax inference routine", ReMaxDetector)
+      "ReMax inference routine", ReMaxDINODetector)
 
     algorithm_factory.mark_algorithm_as_loaded(implementation_name)

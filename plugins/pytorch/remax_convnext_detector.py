@@ -4,7 +4,7 @@
 from __future__ import print_function
 from __future__ import division
 from collections import namedtuple
-import sys
+import json
 
 import cv2
 from distutils.util import strtobool
@@ -260,21 +260,20 @@ class ReMaxConvNextDetector(ImageObjectDetector):
             labels = np.concatenate(labels)
         else:
             labels = []
-
+            return DetectedObjectSet()
+        output = DetectedObjectSet()
         input_image = torch.from_numpy(input_image).permute(2,0,1)
         feats = self._model.extract_feat(input_image.float().unsqueeze(0).cuda())
         feat_rois = torch.zeros(bboxes.shape)
         feat_rois[:, 1:] = torch.from_numpy(bboxes)[:, :4]
         bbox_feats = self._model.roi_head.bbox_roi_extractor[2](
         feats, feat_rois.cuda())
-        output = DetectedObjectSet()
         test_data = torch.amax(bbox_feats, (2,3))
         test_data = torch.linalg.norm(test_data, dim=1, ord=self._norm_degree)
         prob_test = []
 
         # convert to kwiver format, apply threshold
         for row in test_data:
-            max_value_row = torch.max(row, dim=0).values
             sample_ReScore = self.remax.ReScore(row)
             if sample_ReScore.isnan().any():
                 raise Exception
@@ -296,26 +295,20 @@ class ReMaxConvNextDetector(ImageObjectDetector):
             bounding_box = BoundingBoxD(bbox_int[0], bbox_int[1],
                                         bbox_int[2], bbox_int[3])
             class_name = self._labels[label]
-            #class_name = str(novelty_prob.item())
             detected_object_type = DetectedObjectType(class_name, class_confidence)
-            #detected_object_type = DetectedObjectType(class_name, novelty_prob.item())
             detected_object = DetectedObject(bounding_box,
                                              np.max(class_confidence),
-                                             #novelty_prob,
                                              detected_object_type)
             
             # add in novelty prob attribute to detected object
-            detected_object.add_note(":novelty=" + str(novelty_prob))
+            detected_object.add_note(":novelty=" + str(novelty_prob.item()))
             output.add(detected_object)
-
-        #if labels.size()[0] > 0 and self._display_detections:
         if True and self._display_detections:
 
             mmcv.imshow_det_bboxes(
                 input_image,
                 bboxes,
                 labels,
-                #class_names=names,
                 class_names=self._labels,
                 score_thr=self._thresh,
                 show=True)
