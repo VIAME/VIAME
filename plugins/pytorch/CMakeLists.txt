@@ -85,20 +85,14 @@ if( VIAME_ENABLE_LEARN )
     arrows/pytorch
     remax_convnext_trainer )
 
-endif()
-
-if( VIAME_ENABLE_REMAX )
-
-  add_subdirectory( remax )
-
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_detector.py
-    arrows/pytorch
-    remax_dino_detector )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_trainer.py
-    arrows/pytorch
-    remax_dino_trainer )
-
+      ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_detector.py
+      arrows/pytorch
+      remax_dino_detector )
+  
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_trainer.py
+      arrows/pytorch
+      remax_dino_trainer )
+  
 endif()
