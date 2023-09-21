@@ -163,7 +163,6 @@ def build_backbone(args):
     assert return_interm_indices in [[0,1,2,3], [1,2,3], [3]]
     backbone_freeze_keywords = args.backbone_freeze_keywords
     use_checkpoint = getattr(args, 'use_checkpoint', False)
-
     if args.backbone in ['resnet50', 'resnet101']:
         backbone = Backbone(args.backbone, train_backbone, args.dilation,   
                                 return_interm_indices,   
@@ -191,6 +190,7 @@ def build_backbone(args):
             'swin_L_384_22k': 'swin_large_patch4_window12_384_22k.pth',
         }
         pretrainedpath = os.path.join(pretrained_dir, PTDICT[args.backbone])
+
         checkpoint = torch.load(args.checkpoint_path, map_location='cpu')['model']
         for key in list(checkpoint.keys()):
             if 'backbone' in key:
