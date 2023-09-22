@@ -2,6 +2,8 @@
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn )
 
 set( LEARN_DIR ${VIAME_SOURCE_DIR}/packages/learn )
+set( REMAX_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/remax )
+set( REMAX_OPS_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/remax/model/ops )
 
 set( PYDENSECRF_DIR ${LEARN_DIR}-deps/pydensecrf )
 set( PANOPTICAPI_DIR ${LEARN_DIR}-deps/panopticapi )
@@ -54,6 +56,9 @@ else()
     -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
+set( REMAX_BUILD_CMD
+    ${Python_EXECUTABLE} setup.py build install)
+
 if( Python_VERSION VERSION_LESS "3.7" )
   set( FINAL_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/timm
@@ -74,5 +79,14 @@ ExternalProject_Add( learn
           COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_CMD}
           COMMAND ${FINAL_PATCH_COMMAND}
     INSTALL_COMMAND ${LEARN_INSTALL_CMD}
+    LIST_SEPARATOR "----"
+    )
+
+ExternalProject_Add( remax
+    PREFIX ${VIAME_BUILD_PREFIX}
+    SOURCE_DIR ${VIAME_PACKAGES_DIR}
+    BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
+          COMMAND cd ${REMAX_OPS_DIR} && ${REMAX_BUILD_CMD}
+          COMMAND ${FINAL_PATCH_COMMAND}
     LIST_SEPARATOR "----"
     )
