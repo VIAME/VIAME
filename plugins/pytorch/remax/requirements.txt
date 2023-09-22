@@ -1,3 +1,4 @@
+numpy
 cython
 git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI&egg=pycocotools
 submitit
@@ -8,4 +9,7 @@ scipy
 termcolor
 addict
 yapf
+jinja2
+ninja
+shapely
 timm
