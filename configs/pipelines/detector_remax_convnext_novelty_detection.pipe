@@ -91,7 +91,7 @@ process detector1
       relativepath net_config  =               models/convnext_extra_large_config.py
       relativepath weight_file =               models/convnext_xview_base.pth
       relativepath class_names =               models/convnext_xview_labels.txt
-      relativepath remax_model_file =          models/remax_convnext_l1_norm.pkl
+      relativepath remax_model_file =          models/convnext_remax.pkl
       # Detector parameters
       :norm_degree                             1
       :device                                  cuda
