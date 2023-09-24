@@ -1,5 +1,5 @@
 
-set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn )
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn remax )
 
 set( LEARN_DIR ${VIAME_SOURCE_DIR}/packages/learn )
 set( REMAX_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/remax )
