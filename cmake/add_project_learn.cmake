@@ -83,8 +83,10 @@ ExternalProject_Add( learn
     )
 
 ExternalProject_Add( remax
+    DEPENDS learn
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${VIAME_PACKAGES_DIR}
+    CONFIGURE_COMMAND ""
     BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
           COMMAND cd ${REMAX_OPS_DIR} && ${REMAX_BUILD_CMD}
           COMMAND ${FINAL_PATCH_COMMAND}
