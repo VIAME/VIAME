@@ -28,7 +28,7 @@ endif()
 if( ( WIN32 OR Python_VERSION VERSION_LESS "3.8" )
     AND VIAME_ENABLE_PYTORCH-NETHARN
     AND VIAME_ENABLE_GDAL )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==59.5.0" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
 endif()
 
 # For scoring and plotting
