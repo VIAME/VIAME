@@ -1,12 +1,12 @@
 
-set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn remax )
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn )
 
 set( LEARN_DIR ${VIAME_SOURCE_DIR}/packages/learn )
-set( REMAX_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/remax )
-set( REMAX_OPS_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/remax/model/ops )
 
 set( PYDENSECRF_DIR ${LEARN_DIR}-deps/pydensecrf )
 set( PANOPTICAPI_DIR ${LEARN_DIR}-deps/panopticapi )
+set( REMAX_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/remax )
+set( REMAX_OPS_DIR ${REMAX_DIR}/model/ops )
 
 set( LEARN_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/learn-build )
 set( LEARN_CLONE_CMD )
@@ -57,7 +57,8 @@ else()
 endif()
 
 set( REMAX_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build install)
+    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+    ${Python_EXECUTABLE} setup.py build install )
 
 if( Python_VERSION VERSION_LESS "3.7" )
   set( FINAL_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -74,22 +75,12 @@ ExternalProject_Add( learn
     SOURCE_DIR ${VIAME_PACKAGES_DIR}
     CONFIGURE_COMMAND ${LEARN_CLONE_CMD}
     BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${LEARN_DIR}/requirements.txt
+          COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
           COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_BUILD_CMD}
           COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_BUILD_CMD}
+          COMMAND cd ${REMAX_OPS_DIR} && ${LEARN_BUILD_CMD}
           COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_CMD}
           COMMAND ${FINAL_PATCH_COMMAND}
     INSTALL_COMMAND ${LEARN_INSTALL_CMD}
-    LIST_SEPARATOR "----"
-    )
-
-# Install remax algorithm specific requirements
-ExternalProject_Add( remax
-    DEPENDS learn
-    PREFIX ${VIAME_BUILD_PREFIX}
-    SOURCE_DIR ${VIAME_PACKAGES_DIR}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
-          COMMAND cd ${REMAX_OPS_DIR} && ${REMAX_BUILD_CMD}
-          COMMAND ${FINAL_PATCH_COMMAND}
     LIST_SEPARATOR "----"
     )
