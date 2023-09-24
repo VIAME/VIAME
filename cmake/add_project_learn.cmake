@@ -67,7 +67,7 @@ else()
   set( FINAL_PATCH_COMMAND )
 endif()
 
-# Install required dependencies and learn
+# Install required dependencies and learn repository
 ExternalProject_Add( learn
     DEPENDS python-deps detectron2 torchvideo
     PREFIX ${VIAME_BUILD_PREFIX}
@@ -82,6 +82,7 @@ ExternalProject_Add( learn
     LIST_SEPARATOR "----"
     )
 
+# Install remax algorithm specific requirements
 ExternalProject_Add( remax
     DEPENDS learn
     PREFIX ${VIAME_BUILD_PREFIX}
