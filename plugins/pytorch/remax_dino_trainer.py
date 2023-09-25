@@ -50,8 +50,6 @@ from kwiver.vital.algo import TrainDetector
 from .remax.util.slconfig import SLConfig
 from .remax.model.dino import build_dino
 from .remax.util.coco import build as build_dataset
-from .remax.engine import evaluate
-from .remax.util.coco_eval import CocoEvaluator
 
 from .remax.util.box_ops import box_xyxy_to_cxcywh
 
