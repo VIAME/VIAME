@@ -1,3 +1,5 @@
+add_subdirectory( ops )
+
 kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/attention.py
     arrows/pytorch/remax/model
@@ -14,9 +16,9 @@ kwiver_add_python_module(
     convnext)
                   
 kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/deformable_tranformer.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/deformable_transformer.py
     arrows/pytorch/remax/model
-    deformable_tranformer)
+    deformable_transformer)
                   
 kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/dino.py
