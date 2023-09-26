@@ -166,7 +166,7 @@ class ReMaxDINODetector(ImageObjectDetector):
             detected_object = DetectedObject(bounding_box,
                                              np.max(class_confidence),
                                              detected_object_type)
-            detected_object.add_note(":novelty=" + str(novelty_prob))
+            detected_object.add_note(":novelty=" + str(novelty_prob.item()))
             output.add(detected_object)
 
         inds = []

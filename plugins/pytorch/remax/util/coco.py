@@ -350,8 +350,8 @@ dataset_hook_register = {
 }
                 
 ##################################################################################
-
-class CocoDetection(torchvision.datasets.CocoDetection):
+from torchvision.datasets.coco import CocoDetection as cd
+class CocoDetection(cd):
     def __init__(self, img_folder, ann_file, transforms, return_masks, aux_target_hacks=None):
         super(CocoDetection, self).__init__(img_folder, ann_file)
         self._transforms = transforms

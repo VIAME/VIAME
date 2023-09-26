@@ -33,52 +33,49 @@ from __future__ import division
 
 import time
 import os
-from pathlib import Path
 import pickle
 import mmcv
 import numpy as np
 import torch
 import scipy
 import sys
-import ubelt as ub
-import yaml
+import torchvision.transforms as transforms
 
 from collections import namedtuple
 
+from distutils.util import strtobool
 from kwiver.vital.algo import TrainDetector
 
-from .remax.util.slconfig import SLConfig
-from .remax.model.dino import build_dino
-from .remax.util.coco import build as build_dataset
-
-from .remax.util.box_ops import box_xyxy_to_cxcywh
+from .remax.util.coco import CocoDetection
 
 from .remax.ReMax import ReMax
 
-_Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
+_Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
 
-
-class ReMaxDINOTrainer( TrainDetector ):
-    '''
-    Implementation of TrainDetector class for ReMax Training
-    '''
+class ReMaxMMDetTrainer( TrainDetector ):
+    """
+    This class is meant as a template for new MMDet models
+    to be used to train ReMax models. the set_configuration
+    file is where the mmdet config and mmdet models are loaded
+    and initialized. get_features runs the mmdet detector
+    and may require some changes depending on the specific
+    mmdet model that is being used. update_model normalizes
+    the features. Some experimentation may be required to
+    find which degree of normalization is best for a given dataset
+    """
     _options = [
-        _Option('_gpu_count', 'gpu_count', -1, int, ''),
-        _Option('_norm_degree', 'norm_degree', 1, int, ''),
-        _Option('_launcher', 'launcher', 'pytorch', str, ''), # "none, pytorch, slurm, or mpi" 
-        
-        _Option('_dino_config', 'dino_config', '', str, ''),
-        _Option('_device', 'device', '', str, ''),
-        _Option('_threshold', 'threshold', 0.0, float, ''),
-        _Option('_model_checkpoint_file', 'model_checkpoint_file', '', str, ''),
-        _Option('_work_dir', 'work_dir', '', str, ''),
-        _Option('_output_directory', 'output_directory', '', str, ''),
-        _Option('_feature_directory', 'feature_dir', '', str, ''),
-        _Option('_debug_mode', 'debug_mode', False, bool, ''),
-        _Option('_feature_cache', 'feature_cache', '', str, '')
+        _Option('_gpu_count', 'gpu_count', -1, int),
+        _Option('_output_directory', 'output_directory', '', str),
+        _Option('_debug_mode', 'debug_mode', False, bool),
+        _Option('_feature_cache', 'feature_cache', '', str),
+        _Option('_net_config', 'net_config', '', str),
+        _Option('_weight_file', 'weight_file', '', str),
+        _Option('_gpu_index', 'gpu_index', "0", str),
+        _Option('_num_classes', 'num_classes', 60, int),
+        _Option('_norm_degree', 'norm_degree', 1, int),
+        _Option('_template', 'template', "", str),
+        _Option('_auto_update_model', 'auto_update_model', True, strtobool),
     ]
-
-
     def __init__( self ):
         TrainDetector.__init__(self)
         for opt in self._options:
@@ -100,51 +97,72 @@ class ReMaxDINOTrainer( TrainDetector ):
         self._launcher = "pytorch"  # "none, pytorch, slurm, or mpi" 
         self._train_in_new_process = True
         self._categories = []
+
+    def check_configuration( self, cfg ):
+        return True
     
-    def get_configuration( self ):
+    def get_configuration(self):
         # Inherit from the base class
         cfg = super( TrainDetector, self ).get_configuration()
 
+        cfg.set_value( "config_file", self._config_file )
+        cfg.set_value( "seed_weights", self._seed_weights )
+        cfg.set_value( "train_directory", self._train_directory )
+        cfg.set_value( "output_directory", self._output_directory )
+        cfg.set_value( "output_prefix", self._output_prefix )
+        cfg.set_value( "pipeline_template", self._pipeline_template )
+        cfg.set_value( "gpu_count", str( self._gpu_count ) )
+        cfg.set_value( "random_seed", str( self._random_seed ) )
+        cfg.set_value( "validate", str( self._validate ) )
+        cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
+        cfg.set_value( "launcher", str( self._launcher ) )
+        cfg.set_value( "train_in_new_process", str( self._train_in_new_process ) )
         for opt in self._options:
             cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
-    
-    def set_configuration( self, cfg_in):
+
+    def set_configuration(self, cfg_in):
+        """
+        Loads in MMDet model config and initialized mmdet model.
+        """
         cfg = self.get_configuration()
-        cfg.merge_config( cfg_in )
+        cfg.merge_config(cfg_in)
+
         for opt in self._options:
             setattr(self, opt.attr, opt.parse(cfg.get_value(opt.config)))
 
-        self.ckpt = 0 # TODO: not sure about this
-        self.stage = 'base' # TODO: also not sure about this 
+        import matplotlib
+        matplotlib.use('PS') # bypass multiple Qt load issues
+        from mmdet.apis import init_detector
 
-        device = self._device
-        if ub.iterable(device):
-            self.device = device
-        else:
-            if device == -1:
-                self.device = list(range(torch.cuda.device_count()))
-            else:
-                self.device = [device]
-        if len(self.device) > torch.cuda.device_count():
-            self.device = self.device[:torch.cuda.device_count()]
-            
-        self.original_chkpt_file = self._model_checkpoint_file
-        self.load_model()
+        gpu_string = 'cuda:' + str(self._gpu_index)
+        mmdet_config = mmcv.Config.fromfile(self._net_config)
+        def replace(conf, depth):
+            if depth <= 0:
+                return
+            try:
+                for k,v in conf.items():
+                    if isinstance(v, dict):
+                        replace(v, depth-1)
+                    elif isinstance(v, list):
+                        for element in v:
+                            replace(element, depth-1)
+                    else:
+                        # print(k,v)
+                        if k == 'num_classes':
+                            conf[k] = self._num_classes
+            except:
+                pass
+        self._config = mmdet_config
+        replace(mmdet_config, 500)
+        self._model = init_detector(mmdet_config, self._weight_file, device=gpu_string)
         
-    def check_configuration( self, cfg ):
-        return True
-        if not cfg.has_value( "config_file" ) or len( cfg.get_value( "config_file") ) == 0:
-            print( "A config file must be specified!" )
-            return False
-        return True
-    
     def __getstate__( self ):
         return self.__dict__
 
     def __setstate__( self, dict ):
         self.__dict__ = dict
-
+    
     def bbox_iou(self, boxA, boxB):
         # https://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/
         # ^^ corrected.
@@ -170,7 +188,7 @@ class ReMaxDINOTrainer( TrainDetector ):
         return iou
 
 
-    def match_bboxes(self, bbox_gt, bbox_pred, IOU_THRESH=0.5):
+    def match_bboxes(self, bbox_gt, bbox_pred, IOU_THRESH=0.3):
         '''
         Given sets of true and predicted bounding-boxes,
         determine the best possible match.
@@ -224,81 +242,100 @@ class ReMaxDINOTrainer( TrainDetector ):
         label = sel_valid.astype(int)
 
         return idx_gt_actual[sel_valid], idx_pred_actual[sel_valid], ious_actual[sel_valid], label
+    
+    def build_dataset ( self ):
+        """
+        Creates and returns a dataloader for the OD model
+        """
+        self._config.coco_path = str(os.path.join(self._train_directory, 'train_data_coco.json')) # the path of coco
+        self._config.fix_size = False
+        self._config.image_root = self.image_root
+        self._config.modelname = None
+        self._config.masks = False
+        transformations = transforms.Compose([
+                        transforms.PILToTensor()
+                    ])
+        return CocoDetection(self.image_root, self._config.coco_path,
+                             transforms=transformations, return_masks=self._config.masks)
+    
+    def get_features(self, dataloader):
+        """ Creates and returns a nxm torch tensor of features
+            retrieved from the detections of the OD algorithm
+            where n is the number of detections and m is the
+            length of the feature vector
+        
 
-    def load_model( self ):
-        self.dino_config = SLConfig.fromfile(self._dino_config)
-        self.dino_config.device = 'cuda'
-        self.dino_config.checkpoint_path = self.original_chkpt_file
-        self.dino_config
-        self.model, self.criterion, self.postprocessors = build_dino(self.dino_config)
-        checkpoint = torch.load(self.original_chkpt_file)
-        self.model.load_state_dict(checkpoint['model'])
-        self.model.eval()
+        Args:
+            dataloader (CocoDetection): dataloader created from self.build_dataset
 
+        Returns:
+            _type_: unnormalized tensor of feature vectors from the detections that
+                    most align with the ground truth boxes.
+        """
+        from mmdet.apis import inference_detector
+        train_data = []
+        for image, targets in dataloader:
+            image = image.permute(1,2,0)
+
+            # Running inference on the original detector 
+            # May need to modify the extraction of bboxes from the output
+            # depending on how custom mmdet model outputs boxes
+            input_image = image.cpu().detach().numpy().astype('uint8')
+            detections = inference_detector(self._model, input_image)
+            if isinstance(detections, tuple):
+                bbox_result, _ = detections
+            else:              
+                bbox_result, _ = detections, None
+        
+            if np.size(bbox_result) > 0:
+                bboxes = np.vstack(bbox_result)
+            else:
+                continue
+
+            image = image.permute(2,0,1)
+
+            feats = self._model.extract_feat(image.float().unsqueeze(0).cuda())
+            feat_rois = torch.zeros(bboxes.shape)
+            feat_rois[:, 1:] = torch.from_numpy(bboxes)[:, :4]
+
+            # Requires that the roi head of the Object Detection mmdet model 
+            # has a bbox_roi_extractor attribute. May need to be modified
+            # for the specific roi_head that is used
+            bbox_feats = self._model.roi_head.bbox_roi_extractor(feats, feat_rois.cuda())
+            match_targets = torch.empty(targets['boxes'].shape)
+            for i in range(len(targets['boxes'])):
+                match_targets[i][0] = targets['boxes'][i][0]
+                match_targets[i][1] = targets['boxes'][i][1]
+                match_targets[i][2] = targets['boxes'][i][0] + targets['boxes'][i][2]
+                match_targets[i][3] = targets['boxes'][i][1] + targets['boxes'][i][3]
+            bboxes = torch.tensor(bboxes)
+            _, idxs_pred, _, _ = self.match_bboxes(targets['boxes'], bboxes[:,:4])
+            train_feats = bbox_feats[idxs_pred]
+            train_data.append(train_feats.detach().cpu())
+        train_data = torch.cat(train_data, dim=0)
+
+        if self._debug_mode and not os.path.exists(self._feature_cache):
+            train_data = torch.save(train_data, self._feature_cache)
+        return train_data
+    
     def update_model( self ):
-        self.dino_config.coco_path = str(os.path.join(self._work_dir, 'train_data_coco.json')) # the path of coco
-        self.dino_config.fix_size = False
-        self.dino_config.image_root = self.image_root
-        dataset_train = build_dataset(image_set='train', args=self.dino_config)
+        dataset_train = self.build_dataset()
+        self._debug_mode = False
         if self._debug_mode and os.path.exists(self._feature_cache):
+            print("using feature cache")
             with open(self._feature_cache, 'rb') as f:
                 train_data = torch.load(f)
         else:
-            train_feats = {}
-            count = 0
-            for image, targets in dataset_train:
-                count += 1
-                if count % 50 == 0:
-                    print("processed ", count, "images")
-                # build gt_dict for vis
-                gt_label = [str(int(item)) for item in targets['labels']]
-                iid = targets['image_id']
-                
-                # build pred_dict for vis
-                output = self.model.cuda()(image[None].cuda())
-                output = self.postprocessors['bbox'](output, torch.Tensor([[1.0, 1.0]]).cuda())[0]
-                scores = output['scores']
-                labels = output['labels']
-                feats = output['feats']
-                boxes = box_xyxy_to_cxcywh(output['boxes'])
-                select_mask = scores > self._threshold
+            print("generating bbox features")
+            train_data = self.get_features(dataset_train)
+            saved = torch.save(train_data, self._feature_cache)
 
-                pred_label = [str(int(item)) for item in labels[select_mask]]
-                if len(pred_label) == 0 and len(gt_label) == 0:
-                    continue
-                pred_feats = feats[select_mask]
-                pred_boxes = boxes[select_mask]
-                idxs_true, idxs_pred, _, _ = self.match_bboxes(targets['boxes'], pred_boxes)
-                for i in range(idxs_pred.size):
-                    label = gt_label[idxs_true[i]]
-                    feats = pred_feats[idxs_pred[i]]
-                    boxes = pred_boxes[idxs_pred[i]]
+        # normalize the training features. This may require some experimentation
+        # depending on how the model handles normalization
 
-                    if label not in train_feats.keys():
-                        train_feats[label] = feats.unsqueeze(0)
-                    else:
-                        train_feats[label] = torch.cat((train_feats[label], feats.unsqueeze(0)), 0)
-
-                for i in range(len(pred_label)):
-                    if i not in idxs_pred:
-                        if '-1' not in train_feats.keys():
-                            train_feats['-1'] = pred_feats[i].unsqueeze(0)
-                        else:
-                            train_feats['-1'] = torch.cat((train_feats['-1'], pred_feats[i].unsqueeze(0)), 0)
-
-
-
-            train_data = []
-            for cls in train_feats.keys():
-                train_data.append(train_feats[cls])
-            train_data = torch.cat(train_data, dim=0)
-            if self._debug_mode and not os.path.exists(self._feature_cache):
-                torch.save(train_data, self._feature_cache)
-
-                
-        # Normalization step        
         train_data = torch.linalg.norm(train_data, dim=1, ord=self._norm_degree)
-
+        
+        # Train ReMax model and then save model
         self.remax_model = ReMax(train_data)
 
         self.save_final_model()
@@ -307,6 +344,7 @@ class ReMaxDINOTrainer( TrainDetector ):
         output_model_name = "remax.pkl"
         output_model = os.path.join( self._output_directory,
             output_model_name )
+        
         with open(output_model, 'wb') as f:
             pickle.dump(self.remax_model, f)
 
@@ -314,7 +352,6 @@ class ReMaxDINOTrainer( TrainDetector ):
         if not os.path.exists( output_model ):
             print( "\nModel failed to finsh training\n" )
             sys.exit( 0 )
-
 
         # Output additional completion text
         print( "\nWrote finalized model to " + output_model )
@@ -395,25 +432,23 @@ class ReMaxDINOTrainer( TrainDetector ):
                 categories=cats)
 
             fn = 'train_data_coco.json' if is_train else 'test_data_coco.json'
-            output_file = os.path.join(self._work_dir, fn)
+            output_file = os.path.join(self._train_directory, fn)
             mmcv.dump(coco_format_json, output_file)
             
             print(f"Transformed the dataset into COCO style: {output_file} "
                   f"Num Images {len(images)} and Num Annotations: {len(annotations)}")
-        
-           
-
+            
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "dino_remax_trainer"
+    implementation_name = "example_trainer"
 
     if algorithm_factory.has_algorithm_impl_name(
-      ReMaxDINOTrainer.static_type_name(), implementation_name):
+      ReMaxMMDetTrainer.static_type_name(), implementation_name):
         return
 
     algorithm_factory.add_algorithm(implementation_name,
-      "PyTorch MMDetection inference routine", ReMaxDINOTrainer)
+      "PyTorch MMDetection inference routine", ReMaxMMDetTrainer)
 
     algorithm_factory.mark_algorithm_as_loaded(implementation_name)
