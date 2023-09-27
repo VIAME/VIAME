@@ -21,7 +21,7 @@ import torch
 from torch import nn, Tensor
 
 from .utils import gen_encoder_output_proposals, MLP,_get_activation_fn, gen_sineembed_for_position
-from .ops.modules import MSDeformAttn
+from .ops.modules.ms_deform_attn import MSDeformAttn
 
 class DeformableTransformer(nn.Module):
 
