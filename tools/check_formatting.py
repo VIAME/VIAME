@@ -33,6 +33,9 @@ if __name__ == "__main__" :
     parser.add_argument("--print-types", dest="print_types", action="store_true",
       help="Print unique list of target types")
 
+    parser.add_argument("--track-count", dest="track_count", action="store_true",
+      help="Print total number of tracks")
+
     parser.add_argument("--average-box-size", dest="average_box_size", action="store_true",
       help="Print average box size per type")
 
@@ -53,6 +56,9 @@ if __name__ == "__main__" :
     type_counts = dict()
     type_sizes = dict()
 
+    track_counter = 0
+    state_counter = 0
+
     for input_file in input_files:
 
         print( "Processing " + input_file )
@@ -62,7 +68,7 @@ if __name__ == "__main__" :
 
         id_mappings = dict()
         id_states = dict()
-        has_non_single = False
+        unique_ids = set()
 
         for line in fin:
             if len( line ) > 0 and line[0] == '#' or line[0:9] == 'target_id':
@@ -70,6 +76,10 @@ if __name__ == "__main__" :
             parsed_line = line.rstrip().split(',')
             if len( parsed_line ) < 2:
                 continue
+            if args.track_count:
+                state_counter = state_counter + 1
+                if parsed_line[0] not in unique_ids:
+                    unique_ids.add( parsed_line[0] )
             if args.consolidate_ids:
                 parsed_line[0] = str( 100 * int( int( parsed_line[0] ) / 100 ) )
             if args.decrease_fid:
@@ -105,6 +115,9 @@ if __name__ == "__main__" :
                         type_sizes[ parsed_line[9] ] = ( box_width * box_height )
             output.append( ','.join( parsed_line ) + '\n' )
         fin.close()
+
+        if args.track_counter:
+           track_counter = track_counter + len( unique_ids )
 
         if ( args.assign_uid or args.filter_single ) and not has_non_single:
             print( "Sequence " + input_file + " has all single states" )
