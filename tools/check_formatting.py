@@ -116,7 +116,7 @@ if __name__ == "__main__" :
             output.append( ','.join( parsed_line ) + '\n' )
         fin.close()
 
-        if args.track_counter:
+        if args.track_count:
            track_counter = track_counter + len( unique_ids )
 
         if ( args.assign_uid or args.filter_single ) and not has_non_single:
@@ -131,6 +131,9 @@ if __name__ == "__main__" :
             for line in output:
                 fout.write( line )
             fout.close()
+
+    if args.track_count:
+        print( "Track count: " + str(track_counter) + " , states = " + str(state_counter) )
 
     if args.print_types:
         print( ','.join( type_counts.keys() ) )
