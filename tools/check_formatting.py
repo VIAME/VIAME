@@ -39,6 +39,12 @@ if __name__ == "__main__" :
     parser.add_argument("--average-box-size", dest="average_box_size", action="store_true",
       help="Print average box size per type")
 
+    parser.add_argument("--conf-threshold", dest="conf_threshold", type=float, default="-1.0",
+      help="Confidence threshold")
+
+    parser.add_argument("--type-threshold", dest="type_threshold", type=float, default="-1.0",
+      help="Confidence threshold")
+
     args = parser.parse_args()
 
     input_files = []
@@ -76,6 +82,14 @@ if __name__ == "__main__" :
             parsed_line = line.rstrip().split(',')
             if len( parsed_line ) < 2:
                 continue
+            if args.conf_threshold > 0 and len( parsed_line ) > 7:
+                if float( parsed_line[7] ) < args.conf_threshold:
+                    continue
+            if args.type_threshold > 0:
+                if len( parsed_line ) < 11:
+                    continue
+                if float( parsed_line[10] ) < args.type_threshold:
+                    continue
             if args.track_count:
                 state_counter = state_counter + 1
                 if parsed_line[0] not in unique_ids:
