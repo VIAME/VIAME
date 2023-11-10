@@ -73,7 +73,7 @@ if( VIAME_ENABLE_OPENCV )
 endif()
 
 if( VIAME_ENABLE_LEARN AND Python_VERSION VERSION_LESS "3.7" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.15.7" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.15.7" "fsspec<=2022.1.0" )
   if( WIN32 )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "pyarrow==4.0.0" )
   else()
