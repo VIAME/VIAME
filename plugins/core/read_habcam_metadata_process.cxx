@@ -278,6 +278,7 @@ read_habcam_metadata_process
     fin.seekg( -d->m_scan_length, std::ios_base::end );
     buffer << fin.rdbuf();
     std::string ascii_snippet = buffer.str();
+    fin.close();
 
     auto meta_start = ascii_snippet.find( "pixelformat=" );
 
@@ -339,6 +340,7 @@ read_habcam_metadata_process
 
     std::vector< std::string > tokens;
     tokenize( ascii_snippet, tokens );
+    fclose( fin );
 
     int image_id_ind = -1;
 
