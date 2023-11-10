@@ -89,6 +89,12 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 # Output check statments
 if grep -q "Built target viame" build_log.txt; then
   echo "VIAME Build Succeeded"
+
+  # Make zip file of install
+  mv install viame
+  rm VIAME-v1.0.0-Ubuntu-64Bit.tar.gz ||:
+  tar -zcvf VIAME.tar.gz viame
+  mv viame install
 else
   echo "VIAME Build Failed"
   exit 1

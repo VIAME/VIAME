@@ -111,6 +111,12 @@ mv VIAME.tar.gz VIAME-CPU-v1.0.0-Linux-64Bit.tar.gz
 # Output check statments
 if grep -q "Built target viame" build_log.txt; then
   echo "VIAME Build Succeeded"
+
+  # Make zip file of install
+  mv install viame
+  rm VIAME-CPU-v1.0.0-Linux-64Bit.tar.gz ||:
+  tar -zcvf VIAME.tar.gz viame
+  mv viame install
 else
   echo "VIAME Build Failed"
   exit 1
