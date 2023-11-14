@@ -1,3 +1,14 @@
+v0.20.3 - 11/14/2023
+====================
+
+
+-Fix issue when running metadata-using pipelines on image sequences with more than 6000 files
+
+
+-Add additional algorithms for Novelty detection
+
+
+
 v0.20.2 - 08/18/2023
 ====================
 
