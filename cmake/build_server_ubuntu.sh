@@ -93,7 +93,7 @@ if grep -q "Built target viame" build_log.txt; then
   # Make zip file of install
   mv install viame
   rm VIAME-v1.0.0-Ubuntu-64Bit.tar.gz ||:
-  tar -zcvf VIAME.tar.gz viame
+  tar -zcvf VIAME-v1.0.0-Ubuntu-64Bit.tar.gz viame
   mv viame install
 else
   echo "VIAME Build Failed"
