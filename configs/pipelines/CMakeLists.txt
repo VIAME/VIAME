@@ -255,11 +255,12 @@ endif()
 # Darknet specific configs
 if( VIAME_ENABLE_DARKNET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_darknet_yolo_640.viame_csv.conf
+    train_detector_darknet_yolo_640.adaptive.viame_csv.conf
     train_detector_darknet_yolo_640.grid_only.viame_csv.conf
-    train_detector_darknet_yolo_704.habcam.conf
-    train_detector_darknet_yolo_704.kw18.conf
-    train_detector_darknet_yolo_full.viame_csv.conf )
+    train_detector_darknet_yolo_640.no_grid.viame_csv.conf
+    train_detector_darknet_yolo_704.adaptive.habcam.conf
+    train_detector_darknet_yolo_704.adaptive.kw18.conf
+    train_detector_darknet_yolo_full_res.no_grid.viame_csv.conf )
 endif()
 
 # Configs used exclusively for VIEW
@@ -445,9 +446,9 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     utility_add_head_tail_keypoints.pipe
     utility_enhance.pipe
     utility_extract_chips.pipe
-    train_detector_darknet_yolo_704.habcam.conf
-    train_detector_darknet_yolo_704.kw18.conf
-    train_detector_darknet_yolo_full.viame_csv.conf
+    train_detector_darknet_yolo_704.adaptive.habcam.conf
+    train_detector_darknet_yolo_704.adaptive.kw18.conf
+    train_detector_darknet_yolo_full_res.no_grid.viame_csv.conf
     train_detector_netharn_cfrnn.continue.viame_csv.conf
     train_detector_netharn_cfrnn.habcam.conf
     train_detector_netharn_cfrnn_special.viame_csv.conf
