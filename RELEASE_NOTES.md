@@ -1,4 +1,4 @@
-v0.20.3 - 11/14/2023
+v0.20.3 - 12/01/2023
 ====================
 
 
@@ -6,6 +6,9 @@ v0.20.3 - 11/14/2023
 
 
 -Add additional algorithms for Novelty detection
+
+
+-Update darknet repo and adjust default YOLO architecture and settings
 
 
 
