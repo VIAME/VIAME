@@ -105,9 +105,9 @@ if( VIAME_DOWNLOAD_MODELS )
   # Darknet training seed models
   if( VIAME_ENABLE_DARKNET )
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/62d4dce1bddec9d0c45562d1/download
-      e53ba94e313e24b62ef05455e4a1e334
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v7_seed_model-v1.0.zip
+      https://data.kitware.com/api/v1/item/65697428c5a2b36857ad1a0a/download
+      80cfe1dfd89ccd938b587a81b13bdef9
+      ${VIAME_DOWNLOAD_DIR}/models-yolo_v4_csp_s_seed_model-v1.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
 
