@@ -247,20 +247,20 @@ endif()
 # Pytorch specific configs
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_default.viame_csv.conf
-    train_frame_classifier_default.viame_csv.conf
-    train_reclassifier_default.viame_csv.conf )
+    train_detector_default.conf
+    train_frame_classifier_default.conf
+    train_reclassifier_default.conf )
 endif()
 
 # Darknet specific configs
 if( VIAME_ENABLE_DARKNET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_darknet_yolo_640.viame_csv.conf
-    train_detector_darknet_yolo_640.grid_only.viame_csv.conf
-    train_detector_darknet_yolo_640.no_grid.viame_csv.conf
+    train_detector_darknet_yolo_640.conf
+    train_detector_darknet_yolo_640.grid_only.conf
+    train_detector_darknet_yolo_640.no_grid.conf
     train_detector_darknet_yolo_704.habcam.conf
     train_detector_darknet_yolo_704.kw18.conf
-    train_detector_darknet_yolo_full_res.no_grid.viame_csv.conf )
+    train_detector_darknet_yolo_full_res.no_grid.conf )
 endif()
 
 # Configs used exclusively for VIEW
@@ -331,9 +331,9 @@ if( VIAME_ENABLE_SMQTK )
     smqtk_postgres_ingest.json
     smqtk_query.pipe
     smqtk_train_itq.json
-    train_detector_svm_over_fish_detections.viame_csv.conf
-    train_detector_svm_over_generic_detections.viame_csv.conf
-    train_frame_classifier_libsvm_svm.viame_csv.conf )
+    train_detector_svm_over_fish_detections.conf
+    train_detector_svm_over_generic_detections.conf
+    train_frame_classifier_libsvm_svm.conf )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
@@ -353,29 +353,29 @@ endif()
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
 #  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
 #    train_detector_mmdet_cfrnn.habcam.conf
-#    train_detector_mmdet_cfrnn.viame_csv.conf)
+#    train_detector_mmdet_cfrnn.conf)
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_netharn_cfrnn.viame_csv.conf
-    train_detector_netharn_cfrnn.grid_only.viame_csv.conf
-    train_detector_netharn_cfrnn.grid_only.20ep.viame_csv.conf
-    train_detector_netharn_cfrnn.grid_only.40ep.viame_csv.conf
-    train_detector_netharn_cfrnn.continue.viame_csv.conf
+    train_detector_netharn_cfrnn.conf
+    train_detector_netharn_cfrnn.grid_only.conf
+    train_detector_netharn_cfrnn.grid_only.20ep.conf
+    train_detector_netharn_cfrnn.grid_only.40ep.conf
+    train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn.habcam.conf
-    train_detector_netharn_cfrnn_motion.viame_csv.conf
-    train_detector_netharn_cfrnn_special.viame_csv.conf
-    train_detector_netharn_cfrnn_wtf.viame_csv.conf
-    train_detector_netharn_mask_rcnn_720.viame_csv.conf
-    train_detector_netharn_mask_rcnn_1280.viame_csv.conf
-    train_detector_netharn_mask_rcnn_grid.viame_csv.conf
-    train_frame_classifier_netharn_efficientnet.viame_csv.conf
-    train_frame_classifier_netharn_efficientnet.continue.viame_csv.conf
-    train_frame_classifier_netharn_resnet.viame_csv.conf
-    train_frame_classifier_netharn_resnet.continue.viame_csv.conf
-    train_reclassifier_netharn_efficientnet.viame_csv.conf
-    train_reclassifier_netharn_resnet.viame_csv.conf )
+    train_detector_netharn_cfrnn_motion.conf
+    train_detector_netharn_cfrnn_special.conf
+    train_detector_netharn_cfrnn_wtf.conf
+    train_detector_netharn_mask_rcnn_720.conf
+    train_detector_netharn_mask_rcnn_1280.conf
+    train_detector_netharn_mask_rcnn_grid.conf
+    train_frame_classifier_netharn_efficientnet.conf
+    train_frame_classifier_netharn_efficientnet.continue.conf
+    train_frame_classifier_netharn_resnet.conf
+    train_frame_classifier_netharn_resnet.continue.conf
+    train_reclassifier_netharn_efficientnet.conf
+    train_reclassifier_netharn_resnet.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
@@ -448,13 +448,13 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     utility_extract_chips.pipe
     train_detector_darknet_yolo_704.habcam.conf
     train_detector_darknet_yolo_704.kw18.conf
-    train_detector_darknet_yolo_full_res.no_grid.viame_csv.conf
-    train_detector_netharn_cfrnn.continue.viame_csv.conf
+    train_detector_darknet_yolo_full_res.no_grid.conf
+    train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn.habcam.conf
-    train_detector_netharn_cfrnn_special.viame_csv.conf
-    train_detector_netharn_cfrnn_wtf.viame_csv.conf
-    train_frame_classifier_netharn_efficientnet.continue.viame_csv.conf
-    train_frame_classifier_netharn_resnet.continue.viame_csv.conf )
+    train_detector_netharn_cfrnn_special.conf
+    train_detector_netharn_cfrnn_wtf.conf
+    train_frame_classifier_netharn_efficientnet.continue.conf
+    train_frame_classifier_netharn_resnet.continue.conf )
 
   foreach( ITEM ${VIAME_WEB_FILES_TO_IGNORE} )
     list( REMOVE_ITEM CORE_PIPELINE_FILES "${ITEM}" )

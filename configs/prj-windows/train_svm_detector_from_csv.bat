@@ -14,7 +14,7 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 
 viame_train_detector.exe ^
   -i "%INPUT_DIRECTORY%" ^
-  -c "%VIAME_INSTALL%\configs\pipelines\train_detector_svm_over_generic_detections.viame_csv.conf" ^
+  -c "%VIAME_INSTALL%\configs\pipelines\train_detector_svm_over_generic_detections.conf" ^
   --threshold 0.0
 
 pause

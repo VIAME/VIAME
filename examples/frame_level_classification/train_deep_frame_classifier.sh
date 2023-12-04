@@ -14,5 +14,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 
 viame_train_detector \
   -i ${INPUT_DIRECTORY} \
-  -c ${VIAME_INSTALL}/configs/pipelines/train_frame_classifier_netharn_efficientnet.viame_csv.conf \
+  -c ${VIAME_INSTALL}/configs/pipelines/train_frame_classifier_netharn_efficientnet.conf \
   --threshold 0.0

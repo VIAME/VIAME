@@ -15,5 +15,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 
 viame_train_detector \
   -i ${INPUT_DIRECTORY} \
-  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.viame_csv.conf \
+  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.conf \
   --threshold 0.0 --default-vfr ${DEFAULT_FRAME_RATE}

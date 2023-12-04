@@ -88,7 +88,7 @@ if( VIAME_ENABLE_LEARN )
 
     set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
       learn/detector_convnext_baseline_xl.pipe
-      learn/train_detector_mmdet_convnext_cascade.viame_csv.conf )
+      learn/train_detector_mmdet_convnext_cascade.conf )
   endif()
   if( VIAME_DOWNLOAD_MODELS-POOLCAR )
     DownloadAndInstallAddOn(
