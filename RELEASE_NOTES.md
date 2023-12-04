@@ -11,6 +11,9 @@ v0.20.3 - 12/01/2023
 -Update darknet repo and adjust default YOLO architecture and settings
 
 
+-Default configuration file renaming
+
+
 
 v0.20.2 - 08/18/2023
 ====================
