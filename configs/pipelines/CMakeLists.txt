@@ -255,6 +255,7 @@ endif()
 # Darknet specific configs
 if( VIAME_ENABLE_DARKNET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_darknet_yolo_default.conf
     train_detector_darknet_yolo_640.conf
     train_detector_darknet_yolo_640.grid_only.conf
     train_detector_darknet_yolo_640.no_grid.conf
