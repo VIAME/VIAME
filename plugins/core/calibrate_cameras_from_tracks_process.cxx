@@ -160,8 +160,8 @@ calibrate_cameras_from_tracks_process::priv::split_object_track(const kv::object
       }
 
       // Only keep image and world points for which xyz values has been found in notes
-      if (attrs.count("x") && attrs.count("y") && attrs.count("z")) {
-        kv::vector_3d pt = kv::vector_3d(attrs["x"], attrs["y"], attrs["z"]);
+      if (attrs.count("stereo3d_x") && attrs.count("stereo3d_y") && attrs.count("stereo3d_z")) {
+        kv::vector_3d pt = kv::vector_3d(attrs["stereo3d_x"], attrs["stereo3d_y"], attrs["stereo3d_z"]);
         if (!landmarks.count(track->id())) {
           landmarks[track->id()] = kv::landmark_sptr(new kv::landmark_d(pt));
         }
