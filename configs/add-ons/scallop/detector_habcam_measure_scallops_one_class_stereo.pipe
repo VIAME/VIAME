@@ -1,0 +1,98 @@
+# Process the left image (or full image if non-stitched pair)
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    10
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_habcam_input.pipe
+
+# =================================== DETECTOR =====================================
+
+include common_scallop_one_class_detector_left.pipe
+
+connect from left_image_filter.image
+        to   detector_input_left.image
+
+include common_scallop_one_class_detector_right.pipe
+
+connect from right_image_filter.image
+        to   detector_input_right.image
+
+# =================================== MEASURER =====================================
+
+process measurer_pass1
+  :: measure_using_stereo
+  relativepath calibration_file =              models/cal_habcam_cff.npz
+
+connect from detector_output_left.detected_object_set
+        to   measurer_pass1.detected_object_set1
+connect from detector_output_right.detected_object_set
+        to   measurer_pass1.detected_object_set2
+
+process measurer_pass2_left
+  :: refine_measurements
+  :recompute_all                               false
+  :output_multiple                             false
+  :output_conf_level                           true
+  :min_valid                                   10.0
+  :max_valid                                   230.0
+  :history_length                              1
+  :exp_factor                                  0.9
+  :border_factor                               5
+  :percentile                                  0.45
+
+connect from measurer_pass1.detected_object_set1
+        to   measurer_pass2_left.detected_object_set
+connect from detector_input_left.image
+        to   measurer_pass2_left.image
+
+process measurer_pass2_right
+  :: refine_measurements
+  :recompute_all                               false
+  :output_multiple                             false
+  :output_conf_level                           true
+  :min_valid                                   10.0
+  :max_valid                                   230.0
+  :history_length                              1
+  :exp_factor                                  0.9
+  :border_factor                               5
+  :percentile                                  0.45
+
+connect from measurer_pass1.detected_object_set2
+        to   measurer_pass2_right.detected_object_set
+connect from detector_input_right.image
+        to   measurer_pass2_right.image
+
+# ==================================== WRITER ======================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections_left.csv
+  :writer:type                                 viame_csv
+
+connect from measurer_pass2_left.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+
+process detector_writer2
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections_right.csv
+  :writer:type                                 viame_csv
+
+connect from measurer_pass2_right.detected_object_set
+        to   detector_writer2.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer2.image_file_name
+
+# -- end of file --

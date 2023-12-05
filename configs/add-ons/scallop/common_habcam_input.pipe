@@ -1,0 +1,12 @@
+# HabCam Input Configuration
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_habcam_input_left.pipe
+
+# =================================== DETECTOR =====================================
+
+include common_color_correction_right.pipe
+
+connect from split.right_image
+        to   right_image_debayer.image

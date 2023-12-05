@@ -1,0 +1,54 @@
+# Process the left image (or full image if non-stitched pair)
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    10
+
+# ================================ INPUT FORMATTER =================================
+
+include common_habcam_input_left.pipe
+
+# =================================== DETECTOR1 ====================================
+
+process detector_left
+  :: image_object_detector
+  :detector:type                               netharn
+
+  block detector:netharn
+    relativepath deployed =                    models/scallop_hrnet_four_class.zip
+  endblock
+
+connect from left_image_filter.image
+        to   detector_left.image
+
+process nms_refiner_left
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+    :max_scale_difference                      2.0
+    :min_scale_difference                      0.5
+  endblock
+
+connect from detector_left.detected_object_set
+        to   nms_refiner_left.detected_object_set
+
+# ==================================== WRITER ======================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from nms_refiner_left.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+
+# -- end of file --

@@ -1,0 +1,69 @@
+# Detector, scallop-only trained using netharn
+#
+# This pipeline assumes stereo imagery together in a composite image as input. The
+# first 'splitting' process selects either the left or right side of the image to
+# perform detection on. Replace 'left_image_filter.image' with 'split.right_image' to
+# perform detection on the other side.
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_habcam_input_left.pipe
+
+# =================================== DETECTOR =====================================
+process detector
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      chip_and_original
+    :scale                                     1.0
+    :chip_width                                512
+    :chip_height                               512
+    :chip_step_width                           300
+    :chip_step_height                          300
+    :chip_adaptive_thresh                      1200000
+
+    block detector:netharn
+      relativepath deployed =                  models/multi_category_cfrnn.zip
+    endblock
+  endblock
+
+connect from left_image_filter.image
+        to   detector.image
+
+process detector_nms
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.40
+    :nms_scale_factor                          1.25
+    :output_scale_factor                       1.00
+    :max_scale_difference                      100
+  endblock
+
+connect from detector.detected_object_set
+        to   detector_nms.detected_object_set
+
+# ==================================== WRITER ======================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from detector_nms.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+
+# -- end of file --

@@ -1,0 +1,103 @@
+# Habcam Pipeline
+#
+# Runs multiple object detectors in a pipeline.
+#
+# Un-comment each detector in order to use it (memory usage / load will increase):
+#
+#    (a) CFRNN - Mid-Res Cascade RNN Scallop Detector (enabled by default)
+#    (b) CFRNN - High-Res Cascade RNN Scallop Detector (disabled by default)
+#    (c) YOLOv2 - Mid Res YOLOv2 HabCam Fish Detector (enabled by default)
+#    (d) YOLOv2 - High Res YOLOv2 Alternative Scallop Detector (disabled by default)
+#    (e) Scallop-TK - Alternative Scallop Detector (disabled by default)
+#    (f) Scallop-Finder - Alternative matlab Scallop Detector (disabled by default)
+#
+# This pipeline assumes stereo imagery together in a composite image as input. The
+# first 'splitting' process selects either the left or right side of the image to
+# perform detection on. Replace 'left_image_filter.image' with 'split.right_image' to
+# perform detection on the other side.
+#
+# Notes: All scallop and fish models are still in being compared with each other,
+# and these are released in a 'beta' state. In the near-future they will be
+# consolidated and only the highest-scoring ones will be kept in this file.
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_habcam_input_left.pipe
+
+# ================================ FUSION SCALLOP ==================================
+
+include common_scallop_one_class_detector_left.pipe
+
+connect from left_image_filter.image
+        to   detector_input_left.image
+
+# ================================= YOLO V2 FISH ===================================
+
+process fish_yolo_v2_detector
+  :: image_object_detector
+  :detector:type                               darknet
+
+  block detector:darknet
+
+    # Network config, weights, and names
+    relativepath net_config =                  models/fish_yolo_v2.cfg
+    relativepath weight_file =                 models/fish_yolo_v2.weights
+    relativepath class_names =                 models/fish_yolo_v2.lbl
+
+    # Detector parameters
+    :thresh                                    0.001
+    :hier_thresh                               0.001
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             maintain_ar
+    :scale                                     1.0
+
+  endblock
+
+process fish_yolo_v2_filter
+  :: detected_object_filter
+  :filter:type                                 class_probablity_filter
+
+  block filter:class_probablity_filter
+
+    # Filter parameters
+    :threshold                                 0.100
+    :keep_all_classes                          false
+    :keep_classes                              skate;roundfish;flatfish;otherfish
+
+  endblock
+
+connect from left_image_filter.image
+        to   fish_yolo_v2_detector.image
+connect from fish_yolo_v2_detector.detected_object_set
+        to   fish_yolo_v2_filter.detected_object_set
+
+# ============================ MERGED DETECTION WRITER =============================
+
+process final_merger
+  :: merge_detection_sets
+
+connect from detector_output_left.detected_object_set
+        to   final_merger.detected_object_set1
+connect from fish_yolo_v2_filter.detected_object_set
+        to   final_merger.detected_object_set2
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from final_merger.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+

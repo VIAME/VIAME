@@ -1,0 +1,33 @@
+# Process the left image (or full image if non-stitched pair)
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    10
+
+# ================================ INPUT FORMATTER =================================
+
+include common_habcam_input_left.pipe
+
+# =================================== DETECTORS ====================================
+
+include common_scallop_four_class_detector_left.pipe
+
+connect from left_image_filter.image
+        to   detector_input_left.image
+
+# ==================================== WRITER ======================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from reclassifier_nms_left.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+
+# -- end of file --

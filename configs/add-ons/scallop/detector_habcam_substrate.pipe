@@ -1,0 +1,402 @@
+# Atlantic Substrate Classifier from HABCAM Vehicles
+#
+# This pipeline assumes we want to process and classify the full input image.
+#
+# ==============================================================================
+#                               Global Properties
+# ==============================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    10
+
+include common_habcam_input_left.pipe
+
+# ==============================================================================
+#                              Classifier Subsystem
+# ==============================================================================
+
+process classifier_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from left_image_filter.image
+        to   classifier_input.image
+
+process merger
+  :: merge_detection_sets
+
+# ==============================================================================
+
+process classifier1
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/boulder.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier1.image
+connect from classifier1.detected_object_set
+        to   merger.detected_object_set1
+
+process classifier2
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/bryozoan_levels.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier2.image
+connect from classifier2.detected_object_set
+        to   merger.detected_object_set2
+
+process classifier3
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/burrowing_anemones.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier3.image
+connect from classifier3.detected_object_set
+        to   merger.detected_object_set3
+
+process classifier4
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/clam_bed.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier4.image
+connect from classifier4.detected_object_set
+        to   merger.detected_object_set4
+
+process classifier5
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/covered.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier5.image
+connect from classifier5.detected_object_set
+        to   merger.detected_object_set5
+
+process classifier6
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/detritus.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier6.image
+connect from classifier6.detected_object_set
+        to   merger.detected_object_set6
+
+process classifier7
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/diverse_epifauna.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier7.image
+connect from classifier7.detected_object_set
+        to   merger.detected_object_set7
+
+process classifier8
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/gastropods.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier8.image
+connect from classifier8.detected_object_set
+        to   merger.detected_object_set8
+
+process classifier9
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/gravel_levels.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier9.image
+connect from classifier9.detected_object_set
+        to   merger.detected_object_set9
+
+process classifier10
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/mixed_invertebrates.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier10.image
+connect from classifier10.detected_object_set
+        to   merger.detected_object_set10
+
+process classifier11
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/mussel_bed.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier11.image
+connect from classifier11.detected_object_set
+        to   merger.detected_object_set11
+
+process classifier12
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/organic_other.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier12.image
+connect from classifier12.detected_object_set
+        to   merger.detected_object_set12
+
+process classifier13
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/patchy_or_rows.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier13.image
+connect from classifier13.detected_object_set
+        to   merger.detected_object_set13
+
+process classifier14
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/pennatulids.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier14.image
+connect from classifier14.detected_object_set
+        to   merger.detected_object_set14
+
+process classifier15
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/sand_dollar_bed.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier15.image
+connect from classifier15.detected_object_set
+        to   merger.detected_object_set15
+
+process classifier16
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/sand_waves.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier16.image
+connect from classifier16.detected_object_set
+        to   merger.detected_object_set16
+
+process classifier17
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/scallop_bed.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier17.image
+connect from classifier17.detected_object_set
+        to   merger.detected_object_set17
+
+process classifier18
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/sea_star_bed.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier18.image
+connect from classifier18.detected_object_set
+        to   merger.detected_object_set18
+
+process classifier19
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/shell_levels.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier19.image
+connect from classifier19.detected_object_set
+        to   merger.detected_object_set19
+
+process classifier20
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/sponges.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier20.image
+connect from classifier20.detected_object_set
+        to   merger.detected_object_set20
+
+process classifier21
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/tunicates.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier21.image
+connect from classifier21.detected_object_set
+        to   merger.detected_object_set21
+
+process classifier22
+  :: image_object_detector
+  :detector:type                               netharn_classifier
+
+  block detector:netharn_classifier
+    :mode                                      frame_classifier
+    :batch_size                                1
+    :negative_class                            background
+    relativepath deployed =                    models/whole_shells.zip
+  endblock
+
+connect from classifier_input.image
+        to   classifier22.image
+connect from classifier22.detected_object_set
+        to   merger.detected_object_set22
+
+# ==============================================================================
+#                              Output Writers
+# ==============================================================================
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from merger.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name

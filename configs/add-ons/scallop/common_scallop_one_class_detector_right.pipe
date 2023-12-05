@@ -1,0 +1,186 @@
+
+# ================================ INPUT FORMATTER =================================
+
+process detector_input_right
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+# =================================== DETECTOR1 ====================================
+
+process detector_right_1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      chip
+    :chip_width                                640
+    :chip_height                               640
+    :chip_step_width                           360
+    :chip_step_height                          384
+    :chip_edge_filter                          6
+
+    block detector:netharn
+      relativepath deployed =                  models/scallop_cfrnn_one_class.zip
+    endblock
+  endblock
+
+connect from detector_input_right.image
+        to   detector_right_1.image
+
+process nms_refiner_right_1
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+    :max_scale_difference                      2.0
+    :min_scale_difference                      0.5
+  endblock
+
+connect from detector_right_1.detected_object_set
+        to   nms_refiner_right_1.detected_object_set
+
+# =================================== DETECTOR2 ====================================
+
+process detector_right_2
+  :: image_object_detector
+  :detector:type                               darknet
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                 models/scallop_yolo_v7_one_class.cfg
+    relativepath weight_file =                 models/scallop_yolo_v7_one_class.weights
+    relativepath class_names =                 models/scallop_yolo_v7_one_class.lbl
+
+    # Detector parameters
+    :thresh                                    0.010
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             chip
+    :scale                                     1.0
+    :chip_step                                 384
+    :chip_edge_filter                          5
+  endblock
+
+connect from detector_input_right.image
+        to   detector_right_2.image
+
+process nms_refiner_right_2
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+    :max_scale_difference                      2.0
+    :min_scale_difference                      0.5
+  endblock
+
+connect from detector_right_2.detected_object_set
+        to   nms_refiner_right_2.detected_object_set
+
+# =================================== DETECTOR3 ====================================
+
+process detector_right_3
+  :: image_object_detector
+  :detector:type                               netharn
+
+  block detector:netharn
+    relativepath deployed =                    models/scallop_hrnet_four_class.zip
+  endblock
+
+connect from detector_input_right.image
+        to   detector_right_3.image
+
+# =================================== DETECTOR4 ====================================
+
+process reclassifier_merger_right
+  :: merge_detection_sets
+
+  :merger:type                                 merge
+
+connect from nms_refiner_right_1.detected_object_set
+        to   reclassifier_merger_right.detected_object_set1
+connect from detector_right_3.detected_object_set
+        to   reclassifier_merger_right.detected_object_set2
+
+process reclassifier_nms_right
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+    :max_scale_difference                      2.0
+    :min_scale_difference                      0.5
+  endblock
+
+connect from reclassifier_merger_right.detected_object_set
+        to   reclassifier_nms_right.detected_object_set
+
+process reclassifier_right
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    models/scallop_efficientnet_one_class.zip
+
+    :batch_size                                auto
+    :area_pivot                                0
+    :border_exclude                            0
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.6
+    :average_prior                             False
+  endblock
+
+connect from detector_input_right.image
+        to   reclassifier_right.image
+connect from reclassifier_nms_right.detected_object_set
+        to   reclassifier_right.detected_object_set
+
+# ================================ DETECTOR FUSER ==================================
+
+process detector_fuser_right
+  :: merge_detection_sets
+
+  :merger:type                                 nms_fusion
+  :merger:nms_fusion:fusion_weights            [ 0.75, 0.50, 1.0, 1.5 ]
+  :merger:nms_fusion:iou_thr                   0.75
+  :merger:nms_fusion:label_dic                 { 'background':0, 'scallop':1, 'live_sea_scallop':1, 'swimming_sea_scallop':1, 'dead_sea_scallop':1, 'clapper':1 }
+
+connect from nms_refiner_right_1.detected_object_set
+        to   detector_fuser_right.detected_object_set1
+connect from nms_refiner_right_2.detected_object_set
+        to   detector_fuser_right.detected_object_set2
+connect from detector_right_3.detected_object_set
+        to   detector_fuser_right.detected_object_set3
+connect from reclassifier_right.detected_object_set
+        to   detector_fuser_right.detected_object_set4
+
+process detector_output_right
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.60
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+    :max_scale_difference                      5.0
+    :min_scale_difference                      0.1
+  endblock
+
+connect from detector_fuser_right.detected_object_set
+        to   detector_output_right.detected_object_set

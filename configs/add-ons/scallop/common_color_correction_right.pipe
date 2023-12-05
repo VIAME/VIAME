@@ -1,0 +1,30 @@
+# Optionally debayers and enhances the image if it isn't already RGB (3-channel)
+
+# =================================== DEBAYER ======================================
+
+process right_image_debayer
+  :: image_filter
+  :filter:type                                 ocv_debayer
+  :filter:ocv_debayer:pattern                  BG
+  :filter:ocv_debayer:force_8bit               true
+
+# =================================== FILTERS ======================================
+
+process right_image_filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+  :filter:ocv_enhancer:apply_smoothing         false
+  :filter:ocv_enhancer:smooth_kernel           3
+  :filter:ocv_enhancer:apply_denoising         false
+  :filter:ocv_enhancer:denoise_kernel          3
+  :filter:ocv_enhancer:denoise_coeff           2
+  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:force_8bit              false
+  :filter:ocv_enhancer:apply_clahe             true
+  :filter:ocv_enhancer:clip_limit              3
+  :filter:ocv_enhancer:saturation              1.20
+
+connect from right_image_debayer.image
+        to   right_image_filter.image
+connect from right_image_debayer.success_flag
+        to   right_image_filter.process_flag

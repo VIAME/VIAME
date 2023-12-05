@@ -1,0 +1,23 @@
+# Debayer and color correct the left image only on a given input or input pair
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_habcam_input.pipe
+
+# ==================================== OUTPUT ======================================
+
+process image_writer
+  :: image_writer
+  :file_name_template                          .png
+  :image_writer:type                           vxl
+
+connect from right_image_filter.image
+        to   image_writer.image
+connect from downsampler.output_2
+        to   image_writer.image_file_name
