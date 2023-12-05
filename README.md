@@ -107,7 +107,7 @@ CentOS
 * [SEAL Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
 
 **Optional Add-Ons and Model Files:** <br>
-* [AAdditional YOLO Architectures, All OS](https://data.kitware.com/api/v1/item/656f5458dfc0e5d60cffa203/download) <br>
+* [Additional YOLO Architectures, All OS](https://data.kitware.com/api/v1/item/656f5458dfc0e5d60cffa203/download) <br>
 * [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
 * [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
 * [EM Tuna Detectors, All OS](https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download) <br>
