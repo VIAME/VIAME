@@ -7,3 +7,4 @@ MOUSS Deep 7,https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/down
 Aerial Penguin,https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download,Aerial penguin detection from fixed wings/drones
 Sea Lion,https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download,Sea lion aerial detection data
 ConvNext,https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download, DARPA Learn ConvNext low-shot detector
+MoreYOLO,https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download, Additional Darknet YOLO model architectures
