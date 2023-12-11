@@ -45,6 +45,9 @@ if __name__ == "__main__" :
     parser.add_argument("--type-threshold", dest="type_threshold", type=float, default="-1.0",
       help="Confidence threshold")
 
+    parser.add_argument("--print-filtered", dest="print_filtered", action="store_true",
+      help="Print out tracks that were filtered out")
+
     args = parser.parse_args()
 
     input_files = []
@@ -75,6 +78,7 @@ if __name__ == "__main__" :
         id_mappings = dict()
         id_states = dict()
         unique_ids = set()
+        printed_ids = set()
 
         for line in fin:
             if len( line ) > 0 and line[0] == '#' or line[0:9] == 'target_id':
@@ -84,11 +88,17 @@ if __name__ == "__main__" :
                 continue
             if args.conf_threshold > 0 and len( parsed_line ) > 7:
                 if float( parsed_line[7] ) < args.conf_threshold:
+                    if args.print_filtered and parsed_line[0] not in printed_ids:
+                        print( "Id: " + parsed_line[0] + " filtered" )
+                        printed_ids.add( parsed_line[0] )
                     continue
             if args.type_threshold > 0:
                 if len( parsed_line ) < 11:
                     continue
                 if float( parsed_line[10] ) < args.type_threshold:
+                    if args.print_filtered and parsed_line[0] not in printed_ids:
+                        print( "Id: " + parsed_line[0] + " filtered" )
+                        printed_ids.add( parsed_line[0] )
                     continue
             if args.track_count:
                 state_counter = state_counter + 1
@@ -157,4 +167,3 @@ if __name__ == "__main__" :
         for i in type_sizes:
             size_str = str( float( type_sizes[ i ] ) / type_counts[ i ] )
             print( i + " " + size_str + " " + str( type_counts[ i ] ) )
-  
