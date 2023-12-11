@@ -537,6 +537,12 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "use_labels", "true",
     "Adjust labels based on labels.txt file in this loader instead of passing the "
     "responsibility to individual detector trainer classes." );
+  config->set_value( "downsample", "0",
+    "Downsample factor applied across all inputs." );
+  config->set_value( "targetted_downsample", "0",
+    "Extra downsample factor applied across certain inputs." );
+  config->set_value( "targetted_downsample_string", "",
+    "Apply extra targetted downsample to inputs containing this string." );
   config->set_value( "secondary_frame_labels", "",
     "Secondary categories should be suppressed if a primary category is present "
     "on a particular frame." );
@@ -1450,6 +1456,12 @@ main( int argc, char* argv[] )
     config->get_value< unsigned >( "max_frame_count" );
   bool use_labels =
     config->get_value< bool >( "use_labels" );
+  double downsample =
+    config->get_value< double >( "downsample" );
+  double targetted_downsample =
+    config->get_value< double >( "targetted_downsample" );
+  std::string targetted_downsample_string =
+    config->get_value< std::string >( "targetted_downsample_string" );
   std::string secondary_frame_labels_str =
     config->get_value< std::string >( "secondary_frame_labels" );
   unsigned ignore_secondary_burst_count =
@@ -2139,6 +2151,18 @@ main( int argc, char* argv[] )
         }
       }
     }
+  }
+
+  if( downsample > 0 )
+  {
+    double counter = 0.0;
+    
+  }
+
+  if( targetted_downsample > 0 )
+  {
+    double counter = 0.0;
+
   }
 
   if( label_counts.empty() ) // groundtruth has no classification labels
