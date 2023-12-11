@@ -6,7 +6,6 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
-  check_formatting.py
   convert_cam_zed_to_npz.py
   database_tool.py
   extract_video_frames.py
@@ -15,7 +14,8 @@ set( PYTHON_SCRIPTS
   launch_timeline_interface.py
   launch_annotation_interface.py
   generate_detection_plots.py
-  score_results.py )
+  score_results.py
+  viame_csv_tool.py )
 
 if( VIAME_ENABLE_OPENCV )
   set( PYTHON_SCRIPTS
