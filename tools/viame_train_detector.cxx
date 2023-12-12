@@ -1012,6 +1012,52 @@ adjust_labels( std::vector< std::string >& input_files,
   conditional_remove( input_dets, to_remove );
 }
 
+
+void
+adjust( std::vector< std::string >& input_files,
+        std::vector< kwiver::vital::detected_object_set_sptr >& input_dets,
+        double downsample_factor,
+        const std::string substr = "" )
+{
+  if( !downsample_factor || downsample_factor == 1.0 || input_files.empty() )
+  {
+    return;
+  }
+
+  if( downsample_factor < 1.0 )
+  {
+    downsample_factor = 1.0 / downsample_factor;
+  }
+
+  double counter = 1.0;
+
+  std::vector< std::string > output_files;
+  std::vector< kwiver::vital::detected_object_set_sptr > output_dets;
+
+  for( unsigned i = 0; i < output_files.size(); i++ )
+  {
+    if( !substr.empty() && output_files[i].find( substr ) == std::string::npos )
+    {
+      output_files.push_back( input_files[i] );
+      output_dets.push_back( output_dets[i] );
+      continue;
+    }
+
+    counter = counter + 1.0;
+
+    if( counter >= downsample_factor )
+    {
+      counter -= downsample_factor;
+
+      output_files.push_back( input_files[i] );
+      output_dets.push_back( output_dets[i] );
+    }
+  }
+
+  input_files = output_files;
+  input_dets = output_dets;
+}
+
 // =======================================================================================
 /*                   _
  *   _ __ ___   __ _(_)_ __
@@ -2117,6 +2163,16 @@ main( int argc, char* argv[] )
     }
   }
 
+  if( downsample > 0 )
+  {
+    adjust( train_image_fn, train_gt, downsample );
+  }
+
+  if( targetted_downsample > 0 )
+  {
+    adjust( train_image_fn, train_gt, targetted_downsample, targetted_downsample_string );
+  }
+
   if( label_counts.empty() )
   {
     for( auto det_set : train_gt )
@@ -2151,18 +2207,6 @@ main( int argc, char* argv[] )
         }
       }
     }
-  }
-
-  if( downsample > 0 )
-  {
-    double counter = 0.0;
-    
-  }
-
-  if( targetted_downsample > 0 )
-  {
-    double counter = 0.0;
-
   }
 
   if( label_counts.empty() ) // groundtruth has no classification labels
