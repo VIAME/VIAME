@@ -48,6 +48,12 @@ if __name__ == "__main__" :
     parser.add_argument("--print-filtered", dest="print_filtered", action="store_true",
       help="Print out tracks that were filtered out")
 
+    parser.add_argument("--lower-fid", dest="lower_fid", type=int, default="0",
+      help="Lower FID if adjusting FIDs to be within some range")
+
+    parser.add_argument("--upper-fid", dest="upper_fid", type=int, default="0",
+      help="Lower FID if adjusting FIDs to be within some range")
+
     args = parser.parse_args()
 
     input_files = []
@@ -110,6 +116,13 @@ if __name__ == "__main__" :
                 parsed_line[2] = str( int( parsed_line[2] ) - 1 )
             if args.increase_fid:
                 parsed_line[2] = str( int( parsed_line[2] ) + 1 )
+            if args.lower_fid > 0:
+                if int( parsed_line[2] ) < args.lower_fid:
+                    continue
+                parsed_line[2] = str( int( parsed_line[2] ) - args.lower_fid )
+            if args.upper_fid > 0:
+                if int( parsed_line[2] ) > args.upper_fid - args.lower_fid:
+                    continue
             if args.assign_uid:
                 if parsed_line[0] in id_mappings:
                     parsed_line[0] = id_mappings[ parsed_line[0] ]
