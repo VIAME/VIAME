@@ -163,7 +163,8 @@ if __name__ == "__main__" :
             output = [ e for e in output if id_states[ e.split(',')[ 0 ] ] > 1 ]
 
         if args.filter_single or args.increase_fid or args.decrease_fid \
-          or args.assign_uid or args.consolidate_ids or args.filter_single: 
+          or args.assign_uid or args.consolidate_ids or args.filter_single \
+          or args.lower_fid or args.upper_fid: 
             fout = open( input_file, "w" )
             for line in output:
                 fout.write( line )
