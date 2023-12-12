@@ -1530,6 +1530,12 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
+  if( targetted_downsample > 0 && targetted_downsample_string.empty() )
+  {
+    std::cout << "Target downsample string must be set to use target sampling" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   if( !g_params.opt_threshold.empty() )
   {
     threshold = atof( g_params.opt_threshold.c_str() );
