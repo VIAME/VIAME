@@ -1031,15 +1031,18 @@ adjust( std::vector< std::string >& input_files,
 
   double counter = 1.0;
 
-  std::vector< std::string > output_files;
-  std::vector< kwiver::vital::detected_object_set_sptr > output_dets;
+  std::vector< std::string > original_files = input_files;
+  std::vector< kwiver::vital::detected_object_set_sptr > original_dets = input_dets;
 
-  for( unsigned i = 0; i < output_files.size(); i++ )
+  input_files.clear();
+  input_dets.clear();
+
+  for( unsigned i = 0; i < original_files.size(); i++ )
   {
-    if( !substr.empty() && output_files[i].find( substr ) == std::string::npos )
+    if( !substr.empty() && original_files[i].find( substr ) == std::string::npos )
     {
-      output_files.push_back( input_files[i] );
-      output_dets.push_back( output_dets[i] );
+      input_files.push_back( original_files[i] );
+      input_dets.push_back( original_dets[i] );
       continue;
     }
 
@@ -1049,13 +1052,10 @@ adjust( std::vector< std::string >& input_files,
     {
       counter -= downsample_factor;
 
-      output_files.push_back( input_files[i] );
-      output_dets.push_back( output_dets[i] );
+      input_files.push_back( original_files[i] );
+      input_dets.push_back( original_dets[i] );
     }
   }
-
-  input_files = output_files;
-  input_dets = output_dets;
 }
 
 // =======================================================================================
