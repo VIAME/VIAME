@@ -36,6 +36,9 @@ if __name__ == "__main__" :
     parser.add_argument("--track-count", dest="track_count", action="store_true",
       help="Print total number of tracks")
 
+    parser.add_argument("--counts-per-frame", dest="counts_per_frame", action="store_true",
+      help="Print total number of detections per frame")
+
     parser.add_argument("--average-box-size", dest="average_box_size", action="store_true",
       help="Print average box size per type")
 
@@ -70,6 +73,11 @@ if __name__ == "__main__" :
     else:
         input_files.append( args.input_file )
 
+    write_output = args.filter_single or args.increase_fid or \
+      args.decrease_fid or args.assign_uid or args.consolidate_ids or \
+      args.filter_single or args.lower_fid or args.upper_fid or \
+      args.replace_file
+
     id_counter = 1
     type_counts = dict()
     type_sizes = dict()
@@ -91,7 +99,12 @@ if __name__ == "__main__" :
         fin.close()
 
     for input_file in input_files:
-        print( "Processing " + input_file )
+
+        if args.counts_per_frame:
+            filename_msg = "# " + os.path.basename( input_file )
+        else:
+            filename_msg = "Processing " + input_file
+        print( filename_msg )
 
         fin = open( input_file, "r" )
         output = []
@@ -100,6 +113,7 @@ if __name__ == "__main__" :
         id_states = dict()
         unique_ids = set()
         printed_ids = set()
+        frame_counts = dict()
 
         for line in fin:
             if len( line ) > 0 and line[0] == '#' or line[0:9] == 'target_id':
@@ -113,49 +127,42 @@ if __name__ == "__main__" :
                         print( "Id: " + parsed_line[0] + " filtered" )
                         printed_ids.add( parsed_line[0] )
                     continue
-            if args.type_threshold > 0:
-                if len( parsed_line ) < 11:
-                    continue
-                if float( parsed_line[10] ) < args.type_threshold:
-                    if args.print_filtered and parsed_line[0] not in printed_ids:
-                        print( "Id: " + parsed_line[0] + " filtered" )
-                        printed_ids.add( parsed_line[0] )
-                    continue
+
             if args.track_count:
                 state_counter = state_counter + 1
                 if parsed_line[0] not in unique_ids:
                     unique_ids.add( parsed_line[0] )
+
             if args.consolidate_ids:
                 parsed_line[0] = str( 100 * int( int( parsed_line[0] ) / 100 ) )
+
             if args.decrease_fid:
                 parsed_line[2] = str( int( parsed_line[2] ) - 1 )
+
             if args.increase_fid:
                 parsed_line[2] = str( int( parsed_line[2] ) + 1 )
+
             if args.lower_fid > 0:
                 if int( parsed_line[2] ) < args.lower_fid:
                     continue
                 parsed_line[2] = str( int( parsed_line[2] ) - args.lower_fid )
+
             if args.upper_fid > 0:
                 if int( parsed_line[2] ) > args.upper_fid - args.lower_fid:
                     continue
-            if args.assign_uid:
-                if parsed_line[0] in id_mappings:
-                    parsed_line[0] = id_mappings[ parsed_line[0] ]
-                    has_non_single = True
-                else:
-                    id_mappings[parsed_line[0]] = str(id_counter)
-                    parsed_line[0] = str(id_counter)
-                    id_counter = id_counter + 1
+
             if args.filter_single:
                 if parsed_line[0] not in id_states:
                     id_states[ parsed_line[0] ] = 1
                 else:
                     id_states[ parsed_line[0] ] = id_states[ parsed_line[0] ] + 1
                     has_non_single = True
+
             if len( parsed_line ) > 9:
                 top_category = ""
                 top_score = -100.0
                 attr_start = -1
+
                 for i in range( 9, len( parsed_line ), 2 ):
                     if parsed_line[i][0] == '(':
                         attr_start = i
@@ -164,11 +171,28 @@ if __name__ == "__main__" :
                     if score > top_score:
                         top_category = parsed_line[i]
                         top_score = score
+
+                if args.type_threshold > 0:
+                    if float( top_score ) < args.type_threshold:
+                        if args.print_filtered and parsed_line[0] not in printed_ids:
+                            print( "Id: " + parsed_line[0] + " filtered" )
+                            printed_ids.add( parsed_line[0] )
+                        continue
+
                 if args.print_types or args.average_box_size:
                     if top_category in type_counts:
                         type_counts[ top_category ] += 1
                     else:
                         type_counts[ top_category ] = 1
+
+                if args.counts_per_frame:
+                    if parsed_line[1] not in frame_counts:
+                        frame_counts[ parsed_line[1] ] = { top_category:1 }
+                    elif top_category not in frame_counts[ parsed_line[1] ]:
+                        frame_counts[ parsed_line[1] ][ top_category ] = 1
+                    else:
+                        frame_counts[ parsed_line[1] ][ top_category ] += 1
+
                 if args.average_box_size:
                     box_width = float( parsed_line[5] ) - float( parsed_line[3] )
                     box_height = float( parsed_line[6] ) - float( parsed_line[4] )
@@ -176,6 +200,7 @@ if __name__ == "__main__" :
                         type_sizes[ top_category ] += ( box_width * box_height )
                     else:
                         type_sizes[ top_category ] = ( box_width * box_height )
+
                 if args.replace_file:
                     new_cat = repl_dict[ top_category ] if top_category in repl_dict else top_category
                     new_score = str(1.0)
@@ -188,7 +213,19 @@ if __name__ == "__main__" :
                         parsed_line = parsed_line[ :(11+attr_count) ]
                     elif len( parsed_line ) > 11:
                         parsed_line = parsed_line[ :11 ]
-            output.append( ','.join( parsed_line ) + '\n' )
+
+            if args.assign_uid:
+                if parsed_line[0] in id_mappings:
+                    parsed_line[0] = id_mappings[ parsed_line[0] ]
+                    has_non_single = True
+                else:
+                    id_mappings[parsed_line[0]] = str(id_counter)
+                    parsed_line[0] = str(id_counter)
+                    id_counter = id_counter + 1
+
+            if write_output:
+                output.append( ','.join( parsed_line ) + '\n' )
+
         fin.close()
 
         if args.track_count:
@@ -200,9 +237,14 @@ if __name__ == "__main__" :
         if args.filter_single:
             output = [ e for e in output if id_states[ e.split(',')[ 0 ] ] > 1 ]
 
-        if args.filter_single or args.increase_fid or args.decrease_fid \
-          or args.assign_uid or args.consolidate_ids or args.filter_single \
-          or args.lower_fid or args.upper_fid or args.replace_file: 
+        if args.counts_per_frame:
+            for frame in frame_counts:
+                frame_str = frame
+                for cls in frame_counts[ frame ]:
+                    frame_str += ", " + cls + "=" + str( frame_counts[ frame ][ cls ] )
+                print( frame_str )
+
+        if write_output: 
             fout = open( input_file, "w" )
             for line in output:
                 fout.write( line )
