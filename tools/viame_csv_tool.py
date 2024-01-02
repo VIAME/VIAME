@@ -30,6 +30,9 @@ if __name__ == "__main__" :
     parser.add_argument("--print-types", dest="print_types", action="store_true",
       help="Print unique list of target types")
 
+    parser.add_argument("--caps-only", dest="caps_only", action="store_true",
+      help="Only print types with capitalized letters in them")
+
     parser.add_argument("--track-count", dest="track_count", action="store_true",
       help="Print total number of tracks")
 
@@ -70,10 +73,12 @@ if __name__ == "__main__" :
     else:
         input_files.append( args.input_file )
 
+    if args.caps_only:
+        args.print_types = True
+
     write_output = args.filter_single or args.increase_fid or \
       args.decrease_fid or args.assign_uid or args.replace_file or \
       args.filter_single or args.lower_fid or args.upper_fid
-
 
     id_counter = 1
     type_counts = dict()
@@ -248,7 +253,13 @@ if __name__ == "__main__" :
         print( "Track count: " + str(track_counter) + " , states = " + str(state_counter) )
 
     if args.print_types:
-        print( ','.join( type_counts.keys() ) )
+        print( "\nTypes found in files:\n" )
+        if args.caps_only:
+            for itm in type_counts.keys():
+                if any( char.isupper() for char in itm ):
+                     print( itm )
+        else:
+            print( '\n'.join( type_counts.keys() ) )
 
     if args.average_box_size:
         print( "Type - Average Box Area - Total Count" )
