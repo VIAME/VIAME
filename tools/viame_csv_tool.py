@@ -54,6 +54,9 @@ if __name__ == "__main__" :
     parser.add_argument("--upper-fid", dest="upper_fid", type=int, default="0",
       help="Lower FID if adjusting FIDs to be within some range")
 
+    parser.add_argument("--replace-file", dest="replace_file", default="",
+      help="If set, replace all types in this file given their synonyms")
+
     args = parser.parse_args()
 
     input_files = []
@@ -70,12 +73,24 @@ if __name__ == "__main__" :
     id_counter = 1
     type_counts = dict()
     type_sizes = dict()
+    repl_dict = dict()
 
     track_counter = 0
     state_counter = 0
 
-    for input_file in input_files:
+    if args.replace_file:
+        fin = open( args.replace_file, 'r' )
+        if not fin:
+            print( "Replace file: " + args.replace_file + " does not exist" )
+        for line in fin:
+            parsed = line.split( ',' )
+            if len( line ) > 1:
+                repl_dict[ parsed[0] ] = parsed[1]
+            else if len( line ) > 0:
+                print( "Error parsing line: " + line )
+        fin.close()
 
+    for input_file in input_files:
         print( "Processing " + input_file )
 
         fin = open( input_file, "r" )
@@ -138,18 +153,41 @@ if __name__ == "__main__" :
                     id_states[ parsed_line[0] ] = id_states[ parsed_line[0] ] + 1
                     has_non_single = True
             if len( parsed_line ) > 9:
+                top_category = ""
+                top_score = -100.0
+                attr_start = -1
+                for i in range( 9, len( parsed_line ), 2 ):
+                    if parsed_line[i][0] == '(':
+                        attr_start = i
+                        break
+                    score = float( parsed_line[i+1] )
+                    if score > top_score:
+                        top_category = parsed_line[i]
+                        top_score = score
                 if args.print_types or args.average_box_size:
-                    if parsed_line[9] in type_counts:
-                        type_counts[ parsed_line[9] ] += 1
+                    if top_category in type_counts:
+                        type_counts[ top_category ] += 1
                     else:
-                        type_counts[ parsed_line[9] ] = 1
+                        type_counts[ top_category ] = 1
                 if args.average_box_size:
                     box_width = float( parsed_line[5] ) - float( parsed_line[3] )
                     box_height = float( parsed_line[6] ) - float( parsed_line[4] )
-                    if parsed_line[9] in type_sizes:
-                        type_sizes[ parsed_line[9] ] += ( box_width * box_height )
+                    if top_category in type_sizes:
+                        type_sizes[ top_category ] += ( box_width * box_height )
                     else:
-                        type_sizes[ parsed_line[9] ] = ( box_width * box_height )
+                        type_sizes[ top_category ] = ( box_width * box_height )
+                if args.replace_file:
+                    new_cat = repl_dict[ top_category ] if top_category in repl_dict else top_category
+                    new_score = 1.0
+                    parsed_line[9] = new_cat
+                    parsed_line[10] = new_score
+                    if attr_start > 0:
+                        attr_count = len( parsed_line ) - attr_start
+                        for i in range( attr_count ):
+                            parsed_line[ i + 11 ] = parsed_line[ i + attr_start ]
+                            parsed_line = parsed_line[ :(11+attr_count) ]
+                    elif len( parsed_line ) > 11:
+                        parsed_line = parsed_line[ :11 ]
             output.append( ','.join( parsed_line ) + '\n' )
         fin.close()
 
