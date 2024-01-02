@@ -85,8 +85,8 @@ if __name__ == "__main__" :
         for line in fin:
             parsed = line.split( ',' )
             if len( line ) > 1:
-                repl_dict[ parsed[0] ] = parsed[1]
-            else if len( line ) > 0:
+                repl_dict[ parsed[0].rstrip() ] = parsed[1].rstrip()
+            elif len( line.rstrip() ) > 0:
                 print( "Error parsing line: " + line )
         fin.close()
 
@@ -178,14 +178,14 @@ if __name__ == "__main__" :
                         type_sizes[ top_category ] = ( box_width * box_height )
                 if args.replace_file:
                     new_cat = repl_dict[ top_category ] if top_category in repl_dict else top_category
-                    new_score = 1.0
+                    new_score = str(1.0)
                     parsed_line[9] = new_cat
                     parsed_line[10] = new_score
                     if attr_start > 0:
                         attr_count = len( parsed_line ) - attr_start
                         for i in range( attr_count ):
                             parsed_line[ i + 11 ] = parsed_line[ i + attr_start ]
-                            parsed_line = parsed_line[ :(11+attr_count) ]
+                        parsed_line = parsed_line[ :(11+attr_count) ]
                     elif len( parsed_line ) > 11:
                         parsed_line = parsed_line[ :11 ]
             output.append( ','.join( parsed_line ) + '\n' )
@@ -202,7 +202,7 @@ if __name__ == "__main__" :
 
         if args.filter_single or args.increase_fid or args.decrease_fid \
           or args.assign_uid or args.consolidate_ids or args.filter_single \
-          or args.lower_fid or args.upper_fid: 
+          or args.lower_fid or args.upper_fid or args.replace_file: 
             fout = open( input_file, "w" )
             for line in output:
                 fout.write( line )
