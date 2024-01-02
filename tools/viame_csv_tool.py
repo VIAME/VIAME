@@ -5,6 +5,7 @@ import os
 import shutil
 import argparse
 import glob
+import pathlib
 
 # Main Function
 if __name__ == "__main__" :
@@ -68,7 +69,10 @@ if __name__ == "__main__" :
         print( "No valid input files provided, exiting." )
         sys.exit(0)
 
-    if '*' in args.input_file:
+    if os.path.isdir( args.input_file ):
+        for path in pathlib.Path( args.input_file ).rglob( "*.csv" ):
+            input_files.append( str( path ) )
+    elif '*' in args.input_file:
         input_files = glob.glob( args.input_file )
     else:
         input_files.append( args.input_file )
