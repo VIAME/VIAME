@@ -15,14 +15,11 @@ if __name__ == "__main__" :
     parser.add_argument("-i", dest="input_file", default="",
       help="Input file or glob pattern to process")
 
-    parser.add_argument("--consolidate-ids", dest="consolidate_ids", action="store_true",
-      help="Use a ball tree for the searchable index")
-
     parser.add_argument("--decrease-fid", dest="decrease_fid", action="store_true",
-      help="Use a ball tree for the searchable index")
+      help="Decrease frame IDs in files by 1")
 
     parser.add_argument("--increase-fid", dest="increase_fid", action="store_true",
-      help="Use a ball tree for the searchable index")
+      help="Increase frame IDs in files by 1")
 
     parser.add_argument("--assign-uid", dest="assign_uid", action="store_true",
       help="Assign unique detection ids to all entries in volume")
@@ -74,9 +71,9 @@ if __name__ == "__main__" :
         input_files.append( args.input_file )
 
     write_output = args.filter_single or args.increase_fid or \
-      args.decrease_fid or args.assign_uid or args.consolidate_ids or \
-      args.filter_single or args.lower_fid or args.upper_fid or \
-      args.replace_file
+      args.decrease_fid or args.assign_uid or args.replace_file or \
+      args.filter_single or args.lower_fid or args.upper_fid
+
 
     id_counter = 1
     type_counts = dict()
@@ -132,9 +129,6 @@ if __name__ == "__main__" :
                 state_counter = state_counter + 1
                 if parsed_line[0] not in unique_ids:
                     unique_ids.add( parsed_line[0] )
-
-            if args.consolidate_ids:
-                parsed_line[0] = str( 100 * int( int( parsed_line[0] ) / 100 ) )
 
             if args.decrease_fid:
                 parsed_line[2] = str( int( parsed_line[2] ) - 1 )
