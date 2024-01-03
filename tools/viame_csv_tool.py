@@ -167,6 +167,8 @@ if __name__ == "__main__" :
                 attr_start = -1
 
                 for i in range( 9, len( parsed_line ), 2 ):
+                    if len( parsed_line[i] ) == 0:
+                        continue
                     if parsed_line[i][0] == '(':
                         attr_start = i
                         break
