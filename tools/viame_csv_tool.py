@@ -52,6 +52,9 @@ if __name__ == "__main__" :
     parser.add_argument("--print-filtered", dest="print_filtered", action="store_true",
       help="Print out tracks that were filtered out")
 
+    parser.add_argument("--print-single", dest="print_single", action="store_true",
+      help="Print out video sequences only containing single states")
+
     parser.add_argument("--lower-fid", dest="lower_fid", type=int, default="0",
       help="Lower FID if adjusting FIDs to be within some range")
 
@@ -79,6 +82,9 @@ if __name__ == "__main__" :
 
     if args.caps_only:
         args.print_types = True
+
+    if args.print_single:
+        args.track_counter = True
 
     write_output = args.filter_single or args.increase_fid or \
       args.decrease_fid or args.assign_uid or args.replace_file or \
@@ -120,6 +126,7 @@ if __name__ == "__main__" :
         unique_ids = set()
         printed_ids = set()
         frame_counts = dict()
+        contains_track = False
 
         for line in fin:
             if len( line ) > 0 and line[0] == '#' or line[0:9] == 'target_id':
@@ -138,6 +145,8 @@ if __name__ == "__main__" :
                 state_counter = state_counter + 1
                 if parsed_line[0] not in unique_ids:
                     unique_ids.add( parsed_line[0] )
+                elif
+                    contains_track = True
 
             if args.decrease_fid:
                 parsed_line[2] = str( int( parsed_line[2] ) - 1 )
@@ -238,6 +247,12 @@ if __name__ == "__main__" :
 
         if ( args.assign_uid or args.filter_single ) and not has_non_single:
             print( "Sequence " + input_file + " has all single states" )
+
+        if args.print_single and not contains_track:
+            if len( unique_ids ) == 0:
+                print( "Sequence " + input_file + " contains no detections" )
+            else:
+                print( "Sequence " + input_file + " contains only detections" )
 
         if args.filter_single:
             output = [ e for e in output if id_states[ e.split(',')[ 0 ] ] > 1 ]
