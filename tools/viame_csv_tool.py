@@ -84,7 +84,7 @@ if __name__ == "__main__" :
         args.print_types = True
 
     if args.print_single:
-        args.track_counter = True
+        args.track_count = True
 
     write_output = args.filter_single or args.increase_fid or \
       args.decrease_fid or args.assign_uid or args.replace_file or \
@@ -112,11 +112,11 @@ if __name__ == "__main__" :
 
     for input_file in input_files:
 
-        if args.counts_per_frame:
-            filename_msg = "# " + os.path.basename( input_file )
-        else:
-            filename_msg = "Processing " + input_file
-        print( filename_msg )
+        if not args.print_single:
+            if args.counts_per_frame:
+                print( "# " + os.path.basename( input_file ) )
+            else:
+                print( "Processing " + input_file )
 
         fin = open( input_file, "r" )
         output = []
@@ -145,7 +145,7 @@ if __name__ == "__main__" :
                 state_counter = state_counter + 1
                 if parsed_line[0] not in unique_ids:
                     unique_ids.add( parsed_line[0] )
-                elif
+                else:
                     contains_track = True
 
             if args.decrease_fid:
