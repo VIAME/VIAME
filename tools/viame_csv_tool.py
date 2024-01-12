@@ -159,6 +159,7 @@ if __name__ == "__main__" :
             if len( line ) > 0 and line[0] == '#' or line[0:9] == 'target_id':
                 if args.print_fps and "fps" in line:
                     video_fps = parse_fps( line )
+                output.append( line )
                 continue
             parsed_line = line.rstrip().split(',')
             if len( parsed_line ) < 2:
