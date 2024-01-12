@@ -725,7 +725,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--multiscale=False",
                      "--bstep=" + self._bstep]
             if "ReduceLR" in self._scheduler:
-                cmd.append( "--patience=16" )
+                cmd.append( "--patience=8" )
             if os.name == 'nt':
                 cmd.append( "--test_on_finish=False" )
 
