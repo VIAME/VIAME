@@ -711,7 +711,7 @@ class NetHarnTrainer( TrainDetector ):
             cmd += [ "bioharn.clf_fit",
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
-                     "--input_dims=" + self._chip_width + "," + self._chip_height,
+                     "--input_dims=" + self._chip_height + "," + self._chip_width,
                      "--multiclass=" + "True" if self._multi_output else "False" ]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=16" )
@@ -720,7 +720,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--nice=" + self._identifier,
                      "--arch=" + self._arch,
                      "--input_dims=window",
-                     "--window_dims=" + self._chip_width + "," + self._chip_height,
+                     "--window_dims=" + self._chip_height + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
                      "--multiscale=False",
                      "--bstep=" + self._bstep]
