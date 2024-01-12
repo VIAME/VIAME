@@ -7,6 +7,27 @@ import argparse
 import glob
 import pathlib
 
+def parse_fps( line ):
+    if 'fps' not in line:
+        return -1
+    pos = line.find( 'fps' )
+    found = False
+    found_period = False
+    output = ""
+    for i in range( pos, len( line ) ):
+        if line[i].isdigit():
+            output = output + line[i]
+            if not found:
+                found = True
+        elif found and line[i] == '.' and not found_period:
+            output = output + line[i]
+            found_period = True
+        elif not found:
+            continue
+        else:
+            break
+    return float( output )
+
 # Main Function
 if __name__ == "__main__" :
 
@@ -64,6 +85,9 @@ if __name__ == "__main__" :
     parser.add_argument("--replace-file", dest="replace_file", default="",
       help="If set, replace all types in this file given their synonyms")
 
+    parser.add_argument("--print-fps", dest="print_fps", action="store_true",
+      help="Print FPS in input files")
+
     args = parser.parse_args()
 
     input_files = []
@@ -115,6 +139,8 @@ if __name__ == "__main__" :
         if not args.print_single:
             if args.counts_per_frame:
                 print( "# " + os.path.basename( input_file ) )
+            elif args.print_fps:
+                print( input_file, end="," )
             else:
                 print( "Processing " + input_file )
 
@@ -127,9 +153,12 @@ if __name__ == "__main__" :
         printed_ids = set()
         frame_counts = dict()
         contains_track = False
+        video_fps = 0
 
         for line in fin:
             if len( line ) > 0 and line[0] == '#' or line[0:9] == 'target_id':
+                if args.print_fps and "fps" in line:
+                    video_fps = parse_fps( line )
                 continue
             parsed_line = line.rstrip().split(',')
             if len( parsed_line ) < 2:
@@ -242,8 +271,14 @@ if __name__ == "__main__" :
 
         fin.close()
 
+        if args.print_fps:
+            if video_fps > 0:
+                print( video_fps )
+            else:
+                print( "unlisted" )
+
         if args.track_count:
-           track_counter = track_counter + len( unique_ids )
+            track_counter = track_counter + len( unique_ids )
 
         if ( args.assign_uid or args.filter_single ) and not has_non_single:
             print( "Sequence " + input_file + " has all single states" )
