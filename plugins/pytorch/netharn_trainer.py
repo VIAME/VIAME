@@ -85,6 +85,7 @@ class NetHarnTrainer( TrainDetector ):
         self._augmentation = "complex"
         self._gt_frames_only = False
         self._chip_width = "640"
+        self._chip_height = "-1"
         self._chip_overlap = "0.20"
         self._chip_method = "use_box"
         self._chip_extension = ".png"
@@ -134,6 +135,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
         cfg.set_value( "augmentation", str( self._augmentation ) )
         cfg.set_value( "chip_width", str( self._chip_width ) )
+        cfg.set_value( "chip_height", str( self._chip_height ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
         cfg.set_value( "chip_method", str( self._chip_method ) )
         cfg.set_value( "chip_extension", self._chip_extension )
@@ -182,6 +184,7 @@ class NetHarnTrainer( TrainDetector ):
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
         self._augmentation = str( cfg.get_value( "augmentation" ) )
         self._chip_width = str( cfg.get_value( "chip_width" ) )
+        self._chip_height = str( cfg.get_value( "chip_height" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
         self._chip_method = str( cfg.get_value( "chip_method" ) )
         self._chip_extension = str( cfg.get_value( "chip_extension" ) )
@@ -336,6 +339,11 @@ class NetHarnTrainer( TrainDetector ):
         # Other misc setting adjustments
         if self._chip_extension and self._chip_extension[0] != '.':
             self._chip_extension = '.' + self._chip_extension
+
+        if int( self._chip_height ) <= 0:
+            self._chip_height = self._chip_width
+        if int( self._chip_width ) <= 0:
+            self._chip_width = self._chip_height
 
         # Initialize persistent variables
         self._training_data = []
@@ -508,17 +516,20 @@ class NetHarnTrainer( TrainDetector ):
                 if self._chip_method == "fixed_width" or self._chip_method == "native_square":
                     if self._chip_method == "fixed_width":
                         chip_width = int( self._chip_width )
+                        chip_height = int( self._chip_height )
                     else:
                         chip_width = max( bbox_width, bbox_height )
+                        chip_height = chip_width
                     half_width = int( chip_width / 2 )
+                    half_height = int( chip_height / 2 )
 
                     bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 ) - half_width
-                    bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 ) - half_width
+                    bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 ) - half_height
                     bbox_max_x = bbox_min_x + chip_width
-                    bbox_max_y = bbox_min_y + chip_width
+                    bbox_max_y = bbox_min_y + chip_height
 
                     bbox_width = chip_width
-                    bbox_height = chip_width
+                    bbox_height = chip_height
 
                 if self._chip_expansion != 1.0:
                     bbox_width = int( bbox_width * self._chip_expansion )
@@ -591,17 +602,20 @@ class NetHarnTrainer( TrainDetector ):
                 if self._chip_method == "fixed_width" or self._chip_method == "native_square":
                     if self._chip_method == "fixed_width":
                         chip_width = int( self._chip_width )
+                        chip_height = int( self._chip_height )
                     else:
                         chip_width = max( bbox_width, bbox_height )
+                        chip_height = chip_width
                     half_width = int( chip_width / 2 )
+                    half_height = int( chip_height / 2 )
 
                     bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 ) - half_width
-                    bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 ) - half_width
+                    bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 ) - half_height
                     bbox_max_x = bbox_min_x + chip_width
-                    bbox_max_y = bbox_min_y + chip_width
+                    bbox_max_y = bbox_min_y + chip_height
 
                     bbox_width = chip_width
-                    bbox_height = chip_width
+                    bbox_height = chip_height
 
                 if self._chip_expansion != 1.0:
                     bbox_width = int( bbox_width * self._chip_expansion )
@@ -697,7 +711,7 @@ class NetHarnTrainer( TrainDetector ):
             cmd += [ "bioharn.clf_fit",
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
-                     "--input_dims=" + self._chip_width + "," + self._chip_width,
+                     "--input_dims=" + self._chip_width + "," + self._chip_height,
                      "--multiclass=" + "True" if self._multi_output else "False" ]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=16" )
@@ -706,7 +720,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--nice=" + self._identifier,
                      "--arch=" + self._arch,
                      "--input_dims=window",
-                     "--window_dims=" + self._chip_width + "," + self._chip_width,
+                     "--window_dims=" + self._chip_width + "," + self._chip_height,
                      "--window_overlap=" + self._chip_overlap,
                      "--multiscale=False",
                      "--bstep=" + self._bstep]
