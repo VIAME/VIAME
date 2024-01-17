@@ -11,14 +11,16 @@ if( WIN32 )
        ${example_files}
        draw_detections_on_frames.bat
        extract_chips_from_detections.bat
-       extract_frames_with_tracks.bat
+       extract_frames.bat
+       extract_frames_with_dets_only.bat
        simple_pipeline_display.bat )
 else()
   set( example_files
        ${example_files}
        draw_detections_on_frames.sh
        extract_chips_from_detections.sh
-       extract_frames_with_tracks.sh
+       extract_frames.sh
+       extract_frames_with_dets_only.sh
        simple_pipeline_display.sh )
 endif()
 
