@@ -97,7 +97,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
 
 # Perform multi-threaded build
-make -j$(nproc)
+make -j$(nproc) > build_log.txt 2>&1
 
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
