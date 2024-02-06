@@ -1,0 +1,38 @@
+# Format Converter
+#
+# Convert file types in the same order as some input list
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                                                 5
+
+# ====================== INPUT FRAME LIST ========================
+process image_reader
+  :: video_input
+  :video_filename                                   input_list.txt
+  :frame_time                                              0.03333
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type                   vxl
+  :video_reader:image_list:disable_image_load                 true
+
+process track_reader
+  :: read_object_track
+  :file_name                                             input.csv
+  :reader:type                                           viame_csv
+
+process track_writer
+  :: write_object_track
+  :file_name                                            output.csv
+  :writer:type                                           viame_csv
+
+connect from image_reader.file_name
+        to   track_reader.image_file_name
+
+connect from image_reader.file_name
+        to   track_writer.image_file_name
+
+connect from track_reader.object_track_set
+        to   track_writer.object_track_set
+

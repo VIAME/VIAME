@@ -1,0 +1,42 @@
+# Format Converter
+#
+# Convert file types in the same order as some input list
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                                                 5
+
+# ====================== INPUT FRAME LIST ========================
+process image_reader
+  :: video_input
+  :video_filename                                   input_list.txt
+  :frame_time                                              0.03333
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type                   vxl
+  :video_reader:image_list:disable_image_load                 true
+
+process track_reader1
+  :: read_object_track
+  :file_name                                               gt.kw18
+  :reader:type                                                kw18
+  :reader:kw18:default_type                             vertebrate
+
+process track_merger
+  :: merge_track_sets
+
+process track_writer
+  :: write_object_track
+  :file_name                                        annotations.csv
+  :writer:type                                            viame_csv
+
+connect from image_reader.file_name
+        to   track_reader1.image_file_name
+
+connect from track_reader1.object_track_set
+        to   track_merger.object_track_set1
+
+connect from track_merger.object_track_set
+        to   track_writer.object_track_set
+
