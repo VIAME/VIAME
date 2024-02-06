@@ -130,14 +130,25 @@ set( CORE_PIPELINE_FILES
   common_default_input.pipe
   common_default_input_with_downsampler.pipe
   common_fish_detector.pipe
-  common_stereo_input.pipe
-  common_stereo_input_with_downsampler.pipe
   common_fish_detector_with_filter.pipe
   common_generic_detector.pipe
   common_generic_detector_with_filter.pipe
   common_image_stabilizer.pipe
-  common_stabilized_iou_tracker.pipe
   common_measurement_gmm_stereo_track_fish.pipe
+  common_no_load_input.pipe
+  common_no_load_input_with_downsampler.pipe
+  common_stabilized_iou_tracker.pipe
+  common_stereo_input.pipe
+  common_stereo_input_with_downsampler.pipe
+  convert_add_filename_to_det_csv.pipe
+  convert_add_filename_to_trk_csv.pipe
+  convert_coco_json_to_viame_csv.pipe
+  convert_habcam_to_kw18.pipe
+  convert_habcam_to_viame_csv.pipe
+  convert_kw18_to_viame_csv.pipe
+  convert_oceaneyes_to_viame_csv.pipe
+  convert_viame_csv_to_coco_json.pipe
+  convert_viame_csv_to_kw18.pipe
   database_apply_svm_models.pipe
   detector_camtrawl.pipe
   detector_fish_without_motion.pipe
