@@ -2,14 +2,19 @@
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn )
 
 set( LEARN_DIR ${VIAME_SOURCE_DIR}/packages/learn )
+set( LEARN_DEPS_DIR ${LEARN_DIR}-deps )
 
-set( PYDENSECRF_DIR ${LEARN_DIR}-deps/pydensecrf )
-set( PANOPTICAPI_DIR ${LEARN_DIR}-deps/panopticapi )
+set( PYDENSECRF_DIR ${LEARN_DEPS_DIR}/pydensecrf )
+set( PANOPTICAPI_DIR ${LEARN_DEPS_DIR}/panopticapi )
 set( REMAX_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/remax )
 set( REMAX_OPS_DIR ${REMAX_DIR}/model/ops )
 
 set( LEARN_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/learn-build )
 set( LEARN_CLONE_CMD )
+
+if( NOT EXISTS "${LEARN_DEPS_DIR}" )
+  file( MAKE_DIRECTORY "${LEARN_DEPS_DIR}" )
+endif()
 
 if( NOT EXISTS "${PYDENSECRF_DIR}" )
   set( LEARN_CLONE_CMD git clone https://github.com/lucasb-eyer/pydensecrf.git ${PYDENSECRF_DIR} )
@@ -73,7 +78,7 @@ ExternalProject_Add( learn
     DEPENDS python-deps detectron2 torchvideo
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${VIAME_PACKAGES_DIR}
-    CONFIGURE_COMMAND ${LEARN_CLONE_CMD}
+    CONFIGURE_COMMAND "${LEARN_CLONE_CMD}"
     BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${LEARN_DIR}/requirements.txt
           COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
           COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_BUILD_CMD}
