@@ -1,3 +1,14 @@
+v0.20.4 - 2/04/2023
+===================
+
+
+-Update DIVE GUI version with a number of new features
+
+
+-Update default fish detection model
+
+
+
 v0.20.3 - 12/01/2023
 ====================
 
