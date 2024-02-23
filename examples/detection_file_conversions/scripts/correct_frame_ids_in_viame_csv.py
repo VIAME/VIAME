@@ -49,6 +49,7 @@ def read_records(path):
                 classifiers = row[len(field_types):]
                 while len(classifiers) >= 2:
                     record += [classifiers[0], float(classifiers[1])]
+                    classifiers = classifiers[2:]
 
                 if len(classifiers):
                     warn('ignoring unpaired classification {!r}',
