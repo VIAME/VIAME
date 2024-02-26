@@ -97,7 +97,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
 
 # Perform multi-threaded build
-make -j$(nproc)
+make -j$(nproc) > build_log.txt 2>&1
 
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
@@ -111,6 +111,7 @@ cp install/lib/libsvm.so.2 install/lib/libsvm.so
 # viame install to default linux install location
 if [ -f "install/setup_viame.sh" ]; then
   cd /viame/build
+  rm build_log.txt
   mkdir /opt/noaa
   mv install viame
   mv viame /opt/noaa
