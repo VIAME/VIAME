@@ -17,4 +17,4 @@ python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
   -p "pipelines/transcode_default.pipe" ^
   -s "video_writer:maximum_length=%MAX_DURATION%"
 
-pause
+PAUSE

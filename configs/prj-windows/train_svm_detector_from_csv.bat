@@ -17,4 +17,4 @@ viame_train_detector.exe ^
   -c "%VIAME_INSTALL%\configs\pipelines\train_detector_svm_over_generic_detections.conf" ^
   --threshold 0.0
 
-pause
+PAUSE

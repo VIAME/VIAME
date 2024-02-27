@@ -21,4 +21,4 @@ viame_train_detector.exe ^
   -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn_motion.conf" ^
   --threshold 0.0 --default-vfr %DEFAULT_FRAME_RATE%
 
-pause
+PAUSE

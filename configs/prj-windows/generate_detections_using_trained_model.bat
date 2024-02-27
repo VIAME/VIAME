@@ -23,4 +23,4 @@ python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
   -p pipelines\detector_project_folder.pipe --no-reset-prompt ^
   -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU%
 
-pause
+PAUSE

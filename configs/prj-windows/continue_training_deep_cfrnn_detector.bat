@@ -34,4 +34,4 @@ IF EXIST "%SEED_MODEL%" (
   )
 )
 
-pause
+PAUSE

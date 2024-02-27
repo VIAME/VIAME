@@ -10,4 +10,4 @@ kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\database_apply_svm_models.p
                   -s reader:reader:db:video_name=input_list ^
                   -s descriptors:video_name=input_list
 
-pause
+PAUSE
