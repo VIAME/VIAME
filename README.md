@@ -205,7 +205,6 @@ And a number of flags which control which system utilities and optimizations are
 | VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                         |
 | VIAME_ENABLE_DIVE            | Enables DIVE GUI (annotation and training on multiple sequences)               |
 | VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (VIEW and SEARCH for annotation and video search)            |
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                    |
 | VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation (puts in install tree)                |
 | VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default)              |
 | VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree             |
@@ -226,6 +225,8 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | VIAME_ENABLE_TENSORRT        | Builds TensorRT object detector plugin                                         |
 | VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                  |
 | VIAME_ENABLE_SMQTK           | Builds SMQTK plugins to support image/video indexing and search                |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                    |
+| VIAME_ENABLE_LEARN           | Builds additional methods for low-shot learning                                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                 |
 | VIAME_ENABLE_SEAL            | Builds Seal multi-modality GUI                                                 |
 | VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                   |
