@@ -26,7 +26,7 @@ process detection_filter
   :filter:class_probablity_filter:keep_all_classes            true
   :filter:class_probablity_filter:keep_classes        fish;scallop
 
-process detection_writer
+process detector_writer
   :: detected_object_output
   :file_name                                   converted_file.kw18
   :writer:type                                                kw18
@@ -35,11 +35,11 @@ connect from downsampler.output_2
         to   detection_reader.image_file_name
 
 connect from downsampler.output_2
-        to   detection_writer.image_file_name
+        to   detector_writer.image_file_name
 
 connect from detection_reader.detected_object_set
         to   detection_filter.detected_object_set
 
 connect from detection_filter.detected_object_set
-        to   detection_writer.detected_object_set
+        to   detector_writer.detected_object_set
 

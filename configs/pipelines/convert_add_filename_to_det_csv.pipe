@@ -20,7 +20,7 @@ process detection_reader
   :file_name                                             input.csv
   :reader:type                                           viame_csv
 
-process detection_writer
+process detector_writer
   :: detected_object_output
   :file_name                                            output.csv
   :writer:type                                           viame_csv
@@ -29,8 +29,8 @@ connect from downsampler.output_2
         to   detection_reader.image_file_name
 
 connect from downsampler.output_2
-        to   detection_writer.image_file_name
+        to   detector_writer.image_file_name
 
 connect from detection_reader.detected_object_set
-        to   detection_writer.detected_object_set
+        to   detector_writer.detected_object_set
 

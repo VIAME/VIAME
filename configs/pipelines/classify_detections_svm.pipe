@@ -46,7 +46,7 @@ connect from descriptor.detected_object_set
 
 # =================================== WRITER =======================================
 
-process detection_writer
+process detector_writer
   :: detected_object_output
 
   # Type of file to output
@@ -54,8 +54,8 @@ process detection_writer
   :writer:type                                 viame_csv
 
 connect from downsampler.output_2
-        to   detection_writer.image_file_name
+        to   detector_writer.image_file_name
 connect from svm_refiner.detected_object_set
-        to   detection_writer.detected_object_set
+        to   detector_writer.detected_object_set
 
 # -- end of file --

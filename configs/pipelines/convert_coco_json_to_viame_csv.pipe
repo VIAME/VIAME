@@ -20,7 +20,7 @@ process detection_reader
   :file_name                                input_groundtruth.json
   :reader:type                                                coco
 
-process detection_writer
+process detector_writer
   :: detected_object_output
   :file_name                                    converted_file.csv
   :writer:type                                           viame_csv
@@ -29,4 +29,4 @@ connect from downsampler.output_2
         to   detection_reader.image_file_name
 
 connect from detection_reader.detected_object_set
-        to   detection_writer.detected_object_set
+        to   detector_writer.detected_object_set
