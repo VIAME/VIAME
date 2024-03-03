@@ -917,6 +917,9 @@ if __name__ == "__main__" :
   parser.add_argument( "-archive-width", dest="archive_width", default="",
     help="Advanced: Optional video archive width over-ride" )
 
+  parser.add_argument( "-output-ext", dest="output_ext", default="",
+    help="Advanced: Optional ascii file output extension over-ride" )
+
   parser.add_argument( "-gpus", "--gpu-count", default=1, type=int, metavar='N',
     help="Parallelize the ingest by using the first N GPUs in parallel" )
 
@@ -1015,6 +1018,15 @@ if __name__ == "__main__" :
     exit_with_error( "Must specify frame rate if generating detection or track plots" )
 
   signal.signal( signal.SIGINT, signal_handler )
+
+  # Handle output extension
+  if args.output_ext:
+    ext = args.output_ext
+    if ext[0] != ".":
+      ext = "." + ext
+    default_gt_ext = ext
+    detection_ext = "_detections" + ext
+    track_ext = "_tracks" + ext
 
   # Initialize database
   if args.init_db:
