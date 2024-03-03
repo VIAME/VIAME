@@ -9,8 +9,8 @@ Detection File Formats and Conversions
 | This folder contains examples of different formats which VIAME supports, and additionally
 | how to convert between textual formats representing object detections, tracks, results,
 | etc. There are multiple ways to perform format conversions, either using KWIVER pipelines
-| with reader/writer nodes (e.g. see pipelines directory) or using quick standalone 
-| scripts (see scripts). Conversion pipelines are simple, containing a detection input
+| with reader/writer nodes (e.g. see bulk_convert_using_pipe script) or using quick standalone 
+| scripts (see standalone_utils). Conversion pipelines are simple, containing a detection input
 | node (reader) and output node (writer).
 
 .. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/detection_file_conversions

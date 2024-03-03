@@ -17,5 +17,5 @@ endif()
 
 install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/detection_file_conversions )
-install( DIRECTORY   scripts
+install( DIRECTORY   standalone_utils
          DESTINATION examples/detection_file_conversions )
