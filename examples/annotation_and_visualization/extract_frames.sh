@@ -16,5 +16,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/process_video.py \
   -i ${INPUT} -o ${OUTPUT} -frate ${DEFAULT_FRAME_RATE} \
-  -p "pipelines/filter_tracks_only.pipe" \
+  -p "pipelines/filter_default.pipe" \
   -auto-detect-gt viame_csv
