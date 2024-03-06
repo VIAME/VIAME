@@ -401,6 +401,17 @@ def detection_output_settings_list( output_dir, basename, stream_id='',
 
   return output
 
+
+def image_output_settings_list( output_dir, basename,
+                                frame_format = "frame%06d.jpg",
+                                cid = None ):
+
+  output = []
+  file_str = output_dir + div + basename + div + frame_format
+  image_writer_str = 'image_writer' + ( str( cid ) + ':' if cid else ':' )
+  output += fset( image_writer_str + 'file_name_template=' + file_str )
+  return output
+
 def homography_output_settings_list( output_dir, basename, cid = None ):
   homog_writer_str = 'homog_writer' + ( str( cid ) + ':' if cid else ':' )
   homog_file = output_dir + div + basename + homography_ext
@@ -688,14 +699,14 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   if use_gt and len( gt_files ) > 0:
     gt_rate = rate_from_gt( gt_files[0] )
-    if not args.input_frame_rate and is_image_list:
-      source_rate = gt_rate if gt_rate else args.frame_rate
+    if not options.input_frame_rate and is_image_list:
+      source_rate = gt_rate if gt_rate else options.frame_rate
     else:
       source_rate = None
     command += video_frame_rate_settings_list( options, gt_rate, source_rate )
   else:
-    if not args.input_frame_rate and is_image_list:
-      source_rate = args.frame_rate
+    if not options.input_frame_rate and is_image_list:
+      source_rate = options.frame_rate
     else:
       source_rate = None
     command += video_frame_rate_settings_list( options, None, source_rate )
@@ -720,6 +731,12 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       write_timecode, output_images, camera_id + 1 )
     command += homography_output_settings_list( \
       output_subdir, camera_name, camera_id + 1 )
+    command += image_output_settings_list( \
+      output_subdir, input_id, options.image_regex, camera_id + 1 )
+
+  if output_images:
+    command += image_output_settings_list( \
+      output_subdir, input_id, options.image_regex )
 
   if options.write_svm_info and not use_gt:
     if len( options.input_detections ) == 0:
@@ -920,6 +937,9 @@ if __name__ == "__main__" :
   parser.add_argument( "-output-ext", dest="output_ext", default="",
     help="Advanced: Optional ascii file output extension over-ride" )
 
+  parser.add_argument( "-image-regex", dest="image_regex", default="frame%06d.jpg",
+    help="Advanced: For pipelines which produce images, a regex for them" )
+
   parser.add_argument( "-gpus", "--gpu-count", default=1, type=int, metavar='N',
     help="Parallelize the ingest by using the first N GPUs in parallel" )
 
@@ -1076,12 +1096,14 @@ if __name__ == "__main__" :
 
     if len( args.input_list ) > 0:
       if args.gpu_count > 1:
-        data_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
+        data_list = split_image_list( args.input_list, \
+          args.gpu_count, args.output_directory )
       else:
         data_list = [ args.input_list ]
       is_image_list = True
     elif len( args.input_dir ) > 0:
-      data_list = auto_identify_data( args.input_dir, args.video_exts, args.image_exts, not args.recursive )
+      data_list = auto_identify_data( args.input_dir, \
+        args.video_exts, args.image_exts, not args.recursive )
       is_image_list = False
     else:
       data_list = [ args.input_video ]
