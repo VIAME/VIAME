@@ -38,3 +38,5 @@ process image_writer
 
 connect from draw_box.image
         to   image_writer.image
+connect from downsampler.output_2
+        to   image_writer.image_file_name
