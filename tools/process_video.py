@@ -407,7 +407,7 @@ def image_output_settings_list( output_dir, basename,
                                 cid = None ):
 
   output = []
-  file_str = output_dir + div + basename + div + frame_format
+  file_str = output_dir + div + frame_format
   image_writer_str = 'image_writer' + ( str( cid ) + ':' if cid else ':' )
   output += fset( image_writer_str + 'file_name_template=' + file_str )
   return output
@@ -732,7 +732,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     command += homography_output_settings_list( \
       output_subdir, camera_name, camera_id + 1 )
     command += image_output_settings_list( \
-      output_subdir, input_id, options.image_regex, camera_id + 1 )
+      output_subdir, camera_name, options.image_regex, camera_id + 1 )
 
   if output_images:
     command += image_output_settings_list( \
@@ -745,7 +745,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       exit_with_error( "Unable to find input detections" )
     gt_files = [ options.input_detections ]
   if use_gt or options.write_svm_info:
-    command += groundtruth_reader_settings_list( options, gt_files, input_id_no_ext, gpu, gt_type )
+    command += groundtruth_reader_settings_list( options, gt_files, \
+      input_id_no_ext, gpu, gt_type )
 
   if options.input_detections:
     command += fset( "detection_reader:file_name=" + options.input_detections )
