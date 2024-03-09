@@ -402,15 +402,17 @@ def detection_output_settings_list( output_dir, basename, stream_id='',
   return output
 
 
-def image_output_settings_list( output_dir, basename,
+def image_output_settings_list( output_dir, is_video = False,
                                 frame_format = "frame%06d.jpg",
                                 cid = None ):
 
-  output = []
-  file_str = output_dir + div + frame_format
+  folder_str = output_dir + div if not is_video else ""
   image_writer_str = 'image_writer' + ( str( cid ) + ':' if cid else ':' )
-  output += fset( image_writer_str + 'file_name_template=' + file_str )
-  return output
+
+  return list( itertools.chain(
+    fset( image_writer_str + 'file_name_template=' + frame_format ),
+    fset( image_writer_str + 'file_name_prefix=' + folder_str ),
+  ))
 
 def homography_output_settings_list( output_dir, basename, cid = None ):
   homog_writer_str = 'homog_writer' + ( str( cid ) + ':' if cid else ':' )
@@ -732,11 +734,11 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     command += homography_output_settings_list( \
       output_subdir, camera_name, camera_id + 1 )
     command += image_output_settings_list( \
-      output_subdir, camera_name, options.image_regex, camera_id + 1 )
+      output_subdir, not is_image_list, options.image_regex, camera_id + 1 )
 
   if output_images:
     command += image_output_settings_list( \
-      output_subdir, input_id, options.image_regex )
+      output_subdir, not is_image_list, options.image_regex )
 
   if options.write_svm_info and not use_gt:
     if len( options.input_detections ) == 0:
