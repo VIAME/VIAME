@@ -10,7 +10,6 @@ endif()
 if( EXISTS ${VIAME_FLETCH_BUILD_DIR}/CMakeCache.txt )
   file( READ ${VIAME_FLETCH_BUILD_DIR}/CMakeCache.txt TMPTXT )
   string( FIND "${TMPTXT}" "VTK_SELECT_VERSION:STRING=6.2" matchres )
-  message( STATUS ${matchres} )
   if( NOT ${matchres} EQUAL -1 )
     message( FATAL_ERROR "Your prior build was with VTK 6.2, which has been updated "
       "to version 8.0 for the latest GUIs. A full re-build is recommended, but "

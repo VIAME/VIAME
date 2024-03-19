@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b2673966..093e38b5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -180,7 +180,6 @@ set(INSTALL_CMAKE_DIR    "share/darknet"             CACHE PATH "Path where cmak
+ find_library(MATH_LIBRARY m)
+ 
+ if(ENABLE_CUDA)
+-  find_package(CUDA QUIET REQUIRED)
+   include(CheckLanguage)
+   check_language(CUDA)
+   if(NOT CMAKE_CUDA_COMPILER)

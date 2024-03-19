@@ -1,0 +1,80 @@
+diff --git a/CMake/fletch-tarballs.cmake b/CMake/fletch-tarballs.cmake
+index 17f5bbc..99940ef 100644
+--- a/CMake/fletch-tarballs.cmake
++++ b/CMake/fletch-tarballs.cmake
+@@ -128,7 +128,7 @@ endif()
+ # FFmpeg
+ if (fletch_ENABLE_FFmpeg OR fletch_ENABLE_ALL_PACKAGES)
+   # allow different versions to be selected for testing purposes
+-  set(FFmpeg_SELECT_VERSION 3.3.3 CACHE STRING "Select the version of FFmpeg to build.")
++  set(FFmpeg_SELECT_VERSION 5.1.2 CACHE STRING "Select the version of FFmpeg to build.")
+   set_property(CACHE FFmpeg_SELECT_VERSION PROPERTY STRINGS "2.6.2" "3.3.3" "4.4.1" "5.1.2")
+   mark_as_advanced(FFmpeg_SELECT_VERSION)
+ 
+@@ -153,6 +153,26 @@ if (fletch_ENABLE_FFmpeg OR fletch_ENABLE_ALL_PACKAGES)
+ endif()
+ list(APPEND fletch_external_sources FFmpeg)
+ 
++# x264
++if(_FFmpeg_version VERSION_LESS 4.0.0)
++  set(x264_version "8c297425")
++  set(x264_url "https://code.videolan.org/videolan/x264/-/archive/${x264_version}/x264-${x264_version}.zip")
++  set(x264_md5 "fcfb16d13b3ca540aefeae36c37c4edd")
++else()
++  set(x264_version "bfc87b7a330f75f5c9a21e56081e4b20344f139e")
++  set(x264_url "https://code.videolan.org/videolan/x264/-/archive/${x264_version}/x264-${x264_version}.tar.bz2")
++  set(x264_md5 "fd71fead6422ccb5094207c9d2ad70bd")
++endif()
++
++# x265
++set(x265_version "3.4")
++set(x265_url "https://github.com/videolan/x265/archive/refs/tags/${x265_version}.tar.gz")
++set(x265_md5 "d867c3a7e19852974cf402c6f6aeaaf3")
++
++# FFmpeg NVidia codec headers
++set(ffnvcodec_version "n11.1.5.1")
++set(ffnvcodec_url "https://git.videolan.org/git/ffmpeg/nv-codec-headers.git")
++
+ # EIGEN
+ set(Eigen_version 3.3.9)
+ set(Eigen_url "https://gitlab.com/libeigen/eigen/-/archive/${Eigen_version}/eigen-${Eigen_version}.tar.gz")
+@@ -578,8 +598,8 @@ list(APPEND fletch_external_sources Darknet)
+ 
+ # pybind11
+ if (fletch_ENABLE_pybind11 OR fletch_ENABLE_ALL_PACKAGES)
+-  set(pybind11_SELECT_VERSION 2.5.0 CACHE STRING "Select the version of pybind11 to build.")
+-  set_property(CACHE pybind11_SELECT_VERSION PROPERTY STRINGS "2.5.0" "2.10.3")
++  set(pybind11_SELECT_VERSION 2.11.1 CACHE STRING "Select the version of pybind11 to build.")
++  set_property(CACHE pybind11_SELECT_VERSION PROPERTY STRINGS "2.5.0" "2.10.3" "2.11.1")
+ endif()
+ 
+ set(pybind11_version ${pybind11_SELECT_VERSION})
+@@ -588,6 +608,8 @@ if (pybind11_version VERSION_EQUAL 2.5.0)
+   set(pybind11_md5 "1ad2c611378fb440e8550a7eb6b31b89" )
+ elseif (pybind11_version VERSION_EQUAL 2.10.3)
+   set(pybind11_md5 "a093dac9dfd613a5a7c2afa50a301098" )
++elseif (pybind11_version VERSION_EQUAL 2.11.1)
++  set(pybind11_md5 "49e92f92244021912a56935918c927d0" )
+ elseif(pybind11_version)
+   message(ERROR "pybind11 Version ${pybind11_version} Not Supported")
+ endif()
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5d9a3f6..2130f22 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -244,7 +244,14 @@ endif()
+ option(fletch_BUILD_WITH_CUDA "Build with CUDA support" FALSE)
+ 
+ if (fletch_BUILD_WITH_CUDA)
+-  find_package( CUDA QUIET REQUIRED )
++  include(CheckLanguage)
++  check_language(CUDA)
++  if(NOT CMAKE_CUDA_COMPILER)
++    message( FATAL_ERROR "CUDA not found, please build explicitly with -DVIAME_ENABLE_CUDA=OFF if you do not want CUDA." )
++  else()
++    enable_language( CUDA )
++    find_package( CUDAToolkit REQUIRED )
++  endif()
+ 
+   file(APPEND ${fletch_CONFIG_INPUT} "
+ ########################################

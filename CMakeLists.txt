@@ -2,7 +2,7 @@
 # Top-level CMakeLists.txt build file for the VIAME super-build and project
 ##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <>< 
 
-cmake_minimum_required( VERSION 3.13.0 )
+cmake_minimum_required( VERSION 3.18.0 )
 set( CMAKE_CXX_STANDARD 17 )
 
 project( VIAME )
@@ -28,6 +28,14 @@ endif()
 
 if( POLICY CMP0074 )
   cmake_policy( SET CMP0074 NEW )
+endif()
+
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'RelWithDebInfo' as none was specified.")
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "MinSizeRel" "RelWithDebInfo" "Release")
 endif()
 
 ###
@@ -167,11 +175,14 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 1.13.1 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.11.0" "1.13.1" )
+  set( VIAME_PYTORCH_VERSION 2.1.2-rc3 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.11.0" "1.13.1" "2.1.2-rc3" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  set( PYTORCH_INTERNAL_VERSION 1.10.2 CACHE INTERNAL "Internal pytorch version" )
+  set( PYTORCH_INTERNAL_VERSION 2.1.2-rc3 CACHE INTERNAL "Internal pytorch version" )
+
+  set( VIAME_TORCH_CUDA_ARCH_LIST "" CACHE STRING "Pytorch CUDA Architectures" )
+  mark_as_advanced( VIAME_TORCH_CUDA_ARCH_LIST )
 
   option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
@@ -376,76 +387,74 @@ endif()
 
 # Check CUDA related paths
 if( VIAME_ENABLE_CUDA )
-  find_package( CUDA QUIET REQUIRED )
-
-  if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND NOT CUDA_cublas_device_LIBRARY )
+  include(CheckLanguage)
+  check_language(CUDA)
+  if(NOT CMAKE_CUDA_COMPILER)
+    message( FATAL_ERROR "CUDA not found, please build explicitly with -DVIAME_ENABLE_CUDA=OFF if you do not want CUDA." )
+  else()
+    enable_language( CUDA )
+    find_package( CUDAToolkit REQUIRED )
+  endif()
+  if( CUDAToolkit_VERSION_MAJOR GREATER_EQUAL 10 AND NOT CUDA_cublas_device_LIBRARY )
     set( CUDA_cublas_device_LIBRARY CACHE INTERNAL "${CUDA_cublas_LIBRARY}" )
   endif()
 
-  if( NOT CUDA_VERSION_PATCH )
-    if( CUDA_NVCC_EXECUTABLE AND
-        CUDA_NVCC_EXECUTABLE STREQUAL CMAKE_CUDA_COMPILER AND
-        CMAKE_CUDA_COMPILER_VERSION MATCHES [=[([0-9]+)\.([0-9]+)\.([0-9]+)]=] )
-      set( CUDA_VERSION_PATCH "${CMAKE_MATCH_3}" )
-    elseif( CUDA_NVCC_EXECUTABLE )
-      execute_process( COMMAND ${CUDA_NVCC_EXECUTABLE} "--version" OUTPUT_VARIABLE NOUT )
-      if( NOUT MATCHES [=[ V([0-9]+)\.([0-9]+)\.([0-9]+)]=] )
-        set( CUDA_VERSION_PATCH "${CMAKE_MATCH_3}" )
-      endif()
-    endif()
-  endif()
-
-  if( CUDA_VERSION VERSION_EQUAL "10.1" AND CUDA_VERSION_PATCH EQUAL "168" )
+  if( CUDAToolkit_VERSION VERSION_EQUAL "10.1" AND CUDAToolkit_VERSION_PATCH EQUAL "168" )
     message( FATAL_ERROR "CUDA 10.1.168 has bugs, upgrade to 10.1.264 or above" )
   endif()
 
-  if( CUDA_VERSION_MAJOR GREATER_EQUAL "10" AND VIAME_ENABLE_CAFFE )
+  if( CUDAToolkit_VERSION_MAJOR GREATER_EQUAL "10" AND VIAME_ENABLE_CAFFE )
     message( FATAL_ERROR "Caffe does not support CUDA 10 or above" )
   endif()
 
-  if( CUDA_VERSION_MAJOR VERSION_LESS "10" AND VIAME_ENABLE_DARKNET )
+  if( CUDAToolkit_VERSION_MAJOR VERSION_LESS "10" AND VIAME_ENABLE_DARKNET )
     message( FATAL_ERROR "Darknet does not support CUDA versions under v10.0" )
   endif()
 
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
   mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
 
-  set( DEF_CUDA_ARCHS "3.5 5.0 5.2 6.0 6.1" )
-  if( CUDA_VERSION VERSION_GREATER "8.5" )
-    set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 7.0" )
-    if( CUDA_VERSION VERSION_LESS "10.1" )
-      set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 7.0+PTX" )
+  #TODO: should we set directly CUDA_ARCHITECTURES (without cuda_select_nvcc_arch_flags)
+  # or CMAKE_CUDA_ARCHITECTURES (default value for CUDA_ARCHITECTURES)
+  # CUDA arch keys: https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
+  if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+    include(FindCUDA/select_compute_arch)
+    cuda_detect_installed_gpus(INSTALLED_GPU_CCS_1)
+    string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
+    string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
+    string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
+    set(CMAKE_CUDA_ARCHITECTURES ${VIAME_TORCH_CUDA_ARCH_LIST})
+    if ( VIAME_ENABLE_PYTORCH )
+      set( VIAME_TORCH_CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_1}" CACHE STRING "torch CUDA Architectures" )
+    endif()
+  else()
+    # CMAKE_CUDA_ARCHITECTURES (https://cmake.org/cmake/help/latest/prop_tgt/CUDA_ARCHITECTURES.html#cuda-architectures)
+    # is different from TORCH_CUDA_ARCH_LIST (which uses FindCUDA/select_compute_arch:161)
+    if( VIAME_ENABLE_PYTORCH )
+      if( CMAKE_CUDA_ARCHITECTURES STREQUAL "all" )
+        set( VIAME_TORCH_CUDA_ARCH_LIST "All")
+      elseif( CMAKE_CUDA_ARCHITECTURES STREQUAL "native" )
+        set( VIAME_TORCH_CUDA_ARCH_LIST "Auto")
+      else() #TODO convert CMAKE_CUDA_ARCHITECTURES list for TORCH_CUDA_ARCH_LIST compatibility
+        message( WARNING "Selecting a specific CUDA architecture with CMAKE_CUDA_ARCHITECTURES is currently not "
+          "compatible for viame pytorch package, VIAME_TORCH_CUDA_ARCH_LIST will be set to \"Auto\"")
+        set( VIAME_TORCH_CUDA_ARCH_LIST "Auto")
+      endif()
     endif()
   endif()
-  if( CUDA_VERSION VERSION_GREATER "9.5" )
-    set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 7.5" )
-    if( CUDA_VERSION VERSION_LESS "11.0" )
-      set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 7.5+PTX" )
-    endif()
-  endif()
-  if( CUDA_VERSION VERSION_GREATER "10.5" )
-    set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 8.0" )
-    if( CUDA_VERSION VERSION_LESS "11.1" )
-      set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 8.0+PTX" )
-    endif()
-  endif()
-  if( CUDA_VERSION VERSION_GREATER "11.0" )
-    set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 8.6" )
-    if( CUDA_VERSION VERSION_LESS "12.1" )
-      set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 8.6+PTX" )
-    endif()
-  endif()
+  #TODO: not sure if CUDA_ARCHITECTURES needs to be defined explicitely since we just set CMAKE_CUDA_ARCHITECTURES
+  # set( CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "CUDA Architectures" )
+  # mark_as_advanced( CUDA_ARCHITECTURES )
 
-  set( CUDA_ARCHITECTURES "${DEF_CUDA_ARCHS}" CACHE STRING "CUDA Architectures" )
-  mark_as_advanced( CUDA_ARCHITECTURES )
+
 
   if( WIN32 )
     set( VIAME_EXECUTABLES_PATH
-      ${VIAME_BUILD_INSTALL_PREFIX}/bin;${CUDA_TOOLKIT_ROOT_DIR}/bin;$ENV{PATH}
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin;${CUDAToolkit_BIN_DIR};$ENV{PATH}
       CACHE INTERNAL "All compiled and system-related runnable executables" )
   else()
     set( VIAME_EXECUTABLES_PATH
-      ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDA_TOOLKIT_ROOT_DIR}/bin:$ENV{PATH}
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDAToolkit_BIN_DIR}:$ENV{PATH}
       CACHE INTERNAL "All compiled and system-related runnable executables" )
   endif()
 
@@ -457,7 +466,7 @@ if( VIAME_ENABLE_CUDA )
 
   if( CMAKE_COMPILER_IS_GNUCC AND
       CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 AND
-      CUDA_VERSION VERSION_LESS "11.6" )
+      CUDAToolkit_VERSION VERSION_LESS "11.6" )
     message( FATAL_ERROR "If using GCC 12.0 or greater, enable CUDA 11.7 or "
       "greater, alongside pytorch 1.12 or greater unless you know enough to "
       "hack around this requirement and disable this error." )
@@ -489,11 +498,11 @@ if( VIAME_ENABLE_CUDNN )
     HINTS ${CUDNN_ROOT_DIR}
           ${CUDNN_ROOT_DIR}/lib
           ${CUDNN_ROOT_DIR}/lib/x64
-          ${CUDA_TOOLKIT_ROOT_DIR}
-          ${CUDA_TOOLKIT_ROOT_DIR}/lib
-          ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-          ${CUDA_TOOLKIT_ROOT_DIR}/lib64
-          ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
+          ${CUDAToolkit_LIBRARY_ROOT}
+          ${CUDAToolkit_LIBRARY_ROOT}/lib
+          ${CUDAToolkit_LIBRARY_ROOT}/lib/x64
+          ${CUDAToolkit_LIBRARY_ROOT}/lib64
+          ${CUDAToolkit_LIBRARY_ROOT}/targets/aarch64-linux
     PATH_SUFFIXES lib lib64 )
 
   get_filename_component( CUDNN_LIBRARY "${CUDNN_LIBRARY}" REALPATH )
@@ -559,7 +568,7 @@ if( VIAME_ENABLE_PYTHON )
   if( VIAME_ENABLE_PYTHON-INTERNAL )
     include( setup_internal_python )
   else()
-    find_package( Python COMPONENTS Interpreter Development REQUIRED )
+    find_package( Python 3.10 COMPONENTS Interpreter Development REQUIRED )
   endif()
 
   # Backwards compatibility for sub-projects which use "PYTHON_" cmake
@@ -676,36 +685,36 @@ if( VIAME_ENABLE_PYTORCH )
   if( VIAME_ENABLE_CUDA )
     if( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
         NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
-        NOT ( CUDA_VERSION VERSION_EQUAL "11.6" OR
-              CUDA_VERSION VERSION_EQUAL "11.7" ) )
+        NOT ( CUDAToolkit_VERSION VERSION_EQUAL "11.6" OR
+              CUDAToolkit_VERSION VERSION_EQUAL "11.7" ) )
       message( FATAL_ERROR "CUDA 11.7, or 11.6 is required for VIAME_ENABLE_PYTORCH "
         "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.13.1. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.11.0" AND
         NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
-        NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
-              CUDA_VERSION VERSION_EQUAL "11.3" OR
-              CUDA_VERSION VERSION_EQUAL "11.5" ) )
+        NOT ( CUDAToolkit_VERSION VERSION_EQUAL "10.2" OR
+              CUDAToolkit_VERSION VERSION_EQUAL "11.3" OR
+              CUDAToolkit_VERSION VERSION_EQUAL "11.5" ) )
       message( FATAL_ERROR "CUDA 11.5, 11.3 or 10.2 is required for VIAME_ENABLE_PYTORCH "
         "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.11.0. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.10.2" AND
             NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
-            NOT ( CUDA_VERSION VERSION_EQUAL "10.2" OR
-                  CUDA_VERSION VERSION_EQUAL "11.1" OR
-                  CUDA_VERSION VERSION_EQUAL "11.3" ) )
+            NOT ( CUDAToolkit_VERSION VERSION_EQUAL "10.2" OR
+                  CUDAToolkit_VERSION VERSION_EQUAL "11.1" OR
+                  CUDAToolkit_VERSION VERSION_EQUAL "11.3" ) )
       message( FATAL_ERROR "CUDA 11.3, 11.1 or 10.2 is required for VIAME_ENABLE_PYTORCH "
         "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.10.2. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
-    elseif( CUDA_VERSION VERSION_LESS "11.0" AND
+    elseif( CUDAToolkit_VERSION VERSION_LESS "11.0" AND
             VIAME_ENABLE_PYTORCH-INTERNAL )
       message( FATAL_ERROR "A CUDA version > 11.0 is required for an internal build "
         "of pytorch. Either disable VIAME_ENABLE_PYTORCH-INTERNAL or downgrade CUDA." )
-    elseif( CUDA_VERSION VERSION_LESS "10.1" )
+    elseif( CUDAToolkit_VERSION VERSION_LESS "10.1" )
       message( FATAL_ERROR "At least CUDA 10.1 required for VIAME_ENABLE_PYTORCH. "
         "Upgrading your CUDA version is recommended." )
     elseif( VIAME_ENABLE_PYTORCH-VIS-INTERNAL AND
-            CUDA_VERSION VERSION_LESS "11.0" )
+            CUDAToolkit_VERSION VERSION_LESS "11.0" )
       message( FATAL_ERROR "VIAME_ENABLE_PYTORCH-VIS-INTERNAL requires at least CUDA 11.0" )
     elseif( VIAME_ENABLE_PYTORCH-INTERNAL AND
             VIAME_ENABLE_CUDNN AND
@@ -728,8 +737,8 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
-  set( VIAME_OPENCV_VERSION 4.2.0 CACHE STRING "Version of OpenCV to use" )
-  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.5.1" )
+  set( VIAME_OPENCV_VERSION 4.9.0 CACHE STRING "Version of OpenCV to use" )
+  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.5.1" "4.9.0" )
   mark_as_advanced( VIAME_OPENCV_VERSION )
 
   if( CMAKE_COMPILER_IS_GNUCC AND
