@@ -100,15 +100,10 @@ CentOS
 **DIVE Standalone Desktop Annotator:** <br>
 * [DIVE Installers (Linux, Mac, Windows)](https://github.com/Kitware/dive/releases)
 
-**SEAL Standalone Desktop Annotator:** <br>
-* [SEAL Windows 7/8/10, GPU Enabled (.zip)](https://data.kitware.com/api/v1/item/602296172fa25629b95482f6/download) <br>
-* [SEAL Windows 7/8/10, CPU Only (.zip)](https://data.kitware.com/api/v1/item/602295642fa25629b9548196/download) <br>
-* [SEAL CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
-* [SEAL Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
-
 There are a number of additional models developed for specific problems, or add-ons containing
 functionalities beyond those in the base VIAME installers (above). These can be downloaded
-from [this page](https://github.com/VIAME/VIAME/wiki/Model-and-Installer-Add-Ons).
+from [this page](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons). Additional custom
+and prior releases of VIAME can be found [at this link](https://github.com/VIAME/VIAME/wiki/Custom-VIAME-Installations).
 
 
 Docker Images
