@@ -108,7 +108,7 @@ CentOS
 
 There are a number of additional models developed for specific problems, or add-ons containing
 functionalities beyond those in the base VIAME installers (above). These can be downloaded
-from [this page](https://github.com/VIAME/VIAME/wiki/Models-and-Installer-Add-Ons).
+from [this page](https://github.com/VIAME/VIAME/wiki/Model-and-Installer-Add-Ons).
 
 
 Docker Images
