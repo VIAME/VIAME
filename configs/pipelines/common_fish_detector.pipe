@@ -36,9 +36,9 @@ process detector1
     :detector:type                             netharn
 
     :mode                                      original_and_resized
-    :chip_width                                640
-    :chip_height                               640
-    :chip_adaptive_thresh                      1200000
+    :chip_width                                1920
+    :chip_height                               1920
+    :chip_adaptive_thresh                      16000000
 
     block detector:netharn
       relativepath deployed =                  models/fish_no_motion_detector.zip
