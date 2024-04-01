@@ -100,7 +100,7 @@ CentOS
 **Additional Packages:** <br>
 * [DIVE Standalone Desktop Annotator (Linux, Mac, Windows)](https://github.com/Kitware/dive/releases)
 * [Model Zoo and Add-Ons](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons)
-* [Custom and Prior VIAME Versions](https://github.com/VIAME/VIAME/wiki/Custom-VIAME-Installations).
+* [Custom and Prior VIAME Versions](https://github.com/VIAME/VIAME/wiki/Custom-VIAME-Installations)
 
 
 Docker Images
