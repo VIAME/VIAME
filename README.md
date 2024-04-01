@@ -106,22 +106,9 @@ CentOS
 * [SEAL CentOS 7, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023362a2fa25629b957c365/download) <br>
 * [SEAL Generic Linux, GPU Enabled (.tar.gz)](https://data.kitware.com/api/v1/item/6023359c2fa25629b957c2f3/download)
 
-**Optional Add-Ons and Model Files:** <br>
-* [Additional YOLO Architectures, All OS](https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download) <br>
-* [Arctic Seals Models, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
-* [Arctic Seals Models, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
-* [EM Tuna Detectors, All OS](https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download) <br>
-* [HabCam Models (Scallop, Skate, Flatfish), Linux](https://viame.kitware.com/api/v1/item/645a7f6d4c19222431de7953/download) <br>
-* [Motion Detector Model, All OS](https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download) <br>
-* [MOUSS Deep 7 Bottomfish Models, All OS](https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download) <br>
-* [Penguin Head FF Models, All OS](https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download) <br>
-* [Sea Lion Models, All OS](https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download) <br>
-* [SEFSC 100-200 Class Fish Models, All OS](https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download) <br>
-* [ConvNext Low-Shot Models, All OS](https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download)
-
-Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
-Folders should match, for example, the Add-On packages contains a 'configs' folder, and the
-main installation also contains a 'configs' folder so they should just be merged.
+There are a number of additional models developed for specific problems, or add-ons containing
+functionalities beyond those in the base VIAME installers (above). These can be downloaded
+from [this page](https://github.com/VIAME/VIAME/wiki/Models-and-Installer-Add-Ons).
 
 
 Docker Images
