@@ -97,13 +97,10 @@ CentOS
 * [VIAME Web Local Installation Instructions](https://kitware.github.io/dive/Deployment-Overview/) <br>
 * [VIAME Web Source Repository](https://github.com/Kitware/dive)
 
-**DIVE Standalone Desktop Annotator:** <br>
-* [DIVE Installers (Linux, Mac, Windows)](https://github.com/Kitware/dive/releases)
-
-There are a number of additional models developed for specific problems, or add-ons containing
-functionalities beyond those in the base VIAME installers (above). These can be downloaded
-from [this page](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons). Additional custom
-and prior releases of VIAME can be found [at this link](https://github.com/VIAME/VIAME/wiki/Custom-VIAME-Installations).
+**Additional Packages:** <br>
+* [DIVE Standalone Desktop Annotator (Linux, Mac, Windows)](https://github.com/Kitware/dive/releases)
+* [Model Zoo and Add-Ons](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons)
+* [Custom and Prior VIAME Versions](https://github.com/VIAME/VIAME/wiki/Custom-VIAME-Installations).
 
 
 Docker Images
