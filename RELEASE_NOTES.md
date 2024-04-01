@@ -8,6 +8,9 @@ v0.20.4 - 3/30/2024
 -Update default fish detection model
 
 
+-Add bulk format conversion scripts
+
+
 
 v0.20.3 - 12/01/2023
 ====================
