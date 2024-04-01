@@ -49,13 +49,13 @@ Installations
 For a full installation guide and description of the various flavors of VIAME, see the
 quick-start guide, above. The full desktop version is provided as either a .msi, .zip or
 .tar file. Alternatively, standalone annotators (without any processing algorithms)
-are available via smaller installers. Lastly, docker files are available for both VIAME
-Desktop and Web (below). For full desktop installs, extract the binaries and place them
-in a directory of your choosing, for example /opt/noaa/viame on Linux
-or C:\Program Files\VIAME on Windows. If using packages built with GPU support, make sure
-to have sufficient video drivers installed, version 465.19 or higher. The best way to
-install drivers depends on your operating system. This isn't required if just using
-manual annotators (or frame classifiers only). The binaries are quite large,
+are available via smaller installers (see DIVE standalone, below). Lastly, docker files
+are available for both VIAME Desktop and Web (below). For full desktop installs, extract
+the binaries and place them in a directory of your choosing, for example /opt/noaa/viame
+on Linux or C:\Program Files\VIAME on Windows. If using packages built with GPU support,
+make sure to have sufficient video drivers installed, version 465.19 or higher. The best
+way to install drivers depends on your operating system. This isn't required if just
+using manual annotators (or frame classifiers only). The binaries are quite large,
 in terms of disk space, due to the inclusion of multiple default model files and
 programs, but if just building your desired features from source (e.g. for embedded
 apps) they are much smaller.
