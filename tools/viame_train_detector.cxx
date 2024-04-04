@@ -510,10 +510,10 @@ static kwiver::vital::config_block_sptr default_config()
     "If an augmentation cache already exists, should we regenerate it or use it as-is?" );
   config->set_value( "augmented_ext_override", ".png",
     "Optional image extension over-ride for augmented images." );
-  config->set_value( "default_percent_test", "0.05",
-    "Percent [0.0, 1.0] of test samples to use if no manual files specified." );
-  config->set_value( "test_burst_frame_count", "500",
-    "Number of sequential frames to use in test set to avoid it being too similar to "
+  config->set_value( "default_percent_validation", "0.05",
+    "Percent [0.0, 1.0] of validation samples to use if no manual files specified." );
+  config->set_value( "validation_burst_frame_count", "500",
+    "Number of sequential frames to use in validation set to avoid it being too similar to "
     "the training set." );
   config->set_value( "image_extensions",
     ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG;.sgi;.SGI;.bmp;.BMP;.pgm;.PGM",
@@ -1486,10 +1486,10 @@ main( int argc, char* argv[] )
     config->get_value< bool >( "regenerate_cache" );
   std::string augmented_ext_override =
     config->get_value< std::string >( "augmented_ext_override" );
-  double percent_test =
-    config->get_value< double >( "default_percent_test" );
-  unsigned test_burst_frame_count =
-    config->get_value< unsigned >( "test_burst_frame_count" );
+  double percent_validation =
+    config->get_value< double >( "default_percent_validation" );
+  unsigned validation_burst_frame_count =
+    config->get_value< unsigned >( "validation_burst_frame_count" );
   std::string image_exts_str =
     config->get_value< std::string >( "image_extensions" );
   std::string video_exts_str =
@@ -1590,9 +1590,9 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
-  if( percent_test < 0.0 || percent_test > 1.0 )
+  if( percent_validation < 0.0 || percent_validation > 1.0 )
   {
-    std::cerr << "Percent test must be [0.0,1.0]" << std::endl;
+    std::cerr << "Percent validation must be [0.0,1.0]" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -1662,7 +1662,7 @@ main( int argc, char* argv[] )
   // Data regardless of source - 
   std::vector< std::string > train_data;  // List of folders, image lists, or videos
   std::vector< std::string > train_truth; // Corresponding list of groundtruth files
-  std::vector< std::string > test_items;  // A subset of train_data used for testing
+  std::vector< std::string > vali_items;  // A subset of train_data used for testing
   bool auto_detect_truth = false;         // Auto-detect truth if not manually specified
 
   // Option 1: a typical training data directory is input
@@ -1718,24 +1718,24 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
     }
 
-    // Load test.txt, if available
-    const std::string test_fn = append_path( input_dir, "test.txt" );
+    // Load validation.txt, if available
+    const std::string validation_fn = append_path( input_dir, "validation.txt" );
 
-    std::vector< std::string > test_files;
-    if( does_file_exist( test_fn ) && !file_to_vector( test_fn, test_files ) )
+    std::vector< std::string > validation_files;
+    if( does_file_exist( validation_fn ) && !file_to_vector( validation_fn, validation_files ) )
     {
-      std::cerr << "Unable to open " << test_fn << std::endl;
+      std::cerr << "Unable to open " << validation_fn << std::endl;
       return EXIT_FAILURE;
     }
 
-    // Append path to all test and train files, test to see if they all exist
-    if( train_files.empty() && test_files.empty() )
+    // Append path to all train and validation files, test to see if they all exist
+    if( train_files.empty() && validation_files.empty() )
     {
-      std::cout << "Automatically selecting train and test files" << std::endl;
+      std::cout << "Automatically selecting train and validation files" << std::endl;
     }
-    else if( train_files.empty() != test_files.empty() )
+    else if( train_files.empty() != validation_files.empty() )
     {
-      std::cerr << "If one of either train.txt or test.txt is specified, "
+      std::cerr << "If one of either train.txt or validation.txt is specified, "
                 << "then they must both be." << std::endl;
       return EXIT_FAILURE;
     }
@@ -1749,7 +1749,7 @@ main( int argc, char* argv[] )
       if( !does_file_exist( full_path ) && does_file_exist( to_test ) )
       {
         absolute_paths = true;
-        std::cout << "Using absolute paths in train.txt and test.txt" << std::endl;
+        std::cout << "Using absolute paths in train.txt and validation.txt" << std::endl;
       }
 
       for( unsigned i = 0; i < train_files.size(); i++ )
@@ -1764,16 +1764,16 @@ main( int argc, char* argv[] )
           std::cerr << "Could not find train file: " << train_files[i] << std::endl;
         }
       }
-      for( unsigned i = 0; i < test_files.size(); i++ )
+      for( unsigned i = 0; i < validation_files.size(); i++ )
       {
         if( !absolute_paths )
         {
-          test_files[i] = append_path( g_params.opt_input_dir, test_files[i] );
+          validation_files[i] = append_path( g_params.opt_input_dir, validation_files[i] );
         }
 
-        if( !does_file_exist( test_files[i] ) )
+        if( !does_file_exist( validation_files[i] ) )
         {
-          std::cerr << "Could not find test file: " << test_files[i] << std::endl;
+          std::cerr << "Could not find validation file: " << validation_files[i] << std::endl;
         }
       }
     }
@@ -1840,8 +1840,8 @@ main( int argc, char* argv[] )
   // Load groundtruth for all image files in all folders using reader class
   std::vector< std::string > train_image_fn;
   std::vector< kwiver::vital::detected_object_set_sptr > train_gt;
-  std::vector< std::string > test_image_fn;
-  std::vector< kwiver::vital::detected_object_set_sptr > test_gt;
+  std::vector< std::string > validation_image_fn;
+  std::vector< kwiver::vital::detected_object_set_sptr > validation_gt;
 
   // Retain class counts for error checking
   std::map< std::string, int > label_counts;
@@ -2233,7 +2233,7 @@ main( int argc, char* argv[] )
           label_counts[ label ]++;
         }
       }
-      for( auto det_set : test_gt )
+      for( auto det_set : validation_gt )
       {
         for( auto det : *det_set )
         {
@@ -2307,20 +2307,20 @@ main( int argc, char* argv[] )
     train_gt = adj_train_gt;
   }
 
-  // Generate a testing and validation set automatically if enabled
+  // Generate a validation set automatically if enabled
   bool invalid_train_set = false, invalid_validation_set = false, found_any = false;
 
-  if( percent_test > 0.0 && test_image_fn.empty() )
+  if( percent_validation > 0.0 && validation_image_fn.empty() )
   {
     unsigned total_images = train_image_fn.size();
 
-    unsigned total_segment = static_cast< unsigned >( test_burst_frame_count / percent_test );
-    unsigned train_segment = total_segment - test_burst_frame_count;
+    unsigned total_segment = static_cast< unsigned >( validation_burst_frame_count / percent_validation );
+    unsigned train_segment = total_segment - validation_burst_frame_count;
 
     if( total_images < total_segment )
     {
       total_segment = total_images;
-      train_segment = total_images - static_cast< unsigned >( percent_test * total_images );
+      train_segment = total_images - static_cast< unsigned >( percent_validation * total_images );
 
       if( total_segment > 1 && train_segment == total_segment )
       {
@@ -2337,8 +2337,8 @@ main( int argc, char* argv[] )
       // First 2 conditionals are hack to ensure at least 1 truth frame.
       if( !found_first && !train_gt[i]->empty() )
       {
-        test_image_fn.push_back( train_image_fn[i] );
-        test_gt.push_back( train_gt[i] );
+        validation_image_fn.push_back( train_image_fn[i] );
+        validation_gt.push_back( train_gt[i] );
         found_first = true;
         found_any = true;
       }
@@ -2360,8 +2360,8 @@ main( int argc, char* argv[] )
       }
       else
       {
-        test_image_fn.push_back( train_image_fn[i] );
-        test_gt.push_back( train_gt[i] );
+        validation_image_fn.push_back( train_image_fn[i] );
+        validation_gt.push_back( train_gt[i] );
       }
     }
 
@@ -2373,22 +2373,22 @@ main( int argc, char* argv[] )
   }
 
   // Backup case for small datasets
-  if( percent_test > 0.0 )
+  if( percent_validation > 0.0 )
   {
-    invalid_validation_set = is_empty( test_gt );
+    invalid_validation_set = is_empty( validation_gt );
 
     if( !train_image_fn.empty() &&
-       ( test_image_fn.empty() || invalid_validation_set ) )
+       ( validation_image_fn.empty() || invalid_validation_set ) )
     {
       for( unsigned i = 0; i < train_image_fn.size() - 1; i++ )
       {
-        test_image_fn.push_back( train_image_fn.back() );
-        test_gt.push_back( train_gt.back() );
+        validation_image_fn.push_back( train_image_fn.back() );
+        validation_gt.push_back( train_gt.back() );
 
         train_image_fn.pop_back();
         train_gt.pop_back();
 
-        if( test_gt.back() && !test_gt.back()->empty() )
+        if( validation_gt.back() && !validation_gt.back()->empty() )
         {
           invalid_validation_set = false;
           break;
@@ -2435,7 +2435,7 @@ main( int argc, char* argv[] )
     adjust_labels( train_image_fn, train_gt, fg_mask,
       secondary_downsample, ignore_secondary_burst_count );
 
-    adjust_labels( test_gt, model_labels, secondary_frame_labels );
+    adjust_labels( validation_gt, model_labels, secondary_frame_labels );
   }
 
   // Run training algorithm
@@ -2445,7 +2445,7 @@ main( int argc, char* argv[] )
   try
   {
     detector_trainer->add_data_from_disk( model_labels,
-      train_image_fn, train_gt, test_image_fn, test_gt );
+      train_image_fn, train_gt, validation_image_fn, validation_gt );
 
     detector_trainer->update_model();
   }
