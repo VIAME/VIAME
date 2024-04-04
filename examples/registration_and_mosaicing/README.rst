@@ -8,7 +8,7 @@ assorted scripts for performing registration, either temporally across an image 
 with a certain amount of overlap, or across modalities (e.g. optical and thermal
 imagery).
 
-.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/image_registration
+.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/registration_and_mosaicing
 
 
 ******************
