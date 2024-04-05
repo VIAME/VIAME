@@ -95,6 +95,7 @@ public:
   std::string opt_input_list;
   std::string opt_input_truth;
   std::string opt_label_file;
+  std::string opt_validation_dir;
   std::string opt_detector;
   std::string opt_out_config;
   std::string opt_threshold;
@@ -331,10 +332,16 @@ void string_to_set( const std::string& str,
   out.insert( tmp.begin(), tmp.end() );
 }
 
-bool file_to_vector( const std::string& fn, std::vector< std::string >& out )
+bool file_to_vector( const std::string& fn,
+                     std::vector< std::string >& out,
+                     const bool reset = true )
 {
   std::ifstream in( fn.c_str() );
-  out.clear();
+
+  if( reset )
+  {
+    out.clear();
+  }
 
   if( !in )
   {
@@ -1121,6 +1128,10 @@ main( int argc, char* argv[] )
     &g_params.opt_label_file, "Input label file for train categories" );
   g_params.m_args.AddArgument( "-lbl",            argT::SPACE_ARGUMENT,
     &g_params.opt_label_file, "Input label file for train categories" );
+  g_params.m_args.AddArgument( "--validation",    argT::SPACE_ARGUMENT,
+    &g_params.opt_validation_dir, "Optional validation input directory" );
+  g_params.m_args.AddArgument( "-v",              argT::SPACE_ARGUMENT,
+    &g_params.opt_validation_dir, "Optional validation input directory" );
   g_params.m_args.AddArgument( "--detector",      argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector to train if no config" );
   g_params.m_args.AddArgument( "-d",              argT::SPACE_ARGUMENT,
@@ -1659,11 +1670,11 @@ main( int argc, char* argv[] )
   unsigned image_width = 0, image_height = 0;
   bool variable_resolution_sequences = false;
 
-  // Data regardless of source - 
-  std::vector< std::string > train_data;  // List of folders, image lists, or videos
-  std::vector< std::string > train_truth; // Corresponding list of groundtruth files
-  std::vector< std::string > vali_items;  // A subset of train_data used for testing
-  bool auto_detect_truth = false;         // Auto-detect truth if not manually specified
+  // Data regardless of source
+  std::vector< std::string > all_data;  // List of folders, image lists, or videos
+  std::vector< std::string > all_truth; // Corresponding list of groundtruth files
+  int validation_pivot = -1;            // Validation index start, if manually set
+  bool auto_detect_truth = false;       // Auto-detect truth if not manually specified
 
   // Option 1: a typical training data directory is input
   if( !g_params.opt_input_dir.empty() )
@@ -1685,14 +1696,13 @@ main( int argc, char* argv[] )
     // Load train.txt, if available
     const std::string train_fn = append_path( input_dir, "train.txt" );
 
-    std::vector< std::string > train_files;
-    if( does_file_exist( train_fn ) && !file_to_vector( train_fn, train_files ) )
+    if( does_file_exist( train_fn ) && !file_to_vector( train_fn, all_data ) )
     {
       std::cerr << "Unable to open " << train_fn << std::endl;
       return EXIT_FAILURE;
     }
 
-    // Special use case for multiple overlapping streams
+    // Special use case for multiple overlapping streams (stereo, eo/ir fusion, etc..)
     const std::string train1_fn = append_path( input_dir, "train1.txt" );
     const std::string train2_fn = append_path( input_dir, "train2.txt" );
 
@@ -1704,13 +1714,14 @@ main( int argc, char* argv[] )
         return EXIT_FAILURE;
       }
 
-      if( !file_to_vector( train1_fn, train_files ) )
+      if( !file_to_vector( train1_fn, all_data ) )
       {
         std::cerr << "Unable to open " << label_fn << std::endl;
         return EXIT_FAILURE;
       }
     }
 
+    // Note: Currently no option to use 2nd input stream in pipelines, just validate it
     std::vector< std::string > train2_files;
     if( does_file_exist( train2_fn ) && !file_to_vector( train2_fn, train2_files ) )
     {
@@ -1719,31 +1730,32 @@ main( int argc, char* argv[] )
     }
 
     // Load validation.txt, if available
-    const std::string validation_fn = append_path( input_dir, "validation.txt" );
+    std::string validation_fn = append_path( input_dir, "validation.txt" );
 
-    std::vector< std::string > validation_files;
-    if( does_file_exist( validation_fn ) && !file_to_vector( validation_fn, validation_files ) )
+    if( does_file_exist( validation_fn ) )
     {
-      std::cerr << "Unable to open " << validation_fn << std::endl;
-      return EXIT_FAILURE;
+      validation_pivot = all_data.size();
+
+      if( !file_to_vector( validation_fn, all_data, false ) )
+      {
+        std::cerr << "Unable to open " << validation_fn << std::endl;
+        return EXIT_FAILURE;
+      }
     }
 
-    // Append path to all train and validation files, test to see if they all exist
-    if( train_files.empty() && validation_files.empty() )
+    // First case, custom .txts are provided, second for just a directory
+    if( !all_data.empty() )
     {
-      std::cout << "Automatically selecting train and validation files" << std::endl;
-    }
-    else if( train_files.empty() != validation_files.empty() )
-    {
-      std::cerr << "If one of either train.txt or validation.txt is specified, "
-                << "then they must both be." << std::endl;
-      return EXIT_FAILURE;
-    }
-    else
-    {
-      // Test first entry
+      // If validation set specified, confirm there is some training data
+      if( !validation_pivot )
+      {
+        std::cerr << "If validation.txt is specified, so must a train.txt" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      // Append path to all train and validation files, test to see if they all exist
       bool absolute_paths = false;
-      std::string to_test = train_files[0];
+      std::string to_test = all_data[0];
       std::string full_path = append_path( g_params.opt_input_dir, to_test );
 
       if( !does_file_exist( full_path ) && does_file_exist( to_test ) )
@@ -1752,43 +1764,36 @@ main( int argc, char* argv[] )
         std::cout << "Using absolute paths in train.txt and validation.txt" << std::endl;
       }
 
-      for( unsigned i = 0; i < train_files.size(); i++ )
+      for( unsigned i = 0; i < all_data.size(); i++ )
       {
         if( !absolute_paths )
         {
-          train_files[i] = append_path( g_params.opt_input_dir, train_files[i] );
+          all_data[i] = append_path( g_params.opt_input_dir, all_data[i] );
         }
 
-        if( !does_file_exist( train_files[i] ) )
+        if( !does_file_exist( all_data[i] ) )
         {
-          std::cerr << "Could not find train file: " << train_files[i] << std::endl;
-        }
-      }
-      for( unsigned i = 0; i < validation_files.size(); i++ )
-      {
-        if( !absolute_paths )
-        {
-          validation_files[i] = append_path( g_params.opt_input_dir, validation_files[i] );
-        }
-
-        if( !does_file_exist( validation_files[i] ) )
-        {
-          std::cerr << "Could not find validation file: " << validation_files[i] << std::endl;
+          std::cerr << "Could not find train file: " << all_data[i] << std::endl;
         }
       }
     }
-
-    // Identify all sub-directories containing data
-    std::vector< std::string > subfolders, videos;
-    list_all_subfolders( g_params.opt_input_dir, subfolders );
-    list_files_in_folder( g_params.opt_input_dir, videos, false, video_exts ); 
-    train_data.insert( train_data.end(), subfolders.begin(), subfolders.end() );
-    train_data.insert( train_data.end(), videos.begin(), videos.end() );
-
-    if( train_data.empty() )
+    else
     {
-      std::cout << "Error: training folder contains no sub-folders" << std::endl;
-      return EXIT_FAILURE;
+      std::cout << "Automatically identifying train files from input directory" << std::endl;
+
+      // Identify all sub-directories containing data
+      std::vector< std::string > subfolders, videos;
+      list_all_subfolders( g_params.opt_input_dir, subfolders );
+      list_files_in_folder( g_params.opt_input_dir, videos, false, video_exts );
+
+      all_data.insert( all_data.end(), subfolders.begin(), subfolders.end() );
+      all_data.insert( all_data.end(), videos.begin(), videos.end() );
+
+      if( all_data.empty() )
+      {
+        std::cout << "Error: training folder contains no sub-folders" << std::endl;
+        return EXIT_FAILURE;
+      }
     }
 
     auto_detect_truth = true;
@@ -1796,18 +1801,18 @@ main( int argc, char* argv[] )
   else if( !g_params.opt_input_list.empty() )
   {
     if( !does_file_exist( g_params.opt_input_list ) ||
-        !load_file_list( g_params.opt_input_list, train_data ) )
+        !load_file_list( g_params.opt_input_list, all_data ) )
     {
       std::cout << "Unable to load: " << g_params.opt_input_list << std::endl;
       return EXIT_FAILURE;
     }
 
-    while( !train_data.empty() && train_data.back().empty() )
+    while( !all_data.empty() && all_data.back().empty() )
     {
-      train_data.pop_back();
+      all_data.pop_back();
     }
 
-    if( train_data.empty() )
+    if( all_data.empty() )
     {
       std::cout << "Input training data list contains no entries" << std::endl;
       return EXIT_FAILURE;
@@ -1818,23 +1823,46 @@ main( int argc, char* argv[] )
     if( !auto_detect_truth )
     {
       if( !does_file_exist( g_params.opt_input_truth ) ||
-          !load_file_list( g_params.opt_input_truth, train_truth ) )
+          !load_file_list( g_params.opt_input_truth, all_truth ) )
       {
         std::cout << "Unable to load: " << g_params.opt_input_truth << std::endl;
         return EXIT_FAILURE;
       }
 
-      while( train_truth.size() > train_data.size() && train_truth.back().empty() )
+      while( all_truth.size() > all_data.size() && all_truth.back().empty() )
       {
-        train_truth.pop_back();
+        all_truth.pop_back();
       }
 
-      if( train_data.size() != train_truth.size() )
+      if( all_data.size() != all_truth.size() )
       {
         std::cout << "Training data and truth list lengths do not match" << std::endl;
         return EXIT_FAILURE;
       }
     }
+  }
+
+  // Load optional manual validation folder
+  if( !g_params.opt_validation_dir.empty() )
+  {
+    std::vector< std::string > subfolders, videos;
+
+    if( validation_pivot < 0 )
+    {
+      validation_pivot = all_data.size();
+    }
+
+    if( !does_folder_exist( g_params.opt_validation_dir ) )
+    {
+      std::cerr << "Unable to open " << g_params.opt_validation_dir << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    list_all_subfolders( g_params.opt_validation_dir, subfolders );
+    list_files_in_folder( g_params.opt_validation_dir, videos, false, video_exts );
+
+    all_data.insert( all_data.end(), subfolders.begin(), subfolders.end() );
+    all_data.insert( all_data.end(), videos.begin(), videos.end() );
   }
 
   // Load groundtruth for all image files in all folders using reader class
@@ -1846,11 +1874,18 @@ main( int argc, char* argv[] )
   // Retain class counts for error checking
   std::map< std::string, int > label_counts;
 
-  for( unsigned i = 0; i < train_data.size(); i++ )
+  for( unsigned i = 0; i < all_data.size(); i++ )
   {
     // Get next data entry to process
-    std::string data_item = train_data[i];
+    std::string data_item = all_data[i];
     std::cout << "Processing " << data_item << std::endl;
+
+    // If train/validation partition divide already set, updated from
+    // data sequence to image id level.
+    if( validation_pivot == static_cast< int >( i ) )
+    {
+      validation_pivot = train_image_fn.size();
+    }
 
     // Identify all truth files for this entry
     std::vector< std::string > image_files, video_files, gt_files;
@@ -1905,7 +1940,7 @@ main( int argc, char* argv[] )
     }
     else
     {
-      gt_files.resize( 1, train_truth[i] );
+      gt_files.resize( 1, all_truth[i] );
     }
 
     // Either the input is a video file directly, or a directory containing images or video
@@ -2167,6 +2202,19 @@ main( int argc, char* argv[] )
     {
       break;
     }
+  }
+
+  if( validation_pivot > 0 )
+  {
+    validation_image_fn.insert( validation_image_fn.begin(),
+      train_image_fn.begin() + validation_pivot, train_image_fn.end() );
+    validation_gt.insert( validation_gt.begin(),
+      train_gt.begin() + validation_pivot, train_gt.end() );
+
+    train_image_fn.erase(
+      train_image_fn.begin() + validation_pivot, train_image_fn.end() );
+    train_gt.erase(
+      train_gt.begin() + validation_pivot, train_gt.end() );
   }
 
   if( downsample > 0 )
