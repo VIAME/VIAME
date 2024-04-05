@@ -81,8 +81,8 @@ CentOS
 
 **Windows Full Desktop Binaries:** <br>
 * VIAME v0.20.3 Windows, GPU Enabled, Wizard (.msi) (Coming Soon...) <br>
-* [VIAME v0.20.3 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1aZj7iUULPU0B-1HfuSTCz3Ud5Smv9mNk/view?usp=sharing) <br>
-* [VIAME v0.20.3 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/65d70559b40ab0fa6c57916f/download) <br>
+* [VIAME v0.20.4 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1n-ew2Ost2bfUn9i_DqImBRM63dJc7vds/view?usp=drive_link) <br>
+* [VIAME v0.20.4 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/660fee502357cf6b55ca89bc/download) <br>
 * [VIAME v0.20.1 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1lQdX9uXgzQbGnfXQ10mebWu2QLMLmDKF/view?usp=sharing) <br>
 * [VIAME v0.20.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/64ab74436cb8a983de7a3772/download)
 
