@@ -8,3 +8,4 @@ Aerial Penguin,https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/do
 Sea Lion,https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download,Sea lion aerial detection data
 ConvNext,https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download, DARPA Learn ConvNext low-shot detector
 MoreYOLO,https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download, Additional Darknet YOLO model architectures
+MoreFish,https://data.kitware.com/api/v1/item/6611cf192357cf6b55ca8ad3/download,Additional 1-class fish detection models
