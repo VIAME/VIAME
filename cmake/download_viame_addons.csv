@@ -1,11 +1,11 @@
-HabCam,https://viame.kitware.com/api/v1/item/63e5b26163ed1fd08e734ba6/download,Detect and measure scallops and flatfish and other friends
-SEFSC,https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download,170 species fish detector and trackers for Gulf of Mexico
-SWFSC-PengHead,https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download,Penguin headcam classification
-Motion,https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download,Generic moving object detectors
-EM Tuna,https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download,On-board deck camera for tuna box and head/tail detection
-MOUSS Deep 7,https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download,MOUSS deep7 fish detection in hawaii
-Aerial Penguin,https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download,Aerial penguin detection from fixed wings/drones
-Sea Lion,https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download,Sea lion aerial detection data
-ConvNext,https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download, DARPA Learn ConvNext low-shot detector
-MoreYOLO,https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download, Additional Darknet YOLO model architectures
-MoreFish,https://data.kitware.com/api/v1/item/6611cf192357cf6b55ca8ad3/download,Additional 1-class fish detection models
+HabCam, https://viame.kitware.com/api/v1/item/63e5b26163ed1fd08e734ba6/download, Detect and measure scallops and flatfish and other friends
+SEFSC, https://viame.kitware.com/api/v1/item/627b32b1994809b024f207a7/download, 170 species fish detector and trackers for Gulf of Mexico
+SWFSC-PengHead, https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download, Penguin headcam classification
+Motion, https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download, Generic moving object detectors
+EM Tuna, https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download, On-board deck camera for tuna box and head/tail detection
+MOUSS Deep 7, https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download, MOUSS deep7 fish detection in hawaii
+Aerial Penguin, https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download, Aerial penguin detection from fixed wings/drones
+Sea Lion, https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download, Sea lion aerial detection data
+ConvNext, https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download, DARPA Learn ConvNext low-shot detector
+MoreYOLO, https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download, Additional Darknet YOLO model architectures
+MoreFish, https://data.kitware.com/api/v1/item/6611cf192357cf6b55ca8ad3/download, Additional 1-class fish detection models
