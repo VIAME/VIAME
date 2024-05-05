@@ -666,7 +666,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     gt_search_path = os.path.dirname( os.path.abspath( input_path ) )
     all_gt_files = list_files_in_dir_w_ext( gt_search_path, gt_ext )
     better_fit = [ i for i in all_gt_files if input_id_no_ext in i ]
-    best_fit = [ i for i in better_fit if input_id_no_ext + ".csv" in i ]
+    best_fit = [ i for i in better_fit if input_id_no_ext + ".csv" == i ]
     if len( best_fit ) > 0:
       gt_files = best_fit
     elif len( better_fit ) > 0:
