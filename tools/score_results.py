@@ -89,10 +89,11 @@ def list_categories_viame_csv( filename ):
 def list_files_rec_w_ext( folder, ext ):
   result = [ y for x in os.walk( folder )
                for y in glob( os.path.join( x[0], '*' + ext ) ) ]
+  return result
 
 def compute_alignment( computed_dir, truth_dir, ext = '.csv',
-                       remove_postfix = '_detection',
-                       skip_postfix = '_track' ):
+                       remove_postfix = '_detections',
+                       skip_postfix = '_tracks' ):
 
   out = dict()
 
@@ -100,11 +101,13 @@ def compute_alignment( computed_dir, truth_dir, ext = '.csv',
   truth_files = list_files_rec_w_ext( truth_dir, ext )
 
   for comp_file in computed_files:
-    if skip_postfix and skip_postfix in comp_file:
+    if skip_postfix and skip_postfix + ext in comp_file:
       continue
-    if remove_postfix and remove_postfix in comp_file:
-      comp_file.replace( remove_postfix, "" )
-    comp_base = os.path.basename( comp_file )
+    if remove_postfix and remove_postfix + ext in comp_file:
+      comp_no_postfix = comp_file.replace( remove_postfix + ext, ext )
+    else:
+      comp_no_postfix = comp_file
+    comp_base = os.path.basename( comp_no_postfix )
     match = False
     for truth_file in truth_files:
       if comp_base == os.path.basename( truth_file ):
@@ -156,13 +159,14 @@ def filter_by_category( filename, category, threshold=0.0 ):
   fout.close()
   return fd, handle
 
-# Returns joint filename list, mismatched names found, max-frame-id
+# Returns joint filename list, if mismatched names found, max-frame-id
 def get_file_list_from_viame_csvs( computed, truth ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-list-',
                                    suffix='.txt',
                                    text=True,
                                    dir=temp_dir )
   fns = dict()
+  dup = dict()
   mismatch = False
   with open( computed ) as f:
     for line in f:
@@ -172,6 +176,11 @@ def get_file_list_from_viame_csvs( computed, truth ):
       fid = int( lis[2] )
       if lis[1] or not fid in fns:
         fns[ fid ] = lis[1]
+      if lis[1] in dup:
+        if dup[ lis[1] ] != fid:
+          mismatch = True
+      else:
+        dup[ lis[1] ] = fid
   with open( truth ) as f:
     for line in f:
       lis = line.strip().split(',')
@@ -181,9 +190,14 @@ def get_file_list_from_viame_csvs( computed, truth ):
       if not fid in fns:
         fns[ fid ] = lis[1]
       elif lis[1]:
-        if fns[ fid ] != lis[1]
+        if fns[ fid ] != lis[1]:
           mismatch = True
         fns[ fid ] = lis[1]
+      if lis[1] in dup:
+        if dup[ lis[1] ] != fid:
+          mismatch = True
+      else:
+        dup[ lis[1] ] = fid
   out = []
   last_id = 0
   max_id = 0
@@ -204,6 +218,19 @@ def read_list_from_file_list( filename ):
       if len( line ) > 0:
         out.append( line )
   return out
+
+def filter_dets( dets, categories=None ):
+  #if categories is None:
+  #  return dets
+  output = DetectedObjectSet()
+  for i, item in enumerate( dets ):
+    if item.type is None:
+      continue
+    #class_lbl = item.type.get_most_likely_class()
+    #class_lbl = categories.get_class_name( class_lbl )
+    item.type = DetectedObjectType( "fish", 1.0 )
+    output.add( item )
+  return output
 
 def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-coco-',
@@ -229,8 +256,74 @@ def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   return fd, handle
 
 def generate_det_conf_directory( args, categories ):
+  aligned_truth = compute_alignment( args.computed, args.truth )
 
+  (fd1, handle1) = tempfile.mkstemp( prefix='viame-coco-',
+                                     suffix='.json',
+                                     text=True,
+                                     dir=temp_dir )
+  (fd2, handle2) = tempfile.mkstemp( prefix='viame-coco-',
+                                     suffix='.json',
+                                     text=True,
+                                     dir=temp_dir )
 
+  truth_writer =  DetectedObjectSetOutput.create( "coco" )
+  computed_writer =  DetectedObjectSetOutput.create( "coco" )
+
+  writer_conf = truth_writer.get_configuration()
+  writer_conf.set_value( "global_categories", "true" )
+
+  truth_writer.set_configuration( writer_conf )
+  truth_writer.open( handle1 )
+
+  computed_writer.set_configuration( writer_conf )
+  computed_writer.open( handle2 )
+
+  print( "Processing identified truth/computed matches" )
+
+  for computed, truth in aligned_truth.items():
+    truth_reader =  DetectedObjectSetInput.create( "viame_csv" )
+    reader_conf = truth_reader.get_configuration()
+    truth_reader.set_configuration( reader_conf )
+    truth_reader.open( truth )
+
+    computed_reader =  DetectedObjectSetInput.create( "viame_csv" )
+    reader_conf = computed_reader.get_configuration()
+    computed_reader.set_configuration( reader_conf )
+    computed_reader.open( computed )
+
+    joint_images, mismatch, fc = get_file_list_from_viame_csvs( computed, truth )
+
+    if mismatch:
+      syn_base_name = os.path.splitext( os.path.basename( computed ) )[0]
+      for i in range( 0, fc ):
+        syn_file_name = syn_base_name + "-" + str( i ).zfill( 6 )
+        truth_dets = truth_reader.read_set()
+        computed_dets = computed_reader.read_set()
+        filter_dets( truth_dets )
+        truth_writer.write_set( truth_dets, syn_file_name )
+        computed_writer.write_set( computed_dets, syn_file_name )
+    else:
+      for i in joint_images:
+        truth_dets = truth_reader.read_set_by_path( i )
+        computed_dets = computed_reader.read_set_by_path( i )
+        filter_dets( truth_dets )
+        truth_writer.write_set( truth_dets, i )
+        computed_writer.write_set( computed_dets, i )
+
+  print( "Writing compiled detections to json" )
+
+  truth_writer.complete()
+  computed_writer.complete()
+
+  print( "Running scoring scripts" )
+
+  cmd = get_conf_cmd() + [ '--true_dataset', handle1 ]
+  cmd = cmd + [  '--pred_dataset', handle2 ]
+  cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
+  cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
+  subprocess.call( cmd )
+  
 def generate_det_conf_single( args, categories ):
 
   if args.list:
@@ -427,6 +520,8 @@ if __name__ == "__main__":
              help='Input filename for optional image list file.' )
   parser.add_argument( '-threshold', type=float, default=0.05,
              help='Input threshold for statistics.' )
+  parser.add_argument( '-labels', dest="input_labels", default=None,
+             help='Input label synonym file.' )
   parser.add_argument( '-input-format', dest="input_format", default="viame-csv",
              help='Input file format.' )
 
