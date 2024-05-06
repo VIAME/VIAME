@@ -325,7 +325,7 @@ def generate_det_conf_directory( args, categories ):
   cmd = get_conf_cmd() + [ '--true_dataset', handle1 ]
   cmd = cmd + [  '--pred_dataset', handle2 ]
   cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
-  cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
+  cmd = cmd + [  '--out_dpath', args.det_conf ]
   subprocess.call( cmd )
   
 def generate_det_conf_single( args, categories ):
