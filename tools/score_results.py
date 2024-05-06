@@ -68,7 +68,7 @@ def load_roc( fn ):
       y_pd = np.append( y_pd, float( fields[7] ) )
   return ( x_fa, y_pd )
 
-def list_categories( filename ):
+def list_categories_viame_csv( filename ):
   unique_ids = set()
   with open( filename ) as f:
     for line in f:
@@ -156,13 +156,14 @@ def filter_by_category( filename, category, threshold=0.0 ):
   fout.close()
   return fd, handle
 
-def synethesize_list_from_csvs( computed, truth ):
+# Returns joint filename list, mismatched names found, max-frame-id
+def get_file_list_from_viame_csvs( computed, truth ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-list-',
                                    suffix='.txt',
                                    text=True,
                                    dir=temp_dir )
-
   fns = dict()
+  mismatch = False
   with open( computed ) as f:
     for line in f:
       lis = line.strip().split(',')
@@ -177,19 +178,25 @@ def synethesize_list_from_csvs( computed, truth ):
       if len( lis ) < 6 or len( lis[0] ) > 0 and lis[0][0] == '#':
         continue
       fid = int( lis[2] )
-      if lis[1] or not fid in fns:
+      if not fid in fns:
+        fns[ fid ] = lis[1]
+      elif lis[1]:
+        if fns[ fid ] != lis[1]
+          mismatch = True
         fns[ fid ] = lis[1]
   out = []
   last_id = 0
+  max_id = 0
   for fid, fn in fns.items():
+    max_id = max( fid, max_id )
     if fid > last_id:
       for i in range( last_id, fid ):
         out.append( "unnamed_frame" + str(i) )
     out.append( fn )
     last_id = fid + 1
-  return out
+  return out, mismatch, max_id
 
-def read_list_from_file( filename ):
+def read_list_from_file_list( filename ):
   out = []
   with open( filename ) as f:
     for line in f:
@@ -221,15 +228,15 @@ def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   coco_writer.complete()
   return fd, handle
 
-def generate_conf( args, categories ):
+def generate_det_conf_directory( args, categories ):
 
-  from kwiver.vital.modules import load_known_modules
-  load_known_modules()
+
+def generate_det_conf_single( args, categories ):
 
   if args.list:
-    image_list = read_list_from_file( args.list )
+    image_list = read_list_from_file_list( args.list )
   else:
-    image_list = synethesize_list_from_csvs( args.computed, args.truth )
+    image_list, _, _ = get_file_list_from_viame_csvs( args.computed, args.truth )
 
   for cat in categories:
     _, filtered_computed_csv = filter_by_category( args.computed, cat, args.threshold )
@@ -253,15 +260,25 @@ def generate_conf( args, categories ):
     cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
     subprocess.call( cmd )
 
+def generate_det_conf( args, categories ):
+
+  from kwiver.vital.modules import load_known_modules
+  load_known_modules()
+
+  if os.path.isdir( args.computed ):
+    generate_det_conf_directory( args, categories )
+  else:
+    generate_det_conf_single( args, categories )
+  
   print( "\nConf matrix and PRC plot generation is complete\n" )
 
   if os.name == "nt":
     print( "On windows, ignore the following temp file error\n" )
 
-def generate_stats( args, categories ):
+def generate_trk_simp_stats( args, categories ):
 
   # Generate roc files
-  base, ext = os.path.splitext( args.track_stats )
+  base, ext = os.path.splitext( args.trk_simple )
 
   base_cmd = get_stat_cmd()
   base_cmd += [ '--computed-format', args.input_format, '--truth-format', args.input_format ]
@@ -278,11 +295,11 @@ def generate_stats( args, categories ):
 
   if len( categories ) != 1:
     cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
-    with open( args.track_stats, 'w' ) as fout:
+    with open( args.trk_simple, 'w' ) as fout:
       if not args.use_cache:
         subprocess.call( cmd, stdout=fout, stderr=fout )
 
-def generate_rocs( args, categories ):
+def generate_det_rocs( args, categories ):
 
   # Generate roc files
   base, ext = os.path.splitext( args.det_roc )
@@ -403,9 +420,9 @@ if __name__ == "__main__":
 
   # Inputs
   parser.add_argument( '-computed', default=None,
-             help='Input filename for computed file.' )
+             help='Input filename or folder for computed files.' )
   parser.add_argument( '-truth', default=None,
-             help='Input filename for groundtruth file.' )
+             help='Input filename or folder for groundtruth files.' )
   parser.add_argument( '-list', default=None,
              help='Input filename for optional image list file.' )
   parser.add_argument( '-threshold', type=float, default=0.05,
@@ -413,19 +430,21 @@ if __name__ == "__main__":
   parser.add_argument( '-input-format', dest="input_format", default="viame-csv",
              help='Input file format.' )
 
-  # Outputs
+  # Output options
   parser.add_argument( '-det-conf', dest="det_conf", default=None,
-             help='Filename for conf matrix and related stats.' )
+             help='Folder for conf matrix, prc curves, and related stats.' )
   parser.add_argument( '-det-roc', dest="det_roc", default=None,
              help='Filename for output roc curves.' )
-  parser.add_argument( '-track-stats', dest="track_stats", default=None,
+  parser.add_argument( '-trk-simple', dest="trk_simple", default=None,
+             help='Filename for output track statistics.' )
+  parser.add_argument( '-trk-mot', dest="trk_mot", default=None,
              help='Filename for output track statistics.' )
 
   # Scoring settings
   parser.add_argument( "-iou-thresh", dest="iou_thresh", default=0.5,
              help="IOU threshold for detection conf matrices and stats option" )
   parser.add_argument( "--per-category", dest="per_category", action="store_true",
-             help="Utilize categories in the files and generate plots per category" )
+             help="For options where it matters, run scoring individually per category" )
 
   # Plot settings
   parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
@@ -459,26 +478,30 @@ if __name__ == "__main__":
     print( "Error: both computed and truth file must be specified" )
     sys.exit( 0 )
 
-  if not args.det_roc and not args.track_stats and not args.det_conf:
-    print( "Error: either 'track-stats', 'det-roc', or 'det-conf' must be specified" )
+  if not args.det_roc and not args.trk_simple and not args.det_conf and not args.trk_mot:
+    print( "Error: either 'trk-simple', 'trk-mot', 'det-roc', or 'det-conf' must be specified" )
     sys.exit( 0 )
 
   categories = []
 
   if args.input_format != "viame-csv":
-    print( "Error: only viame-csv currently supported for multi-category" )
+    print( "Error: only viame-csv format is widely supported by this tool" )
     sys.exit( 0 )
   else:
     args.input_format = "noaa-csv"
 
   if args.per_category:
-    categories = list_categories( args.truth )
-
-  if args.track_stats:
-    generate_stats( args, categories )
+    categories = list_categories_viame_csv( args.truth )
 
   if args.det_roc:
-    generate_rocs( args, categories )
+    generate_det_rocs( args, categories )
 
   if args.det_conf:
-    generate_conf( args, categories )
+    generate_det_conf( args, categories )
+
+  if args.trk_simple:
+    generate_trk_simp_stats( args, categories )
+
+  if args.trk_mot:
+    generate_trk_mot_stats( args, categories )
+
