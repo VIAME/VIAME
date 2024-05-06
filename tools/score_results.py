@@ -296,10 +296,14 @@ def generate_det_conf_directory( args, categories ):
 
     if mismatch:
       syn_base_name = os.path.splitext( os.path.basename( computed ) )[0]
-      for i in range( 0, fc ):
+      for i in range( 0, fc+1 ):
         syn_file_name = syn_base_name + "-" + str( i ).zfill( 6 )
         truth_dets = truth_reader.read_set()
         computed_dets = computed_reader.read_set()
+        if truth_dets is None or computed_dets is None:
+          continue
+        truth_dets = truth_dets[0]
+        computed_dets = computed_dets[0]
         filter_dets( truth_dets )
         truth_writer.write_set( truth_dets, syn_file_name )
         computed_writer.write_set( computed_dets, syn_file_name )
