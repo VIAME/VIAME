@@ -14,6 +14,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from glob import glob
+
 from kwiver.vital.algo import (
     DetectedObjectSetInput,
     DetectedObjectSetOutput
@@ -82,6 +84,37 @@ def list_categories( filename ):
         unique_ids.add( lis[idx] )
         idx = idx + 2
   return list( unique_ids )
+
+
+def list_files_rec_w_ext( folder, ext ):
+  result = [ y for x in os.walk( folder )
+               for y in glob( os.path.join( x[0], '*' + ext ) ) ]
+
+def compute_alignment( computed_dir, truth_dir, ext = '.csv',
+                       remove_postfix = '_detection',
+                       skip_postfix = '_track' ):
+
+  out = dict()
+
+  computed_files = list_files_rec_w_ext( computed_dir, ext )
+  truth_files = list_files_rec_w_ext( truth_dir, ext )
+
+  for comp_file in computed_files:
+    if skip_postfix and skip_postfix in comp_file:
+      continue
+    if remove_postfix and remove_postfix in comp_file:
+      comp_file.replace( remove_postfix, "" )
+    comp_base = os.path.basename( comp_file )
+    match = False
+    for truth_file in truth_files:
+      if comp_base == os.path.basename( truth_file ):
+        out[ comp_file ] = truth_file
+        match = True
+        break
+    if not match:
+      print( "Could not find corresponding truth for: " + comp_base )
+      sys.exit( 0 )
+  return out
 
 def filter_by_category( filename, category, threshold=0.0 ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-score-',
