@@ -118,10 +118,12 @@ instance but can be downloaded via running the script download_viame_addons.sh i
 Quick Build Instructions
 ------------------------
 
-These instructions are intended for developers or those interested in building the latest master
-branch. More in-depth build instructions can be found [here](examples/building_and_installing_viame),
-but the software can be built either as a super-build, which builds most of its dependencies
-alongside itself, or standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
+These instructions are intended for developers or those interested in building the latest release
+branch. Anyone interested in just running the software as-is and not modifying it should use the
+installers listed in the prior section, without needing to do a software build. More in-depth
+build instructions can be found [here](examples/building_and_installing_viame), but the software
+can be built either as a super-build, which builds most of its dependencies alongside itself, or
+standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
 Installing Python and CUDA is also recommended. If using CUDA, versions 11.7 or 11.6 are
 preferred, with CUDNN 8. Other CUDA or CUDNN versions may or may not work. For python distributions,
