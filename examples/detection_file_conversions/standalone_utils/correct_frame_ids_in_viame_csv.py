@@ -45,15 +45,7 @@ def read_records(path):
         for row in reader:
             try:
                 record = [t(v) for t, v in zip(field_types, row)]
-
-                classifiers = row[len(field_types):]
-                while len(classifiers) >= 2:
-                    record += [classifiers[0], float(classifiers[1])]
-
-                if len(classifiers):
-                    warn('ignoring unpaired classification {!r}',
-                         classifiers[0])
-
+                record += row[len(field_types):]
                 records.append(record)
 
             except ValueError:
@@ -63,8 +55,8 @@ def read_records(path):
 
 #------------------------------------------------------------------------------
 def write_records(records, out_file):
-    writer = csv.writer(out_file, quoting=csv.QUOTE_NONNUMERIC)
-    map(writer.writerow, records)
+    for i in range(len(records)):
+        out_file.write( ",".join(str(e) for e in records[i]) + "\n")
 
 #------------------------------------------------------------------------------
 def main():
@@ -97,6 +89,7 @@ def main():
             records[i][F_FRAME_NUMBER] = images[f]
         else:
             warn('no match for image name {!r}: frame number not updated', f)
+            print( records[i] )
 
     # Write output
     if args.in_place:
