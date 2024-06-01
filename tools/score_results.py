@@ -542,6 +542,8 @@ if __name__ == "__main__":
   # Scoring settings
   parser.add_argument( "-iou-thresh", dest="iou_thresh", default=0.5,
              help="IOU threshold for detection conf matrices and stats option" )
+  parser.add_argument( "--single-category", dest="single_category", action="store_true",
+             help="Ignore categories in the file and treat everything as one category" )
   parser.add_argument( "--per-category", dest="per_category", action="store_true",
              help="For options where it matters, run scoring individually per category" )
 
