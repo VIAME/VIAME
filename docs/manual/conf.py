@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.graphviz',
+    'sphinx_rtd_dark_mode',
     'breathe',
 ]
 
@@ -129,7 +130,6 @@ todo_include_todos = True
 # a list of builtin themes.
 #html_theme = 'alabaster'
 html_theme = 'sphinx_rtd_theme'
-extensions = ["sphinx_rtd_dark_mode"]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
