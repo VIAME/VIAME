@@ -1,2 +1,3 @@
 breathe
-sphinx-rtd-dark-mode
+sphinx-rtd-theme
+sphinx-rtd-dark-theme
