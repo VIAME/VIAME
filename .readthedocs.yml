@@ -7,8 +7,8 @@ build:
     python: "3.7"
 
 sphinx:
-  configuration: docs/manuals/conf.py
+  configuration: docs/manual/conf.py
 
 python:
   install:
-    - requirements: docs/manuals/requirements.txt
+    - requirements: docs/manual/requirements.txt
