@@ -9,9 +9,9 @@ analytics, VIAME now contains many common algorithms and libraries, and is also 
 generic computer vision toolkit. It contains a number of standalone tools for accomplishing
 the above, a pipeline framework which can connect C/C++, python, and matlab nodes together
 in a multi-threaded fashion, and multiple algorithms resting on top of the pipeline infrastructure.
-Lastly, both desktop and web user interfaces exist for deployments in different types of
-environments, with an open annotation archive and example of the web platform available
-at [viame.kitware.com](https://viame.kitware.com).
+Lastly, a portion of the algorithms have been integrated into both desktop and web user interfaces
+for deployments in different types of environments, with an open annotation archive and example
+of the web platform available at [viame.kitware.com](https://viame.kitware.com).
 
 
 Documentation
