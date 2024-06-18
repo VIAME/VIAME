@@ -155,6 +155,7 @@ set( CORE_PIPELINE_FILES
   convert_habcam_to_kw18.pipe
   convert_habcam_to_viame_csv.pipe
   convert_kw18_to_viame_csv.pipe
+  convert_to_onnx.pipe
   convert_oceaneyes_to_viame_csv.pipe
   convert_viame_csv_to_coco_json.pipe
   convert_viame_csv_to_kw18.pipe
