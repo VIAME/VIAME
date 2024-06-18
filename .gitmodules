@@ -84,3 +84,6 @@
 [submodule "packages/pytorch-libs/sam2"]
 	path = packages/pytorch-libs/sam2
 	url = https://github.com/facebookresearch/sam2.git
+[submodule "packages/pytorch-libs/mmdeploy"]
+	path = packages/pytorch-libs/mmdeploy
+	url = https://github.com/open-mmlab/mmdeploy
