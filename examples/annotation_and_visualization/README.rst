@@ -3,35 +3,53 @@
 GUIs for Visualization and Annotation
 =====================================
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example_painted.png
-   :scale: 30
-   :align: center
-   :target: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization/README.rst
-|
-This document corresponds to `this example online`_, in addition to the
-annotation_and_visualization example folder in a VIAME installation.
+This document corresponds to the scripts located in `this example online`_, in addition to the
+annotation_and_visualization example folder within a VIAME desktop installation.
+
+Contained in this example are launch scripts for some of the more common graphical user interfaces
+(GUIs) within VIAME, alongside `CLI scripts`_ for visualizing or extracting data from either computed or
+manually annotated detection files. Examples of the latter include drawing detection boxes on images,
+extracting image chips around detections, or extracting images from video files at frame rates
+indicated within the metadata of truth files.
 
 .. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
+.. _CLI scripts: https://viame.readthedocs.io/en/latest/section_links/quick_start_guide.html#running-cli-tools
 
-There are a number of GUIs in the system. As part of the VIVIA package the vpView GUI, the current
-default desktop annotator, is useful for displaying detections, their respective probabilities,
-for running existing automated detectors, and for making new annotations in video. There are
-additionally simpler GUIs which can be enabled in .pipe files. vpView can either be pointed directly
-to imagery, pointed to a compressed video file (see [install-dir]/configs/prj-*/for_videos) or given
-an input prj file that points to the location of input imagery and any optional settings (e.g.
-groundtruth, computed detections, and/or homographies for the input data). If you just want to
-use the tool to make annotations you don't need to specify the later three, and just need to
-set a DataSetSpecifier or [reccommended] use the File->New Project option to load imagery directly
-without a prj file. Also, see the below example guide and videos.
+********************************
+DIVE Annotation Process Overview
+********************************
 
-There are 2 default run scripts in this folder. "launch_view_interface" launches the main
-vpview annotation and results display GUI while "run_display_pipe" runs the simpler in-pipeline
-display GUI. Lastly, "run_chip_pipe" creates image chips and "run_draw_pipe" does the same
-as display, only writing out images with boxes drawn on top of them to file.
+The DIVE interface is the most generically useful GUI within VIAME, and is the recommended default
+interface to use for many problems. The biggest allure is its ability to annotate multiple image sequences
+or videos, train AI models across these multiple sequences, then run the trained models on new sequences.
+This process can then be repeated with the help of the newly trained models to potentially annotate data
+faster, then train a newer model on significantly more data. Additional information about how to use
+the DIVE interface can be found in its `dedicated user manual`_ and additionally in the `tutorial videos`_.
+The interface can be launched via double clicking the "launch_dive_interface" script.
 
-**********************************
-vpView Annotation Process Overview
-**********************************
+.. _dedicated user manual: https://kitware.github.io/dive/
+.. _tutorial videos: https://www.youtube.com/channel/viame
+
+********************************
+VIEW Annotation Process Overview
+********************************
+
+As part of the VIVIA package, the VIEW annotation interface is useful for displaying detections,
+their respective probabilities, for running existing automated detectors, and for making new annotations
+in imagery or video. Its main weakness is that it can only load a single sequence at a given time.
+Its strengths are that it has a number of enhancements for annotating very large images, e.g. satellite
+imagery in the form of geotiffs or nitfs. Some people also prefer its annotation style. Training over
+multiple sequences can be performed with the help of `project folders`_
+
+.. _project folders: https://github.com/VIAME/VIAME/tree/main/configs/prj-windows
+
+VIEW can either be pointed directly to imagery, pointed to a compressed video file
+(see [install-dir]/configs/prj-*/for_videos), or given an input .prj file that points to the location
+of input imagery and any optional settings (e.g. groundtruth, computed detections, and/or homographies
+for the input data). If you just want to use the tool to make annotations you don't need to specify
+the later three, and just need to set a DataSetSpecifier or [reccommended] use the File->New Project
+option to load imagery directly without a prj file. Also, see the below example guide and videos.
+The VIEW interface can be launched via the "launch_view_interface" script.
 
 | `Manual Annotation Guide (PDF)`_
 | `Example Video Overviews (Youtube)`_
@@ -39,16 +57,14 @@ vpView Annotation Process Overview
 .. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5c6574668d777f072b47cbd6/download
 .. _Example Video Overviews (YouTube): https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
 
-************************************
-Notable Annotation GUI Shortcut Keys
-************************************
+Notable VIEW Shortcut Keys
+==========================
 
 * *r* = Zoom back to the full image
 * *hold ctrl + drag* = create a box in annotation mode (create detection/track)
 
-********************************
-vpView GUI Project File Overview
-********************************
+VIEW Project File Overview
+==========================
 
 Examples of the optional contents of loadable prj files are listed below for quick reference.
 For those not familiar with the tool, downloading the above manual is best. Project files are
@@ -117,4 +133,35 @@ Note: The list is not complete, but currently focusing on the most used (and new
   not the distance from the median.  
 * ColorLevel = L (defaults to 127)  
   Input color value that will be mapped to the median output value, and also serves as the
-  median value of the input color range.  
+  median value of the input color range.
+
+*********
+CLI Tools
+*********
+
+Standalone utility scripts in this folder include the following. Each of these is designed
+to take in a folder of videos, folder of images, or a folder of folders of images, see
+default `input folder structure`.
+
+.._input folder structure: https://viame.readthedocs.io/en/latest/section_links/quick_start_guide.html#input-folder-structure
+
+*draw_detections_on_frames - Draw detections stored in some detection file onto frames
+*extract_chips_from_detections - Extract image chips around detections or truth boxes
+*extract_frames - Extract all frames in videos in the input folder
+*extract_frames_with_dets_only - Extract frames with detections only in the input
+
+
+*******************
+Pipeline Simple UIs
+********************
+
+Lastly, there are additionally simpler GUIs which can be enabled in .pipe files.
+
+For directly running and editing pipeline files, see the `KWIVER documentation`.
+
+.._KWIVER documentation: https://kwiver.readthedocs.io/en/latest/
+
+One example of this is the 'simple_display_pipeline'. This script launches a
+pipeline containing an OpenCV-based display window, which prints out detections
+as they are being processed by the pipeline.
+
