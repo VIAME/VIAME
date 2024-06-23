@@ -5,6 +5,7 @@ import csv
 import os
 import sys
 
+F_DET_ID = 0
 F_IMAGE_NAME = 1
 F_FRAME_NUMBER = 2
 
@@ -56,7 +57,8 @@ def read_records(path):
 #------------------------------------------------------------------------------
 def write_records(records, out_file):
     for i in range(len(records)):
-        out_file.write( ",".join(str(e) for e in records[i]) + "\n")
+        if records[i][F_DET_ID] >= 0:
+            out_file.write( ",".join(str(e) for e in records[i]) + "\n")
 
 #------------------------------------------------------------------------------
 def main():
@@ -88,6 +90,7 @@ def main():
         if f in images:
             records[i][F_FRAME_NUMBER] = images[f]
         else:
+            records[i][F_DET_ID] = -1
             warn('no match for image name {!r}: frame number not updated', f)
             print( records[i] )
 
