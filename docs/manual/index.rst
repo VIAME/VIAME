@@ -51,11 +51,6 @@ Contents:
    section_links/using_detectors_in_cxx_code
    KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
 
-
-.. |br| raw:: html
-
-   <br />
-
 ========================
 Key Toolkit Capabilities
 ========================
@@ -114,3 +109,6 @@ Detector and Tracker Evaluation
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_roc_generation
 
+.. |br| raw:: html
+
+   <br />

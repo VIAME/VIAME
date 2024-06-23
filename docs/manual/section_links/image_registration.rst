@@ -1,1 +1,1 @@
-.. include:: ../../../examples/image_registration/README.rst
+.. include:: ../../../examples/registration_and_mosaicing/README.rst
