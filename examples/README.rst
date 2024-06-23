@@ -1,7 +1,7 @@
 
-======================================
-CLI Tools and Examples Folder Overview
-======================================
+=============================
+CLI Tools and Example Folders
+=============================
 
 In the '[install]/examples' folder, there are a number of subfolders, with each folder corresponding
 to a different core functionality. The scripts in each of these folders can be copied to and run

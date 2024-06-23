@@ -51,11 +51,9 @@ Contents:
    section_links/using_detectors_in_cxx_code
    KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
 
-========================
 Key Toolkit Capabilities
 ========================
 
-****************
 Object Detection
 ****************
 
@@ -64,7 +62,6 @@ Object Detection
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
-***********************************
 Measuring Fish Lengths Using Stereo
 ***********************************
 
@@ -73,7 +70,6 @@ Measuring Fish Lengths Using Stereo
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/measurement_using_stereo
 
-*************************************************
 Image and Video Search for Rapid Model Generation
 *************************************************
 
@@ -82,7 +78,6 @@ Image and Video Search for Rapid Model Generation
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
-*************************************
 GUIs for Visualization and Annotation
 *************************************
 
@@ -91,7 +86,6 @@ GUIs for Visualization and Annotation
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
-***********************************************
 Illumination Normalization and Color Correction
 ***********************************************
 
@@ -100,7 +94,6 @@ Illumination Normalization and Color Correction
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
 
-*******************************
 Detector and Tracker Evaluation
 *******************************
 
