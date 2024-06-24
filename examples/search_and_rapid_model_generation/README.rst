@@ -7,15 +7,13 @@ Video and Image Search Examples
 Overview
 ********
 
-This document corresponds to `this folder online`_, in addition to the
-search_and_rapid_model_generation example folder in a VIAME installation.
-
-.. _this folder online: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
-
-This directory contains methods to accomplish two tasks: 
+This document corresponds to the `search and rapid model generation`_ folder contained within a VIAME
+desktop installation. This directory contains methods to accomplish two tasks: 
 
 | (a) Performing exemplar-based searches on an archive of unannotated imagery or videos 
 | (b) Quickly training up detection models for new categories of objects on the same ingest
+
+.. _search and rapid model generation: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 Video and Image Archive Search using VIAME
 ==========================================

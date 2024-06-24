@@ -1,6 +1,6 @@
 
 ===========================
-Length Measurement Examples
+Size Measurement Examples
 ===========================
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
@@ -10,9 +10,8 @@ Length Measurement Examples
 Running the Demo
 ================
 
-This section corresponds to `this example online`_, in addition to the
-size_measurement example folder in a VIAME installation. This folder contains
-examples covering fish measurement using stereo. This example is currently a work
+This section corresponds to the `size measurement`_ example folder within a VIAME desktop
+installation. This folder contains examples covering fish measurement using stereo. This example is currently a work
 in progress.
 
 .. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement

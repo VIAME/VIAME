@@ -1,16 +1,16 @@
 
-========================
-Object Tracking Training
-========================
+=======================
+Object Tracker Training
+=======================
 
 ********
 Overview
 ********
 
-This document corresponds to `this online example`_, in addition to the
-object_tracker_training example folder in a VIAME installation.
+This document corresponds to the `object tracker training`_ example within a VIAME
+desktop installation folder.
 
-.. _this online example: https://github.com/VIAME/VIAME/tree/master/examples/object_tracker_training
+.. _object detector training: https://github.com/VIAME/VIAME/tree/master/examples/object_tracker_training
 
 Object tracker training can be performed in a similar way to `object detection training`_,
 via formatting the directory structure in the same format and launching the train script. Unlike

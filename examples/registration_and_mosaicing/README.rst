@@ -1,8 +1,8 @@
-==================
-Image Registration
-==================
+==========================
+Registration and Mosaicing
+==========================
 
-This document corresponds to `registration and mosaicing`_ example folder within
+This document corresponds to the `registration and mosaicing`_ example folder within
 a VIAME desktop installation. This directory stores assorted scripts for performing
 registration and mosaicing, either across an image sequence with a certain amount of
 overlap between frames, or across modalities (e.g. optical and thermal imagery) for

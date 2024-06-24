@@ -8,13 +8,11 @@ Image Enhancement and Filtering
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
 
-This document corresponds to `this example online`_, in addition to the
-image_enhancement example folder in a VIAME installation. This directory stores
-assorted scripts for debayering, color correction, illumination normalization, and
-general image contrast enhancement.
+This document corresponds to the `Image Enhancement`_ example folder within a VIAME
+desktop installation. This directory stores assorted scripts for debayering, color
+correction, illumination normalization, and general image contrast enhancement.
 
-.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/image_enhancement
-
+.. _Image Enhancement: https://github.com/VIAME/VIAME/blob/master/examples/image_enhancement
 
 ******************
 Build Requirements

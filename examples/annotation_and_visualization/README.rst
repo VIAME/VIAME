@@ -1,11 +1,11 @@
 
-=====================================
-GUIs for Visualization and Annotation
-=====================================
+=========================
+Graphical User Interfaces
+=========================
 
-This document corresponds to the `Annotation and Visualization`_ example folder contained
-within a VIAME desktop installation. Contained in this example are launch scripts for some of the more
-common graphical user interfaces (GUIs) within VIAME, alongside `CLI scripts`_ for visualizing or
+This document corresponds to the `Annotation and Visualization`_ example folder within a VIAME
+desktop installation. Contained in this example are launch scripts for some of the more common
+graphical user interfaces (GUIs) within VIAME, alongside `CLI scripts`_ for visualizing or
 extracting data from either computed or manually annotated detection files. Examples of the latter
 include drawing detection boxes on images, extracting image chips around detections, or extracting
 images from video files at frame rates indicated within the metadata of truth files.

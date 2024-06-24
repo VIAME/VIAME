@@ -8,9 +8,16 @@ Scoring Detectors and Trackers
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 This document corresponds to the `scoring and evaluation`_ example folder within a
-VIAME desktop installation.
+VIAME desktop installation. There are a few different options and packages which are
+used within VIAME for coming up with different types of scorings metrics, for either
+detections, frame-level classifications, or object tracks tracks.
 
 .. _scoring and evaluation: https://github.com/VIAME/VIAME/blob/master/examples/scoring_and_evaluation
+
+
+--------------------------------------------------
+KWANT - Basic Track and Detection-Level Properties
+--------------------------------------------------
 
 The KWANT package provides scoring tools that can be used to
 calculate the probability of detecting an item, along with other scoring

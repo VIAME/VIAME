@@ -31,6 +31,10 @@ png image files in a folder
 annotation_and_visualization example directory. 'cd ..' is another useful command which moves one
 directory up, alongside a lone 'ls' command to list all files in the current directory.
 
+In all of the documentation for each example, the '.bat' or '.sh' extension is omitted, as the
+extension is operating system (OS) dependent. The functionality and scripts are nearly identical
+across different OSes, however.
+
 ***************
 Editing Scripts
 ***************
