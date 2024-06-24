@@ -112,8 +112,16 @@ which is more or less the same as the prior, just formatted differently.
 
 The habcam reader/writer can be specified in config files using 'habcam'.
 
+*******************
+DIVE JSON - Limited
+*******************
+
+An alternative JSON schema export from the DIVE interface. Unlike COCO, this
+is currently only supported by the DIVE tool, not by other scripts and CLIs
+within VIAME.
+
 *****************
-KW18 (Deprecated)
+KW18 - Deprecated
 *****************
 
 KW18, or Kitware KW18 Column Seperated Track Format, are a space seperated
@@ -128,7 +136,9 @@ Each KW18 file has a header stating its contents, as follows:
 
 The kw18 reader/writer can be specified in config files using 'kw18'.
 
-**KWIVER CSV (Deprecated) - Additional Comma Seperated Value Detection Format**
+***********************
+KWIVER CSV - Deprecated
+***********************
 
 A detection only CSV format contains 1 detection per line, with each line as follows:
 
@@ -143,7 +153,6 @@ A detection only CSV format contains 1 detection per line, with each line as fol
 
 The kwiver reader/writer can be specified in config files using 'csv'. We reccomend
 you don't use it for anything.
-
 
 *******************
 Example Conversions
