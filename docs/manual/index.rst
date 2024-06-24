@@ -29,20 +29,21 @@ Contents:
    :maxdepth: 1
 
    section_links/documentation_overview
+   section_links/installing_from_binaries
    section_links/building_from_source
-   section_links/example_capabilities
-   section_links/image_enhancement
-   section_links/object_detection
-   section_links/object_tracking
-   section_links/detection_file_conversions
-   section_links/size_measurement
-   section_links/object_detector_training
-   section_links/search_and_rapid_model_generation
    section_links/annotation_and_visualization
+   section_links/examples_overview
+   section_links/detection_file_conversions
+   section_links/object_detection
+   section_links/object_detector_training
+   section_links/size_measurement
+   section_links/object_tracking
+   section_links/image_enhancement
+   section_links/search_and_rapid_model_generation
    section_links/scoring_and_evaluation
-   section_links/archive_summarization
    section_links/registration_and_mosaicing
    section_links/frame_level_classification
+   section_links/archive_summarization
    Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
    Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
    Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
