@@ -24,7 +24,8 @@ but select entries are also listed below broken down by individual functionality
 
 
 [Documentation Overview](https://viame.readthedocs.io/en/latest/section_links/documentation_overview.html) <>
-[Install or Build Instructions](examples/building_and_installing_viame) <>
+[Installation](examples/installing_from_binaries) <>
+[Building](examples/building_from_source) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
 [DIVE Interface](https://kitware.github.io/dive) <>
 [VIEW Interface](examples/annotation_and_visualization) <>
@@ -36,12 +37,12 @@ but select entries are also listed below broken down by individual functionality
 [Detection File Formats](https://viame.readthedocs.io/en/latest/section_links/detection_file_conversions.html) <>
 [Calibration and Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/registration_and_mosaicing)  <>
-[Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <>
+[Stereo Measurement and Depth Maps](examples/size_measurement) <>
 [Pipelining Overview](https://github.com/Kitware/kwiver) <>
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <>
 [Plugin Integration](examples/hello_world_pipeline) <>
 [Example Plugin Templates](plugins/templates) <>
-[Embedding Algorithms in C++](examples/using_detectors_in_cxx_code)
+[Embedding Algorithms in C++](examples/using_algorithms_in_code)
 
 Installations
 -------------
