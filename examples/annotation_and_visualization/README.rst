@@ -1,7 +1,7 @@
 
-=========================
-Graphical User Interfaces
-=========================
+=================================
+User Interfaces and Visualization
+=================================
 
 This document corresponds to the `Annotation and Visualization`_ example folder within a VIAME
 desktop installation. Contained in this example are launch scripts for some of the more common
