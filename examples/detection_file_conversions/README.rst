@@ -27,15 +27,15 @@ python, which produce either detected_object_sets or object_track_sets, respecti
 There are 3 parts to a VIAME csv. First, 9 required fields comma seperated, with
 a single line for either each detection, or each detection state, in a track:
 
-  - 1: Detection or Track Unique ID
-  - 2: Video or Image String Identifier
-  - 3: Unique Frame Integer Identifier
-  - 4: TL-x (top left of the image is the origin: 0,0)
-  - 5: TL-y
-  - 6: BR-x
-  - 7: BR-y
-  - 8: Auxiliary Confidence (how likely is this actually an object)
-  - 9: Target Length
+- 1: Detection or Track Unique ID
+- 2: Video or Image String Identifier
+- 3: Unique Frame Integer Identifier
+- 4: TL-x (top left of the image is the origin: 0,0)
+- 5: TL-y
+- 6: BR-x
+- 7: BR-y
+- 8: Auxiliary Confidence (how likely is this actually an object)
+- 9: Target Length
 
 Where detections can be linked onto tracks on multiple frames via sharing the
 same track ID field. Depending on the context (image or video) the second field
@@ -49,7 +49,7 @@ value less than 0, most commonly "-1".
 
 Next, a sequence of optional species <=> score pairs, also comma seperated:
 
-  - 10,11+  : class-name, score (this pair may be omitted or repeated)
+- 10,11+  : class-name, score (this pair may be omitted or repeated)
 
 There can be as many class, score pairs as necessary (e.g. fields 12 and 13, 14
 and 15, etc...). In the case of tracks, which may span multiple lines and thus
@@ -62,12 +62,17 @@ Lastly, optional categorical values associated with each detection in the file
 after species/class pairs. Attributes are given via a keyword followed by any
 space seperate values the attribute may have. Possible attributes are:
 
-  (kp) head 120 320            [optional head, tail, or arbitrary keypoints]
-  (atr) is_diseased true       [attribute keyword then boolean or numeric value]
-  (note) this is a note        [notes take no form just can't have commas]
-  (poly) 12 455 40 515 25 480  [a polygon for the detection]
-  (hole) 38 485 39 490 37 470  [a hole in a polygon for a detection]
-  (mask) ./masks/mask02393.png [a reference to an external pixel mask image]
+ (kp) head 120 320            [optional head, tail, or arbitrary keypoints]
+
+ (atr) is_diseased true       [attribute keyword then boolean or numeric value]
+
+ (note) this is a note        [notes take no form just can't have commas]
+
+ (poly) 12 455 40 515 25 480  [a polygon for the detection]
+
+ (hole) 38 485 39 490 37 470  [a hole in a polygon for a detection]
+
+ (mask) ./masks/mask02393.png [a reference to an external pixel mask image]
 
 Throwing together all of these components, an example line might look like:
 
@@ -110,8 +115,9 @@ The habcam reader/writer can be specified in config files using 'habcam'.
 
 KW18s are a space seperated file format for representing detections or tracks.
 
-Each KW18 file has a header stating its contents, as follows: # 1:Track-id
-2:Track-length 3:Frame-number 4:Tracking-plane-loc(x) 5:Tracking-plane-loc(y)
+Each KW18 file has a header stating its contents, as follows:
+
+# 1:Track-id 2:Track-length 3:Frame-number 4:Tracking-plane-loc(x) 5:Tracking-plane-loc(y)
 6:velocity(x) 7:velocity(y) 8:Image-loc(x) 9:Image-loc(y) 10:Img-bbox(TL_x)
 11:Img-bbox(TL_y) 12:Img-bbox(BR_x) 13:Img-bbox(BR_y) 14:Area 15:World-loc(x)
 16:World-loc(y) 17:World-loc(z) 18:timestamp 19:track-confidence
@@ -122,14 +128,14 @@ The kw18 reader/writer can be specified in config files using 'kw18'.
 
 A detection only CSV format contains 1 detection per line, with each line as follows:
 
-  - 1: frame number
-  - 2: file name
-  - 3: TL-x (top left of the image is the origin: 0,0)
-  - 4: TL-y
-  - 5: BR-x
-  - 6: BR-y
-  - 7: detection confidence
-  - 8,9+  : class-name  score (this pair may be omitted or repeated)
+- 1: frame number
+- 2: file name
+- 3: TL-x (top left of the image is the origin: 0,0)
+- 4: TL-y
+- 5: BR-x
+- 6: BR-y
+- 7: detection confidence
+- 8,9+  : class-name  score (this pair may be omitted or repeated)
 
 The kwiver reader/writer can be specified in config files using 'csv'. We reccomend
 you don't use it for anything.
