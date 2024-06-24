@@ -28,28 +28,28 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
-   section_links/documentation_overview
-   section_links/installing_from_binaries
-   section_links/building_from_source
-   section_links/annotation_and_visualization
-   section_links/examples_overview
-   section_links/detection_file_conversions
-   section_links/object_detection
-   section_links/object_detector_training
-   section_links/size_measurement
-   section_links/object_tracking
-   section_links/image_enhancement
-   section_links/search_and_rapid_model_generation
-   section_links/scoring_and_evaluation
-   section_links/registration_and_mosaicing
-   section_links/frame_level_classification
-   section_links/archive_summarization
+   sections/documentation_overview
+   sections/installing_from_binaries
+   sections/building_from_source
+   sections/annotation_and_visualization
+   sections/examples_overview
+   sections/detection_file_conversions
+   sections/object_detection
+   sections/object_detector_training
+   sections/size_measurement
+   sections/object_tracking
+   sections/image_enhancement
+   sections/search_and_rapid_model_generation
+   sections/scoring_and_evaluation
+   sections/registration_and_mosaicing
+   sections/frame_level_classification
+   sections/archive_summarization
    Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
    Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
    Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
-   section_links/hello_world_pipeline
-   section_links/plugin_creation
-   section_links/using_algorithms_in_code
+   sections/hello_world_pipeline
+   sections/plugin_creation
+   sections/using_algorithms_in_code
    KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
 
 Key Toolkit Capabilities
