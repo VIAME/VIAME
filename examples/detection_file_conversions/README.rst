@@ -13,16 +13,14 @@ are simple, containing a detection input node (reader) and output node (writer).
 
 .. _Detection File Conversions: https://github.com/VIAME/VIAME/tree/master/examples/detection_file_conversions
 
-****************************
-Integrated Detection Formats
-****************************
-
 A subset of the output ASCII formats already integrated into VIAME is listed below.
 New formats can be integrated to the system by implementing a derived version of the
 vital::detected_object_set_input or vital::read_object_track_set classes in C++ or
 python, which produce either detected_object_sets or object_track_sets, respectively.
 
-**VIAME CSV - System Default Comma Seperated Value Detection Format**
+**************************
+VIAME CSV - Default Format
+**************************
 
 There are 3 parts to a VIAME csv. First, 9 required fields comma seperated, with
 a single line for either each detection, or each detection state, in a track:
@@ -81,11 +79,14 @@ Throwing together all of these components, an example line might look like:
 This file format is supported by most GUIs and detector training tools. It can
 be used via specifying the 'viame_csv' keyword in any readers or writers
 
-**COCO JSON - Common Objects in Context**
+*********
+COCO JSON
+*********
 
-COCO jsons are a json schema popularized by the COCO academic computer vision
-competitions, but are now also used in other applications more widely, for
-example in the cvat annotation tool. It is defined at https://cocodataset.org
+COCO (Common Objects in Context) jsons are a json schema popularized by the
+COCO academic computer vision competitions, but are now also used in other
+applications more widely, for example in the cvat annotation tool. It is
+defined at https://cocodataset.org
 
 Compared to the CSV format they are typically larger but much more extensible,
 structured, and have more capacities for optional fields.
@@ -111,9 +112,12 @@ which is more or less the same as the prior, just formatted differently.
 
 The habcam reader/writer can be specified in config files using 'habcam'.
 
-**KW18 (Deprecated) - Kitware KW18 Column Seperated Track Format**
+*****************
+KW18 (Deprecated)
+*****************
 
-KW18s are a space seperated file format for representing detections or tracks.
+KW18, or Kitware KW18 Column Seperated Track Format, are a space seperated
+file format for representing detections or tracks.
 
 Each KW18 file has a header stating its contents, as follows:
 
