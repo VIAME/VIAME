@@ -5,12 +5,12 @@ Scoring Detectors and Trackers
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
    :scale: 30
    :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_roc_generation
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
-This document corresponds to `this example online`_, in addition to the
-scoring_and_roc_generation example folder in a VIAME installation.
+This document corresponds to the `scoring and evaluation`_ example folder within a
+VIAME desktop installation.
 
-.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/scoring_and_roc_generation
+.. _scoring and evaluation: https://github.com/VIAME/VIAME/blob/master/examples/scoring_and_evaluation
 
 The KWANT package provides scoring tools that can be used to
 calculate the probability of detecting an item, along with other scoring
@@ -27,7 +27,7 @@ against the truth file to give a set of statistics as shown below. Additional
 parameters that can be passed to the tool and other options can be found in
 the `KWANT documentation`_.
 
-.. _here: https://github.com/VIAME/VIAME/blob/master/examples/scoring_and_roc_generation/
+.. _here: https://github.com/VIAME/VIAME/blob/master/examples/scoring_and_evaluation/
 .. _KWANT documentation: https://github.com/Kitware/kwant/blob/master/doc/manuals/introduction.rst
 
 ::

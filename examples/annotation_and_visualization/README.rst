@@ -141,9 +141,9 @@ CLI Tools
 
 Standalone utility scripts in this folder include the following. Each of these is designed
 to take in a folder of videos, folder of images, or a folder of folders of images, see
-default `input folder structure`.
+default `input folder structure`_.
 
-.._input folder structure: https://viame.readthedocs.io/en/latest/section_links/quick_start_guide.html#input-folder-structure
+.._input folder structure: https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html#bulk-processing-scripts
 
 *draw_detections_on_frames - Draw detections stored in some detection file onto frames
 *extract_chips_from_detections - Extract image chips around detections or truth boxes
@@ -157,7 +157,7 @@ Pipeline Simple UIs
 
 Lastly, there are additionally simpler GUIs which can be enabled in .pipe files.
 
-For directly running and editing pipeline files, see the `KWIVER documentation`.
+For directly running and editing pipeline files, see the `KWIVER documentation`_.
 
 .._KWIVER documentation: https://kwiver.readthedocs.io/en/latest/
 

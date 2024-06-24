@@ -1,34 +1,14 @@
-===============================
+==================
 Image Registration
-===============================
+==================
 
-This document corresponds to `this example online`_, in addition to the
-image_registration example folder in a VIAME installation. This directory stores
-assorted scripts for performing registration, either temporally across an image sequence
-with a certain amount of overlap, or across modalities (e.g. optical and thermal
-imagery).
+This document corresponds to `registration and mosaicing`_ example folder within
+a VIAME desktop installation. This directory stores assorted scripts for performing
+registration and mosaicing, either across an image sequence with a certain amount of
+overlap between frames, or across modalities (e.g. optical and thermal imagery) for
+more specialized use cases.
 
-.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/registration_and_mosaicing
-
-
-******************
-Build Requirements
-******************
-
-These are the build flags required to run this example, if building from the source.
-
-In the pre-built binaries OpenCV is enabled by default, though not ITK which is required
-for cross-modality registration.
-
-| VIAME_ENABLE_OPENCV set to ON (optional)
-| VIAME_ENABLE_ITK set to ON (optional)
-
-********************
-Code Used in Example
-********************
-
-| plugins/itk/
-| plugins/opencv/
+.. _registration and mosaicing: https://github.com/VIAME/VIAME/blob/master/examples/registration_and_mosaicing
 
 *****************
 Mosaic generation
@@ -127,3 +107,22 @@ images 0, 2, and 4 from the first sequence as well as images 0, 2, and
 4 from the second sequence.  The order of drawing in this case is
 (sequence 1) 0, (sequence 2) 0, (sequence 1) 2, (sequence 2) 2,
 (sequence 1) 4, (sequence 2) 4.
+
+******************
+Build Requirements
+******************
+
+These are the build flags required to run this example, if building from the source.
+
+In the pre-built binaries OpenCV is enabled by default, though not ITK which is required
+for cross-modality registration.
+
+| VIAME_ENABLE_OPENCV set to ON (optional - for default operation)
+| VIAME_ENABLE_ITK set to ON (optional - for cross-modality tools)
+
+********************
+Code Used in Example
+********************
+
+| plugins/itk/
+| plugins/opencv/
