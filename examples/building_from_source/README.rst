@@ -1,23 +1,3 @@
-.. contents::
-   :depth: 3
-   :local:
-
-.. _linux-label:
-|
-==================================
-Installing from Pre-Built Binaries
-==================================
-
-First, download the binaries for your operating system from the main github page:
-
-https://github.com/VIAME/VIAME
-
-Next, use the offline quick start guide located at the below link to complete the installation:
-
-`VIAME Offline Installation`_
-
-.. _VIAME Offline Installation: https://data.kitware.com/api/v1/item/5fdaf1dd2fa25629b99843f8/download
-
 
 ==========================
 Building VIAME From Source

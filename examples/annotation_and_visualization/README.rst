@@ -3,17 +3,15 @@
 GUIs for Visualization and Annotation
 =====================================
 
-This document corresponds to the scripts located in `this example online`_, in addition to the
-annotation_and_visualization example folder within a VIAME desktop installation.
+This document corresponds to the `Annotation and Visualization`_ example folder contained
+within a VIAME desktop installation. Contained in this example are launch scripts for some of the more
+common graphical user interfaces (GUIs) within VIAME, alongside `CLI scripts`_ for visualizing or
+extracting data from either computed or manually annotated detection files. Examples of the latter
+include drawing detection boxes on images, extracting image chips around detections, or extracting
+images from video files at frame rates indicated within the metadata of truth files.
 
-Contained in this example are launch scripts for some of the more common graphical user interfaces
-(GUIs) within VIAME, alongside `CLI scripts`_ for visualizing or extracting data from either computed or
-manually annotated detection files. Examples of the latter include drawing detection boxes on images,
-extracting image chips around detections, or extracting images from video files at frame rates
-indicated within the metadata of truth files.
-
-.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
-.. _CLI scripts: https://viame.readthedocs.io/en/latest/section_links/quick_start_guide.html#running-cli-tools
+.. _Annotation and Visualization: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
+.. _CLI scripts: https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html#scripts-and-example-folders
 
 ********************************
 DIVE Annotation Process Overview
@@ -25,7 +23,9 @@ or videos, train AI models across these multiple sequences, then run the trained
 This process can then be repeated with the help of the newly trained models to potentially annotate data
 faster, then train a newer model on significantly more data. Additional information about how to use
 the DIVE interface can be found in its `dedicated user manual`_ and additionally in the `tutorial videos`_.
-The interface can be launched via double clicking the "launch_dive_interface" script.
+The interface can be launched via double clicking the "launch_dive_interface" script, either in this directory
+or at the top level of the installation. Alternatively a smaller version of DIVE can be installed independently
+of VIAME, which contains no algorithms or AI-assisted annotation.
 
 .. _dedicated user manual: https://kitware.github.io/dive/
 .. _tutorial videos: https://www.youtube.com/channel/viame
