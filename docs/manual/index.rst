@@ -18,8 +18,8 @@ algorithms have been integrated into both desktop and web user interfaces for de
 different types of environments, with an open annotation archive and example of the web
 platform available at `viame.kitware.com`_.
 
-.. _VIAME: viametoolkit.org
-.. _viame.kitware.com: viame.kitware.com
+.. _VIAME: https://www.viametoolkit.org
+.. _viame.kitware.com: https://viame.kitware.com
 
 Documentation Overview
 ======================
