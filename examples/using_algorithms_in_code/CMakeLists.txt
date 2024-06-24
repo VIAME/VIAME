@@ -9,7 +9,7 @@ install( FILES       detector1.cxx
                      detector3.cxx
                      detector4.cxx
                      CMakeLists.txt
-         DESTINATION examples/using_detectors_in_cxx_code )
+         DESTINATION examples/using_algorithms_in_code )
 
 
 # Build select files

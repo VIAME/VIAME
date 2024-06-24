@@ -1,1 +1,1 @@
-.. include:: ../../../examples/measurement_using_stereo/README.rst
+.. include:: ../../../examples/size_measurement/README.rst

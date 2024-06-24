@@ -1,1 +1,1 @@
-.. include:: ../../../examples/building_and_installing_viame/README.rst
+.. include:: ../../../examples/building_from_source/README.rst

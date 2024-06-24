@@ -15,4 +15,4 @@ else()
 endif()
 
 install( FILES       ${example_files}
-         DESTINATION examples/building_and_installing_viame )
+         DESTINATION examples/building_from_source )

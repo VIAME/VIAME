@@ -1,1 +1,1 @@
-.. include:: ../../../examples/scoring_and_roc_generation/README.rst
+.. include:: ../../../examples/scoring_and_evaluation/README.rst

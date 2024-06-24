@@ -18,4 +18,4 @@ else()
 endif()
 
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/measurement_using_stereo )
+         DESTINATION examples/size_measurement )

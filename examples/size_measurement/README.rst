@@ -11,11 +11,11 @@ Running the Demo
 ================
 
 This section corresponds to `this example online`_, in addition to the
-measurement_using_stereo example folder in a VIAME installation. This folder contains
+size_measurement example folder in a VIAME installation. This folder contains
 examples covering fish measurement using stereo. This example is currently a work
 in progress.
 
-.. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/measurement_using_stereo
+.. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
 Run CMake to automatically download the demo data into this example folder.
 Alternatively you can download the demo data `directly`_.
@@ -46,7 +46,7 @@ runner:
 ::
 
     # First move to the example directory
-    cd [viame-build]/install/examples/measurement_using_stereo
+    cd [viame-build]/install/examples/size_measurement
 
     # The below script runs pipeline runner on the measurement_example.pipe
     bash run_measurer.sh
@@ -102,7 +102,7 @@ VIAME)
 ::
 
     # First move to the example directory
-    cd [viame-source]/examples/measurement_using_stereo
+    cd [viame-source]/examples/size_measurement
 
     # Run the camtrawl module directly via the path
     python ../../plugins/opencv/python/viame/processes/opencv \

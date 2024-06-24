@@ -1,1 +1,1 @@
-.. include:: ../../../examples/external_plugin_creation/README.rst
+.. include:: ../../../examples/plugin_creation/README.rst

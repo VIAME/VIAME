@@ -5,9 +5,9 @@ Building VIAME From Source
 
 See the platform-specific guides below, though the process is similar for each.
 This document corresponds to the example `located online here`_ and also to the
-building_and_installing_viame example folder in a VIAME installation.
+building_from_source example folder in a VIAME installation.
 
-.. _located online here: https://github.com/VIAME/VIAME/tree/master/examples/building_and_installing_viame
+.. _located online here: https://github.com/VIAME/VIAME/tree/master/examples/building_from_source
 
 
 *****************

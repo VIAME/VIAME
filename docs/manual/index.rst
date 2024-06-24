@@ -29,26 +29,26 @@ Contents:
    :maxdepth: 1
 
    section_links/documentation_overview
-   section_links/building_and_installing_viame
+   section_links/building_from_source
    section_links/example_capabilities
    section_links/image_enhancement
    section_links/object_detection
    section_links/object_tracking
    section_links/detection_file_conversions
-   section_links/measurement_using_stereo
+   section_links/size_measurement
    section_links/object_detector_training
    section_links/search_and_rapid_model_generation
    section_links/annotation_and_visualization
-   section_links/scoring_and_roc_generation
+   section_links/scoring_and_evaluation
    section_links/archive_summarization
-   section_links/image_registration
+   section_links/registration_and_mosaicing
    section_links/frame_level_classification
    Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
    Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
    Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
    section_links/hello_world_pipeline
-   section_links/external_plugin_creation
-   section_links/using_detectors_in_cxx_code
+   section_links/plugin_creation
+   section_links/using_algorithms_in_code
    KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
 
 Key Toolkit Capabilities
@@ -68,7 +68,7 @@ Measuring Fish Lengths Using Stereo
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
    :scale: 50
    :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/measurement_using_stereo
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
 Image and Video Search for Rapid Model Generation
 *************************************************
@@ -100,7 +100,7 @@ Detector and Tracker Evaluation
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
    :scale: 50
    :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_roc_generation
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 .. |br| raw:: html
 

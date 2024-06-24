@@ -29,4 +29,4 @@ if( VIAME_ENABLE_KWANT )
 endif()
 
 install( FILES       ${example_files}
-         DESTINATION examples/scoring_and_roc_generation )
+         DESTINATION examples/scoring_and_evaluation )
