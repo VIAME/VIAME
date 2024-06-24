@@ -143,12 +143,12 @@ Standalone utility scripts in this folder include the following. Each of these i
 to take in a folder of videos, folder of images, or a folder of folders of images, see
 default `input folder structure`_.
 
-.._input folder structure: https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html#bulk-processing-scripts
+.. _input folder structure: https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html#bulk-processing-scripts
 
-*draw_detections_on_frames - Draw detections stored in some detection file onto frames
-*extract_chips_from_detections - Extract image chips around detections or truth boxes
-*extract_frames - Extract all frames in videos in the input folder
-*extract_frames_with_dets_only - Extract frames with detections only in the input
+* draw_detections_on_frames - Draw detections stored in some detection file onto frames
+* extract_chips_from_detections - Extract image chips around detections or truth boxes
+* extract_frames - Extract all frames in videos in the input folder
+* extract_frames_with_dets_only - Extract frames with detections only in the input
 
 
 *******************
@@ -159,7 +159,7 @@ Lastly, there are additionally simpler GUIs which can be enabled in .pipe files.
 
 For directly running and editing pipeline files, see the `KWIVER documentation`_.
 
-.._KWIVER documentation: https://kwiver.readthedocs.io/en/latest/
+.. _KWIVER documentation: https://kwiver.readthedocs.io/en/latest/
 
 One example of this is the 'simple_display_pipeline'. This script launches a
 pipeline containing an OpenCV-based display window, which prints out detections

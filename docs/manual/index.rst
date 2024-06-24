@@ -24,11 +24,12 @@ platform available at `viame.kitware.com`_.
 Documentation Overview
 ======================
 
-This manual is synced to the VIAME `github "main"`_ branch and is updated frequently, you
+This manual is synced to the VIAME `"main"`_ branch and is updated frequently, though you
 may have to press ctrl-F5 to see the latest updates to avoid using your browser cache of
-this webpage. In addition to this manual, there are 4 useful types of documentation:
+this webpage if you have used it priorly. In addition to this manual, there are 4 useful
+types of documentation:
 
-.. _github "main": https://github.com/VIAME/VIAME
+.. _"main": https://github.com/VIAME/VIAME
 
 1) A `quick-start guide`_ meant for first time users using the desktop version
 2) An `overview presentation`_ covering the basic design of VIAME
