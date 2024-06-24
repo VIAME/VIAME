@@ -3,10 +3,6 @@
 Video and Image Search Examples
 ===============================
 
-********
-Overview
-********
-
 This document corresponds to the `search and rapid model generation`_ folder contained within a VIAME
 desktop installation. This directory contains methods to accomplish two tasks: 
 
@@ -15,8 +11,8 @@ desktop installation. This directory contains methods to accomplish two tasks:
 
 .. _search and rapid model generation: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
-Video and Image Archive Search using VIAME
-==========================================
+Video and Image Archive Search
+==============================
 
 Video archive search can be performed via a few methods. The default includes
 a pipeline which generates object detections, tracks, and lastly temporal
