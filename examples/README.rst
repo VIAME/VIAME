@@ -6,9 +6,14 @@ Scripts and Example Folders
 In the 'examples' folder of a desktop installation, there are a number of subfolders, with each folder
 corresponding to a different major functionality of VIAME. The scripts in each of these folders can
 be run as-is in each folder, or alternatively copied, edited, and run from any directory on your computer.
+Generally speaking, for just getting familiar with the tools it is okay to run them from the installation
+folders, but for performing any real work it is best to copy them outside of the installers to another
+location, as some operations (e.g. model training) generate a lot of additional temporary files and you
+might forget they are there if calling them from within the installers.
+
 Each script calls a command line interface (CLI) executable to perform some function. The alternative to
 running CLI tools, is to run algorithms through graphical user interfaces within VIAME, such as DIVE
-(see annotation and visualization). Lastly, project folders provide multiple scripts in one location
+(see Annotation and Visualization). Lastly, Project Folders provide multiple scripts in one location
 for different stages of an object-detector-training lifecycle for users who prefer using them.
 
 To run the examples on Windows, you need to be able to run (double click) the .bat scripts in the given
@@ -32,7 +37,8 @@ Editing Scripts
 
 All scripts can be opened and edited in any text editor to adjust script options. On window, 
 the script can be right-clicked and then 'Edit' can be selected to open it in the default
-windows text editor (Notepad).
+windows text editor (Notepad). Using a different editor like Notepad++ is often recommended.
+On Linux, editors such as Emacs, Vim, or GEdit can be useful for this.
 
 For example, one of the most common values that requires editing is the 'VIAME_INSTALL' path at
 the top of each run script. This is useful if copying and running any scripts outside of
@@ -43,7 +49,7 @@ build tree.
 
 Other common options are 'INPUT_FOLDER', a directory containing multiple input videos or images,
 and 'DEFAULT_FRAME_RATE', the default frames per second to run algorithms on if the input is
-a video instead of images.
+a video instead of images. The desired input options should be set prior to running the scripts.
 
 ***********************
 Bulk Processing Scripts
@@ -156,13 +162,13 @@ code, all in standalone scripts
 
 viame_train_detector - Independent CLI tool for training models
 
-
 ===============
 Project Folders
 ===============
 
 The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
-to copy project files for your operating system, '[install]/configs/prj-linux' or
-'[install]/configs/prj-windows' to a directory of your choice and run things from there. Not all
-functionality is in the default project file scripts, however, but it is a good entry point if you
-just want to get started on object detection and/or tracking.
+to copy project folders to a working drive outside of the installation. Project folders (Windows, Linux)
+are located in the 'configs/templates' folder of a desktop installation
+
+Not all functionality is in the default project file scripts, however, but it is a good entry point
+if you just want to get started on object detection and/or tracking.
