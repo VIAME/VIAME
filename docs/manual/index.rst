@@ -3,7 +3,7 @@
    contain the root `toctree` directive.
 
 VIAME
-======
+=====
 
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence
 including object detection, object tracking, image mosaicing, stereo measurement,
@@ -16,31 +16,27 @@ pipeline architecture. Alongside the pipelined image processing system are a num
 standalone tools for accomplishing the above. Both a desktop and web version exists for
 deployments in different types of environments.
 
-This manual is synced to the VIAME 'master' branch and is updated frequently, you may
-have to press ctrl-F5 to see the latest updates to avoid using your browser cache of
-this webpage.
-
 Documentation Overview
 ======================
 
-There are 5 types of documentation within VIAME:
+This manual is synced to the VIAME 'main' branch and is updated frequently, you may
+have to press ctrl-F5 to see the latest updates to avoid using your browser cache of
+this webpage.
+
+In addition to this manual, there are 4 other types of documentation in VIAME:
 
 1) A `quick-start guide`_ meant for first time users using the desktop version
 2) An `overview presentation`_ covering the basic design of VIAME
 3) The `VIAME Web and DIVE Desktop docs`_ and in-GUI help menu
 4) Our `YouTube video channel`_ (work in progress)
-5) This `manual`_, meant for more advanced users and developers
 
 .. _quick-start guide: https://data.kitware.com/api/v1/item/5fdaf1dd2fa25629b99843f8/download
 .. _overview presentation: https://www.viametoolkit.org/wp-content/uploads/2020/09/VIAME-AI-Workshop-Aug2020.pdf
 .. _VIAME Web and DIVE Desktop docs: https://kitware.github.io/dive
 .. _YouTube video channel: https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
-.. _manual: https://viame.readthedocs.io/en/latest/
 
-
-*********
-Contents:
-*********
+Contents
+========
 
 .. toctree::
    :maxdepth: 1
@@ -69,19 +65,21 @@ Contents:
    sections/using_algorithms_in_code
    KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
 
-Key Toolkit Capabilities
-========================
+Example Capabilities
+====================
+
+There's a number of core capapbilities within VIAME, click on each of the below images to learn more.
 
 Object Detection
-****************
+----------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
    :scale: 50
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
-Measuring Fish Lengths Using Stereo
-***********************************
+Measuring Fish Lengths Using Metadata or Stereo
+-----------------------------------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
    :scale: 50
@@ -89,15 +87,15 @@ Measuring Fish Lengths Using Stereo
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
 Image and Video Search for Rapid Model Generation
-*************************************************
+-------------------------------------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
    :scale: 50
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
-GUIs for Visualization and Annotation
-*************************************
+GUIs for Visualization and MLOps
+--------------------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example.png
    :scale: 50
@@ -105,7 +103,7 @@ GUIs for Visualization and Annotation
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
 Illumination Normalization and Color Correction
-***********************************************
+-----------------------------------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
    :scale: 50
@@ -113,7 +111,7 @@ Illumination Normalization and Color Correction
    :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
 
 Detector and Tracker Evaluation
-*******************************
+-------------------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
    :scale: 50
