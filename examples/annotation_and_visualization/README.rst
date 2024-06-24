@@ -152,7 +152,7 @@ default `input folder structure`_.
 
 
 *******************
-Pipeline Simple UIs
+Simple Pipeline UIs
 *******************
 
 Lastly, there are additionally simpler GUIs which can be enabled in .pipe files.
