@@ -5,25 +5,30 @@
 VIAME
 =====
 
-VIAME is a computer vision application designed for do-it-yourself artificial intelligence
-including object detection, object tracking, image mosaicing, stereo measurement,
-image/video search, image/video annotation, rapid model generation, and tools for the
-evaluation of different algorithms. Originally targeting marine species analytics, it now
-contains many common algorithms and libraries, and is also useful as a generic computer vision
-library. The core infrastructure connecting different system components is currently the
-KWIVER library, which can connect C/C++, python, and matlab nodes together in a graph-like
-pipeline architecture. Alongside the pipelined image processing system are a number of
-standalone tools for accomplishing the above. Both a desktop and web version exists for
-deployments in different types of environments.
+Video and Image Analytics for Multiple Environments (`VIAME`_) is a computer vision application
+designed for do-it-yourself artificial intelligence including object detection, object tracking,
+image/video annotation, image/video search, image mosaicing, image enhancement, size measurement,
+multi-camera data processing, rapid model generation, and tools for the evaluation of different
+algorithms. Originally targetting marine species analytics, VIAME now contains many common
+algorithms and libraries, and is also useful as a generic computer vision toolkit.
+It contains a number of standalone tools for accomplishing the above, a pipeline framework
+which can connect C/C++, python, and matlab nodes together in a multi-threaded fashion, and
+multiple algorithms resting on top of the pipeline infrastructure. Lastly, a portion of the
+algorithms have been integrated into both desktop and web user interfaces for deployments in
+different types of environments, with an open annotation archive and example of the web
+platform available at `viame.kitware.com`_.
+
+.. _VIAME: viametoolkit.org
+.. _viame.kitware.com: viame.kitware.com
 
 Documentation Overview
 ======================
 
-This manual is synced to the VIAME 'main' branch and is updated frequently, you may
-have to press ctrl-F5 to see the latest updates to avoid using your browser cache of
-this webpage.
+This manual is synced to the VIAME `github main` branch and is updated frequently, you
+may have to press ctrl-F5 to see the latest updates to avoid using your browser cache of
+this webpage. In addition to this manual, there are 4 useful types of documentation:
 
-In addition to this manual, there are 4 other types of documentation in VIAME:
+.. _main: https://github.com/VIAME/VIAME
 
 1) A `quick-start guide`_ meant for first time users using the desktop version
 2) An `overview presentation`_ covering the basic design of VIAME
@@ -68,53 +73,48 @@ Contents
 Example Capabilities
 ====================
 
-There's a number of core capapbilities within VIAME, click on each of the below images to learn more.
-
+There are a number of core capapbilities within the software, click on each of the below images to learn more.
+|
 Object Detection
-----------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
-   :scale: 50
+   :scale: 25
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
-
-Measuring Fish Lengths Using Metadata or Stereo
------------------------------------------------
-
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
-   :scale: 50
-   :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
-
-Image and Video Search for Rapid Model Generation
--------------------------------------------------
-
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
-   :scale: 50
-   :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
-
-GUIs for Visualization and MLOps
---------------------------------
+|
+User Interfaces for Visualization and Detector Model Training
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example.png
-   :scale: 50
+   :scale: 25
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+|
+Measuring Animal Lengths Using Metadata or Stereo
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
+   :scale: 25
+   :align: center
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
+|
+Image and Video Search for Rapid Model Generation
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
+   :scale: 25
+   :align: center
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
+|
 
 Illumination Normalization and Color Correction
------------------------------------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
-   :scale: 50
+   :scale: 25
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
-
+|
 Detector and Tracker Evaluation
--------------------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
-   :scale: 50
+   :scale: 25
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
