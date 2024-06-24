@@ -96,7 +96,7 @@ The COCO JSON reader/writer can be specified in config files using 'coco'.
 
 A typical habcam annotation looks like:
 
-  201503.20150517.png 527 201501 boundingBox 458 970 521 1021
+ 201503.20150517.png 527 201501 boundingBox 458 970 521 1021
 
 Which corresponds to image_name, species_id (species id to labels seperate),
 date, annot_type [either boundingBox, line, or point], tl_x, tl_y, bl_x, bl_y
@@ -105,7 +105,7 @@ For the point type, only 1 set of coordinate is provided
 
 An alternative format, that the reader also supports, looks like:
 
-  201503.20150517.png,527,scallop,"""line"": [[458, 970], [521, 1021]]"
+ 201503.20150517.png,527,scallop,"""line"": [[458, 970], [521, 1021]]"
 
 which is more or less the same as the prior, just formatted differently.
 
