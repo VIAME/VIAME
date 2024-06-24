@@ -2,8 +2,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Summary
-=======
+VIAME
+======
 
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence
 including object detection, object tracking, image mosaicing, stereo measurement,
@@ -20,6 +20,23 @@ This manual is synced to the VIAME 'master' branch and is updated frequently, yo
 have to press ctrl-F5 to see the latest updates to avoid using your browser cache of
 this webpage.
 
+Documentation Overview
+======================
+
+There are 5 types of documentation within VIAME:
+
+1) A `quick-start guide`_ meant for first time users using the desktop version
+2) An `overview presentation`_ covering the basic design of VIAME
+3) The `VIAME Web and DIVE Desktop docs`_ and in-GUI help menu
+4) Our `YouTube video channel`_ (work in progress)
+5) This `manual`_, meant for more advanced users and developers
+
+.. _quick-start guide: https://data.kitware.com/api/v1/item/5fdaf1dd2fa25629b99843f8/download
+.. _overview presentation: https://www.viametoolkit.org/wp-content/uploads/2020/09/VIAME-AI-Workshop-Aug2020.pdf
+.. _VIAME Web and DIVE Desktop docs: https://kitware.github.io/dive
+.. _YouTube video channel: https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
+.. _manual: https://viame.readthedocs.io/en/latest/
+
 
 *********
 Contents:
@@ -28,7 +45,7 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
-   sections/documentation_overview
+   Documentation Overview <https://viame.readthedocs.io/en/latest/index.html>
    sections/installing_from_binaries
    sections/building_from_source
    sections/annotation_and_visualization
