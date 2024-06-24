@@ -32,10 +32,10 @@ but select entries are also listed below broken down by individual functionality
 [Object Detector CLI](examples/object_detection) <>
 [Object Tracker CLI](examples/object_tracking) <>
 [Detector Training CLI](examples/object_detector_training) <>
-[Evaluation of Detectors](examples/scoring_and_roc_generation) <>
+[Evaluation of Detectors](examples/scoring_and_evaluation) <>
 [Detection File Formats](https://viame.readthedocs.io/en/latest/section_links/detection_file_conversions.html) <>
 [Calibration and Image Enhancement](examples/image_enhancement) <>
-[Registration and Mosaicing](examples/image_registration)  <>
+[Registration and Mosaicing](examples/registration_and_mosaicing)  <>
 [Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <>
 [Pipelining Overview](https://github.com/Kitware/kwiver) <>
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <>
