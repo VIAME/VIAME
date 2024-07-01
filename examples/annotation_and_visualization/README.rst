@@ -17,6 +17,10 @@ images from video files at frame rates indicated within the metadata of truth fi
 DIVE Interface
 **************
 
+.. image:: https://github.com/Kitware/dive/blob/main/docs/images/Banner.png
+   :width: 240px
+   :align: center
+
 The DIVE interface is the most generically useful GUI within VIAME, and is the recommended default
 interface to use for many problems. The biggest allure is its ability to annotate multiple image sequences
 or videos, train AI models across these multiple sequences, then run the trained models on new sequences.
@@ -33,6 +37,10 @@ of VIAME, which contains no algorithms or AI-assisted annotation.
 **************
 VIEW Interface
 **************
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
+   :width: 240px
+   :align: center
 
 As part of the VIVIA package, the VIEW annotation interface is useful for displaying detections,
 their respective probabilities, for running existing automated detectors, and for making new annotations
@@ -140,6 +148,10 @@ Note: The list is not complete, but currently focusing on the most used (and new
 SEARCH Interface
 ****************
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
+   :width: 240px
+   :align: center
+
 The search interface is a dedicated interface for performing image search for a particular
 exemplar image, be it a specific species or an object with a particular attribute or
 characteristic. A secondary proceedure allows adjudacating the system-generated responses
@@ -147,8 +159,6 @@ for this query and the generation of a model for a new object category. This pro
 has a few trade offs compared to traditional approaches, including the ability to rapidly
 generate a machine learning model faster, at the risk of decreased accuracy (depending on
 the problem).
-
-https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
 
 For additional information, see the dedicated `example`_ for it.
 
