@@ -3,7 +3,7 @@
 Scripts and Example Folders
 ===========================
 
-In the `examples`_ folder of a desktop installation, there are a number of subfolders, with each folder
+In the `examples`_ folder of a desktop installation there are a number of subfolders, with each folder
 corresponding to a different major functionality of VIAME. The scripts in each of these folders can
 be run as-is in each folder, or alternatively copied, edited, and run from any directory on your computer.
 Generally speaking, for just getting familiar with the tools it is okay to run them from the installation
