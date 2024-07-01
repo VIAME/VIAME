@@ -34,7 +34,7 @@ but select entries are also listed below broken down by individual functionality
 [Object Tracker CLI](examples/object_tracking) <>
 [Detector Training CLI](examples/object_detector_training) <>
 [Evaluation of Detectors](examples/scoring_and_evaluation) <>
-[Detection File Formats](https://viame.readthedocs.io/en/latest/section_links/detection_file_conversions.html) <>
+[Detection File Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
 [Calibration and Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/registration_and_mosaicing)  <>
 [Stereo Measurement and Depth Maps](examples/size_measurement) <>

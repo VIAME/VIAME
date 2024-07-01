@@ -3,7 +3,7 @@
 Scripts and Example Folders
 ===========================
 
-In the 'examples'_ folder of a desktop installation, there are a number of subfolders, with each folder
+In the `examples`_ folder of a desktop installation, there are a number of subfolders, with each folder
 corresponding to a different major functionality of VIAME. The scripts in each of these folders can
 be run as-is in each folder, or alternatively copied, edited, and run from any directory on your computer.
 Generally speaking, for just getting familiar with the tools it is okay to run them from the installation
@@ -15,10 +15,11 @@ might forget they are there if calling them from within the installers.
 
 Each script calls a command line interface (CLI) executable to perform some function. The alternative to
 running CLI tools, is to run algorithms through graphical user interfaces within VIAME, such as DIVE
-(see 'Annotation and Visualization'_). Lastly, Project Folders provide multiple scripts in one location
+(see `Annotation and Visualization`_). Lastly, `Project Folders`_ provide multiple scripts in one location
 for different stages of an object-detector-training lifecycle for users who prefer using them.
 
 .. _Annotation and Visualization: https://viame.readthedocs.io/en/latest/sections/annotation_and_visualization.html
+.. _Project Folders: https://viame.readthedocs.io/en/latest/sections/examples_overview.html#project-folders
 
 To run the examples on Windows, you need to be able to run (double click) the .bat scripts in the given
 directories (see image below). Additionally, knowing how to make a list of files, e.g. "dir > filename.txt"
@@ -28,7 +29,7 @@ To run the examples on Linux, there are 3 core commands you need to know:
 
 "bash" - for running commands, e.g. "bash run_annotation_gui.sh" which launches the application
 
-"ls" - for making file lists of images to process, e.g. "ls *.png > input_list.txt" to list all
+"ls" - for making file lists of images to process, e.g. "ls \*.png > input_list.txt" to list all
 png image files in a folder
 
 "cd" - go into an example directory, e.g. "cd annotation_and_visualization" to move down into the

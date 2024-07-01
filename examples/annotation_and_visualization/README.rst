@@ -11,7 +11,7 @@ include drawing detection boxes on images, extracting image chips around detecti
 images from video files at frame rates indicated within the metadata of truth files.
 
 .. _Annotation and Visualization: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
-.. _CLI scripts: https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html#scripts-and-example-folders
+.. _CLI scripts: https://viame.readthedocs.io/en/latest/sections/examples_overview.html
 
 ********************************
 DIVE Annotation Process Overview
@@ -143,7 +143,7 @@ Standalone utility scripts in this folder include the following. Each of these i
 to take in a folder of videos, folder of images, or a folder of folders of images, see
 default `input folder structure`_.
 
-.. _input folder structure: https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html#bulk-processing-scripts
+.. _input folder structure: https://viame.readthedocs.io/en/latest/sections/examples_overview.html#bulk-processing-scripts
 
 * draw_detections_on_frames - Draw detections stored in some detection file onto frames
 * extract_chips_from_detections - Extract image chips around detections or truth boxes
