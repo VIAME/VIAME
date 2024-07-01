@@ -13,9 +13,9 @@ images from video files at frame rates indicated within the metadata of truth fi
 .. _Annotation and Visualization: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
 .. _CLI scripts: https://viame.readthedocs.io/en/latest/sections/examples_overview.html
 
-********************************
-DIVE Annotation Process Overview
-********************************
+**************
+DIVE Interface
+**************
 
 The DIVE interface is the most generically useful GUI within VIAME, and is the recommended default
 interface to use for many problems. The biggest allure is its ability to annotate multiple image sequences
@@ -30,9 +30,9 @@ of VIAME, which contains no algorithms or AI-assisted annotation.
 .. _dedicated user manual: https://kitware.github.io/dive/
 .. _tutorial videos: https://www.youtube.com/channel/viame
 
-********************************
-VIEW Annotation Process Overview
-********************************
+**************
+VIEW Interface
+**************
 
 As part of the VIVIA package, the VIEW annotation interface is useful for displaying detections,
 their respective probabilities, for running existing automated detectors, and for making new annotations
@@ -134,6 +134,25 @@ Note: The list is not complete, but currently focusing on the most used (and new
 * ColorLevel = L (defaults to 127)  
   Input color value that will be mapped to the median output value, and also serves as the
   median value of the input color range.
+
+
+****************
+SEARCH Interface
+****************
+
+The search interface is a dedicated interface for performing image search for a particular
+exemplar image, be it a specific species or an object with a particular attribute or
+characteristic. A secondary proceedure allows adjudacating the system-generated responses
+for this query and the generation of a model for a new object category. This proceedure
+has a few trade offs compared to traditional approaches, including the ability to rapidly
+generate a machine learning model faster, at the risk of decreased accuracy (depending on
+the problem).
+
+https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
+
+For additional information, see the dedicated `example`_ for it.
+
+.. _example: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
 
 *********
 CLI Tools
