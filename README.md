@@ -23,7 +23,7 @@ and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more compre
 but select entries are also listed below broken down by individual functionality:
 
 
-[Documentation Overview](https://viame.readthedocs.io/en/latest/section_links/documentation_overview.html) <>
+[Documentation Overview](https://viame.readthedocs.io/en/latest/#documentation-overview) <>
 [Installation](examples/installing_from_binaries) <>
 [Building](examples/building_from_source) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
