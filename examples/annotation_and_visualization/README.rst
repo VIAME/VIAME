@@ -18,8 +18,9 @@ DIVE Interface
 **************
 
 .. image:: https://github.com/Kitware/dive/blob/main/docs/images/Banner.png?raw=true
-   :width: 240px
+   :width: 500px
    :align: center
+
 
 The DIVE interface is the most generically useful GUI within VIAME, and is the recommended default
 interface to use for many problems. The biggest allure is its ability to annotate multiple image sequences
@@ -39,8 +40,9 @@ VIEW Interface
 **************
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
-   :width: 240px
+   :width: 500px
    :align: center
+
 
 As part of the VIVIA package, the VIEW annotation interface is useful for displaying detections,
 their respective probabilities, for running existing automated detectors, and for making new annotations
@@ -149,8 +151,9 @@ SEARCH Interface
 ****************
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
-   :width: 240px
+   :width: 500px
    :align: center
+
 
 The search interface is a dedicated interface for performing image search for a particular
 exemplar image, be it a specific species or an object with a particular attribute or
