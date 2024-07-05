@@ -50,15 +50,47 @@ After formatting data, a model can be trained via the 'viame_train_detector'
 tool, the only modification required from the scripts in this folder being
 setting your .conf files to the correct groundtruth file format type.
 
+************
+Labels Files
+************
+
+labels.txt files offer the ability to modify which categories models
+are being trained over, specify synonyms for the same output category,
+and lastly specify class hierachies. Synonyms can be specified on the 
+same line, categories to not train offer ommitted, and parent classes
+indicated via the ":parent=classname" indicator. 
+
+For example, in the below the model will have two output classes, "speciesA"
+and "speciesD" with "speciesA" comprised of species "speciesA", "speciesB",
+and "speciesC" 
+
+| speciesA speciesB speciesC
+| speciesD
+
+In the below three classes will be output, but speciesB will not be present
+
+| speciesA
+| speciesC
+| speciesD
+
+In the below three classes will also be output, and a hierachical specifier
+is included for models which make use of hierachical information. In this
+case, speciesC is indicated as a child class of genusA (e.g. if class A is
+a higher order, e.g. genus, and classC a particular species in this case).
+
+| genusA
+| speciesC :parent=genusA
+| speciesD
+
+If no labels.txt is specified during training, then all unique labels across
+all inputs will be used across training.
 
 ******************
 Build Requirements
 ******************
 
 These are the build flags required to run this example, if building from
-the source.
-
-In the pre-built binaries they are all enabled by default.
+the source. In the pre-built binaries they are all enabled by default.
 
 | VIAME_ENABLE_OPENCV set to ON
 | VIAME_ENABLE_PYTHON set to ON
