@@ -17,7 +17,7 @@ images from video files at frame rates indicated within the metadata of truth fi
 DIVE Interface
 **************
 
-.. image:: https://github.com/Kitware/dive/blob/main/docs/images/Banner.png
+.. image:: https://github.com/Kitware/dive/blob/main/docs/images/Banner.png?raw=true
    :width: 240px
    :align: center
 
