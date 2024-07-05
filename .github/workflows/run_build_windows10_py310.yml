@@ -1,0 +1,51 @@
+name: Run build on Windows 10
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Update submodules
+      run: git submodule update --init --recursive
+
+    - name: Create dir
+      run: New-Item -Path ${{github.workspace}}/Build -ItemType Directory
+
+    # Specifying path to python executable is recommended on windows even when python version needed is specified previously
+    - name: Configure CMake
+      run: cmake -G "Visual Studio 16 2019" -A x64
+                      -DCMAKE_BUILD_TYPE=Release
+                      -DVIAME_ENABLE_CUDA=OFF
+                      -DVIAME_ENABLE_CUDNN=OFF
+                      -DVIAME_BUILD_CHECKS=OFF
+                      -DPython_EXECUTABLE="C:/hostedtoolcache/windows/Python/3.10.11/x64/python.exe"
+                      -S ${{github.workspace}}
+                      -B ${{github.workspace}}/Build
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build --config Release -- /m:8
+
+    # Delete build folder to create some space
+    - name: Remove build folder
+      run: Remove-Item -Recurse -Force ${{github.workspace}}/Build/build/*
+
+    - name: Generate report name
+      run: echo "ARTIFACT_NAME=viame-intall-win10-python310-$(date +'%Y-%m-%dT%H-%M-%S')" >> $env:GITHUB_ENV
+
+    - name: Upload installation folder
+      uses: actions/upload-artifact@v2
+      with:
+        retention-days: 30
+        name: ${{env.ARTIFACT_NAME}}
+        path: ${{github.workspace}}/Build/install/*
