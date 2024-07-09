@@ -1,6 +1,6 @@
 ###    (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <><     (V) (°,,,°) (V)
 # Top-level CMakeLists.txt build file for the VIAME super-build and project
-##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <>< 
+##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <><
 
 cmake_minimum_required( VERSION 3.13.0 )
 set( CMAKE_CXX_STANDARD 17 )
@@ -36,7 +36,7 @@ endif()
 list( INSERT CMAKE_MODULE_PATH 0
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
       "${KWIVER_CMAKE_DIR}" )
- 
+
 ###
 # Add other common paths usable throughout all CMakeLists files
 ##
