@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from pathlib import Path
 
 import zipfile
 import json
@@ -57,8 +58,18 @@ class OnnxConverter(KwiverProcess):
 
         # Do conversion of the model
         if (model_path.endswith(".weights")):
-            # For Loic to add conversion from yolo-darknet to onnx
-            pass
+            from darknet2onnx.export import export_darknet_to_onnx
+            from darknet2onnx.darknet2pytorch.model import Darknet
+
+            weights_file = Path(model_path)
+            cfg_file = weights_file.with_suffix(".cfg")
+            onnx_file = Path(onnx_model_prefix).with_suffix(".onnx")
+
+            model = Darknet(cfg_file)
+            model.load_weights(weights_file)
+            export_darknet_to_onnx(model, batch_size, onnx_filepath=onnx_file)
+
+            print(f"The generated onnx model was written to: {onnx_file}")
 
         elif (model_path.endswith(".zip")):
             net_shape = ()

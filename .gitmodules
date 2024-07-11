@@ -87,3 +87,6 @@
 [submodule "packages/pytorch-libs/mmdeploy"]
 	path = packages/pytorch-libs/mmdeploy
 	url = https://github.com/open-mmlab/mmdeploy
+[submodule "packages/pytorch-libs/darknet-to-pytorch-onnx"]
+	path = packages/pytorch-libs/darknet-to-pytorch-onnx
+	url = https://gitlab.kitware.com/keu-computervision/ml/darknet-to-pytorch-onnx.git
