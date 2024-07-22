@@ -33,13 +33,13 @@ atexit.register(lambda: shutil.rmtree(temp_dir))
 linestyles = ['-', '--', '-.', ':']
 linecolors = ['#25233d', '#161891', '#316f6a', '#662e43']
 
-def get_stat_cmd():
+def get_kwant_cmd():
   if os.name == 'nt':
     return ['score_tracks.exe','--hadwav']
   else:
     return ['score_tracks','--hadwav']
 
-def get_conf_cmd():
+def get_prc_conf_cmd():
   if os.name == 'nt':
     return ['python.exe', '-m', 'kwcoco', 'eval' ]
   else:
@@ -255,7 +255,7 @@ def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   coco_writer.complete()
   return fd, handle
 
-def generate_det_conf_directory( args, categories ):
+def generate_det_prc_conf_directory( args, categories ):
   aligned_truth = compute_alignment( args.computed, args.truth )
 
   (fd1, handle1) = tempfile.mkstemp( prefix='viame-coco-',
@@ -322,13 +322,13 @@ def generate_det_conf_directory( args, categories ):
 
   print( "Running scoring scripts" )
 
-  cmd = get_conf_cmd() + [ '--true_dataset', handle1 ]
+  cmd = get_prc_conf_cmd() + [ '--true_dataset', handle1 ]
   cmd = cmd + [  '--pred_dataset', handle2 ]
   cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
-  cmd = cmd + [  '--out_dpath', args.det_conf ]
+  cmd = cmd + [  '--out_dpath', args.det_prc_conf ]
   subprocess.call( cmd )
   
-def generate_det_conf_single( args, categories ):
+def generate_det_prc_conf_single( args, categories ):
 
   if args.list:
     image_list = read_list_from_file_list( args.list )
@@ -341,7 +341,7 @@ def generate_det_conf_single( args, categories ):
     _, filtered_computed_json = convert_to_kwcoco( filtered_computed_csv, image_list )
     _, filtered_truth_json = convert_to_kwcoco( filtered_truth_csv, image_list )
 
-    cmd = get_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
+    cmd = get_prc_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
     cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
     cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
     cmd = cmd + [  '--out_dpath', "conf-" + format_cat_fn( cat ) ]
@@ -351,33 +351,33 @@ def generate_det_conf_single( args, categories ):
     _, filtered_computed_json = convert_to_kwcoco( args.computed, image_list, True )
     _, filtered_truth_json = convert_to_kwcoco( args.truth, image_list, True )
 
-    cmd = get_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
+    cmd = get_prc_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
     cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
     cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
     cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
     subprocess.call( cmd )
 
-def generate_det_conf( args, categories ):
+def generate_det_prc_conf( args, categories ):
 
   from kwiver.vital.modules import load_known_modules
   load_known_modules()
 
   if os.path.isdir( args.computed ):
-    generate_det_conf_directory( args, categories )
+    generate_det_prc_conf_directory( args, categories )
   else:
-    generate_det_conf_single( args, categories )
+    generate_det_prc_conf_single( args, categories )
   
   print( "\nConf matrix and PRC plot generation is complete\n" )
 
   if os.name == "nt":
     print( "On windows, ignore the following temp file error\n" )
 
-def generate_trk_simp_stats( args, categories ):
+def generate_trk_kwant_stats( args, categories ):
 
   # Generate roc files
-  base, ext = os.path.splitext( args.trk_simple )
+  base, ext = os.path.splitext( args.trk_kwant_stats )
 
-  base_cmd = get_stat_cmd()
+  base_cmd = get_kwant_cmd()
   base_cmd += [ '--computed-format', args.input_format, '--truth-format', args.input_format ]
   base_cmd += [ '--fn2ts' ]
 
@@ -392,7 +392,7 @@ def generate_trk_simp_stats( args, categories ):
 
   if len( categories ) != 1:
     cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
-    with open( args.trk_simple, 'w' ) as fout:
+    with open( args.trk_kwant_stats, 'w' ) as fout:
       if not args.use_cache:
         subprocess.call( cmd, stdout=fout, stderr=fout )
 
@@ -530,13 +530,13 @@ if __name__ == "__main__":
              help='Input file format.' )
 
   # Output options
-  parser.add_argument( '-det-conf', dest="det_conf", default=None,
-             help='Folder for conf matrix, prc curves, and related stats.' )
+  parser.add_argument( '-det-prc-conf', dest="det_prc_conf", default=None,
+             help='Folder for PRC curves, conf matrix, and related stats.' )
   parser.add_argument( '-det-roc', dest="det_roc", default=None,
-             help='Filename for output roc curves.' )
-  parser.add_argument( '-trk-simple', dest="trk_simple", default=None,
+             help='Filename for output ROC curves.' )
+  parser.add_argument( '-trk-kwant-stats', dest="trk_kwant_stats", default=None,
              help='Filename for output track statistics.' )
-  parser.add_argument( '-trk-mot', dest="trk_mot", default=None,
+  parser.add_argument( '-trk-mot-stats', dest="trk_mot_stats", default=None,
              help='Filename for output track statistics.' )
 
   # Scoring settings
@@ -579,8 +579,10 @@ if __name__ == "__main__":
     print( "Error: both computed and truth file must be specified" )
     sys.exit( 0 )
 
-  if not args.det_roc and not args.trk_simple and not args.det_conf and not args.trk_mot:
-    print( "Error: either 'trk-simple', 'trk-mot', 'det-roc', or 'det-conf' must be specified" )
+  if not args.det_roc and not args.det_prc_conf and \
+     not args.trk_kwant_stats and not args.trk_mot_stats:
+    print( "Error: either 'trk-kwant-stats', 'trk-mot-stats', " \
+           "'det-roc', or 'det-prc-conf' must be specified" )
     sys.exit( 0 )
 
   categories = []
@@ -597,12 +599,12 @@ if __name__ == "__main__":
   if args.det_roc:
     generate_det_rocs( args, categories )
 
-  if args.det_conf:
-    generate_det_conf( args, categories )
+  if args.det_prc_conf:
+    generate_det_prc_conf( args, categories )
 
-  if args.trk_simple:
-    generate_trk_simp_stats( args, categories )
+  if args.trk_kwant_stats:
+    generate_trk_kwant_stats( args, categories )
 
-  if args.trk_mot:
+  if args.trk_mot_stats:
     generate_trk_mot_stats( args, categories )
 

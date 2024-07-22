@@ -12,4 +12,4 @@ python "%VIAME_INSTALL%\configs\score_results.py" ^
  -computed detections.csv -truth groundtruth.csv ^
  -det-roc roc_classless.png
 
-pause
+PAUSE

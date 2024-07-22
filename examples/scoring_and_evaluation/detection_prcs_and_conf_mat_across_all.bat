@@ -10,6 +10,6 @@ REM Generate ROC
 
 python "%VIAME_INSTALL%\configs\score_results.py" ^
  -computed detections.csv -truth groundtruth.csv ^
- -det-conf conf_mat_classless.png
+ -det-prc-conf conf_mat_classless.png
 
-pause
+PAUSE
