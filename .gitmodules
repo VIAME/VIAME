@@ -81,3 +81,6 @@
 	path = packages/pytorch-libs/pyav
 	url = https://github.com/PyAV-Org/PyAV.git
 	ignore = dirty
+[submodule "packages/pymotmetrics"]
+	path = packages/pymotmetrics
+	url = https://github.com/VIAME/py-motmetrics.git
