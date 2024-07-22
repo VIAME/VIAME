@@ -302,3 +302,52 @@ foreach( ID RANGE ${DEP_COUNT} )
     LIST_SEPARATOR "----"
     )
 endforeach()
+
+# ------------------------------------- PYMOTMETRICS -----------------------------------------
+
+# TODO: refactor this and make more generic for any python-utils requiring custom whl builds
+
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pymotmetrics )
+
+set( PROJECT_DEPS fletch python-deps )
+
+if( VIAME_SYMLINK_PYTHON )
+  set( LIBRARY_PIP_BUILD_CMD
+    ${Python_EXECUTABLE} setup.py build )
+  set( LIBRARY_PIP_INSTALL_CMD
+    ${Python_EXECUTABLE} -m pip install --user -e . )
+else()
+  set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
+  CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
+
+  set( LIBRARY_PIP_BUILD_CMD
+    ${Python_EXECUTABLE} setup.py build_ext
+      --include-dirs="${VIAME_INSTALL_PREFIX}/include"
+      --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
+      --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+  set( LIBRARY_PIP_INSTALL_CMD
+    ${CMAKE_COMMAND}
+      -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
+      -DPython_EXECUTABLE=${Python_EXECUTABLE}
+      -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
+      -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
+endif()
+
+set( LIBRARY_PYTHON_BUILD
+  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+  ${LIBRARY_PIP_BUILD_CMD} )
+set( LIBRARY_PYTHON_INSTALL
+  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+  ${LIBRARY_PIP_INSTALL_CMD} )
+
+ExternalProject_Add( pymotmetrics
+  DEPENDS ${PROJECT_DEPS}
+  PREFIX ${VIAME_BUILD_PREFIX}
+  SOURCE_DIR ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics
+  BUILD_IN_SOURCE 1
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
+  INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
+  LIST_SEPARATOR "----"
+  )
+

@@ -78,9 +78,9 @@
 	path = packages/pytorch-libs/torchvideo
 	url = https://github.com/facebookresearch/pytorchvideo.git
 [submodule "packages/pytorch-libs/pyav"]
-	path = packages/pytorch-libs/pyav
+	path = packages/python-utils/pyav
 	url = https://github.com/PyAV-Org/PyAV.git
 	ignore = dirty
 [submodule "packages/pymotmetrics"]
-	path = packages/pymotmetrics
+	path = packages/python-utils/pymotmetrics
 	url = https://github.com/VIAME/py-motmetrics.git
