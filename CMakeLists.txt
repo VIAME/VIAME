@@ -796,6 +796,7 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_PYTHON )
     include( add_project_python_deps )
+    include( add_project_pymotmetrics )
   endif()
 
   # Add optional projects dependend on by other projects
