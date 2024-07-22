@@ -90,6 +90,6 @@ ExternalProject_Add_Step(smqtk forcebuild
   )
 endif()
 
-set(VIAME_ARGS_smqtk
-  -Dsmqtk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/smqtk-build
+set(VIAME_ARGS_SMQTK
+  -DSMQTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/smqtk-build
   )
