@@ -22,7 +22,6 @@ from kwiver.vital.algo import (
 )
 
 from kwiver.vital.types import (
-    Image, ImageContainer,
     BoundingBoxD, CategoryHierarchy,
     DetectedObjectSet, DetectedObject, DetectedObjectType
 )
@@ -32,6 +31,9 @@ atexit.register(lambda: shutil.rmtree(temp_dir))
 
 linestyles = ['-', '--', '-.', ':']
 linecolors = ['#25233d', '#161891', '#316f6a', '#662e43']
+
+hierarchy=None
+default_label="fish"
 
 def get_kwant_cmd():
   if os.name == 'nt':
@@ -85,6 +87,24 @@ def list_categories_viame_csv( filename ):
         idx = idx + 2
   return list( unique_ids )
 
+def load_hierarchy( filename ):
+  global hierarchy
+  hierarchy = None
+  if filename:
+    hierarchy = CategoryHierarchy()
+    if not hierarchy.load_from_file( filename ):
+      print( "Unable to parse categories file: " + filename )
+      sys.exit( 0 )
+    return True
+  else:
+    return False
+
+def set_default_label( hierarchy, user_input=None ):
+  global default_label
+  if user_input:
+    default_label = user_input
+  elif len( hierarchy.all_class_names() ) == 1:
+    default_label = hierarchy.all_class_names()[0]
 
 def list_files_rec_w_ext( folder, ext ):
   result = [ y for x in os.walk( folder )
@@ -119,7 +139,7 @@ def compute_alignment( computed_dir, truth_dir, ext = '.csv',
       sys.exit( 0 )
   return out
 
-def filter_by_category( filename, category, threshold=0.0 ):
+def filter_viame_csv_by_category( filename, category, threshold=0.0 ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-score-',
                                    suffix='.csv',
                                    text=True,
@@ -219,18 +239,75 @@ def read_list_from_file_list( filename ):
         out.append( line )
   return out
 
-def filter_dets( dets, categories=None ):
-  #if categories is None:
-  #  return dets
+def filter_detections( args, dets ):
   output = DetectedObjectSet()
+  default_label = default_label( hierarchy, args.default_label )
   for i, item in enumerate( dets ):
     if item.type is None:
+      if args.ignore_categories:
+        # Ignore categories option with no real categories
+        score = item.confidence
+        item.type = DetectedObjectType( default_label, score )
+      else:
+        continue
+    elif args.ignore_categories:
+      # Ignore categories option, relabel top category to default
+      category = item.type.get_most_likely_class()
+      score = item.type.score( category )
+      item.type = DetectedObjectType( default_label, score )
+    elif args.top_category:
+      # Top category option, only use highest scoring category
+      category = item.type.get_most_likely_class()
+      score = item.type.score( category )
+      item.type = DetectedObjectType( category, score )
+
+    # Applies threshold parameter
+    all_categories = item.type.class_names( args.threshold )
+
+    # Apply hierarchy if present, also remakes type after threshold
+    output_type = DetectedObjectType()
+    for cat in all_categories:
+      score = item.type.score( cat )
+      if hierarchy
+        if not hierarchy.has_class_name( cat ):
+          continue
+        else:
+          cat = hierarchy.get_class_name( cat )
+      if not output_type.has_class_name( cat ) or output_type.score( cat ) < score:
+        output_type.set_score( cat, score )
+
+    # If no categories left after filters, skip detection
+    if len( output_type ) == 0:
       continue
-    #class_lbl = item.type.get_most_likely_class()
-    #class_lbl = categories.get_class_name( class_lbl )
-    item.type = DetectedObjectType( "fish", 1.0 )
-    output.add( item )
+    else:
+      item.type = output_type
+      output.add( item )
   return output
+
+def standardize_single( args, input_file, output_file ):
+
+  hierarchy = load_hierarchy( args.labels )
+
+  input_reader =  DetectedObjectSetInput.create( args.input_format )
+  reader_conf = input_reader.get_configuration()
+  input_reader.set_configuration( reader_conf )
+  input_reader.open( input_file )
+
+  csv_reader =  DetectedObjectSetOutput.create( "viame_csv" )
+  writer_conf = csv_reader.get_configuration()
+  csv_reader.set_configuration( writer_conf )
+  csv_reader.open( handle )
+
+  for img in image_list:
+    dets = input_reader.read_set_by_path( img )
+    filter_detections( args, dets, hierarchy )
+    csv_reader.write_set( dets, img )
+
+  csv_reader.complete()
+
+def standardize_input( args, folder, output ):
+  return False
+
 
 def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-coco-',
@@ -279,6 +356,8 @@ def generate_det_prc_conf_directory( args, categories ):
   computed_writer.set_configuration( writer_conf )
   computed_writer.open( handle2 )
 
+  hierarchy = load_hierarchy( args.labels )
+
   print( "Processing identified truth/computed matches" )
 
   for computed, truth in aligned_truth.items():
@@ -304,14 +383,12 @@ def generate_det_prc_conf_directory( args, categories ):
           continue
         truth_dets = truth_dets[0]
         computed_dets = computed_dets[0]
-        filter_dets( truth_dets )
         truth_writer.write_set( truth_dets, syn_file_name )
         computed_writer.write_set( computed_dets, syn_file_name )
     else:
       for i in joint_images:
         truth_dets = truth_reader.read_set_by_path( i )
         computed_dets = computed_reader.read_set_by_path( i )
-        filter_dets( truth_dets )
         truth_writer.write_set( truth_dets, i )
         computed_writer.write_set( computed_dets, i )
 
@@ -336,8 +413,8 @@ def generate_det_prc_conf_single( args, categories ):
     image_list, _, _ = get_file_list_from_viame_csvs( args.computed, args.truth )
 
   for cat in categories:
-    _, filtered_computed_csv = filter_by_category( args.computed, cat, args.threshold )
-    _, filtered_truth_csv = filter_by_category( args.truth, cat, args.threshold )
+    _, filtered_computed_csv = filter_viame_csv_by_category( args.computed, cat, args.threshold )
+    _, filtered_truth_csv = filter_viame_csv_by_category( args.truth, cat, args.threshold )
     _, filtered_computed_json = convert_to_kwcoco( filtered_computed_csv, image_list )
     _, filtered_truth_json = convert_to_kwcoco( filtered_truth_csv, image_list )
 
@@ -359,14 +436,11 @@ def generate_det_prc_conf_single( args, categories ):
 
 def generate_det_prc_conf( args, categories ):
 
-  from kwiver.vital.modules import load_known_modules
-  load_known_modules()
-
   if os.path.isdir( args.computed ):
     generate_det_prc_conf_directory( args, categories )
   else:
     generate_det_prc_conf_single( args, categories )
-  
+
   print( "\nConf matrix and PRC plot generation is complete\n" )
 
   if os.name == "nt":
@@ -376,15 +450,16 @@ def generate_trk_kwant_stats( args, categories ):
 
   # Generate roc files
   base, ext = os.path.splitext( args.trk_kwant_stats )
+  input_format = args.input_format if args.input_format != "viame_csv" else "noaa-csv"
 
   base_cmd = get_kwant_cmd()
-  base_cmd += [ '--computed-format', args.input_format, '--truth-format', args.input_format ]
+  base_cmd += [ '--computed-format', input_format, '--truth-format', input_format ]
   base_cmd += [ '--fn2ts' ]
 
   for cat in categories:
     stat_file = base + "." + format_cat_fn( cat ) + ext
-    _, filtered_computed = filter_by_category( args.computed, cat, args.threshold )
-    _, filtered_truth = filter_by_category( args.truth, cat, args.threshold )
+    _, filtered_computed = filter_viame_csv_by_category( args.computed, cat, args.threshold )
+    _, filtered_truth = filter_viame_csv_by_category( args.truth, cat, args.threshold )
     cmd = base_cmd + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
     with open( stat_file, 'w' ) as fout:
       if not args.use_cache:
@@ -403,8 +478,10 @@ def generate_det_rocs( args, categories ):
 
   roc_files = []
 
+  input_format = args.input_format if args.input_format != "viame_csv" else "noaa-csv"
+
   base_cmd = get_roc_cmd()
-  base_cmd += [ '--computed-format', args.input_format, '--truth-format', args.input_format ]
+  base_cmd += [ '--computed-format', input_format, '--truth-format', input_format ]
   base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
 
   if ',' in args.computed:
@@ -418,8 +495,8 @@ def generate_det_rocs( args, categories ):
       if len( input_files ) > 1:
         roc_file = filename + '.' + roc_file
       if not args.use_cache:
-        _, filtered_computed = filter_by_category( filename, cat )
-        _, filtered_truth = filter_by_category( args.truth, cat )
+        _, filtered_computed = filter_viame_csv_by_category( filename, cat )
+        _, filtered_truth = filter_viame_csv_by_category( args.truth, cat )
         cmd = base_cmd + [ '--roc-dump', roc_file ]
         cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
         subprocess.call( cmd )
@@ -513,70 +590,74 @@ def generate_det_rocs( args, categories ):
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser( description = 'Generate detection scores and ROCs' )
+  parser = argparse.ArgumentParser( description = 'Evaluate Detections' )
 
   # Inputs
   parser.add_argument( '-computed', default=None,
-             help='Input filename or folder for computed files.' )
+    help='Input filename or folder for computed files.' )
   parser.add_argument( '-truth', default=None,
-             help='Input filename or folder for groundtruth files.' )
+    help='Input filename or folder for groundtruth files.' )
+  parser.add_argument( '-threshold', type=float, default=0.001,
+    help='Input threshold for statistics.' )
+  parser.add_argument( '-labels', dest="labels", default=None,
+    help='Input label synonym file.' )
   parser.add_argument( '-list', default=None,
-             help='Input filename for optional image list file.' )
-  parser.add_argument( '-threshold', type=float, default=0.05,
-             help='Input threshold for statistics.' )
-  parser.add_argument( '-labels', dest="input_labels", default=None,
-             help='Input label synonym file.' )
-  parser.add_argument( '-input-format', dest="input_format", default="viame-csv",
-             help='Input file format.' )
+    help='Input filename for optional image list file.' )
+  parser.add_argument( '-input-format', dest="input_format", default="viame_csv",
+    help='Input file format.' )
 
   # Output options
   parser.add_argument( '-det-prc-conf', dest="det_prc_conf", default=None,
-             help='Folder for PRC curves, conf matrix, and related stats.' )
+    help='Folder for PRC curves, conf matrix, and related stats.' )
   parser.add_argument( '-det-roc', dest="det_roc", default=None,
-             help='Filename for output ROC curves.' )
+    help='Filename for output ROC curves.' )
   parser.add_argument( '-trk-kwant-stats', dest="trk_kwant_stats", default=None,
-             help='Filename for output track statistics.' )
+    help='Filename for output track statistics.' )
   parser.add_argument( '-trk-mot-stats', dest="trk_mot_stats", default=None,
-             help='Filename for output track statistics.' )
+    help='Filename for output track statistics.' )
 
   # Scoring settings
   parser.add_argument( "-iou-thresh", dest="iou_thresh", default=0.5,
-             help="IOU threshold for detection conf matrices and stats option" )
-  parser.add_argument( "--single-category", dest="single_category", action="store_true",
-             help="Ignore categories in the file and treat everything as one category" )
+    help="IOU threshold for detection conf matrices and stats option" )
+  parser.add_argument( "--top-category", dest="top_category", action="store_true",
+    help="Only use the highest scoring category on each detection in scoring" )
+  parser.add_argument( "--ignore-categories", dest="ignore_categories", action="store_true",
+    help="Ignore categories in the file and score all detections as the same" )
   parser.add_argument( "--per-category", dest="per_category", action="store_true",
-             help="For options where it matters, run scoring individually per category" )
+    help="Run scoring routines on the scores for each category independently" )
 
   # Plot settings
   parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
-             help='ymin:ymax (quote w/ spc for negative, i.e. " -0.1:5")' )
+    help='ymin:ymax (quote w/ spc for negative, i.e. " -0.1:5")' )
   parser.add_argument( '-rangex', metavar='rangex', nargs='?',
-             help='xmin:xmax (quote w/ spc for negative, i.e. " -0.1:5")' )
+    help='xmin:xmax (quote w/ spc for negative, i.e. " -0.1:5")' )
   parser.add_argument( '-autoscale', action='store_true',
-             help='Ignore -rangex -rangey and autoscale both axes of the plot.' )
+    help='Ignore -rangex -rangey and autoscale both axes of the plot.' )
   parser.add_argument( '-logx', action='store_true',
-             help='Use logscale for x' )
+    help='Use logscale for x' )
   parser.add_argument( '-xlabel', nargs='?', default='Detection FA count',
-             help='title for x axis' )
+    help='title for x axis' )
   parser.add_argument( '-ylabel', nargs='?', default='Detection PD',
-             help='title for y axis' )
+    help='title for y axis' )
+  parser.add_argument( '-defaultlabel', dest="default_label" default='',
+    help='if ignoring labels an optional category to display' )
   parser.add_argument( '-title', nargs='?',
-             help='title for plot' )
+    help='title for plot' )
   parser.add_argument( '-lw', nargs='?', type=float, default=2,
-             help='line width' )
+    help='line width' )
   parser.add_argument( '-key', nargs='?', default=None,
-             help='comma-separated set of strings labeling each line in order read' )
+    help='comma-separated set of strings labeling each line in order read' )
   parser.add_argument( '-keyloc', nargs='?', default='auto',
-             help='Key location ("upper left", "lower right", etc; help for list)' )
+    help='Key location ("upper left", "lower right", etc; help for list)' )
   parser.add_argument( '--nokey', action='store_true',
-             help='Set to suppress plot legend' )
+    help='Set to suppress plot legend' )
   parser.add_argument( '--use-cache', dest="use_cache", action='store_true',
-             help='Do not recompute roc or conf intermediate files' )
+    help='Do not recompute roc or conf intermediate files' )
 
   args = parser.parse_args()
 
   if not args.computed or not args.truth:
-    print( "Error: both computed and truth file must be specified" )
+    print( "Error: both computed and truth files must be specified" )
     sys.exit( 0 )
 
   if not args.det_roc and not args.det_prc_conf and \
@@ -585,17 +666,32 @@ if __name__ == "__main__":
            "'det-roc', or 'det-prc-conf' must be specified" )
     sys.exit( 0 )
 
+  from kwiver.vital.modules import load_known_modules
+  load_known_modules()
+
+  # Data formatting and checking based on select options  
   categories = []
 
-  if args.input_format != "viame-csv":
-    print( "Error: only viame-csv format is widely supported by this tool" )
-    sys.exit( 0 )
-  else:
-    args.input_format = "noaa-csv"
+  if args.input_format != "viame_csv" or args.labels \
+     or args.ignore_categories or args.top_category:
+
+    args.truth = standardize_input( args, args.truth, "truth" )
+    args.computed = standardize_input( args, args.computed, "computed" )
+    args.input_format = "viame_csv"
 
   if args.per_category:
-    categories = list_categories_viame_csv( args.truth )
+    if args.labels:
+      categories = categories.load_hierarchy( args.labels ).all_class_names()
+      if not categories:
+        print( "Categories file is empty: " + args.labels )
+        sys.exit( 0 )
+    elif args.input_format != "viame_csv":
+      print( "--per-category option only supported for viame_csv" )
+      sys.exit( 0 )
+    else:
+      categories = list_categories_viame_csv( args.truth )
 
+  # Generate specified outputs
   if args.det_roc:
     generate_det_rocs( args, categories )
 
