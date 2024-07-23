@@ -642,6 +642,29 @@ def generate_trk_mot_stats( args, categories ):
   max_mota_thresh = 0.0
   max_idf1 = -9999.9999
   max_idf1_thresh = 0.0
+  #max_hota = -9999.9999
+  #max_hota_thresh = 0.0
+
+  metrics = [
+    "idf1",
+    "mota",
+    "motp",
+    "idp",
+    "idr",
+    "recall",
+    "precision",
+    "num_unique_objects",
+    "mostly_tracked",
+    "partially_tracked",
+    "mostly_lost",
+    "num_false_positives",
+    "num_misses",
+    "num_switches",
+    "num_fragmentations",
+    "num_transfer",
+    "num_ascend",
+    "num_migrate",
+  ]
 
   for threshold in thresholds:
 
@@ -659,8 +682,6 @@ def generate_trk_mot_stats( args, categories ):
 
     accs, names = compare_dataframes( gt, cf )
 
-    metrics = list( mm.metrics.motchallenge_metrics )
-
     log_with_spaces( 'Running MOT Metrics at Threshold ' + str( threshold ) )
 
     summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
@@ -670,17 +691,23 @@ def generate_trk_mot_stats( args, categories ):
 
     mota = float( summary.loc["OVERALL"].at['mota'] )
     idf1 = float( summary.loc["OVERALL"].at['idf1'] )
+    hota = 0
+
     if mota > max_mota:
       max_mota = mota
       max_mota_thresh = threshold
     if idf1 > max_idf1:
       max_idf1 = idf1
       max_idf1_thresh = threshold
+    #if hota > max_hota:
+    #  max_hota = hota
+    #  max_hota_thresh = threshold
 
   if len( thresholds ) > 1:
     logging.info( '' )
     logging.info( 'Top IDF1 value: ' + max_idf1 + ' at threshold ' + max_idf1_thresh )
     logging.info( 'Top MOTA value: ' + max_mota + ' at threshold ' + max_mota_thresh )
+    #logging.info( 'Top HOTA value: ' + max_hota + ' at threshold ' + max_hota_thresh )
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser( description = 'Evaluate Detections' )
@@ -711,7 +738,7 @@ if __name__ == "__main__":
 
   # Scoring settings
   parser.add_argument( "-iou-thresh", dest="iou_thresh", default=0.5,
-    help="IOU threshold for detection conf matrices and stats option" )
+    help="IOU threshold for detection and track scoring methods" )
   parser.add_argument( "--top-category", dest="top_category", action="store_true",
     help="Only use the highest scoring category on each detection in scoring" )
   parser.add_argument( "--ignore-categories", dest="ignore_categories", action="store_true",
