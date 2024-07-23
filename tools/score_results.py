@@ -15,6 +15,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from glob import glob
+from pathlib import Path
 
 from kwiver.vital.algo import (
     DetectedObjectSetInput,
@@ -596,6 +597,55 @@ def generate_det_rocs( args, categories ):
 
   plt.savefig( args.det_roc, bbox_inches='tight' )
 
+def generate_trk_mot_stats( args, categories ):
+
+  import motmetrics as mm
+  import logging
+
+  from collections import OrderedDict
+
+  if os.path.isdir( args.computed ):
+    aligned_files = compute_alignment( args.computed, args.truth, \
+      remove_postfix = '_tracks', skip_postfix = '_detections' )
+  else:
+    aligned_files = { args.computed : args.truth }
+
+  loglevel = getattr( logging, 'INFO', None )
+  logging.basicConfig( level=loglevel, format='%(asctime)s %(levelname)s - %(message)s', datefmt='%I:%M:%S' )
+
+  cf = OrderedDict( [ ( os.path.splitext( Path( f.replace( "_tracks", "" ) ).parts[-1])[0], \
+    mm.io.loadtxt( f, fmt='viame-csv', min_confidence=args.threshold ) ) \
+    for f in aligned_files ] )
+
+  gt = OrderedDict( [ ( os.path.splitext( Path( aligned_files[f] ).parts[-1])[0], \
+    mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0 ) ) \
+    for f in aligned_files ] )
+
+  mh = mm.metrics.create()
+
+  def compare_dataframes( gts, ts ):
+    """Builds accumulator for each sequence."""
+    accs = []
+    names = []
+    for k, tsacc in ts.items():
+      if k in gts:
+        logging.info( 'Comparing %s...', k )
+        accs.append( mm.utils.compare_to_groundtruth(gts[k], tsacc, 'iou', distth=0.5 ) )
+        names.append( k )
+      else:
+        logging.warning( 'No ground truth for %s, skipping.', k )
+    return accs, names
+
+  accs, names = compare_dataframes( gt, cf )
+
+  metrics = list( mm.metrics.motchallenge_metrics )
+
+  logging.info( 'Running MOT Metrics' )
+
+  summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
+  print( mm.io.render_summary( summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metric_names ) )
+
+  logging.info( 'Completed' )
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser( description = 'Evaluate Detections' )
