@@ -705,9 +705,9 @@ def generate_trk_mot_stats( args, categories ):
 
   if len( thresholds ) > 1:
     logging.info( '' )
-    logging.info( 'Top IDF1 value: ' + max_idf1 + ' at threshold ' + max_idf1_thresh )
-    logging.info( 'Top MOTA value: ' + max_mota + ' at threshold ' + max_mota_thresh )
-    #logging.info( 'Top HOTA value: ' + max_hota + ' at threshold ' + max_hota_thresh )
+    logging.info( 'Top IDF1 value: ' + str( max_idf1 ) + ' at threshold ' + str( max_idf1_thresh ) )
+    logging.info( 'Top MOTA value: ' + str( max_mota ) + ' at threshold ' + str( max_mota_thresh ) )
+    #logging.info( 'Top HOTA value: ' + str( max_hota ) + ' at threshold ' + str( max_hota_thresh ) )
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser( description = 'Evaluate Detections' )
