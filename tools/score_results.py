@@ -34,6 +34,7 @@ linecolors = ['#25233d', '#161891', '#316f6a', '#662e43']
 
 hierarchy=None
 default_label="fish"
+filtered_input=False
 
 def get_kwant_cmd():
   if os.name == 'nt':
@@ -52,6 +53,10 @@ def get_roc_cmd():
     return ['score_events.exe']
   else:
     return ['score_events']
+
+def print_and_exit( msg, code=0 )
+  print( msg )
+  sys.exit( code )
 
 def format_cat_fn( fn ):
   return fn.replace( "/", "-" )
@@ -99,7 +104,7 @@ def load_hierarchy( filename ):
   else:
     return False
 
-def set_default_label( hierarchy, user_input=None ):
+def set_default_label( user_input=None ):
   global default_label
   if user_input:
     default_label = user_input
@@ -241,7 +246,6 @@ def read_list_from_file_list( filename ):
 
 def filter_detections( args, dets ):
   output = DetectedObjectSet()
-  default_label = default_label( hierarchy, args.default_label )
   for i, item in enumerate( dets ):
     if item.type is None:
       if args.ignore_categories:
@@ -286,8 +290,6 @@ def filter_detections( args, dets ):
 
 def standardize_single( args, input_file, output_file ):
 
-  hierarchy = load_hierarchy( args.labels )
-
   input_reader =  DetectedObjectSetInput.create( args.input_format )
   reader_conf = input_reader.get_configuration()
   input_reader.set_configuration( reader_conf )
@@ -300,7 +302,7 @@ def standardize_single( args, input_file, output_file ):
 
   for img in image_list:
     dets = input_reader.read_set_by_path( img )
-    filter_detections( args, dets, hierarchy )
+    filter_detections( args, dets )
     csv_reader.write_set( dets, img )
 
   csv_reader.complete()
@@ -328,6 +330,8 @@ def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
 
   for img in image_list:
     truth = csv_reader.read_set_by_path( img )
+    if not filtered_input:
+      truth = filter_detections( args, truth )
     coco_writer.write_set( truth, img )
   coco_writer.complete()
   return fd, handle
@@ -356,8 +360,6 @@ def generate_det_prc_conf_directory( args, categories ):
   computed_writer.set_configuration( writer_conf )
   computed_writer.open( handle2 )
 
-  hierarchy = load_hierarchy( args.labels )
-
   print( "Processing identified truth/computed matches" )
 
   for computed, truth in aligned_truth.items():
@@ -383,12 +385,18 @@ def generate_det_prc_conf_directory( args, categories ):
           continue
         truth_dets = truth_dets[0]
         computed_dets = computed_dets[0]
+        if not filtered_input:
+          truth_dets = filter_detections( args, truth_dets )
+          computed_dets = filter_detections( args, computed_dets )
         truth_writer.write_set( truth_dets, syn_file_name )
         computed_writer.write_set( computed_dets, syn_file_name )
     else:
       for i in joint_images:
         truth_dets = truth_reader.read_set_by_path( i )
         computed_dets = computed_reader.read_set_by_path( i )
+        if not filtered_input:
+          truth_dets = filter_detections( args, truth_dets )
+          computed_dets = filter_detections( args, computed_dets )
         truth_writer.write_set( truth_dets, i )
         computed_writer.write_set( computed_dets, i )
 
@@ -657,14 +665,12 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   if not args.computed or not args.truth:
-    print( "Error: both computed and truth files must be specified" )
-    sys.exit( 0 )
+    print_and_exit( "Error: both computed and truth files must be specified" )
 
   if not args.det_roc and not args.det_prc_conf and \
      not args.trk_kwant_stats and not args.trk_mot_stats:
-    print( "Error: either 'trk-kwant-stats', 'trk-mot-stats', " \
-           "'det-roc', or 'det-prc-conf' must be specified" )
-    sys.exit( 0 )
+    print_and_exit( "Error: either 'trk-kwant-stats', 'trk-mot-stats', " \
+                    "'det-roc', or 'det-prc-conf' must be specified" )
 
   from kwiver.vital.modules import load_known_modules
   load_known_modules()
@@ -672,22 +678,26 @@ if __name__ == "__main__":
   # Data formatting and checking based on select options  
   categories = []
 
-  if args.input_format != "viame_csv" or args.labels \
-     or args.ignore_categories or args.top_category:
+  if args.labels:
+    if not load_hierarchy( args.labels ):
+      print_and_exit( "Unable to load hierarchy from file: " + args.labels )
+    if not hierarchy.all_class_names():
+      print_and_exit( "Hierarchy file is empty" )
 
-    args.truth = standardize_input( args, args.truth, "truth" )
-    args.computed = standardize_input( args, args.computed, "computed" )
-    args.input_format = "viame_csv"
+  set_default_label( args.default_label )
+
+  #if args.input_format != "viame_csv" or args.labels \
+  #   or args.ignore_categories or args.top_category:
+  #
+  #  args.truth = standardize_input( args, args.truth, "truth" )
+  #  args.computed = standardize_input( args, args.computed, "computed" )
+  #  args.input_format = "viame_csv"
 
   if args.per_category:
     if args.labels:
-      categories = categories.load_hierarchy( args.labels ).all_class_names()
-      if not categories:
-        print( "Categories file is empty: " + args.labels )
-        sys.exit( 0 )
+      categories = hierarchy.all_class_names()
     elif args.input_format != "viame_csv":
-      print( "--per-category option only supported for viame_csv" )
-      sys.exit( 0 )
+      print_and_exit( "--per-category option only supported for viame_csv" )
     else:
       categories = list_categories_viame_csv( args.truth )
 
