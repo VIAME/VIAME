@@ -664,7 +664,18 @@ def generate_trk_mot_stats( args, categories ):
     log_with_spaces( 'Running MOT Metrics at Threshold ' + str( threshold ) )
 
     summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
-    print( mm.io.render_summary( summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metric_names ) )
+
+    print( mm.io.render_summary( summary, formatters=mh.formatters, \
+      namemap=mm.io.motchallenge_metric_names ) )
+
+    mota = float( summary.loc["OVERALL"].at['mota'] )
+    idf1 = float( summary.loc["OVERALL"].at['idf1'] )
+    if mota > max_mota:
+      max_mota = mota
+      max_mota_thresh = threshold
+    if idf1 > max_idf1:
+      max_idf1 = idf1
+      max_idf1_thresh = threshold
 
   if len( thresholds ) > 1:
     logging.info( '' )
