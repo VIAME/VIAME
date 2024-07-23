@@ -613,15 +613,17 @@ def generate_trk_mot_stats( args, categories ):
   loglevel = getattr( logging, 'INFO', None )
   logging.basicConfig( level=loglevel, format='%(asctime)s %(levelname)s - %(message)s', datefmt='%I:%M:%S' )
 
-  cf = OrderedDict( [ ( os.path.splitext( Path( f.replace( "_tracks", "" ) ).parts[-1])[0], \
-    mm.io.loadtxt( f, fmt='viame-csv', min_confidence=args.threshold ) ) \
-    for f in aligned_files ] )
+  def log_with_spaces( msg ):
+    logging.info( '' )
+    logging.info( msg )
+    logging.info( '' )
 
-  gt = OrderedDict( [ ( os.path.splitext( Path( aligned_files[f] ).parts[-1])[0], \
-    mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0 ) ) \
-    for f in aligned_files ] )
+  thresholds = [ args.threshold ]
 
-  mh = mm.metrics.create()
+  if args.sweep_thresholds:
+    thresholds = [ x / 100 for x in range( 0, 101 ) ]
+  else:
+    thresholds = [ args.threshold ]
 
   def compare_dataframes( gts, ts ):
     """Builds accumulator for each sequence."""
@@ -636,16 +638,38 @@ def generate_trk_mot_stats( args, categories ):
         logging.warning( 'No ground truth for %s, skipping.', k )
     return accs, names
 
-  accs, names = compare_dataframes( gt, cf )
+  max_mota = -9999.9999
+  max_mota_thresh = 0.0
+  max_idf1 = -9999.9999
+  max_idf1_thresh = 0.0
 
-  metrics = list( mm.metrics.motchallenge_metrics )
+  for threshold in thresholds:
 
-  logging.info( 'Running MOT Metrics' )
+    log_with_spaces( "Loading Data at Threshold " + str( threshold ) )
 
-  summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
-  print( mm.io.render_summary( summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metric_names ) )
+    cf = OrderedDict( [ ( os.path.splitext( Path( f.replace( "_tracks", "" ) ).parts[-1])[0], \
+      mm.io.loadtxt( f, fmt='viame-csv', min_confidence=threshold ) ) \
+      for f in aligned_files ] )
 
-  logging.info( 'Completed' )
+    gt = OrderedDict( [ ( os.path.splitext( Path( aligned_files[f] ).parts[-1])[0], \
+      mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0 ) ) \
+      for f in aligned_files ] )
+
+    mh = mm.metrics.create()
+
+    accs, names = compare_dataframes( gt, cf )
+
+    metrics = list( mm.metrics.motchallenge_metrics )
+
+    log_with_spaces( 'Running MOT Metrics at Threshold ' + str( threshold ) )
+
+    summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
+    print( mm.io.render_summary( summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metric_names ) )
+
+  if len( thresholds ) > 1:
+    logging.info( '' )
+    logging.info( 'Top IDF1 value: ' + max_idf1 + ' at threshold ' + max_idf1_thresh )
+    logging.info( 'Top MOTA value: ' + max_mota + ' at threshold ' + max_mota_thresh )
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser( description = 'Evaluate Detections' )
@@ -683,6 +707,8 @@ if __name__ == "__main__":
     help="Ignore categories in the file and score all detections as the same" )
   parser.add_argument( "--per-category", dest="per_category", action="store_true",
     help="Run scoring routines on the scores for each category independently" )
+  parser.add_argument( "--sweep-thresholds", dest="sweep_thresholds", action="store_true",
+    help="For operations where thresholds are used, run with multiple thresholds" )
 
   # Plot settings
   parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
