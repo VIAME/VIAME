@@ -54,7 +54,7 @@ def get_roc_cmd():
   else:
     return ['score_events']
 
-def print_and_exit( msg, code=0 )
+def print_and_exit( msg, code=0 ):
   print( msg )
   sys.exit( code )
 
@@ -108,7 +108,7 @@ def set_default_label( user_input=None ):
   global default_label
   if user_input:
     default_label = user_input
-  elif len( hierarchy.all_class_names() ) == 1:
+  elif hierarchy and len( hierarchy.all_class_names() ) == 1:
     default_label = hierarchy.all_class_names()[0]
 
 def list_files_rec_w_ext( folder, ext ):
@@ -272,7 +272,7 @@ def filter_detections( args, dets ):
     output_type = DetectedObjectType()
     for cat in all_categories:
       score = item.type.score( cat )
-      if hierarchy
+      if hierarchy:
         if not hierarchy.has_class_name( cat ):
           continue
         else:
@@ -647,7 +647,7 @@ if __name__ == "__main__":
     help='title for x axis' )
   parser.add_argument( '-ylabel', nargs='?', default='Detection PD',
     help='title for y axis' )
-  parser.add_argument( '-defaultlabel', dest="default_label" default='',
+  parser.add_argument( '-defaultlabel', dest="default_label", default='',
     help='if ignoring labels an optional category to display' )
   parser.add_argument( '-title', nargs='?',
     help='title for plot' )
