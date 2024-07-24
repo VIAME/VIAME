@@ -750,7 +750,7 @@ if __name__ == "__main__":
     help="Run scoring routines on the scores for each class independently" )
   parser.add_argument( "--sweep-thresholds", dest="sweep_thresholds", action="store_true",
     help="For operations where thresholds are used, run with multiple thresholds" )
-  parser.add_argument( "--aux-confidence", dest="aux-confidence", action="store_true",
+  parser.add_argument( "--aux-confidence", dest="aux_confidence", action="store_true",
     help="Use the auxiliary confidence as opposed to type confidence in operations" )
 
   # Plot settings
