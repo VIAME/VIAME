@@ -9,6 +9,7 @@ import atexit
 import tempfile
 import subprocess
 import shutil
+import logging
 
 import matplotlib
 matplotlib.use('Agg')
@@ -58,6 +59,11 @@ def get_roc_cmd():
 def print_and_exit( msg, code=0 ):
   print( msg )
   sys.exit( code )
+
+def log_with_spaces( msg ):
+  logging.info( '' )
+  logging.info( msg )
+  logging.info( '' )
 
 def format_class_fn( fn ):
   return fn.replace( "/", "-" )
@@ -600,7 +606,6 @@ def generate_det_rocs( args, classes ):
 def generate_trk_mot_stats( args, classes ):
 
   import motmetrics as mm
-  import logging
 
   from collections import OrderedDict
 
@@ -615,11 +620,6 @@ def generate_trk_mot_stats( args, classes ):
 
   use_class_id = not args.ignore_classes
   use_class_confidences = not args.aux_confidence
-
-  def log_with_spaces( msg ):
-    logging.info( '' )
-    logging.info( msg )
-    logging.info( '' )
 
   thresholds = [ args.threshold ]
 
@@ -645,8 +645,6 @@ def generate_trk_mot_stats( args, classes ):
   max_mota_thresh = 0.0
   max_idf1 = -9999.9999
   max_idf1_thresh = 0.0
-  #max_hota = -9999.9999
-  #max_hota_thresh = 0.0
 
   metrics = [
     "idf1",
@@ -693,7 +691,7 @@ def generate_trk_mot_stats( args, classes ):
 
     summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
 
-    print( mm.io.render_summary( summary, formatters=mh.formatters, \
+    logging.info( mm.io.render_summary( summary, formatters=mh.formatters, \
       namemap=mm.io.motchallenge_metric_names ) )
 
     mota = float( summary.loc["OVERALL"].at['mota'] )
@@ -706,15 +704,83 @@ def generate_trk_mot_stats( args, classes ):
     if idf1 > max_idf1:
       max_idf1 = idf1
       max_idf1_thresh = threshold
-    #if hota > max_hota:
-    #  max_hota = hota
-    #  max_hota_thresh = threshold
 
   if len( thresholds ) > 1:
     logging.info( '' )
     logging.info( 'Top IDF1 value: ' + str( max_idf1 ) + ' at threshold ' + str( max_idf1_thresh ) )
     logging.info( 'Top MOTA value: ' + str( max_mota ) + ' at threshold ' + str( max_mota_thresh ) )
-    #logging.info( 'Top HOTA value: ' + str( max_hota ) + ' at threshold ' + str( max_hota_thresh ) )
+
+def generate_trk_hota_stats( args, classes ):
+
+  print_and_exit( "Implementation for HOTA not yet finished" )
+
+  import motmetrics as mm
+  import logging
+
+  from collections import OrderedDict
+
+  if os.path.isdir( args.computed ):
+    aligned_files = compute_alignment( args.computed, args.truth, \
+      remove_postfix = '_tracks', skip_postfix = '_detections' )
+  else:
+    aligned_files = { args.computed : args.truth }
+
+  loglevel = getattr( logging, 'INFO', None )
+  logging.basicConfig( level=loglevel, format='%(asctime)s %(levelname)s - %(message)s', datefmt='%I:%M:%S' )
+
+  use_class_id = not args.ignore_classes
+  use_class_confidences = not args.aux_confidence
+
+  thresholds = [ args.threshold ]
+
+  if args.sweep_thresholds:
+    thresholds = [ x / 100 for x in range( 99, 101 ) ]
+  else:
+    thresholds = [ args.threshold ]
+
+  max_hota = -9999.9999
+  max_hota_thresh = 0.0
+
+  metrics = [
+    "hota"
+  ]
+
+  for threshold in thresholds:
+
+    log_with_spaces( "Loading Data at Threshold " + str( threshold ) )
+
+    cf = OrderedDict( [ ( os.path.splitext( Path( f.replace( "_tracks", "" ) ).parts[-1])[0], \
+      mm.io.loadtxt( f, fmt='viame-csv', min_confidence=threshold, \
+                     use_class_ids=use_class_id, \
+                     use_class_confidence=use_class_confidences ) ) \
+      for f in aligned_files ] )
+
+    gt = OrderedDict( [ ( os.path.splitext( Path( aligned_files[f] ).parts[-1])[0], \
+      mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0, \
+                     force_conf_to_one=True, use_class_ids=use_class_id, \
+                     use_class_confidence=use_class_confidences ) ) \
+      for f in aligned_files ] )
+
+    mh = mm.metrics.create()
+
+    accs, names = compare_dataframes( gt, cf )
+
+    log_with_spaces( 'Running MOT Metrics at Threshold ' + str( threshold ) )
+
+    summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
+
+    logging.info( mm.io.render_summary( summary, formatters=mh.formatters, \
+      namemap=mm.io.motchallenge_metric_names ) )
+
+    hota = float( summary.loc["OVERALL"].at['idf1'] )
+
+    if hota > max_hota:
+      max_hota = hota
+      max_hota_thresh = threshold
+
+  if len( thresholds ) > 1:
+    logging.info( '' )
+    logging.info( 'Top HOTA value: ' + str( max_hota ) + ' at threshold ' + str( max_hota_thresh ) )
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser( description = 'Evaluate Detections' )
@@ -725,9 +791,9 @@ if __name__ == "__main__":
   parser.add_argument( '-truth', default=None,
     help='Input filename or folder for groundtruth files.' )
   parser.add_argument( '-threshold', type=float, default=0.001,
-    help='Input threshold for statistics.' )
+    help='Input detection confidence threshold for statistics.' )
   parser.add_argument( '-labels', dest="labels", default=None,
-    help='Input label synonym file.' )
+    help='Input label synonym file to use during evaluation.' )
   parser.add_argument( '-list', default=None,
     help='Input filename for optional image list file.' )
   parser.add_argument( '-input-format', dest="input_format", default="viame_csv",
@@ -739,9 +805,11 @@ if __name__ == "__main__":
   parser.add_argument( '-det-roc', dest="det_roc", default=None,
     help='Filename for output ROC curves.' )
   parser.add_argument( '-trk-kwant-stats', dest="trk_kwant_stats", default=None,
-    help='Filename for output track statistics.' )
+    help='Filename for output KWANT track statistics.' )
   parser.add_argument( '-trk-mot-stats', dest="trk_mot_stats", default=None,
-    help='Filename for output track statistics.' )
+    help='Filename for output MOT track statistics (IDF1, MOTA, etc...).' )
+  parser.add_argument( '-trk-hota-stats', dest="trk_hota_stats", default=None,
+    help='Filename for output HOTA track statistics.' )
 
   # Scoring settings
   parser.add_argument( "-iou-thresh", dest="iou_thresh", default=0.5,
@@ -803,9 +871,9 @@ if __name__ == "__main__":
 
   if args.labels:
     if not load_hierarchy( args.labels ):
-      print_and_exit( "Unable to load hierarchy from file: " + args.labels )
+      print_and_exit( "Unable to load labels from file: " + args.labels )
     if not hierarchy.all_class_names():
-      print_and_exit( "Hierarchy file is empty" )
+      print_and_exit( "Label file is empty" )
 
   set_default_label( args.default_label )
 
@@ -821,7 +889,7 @@ if __name__ == "__main__":
       classes = hierarchy.all_class_names()
     elif args.input_format != "viame_csv":
       print_and_exit( "--per-class option only supported for viame_csv" )
-    else:
+    elif os.path.exists( args.truth ) and not os.path.isdir( args.truth ):
       classes = list_classes_viame_csv( args.truth )
 
   # Generate specified outputs
@@ -837,3 +905,5 @@ if __name__ == "__main__":
   if args.trk_mot_stats:
     generate_trk_mot_stats( args, classes )
 
+  if args.trk_hota_stats:
+    generate_trk_hota_stats( args, classes )
