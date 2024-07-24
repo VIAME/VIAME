@@ -674,11 +674,14 @@ def generate_trk_mot_stats( args, classes ):
     log_with_spaces( "Loading Data at Threshold " + str( threshold ) )
 
     cf = OrderedDict( [ ( os.path.splitext( Path( f.replace( "_tracks", "" ) ).parts[-1])[0], \
-      mm.io.loadtxt( f, fmt='viame-csv', min_confidence=threshold ) ) \
+      mm.io.loadtxt( f, fmt='viame-csv', min_confidence=threshold, \
+                     use_class_ids=use_class_ids, use_class_confidences ) ) \
       for f in aligned_files ] )
 
     gt = OrderedDict( [ ( os.path.splitext( Path( aligned_files[f] ).parts[-1])[0], \
-      mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0, force_conf_to_one=True ) ) \
+      mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0, \
+                     force_conf_to_one=True, use_class_ids=use_class_id, \
+                     use_class_confidences=use_class_confidences ) ) \
       for f in aligned_files ] )
 
     mh = mm.metrics.create()
