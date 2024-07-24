@@ -10,4 +10,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/score_results.py \
  -computed detections.csv -truth groundtruth.csv \
- -det-roc roc_per_category.png --per-category
+ -det-roc roc_per_class.png --per-class

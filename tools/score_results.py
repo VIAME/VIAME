@@ -59,7 +59,7 @@ def print_and_exit( msg, code=0 ):
   print( msg )
   sys.exit( code )
 
-def format_cat_fn( fn ):
+def format_class_fn( fn ):
   return fn.replace( "/", "-" )
 
 def load_roc( fn ):
@@ -76,7 +76,7 @@ def load_roc( fn ):
       y_pd = np.append( y_pd, float( fields[7] ) )
   return ( x_fa, y_pd )
 
-def list_categories_viame_csv( filename ):
+def list_classes_viame_csv( filename ):
   unique_ids = set()
   with open( filename ) as f:
     for line in f:
@@ -99,7 +99,7 @@ def load_hierarchy( filename ):
   if filename:
     hierarchy = CategoryHierarchy()
     if not hierarchy.load_from_file( filename ):
-      print( "Unable to parse categories file: " + filename )
+      print( "Unable to parse classes file: " + filename )
       sys.exit( 0 )
     return True
   else:
@@ -145,7 +145,7 @@ def compute_alignment( computed_dir, truth_dir, ext = '.csv',
       sys.exit( 0 )
   return out
 
-def filter_viame_csv_by_category( filename, category, threshold=0.0 ):
+def filter_viame_csv_by_class( filename, cls, threshold=0.0 ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-score-',
                                    suffix='.csv',
                                    text=True,
@@ -167,7 +167,7 @@ def filter_viame_csv_by_category( filename, category, threshold=0.0 ):
       while idx < len( lis ):
         if lis[idx][0] == '(':
           break
-        if lis[idx] == category and \
+        if lis[idx] == cls and \
            ( args.threshold == 0.0 or float( lis[idx+1] ) >= float( args.threshold ) ):
           use_detection = True
           confidence = float( lis[idx+1] )
@@ -249,39 +249,39 @@ def filter_detections( args, dets ):
   output = DetectedObjectSet()
   for i, item in enumerate( dets ):
     if item.type is None:
-      if args.ignore_categories:
-        # Ignore categories option with no real categories
+      if args.ignore_classes:
+        # Ignore classes option with no real classes
         score = item.confidence
         item.type = DetectedObjectType( default_label, score )
       else:
         continue
-    elif args.ignore_categories:
-      # Ignore categories option, relabel top category to default
-      category = item.type.get_most_likely_class()
-      score = item.type.score( category )
+    elif args.ignore_classes:
+      # Ignore classes option, relabel top class to default
+      cls = item.type.get_most_likely_class()
+      score = item.type.score( cls )
       item.type = DetectedObjectType( default_label, score )
-    elif args.top_category:
-      # Top category option, only use highest scoring category
-      category = item.type.get_most_likely_class()
-      score = item.type.score( category )
-      item.type = DetectedObjectType( category, score )
+    elif args.top_class:
+      # Top class option, only use highest scoring class
+      cls = item.type.get_most_likely_class()
+      score = item.type.score( cls )
+      item.type = DetectedObjectType( cls, score )
 
     # Applies threshold parameter
-    all_categories = item.type.class_names( args.threshold )
+    all_classes = item.type.class_names( args.threshold )
 
     # Apply hierarchy if present, also remakes type after threshold
     output_type = DetectedObjectType()
-    for cat in all_categories:
-      score = item.type.score( cat )
+    for cls in all_classes:
+      score = item.type.score( cls )
       if hierarchy:
-        if not hierarchy.has_class_name( cat ):
+        if not hierarchy.has_class_name( cls ):
           continue
         else:
-          cat = hierarchy.get_class_name( cat )
-      if not output_type.has_class_name( cat ) or output_type.score( cat ) < score:
-        output_type.set_score( cat, score )
+          cls = hierarchy.get_class_name( cls )
+      if not output_type.has_class_name( cls ) or output_type.score( cls ) < score:
+        output_type.set_score( cls, score )
 
-    # If no categories left after filters, skip detection
+    # If no classes left after filters, skip detection
     if len( output_type ) == 0:
       continue
     else:
@@ -337,7 +337,7 @@ def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   coco_writer.complete()
   return fd, handle
 
-def generate_det_prc_conf_directory( args, categories ):
+def generate_det_prc_conf_directory( args, classes ):
   aligned_truth = compute_alignment( args.computed, args.truth )
 
   (fd1, handle1) = tempfile.mkstemp( prefix='viame-coco-',
@@ -414,26 +414,26 @@ def generate_det_prc_conf_directory( args, categories ):
   cmd = cmd + [  '--out_dpath', args.det_prc_conf ]
   subprocess.call( cmd )
   
-def generate_det_prc_conf_single( args, categories ):
+def generate_det_prc_conf_single( args, classes ):
 
   if args.list:
     image_list = read_list_from_file_list( args.list )
   else:
     image_list, _, _ = get_file_list_from_viame_csvs( args.computed, args.truth )
 
-  for cat in categories:
-    _, filtered_computed_csv = filter_viame_csv_by_category( args.computed, cat, args.threshold )
-    _, filtered_truth_csv = filter_viame_csv_by_category( args.truth, cat, args.threshold )
+  for cls in classes:
+    _, filtered_computed_csv = filter_viame_csv_by_class( args.computed, cls, args.threshold )
+    _, filtered_truth_csv = filter_viame_csv_by_class( args.truth, cls, args.threshold )
     _, filtered_computed_json = convert_to_kwcoco( filtered_computed_csv, image_list )
     _, filtered_truth_json = convert_to_kwcoco( filtered_truth_csv, image_list )
 
     cmd = get_prc_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
     cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
     cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
-    cmd = cmd + [  '--out_dpath', "conf-" + format_cat_fn( cat ) ]
+    cmd = cmd + [  '--out_dpath', "conf-" + format_class_fn( cls ) ]
     subprocess.call( cmd )
 
-  if not categories:
+  if not classes:
     _, filtered_computed_json = convert_to_kwcoco( args.computed, image_list, True )
     _, filtered_truth_json = convert_to_kwcoco( args.truth, image_list, True )
 
@@ -443,19 +443,19 @@ def generate_det_prc_conf_single( args, categories ):
     cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
     subprocess.call( cmd )
 
-def generate_det_prc_conf( args, categories ):
+def generate_det_prc_conf( args, classes ):
 
   if os.path.isdir( args.computed ):
-    generate_det_prc_conf_directory( args, categories )
+    generate_det_prc_conf_directory( args, classes )
   else:
-    generate_det_prc_conf_single( args, categories )
+    generate_det_prc_conf_single( args, classes )
 
   print( "\nConf matrix and PRC plot generation is complete\n" )
 
   if os.name == "nt":
     print( "On windows, ignore the following temp file error\n" )
 
-def generate_trk_kwant_stats( args, categories ):
+def generate_trk_kwant_stats( args, classes ):
 
   # Generate roc files
   base, ext = os.path.splitext( args.trk_kwant_stats )
@@ -465,22 +465,22 @@ def generate_trk_kwant_stats( args, categories ):
   base_cmd += [ '--computed-format', input_format, '--truth-format', input_format ]
   base_cmd += [ '--fn2ts' ]
 
-  for cat in categories:
-    stat_file = base + "." + format_cat_fn( cat ) + ext
-    _, filtered_computed = filter_viame_csv_by_category( args.computed, cat, args.threshold )
-    _, filtered_truth = filter_viame_csv_by_category( args.truth, cat, args.threshold )
+  for cls in classes:
+    stat_file = base + "." + format_class_fn( cls ) + ext
+    _, filtered_computed = filter_viame_csv_by_class( args.computed, cls, args.threshold )
+    _, filtered_truth = filter_viame_csv_by_class( args.truth, cls, args.threshold )
     cmd = base_cmd + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
     with open( stat_file, 'w' ) as fout:
       if not args.use_cache:
         subprocess.call( cmd, stdout=fout, stderr=fout )
 
-  if len( categories ) != 1:
+  if len( classes ) != 1:
     cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
     with open( args.trk_kwant_stats, 'w' ) as fout:
       if not args.use_cache:
         subprocess.call( cmd, stdout=fout, stderr=fout )
 
-def generate_det_rocs( args, categories ):
+def generate_det_rocs( args, classes ):
 
   # Generate roc files
   base, ext = os.path.splitext( args.det_roc )
@@ -499,19 +499,19 @@ def generate_det_rocs( args, categories ):
     input_files = [ args.computed ]
 
   for filename in input_files:
-    for cat in categories:
-      roc_file = base + "." + format_cat_fn( cat ) + ".txt"
+    for cls in classes:
+      roc_file = base + "." + format_class_fn( cls ) + ".txt"
       if len( input_files ) > 1:
         roc_file = filename + '.' + roc_file
       if not args.use_cache:
-        _, filtered_computed = filter_viame_csv_by_category( filename, cat )
-        _, filtered_truth = filter_viame_csv_by_category( args.truth, cat )
+        _, filtered_computed = filter_viame_csv_by_class( filename, cls )
+        _, filtered_truth = filter_viame_csv_by_class( args.truth, cls )
         cmd = base_cmd + [ '--roc-dump', roc_file ]
         cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
         subprocess.call( cmd )
       roc_files.append( roc_file )
 
-    if len( categories ) != 1:
+    if len( classes ) != 1:
       net_roc_file = base + ".txt"
       if len( input_files ) > 1:
         net_roc_file = filename + '.' + net_roc_file
@@ -587,17 +587,17 @@ def generate_det_rocs( args, categories ):
   if not args.nokey:
     legend_loc = args.keyloc
     if legend_loc == "auto":
-      if len( categories ) < 15:
+      if len( classes ) < 15:
         plt.legend( loc="best" )
       else:
-        colcount = int( 1 + len( categories ) / 15 )
+        colcount = int( 1 + len( classes ) / 15 )
         plt.legend( loc='center right', bbox_to_anchor = ( 1.75, 0.6 ), ncol = colcount )
     else:
       plt.legend( loc=args.keyloc )
 
   plt.savefig( args.det_roc, bbox_inches='tight' )
 
-def generate_trk_mot_stats( args, categories ):
+def generate_trk_mot_stats( args, classes ):
 
   import motmetrics as mm
   import logging
@@ -612,6 +612,9 @@ def generate_trk_mot_stats( args, categories ):
 
   loglevel = getattr( logging, 'INFO', None )
   logging.basicConfig( level=loglevel, format='%(asctime)s %(levelname)s - %(message)s', datefmt='%I:%M:%S' )
+
+  use_class_ids = not args.ignore_classes
+  use_class_confidences = not args.aux_confidence
 
   def log_with_spaces( msg ):
     logging.info( '' )
@@ -675,7 +678,7 @@ def generate_trk_mot_stats( args, categories ):
       for f in aligned_files ] )
 
     gt = OrderedDict( [ ( os.path.splitext( Path( aligned_files[f] ).parts[-1])[0], \
-      mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0 ) ) \
+      mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0, force_conf_to_one=True ) ) \
       for f in aligned_files ] )
 
     mh = mm.metrics.create()
@@ -739,14 +742,16 @@ if __name__ == "__main__":
   # Scoring settings
   parser.add_argument( "-iou-thresh", dest="iou_thresh", default=0.5,
     help="IOU threshold for detection and track scoring methods" )
-  parser.add_argument( "--top-category", dest="top_category", action="store_true",
-    help="Only use the highest scoring category on each detection in scoring" )
-  parser.add_argument( "--ignore-categories", dest="ignore_categories", action="store_true",
-    help="Ignore categories in the file and score all detections as the same" )
-  parser.add_argument( "--per-category", dest="per_category", action="store_true",
-    help="Run scoring routines on the scores for each category independently" )
+  parser.add_argument( "--ignore-classes", dest="ignore_classes", action="store_true",
+    help="Ignore classes in the file and score all detection types as the same" )
+  parser.add_argument( "--top-class", dest="top_class", action="store_true",
+    help="Only use the highest scoring class on each detection in scoring" )
+  parser.add_argument( "--per-class", dest="per_class", action="store_true",
+    help="Run scoring routines on the scores for each class independently" )
   parser.add_argument( "--sweep-thresholds", dest="sweep_thresholds", action="store_true",
     help="For operations where thresholds are used, run with multiple thresholds" )
+  parser.add_argument( "--aux-confidence", dest="aux-confidence", action="store_true",
+    help="Use the auxiliary confidence as opposed to type confidence in operations" )
 
   # Plot settings
   parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
@@ -762,7 +767,7 @@ if __name__ == "__main__":
   parser.add_argument( '-ylabel', nargs='?', default='Detection PD',
     help='title for y axis' )
   parser.add_argument( '-defaultlabel', dest="default_label", default='',
-    help='if ignoring labels an optional category to display' )
+    help='if ignoring labels an optional class to display' )
   parser.add_argument( '-title', nargs='?',
     help='title for plot' )
   parser.add_argument( '-lw', nargs='?', type=float, default=2,
@@ -790,7 +795,7 @@ if __name__ == "__main__":
   load_known_modules()
 
   # Data formatting and checking based on select options  
-  categories = []
+  classes = []
 
   if args.labels:
     if not load_hierarchy( args.labels ):
@@ -801,30 +806,30 @@ if __name__ == "__main__":
   set_default_label( args.default_label )
 
   #if args.input_format != "viame_csv" or args.labels \
-  #   or args.ignore_categories or args.top_category:
+  #   or args.ignore_classes or args.top_class:
   #
   #  args.truth = standardize_input( args, args.truth, "truth" )
   #  args.computed = standardize_input( args, args.computed, "computed" )
   #  args.input_format = "viame_csv"
 
-  if args.per_category:
+  if args.per_class:
     if args.labels:
-      categories = hierarchy.all_class_names()
+      classes = hierarchy.all_class_names()
     elif args.input_format != "viame_csv":
-      print_and_exit( "--per-category option only supported for viame_csv" )
+      print_and_exit( "--per-class option only supported for viame_csv" )
     else:
-      categories = list_categories_viame_csv( args.truth )
+      classes = list_classes_viame_csv( args.truth )
 
   # Generate specified outputs
   if args.det_roc:
-    generate_det_rocs( args, categories )
+    generate_det_rocs( args, classes )
 
   if args.det_prc_conf:
-    generate_det_prc_conf( args, categories )
+    generate_det_prc_conf( args, classes )
 
   if args.trk_kwant_stats:
-    generate_trk_kwant_stats( args, categories )
+    generate_trk_kwant_stats( args, classes )
 
   if args.trk_mot_stats:
-    generate_trk_mot_stats( args, categories )
+    generate_trk_mot_stats( args, classes )
 
