@@ -440,14 +440,44 @@ def generate_det_prc_conf_single( args, classes ):
     subprocess.call( cmd )
 
   if not classes:
+    output_folder = 'conf-joint-output'
+
     _, filtered_computed_json = convert_to_kwcoco( args.computed, image_list, True )
     _, filtered_truth_json = convert_to_kwcoco( args.truth, image_list, True )
 
     cmd = get_prc_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
     cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
     cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
-    cmd = cmd + [  '--out_dpath', "conf-joint-output" ]
+    cmd = cmd + [  '--out_dpath', output_folder ]
     subprocess.call( cmd )
+
+    import json
+    import csv
+
+    fin = open( os.path.join( output_folder, 'metrics.json' ) )
+    if not fin:
+      return
+
+    output = []
+    metrics = json.load( fin )
+    for i in metrics:
+      for j in metrics[i]:
+         if j != "ovr_measures":
+           continue
+         for k in metrics[i][j]:
+           row = []
+           row.append( k )
+           row.append( metrics[i][j][k]['ap'] )
+           row.append( metrics[i][j][k]['auc'] )
+           output.append( row )
+    output.sort( key = lambda x: -x[1] )
+    output = [[ "#category", "ap", "auc" ]] + output
+
+    output_csv_file = os.path.join( output_folder, "metrics.csv" )
+    print( "\nwrite " + output_csv_file  )
+    with open( output_csv_file, 'w', newline='' ) as fout:
+      writer = csv.writer( fout )
+      writer.writerows( output )
 
 def generate_det_prc_conf( args, classes ):
 
