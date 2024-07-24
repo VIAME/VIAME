@@ -675,7 +675,8 @@ def generate_trk_mot_stats( args, classes ):
 
     cf = OrderedDict( [ ( os.path.splitext( Path( f.replace( "_tracks", "" ) ).parts[-1])[0], \
       mm.io.loadtxt( f, fmt='viame-csv', min_confidence=threshold, \
-                     use_class_ids=use_class_ids, use_class_confidences ) ) \
+                     use_class_ids=use_class_ids, \
+                     use_class_confidences=use_class_confidences ) ) \
       for f in aligned_files ] )
 
     gt = OrderedDict( [ ( os.path.splitext( Path( aligned_files[f] ).parts[-1])[0], \
