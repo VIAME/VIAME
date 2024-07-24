@@ -454,6 +454,9 @@ def generate_det_prc_conf_single( args, classes ):
     import json
     import csv
 
+    output_csv_file = os.path.join( output_folder, "metrics.csv" )
+    print( "\nwrite " + output_csv_file  )
+
     fin = open( os.path.join( output_folder, 'metrics.json' ) )
     if not fin:
       return
@@ -473,8 +476,6 @@ def generate_det_prc_conf_single( args, classes ):
     output.sort( key = lambda x: -x[1] )
     output = [[ "#category", "ap", "auc" ]] + output
 
-    output_csv_file = os.path.join( output_folder, "metrics.csv" )
-    print( "\nwrite " + output_csv_file  )
     with open( output_csv_file, 'w', newline='' ) as fout:
       writer = csv.writer( fout )
       writer.writerows( output )
