@@ -450,11 +450,11 @@ def generate_det_prc_conf_directory( args, classes ):
   cmd = cmd + [  '--iou_thresh', str( args.iou_thresh ) ]
   cmd = cmd + [  '--out_dpath', args.det_prc_conf ]
 
+  subprocess.call( cmd )
+
   input_metrics_json = os.path.join( args.det_prc_conf, 'metrics.json' )
   output_csv_file = os.path.join( args.det_prc_conf, "metrics.csv" )
   generate_metrics_csv( input_metrics_json, output_csv_file )
-
-  subprocess.call( cmd )
   
 def generate_det_prc_conf_single( args, classes ):
 
