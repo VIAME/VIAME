@@ -731,7 +731,7 @@ def generate_trk_mot_stats( args, classes ):
 
     summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
 
-    logging.info( mm.io.render_summary( summary, formatters=mh.formatters, \
+    logging.info( "\n" + mm.io.render_summary( summary, formatters=mh.formatters, \
       namemap=mm.io.motchallenge_metric_names ) )
 
     mota = float( summary.loc["OVERALL"].at['mota'] )
