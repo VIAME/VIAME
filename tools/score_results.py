@@ -649,7 +649,12 @@ def generate_trk_mot_stats( args, classes ):
 
   from collections import OrderedDict
 
-  if os.path.isdir( args.computed ):
+  folder_input = os.path.isdir( args.computed )
+
+  if os.path.isdir( args.computed ) != os.path.isdir( args.truth ):
+    print_and_exit( "Inputs must be either both folders or both csvs" )
+
+  if folder_input:
     aligned_files = compute_alignment( args.computed, args.truth, \
       remove_postfix = '_tracks', skip_postfix = '_detections' )
   else:
@@ -722,6 +727,9 @@ def generate_trk_mot_stats( args, classes ):
                      force_conf_to_one=True, use_class_ids=use_class_id, \
                      use_class_confidence=use_class_confidences ) ) \
       for f in aligned_files ] )
+
+    if not folder_input:
+      gt = OrderedDict( [ ( list( cf.keys() )[0], gt[ list( gt.keys() )[0] ] ) ] )
 
     mh = mm.metrics.create()
 
