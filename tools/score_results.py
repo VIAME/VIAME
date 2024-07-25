@@ -664,7 +664,7 @@ def generate_trk_mot_stats( args, classes ):
   thresholds = [ args.threshold ]
 
   if args.sweep_thresholds:
-    thresholds = [ x / 100 for x in range( 0, 101 ) ]
+    thresholds = [ x / 100 for x in range( 0, 100 ) ]
   else:
     thresholds = [ args.threshold ]
 
