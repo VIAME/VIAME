@@ -365,10 +365,13 @@ def generate_metrics_csv( input_file, output_file ):
          row.append( k )
          row.append( metrics[i][j][k]['ap'] )
          row.append( metrics[i][j][k]['auc'] )
-         output.append( row )
+         row.append( metrics[i][j][k]['nsupport'] )
+
+         if int( row[3] ):
+           output.append( row )
 
   output.sort( key = lambda x: -x[1] )
-  output = [[ "#category", "ap", "auc" ]] + output
+  output = [[ "#category", "ap", "auc", "samples" ]] + output
 
   with open( output_file, 'w', newline='' ) as fout:
     writer = csv.writer( fout )
