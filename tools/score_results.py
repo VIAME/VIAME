@@ -514,6 +514,10 @@ def generate_det_prc_conf( args, classes ):
 
 def generate_trk_kwant_stats( args, classes ):
 
+  # Error checking
+  if os.path.isdir( args.computed ) or os.path.isdir( args.truth ):
+    print_and_exit( "KWANT tracking stats currently supports only input files, not folders" )
+
   # Generate roc files
   base, ext = os.path.splitext( args.trk_kwant_stats )
   input_format = args.input_format if args.input_format != "viame_csv" else "noaa-csv"
@@ -538,6 +542,10 @@ def generate_trk_kwant_stats( args, classes ):
         subprocess.call( cmd, stdout=fout, stderr=fout )
 
 def generate_det_rocs( args, classes ):
+
+  # Error checking
+  if os.path.isdir( args.computed ) or os.path.isdir( args.truth ):
+    print_and_exit( "ROC generation currently supports only input files, not folders" )
 
   # Generate roc files
   base, ext = os.path.splitext( args.det_roc )
