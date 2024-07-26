@@ -10,5 +10,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/score_results.py \
  -computed detections.csv -truth groundtruth.csv \
- -det-prc-conf conf_mat_classless.png
+ -det-prc-conf output_prc_and_conf_mat
 

@@ -10,4 +10,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/score_results.py \
  -computed detections.csv -truth groundtruth.csv \
- -threshold 0.10 -trk-kwant-stats stats_nocls.txt
+ -threshold 0.10 -trk-kwant-stats output_kwant_stats_classless.txt
