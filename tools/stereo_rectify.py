@@ -36,14 +36,14 @@ Compute a stereo rectified image pair
 
 import numpy as np
 import cv2
-import os.path
+import os
 
 from optparse import OptionParser
 
 
 def main():
-    usage = "usage: %prog [options] input-image output-image intrinsics extrinsics\n\n"
-    usage += "  Rectify a stereo image pair\n"
+    usage = "usage: %prog [options] input-image output-image intrinsics extrinsics"
+    usage += os.linesep + os.linesep + "  Rectify a stereo image pair" + os.linesep
     parser = OptionParser(usage=usage)
 
     parser.add_option("-b", "--bayer", default=False,

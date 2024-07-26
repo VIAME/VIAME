@@ -36,7 +36,7 @@ Estimate a disparity image from a rectified image pair
 
 import numpy as np
 import cv2
-import os.path
+import os
 
 from optparse import OptionParser
 
@@ -126,8 +126,8 @@ def scaled_disparity(img_left, img_right):
 
 
 def main():
-    usage = "usage: %prog [options] stereo-image\n\n"
-    usage += "  Estimate disparity between a pair of rectified images\n"
+    usage = "usage: %prog [options] stereo-image" + os.linesep + os.linesep
+    usage += "  Estimate disparity between a pair of rectified images" + os.linesep
     parser = OptionParser(usage=usage)
 
     (options, args) = parser.parse_args()

@@ -37,7 +37,7 @@ Calibrate cameras from a video of a chessboard
 
 import numpy as np
 import cv2
-import os.path
+import os
 import glob
 import operator
 
@@ -261,8 +261,8 @@ def calibrate_single_camera(data, object_points, img_shape):
 
 
 def main():
-    usage = "usage: %prog [options] video_file\n\n"
-    usage += "  Estimate calibration from video.\n"
+    usage = "usage: %prog [options] video_file" + os.linesep + os.linesep
+    usage += "  Estimate calibration from video." + os.linesep
     parser = OptionParser(usage=usage)
 
     parser.add_option("-b", "--bayer", default=False,

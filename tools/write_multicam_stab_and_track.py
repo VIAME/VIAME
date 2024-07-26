@@ -1,6 +1,8 @@
 from pathlib import Path
 from textwrap import dedent
 
+import os
+
 PIPELINE_DIR = Path(__file__).parent / '../configs/pipelines'
 
 def enum1(it): return enumerate(it, 1)
@@ -17,7 +19,7 @@ def make_input_creator():
     include = '\ninclude common_default_input.pipe\n'
     downsampler = PIPELINE_DIR / 'common_default_input_with_downsampler.pipe'
     downsampler = downsampler.read_text().replace(include, '')
-    template = default_input + '\n' + downsampler + '\n'
+    template = default_input + os.linesep + downsampler + os.linesep
     def create_input(i):
         text = (template
                 .replace('process input', f'process input{i}')

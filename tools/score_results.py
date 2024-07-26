@@ -65,6 +65,14 @@ def log_with_spaces( msg ):
   logging.info( msg )
   logging.info( '' )
 
+def log_and_write( fout, msg ):
+  fout.write( msg + os.linesep ) 
+  logging.info( msg )
+
+def log_and_write_with_spaces( fout, msg ):
+  fout.write( os.linesep + msg + os.linesep + os.linesep ) 
+  log_with_spaces( msg )
+
 def format_class_fn( fn ):
   return fn.replace( "/", "-" )
 
@@ -185,9 +193,9 @@ def filter_viame_csv_by_class( filename, cls, threshold=0.0 ):
         fout.write( lis[0] + ',' + lis[1] + ',' + lis[2] + ',' + lis[3] + ',' )
         fout.write( lis[4] + ',' + lis[5] + ',' + lis[6] + ',' + str( confidence ) + ',' )
         if len( object_label ) > 0:
-          fout.write( lis[8] + ',' + object_label + ',' + str( confidence ) + '\n' )
+          fout.write( lis[8] + ',' + object_label + ',' + str( confidence ) + os.linesep )
         else:
-          fout.write( lis[8] + '\n' )
+          fout.write( lis[8] + os.linesep )
   fout.close()
   return fd, handle
 
@@ -347,7 +355,7 @@ def generate_metrics_csv( input_file, output_file ):
   import json
   import csv
 
-  print( "\nwrite " + output_file  )
+  print( os.linesep + "write " + output_file  )
 
   fin = open( input_file )
 
@@ -499,10 +507,10 @@ def generate_det_prc_conf( args, classes ):
   else:
     generate_det_prc_conf_single( args, classes )
 
-  print( "\nConf matrix and PRC plot generation is complete\n" )
+  print( "\nConf matrix and PRC plot generation is complete" + os.linesep )
 
   if os.name == "nt":
-    print( "On windows, ignore the following temp file error\n" )
+    print( "On windows, ignore the following temp file error" + os.linesep )
 
 def generate_trk_kwant_stats( args, classes ):
 
@@ -619,7 +627,7 @@ def generate_det_rocs( args, classes ):
     tmp = args.rangey.split( ':' )
     if len( tmp ) != 2:
       sys.stderr.write( 'Error: rangey option must be two floats ' )
-      sys.stderr.write( 'separated by a colon, e.g. 0.2:0.7\n' )
+      sys.stderr.write( 'separated by a colon, e.g. 0.2:0.7' + os.linesep )
       sys.exit( 1 )
     ( ymin, ymax ) = ( float( tmp[0] ), float( tmp[1]) )
     rocplot.set_ylim( ymin, ymax )
@@ -628,7 +636,7 @@ def generate_det_rocs( args, classes ):
       tmp = args.rangex.split( ':' )
       if len( tmp ) != 2:
         sys.stderr.write( 'Error: rangex option must be two floats ' )
-        sys.stderr.write( 'separated by a colon, e.g. 0.2:0.7\n' )
+        sys.stderr.write( 'separated by a colon, e.g. 0.2:0.7' + os.linesep )
         sys.exit( 1 )
       ( xmin, xmax ) = ( float(tmp[0]), float(tmp[1]) )
       rocplot.set_xlim( xmin,xmax )
@@ -715,6 +723,8 @@ def generate_trk_mot_stats( args, classes ):
     "num_migrate",
   ]
 
+  fout = open( args.trk_mot_stats, 'w' )
+
   for threshold in thresholds:
 
     log_with_spaces( "Loading Data at Threshold " + str( threshold ) )
@@ -731,6 +741,7 @@ def generate_trk_mot_stats( args, classes ):
                      use_class_confidence=use_class_confidences ) ) \
       for f in aligned_files ] )
 
+    # In the case of input files instead of folder, don't need to worry about alignment
     if not folder_input:
       gt = OrderedDict( [ ( list( cf.keys() )[0], gt[ list( gt.keys() )[0] ] ) ] )
 
@@ -738,16 +749,15 @@ def generate_trk_mot_stats( args, classes ):
 
     accs, names = compare_dataframes( gt, cf )
 
-    log_with_spaces( 'Running MOT Metrics at Threshold ' + str( threshold ) )
+    log_and_write_with_spaces( fout, 'Running MOT Metrics at Threshold ' + str( threshold ) )
 
     summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
 
-    logging.info( "\n" + mm.io.render_summary( summary, formatters=mh.formatters, \
+    log_and_write( fout, os.linesep + mm.io.render_summary( summary, formatters=mh.formatters, \
       namemap=mm.io.motchallenge_metric_names ) )
 
     mota = float( summary.loc["OVERALL"].at['mota'] )
     idf1 = float( summary.loc["OVERALL"].at['idf1'] )
-    hota = 0
 
     if mota > max_mota:
       max_mota = mota
@@ -757,9 +767,11 @@ def generate_trk_mot_stats( args, classes ):
       max_idf1_thresh = threshold
 
   if len( thresholds ) > 1:
-    logging.info( '' )
-    logging.info( 'Top IDF1 value: ' + str( max_idf1 ) + ' at threshold ' + str( max_idf1_thresh ) )
-    logging.info( 'Top MOTA value: ' + str( max_mota ) + ' at threshold ' + str( max_mota_thresh ) )
+    log_and_write( fout, '' )
+    log_and_write( fout, 'Top IDF1 value: ' + str( max_idf1 ) + ' at threshold ' + str( max_idf1_thresh ) )
+    log_and_write( fout, 'Top MOTA value: ' + str( max_mota ) + ' at threshold ' + str( max_mota_thresh ) )
+
+  fout.close()
 
 def generate_trk_hota_stats( args, classes ):
 

@@ -20,7 +20,7 @@ smqtk_hcode_config = os.path.join(pipelines_dir, "smqtk_compute_hashes.json")
 smqtk_hcode_pickle = os.path.join(database_dir, "ITQ", "lsh_hash_to_descriptor_ids.pickle")
 smqtk_btree_config = os.path.join(pipelines_dir, "smqtk_make_balltree.json")
 
-lb1 = '\n'
+lb1 = os.linesep
 lb2 = lb1 + lb1
 lb3 = lb2 + lb1
 
@@ -42,14 +42,14 @@ def query_yes_no(question, default="yes"):
       choice = raw_input().lower()
     else:
       choice = input().lower()
-    sys.stdout.write( "\n" )
+    sys.stdout.write( os.linesep )
     if default is not None and choice == '':
       return valid[default]
     elif choice in valid:
       return valid[choice]
     else:
       sys.stdout.write("Please respond with 'yes' or 'no' "
-                       "(or 'y' or 'n').\n")
+                       "(or 'y' or 'n')." + os.linesep)
 
 def animated_loading():
   chars = "/-\\|" 

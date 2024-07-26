@@ -39,14 +39,14 @@ from ply_utilities import write_ply_file
 
 import numpy as np
 import cv2
-import os.path
+import os
 
 from optparse import OptionParser
 
 
 def main():
-    usage = "usage: %prog [options] stereo-image extrinsics\n\n"
-    usage += "  Estimate depth between a pair of rectified images\n"
+    usage = "usage: %prog [options] stereo-image extrinsics" + os.linesep + os.linesep
+    usage += "  Estimate depth between a pair of rectified images" + os.linesep
     parser = OptionParser(usage=usage)
 
     (options, args) = parser.parse_args()

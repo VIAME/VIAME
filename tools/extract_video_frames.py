@@ -44,7 +44,9 @@ def get_python_cmd():
     return [ 'python' ]
 
 def exit_with_error( error_str ):
-  sys.stdout.write( '\n\nERROR: ' + error_str + '\n\n' )
+  sys.stdout.write( os.linesep )
+  sys.stdout.write( os.linesep + 'ERROR: ' + error_str + os.linesep )
+  sys.stdout.write( os.linesep )
   sys.stdout.flush()
   sys.exit( 0 )
 

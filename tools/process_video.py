@@ -24,7 +24,7 @@ import database_tool
 
 # Character short-cuts and global constants
 div = os.path.sep
-lb  = '\n'
+lb  = os.linesep
 
 lb1 = lb
 lb2 = lb * 2
@@ -127,7 +127,7 @@ def auto_folder_recurse( folder, video_exts, image_exts, check_mc ):
 
 def auto_identify_data( folder, video_exts, image_exts, check_mc = True ):
   entries = auto_folder_recurse( folder, video_exts, image_exts, check_mc )
-  print( "\nFound " + str( len( entries ) ) + " items for possible processing\n" )
+  print( os.linesep + "Found " + str( len( entries ) ) + " items for possible processing" + os.linesep )
   for i in entries:
     print( i )
   return entries
@@ -556,7 +556,7 @@ def add_final_list_csv( args, data_list ):
       last_id = max( last_id, final_id )
       parsed_line[0] = str( final_id )
       parsed_line[2] = str( int( parsed_line[2] ) + id_adjustment )
-      output_stream.write( ','.join( parsed_line ) + '\n' )
+      output_stream.write( ','.join( parsed_line ) + os.linesep )
     id_adjustment = id_adjustment + file_length( video )
     input_stream.close()
     is_first = False

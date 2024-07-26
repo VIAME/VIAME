@@ -32,9 +32,9 @@ if __name__ == "__main__" :
             sys.exit( 0 )
 
         gpu_count = torch.cuda.device_count()
-        print( "Usable devices: " + str( gpu_count ) + "\n" )
+        print( "Usable devices: " + str( gpu_count ) + os.linesep )
         for i in range( gpu_count ):
             gpu_mem = torch.cuda.get_device_properties( i ).total_memory
             print( "Device #1, usable mem: " + str( gpu_mem ) )
 
-    print( "\nExiting\n" )
+    print( os.linesep + "Exiting" + os.linesep )
