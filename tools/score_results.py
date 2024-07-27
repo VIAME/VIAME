@@ -277,29 +277,29 @@ def compute_alignment( computed_dir, truth_dir, ext = '.csv',
       print_and_exit( "Could not find corresponding truth for: " + comp_base )
   return out
 
-def filter_detections( args, dets ):
+def filter_detections( dets, ignore_cls = None, top_cls = False, thresh = 0.0 ):
   output = DetectedObjectSet()
   for i, item in enumerate( dets ):
     if item.type is None:
-      if args.ignore_classes:
+      if ignore_cls:
         # Ignore classes option with no real classes
         score = item.confidence
         item.type = DetectedObjectType( default_label, score )
       else:
         continue
-    elif args.ignore_classes:
+    elif ignore_cls:
       # Ignore classes option, relabel top class to default
       cls = item.type.get_most_likely_class()
       score = item.type.score( cls )
       item.type = DetectedObjectType( default_label, score )
-    elif args.top_class:
+    elif top_cls:
       # Top class option, only use highest scoring class
       cls = item.type.get_most_likely_class()
       score = item.type.score( cls )
       item.type = DetectedObjectType( cls, score )
 
     # Applies threshold parameter
-    all_classes = item.type.class_names( args.threshold )
+    all_classes = item.type.class_names( thresh )
 
     # Apply hierarchy if present, also remakes type after threshold
     output_type = DetectedObjectType()
@@ -321,6 +321,9 @@ def filter_detections( args, dets ):
       output.add( item )
   return output
 
+def filter_detections( args, dets ):
+  return filter_detections( dets, args.ignore_classes, args.top_class, args.threshold )
+
 def convert_and_filter_to_csv( args, input_file, output_file ):
 
   input_reader =  DetectedObjectSetInput.create( args.input_format )
@@ -339,10 +342,6 @@ def convert_and_filter_to_csv( args, input_file, output_file ):
     csv_reader.write_set( dets, img )
 
   csv_reader.complete()
-
-def convert_and_filter_to_csv( args, input_folder, output_folder ):
-  return False
-
 
 def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   (fd, handle) = tempfile.mkstemp( prefix='viame-coco-',
@@ -369,7 +368,7 @@ def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   coco_writer.complete()
   return fd, handle
 
-def generate_metrics_csv_from_kwcoco_json( input_file, output_file ):
+def generate_metrics_csv_kwcoco( input_file, output_file ):
   print( os.linesep + "write " + output_file  )
 
   fin = open( input_file )
@@ -480,7 +479,7 @@ def generate_det_prc_conf_directory( args, classes ):
 
   input_metrics_json = os.path.join( args.det_prc_conf, 'metrics.json' )
   output_csv_file = os.path.join( args.det_prc_conf, "metrics.csv" )
-  generate_metrics_csv_from_kwcoco_json( input_metrics_json, output_csv_file )
+  generate_metrics_csv_kwcoco( input_metrics_json, output_csv_file )
   
 def generate_det_prc_conf_single( args, classes ):
 
@@ -513,7 +512,7 @@ def generate_det_prc_conf_single( args, classes ):
 
     input_metrics_json = os.path.join( args.det_prc_conf, 'metrics.json' )
     output_csv_file = os.path.join( args.det_prc_conf, "metrics.csv" )
-    generate_metrics_csv_from_kwcoco_json( input_metrics_json, output_csv_file )
+    generate_metrics_csv_kwcoco( input_metrics_json, output_csv_file )
 
 def generate_det_prc_conf( args, classes ):
 
