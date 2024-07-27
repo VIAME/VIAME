@@ -96,7 +96,12 @@ def set_default_label( user_input=None ):
   elif hierarchy and len( hierarchy.all_class_names() ) == 1:
     default_label = hierarchy.all_class_names()[0]
 
-def load_roc( fn ):
+def list_files_w_ext_rec( folder, ext ):
+  result = [ y for x in os.walk( folder )
+               for y in glob( os.path.join( x[0], '*' + ext ) ) ]
+  return result
+
+def load_kwant_roc( fn ):
   x_fa = np.array( [] )
   y_pd = np.array( [] )
 
@@ -109,11 +114,6 @@ def load_roc( fn ):
       x_fa = np.append( x_fa, float( fields[47] ) )
       y_pd = np.append( y_pd, float( fields[7] ) )
   return ( x_fa, y_pd )
-
-def list_files_w_ext_rec( folder, ext ):
-  result = [ y for x in os.walk( folder )
-               for y in glob( os.path.join( x[0], '*' + ext ) ) ]
-  return result
 
 def list_classes_viame_csv( input_fn, ext = '.csv', top_only=True ):
   unique_ids = set()
@@ -241,7 +241,7 @@ def get_file_list_from_viame_csvs( computed, truth ):
     last_id = fid + 1
   return out, mismatch, max_id
 
-def read_list_from_file_list( filename ):
+def get_file_list_from_txt_list( filename ):
   out = []
   with open( filename ) as f:
     for line in f:
@@ -484,7 +484,7 @@ def generate_det_prc_conf_directory( args, classes ):
 def generate_det_prc_conf_single( args, classes ):
 
   if args.list:
-    image_list = read_list_from_file_list( args.list )
+    image_list = get_file_list_from_txt_list( args.list )
   else:
     image_list, _, _ = get_file_list_from_viame_csvs( args.computed, args.truth )
 
@@ -617,7 +617,7 @@ def generate_det_rocs( args, classes ):
   user_titles = args.key.split(',') if args.key else None
   i = 0
   for i, fn in enumerate( roc_files ):
-    (x,y) = load_roc( fn )
+    (x,y) = load_kwant_roc( fn )
     display_label = ""
     if user_titles and i < len( user_titles ):
       display_label = user_titles[i]
