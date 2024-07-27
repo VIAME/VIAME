@@ -3,6 +3,8 @@
 import os
 import sys
 import re
+import json
+import csv
 import numpy as np
 import argparse
 import atexit
@@ -10,7 +12,6 @@ import tempfile
 import subprocess
 import shutil
 import logging
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -28,8 +29,8 @@ from kwiver.vital.types import (
     DetectedObjectSet, DetectedObject, DetectedObjectType
 )
 
-temp_dir = tempfile.mkdtemp(prefix='score-tmp')
-atexit.register(lambda: shutil.rmtree(temp_dir))
+temp_dir = tempfile.mkdtemp( prefix='viame-score-tmp' )
+atexit.register( lambda: shutil.rmtree( temp_dir ) )
 
 linestyles = ['-', '--', '-.', ':']
 linecolors = ['#25233d', '#161891', '#316f6a', '#662e43']
@@ -37,6 +38,7 @@ linecolors = ['#25233d', '#161891', '#316f6a', '#662e43']
 hierarchy=None
 default_label="fish"
 filtered_input=False
+min_conf = float( -10000 )
 
 def get_kwant_cmd():
   if os.name == 'nt':
@@ -56,7 +58,7 @@ def get_roc_cmd():
   else:
     return ['score_events']
 
-def print_and_exit( msg, code=0 ):
+def print_and_exit( msg, code=1 ):
   print( msg )
   sys.exit( code )
 
@@ -76,45 +78,13 @@ def log_and_write_with_spaces( fout, msg ):
 def format_class_fn( fn ):
   return fn.replace( "/", "-" )
 
-def load_roc( fn ):
-  x_fa = np.array( [] )
-  y_pd = np.array( [] )
-
-  with open(fn) as f:
-    while (1):
-      raw_line = f.readline()
-      if not raw_line:
-        break
-      fields = raw_line.split()
-      x_fa = np.append( x_fa, float( fields[47] ) )
-      y_pd = np.append( y_pd, float( fields[7] ) )
-  return ( x_fa, y_pd )
-
-def list_classes_viame_csv( filename ):
-  unique_ids = set()
-  with open( filename ) as f:
-    for line in f:
-      lis = line.strip().split(',')
-      if len( lis ) < 10:
-        continue
-      if len( lis[0] ) > 0 and lis[0][0] == '#':
-        continue
-      idx = 9
-      while idx < len( lis ):
-        if lis[idx][0] == '(':
-          break
-        unique_ids.add( lis[idx] )
-        idx = idx + 2
-  return list( unique_ids )
-
 def load_hierarchy( filename ):
   global hierarchy
   hierarchy = None
   if filename:
     hierarchy = CategoryHierarchy()
     if not hierarchy.load_from_file( filename ):
-      print( "Unable to parse classes file: " + filename )
-      sys.exit( 0 )
+      print_and_exit( "Unable to parse classes file: " + filename )
     return True
   else:
     return False
@@ -126,49 +96,58 @@ def set_default_label( user_input=None ):
   elif hierarchy and len( hierarchy.all_class_names() ) == 1:
     default_label = hierarchy.all_class_names()[0]
 
-def list_files_rec_w_ext( folder, ext ):
+def load_roc( fn ):
+  x_fa = np.array( [] )
+  y_pd = np.array( [] )
+
+  with open( fn ) as f:
+    while( 1 ):
+      raw_line = f.readline()
+      if not raw_line:
+        break
+      fields = raw_line.split()
+      x_fa = np.append( x_fa, float( fields[47] ) )
+      y_pd = np.append( y_pd, float( fields[7] ) )
+  return ( x_fa, y_pd )
+
+def list_files_w_ext_rec( folder, ext ):
   result = [ y for x in os.walk( folder )
                for y in glob( os.path.join( x[0], '*' + ext ) ) ]
   return result
 
-def compute_alignment( computed_dir, truth_dir, ext = '.csv',
-                       remove_postfix = '_detections',
-                       skip_postfix = '_tracks' ):
-
-  out = dict()
-
-  computed_files = list_files_rec_w_ext( computed_dir, ext )
-  truth_files = list_files_rec_w_ext( truth_dir, ext )
-
-  for comp_file in computed_files:
-    if skip_postfix and skip_postfix + ext in comp_file:
-      continue
-    if remove_postfix and remove_postfix + ext in comp_file:
-      comp_no_postfix = comp_file.replace( remove_postfix + ext, ext )
-    else:
-      comp_no_postfix = comp_file
-    comp_base = os.path.basename( comp_no_postfix )
-    match = False
-    for truth_file in truth_files:
-      if comp_base == os.path.basename( truth_file ):
-        out[ comp_file ] = truth_file
-        match = True
-        break
-    if not match:
-      print( "Could not find corresponding truth for: " + comp_base )
-      sys.exit( 0 )
-  return out
-
-def filter_viame_csv_by_class( filename, cls, threshold=0.0 ):
-  (fd, handle) = tempfile.mkstemp( prefix='viame-score-',
-                                   suffix='.csv',
-                                   text=True,
-                                   dir=temp_dir )
-
-  fout = os.fdopen( fd, 'w' )
-
-  with open( filename ) as f:
+def list_classes_viame_csv( input_fn, ext = '.csv', top_only=True ):
+  unique_ids = set()
+  if os.path.isdir( input_fn ):
+    for fn in list_files_w_ext_rec( input_fn, ext ):
+      unique_ids.union( list_classes_viame_csv( fn ) )
+    return list( unique_ids )
+  with open( input_fn ) as f:
     for line in f:
+      lis = line.strip().split( ',' )
+      if len( lis ) < 10:
+        continue
+      if len( lis[0] ) > 0 and lis[0][0] == '#':
+        continue
+      idx = 9
+      top_score = min_conf
+      top_category = None
+      while idx < len( lis ):
+        if lis[idx][0] == '(':
+          break
+        if top_only and 
+          if lis[idx+1] > top_score:
+            top_category = lis[idx]
+            top_score = float( list[idx+1] )
+        else:
+          unique_ids.add( lis[idx] )
+        idx = idx + 2
+      if top_only and top_category;
+        unique_ids.add( lis[idx] )
+  return list( unique_ids )
+
+def filter_viame_csv( fn, fout, cls=None, threshold=0.0, top_only=False ):
+  with open( fn ) as fin:
+    for line in fin:
       lis = line.strip().split(',')
       if len( lis ) < 10:
         continue
@@ -188,7 +167,6 @@ def filter_viame_csv_by_class( filename, cls, threshold=0.0 ):
           object_label = lis[idx]
           break
         idx = idx + 2
-
       if use_detection:
         fout.write( lis[0] + ',' + lis[1] + ',' + lis[2] + ',' + lis[3] + ',' )
         fout.write( lis[4] + ',' + lis[5] + ',' + lis[6] + ',' + str( confidence ) + ',' )
@@ -196,8 +174,21 @@ def filter_viame_csv_by_class( filename, cls, threshold=0.0 ):
           fout.write( lis[8] + ',' + object_label + ',' + str( confidence ) + os.linesep )
         else:
           fout.write( lis[8] + os.linesep )
+
+def filter_viame_csv_tmp( fn, cls=None, threshold=0.0, top_only=False ):
+  (fd, handle) = tempfile.mkstemp( prefix='viame-score-',
+                                   suffix='.csv',
+                                   text=True,
+                                   dir=temp_dir )
+
+  fout = os.fdopen( fd, 'w' )
+  filter_viame_csv( fn, fout, cls, threshold, top_only )
   fout.close()
   return fd, handle
+
+def filter_viame_csv_fixed( fn_in, fn_out, cls=None, threshold=0.0, top_only=False ):
+  with open( fn_out, 'w' ) as fout:
+    filter_viame_csv( fn_in, fout, cls, threshold, top_only )
 
 # Returns joint filename list, if mismatched names found, max-frame-id
 def get_file_list_from_viame_csvs( computed, truth ):
@@ -216,7 +207,7 @@ def get_file_list_from_viame_csvs( computed, truth ):
       fid = int( lis[2] )
       if lis[1] or not fid in fns:
         fns[ fid ] = lis[1]
-      if lis[1] in dup:
+      if lis[1] in dup:Aust
         if dup[ lis[1] ] != fid:
           mismatch = True
       else:
@@ -257,6 +248,33 @@ def read_list_from_file_list( filename ):
       line = line.rstrip()
       if len( line ) > 0:
         out.append( line )
+  return out
+
+def compute_alignment( computed_dir, truth_dir, ext = '.csv',
+                       remove_postfix = '_detections',
+                       skip_postfix = '_tracks' ):
+
+  out = dict()
+
+  computed_files = list_files_w_ext_rec( computed_dir, ext )
+  truth_files = list_files_w_ext_rec( truth_dir, ext )
+
+  for comp_file in computed_files:
+    if skip_postfix and skip_postfix + ext in comp_file:
+      continue
+    if remove_postfix and remove_postfix + ext in comp_file:
+      comp_no_postfix = comp_file.replace( remove_postfix + ext, ext )
+    else:
+      comp_no_postfix = comp_file
+    comp_base = os.path.basename( comp_no_postfix )
+    match = False
+    for truth_file in truth_files:
+      if comp_base == os.path.basename( truth_file ):
+        out[ comp_file ] = truth_file
+        match = True
+        break
+    if not match:
+      print_and_exit( "Could not find corresponding truth for: " + comp_base )
   return out
 
 def filter_detections( args, dets ):
@@ -303,7 +321,7 @@ def filter_detections( args, dets ):
       output.add( item )
   return output
 
-def standardize_single( args, input_file, output_file ):
+def convert_and_filter_to_csv( args, input_file, output_file ):
 
   input_reader =  DetectedObjectSetInput.create( args.input_format )
   reader_conf = input_reader.get_configuration()
@@ -322,7 +340,7 @@ def standardize_single( args, input_file, output_file ):
 
   csv_reader.complete()
 
-def standardize_input( args, folder, output ):
+def convert_and_filter_to_csv( args, input_folder, output_folder ):
   return False
 
 
@@ -351,10 +369,7 @@ def convert_to_kwcoco( csv_file, image_list, retain_labels=False ):
   coco_writer.complete()
   return fd, handle
 
-def generate_metrics_csv( input_file, output_file ):
-  import json
-  import csv
-
+def generate_metrics_csv_from_kwcoco_json( input_file, output_file ):
   print( os.linesep + "write " + output_file  )
 
   fin = open( input_file )
@@ -373,7 +388,7 @@ def generate_metrics_csv( input_file, output_file ):
          row.append( k )
          row.append( metrics[i][j][k]['ap'] )
          row.append( metrics[i][j][k]['auc'] )
-         row.append( metrics[i][j][k]['nsupport'] )
+         row.append( int( metrics[i][j][k]['realpos_total'] ) )
 
          if int( row[3] ):
            output.append( row )
@@ -465,7 +480,7 @@ def generate_det_prc_conf_directory( args, classes ):
 
   input_metrics_json = os.path.join( args.det_prc_conf, 'metrics.json' )
   output_csv_file = os.path.join( args.det_prc_conf, "metrics.csv" )
-  generate_metrics_csv( input_metrics_json, output_csv_file )
+  generate_metrics_csv_from_kwcoco_json( input_metrics_json, output_csv_file )
   
 def generate_det_prc_conf_single( args, classes ):
 
@@ -475,8 +490,8 @@ def generate_det_prc_conf_single( args, classes ):
     image_list, _, _ = get_file_list_from_viame_csvs( args.computed, args.truth )
 
   for cls in classes:
-    _, filtered_computed_csv = filter_viame_csv_by_class( args.computed, cls, args.threshold )
-    _, filtered_truth_csv = filter_viame_csv_by_class( args.truth, cls, args.threshold )
+    _, filtered_computed_csv = filter_viame_csv_tmp( args.computed, cls, args.threshold )
+    _, filtered_truth_csv = filter_viame_csv_tmp( args.truth, cls, args.threshold )
     _, filtered_computed_json = convert_to_kwcoco( filtered_computed_csv, image_list )
     _, filtered_truth_json = convert_to_kwcoco( filtered_truth_csv, image_list )
 
@@ -498,7 +513,7 @@ def generate_det_prc_conf_single( args, classes ):
 
     input_metrics_json = os.path.join( args.det_prc_conf, 'metrics.json' )
     output_csv_file = os.path.join( args.det_prc_conf, "metrics.csv" )
-    generate_metrics_csv( input_metrics_json, output_csv_file )
+    generate_metrics_csv_from_kwcoco_json( input_metrics_json, output_csv_file )
 
 def generate_det_prc_conf( args, classes ):
 
@@ -507,7 +522,7 @@ def generate_det_prc_conf( args, classes ):
   else:
     generate_det_prc_conf_single( args, classes )
 
-  print( "\nConf matrix and PRC plot generation is complete" + os.linesep )
+  print( os.linesep + "Conf matrix and PRC plot generation is complete" + os.linesep )
 
   if os.name == "nt":
     print( "On windows, ignore the following temp file error" + os.linesep )
@@ -528,8 +543,8 @@ def generate_trk_kwant_stats( args, classes ):
 
   for cls in classes:
     stat_file = base + "." + format_class_fn( cls ) + ext
-    _, filtered_computed = filter_viame_csv_by_class( args.computed, cls, args.threshold )
-    _, filtered_truth = filter_viame_csv_by_class( args.truth, cls, args.threshold )
+    _, filtered_computed = filter_viame_csv_tmp( args.computed, cls, args.threshold )
+    _, filtered_truth = filter_viame_csv_tmp( args.truth, cls, args.threshold )
     cmd = base_cmd + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
     with open( stat_file, 'w' ) as fout:
       if not args.use_cache:
@@ -569,8 +584,8 @@ def generate_det_rocs( args, classes ):
       if len( input_files ) > 1:
         roc_file = filename + '.' + roc_file
       if not args.use_cache:
-        _, filtered_computed = filter_viame_csv_by_class( filename, cls )
-        _, filtered_truth = filter_viame_csv_by_class( args.truth, cls )
+        _, filtered_computed = filter_viame_csv_tmp( filename, cls )
+        _, filtered_truth = filter_viame_csv_tmp( args.truth, cls )
         cmd = base_cmd + [ '--roc-dump', roc_file ]
         cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
         subprocess.call( cmd )
@@ -633,19 +648,17 @@ def generate_det_rocs( args, classes ):
     rocplot.autoscale()
   else:
     tmp = args.rangey.split( ':' )
-    if len( tmp ) != 2:
-      sys.stderr.write( 'Error: rangey option must be two floats ' )
-      sys.stderr.write( 'separated by a colon, e.g. 0.2:0.7' + os.linesep )
-      sys.exit( 1 )
+    if len( tmp ) != 2: 
+      print_and_exit( 'Error: rangey option must be two floats ' +
+                      'separated by a colon, e.g. 0.2:0.7' + os.linesep )
     ( ymin, ymax ) = ( float( tmp[0] ), float( tmp[1]) )
     rocplot.set_ylim( ymin, ymax )
 
     if args.rangex:
       tmp = args.rangex.split( ':' )
       if len( tmp ) != 2:
-        sys.stderr.write( 'Error: rangex option must be two floats ' )
-        sys.stderr.write( 'separated by a colon, e.g. 0.2:0.7' + os.linesep )
-        sys.exit( 1 )
+        print_and_exit( 'Error: rangex option must be two floats ' +
+                        'separated by a colon, e.g. 0.2:0.7' + os.linesep )
       ( xmin, xmax ) = ( float(tmp[0]), float(tmp[1]) )
       rocplot.set_xlim( xmin,xmax )
 
@@ -705,9 +718,9 @@ def generate_trk_mot_stats( args, classes ):
         logging.warning( 'No ground truth for %s, skipping.', k )
     return accs, names
 
-  max_mota = -9999.9999
+  max_mota = min_conf
   max_mota_thresh = 0.0
-  max_idf1 = -9999.9999
+  max_idf1 = min_conf
   max_idf1_thresh = 0.0
 
   metrics = [
@@ -809,7 +822,7 @@ def generate_trk_hota_stats( args, classes ):
   else:
     thresholds = [ args.threshold ]
 
-  max_hota = -9999.9999
+  max_hota = min_conf
   max_hota_thresh = 0.0
 
   metrics = [
