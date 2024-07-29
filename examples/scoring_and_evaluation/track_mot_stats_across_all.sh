@@ -10,4 +10,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/score_results.py \
  -computed detections.csv -truth groundtruth.csv \
- -threshold 0.10 -trk-mot-stats output_mot_stats_classless.txt
+ -threshold 0.10 -trk-mot-stats output_mot_stats.txt

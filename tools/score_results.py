@@ -40,6 +40,7 @@ linecolors = ['#25233d', '#161891', '#316f6a', '#662e43']
 hierarchy=None
 default_label="fish"
 min_conf = float( -10000 )
+max_conf = -min_conf
 
 # -------------------- GENERIC UTILITY FUNCTIONS -----------------------
 
@@ -70,6 +71,10 @@ def remove_if_exists( item ):
 def remake_dir( dirname ):
   remove_if_exists( dirname )
   os.mkdir( dirname )
+
+def make_dir_if_not_exist( dirname ):
+  if not os.path.exists( dirname ):
+    os.mkdir( dirname )
 
 def format_class_fn( fn ):
   return fn.replace( "/", "-" )
@@ -775,7 +780,6 @@ def generate_det_rocs( args, classes ):
 def generate_trk_mot_stats_single( args, target_class=None ):
 
   import motmetrics as mm
-
   from collections import OrderedDict
 
   is_folder_input = os.path.isdir( args.computed )
@@ -803,7 +807,7 @@ def generate_trk_mot_stats_single( args, target_class=None ):
     input_truth = tmp_truth
 
   if target_class:
-    output_file = args.trk_mot_stats + "-" + target_class
+    output_file = os.path.join( args.trk_mot_stats, target_class + ".txt" )
   else:
     output_file = args.trk_mot_stats
 
@@ -822,7 +826,7 @@ def generate_trk_mot_stats_single( args, target_class=None ):
   thresholds = [ args.threshold ]
 
   if args.sweep_thresholds:
-    thresholds = [ x / 100 for x in range( 0, 100 ) ]
+    thresholds = [ x / args.sweep_interval for x in range( 0, args.sweep_interval ) ]
   else:
     thresholds = [ args.threshold ]
 
@@ -912,19 +916,69 @@ def generate_trk_mot_stats_single( args, target_class=None ):
       max_idf1_thresh = threshold
 
   if len( thresholds ) > 1:
-    log_and_write( fout, '' )
-    log_and_write( fout, 'Top IDF1 value: ' + str( max_idf1 ) +
-                         ' at threshold ' + str( max_idf1_thresh ) )
-    log_and_write( fout, 'Top MOTA value: ' + str( max_mota ) +
-                         ' at threshold ' + str( max_mota_thresh ) )
+    log_and_write( fout, os.linesep + 'Top IDF1 value: ' + f'{max_idf1:.4f}' +
+                  ' at threshold ' + f'{max_idf1_thresh:.3f}' )
+    log_and_write( fout, 'Top MOTA value: ' + f'{max_mota:.4f}' +
+                  ' at threshold ' + f'{max_mota_thresh:.3f}' )
 
   fout.close()
 
+  return [ max_idf1, max_idf1_thresh, max_mota, max_mota_thresh ]
+
+def create_net_mot_csv( filename, scores ):
+  with open( filename, 'w' ) as fout:
+    fout.write( "# class, idf1, idf1_thresh, mota, mota_thresh" + os.linesep )
+    for key, value in scores.items():
+      value_str = [ '{:.3f}'.format( x ) for x in value ]
+      fout.write( key + "," + ','.join( value_str ) + os.linesep )
+  return True
+
+def create_mot_filter_json( filename, scores, method ):
+  filters = dict()
+  if method == "avg" or method == "avg_minus_1p":
+    adj = 0.01 if method == "avg_minus_1p" else 0.00
+    for key, value in scores.items():
+      filters[ key ] = 0.5 * ( value[1] + value[3] ) + adj
+  elif method == "idf1":
+    for key, value in scores.items():
+      filters[ key ] = value[1]
+  elif method == "mota":
+    for key, value in scores.items():
+      filters[ key ] = value[3]
+  else:
+    print( "Unknown filter method: " + method )
+    return False
+
+  if "default" not in scores:
+    key_min = min( filters.keys(), key=( lambda k: filters[k] ) )
+    min_filter = filters[ key_min ]
+    if min_filter > 0:
+      filters[ "default" ] = min_filter
+
+  with open( filename, 'w' ) as fout:
+    data = { "confidenceFilters" : filters }
+    json.dump( data, fout, ensure_ascii=True, indent=4 )
+  return True
+
 def generate_trk_mot_stats( args, classes ):
-  if not classes:
+  if classes:
+    remake_dir( args.trk_mot_stats )
+  else:
     classes = [ None ]
-  for target_class in classes:
-    generate_trk_mot_stats_single( args, target_class )
+
+  top_scores = dict()
+
+  for target in classes:
+    top_scores[ target ] = generate_trk_mot_stats_single( args, target )
+
+  if len( classes ) > 1:
+    # Net score file contains top metrics and thresholds for each class
+    net_score_file = os.path.join( args.trk_mot_stats, "class_metrics.csv" )
+    create_net_mot_csv( net_score_file, top_scores )
+    # Filter file contains optimal thresholds per class in DIVE format
+    if args.filter_estimator and args.filter_estimator != "none":
+      filter_file = os.path.join( args.trk_mot_stats, "dive.config.json" )
+      create_mot_filter_json( filter_file, top_scores, args.filter_estimator )
 
 # ---------------------- HOTA TRACK STATISTICS -------------------------
 
@@ -932,63 +986,8 @@ def generate_trk_hota_stats( args, classes ):
 
   print_and_exit( "Implementation for HOTA not yet finished" )
 
-  import motmetrics as mm
-  import logging
-
-  from collections import OrderedDict
-
-  if os.path.isdir( args.computed ):
-    aligned_files = compute_alignment( args.computed, args.truth, \
-      remove_postfix = '_tracks', skip_postfix = '_detections' )
-  else:
-    aligned_files = { args.computed : args.truth }
-
-  loglevel = getattr( logging, 'INFO', None )
-  logging.basicConfig( level=loglevel, format='%(asctime)s %(levelname)s - %(message)s', datefmt='%I:%M:%S' )
-
-  use_class_id = not args.ignore_classes
-  use_class_confidences = not args.aux_confidence
-
-  thresholds = [ args.threshold ]
-
-  if args.sweep_thresholds:
-    thresholds = [ x / 100 for x in range( 99, 101 ) ]
-  else:
-    thresholds = [ args.threshold ]
-
-  max_hota = min_conf
-  max_hota_thresh = 0.0
-
-  metrics = [
-    "hota"
-  ]
-
   for threshold in thresholds:
-
-    log_with_spaces( "Loading Data at Threshold " + str( threshold ) )
-
-    cf = OrderedDict( [ ( os.path.splitext( Path( f.replace( "_tracks", "" ) ).parts[-1])[0], \
-      mm.io.loadtxt( f, fmt='viame-csv', min_confidence=threshold, \
-                     use_class_ids=use_class_id, \
-                     use_class_confidence=use_class_confidences ) ) \
-      for f in aligned_files ] )
-
-    gt = OrderedDict( [ ( os.path.splitext( Path( aligned_files[f] ).parts[-1])[0], \
-      mm.io.loadtxt( aligned_files[f], fmt='viame-csv', min_confidence=0, \
-                     force_conf_to_one=True, use_class_ids=use_class_id, \
-                     use_class_confidence=use_class_confidences ) ) \
-      for f in aligned_files ] )
-
     mh = mm.metrics.create()
-
-    accs, names = compare_dataframes( gt, cf )
-
-    log_with_spaces( 'Running MOT Metrics at Threshold ' + str( threshold ) )
-
-    summary = mh.compute_many( accs, names=names, metrics=metrics, generate_overall=True )
-
-    logging.info( mm.io.render_summary( summary, formatters=mh.formatters, \
-      namemap=mm.io.motchallenge_metric_names ) )
 
     hota = float( summary.loc["OVERALL"].at['idf1'] )
 
@@ -998,7 +997,8 @@ def generate_trk_hota_stats( args, classes ):
 
   if len( thresholds ) > 1:
     logging.info( '' )
-    logging.info( 'Top HOTA value: ' + str( max_hota ) + ' at threshold ' + str( max_hota_thresh ) )
+    logging.info( 'Top HOTA value: ' + str( max_hota ) +
+                  ' at threshold ' + str( max_hota_thresh ) )
 
 # -------------------------- MAIN FUNCTION -----------------------------
 
@@ -1019,7 +1019,7 @@ if __name__ == "__main__":
   parser.add_argument( '-input-format', dest="input_format", default="viame_csv",
     help='Input file format.' )
 
-  # Output options
+  # Core output type options
   parser.add_argument( '-det-prc-conf', dest="det_prc_conf", default=None,
     help='Folder for PRC curves, conf matrix, and related stats.' )
   parser.add_argument( '-det-roc', dest="det_roc", default=None,
@@ -1027,12 +1027,12 @@ if __name__ == "__main__":
   parser.add_argument( '-trk-kwant-stats', dest="trk_kwant_stats", default=None,
     help='Filename for output KWANT track statistics.' )
   parser.add_argument( '-trk-mot-stats', dest="trk_mot_stats", default=None,
-    help='Filename for output MOT track statistics (IDF1, MOTA, etc...).' )
+    help='File or folder name for output MOT statistics (IDF1, MOTA, etc...).' )
   parser.add_argument( '-trk-hota-stats', dest="trk_hota_stats", default=None,
-    help='Filename for output HOTA track statistics.' )
+    help='File or folder name for output HOTA track statistics.' )
 
   # Scoring settings
-  parser.add_argument( "-iou-thresh", dest="iou_thresh", default=0.5,
+  parser.add_argument( "-iou-thresh", dest="iou_thresh", type=float, default=0.5,
     help="IOU threshold for detection and track scoring methods" )
   parser.add_argument( "--ignore-classes", dest="ignore_classes", action="store_true",
     help="Ignore classes in the file and score all detection types as the same" )
@@ -1044,6 +1044,11 @@ if __name__ == "__main__":
     help="For operations where thresholds are used, run with multiple thresholds" )
   parser.add_argument( "--aux-confidence", dest="aux_confidence", action="store_true",
     help="Use the auxiliary confidence as opposed to type confidence in operations" )
+  parser.add_argument( "-sweep-interval", dest="sweep_interval", type=int, default=100,
+    help="Number of different thresholds to use when sweeping potential values" )
+  parser.add_argument( "-filter-estimator", dest="filter_estimator", default="none",
+    help="Method to use for generating output confidence filter estimate for use "
+    "within the DIVE interface. Can be: none, avg, avg_minus_1p, idf1, mota." )
 
   # Plot settings
   parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
@@ -1096,13 +1101,6 @@ if __name__ == "__main__":
       print_and_exit( "Label file is empty" )
 
   set_default_label( args.default_label )
-
-  #if args.input_format != "viame_csv" or args.labels \
-  #   or args.ignore_classes or args.top_class:
-  #
-  #  args.truth = standardize_input( args, args.truth, "truth" )
-  #  args.computed = standardize_input( args, args.computed, "computed" )
-  #  args.input_format = "viame_csv"
 
   if args.per_class:
     if args.labels:
