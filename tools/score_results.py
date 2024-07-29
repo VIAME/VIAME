@@ -367,7 +367,8 @@ def convert_and_filter_to_csv( args, input_file, output_file ):
 # ---------------- KWCOCO-SPECIFIC UTILITY FUNCTIONS -------------------
 
 def convert_to_kwcoco( args, csv_file, image_list,
-                       target_class=None, top_class=False ):
+                       target_class=None, top_class=False,
+                       retain_labels=False ):
 
   (fd, handle) = tempfile.mkstemp( prefix='viame-coco-',
                                    suffix='.json',
@@ -381,7 +382,7 @@ def convert_to_kwcoco( args, csv_file, image_list,
 
   coco_writer =  DetectedObjectSetOutput.create( "coco" )
   writer_conf = coco_writer.get_configuration()
-  writer_conf.set_value( "global_categories", "True" )
+  writer_conf.set_value( "global_categories", str( retain_labels ) )
   coco_writer.set_configuration( writer_conf )
   coco_writer.open( handle )
 
@@ -529,13 +530,15 @@ def generate_det_prc_conf_single( args, target_class=None ):
 
   if target_class:
     output_dir = os.path.join( args.det_prc_conf, target_class )
+    retain_labels = False
   else:
     output_dir = args.det_prc_conf
+    retain_labels = True
 
   _, filtered_computed_json = convert_to_kwcoco( args, args.computed,
-    image_list, target_class )
+    image_list, target_class, retain_labels=retain_labels )
   _, filtered_truth_json = convert_to_kwcoco( args, args.truth,
-    image_list, target_class, True )
+    image_list, target_class, True, retain_labels=retain_labels )
 
   cmd = get_prc_conf_cmd() + [ '--true_dataset', filtered_truth_json ]
   cmd = cmd + [  '--pred_dataset', filtered_computed_json ]
