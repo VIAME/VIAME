@@ -433,6 +433,7 @@ def get_prc_conf_cmd():
     return ['kwcoco', 'eval' ]
 
 def generate_det_prc_conf_directory( args, target_class=None ):
+  is_multi_class = False if target_class else True
   aligned_truth = compute_alignment( args.computed, args.truth )
 
   (fd1, handle1) = tempfile.mkstemp( prefix='viame-coco-',
@@ -448,7 +449,7 @@ def generate_det_prc_conf_directory( args, target_class=None ):
   computed_writer =  DetectedObjectSetOutput.create( "coco" )
 
   writer_conf = truth_writer.get_configuration()
-  writer_conf.set_value( "global_categories", "true" )
+  writer_conf.set_value( "global_categories", str( is_multi_class ) )
 
   truth_writer.set_configuration( writer_conf )
   truth_writer.open( handle1 )
