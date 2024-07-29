@@ -60,6 +60,11 @@ def log_and_write_with_spaces( fout, msg ):
   fout.write( os.linesep + msg + os.linesep + os.linesep ) 
   log_with_spaces( msg )
 
+def remake_dir( dirname ):
+  if os.path.exists( dirname ):
+    shutil.rmtree( dirname )
+  os.mkdir( dirname )
+
 def format_class_fn( fn ):
   return fn.replace( "/", "-" )
 
@@ -141,9 +146,9 @@ def list_entry_classes( parsed_entry, threshold=min_conf ):
   top_score = min_conf
   top_category = None
   while idx < len( parsed_entry ):
-    if parsed_entry[idx][0] == '(':
-      break
     cls = parsed_entry[idx]
+    if not cls or cls[0] == '(':
+      break
     score = float( parsed_entry[idx+1] )
     if score >= threshold:
       if score > top_score:
@@ -157,7 +162,7 @@ def list_classes_viame_csv( input_fn, ext='.csv', top_only=True ):
   unique_ids = set()
   if os.path.isdir( input_fn ):
     for fn in list_files_w_ext_rec( input_fn, ext ):
-      unique_ids.union( list_classes_viame_csv( fn ) )
+      unique_ids = unique_ids.union( list_classes_viame_csv( fn ) )
     return list( unique_ids )
   with open( input_fn ) as f:
     for line in f:
@@ -169,7 +174,7 @@ def list_classes_viame_csv( input_fn, ext='.csv', top_only=True ):
         if top_only:
           unique_ids.add( top )
         else:
-          unique_ids.union( classes )
+          unique_ids = unique_ids.union( classes )
   return list( unique_ids )
 
 def filter_viame_csv( fn, fout, target_cls=None,
@@ -226,6 +231,18 @@ def filter_viame_csv_fixed( fn_in, fn_out, target_cls=None,
                             threshold=min_conf, top_only=False ):
   with open( fn_out, 'w' ) as fout:
     filter_viame_csv( fn_in, fout, target_cls, threshold, top_only )
+
+def filter_viame_csv_auto( fn_in, fn_out, ext='.csv', target_cls=None,
+                           threshold=min_conf, top_only=False ):
+  if os.path.isdir( fn_in ):
+    fns = list_files_w_ext_rec( fn_in, ext )
+    for subfile_in in fns:
+      subfile_out = os.path.join( fn_out, os.path.basename( subfile_in ) )
+      with open( subfile_out, 'w' ) as fout:
+        filter_viame_csv( subfile_in, fout, target_cls, threshold, top_only )
+  else:
+    with open( fn_out, 'w' ) as fout:
+      filter_viame_csv( fn_in, fout, target_cls, threshold, top_only )
 
 # Returns joint filename list, if mismatched names found, max-frame-id
 def get_file_list_from_viame_csvs( computed, truth ):
@@ -755,16 +772,34 @@ def generate_trk_mot_stats_single( args, target_class=None ):
 
   from collections import OrderedDict
 
-  folder_input = os.path.isdir( args.computed )
+  is_folder_input = os.path.isdir( args.computed )
 
   if os.path.isdir( args.computed ) != os.path.isdir( args.truth ):
     print_and_exit( "Inputs must be either both folders or both csvs" )
 
-  if folder_input:
-    aligned_files = compute_alignment( args.computed, args.truth, \
+  fout = open( args.trk_mot_stats, 'w' )
+
+  if target_class:
+    log_and_write( fout, "Generating MOT stats for " + str( target_class ) )
+
+  input_computed = args.computed
+  input_truth = args.truth
+
+  if hierarchy or target_class:
+    tmp_computed = os.path.join( temp_dir, "computed" )
+    tmp_truth = os.path.join( temp_dir, "truth" )
+    remake_dir( tmp_computed )
+    remake_dir( tmp_truth )
+    filter_viame_csv_auto( input_computed, tmp_computed )
+    filter_viame_csv_auto( input_truth, tmp_truth )
+    input_computed = tmp_computed
+    input_truth = tmp_truth
+
+  if is_folder_input:
+    aligned_files = compute_alignment( input_computed, input_truth, \
       remove_postfix = '_tracks', skip_postfix = '_detections' )
   else:
-    aligned_files = { args.computed : args.truth }
+    aligned_files = { input_computed : input_truth }
 
   loglevel = getattr( logging, 'INFO', None )
   logging.basicConfig( level=loglevel, format='%(asctime)s %(levelname)s - %(message)s', datefmt='%I:%M:%S' )
@@ -818,8 +853,6 @@ def generate_trk_mot_stats_single( args, target_class=None ):
     "num_migrate",
   ]
 
-  fout = open( args.trk_mot_stats, 'w' )
-
   for threshold in thresholds:
 
     log_with_spaces( "Loading Data at Threshold " + str( threshold ) )
@@ -837,7 +870,7 @@ def generate_trk_mot_stats_single( args, target_class=None ):
       for f in aligned_files ] )
 
     # In the case of input files instead of folder, don't need to worry about alignment
-    if not folder_input:
+    if not is_folder_input:
       gt = OrderedDict( [ ( list( cf.keys() )[0], gt[ list( gt.keys() )[0] ] ) ] )
 
     mh = mm.metrics.create()
@@ -863,8 +896,10 @@ def generate_trk_mot_stats_single( args, target_class=None ):
 
   if len( thresholds ) > 1:
     log_and_write( fout, '' )
-    log_and_write( fout, 'Top IDF1 value: ' + str( max_idf1 ) + ' at threshold ' + str( max_idf1_thresh ) )
-    log_and_write( fout, 'Top MOTA value: ' + str( max_mota ) + ' at threshold ' + str( max_mota_thresh ) )
+    log_and_write( fout, 'Top IDF1 value: ' + str( max_idf1 ) +
+                         ' at threshold ' + str( max_idf1_thresh ) )
+    log_and_write( fout, 'Top MOTA value: ' + str( max_mota ) +
+                         ' at threshold ' + str( max_mota_thresh ) )
 
   fout.close()
 
@@ -1057,7 +1092,7 @@ if __name__ == "__main__":
       classes = hierarchy.all_class_names()
     elif args.input_format != "viame_csv":
       print_and_exit( "--per-class option only supported for viame_csv" )
-    elif os.path.exists( args.truth ) and not os.path.isdir( args.truth ):
+    elif os.path.exists( args.truth ):
       classes = list_classes_viame_csv( args.truth )
 
   # Generate specified outputs
