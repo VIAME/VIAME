@@ -173,7 +173,7 @@ def list_classes_viame_csv( input_fn, ext='.csv', top_only=True ):
   unique_ids = set()
   if os.path.isdir( input_fn ):
     for fn in list_files_w_ext_rec( input_fn, ext ):
-      unique_ids = unique_ids.union( list_classes_viame_csv( fn ) )
+      unique_ids = unique_ids.union( list_classes_viame_csv( fn, ext, top_only ) )
     return list( unique_ids )
   with open( input_fn ) as f:
     for line in f:
@@ -462,7 +462,7 @@ def get_prc_conf_cmd():
 
 def generate_det_prc_conf_directory( args, target_class=None ):
   is_multi_class = False if target_class else True
-  aligned_truth = compute_alignment( args.computed, args.truth )
+  aligned_truth = compute_alignment( args.computed, args.truth, args.input_ext )
 
   (fd1, handle1) = tempfile.mkstemp( prefix='viame-coco-',
                                      suffix='.json',
@@ -644,10 +644,6 @@ def get_roc_cmd():
 
 def generate_det_rocs( args, classes ):
 
-  # Error checking
-  if os.path.isdir( args.computed ) or os.path.isdir( args.truth ):
-    print_and_exit( "ROC generation currently supports only input files, not folders" )
-
   # Generate roc files
   base, ext = os.path.splitext( args.det_roc )
 
@@ -659,7 +655,9 @@ def generate_det_rocs( args, classes ):
   base_cmd += [ '--computed-format', input_format, '--truth-format', input_format ]
   base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
 
-  if ',' in args.computed:
+  if os.path.isdir( args.computed )
+    input_files = list_files_in_dir_w_exts( args.computed, args.input_ext )
+  elif ',' in args.computed:
     input_files = [ i.lstrip() for i in args.computed.split(',') ]
   else:
     input_files = [ args.computed ]
@@ -799,9 +797,9 @@ def generate_trk_mot_stats_single( args, target_class=None ):
     else:
       remove_if_exists( tmp_computed )
       remove_if_exists( tmp_truth )
-    filter_viame_csv_auto( input_computed, tmp_computed,
+    filter_viame_csv_auto( input_computed, tmp_computed, args.input_ext,
       target_class=target_class, top_only=args.top_class )
-    filter_viame_csv_auto( input_truth, tmp_truth,
+    filter_viame_csv_auto( input_truth, tmp_truth, args.input_ext,
       target_class=target_class, top_only=True )
     input_computed = tmp_computed
     input_truth = tmp_truth
@@ -813,7 +811,7 @@ def generate_trk_mot_stats_single( args, target_class=None ):
 
   if is_folder_input:
     aligned_files = compute_alignment( input_computed, input_truth, \
-      remove_postfix = '_tracks', skip_postfix = '_detections' )
+      args.input_ext, remove_postfix = '_tracks', skip_postfix = '_detections' )
   else:
     aligned_files = { input_computed : input_truth }
 
@@ -938,7 +936,8 @@ def create_mot_filter_json( filename, scores, method ):
   if method == "avg" or method == "avg_minus_1p":
     adj = -0.01 if method == "avg_minus_1p" else 0.00
     for key, value in scores.items():
-      filters[ key ] = 0.5 * ( value[1] + value[3] ) + adj
+      score = 0.5 * ( value[1] + value[3] ) + adj
+      filters[ key ] = max( score, 0.0 )
   elif method == "idf1":
     for key, value in scores.items():
       filters[ key ] = value[1]
@@ -1010,14 +1009,16 @@ if __name__ == "__main__":
     help='Input filename or folder for computed files.' )
   parser.add_argument( '-truth', default=None,
     help='Input filename or folder for groundtruth files.' )
-  parser.add_argument( '-threshold', type=float, default=0.001,
-    help='Input detection confidence threshold for statistics.' )
+  parser.add_argument( '-threshold', type=float, default=0.0,
+    help='Optional input detection confidence threshold for statistics.' )
   parser.add_argument( '-labels', dest="labels", default=None,
-    help='Input label synonym file to use during evaluation.' )
+    help='Optional input label synonym file to use during evaluation.' )
   parser.add_argument( '-list', default=None,
-    help='Input filename for optional image list file.' )
+    help='Optional input image list file for downselecting scoring.' )
+  parser.add_argument( '-input-ext', dest="input_ext", default=".csv",
+    help='Optional input file extension, used if inputs are folders.' )
   parser.add_argument( '-input-format', dest="input_format", default="viame_csv",
-    help='Input file format.' )
+    help='Optional input file format (e.g. viame_csv, coco, ...).' )
 
   # Core output type options
   parser.add_argument( '-det-prc-conf', dest="det_prc_conf", default=None,
@@ -1108,7 +1109,7 @@ if __name__ == "__main__":
     elif args.input_format != "viame_csv":
       print_and_exit( "--per-class option only supported for viame_csv" )
     elif os.path.exists( args.truth ):
-      classes = list_classes_viame_csv( args.truth )
+      classes = list_classes_viame_csv( args.truth, ext=args.input_ext )
 
   # Generate specified outputs
   if args.det_roc:
