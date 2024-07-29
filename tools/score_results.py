@@ -777,11 +777,6 @@ def generate_trk_mot_stats_single( args, target_class=None ):
   if os.path.isdir( args.computed ) != os.path.isdir( args.truth ):
     print_and_exit( "Inputs must be either both folders or both csvs" )
 
-  fout = open( args.trk_mot_stats, 'w' )
-
-  if target_class:
-    log_and_write( fout, "Generating MOT stats for " + str( target_class ) )
-
   input_computed = args.computed
   input_truth = args.truth
 
@@ -794,6 +789,11 @@ def generate_trk_mot_stats_single( args, target_class=None ):
     filter_viame_csv_auto( input_truth, tmp_truth )
     input_computed = tmp_computed
     input_truth = tmp_truth
+
+  if target_class:
+    output_file = args.trk_mot_stats + "-" + target_class
+  else:
+    output_file = args.trk_mot_stats
 
   if is_folder_input:
     aligned_files = compute_alignment( input_computed, input_truth, \
@@ -852,6 +852,8 @@ def generate_trk_mot_stats_single( args, target_class=None ):
     "num_ascend",
     "num_migrate",
   ]
+
+  fout = open( output_file, 'w' )
 
   for threshold in thresholds:
 
