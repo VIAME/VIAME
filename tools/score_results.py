@@ -927,7 +927,7 @@ def generate_trk_mot_stats_single( args, target_class=None ):
 
 def create_net_mot_csv( filename, scores ):
   with open( filename, 'w' ) as fout:
-    fout.write( "# class, idf1, idf1_thresh, mota, mota_thresh" + os.linesep )
+    fout.write( "# class,idf1,idf1_thresh,mota,mota_thresh" + os.linesep )
     for key, value in scores.items():
       value_str = [ '{:.3f}'.format( x ) for x in value ]
       fout.write( key + "," + ','.join( value_str ) + os.linesep )
