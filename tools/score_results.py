@@ -655,7 +655,7 @@ def generate_det_rocs( args, classes ):
   base_cmd += [ '--computed-format', input_format, '--truth-format', input_format ]
   base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
 
-  if os.path.isdir( args.computed )
+  if os.path.isdir( args.computed ):
     input_files = list_files_in_dir_w_exts( args.computed, args.input_ext )
   elif ',' in args.computed:
     input_files = [ i.lstrip() for i in args.computed.split(',') ]
