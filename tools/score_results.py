@@ -145,12 +145,11 @@ def list_entry_classes( parsed_entry, threshold=min_conf ):
       break
     cls = parsed_entry[idx]
     score = float( parsed_entry[idx+1] )
-    if score < threshold:
-      continue
-    if score > top_score:
-      top_category = cls
-      top_score = score
-    cls_list[ cls ] = score
+    if score >= threshold:
+      if score > top_score:
+        top_category = cls
+        top_score = score
+      cls_list[ cls ] = score
     idx = idx + 2
   return cls_list, top_category
 
