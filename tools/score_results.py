@@ -976,7 +976,7 @@ def generate_trk_mot_stats( args, classes ):
     net_score_file = os.path.join( args.trk_mot_stats, "class_metrics.csv" )
     create_net_mot_csv( net_score_file, top_scores )
     # Filter file contains optimal thresholds per class in DIVE format
-    if args.filter_estimator and args.filter_estimator != "none":
+    if args.sweep_thresholds and args.filter_estimator != "none":
       filter_file = os.path.join( args.trk_mot_stats, "dive.config.json" )
       create_mot_filter_json( filter_file, top_scores, args.filter_estimator )
 
