@@ -68,7 +68,7 @@ def remove_if_exists( item ):
       os.remove( item )
 
 def remake_dir( dirname ):
-  remove_if_exists( item )
+  remove_if_exists( dirname )
   os.mkdir( dirname )
 
 def format_class_fn( fn ):
