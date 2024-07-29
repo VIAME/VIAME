@@ -60,9 +60,15 @@ def log_and_write_with_spaces( fout, msg ):
   fout.write( os.linesep + msg + os.linesep + os.linesep ) 
   log_with_spaces( msg )
 
+def remove_if_exists( item ):
+  if os.path.exists( item ):
+    if os.path.isdir( item ):
+      shutil.rmtree( item )
+    else:
+      os.remove( item )
+
 def remake_dir( dirname ):
-  if os.path.exists( dirname ):
-    shutil.rmtree( dirname )
+  remove_if_exists( item )
   os.mkdir( dirname )
 
 def format_class_fn( fn ):
@@ -232,17 +238,17 @@ def filter_viame_csv_fixed( fn_in, fn_out, target_cls=None,
   with open( fn_out, 'w' ) as fout:
     filter_viame_csv( fn_in, fout, target_cls, threshold, top_only )
 
-def filter_viame_csv_auto( fn_in, fn_out, ext='.csv', target_cls=None,
+def filter_viame_csv_auto( fn_in, fn_out, ext='.csv', target_class=None,
                            threshold=min_conf, top_only=False ):
   if os.path.isdir( fn_in ):
     fns = list_files_w_ext_rec( fn_in, ext )
     for subfile_in in fns:
       subfile_out = os.path.join( fn_out, os.path.basename( subfile_in ) )
       with open( subfile_out, 'w' ) as fout:
-        filter_viame_csv( subfile_in, fout, target_cls, threshold, top_only )
+        filter_viame_csv( subfile_in, fout, target_class, threshold, top_only )
   else:
     with open( fn_out, 'w' ) as fout:
-      filter_viame_csv( fn_in, fout, target_cls, threshold, top_only )
+      filter_viame_csv( fn_in, fout, target_class, threshold, top_only )
 
 # Returns joint filename list, if mismatched names found, max-frame-id
 def get_file_list_from_viame_csvs( computed, truth ):
@@ -783,10 +789,16 @@ def generate_trk_mot_stats_single( args, target_class=None ):
   if hierarchy or target_class:
     tmp_computed = os.path.join( temp_dir, "computed" )
     tmp_truth = os.path.join( temp_dir, "truth" )
-    remake_dir( tmp_computed )
-    remake_dir( tmp_truth )
-    filter_viame_csv_auto( input_computed, tmp_computed )
-    filter_viame_csv_auto( input_truth, tmp_truth )
+    if is_folder_input:
+      remake_dir( tmp_computed )
+      remake_dir( tmp_truth )
+    else:
+      remove_if_exists( tmp_computed )
+      remove_if_exists( tmp_truth )
+    filter_viame_csv_auto( input_computed, tmp_computed,
+      target_class=target_class, top_only=args.top_class )
+    filter_viame_csv_auto( input_truth, tmp_truth,
+      target_class=target_class, top_only=True )
     input_computed = tmp_computed
     input_truth = tmp_truth
 
@@ -857,7 +869,10 @@ def generate_trk_mot_stats_single( args, target_class=None ):
 
   for threshold in thresholds:
 
-    log_with_spaces( "Loading Data at Threshold " + str( threshold ) )
+    if target_class:
+      log_with_spaces( "Loading Class: " + target_class + " at Threshold " + str( threshold ) )
+    else:
+      log_with_spaces( "Loading Data at Threshold " + str( threshold ) )
 
     cf = OrderedDict( [ ( os.path.splitext( Path( f.replace( "_tracks", "" ) ).parts[-1])[0], \
       mm.io.loadtxt( f, fmt='viame-csv', min_confidence=threshold, \
