@@ -112,6 +112,15 @@ def get_file_list_from_txt_list( filename ):
         out.append( line )
   return out
 
+# Dump csv of arbitrary scores
+def create_net_csv( filename, scores, header ):
+  with open( filename, 'w' ) as fout:
+    fout.write( header + os.linesep )
+    for key, value in scores.items():
+      value_str = [ '{:.3f}'.format( x ) for x in value ]
+      fout.write( key + "," + ','.join( value_str ) + os.linesep )
+  return True
+
 # Compute filename alignment of 2 seperate folders containing detections
 def compute_alignment( computed_dir, truth_dir, ext = '.csv',
                        remove_postfix = '_detections',
@@ -445,12 +454,19 @@ def generate_metrics_csv_kwcoco( input_file, output_file ):
          if int( row[3] ):
            output.append( row )
 
+  raw_scores = output
+
   output.sort( key = lambda x: -x[1] )
   output = [[ "#category", "ap", "auc", "samples" ]] + output
 
   with open( output_file, 'w', newline='' ) as fout:
     writer = csv.writer( fout )
     writer.writerows( output )
+
+  for score in raw_scores:
+    del score[0]
+
+  return raw_scores
 
 # ---------------- PRECISION-RECALL AND CONF MAT -----------------------
 
@@ -548,7 +564,7 @@ def generate_det_prc_conf_directory( args, target_class=None ):
 
   input_metrics_json = os.path.join( output_dir, 'metrics.json' )
   output_csv_file = os.path.join( output_dir, "metrics.csv" )
-  generate_metrics_csv_kwcoco( input_metrics_json, output_csv_file )
+  return generate_metrics_csv_kwcoco( input_metrics_json, output_csv_file )
 
 def generate_det_prc_conf_single( args, target_class=None ):
 
@@ -577,7 +593,7 @@ def generate_det_prc_conf_single( args, target_class=None ):
 
   input_metrics_json = os.path.join( output_dir, 'metrics.json' )
   output_csv_file = os.path.join( output_dir, "metrics.csv" )
-  generate_metrics_csv_kwcoco( input_metrics_json, output_csv_file )
+  return generate_metrics_csv_kwcoco( input_metrics_json, output_csv_file )
 
 def generate_det_prc_conf( args, classes ):
 
@@ -586,13 +602,20 @@ def generate_det_prc_conf( args, classes ):
 
   is_dir_input = os.path.isdir( args.computed )
 
+  scores = dict()
+
   for target_class in classes:
     if is_dir_input:
-      generate_det_prc_conf_directory( args, target_class )
+      scores[ target_class ] = generate_det_prc_conf_directory( args, target_class )
     else:
-      generate_det_prc_conf_single( args, target_class )
+      scores[ target_class ] = generate_det_prc_conf_single( args, target_class )
 
   print( os.linesep + "Conf matrix and PRC plot generation is complete" + os.linesep )
+
+  if len( classes ) > 1:
+    net_score_file = os.path.join( args.det_prc_conf, "class_metrics.csv" )
+    create_net_csv( net_score_file, scores,
+      "# class,ap,auc,samples" )
 
   if os.name == "nt":
     print( "On windows, ignore the following temp file error" + os.linesep )
@@ -816,7 +839,9 @@ def generate_trk_mot_stats_single( args, target_class=None ):
     aligned_files = { input_computed : input_truth }
 
   loglevel = getattr( logging, 'INFO', None )
-  logging.basicConfig( level=loglevel, format='%(asctime)s %(levelname)s - %(message)s', datefmt='%I:%M:%S' )
+  logging.basicConfig( level=loglevel,
+    format='%(asctime)s %(levelname)s - %(message)s',
+    datefmt='%I:%M:%S' )
 
   use_class_id = not args.ignore_classes
   use_class_confidences = not args.aux_confidence
@@ -923,14 +948,6 @@ def generate_trk_mot_stats_single( args, target_class=None ):
 
   return [ max_idf1, max_idf1_thresh, max_mota, max_mota_thresh ]
 
-def create_net_mot_csv( filename, scores ):
-  with open( filename, 'w' ) as fout:
-    fout.write( "# class,idf1,idf1_thresh,mota,mota_thresh" + os.linesep )
-    for key, value in scores.items():
-      value_str = [ '{:.3f}'.format( x ) for x in value ]
-      fout.write( key + "," + ','.join( value_str ) + os.linesep )
-  return True
-
 def create_mot_filter_json( filename, scores, method ):
   filters = dict()
   if method == "avg" or method == "avg_minus_1p":
@@ -973,7 +990,9 @@ def generate_trk_mot_stats( args, classes ):
   if len( classes ) > 1:
     # Net score file contains top metrics and thresholds for each class
     net_score_file = os.path.join( args.trk_mot_stats, "class_metrics.csv" )
-    create_net_mot_csv( net_score_file, top_scores )
+    create_net_csv( net_score_file, top_scores,
+      "# class,idf1,idf1_thresh,mota,mota_thresh" )
+
     # Filter file contains optimal thresholds per class in DIVE format
     if args.sweep_thresholds and args.filter_estimator != "none":
       filter_file = os.path.join( args.trk_mot_stats, "dive.config.json" )
