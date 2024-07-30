@@ -84,7 +84,9 @@ def load_hierarchy( filename ):
   hierarchy = None
   if filename:
     hierarchy = CategoryHierarchy()
-    if not hierarchy.load_from_file( filename ):
+    try:
+      hierarchy.load_from_file( filename )
+    except:
       print_and_exit( "Unable to parse classes file: " + filename )
     return True
   else:
