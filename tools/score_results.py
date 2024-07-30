@@ -454,8 +454,6 @@ def generate_metrics_csv_kwcoco( input_file, output_file ):
          if int( row[3] ):
            output.append( row )
 
-  raw_scores = output
-
   output.sort( key = lambda x: -x[1] )
   output = [[ "#category", "ap", "auc", "samples" ]] + output
 
@@ -463,10 +461,7 @@ def generate_metrics_csv_kwcoco( input_file, output_file ):
     writer = csv.writer( fout )
     writer.writerows( output )
 
-  for score in raw_scores:
-    del score[0]
-
-  return raw_scores
+  return [ output[-1][1], output[-1][2], output[-1][3] ]
 
 # ---------------- PRECISION-RECALL AND CONF MAT -----------------------
 
