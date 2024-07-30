@@ -114,7 +114,7 @@ def get_file_list_from_txt_list( filename ):
         out.append( line )
   return out
 
-# Dump csv of arbitrary scores
+# Dump csv of arbitrary scores given by a dict with category name
 def create_net_csv( filename, scores, header ):
   with open( filename, 'w' ) as fout:
     fout.write( header + os.linesep )
