@@ -79,6 +79,16 @@ def make_dir_if_not_exist( dirname ):
 def format_class_fn( fn ):
   return fn.replace( "/", "-" )
 
+def float_to_str_safe( value ):
+  try:
+    return '{:.3f}'.format( value )
+  except ValueError:
+    print( "ValueError converting float value: " + value )
+    return str( value )
+  except:
+    print( "Unknown exception converting float value: " + value )
+    return str( value )
+
 def load_hierarchy( filename ):
   global hierarchy
   hierarchy = None
@@ -119,7 +129,7 @@ def create_net_csv( filename, scores, header ):
   with open( filename, 'w' ) as fout:
     fout.write( header + os.linesep )
     for key, value in scores.items():
-      value_str = [ '{:.3f}'.format( x ) for x in value ]
+      value_str = [ float_to_str_safe( x ) for x in value ]
       fout.write( key + "," + ','.join( value_str ) + os.linesep )
   return True
 
@@ -936,10 +946,11 @@ def generate_trk_mot_stats_single( args, target_class=None ):
       max_idf1_thresh = threshold
 
   if len( thresholds ) > 1:
-    log_and_write( fout, os.linesep + 'Top IDF1 value: ' + f'{max_idf1:.4f}' +
-                  ' at threshold ' + f'{max_idf1_thresh:.3f}' )
-    log_and_write( fout, 'Top MOTA value: ' + f'{max_mota:.4f}' +
-                  ' at threshold ' + f'{max_mota_thresh:.3f}' )
+    log_and_write( fout, os.linesep +
+      'Top IDF1 value: ' + float_to_str_safe( max_idf1 ) +
+      ' at threshold ' + float_to_str_safe( max_idf1_thresh ) + os.linesep +
+      'Top MOTA value: ' + float_to_str_safe( max_mota ) +
+      ' at threshold ' + float_to_str_safe( max_mota_thresh ) )
 
   fout.close()
 
