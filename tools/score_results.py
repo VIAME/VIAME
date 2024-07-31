@@ -362,6 +362,8 @@ def filter_kwiver_detections( dets,
     output_type = DetectedObjectType()
     for cls in all_classes:
       score = item.type.score( cls )
+      if args.aux_confidence:
+        score = item.confidence
       if hierarchy:
         if not hierarchy.has_class_name( cls ):
           continue
