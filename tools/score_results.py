@@ -410,7 +410,7 @@ def convert_and_filter_to_csv( args, input_file, output_file ):
 
   for img in image_list:
     dets = input_reader.read_set_by_path( img )
-    filter_detections( args, dets )
+    dets = filter_detections( args, dets )
     csv_reader.write_set( dets, img )
 
   csv_reader.complete()
