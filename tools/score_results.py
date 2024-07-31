@@ -487,7 +487,13 @@ def get_prc_conf_cmd():
 
 def generate_det_prc_conf_directory( args, target_class=None ):
   is_multi_class = False if target_class else True
-  aligned_truth = compute_alignment( args.computed, args.truth, args.input_ext )
+
+  if args.track_detections:
+    aligned_files = compute_alignment( args.computed, args.truth, \
+      args.input_ext, remove_postfix = '_tracks', skip_postfix = '_detections' )
+  else:
+    aligned_files = compute_alignment( args.computed, args.truth, \
+      args.input_ext, remove_postfix = '_detections', skip_postfix = '_tracks' )
 
   (fd1, handle1) = tempfile.mkstemp( prefix='viame-coco-',
                                      suffix='.json',
@@ -512,7 +518,7 @@ def generate_det_prc_conf_directory( args, target_class=None ):
 
   print( "Processing identified truth/computed matches" )
 
-  for computed, truth in aligned_truth.items():
+  for computed, truth in aligned_files.items():
     truth_reader =  DetectedObjectSetInput.create( "viame_csv" )
     reader_conf = truth_reader.get_configuration()
     truth_reader.set_configuration( reader_conf )
@@ -1076,6 +1082,10 @@ if __name__ == "__main__":
     help="Use the auxiliary confidence as opposed to type confidence in operations" )
   parser.add_argument( "-sweep-interval", dest="sweep_interval", type=int, default=100,
     help="Number of different thresholds to use when sweeping potential values" )
+  parser.add_argument( "--track-detections", dest="track_detections", action="store_true",
+    help="For VIAME-generated folders with both track and detection files, use the "
+    "detections stored within the track files for scoring instead of the detection "
+    "files. This is currently just for the PRC/Conf Mat generation scripts." )
   parser.add_argument( "-filter-estimator", dest="filter_estimator", default="none",
     help="Method to use for generating output confidence filter estimate for use "
     "within the DIVE interface. Can be: none, avg, avg_minus_1p, idf1, mota." )
