@@ -347,6 +347,8 @@ def filter_kwiver_detections( dets,
     elif ignore_all_cls:
       # Ignore all classes option, relabel top class to default
       cls = item.type.get_most_likely_class()
+      if hierarchy and not hierarchy.has_class_name( cls ):
+        continue
       score = item.type.score( cls )
       item.type = DetectedObjectType( default_label, score )
     elif top_cls_only:
@@ -364,7 +366,7 @@ def filter_kwiver_detections( dets,
       score = item.type.score( cls )
       if args.aux_confidence:
         score = item.confidence
-      if hierarchy:
+      if hierarchy and not ignore_all_cls:
         if not hierarchy.has_class_name( cls ):
           continue
         else:
