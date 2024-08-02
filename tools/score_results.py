@@ -5,6 +5,7 @@ import sys
 import re
 import json
 import csv
+import math
 import numpy as np
 import argparse
 import atexit
@@ -113,6 +114,18 @@ def list_files_w_ext_rec( folder, ext ):
   result = [ y for x in os.walk( folder )
                for y in glob( os.path.join( x[0], '*' + ext ) ) ]
   return result
+
+def safe_val( input_str ):
+  try:
+    out = float( input_str )
+    if math.isnan( out ):
+      return min_conf
+    return out
+  except:
+    return min_conf
+
+def neg_safe_val( input_str ):
+  return -safe_val( input_str ):
 
 # Given a text file with 1 filename per line, return list of filenames
 def get_file_list_from_txt_list( filename ):
@@ -470,7 +483,7 @@ def generate_metrics_csv_kwcoco( input_file, output_file ):
          if int( row[3] ):
            output.append( row )
 
-  output.sort( key = lambda x: -x[1] )
+  output.sort( key = lambda x: neg_safe_val( x[1] ) )
   output = [[ "#category", "ap", "auc", "samples" ]] + output
 
   with open( output_file, 'w', newline='' ) as fout:
@@ -968,7 +981,9 @@ def generate_trk_mot_stats_single( args, target_class=None ):
 
 def create_mot_filter_json( filename, scores, method ):
   filters = dict()
-  if method == "avg" or method == "avg_minus_1p":
+  if method == "min":
+    filters[ key ] = min( values[1], values[3] )
+  elif method == "avg" or method == "avg_minus_1p":
     adj = -0.01 if method == "avg_minus_1p" else 0.00
     for key, value in scores.items():
       score = 0.5 * ( value[1] + value[3] ) + adj
@@ -1088,9 +1103,9 @@ if __name__ == "__main__":
     help="For VIAME-generated folders with both track and detection files, use the "
     "detections stored within the track files for scoring instead of the detection "
     "files. This is currently just for the PRC/Conf Mat generation scripts." )
-  parser.add_argument( "-filter-estimator", dest="filter_estimator", default="none",
+  parser.add_argument( "-filter-estimator", dest="filter_estimator", default="min",
     help="Method to use for generating output confidence filter estimate for use "
-    "within the DIVE interface. Can be: none, avg, avg_minus_1p, idf1, mota." )
+    "within the DIVE interface. Can be: none, min, avg, avg_minus_1p, idf1, mota." )
 
   # Plot settings
   parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
