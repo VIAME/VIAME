@@ -125,7 +125,7 @@ def safe_val( input_str ):
     return min_conf
 
 def neg_safe_val( input_str ):
-  return -safe_val( input_str ):
+  return -safe_val( input_str )
 
 # Given a text file with 1 filename per line, return list of filenames
 def get_file_list_from_txt_list( filename ):
