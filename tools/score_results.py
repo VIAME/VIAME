@@ -982,7 +982,8 @@ def generate_trk_mot_stats_single( args, target_class=None ):
 def create_mot_filter_json( filename, scores, method ):
   filters = dict()
   if method == "min":
-    filters[ key ] = min( values[1], values[3] )
+    for key, value in scores.items():
+      filters[ key ] = min( values[1], values[3] )
   elif method == "avg" or method == "avg_minus_1p":
     adj = -0.01 if method == "avg_minus_1p" else 0.00
     for key, value in scores.items():
