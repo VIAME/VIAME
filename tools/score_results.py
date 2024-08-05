@@ -983,7 +983,7 @@ def create_mot_filter_json( filename, scores, method ):
   filters = dict()
   if method == "min":
     for key, value in scores.items():
-      filters[ key ] = min( values[1], values[3] )
+      filters[ key ] = min( value[1], value[3] )
   elif method == "avg" or method == "avg_minus_1p":
     adj = -0.01 if method == "avg_minus_1p" else 0.00
     for key, value in scores.items():
