@@ -1,0 +1,47 @@
+name: Run build ubuntu 20.04
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Update modules
+      run: git submodule update --init --recursive
+
+    - name: Create dir
+      run: mkdir ${{github.workspace}}/Build && cd ${{github.workspace}}/Build
+
+    - name: Configure CMake
+      run: cmake -DCMAKE_BUILD_TYPE=Release
+                 -DVIAME_ENABLE_CUDA=OFF
+                 -DVIAME_ENABLE_CUDNN=OFF
+                 -S ${{github.workspace}}
+                 -B ${{github.workspace}}/Build
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/Build -j8
+
+    # Delete build folder to create some space
+    - name: Remove build folder
+      run: rm -rf ${{github.workspace}}/Build/build
+
+    - name: Generate report name
+      run: echo "ARTIFACT_NAME=viame-intall-ubuntu20-python310-$(date +'%Y-%m-%dT%H-%M-%S')" >> $GITHUB_ENV
+
+    - name: Upload installation folder
+      uses: actions/upload-artifact@v2
+      with:
+        retention-days: 30
+        name: ${{env.ARTIFACT_NAME}}
+        path: ${{github.workspace}}/Build/install/*
