@@ -1,3 +1,17 @@
+v0.20.5 - 9/01/2024
+===================
+
+
+-Add track scoring metrics
+
+
+-Updated scoring scripts to support bulk ingest
+
+
+-Added ability to sweep certain scoring metrics amongst multiple thresholds
+
+
+
 v0.20.4 - 3/30/2024
 ===================
 
