@@ -380,7 +380,7 @@ else()
   if( WIN32 AND VIAME_FIXUP_BUNDLE )
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
-      -Dfletch_ENABLE_OpenCV_highgui:BOOL=OFF
+      -Dfletch_ENABLE_OpenCV_win32gui:BOOL=OFF
     )
   endif()
   if( CMAKE_COMPILER_IS_GNUCC AND
