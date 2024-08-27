@@ -87,9 +87,9 @@ if( ( WIN32 OR NOT VIAME_ENABLE_OPENCV ) AND
         VIAME_ENABLE_PYTORCH-MMDET OR
         VIAME_ENABLE_PYTORCH-NETHARN ) )
   if( Python_VERSION VERSION_LESS "3.7" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python<=4.6.0.66" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python-headless<=4.6.0.66" )
   else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python-headless" )
   endif()
 endif()
 
