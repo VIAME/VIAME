@@ -17,6 +17,7 @@ SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.3"
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
 SET "WIN64_ROOT=%WIN_ROOT%\SysWOW64"
+SET "VDIST_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.29.30133\x64\Microsoft.VC142.OpenMP"
 
 REM Do not modify the below unless you are changing python versions or have alternatively modified
 REM the build and install directories in cmake or the platforms.cmake file
@@ -25,6 +26,7 @@ SET "VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build"
 SET "VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install"
 
 SET "PYTHON_SUBDIR=lib\python3.6"
+SET "ZLIB_BUILD_DIR=%VIAME_BUILD_DIR%\build\src\fletch-build\build\src\ZLib-build"
 
 SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%NVIDIA_ROOT%\PhysX\Common;%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
@@ -58,9 +60,10 @@ REM ----------------------------------------------------------------------------
 
 COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
-REM COPY "%WIN64_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%VDIST_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
-REM COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%ZLIB_BUILD_DIR%\Release\zlib1.dll" %VIAME_INSTALL_DIR%\bin
 
 DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"
 

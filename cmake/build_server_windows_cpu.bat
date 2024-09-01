@@ -55,10 +55,10 @@ REM ----------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
 REM -------------------------------------------------------------------------------------------------------
 
-COPY %WIN32_ROOT%\msvcr100.dll %VIAME_INSTALL_DIR%\bin
-COPY %WIN32_ROOT%\vcruntime140_1.dll %VIAME_INSTALL_DIR%\bin
-COPY %VDIST_ROOT%\vcomp140.dll %VIAME_INSTALL_DIR%\bin
-COPY %WIN64_ROOT%\msvcr120.dll %VIAME_INSTALL_DIR%\bin
+COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%VDIST_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%ZLIB_BUILD_DIR%\Release\zlib1.dll" %VIAME_INSTALL_DIR%\bin
 
