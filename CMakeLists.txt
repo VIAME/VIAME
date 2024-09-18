@@ -122,6 +122,11 @@ mark_as_advanced( VIAME_ENABLE_VIAME_ENABLE_POSTGRESQL )
 mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
+if( WIN32 )
+  option( VIAME_ENABLE_WIN32GUI     "Enable WIN32 GUI dependency"   OFF )
+  mark_as_advanced( VIAME_ENABLE_WIN32GUI )
+endif()
+
 ###
 # Flags relating to examples and model downloads
 ##

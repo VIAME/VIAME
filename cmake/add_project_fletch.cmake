@@ -377,10 +377,10 @@ else()
     -Dfletch_ENABLE_OpenCV_FFmpeg:BOOL=OFF
     -DOpenCV_SELECT_VERSION:STRING=${VIAME_OPENCV_VERSION}
   )
-  if( WIN32 AND VIAME_FIXUP_BUNDLE )
+  if( WIN32 )
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
-      -Dfletch_ENABLE_OpenCV_highgui:BOOL=OFF
+      -Dfletch_ENABLE_OpenCV_win32gui:BOOL=${VIAME_ENABLE_WIN32GUI}
     )
   endif()
   if( CMAKE_COMPILER_IS_GNUCC AND
