@@ -113,7 +113,7 @@ option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 if( WIN32 )
-  option( VIAME_ENABLE_WIN32GUI     "Enable WIN32 GUI dependency"   OFF )
+  option( VIAME_ENABLE_WIN32GUI     "Enable WIN32 GUI dependency"   ON )
 endif()
 
 mark_as_advanced( VIAME_ENABLE_BURNOUT )
