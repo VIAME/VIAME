@@ -112,6 +112,10 @@ option( VIAME_ENABLE_POSTGRESQL     "Enable PostgreSQL plugins"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
+if( WIN32 )
+  option( VIAME_ENABLE_WIN32GUI     "Enable WIN32 GUI dependency"   OFF )
+endif()
+
 mark_as_advanced( VIAME_ENABLE_BURNOUT )
 mark_as_advanced( VIAME_ENABLE_CAFFE )
 mark_as_advanced( VIAME_ENABLE_GDAL )
@@ -123,7 +127,6 @@ mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
 if( WIN32 )
-  option( VIAME_ENABLE_WIN32GUI     "Enable WIN32 GUI dependency"   OFF )
   mark_as_advanced( VIAME_ENABLE_WIN32GUI )
 endif()
 
