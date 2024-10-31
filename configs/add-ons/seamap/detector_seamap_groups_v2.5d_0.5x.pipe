@@ -1,0 +1,91 @@
+# SeaMap Detector Pipe
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_default_input_with_downsampler.pipe
+
+# =================================== DETECTOR =====================================
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  :frame_downsample                            2
+  :frame_offset                                0
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      maintain_ar
+    :chip_width                                800
+    :chip_height                               800
+
+    block detector:netharn
+      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
+    endblock
+  endblock
+
+connect from downsampler.output_1
+        to   detector1.image
+
+process detector2
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  :frame_downsample                            2
+  :frame_offset                                1
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      maintain_ar
+    :chip_width                                800
+    :chip_height                               800
+
+    block detector:netharn
+      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
+    endblock
+  endblock
+
+connect from downsampler.output_1
+        to   detector2.image
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+connect from detector2.detected_object_set
+        to   detector_merger.detected_object_set2
+
+# ==================================== REFINER ======================================
+
+include common_seamap_classifier_groups_v2.5.pipe
+
+connect from downsampler.output_1
+        to   classifier_groups_large.image
+connect from downsampler.output_1
+        to   classifier_groups_small.image
+connect from detector_merger.detected_object_set
+        to   classifier_groups_large.detected_object_set
+
+# ==================================== WRITER ======================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from classifier_groups_output.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+
+# -- end of file --

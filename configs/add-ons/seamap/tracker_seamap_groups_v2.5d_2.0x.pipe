@@ -1,0 +1,48 @@
+# SeaMap Detector / Tracker Pipe
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _scheduler
+   :type                                       pythread_per_process
+
+# ============================= INPUT AND DETECTOR =================================
+
+include detector_seamap_groups_v2.5d_2.0x.pipe
+
+# ================================= CORE TRACKER ===================================
+
+include common_seamap_tracker_v2.5.pipe
+
+# Connect inputs to tracker
+connect from downsampler.output_1
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from classifier_groups_output.detected_object_set
+        to   tracker.detected_object_set
+
+process track_filter
+  :: filter_object_tracks
+  :required_states                             5
+
+connect from tracker.object_track_set
+        to   track_filter.object_track_set
+
+# ================================= OUTPUT DATA ====================================
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
+  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
+  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+
+# Connect inputs to track writer
+connect from track_filter.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+
+# -- end of file --
