@@ -17,7 +17,7 @@ include common_no_load_input_with_downsampler.pipe
 
 process track_reader
   :: read_object_track
-  :file_name                                               gt.kw18
+  :file_name                                            input.kw18
   :reader:type                                                kw18
   :reader:kw18:default_type                             vertebrate
 
@@ -26,7 +26,7 @@ process track_merger
 
 process track_writer
   :: write_object_track
-  :file_name                                       annotations.csv
+  :file_name                                            output.csv
   :writer:type                                           viame_csv
 
 connect from downsampler.output_2

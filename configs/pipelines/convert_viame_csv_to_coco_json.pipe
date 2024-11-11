@@ -17,12 +17,12 @@ include common_no_load_input_with_downsampler.pipe
 
 process detection_reader
   :: detected_object_input
-  :file_name                                        detections.csv
+  :file_name                                             input.csv
   :reader:type                                           viame_csv
 
 process detector_writer
   :: detected_object_output
-  :file_name                                   converted_file.json
+  :file_name                                           output.json
   :writer:type                                                coco
 
 connect from downsampler.output_2

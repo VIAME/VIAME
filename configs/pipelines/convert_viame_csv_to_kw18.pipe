@@ -17,7 +17,7 @@ include common_no_load_input_with_downsampler.pipe
 
 process detection_reader
   :: detected_object_input
-  :file_name                                 input_groundtruth.csv
+  :file_name                                             input.csv
   :reader:type                                           viame_csv
 
 process detection_filter
@@ -28,7 +28,7 @@ process detection_filter
 
 process detector_writer
   :: detected_object_output
-  :file_name                                   converted_file.kw18
+  :file_name                                           output.kw18
   :writer:type                                                kw18
 
 connect from downsampler.output_2
