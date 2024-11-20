@@ -4,7 +4,7 @@
 set -x
 
 # Install system dependencies and use more recent compiler
-../cmake_centos_install_deps.sh
+../cmake/centos_install_deps.sh
 
 source /opt/rh/devtoolset-7/enable
 
