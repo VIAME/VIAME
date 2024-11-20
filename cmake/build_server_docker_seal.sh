@@ -4,37 +4,10 @@
 set -x
 
 # Fletch, VIAME, CMAKE system deps
-apt-get update 
-apt-get install -y zip \
-git \
-wget \
-tar \
-curl \
-libcurl4-openssl-dev \
-libgl1-mesa-dev \
-libexpat1-dev \
-libgtk2.0-dev \
-libxt-dev \
-libxml2-dev \
-liblapack-dev \
-openssl \
-libssl-dev \
-g++ \
-ninja-build \
-zlib1g-dev \
-bzip2 \
-libbz2-dev \
-liblzma-dev
+./viame/cmake/linux_install_deps_ubuntu.sh
 
 # Install CMAKE
-wget https://cmake.org/files/v3.23/cmake-3.23.1.tar.gz
-tar zxvf cmake-3.*
-cd cmake-3.23.1
-./bootstrap --prefix=/usr/local --system-curl
-make -j$(nproc)
-make install
-cd /
-rm -rf cmake-3.23.1.tar.gzz
+./viame/cmake/linux_build_and_install_cmake.sh
 
 # Update VIAME sub git deps
 cd /viame/

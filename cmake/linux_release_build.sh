@@ -106,14 +106,4 @@ if cat /etc/os-release | grep 'Ubuntu'; then
   cp ${LIBBASE}/libpng16.so.16 install/lib || true
   cp ${LIBBASE}/libglib-2.0.so.0 install/lib || true
   cp ${LIBBASE}/libgraphite2.so.3 install/lib || true
-
-  # HACK: Copy in ubuntu 18.04 specific libraries (vs 16.04)
-  source /etc/lsb-release
-
-  if [ "${DISTRIB_DESCRIPTION}" == "Ubuntu 18.04.3 LTS" ]; then
-    wget https://data.kitware.com/api/v1/item/5e2cdcbbaf2e2eed353a323e/download
-    mv download download.tar.gz
-    tar -xvf download.tar.gz
-    rm download.tar.gz
-  fi
 fi

@@ -8,20 +8,12 @@ export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
 export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
 # Install system dependencies and use more recent compiler
-
 $VIAME_SOURCE_DIR/cmake/linux_install_deps_centos7.sh
 
 source /opt/rh/devtoolset-7/enable
 
 # Install CMAKE
-wget https://cmake.org/files/v3.23/cmake-3.23.1.tar.gz
-tar zxvf cmake-3.*
-cd cmake-3.23.1
-./bootstrap --prefix=/usr/local --system-curl
-make -j$(nproc)
-make install
-cd /
-rm -rf cmake-3.23.1.tar.gz
+./viame/cmake/linux_build_and_install_cmake.sh
 
 # Update VIAME sub git sources
 cd $VIAME_SOURCE_DIR
