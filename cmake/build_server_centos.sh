@@ -19,7 +19,7 @@ source /opt/rh/devtoolset-7/enable
 cd $VIAME_SOURCE_DIR
 git submodule update --init --recursive
 mkdir build
-cd build 
+cd build
 
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$VIAME_INSTALL_DIR/bin:$PATH
