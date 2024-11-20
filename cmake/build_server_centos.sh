@@ -4,12 +4,12 @@
 set -x
 
 export VIAME_SOURCE_DIR=/viame
-export VIAME_BUILD_DIR=${VIAME_SOURCE_DIR}/build
-export VIAME_INSTALL_DIR=${VIAME_BUILD_DIR}/install
+export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
+export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
 # Install system dependencies and use more recent compiler
 
-${VIAME_SOURCE_DIR}/cmake/linux_install_deps_centos7.sh
+$VIAME_SOURCE_DIR/cmake/linux_install_deps_centos7.sh
 
 source /opt/rh/devtoolset-7/enable
 
