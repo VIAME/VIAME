@@ -1,10 +1,15 @@
 #! /bin/bash
 
-# Debugging and logging
+# Debugging, logging, and options
 set -x
 
+export VIAME_SOURCE_DIR=/viame
+export VIAME_BUILD_DIR=${VIAME_SOURCE_DIR}/build
+export VIAME_INSTALL_DIR=${VIAME_BUILD_DIR}/install
+
 # Install system dependencies and use more recent compiler
-../cmake/centos_install_deps.sh
+
+./${VIAME_SOURCE_DIR}/cmake/linux_install_deps_centos7.sh
 
 source /opt/rh/devtoolset-7/enable
 
@@ -19,16 +24,16 @@ cd /
 rm -rf cmake-3.23.1.tar.gz
 
 # Update VIAME sub git sources
-cd /viame/
+cd ${VIAME_SOURCE_DIR}
 git submodule update --init --recursive
 mkdir build
 cd build 
 
 # Configure Paths [should be removed when no longer necessary by fletch]
-export PATH=/viame/build/install/bin:$PATH
-export LD_LIBRARY_PATH=/viame/build/install/lib:/viame/build/install/lib/python3.6:$LD_LIBRARY_PATH
-export C_INCLUDE_PATH=/viame/build/install/include/python3.6m:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=/viame/build/install/include/python3.6m:$CPLUS_INCLUDE_PATH
+export PATH=$VIAME_INSTALL_DIR/bin:$PATH
+export LD_LIBRARY_PATH=$VIAME_INSTALL_DIR/lib:$VIAME_INSTALL_DIR/lib/python3.6:$LD_LIBRARY_PATH
+export C_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.6m:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.6m:$CPLUS_INCLUDE_PATH
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
