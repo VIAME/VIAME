@@ -1,74 +1,31 @@
 #! /bin/bash
 
-# Debugging and logging
+# Debugging, logging, and options
 set -x
 
-# Updates for old centos yum external repos
-sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
-sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
-sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+export VIAME_SOURCE_DIR=/viame
+export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
+export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
-sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
- 
-# Install Fletch & VIAME system deps
-yum -y groupinstall 'Development Tools'
-yum install -y zip \
-git \
-wget \
-openssl \
-openssl-devel \
-zlib \
-zlib-devel \
-freeglut-devel \
-freetype-devel \
-mesa-libGLU-devel \
-lapack-devel \
-libffi-devel \
-libXt-devel \
-libXmu-devel \
-libXi-devel \
-expat-devel \
-readline-devel \
-curl \
-curl-devel \
-atlas-devel \
-file \
-which \
-bzip2 \
-bzip2-devel \
-xz-devel \
-vim
+# Install system dependencies and use more recent compiler
+$VIAME_SOURCE_DIR/cmake/linux_install_deps_centos7.sh
 
-# Install and use more recent compiler
-yum -y install centos-release-scl
-yum -y install devtoolset-7
 source /opt/rh/devtoolset-7/enable
 
 # Install CMAKE
-wget https://cmake.org/files/v3.23/cmake-3.23.1.tar.gz
-tar zxvf cmake-3.*
-cd cmake-3.23.1
-./bootstrap --prefix=/usr/local --system-curl
-make -j$(nproc)
-make install
-cd /
-rm -rf cmake-3.23.1.tar.gz
-
-# Install NINJA for faster builds of some dependencies
-rpm -ivh https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/n/ninja-build-1.10.2-3.el7.x86_64.rpm
+./viame/cmake/linux_build_and_install_cmake.sh
 
 # Update VIAME sub git sources
-cd /viame/
+cd $VIAME_SOURCE_DIR
 git submodule update --init --recursive
 mkdir build
-cd build 
+cd build
 
 # Configure Paths [should be removed when no longer necessary by fletch]
-export PATH=/viame/build/install/bin:$PATH
-export LD_LIBRARY_PATH=/viame/build/install/lib:/viame/build/install/lib/python3.6:$LD_LIBRARY_PATH
-export C_INCLUDE_PATH=/viame/build/install/include/python3.6m:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=/viame/build/install/include/python3.6m:$CPLUS_INCLUDE_PATH
+export PATH=$VIAME_INSTALL_DIR/bin:$PATH
+export LD_LIBRARY_PATH=$VIAME_INSTALL_DIR/lib:$VIAME_INSTALL_DIR/lib/python3.6:$LD_LIBRARY_PATH
+export C_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.6m:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.6m:$CPLUS_INCLUDE_PATH
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -111,7 +68,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Build VIAME, pipe output to file
-../cmake/linux_release_build.sh > build_log.txt 2>&1
+../cmake/linux_binary_build_cu11.sh > build_log.txt 2>&1
 
 # Output check statments
 if grep -q "Built target viame" build_log.txt; then

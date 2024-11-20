@@ -3,36 +3,11 @@
 # debugging flag
 set -x
 
-# Fletch, VIAME, CMAKE system deps
-apt-get update 
-apt-get install -y zip \
-git \
-wget \
-curl \
-libcurl4-openssl-dev \
-libgl1-mesa-dev \
-libexpat1-dev \
-libgtk2.0-dev \
-libxt-dev \
-libxml2-dev \
-liblapack-dev \
-openssl \
-libssl-dev \
-g++ \
-zlib1g-dev \
-bzip2 \
-libbz2-dev \
-liblzma-dev
+# System Deps
+./viame/cmake/linux_install_deps_ubuntu.sh
 
 # Install CMAKE
-wget https://cmake.org/files/v3.23/cmake-3.23.1.tar.gz
-tar zxvf cmake-3.*
-cd cmake-3.23.1
-./bootstrap --prefix=/usr/local --system-curl
-make -j$(nproc)
-make install
-cd /
-rm -rf cmake-3.23.1.tar.gz
+./viame/cmake/linux_build_and_install_cmake.sh
 
 # Update VIAME sub git deps
 cd /viame/
@@ -42,9 +17,9 @@ cd build
 
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$PATH:/viame/build/install/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.6
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.6
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.6
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib
+
+source ./viame/cmake/linux_add_internal_py36_paths.sh
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -84,7 +59,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Build VIAME, pipe output to file
-../cmake/linux_release_build.sh > build_log.txt 2>&1
+../cmake/linux_binary_build_cu11.sh > build_log.txt 2>&1
 
 # Output check statments
 if grep -q "Built target viame" build_log.txt; then
