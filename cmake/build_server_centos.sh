@@ -3,49 +3,9 @@
 # Debugging and logging
 set -x
 
-# Updates for old centos yum external repos
-sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
-sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
-sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+# Install system dependencies and use more recent compiler
+../cmake_centos_install_deps.sh
 
-sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-
-yum clean all
-yum makecache
-
-# Install Fletch & VIAME system deps
-yum -y groupinstall 'Development Tools'
-yum install -y zip \
-git \
-wget \
-openssl \
-openssl-devel \
-zlib \
-zlib-devel \
-freeglut-devel \
-freetype-devel \
-mesa-libGLU-devel \
-lapack-devel \
-libffi-devel \
-libXt-devel \
-libXmu-devel \
-libXi-devel \
-expat-devel \
-readline-devel \
-curl \
-curl-devel \
-atlas-devel \
-file \
-which \
-bzip2 \
-bzip2-devel \
-xz-devel \
-vim
-
-# Install and use more recent compiler
-yum -y install centos-release-scl
-yum -y install devtoolset-7
 source /opt/rh/devtoolset-7/enable
 
 # Install CMAKE
@@ -57,9 +17,6 @@ make -j$(nproc)
 make install
 cd /
 rm -rf cmake-3.23.1.tar.gz
-
-# Install NINJA for faster builds of some dependencies
-rpm -ivh https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/n/ninja-build-1.10.2-3.el7.x86_64.rpm
 
 # Update VIAME sub git sources
 cd /viame/
