@@ -10,7 +10,10 @@ sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
 
 sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
 sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
- 
+
+yum clean all
+yum makecache
+
 # Install Fletch & VIAME system deps
 yum -y groupinstall 'Development Tools'
 yum install -y zip \
