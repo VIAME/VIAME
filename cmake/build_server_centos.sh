@@ -23,9 +23,9 @@ cd build
 
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$VIAME_INSTALL_DIR/bin:$PATH
-export LD_LIBRARY_PATH=$VIAME_INSTALL_DIR/lib:$VIAME_INSTALL_DIR/lib/python3.6:$LD_LIBRARY_PATH
-export C_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.6m:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.6m:$CPLUS_INCLUDE_PATH
+export LD_LIBRARY_PATH=$VIAME_INSTALL_DIR/lib:$VIAME_INSTALL_DIR/lib/python3.10:$LD_LIBRARY_PATH
+export C_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$CPLUS_INCLUDE_PATH
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
