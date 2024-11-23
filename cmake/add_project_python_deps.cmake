@@ -14,7 +14,7 @@
 # Core requirements used for building certain libraries
 set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "cython<3.0.0" )
 
-if( VIAME_FIXUP_BUNDLE )
+if( VIAME_FIXUP_BUNDLE AND Python_VERSION VERSION_LESS "3.8" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
 else()
   list( APPEND  VIAME_PYTHON_BASIC_DEPS "numpy<=1.23.5" )
