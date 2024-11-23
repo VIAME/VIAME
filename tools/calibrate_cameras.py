@@ -40,6 +40,7 @@ import cv2
 import os
 import glob
 import operator
+import json
 
 from optparse import OptionParser
 
@@ -289,6 +290,9 @@ def main():
     parser.add_option("-g", "--gui", default=False,
                       action="store_true", dest="gui",
                       help="visualize the results in a GUI")
+    parser.add_option("-j", "--json", type='string', default=None,
+                      action="store", dest="json_file",
+                      help="write as kwiver camera_rig_io compatible json")
 
     (options, args) = parser.parse_args()
 
@@ -366,6 +370,26 @@ def main():
     npz_dict[ 'R' ] = R
     npz_dict[ 'T' ] = T
     np.savez("calibration.npz", **npz_dict)
+
+    # if requested, write as KWIVER camera_rig_io-compatible json file
+    if options.json_file:
+        json_dict = dict()
+        json_dict['T'] = T.flatten().tolist()
+        json_dict['R'] = R.flatten().tolist()
+        for (m, d, side) in ([K_left, dist_left, 'left'], [K_right, dist_right, 'right']):
+
+            json_dict[f'fx_{side}'] = m[0][0]
+            json_dict[f'fy_{side}'] = m[1][1]
+            json_dict[f'cx_{side}'] = m[0][2]
+            json_dict[f'cy_{side}'] = m[1][2]
+
+            json_dict[f'k1_{side}'] = d[0][0]
+            json_dict[f'k2_{side}'] = d[0][1]
+            json_dict[f'p1_{side}'] = d[0][2]
+            json_dict[f'p2_{side}'] = d[0][3]
+
+        with open(options.json_file, 'w') as fh:
+            fh.write(json.dumps(json_dict))
 
 if __name__ == "__main__":
     main()
