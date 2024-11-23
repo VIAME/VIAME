@@ -4,10 +4,10 @@
 set -x
 
 # System Deps
-./viame/cmake/linux_install_deps_ubuntu.sh
+./viame/cmake/build_server_ubuntu_deps.sh
 
 # Install CMAKE
-./viame/cmake/linux_build_and_install_cmake.sh
+./viame/cmake/build_server_linux_cmake.sh
 
 # Update VIAME sub git deps
 cd /viame/
@@ -59,7 +59,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Build VIAME, pipe output to file
-../cmake/linux_binary_build_cu12.sh > build_log.txt 2>&1
+../cmake/build_server_linux_build.sh > build_log.txt 2>&1
 
 # Output check statments
 if grep -q "Built target viame" build_log.txt; then

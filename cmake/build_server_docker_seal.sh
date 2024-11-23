@@ -4,10 +4,10 @@
 set -x
 
 # Fletch, VIAME, CMAKE system deps
-./viame/cmake/linux_install_deps_ubuntu.sh
+./viame/cmake/build_server_ubuntu_deps.sh
 
 # Install CMAKE
-./viame/cmake/linux_build_and_install_cmake.sh
+./viame/cmake/build_server_linux_cmake.sh
 
 # Update VIAME sub git deps
 cd /viame/
