@@ -60,14 +60,14 @@ DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"
 
 COPY "%CUDA_ROOT%\bin\cublas64_11.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cublasLt64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudart64_110.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_adv_infer64_8.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_adv_train64_8.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_cnn_infer64_8.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_cnn_train64_8.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_ops_infer64_8.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_ops_train64_8.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn64_8.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudart64_124.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_adv_infer64_9.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_adv_train64_9.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_cnn_infer64_9.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_cnn_train64_9.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_ops_infer64_9.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_ops_train64_9.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn64_9.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cufft64_10.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cufftw64_10.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\curand64_10.dll" %VIAME_INSTALL_DIR%\bin
