@@ -26,7 +26,7 @@ REM the build and install directories in cmake or the platforms.cmake file
 SET "VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build"
 SET "VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install"
 
-SET "PYTHON_SUBDIR=lib\python3.6"
+SET "PYTHON_SUBDIR=lib\python3.10"
 
 SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%NVIDIA_ROOT%\PhysX\Common;%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
@@ -74,7 +74,7 @@ COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
 
-DEL "%VIAME_INSTALL_DIR%\lib\python3.6\site-packages\torch\lib\cu*"
+DEL "%VIAME_INSTALL_DIR%\lib\python3.10\site-packages\torch\lib\cu*"
 
 COPY "%CUDA_ROOT%\bin\cublas64_11.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cublasLt64_11.dll" %VIAME_INSTALL_DIR%\bin
