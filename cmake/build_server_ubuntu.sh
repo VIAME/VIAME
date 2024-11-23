@@ -59,7 +59,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Build VIAME, pipe output to file
-../cmake/linux_binary_build_cu11.sh > build_log.txt 2>&1
+../cmake/linux_binary_build_cu12.sh > build_log.txt 2>&1
 
 # Output check statments
 if grep -q "Built target viame" build_log.txt; then
