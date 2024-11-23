@@ -103,7 +103,6 @@ option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 # Add secondary plugin enable flags (advanced)
 ##
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
-option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_KEYPOINTGUI    "Enable Keypoint GUI"           OFF )
@@ -117,7 +116,6 @@ if( WIN32 )
 endif()
 
 mark_as_advanced( VIAME_ENABLE_BURNOUT )
-mark_as_advanced( VIAME_ENABLE_CAFFE )
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_KEYPOINTGUI )
@@ -175,11 +173,11 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 1.13.1 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.10.2" "1.11.0" "1.13.1" )
+  set( VIAME_PYTORCH_VERSION 2.5.1 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.5.1" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  set( PYTORCH_INTERNAL_VERSION 1.10.2 CACHE INTERNAL "Internal pytorch version" )
+  set( PYTORCH_INTERNAL_VERSION 2.5.1 CACHE INTERNAL "Internal pytorch version" )
 
   option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
@@ -314,8 +312,7 @@ include( old_version_checks )
 ###
 # Add logic and error checking relating to enable flags
 ##
-if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
-    VIAME_ENABLE_DARKNET )
+if( VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
@@ -411,10 +408,6 @@ if( VIAME_ENABLE_CUDA )
     message( FATAL_ERROR "CUDA 10.1.168 has bugs, upgrade to 10.1.264 or above" )
   endif()
 
-  if( CUDA_VERSION_MAJOR GREATER_EQUAL "10" AND VIAME_ENABLE_CAFFE )
-    message( FATAL_ERROR "Caffe does not support CUDA 10 or above" )
-  endif()
-
   if( CUDA_VERSION_MAJOR VERSION_LESS "10" AND VIAME_ENABLE_DARKNET )
     message( FATAL_ERROR "Darknet does not support CUDA versions under v10.0" )
   endif()
@@ -446,6 +439,9 @@ if( VIAME_ENABLE_CUDA )
     if( CUDA_VERSION VERSION_LESS "12.1" )
       set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 8.6+PTX" )
     endif()
+  endif()
+  if( CUDA_VERSION VERSION_GREATER "11.7" )
+    set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 8.9 9.0" )
   endif()
 
   set( CUDA_ARCHITECTURES "${DEF_CUDA_ARCHS}" CACHE STRING "CUDA Architectures" )
@@ -497,7 +493,7 @@ if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
   find_library( CUDNN_LIBRARY REQUIRED
-    NAMES cudnn libcudnn.so libcudnn.so.8 libcudnn.so.7 libcudnn.so.6
+    NAMES cudnn libcudnn.so libcudnn.so.9 libcudnn.so.8 libcudnn.so.7
     HINTS ${CUDNN_ROOT_DIR}
           ${CUDNN_ROOT_DIR}/lib
           ${CUDNN_ROOT_DIR}/lib/x64
