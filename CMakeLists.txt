@@ -712,7 +712,7 @@ if( VIAME_ENABLE_PYTORCH )
             VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL "1.11.0" )
       message( FATAL_ERROR "At least Python 3.7 is required for PyTorch versions "
         "greater than 1.11.0, either upgrade python or set VIAME_PYTORCH_VERSION "
-        "to be 2.5.1. If you think you have Python3.7+ installed, make sure you "
+        "to be 1.10.X. If you think you have Python3.7+ installed, make sure you "
         "also have the python header package installed, e.g. python3-dev." )
     elseif( VIAME_BUILD_CHECKS AND Python_VERSION VERSION_LESS "3.6.2" )
       message( FATAL_ERROR "Only python distributions  >= 3.6.2 are currently "
