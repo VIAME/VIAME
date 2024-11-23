@@ -708,6 +708,7 @@ if( VIAME_ENABLE_PYTORCH )
         "attempt to use your current version. If you think you have Python3.6+ "
         "installed, make sure you also have the python header package installed, "
         "e.g. python3-dev or python3-devel." )
+        "e.g. python3-dev or python3-devel." )
     endif()
   endif()
 endif()
