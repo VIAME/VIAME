@@ -1,5 +1,5 @@
 set(CTEST_SITE "zeah.kitware.com")
-set(CTEST_BUILD_NAME "Windows7_GPU_Master_Nightly")
+set(CTEST_BUILD_NAME "Windows10_GPU_Master_Nightly")
 set(CTEST_SOURCE_DIRECTORY "C:/workspace/VIAME-Windows-GPU-MSI")
 set(CTEST_BINARY_DIRECTORY "C:/workspace/VIAME-Windows-GPU-MSI/build/")
 set(CTEST_CMAKE_GENERATOR "Visual Studio 16 2019")
@@ -34,4 +34,4 @@ set(OPTIONS
   "-DVIAME_BUILD_PLUGINS_DIR=C:/tmp/vm5"
 )
 
-set(platform Windows7)
+set(platform Windows10)
