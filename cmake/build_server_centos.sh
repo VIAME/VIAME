@@ -12,7 +12,7 @@ $VIAME_SOURCE_DIR/cmake/linux_install_deps_centos7.sh
 
 source /opt/rh/devtoolset-7/enable
 
-# Install CMAKE and OpenSSL more modern versions
+# Install more modern CMAKE and OpenSSL from source
 ./viame/cmake/linux_build_and_install_ssl.sh
 ./viame/cmake/linux_build_and_install_cmake.sh
 
