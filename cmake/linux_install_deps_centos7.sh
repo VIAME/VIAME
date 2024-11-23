@@ -22,8 +22,6 @@ yum -y groupinstall 'Development Tools'
 yum install -y zip \
 git \
 wget \
-openssl \
-openssl-devel \
 zlib \
 zlib-devel \
 freeglut-devel \
