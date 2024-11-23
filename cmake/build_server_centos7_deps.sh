@@ -43,7 +43,7 @@ bzip2 \
 bzip2-devel \
 xz-devel \
 vim \
-devtoolset-7 \
+devtoolset-9 \
 perl-IPC-Cmd
 
 # Install NINJA for faster builds of some dependencies

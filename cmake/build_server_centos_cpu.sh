@@ -10,7 +10,7 @@ export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 # Install system dependencies and use more recent compiler
 $VIAME_SOURCE_DIR/cmake/build_server_centos7_deps.sh
 
-source /opt/rh/devtoolset-7/enable
+source /opt/rh/devtoolset-9/enable
 
 # Install CMAKE
 ./viame/cmake/build_server_linux_cmake.sh
