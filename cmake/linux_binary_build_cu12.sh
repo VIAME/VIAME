@@ -43,7 +43,7 @@ if [ -d "${CUDABASE}" ]; then
   # For some systems with multiple CUDA 11s installed this is necessary
   export TORCHBASE=install/lib/python3.10/site-packages/torch
   if [ -d "${TORCHBASE}" ]; then
-    ln -s ../../../../libcublas.so.11 ${TORCHBASE}/lib/libcublas.so.11
+    ln -s ../../../../libcublas.so.12 ${TORCHBASE}/lib/libcublas.so.12
   fi
 fi
 
