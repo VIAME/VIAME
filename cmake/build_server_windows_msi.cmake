@@ -11,8 +11,8 @@ set(CTEST_USE_LAUNCHERS 1)
 include(CTestUseLaunchers)
 set(OPTIONS 
   "-DCMAKE_BUILD_TYPE=Release"
-  "-DCUDA_NVCC_EXECUTABLE:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.3/bin/nvcc.exe"
-  "-DCUDNN_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.3"
+  "-DCUDA_NVCC_EXECUTABLE:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.5/bin/nvcc.exe"
+  "-DCUDNN_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.5"
   "-DVIAME_FIXUP_BUNDLE=ON"
   "-DVIAME_ENABLE_CUDNN=ON"
   "-DVIAME_ENABLE_CUDA=ON"

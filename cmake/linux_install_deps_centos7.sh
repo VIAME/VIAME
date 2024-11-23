@@ -48,5 +48,5 @@ vim \
 devtoolset-7
 
 # Install NINJA for faster builds of some dependencies
-rpm -ivh https://archives.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/n/ninja-build-1.10.2-3.el7.x86_64.rpm
+rpm -ivh https://archives.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/n/ninja-build-2.5.1-3.el7.x86_64.rpm
 

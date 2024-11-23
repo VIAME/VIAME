@@ -1,6 +1,6 @@
 
-set( VIAME_PYTHON_VERSION 3.6.15 CACHE STRING "Select the version of Python to build." )
-set_property( CACHE VIAME_PYTHON_VERSION PROPERTY STRINGS "3.6.15" "3.8.13" "3.10.4" )
+set( VIAME_PYTHON_VERSION 3.10.4 CACHE STRING "Select the version of Python to build." )
+set_property( CACHE VIAME_PYTHON_VERSION PROPERTY STRINGS "3.10.4" "3.8.13" "3.10.4" )
 mark_as_advanced( VIAME_PYTHON_VERSION )
 
 string( REPLACE "." ";" Python_VERSION_LIST ${VIAME_PYTHON_VERSION} )
