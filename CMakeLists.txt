@@ -440,6 +440,9 @@ if( VIAME_ENABLE_CUDA )
       set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 8.6+PTX" )
     endif()
   endif()
+  if( CUDA_VERSION VERSION_GREATER "11.7" )
+    set( DEF_CUDA_ARCHS "${DEF_CUDA_ARCHS} 8.9 9.0" )
+  endif()
 
   set( CUDA_ARCHITECTURES "${DEF_CUDA_ARCHS}" CACHE STRING "CUDA Architectures" )
   mark_as_advanced( CUDA_ARCHITECTURES )
@@ -490,7 +493,7 @@ if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
   find_library( CUDNN_LIBRARY REQUIRED
-    NAMES cudnn libcudnn.so libcudnn.so.8 libcudnn.so.7 libcudnn.so.6
+    NAMES cudnn libcudnn.so libcudnn.so.9 libcudnn.so.8 libcudnn.so.7
     HINTS ${CUDNN_ROOT_DIR}
           ${CUDNN_ROOT_DIR}/lib
           ${CUDNN_ROOT_DIR}/lib/x64
