@@ -520,7 +520,7 @@ if( VIAME_ENABLE_CUDNN )
   endif()
 
   if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
-    message( ERROR "Unable to locate cudnn.h include header" )
+    message( FATAL_ERROR "Unable to locate cudnn.h include header" )
   endif()
 
   if( CUDNN_ROOT_DIR STREQUAL "/" )
