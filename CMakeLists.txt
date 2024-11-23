@@ -481,7 +481,7 @@ if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
   find_library( CUDNN_LIBRARY REQUIRED
-    NAMES cudnn cudnn_64_9 libcudnn.so libcudnn.so.9 libcudnn.so.8
+    NAMES cudnn cudnn_64_9 cudnn_64_8 libcudnn.so libcudnn.so.9 libcudnn.so.8
     HINTS ${CUDNN_ROOT_DIR}
           ${CUDNN_ROOT_DIR}/bin
           ${CUDNN_ROOT_DIR}/lib
