@@ -126,9 +126,9 @@ if( VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
 endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt==1.3.3" "pygments")
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.6.7" "kwcoco==0.2.31" "pandas<=1.5.3" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx<=2.8.8" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt==1.3.3" "pygments" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.6.7" "kwcoco==0.2.31" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx<=2.8.8" "pandas<=1.5.3" )
 
   if( Python_VERSION VERSION_LESS "3.10" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "bezier==2020.1.14" )
