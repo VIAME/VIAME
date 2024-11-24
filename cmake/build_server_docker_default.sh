@@ -15,12 +15,9 @@ git submodule update --init --recursive
 mkdir build
 cd build
 
-# Configure Paths [should be removed when no longer necessary by fletch]
+# Add VIAME and CUDA paths to build
 export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.10
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.10
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.10
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/usr/local/cuda/lib64
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -46,8 +43,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
 -DVIAME_OPENCV_VERSION:STRING=3.4.0 \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
--DVIAME_ENABLE_PYTHON-INTERNAL:BOOL=ON \
--DVIAME_PYTHON_VERSION:STRING=3.10.4 \
+-DVIAME_ENABLE_PYTHON-INTERNAL:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-INTERNAL:BOOL=ON \
 -DVIAME_PYTORCH_VERSION:STRING=2.5.1 \
