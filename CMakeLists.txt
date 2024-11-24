@@ -74,15 +74,9 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 ###
 # Add core user interface enable flags
 ##
-option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
-option( VIAME_ENABLE_SEAL           "Enable Seal GUI"               OFF )
+option( VIAME_ENABLE_VIVIA          "Enable VIVIA GUIs"             OFF )
+option( VIAME_ENABLE_SEAL           "Enable SEAL GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
-
-###
-# Add core utilities enable flags
-##
-option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
-option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
 ###
 # Add default-enabled algorithmic plugin enable flags
@@ -94,7 +88,7 @@ option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
 
 ###
-# Add secondary plugin enable flags (non-advanced)
+# Add secondary algorithm plugin enable flags (non-advanced)
 ##
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
@@ -102,14 +96,20 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 
 ###
-# Add secondary plugin enable flags (advanced)
+# Add core utilities enable flags
+##
+option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
+option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
+option( VIAME_ENABLE_POSTGRESQL     "Enable PostgreSQL plugins"     OFF )
+
+###
+# Add tertiary plugin enable flags (advanced)
 ##
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_KEYPOINTGUI    "Enable Keypoint GUI"           OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
-option( VIAME_ENABLE_POSTGRESQL     "Enable PostgreSQL plugins"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
@@ -122,7 +122,6 @@ mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_KEYPOINTGUI )
 mark_as_advanced( VIAME_ENABLE_LEARN )
-mark_as_advanced( VIAME_ENABLE_VIAME_ENABLE_POSTGRESQL )
 mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
