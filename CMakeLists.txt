@@ -72,15 +72,17 @@ option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   ON )
 option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 
 ###
-# Add core utilities enable flags
+# Add core user interface enable flags
 ##
-option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
 option( VIAME_ENABLE_SEAL           "Enable Seal GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
-option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
-mark_as_advanced( VIAME_ENABLE_SEAL )
+###
+# Add core utilities enable flags
+##
+option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
+option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
 ###
 # Add default-enabled algorithmic plugin enable flags
@@ -94,10 +96,10 @@ option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
 ###
 # Add secondary plugin enable flags (non-advanced)
 ##
-option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
-option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
+option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
+option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 
 ###
 # Add secondary plugin enable flags (advanced)
