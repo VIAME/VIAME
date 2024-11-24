@@ -48,9 +48,9 @@ endif()
 list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
 
 if( Python_VERSION VERSION_LESS "3.9" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.31.0" "numba==0.47" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "numba==0.47" )
 else()
-  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.45.0" "numba==0.60" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.44.0rc1" "numba==0.60" )
 endif()
 
 # For pytorch building
