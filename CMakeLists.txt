@@ -722,14 +722,14 @@ endif()
 
 if( VIAME_ENABLE_OPENCV )
   set( VIAME_OPENCV_VERSION 4.2.0 CACHE STRING "Version of OpenCV to use" )
-  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.5.1" )
+  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.9.0" )
   mark_as_advanced( VIAME_OPENCV_VERSION )
 
   if( CMAKE_COMPILER_IS_GNUCC AND
       CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 AND
       VIAME_OPENCV_VERSION VERSION_LESS "4.5" )
     message( FATAL_ERROR "GCC compiler version 12 is very new. For compatibility "
-      "reasons, VIAME_OPENCV_VERSION should be set to 4.5.1 or greater."  )
+      "reasons, VIAME_OPENCV_VERSION should be set to 4.9.0 or greater."  )
   endif()
 endif()
 
