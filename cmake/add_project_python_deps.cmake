@@ -17,7 +17,7 @@ set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "cython<3.0.0" )
 if( VIAME_FIXUP_BUNDLE AND Python_VERSION VERSION_LESS "3.8" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
 else()
-  list( APPEND  VIAME_PYTHON_BASIC_DEPS "numpy<=1.25.5" )
+  list( APPEND  VIAME_PYTHON_BASIC_DEPS "numpy<=1.25.2" )
 endif()
 
 if( VIAME_BUILD_TESTS )
@@ -50,7 +50,7 @@ list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
 if( Python_VERSION VERSION_LESS "3.9" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.31.0" "numba==0.47" )
 else()
-  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.40.0" "numba==0.57" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS  "llvmlite==0.40.0" "numba==0.60" )
 endif()
 
 # For pytorch building
