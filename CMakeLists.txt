@@ -450,8 +450,8 @@ if( VIAME_ENABLE_CUDA )
   endif()
 
   if( VIAME_BUILD_CHECKS AND CMAKE_COMPILER_IS_GNUCC AND
-      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 )
-    message( FATAL_ERROR "GCC 12.0+ support is experimental and may not work. "
+      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0 )
+    message( FATAL_ERROR "GCC 13.0+ support is experimental and may not work. "
       "To disable this warning, set VIAME_BUILD_CHECKS to FALSE." )
   endif()
 
@@ -721,15 +721,15 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
-  set( VIAME_OPENCV_VERSION 4.2.0 CACHE STRING "Version of OpenCV to use" )
+  set( VIAME_OPENCV_VERSION 4.9.0 CACHE STRING "Version of OpenCV to use" )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.9.0" )
   mark_as_advanced( VIAME_OPENCV_VERSION )
 
   if( CMAKE_COMPILER_IS_GNUCC AND
       CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 AND
-      VIAME_OPENCV_VERSION VERSION_LESS "4.5" )
+      VIAME_OPENCV_VERSION VERSION_LESS "4.6" )
     message( FATAL_ERROR "GCC compiler version 12 is very new. For compatibility "
-      "reasons, VIAME_OPENCV_VERSION should be set to 4.9.0 or greater."  )
+      "reasons, VIAME_OPENCV_VERSION should be set to 4.6.0 or greater."  )
   endif()
 endif()
 
