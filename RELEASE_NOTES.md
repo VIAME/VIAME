@@ -11,6 +11,18 @@ v0.20.5 - 12/15/2024
 -Added ability to sweep certain scoring metrics amongst multiple thresholds
 
 
+-Added a number of improvements for stereo measurement and supporting additional camera formats
+
+
+-Added segment anything support for box to polygon conversion
+
+
+-Upgraded default python version in releases from 3.6 to 3.10
+
+
+-Upgraded torch, opencv, fletch versions to current latest
+
+
 
 v0.20.4 - 3/30/2024
 ===================
