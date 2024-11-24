@@ -77,6 +77,9 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 option( VIAME_ENABLE_VIVIA          "Enable VIVIA GUIs"             OFF )
 option( VIAME_ENABLE_SEAL           "Enable SEAL GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
+option( VIAME_ENABLE_KEYPOINTGUI    "Enable Keypoint GUI"           OFF )
+
+mark_as_advanced( VIAME_ENABLE_KEYPOINTGUI )
 
 ###
 # Add default-enabled algorithmic plugin enable flags
@@ -96,36 +99,32 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 
 ###
+# Add tertiary plugin enable flags (advanced)
+##
+option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
+option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
+option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
+option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
+option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
+option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
+
+mark_as_advanced( VIAME_ENABLE_BURNOUT )
+mark_as_advanced( VIAME_ENABLE_GDAL )
+mark_as_advanced( VIAME_ENABLE_ITK )
+mark_as_advanced( VIAME_ENABLE_LEARN )
+mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
+mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
+
+###
 # Add core utilities enable flags
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
 option( VIAME_ENABLE_POSTGRESQL     "Enable PostgreSQL plugins"     OFF )
 
-###
-# Add tertiary plugin enable flags (advanced)
-##
-option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
-option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
-option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
-option( VIAME_ENABLE_KEYPOINTGUI    "Enable Keypoint GUI"           OFF )
-option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
-option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
-option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
-
 if( WIN32 )
   option( VIAME_ENABLE_WIN32GUI     "Enable WIN32 GUI dependency"   ON )
-endif()
 
-mark_as_advanced( VIAME_ENABLE_BURNOUT )
-mark_as_advanced( VIAME_ENABLE_GDAL )
-mark_as_advanced( VIAME_ENABLE_ITK )
-mark_as_advanced( VIAME_ENABLE_KEYPOINTGUI )
-mark_as_advanced( VIAME_ENABLE_LEARN )
-mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
-mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
-
-if( WIN32 )
   mark_as_advanced( VIAME_ENABLE_WIN32GUI )
 endif()
 
