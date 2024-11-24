@@ -109,7 +109,7 @@ if( VIAME_ENABLE_PYTORCH )
   if( Python_VERSION VERSION_LESS "3.10" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.16.2" )
   else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.19.2" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.24.0" )
   endif()
 endif()
 
