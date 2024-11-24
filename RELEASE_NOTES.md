@@ -1,4 +1,4 @@
-v0.20.5 - 12/15/2024
+v0.21.0 - 12/15/2024
 ===================
 
 
@@ -21,6 +21,9 @@ v0.20.5 - 12/15/2024
 
 
 -Upgraded torch, opencv, fletch versions to current latest
+
+
+-Update release CUDA version from 11.3 to 12.4, requires driver updates for some
 
 
 
