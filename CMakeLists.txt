@@ -179,8 +179,7 @@ if( VIAME_ENABLE_PYTORCH )
 
   set( PYTORCH_INTERNAL_VERSION 2.5.1 CACHE INTERNAL "Internal pytorch version" )
 
-  option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
-  option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
+  option( VIAME_ENABLE_PYTORCH-VISION       "Enable TorchVision code"       ON )
   option( VIAME_ENABLE_PYTORCH-MMDET        "Enable mmdet PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-NETHARN      "Enable netharn PyTorch code"   ON )
   option( VIAME_ENABLE_PYTORCH-VIDEO        "Enable video PyTorch code"     OFF )
@@ -189,8 +188,7 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-MDNET        "Enable mdnet PyTorch code"     OFF )
   option( VIAME_ENABLE_PYTORCH-SAM          "Enable SAM2 PyTorch code"      OFF )
 
-  mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
-  mark_as_advanced( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VIDEO )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
@@ -198,6 +196,12 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-DETECTRON )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-SAM )
+
+  option( VIAME_PYTORCH_BUILD_PYTORCH       "Build PyTorch from source"     OFF )
+  option( VIAME_PYTORCH_BUILD_TORCHVISION   "Build TorchVision from source" ON )
+
+  mark_as_advanced( VIAME_PYTORCH_BUILD_PYTORCH )
+  mark_as_advanced( VIAME_PYTORCH_BUILD_TORCHVISION )
 
   if( NOT CMAKE_GENERATOR STREQUAL "Ninja" )
     option( VIAME_PYTORCH_DISABLE_NINJA     "Disable ninja for compilation" ON )
@@ -672,11 +676,11 @@ if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  if( VIAME_ENABLE_PYTORCH-INTERNAL )
+  if( VIAME_PYTORCH_BUILD_PYTORCH )
     if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "${PYTORCH_INTERNAL_VERSION}" )
       message( FATAL_ERROR "Only PyTorch ${PYTORCH_INTERNAL_VERSION} support with "
-        "VIAME_ENABLE_PYTORCH-INTERNAL flag set. Either change VIAME_PYTORCH_VERSION "
-        "to ${PYTORCH_INTERNAL_VERSION} or disable the flag VIAME_ENABLE_PYTORCH-INTERNAL." )
+        "VIAME_PYTORCH_BUILD_PYTORCH flag set. Either change VIAME_PYTORCH_VERSION "
+        "to ${PYTORCH_INTERNAL_VERSION} or disable the flag VIAME_PYTORCH_BUILD_PYTORCH." )
     elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
             CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.3" )
       message( FATAL_ERROR "PyTorch-INTERNAL requires at least GCC 9.3 to compile" )
@@ -684,28 +688,28 @@ if( VIAME_ENABLE_PYTORCH )
   endif()
   if( VIAME_ENABLE_CUDA )
     if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.5.1" AND
-        NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
+        NOT VIAME_PYTORCH_BUILD_PYTORCH AND
         NOT ( CUDA_VERSION VERSION_EQUAL "11.8" OR
               CUDA_VERSION VERSION_EQUAL "12.1" OR
               CUDA_VERSION VERSION_EQUAL "12.4" ) )
       message( FATAL_ERROR "CUDA 11.5, 11.3 or 10.2 is required for VIAME_ENABLE_PYTORCH "
-        "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.11.0. Either modify "
+        "with VIAME_PYTORCH_BUILD_PYTORCH off and using PyTorch 1.11.0. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
-        NOT VIAME_ENABLE_PYTORCH-INTERNAL AND
+        NOT VIAME_PYTORCH_BUILD_PYTORCH AND
         NOT ( CUDA_VERSION VERSION_EQUAL "11.6" OR
               CUDA_VERSION VERSION_EQUAL "11.7" ) )
       message( FATAL_ERROR "CUDA 11.7, or 11.6 is required for VIAME_ENABLE_PYTORCH "
-        "with VIAME_ENABLE_PYTORCH-INTERNAL off and using PyTorch 1.13.1. Either modify "
+        "with VIAME_PYTORCH_BUILD_PYTORCH off and using PyTorch 1.13.1. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( CUDA_VERSION VERSION_LESS "11.0" AND
-            VIAME_ENABLE_PYTORCH-INTERNAL )
+            VIAME_PYTORCH_BUILD_PYTORCH )
       message( FATAL_ERROR "A CUDA version >= 11.0 is required for an internal build "
-        "of pytorch. Either disable VIAME_ENABLE_PYTORCH-INTERNAL or downgrade CUDA." )
-    elseif( VIAME_ENABLE_PYTORCH-VIS-INTERNAL AND
+        "of pytorch. Either disable VIAME_PYTORCH_BUILD_PYTORCH or downgrade CUDA." )
+    elseif( VIAME_PYTORCH_BUILD_TORCHVISION AND
             CUDA_VERSION VERSION_LESS "11.0" )
-      message( FATAL_ERROR "VIAME_ENABLE_PYTORCH-VIS-INTERNAL requires at least CUDA 11.0" )
-    elseif( VIAME_ENABLE_PYTORCH-INTERNAL AND
+      message( FATAL_ERROR "VIAME_PYTORCH_BUILD_TORCHVISION requires at least CUDA 11.0" )
+    elseif( VIAME_PYTORCH_BUILD_PYTORCH AND
             VIAME_ENABLE_CUDNN AND
             CUDNN_VERSION_MAJOR VERSION_LESS "7.0.0" )
       message( FATAL_ERROR "CUDNN 7.0 or higher required for internal pytorch build" )

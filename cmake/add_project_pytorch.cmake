@@ -11,11 +11,11 @@ CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
 set( PYTORCH_LIBS_TO_BUILD )
 
-if( VIAME_ENABLE_PYTORCH-INTERNAL )
+if( VIAME_PYTORCH_BUILD_PYTORCH )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
+if( VIAME_PYTORCH_BUILD_TORCHVISION )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
 
@@ -164,7 +164,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS mmdetection )
   elseif( "${LIB}" STREQUAL "mmdetection" )
     set( PROJECT_DEPS fletch mmcv )
-    if( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
+    if( VIAME_PYTORCH_BUILD_TORCHVISION )
       set( PROJECT_DEPS ${PROJECT_DEPS} torchvision )
     endif()
   elseif( "${LIB}" STREQUAL "pytorch" )
