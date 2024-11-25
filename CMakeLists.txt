@@ -200,7 +200,7 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-SAM )
 
   if( NOT CMAKE_GENERATOR STREQUAL "Ninja" )
-    option( VIAME_PYTORCH_DISABLE_NINJA     "Force disable ninja use"       ON )
+    option( VIAME_PYTORCH_DISABLE_NINJA     "Disable ninja for compilation" ON )
     mark_as_advanced( VIAME_PYTORCH_DISABLE_NINJA )
   endif()
 endif()
