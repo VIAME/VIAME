@@ -211,40 +211,37 @@ if( VIAME_ENABLE_KEYPOINTGUI )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND NOT VIAME_PYTORCH_BUILD_PYTORCH )
-  list( APPEND VIAME_PYTHON_ADV_DEPS pytorch )
-
-  set( PYTORCH_VERSION ${VIAME_PYTORCH_VERSION} )
-  set( ARGS_TORCH )
-  set( TORCHVISION_STR "" )
+if( VIAME_ENABLE_PYTORCH AND
+    ( NOT VIAME_PYTORCH_BUILD_PYTORCH OR
+      ( VIAME_ENABLE_PYTORCH-VISION AND NOT VIAME_PYTORCH_BUILD_TORCHVISION ) ) )
 
   if( VIAME_ENABLE_CUDA )
-    set( CUDA_VER_STR "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}" )
+    set( TORCH_CUDA_VER_STR "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}" )
   else()
-    set( CUDA_VER_STR "cpu" )
+    set( TORCH_CUDA_VER_STR "cpu" )
   endif()
 
-  set( PYTORCH_ARCHIVE "https://download.pytorch.org/whl/${CUDA_VER_STR}" )
+  set( PYTORCH_ARCHIVE "https://download.pytorch.org/whl/${TORCH_CUDA_VER_STR}" )
+  set( TORCH_URL_CMD "--extra-index-url ${PYTORCH_ARCHIVE}" )
 
-  if( NOT VIAME_PYTORCH_BUILD_TORCHVISION )
-    if( PYTORCH_VERSION VERSION_GREATER_EQUAL "2.0.0" )
-      set( TORCHVISION_STR "torchvision==0.20.0" )
-    elseif( PYTORCH_VERSION VERSION_GREATER_EQUAL "1.12.0" )
-      set( TORCHVISION_STR "torchvision==0.13.0" )
+  if( NOT VIAME_PYTORCH_BUILD_PYTORCH )
+    set( PYTORCH_CMD "torch==${VIAME_PYTORCH_VERSION}" )
+
+    list( APPEND VIAME_PYTHON_ADV_DEPS pytorch )
+    list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "${TORCH_CMD} ${TORCH_URL_CMD}" )
+  endif()
+
+  if( VIAME_ENABLE_PYTORCH-VISION AND NOT VIAME_PYTORCH_BUILD_TORCHVISION )
+    if( VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL "2.0.0" )
+      set( TORCHVISION_CMD "torchvision==0.20.0" )
+    elseif( VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL "1.12.0" )
+      set( TORCHVISION_CMD "torchvision==0.13.0" )
     else()
-      set( TORCHVISION_STR "torchvision" )
+      set( TORCHVISION_CMD "torchvision" )
     endif()
-  endif()
 
-  # Default case
-  set( ARGS_TORCH "==${PYTORCH_VERSION} ${TORCHVISION_STR} --extra-index-url ${PYTORCH_ARCHIVE}" )
-
-  # Account for either direct link to package or default case
-  string( FIND "${ARGS_TORCH}" "https://" TMP_VAR )
-  if( "${TMP_VAR}" EQUAL 0 )
-    list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "${ARGS_TORCH}" )
-  else()
-    list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "torch${ARGS_TORCH}" )
+    list( APPEND VIAME_PYTHON_ADV_DEPS torchvision )
+    list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "${TORCHVISION_CMD} ${TORCH_URL_CMD}" )
   endif()
 endif()
 

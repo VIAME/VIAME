@@ -207,6 +207,13 @@ if( VIAME_ENABLE_PYTORCH )
     option( VIAME_PYTORCH_DISABLE_NINJA     "Disable ninja for compilation" ON )
     mark_as_advanced( VIAME_PYTORCH_DISABLE_NINJA )
   endif()
+
+  if( NOT VIAME_ENABLE_PYTORCH )
+    set( VIAME_PYTORCH_BUILD_PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
+  endif()
+  if( NOT VIAME_ENABLE_PYTORCH-VISION )
+    set( VIAME_PYTORCH_BUILD_TORCHVISION OFF CACHE BOOL "Forced off" FORCE )
+  endif()
 endif()
 
 ###
