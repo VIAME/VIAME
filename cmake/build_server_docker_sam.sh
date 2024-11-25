@@ -4,14 +4,13 @@
 set -x
 
 # Fletch, VIAME, CMAKE system deps
-./viame/cmake/build_server_ubuntu_deps.sh
+/viame/cmake/build_server_ubuntu_deps.sh
 
 # Install CMAKE
-./viame/cmake/build_server_linux_cmake.sh
+/viame/cmake/build_server_linux_cmake.sh
 
 # Update VIAME sub git deps
 cd /viame/
-git checkout next
 git submodule update --init --recursive
 mkdir build
 cd build
