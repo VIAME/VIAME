@@ -181,9 +181,9 @@ if( VIAME_ENABLE_PYTORCH )
 
   option( VIAME_ENABLE_PYTORCH-INTERNAL     "Enable internal PyTorch build" OFF )
   option( VIAME_ENABLE_PYTORCH-VIS-INTERNAL "Enable internal TorchVision"   ON )
-  option( VIAME_ENABLE_PYTORCH-VIDEO        "Enable video PyTorch code"     OFF )
   option( VIAME_ENABLE_PYTORCH-MMDET        "Enable mmdet PyTorch code"     ON )
   option( VIAME_ENABLE_PYTORCH-NETHARN      "Enable netharn PyTorch code"   ON )
+  option( VIAME_ENABLE_PYTORCH-VIDEO        "Enable video PyTorch code"     OFF )
   option( VIAME_ENABLE_PYTORCH-PYSOT        "Enable pysot PyTorch code"     OFF )
   option( VIAME_ENABLE_PYTORCH-DETECTRON    "Enable detectron PyTorch code" OFF )
   option( VIAME_ENABLE_PYTORCH-MDNET        "Enable mdnet PyTorch code"     OFF )
@@ -198,6 +198,11 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-DETECTRON )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-SAM )
+
+  if( NOT CMAKE_GENERATOR STREQUAL "Ninja" )
+    option( VIAME_PYTORCH_DISABLE_NINJA     "Force disable ninja use"       ON )
+    mark_as_advanced( VIAME_PYTORCH_DISABLE_NINJA )
+  endif()
 endif()
 
 ###
