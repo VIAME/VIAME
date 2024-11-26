@@ -18,8 +18,9 @@ liblapack-dev \
 openssl \
 libssl-dev \
 g++ \
-ninja-build \
 zlib1g-dev \
 bzip2 \
 libbz2-dev \
-liblzma-dev
+liblzma-dev \
+python3-dev \
+python3-numpy
