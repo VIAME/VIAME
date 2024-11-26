@@ -77,9 +77,9 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 option( VIAME_ENABLE_VIVIA          "Enable VIVIA GUIs"             OFF )
 option( VIAME_ENABLE_SEAL           "Enable SEAL GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
-option( VIAME_ENABLE_KEYPOINTGUI    "Enable Keypoint GUI"           OFF )
+option( VIAME_ENABLE_KEYPOINT       "Enable Keypoint GUI"           OFF )
 
-mark_as_advanced( VIAME_ENABLE_KEYPOINTGUI )
+mark_as_advanced( VIAME_ENABLE_KEYPOINT )
 
 ###
 # Add default-enabled algorithmic plugin enable flags
@@ -376,7 +376,7 @@ if( VIAME_ENABLE_LEARN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "CUDA required for LEARN project currently" )
 endif()
 
-if( VIAME_ENABLE_KEYPOINTGUI AND NOT VIAME_ENABLE_PYTHON )
+if( VIAME_ENABLE_KEYPOINT AND NOT VIAME_ENABLE_PYTHON )
   message( FATAL_ERROR "KEYPOINTGUI requires Python" )
 endif()
 
@@ -878,7 +878,7 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_itk_extras )
   endif()
 
-  if( VIAME_ENABLE_KEYPOINTGUI )
+  if( VIAME_ENABLE_KEYPOINT )
     include( add_project_keypointgui )
   endif()
 

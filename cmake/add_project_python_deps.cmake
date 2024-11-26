@@ -101,7 +101,7 @@ if( ( WIN32 OR NOT VIAME_ENABLE_OPENCV ) AND
   endif()
 endif()
 
-if( VIAME_ENABLE_KEYPOINTGUI )
+if( VIAME_ENABLE_KEYPOINT )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "msgpack" )
 endif()
 
@@ -183,7 +183,7 @@ endif()
 set( VIAME_PYTHON_ADV_DEPS python-deps )
 set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
 
-if( VIAME_ENABLE_KEYPOINTGUI )
+if( VIAME_ENABLE_KEYPOINT )
   set( WX_VERSION "4.0.7" )
 
   list( APPEND VIAME_PYTHON_ADV_DEPS wxPython )
