@@ -33,7 +33,7 @@ endif()
 
 # For scoring and plotting
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" )
-list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib<=3.5.1" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib<=3.6.2" )
 
 # For netharn and mmdet de-pickle on older versions
 if( Python_VERSION VERSION_LESS "3.8" )
@@ -126,7 +126,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
 endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt==1.3.3" "pygments" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.6.3" "pygments" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ndsampler==0.6.7" "kwcoco==0.2.31" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx<=2.8.8" "pandas<=1.5.3" )
 
