@@ -699,10 +699,11 @@ if( VIAME_ENABLE_PYTORCH )
       message( FATAL_ERROR "Building PyTorch, with VIAME_PYTORCH_BUILD_PYTORCH set to ON, "
         " requires at least python ${PYTORCH_MIN_PYTHON_BLD}." )
     endif()
-  else()
+  elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "${PYTORCH_INTERNAL_VERSION}" )
     if( Python_VERSION VERSION_LESS "${PYTORCH_MIN_PYTHON_WHL}" )
       message( FATAL_ERROR "PyTorch installations from pip, with internal building "
-        " turned off, requires at least python ${PYTORCH_MIN_PYTHON_WHL}." )
+        "turned off and PyTorch ${VIAME_PYTORCH_VERSION}, requires at least python "
+        "${PYTORCH_MIN_PYTHON_WHL}." )
     endif()
   endif()
   if( VIAME_ENABLE_CUDA )
