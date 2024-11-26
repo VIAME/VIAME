@@ -26,7 +26,7 @@ endif()
 set( SMQTK_PIP_CMD )
 set( SMQTK_PIP_OPT )
 
-if( VIAME_SYMLINK_PYTHON )
+if( VIAME_PYTHON_SYMLINK )
   if( VIAME_ENABLE_POSTGRESQL )
     set( SMQTK_PIP_OPT "[postgres]" )
   endif()

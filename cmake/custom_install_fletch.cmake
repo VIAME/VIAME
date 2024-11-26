@@ -83,7 +83,7 @@ if( PYTHON_VERSION_STRING )
   endif()
 
   # Required for certain versions of pytorch or netharn
-  if( UNIX AND VIAME_ENABLE_PYTHON-INTERNAL )
+  if( UNIX AND VIAME_PYTHON_BUILD_PYTHON )
     set( LZMA_FILE "${ROOT_PYTHON_DIR}/lzma.py" )
 
     set( SEARCH_CODE1

@@ -263,10 +263,6 @@ mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
 mark_as_advanced( VIAME_FORCEBUILD )
 
-# Should we build a version of python within VIAME itself
-option( VIAME_ENABLE_PYTHON-INTERNAL "Build python within VIAME"    OFF )
-mark_as_advanced( VIAME_ENABLE_PYTHON-INTERNAL )
-
 ###
 # Other advanced hidden flags used for disabling core features
 #
@@ -572,12 +568,20 @@ endif()
 
 if( VIAME_ENABLE_PYTHON )
   if( NOT WIN32 )
-    option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
-    mark_as_advanced( VIAME_SYMLINK_PYTHON )
+    option( VIAME_PYTHON_SYMLINK "Symlink python files instead of copying." OFF )
+    mark_as_advanced( VIAME_PYTHON_SYMLINK )
   endif()
-  set( KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON} ) # Required for KWIVER scripts
+  set( KWIVER_SYMLINK_PYTHON ${VIAME_PYTHON_SYMLINK} ) # Required for KWIVER scripts
 
-  if( VIAME_ENABLE_PYTHON-INTERNAL )
+  # Should we build a version of python within VIAME itself
+  option( VIAME_PYTHON_BUILD_PYTHON "Build python within VIAME" OFF )
+  mark_as_advanced( VIAME_PYTHON_BUILD_PYTHON )
+
+  if( VIAME_PYTHON_BUILD_PYTHON )
+    set( VIAME_PYTHON_VERSION 3.10.4 CACHE STRING "Select the version of Python to build." )
+    set_property( CACHE VIAME_PYTHON_VERSION PROPERTY STRINGS "3.6.15" "3.8.13" "3.10.4" )
+    mark_as_advanced( VIAME_PYTHON_VERSION )
+
     include( setup_internal_python )
   else()
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
@@ -607,7 +611,7 @@ if( VIAME_ENABLE_PYTHON )
     set( VIAME_PYTHON_PATH
       ${PYBASE};${PYBASE}/site-packages;${PYBASE}/dist-packages
       CACHE INTERNAL ${PYTHON_PATH_DESC} )
-    if( NOT VIAME_ENABLE_PYTHON-INTERNAL )
+    if( NOT VIAME_PYTHON_BUILD_PYTHON )
       # If using system python on windows, add all possible path locations for
       # python packages in the system install just so they can be used in addition
       # to the ones within the VIAME install tree
@@ -636,7 +640,7 @@ if( VIAME_ENABLE_PYTHON )
     set( ADJ_INCLUDE_PATH "${VIAME_INSTALL_PREFIX}/include;$ENV{INCLUDE}" )
     set( ADJ_LIBRARY_PATH "${VIAME_INSTALL_PREFIX}/lib;${VIAME_INSTALL_PREFIX}/bin;$ENV{LIB}" )
 
-    if( VIAME_ENABLE_PYTHON-INTERNAL )
+    if( VIAME_PYTHON_BUILD_PYTHON )
       set( ENV{PYTHONPATH} "${VIAME_PYTHON_PATH};$ENV{PYTHONPATH}" )
       list( APPEND PYTHON_DEP_ENV_VARS "PYTHONHOME=${VIAME_PYTHON_USERBASE}" )
     else()
@@ -678,8 +682,8 @@ if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
-if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
-  if( NOT Python_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
+if( VIAME_ENABLE_VXL AND NOT VIAME_PYTHON_BUILD_PYTHON )
+  if( NOT Python_FOUND AND NOT VIAME_PYTHON_BUILD_PYTHON )
     message( FATAL_ERROR "If VXL is enabled, there must be some python install \
       located on the system to build, even if VIAME_ENABLE_PYTHON is turned off \
       for all other packages. A python binary could not be found. Please install \

@@ -155,7 +155,7 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTHON-INTERNAL AND UNIX )
+if( VIAME_PYTHON_BUILD_PYTHON AND UNIX )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "backports.lzma" "backports.weakref" )
 endif()
 
@@ -312,7 +312,7 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pymotmetrics )
 
 set( PROJECT_DEPS fletch python-deps )
 
-if( VIAME_SYMLINK_PYTHON )
+if( VIAME_PYTHON_SYMLINK )
   set( LIBRARY_PIP_BUILD_CMD
     ${Python_EXECUTABLE} setup.py build )
   set( LIBRARY_PIP_INSTALL_CMD
