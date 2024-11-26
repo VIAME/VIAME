@@ -232,12 +232,13 @@ if( VIAME_ENABLE_PYTORCH AND
   endif()
 
   if( VIAME_ENABLE_PYTORCH-VISION AND NOT VIAME_PYTORCH_BUILD_TORCHVISION )
-    if( VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL "2.0.0" )
-      set( TORCHVISION_CMD "torchvision==0.20.0" )
-    elseif( VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL "1.12.0" )
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.5.1" )
+      set( TORCHVISION_CMD "torchvision==0.20.1" )
+    elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" )
       set( TORCHVISION_CMD "torchvision==0.13.0" )
     else()
-      set( TORCHVISION_CMD "torchvision" )
+      message( FATAL_ERROR "Unknown PyTorch version, unable to select the "
+        "corresponding TorchVision wheel to use" )
     endif()
 
     list( APPEND VIAME_PYTHON_ADV_DEPS torchvision )
