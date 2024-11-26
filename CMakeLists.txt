@@ -120,7 +120,7 @@ mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 # Add core utilities enable flags
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
-option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
+option( VIAME_ENABLE_KWANT          "Enable KWANT Scoring Code"     OFF )
 option( VIAME_ENABLE_POSTGRESQL     "Enable PostgreSQL plugins"     OFF )
 
 if( WIN32 )
