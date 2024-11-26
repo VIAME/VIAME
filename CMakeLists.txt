@@ -178,6 +178,9 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   set( PYTORCH_INTERNAL_VERSION 2.5.1 CACHE INTERNAL "Internal pytorch version" )
+  set( PYTORCH_MIN_GCC          9.3   CACHE INTERNAL "Minimum GCC version for torch" )
+  set( PYTORCH_MIN_PYTHON_WHL   3.9   CACHE INTERNAL "Minimum python for torch whl" )
+  set( PYTORCH_MIN_PYTHON_BLD   3.8   CACHE INTERNAL "Minimum python for torch build" )
 
   option( VIAME_ENABLE_PYTORCH-VISION       "Enable TorchVision code"       ON )
   option( VIAME_ENABLE_PYTORCH-MMDET        "Enable mmdet PyTorch code"     ON )
@@ -466,8 +469,8 @@ if( VIAME_ENABLE_CUDA )
   endif()
 
   if( VIAME_BUILD_CHECKS AND CMAKE_COMPILER_IS_GNUCC AND
-      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0 )
-    message( FATAL_ERROR "GCC 13.0+ support is experimental and may not work. "
+      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 )
+    message( FATAL_ERROR "GCC 12.0+ support is experimental and may not work. "
       "To disable this warning, set VIAME_BUILD_CHECKS to FALSE." )
   endif()
 
@@ -689,8 +692,17 @@ if( VIAME_ENABLE_PYTORCH )
         "VIAME_PYTORCH_BUILD_PYTORCH flag set. Either change VIAME_PYTORCH_VERSION "
         "to ${PYTORCH_INTERNAL_VERSION} or disable the flag VIAME_PYTORCH_BUILD_PYTORCH." )
     elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
-            CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.3" )
-      message( FATAL_ERROR "PyTorch-INTERNAL requires at least GCC 9.3 to compile" )
+            CMAKE_CXX_COMPILER_VERSION VERSION_LESS "${PYTORCH_MIN_GCC}" )
+      message( FATAL_ERROR "VIAME_PYTORCH_BUILD_PYTORCH  requires at least GCC "
+        "${PYTORCH_MIN_GCC} to compile." )
+    elseif( Python_VERSION VERSION_LESS "${PYTORCH_MIN_PYTHON_BLD}" )
+      message( FATAL_ERROR "Building PyTorch, with VIAME_PYTORCH_BUILD_PYTORCH set to ON, "
+        " requires at least python ${PYTORCH_MIN_PYTHON_BLD}." )
+    endif()
+  else()
+    if( Python_VERSION VERSION_LESS "${PYTORCH_MIN_PYTHON_WHL}" )
+      message( FATAL_ERROR "PyTorch installations from pip, with internal building "
+        " turned off, requires at least python ${PYTORCH_MIN_PYTHON_WHL}." )
     endif()
   endif()
   if( VIAME_ENABLE_CUDA )
