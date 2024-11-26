@@ -181,6 +181,8 @@ if( VIAME_ENABLE_PYTORCH )
   set( PYTORCH_MIN_GCC          9.3   CACHE INTERNAL "Minimum GCC version for torch" )
   set( PYTORCH_MIN_PYTHON_WHL   3.9   CACHE INTERNAL "Minimum python for torch whl" )
   set( PYTORCH_MIN_PYTHON_BLD   3.8   CACHE INTERNAL "Minimum python for torch build" )
+  set( PYTORCH_MIN_CUDA_BLD     11.0  CACHE INTERNAL "Minimum cuda for torch build" )
+  set( PYTORCH_MIN_CUDNN_BLD    7.0   CACHE INTERNAL "Minimum cudnn for torch build" )
 
   option( VIAME_ENABLE_PYTORCH-VISION       "Enable TorchVision code"       ON )
   option( VIAME_ENABLE_PYTORCH-MMDET        "Enable mmdet PyTorch code"     ON )
@@ -712,8 +714,8 @@ if( VIAME_ENABLE_PYTORCH )
         NOT ( CUDA_VERSION VERSION_EQUAL "11.8" OR
               CUDA_VERSION VERSION_EQUAL "12.1" OR
               CUDA_VERSION VERSION_EQUAL "12.4" ) )
-      message( FATAL_ERROR "CUDA 11.5, 11.3 or 10.2 is required for VIAME_ENABLE_PYTORCH "
-        "with VIAME_PYTORCH_BUILD_PYTORCH off and using PyTorch 1.11.0. Either modify "
+      message( FATAL_ERROR "CUDA 12.4, 12.1 or 11.8 is required for VIAME_ENABLE_PYTORCH "
+        "with VIAME_PYTORCH_BUILD_PYTORCH off and using PyTorch 2.5.1. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
         NOT VIAME_PYTORCH_BUILD_PYTORCH AND
@@ -722,23 +724,16 @@ if( VIAME_ENABLE_PYTORCH )
       message( FATAL_ERROR "CUDA 11.7, or 11.6 is required for VIAME_ENABLE_PYTORCH "
         "with VIAME_PYTORCH_BUILD_PYTORCH off and using PyTorch 1.13.1. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
-    elseif( CUDA_VERSION VERSION_LESS "11.0" AND
-            VIAME_PYTORCH_BUILD_PYTORCH )
-      message( FATAL_ERROR "A CUDA version >= 11.0 is required for an internal build "
-        "of pytorch. Either disable VIAME_PYTORCH_BUILD_PYTORCH or downgrade CUDA." )
-    elseif( VIAME_PYTORCH_BUILD_TORCHVISION AND
-            CUDA_VERSION VERSION_LESS "11.0" )
-      message( FATAL_ERROR "VIAME_PYTORCH_BUILD_TORCHVISION requires at least CUDA 11.0" )
+    elseif( CUDA_VERSION VERSION_LESS "${PYTORCH_MIN_CUDA_BLD}" AND
+            ( VIAME_PYTORCH_BUILD_PYTORCH OR VIAME_PYTORCH_BUILD_TORCHVISION ) )
+      message( FATAL_ERROR "A CUDA version >= ${PYTORCH_MIN_CUDA_BLD} is required for "
+        "an internal build of PyTorch. Either disable VIAME_PYTORCH_BUILD_PYTORCH or "
+        "upgrade CUDA." )
     elseif( VIAME_PYTORCH_BUILD_PYTORCH AND
             VIAME_ENABLE_CUDNN AND
-            CUDNN_VERSION_MAJOR VERSION_LESS "7.0.0" )
-      message( FATAL_ERROR "CUDNN 7.0 or higher required for internal pytorch build" )
-    elseif( Python_VERSION VERSION_LESS "3.7.0" AND
-            VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL "1.11.0" )
-      message( FATAL_ERROR "At least Python 3.7 is required for PyTorch versions "
-        "greater than 1.11.0, either upgrade python or set VIAME_PYTORCH_VERSION "
-        "to be 1.10.X. If you think you have Python3.7+ installed, make sure you "
-        "also have the python header package installed, e.g. python3-dev." )
+            CUDNN_VERSION_MAJOR VERSION_LESS "${PYTORCH_MIN_CUDNN_BLD}" )
+      message( FATAL_ERROR "CUDNN ${PYTORCH_MIN_CUDNN_BLD} or higher required for "
+        "internal pytorch build with VIAME_PYTORCH_BUILD_PYTORCH set to ON" )
     elseif( VIAME_BUILD_CHECKS AND Python_VERSION VERSION_LESS "3.6.2" )
       message( FATAL_ERROR "Only python distributions  >= 3.6.2 are currently "
         "supported with pytorch enabled. Disable VIAME_BUILD_CHECKS to "
