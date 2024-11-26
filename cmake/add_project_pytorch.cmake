@@ -207,6 +207,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PATCHES_DIR}/torchvideo
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvideo )
     endif()
+  elseif( "${LIB}" STREQUAL "sam2" )
+    if( Python_VERSION VERSION_LESS "3.10" )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/sam2
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/sam2 )
+    endif()
   else()
     set( PROJECT_DEPS fletch python-deps pytorch )
   endif()
