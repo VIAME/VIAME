@@ -96,7 +96,6 @@ option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
-option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 
 ###
 # Add tertiary plugin enable flags (advanced)
@@ -106,6 +105,7 @@ option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
+option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 mark_as_advanced( VIAME_ENABLE_BURNOUT )
@@ -113,6 +113,7 @@ mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_LEARN )
 mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
+mark_as_advanced( VIAME_ENABLE_SMQTK )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
 ###
