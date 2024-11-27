@@ -11,7 +11,7 @@ CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
 set( PYTORCH_LIBS_TO_BUILD )
 
-if( VIAME_PYTORCH_BUILD_PYTORCH )
+if( VIAME_PYTORCH_BUILD_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 endif()
 

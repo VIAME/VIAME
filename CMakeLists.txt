@@ -203,10 +203,10 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-SAM )
 
-  option( VIAME_PYTORCH_BUILD_PYTORCH      "Build PyTorch from source"      OFF )
+  option( VIAME_PYTORCH_BUILD_FROM_SOURCE  "Build PyTorch from source"      OFF )
   option( VIAME_PYTORCH_BUILD_TORCHVISION  "Build TorchVision from source"  ON )
 
-  mark_as_advanced( VIAME_PYTORCH_BUILD_PYTORCH )
+  mark_as_advanced( VIAME_PYTORCH_BUILD_FROM_SOURCE )
   mark_as_advanced( VIAME_PYTORCH_BUILD_TORCHVISION )
 
   if( NOT CMAKE_GENERATOR STREQUAL "Ninja" )
@@ -215,7 +215,7 @@ if( VIAME_ENABLE_PYTORCH )
   endif()
 
   if( NOT VIAME_ENABLE_PYTORCH )
-    set( VIAME_PYTORCH_BUILD_PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
+    set( VIAME_PYTORCH_BUILD_FROM_SOURCE     OFF CACHE BOOL "Forced off" FORCE )
   endif()
   if( NOT VIAME_ENABLE_PYTORCH-VISION )
     set( VIAME_PYTORCH_BUILD_TORCHVISION OFF CACHE BOOL "Forced off" FORCE )
@@ -576,10 +576,10 @@ if( VIAME_ENABLE_PYTHON )
   set( KWIVER_SYMLINK_PYTHON ${VIAME_PYTHON_SYMLINK} ) # Required for KWIVER scripts
 
   # Should we build a version of python within VIAME itself
-  option( VIAME_PYTHON_BUILD_PYTHON "Build python within VIAME" OFF )
-  mark_as_advanced( VIAME_PYTHON_BUILD_PYTHON )
+  option( VIAME_PYTHON_BUILD_FROM_SOURCE "Build the actual CPython interpreter" OFF )
+  mark_as_advanced( VIAME_PYTHON_BUILD_FROM_SOURCE )
 
-  if( VIAME_PYTHON_BUILD_PYTHON )
+  if( VIAME_PYTHON_BUILD_FROM_SOURCE )
     set( VIAME_PYTHON_VERSION 3.10.4 CACHE STRING "Select the version of Python to build." )
     set_property( CACHE VIAME_PYTHON_VERSION PROPERTY STRINGS "3.6.15" "3.8.13" "3.10.4" )
     mark_as_advanced( VIAME_PYTHON_VERSION )
@@ -613,7 +613,7 @@ if( VIAME_ENABLE_PYTHON )
     set( VIAME_PYTHON_PATH
       ${PYBASE};${PYBASE}/site-packages;${PYBASE}/dist-packages
       CACHE INTERNAL ${PYTHON_PATH_DESC} )
-    if( NOT VIAME_PYTHON_BUILD_PYTHON )
+    if( NOT VIAME_PYTHON_BUILD_FROM_SOURCE )
       # If using system python on windows, add all possible path locations for
       # python packages in the system install just so they can be used in addition
       # to the ones within the VIAME install tree
@@ -642,7 +642,7 @@ if( VIAME_ENABLE_PYTHON )
     set( ADJ_INCLUDE_PATH "${VIAME_INSTALL_PREFIX}/include;$ENV{INCLUDE}" )
     set( ADJ_LIBRARY_PATH "${VIAME_INSTALL_PREFIX}/lib;${VIAME_INSTALL_PREFIX}/bin;$ENV{LIB}" )
 
-    if( VIAME_PYTHON_BUILD_PYTHON )
+    if( VIAME_PYTHON_BUILD_FROM_SOURCE )
       set( ENV{PYTHONPATH} "${VIAME_PYTHON_PATH};$ENV{PYTHONPATH}" )
       list( APPEND PYTHON_DEP_ENV_VARS "PYTHONHOME=${VIAME_PYTHON_USERBASE}" )
     else()
@@ -684,8 +684,8 @@ if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
-if( VIAME_ENABLE_VXL AND NOT VIAME_PYTHON_BUILD_PYTHON )
-  if( NOT Python_FOUND AND NOT VIAME_PYTHON_BUILD_PYTHON )
+if( VIAME_ENABLE_VXL AND NOT VIAME_PYTHON_BUILD_FROM_SOURCE )
+  if( NOT Python_FOUND AND NOT VIAME_PYTHON_BUILD_FROM_SOURCE )
     message( FATAL_ERROR "If VXL is enabled, there must be some python install \
       located on the system to build, even if VIAME_ENABLE_PYTHON is turned off \
       for all other packages. A python binary could not be found. Please install \
@@ -694,17 +694,17 @@ if( VIAME_ENABLE_VXL AND NOT VIAME_PYTHON_BUILD_PYTHON )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  if( VIAME_PYTORCH_BUILD_PYTORCH )
+  if( VIAME_PYTORCH_BUILD_FROM_SOURCE )
     if( NOT VIAME_PYTORCH_VERSION VERSION_EQUAL "${PYTORCH_INTERNAL_VERSION}" )
       message( FATAL_ERROR "Only PyTorch ${PYTORCH_INTERNAL_VERSION} support with "
-        "VIAME_PYTORCH_BUILD_PYTORCH flag set. Either change VIAME_PYTORCH_VERSION "
-        "to ${PYTORCH_INTERNAL_VERSION} or disable the flag VIAME_PYTORCH_BUILD_PYTORCH." )
+        "VIAME_PYTORCH_BUILD_FROM_SOURCE flag set. Either change VIAME_PYTORCH_VERSION "
+        "to ${PYTORCH_INTERNAL_VERSION} or disable the flag VIAME_PYTORCH_BUILD_FROM_SOURCE." )
     elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
             CMAKE_CXX_COMPILER_VERSION VERSION_LESS "${PYTORCH_MIN_GCC}" )
-      message( FATAL_ERROR "VIAME_PYTORCH_BUILD_PYTORCH  requires at least GCC "
+      message( FATAL_ERROR "VIAME_PYTORCH_BUILD_FROM_SOURCE  requires at least GCC "
         "${PYTORCH_MIN_GCC} to compile." )
     elseif( Python_VERSION VERSION_LESS "${PYTORCH_MIN_PYTHON_BLD}" )
-      message( FATAL_ERROR "Building PyTorch, with VIAME_PYTORCH_BUILD_PYTORCH set to ON, "
+      message( FATAL_ERROR "Building PyTorch, with VIAME_PYTORCH_BUILD_FROM_SOURCE set to ON, "
         " requires at least python ${PYTORCH_MIN_PYTHON_BLD}." )
     endif()
   elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "${PYTORCH_INTERNAL_VERSION}" )
@@ -716,30 +716,30 @@ if( VIAME_ENABLE_PYTORCH )
   endif()
   if( VIAME_ENABLE_CUDA )
     if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.5.1" AND
-        NOT VIAME_PYTORCH_BUILD_PYTORCH AND
+        NOT VIAME_PYTORCH_BUILD_FROM_SOURCE AND
         NOT ( CUDA_VERSION VERSION_EQUAL "11.8" OR
               CUDA_VERSION VERSION_EQUAL "12.1" OR
               CUDA_VERSION VERSION_EQUAL "12.4" ) )
       message( FATAL_ERROR "CUDA 12.4, 12.1 or 11.8 is required for VIAME_ENABLE_PYTORCH "
-        "with VIAME_PYTORCH_BUILD_PYTORCH off and using PyTorch 2.5.1. Either modify "
+        "with VIAME_PYTORCH_BUILD_FROM_SOURCE off and using PyTorch 2.5.1. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
-        NOT VIAME_PYTORCH_BUILD_PYTORCH AND
+        NOT VIAME_PYTORCH_BUILD_FROM_SOURCE AND
         NOT ( CUDA_VERSION VERSION_EQUAL "11.6" OR
               CUDA_VERSION VERSION_EQUAL "11.7" ) )
       message( FATAL_ERROR "CUDA 11.7, or 11.6 is required for VIAME_ENABLE_PYTORCH "
-        "with VIAME_PYTORCH_BUILD_PYTORCH off and using PyTorch 1.13.1. Either modify "
+        "with VIAME_PYTORCH_BUILD_FROM_SOURCE off and using PyTorch 1.13.1. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( CUDA_VERSION VERSION_LESS "${PYTORCH_MIN_CUDA_BLD}" AND
-            ( VIAME_PYTORCH_BUILD_PYTORCH OR VIAME_PYTORCH_BUILD_TORCHVISION ) )
+            ( VIAME_PYTORCH_BUILD_FROM_SOURCE OR VIAME_PYTORCH_BUILD_TORCHVISION ) )
       message( FATAL_ERROR "A CUDA version >= ${PYTORCH_MIN_CUDA_BLD} is required for "
-        "an internal build of PyTorch. Either disable VIAME_PYTORCH_BUILD_PYTORCH or "
+        "an internal build of PyTorch. Either disable VIAME_PYTORCH_BUILD_FROM_SOURCE or "
         "upgrade CUDA." )
-    elseif( VIAME_PYTORCH_BUILD_PYTORCH AND
+    elseif( VIAME_PYTORCH_BUILD_FROM_SOURCE AND
             VIAME_ENABLE_CUDNN AND
             CUDNN_VERSION_MAJOR VERSION_LESS "${PYTORCH_MIN_CUDNN_BLD}" )
       message( FATAL_ERROR "CUDNN ${PYTORCH_MIN_CUDNN_BLD} or higher required for "
-        "internal pytorch build with VIAME_PYTORCH_BUILD_PYTORCH set to ON" )
+        "internal pytorch build with VIAME_PYTORCH_BUILD_FROM_SOURCE set to ON" )
     elseif( VIAME_BUILD_CHECKS AND Python_VERSION VERSION_LESS "3.6.2" )
       message( FATAL_ERROR "Only python distributions  >= 3.6.2 are currently "
         "supported with pytorch enabled. Disable VIAME_BUILD_CHECKS to "
