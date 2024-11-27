@@ -32,7 +32,7 @@ if( ( WIN32 OR Python_VERSION VERSION_LESS "3.8" )
 endif()
 
 # For scoring and plotting
-list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver==1.2.0" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver<=1.4.7" )
 list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib<=3.6.2" )
 
 # For netharn and mmdet de-pickle on older versions
