@@ -215,10 +215,10 @@ if( VIAME_ENABLE_PYTORCH )
   endif()
 
   if( NOT VIAME_ENABLE_PYTORCH )
-    set( VIAME_PYTORCH_BUILD_FROM_SOURCE     OFF CACHE BOOL "Forced off" FORCE )
+    set( VIAME_PYTORCH_BUILD_FROM_SOURCE  OFF CACHE BOOL "Forced off" FORCE )
   endif()
   if( NOT VIAME_ENABLE_PYTORCH-VISION )
-    set( VIAME_PYTORCH_BUILD_TORCHVISION OFF CACHE BOOL "Forced off" FORCE )
+    set( VIAME_PYTORCH_BUILD_TORCHVISION  OFF CACHE BOOL "Forced off" FORCE )
   endif()
 endif()
 
@@ -291,35 +291,36 @@ endif()
 ###
 # Add macro-level package build options
 ##
-option( VIAME_BUILD_DEPENDENCIES    "Build all required dependencies in a super-build" ON )
+option( VIAME_BUILD_DEPENDENCIES "Build all required dependencies in a super-build" ON )
+mark_as_advanced( VIAME_BUILD_DEPENDENCIES )
 
-option( VIAME_FIXUP_BUNDLE          "Run fixup bundle on top of generated binaries"    OFF )
+option( VIAME_FIXUP_BUNDLE       "Run fixup bundle on top of generated binaries"    OFF )
 mark_as_advanced( VIAME_FIXUP_BUNDLE )
 
-option( VIAME_CREATE_INSTALLER      "Build a msi prototype installer using wix"        OFF )
+option( VIAME_CREATE_INSTALLER   "Build a msi prototype installer using wix"        OFF )
 mark_as_advanced( VIAME_CREATE_INSTALLER )
 
-option( VIAME_VERSION_RELEASE       "Install release scripts instead of development"   OFF )
+option( VIAME_VERSION_RELEASE    "Install release scripts instead of development"   OFF )
 mark_as_advanced( VIAME_VERSION_RELEASE )
 
 if( VIAME_CREATE_INSTALLER )
-  set( VIAME_FIXUP_BUNDLE ON CACHE BOOL "Flag forced due to create_package enable"     FORCE )
+  set( VIAME_FIXUP_BUNDLE ON CACHE BOOL "Flag forced due to create_package enable"  FORCE )
 endif()
 
 if( VIAME_FIXUP_BUNDLE )
-  set( VIAME_VERSION_RELEASE ON CACHE BOOL "Flag forced due to fixup_bundle enable"    FORCE )
+  set( VIAME_VERSION_RELEASE ON CACHE BOOL "Flag forced due to fixup_bundle enable" FORCE )
 endif()
 
 ###
 # Add extra options
 ##
-option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libtiff and libjpeg" ON )
+option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libpng"     ON )
 mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
-option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled"        OFF )
+option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled"     OFF )
 mark_as_advanced( VIAME_BUILD_TESTS )
 
-option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python"                 ON )
+option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python"              ON )
 mark_as_advanced( VIAME_BUILD_CHECKS )
 
 ###
