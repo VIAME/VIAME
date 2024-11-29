@@ -1,6 +1,6 @@
 
 # Identify root VIAME path
-export VIAME_DIR="$PWD/build/install"
+export VIAME_DIR="$PWD/install"
 
 if [ ! -d "$VIAME_DIR" ]; then
   if [ -d "/viame/" ]; then
