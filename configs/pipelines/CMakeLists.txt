@@ -368,6 +368,12 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
 #    train_detector_mmdet_cfrnn.conf)
 endif()
 
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    utilities_add_segmentations_default.pipe
+    utilities_add_segmentations_sam2.pipe )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_netharn_cfrnn.conf
