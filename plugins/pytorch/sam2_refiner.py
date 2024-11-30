@@ -26,6 +26,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 from kwiver.vital.algo import RefineDetections
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObjectType
@@ -100,8 +101,8 @@ class Sam2Refiner(RefineDetections):
 
         # kwiver configuration variables
         self._kwiver_config = {
-            'sam2_cfg': "configs/sam2.1/sam2.1_hiera_b+.yaml",
-            'sam2_checkpoint': 'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
+            'cfg': "configs/sam2.1/sam2.1_hiera_b+.yaml",
+            'checkpoint': 'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
             'device': "cuda",
 
             'hole_policy': 'allow',  # can be allow or discard
@@ -132,8 +133,8 @@ class Sam2Refiner(RefineDetections):
             # "++model.fill_hole_area=8",
         ]
         model = build_sam2(
-            config_file=self._kwiver_config['sam2_cfg'],
-            ckpt_path=self._kwiver_config['sam2_checkpoint'],
+            config_file=self._kwiver_config['cfg'],
+            ckpt_path=self._kwiver_config['checkpoint'],
             device=self._kwiver_config['device'],
             mode='eval',
             hydra_overrides_extra=hydra_overrides_extra,
@@ -143,9 +144,9 @@ class Sam2Refiner(RefineDetections):
         return True
 
     def check_configuration(self, cfg):
-        if not cfg.has_value("sam2_cfg"):
+        if not cfg.has_value("cfg"):
             print("Requires a path to a config file (relative to the repo")
-        if not cfg.has_value("sam2_checkpoint"):
+        if not cfg.has_value("checkpoint"):
             print("A checkpoint path to the weights needs to be specified!")
             return False
         return True
@@ -602,7 +603,7 @@ def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "sam2_refiner"
+    implementation_name = "sam2"
 
     if not algorithm_factory.has_algorithm_impl_name(
             Sam2Refiner.static_type_name(), implementation_name):
