@@ -72,11 +72,17 @@ class Sam2Refiner(RefineDetections):
         >>> #
         >>> output = self.refine(image_data, detections)
         >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot
+        >>> kwplot.autompl()
         >>> refined_dets = vital_detections_to_kwimage(output)
         >>> canvas1 = dets.draw_on(imdata.copy())
         >>> canvas2 = refined_dets.draw_on(imdata.copy())
+        >>> canvas1 = kwimage.draw_header_text(canvas1, 'Input Image / Detections')
+        >>> canvas2 = kwimage.draw_header_text(canvas2, 'Refined Detections')
         >>> canvas = kwimage.stack_images([canvas1, canvas2], axis=1, pad=10)
-        >>> kwimage.imwrite('sam2_refined.jpg', canvas)
+        >>> kwplot.imshow(canvas)
+        >>> kwplot.show_if_requested()
+        >>> # kwimage.imwrite('sam2_refined.jpg', canvas)  # For debugging
 
     Ignore:
         docker container cp interesting_williams:/home/sam2_refined.jpg sam2_refined.jpg && eog sam2_refined.jpg
