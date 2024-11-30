@@ -32,7 +32,9 @@ from kwiver.vital.types import DetectedObjectType
 from kwiver.vital.util import VitalPIL
 from kwiver.vital.types import ImageContainer
 from kwiver.vital.types import DetectedObject
+
 from PIL import Image as PILImage
+
 import numpy as np
 import math
 

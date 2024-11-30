@@ -97,3 +97,12 @@ if( VIAME_ENABLE_LEARN )
   
   
 endif()
+
+if( VIAME_ENABLE_PYTORCH-SAM )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam2_refiner.py
+      arrows/pytorch
+      sam2_refiner )
+
+endif()
