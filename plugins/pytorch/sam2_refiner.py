@@ -33,16 +33,59 @@ from kwiver.vital.util import VitalPIL
 from kwiver.vital.types import ImageContainer
 from kwiver.vital.types import DetectedObject
 from PIL import Image as PILImage
+import ubelt as ub
+import scriptconfig as scfg
 import numpy as np
 import math
 
 
+class Same2RefinerConfig(scfg.DataConfig):
+    """
+    The configuration for :class:`Sam2Refiner`.
+    """
+    sam2_cfg = scfg.Value("configs/sam2.1/sam2.1_hiera_b+.yaml", help=ub.paragraph(
+        '''
+        The name of the SAM2 configuration. Due to hydra, this needs to be a
+        path relative to the SAM2 repository.
+        '''))
+
+    sam2_checkpoint = scfg.Value('https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt', help=ub.paragraph(
+        '''
+        The path or URL to a SAM2 checkpoint containing weights corresponding
+        to the specified model.
+        '''))
+
+    device = scfg.Value("cuda", help=ub.paragraph(
+        '''
+        The device to run SAM2 prediction on.
+        '''))
+
+    hole_policy = scfg.Value('allow', choices=['allow', 'discard'], help=ub.paragraph(
+        '''
+        How to handle SAM2 masks that come back with holes. Allow will keep
+        them, and discard will simply fill them in.
+        '''))
+
+    multipolygon_policy = scfg.Value(
+        'allow', choices=['allow', 'convex_hull', 'concave_hull', 'largest'],
+        help=ub.paragraph(
+            '''
+            How to handle multipolygon results from SAM2 refinement.  Using
+            "allow" will keep them as is. Other options are different methods
+            that will remove or combine geometry into a single polygon.
+            '''))
+
+
 class Sam2Refiner(RefineDetections):
     """
-    Full-Frame Classifier around Detection Sets
+    Given existing detection sets, adds masks to them using their bounding boxes.
+
+    TODO:
+        - [ ] Add the ability to prompt from existing keypoints
+        - [ ] Add the ability to prompt from existing masks
 
     CommandLine:
-        xdoctest -m plugins/pytorch/sam2_refiner.py Sam2Refiner
+        xdoctest -m plugins/pytorch/sam2_refiner.py Sam2Refiner --show
 
     Example:
         >>> import torch
@@ -57,8 +100,9 @@ class Sam2Refiner(RefineDetections):
         >>>     sam2_checkpoint=sam2_checkpoint,
         >>>     sam2_cfg="configs/sam2.1/sam2.1_hiera_b+.yaml",  # needs to be relative to the modpath. Yuck.
         >>>     hole_policy="remove",
-        >>>     multipolygon_policy='largest',
+        >>>     #multipolygon_policy='largest',
         >>>     #multipolygon_policy='convex_hull',
+        >>>     multipolygon_policy='concave_hull',
         >>>     #multipolygon_policy='allow',
         >>> )
         >>> # Create the refiner and init SAM2
@@ -95,17 +139,8 @@ class Sam2Refiner(RefineDetections):
 
     def __init__(self):
         RefineDetections.__init__(self)
-
         # kwiver configuration variables
-        self._kwiver_config = {
-            'sam2_cfg': "configs/sam2.1/sam2.1_hiera_b+.yaml",
-            'sam2_checkpoint': 'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
-            'device': "cuda",
-
-            'hole_policy': 'allow',  # can be allow or discard
-            'multipolygon_policy': 'allow',  # can be allow, convex_hull, or largest
-        }
-
+        self._kwiver_config = Same2RefinerConfig()
         # netharn variables
         self._thresh = None
         self.predictor = None
@@ -160,6 +195,7 @@ class Sam2Refiner(RefineDetections):
         import torch
         import kwimage
         import numpy as np
+        import shapely
         from shapely.geometry import Polygon
         from shapely.geometry import MultiPolygon
 
@@ -200,10 +236,10 @@ class Sam2Refiner(RefineDetections):
         # TODO: we may like to make these configrable
         # Area requires rasterio
         # pixels_are = 'areas'
-        # origin_convention = 'corner'
+        origin_convention = 'corner'
 
         pixels_are = 'points'
-        origin_convention = 'center'
+        # origin_convention = 'center'
 
         needs_polygon_postprocess = not (
             (hole_policy == 'allow') and
@@ -253,6 +289,8 @@ class Sam2Refiner(RefineDetections):
                 if len(shape.geoms) > 1:
                     if mpoly_policy == 'convex_hull':
                         shape = shape.convex_hull
+                    elif mpoly_policy == 'concave_hull':
+                        shape = shapely.concave_hull(shape, allow_holes=True)
                     elif mpoly_policy == 'largest':
                         shape = max(shape.geoms, key=lambda p: p.area)
                     elif mpoly_policy == 'allow':
@@ -272,8 +310,6 @@ class Sam2Refiner(RefineDetections):
 
                 # Convert the polygon back to a mask
                 new_mpoly = kwimage.MultiPolygon.from_shapely(shape)
-                # import ubelt as ub
-                # print(f'new_mpoly = {ub.urepr(new_mpoly, nl=1)}')
                 new_mask = new_mpoly.to_mask(
                     dims=submask_dims,
                     pixels_are=pixels_are,
@@ -326,6 +362,7 @@ def kwimage_boxes_to_vital(boxes):
 
     Example:
         >>> # xdoctest: +REQUIRES(module:kwiver.vital)
+        >>> import kwimage
         >>> boxes = kwimage.Boxes.random(10)
         >>> kwimage_boxes_to_vital(boxes.scale(100).astype(np.int8))
         >>> kwimage_boxes_to_vital(boxes.scale(100).astype(np.int32))
@@ -369,11 +406,12 @@ def kwimage_detections_to_vital(kwimage_dets):
         kwimage_dets (kwimage.Detections):
 
     Returns:
-        DetectedObjectSet: converted detections
+        vital.types.DetectedObjectSet: converted detections
 
     Example:
         >>> # xdoctest: +REQUIRES(module:kwiver.vital)
         >>> # Test with everything
+        >>> import kwimage
         >>> dets = kwimage.Detections.random(10, segmentations=True).scale(64)
         >>> vital_dets = kwimage_detections_to_vital(dets)
         >>> # Test without segmentations
@@ -414,6 +452,10 @@ def kwimage_detections_to_vital(kwimage_dets):
             detobjkw['confidence'] = score
 
         if sseg is not None:
+            offset = [int(math.ceil(bbox.min_x())), int(math.ceil(bbox.min_y()))]
+            bottom = [int(math.floor(bbox.max_x())), int(math.floor(bbox.max_y()))]
+            dsize = np.maximum(np.array(bottom) - np.array(offset), 0)
+            dims = tuple(map(int, dsize[::-1]))
             # Convert the segmentation to vital
             # Convert whatever type of kwimage segmenation it is into a mask
             # This might be incorrect... is there a way to determine
@@ -423,11 +465,7 @@ def kwimage_detections_to_vital(kwimage_dets):
             # TODO: in kwimage to denote which space masks belong to.
             if hasattr(sseg, 'to_relative_mask'):
                 # sseg is a Polygon, and has this method
-                offset = [int(math.ceil(bbox.min_x())), int(math.ceil(bbox.min_y()))]
-                bottom = [int(math.floor(bbox.max_x())), int(math.floor(bbox.max_y()))]
-                dsize = np.array(bottom) - np.array(offset)
-                dims = tuple(map(int, dsize[::-1]))
-                mask = kwimage_new_to_relative_mask(sseg, offset=offset, dims=dims)
+                relative_sseg = kwimage_new_to_relative_mask(sseg, offset=offset, dims=dims)
                 # If mask is not relative use:
                 # x1, y1, x2, y2 = sseg.to_boxes().to_ltrb().data[0]
                 # image_dims = (int(math.ceil(y2)), int(math.ceil(x2)))
@@ -435,14 +473,16 @@ def kwimage_detections_to_vital(kwimage_dets):
             else:
                 # sseg is probably a mask already
                 # TODO: handle relativeness
-                mask = sseg.data.to_c_mask()
-                print('case2')
-                raise NotImplementedError('implement correctly if needed')
+                if sseg.data.format.endswith('_rle'):
+                    relative_sseg = sseg.data.translate(-np.array(offset), output_dims=dims)
+                else:
+                    raise NotImplementedError('implement correctly if needed')
 
-            nd_mask = mask.to_c_mask().data
-            vital_mask = vital_image_container_from_ndarray(nd_mask)
+            relative_mask = relative_sseg.to_c_mask().data
+            vital_mask = vital_image_container_from_ndarray(relative_mask)
             detobjkw['mask'] = vital_mask
 
+        # TODO: if probs given as ndarray, can give class-specific scores
         if classes is not None and class_idx is not None:
             label = classes[class_idx]
             detobjkw['classifications'] = DetectedObjectType(label, score)
@@ -478,11 +518,23 @@ def kwimage_new_to_relative_mask(self, offset=None, dims=None, return_offset=Fal
 
     if dims is None:
         dims = (
-            x - offset[0] + w,
-            x - offset[1] + h
+            max(y - offset[1] + h, 0),
+            max(x - offset[0] + w, 0),
         )
     translation = tuple(-p for p in offset)
-    mask = self.translate(translation).to_mask(dims=dims)
+    if any(d <= 0 for d in dims):
+        import kwimage
+        mask = kwimage.Mask.coerce(np.empty(dims, dtype=np.uint8))
+    else:
+        try:
+            mask = self.translate(translation).to_mask(dims=dims)
+        except Exception:
+            import ubelt as ub
+            print('error')
+            print(f'dims = {ub.urepr(dims, nl=0)}')
+            print(f'translation = {ub.urepr(translation, nl=0)}')
+            print(f'self = {ub.urepr(self, nl=0)}')
+            raise
     if return_offset:
         offset = (x, y)
         return mask, offset
@@ -502,19 +554,21 @@ def vital_detections_to_kwimage(vital_dets):
 
     Example:
         >>> # xdoctest: +REQUIRES(module:kwiver.vital)
-        >>> kwimage_dets = kwimage.Detections.random(10, segmentations=True).scale(256)
+        >>> import kwimage
+        >>> kwimage_dets = kwimage.Detections.random(10, rng=0, segmentations=True).scale(256)
         >>> vital_dets = kwimage_detections_to_vital(kwimage_dets)
         >>> # Do some round trips
         >>> recon_kwimage_dets1 = vital_detections_to_kwimage(vital_dets)
         >>> recon_vital_dets1 = kwimage_detections_to_vital(recon_kwimage_dets1)
         >>> recon_kwimage_dets2 = vital_detections_to_kwimage(recon_vital_dets1)
-        >>> # should be the same
-        >>> print([p.area for p in kwimage_dets.data['segmentations']])
+        >>> # FIXME: these should be the same or very close
+        >>> print([round(p.area, 1) for p in kwimage_dets.data['segmentations']])
         >>> print([p.to_multi_polygon().area for p in recon_kwimage_dets1.data['segmentations']])
         >>> print([p.to_multi_polygon().area for p in recon_kwimage_dets2.data['segmentations']])
         >>> for i in range(10):
-        >>>     print(recon_kwimage_dets1.data['segmentations'][i].data.to_c_mask().data.sum())
-        >>>     print(recon_kwimage_dets2.data['segmentations'][i].data.to_c_mask().data.sum())
+        >>>     a = (recon_kwimage_dets1.data['segmentations'][i].data.to_c_mask().data.sum())
+        >>>     b = (recon_kwimage_dets2.data['segmentations'][i].data.to_c_mask().data.sum())
+        >>>     print(a, b)
     """
     import kwimage
     boxes = []
