@@ -47,6 +47,7 @@ class Sam2Refiner(RefineDetections):
     Example:
         >>> import torch
         >>> import kwimage
+        >>> import ubelt as ub
         >>> print(torch.cuda.is_available())
         >>> sam2_checkpoint = ub.grabdata(
         >>>     'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
@@ -55,6 +56,10 @@ class Sam2Refiner(RefineDetections):
         >>> cfg_in = dict(
         >>>     sam2_checkpoint=sam2_checkpoint,
         >>>     sam2_cfg="configs/sam2.1/sam2.1_hiera_b+.yaml",  # needs to be relative to the modpath. Yuck.
+        >>>     hole_policy="remove",
+        >>>     multipolygon_policy='largest',
+        >>>     #multipolygon_policy='convex_hull',
+        >>>     #multipolygon_policy='allow',
         >>> )
         >>> # Create the refiner and init SAM2
         >>> self = Sam2Refiner()
@@ -82,10 +87,10 @@ class Sam2Refiner(RefineDetections):
         >>> canvas = kwimage.stack_images([canvas1, canvas2], axis=1, pad=10)
         >>> kwplot.imshow(canvas)
         >>> kwplot.show_if_requested()
-        >>> # kwimage.imwrite('sam2_refined.jpg', canvas)  # For debugging
+        >>> kwimage.imwrite('sam2_refined.jpg', canvas)  # For debugging
 
     Ignore:
-        docker container cp interesting_williams:/home/sam2_refined.jpg sam2_refined.jpg && eog sam2_refined.jpg
+        docker container cp amazing_boyd:/home/sam2_refined.jpg sam2_refined.jpg && eog sam2_refined.jpg
     """
 
     def __init__(self):
@@ -96,6 +101,9 @@ class Sam2Refiner(RefineDetections):
             'sam2_cfg': "configs/sam2.1/sam2.1_hiera_b+.yaml",
             'sam2_checkpoint': 'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
             'device': "cuda",
+
+            'hole_policy': 'allow',  # can be allow or discard
+            'multipolygon_policy': 'allow',  # can be allow, convex_hull, or largest
         }
 
         # netharn variables
@@ -152,6 +160,8 @@ class Sam2Refiner(RefineDetections):
         import torch
         import kwimage
         import numpy as np
+        from shapely.geometry import Polygon
+        from shapely.geometry import MultiPolygon
 
         if len(detections) == 0:
             return DetectedObjectSet()
@@ -184,6 +194,24 @@ class Sam2Refiner(RefineDetections):
             if len(masks.shape) == 3:
                 masks = masks[None, :, :, :]
 
+        hole_policy = self._kwiver_config['hole_policy']
+        mpoly_policy = self._kwiver_config['multipolygon_policy']
+
+        # TODO: we may like to make these configrable
+        # Area requires rasterio
+        # pixels_are = 'areas'
+        # origin_convention = 'corner'
+
+        pixels_are = 'points'
+        origin_convention = 'center'
+
+        needs_polygon_postprocess = not (
+            (hole_policy == 'allow') and
+            (mpoly_policy == 'allow')
+        )
+        print(f'hole_policy={hole_policy}')
+        print(f'mpoly_policy={mpoly_policy}')
+
         # Insert modified detections into a new DetectedObjectSet
         output = DetectedObjectSet()
         for vital_det, binmask in zip(detections, masks[:, 0, :, :]):
@@ -191,8 +219,68 @@ class Sam2Refiner(RefineDetections):
             # Extract the new mask info relative to the vital box
             box = vital_box_to_kwiamge(vital_det.bounding_box)
             sl = box.quantize().to_slice()
-            relative_submask = binmask[sl]
-            # Does this need to be relative to the bbox?
+            relative_submask: np.ndarray = binmask[sl]
+            submask_dims: tuple = relative_submask.shape[0:2]
+
+            if needs_polygon_postprocess:
+                # Depending on the configuration we convert the mask to a
+                # multipolygon postprocess it, and then convert back.
+                kw_mask = kwimage.Mask.coerce(relative_submask)
+                kw_mpoly = kw_mask.to_multi_polygon(
+                    pixels_are=pixels_are,
+                    origin_convention=origin_convention,
+                )
+                # print(f'kw_mpoly.data={kw_mpoly.data}')
+                # print(f'kw_mpoly={kw_mpoly}')
+                # kw_mpoly = kw_mpoly.fix()
+
+                try:
+                    shape = kw_mpoly.to_shapely()
+                except ValueError:
+                    # Workaround issue that can happen with not enough
+                    # coordinates for a linearring
+                    new_parts = []
+                    for kw_poly in kw_mpoly.data:
+                        try:
+                            new_part = kw_poly.to_shapely()
+                        except ValueError:
+                            ...
+                        else:
+                            new_parts.append(new_part)
+                    shape = MultiPolygon(new_parts)
+
+                assert shape.type == 'MultiPolygon'
+                if len(shape.geoms) > 1:
+                    if mpoly_policy == 'convex_hull':
+                        shape = shape.convex_hull
+                    elif mpoly_policy == 'largest':
+                        shape = max(shape.geoms, key=lambda p: p.area)
+                    elif mpoly_policy == 'allow':
+                        ...
+                    else:
+                        raise KeyError(mpoly_policy)
+                    if shape.type == 'Polygon':
+                        shape = MultiPolygon([shape])
+
+                assert shape.type == 'MultiPolygon'
+                if hole_policy == 'remove':
+                    shape = MultiPolygon([Polygon(p.exterior) for p in shape.geoms])
+                elif hole_policy == 'allow':
+                    ...
+                else:
+                    raise KeyError(hole_policy)
+
+                # Convert the polygon back to a mask
+                new_mpoly = kwimage.MultiPolygon.from_shapely(shape)
+                # import ubelt as ub
+                # print(f'new_mpoly = {ub.urepr(new_mpoly, nl=1)}')
+                new_mask = new_mpoly.to_mask(
+                    dims=submask_dims,
+                    pixels_are=pixels_are,
+                    origin_convention=origin_convention,
+                )
+                relative_submask = new_mask.data
+
             new_vital_mask = vital_image_container_from_ndarray(relative_submask)
             # Create a new detected object (should we modify inplace?)
             new_det = DetectedObject(
