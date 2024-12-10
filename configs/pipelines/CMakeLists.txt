@@ -48,6 +48,15 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
+  # SAM2 generic segmentation model
+  if( VIAME_ENABLE_PYTORCH-SAM )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/6757401e9ccf870f61ceacb9/download
+      7ae9f9582750262c17e601cc5781d381
+      ${VIAME_DOWNLOAD_DIR}/models-sam2_v1.0.zip
+      ${CMAKE_CURRENT_SOURCE_DIR} )
+  endif()
+
   # Motion detection model
   if( VIAME_DOWNLOAD_MODELS-MOTION )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
