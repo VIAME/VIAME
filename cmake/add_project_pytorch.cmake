@@ -11,11 +11,11 @@ CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
 set( PYTORCH_LIBS_TO_BUILD )
 
-if( VIAME_ENABLE_PYTORCH-INTERNAL )
+if( VIAME_PYTORCH_BUILD_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
+if( VIAME_PYTORCH_BUILD_TORCHVISION )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
 
@@ -47,8 +47,8 @@ if( VIAME_ENABLE_PYTORCH-DETECTRON )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} detectron2 )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-SEGMENT-ANY )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} segment-anything )
+if( VIAME_ENABLE_PYTORCH-SAM )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} sam2 )
 endif()
 
 if( VIAME_ENABLE_TENSORRT )
@@ -70,7 +70,7 @@ if( VIAME_ENABLE_CUDNN )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH-DISABLE-NINJA )
+if( VIAME_PYTORCH_DISABLE_NINJA )
   list( APPEND PYTORCH_ENV_VARS "USE_NINJA=OFF" )
 endif()
 
@@ -92,6 +92,10 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND PYTORCH_ENV_VARS "MMCV_WITH_OPS=1" )
+endif()
+
+if( VIAME_PYTORCH_BUILD_TORCHVISION AND NOT WIN32 )
+  list( APPEND PYTORCH_ENV_VARS "TORCHVISION_USE_PNG=0" )
 endif()
 
 if( WIN32 AND VIAME_ENABLE_LEARN AND Python_VERSION VERSION_GREATER "3.7" )
@@ -122,7 +126,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PIP_BUILD_DIR_CMD -b ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_CACHE_DIR_CMD --cache-dir ${LIBRARY_PIP_CACHE_DIR} )
 
-  if( VIAME_SYMLINK_PYTHON )
+  if( VIAME_PYTHON_SYMLINK )
     set( LIBRARY_PIP_BUILD_CMD
       ${Python_EXECUTABLE} setup.py build )
     set( LIBRARY_PIP_INSTALL_CMD
@@ -164,7 +168,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS mmdetection )
   elseif( "${LIB}" STREQUAL "mmdetection" )
     set( PROJECT_DEPS fletch mmcv )
-    if( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
+    if( VIAME_ENABLE_PYTORCH-VISION )
       set( PROJECT_DEPS ${PROJECT_DEPS} torchvision )
     endif()
   elseif( "${LIB}" STREQUAL "pytorch" )
@@ -206,6 +210,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/torchvideo
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvideo )
+    endif()
+  elseif( "${LIB}" STREQUAL "sam2" )
+    if( Python_VERSION VERSION_LESS "3.10" )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/sam2
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/sam2 )
     endif()
   else()
     set( PROJECT_DEPS fletch python-deps pytorch )
