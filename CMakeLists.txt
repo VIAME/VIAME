@@ -78,6 +78,7 @@ option( VIAME_ENABLE_VIVIA          "Enable VIVIA GUIs"             OFF )
 option( VIAME_ENABLE_SEAL           "Enable SEAL GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_KEYPOINT       "Enable Keypoint GUI"           OFF )
+option( VIAME_ENABLE_ONNX           "Enable onnxruntime"            ON )
 
 mark_as_advanced( VIAME_ENABLE_KEYPOINT )
 
@@ -863,6 +864,10 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_TENSORRT )
     include( add_project_tensorrt )
+  endif()
+
+  if ( VIAME_ENABLE_ONNX)
+    include( add_project_onnx )
   endif()
 
   if( VIAME_ENABLE_PYTORCH )
