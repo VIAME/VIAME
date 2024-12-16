@@ -78,7 +78,6 @@ option( VIAME_ENABLE_VIVIA          "Enable VIVIA GUIs"             OFF )
 option( VIAME_ENABLE_SEAL           "Enable SEAL GUI"               OFF )
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_KEYPOINT       "Enable Keypoint GUI"           OFF )
-option( VIAME_ENABLE_ONNX           "Enable onnxruntime"            ON )
 
 mark_as_advanced( VIAME_ENABLE_KEYPOINT )
 
@@ -90,6 +89,7 @@ option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
+option( VIAME_ENABLE_ONNX           "Enable onnxruntime"            ON )
 
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
