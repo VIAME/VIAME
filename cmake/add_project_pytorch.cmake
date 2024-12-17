@@ -237,7 +237,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   if ("${LIB}" STREQUAL "mmdeploy")
 
-    set( ONNXRUNTIME_DIR ${VIAME_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING}/site-packages/onnxruntime/onnxruntimelibs )
+    set( ONNXRUNTIME_DIR ${VIAME_PYTHON_INSTALL}/site-packages/onnxruntime/onnxruntimelibs )
     set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
     file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
 
@@ -264,7 +264,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
       LIST_SEPARATOR "----" )
 
-    set( MMDEPLOY_INSTALL_DIR ${VIAME_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING}/site-packages/mmdeploy)
+    set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy)
     ExternalProject_Add_Step(${LIB}
       postinstall
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBRARY_LOCATION}/configs ${MMDEPLOY_INSTALL_DIR}/configs
