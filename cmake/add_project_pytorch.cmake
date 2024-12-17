@@ -237,21 +237,21 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   if ("${LIB}" STREQUAL "mmdeploy")
 
-    set(ONNXRUNTIME_DIR ${VIAME_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING}/site-packages/onnxruntime/onnxruntimelibs)
-    set(LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build)
-    file(MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR})
+    set( ONNXRUNTIME_DIR ${VIAME_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING}/site-packages/onnxruntime/onnxruntimelibs )
+    set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
+    file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
 
     set( LIBRARY_CPP_CONFIG
       ${CMAKE_COMMAND}
       -DMMDEPLOY_TARGET_BACKENDS=ort
       -DONNXRUNTIME_DIR=${ONNXRUNTIME_DIR}
       -S "${LIBRARY_LOCATION}"
-      -B "${LIBRARY_CPP_BUILD_DIR}")
+      -B "${LIBRARY_CPP_BUILD_DIR}" )
 
     set( LIBRARY_CPP_BUILD
-      ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}")
+      ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}" )
     set( LIBRARY_CPP_INSTALL
-      ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}")
+      ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}" )
 
     ExternalProject_Add( ${LIB}
       DEPENDS ${PROJECT_DEPS}
@@ -262,16 +262,16 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       CONFIGURE_COMMAND ${LIBRARY_CPP_CONFIG}
       BUILD_COMMAND ${LIBRARY_CPP_BUILD} && ${LIBRARY_CPP_INSTALL} && ${LIBRARY_PYTHON_BUILD}
       INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-      LIST_SEPARATOR "----")
+      LIST_SEPARATOR "----" )
 
-    set(MMDEPLOY_INSTALL_DIR ${VIAME_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING}/site-packages/mmdeploy)
+    set( MMDEPLOY_INSTALL_DIR ${VIAME_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING}/site-packages/mmdeploy)
     ExternalProject_Add_Step(${LIB}
       postinstall
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBRARY_LOCATION}/configs ${MMDEPLOY_INSTALL_DIR}/configs
-      DEPENDEES install)
+      DEPENDEES install )
 
   else()
-      ExternalProject_Add( ${LIB}
+    ExternalProject_Add( ${LIB}
       DEPENDS ${PROJECT_DEPS}
       PREFIX ${VIAME_BUILD_PREFIX}
       SOURCE_DIR ${LIBRARY_LOCATION}
