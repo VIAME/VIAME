@@ -89,7 +89,7 @@ option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
-option( VIAME_ENABLE_ONNX           "Enable ONNX runtime plugins"   ON )
+option( VIAME_ENABLE_ONNX           "Enable ONNX runtime plugins"   OFF )
 
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
