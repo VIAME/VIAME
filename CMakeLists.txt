@@ -605,6 +605,7 @@ if( VIAME_ENABLE_PYTHON )
 
   set( PYBASE ${VIAME_BUILD_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING} )
   set( VIAME_PYTHON_INSTALL ${PYBASE} CACHE INTERNAL "VIAME Python install path" )
+  set( VIAME_PYTHON_PACKAGES ${PYBASE}/site-packages CACHE INTERNAL "Internal site-packages" )
   set( VIAME_PYTHON_USERBASE "${VIAME_INSTALL_PREFIX}" )
 
   # Add PYTHON_PATH variables internal to the VIAME build tree, e.g. things installed
