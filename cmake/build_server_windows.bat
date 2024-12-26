@@ -72,11 +72,11 @@ COPY "%CUDA_ROOT%\bin\cublasLt64_12.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cudart64_12.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cudnn_adv64_9.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cudnn_cnn64_9.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_engines_precompiled64_9" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_engines_runtime_compiled64_9" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_graph64_9.dll" %VIAME_INSTALL_DIR%\bin
+COPY "%CUDA_ROOT%\bin\cudnn_heuristic64_9.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cudnn_ops64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_graph64_9" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_heuristic64_9" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cudnn64_9.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cufft64_11.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cufftw64_11.dll" %VIAME_INSTALL_DIR%\bin
