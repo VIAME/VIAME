@@ -173,8 +173,9 @@ set( CORE_PIPELINE_FILES
   filter_default.pipe
   filter_draw_dets.pipe
   filter_enhance.pipe
-  filter_left.pipe
   filter_split_and_debayer.pipe
+  filter_split_left_side.pipe
+  filter_split_right_side.pipe
   filter_stereo_depth_map.pipe
   filter_to_kwa.pipe
   filter_to_video.pipe
