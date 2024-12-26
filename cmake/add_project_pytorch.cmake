@@ -186,11 +186,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/pytorch
         ${VIAME_PACKAGES_DIR}/pytorch )
-    elseif( Python_VERSION VERSION_EQUAL "3.10" AND
-            VIAME_PYTHON_BUILD_FROM_SOURCE )
-      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${VIAME_PATCHES_DIR}/iopath
-        ${VIAME_PYTHON_PACKAGES}/iopath )
     endif()
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
