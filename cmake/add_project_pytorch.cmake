@@ -186,6 +186,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/pytorch
         ${VIAME_PACKAGES_DIR}/pytorch )
+    elseif( Python_VERSION VERSION_EQUAL "3.10" AND
+            VIAME_PYTHON_BUILD_FROM_SOURCE )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/iopath
+        ${VIAME_PYTHON_PACKAGES}/iopath )
     endif()
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
@@ -237,7 +242,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   if ("${LIB}" STREQUAL "mmdeploy")
 
-    set( ONNXRUNTIME_DIR ${VIAME_PYTHON_INSTALL}/site-packages/onnxruntime/onnxruntimelibs )
+    set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
     set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
     file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
 
