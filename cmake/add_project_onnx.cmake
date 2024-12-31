@@ -19,8 +19,8 @@ else()
 endif()
 
 # Instead of building the wheel, we download it directly in the build folder
-set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download 
-  -no-deps onnxruntime==1.12.1 -d "${ONNXRUNTIME_PIP_BUILD_DIR}" )
+set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download
+  --no-deps onnxruntime==1.12.1 -d "${ONNXRUNTIME_PIP_BUILD_DIR}" )
 set( ONNXRUNTIME_PYTHON_INSTALL ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
   "TMPDIR=${ONNXRUNTIME_PIP_TMP_DIR}" ${ONNXRUNTIME_PIP_INSTALL_CMD} )
 
