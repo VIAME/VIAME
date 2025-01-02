@@ -248,10 +248,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       -S "${LIBRARY_LOCATION}"
       -B "${LIBRARY_CPP_BUILD_DIR}" )
 
-    set( LIBRARY_CPP_BUILD
-      ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}" )
-    set( LIBRARY_CPP_INSTALL
-      ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}" )
+    set(LIBRARY_CPP_BUILD ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}")
+    set(LIBRARY_CPP_INSTALL ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}")
+    if ((CMAKE_CONFIGURATION_TYPES STREQUAL "Release") OR (CMAKE_BUILD_TYPE STREQUAL "Release"))
+      list( APPEND LIBRARY_CPP_BUILD --config Release)
+      list( APPEND LIBRARY_CPP_INSTALL --config Release)
+    endif()
 
     ExternalProject_Add( ${LIB}
       DEPENDS ${PROJECT_DEPS}
