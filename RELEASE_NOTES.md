@@ -1,4 +1,4 @@
-v0.21.0 - 12/15/2024
+v0.21.0 - 1/15/2024
 ===================
 
 
@@ -24,6 +24,9 @@ v0.21.0 - 12/15/2024
 
 
 -Update release CUDA version from 11.3 to 12.4, requires driver updates for some
+
+
+-Update DIVE interface with some new features (e.g. bulk download, current frame dets only opt)
 
 
 
