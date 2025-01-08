@@ -272,7 +272,11 @@ def _kwimage_to_kwiver_detections(detections):
     if 'segmentations' in detections.data:
         segmentations = detections.data['segmentations']
 
-    boxes = detections.boxes.to_tlbr()
+    try:
+        boxes = detections.boxes.to_ltrb()
+    except Exception:
+        boxes = detections.boxes.to_tlbr()
+
     scores = detections.scores
     class_idxs = detections.class_idxs
 
