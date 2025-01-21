@@ -820,13 +820,17 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_python_deps )
   endif()
 
-  # Add optional projects dependend on by other projects
+  # Add optional projects depended on by other projects
   if( VIAME_ENABLE_DARKNET )
     include( add_project_darknet )
   endif()
 
   if( VIAME_ENABLE_BURNOUT )
     include( add_project_burnout )
+  endif()
+
+  if( VIAME_ENABLE_POSTGRESQL )
+    include( add_project_postgres )
   endif()
 
   if( VIAME_ENABLE_SMQTK )
@@ -839,10 +843,6 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 
   # Add other optional libraries
-  if( VIAME_ENABLE_POSTGRESQL )
-    include( add_project_postgres )
-  endif()
-
   if( VIAME_ENABLE_SCALLOP_TK )
     include( add_project_scallop_tk )
   endif()
