@@ -33,11 +33,10 @@ from kwiver.vital.algo import (
     TrainDetector
 )
 
-from distutils.util import strtobool
-from shutil import copyfile
+# from distutils.util import strtobool
 
 # import numpy as np
-import torch
+# import torch
 import os
 import shutil
 import signal
@@ -50,6 +49,7 @@ import time
 from .netharn_utils import recurse_copy
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
+from ._utils import vital_config_update
 
 import scriptconfig as scfg
 import ubelt as ub
@@ -77,7 +77,14 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
 
     categories = []
 
-    lr = scfg.Value(3e-4, help='learning rate')
+    max_epochs = scfg.Value(500, help='Maximum number of epochs to train for')
+    batch_size = scfg.Value(4, help='Number of chips per batch.')
+    learning_rate = scfg.Value(3e-4, help='Learning rate for gradient update steps.')
+
+    pipeline_template = ""
+
+    def __post_init__(self):
+        super().__post_init__()
 
 
 class MITYoloTrainer( KWCocoTrainDetector ):
@@ -86,186 +93,36 @@ class MITYoloTrainer( KWCocoTrainDetector ):
     """
     def __init__( self ):
         TrainDetector.__init__( self )
+        self._config = MITYoloConfig()
 
-        self._identifier = "viame-netharn-detector"
-        self._mode = "detector"
-        self._arch = ""
-        self._seed_model = ""
-        self._train_directory = "deep_training"
-        self._output_directory = "category_models"
-        self._output_prefix = "custom_cfrnn"
-        self._output_plots = True
-        self._pipeline_template = ""
-        self._gpu_count = -1
-        self._tmp_training_file = "training_truth.json"
-        self._tmp_validation_file = "validation_truth.json"
-        self._augmentation = "complex"
-        self._gt_frames_only = False
-        self._chip_width = "640"
-        self._chip_height = "-1"
-        self._chip_overlap = "0.20"
-        self._chip_method = "use_box"
-        self._chip_extension = ".png"
-        self._chip_expansion = 1.0
-        self._max_epochs = "50"
-        self._batch_size = "auto"
-        self._bstep = "4"
-        self._learning_rate = "auto"
-        self._scheduler = "auto"
-        self._timeout = "1209600"
-        self._epoch_ignore_count = "2"
-        self._backbone = ""
-        self._pipeline_template = ""
-        self._categories = []
-        self._resize_option = "original_and_resized"
-        self._max_scale_wrt_chip = 2.0
-        self._no_format = False
-        self._allow_unicode = "auto" if os.name == "nt" else "False"
-        self._aux_image_labels = ""
-        self._aux_image_extensions = ""
-        self._area_lower_bound = 0
-        self._area_upper_bound = 0
-        self._border_exclude = -1
-        self._detector_model = ""
-        self._min_overlap_for_association = 0.90
-        self._max_overlap_for_negative = 0.05
-        self._max_neg_per_frame = 5
-        self._negative_category = "background"
-        self._reduce_category = ""
-        self._scale_type_file = ""
-        self._multi_output = False
-
-    def get_configuration( self ):
+    def get_configuration(self):
         # Inherit from the base class
-        cfg = super( TrainDetector, self ).get_configuration()
-
-        cfg.set_value( "identifier", self._identifier )
-        cfg.set_value( "mode", self._mode )
-        cfg.set_value( "arch", self._arch )
-        cfg.set_value( "seed_model", self._seed_model )
-        cfg.set_value( "train_directory", self._train_directory )
-        cfg.set_value( "output_directory", self._output_directory )
-        cfg.set_value( "output_prefix", self._output_prefix )
-        cfg.set_value( "output_plots", str( self._output_plots ) )
-        cfg.set_value( "pipeline_template", self._pipeline_template )
-        cfg.set_value( "gpu_count", str( self._gpu_count ) )
-        cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
-        cfg.set_value( "augmentation", str( self._augmentation ) )
-        cfg.set_value( "chip_width", str( self._chip_width ) )
-        cfg.set_value( "chip_height", str( self._chip_height ) )
-        cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
-        cfg.set_value( "chip_method", str( self._chip_method ) )
-        cfg.set_value( "chip_extension", self._chip_extension )
-        cfg.set_value( "chip_expansion", str( self._chip_expansion ) )
-        cfg.set_value( "max_epochs", str( self._max_epochs ) )
-        cfg.set_value( "batch_size", self._batch_size )
-        cfg.set_value( "bstep", self._bstep )
-        cfg.set_value( "learning_rate", self._learning_rate )
-        cfg.set_value( "scheduler", self._scheduler )
-        cfg.set_value( "timeout", self._timeout )
-        cfg.set_value( "epoch_ignore_count", self._epoch_ignore_count )
-        cfg.set_value( "backbone", self._backbone )
-        cfg.set_value( "pipeline_template", self._pipeline_template )
-        cfg.set_value( "max_scale_wrt_chip", str( self._max_scale_wrt_chip ) )
-        cfg.set_value( "no_format", str( self._no_format ) )
-        cfg.set_value( "allow_unicode", str( self._allow_unicode ) )
-        cfg.set_value( "aux_image_labels", str( self._aux_image_labels ) )
-        cfg.set_value( "aux_image_extensions", str( self._aux_image_extensions ) )
-        cfg.set_value( "area_lower_bound", str( self._area_lower_bound ) )
-        cfg.set_value( "area_upper_bound", str( self._area_upper_bound ) )
-        cfg.set_value( "border_exclude", str( self._border_exclude ) )
-        cfg.set_value( "detector_model", str( self._detector_model ) )
-        cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
-        cfg.set_value( "negative_category", self._negative_category )
-        cfg.set_value( "reduce_category", self._reduce_category )
-        cfg.set_value( "scale_type_file", self._scale_type_file )
-        cfg.set_value( "multi_output", str( self._multi_output ) )
-
+        print('[MITYoloTrainer] get_configuration')
+        cfg = super().get_configuration()
+        for key, value in self._config.items():
+            cfg.set_value(key, str(value))
         return cfg
 
-    def set_configuration( self, cfg_in ):
+    def set_configuration(self, cfg_in):
+        print('[MITYoloTrainer] set_configuration')
         cfg = self.get_configuration()
-        cfg.merge_config( cfg_in )
+        vital_config_update(cfg, cfg_in)
+        for key in self._config.keys():
+            self._config[key] = str(cfg.get_value(key))
+        self._config.__post_init__()
 
-        # Read configs from file
-        self._identifier = str( cfg.get_value( "identifier" ) )
-        self._mode = str( cfg.get_value( "mode" ) )
-        self._arch = str( cfg.get_value( "arch" ) )
-        self._seed_model = str( cfg.get_value( "seed_model" ) )
-        self._train_directory = str( cfg.get_value( "train_directory" ) )
-        self._output_directory = str( cfg.get_value( "output_directory" ) )
-        self._output_prefix = str( cfg.get_value( "output_prefix" ) )
-        self._output_plots = strtobool( cfg.get_value( "output_plots" ) )
-        self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
-        self._gpu_count = int( cfg.get_value( "gpu_count" ) )
-        self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
-        self._augmentation = str( cfg.get_value( "augmentation" ) )
-        self._chip_width = str( cfg.get_value( "chip_width" ) )
-        self._chip_height = str( cfg.get_value( "chip_height" ) )
-        self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
-        self._chip_method = str( cfg.get_value( "chip_method" ) )
-        self._chip_extension = str( cfg.get_value( "chip_extension" ) )
-        self._chip_expansion = float( cfg.get_value( "chip_expansion" ) )
-        self._max_epochs = str( cfg.get_value( "max_epochs" ) )
-        self._batch_size = str( cfg.get_value( "batch_size" ) )
-        self._bstep = str( cfg.get_value( "bstep" ) )
-        self._scheduler = str( cfg.get_value( "scheduler" ) )
-        self._timeout = str( cfg.get_value( "timeout" ) )
-        self._epoch_ignore_count = str( cfg.get_value( "epoch_ignore_count" ) )
-        self._backbone = str( cfg.get_value( "backbone" ) )
-        self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
-        self._max_scale_wrt_chip = float( cfg.get_value( "max_scale_wrt_chip" ) )
-        self._no_format = strtobool( cfg.get_value( "no_format" ) )
-        self._allow_unicode = str( cfg.get_value( "allow_unicode" ) )
-        self._aux_image_labels = str( cfg.get_value( "aux_image_labels" ) )
-        self._aux_image_extensions = str( cfg.get_value( "aux_image_extensions" ) )
-        self._area_lower_bound = float( cfg.get_value( "area_lower_bound" ) )
-        self._area_upper_bound = float( cfg.get_value( "area_upper_bound" ) )
-        self._border_exclude = float( cfg.get_value( "border_exclude" ) )
-        self._detector_model = str( cfg.get_value( "detector_model" ) )
-        self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
-        self._negative_category = str( cfg.get_value( "negative_category" ) )
-        self._reduce_category = str( cfg.get_value( "reduce_category" ) )
-        self._scale_type_file = str( cfg.get_value( "scale_type_file" ) )
-        self._multi_output = strtobool( cfg.get_value( "multi_output" ) )
+        # Hack in the previous style configuration as class variables prefixed
+        # with an underscore. Ideally we would just access these via the config
+        # object as a single source of truth
+        for key, value in self._config.items():
+            setattr(self, "_" + key, value)
 
-        # Check GPU-related variables
-        gpu_memory_available = 0
-        gpu_param_adj = 1
+        self._post_config_set()
+        return True
 
-        if torch.cuda.is_available():
-            if self._gpu_count < 0:
-                self._gpu_count = torch.cuda.device_count()
-                gpu_param_adj = self._gpu_count
-            for i in range( self._gpu_count ):
-                single_gpu_mem = torch.cuda.get_device_properties( i ).total_memory
-                if gpu_memory_available == 0:
-                    gpu_memory_available = single_gpu_mem
-                else:
-                    gpu_memory_available = min( gpu_memory_available, single_gpu_mem )
-
-        if self._mode == "detector":
-            if self._batch_size == "auto":
-                if len( self._aux_image_labels ) > 0:
-                    if gpu_memory_available >= 22e9:
-                        self._batch_size = str( 2 * gpu_param_adj )
-                    else:
-                        self._batch_size = str( 1 * gpu_param_adj )
-                elif gpu_memory_available > 9.5e9:
-                    self._batch_size = str( 4 * gpu_param_adj )
-                elif gpu_memory_available >= 7.5e9:
-                    self._batch_size = str( 3 * gpu_param_adj )
-                elif gpu_memory_available >= 4.5e9:
-                    self._batch_size = str( 2 * gpu_param_adj )
-                else:
-                    self._batch_size = str( 1 * gpu_param_adj )
-            if self._learning_rate == "auto":
-                self._learning_rate = str( 1e-3 )
-            if self._scheduler == "auto":
-                self._scheduler = "ReduceLROnPlateau-p2-c2"
-        else:
-            print( "Invalid mode string " + self._mode )
-            return False
+    def _post_config_set(self):
+        print('[MITYoloTrainer] _post_config_set')
+        assert self._config['mode'] == "detector"
 
         # Make required directories and file streams
         if self._train_directory is not None:
@@ -293,13 +150,13 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             self._validation_writer = DetectedObjectSetOutput.create( "coco" )
 
             writer_conf = self._training_writer.get_configuration()
-            writer_conf.set_value( "aux_image_labels", self._aux_image_labels )
-            writer_conf.set_value( "aux_image_extensions", self._aux_image_extensions )
+            # writer_conf.set_value( "aux_image_labels", self._aux_image_labels )
+            # writer_conf.set_value( "aux_image_extensions", self._aux_image_extensions )
             self._training_writer.set_configuration( writer_conf )
 
             writer_conf = self._validation_writer.get_configuration()
-            writer_conf.set_value( "aux_image_labels", self._aux_image_labels )
-            writer_conf.set_value( "aux_image_extensions", self._aux_image_extensions )
+            # writer_conf.set_value( "aux_image_labels", self._aux_image_labels )
+            # writer_conf.set_value( "aux_image_extensions", self._aux_image_extensions )
             self._validation_writer.set_configuration( writer_conf )
 
             self._training_writer.open( self._training_file )
@@ -310,25 +167,14 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
         # Load object detector if enabled
         if self._detector_model:
-            self._detector = ImageObjectDetector.create( "netharn" )
+            self._detector = ImageObjectDetector.create( "yolo" )
             detector_config = self._detector.get_configuration()
             detector_config.set_value( "deployed", self._detector_model )
             if not self._detector.set_configuration( detector_config ):
                 print( "Unable to configure detector" )
                 return False
 
-        # Load scale based on type file if enabled
-        self._target_type_scales = dict()
-        if self._scale_type_file:
-            fin = open( self._scale_type_file, 'r' )
-            for line in fin.readlines():
-                line = line.rstrip()
-                parsed_line = line.split()
-                if len( parsed_line ) < 1:
-                    continue
-                target_area = float( parsed_line[-1] )
-                type_str = str( ' '.join( parsed_line[:-1] ) )
-                self._target_type_scales[type_str] = target_area
+        # QUESTION: Do we need to handle "scale type file"?
 
         # Other misc setting adjustments
         if self._chip_extension and self._chip_extension[0] != '.':
@@ -343,7 +189,21 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         self._training_data = []
         self._validation_data = []
         self._sample_count = 0
-        return True
+
+    def _ensure_format_writers(self):
+        if not self._no_format:
+            self._training_writer.complete()
+            self._validation_writer.complete()
+
+            # hack, need to fixup the writers
+            import kwcoco
+            paths_to_fix = [self._training_file, self._validation_file]
+            for fpath in paths_to_fix:
+                fpath = ub.Path(fpath)
+                if fpath.exists():
+                    dset = kwcoco.CocoDataset(fpath)
+                    dset.conform()
+                    dset.dump()
 
     def check_configuration( self, cfg ):
         if not cfg.has_value( "identifier" ) or len( cfg.get_value( "identifier") ) == 0:
@@ -352,35 +212,31 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         return True
 
     def update_model( self ):
-        if not self._no_format:
-            self._training_writer.complete()
-            self._validation_writer.complete()
+        self._ensure_format_writers()
 
         # We may be forced to write to the config directory where the code
         # lives due to hydra. It would be nice to find a way around this.
-        import xdev
-        xdev.embed()
-
         import yolo.config
         import json
+        # yolo_modpath = ub.Path(yolo.__file__).parent
+
         config_dpath = (ub.Path(yolo.config.__file__).parent / 'dataset')
 
         # Prepare the dataset config for hydra
         dataset_config = {}
+        dataset_config['path'] = os.fspath('.')
         dataset_config['train'] = os.fspath(self._training_file)
+        # FIXME: not sure why validation file not written
         if self._validation_file:
             dataset_config['validation'] = os.fspath(self._validation_file)
+        else:
+            dataset_config['validation'] = None
         dataset_config['class_list'] = self._categories
         dataset_config['class_num'] = len(self._categories)
         cfgid = ub.hash_data(dataset_config, base='hex')[0:16]
-        dataset_config_name = f'dataset_config_{cfgid}.yaml'
+        dataset_config_name = f'dataset_config_{cfgid}'
         dataset_config_fpath = config_dpath / f'{dataset_config_name}.yaml'
         dataset_config_fpath.write_text(json.dumps(dataset_config))
-
-        self._validation_file
-        self._categories
-
-        gpu_string = ','.join([ str(i) for i in range(0, self._gpu_count) ])
 
         cmd = [ "python.exe" if os.name == 'nt' else "python", "-m" ]
 
@@ -396,24 +252,11 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             f"accelerator={self._accelerator}",
             f"task.data.batch_size={self._batch_size}",
             f"task.optimizer.args.lr={self._learning_rate}",
+            f"task.epoch={self._max_epochs}",
         ]
 
-        cmd += [ "--train_dataset=" + self._training_file,
-                 "--vali_dataset=" + self._validation_file,
-                 "--workdir=" + self._train_directory,
-                 "--xpu=" + gpu_string,
-                 "--schedule=" + self._scheduler,
-                 "--ignore_first_epochs=" + self._epoch_ignore_count,
-                 "--workers=4",
-                 "--normalize_inputs=True",
-                 "--init=noop",
-                 "--optim=sgd",
-                 "--augmenter=" + self._augmentation,
-                 "--max_epoch=" + self._max_epochs,
-                 "--batch_size=" + self._batch_size,
-                 "--lr=" + self._learning_rate,
-                 "--timeout=" + self._timeout,
-                 "--sampler_backend=none" ]
+        self.proc = subprocess.Popen( cmd )
+        self.proc.wait()
 
         if len( self._seed_model ) > 0:
             cmd.append( 'weight="{self._seed_model}"' )
@@ -443,32 +286,29 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
     def save_final_model( self ):
         if len( self._pipeline_template ) > 0:
-            raise NotImplementedError
 
             # Copy model file to final directory
-            output_model_name = "trained_detector.zip"
+            output_model_name = "trained_mit_yolo_checkpoint.ckpt"
 
-            final_model = os.path.join( self._train_directory, "fit", "nice", self._identifier, "deploy.zip" )
-            output_model = os.path.join( self._output_directory, output_model_name )
+            train_dpath = ub.Path(self._train_directory)
+            output_dpath = ub.Path(self._output_directory)
+            checkpoint_dpath = train_dpath / 'train' / self._identifier / 'checkpoints'
+            candiate_checkpoints = sorted(checkpoint_dpath.glob('*'))
+            if len(candiate_checkpoints) == 0:
+                raise Exception('no checkpoints found')
+            final_ckpt_fpath = candiate_checkpoints[-1]
 
-            if not os.path.exists( final_model ):
+            output_model = output_dpath / output_model_name
+
+            if not final_ckpt_fpath.exists():
                 print( "\nModel failed to finsh training\n" )
                 sys.exit( 0 )
 
-            copyfile( final_model, output_model )
-
-            if self._output_plots:
-                eval_folder = os.path.join( self._train_directory, "fit", "nice", self._identifier, "eval" )
-                eval_output = os.path.join( self._output_directory, "model_evaluation" )
-                if os.path.exists( eval_output ):
-                    shutil.rmtree( eval_output )
-                os.mkdir( eval_output )
-                if os.path.exists( eval_folder ):
-                    recurse_copy( eval_folder, eval_output )
+            final_ckpt_fpath.copy( output_model )
 
             # Copy pipeline file
             fin = open( self._pipeline_template )
-            fout = open( os.path.join( self._output_directory, "detector.pipe" ), 'w' )
+            fout = open( self._output_directory / "detector.pipe", 'w' )
             all_lines = []
             for s in list( fin ):
                 all_lines.append( s )
@@ -486,26 +326,6 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             print( "\nThe " + self._train_directory + " directory can now be deleted, "
                    "unless you want to review training metrics or generated plots in "
                    "there first." )
-
-
-def _vital_config_update(cfg, cfg_in):
-    """
-    Treat a vital Config object like a python dictionary
-
-    Args:
-        cfg (kwiver.vital.config.config.Config): config to update
-        cfg_in (dict | kwiver.vital.config.config.Config): new values
-    """
-    # vital cfg.merge_config doesnt support dictionary input
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError('cfg has no key={}'.format(key))
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
 
 
 def __vital_algorithm_register__():

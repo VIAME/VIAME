@@ -52,6 +52,23 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     arrows/pytorch
     netharn_utils )
 
+  # TODO: should likely go in their own if block as they depend on the MIT YOLO
+  # fork.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/_utils.py
+    arrows/pytorch
+    _utils )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/mit_yolo_trainer.py
+    arrows/pytorch
+    mit_yolo_trainer )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_train_detector.py
+    arrows/pytorch
+    kwcoco_train_detector )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MDNET )
@@ -89,11 +106,11 @@ if( VIAME_ENABLE_LEARN )
       ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_detector.py
       arrows/pytorch
       remax_dino_detector )
-  
+
   kwiver_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_trainer.py
       arrows/pytorch
       remax_dino_trainer )
-  
-  
+
+
 endif()
