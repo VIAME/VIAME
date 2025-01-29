@@ -36,6 +36,7 @@ import random
 # import ubelt as ub
 from PIL import Image
 import scriptconfig as scfg
+from distutils.util import strtobool
 
 # from kwiver.vital.types import Image
 from kwiver.vital.types import ImageContainer
@@ -56,9 +57,9 @@ class KWCocoTrainDetectorConfig(scfg.DataConfig):
     border_exclude = -1
     chip_expansion = 1.0
     chip_extension = '.png'
-    chip_height = '640'
     chip_method = 'use_box'
-    chip_width = '640'
+    chip_height = 640
+    chip_width = 640
     detector_model = ''
     gt_frames_only = False
     max_neg_per_frame = 5
@@ -70,13 +71,37 @@ class KWCocoTrainDetectorConfig(scfg.DataConfig):
     no_format = False
     reduce_category = ''
 
+    def __post_init__(self):
+        super().__post_init__()
+        if isinstance(self.gt_frames_only, str):
+            self.gt_frames_only = strtobool(self.gt_frames_only)
+        if isinstance(self.no_format, str):
+            self.no_format = strtobool(self.no_format)
+
+        import kwutil
+        self.area_lower_bound = kwutil.Yaml.coerce(self.area_lower_bound)
+        self.area_upper_bound = kwutil.Yaml.coerce(self.area_upper_bound)
+        self.border_exclude = kwutil.Yaml.coerce(self.border_exclude)
+        self.chip_expansion = kwutil.Yaml.coerce(self.chip_expansion)
+        self.chip_height = kwutil.Yaml.coerce(self.chip_height)
+        self.chip_width = kwutil.Yaml.coerce(self.chip_width)
+        self.max_scale_wrt_chip = kwutil.Yaml.coerce(self.max_scale_wrt_chip)
+        self.min_overlap_for_association = kwutil.Yaml.coerce(self.min_overlap_for_association)
+        self.max_neg_per_frame = kwutil.Yaml.coerce(self.max_neg_per_frame)
+        self.max_overlap_for_negative = kwutil.Yaml.coerce(self.max_overlap_for_negative)
+
 
 class KWCocoTrainDetector(TrainDetector):
     """
     Base class for detector trainers that can operate on kwcoco files
     """
+    def __init__( self ):
+        TrainDetector.__init__( self )
+        self._config = KWCocoTrainDetectorConfig()
 
     def filter_truth( self, init_truth, categories ):
+        print('[KWCocoTrainDetector] filter_truth')
+
         filtered_truth = DetectedObjectSet()
         use_frame = True
         max_length = int( self._max_scale_wrt_chip * float( self._chip_width ) )
@@ -110,6 +135,7 @@ class KWCocoTrainDetector(TrainDetector):
         return filtered_truth, use_frame
 
     def compute_scale_factor( self, detections, min_scale=0.10, max_scale=10.0 ):
+        print('[KWCocoTrainDetector] compute_scale_factor')
         cumulative = 0.0
         count = 0
         for i, item in enumerate( detections ):
@@ -137,6 +163,7 @@ class KWCocoTrainDetector(TrainDetector):
         return output
 
     def extract_chips_for_dets( self, image_files, truth_sets ):
+        print('[KWCocoTrainDetector] extract_chips_for_dets')
         import cv2
         output_files = []
         output_dets = []
@@ -390,6 +417,7 @@ class KWCocoTrainDetector(TrainDetector):
         return [ output_files, output_dets ]
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
+        print('[KWCocoTrainDetector] add_data_from_disk')
         print("Number of selected test files : ", len(test_files))
 
         if self._no_format:
