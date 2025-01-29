@@ -702,6 +702,9 @@ class MITYoloTrainer( TrainDetector ):
 
         # We may be forced to write to the config directory where the code
         # lives due to hydra. It would be nice to find a way around this.
+        import xdev
+        xdev.embed()
+
         import yolo.config
         import json
         config_dpath = (ub.Path(yolo.config.__file__).parent / 'dataset')
@@ -853,7 +856,7 @@ def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "netharn"
+    implementation_name = "mit_yolo"
 
     if algorithm_factory.has_algorithm_impl_name( MITYoloTrainer.static_type_name(), implementation_name ):
         return
