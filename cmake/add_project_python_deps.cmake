@@ -128,6 +128,7 @@ endif()
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" "ndsampler<=0.8.0" "pygments" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx<=2.8.8" "pandas<=1.5.3" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "kwutil<=0.3.3" )
 
   if( Python_VERSION VERSION_LESS "3.10" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.15.0" "kwcoco==0.2.31" )
