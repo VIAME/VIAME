@@ -475,6 +475,7 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     utility_add_head_tail_keypoints.pipe
     utility_enhance.pipe
     utility_extract_chips.pipe
+    train_detector_mit_yolo_640.conf
     train_detector_darknet_yolo_704.habcam.conf
     train_detector_darknet_yolo_704.kw18.conf
     train_detector_darknet_yolo_full_res.no_grid.conf
