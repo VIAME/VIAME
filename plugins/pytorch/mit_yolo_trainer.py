@@ -38,7 +38,6 @@ from kwiver.vital.algo import (
 # import numpy as np
 # import torch
 import os
-import shutil
 import signal
 import sys
 import subprocess
@@ -46,7 +45,6 @@ import threading
 import time
 # import math
 
-from .netharn_utils import recurse_copy
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
 from ._utils import vital_config_update
@@ -63,13 +61,11 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
     train_directory = "deep_training"
     output_directory = "category_models"
     seed_model = ""
-    gpu_count = -1
+
     tmp_training_file = "training_truth.json"
     tmp_validation_file = "validation_truth.json"
-    device = scfg.Value("cuda", help=ub.paragraph(
-        '''
-        The device to run SAM2 prediction on.
-        '''))
+    accelerator = scfg.Value('auto', help='lightning accelerator. Can be cpu, gpu, or auto')
+
     out_path = scfg.Value('allow', help=ub.paragraph(
         '''
         Where to save results
@@ -81,7 +77,7 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
     batch_size = scfg.Value(4, help='Number of chips per batch.')
     learning_rate = scfg.Value(3e-4, help='Learning rate for gradient update steps.')
 
-    pipeline_template = ""
+    pipeline_template = ""  # is this necessary?
 
     def __post_init__(self):
         super().__post_init__()
@@ -211,15 +207,17 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             return False
         return True
 
-    def update_model( self ):
-        self._ensure_format_writers()
+    def _write_yolo_configuration(self):
+        """
+        The YOLO hydra configuration requires a config file on disk in a
+        specific location.
+        """
+        import yolo.config
+        import json
 
         # We may be forced to write to the config directory where the code
         # lives due to hydra. It would be nice to find a way around this.
-        import yolo.config
-        import json
         # yolo_modpath = ub.Path(yolo.__file__).parent
-
         config_dpath = (ub.Path(yolo.config.__file__).parent / 'dataset')
 
         # Prepare the dataset config for hydra
@@ -237,10 +235,21 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         dataset_config_name = f'dataset_config_{cfgid}'
         dataset_config_fpath = config_dpath / f'{dataset_config_name}.yaml'
         dataset_config_fpath.write_text(json.dumps(dataset_config))
+        hydra_config_info = {
+            'dataset_config_name': dataset_config_name,
+            'dataset_config_fpath': dataset_config_fpath,
+        }
+        return hydra_config_info
 
-        cmd = [ "python.exe" if os.name == 'nt' else "python", "-m" ]
+    def update_model( self ):
+        self._ensure_format_writers()
+
+        hydra_config_info = self._write_yolo_configuration()
+        dataset_config_name = hydra_config_info['dataset_config_name']
 
         self._accelerator = 'auto'
+
+        cmd = [ "python.exe" if os.name == 'nt' else "python", "-m" ]
         cmd += [
             "yolo.lazy",
             "task=train",
