@@ -264,16 +264,26 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             f"task.epoch={self._max_epochs}",
         ]
 
-        self.proc = subprocess.Popen( cmd )
-        self.proc.wait()
+        train_dpath = ub.Path(self._train_directory)
+        yolo_train_dpath = (train_dpath / 'train' / self._identifier)
 
         if len( self._seed_model ) > 0:
             cmd.append( 'weight="{self._seed_model}"' )
+
+        # dont need to do this, patched the repo to provide this feature
+        if 0:
+            # Make a call to resolve the hydra configuration so we can package it
+            # with the model.
+            train_config_text = subprocess.check_output( cmd + ['-c', 'job'], universal_newlines=True )
+            yolo_train_dpath.ensuredir()
+            train_config_fpath = (yolo_train_dpath / 'viame_train_config.yaml')
+            train_config_fpath.write_text(train_config_text)
 
         if threading.current_thread().__class__.__name__ == '_MainThread':
             signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
             signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
+        # Execute the training process
         self.proc = subprocess.Popen( cmd )
         self.proc.wait()
 

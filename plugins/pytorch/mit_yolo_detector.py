@@ -49,7 +49,7 @@ class MITYoloConfig(scfg.DataConfig):
     """
     The configuration for :class:`MITYoloDetector`.
     """
-    weights = scfg.Value(None, help='path to a checkpoint on disk')
+    weight = scfg.Value(None, help='path to a checkpoint on disk')
     # accelerator = scfg.Value('auto', help='lightning accelerator. Can be cpu, gpu, or auto')
     device = scfg.Value('auto', help='a torch device string or number')
 
@@ -75,13 +75,13 @@ class MITYoloDetector(ImageObjectDetector):
         >>> from pytorch.mit_yolo_detector import *  # NOQA
         >>> import kwimage
         >>> #
-        >>> weights = ub.Path('~/code/YOLO-v9/viame-runs/train/viame-test/checkpoints/epoch=499-step=129000.ckpt').expand()
+        >>> weight = ub.Path('~/code/YOLO-v9/viame-runs/train/viame-test/checkpoints/epoch=499-step=129000.ckpt').expand()
         >>> #
         >>> self = MITYoloDetector()
         >>> print(f'self = {ub.urepr(self, nl=1)}')
         >>> image_data = MITYoloDetector.demo_image()
         >>> cfg_in = dict(
-        >>>     weights=weights,
+        >>>     weight=weight,
         >>>     device='cuda:0',
         >>> )
         >>> self.set_configuration(cfg_in)
@@ -142,10 +142,6 @@ class MITYoloDetector(ImageObjectDetector):
         return cfg
 
     def _build_model(self):
-        # import sys
-        # from pathlib import Path
-        # import torch
-
         import pathlib
         import os
         import torch
@@ -160,15 +156,28 @@ class MITYoloDetector(ImageObjectDetector):
             # draw_bboxes,
         )
         from yolo import PostProcess
+        import tempfile
+        import kwutil
+
+        weight_fpath = ub.Path(self._kwiver_config['weight'])
+
+        train_config_fpath = weight_fpath.parent / 'train_config.yaml'
+        if train_config_fpath.exists():
+            train_config = kwutil.Yaml.load(train_config_fpath)
+            # class_list = train_config['dataset']['class_list']
+        else:
+            raise Exception("Cannot introspect model config")
 
         # Create a dummy path to keep the API happy
-        import tempfile
         fake_image_path = tempfile.mktemp()
+
+        # temp_config_dpath = ub.Path(tempfile.mkdtemp()).ensuredir()
+        # inference_config_fpath = temp_config_dpath / 'config.yaml'
+        # train_config_fpath.copy(inference_config_fpath)
 
         # This is annoying that we cant just specify an absolute path when it is
         # robustly built. Furthermore, the relative path seems like it isn't even
         # from the cwd, but the module that is currently being run.
-
         # Find the path that we need to be relative to in a somewhat portable
         # manner (i.e. will work in a Jupyter snippet).
         try:
@@ -187,13 +196,22 @@ class MITYoloDetector(ImageObjectDetector):
             else:
                 device = torch.device('cpu')
 
-        weights_fpath = self._kwiver_config.weights
+        weights_fpath = self._kwiver_config.weight
         print(f'weights_fpath={weights_fpath}')
         config_name = 'config'
         model = 'v9-c'
 
-        # TODO: read the dataset config based on what was used at train time
-        dataset_name = 'viame-v05-noscallop'
+        train_config['dataset']
+
+        # Write into the config dir a file that we can use for inference
+        # TODO: it would be very nice if we could do this outside of the yolo
+        # python module.
+        dataset_config = train_config['dataset']
+        cfgid = ub.hash_data(dataset_config, base='hex')[0:16]
+        dataset_config_name = f'dataset_config_{cfgid}'
+        dataset_config_dpath = ub.Path(config_path) / 'dataset'
+        dataset_config_fpath = dataset_config_dpath / f'{dataset_config_name}.yaml'
+        dataset_config_fpath.write_text(kwutil.Yaml.dumps(dataset_config))
 
         with initialize(config_path=config_path, version_base=None, job_name="mit_yolo_detector"):
             # Use the hydra system to populate the expected configuration,
@@ -205,7 +223,9 @@ class MITYoloDetector(ImageObjectDetector):
                     f"task.data.source={fake_image_path}",
                     f"model={model}",
                     f"weight='{weights_fpath}'",
-                    f"dataset='{dataset_name}'",
+                    f'dataset={dataset_config_name}',
+                    # f"dataset.class_list={class_list}",
+                    # f"dataset.class_num={len(class_list)}",
                     "use_wandb=False",
                 ]
             )
@@ -240,9 +260,9 @@ class MITYoloDetector(ImageObjectDetector):
         return True
 
     def check_configuration(self, cfg):
-        if not cfg.has_value("deployed"):
-            print("A network deploy file must be specified!")
-            return False
+        # if not cfg.has_value("deployed"):
+        #     print("A network deploy file must be specified!")
+        #     return False
         return True
 
     def detect(self, image_data):
