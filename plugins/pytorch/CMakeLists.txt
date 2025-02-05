@@ -52,6 +52,11 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     arrows/pytorch
     netharn_utils )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_detector.py
+    arrows/pytorch
+    ultralytics_detector )
+
 endif()
 
 if (VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET AND VIAME_ENABLE_PYTORCH-MMDET)
