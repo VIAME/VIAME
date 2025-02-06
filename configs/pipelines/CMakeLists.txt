@@ -498,7 +498,6 @@ endif()
 ###
 # Perform actual installation steps
 ##
-message(STATUS "CORE_PIPELINE_FILES = ${CORE_PIPELINE_FILES}")
 install( FILES       ${CORE_PIPELINE_FILES}
          DESTINATION configs/pipelines )
 install( DIRECTORY   templates
