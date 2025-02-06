@@ -407,6 +407,11 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_reclassifier_netharn_resnet.conf )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_mit_yolo_640.conf)
+endif()
+
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_short_term_tracker.pipe
@@ -475,7 +480,6 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     utility_add_head_tail_keypoints.pipe
     utility_enhance.pipe
     utility_extract_chips.pipe
-    #train_detector_mit_yolo_640.conf
     train_detector_darknet_yolo_704.habcam.conf
     train_detector_darknet_yolo_704.kw18.conf
     train_detector_darknet_yolo_full_res.no_grid.conf
