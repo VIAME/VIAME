@@ -11,7 +11,6 @@ RUN export DEBIAN_FRONTEND=noninteractive \
   && sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo \
   && sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* \
   && sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* \
-  && yum update \
   && yum install -y git \
   && git clone -b next https://github.com/VIAME/VIAME.git /viame \ 
   && cd /viame/cmake \
