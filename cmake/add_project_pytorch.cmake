@@ -151,9 +151,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     # replace direct calls to setup.py with `python -m build`
     if( "${LIB}" STREQUAL "MIT-YOLO" )
       # For now just use -m build with MIT-YOLO
+      message(STATUS "Python_EXECUTABLE = ${Python_EXECUTABLE}")
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} -m build
           --wheel
+          --no-isolation
           --outdir ${LIBRARY_PIP_BUILD_DIR}
       )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
