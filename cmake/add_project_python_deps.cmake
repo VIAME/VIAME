@@ -138,6 +138,16 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN )
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ultralytics<=8.3.71" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" )
+  if( Python_VERSION VERSION_LESS "3.10" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco==0.2.31" )
+  else()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco==0.8.5" )
+  endif()
+endif()
+
 if( Python_VERSION VERSION_LESS "3.7" AND
     ( VIAME_ENABLE_PYTORCH-PYSOT OR VIAME_ENABLE_SMQTK ) )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorboardX<=2.6.0" )
@@ -176,6 +186,8 @@ if( VIAME_ENABLE_TENSORFLOW )
   set( TF_ARGS "${TF_ARGS}==${VIAME_TENSORFLOW_VERSION}" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow${TF_ARGS}" )
 endif()
+
+list(REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS)
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
 # Advanced python dependencies are installed individually due to special reqs

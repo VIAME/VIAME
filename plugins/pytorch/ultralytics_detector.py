@@ -1,3 +1,31 @@
+# ckwg +29
+# Copyright 2025 by Kitware, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#    * Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#    * Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#    * Neither name of Kitware, Inc. nor the names of any contributors may be used
+#    to endorse or promote products derived from this software without specific
+#    prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 
 from kwiver.vital.algo import ImageObjectDetector
@@ -70,7 +98,7 @@ class UltralyticsDetector(ImageObjectDetector):
         ImageObjectDetector.__init__(self)
 
         # kwiver configuration variables
-        self._kwiver_config = UltralyticsConfig()
+        self._config = UltralyticsConfig()
         self._wrapped = {
             'model': None,
             'classes': None,
@@ -110,7 +138,7 @@ class UltralyticsDetector(ImageObjectDetector):
     def get_configuration(self):
         # Inherit from the base class
         cfg = super(ImageObjectDetector, self).get_configuration()
-        for key, value in self._kwiver_config.items():
+        for key, value in self._config.items():
             cfg.set_value(key, str(value))
         return cfg
 
@@ -118,13 +146,13 @@ class UltralyticsDetector(ImageObjectDetector):
         from ultralytics import YOLO
         import kwcoco
         import torch
-        device = self._kwiver_config.device
+        device = self._config.device
         if device == 'auto':
             if torch.cuda.is_available():
                 device = torch.device('cuda:0')
             else:
                 device = torch.device('cpu')
-        model = YOLO("/home/joncrall/Downloads/NOAA_AFSC_MML_Iceseals_31K.pt")
+        model = YOLO(self._config.weight)
         classes = kwcoco.CategoryTree.coerce(list(model.names.values()))
         self._wrapped['model'] = model
         self._wrapped['classes'] = classes
@@ -138,8 +166,8 @@ class UltralyticsDetector(ImageObjectDetector):
         # HACK: merge config doesn't support dictionary input
         _vital_config_update(cfg, cfg_in)
 
-        for key in self._kwiver_config.keys():
-            self._kwiver_config[key] = str(cfg.get_value(key))
+        for key in self._config.keys():
+            self._config[key] = str(cfg.get_value(key))
 
         if os.name == 'nt':
             os.environ["KWIMAGE_DISABLE_TORCHVISION_NMS"] = "1"
@@ -162,8 +190,8 @@ class UltralyticsDetector(ImageObjectDetector):
 
         results_image = model.predict(
             source=full_rgb,
-            conf=self._kwiver_config.thresh,   # Confidence threshold
-            iou=self._kwiver_config.iou_thresh,    # IoU threshold
+            conf=self._config.thresh,   # Confidence threshold
+            iou=self._config.iou_thresh,    # IoU threshold
             device=device
         )
 
