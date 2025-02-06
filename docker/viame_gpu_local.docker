@@ -139,7 +139,7 @@ Then run the docker build
 
     DOCKER_BUILDKIT=1 docker build --progress=plain \
         -t "viame:viame-gpu-local" \
-        -f docker/viame_gpu_sam_local.docker .
+        -f docker/viame_gpu_local.docker .
 
 Develop inside the new image with the local repo mounted as follows
 
