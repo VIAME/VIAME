@@ -59,8 +59,8 @@ import time
 import random
 import math
 
-from .netharn_utils import safe_crop
-from .netharn_utils import recurse_copy
+from ._utils import safe_crop
+from ._utils import recurse_copy
 
 
 class NetHarnTrainer( TrainDetector ):
@@ -437,7 +437,7 @@ class NetHarnTrainer( TrainDetector ):
 
                 if len( np.shape( img ) ) < 2:
                     continue
-  
+
                 img_max_x = np.shape( img )[1]
                 img_max_y = np.shape( img )[0]
 
@@ -537,7 +537,7 @@ class NetHarnTrainer( TrainDetector ):
 
                     bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 - bbox_width / 2 )
                     bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 - bbox_height / 2 )
-                    bbox_max_x = bbox_min_x + bbox_width 
+                    bbox_max_x = bbox_min_x + bbox_width
                     bbox_max_y = bbox_min_y + bbox_height
 
                 bbox_area = bbox_width * bbox_height
@@ -623,7 +623,7 @@ class NetHarnTrainer( TrainDetector ):
 
                     bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 - bbox_width / 2 )
                     bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 - bbox_height / 2 )
-                    bbox_max_x = bbox_min_x + bbox_width 
+                    bbox_max_x = bbox_min_x + bbox_width
                     bbox_max_y = bbox_min_y + bbox_height
 
                 if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
@@ -685,7 +685,7 @@ class NetHarnTrainer( TrainDetector ):
             self._categories = categories.all_class_names()
         if self._mode == "detection_refiner":
             [ train_files, train_dets ] = self.extract_chips_for_dets( train_files, train_dets )
-            [ test_files, test_dets ] = self.extract_chips_for_dets( test_files, test_dets )          
+            [ test_files, test_dets ] = self.extract_chips_for_dets( test_files, test_dets )
         for i in range( len( train_files ) + len( test_files ) ):
             if i < len( train_files ):
                 filename = train_files[ i ]

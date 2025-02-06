@@ -45,7 +45,7 @@ from kwiver.vital.types import DetectedObjectType
 from kwiver.vital.types import BoundingBoxD
 
 from kwiver.vital.algo import TrainDetector
-from .netharn_utils import safe_crop
+from ._utils import safe_crop
 
 
 class KWCocoTrainDetectorConfig(scfg.DataConfig):
