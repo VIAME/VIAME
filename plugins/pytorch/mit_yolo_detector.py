@@ -186,7 +186,12 @@ class MITYoloDetector(ImageObjectDetector):
             path_base = pathlib.Path.cwd()
         yolo_path = pathlib.Path(yolo.__file__).parent
         rel_yolo_path = pathlib.Path(os.path.relpath(yolo_path, path_base))
-        config_path = os.fspath(rel_yolo_path / 'config')
+        config_path = os.fspath(yolo_path / 'config')
+        rel_config_path = pathlib.Path(os.path.relpath(config_path, path_base))
+        print(f'path_base={path_base}')
+        print(f'yolo_path={yolo_path}')
+        print(f'rel_yolo_path={rel_yolo_path}')
+        print(f'config_path={config_path}')
 
         # TODO: need to be able to read metadata with weights
         device = self._kwiver_config.device
@@ -213,7 +218,7 @@ class MITYoloDetector(ImageObjectDetector):
         dataset_config_fpath = dataset_config_dpath / f'{dataset_config_name}.yaml'
         dataset_config_fpath.write_text(kwutil.Yaml.dumps(dataset_config))
 
-        with initialize(config_path=config_path, version_base=None, job_name="mit_yolo_detector"):
+        with initialize(config_path=os.fspath(rel_config_path), version_base=None, job_name="mit_yolo_detector"):
             # Use the hydra system to populate the expected configuration,
             # but then use it to construct the model explicitly
             cfg: Config = compose(

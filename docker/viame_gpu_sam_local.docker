@@ -164,6 +164,8 @@ Within the shell test training algorithms:
 
 .. code:: bash
 
+    cd /opt/noaa/viame/
+    source setup_viame.sh
     # Test a netharn detector (broken as of 2025-01-31)
     cd /opt/noaa/viame/examples/object_detector_training
     viame_train_detector \
@@ -178,6 +180,23 @@ Within the shell test training algorithms:
       -c /opt/noaa/viame/configs/pipelines/train_detector_mit_yolo_640.conf \
       --threshold 0.0
 
+    # Grab a checkpoint
+    CKPT_FPATH=$(python3 -c "if 1:
+        import pathlib
+        ckpt_dpath = pathlib.Path('/opt/noaa/viame/examples/object_detector_training/deep_training/train/viame-mit-yolo-detector/checkpoints/')
+        checkpoints = sorted(ckpt_dpath.glob('*'))
+        print(checkpoints[-1])
+    ")
+    echo "CKPT_FPATH=$CKPT_FPATH"
+
+    # Move the weights and config into the cwd as a hack.
+    cp "$CKPT_FPATH" demo-yolo-weights.ckpt
+    cp /opt/noaa/viame/examples/object_detector_training/deep_training/train/viame-mit-yolo-detector/train_config.yaml train_config.yaml
+
+    # Modify a template to create a pipeline file
+    cp /opt/noaa/viame/configs/pipelines/templates/detector_netharn.pipe demo_mit_yolo_detector.pipe
+    sed -i 's|\[-MODEL-FILE-\]|demo-yolo-weights.ckpt|g' demo_mit_yolo_detector.pipe
+    sed -i 's|\[-WINDOW-OPTION-\]|original_and_resized|g' demo_mit_yolo_detector.pipe
 
 Developer notes:
 
