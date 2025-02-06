@@ -138,7 +138,7 @@ Then run the docker build
 .. code:: bash
 
     DOCKER_BUILDKIT=1 docker build --progress=plain \
-        -t "viame:viame-gpu-local2" \
+        -t "viame:viame-gpu-local" \
         -f docker/viame_gpu_sam_local.docker .
 
 Develop inside the new image with the local repo mounted as follows
@@ -148,7 +148,7 @@ Develop inside the new image with the local repo mounted as follows
     docker run --gpus=all \
         --shm-size=8g \
         --volume "$HOME/code/VIAME:/host-viame" \
-        -it viame:viame-gpu-local2 \
+        -it viame:viame-gpu-local \
         bash
 
 
@@ -158,22 +158,24 @@ Setup the enviornment:
 
 	git config --global --add safe.directory /host-viame/.git
 
+This allows the developer to pull the local repo state into the container and
+build it for faster iteration time. For example.
 
-Within the shell test training algorithms:
+.. code:: bash
 
+    cd /viame/build
+    git pull
+    make -j$(nproc)
+
+
+In the installed directory test the algorithms using the KWIVER and VIAME CLI:
 
 .. code:: bash
 
     cd /opt/noaa/viame/
     source setup_viame.sh
-    # Test a netharn detector (broken as of 2025-01-31)
-    cd /opt/noaa/viame/examples/object_detector_training
-    viame_train_detector \
-      -i training_data_mouss \
-      -c /opt/noaa/viame/configs/pipelines/train_detector_netharn_mask_rcnn_720.conf \
-      --threshold 0.0
 
-    # Test the hacked in YOLO detector
+    # Train a MIT YOLO detector
     cd /opt/noaa/viame/examples/object_detector_training
     viame_train_detector \
       -i /opt/noaa/viame/examples/object_detector_training/training_data_mouss \
@@ -190,20 +192,28 @@ Within the shell test training algorithms:
     echo "CKPT_FPATH=$CKPT_FPATH"
 
     # Move the weights and config into the cwd as a hack.
+    cd /opt/noaa/viame/examples/object_detection
     cp "$CKPT_FPATH" demo-yolo-weights.ckpt
     cp /opt/noaa/viame/examples/object_detector_training/deep_training/train/viame-mit-yolo-detector/train_config.yaml train_config.yaml
 
     # Modify a template to create a pipeline file
-    cp /opt/noaa/viame/configs/pipelines/templates/detector_netharn.pipe demo_mit_yolo_detector.pipe
+    cp /opt/noaa/viame/configs/pipelines/templates/detector_mit_yolo.pipe demo_mit_yolo_detector.pipe
     sed -i 's|\[-MODEL-FILE-\]|demo-yolo-weights.ckpt|g' demo_mit_yolo_detector.pipe
     sed -i 's|\[-WINDOW-OPTION-\]|original_and_resized|g' demo_mit_yolo_detector.pipe
 
-Developer notes:
+    # Run the YOLO detector inference
+    export PYTHONIOENCODING=utf-8
+    kwiver runner demo_mit_yolo_detector.pipe \
+                  -s input:video_filename=input_image_list_small_set.txt
+
+
+It is also possible to directly symlink Python files from the host to the
+correct system location for a development-install-like experience. E.g. to
+develop on the mit_yolo_trainer run
+
+.. code:: bash
 
     ln -sf /host-viame/plugins/pytorch/mit_yolo_trainer.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/mit_yolo_trainer.py
-    ln -sf /host-viame/plugins/pytorch/_utils.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/_utils.py
-    ln -sf /host-viame/plugins/pytorch/kwcoco_train_detector.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/kwcoco_train_detector.py
-    ln -sf /host-viame/configs/pipelines/train_detector_mit_yolo_640.conf /opt/noaa/viame/configs/pipelines/train_detector_mit_yolo_640.conf
 
 "
 EOF
