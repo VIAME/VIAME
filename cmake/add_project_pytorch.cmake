@@ -154,7 +154,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} -m build
           --wheel
-          --output ${LIBRARY_PIP_BUILD_DIR}
+          --outdir ${LIBRARY_PIP_BUILD_DIR}
       )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       set( LIBRARY_PIP_BUILD_CMD
