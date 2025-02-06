@@ -152,6 +152,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     if( "${LIB}" STREQUAL "MIT-YOLO" )
       # For now just use -m build with MIT-YOLO
       message(STATUS "Python_EXECUTABLE = ${Python_EXECUTABLE}")
+      # FIXME:
+      # If we remove no-isolation then it will complain that pip cannot be found.
+      # I don't know exactly why, but for now it works.
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} -m build
           --wheel
