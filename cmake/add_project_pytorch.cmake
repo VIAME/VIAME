@@ -293,7 +293,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       DEPENDEES install )
 
   else()
-    message(STATUS "Adding External LIB = ${LIB}")
     ExternalProject_Add( ${LIB}
       DEPENDS ${PROJECT_DEPS}
       PREFIX ${VIAME_BUILD_PREFIX}
