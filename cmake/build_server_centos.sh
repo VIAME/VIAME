@@ -17,6 +17,8 @@ source /opt/rh/devtoolset-9/enable
 ./viame/cmake/build_server_linux_cmake.sh
 
 # Update VIAME sub git sources
+echo "Checking out VIAME submodules"
+
 cd $VIAME_SOURCE_DIR
 git submodule update --init --recursive
 mkdir build
@@ -29,6 +31,8 @@ export C_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$CPLUS_INCLUDE_PATH
 
 # Configure VIAME
+echo "Beginning VIAME CMake configuration"
+
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
 -DVIAME_FIXUP_BUNDLE:BOOL=ON \
@@ -70,6 +74,8 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Build VIAME, pipe output to file
+echo "Beginning core build, routing build info to build_log.txt"
+
 ../cmake/build_server_linux_build.sh > build_log.txt 2>&1
 
 # Output check statments
