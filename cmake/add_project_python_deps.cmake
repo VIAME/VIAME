@@ -30,6 +30,7 @@ if( ( WIN32 OR Python_VERSION VERSION_LESS "3.8" )
     AND VIAME_ENABLE_GDAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
 else()
+  # 75.3.0 is the last version to support Python 3.8
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==75.3.0" )
 endif()
 
