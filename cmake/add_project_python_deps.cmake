@@ -12,7 +12,7 @@
 # Basic dependencies are installed jointly in one local pip installation call
 
 # Core requirements used for building certain libraries
-set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "cython<3.0.0" )
+set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "cython<3.0.0" "build" )
 
 if( VIAME_FIXUP_BUNDLE AND Python_VERSION VERSION_LESS "3.8" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
@@ -29,6 +29,9 @@ if( ( WIN32 OR Python_VERSION VERSION_LESS "3.8" )
     AND VIAME_ENABLE_PYTORCH-NETHARN
     AND VIAME_ENABLE_GDAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
+else()
+  # 75.3.0 is the last version to support Python 3.8
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==75.3.0" )
 endif()
 
 # For scoring and plotting
@@ -125,9 +128,10 @@ if( VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
   endif()
 endif()
 
-if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN )
+if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_PYTORCH-MIT-YOLO )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" "ndsampler<=0.8.0" "pygments" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx<=2.8.8" "pandas<=1.5.3" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "kwutil<=0.3.3" )
 
   if( Python_VERSION VERSION_LESS "3.10" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.15.0" "kwcoco==0.2.31" )

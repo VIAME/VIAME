@@ -44,7 +44,7 @@ import ubelt as ub
 import math
 import cv2
 
-from .netharn_utils import safe_crop
+from ._utils import safe_crop
 
 
 class NetharnRefiner(RefineDetections):
@@ -247,7 +247,7 @@ class NetharnRefiner(RefineDetections):
 
                 bbox_min_x = int( ( bbox_min_x + bbox_max_x ) / 2 - bbox_width / 2 )
                 bbox_min_y = int( ( bbox_min_y + bbox_max_y ) / 2 - bbox_height / 2 )
-                bbox_max_x = bbox_min_x + bbox_width 
+                bbox_max_x = bbox_min_x + bbox_width
                 bbox_max_y = bbox_min_y + bbox_height
 
             if self._border_exclude > 0:
@@ -268,14 +268,14 @@ class NetharnRefiner(RefineDetections):
                     bbox_max_x = img_max_x
                 if bbox_max_y > img_max_y:
                     bbox_max_y = img_max_y
-  
+
             bbox_area = ( bbox_max_x - bbox_min_x ) * ( bbox_max_y - bbox_min_y )
 
             if self._area_lower_bound > 0 and bbox_area < self._area_lower_bound:
                 continue
             if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
                 continue
-  
+
             crop = safe_crop( img, bbox_min_x, bbox_min_y, bbox_max_x, bbox_max_y )
             image_chips.append( crop )
             detection_ids.append( i )
