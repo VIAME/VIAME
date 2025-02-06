@@ -151,7 +151,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     # replace direct calls to setup.py with `python -m build`
     if( "${LIB}" STREQUAL "MIT-YOLO" )
       # For now just use -m build with MIT-YOLO
-      message(STATUS "Python_EXECUTABLE = ${Python_EXECUTABLE}")
       # FIXME:
       # If we remove no-isolation then it will complain that pip cannot be found.
       # I don't know exactly why, but for now it works.
