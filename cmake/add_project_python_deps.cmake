@@ -12,7 +12,7 @@
 # Basic dependencies are installed jointly in one local pip installation call
 
 # Core requirements used for building certain libraries
-set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "cython<3.0.0" )
+set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "cython<3.0.0" "build" )
 
 if( VIAME_FIXUP_BUNDLE AND Python_VERSION VERSION_LESS "3.8" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
