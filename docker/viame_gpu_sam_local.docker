@@ -91,9 +91,12 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 
 # Perform multi-threaded build
 make -j$(nproc) || true
+EOF
 
+RUN <<EOF
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
+cd /viame/build
 
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed

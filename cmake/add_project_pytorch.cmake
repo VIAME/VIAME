@@ -138,13 +138,25 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PIP_BUILD_DIR_CMD -b ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_CACHE_DIR_CMD --cache-dir ${LIBRARY_PIP_CACHE_DIR} )
 
+  # For each python library split the build and install into two steps.
+
   if( VIAME_PYTHON_SYMLINK )
+    # In development mode, install with the -e flag for editable.
     set( LIBRARY_PIP_BUILD_CMD
       ${Python_EXECUTABLE} setup.py build )
     set( LIBRARY_PIP_INSTALL_CMD
       ${Python_EXECUTABLE} -m pip install --user -e . )
   else()
-    if( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
+    # TODO:
+    # replace direct calls to setup.py with `python -m build`
+    if( "${LIB}" STREQUAL "MIT-YOLO" )
+      # For now just use -m build with MIT-YOLO
+      set( LIBRARY_PIP_BUILD_CMD
+        ${Python_EXECUTABLE} -m build
+          --wheel
+          --output ${LIBRARY_PIP_BUILD_DIR}
+      )
+    elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
