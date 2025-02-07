@@ -67,6 +67,11 @@ class UltralyticsDetector(ImageObjectDetector):
         developer testing
         we pyenv3.8.19
 
+        # Running inside VIAME
+
+        # Double check this module is installed
+        ls /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/
+
         cd /opt/noaa/viame/examples/object_detection
         wget https://huggingface.co/atticus-carter/NOAA_AFSC_MML_Iceseals_31K/resolve/main/NOAA_AFSC_MML_Iceseals_31K.pt
         cp /opt/noaa/viame/configs/pipelines/templates/detector_ultralytics.pipe demo_detector_ultralytics.pipe
