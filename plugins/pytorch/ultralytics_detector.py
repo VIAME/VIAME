@@ -67,6 +67,16 @@ class UltralyticsDetector(ImageObjectDetector):
         developer testing
         we pyenv3.8.19
 
+        cd /opt/noaa/viame/examples/object_detection
+        wget https://huggingface.co/atticus-carter/NOAA_AFSC_MML_Iceseals_31K/resolve/main/NOAA_AFSC_MML_Iceseals_31K.pt
+        cp /opt/noaa/viame/configs/pipelines/templates/detector_ultralytics.pipe demo_detector_ultralytics.pipe
+        sed -i 's|\[-MODEL-FILE-\]|NOAA_AFSC_MML_Iceseals_31K.pt|g' demo_detector_ultralytics.pipe
+        sed -i 's|\[-WINDOW-OPTION-\]|original_and_resized|g' demo_detector_ultralytics.pipe
+
+        export PYTHONIOENCODING=utf-8
+        kwiver runner demo_detector_ultralytics.pipe \
+                      -s input:video_filename=input_image_list_small_set.txt
+
     Example:
         >>> import sys, ubelt
         >>> sys.path.append(ubelt.expandpath('~/code/VIAME/plugins/pytorch/'))
