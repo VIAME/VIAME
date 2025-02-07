@@ -142,7 +142,10 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ultralytics<=8.3.71" )
+  # Ultralytics will be installed as an advanced package. Here we need to
+  # explicitly install the dependencies of the package and our wrapper.
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn==0.13.2" )  # can likely keep this version loose
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ultralytics_thop==2.0.14" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" )
   if( Python_VERSION VERSION_LESS "3.10" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco==0.2.31" )
@@ -195,7 +198,6 @@ list(REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS)
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
 # Advanced python dependencies are installed individually due to special reqs
 
-#set( VIAME_PYTHON_ADV_DEPS python-pip )
 list( APPEND VIAME_PYTHON_ADV_DEPS python-deps )
 set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
 
@@ -260,6 +262,13 @@ if( VIAME_ENABLE_PYTORCH AND
     list( APPEND VIAME_PYTHON_ADV_DEPS torchvision )
     list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "${TORCHVISION_CMD} ${TORCH_URL_CMD}" )
   endif()
+endif()
+
+if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  # Add ultralytics as an advanced dependency to avoid installing its strict
+  # dependencies that are not needed.
+  list( APPEND VIAME_PYTHON_ADV_DEPS ultralytics )
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "ultralytics<=8.3.71 --no-deps" )
 endif()
 
 # ------------------------------------- INSTALL ROUTINES -----------------------------------------
