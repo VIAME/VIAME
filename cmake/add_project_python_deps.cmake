@@ -145,7 +145,6 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   # Ultralytics will be installed as an advanced package. Here we need to
   # explicitly install the dependencies of the package and our wrapper.
   list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn==0.13.2" )  # can likely keep this version loose
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ultralytics_thop==2.0.14" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" )
   if( Python_VERSION VERSION_LESS "3.10" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco==0.2.31" )
@@ -268,7 +267,7 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   # Add ultralytics as an advanced dependency to avoid installing its strict
   # dependencies that are not needed.
   list( APPEND VIAME_PYTHON_ADV_DEPS ultralytics )
-  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "ultralytics<=8.3.71 --no-deps" )
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "ultralytics<=8.3.71 ultralytics_thop==2.0.14 --no-deps" )
 endif()
 
 # ------------------------------------- INSTALL ROUTINES -----------------------------------------
