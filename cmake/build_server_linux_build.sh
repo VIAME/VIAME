@@ -28,9 +28,10 @@ if [ -d "${CUDABASE}" ]; then
   cp -P ${CUDABASE}/lib64/libcusolver.so* install/lib
   cp -P ${CUDABASE}/lib64/libcublas.so* install/lib
   cp -P ${CUDABASE}/lib64/libcublasLt.so* install/lib
+  cp -P ${CUDABASE}/lib64/libcupti.so* install/lib
+  cp -P ${CUDABASE}/lib64/libcurand.so* install/lib
   cp -P ${CUDABASE}/lib64/libnvrtc* install/lib
   cp -P ${CUDABASE}/lib64/libnvToolsExt.so* install/lib
-  cp -P ${CUDABASE}/lib64/libcurand.so* install/lib
 
   cp -P ${LIBBASE}/libnccl.so* install/lib
 
@@ -51,23 +52,31 @@ fi
 # create_package, should be removed when this issue is fixed
 if [ -d "${CUDABASE}" ]; then
   cp -P ${LIBBASE}/libcudnn.so.9* install/lib
-  cp -P ${LIBBASE}/libcudnn_adv_infer.so.9* install/lib
-  cp -P ${LIBBASE}/libcudnn_cnn_infer.so.9* install/lib
-  cp -P ${LIBBASE}/libcudnn_ops_infer.so.9* install/lib
-  cp -P ${LIBBASE}/libcudnn_cnn_train.so.9* install/lib
-  cp -P ${LIBBASE}/libcudnn_ops_train.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_adv.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_cnn.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_ops.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_engines_precompiled.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_engines_runtime_compiled.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_graph.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_heuristic.so.9* install/lib
+
   rm install/lib/libcudnn.so || true
-  rm install/lib/libcudnn_adv_infer.so || true
-  rm install/lib/libcudnn_cnn_infer.so || true
-  rm install/lib/libcudnn_ops_infer.so || true
-  rm install/lib/libcudnn_cnn_train.so || true
-  rm install/lib/libcudnn_ops_train.so || true
+  rm install/lib/libcudnn_adv.so || true
+  rm install/lib/libcudnn_cnn.so || true
+  rm install/lib/libcudnn_ops.so || true
+  rm install/lib/libcudnn_engines_precompiled.so || true
+  rm install/lib/libcudnn_engines_runtime_compiled.so || true
+  rm install/lib/libcudnn_graph.so || true
+  rm install/lib/libcudnn_heuristic.so || true
+
   ln -s libcudnn.so.9 install/lib/libcudnn.so
-  ln -s libcudnn_adv_infer.so.9 install/lib/libcudnn_adv_infer.so
-  ln -s libcudnn_cnn_infer.so.9 install/lib/libcudnn_cnn_infer.so
-  ln -s libcudnn_ops_infer.so.9 install/lib/libcudnn_ops_infer.so
-  ln -s libcudnn_cnn_train.so.9 install/lib/libcudnn_cnn_train.so
-  ln -s libcudnn_ops_train.so.9 install/lib/libcudnn_ops_train.so
+  ln -s libcudnn_adv.so.9 install/lib/libcudnn_adv.so
+  ln -s libcudnn_cnn.so.9 install/lib/libcudnn_cnn.so
+  ln -s libcudnn_ops.so.9 install/lib/libcudnn_ops.so
+  ln -s libcudnn_engines_precompiled.so.9 install/lib/libcudnn_engines_precompiled.so
+  ln -s libcudnn_engines_runtime_compiled.so.9 install/lib/libcudnn_engines_runtime_compiled.so
+  ln -s libcudnn_graph.so.9 install/lib/libcudnn_graph.so
+  ln -s libcudnn_heuristic.so.9 install/lib/libcudnn_heuristic.so
 fi
 
 # HACK: Copy in other possible library requirements if present
