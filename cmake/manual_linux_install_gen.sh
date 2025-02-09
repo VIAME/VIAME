@@ -18,5 +18,5 @@ docker cp viame-src-clone viame_installer_zip:/viame/
 docker exec -i viame_installer_zip ./viame/cmake/build_server_centos.sh
 
 # copy out final installer and build log
-docker copy viame_installer_zip:/viame/build/VIAME-v1.0.0-Linux-64Bit.tar.gz .
-docker copy viame_installer_zip:/viame/build/build_log.txt .
+docker cp viame_installer_zip:/viame/build/VIAME-v1.0.0-Linux-64Bit.tar.gz .
+docker cp viame_installer_zip:/viame/build/build_log.txt .
