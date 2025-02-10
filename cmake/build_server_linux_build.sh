@@ -28,9 +28,10 @@ if [ -d "${CUDABASE}" ]; then
   cp -P ${CUDABASE}/lib64/libcusolver.so* install/lib
   cp -P ${CUDABASE}/lib64/libcublas.so* install/lib
   cp -P ${CUDABASE}/lib64/libcublasLt.so* install/lib
+  cp -P ${CUDABASE}/lib64/libcupti.so* install/lib
+  cp -P ${CUDABASE}/lib64/libcurand.so* install/lib
   cp -P ${CUDABASE}/lib64/libnvrtc* install/lib
   cp -P ${CUDABASE}/lib64/libnvToolsExt.so* install/lib
-  cp -P ${CUDABASE}/lib64/libcurand.so* install/lib
 
   cp -P ${LIBBASE}/libnccl.so* install/lib
 
@@ -41,33 +42,41 @@ if [ -d "${CUDABASE}" ]; then
 
   # HACK: Symlink CUDA library in pytorch directory
   # For some systems with multiple CUDA 11s installed this is necessary
-  export TORCHBASE=install/lib/python3.6/site-packages/torch
+  export TORCHBASE=install/lib/python3.10/site-packages/torch
   if [ -d "${TORCHBASE}" ]; then
-    ln -s ../../../../libcublas.so.11 ${TORCHBASE}/lib/libcublas.so.11
+    ln -s ../../../../libcublas.so.12 ${TORCHBASE}/lib/libcublas.so.12
   fi
 fi
 
 # HACK: Copy in CUDNN missing .so files not included by
 # create_package, should be removed when this issue is fixed
 if [ -d "${CUDABASE}" ]; then
-  cp -P ${LIBBASE}/libcudnn.so.8* install/lib
-  cp -P ${LIBBASE}/libcudnn_adv_infer.so.8* install/lib
-  cp -P ${LIBBASE}/libcudnn_cnn_infer.so.8* install/lib
-  cp -P ${LIBBASE}/libcudnn_ops_infer.so.8* install/lib
-  cp -P ${LIBBASE}/libcudnn_cnn_train.so.8* install/lib
-  cp -P ${LIBBASE}/libcudnn_ops_train.so.8* install/lib
+  cp -P ${LIBBASE}/libcudnn.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_adv.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_cnn.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_ops.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_engines_precompiled.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_engines_runtime_compiled.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_graph.so.9* install/lib
+  cp -P ${LIBBASE}/libcudnn_heuristic.so.9* install/lib
+
   rm install/lib/libcudnn.so || true
-  rm install/lib/libcudnn_adv_infer.so || true
-  rm install/lib/libcudnn_cnn_infer.so || true
-  rm install/lib/libcudnn_ops_infer.so || true
-  rm install/lib/libcudnn_cnn_train.so || true
-  rm install/lib/libcudnn_ops_train.so || true
-  ln -s libcudnn.so.8 install/lib/libcudnn.so
-  ln -s libcudnn_adv_infer.so.8 install/lib/libcudnn_adv_infer.so
-  ln -s libcudnn_cnn_infer.so.8 install/lib/libcudnn_cnn_infer.so
-  ln -s libcudnn_ops_infer.so.8 install/lib/libcudnn_ops_infer.so
-  ln -s libcudnn_cnn_train.so.8 install/lib/libcudnn_cnn_train.so
-  ln -s libcudnn_ops_train.so.8 install/lib/libcudnn_ops_train.so
+  rm install/lib/libcudnn_adv.so || true
+  rm install/lib/libcudnn_cnn.so || true
+  rm install/lib/libcudnn_ops.so || true
+  rm install/lib/libcudnn_engines_precompiled.so || true
+  rm install/lib/libcudnn_engines_runtime_compiled.so || true
+  rm install/lib/libcudnn_graph.so || true
+  rm install/lib/libcudnn_heuristic.so || true
+
+  ln -s libcudnn.so.9 install/lib/libcudnn.so
+  ln -s libcudnn_adv.so.9 install/lib/libcudnn_adv.so
+  ln -s libcudnn_cnn.so.9 install/lib/libcudnn_cnn.so
+  ln -s libcudnn_ops.so.9 install/lib/libcudnn_ops.so
+  ln -s libcudnn_engines_precompiled.so.9 install/lib/libcudnn_engines_precompiled.so
+  ln -s libcudnn_engines_runtime_compiled.so.9 install/lib/libcudnn_engines_runtime_compiled.so
+  ln -s libcudnn_graph.so.9 install/lib/libcudnn_graph.so
+  ln -s libcudnn_heuristic.so.9 install/lib/libcudnn_heuristic.so
 fi
 
 # HACK: Copy in other possible library requirements if present
@@ -84,8 +93,8 @@ cp ${LIBBASE}/libSM.so.6 install/lib || true
 cp ${LIBBASE}/libICE.so.6 install/lib || true
 cp ${LIBBASE}/libblas.so.3 install/lib || true
 cp ${LIBBASE}/liblapack.so.3 install/lib || true
-cp ${LIBBASE}/libgfortran.so.3 install/lib || true
 cp ${LIBBASE}/libgfortran.so.4 install/lib || true
+cp ${LIBBASE}/libgfortran.so.5 install/lib || true
 cp ${LIBBASE}/libquadmath.so.0 install/lib || true
 cp ${LIBBASE}/libpng15.so.15 install/lib || true
 cp ${LIBBASE}/libxcb.so.1 install/lib || true
