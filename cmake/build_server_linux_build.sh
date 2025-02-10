@@ -93,8 +93,8 @@ cp ${LIBBASE}/libSM.so.6 install/lib || true
 cp ${LIBBASE}/libICE.so.6 install/lib || true
 cp ${LIBBASE}/libblas.so.3 install/lib || true
 cp ${LIBBASE}/liblapack.so.3 install/lib || true
-cp ${LIBBASE}/libgfortran.so.3 install/lib || true
 cp ${LIBBASE}/libgfortran.so.4 install/lib || true
+cp ${LIBBASE}/libgfortran.so.5 install/lib || true
 cp ${LIBBASE}/libquadmath.so.0 install/lib || true
 cp ${LIBBASE}/libpng15.so.15 install/lib || true
 cp ${LIBBASE}/libxcb.so.1 install/lib || true
