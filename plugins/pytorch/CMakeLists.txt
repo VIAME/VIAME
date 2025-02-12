@@ -58,7 +58,7 @@ if (VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET AND VIAME_ENABLE_PYTORCH-MMDET)
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_onnx_process.py
-    processes
+    processes/pytorch
     OnnxConverter)
 
   kwiver_add_python_module(
