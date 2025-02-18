@@ -27,6 +27,19 @@ if( WIN32 )
           DESTINATION ${VIAME_PYTHON_BASE}/site-packages )
   endif()
 
+  # Patches to SAM2 win32 dependencies
+  if( VIAME_ENABLE_PYTORCH-SAM AND 
+      EXISTS ${VIAME_PYTHON_BASE}/site-packages/win32)
+    file( COPY ${VIAME_PATCH_DIR}/win32
+          DESTINATION ${VIAME_PYTHON_BASE}/site-packages )
+
+    if( EXISTS ${VIAME_PYTHON_BASE}/site-packages/win32/lib )
+      file( COPY ${VIAME_PATCH_DIR}/win32/lib
+            DESTINATION ${VIAME_PYTHON_BASE}/site-packages )
+
+    endif()
+  endif()
+
 endif()
 
 message( "Done" )
