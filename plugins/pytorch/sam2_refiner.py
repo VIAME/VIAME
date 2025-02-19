@@ -222,6 +222,19 @@ class Sam2Refiner(RefineDetections):
             # Extract the new mask info relative to the vital box
             box = vital_box_to_kwiamge(vital_det.bounding_box)
             sl = box.quantize().to_slice()
+
+            # Shift binmask and slice if negative slice start value
+            if sl[0].start < 0:
+                shift = -sl[0].start
+                binmask = np.roll(binmask, shift, axis=0)
+                binmask[:shift] = np.zeros((binmask[:shift].shape))
+                sl = (slice(0, sl[0].stop - sl[0].start), sl[1])
+            if sl[1].start < 0:
+                shift = -sl[1].start
+                binmask = np.roll(binmask, shift, axis=1)
+                binmask[:,:shift] = np.zeros((binmask[:,:shift].shape))
+                sl = (sl[0], slice(0, sl[1].stop - sl[1].start))
+
             relative_submask: np.ndarray = binmask[sl]
             submask_dims: tuple = relative_submask.shape[0:2]
 
