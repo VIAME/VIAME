@@ -38,6 +38,7 @@ from PIL import Image as PILImage
 
 import numpy as np
 import math
+import delayed_image
 
 
 class Sam2Refiner(RefineDetections):
@@ -223,20 +224,11 @@ class Sam2Refiner(RefineDetections):
             box = vital_box_to_kwiamge(vital_det.bounding_box)
             sl = box.quantize().to_slice()
 
-            # Shift binmask and slice if negative slice start value
-            if sl[0].start < 0:
-                shift = -sl[0].start
-                binmask = np.roll(binmask, shift, axis=0)
-                binmask[:shift] = np.zeros((binmask[:shift].shape))
-                sl = (slice(0, sl[0].stop - sl[0].start), sl[1])
-            if sl[1].start < 0:
-                shift = -sl[1].start
-                binmask = np.roll(binmask, shift, axis=1)
-                binmask[:,:shift] = np.zeros((binmask[:,:shift].shape))
-                sl = (sl[0], slice(0, sl[1].stop - sl[1].start))
+            delayed = delayed_image.DelayedIdentity(binmask)
+            relative_submask = delayed.crop(sl, clip=False, wrap=False).finalize()
 
-            relative_submask: np.ndarray = binmask[sl]
             submask_dims: tuple = relative_submask.shape[0:2]
+            relative_submask = relative_submask.reshape(submask_dims)
 
             if needs_polygon_postprocess:
                 # Depending on the configuration we convert the mask to a
