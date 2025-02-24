@@ -38,6 +38,7 @@ from PIL import Image as PILImage
 
 import numpy as np
 import math
+import delayed_image
 
 
 class Sam2Refiner(RefineDetections):
@@ -222,8 +223,12 @@ class Sam2Refiner(RefineDetections):
             # Extract the new mask info relative to the vital box
             box = vital_box_to_kwiamge(vital_det.bounding_box)
             sl = box.quantize().to_slice()
-            relative_submask: np.ndarray = binmask[sl]
+
+            delayed = delayed_image.DelayedIdentity(binmask)
+            relative_submask = delayed.crop(sl, clip=False, wrap=False).finalize()
+
             submask_dims: tuple = relative_submask.shape[0:2]
+            relative_submask = relative_submask.reshape(submask_dims)
 
             if needs_polygon_postprocess:
                 # Depending on the configuration we convert the mask to a
