@@ -117,6 +117,7 @@ if __name__ == "__main__" :
     id_counter = 1
     type_counts = dict()
     type_sizes = dict()
+    type_ids = dict()
     repl_dict = dict()
 
     track_counter = 0
@@ -228,6 +229,11 @@ if __name__ == "__main__" :
                         type_counts[ top_category ] += 1
                     else:
                         type_counts[ top_category ] = 1
+                    if args.track_count:
+                        if top_category in type_ids:
+                            type_ids[ top_category ].add( parsed_line[0] )
+                        else:
+                            type_ids[ top_category ] = { parsed_line[0] }
 
                 if args.counts_per_frame:
                     if parsed_line[1] not in frame_counts:
@@ -311,12 +317,14 @@ if __name__ == "__main__" :
 
     if args.print_types:
         print( os.linesep + "Types found in files:" + os.linesep )
-        if args.caps_only:
-            for itm in type_counts.keys():
-                if any( char.isupper() for char in itm ):
-                     print( itm )
-        else:
-            print( os.linesep.join( type_counts.keys() ) )
+
+        for itm in sorted( type_counts.keys() ):
+            if args.caps_only and not any( char.isupper() for char in itm ):
+                continue
+            if args.track_count:
+                print( itm + " " + str( len( type_ids[ itm ] ) ) )
+            else:
+                print( itm )
 
     if args.average_box_size:
         print( "Type - Average Box Area - Total Count" )
