@@ -88,6 +88,9 @@ if __name__ == "__main__" :
     parser.add_argument("--print-fps", dest="print_fps", action="store_true",
       help="Print FPS in input files")
 
+    parser.add_argument("--comp-file", dest="comp_file", default="",
+      help="If set, generate a comparison file contrasting types in all inputs")
+
     args = parser.parse_args()
 
     input_files = []
@@ -119,6 +122,7 @@ if __name__ == "__main__" :
     type_sizes = dict()
     type_ids = dict()
     repl_dict = dict()
+    comp_info = dict()
 
     track_counter = 0
     state_counter = 0
@@ -153,6 +157,8 @@ if __name__ == "__main__" :
         unique_ids = set()
         printed_ids = set()
         frame_counts = dict()
+        seq_ids = dict()
+
         contains_track = False
         video_fps = 0
 
@@ -230,10 +236,10 @@ if __name__ == "__main__" :
                     else:
                         type_counts[ top_category ] = 1
                     if args.track_count:
-                        if top_category in type_ids:
-                            type_ids[ top_category ].add( parsed_line[0] )
+                        if top_category in seq_ids:
+                            seq_ids[ top_category ].add( parsed_line[0] )
                         else:
-                            type_ids[ top_category ] = { parsed_line[0] }
+                            seq_ids[ top_category ] = { parsed_line[0] }
 
                 if args.counts_per_frame:
                     if parsed_line[1] not in frame_counts:
@@ -278,6 +284,9 @@ if __name__ == "__main__" :
 
         fin.close()
 
+        if seq_ids:
+            type_ids[ input_file ] = seq_ids
+
         if args.print_fps:
             if video_fps > 0:
                 print( video_fps )
@@ -318,13 +327,36 @@ if __name__ == "__main__" :
     if args.print_types:
         print( os.linesep + "Types found in files:" + os.linesep )
 
+        def count_type( type_name ):
+            output = 0
+            for fn in type_ids.keys():
+                if type_name in type_ids[fn]:
+                    output = output + len( type_ids[fn][type_name] )
+            return output
+
         for itm in sorted( type_counts.keys() ):
             if args.caps_only and not any( char.isupper() for char in itm ):
                 continue
             if args.track_count:
-                print( itm + " " + str( len( type_ids[ itm ] ) ) )
+                print( itm + " " + str( count_type( itm ) ) )
             else:
                 print( itm )
+
+    if args.comp_file:
+        fout = open( args.comp_file, "w" )
+        fout.write( "file_name" )
+        for itm in sorted( type_counts.keys() ):
+            fout.write( ", " + itm )
+        fout.write( "\n" )
+        for fn in sorted( type_ids ):
+            fout.write( fn )
+            for itm in sorted( type_counts.keys() ):
+                if itm in type_ids[fn]:
+                    fout.write( ", " + str( len( type_ids[fn][itm] ) ) )
+                else:
+                    fout.write( ", 0" )
+            fout.write( "\n" )
+        fout.close()
 
     if args.average_box_size:
         print( "Type - Average Box Area - Total Count" )
