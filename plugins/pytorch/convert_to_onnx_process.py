@@ -97,18 +97,3 @@ class OnnxConverter(KwiverProcess):
     # ----------------------------------------------
     def _step(self):
         self._base_step()
-
-# ==================================================================
-def __sprokit_register__():
-
-    from kwiver.sprokit.pipeline import process_factory
-
-    module_name = 'python:viame.pytorch.OnnxConverter'
-
-    if process_factory.is_process_module_loaded(module_name):
-        return
-
-    process_factory.add_process('OnnxConverter', 'Convert a yolo/cfrcnn model to onnx', OnnxConverter)
-
-    process_factory.mark_process_module_as_loaded(module_name)
-
