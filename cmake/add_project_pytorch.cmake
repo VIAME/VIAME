@@ -196,7 +196,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   endif()
 
   if( NOT "${LIB}" STREQUAL "pytorch" )
-    set( PROJECT_DEPS ${PROJECT_DEPS} pytoch )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch )
     if( VIAME_ENABLE_PYTORCH-VISION AND
         NOT "${LIB}" STREQUAL "torchvision" )
       set( PROJECT_DEPS ${PROJECT_DEPS} torchvision )
