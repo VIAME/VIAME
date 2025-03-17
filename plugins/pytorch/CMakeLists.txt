@@ -54,17 +54,17 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 
 endif()
 
-if (VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET AND VIAME_ENABLE_PYTORCH-MMDET)
+if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET AND VIAME_ENABLE_PYTORCH-MMDET )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_onnx_process.py
     processes/pytorch
-    OnnxConverter)
+    convert_to_onnx_process )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/onnx_conversion_tools/crcnn2onnx.py
     arrows/pytorch
-    crcnn2onnx)
+    crcnn2onnx )
 
 endif()
 
