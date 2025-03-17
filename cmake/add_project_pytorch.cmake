@@ -189,13 +189,25 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     ${LIBRARY_PIP_INSTALL_CMD} )
 
   set( LIBRARY_PATCH_COMMAND "" )
+  set( PROJECT_DEPS fletch python-deps )
+
+  if( VIAME_ENABLE_SMQTK )
+    set( PROJECT_DEPS ${PROJECT_DEPS} smqtk )
+  endif()
+
+  if( NOT "${LIB}" STREQUAL "pytorch" )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytoch )
+    if( VIAME_ENABLE_PYTORCH-VISION AND
+        NOT "${LIB}" STREQUAL "torchvision" )
+      set( PROJECT_DEPS ${PROJECT_DEPS} torchvision )
+    endif()
+  endif()
 
   if( "${LIB}" STREQUAL "bioharn" )
     set( PROJECT_DEPS netharn )
   elseif( "${LIB}" STREQUAL "netharn" )
     set( PROJECT_DEPS mmdetection )
   elseif( "${LIB}" STREQUAL "pytorch" )
-    set( PROJECT_DEPS fletch python-deps )
     if( Python_VERSION VERSION_LESS "3.7" AND
         VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL 1.11.0 )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -205,7 +217,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
   elseif( "${LIB}" STREQUAL "torchvision" )
-    set( PROJECT_DEPS fletch python-deps pytorch )
     if( VIAME_PYTORCH_VERSION VERSION_LESS "1.11" OR
         Python_VERSION VERSION_LESS "3.7" )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -213,7 +224,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
     endif()
   elseif( "${LIB}" STREQUAL "detectron2" )
-    set( PROJECT_DEPS fletch python-deps pytorch )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       set( PROJECT_DEPS ${PROJECT_DEPS} bioharn )
     endif()
@@ -223,12 +233,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
     endif()
   elseif( "${LIB}" STREQUAL "pyav" )
-    set( PROJECT_DEPS fletch python-deps )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/pyav
       ${VIAME_PACKAGES_DIR}/python-utils/pyav )
   elseif( "${LIB}" STREQUAL "torchvideo" )
-    set( PROJECT_DEPS fletch python-deps pytorch pyav )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pyav )
     if( Python_VERSION VERSION_LESS "3.7" )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/torchvideo
@@ -240,19 +249,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PATCHES_DIR}/sam2
         ${VIAME_PACKAGES_DIR}/pytorch-libs/sam2 )
     endif()
+  elseif( "${LIB}" STREQUAL "mmdetection" )
+    set( PROJECT_DEPS ${PROJECT_DEPS} mmcv )
   elseif( "${LIB}" STREQUAL "mmdeploy" )
-    set( PROJECT_DEPS fletch python-deps pytorch mmdetection mmcv onnxruntimelibs )
-  else()
-  elseif( "${LIB}" STREQUAL "MIT-YOLO" )
-    set( PROJECT_DEPS fletch python-deps pytorch mmdetection mmcv onnxruntimelibs )
-  elseif( VIAME_ENABLE_PYTORCH-VISION )
-    set( PROJECT_DEPS fletch python-deps pytorch torchvision )
-  else()
-    set( PROJECT_DEPS fletch python-deps pytorch )
-  endif()
-
-  if( VIAME_ENABLE_SMQTK )
-    set( PROJECT_DEPS ${PROJECT_DEPS} smqtk )
+    set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
   endif()
 
   if ("${LIB}" STREQUAL "mmdeploy")
