@@ -1,0 +1,219 @@
+# syntax=docker/dockerfile:1.5.0
+FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu20.04
+
+USER root
+
+WORKDIR /home
+
+RUN --mount=type=bind,target=/host-viame <<EOF
+export DEBIAN_FRONTEND=noninteractive
+export TZ=Etc/UTC 
+apt-get update 
+apt-get install -y git 
+git clone --single-branch /host-viame /viame 
+cd /viame/cmake 
+
+#chmod +x build_server_docker_sam.sh 
+#./build_server_docker_sam.sh
+
+# Fletch, VIAME, CMAKE system deps
+/viame/cmake/build_server_ubuntu_deps.sh
+
+# Install CMAKE
+/viame/cmake/build_server_linux_cmake.sh
+
+# Update VIAME sub git deps
+cd /viame/
+git submodule update --init --recursive
+mkdir -p /viame/build
+cd /viame/build
+
+# Add VIAME and CUDA paths to build
+export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/usr/local/cuda/lib64
+
+# Add paths for internal python build
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib/python3.10
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.10
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.10
+
+# Configure VIAME
+# This can be updated based on development needs
+cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
+-DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
+-DVIAME_FIXUP_BUNDLE:BOOL=OFF \
+-DVIAME_VERSION_RELEASE:BOOL=ON \
+-DVIAME_ENABLE_BURNOUT:BOOL=OFF \
+-DVIAME_ENABLE_CUDA:BOOL=ON \
+-DVIAME_ENABLE_CUDNN:BOOL=ON \
+-DVIAME_ENABLE_DARKNET:BOOL=ON \
+-DVIAME_ENABLE_DIVE:BOOL=OFF \
+-DVIAME_ENABLE_DOCS:BOOL=OFF \
+-DVIAME_ENABLE_FFMPEG:BOOL=ON \
+-DVIAME_ENABLE_FFMPEG-X264:BOOL=ON \
+-DVIAME_ENABLE_GDAL:BOOL=OFF \
+-DVIAME_ENABLE_FLASK:BOOL=OFF \
+-DVIAME_ENABLE_ITK:BOOL=OFF \
+-DVIAME_ENABLE_KWANT:BOOL=ON \
+-DVIAME_ENABLE_KWIVER:BOOL=ON \
+-DVIAME_ENABLE_LEARN:BOOL=OFF \
+-DVIAME_ENABLE_MATLAB:BOOL=OFF \
+-DVIAME_ENABLE_OPENCV:BOOL=ON \
+-DVIAME_OPENCV_VERSION:STRING=3.4.0 \
+-DVIAME_ENABLE_PYTHON:BOOL=ON \
+-DVIAME_PYTHON_BUILD_FROM_SOURCE:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH:BOOL=ON \
+-DVIAME_PYTORCH_BUILD_FROM_SOURCE:BOOL=ON \
+-DVIAME_PYTORCH_VERSION:STRING=2.5.1 \
+-DVIAME_PYTORCH_DISABLE_NINJA=ON \
+-DVIAME_PYTORCH_BUILD_TORCHVISION=ON \
+-DVIAME_ENABLE_PYTORCH-VISION:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-MMDET:BOOL=OFF \
+-DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=OFF \
+-DVIAME_ENABLE_PYTORCH-MIT-YOLO:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=OFF \
+-DVIAME_ENABLE_PYTORCH-SAM:BOOL=ON \
+-DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
+-DVIAME_ENABLE_SEAL:BOOL=OFF \
+-DVIAME_ENABLE_SMQTK:BOOL=OFF \
+-DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
+-DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \
+-DVIAME_ENABLE_VIVIA:BOOL=OFF \
+-DVIAME_ENABLE_VXL:BOOL=ON \
+-DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=OFF \
+-DVIAME_DOWNLOAD_MODELS-GENERIC:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS-FISH:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=OFF \
+-DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=OFF \
+-DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
+
+# Perform multi-threaded build
+make -j$(nproc) || true
+EOF
+
+RUN <<EOF
+# Below be krakens
+# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
+cd /viame/build
+
+# HACK: Ensure invalid libsvm symlink isn't created
+# Should be removed when this issue is fixed
+rm install/lib/libsvm.so
+cp install/lib/libsvm.so.2 install/lib/libsvm.so
+
+# For local development keep the build directory for easier updates
+mkdir -p /opt/noaa
+ln -sf /viame/build/install /opt/noaa/viame
+#mv install viame
+#mv viame /opt/noaa
+cd /
+#rm -rf /viame
+chown -R 1099:1099 /opt/noaa/viame
+
+
+EOF
+
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+RUN <<EOF
+# https://www.docker.com/blog/introduction-to-heredocs-in-dockerfiles/
+__doc__="
+
+This is a variant of ``viame_gpu_sam.docker`` that builds using the local checkout
+
+Build Instructions
+------------------
+
+This must be run from the VIAME REPO root, e.g.
+
+.. code:: bash
+
+    cd $HOME/code/VIAME
+
+Then run the docker build 
+
+.. code:: bash
+
+    DOCKER_BUILDKIT=1 docker build --progress=plain \
+        -t "viame:viame-gpu-local" \
+        -f docker/viame_gpu_local.docker .
+
+Develop inside the new image with the local repo mounted as follows
+
+.. code:: bash
+
+    docker run --gpus=all \
+        --shm-size=8g \
+        --volume "$HOME/code/VIAME:/host-viame" \
+        -it viame:viame-gpu-local \
+        bash
+
+
+Setup the enviornment:
+
+.. code:: bash
+
+	git config --global --add safe.directory /host-viame/.git
+
+This allows the developer to pull the local repo state into the container and
+build it for faster iteration time. For example.
+
+.. code:: bash
+
+    cd /viame/build
+    git pull
+    make -j$(nproc)
+
+
+In the installed directory test the algorithms using the KWIVER and VIAME CLI:
+
+.. code:: bash
+
+    cd /opt/noaa/viame/
+    source setup_viame.sh
+
+    # Train a MIT YOLO detector
+    cd /opt/noaa/viame/examples/object_detector_training
+    viame_train_detector \
+      -i /opt/noaa/viame/examples/object_detector_training/training_data_mouss \
+      -c /opt/noaa/viame/configs/pipelines/train_detector_mit_yolo_640.conf \
+      --threshold 0.0
+
+    # Grab a checkpoint
+    CKPT_FPATH=$(python3 -c "if 1:
+        import pathlib
+        ckpt_dpath = pathlib.Path('/opt/noaa/viame/examples/object_detector_training/deep_training/train/viame-mit-yolo-detector/checkpoints/')
+        checkpoints = sorted(ckpt_dpath.glob('*'))
+        print(checkpoints[-1])
+    ")
+    echo "CKPT_FPATH=$CKPT_FPATH"
+
+    # Move the weights and config into the cwd as a hack.
+    cd /opt/noaa/viame/examples/object_detection
+    cp "$CKPT_FPATH" demo-yolo-weights.ckpt
+    cp /opt/noaa/viame/examples/object_detector_training/deep_training/train/viame-mit-yolo-detector/train_config.yaml train_config.yaml
+
+    # Modify a template to create a pipeline file
+    cp /opt/noaa/viame/configs/pipelines/templates/detector_mit_yolo.pipe demo_mit_yolo_detector.pipe
+    sed -i 's|\[-MODEL-FILE-\]|demo-yolo-weights.ckpt|g' demo_mit_yolo_detector.pipe
+    sed -i 's|\[-WINDOW-OPTION-\]|original_and_resized|g' demo_mit_yolo_detector.pipe
+
+    # Run the YOLO detector inference
+    export PYTHONIOENCODING=utf-8
+    kwiver runner demo_mit_yolo_detector.pipe \
+                  -s input:video_filename=input_image_list_small_set.txt
+
+
+It is also possible to directly symlink Python files from the host to the
+correct system location for a development-install-like experience. E.g. to
+develop on the mit_yolo_trainer run
+
+.. code:: bash
+
+    ln -sf /host-viame/plugins/pytorch/mit_yolo_trainer.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/mit_yolo_trainer.py
+
+"
+EOF

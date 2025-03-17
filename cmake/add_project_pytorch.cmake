@@ -35,6 +35,10 @@ if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET)
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} darknet-to-pytorch-onnx )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} MIT-YOLO )
+endif()
+
 if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTORCH-MMDET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} mmdeploy )
 endif()
@@ -134,13 +138,29 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PIP_BUILD_DIR_CMD -b ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_CACHE_DIR_CMD --cache-dir ${LIBRARY_PIP_CACHE_DIR} )
 
+  # For each python library split the build and install into two steps.
+
   if( VIAME_PYTHON_SYMLINK )
+    # In development mode, install with the -e flag for editable.
     set( LIBRARY_PIP_BUILD_CMD
       ${Python_EXECUTABLE} setup.py build )
     set( LIBRARY_PIP_INSTALL_CMD
       ${Python_EXECUTABLE} -m pip install --user -e . )
   else()
-    if( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
+    # TODO:
+    # replace direct calls to setup.py with `python -m build`
+    if( "${LIB}" STREQUAL "MIT-YOLO" )
+      # For now just use -m build with MIT-YOLO
+      # FIXME:
+      # If we remove no-isolation then it will complain that pip cannot be found.
+      # I don't know exactly why, but for now it works.
+      set( LIBRARY_PIP_BUILD_CMD
+        ${Python_EXECUTABLE} -m build
+          --wheel
+          --no-isolation
+          --outdir ${LIBRARY_PIP_BUILD_DIR}
+      )
+    elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
