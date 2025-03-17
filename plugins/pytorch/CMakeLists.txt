@@ -54,7 +54,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 
 endif()
 
-if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET AND VIAME_ENABLE_PYTORCH-MMDET )
+if( VIAME_ENABLE_ONNX AND ( VIAME_ENABLE_DARKNET OR VIAME_ENABLE_PYTORCH-MMDET ) )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_onnx_process.py
@@ -108,7 +108,6 @@ if( VIAME_ENABLE_LEARN )
       ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_trainer.py
       arrows/pytorch
       remax_dino_trainer )
-
 
 endif()
 
