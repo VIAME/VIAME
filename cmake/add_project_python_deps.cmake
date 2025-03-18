@@ -278,26 +278,6 @@ set( VIAME_PYTHON_DEPS_DEPS fletch )
 list( LENGTH VIAME_PYTHON_ADV_DEPS DEP_COUNT )
 math( EXPR DEP_COUNT "${DEP_COUNT} - 1" )
 
-
-# Force a pip update before installing other packages
-set( PYTHON_DEP_BUILD
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-    ${Python_EXECUTABLE} -m pip install --user pip==25.0
-  )
-ExternalProject_Add( python-pip
-  DEPENDS ${VIAME_PYTHON_DEPS_DEPS}
-  PREFIX ${VIAME_BUILD_PREFIX}
-  SOURCE_DIR ${VIAME_CMAKE_DIR}
-  USES_TERMINAL_BUILD 1
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ${PYTHON_DEP_BUILD}
-  INSTALL_COMMAND ""
-  INSTALL_DIR ${VIAME_INSTALL_PREFIX}
-  LIST_SEPARATOR "----"
-  )
-
-list( APPEND VIAME_PYTHON_DEPS_DEPS python-pip )
-
 foreach( ID RANGE ${DEP_COUNT} )
 
   list( GET VIAME_PYTHON_ADV_DEPS ${ID} DEP )
