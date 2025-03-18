@@ -71,6 +71,13 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
     mit_yolo_detector )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_detector.py
+    arrows/pytorch
+    ultralytics_detector )
+endif()
+
 if( VIAME_ENABLE_ONNX AND ( VIAME_ENABLE_DARKNET OR VIAME_ENABLE_PYTORCH-MMDET ) )
 
   kwiver_add_python_module(

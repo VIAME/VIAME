@@ -142,6 +142,18 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_PYTORCH-
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  # Ultralytics will be installed as an advanced package. Here we need to
+  # explicitly install the dependencies of the package and our wrapper.
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn==0.13.2" )  # can likely keep this version loose
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" )
+  if( Python_VERSION VERSION_LESS "3.10" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco==0.2.31" )
+  else()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco==0.8.5" )
+  endif()
+endif()
+
 if( Python_VERSION VERSION_LESS "3.7" AND
     ( VIAME_ENABLE_PYTORCH-PYSOT OR VIAME_ENABLE_SMQTK ) )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorboardX<=2.6.0" )
@@ -181,10 +193,12 @@ if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow${TF_ARGS}" )
 endif()
 
+list(REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS)
+
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
 # Advanced python dependencies are installed individually due to special reqs
 
-set( VIAME_PYTHON_ADV_DEPS python-deps )
+list( APPEND VIAME_PYTHON_ADV_DEPS python-deps )
 set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
 
 if( VIAME_ENABLE_KEYPOINT )
@@ -250,12 +264,39 @@ if( VIAME_ENABLE_PYTORCH AND
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  # Add ultralytics as an advanced dependency to avoid installing its strict
+  # dependencies that are not needed.
+  list( APPEND VIAME_PYTHON_ADV_DEPS ultralytics )
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "ultralytics<=8.3.71 ultralytics_thop==2.0.14 --no-deps" )
+endif()
+
 # ------------------------------------- INSTALL ROUTINES -----------------------------------------
 
 set( VIAME_PYTHON_DEPS_DEPS fletch )
 
 list( LENGTH VIAME_PYTHON_ADV_DEPS DEP_COUNT )
 math( EXPR DEP_COUNT "${DEP_COUNT} - 1" )
+
+
+# Force a pip update before installing other packages
+set( PYTHON_DEP_BUILD
+  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+    ${Python_EXECUTABLE} -m pip install --user pip==25.0
+  )
+ExternalProject_Add( python-pip
+  DEPENDS ${VIAME_PYTHON_DEPS_DEPS}
+  PREFIX ${VIAME_BUILD_PREFIX}
+  SOURCE_DIR ${VIAME_CMAKE_DIR}
+  USES_TERMINAL_BUILD 1
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ${PYTHON_DEP_BUILD}
+  INSTALL_COMMAND ""
+  INSTALL_DIR ${VIAME_INSTALL_PREFIX}
+  LIST_SEPARATOR "----"
+  )
+
+list( APPEND VIAME_PYTHON_DEPS_DEPS python-pip )
 
 foreach( ID RANGE ${DEP_COUNT} )
 
