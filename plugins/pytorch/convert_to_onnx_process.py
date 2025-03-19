@@ -93,6 +93,7 @@ class OnnxConverter(KwiverProcess):
             print("No model will be generated, for now, we only support yolo-darknet and crcnn-mmdet")
 
         self._base_configure()
+        self.mark_process_as_complete()
 
     # ----------------------------------------------
     def _step(self):
