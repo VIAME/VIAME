@@ -193,7 +193,7 @@ if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow${TF_ARGS}" )
 endif()
 
-list(REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS)
+list( REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS )
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
 # Advanced python dependencies are installed individually due to special reqs
