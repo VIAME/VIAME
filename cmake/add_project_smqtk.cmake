@@ -71,7 +71,7 @@ ExternalProject_Add_Step(smqtk install_python
   WORKING_DIRECTORY ${VIAME_PACKAGES_DIR}/smqtk
   COMMAND ${SMQTK_PYTHON_INSTALL}
   COMMENT "Installing SMQTK python files."
-  DEPENDEES build
+  DEPENDEES install
   )
 
 ExternalProject_Add_Step(smqtk install_cleanup
@@ -85,7 +85,7 @@ ExternalProject_Add_Step(smqtk install_cleanup
     -DVIAME_PYTHON_INSTALL=${VIAME_PYTHON_INSTALL}
     -P ${VIAME_SOURCE_DIR}/cmake/custom_install_smqtk.cmake
   COMMENT "Performing SMQTK Cleanup."
-  DEPENDEES build
+  DEPENDEES install
   )
 
 if ( VIAME_FORCEBUILD )
