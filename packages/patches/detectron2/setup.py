@@ -164,8 +164,7 @@ setup(
         # In general, avoid adding dependencies that are not pure-python because they are not
         # guaranteed to be installable by `pip install` on all platforms.
         "Pillow>=7.1",  # or use pillow-simd for better performance
-        "matplotlib",  # TODO move it to optional after we add opencv visualization
-        "pycocotools>=2.0.2",  # corresponds to https://github.com/ppwwyyxx/cocoapi
+        "matplotlib",  # TODO move it to optional after we add opencv visualization\
         # Do not add opencv here. Just like pytorch, user should install
         # opencv themselves, preferrably by OS's package manager, or by
         # choosing the proper pypi package name at https://github.com/skvark/opencv-python
@@ -184,7 +183,7 @@ setup(
         # NOTE: when updating fvcore/iopath version, make sure fvcore depends
         # on compatible version of iopath.
         "fvcore>=0.1.5,<0.1.6",  # required like this to make it pip installable
-        "iopath>=0.1.7,<0.1.10",
+        "iopath>=0.1.7,<0.1.11",
         "dataclasses; python_version<'3.7'",
         "omegaconf>=2.1,<2.4",
         "hydra-core>=1.1",
