@@ -8,6 +8,5 @@ termcolor
 addict
 yapf
 jinja2
-ninja
 shapely
 timm
