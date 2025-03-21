@@ -22,6 +22,10 @@ class HuggingFaceZeroShotDetectorConfig(scfg.DataConfig):
 
 class HuggingFaceZeroShotDetector(ImageObjectDetector):
     """
+    References:
+        https://github.com/IDEA-Research/GroundingDINO
+        https://huggingface.co/docs/transformers/model_doc/grounding-dino
+
     Example:
         >>> import kwimage
         >>> self = HuggingFaceZeroShotDetector()
