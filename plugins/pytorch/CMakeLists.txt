@@ -64,6 +64,13 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 
 endif()
 
+if( VIAME_ENABLE_PYTORCH-HUGGINGFACE )
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/.py
+    arrows/pytorch
+    huggingface_zeroshot_detector )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/mit_yolo_trainer.py
