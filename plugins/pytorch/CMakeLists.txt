@@ -31,6 +31,11 @@ kwiver_add_python_module(
   _utils )
 
 kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/_util_kwimage.py
+  arrows/pytorch
+  _utils )
+
+kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_train_detector.py
   arrows/pytorch
   kwcoco_train_detector )
