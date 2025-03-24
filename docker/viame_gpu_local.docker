@@ -22,10 +22,6 @@ apt-get install -y git
 # Clone from the host machine to the new docker repo.
 git clone --single-branch --dissociate /host-viame /viame 
 
-# Alt to dissociate
-#git repack -a -d
-#git fsck --full
-
 
 cd /viame/cmake 
 
@@ -38,20 +34,6 @@ cd /viame/cmake
 # Update VIAME sub git deps
 cd /viame/
 git submodule update --init --recursive
-
-#apt install parallel
-#git submodule foreach --recursive 'git reset --hard'
-#git submodule foreach --recursive 'echo $name' | parallel -j 4 'cd $(pwd)/$name && git checkout $(git rev-parse HEAD) && git pull'
-# Does not work
-# Use a reference to pull submodules from the host repo rather than from the
-# network.
-#cd /viame
-# git submodule update --init --recursive --reference /host-viame
-#git config --global protocol.file.allow always
-#git config --global --add safe.directory /host-viame/.git/modules/packages/burn-out
-#git config --global --add safe.directory /host-viame/.git/modules/packages/burn-out
-#git submodule sync
-#git submodule foreach --recursive 'git remote set-url origin /host-viame/$path && git fetch origin && git checkout $(git rev-parse HEAD)'
 
 mkdir -p /viame/build
 cd /viame/build
