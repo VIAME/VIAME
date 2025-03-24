@@ -216,6 +216,16 @@ In the installed directory test the algorithms using the KWIVER and VIAME CLI:
     cd /opt/noaa/viame/
     source setup_viame.sh
 
+    # Test a Huggingface detector
+    cd /opt/noaa/viame/examples/object_detector_training
+
+    export PYTHONIOENCODING=utf-8
+    cp /opt/noaa/viame/configs/pipelines/templates/detector_huggingface_zeroshot.pipe detector_huggingface_zeroshot.pipe
+    kwiver runner demo_mit_yolo_detector.pipe \
+                  -s input:video_filename=input_image_list_small_set.txt
+
+    # ---
+
     # Train a MIT YOLO detector
     cd /opt/noaa/viame/examples/object_detector_training
     viame_train_detector \
