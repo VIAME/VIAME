@@ -4,10 +4,10 @@
 set -x
 
 # Fletch, VIAME, CMAKE system deps
-./viame/cmake/build_server_ubuntu_deps.sh
+/viame/cmake/build_server_ubuntu_deps.sh
 
 # Install CMAKE
-./viame/cmake/build_server_linux_cmake.sh
+/viame/cmake/build_server_linux_cmake.sh
 
 # Update VIAME sub git deps
 cd /viame/
@@ -18,6 +18,11 @@ cd build
 # Add VIAME and CUDA paths to build
 export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/usr/local/cuda/lib64
+
+# Add paths for internal python build
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib/python3.10
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.10
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.10
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -35,7 +40,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_GDAL:BOOL=OFF \
 -DVIAME_ENABLE_FLASK:BOOL=OFF \
 -DVIAME_ENABLE_ITK:BOOL=OFF \
--DVIAME_ENABLE_KWANT:BOOL=OFF \
+-DVIAME_ENABLE_KWANT:BOOL=ON \
 -DVIAME_ENABLE_KWIVER:BOOL=ON \
 -DVIAME_ENABLE_LEARN:BOOL=ON \
 -DVIAME_ENABLE_MATLAB:BOOL=OFF \
@@ -50,6 +55,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_PYTORCH-MMDET:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-SAM:BOOL=ON \
 -DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
 -DVIAME_ENABLE_SEAL:BOOL=OFF \
 -DVIAME_ENABLE_SMQTK:BOOL=ON \
