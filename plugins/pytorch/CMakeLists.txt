@@ -66,7 +66,7 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-HUGGINGFACE )
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/huggingface_zeroshot_detector.py
     arrows/pytorch
     huggingface_zeroshot_detector )
 endif()
