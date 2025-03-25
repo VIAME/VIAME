@@ -91,9 +91,6 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
         full_rgb = image_data.asarray()
         pil_img = Image.fromarray(full_rgb)
 
-        imdata: np.ndarray = image_data.asarray()
-        self._detect_ndarray(imdata)
-
         model = self.model
         processor = self.processor
 
