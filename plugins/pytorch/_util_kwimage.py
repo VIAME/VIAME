@@ -91,10 +91,17 @@ def kwiver_to_kwimage_detections(detected_objects):
             classes = obj.type().all_class_names()
 
     for obj in detected_objects:
-        box = obj.bounding_box()
+        try:
+            box = obj.bounding_box()
+        except TypeError:
+            box = obj.bounding_box
         ltrb = [box.min_x(), box.min_y(), box.max_x(), box.max_y()]
-        score = obj.confidence()
-        cname = obj.type().get_most_likely_class()
+        try:
+            score = obj.confidence()
+            cname = obj.type().get_most_likely_class()
+        except TypeError:
+            score = obj.confidence
+            cname = obj.type.get_most_likely_class()
         cidx = classes.index(cname)
         boxes.append(ltrb)
         scores.append(score)
