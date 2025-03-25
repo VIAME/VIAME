@@ -214,31 +214,19 @@ In the installed directory test the algorithms using the KWIVER and VIAME CLI:
 .. code:: bash
 
     cd /opt/noaa/viame/
+    export PYTHONIOENCODING=utf-8
     source setup_viame.sh
 
     # Test a Huggingface detector
     cd /opt/noaa/viame/examples/object_detection
-
-    export PYTHONIOENCODING=utf-8
     cp /opt/noaa/viame/configs/pipelines/detector_huggingface_zeroshot.pipe detector_huggingface_zeroshot.pipe
+
+    # Run the generic detector
     kwiver runner detector_huggingface_zeroshot.pipe \
                   -s input:video_filename=input_image_list_small_set.txt \
                   -s detector_writer:file_name=generic_detections.json \
                   -s detector_writer:writer:type=coco
 
-    cp -r generic_detections.json /host-viame/example-images/generic_detections.json
-    # Fixup output
-    python -c "if 1:
-        import pathlib
-        import json
-        fpath = pathlib.Path('generic_detections.json')
-        data = json.loads(fpath.read_text())
-        for img in data['images']:
-            img.pop('auxillary')
-        fpath.write_text(json.dumps(data))
-    "
-    cp -r ../example_imagery/small_example_image_set1/ /host-viame/example-images
-    cp -r generic_detections.json /host-viame/example-images/generic_detections.json
 
     # Use a specific prompt
     kwiver runner detector_huggingface_zeroshot.pipe \
@@ -247,6 +235,9 @@ In the installed directory test the algorithms using the KWIVER and VIAME CLI:
                   -s detector_writer:file_name=prompted_detections.json \
                   -s detector_writer:writer:type=coco  
 
+    # Copy data out of container for visualization
+    cp -r ../example_imagery/small_example_image_set1/ /host-viame/example-images
+    cp -r generic_detections.json /host-viame/example-images/generic_detections.json
     cp -r prompted_detections.json /host-viame/example-images/prompted_detections.json
 
     # ---
