@@ -38,28 +38,29 @@ ExternalProject_Add( ${ONNXRUNTIME_PYTHON}
   )
 
 # Install onnx libs
-set( ONNXRUNTIME_LIBS_URL "" )
-set( ONNXRUNTIME_LIBS_DOWNLOAD_DIR ${VIAME_BUILD_PREFIX}/src/onnxruntimelibs )
-set( ONNXRUNTIME_LIBS_INSTALL_DIR ${VIAME_INSTALL_PREFIX}/lib/${VIAME_PYTHON_STRING}/site-packages/onnxruntime )
+set( ONNXRUNTIME_LIB_URL "" )
+set( ONNXRUNTIME_LIB_DOWNLOAD_DIR ${VIAME_BUILD_PREFIX}/src/onnxruntimelibs )
+set( ONNXRUNTIME_LIB_INSTALL_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime )
+
 if( UNIX )
-  set(ONNXRUNTIME_LIBS_URL https://github.com/microsoft/onnxruntime/releases/download/v1.12.1/onnxruntime-linux-x64-1.12.1.tgz )
+  set( ONNXRUNTIME_LIB_URL https://github.com/microsoft/onnxruntime/releases/download/v1.12.1/onnxruntime-linux-x64-1.12.1.tgz )
 elseif( WIN32 )
-  set( ONNXRUNTIME_LIBS_URL https://github.com/microsoft/onnxruntime/releases/download/v1.12.1/onnxruntime-win-x64-1.12.1.zip )
+  set( ONNXRUNTIME_LIB_URL https://github.com/microsoft/onnxruntime/releases/download/v1.12.1/onnxruntime-win-x64-1.12.1.zip )
 else()
-  message(FATAL_ERROR "Cannot download ONNXRUNTIME because system is not supported")
+  message( FATAL_ERROR "Cannot download ONNXRUNTIME because system is not supported" )
 endif()
 
 
-set( ONNXRUNTIMELIBS_DEPS ${ONNXRUNTIME_PYTHON} )
-set( ONNXRUNTIMELIBS_INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
-  ${ONNXRUNTIME_LIBS_DOWNLOAD_DIR} ${ONNXRUNTIME_LIBS_INSTALL_DIR}/onnxruntimelibs )
+set( ONNXRUNTIME_LIB_DEPS ${ONNXRUNTIME_PYTHON} )
+set( ONNXRUNTIME_LIB_INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+  ${ONNXRUNTIME_LIB_DOWNLOAD_DIR} ${ONNXRUNTIME_LIB_INSTALL_DIR}/onnxruntimelibs )
 
 ExternalProject_Add( onnxruntimelibs
-  DEPENDS ${ONNXRUNTIMELIBS_DEPS}
+  DEPENDS ${ONNXRUNTIME_LIB_DEPS}
   SOURCE_DIR ""
-  URL ${ONNXRUNTIME_LIBS_URL}
+  URL ${ONNXRUNTIME_LIB_URL}
   PREFIX ${VIAME_BUILD_PREFIX}
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
-  INSTALL_COMMAND ${ONNXRUNTIMELIBS_INSTALL_COMMAND}
+  INSTALL_COMMAND ${ONNXRUNTIME_LIB_INSTALL_COMMAND}
   )
