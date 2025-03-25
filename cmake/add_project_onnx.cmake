@@ -1,21 +1,23 @@
 # Install onnx python
 set( ONNXRUNTIME_PYTHON onnxruntime )
+
 set( ONNXRUNTIME_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/${ONNXRUNTIME_PYTHON}-build )
 CreateDirectory( ${ONNXRUNTIME_PIP_BUILD_DIR} )
+
 set( ONNXRUNTIME_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/${ONNXRUNTIME_PYTHON}-tmp )
 CreateDirectory( ${ONNXRUNTIME_PIP_TMP_DIR} )
 
 set( ONNXRUNTIME_PIP_INSTALL_CMD "" )
 if( VIAME_SYMLINK_PYTHON )
-    set( ONNXRUNTIME_PIP_INSTALL_CMD
-      ${Python_EXECUTABLE} -m pip install --user -e . )
+  set( ONNXRUNTIME_PIP_INSTALL_CMD
+    ${Python_EXECUTABLE} -m pip install --user -e . )
 else()
-    set( ONNXRUNTIME_PIP_INSTALL_CMD
-        ${CMAKE_COMMAND}
-            -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
-            -DPython_EXECUTABLE=${Python_EXECUTABLE}
-            -DWHEEL_DIR=${ONNXRUNTIME_PIP_BUILD_DIR}
-            -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
+  set( ONNXRUNTIME_PIP_INSTALL_CMD
+    ${CMAKE_COMMAND}
+      -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
+      -DPython_EXECUTABLE=${Python_EXECUTABLE}
+      -DWHEEL_DIR=${ONNXRUNTIME_PIP_BUILD_DIR}
+      -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
 # Instead of building the wheel, we download it directly in the build folder
