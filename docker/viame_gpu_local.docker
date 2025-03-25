@@ -222,7 +222,32 @@ In the installed directory test the algorithms using the KWIVER and VIAME CLI:
     export PYTHONIOENCODING=utf-8
     cp /opt/noaa/viame/configs/pipelines/detector_huggingface_zeroshot.pipe detector_huggingface_zeroshot.pipe
     kwiver runner detector_huggingface_zeroshot.pipe \
-                  -s input:video_filename=input_image_list_small_set.txt
+                  -s input:video_filename=input_image_list_small_set.txt \
+                  -s detector_writer:file_name=generic_detections.json \
+                  -s detector_writer:writer:type=coco
+
+    cp -r generic_detections.json /host-viame/example-images/generic_detections.json
+    # Fixup output
+    python -c "if 1:
+        import pathlib
+        import json
+        fpath = pathlib.Path('generic_detections.json')
+        data = json.loads(fpath.read_text())
+        for img in data['images']:
+            img.pop('auxillary')
+        fpath.write_text(json.dumps(data))
+    "
+    cp -r ../example_imagery/small_example_image_set1/ /host-viame/example-images
+    cp -r generic_detections.json /host-viame/example-images/generic_detections.json
+
+    # Use a specific prompt
+    kwiver runner detector_huggingface_zeroshot.pipe \
+                  -s input:video_filename=input_image_list_small_set.txt \
+                  -s detector1:detector:ocv_windowed:detector:huggingface_zeroshot_detector:classes="[fish,starfish,coral]" \
+                  -s detector_writer:file_name=prompted_detections.json \
+                  -s detector_writer:writer:type=coco  
+
+    cp -r prompted_detections.json /host-viame/example-images/prompted_detections.json
 
     # ---
 
@@ -269,6 +294,8 @@ develop on the mit_yolo_trainer run
     # Or more generally, just symlink files you are working on
     ln -sf /host-viame/plugins/pytorch/huggingface_zeroshot_detector.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/huggingface_zeroshot_detector.py
     ln -sf /host-viame/plugins/pytorch/_util_kwimage.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/_util_kwimage.py
+
+    ln -sf /host-viame/configs/pipelines/detector_huggingface_zeroshot.pipe detector_huggingface_zeroshot.pipe
 
 
 Manual Build Instructions

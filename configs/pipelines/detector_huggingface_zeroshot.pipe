@@ -83,6 +83,7 @@ process detector1
 
     block detector:huggingface_zeroshot_detector
       :model_id                    IDEA-Research/grounding-dino-tiny
+      :classes                     [foreground object]
     endblock
   endblock
 
