@@ -119,15 +119,6 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-yolo_v4_csp_s_seed_model-v1.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
-
-  # Caffe generic descriptor
-  if( VIAME_ENABLE_CAFFE )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5afe6e1e8d777f15ebe1d6fc/download
-      2cdbe7ca51b49b12e59911aadec20e98
-      ${VIAME_DOWNLOAD_DIR}/models-default_caffe_descriptor-v1.0.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR} )
-  endif()
 endif()
 
 ###
