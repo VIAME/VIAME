@@ -36,7 +36,7 @@ if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET)
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} MIT-YOLO )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} mit-yolo )
 endif()
 
 if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTORCH-MMDET )
@@ -149,7 +149,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   else()
     # TODO:
     # replace direct calls to setup.py with `python -m build`
-    if( "${LIB}" STREQUAL "MIT-YOLO" )
+    if( "${LIB}" STREQUAL "mit-yolo" )
       # For now just use -m build with MIT-YOLO
       # FIXME:
       # If we remove no-isolation then it will complain that pip cannot be found.
