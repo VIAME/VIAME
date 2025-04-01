@@ -1,12 +1,19 @@
-#!/bin/sh
+ #!/bin/bash
 
-# Setup VIAME Paths (no need to run multiple times if you already ran it)
-
+# Path to VIAME installation
 export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
-source ${VIAME_INSTALL}/setup_viame.sh 
+# Core processing options
+export INPUT_FOLDER=../object_detector_training/training_data_mouss
+export INPUT_FORMAT=viame_csv
+export OUTPUT_FOLDER=example_output
+export DEFAULT_FRAME_RATE=5
 
-# Run pipeline
+# Setup paths, pipeline, and run the command
+export PIPELINE=pipelines/utility_track_selections_default_mask.pipe
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/utility_track_selections_default_mask.pipe \
-                -s input:video_filename=input_list.txt
+source ${VIAME_INSTALL}/setup_viame.sh
+
+python ${VIAME_INSTALL}/configs/process_video.py \
+  -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER} -frate ${DEFAULT_FRAME_RATE} \
+  -p ${PIPELINE} -auto-detect-gt ${INPUT_FORMAT} --no-reset-prompt
