@@ -8,5 +8,6 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/tracker_short_term.pipe \
-                -s input:video_filename=input_list.txt
+kwiver.exe runner ${VIAME_INSTALL}/configs/pipelines/utility_track_selections_default_mask.pipe \
+  -s input:video_filename=input_list.txt \
+  -s 
