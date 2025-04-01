@@ -33,10 +33,12 @@ if( VIAME_ENABLE_PYTORCH-PYSOT )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
+         bulk_run_user_init_tracking.bat
          run_user_init_tracker.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
+         bulk_run_user_init_tracking.sh
          run_user_init_tracker.sh )
   endif()
 endif()
