@@ -37,7 +37,7 @@ if( VIAME_ENABLE_PYTORCH-PYSOT )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         run_user_init_tracker.sh)
+         run_user_init_tracker.sh )
   endif()
 endif()
 
