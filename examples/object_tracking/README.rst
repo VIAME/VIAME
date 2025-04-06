@@ -28,8 +28,8 @@ Automatic Multi-Target Trackers
    :scale: 50
    :align: center
 |
-Automatic multi-target trackers (MTT) within VIAME link detections (produced by another 
-detection algorithm, see `detection examples`) into tracks. This is accomplished by combining
+Automatic multi-target trackers (MTT) link detections (produced by a seperate detection
+algorithm, see `detection examples`) into tracks. This is accomplished by combining
 appearance features for the object being tracked, with kinematic (motion) information as to
 the last known location(s) of the object. The current default implementation of this is designed
 for either roughly stationary cameras, or cameras with a little bit of camera motion. Excessive
