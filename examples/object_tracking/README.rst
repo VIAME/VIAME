@@ -49,7 +49,7 @@ Example CLI scripts in this folder for MTT trackers include:
 .. _detection examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detection
 
 The current default model for performing MTT in VIAME is a variant of the RNN network and 
-features described in the "Tracking the Untrackable" paper[TUT17]_, where new detections
+features described in the "Tracking the Untrackable" paper [TUT17]_, where new detections
 are tested to see if they belong to an existing track using a variant of the classifier
 described in the paper. A hungarian matrix is then used on all track/detection combinations
 to make final linking decisions. There are a number of pieces of code used in the approach,
