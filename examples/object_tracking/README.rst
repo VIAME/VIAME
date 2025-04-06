@@ -24,8 +24,8 @@ from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL).
 Automatic Multi-Target Trackers
 *******************************
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/computed_track_example.png
-   :scale: 60
+.. image:: https://github.com/Kitware/dive/blob/main/docs/images/Banner.png
+   :scale: 50
    :align: center
 |
 Automatic multi-target trackers (MTT) within VIAME link detections (produced by another 
@@ -70,7 +70,7 @@ User-Initialized Trackers
 *************************
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/computed_track_example.png
-   :scale: 60
+   :scale: 50
    :align: center
 
 User-initialized tracking allows users to draw a box on the first frame of an object
@@ -89,7 +89,7 @@ in order to not change them when aiding with annotation generation. With additio
 settings modifications, these trackers also allow for longer term re-initialization
 when the target is lost, but this is not available on the public version of VIAME. 
 The current default model for performing user-initialized tracking in VIAME is a variant
-of the [SiamMask]_ and [SiamRPN++]_ algorithms. There are a number of pieces of code used
+of the [SiamMask]_ and [SiamRPN]_ algorithms. There are a number of pieces of code used
 in the approaches, including:
 
 * packages/kwiver/python/kwiver/sprokit/processes/pytorch/pysot_tracker.py
@@ -102,15 +102,11 @@ in the approaches, including:
 * packages/pytorch
 
 .. [SiamMask] Hu et al. "SiamMask: A framework for fast online object tracking and segmentation." IEEE PAMI 2023.
-.. [SiamRPN++] Li et al. "SiamRPN++: Evolution of siamese visual tracking with very deep networks." IEEE CVPR 2019.
+.. [SiamRPN] Li et al. "SiamRPN++: Evolution of siamese visual tracking with very deep networks." IEEE CVPR 2019.
 
 ***************************
 Registration-Based Trackers
 ***************************
-
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/computed_track_example.png
-   :scale: 60
-   :align: center
 
 Registration-based trackers use frame-to-frame image registrations to identify the same
 locations in each frame in corresponding frames. These mapped locations are then used
