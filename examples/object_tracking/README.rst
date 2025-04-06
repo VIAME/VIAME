@@ -63,7 +63,6 @@ including:
 | packages/pytorch-libs/torchvision
 | packages/pytorch
 |
-.. [TUT17] Sadeghian et al. "Tracking the untrackable: Learning to track multiple cues with long-term dependencies." IEEE ICCV 2017.
 
 *************************
 User-Initialized Trackers
@@ -101,8 +100,6 @@ in the approaches, including:
 | packages/pytorch-libs/pysot
 | packages/pytorch
 |
-.. [SiamMask] Hu et al. "SiamMask: A framework for fast online object tracking and segmentation." IEEE PAMI 2023.
-.. [SiamRPN++] Li et al. "SiamRPN++: Evolution of siamese visual tracking with very deep networks." IEEE CVPR 2019.
 
 ***************************
 Registration-Based Trackers
@@ -112,14 +109,21 @@ Registration-Based Trackers
    :scale: 60
    :align: center
 |
-Registration-based trackers use frame to frame image registrations to identify the same
-
-
-commonly used in aerial
+Registration-based trackers use frame-to-frame image registrations to identify the same
+locations in each frame in corresponding frames. These mapped locations are then used
+to link the same objects in some world or ground plane. In the context of VIAME, these
+trackers are currently used for two purposes: tracking objects on the ground in aerial
+imagery, or tracking objects on the ground in fast moving benthic camera systems
+pointed at the sea floor.
 
 There are a number of pieces of code used in the approach, including:
-
+|
 | packages/kwiver/python/kwiver/INSERT
 | configs/pipelines/INSERT
 | packages/kwiver/vital/types/object_track_set.h
 | packages/kwiver/algos
+|
+
+.. [TUT17] Sadeghian et al. "Tracking the untrackable: Learning to track multiple cues with long-term dependencies." IEEE ICCV 2017.
+.. [SiamMask] Hu et al. "SiamMask: A framework for fast online object tracking and segmentation." IEEE PAMI 2023.
+.. [SiamRPN++] Li et al. "SiamRPN++: Evolution of siamese visual tracking with very deep networks." IEEE CVPR 2019.
