@@ -7,7 +7,7 @@ Object Tracking Examples
 Overview
 ********
 
-This document corresponds to the `object tracking` example folder within a VIAME desktop
+This document corresponds to the `object tracking`_ example folder within a VIAME desktop
 installation. Object tracking attempts to identify the same object across sequential frames
 in either video or image sequences. VIAME currently contains 3 core types of trackers:
 
@@ -41,19 +41,20 @@ re-trained from user interfaces, the tracker cannot, requiring a seperate python
 For more information about this process, contact the viame-web@kitware.com mailing list.
 Example trackers can be found in the 'Trackers' dropdown in the DIVE interface.
 Example CLI scripts in this folder for MTT trackers include:
+|
 | run_generic_tracker (processes a single sequence)
 | run_fish_tracker (processes a single sequence)
 | bulk_run_fish_tracker (processes multiple sequences)
-
+|
 .. _detection examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detection
 
 The current default model for performing MTT in VIAME is a variant of the RNN network and 
-features described in the "Tracking the Untrackable [TUT17]_" paper, where new detections
+features described in the "Tracking the Untrackable" paper[TUT17]_, where new detections
 are tested to see if they belong to an existing track using a variant of the classifier
 described in the paper. A hungarian matrix is then used on all track/detection combinations
 to make final linking decisions. There are a number of pieces of code used in the approach,
 including:
-
+|
 | packages/kwiver/python/kwiver/sprokit/processes/pytorch/srnn_tracker.py
 | configs/pipelines/tracker_fish.pipe
 | packages/kwiver/vital/types/object_track_set.h
@@ -61,7 +62,7 @@ including:
 | packages/kwiver/python/kwiver/vital/types/object_track_set.cxx
 | packages/pytorch-libs/torchvision
 | packages/pytorch
-
+|
 .. [TUT17] Sadeghian et al. "Tracking the untrackable: Learning to track multiple cues with long-term dependencies." IEEE ICCV 2017.
 
 *************************
@@ -78,9 +79,10 @@ on subsequent frames. This is useful for rapidly generating track-level annotati
 without having to annotate the object on every frame. These pipelines can be run in
 the utility dropdown in the DIVE interface, in the VIEW interface pipelines dropdown,
 or from the command line in the following scripts:
+|
 | run_user_init_tracking
 | bulk_run_user_init_tracking
-
+|
 When running on a sequence, detections or tracks of size 1 will trigger user-initialized
 tracking. Any tracks of length greater than 1 will not trigger user-initialized tracking
 in order to not change them when aiding with annotation generation. With additional
@@ -89,7 +91,7 @@ when the target is lost, but this is not available on the public version of VIAM
 The current default model for performing user-initialized tracking in VIAME is a variant
 of the [SiamMask]_ and [SiamRPN++]_ algorithms. There are a number of pieces of code used
 in the approaches, including:
-
+|
 | packages/kwiver/python/kwiver/sprokit/processes/pytorch/pysot_tracker.py
 | configs/pipelines/utility_track_selections_default_mask.pipe
 | configs/pipelines/utility_track_selections_fish_box.pipe
@@ -98,7 +100,7 @@ in the approaches, including:
 | packages/kwiver/python/kwiver/vital/types/object_track_set.cxx
 | packages/pytorch-libs/pysot
 | packages/pytorch
-
+|
 .. [SiamMask] Hu et al. "SiamMask: A framework for fast online object tracking and segmentation." IEEE PAMI 2023.
 .. [SiamRPN++] Li et al. "SiamRPN++: Evolution of siamese visual tracking with very deep networks." IEEE CVPR 2019.
 
