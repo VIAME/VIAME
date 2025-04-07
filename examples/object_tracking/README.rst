@@ -89,10 +89,13 @@ When running on a sequence, detections or tracks of size 1 will trigger user-ini
 tracking. Any tracks of length greater than 1 will not trigger user-initialized tracking
 in order to not change them when aiding with annotation generation.
 The current default model for performing user-initialized tracking in VIAME is a variant
-of the [SiamMask]_ and [SiamRPN]_ algorithms. These trackers are automatically enabled
-in binary installations, but when building from source the VIAME_ENABLE_PYTORCH and
-VIAME_ENABLE_PYTORCH-PYSOT enable flags are required. There are a number of pieces of
-code used in the system, including:
+of the [SiamMask]_ and [SiamRPN]_ algorithms. Re-training of these classifiers is 
+currently available in the `object tracker training`_ example folder. These trackers are
+automatically enabled in binary installations, but when building from source
+the VIAME_ENABLE_PYTORCH and VIAME_ENABLE_PYTORCH-PYSOT enable flags are required.
+There are a number of pieces of code used in the system, including:
+
+.. _object tracker training: https://github.com/VIAME/VIAME/blob/master/examples/object_tracker_training
 
 * packages/kwiver/python/kwiver/sprokit/processes/pytorch/pysot_tracker.py
 * configs/pipelines/utility_track_selections_default_mask.pipe
