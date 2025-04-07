@@ -85,9 +85,7 @@ or from the command line in the following scripts:
 
 When running on a sequence, detections or tracks of size 1 will trigger user-initialized
 tracking. Any tracks of length greater than 1 will not trigger user-initialized tracking
-in order to not change them when aiding with annotation generation. With additional
-settings modifications, these trackers also allow for longer term re-initialization
-when the target is lost, but this is not available on the public version of VIAME. 
+in order to not change them when aiding with annotation generation.
 The current default model for performing user-initialized tracking in VIAME is a variant
 of the [SiamMask]_ and [SiamRPN]_ algorithms. There are a number of pieces of code used
 in the approaches, including:
@@ -103,6 +101,20 @@ in the approaches, including:
 
 .. [SiamMask] Hu et al. "SiamMask: A framework for fast online object tracking and segmentation." IEEE PAMI 2023.
 .. [SiamRPN] Li et al. "SiamRPN++: Evolution of siamese visual tracking with very deep networks." IEEE CVPR 2019.
+
+Extensions
+----------
+
+A multi-target version of the SiamMask tracker is also available for use in pipelines
+as an alternative to the MTT described in the prior section. When combined with a detection
+node, the tracker will automatically initialize new tracks when detections are above
+some specified threshold. A basic IOU algorithm prevents multiple tracks from being
+spawned on detections on subsequent frames.
+
+With additional settings modifications, these trackers also allow for longer term
+re-initialization when the target is lost via the Siam methods, but this feature is not
+available on the public version of VIAME.
+
 
 ***************************
 Registration-Based Trackers
