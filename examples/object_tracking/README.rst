@@ -52,8 +52,10 @@ The current default model for performing MTT in VIAME is a variant of the RNN ne
 features described in the "Tracking the Untrackable" paper [TUT17]_, where new detections
 are tested to see if they belong to an existing track using a variant of the classifier
 described in the paper. A hungarian matrix is then used on all track/detection combinations
-to make final linking decisions. There are a number of pieces of code used in the approach,
-including:
+to make final linking decisions. These trackers are automatically enabled in binary
+installations, but when building from source the VIAME_ENABLE_PYTORCH and
+VIAME_ENABLE_PYTORCH-VISION enable flags are required. There are a number of pieces of code
+used in the approach, including:
 
 * packages/kwiver/python/kwiver/sprokit/processes/pytorch/srnn_tracker.py
 * configs/pipelines/tracker_fish.pipe
@@ -87,8 +89,10 @@ When running on a sequence, detections or tracks of size 1 will trigger user-ini
 tracking. Any tracks of length greater than 1 will not trigger user-initialized tracking
 in order to not change them when aiding with annotation generation.
 The current default model for performing user-initialized tracking in VIAME is a variant
-of the [SiamMask]_ and [SiamRPN]_ algorithms. There are a number of pieces of code used
-in the approaches, including:
+of the [SiamMask]_ and [SiamRPN]_ algorithms. These trackers are automatically enabled
+in binary installations, but when building from source the VIAME_ENABLE_PYTORCH and
+VIAME_ENABLE_PYTORCH-PYSOT enable flags are required. There are a number of pieces of
+code used in the system, including:
 
 * packages/kwiver/python/kwiver/sprokit/processes/pytorch/pysot_tracker.py
 * configs/pipelines/utility_track_selections_default_mask.pipe
@@ -106,10 +110,10 @@ Extensions
 ----------
 
 A multi-target version of the SiamMask tracker is also available for use in pipelines
-as an alternative to the MTT described in the prior section. When combined with a detection
-node, the tracker will automatically initialize new tracks when detections are above
-some specified threshold. A basic IOU algorithm prevents multiple tracks from being
-spawned on detections on subsequent frames.
+as an alternative to the MTT described in the prior section. When combined with a
+detection node, the tracker will automatically initialize new tracks when detections
+are above some specified threshold. A basic IOU algorithm prevents multiple tracks
+from being spawned on detections on subsequent frames.
 
 With additional settings modifications, these trackers also allow for longer term
 re-initialization when the target is lost via the Siam methods, but this feature is not
