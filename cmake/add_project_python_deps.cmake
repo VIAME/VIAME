@@ -80,7 +80,6 @@ if( VIAME_ENABLE_ONNX )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.16.1" )
 endif()
 
-
 # For LEARN models
 if( VIAME_ENABLE_LEARN AND Python_VERSION VERSION_LESS "3.7" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.15.7" "fsspec<=2022.1.0" )
