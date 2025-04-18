@@ -11,4 +11,4 @@ REM Run Pipeline
 kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\tracker_generic.pipe" ^
                   -s input:video_filename=input_list.txt
 
-pause
+PAUSE

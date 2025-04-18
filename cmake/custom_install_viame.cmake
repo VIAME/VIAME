@@ -20,6 +20,20 @@ if( PYTHON_VERSION_STRING )
     file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
     file( REMOVE_RECURSE "${VIAME_INSTALL_PREFIX}/lib/site-packages" )
   endif()
+
+  if( EXISTS ${OUTPUT_PYTHON_DIR}/win32/lib )
+    message( WARNING "Relocating misinstalled ${OUTPUT_PYTHON_DIR}/win32/lib" )
+    file( GLOB FILES_TO_MOVE ${OUTPUT_PYTHON_DIR}/win32/lib )
+    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( REMOVE_RECURSE ${OUTPUT_PYTHON_DIR}/win32/lib )
+  endif()
+
+  if( EXISTS ${OUTPUT_PYTHON_DIR}/win32 )
+    message( WARNING "Relocating misinstalled ${OUTPUT_PYTHON_DIR}/win32" )
+    file( GLOB FILES_TO_MOVE ${OUTPUT_PYTHON_DIR}/win32 )
+    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( REMOVE_RECURSE ${OUTPUT_PYTHON_DIR}/win32 )
+  endif()
 endif()
 
 # Move any misinstalled darknet executables

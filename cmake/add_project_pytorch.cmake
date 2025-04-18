@@ -11,11 +11,11 @@ CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
 set( PYTORCH_LIBS_TO_BUILD )
 
-if( VIAME_ENABLE_PYTORCH-INTERNAL )
+if( VIAME_PYTORCH_BUILD_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
+if( VIAME_PYTORCH_BUILD_TORCHVISION )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
 
@@ -29,6 +29,18 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} mmcv mmdetection )
+endif()
+
+if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET)
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} darknet-to-pytorch-onnx )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} mit-yolo )
+endif()
+
+if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTORCH-MMDET )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} mmdeploy )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-PYSOT )
@@ -47,8 +59,8 @@ if( VIAME_ENABLE_PYTORCH-DETECTRON )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} detectron2 )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-SEGMENT-ANY )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} segment-anything )
+if( VIAME_ENABLE_PYTORCH-SAM )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} sam2 )
 endif()
 
 if( VIAME_ENABLE_TENSORRT )
@@ -70,7 +82,7 @@ if( VIAME_ENABLE_CUDNN )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH-DISABLE-NINJA )
+if( VIAME_PYTORCH_DISABLE_NINJA )
   list( APPEND PYTORCH_ENV_VARS "USE_NINJA=OFF" )
 endif()
 
@@ -92,6 +104,10 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND PYTORCH_ENV_VARS "MMCV_WITH_OPS=1" )
+endif()
+
+if( VIAME_PYTORCH_BUILD_TORCHVISION AND NOT WIN32 )
+  list( APPEND PYTORCH_ENV_VARS "TORCHVISION_USE_PNG=0" )
 endif()
 
 if( WIN32 AND VIAME_ENABLE_LEARN AND Python_VERSION VERSION_GREATER "3.7" )
@@ -122,13 +138,29 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PIP_BUILD_DIR_CMD -b ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_CACHE_DIR_CMD --cache-dir ${LIBRARY_PIP_CACHE_DIR} )
 
-  if( VIAME_SYMLINK_PYTHON )
+  # For each python library split the build and install into two steps.
+
+  if( VIAME_PYTHON_SYMLINK )
+    # In development mode, install with the -e flag for editable.
     set( LIBRARY_PIP_BUILD_CMD
       ${Python_EXECUTABLE} setup.py build )
     set( LIBRARY_PIP_INSTALL_CMD
       ${Python_EXECUTABLE} -m pip install --user -e . )
   else()
-    if( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
+    # TODO:
+    # replace direct calls to setup.py with `python -m build`
+    if( "${LIB}" STREQUAL "mit-yolo" )
+      # For now just use -m build with MIT-YOLO
+      # FIXME:
+      # If we remove no-isolation then it will complain that pip cannot be found.
+      # I don't know exactly why, but for now it works.
+      set( LIBRARY_PIP_BUILD_CMD
+        ${Python_EXECUTABLE} -m build
+          --wheel
+          --no-isolation
+          --outdir ${LIBRARY_PIP_BUILD_DIR}
+      )
+    elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
@@ -157,18 +189,25 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     ${LIBRARY_PIP_INSTALL_CMD} )
 
   set( LIBRARY_PATCH_COMMAND "" )
+  set( PROJECT_DEPS fletch python-deps )
+
+  if( VIAME_ENABLE_SMQTK )
+    set( PROJECT_DEPS ${PROJECT_DEPS} smqtk )
+  endif()
+
+  if( NOT "${LIB}" STREQUAL "pytorch" )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch )
+    if( VIAME_ENABLE_PYTORCH-VISION AND
+        NOT "${LIB}" STREQUAL "torchvision" )
+      set( PROJECT_DEPS ${PROJECT_DEPS} torchvision )
+    endif()
+  endif()
 
   if( "${LIB}" STREQUAL "bioharn" )
     set( PROJECT_DEPS netharn )
   elseif( "${LIB}" STREQUAL "netharn" )
     set( PROJECT_DEPS mmdetection )
-  elseif( "${LIB}" STREQUAL "mmdetection" )
-    set( PROJECT_DEPS fletch mmcv )
-    if( VIAME_ENABLE_PYTORCH-VIS-INTERNAL )
-      set( PROJECT_DEPS ${PROJECT_DEPS} torchvision )
-    endif()
   elseif( "${LIB}" STREQUAL "pytorch" )
-    set( PROJECT_DEPS fletch python-deps )
     if( Python_VERSION VERSION_LESS "3.7" AND
         VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL 1.11.0 )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -178,7 +217,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
   elseif( "${LIB}" STREQUAL "torchvision" )
-    set( PROJECT_DEPS fletch python-deps pytorch )
     if( VIAME_PYTORCH_VERSION VERSION_LESS "1.11" OR
         Python_VERSION VERSION_LESS "3.7" )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -186,7 +224,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
     endif()
   elseif( "${LIB}" STREQUAL "detectron2" )
-    set( PROJECT_DEPS fletch python-deps pytorch )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       set( PROJECT_DEPS ${PROJECT_DEPS} bioharn )
     endif()
@@ -196,36 +233,78 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
     endif()
   elseif( "${LIB}" STREQUAL "pyav" )
-    set( PROJECT_DEPS fletch python-deps )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/pyav
       ${VIAME_PACKAGES_DIR}/python-utils/pyav )
   elseif( "${LIB}" STREQUAL "torchvideo" )
-    set( PROJECT_DEPS fletch python-deps pytorch pyav )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pyav )
     if( Python_VERSION VERSION_LESS "3.7" )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/torchvideo
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvideo )
     endif()
+  elseif( "${LIB}" STREQUAL "sam2" )
+    if( Python_VERSION VERSION_LESS "3.10" )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/sam2
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/sam2 )
+    endif()
+  elseif( "${LIB}" STREQUAL "mmdetection" )
+    set( PROJECT_DEPS ${PROJECT_DEPS} mmcv )
+  elseif( "${LIB}" STREQUAL "mmdeploy" )
+    set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
+  endif()
+
+  if ("${LIB}" STREQUAL "mmdeploy")
+
+    set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
+    set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
+    file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
+
+    set( LIBRARY_CPP_CONFIG
+      ${CMAKE_COMMAND}
+      -DMMDEPLOY_TARGET_BACKENDS=ort
+      -DONNXRUNTIME_DIR=${ONNXRUNTIME_DIR}
+      -S "${LIBRARY_LOCATION}"
+      -B "${LIBRARY_CPP_BUILD_DIR}" )
+
+    set(LIBRARY_CPP_BUILD ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}")
+    set(LIBRARY_CPP_INSTALL ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}")
+    if ((CMAKE_CONFIGURATION_TYPES STREQUAL "Release") OR (CMAKE_BUILD_TYPE STREQUAL "Release"))
+      list( APPEND LIBRARY_CPP_BUILD --config Release)
+      list( APPEND LIBRARY_CPP_INSTALL --config Release)
+    endif()
+
+    ExternalProject_Add( ${LIB}
+      DEPENDS ${PROJECT_DEPS}
+      PREFIX ${VIAME_BUILD_PREFIX}
+      SOURCE_DIR ${LIBRARY_LOCATION}
+      BUILD_IN_SOURCE 1
+      PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
+      CONFIGURE_COMMAND ${LIBRARY_CPP_CONFIG}
+      BUILD_COMMAND ${LIBRARY_CPP_BUILD} && ${LIBRARY_CPP_INSTALL} && ${LIBRARY_PYTHON_BUILD}
+      INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
+      LIST_SEPARATOR "----" )
+
+    set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy)
+    ExternalProject_Add_Step(${LIB}
+      postinstall
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBRARY_LOCATION}/configs ${MMDEPLOY_INSTALL_DIR}/configs
+      DEPENDEES install )
+
   else()
-    set( PROJECT_DEPS fletch python-deps pytorch )
+    ExternalProject_Add( ${LIB}
+      DEPENDS ${PROJECT_DEPS}
+      PREFIX ${VIAME_BUILD_PREFIX}
+      SOURCE_DIR ${LIBRARY_LOCATION}
+      BUILD_IN_SOURCE 1
+      PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
+      INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
+      LIST_SEPARATOR "----"
+      )
   endif()
-
-  if( VIAME_ENABLE_SMQTK )
-    set( PROJECT_DEPS ${PROJECT_DEPS} smqtk )
-  endif()
-
-  ExternalProject_Add( ${LIB}
-    DEPENDS ${PROJECT_DEPS}
-    PREFIX ${VIAME_BUILD_PREFIX}
-    SOURCE_DIR ${LIBRARY_LOCATION}
-    BUILD_IN_SOURCE 1
-    PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
-    INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-    LIST_SEPARATOR "----"
-    )
 
   if( VIAME_FORCEBUILD )
     ExternalProject_Add_Step( ${LIB} forcebuild

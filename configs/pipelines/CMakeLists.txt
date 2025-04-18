@@ -48,6 +48,15 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
+  # SAM2 generic segmentation model
+  if( VIAME_ENABLE_PYTORCH-SAM )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/6757401e9ccf870f61ceacb9/download
+      54958fe7a3a0fdb8f831d89cc5bc0a69
+      ${VIAME_DOWNLOAD_DIR}/models-sam2_v1.0.zip
+      ${CMAKE_CURRENT_SOURCE_DIR} )
+  endif()
+
   # Motion detection model
   if( VIAME_DOWNLOAD_MODELS-MOTION )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
@@ -110,15 +119,6 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-yolo_v4_csp_s_seed_model-v1.0.zip
       ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
-
-  # Caffe generic descriptor
-  if( VIAME_ENABLE_CAFFE )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5afe6e1e8d777f15ebe1d6fc/download
-      2cdbe7ca51b49b12e59911aadec20e98
-      ${VIAME_DOWNLOAD_DIR}/models-default_caffe_descriptor-v1.0.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR} )
-  endif()
 endif()
 
 ###
@@ -146,6 +146,7 @@ set( CORE_PIPELINE_FILES
   convert_habcam_to_kw18.pipe
   convert_habcam_to_viame_csv.pipe
   convert_kw18_to_viame_csv.pipe
+  convert_to_onnx.pipe
   convert_oceaneyes_to_viame_csv.pipe
   convert_viame_csv_to_coco_json.pipe
   convert_viame_csv_to_kw18.pipe
@@ -163,8 +164,9 @@ set( CORE_PIPELINE_FILES
   filter_default.pipe
   filter_draw_dets.pipe
   filter_enhance.pipe
-  filter_left.pipe
   filter_split_and_debayer.pipe
+  filter_split_left_side.pipe
+  filter_split_right_side.pipe
   filter_stereo_depth_map.pipe
   filter_to_kwa.pipe
   filter_to_video.pipe
@@ -368,6 +370,12 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
 #    train_detector_mmdet_cfrnn.conf)
 endif()
 
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    utility_add_segmentations_default.pipe
+    utility_add_segmentations_sam2.pipe )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_netharn_cfrnn.conf
@@ -388,6 +396,11 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_frame_classifier_netharn_resnet.continue.conf
     train_reclassifier_netharn_efficientnet.conf
     train_reclassifier_netharn_resnet.conf )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_mit_yolo_640.conf)
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
