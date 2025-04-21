@@ -68,7 +68,7 @@ apps) they are much smaller.
   * MacOS is currently only supported running standalone annotation tools, see below.
 
 **Installation Recommendations:** <br>
-* NVIDIA Drivers (Version 465.19 or above, 
+* NVIDIA Drivers (Version 525.60 or above, 
 Windows 
 [\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
 [\[2\]](https://developer.nvidia.com/cuda-downloads)
