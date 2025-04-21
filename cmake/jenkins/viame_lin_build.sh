@@ -11,7 +11,6 @@ rm -rf VIAME_release_Centos || true
 git clone https://github.com/VIAME/VIAME.git VIAME_release_Centos
 mv viame_centos_upload.sh VIAME_release_Centos
 cd VIAME_release_Centos
-git checkout next
 
 # stand up a new docker build env
 docker logout

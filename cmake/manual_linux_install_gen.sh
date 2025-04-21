@@ -5,7 +5,6 @@ rm -rf viame-src-clone || true
 
 git clone https://github.com/VIAME/VIAME.git viame-src-clone
 cd viame-src-clone
-git checkout next
 
 # stand up a new docker build env
 docker pull nvidia/cuda:12.3.2-cudnn9-devel-centos7

@@ -9,7 +9,6 @@ IF EXIST %BUILD_DIR% rmdir /s /q %BUILD_DIR%
 GIT clone https://github.com/VIAME/VIAME.git %BUILD_DIR%
 
 CD %BUILD_DIR%
-GIT checkout next
 
 COPY %BUILD_DIR%\cmake\build_server_windows.bat build_server_windows.bat
 COPY %BUILD_DIR%\cmake\build_server_windows.cmake platform.cmake
