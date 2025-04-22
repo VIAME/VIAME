@@ -152,7 +152,7 @@ set( CORE_PIPELINE_FILES
   convert_viame_csv_to_kw18.pipe
   database_apply_svm_models.pipe
   detector_camtrawl.pipe
-  detector_fish_without_motion.pipe
+  detector_default_fish.pipe
   detector_generic_proposals.pipe
   detector_project_folder.pipe
   detector_project_folder_left.pipe
@@ -189,8 +189,8 @@ set( CORE_PIPELINE_FILES
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
   sql_init_table.sql
-  tracker_fish.pipe
-  tracker_generic.pipe
+  tracker_default_fish.pipe
+  tracker_generic_proposals.pipe
   tracker_project_folder.pipe
   tracker_stabilized_iou.pipe
   tracker_svm_models.pipe
