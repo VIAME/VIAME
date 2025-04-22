@@ -73,6 +73,7 @@ public:
     , m_tot_option( "weighted_average" )
     , m_tot_ignore_class( "" )
     , m_frame_id_adjustment( 0 )
+    , m_top_n_classes( 0 )
     , m_mask_to_poly_tol( -1 )
     , m_mask_to_poly_points( 20 )
   { }
@@ -94,6 +95,7 @@ public:
   std::string m_tot_ignore_class;
   int m_frame_id_adjustment;
   std::map< unsigned, std::string > m_frame_uids;
+  unsigned m_top_n_classes;
   double m_mask_to_poly_tol;
   int m_mask_to_poly_points;
 
@@ -137,8 +139,10 @@ write_object_track_set_viame_csv::priv
   }
 }
 
-void write_object_track_set_viame_csv::priv::write_detection_info(std::ostream &stream,
-                                                                  const kwiver::vital::detected_object_sptr &det) {
+void write_object_track_set_viame_csv::priv::write_detection_info(
+  std::ostream &stream,
+  const kwiver::vital::detected_object_sptr &det )
+{
   // Sanity return in case method was called with empty detection
   if(!det)
     return;
@@ -275,7 +279,7 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
       }
       else
       {
-        for( const auto name : dot->class_names() )
+        for( const auto& name : dot->class_names() )
         {
           class_sum[ name ] += ( dot->score( name ) * weight );
         }
@@ -438,6 +442,8 @@ write_object_track_set_viame_csv
     config->get_value< std::string >( "tot_ignore_class", d->m_tot_ignore_class );
   d->m_frame_id_adjustment =
     config->get_value< int >( "frame_id_adjustment", d->m_frame_id_adjustment );
+  d->m_top_n_classes =
+    config->get_value< unsigned >( "top_n_classes", d->m_top_n_classes );
   d->m_mask_to_poly_tol =
       config->get_value< double >( "mask_to_poly_tol", d->m_mask_to_poly_tol );
   d->m_mask_to_poly_points =
@@ -593,14 +599,27 @@ write_object_track_set_viame_csv
 
         if( dot )
         {
-          const auto name_list( dot->class_names() );
+          auto name_list( dot->class_names() );
+
+          if( d->m_top_n_classes )
+          {
+            std::sort( name_list.begin(), name_list.end(),
+              [&dot]( const auto& a, const auto& b )
+              { return dot->score( a ) > dot->score( b ); } );
+
+            if( name_list.size() > d->m_top_n_classes )
+            {
+              name_list.erase( name_list.begin() + d->m_top_n_classes, name_list.end() );
+            }
+          }
+
           for( auto name : name_list )
           {
             stream() << d->m_delim << name << d->m_delim << dot->score( name );
           }
         }
 
-        d->write_detection_info(stream(), det);
+        d->write_detection_info( stream(), det );
 
         stream() << std::endl;
       }
