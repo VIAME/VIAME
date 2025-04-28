@@ -1167,6 +1167,8 @@ if __name__ == "__main__":
       print_and_exit( "--per-class option only supported for viame_csv" )
     elif os.path.exists( args.truth ):
       classes = list_classes_viame_csv( args.truth, ext=args.input_ext )
+    if len( classes ) == 0:
+      print_and_exit( "--per-class option enabled but no classes present" )
 
   # Generate specified outputs
   if args.det_roc:
