@@ -68,6 +68,7 @@ public:
     , m_stream_identifier( "" )
     , m_model_identifier( "" )
     , m_version_identifier( "" )
+    , m_frame_rate( "" )
     , m_active_writing( false )
     , m_write_time_as_uid( false )
     , m_tot_option( "weighted_average" )
@@ -76,6 +77,7 @@ public:
     , m_top_n_classes( 0 )
     , m_mask_to_poly_tol( -1 )
     , m_mask_to_poly_points( 20 )
+    , m_start_time( 0 )
   { }
 
   ~priv() { }
@@ -87,6 +89,7 @@ public:
   std::string m_stream_identifier;
   std::string m_model_identifier;
   std::string m_version_identifier;
+  std::string m_frame_rate;
   std::map< unsigned, kwiver::vital::track_sptr > m_tracks;
   bool m_active_writing;
   bool m_write_time_as_uid;
@@ -98,9 +101,12 @@ public:
   unsigned m_top_n_classes;
   double m_mask_to_poly_tol;
   int m_mask_to_poly_points;
+  std::time_t m_start_time;
 
   std::string format_image_id( const kwiver::vital::object_track_state* ts );
-  void write_detection_info(std::ostream& stream, const kwiver::vital::detected_object_sptr& det);
+  void write_header_info( std::ostream& stream );
+  void write_detection_info( std::ostream& stream,
+                             const kwiver::vital::detected_object_sptr& det );
 };
 
 std::string
@@ -110,23 +116,25 @@ write_object_track_set_viame_csv::priv
   if( m_write_time_as_uid )
   {
     char output[10];
-    time_t rawtime = ts->time() / 1e6;
-    unsigned msec = ts->time() / 1e4;
-    std::string msec_str = std::to_string( msec );
-    while( msec_str.size() < 3 )
+    const kwiver::vital::time_usec_t usec( 1e6 );
+    const kwiver::vital::time_usec_t time_s = ts->time() / usec;
+    unsigned time_us = ts->time() % usec;
+    std::string time_us_str = std::to_string( time_us );
+    while( time_us_str.size() < 6 )
     {
-      msec_str = "0" + msec_str;
+      time_us_str = "0" + time_us_str;
     }
-    struct tm* tmp = gmtime( &rawtime );
+    struct tm* tmp = gmtime( &time_s );
     strftime( output, sizeof( output ), "%H:%M:%S", tmp );
-    return std::string( output ) + "." + msec_str + " UTC";
+    return std::string( output ) + "." + time_us_str;
   }
   else if( !m_frame_uids.empty() )
   {
     std::string fileuid = m_frame_uids[ ts->frame() ];
 
     const size_t last_slash_idx = fileuid.find_last_of("\\/");
-    if ( std::string::npos != last_slash_idx )
+
+    if( std::string::npos != last_slash_idx )
     {
       fileuid.erase( 0, last_slash_idx + 1 );
     }
@@ -137,6 +145,53 @@ write_object_track_set_viame_csv::priv
   {
     return m_stream_identifier;
   }
+}
+
+void write_object_track_set_viame_csv::priv::write_header_info(
+  std::ostream &stream )
+{
+  std::time_t current_time;
+  struct tm* timeinfo;
+
+  time( &current_time );
+  timeinfo = localtime( &current_time );
+  char* cp = asctime( timeinfo );
+  cp[ strlen( cp )-1 ] = 0; // remove trailing newline
+  const std::string atime( cp );
+
+  // Write file header(s)
+  stream << "# 1: Detection or Track-id,"
+         << "  2: Video or Image Identifier,"
+         << "  3: Unique Frame Identifier,"
+         << "  4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y),"
+         << "  8: Detection or Length Confidence,"
+         << "  9: Target Length (0 or -1 if invalid),"
+         << "  10-11+: Repeated Species, Confidence Pairs or Attributes"
+         << std::endl;
+
+  stream << "# metadata"; 
+
+  if( !m_frame_rate.empty() )
+  {
+    stream << ", fps: " << m_frame_rate;
+  }
+  if( m_start_time )
+  {
+    stream << ", exec_time: " << std::difftime( current_time, m_start_time );
+  }
+
+  stream << ", exported_by: write_object_track_set_viame_csv";
+  stream << ", exported_at: " << atime;
+
+  if( !m_model_identifier.empty() )
+  {
+    stream << ", model: " << m_model_identifier;
+  }
+  if( !m_version_identifier.empty() )
+  {
+    stream << ", software: " << m_version_identifier;
+  }
+  stream << std::endl;
 }
 
 void write_object_track_set_viame_csv::priv::write_detection_info(
@@ -351,6 +406,8 @@ void write_object_track_set_viame_csv
     return;
   }
 
+  d->write_header_info( stream() );
+
   for( auto trk_pair : d->m_tracks )
   {
     auto trk_ptr = trk_pair.second;
@@ -369,8 +426,8 @@ void write_object_track_set_viame_csv
 
       if( !ts )
       {
-        LOG_ERROR( d->m_logger, "Invalid timestamp " << trk_ptr->id()
-                                                     << " " << trk_ptr->size() );
+        LOG_ERROR( d->m_logger,
+          "Invalid timestamp " << trk_ptr->id() << " " << trk_ptr->size() );
         continue;
       }
 
@@ -431,6 +488,8 @@ write_object_track_set_viame_csv
     config->get_value< std::string >( "model_identifier", d->m_model_identifier );
   d->m_version_identifier =
     config->get_value< std::string >( "version_identifier", d->m_version_identifier );
+  d->m_frame_rate =
+    config->get_value< std::string >( "frame_rate", d->m_frame_rate );
   d->m_active_writing =
     config->get_value< bool >( "active_writing", d->m_active_writing );
   d->m_write_time_as_uid =
@@ -448,6 +507,10 @@ write_object_track_set_viame_csv
   d->m_mask_to_poly_points =
       config->get_value< int >( "mask_to_poly_points", d->m_mask_to_poly_points );
 
+  if( !d->m_active_writing )
+  {
+    time( &d->m_start_time );
+  }
   if( d->m_mask_to_poly_tol >= 0 && d->m_mask_to_poly_points >= 0 )
   {
     throw std::runtime_error(
@@ -482,41 +545,9 @@ write_object_track_set_viame_csv
 {
   if( d->m_first )
   {
-    std::time_t rawtime;
-    struct tm * timeinfo;
-
-    time ( &rawtime );
-    timeinfo = localtime ( &rawtime );
-    char* cp =  asctime( timeinfo );
-    cp[ strlen( cp )-1 ] = 0; // remove trailing newline
-    const std::string atime( cp );
-
-    // Write file header(s)
-    stream() << "# 1: Detection or Track-id,"
-             << "  2: Video or Image Identifier,"
-             << "  3: Unique Frame Identifier,"
-             << "  4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y),"
-             << "  8: Detection or Length Confidence,"
-             << "  9: Target Length (0 or -1 if invalid),"
-             << "  10-11+: Repeated Species, Confidence Pairs or Attributes"
-             << std::endl;
-
-    stream() << "# Written on: " << atime
-             << "   by: write_object_track_set_viame_csv"
-             << std::endl;
-
-    if( !d->m_model_identifier.empty() )
+    if( d->m_active_writing )
     {
-      stream() << "# Computed using model identifier: "
-               << d->m_model_identifier
-               << std::endl;
-    }
-
-    if( !d->m_version_identifier.empty() )
-    {
-      stream() << "# Computed using software version: "
-               << d->m_version_identifier
-               << std::endl;
+      d->write_header_info( stream() );
     }
 
     d->m_first = false;
