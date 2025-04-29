@@ -74,6 +74,7 @@ public:
     , m_version_identifier( "" )
     , m_mask_to_poly_tol( -1 )
     , m_mask_to_poly_points( 20 )
+    , m_top_n_classes( 0 )
   {}
 
   ~priv() {}
@@ -87,6 +88,7 @@ public:
   std::string m_version_identifier;
   double m_mask_to_poly_tol;
   int m_mask_to_poly_points;
+  unsigned m_top_n_classes;
 };
 
 
@@ -126,6 +128,8 @@ write_detected_object_set_viame_csv
     config->get_value< double >( "mask_to_poly_tol" );
   d->m_mask_to_poly_points =
     config->get_value< int >( "mask_to_poly_points" );
+  d->m_top_n_classes =
+    config->get_value< unsigned >( "top_n_classes" );
 
   if( d->m_mask_to_poly_tol >= 0 && d->m_mask_to_poly_points >= 0 )
   {
@@ -167,6 +171,8 @@ write_detected_object_set_viame_csv
   config->set_value( "mask_to_poly_points", d->m_mask_to_poly_points,
     "Write segmentation masks when available as polygons with the specified "
     "maximum number of points.  Set to a negative value to disable." );
+  config->set_value( "top_n_classes", d->m_top_n_classes,
+    "Only print out this maximum number of classes (highest score first)" );
 
   return config;
 }
@@ -283,9 +289,7 @@ write_detected_object_set_viame_csv
 
     if( dot )
     {
-      const auto name_list( dot->class_names() );
-
-      for( auto name : name_list )
+      for( auto name : dot->top_class_names( d->m_top_n_classes ) )
       {
         // Write out the <name> <score> pair
         stream() << "," << name << "," << dot->score( name );

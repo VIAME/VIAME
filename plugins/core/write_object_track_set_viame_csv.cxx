@@ -398,14 +398,13 @@ void write_object_track_set_viame_csv
 
         if( dot )
         {
-          const auto name_list( dot->class_names() );
-          for( auto name : name_list )
+          for( auto name : dot->top_class_names( d->m_top_n_classes ) )
           {
             stream() << d->m_delim << name << d->m_delim << dot->score( name );
           }
         }
 
-        d->write_detection_info(stream(), det);
+        d->write_detection_info( stream(), det );
 
         stream() << std::endl;
       }
@@ -599,21 +598,7 @@ write_object_track_set_viame_csv
 
         if( dot )
         {
-          auto name_list( dot->class_names() );
-
-          if( d->m_top_n_classes )
-          {
-            std::sort( name_list.begin(), name_list.end(),
-              [&dot]( const auto& a, const auto& b )
-              { return dot->score( a ) > dot->score( b ); } );
-
-            if( name_list.size() > d->m_top_n_classes )
-            {
-              name_list.erase( name_list.begin() + d->m_top_n_classes, name_list.end() );
-            }
-          }
-
-          for( auto name : name_list )
+          for( auto name : dot->top_class_names( d->m_top_n_classes ) )
           {
             stream() << d->m_delim << name << d->m_delim << dot->score( name );
           }
