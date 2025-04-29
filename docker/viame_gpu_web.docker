@@ -1,0 +1,17 @@
+FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+
+USER root
+
+WORKDIR /home
+
+RUN export DEBIAN_FRONTEND=noninteractive \
+  && export TZ=Etc/UTC \
+  && apt-get update \
+  && apt-get install -y git \
+  && git clone https://github.com/VIAME/VIAME.git /viame \ 
+  && cd /viame/cmake \
+  && chmod +x build_server_docker_web.sh \
+  && ./build_server_docker_web.sh
+
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
