@@ -1064,7 +1064,8 @@ if __name__ == "__main__" :
   # Read version string if present
   if not args.version_str:
     script_folder = os.path.dirname( os.path.abspath( __file__ ) )
-    rn_file = os.path.join( script_folder, '../RELEASE_NOTES.md' )
+    rn_relpath = os.path.join( '..', 'RELEASE_NOTES.md' )
+    rn_file = os.path.join( script_folder, rn_relpath )
     if os.path.exists( rn_file ):
       with open( rn_file ) as f:
         args.version_str = f.read( 7 )
