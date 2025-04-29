@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2021 by Kitware, Inc.
+ * Copyright 2017-2025 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,7 +157,7 @@ void write_object_track_set_viame_csv::priv::write_header_info(
   timeinfo = localtime( &current_time );
   char* cp = asctime( timeinfo );
   cp[ strlen( cp )-1 ] = 0; // remove trailing newline
-  const std::string atime( cp );
+  const std::string formatted_time( cp );
 
   // Write file header(s)
   stream << "# 1: Detection or Track-id,"
@@ -181,7 +181,7 @@ void write_object_track_set_viame_csv::priv::write_header_info(
   }
 
   stream << ", exported_by: write_object_track_set_viame_csv";
-  stream << ", exported_at: " << atime;
+  stream << ", exported_at: \"" << formatted_time << "\"";
 
   if( !m_model_identifier.empty() )
   {

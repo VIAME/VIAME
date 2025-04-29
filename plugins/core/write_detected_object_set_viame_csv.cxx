@@ -208,7 +208,7 @@ write_detected_object_set_viame_csv
     timeinfo = localtime ( &current_time );
     char* cp = asctime( timeinfo );
     cp[ strlen( cp )-1 ] = 0; // remove trailing newline
-    const std::string atime( cp );
+    const std::string formatted_time( cp );
 
     // Write file header(s)
     stream() << "# 1: Detection or Track-id,"
@@ -229,7 +229,7 @@ write_detected_object_set_viame_csv
     }
 
     stream() << ", exported_by: write_detected_object_set_viame_csv";
-    stream() << ", exported_at: " << atime;
+    stream() << ", exported_at: \"" << formatted_time << "\"";
 
     if( !d->m_model_identifier.empty() )
     {

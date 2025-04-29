@@ -373,8 +373,8 @@ def pipe_starts_with( filename, substr ):
   return os.path.basename( filename ).startswith( substr )
 
 def detection_output_settings_list( output_dir, basename, stream_id='',
-                                    write_timecode = False,
-                                    no_extension = False, cid = None ):
+   write_timecode = False, no_extension = False, cid = None, fps='',
+   model_id='', version_id='' ):
 
   output = []
 
@@ -398,6 +398,18 @@ def detection_output_settings_list( output_dir, basename, stream_id='',
   if stream_id:
     output += fset( det_writer_str + 'writer:viame_csv:stream_identifier=' + stream_id )
     output += fset( trk_writer_str + 'writer:viame_csv:stream_identifier=' + stream_id )
+
+  if fps:
+    output += fset( det_writer_str + 'writer:viame_csv:frame_rate=' + fps )
+    output += fset( trk_writer_str + 'writer:viame_csv:frame_rate=' + fps )
+
+  if model_id:
+    output += fset( det_writer_str + 'writer:viame_csv:model_identifier=' + model_id )
+    output += fset( trk_writer_str + 'writer:viame_csv:model_identifier=' + model_id )
+
+  if version_id:
+    output += fset( det_writer_str + 'writer:viame_csv:version_identifier=' + version_id )
+    output += fset( trk_writer_str + 'writer:viame_csv:version_identifier=' + version_id )
 
   return output
 
@@ -718,7 +730,9 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     ( not is_image_list and not pipe_starts_with( options.pipeline, "filter_" ) )
 
   command += detection_output_settings_list( output_dir, input_id_no_ext,
-    input_id if not is_image_list else '', write_timecode, output_images )
+    input_id if not is_image_list else '', write_timecode, output_images,
+    fps=options.frame_rate, model_id=options.pipeline,
+    version_id=options.version_str )
 
   command += homography_output_settings_list( output_dir, input_id_no_ext )
   command += search_output_settings_list( output_dir, input_id_no_ext )
@@ -730,7 +744,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   for camera_id, camera_name in enumerate( camera_names ):
     command += detection_output_settings_list( \
       output_subdir, camera_name, camera_name if not is_image_list else '',
-      write_timecode, output_images, camera_id + 1 )
+      write_timecode, output_images, camera_id + 1, fps=options.frame_rate,
+      model_id=options.pipeline, version_id=options.version_str )
     command += homography_output_settings_list( \
       output_subdir, camera_name, camera_id + 1 )
     command += image_output_settings_list( \
@@ -910,12 +925,13 @@ if __name__ == "__main__" :
          "heic;jpg;jpeg;png;psd;psp;pspimage;tga;thm;tif;tiff;yuv",
     help="Expected image extensions, used first before fallback." )
 
-  parser.add_argument( "-frate", dest="frame_rate", default="",
+  parser.add_argument( "-frate", dest="frame_rate", default="5",
     help="Processing frame rate over-ride to process videos at, specified "
          "in hertz (frames per second)" )
 
   parser.add_argument( "-ifrate", dest="input_frame_rate", default="",
-    help="Input frame rate over-ride to process videos at. This is useful "
+    help="Input frame rate over-ride which describes the frame rate of the "
+         "input (note: not the desired output frame rate). This is useful "
          "for specifying the frame rate of input image lists, which typically "
          "don't have frame rates" )
 
@@ -939,6 +955,9 @@ if __name__ == "__main__" :
 
   parser.add_argument( "-output-ext", dest="output_ext", default="",
     help="Advanced: Optional ascii file output extension over-ride" )
+
+  parser.add_argument( "-version-str", dest="version_str", default="",
+    help="Optional software version string to use in certain output files" )
 
   parser.add_argument( "-image-regex", dest="image_regex", default="frame%06d.jpg",
     help="Advanced: For pipelines which produce images, a regex for them" )
@@ -1041,6 +1060,13 @@ if __name__ == "__main__" :
     exit_with_error( "Must specify frame rate if generating detection or track plots" )
 
   signal.signal( signal.SIGINT, signal_handler )
+
+  # Read version string if present
+  if not args.version_str:
+    rn_file = os.path.join( __file__, '../RELEASE_NOTES.md' )
+    if os.path.exists( rn_file ):
+      with open( rn_file ) as f:
+        args.version_str = f.read( 7 )
 
   # Handle output extension
   if args.output_ext:
