@@ -181,7 +181,7 @@ void write_object_track_set_viame_csv::priv::write_header_info(
   }
 
   stream << ", exported_by: write_object_track_set_viame_csv";
-  stream << ", exported_at: \"" << formatted_time << "\"";
+  stream << ", exported_at: " << formatted_time << "";
 
   if( !m_model_identifier.empty() )
   {

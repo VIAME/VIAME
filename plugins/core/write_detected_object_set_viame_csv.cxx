@@ -229,7 +229,7 @@ write_detected_object_set_viame_csv
     }
 
     stream() << ", exported_by: write_detected_object_set_viame_csv";
-    stream() << ", exported_at: \"" << formatted_time << "\"";
+    stream() << ", exported_at: " << formatted_time << "";
 
     if( !d->m_model_identifier.empty() )
     {
