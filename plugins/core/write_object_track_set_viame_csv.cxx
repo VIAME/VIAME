@@ -169,7 +169,7 @@ void write_object_track_set_viame_csv::priv::write_header_info(
          << "  10-11+: Repeated Species, Confidence Pairs or Attributes"
          << std::endl;
 
-  stream << "# metadata"; 
+  stream << "# metadata";
 
   if( !m_frame_rate.empty() )
   {

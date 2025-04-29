@@ -72,6 +72,7 @@ public:
     , m_stream_identifier( "" )
     , m_model_identifier( "" )
     , m_version_identifier( "" )
+    , m_frame_rate( "" )
     , m_mask_to_poly_tol( -1 )
     , m_mask_to_poly_points( 20 )
     , m_top_n_classes( 0 )
@@ -86,6 +87,7 @@ public:
   std::string m_stream_identifier;
   std::string m_model_identifier;
   std::string m_version_identifier;
+  std::string m_frame_rate;
   double m_mask_to_poly_tol;
   int m_mask_to_poly_points;
   unsigned m_top_n_classes;
@@ -124,6 +126,8 @@ write_detected_object_set_viame_csv
     config->get_value< std::string >( "model_identifier" );
   d->m_version_identifier =
     config->get_value< std::string >( "version_identifier" );
+  d->m_frame_rate =
+    config->get_value< std::string >( "frame_rate" );
   d->m_mask_to_poly_tol =
     config->get_value< double >( "mask_to_poly_tol" );
   d->m_mask_to_poly_points =
@@ -163,6 +167,8 @@ write_detected_object_set_viame_csv
     "Optional fixed video name over-ride to write to output column 2 in the csv." );
   config->set_value( "model_identifier", d->m_model_identifier,
     "Model identifier string to write to the header or the csv." );
+  config->set_value( "frame_rate", d->m_frame_rate,
+    "Frame rate string to write to the header or the csv." );
   config->set_value( "version_identifier", d->m_version_identifier,
     "Version identifier string to write to the header or the csv." );
   config->set_value( "mask_to_poly_tol", d->m_mask_to_poly_tol,
@@ -195,12 +201,12 @@ write_detected_object_set_viame_csv
 {
   if( d->m_first )
   {
-    std::time_t rawtime;
-    struct tm * timeinfo;
+    std::time_t current_time;
+    struct tm* timeinfo;
 
-    time ( &rawtime );
-    timeinfo = localtime ( &rawtime );
-    char* cp =  asctime( timeinfo );
+    time( &current_time );
+    timeinfo = localtime ( &current_time );
+    char* cp = asctime( timeinfo );
     cp[ strlen( cp )-1 ] = 0; // remove trailing newline
     const std::string atime( cp );
 
@@ -214,23 +220,26 @@ write_detected_object_set_viame_csv
              << "  10-11+: Repeated Species, Confidence Pairs or Attributes"
              << std::endl;
 
-    stream() << "# Written on: " << atime
-             << "   by: write_detected_object_set_viame_csv"
-             << std::endl;
+    // Write metadata(s)
+    stream() << "# metadata";
+
+    if( !d->m_frame_rate.empty() )
+    {
+      stream() << ", fps: " << d->m_frame_rate;
+    }
+
+    stream() << ", exported_by: write_detected_object_set_viame_csv";
+    stream() << ", exported_at: " << atime;
 
     if( !d->m_model_identifier.empty() )
     {
-      stream() << "# Computed using model identifier: "
-               << d->m_model_identifier
-               << std::endl;
+      stream() << ", model: " << d->m_model_identifier;
     }
-
     if( !d->m_version_identifier.empty() )
     {
-      stream() << "# Computed using software version: "
-               << d->m_version_identifier
-               << std::endl;
+      stream() << ", software: " << d->m_version_identifier;
     }
+    stream() << std::endl;
 
     d->m_first = false;
   } // end first
