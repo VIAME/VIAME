@@ -29,6 +29,8 @@ v0.21.0 - 1/15/2024
 -Update DIVE interface with some new features (e.g. bulk download, current frame dets only opt)
 
 
+-Extra output CSV metadata options including model run, execution time, software version, etc...
+
 
 v0.20.4 - 3/30/2024
 ===================
