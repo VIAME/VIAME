@@ -109,7 +109,7 @@ Docker Images
 Docker images are available on: https://hub.docker.com. For a default container with just core
 algorithms, runnable via command-line, see:
 
-kitware/viame:gpu-algorithms-latest
+kitware/viame:gpu-algorithms-default
 
 This image is headless (ie, it contains no GUI) and contains a VIAME desktop (not web)
 installation in the folder /opt/noaa/viame. For links to the VIAME-Web docker containers see the
