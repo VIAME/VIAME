@@ -18,6 +18,9 @@ process track_reader
   :reader:type                                           viame_csv
   :reader:viame_csv:poly_to_mask                              true
 
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
 process ensure_rgb
   :: image_filter
   :filter:type                                   vxl_convert_image
