@@ -12,8 +12,8 @@ config _scheduler
 # ====================== INPUT FRAME LIST ========================
 include common_default_input_with_downsampler.pipe
 
-process detection_reader
-  :: detected_object_input
+process track_reader
+  :: read_object_track
   :file_name                                        detections.csv
   :reader:type                                           viame_csv
   :reader:viame_csv:poly_to_mask                              true
@@ -39,11 +39,11 @@ process detection_refiner
 
 connect from ensure_rgb.image
         to   detection_refiner.image
-connect from detection_reader.detected_object_set
-        to   detection_refiner.detected_object_set
+connect from track_reader.object_track_set
+        to   detection_refiner.object_track_set
 
-process detector_writer
-  :: detected_object_output
+process track_writer
+  :: write_object_track
   :file_name                               computed_detections.csv
   :writer:type                                           viame_csv
   :writer:viame_csv:mask_to_poly_points                         30
@@ -51,7 +51,7 @@ process detector_writer
   #:writer:viame_csv:mask_to_poly_tol                         0.05
 
 connect from downsampler.output_2
-        to   detector_writer.image_file_name
-connect from detection_refiner.detected_object_set
-        to   detector_writer.detected_object_set
+        to   track_writer.image_file_name
+connect from detection_refiner.object_track_set
+        to   track_writer.object_track_set
 
