@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# Fletch, VIAME, CMAKE system deps
+# Install Fletch and VIAME system deps
 apt-get update
 
 apt-get install -y zip \
@@ -21,5 +21,7 @@ g++ \
 zlib1g-dev \
 bzip2 \
 libbz2-dev \
-liblzma-dev
+liblzma-dev \
+python3-dev \
+python-is-python3
 

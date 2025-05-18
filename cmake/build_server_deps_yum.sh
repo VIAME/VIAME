@@ -1,6 +1,8 @@
 #! /bin/bash
 
-# Install Fletch & VIAME system deps
+# Install Fletch and VIAME system deps
+yum -y update
+
 yum -y groupinstall 'Development Tools'
 
 yum install -y zip \
