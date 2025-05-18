@@ -509,16 +509,20 @@ endif()
 if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
+  if( WIN32 )
+    set( DEFAULT_SYS_CUDNN_DIR C:\Program Files\NVIDIA\CUDNN\v9.10 )
+  else()
+    set( DEFAULT_SYS_CUDNN_DIR /usr )
+  endif()
+
   find_library( CUDNN_LIBRARY REQUIRED
     NAMES cudnn cudnn64 libcudnn.so libcudnn.so.9 libcudnn.so.8
     HINTS ${CUDNN_ROOT_DIR}
-          ${CUDNN_ROOT_DIR}/lib
           ${CUDNN_ROOT_DIR}/lib/x64
           ${CUDA_TOOLKIT_ROOT_DIR}
-          ${CUDA_TOOLKIT_ROOT_DIR}/lib
           ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-          ${CUDA_TOOLKIT_ROOT_DIR}/lib64
           ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
+          ${DEFAULT_SYS_CUDNN_DIR}
     PATH_SUFFIXES lib lib64 )
 
   get_filename_component( CUDNN_LIBRARY "${CUDNN_LIBRARY}" REALPATH )
