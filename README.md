@@ -54,7 +54,7 @@ are available via smaller installers (see DIVE standalone, below). Lastly, docke
 are available for both VIAME Desktop and Web (below). For full desktop installs, extract
 the binaries and place them in a directory of your choosing, for example /opt/noaa/viame
 on Linux or C:\Program Files\VIAME on Windows. If using packages built with GPU support,
-make sure to have sufficient video drivers installed, version 525.60 or higher. The best
+make sure to have sufficient video drivers installed, version 560.76 or higher. The best
 way to install drivers depends on your operating system. This isn't required if just
 using manual annotators (or frame classifiers only). The binaries are quite large,
 in terms of disk space, due to the inclusion of multiple default model files and
