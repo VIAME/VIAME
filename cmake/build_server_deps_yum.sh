@@ -19,6 +19,8 @@ libXmu-devel \
 libXi-devel \
 expat-devel \
 readline-devel \
+openssl \
+openssl-devel \
 curl-devel \
 atlas-devel \
 file \

@@ -1,14 +1,12 @@
 #! /bin/bash
 
 # Install Fletch and VIAME system deps
-apt-get update
+apt-get update -y
 
 apt-get install -y zip \
 git \
 wget \
 tar \
-curl \
-libcurl4-openssl-dev \
 libgl1-mesa-dev \
 libexpat1-dev \
 libgtk2.0-dev \
@@ -17,6 +15,8 @@ libxml2-dev \
 liblapack-dev \
 openssl \
 libssl-dev \
+curl \
+libcurl4-openssl-dev \
 g++ \
 zlib1g-dev \
 bzip2 \
