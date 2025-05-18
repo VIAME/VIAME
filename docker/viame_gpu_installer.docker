@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.3.2-cudnn9-devel-centos7
+FROM nvidia/cuda:12.6.3-cudnn-devel-rockylinux9
 
 USER root
 
@@ -6,11 +6,7 @@ WORKDIR /home
 
 RUN export DEBIAN_FRONTEND=noninteractive \
   && export TZ=Etc/UTC \
-  && sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo \
-  && sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo \
-  && sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo \
-  && sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* \
-  && sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* \
+  && yum update \
   && yum install -y git \
   && git clone https://github.com/VIAME/VIAME.git /viame \ 
   && cd /viame/cmake \

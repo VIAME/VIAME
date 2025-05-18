@@ -126,7 +126,7 @@ build instructions can be found [here](examples/building_from_source), but the s
 can be built either as a super-build, which builds most of its dependencies alongside itself, or
 standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
-Installing Python and CUDA is also recommended. If using CUDA, version 12.4 with CUDNN 8 is most
+Installing Python and CUDA is also recommended. If using CUDA, version 12.6 with CUDNN 8 is most
 tested, though other versions of 11 or 12 also likely work. For python distributions, at a minimum
 Python3.6 or above is necessary, alongside having pip installed.
 
