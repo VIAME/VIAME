@@ -4,7 +4,7 @@
 set -x
 
 # System Deps
-./viame/cmake/build_server_ubuntu_deps.sh
+./viame/cmake/build_server_deps_apt.sh
 
 # Install CMAKE
 ./viame/cmake/build_server_linux_cmake.sh
