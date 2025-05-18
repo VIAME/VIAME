@@ -18,6 +18,7 @@ $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 echo "Checking out VIAME submodules"
 
 cd $VIAME_SOURCE_DIR
+git config --global --add safe.directory $VIAME_SOURCE_DIR
 git submodule update --init --recursive
 mkdir build
 cd build
