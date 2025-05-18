@@ -14,6 +14,9 @@ $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 ./viame/cmake/build_server_linux_ssl.sh
 ./viame/cmake/build_server_linux_cmake.sh
 
+# Symlink cudnn include
+ln -s /usr/include/cudnn_v9.h /usr/include/cudnn.h
+
 # Update VIAME sub git sources
 echo "Checking out VIAME submodules"
 
