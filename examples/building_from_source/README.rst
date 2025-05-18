@@ -52,7 +52,7 @@ e.g.:
    sudo apt-get install python3.8 python3.8-dev python3-pip
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 11.0 or above
-is required, 12.4 being the most tested version. Other versions may work depending
+is required, 12.6 being the most tested version. Other versions may work depending
 on your build settings but are not officially supported yet):
 
 .. code-block:: bash
