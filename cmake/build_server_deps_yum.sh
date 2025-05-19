@@ -19,8 +19,6 @@ libXmu-devel \
 libXi-devel \
 expat-devel \
 readline-devel \
-openssl \
-openssl-devel \
 curl-devel \
 atlas-devel \
 file \
@@ -29,4 +27,5 @@ bzip2 \
 bzip2-devel \
 xz-devel \
 vim \
+perl \
 perl-IPC-Cmd
