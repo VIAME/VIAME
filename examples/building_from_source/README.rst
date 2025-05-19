@@ -40,20 +40,18 @@ And on CentOS 7:
      mesa-libGLU-devel lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel \
      curl curl-devel atlas-devel file which
 
-If using VIAME_ENABLE_PYTHON, versions 3.6 or above is required with development packages and also
-pip installed, with 3.6, 3.8 and 3.10 the most tested versions. For example,
-[Anaconda3 2021.05](https://repo.anaconda.com/archive/) could be used, though you also try using
-native python, e.g. install python3, python3-dev, and numpy (or alternatively whatever python
-distribution you want to use),
-e.g.:
+If using VIAME_ENABLE_PYTHON, versions 3.10 or above is recommended. Development packages, pip,
+and numpy are also required. [Anaconda3](https://repo.anaconda.com/archive/) could be used,
+though you can also try using native python, e.g. install python3, python3-dev, and python3-numpy
+(or alternatively whatever python distribution you want to use), e.g.:
 
 .. code-block:: bash
 
-   sudo apt-get install python3.8 python3.8-dev python3-pip
+   sudo apt-get install python3 python3-dev python3-numpy python3-pip
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 11.0 or above
-is required, 12.6 being the most tested version. Other versions may work depending
-on your build settings but are not officially supported yet):
+is required, 12.6 being the most tested version). Other versions may work depending
+on your build settings but are not officially supported yet. Link to NVIDIA's site:
 
 .. code-block:: bash
 
@@ -288,7 +286,7 @@ for sub-projects (say, for example, if one doesn't build).
 
 **Python:**
 
-The default Python used is 3.8, though other versions may work as well. It depends on
+The default Python used is 3.10, though other versions may work as well. It depends on
 your build settings, operating system, and which dependency projects are turned on.
 
 
