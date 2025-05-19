@@ -14,7 +14,6 @@ $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 ./viame/cmake/build_server_linux_ssl.sh
 ./viame/cmake/build_server_linux_cmake.sh
 
-
 # Hack for certain versions of cudnn installs on some OS
 if [ -f /usr/include/cudnn_v9.h ] && [ ! -f /usr/include/cudnn.h ]; then
  ln -s /usr/include/cudnn_v9.h /usr/include/cudnn.h
