@@ -510,7 +510,7 @@ if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
   if( WIN32 )
-    set( DEFAULT_SYS_CUDNN_DIR C:\Program Files\NVIDIA\CUDNN\v9.10 )
+    set( DEFAULT_SYS_CUDNN_DIR "C:/Program Files/NVIDIA/CUDNN/v9.10" )
   else()
     set( DEFAULT_SYS_CUDNN_DIR /usr )
   endif()
