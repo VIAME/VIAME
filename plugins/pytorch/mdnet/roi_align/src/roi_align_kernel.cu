@@ -140,7 +140,7 @@ int ROIAlignForwardLaucher(const at::Tensor features, const at::Tensor rois,
                            at::Tensor output) {
   const int output_size = num_rois * pooled_height * pooled_width * channels;
   AT_DISPATCH_FLOATING_TYPES_AND_HALF(
-      features.type(), "ROIAlignLaucherForward", ([&] {
+      features.scalar_type(), "ROIAlignLaucherForward", ([&] {
         const scalar_t *bottom_data = features.data<scalar_t>();
         const scalar_t *rois_data = rois.data<scalar_t>();
         scalar_t *top_data = output.data<scalar_t>();
@@ -277,7 +277,7 @@ int ROIAlignBackwardLaucher(const at::Tensor top_grad, const at::Tensor rois,
   const int output_size = num_rois * pooled_height * pooled_width * channels;
 
   AT_DISPATCH_FLOATING_TYPES_AND_HALF(
-      top_grad.type(), "ROIAlignLaucherBackward", ([&] {
+      top_grad.scalar_type(), "ROIAlignLaucherBackward", ([&] {
         const scalar_t *top_diff = top_grad.data<scalar_t>();
         const scalar_t *rois_data = rois.data<scalar_t>();
         scalar_t *bottom_diff = bottom_grad.data<scalar_t>();
@@ -378,7 +378,7 @@ int ROIAlignAdaForwardLaucher(const at::Tensor features, const at::Tensor rois,
                            at::Tensor output) {
   const int output_size = num_rois * pooled_height * pooled_width * channels;
   AT_DISPATCH_FLOATING_TYPES_AND_HALF(
-      features.type(), "ROIAlignAdaLaucherForward", ([&] {
+      features.scalar_type(), "ROIAlignAdaLaucherForward", ([&] {
         const scalar_t *bottom_data = features.data<scalar_t>();
         const scalar_t *rois_data = rois.data<scalar_t>();
         scalar_t *top_data = output.data<scalar_t>();
@@ -472,7 +472,7 @@ int ROIAlignAdaBackwardLaucher(const at::Tensor top_grad, const at::Tensor rois,
   const int output_size = num_rois * pooled_height * pooled_width * channels;
 
   AT_DISPATCH_FLOATING_TYPES_AND_HALF(
-      top_grad.type(), "ROIAlignAdaLaucherBackward", ([&] {
+      top_grad.scalar_type(), "ROIAlignAdaLaucherBackward", ([&] {
         const scalar_t *top_diff = top_grad.data<scalar_t>();
         const scalar_t *rois_data = rois.data<scalar_t>();
         scalar_t *bottom_diff = bottom_grad.data<scalar_t>();
