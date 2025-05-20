@@ -85,6 +85,8 @@ COPY "%CUDA_ROOT%\bin\cusolver64_11.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cusolverMg64_11.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%CUDA_ROOT%\bin\cusparse64_12.dll" %VIAME_INSTALL_DIR%\bin
 
+COPY "%CUDA_ROOT%\extras\CUPTI\lib64\cupti64_2024.3.2.dll" %VIAME_INSTALL_DIR%\bin
+
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
