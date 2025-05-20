@@ -85,7 +85,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
 # Prevent download from notoriously bad opencv repo
-curl https://data.kitware.com/api/v1/item/682bee3b0dcd2dfb445a5401/download --output tmp.tar.gz
+curl https://data.kitware.com/api/v1/item/682bf0110dcd2dfb445a5404/download --output tmp.tar.gz
 tar -xvf tmp.tar.gz
 rm tmp.tar.gz
 
