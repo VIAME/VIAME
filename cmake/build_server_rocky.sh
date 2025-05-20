@@ -84,6 +84,11 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
+# Prevent download from notoriously bad opencv repo
+curl https://data.kitware.com/api/v1/item/682bee3b0dcd2dfb445a5401/download --output tmp.tar.gz
+tar -xvf tmp.tar.gz
+rm tmp.tar.gz
+
 # Build VIAME, pipe output to file
 echo "Beginning core build, routing build info to build_log.txt"
 
