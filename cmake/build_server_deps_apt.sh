@@ -24,7 +24,5 @@ bzip2 \
 libbz2-dev \
 liblzma-dev \
 python3-dev \
-python-is-python3 \
-python3-numpy \
-python3-pip
-
+python3-pip \
+python-is-python3
