@@ -75,6 +75,9 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
 
+# Download OCV aux files from local server copy
+./viame/cmake/build_server_linux_ocv_extra.sh
+
 # Perform multi-threaded build
 make -j$(nproc) > build_log.txt 2>&1 || true
 

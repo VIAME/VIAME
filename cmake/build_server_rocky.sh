@@ -84,10 +84,8 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
-# Prevent download from notoriously bad opencv repo
-curl https://data.kitware.com/api/v1/item/682bf0110dcd2dfb445a5404/download --output tmp.tar.gz
-tar -xvf tmp.tar.gz
-rm tmp.tar.gz
+# Download OCV aux files from local server copy
+./viame/cmake/build_server_linux_ocv_extra.sh
 
 # Build VIAME, pipe output to file
 echo "Beginning core build, routing build info to build_log.txt"

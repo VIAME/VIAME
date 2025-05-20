@@ -65,6 +65,9 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_DARKNET:BOOL=ON 
 
+# Download OCV aux files from local server copy
+./viame/cmake/build_server_linux_ocv_extra.sh
+
 # Build VIAME, pipe output to file
 ../cmake/build_server_linux_build.sh > build_log.txt 2>&1
 
