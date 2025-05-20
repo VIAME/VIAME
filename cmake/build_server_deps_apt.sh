@@ -26,3 +26,5 @@ liblzma-dev \
 python3-dev \
 python3-pip \
 python-is-python3
+
+python -m pip install numpy==1.25.2
