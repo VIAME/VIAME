@@ -1,4 +1,7 @@
 
+# Paths used across multiple checks
+set( OUTPUT_BIN_DIR "${VIAME_INSTALL_PREFIX}/bin" )
+
 # Move any misinstalled python files
 if( PYTHON_VERSION_STRING )
   # Sometimes VIAME subpackages install python files to incorrect python
@@ -38,8 +41,6 @@ endif()
 
 # Move any misinstalled darknet executables
 if( VIAME_ENABLE_DARKNET )
-  set( OUTPUT_BIN_DIR "${VIAME_INSTALL_PREFIX}/bin" )
-
   if( WIN32 )
     set( DARKNET_BIN_WIN "${VIAME_BUILD_PREFIX}/src/darknet-build/Release/darknet.exe" )
     set( PTHREADS_DLL_WIN "${VIAME_SOURCE_PREFIX}/packages/darknet/3rdparty/pthreads/bin/pthreadVC2.dll" )
@@ -62,7 +63,15 @@ if( VIAME_ENABLE_DARKNET )
   endif()
 endif()
 
-# Remove OpenCV files
+# Check for files mis-installed into x64 folder
+if( EXISTS "${VIAME_INSTALL_PREFIX}/x64/vc16" )
+  file( COPY "${VIAME_INSTALL_PREFIX}/x64/vc16/bin" DESTINATION ${VIAME_INSTALL_PREFIX} )
+  file( COPY "${VIAME_INSTALL_PREFIX}/x64/vc16/lib" DESTINATION ${VIAME_INSTALL_PREFIX} )
+
+  file( REMOVE_RECURSE "${VIAME_INSTALL_PREFIX}/x64" )
+endif()
+
+# Remove mis-installed OpenCV files
 if( EXISTS "${VIAME_INSTALL_PREFIX}/setup_vars_opencv4.cmd" )
   message( WARNING "Cleaning up OpenCV files" )
   file( REMOVE "${VIAME_INSTALL_PREFIX}/setup_vars_opencv4.cmd" )
@@ -75,9 +84,13 @@ endif()
 if( EXISTS "${VIAME_INSTALL_PREFIX}/OpenCVConfig.cmake" )
   file( COPY "${VIAME_INSTALL_PREFIX}/OpenCVConfig.cmake"
         DESTINATION "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig.cmake" )
+
+  if( EXISTS "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake" )
+    file( COPY "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake"
+          DESTINATION "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig-version.cmake" )
+  endif()
+
+  file( REMOVE "${VIAME_INSTALL_PREFIX}/*.cmake" )
+  file( REMOVE "${VIAME_INSTALL_PREFIX}/*.txt" )
 endif()
 
-if( EXISTS "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake" )
-  file( COPY "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake"
-        DESTINATION "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig-version.cmake" )
-endif()
