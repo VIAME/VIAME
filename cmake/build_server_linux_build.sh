@@ -21,6 +21,10 @@ else
   export CUDABASE=/usr/local/cuda
 fi
 
+if [ ! -d $CUDABASE ]; then
+  export CUDABASE=/usr/local/cuda-viame
+fi
+
 if [ -d "${CUDABASE}" ]; then
   cp -P ${CUDABASE}/lib64/libcudart.so* install/lib
   cp -P ${CUDABASE}/lib64/libcusparse.so* install/lib

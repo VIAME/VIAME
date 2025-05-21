@@ -25,6 +25,11 @@ if [ -f /usr/include/cudnn_v9.h ] && [ ! -f /usr/include/cudnn.h ]; then
  ln -s /usr/include/cudnn_graph_v9.h /usr/include/cudnn_graph.h
 fi
 
+# Hack for storing paths to CUDA libs for some libraries
+rm /usr/local/cuda
+rm /usr/local/cuda-12
+mv /usr/local/cuda-12.6 /usr/local/cuda-viame
+
 # Update VIAME sub git sources
 echo "Checking out VIAME submodules"
 
@@ -44,6 +49,7 @@ export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$CPLUS_INCLUDE_P
 echo "Beginning VIAME CMake configuration"
 
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
+-DCUDA_NVCC_EXECUTABLE:PATH=/usr/local/cuda-viame/bin/nvcc \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
 -DVIAME_FIXUP_BUNDLE:BOOL=ON \
 -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
