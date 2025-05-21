@@ -7,6 +7,9 @@ export VIAME_SOURCE_DIR=/viame
 export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
 export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
+export CUDA_DIRECTORY=/usr/local/cuda-viame
+export CUDNN_DIRECTORY=/usr
+
 # Install system dependencies and use more recent compiler
 $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 
@@ -14,21 +17,13 @@ $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 ./viame/cmake/build_server_linux_ssl.sh
 ./viame/cmake/build_server_linux_cmake.sh
 
-# Hack for certain versions of cudnn installs on some OS
-if [ -f /usr/include/cudnn_v9.h ] && [ ! -f /usr/include/cudnn.h ]; then
- ln -s /usr/include/cudnn_v9.h /usr/include/cudnn.h
- ln -s /usr/include/cudnn_adv_v9.h /usr/include/cudnn_adv.h
- ln -s /usr/include/cudnn_cnn_v9.h /usr/include/cudnn_cnn.h
- ln -s /usr/include/cudnn_ops_v9.h /usr/include/cudnn_ops.h
- ln -s /usr/include/cudnn_version_v9.h /usr/include/cudnn_version.h
- ln -s /usr/include/cudnn_backend_v9.h /usr/include/cudnn_backend.h
- ln -s /usr/include/cudnn_graph_v9.h /usr/include/cudnn_graph.h
-fi
+# Patch CUDNN when required
+./viame/cmake/build_server_patch_cudnn.sh
 
 # Hack for storing paths to CUDA libs for some libraries
 rm /usr/local/cuda
 rm /usr/local/cuda-12
-mv /usr/local/cuda-12.6 /usr/local/cuda-viame
+mv /usr/local/cuda-12.6 $CUDA_DIRECTORY
 
 # Update VIAME sub git sources
 echo "Checking out VIAME submodules"
@@ -49,7 +44,8 @@ export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$CPLUS_INCLUDE_P
 echo "Beginning VIAME CMake configuration"
 
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
--DCUDA_NVCC_EXECUTABLE:PATH=/usr/local/cuda-viame/bin/nvcc \
+-DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY
+-DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
 -DVIAME_FIXUP_BUNDLE:BOOL=ON \
 -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
