@@ -19,11 +19,6 @@ cd build
 export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/usr/local/cuda/lib64
 
-# Add paths for internal python build
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib/python3.10
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.10
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.10
-
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
@@ -66,7 +61,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \
 -DVIAME_ENABLE_VIVIA:BOOL=OFF \
 -DVIAME_ENABLE_VXL:BOOL=ON \
--DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
+-DVIAME_ENABLE_WEB_EXCLUDES:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-GENERIC:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-FISH:BOOL=ON \

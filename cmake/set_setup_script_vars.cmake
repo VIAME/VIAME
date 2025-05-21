@@ -24,7 +24,12 @@ if( VIAME_ENABLE_PYTHON )
   get_filename_component( PYTHON_ROOT_DIR "${PYTHON_LIBRARY_DIR}" DIRECTORY )
 
   set( SETUP_PYTHON_LOCATION "export PYTHON_INSTALL_DIR=${PYTHON_ROOT_DIR}" )
-  set( SETUP_PYTHON_LIBRARY_PATH "export PYTHON_LIBRARY=${Python_LIBRARIES}" )
+
+  if( VIAME_PYTHON_BUILD_FROM_SOURCE )
+    set( SETUP_PYTHON_LIBRARY_PATH "export PYTHON_LIBRARY=$this_dir/lib/libpython${Python_VERSION_MAJOR}.so" )
+  else()
+    set( SETUP_PYTHON_LIBRARY_PATH "export PYTHON_LIBRARY=${Python_LIBRARIES}" )
+  endif()
 endif()
 
 set( SETUP_CUSTOM_TERMINAL "export PS1=\"\${PS1//\"(viame) \"/}\"\nexport PS1=\"(viame) \${PS1//\"(base) \"/}\"" )

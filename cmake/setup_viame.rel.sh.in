@@ -30,7 +30,7 @@ export VG_PLUGIN_PATH=$this_dir
 export VIDTK_MODULE_PATH=$this_dir/lib/modules
 
 # Core python locations
-export PYTHON_LIBRARY=$this_dir/lib/libpython@Python_VERSION_MAJOR@.so
+@SETUP_PYTHON_LIBRARY_PATH@
 export PYTHONPATH=$this_dir/python:$this_dir/lib/@VIAME_PYTHON_STRING@
 export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/site-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/dist-packages:$PYTHONPATH
