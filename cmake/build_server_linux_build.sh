@@ -35,8 +35,6 @@ if [ -d "${CUDABASE}" ]; then
   cp -P ${CUDABASE}/lib64/libnvrtc* install/lib
   cp -P ${CUDABASE}/lib64/libnvToolsExt.so* install/lib
 
-  cp -P ${CUDABASE}/lib64/libnvToolsExt.so* install/lib
-
   cp -P ${CUDABASE}/targets/x86_64-linux/lib/libcupti.so* install/lib
   cp -P ${CUDABASE}/targets/x86_64-linux/lib/libcufile.so* install/lib
 
