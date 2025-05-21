@@ -35,7 +35,10 @@ if [ -d "${CUDABASE}" ]; then
   cp -P ${CUDABASE}/lib64/libnvrtc* install/lib
   cp -P ${CUDABASE}/lib64/libnvToolsExt.so* install/lib
 
-  cp -P ${LIBBASE}/libnccl.so* install/lib
+  cp -P ${CUDABASE}/lib64/libnvToolsExt.so* install/lib
+
+  cp -P ${CUDABASE}/targets/x86_64-linux/lib/libcupti.so* install/lib
+  cp -P ${CUDABASE}/targets/x86_64-linux/lib/libcufile.so* install/lib
 
   if [ is_ubuntu ]; then
     cp -P ${CUDABASE}/lib64/libnppi* install/lib
@@ -83,6 +86,8 @@ fi
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
+cp ${LIBBASE}/libcrypt.so.2 install/lib || true
+cp ${LIBBASE}/libcrypt.so.2.0.0 install/lib || true
 cp ${LIBBASE}/libffi.so.6 install/lib || true
 cp ${LIBBASE}/libva.so.1 install/lib || true
 cp ${LIBBASE}/libssl.so.10 install/lib || true
