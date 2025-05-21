@@ -92,7 +92,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 # Build VIAME, pipe output to file
 echo "Beginning core build, routing build info to build_log.txt"
 
-../cmake/build_server_linux_build.sh > build_log.txt 2>&1
+../cmake/build_server_linux_build.sh $CUDA_DIRECTORY > build_log.txt 2>&1
 
 # Output check statments
 if grep -q "Built target viame" build_log.txt; then
