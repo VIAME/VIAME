@@ -995,7 +995,7 @@ else()
   ###
   # Configure setup scripts
   ##
-  include( setup_viame_paths )
+  include( set_setup_script_vars )
 
   if( WIN32 )
     set( VIAME_SETUP_SCRIPT "${VIAME_BINARY_DIR}/setup_viame.bat" )
