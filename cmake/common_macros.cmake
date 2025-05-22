@@ -44,7 +44,7 @@ endfunction()
 
 function( FormatPassdowns _str _varResult )
   # Special Cases
-  if( ${_str} MATCHES "PYTHON" )
+  if( ${_str} MATCHES "^PYTHON" )
     FormatPassdownsPython( _tmpResult )
     set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
   # Default Case
