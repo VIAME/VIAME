@@ -2,7 +2,7 @@
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
 
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence including
-object detection, object tracking, image/video annotation, image/video search, image mosaicing,
+object detection, object tracking, image/video annotation, query-based search, image mosaicing,
 image enhancement, size measurement, multi-camera data processing, rapid model generation,
 and tools for the evaluation of different algorithms. Originally targeting marine species
 analytics, VIAME now contains many common algorithms and libraries, and is also useful as a
