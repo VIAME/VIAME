@@ -16,8 +16,10 @@ set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "build" "cython<3.0.0" )
 
 if( VIAME_FIXUP_BUNDLE AND Python_VERSION VERSION_LESS "3.8" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
+elseif( Python_VERSION VERSION_LESS "3.13" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy<=1.25.2" )
 else()
-  list( APPEND  VIAME_PYTHON_BASIC_DEPS "numpy<=1.25.2" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=2.2.6" )
 endif()
 
 if( VIAME_BUILD_TESTS )
@@ -52,8 +54,10 @@ list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
 
 if( Python_VERSION VERSION_LESS "3.9" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "numba==0.47" )
-else()
+elseif( Python_VERSION VERSION_LESS "3.13" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.43.0" "numba==0.60" )
+else()
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.44.0" "numba==0.61.2" )
 endif()
 
 # For pytorch building
@@ -136,15 +140,14 @@ endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_PYTORCH-MIT-YOLO )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" "ndsampler<=0.8.0" "pygments" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx<=2.8.8" "pandas<=1.5.3" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "kwutil<=0.3.3" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx<=2.8.8" "kwutil<=0.3.3" )
 
   if( Python_VERSION VERSION_LESS "3.10" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.15.0" "kwcoco==0.2.31" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "bezier==2020.1.14" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "bezier==2020.1.14" "pandas<=1.5.3" )
   else()
     list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.36.0" "kwcoco==0.8.5" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "colormath" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "colormath" "pandas>=2.1.1" )
   endif()
 endif()
 
