@@ -593,7 +593,7 @@ if( VIAME_ENABLE_PYTHON )
 
   if( VIAME_PYTHON_BUILD_FROM_SOURCE )
     set( VIAME_PYTHON_VERSION 3.10.4 CACHE STRING "Select the version of Python to build." )
-    set_property( CACHE VIAME_PYTHON_VERSION PROPERTY STRINGS "3.6.15" "3.8.13" "3.10.4" )
+    set_property( CACHE VIAME_PYTHON_VERSION PROPERTY STRINGS "3.6.15" "3.8.13" "3.10.4" "3.13.3" )
     mark_as_advanced( VIAME_PYTHON_VERSION )
 
     include( setup_internal_python )
