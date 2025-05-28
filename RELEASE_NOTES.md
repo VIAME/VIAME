@@ -1,10 +1,14 @@
-v0.21.1 - 5/23/2024
+v0.21.1 - 5/30/2024
 ===================
+
 
 -Update torch version (2.5 -> 2.7), cuda version (12.4 -> 12.6)
 
 
 -Fix library issue if multiple CUDA 12 versions installed on linux system
+
+
+-Update DIVE interface with a number of new features
 
 
 
