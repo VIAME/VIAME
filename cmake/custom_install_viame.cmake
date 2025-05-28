@@ -2,13 +2,14 @@
 # Paths used across multiple checks
 set( OUTPUT_BIN_DIR "${VIAME_INSTALL_PREFIX}/bin" )
 
+set( ROOT_PYTHON_DIR "${VIAME_INSTALL_PREFIX}/lib/${PYTHON_VERSION_STRING}" )
+set( OUTPUT_PYTHON_DIR "${ROOT_PYTHON_DIR}/site-packages" )
+set( PYTHON_VERSION_APPENDED "${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}" )
+
 # Move any misinstalled python files
 if( PYTHON_VERSION_STRING )
   # Sometimes VIAME subpackages install python files to incorrect python
   # subdirectories, like lib/site-packages instead of lib/pythonX.Y/site-packages
-  set( ROOT_PYTHON_DIR "${VIAME_INSTALL_PREFIX}/lib/${PYTHON_VERSION_STRING}" )
-  set( OUTPUT_PYTHON_DIR "${ROOT_PYTHON_DIR}/site-packages/" )
-  set( PYTHON_VERSION_APPENDED "${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}" )
 
   if( EXISTS ${VIAME_INSTALL_PREFIX}/Python${PYTHON_VERSION_APPENDED} )
     message( WARNING "Relocating misinstalled ${VIAME_INSTALL_PREFIX}/Python${PYTHON_VERSION_APPENDED}" )
@@ -36,6 +37,14 @@ if( PYTHON_VERSION_STRING )
     file( GLOB FILES_TO_MOVE ${OUTPUT_PYTHON_DIR}/win32 )
     file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
     file( REMOVE_RECURSE ${OUTPUT_PYTHON_DIR}/win32 )
+  endif()
+endif()
+
+# Modify python libraries brought in by multiple pytorch deps
+if( WIN32 )
+  if( EXISTS ${OUTPUT_PYTHON_DIR}/iopath )
+    file( COPY ${VIAME_SOURCE_PREFIX}/packages/patches/iopath
+          DESTINATION ${OUTPUT_PYTHON_DIR} )
   endif()
 endif()
 

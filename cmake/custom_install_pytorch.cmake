@@ -20,13 +20,6 @@ if( WIN32 )
           DESTINATION ${TORCH_DIR} )
   endif()
 
-  # Patches to dependencies brought in by pytorch
-  if( VIAME_PYTORCH_VERSION VERSION_GREATER_EQUAL "2.0.0" AND
-      EXISTS ${VIAME_PYTHON_BASE}/site-packages/iopath )
-    file( COPY ${VIAME_PATCH_DIR}/iopath
-          DESTINATION ${VIAME_PYTHON_BASE}/site-packages )
-  endif()
-
 endif()
 
 message( "Done" )
