@@ -33,7 +33,7 @@ process detection_filter
   block filter:class_probablity_filter
     :threshold                                 0.001
     :keep_all_classes                          false
-    :keep_classes                              Ignore;Suppressed
+    :keep_classes                              Ignore;ignore;Suppressed;suppressed
   endblock
 
 connect from detection_reader.detected_object_set
@@ -42,11 +42,11 @@ connect from detection_reader.detected_object_set
 process detector_fuser
   :: merge_detection_sets
 
-  :merger:type                                  suppress_in_regions
-  :merger:suppress_in_regions:suppression_class Ignore
-  :merger:suppress_in_regions:borderline_class  Suppressed
+  :merger:type                                        suppress_in_regions
+  :merger:suppress_in_regions:suppression_class       ignore
+  :merger:suppress_in_regions:borderline_class        suppressed
   :merger:suppress_in_regions:borderline_scale_factor 0.10
-  :merger:suppress_in_regions:output_region_classes   1.0
+  :merger:suppress_in_regions:output_region_classes   true
 
 connect from detection_filter.detected_object_set
         to   detector_fuser.detected_object_set1
