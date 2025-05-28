@@ -289,14 +289,9 @@ class Sam2Refiner(RefineDetections):
                 )
                 relative_submask = new_mask.data
 
-            new_vital_mask = vital_image_container_from_ndarray(relative_submask)
-            # Create a new detected object (should we modify inplace?)
-            new_det = DetectedObject(
-                bbox=vital_det.bounding_box,
-                classifications=vital_det.type,
-                mask=new_vital_mask,
-            )
-            output.add(new_det)
+            # Modify detection and add to output list
+            vital_det.mask = vital_image_container_from_ndarray(relative_submask)
+            output.add(vital_det)
 
         return output
 
