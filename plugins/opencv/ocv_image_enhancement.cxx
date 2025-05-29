@@ -182,7 +182,7 @@ ocv_image_enhancement
       d->m_denoise_kernel, d->m_denoise_kernel * 3 );
   }
 
-  if( d->m_auto_balance )
+  if( d->m_auto_balance && output_ocv.channels() == 3 )
   {
     cv::Scalar img_sum = sum( output_ocv );
     cv::Scalar illum = img_sum / cv::Scalar( output_ocv.rows * output_ocv.cols );
@@ -288,13 +288,8 @@ ocv_image_enhancement
     }
   }
 
-  if( d->m_saturation != 1.0 )
+  if( d->m_saturation != 1.0 && output_ocv.channels() == 3 )
   {
-    if( output_ocv.channels() != 3 )
-    {
-      throw std::runtime_error( "Saturation can only be performed on 3-channel images" );
-    }
-
     cv::Mat hsv_image;
 #if CV_MAJOR_VERSION < 4
     cv::cvtColor( output_ocv, hsv_image, CV_BGR2HSV );
