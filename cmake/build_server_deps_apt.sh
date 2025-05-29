@@ -22,9 +22,4 @@ gfortran \
 zlib1g-dev \
 bzip2 \
 libbz2-dev \
-liblzma-dev \
-python3-dev \
-python3-pip \
-python-is-python3
-
-python -m pip install numpy==1.25.2
+liblzma-dev

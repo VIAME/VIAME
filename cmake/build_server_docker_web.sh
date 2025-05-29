@@ -3,10 +3,10 @@
 # debugging flag
 set -x
 
-# Fletch, VIAME, CMAKE system deps
+# Install required system dependencies
 /viame/cmake/build_server_deps_apt.sh
 
-# Install CMAKE
+# Install CMake
 /viame/cmake/build_server_linux_cmake.sh
 
 # Update VIAME sub git deps
