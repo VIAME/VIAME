@@ -2,9 +2,9 @@
 if( WIN32 )
   include( ExternalProject )
 
-  set( VIAME_POSTGRES_URL https://data.kitware.com/api/v1/item/5ba55cd58d777f06b900d726/download )
-  set( VIAME_POSTGRES_MD5 7648e722fda0fcc47c96ef8093a369be )
-  set( VIAME_POSTGRES_FILENAME postgresql-9.5.1-1-windows-x64-binaries.zip )
+  set( VIAME_POSTGRES_URL https://viame.kitware.com/api/v1/file/6837c74a1c2c16143e306f40/download )
+  set( VIAME_POSTGRES_MD5 5e01e77deb12cd7f0c4df24903694098 )
+  set( VIAME_POSTGRES_FILENAME postgresql-10.23-1-windows-x64-binaries.zip )
 
   set( VIAME_POSTGRES_DIR ${VIAME_BUILD_PREFIX}/src/postgres )
 

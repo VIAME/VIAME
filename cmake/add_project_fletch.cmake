@@ -144,18 +144,8 @@ if( VIAME_ENABLE_POSTGRESQL )
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_PostgreSQL:BOOL=${DEP_COND_ENABLE}
     -Dfletch_ENABLE_CppDB:BOOL=${DEP_COND_ENABLE}
+    -DPostgreSQL_SELECT_VERSION:STRING=10.23
   )
-  if( WIN32 )
-    set( FLETCH_DEP_FLAGS
-      ${FLETCH_DEP_FLAGS}
-      -DPostgreSQL_SELECT_VERSION:STRING=9.5.1
-    )
-  else()
-    set( FLETCH_DEP_FLAGS
-      ${FLETCH_DEP_FLAGS}
-      -DPostgreSQL_SELECT_VERSION:STRING=10.2
-    )
-  endif()
 else()
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
