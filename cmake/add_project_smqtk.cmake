@@ -19,10 +19,6 @@ if( VIAME_ENABLE_CUDA )
   FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
 endif()
 
-if( VIAME_ENABLE_POSTGRESQL AND WIN32 )
-  list( APPEND SMQTK_DEPENDS postgres )
-endif()
-
 set( SMQTK_PIP_CMD )
 set( SMQTK_PIP_OPT )
 
