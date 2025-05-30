@@ -837,10 +837,6 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_burnout )
   endif()
 
-  if( VIAME_ENABLE_POSTGRESQL )
-    include( add_project_postgres )
-  endif()
-
   if( VIAME_ENABLE_SMQTK )
     include( add_project_smqtk )
   endif()
