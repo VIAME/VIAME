@@ -7,9 +7,6 @@ export VIAME_SOURCE_DIR=/viame
 export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
 export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
-export CUDA_DIRECTORY=/usr/local/cuda-viame
-export CUDNN_DIRECTORY=/usr
-
 # Install system dependencies and use more recent compiler
 $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 
