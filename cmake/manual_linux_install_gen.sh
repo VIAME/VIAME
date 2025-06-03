@@ -7,9 +7,9 @@ git clone https://github.com/VIAME/VIAME.git viame-src-clone
 cd viame-src-clone
 
 # stand up a new docker build env
-docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux9
+docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux8
 chmod +x cmake/build_server_rocky.sh
-docker run -td --runtime=nvidia --name viame_installer_zip nvidia/cuda:12.6.3-cudnn-devel-rockylinux9 bash
+docker run -td --runtime=nvidia --name viame_installer_zip nvidia/cuda:12.6.3-cudnn-devel-rockylinux8 bash
 cd ../
 docker cp viame-src-clone viame_installer_zip:/viame/
 
