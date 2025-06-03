@@ -14,6 +14,10 @@ $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 ./viame/cmake/build_server_linux_ssl.sh
 ./viame/cmake/build_server_linux_cmake.sh
 
+# Use GCC11 for build
+yum install gcc-toolset-11
+scl enable gcc-toolset-11 bash
+
 # Update VIAME sub git sources
 echo "Checking out VIAME submodules"
 
