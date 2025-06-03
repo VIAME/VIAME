@@ -7,9 +7,6 @@ export VIAME_SOURCE_DIR=/viame
 export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
 export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
-export CUDA_DIRECTORY=/usr/local/cuda-viame
-export CUDNN_DIRECTORY=/usr
-
 # Install system dependencies and use more recent compiler
 $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 
@@ -51,11 +48,12 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
 -DVIAME_ENABLE_CUDA:BOOL=ON \
 -DVIAME_ENABLE_CUDNN:BOOL=ON \
+-DVIAME_ENABLE_DARKNET:BOOL=ON \
 -DVIAME_ENABLE_DIVE:BOOL=ON \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
 -DVIAME_ENABLE_FFMPEG:BOOL=ON \
 -DVIAME_ENABLE_FFMPEG-X264:BOOL=ON \
--DVIAME_ENABLE_GDAL:BOOL=OFF \
+-DVIAME_ENABLE_GDAL:BOOL=ON \
 -DVIAME_ENABLE_FLASK:BOOL=OFF \
 -DVIAME_ENABLE_ITK:BOOL=OFF \
 -DVIAME_ENABLE_KWANT:BOOL=ON \
@@ -83,11 +81,10 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
 -DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \
 -DVIAME_ENABLE_VIVIA:BOOL=ON \
--DVIAME_ENABLE_VXL:BOOL=ON \
--DVIAME_ENABLE_DARKNET:BOOL=ON 
+-DVIAME_ENABLE_VXL:BOOL=ON
 
 # Download OCV aux files from local server copy
-./viame/cmake/build_server_linux_ocv_extra.sh
+#./viame/cmake/build_server_linux_ocv_extra.sh
 
 # Build VIAME, pipe output to file
 echo "Beginning core build, routing build info to build_log.txt"

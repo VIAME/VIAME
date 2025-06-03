@@ -7,18 +7,24 @@ export VIAME_SOURCE_DIR=/viame
 export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
 export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
+export CUDA_DIRECTORY=/usr/local/cuda-viame
+export CUDNN_DIRECTORY=/usr
+
 # Install system dependencies and use more recent compiler
 $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 
-# Install CMAKE
+# Install more modern CMAKE and OpenSSL from source
+./viame/cmake/build_server_linux_ssl.sh
 ./viame/cmake/build_server_linux_cmake.sh
 
 # Update VIAME sub git sources
+echo "Checking out VIAME submodules"
+
 cd $VIAME_SOURCE_DIR
 git config --global --add safe.directory $VIAME_SOURCE_DIR
 git submodule update --init --recursive
 mkdir build
-cd build 
+cd build
 
 # Configure Paths [should be removed when no longer necessary by fletch]
 export PATH=$VIAME_INSTALL_DIR/bin:$PATH
@@ -33,6 +39,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
 -DVIAME_ENABLE_CUDA:BOOL=OFF \
 -DVIAME_ENABLE_CUDNN:BOOL=OFF \
+-DVIAME_ENABLE_DARKNET:BOOL=ON \
 -DVIAME_ENABLE_DIVE:BOOL=ON \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
 -DVIAME_ENABLE_FFMPEG:BOOL=ON \
@@ -44,29 +51,31 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_KWIVER:BOOL=ON \
 -DVIAME_ENABLE_LEARN:BOOL=OFF \
 -DVIAME_ENABLE_MATLAB:BOOL=OFF \
+-DVIAME_ENABLE_ONNX:BOOL=ON \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
 -DVIAME_OPENCV_VERSION:STRING=3.4.0 \
+-DVIAME_ENABLE_POSTGRESQL=ON \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
--DVIAME_PYTHON_BUILD_FROM_SOURCE:BOOL=OFF \
+-DVIAME_PYTHON_BUILD_FROM_SOURCE:BOOL=ON \
 -DVIAME_PYTHON_VERSION:STRING=3.10.4 \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
 -DVIAME_PYTORCH_BUILD_FROM_SOURCE:BOOL=ON \
--DVIAME_PYTORCH_DISABLE_NINJA=ON \
+-DVIAME_PYTORCH_DISABLE_NINJA=OFF \
 -DVIAME_PYTORCH_VERSION:STRING=2.7.0 \
 -DVIAME_ENABLE_PYTORCH-MMDET:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=OFF \
+-DVIAME_ENABLE_PYTORCH-SAM:BOOL=ON \
 -DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
 -DVIAME_ENABLE_SEAL:BOOL=OFF \
 -DVIAME_ENABLE_SMQTK:BOOL=ON \
 -DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
 -DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \
 -DVIAME_ENABLE_VIVIA:BOOL=ON \
--DVIAME_ENABLE_VXL:BOOL=ON \
--DVIAME_ENABLE_DARKNET:BOOL=ON 
+-DVIAME_ENABLE_VXL:BOOL=ON
 
 # Download OCV aux files from local server copy
-./viame/cmake/build_server_linux_ocv_extra.sh
+#./viame/cmake/build_server_linux_ocv_extra.sh
 
 # Build VIAME, pipe output to file
 ../cmake/build_server_linux_build.sh > build_log.txt 2>&1
