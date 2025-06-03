@@ -22,7 +22,7 @@ $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 
 # Use GCC11 for build
 yum install -y gcc-toolset-11
-scl enable gcc-toolset-11 bash
+source /opt/rh/gcc-toolset-11/enable
 
 # Hack for storing paths to CUDA libs for some libraries
 rm /usr/local/cuda
