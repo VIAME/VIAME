@@ -21,7 +21,7 @@ $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 ./viame/cmake/build_server_patch_cudnn.sh
 
 # Use GCC11 for build
-yum install gcc-toolset-11
+yum install -y gcc-toolset-11
 scl enable gcc-toolset-11 bash
 
 # Hack for storing paths to CUDA libs for some libraries
