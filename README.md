@@ -81,16 +81,16 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* [VIAME v0.20.4 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1n-ew2Ost2bfUn9i_DqImBRM63dJc7vds/view?usp=drive_link) <br>
-* [VIAME v0.20.4 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/660fee502357cf6b55ca89bc/download) <br>
-* [VIAME v0.20.1 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1lQdX9uXgzQbGnfXQ10mebWu2QLMLmDKF/view?usp=sharing) <br>
-* [VIAME v0.20.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/64ab74436cb8a983de7a3772/download)
+* [VIAME v0.21.1 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1N5eZfKqG_oyUse2SW0PwxCWngn8k7zkr/view?usp=sharing) <br>
+* [VIAME v0.21.1 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/683e6a48dfcff796fee73cf5/download) <br>
+* [VIAME v0.21.1 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1WkFHOdMPkxYrow7Utcyx_RTPdG4EbOan/view?usp=sharing) <br>
+* [VIAME v0.21.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/683fbc2bdfcff796fee73cfe/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.20.4 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1DWB1pHq8FaaIFziBJPZmZ6gZqej1sYqn/view?usp=sharing) <br>
-* [VIAME v0.20.4 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/66159b5c2357cf6b55ca8cab/download) <br>
-* [VIAME v0.20.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1-L37JZwju6AsPjeB0zvTwOrYALOQR1zR/view?usp=sharing) <br>
-* [VIAME v0.20.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/64ab74676cb8a983de7a3775/download)
+* [VIAME v0.21.1 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/171i23ZjWjCE8-F0bcMZZFAKF7dbAqio5/view?usp=sharing) <br>
+* [VIAME v0.21.1 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fc309dfcff796fee73d06/download) <br>
+* [VIAME v0.21.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1U2H-AE6IwGkClmNEDw-GAETtJTDfKUuR/view?usp=sharing) <br>
+* [VIAME v0.21.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fbc82dfcff796fee73d01/download)
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>

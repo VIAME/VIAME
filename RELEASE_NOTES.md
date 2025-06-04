@@ -1,4 +1,4 @@
-v0.21.1 - 5/30/2024
+v0.21.1 - 6/04/2024
 ===================
 
 
@@ -44,6 +44,10 @@ v0.21.0 - 1/15/2024
 
 
 -Extra output CSV metadata options including model run, execution time, software version, etc...
+
+
+-Add MIT-YOLO train/test capabilities
+
 
 
 v0.20.4 - 3/30/2024
