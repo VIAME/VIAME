@@ -195,7 +195,7 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-DETECTRON   "Enable detectron2 algorithms"   OFF )
   option( VIAME_ENABLE_PYTORCH-MDNET       "Enable mdnet algorithms"        OFF )
   option( VIAME_ENABLE_PYTORCH-SAM         "Enable SAM2 algorithms"         OFF )
-  option( VIAME_ENABLE_PYTORCH-ULTRALYTICS "Enable ultralytics algorithms"  ON )
+  option( VIAME_ENABLE_PYTORCH-ULTRALYTICS "Enable ultralytics algorithms"  OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VIDEO )
