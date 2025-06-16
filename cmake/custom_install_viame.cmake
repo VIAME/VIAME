@@ -6,6 +6,9 @@ set( ROOT_PYTHON_DIR "${VIAME_INSTALL_PREFIX}/lib/${PYTHON_VERSION_STRING}" )
 set( OUTPUT_PYTHON_DIR "${ROOT_PYTHON_DIR}/site-packages" )
 set( PYTHON_VERSION_APPENDED "${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}" )
 
+# Include helper macros
+include( common_macros )
+
 # Move any misinstalled python files
 if( PYTHON_VERSION_STRING )
   # Sometimes VIAME subpackages install python files to incorrect python
@@ -46,6 +49,12 @@ if( WIN32 )
     file( COPY ${VIAME_SOURCE_PREFIX}/packages/patches/iopath
           DESTINATION ${OUTPUT_PYTHON_DIR} )
   endif()
+endif()
+
+if( EXISTS ${OUTPUT_PYTHON_DIR}/torch_liberator )
+  ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/torch_liberator/initializer.py
+    "torch.load(fpath, map_location=_map_location)"
+    "torch.load(fpath, map_location=_map_location, weights_only=False)" )
 endif()
 
 # Move any misinstalled darknet executables
