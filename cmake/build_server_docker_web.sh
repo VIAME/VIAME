@@ -80,6 +80,14 @@ make -j$(nproc) > build_log.txt 2>&1 || true
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 
+# Install old MMDet plugin useful for 1-2 models (this is typically
+# packaged in add-ons but VIAME-web doesn't handle binary code in
+# add-ons currently)
+wget https://viame.kitware.com/api/v1/item/6850914d01a1cb3f8f2d4aad/download
+tar -xvf download
+mv lib install
+rm download
+
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed
 rm install/lib/libsvm.so
