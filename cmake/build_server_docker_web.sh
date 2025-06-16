@@ -19,11 +19,6 @@ cd build
 export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/usr/local/cuda/lib64
 
-# Add paths for internal python build
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib/python3.10
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.10
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.10
-
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
@@ -48,7 +43,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
 -DVIAME_OPENCV_VERSION:STRING=3.4.0 \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
--DVIAME_PYTHON_BUILD_FROM_SOURCE:BOOL=ON \
+-DVIAME_PYTHON_BUILD_FROM_SOURCE:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
 -DVIAME_PYTORCH_BUILD_FROM_SOURCE:BOOL=ON \
 -DVIAME_PYTORCH_VERSION:STRING=2.7.0 \

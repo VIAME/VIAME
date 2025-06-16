@@ -5,7 +5,6 @@ set -x
 
 # Install required system dependencies
 /viame/cmake/build_server_deps_apt.sh
-/viame/cmake/build_server_deps_python.sh
 
 # Install CMake
 /viame/cmake/build_server_linux_cmake.sh
