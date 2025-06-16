@@ -7,7 +7,7 @@ set( OUTPUT_PYTHON_DIR "${ROOT_PYTHON_DIR}/site-packages" )
 set( PYTHON_VERSION_APPENDED "${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}" )
 
 # Include helper macros
-include( common_macros )
+include( ${VIAME_SOURCE_PREFIX}/cmake/common_macros.cmake )
 
 # Move any misinstalled python files
 if( PYTHON_VERSION_STRING )
