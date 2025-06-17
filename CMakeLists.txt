@@ -523,6 +523,7 @@ if( VIAME_ENABLE_CUDNN )
           ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
           ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
           ${DEFAULT_SYS_CUDNN_DIR}
+          ${DEFAULT_SYS_CUDNN_DIR}/lib/x86_64-linux-gnu
     PATH_SUFFIXES lib lib64 )
 
   get_filename_component( CUDNN_LIBRARY "${CUDNN_LIBRARY}" REALPATH )
@@ -550,6 +551,10 @@ if( VIAME_ENABLE_CUDNN )
 
     set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
     set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
+  endif()
+
+  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
+    set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/x86_64-linux-gnu/cudnn.h" CACHE INTERNAL "" FORCE )
   endif()
 
   if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
