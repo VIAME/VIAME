@@ -85,8 +85,8 @@ make -j$(nproc) > build_log.txt 2>&1 || true
 # add-ons currently)
 wget https://viame.kitware.com/api/v1/item/6850914d01a1cb3f8f2d4aad/download
 tar -xvf download
-mv lib install
-rm download
+cp -r lib install
+rm -rf lib download
 
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed
