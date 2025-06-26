@@ -83,7 +83,7 @@ make -j$(nproc) > build_log.txt 2>&1 || true
 # Install old MMDet plugin useful for 1-2 models (this is typically
 # packaged in add-ons but VIAME-web doesn't handle binary code in
 # add-ons currently)
-wget https://viame.kitware.com/api/v1/item/6850914d01a1cb3f8f2d4aad/download
+wget https://viame.kitware.com/api/v1/file/685cd1a5a2df48d3c1ae8604/download
 tar -xvf download
 cp -r lib install
 rm -rf lib download
