@@ -1,7 +1,7 @@
 Default Fish, https://viame.kitware.com/api/v1/item/680709f60010b9dd2856abdf/download, Default fish detection model (1-class)
 Generic Proposals, https://viame.kitware.com/api/v1/item/680708cbed26029b31953f11/download, Generic object proposal model (1-class)
 Default Utilities, https://viame.kitware.com/api/v1/item/6812865f20dc488b497fe866/download, Utilities such as tracking and segmentation
-HabCam, https://data.kitware.com/api/v1/item/685daaa73034b866be043af2/download, Detect and measure scallops and flatfish and other friends
+HabCam, https://viame.kitware.com/girder/api/v1/file/685eecb7a2df48d3c1ae8bfb/download, Detect and measure scallops and flatfish and other friends
 SEFSC, https://viame.kitware.com/api/v1/item/68118c2394d3f293fb910916/download, 170 species fish detector and trackers for Gulf of Mexico
 SWFSC-PengHead, https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download, Penguin headcam classification
 Arctic-Seal, https://viame.kitware.com/api/v1/file/67a4dd1715780f826149c3ff/download, Arctic seal YOLO models (TF removed)
