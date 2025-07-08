@@ -1,4 +1,7 @@
 
+# Logging
+message( WARNING "Running VIAME custom install script" )
+
 # Paths used across multiple checks
 set( OUTPUT_BIN_DIR "${VIAME_INSTALL_PREFIX}/bin" )
 
@@ -45,6 +48,8 @@ endif()
 
 # Modify python libraries brought in by multiple pytorch deps
 if( WIN32 )
+  message( WARNING "Patching ${OUTPUT_PYTHON_DIR}/iopath" )
+
   if( EXISTS ${OUTPUT_PYTHON_DIR}/iopath )
     file( COPY ${VIAME_SOURCE_PREFIX}/packages/patches/iopath
           DESTINATION ${OUTPUT_PYTHON_DIR} )
@@ -52,9 +57,13 @@ if( WIN32 )
 endif()
 
 if( EXISTS ${OUTPUT_PYTHON_DIR}/torch_liberator )
+  message( WARNING "Patching ${OUTPUT_PYTHON_DIR}/torch_liberator" )
+
   ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/torch_liberator/initializer.py
     "torch.load(fpath, map_location=_map_location)"
     "torch.load(fpath, map_location=_map_location, weights_only=False)" )
+else()
+  message( WARNING "Not patching ${OUTPUT_PYTHON_DIR}/torch_liberator" )
 endif()
 
 # Move any misinstalled darknet executables
@@ -83,6 +92,8 @@ endif()
 
 # Check for files mis-installed into x64 folder
 if( EXISTS "${VIAME_INSTALL_PREFIX}/x64/vc16" )
+  message( WARNING "Patching ${VIAME_INSTALL_PREFIX}/x64/vc16" )
+
   file( COPY "${VIAME_INSTALL_PREFIX}/x64/vc16/bin" DESTINATION ${VIAME_INSTALL_PREFIX} )
   file( COPY "${VIAME_INSTALL_PREFIX}/x64/vc16/lib" DESTINATION ${VIAME_INSTALL_PREFIX} )
 
