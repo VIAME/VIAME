@@ -1,3 +1,11 @@
+v0.21.1 - 7/11/2024
+===================
+
+
+-Fix bug in last VIAME with certain add-on models not loading
+
+
+
 v0.21.1 - 6/04/2024
 ===================
 
