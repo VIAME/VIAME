@@ -1,8 +1,11 @@
-v0.21.1 - 7/11/2024
+v0.21.2 - 7/11/2024
 ===================
 
 
 -Fix bug in last VIAME with certain add-on models not loading
+
+
+-Upgrade cuda version (12.6 -> 12.8) to support latest gpus
 
 
 
