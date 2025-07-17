@@ -54,7 +54,7 @@ are available via smaller installers (see DIVE standalone, below). Lastly, docke
 are available for both VIAME Desktop and Web (below). For full desktop installs, extract
 the binaries and place them in a directory of your choosing, for example /opt/noaa/viame
 on Linux or C:\Program Files\VIAME on Windows. If using packages built with GPU support,
-make sure to have sufficient video drivers installed, version 560.76 or higher. The best
+make sure to have sufficient video drivers installed, version 570.11 or higher. The best
 way to install drivers depends on your operating system. This isn't required if just
 using manual annotators (or frame classifiers only). The binaries are quite large,
 in terms of disk space, due to the inclusion of multiple default model files and
@@ -68,7 +68,7 @@ apps) they are much smaller.
   * MacOS is currently only supported running standalone annotation tools, see below.
 
 **Installation Recommendations:** <br>
-* NVIDIA Drivers (Version 560.76 or above,
+* NVIDIA Drivers (Version 570.11 or above,
 Windows 
 [\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
 [\[2\]](https://developer.nvidia.com/cuda-downloads)
@@ -81,8 +81,8 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* [VIAME v0.21.1 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1N5eZfKqG_oyUse2SW0PwxCWngn8k7zkr/view?usp=sharing) <br>
-* [VIAME v0.21.1 Windows, GPU Enabled, Mirror2 (.zip)]() <br>
+* [VIAME v0.21.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1L8ONMm8Za30FmC4kQVc6p0aW28qrsdln/view?usp=sharing) <br>
+* [VIAME v0.21.2 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/68793044d521755519bdd132/download) <br>
 * [VIAME v0.21.1 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1WkFHOdMPkxYrow7Utcyx_RTPdG4EbOan/view?usp=sharing) <br>
 * [VIAME v0.21.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/683fbc2bdfcff796fee73cfe/download)
 
