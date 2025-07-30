@@ -17,7 +17,8 @@ openssl \
 libssl-dev \
 curl \
 libcurl4-openssl-dev \
-g++ \
+gcc-12 \
+g++-12 \
 gfortran \
 zlib1g-dev \
 bzip2 \
