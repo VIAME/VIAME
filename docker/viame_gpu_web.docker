@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.9.1-cudnn-devel-ubuntu22.04
+FROM nvidia/cuda:12.9.1-cudnn-devel-ubuntu22.04 AS builder
 
 USER root
 
@@ -15,3 +15,6 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 
 ENV PATH=/usr/local/cuda/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+FROM nvidia/cuda:12.9.1-cudnn-runtime-ubuntu22.04
+COPY --from=builder /opt/noaa/viame /opt/noaa/viame
