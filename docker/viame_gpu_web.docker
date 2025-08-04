@@ -18,9 +18,9 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
 FROM nvidia/cuda:12.9.1-cudnn-runtime-ubuntu22.04
 
-RUN apt-get update -y &&
-    apt-get install -y wget tar openssl curl bzip2 &&
-    apt-get install -y python3-pip python-is-python3 &&
+RUN apt-get update -y && \
+    apt-get install -y wget tar openssl curl bzip2 && \
+    apt-get install -y python3-pip python-is-python3 && \
     python -m pip install numpy==1.25.2
 
 COPY --from=builder /usr/local/cuda/targets/x86_64-linux/lib/libcupti.so* /usr/local/cuda/lib64
