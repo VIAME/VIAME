@@ -40,11 +40,15 @@ REM ----------------------------------------------------------------------------
 REM This build proceedure currently requires making TMP directories at C:\tmp to get around paths
 REM which sometimes become too long for windows.
 
-IF EXIST build rmdir /s /q build
+IF "%1"=="true" (
+  ECHO "Not erasing build folder"
+) ELSE (
+  IF EXIST build rmdir /s /q build
 
-IF NOT EXIST C:\tmp mkdir C:\tmp
-IF EXIST C:\tmp\kv1 rmdir /s /q C:\tmp\kv1
-IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
+  IF NOT EXIST C:\tmp mkdir C:\tmp
+  IF EXIST C:\tmp\kv1 rmdir /s /q C:\tmp\kv1
+  IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
+)
 
 git submodule update --init --recursive
 
