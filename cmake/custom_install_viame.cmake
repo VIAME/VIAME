@@ -117,3 +117,14 @@ if( EXISTS "${VIAME_INSTALL_PREFIX}/OpenCVConfig-version.cmake" )
         DESTINATION "${VIAME_INSTALL_PREFIX}/cmake/OpenCVConfig-version.cmake" )
 endif()
 
+# Remove any root level files that don't belong here
+file( GLOB ROOT_CMAKE_FILES "${VIAME_INSTALL_PREFIX}/*.cmake" )
+file( GLOB ROOT_TXT_FILES "${VIAME_INSTALL_PREFIX}/*.txt" )
+
+if( ROOT_TXT_FILES )
+  file( REMOVE ${ROOT_TXT_FILES} )
+endif()
+if( ROOT_CMAKE_FILES )
+  file( REMOVE ${ROOT_CMAKE_FILES} )
+endif()
+
