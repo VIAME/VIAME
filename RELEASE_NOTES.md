@@ -1,3 +1,11 @@
+v0.21.3 - 8/26/2024
+===================
+
+
+-Baseline tile mosaic improvements for multi-camera systems
+
+
+
 v0.21.2 - 7/11/2024
 ===================
 
