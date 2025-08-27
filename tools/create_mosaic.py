@@ -160,6 +160,7 @@ def main(out_file, homogs_and_image_lists, **kwargs):
 def main_multi(
         out_file, homogs_and_lists, *, optimize_fit=None, zoom=None,
         frames=None, start=None, stop=None, step=None, reverse=None,
+        warp_to_pivot=None,
 ):
     def read_image_list(path):
         with open(path) as f:
@@ -193,6 +194,10 @@ def main_multi(
     rel_homogs = np.stack([
         homogs[frame_numbers] for _, homogs, _ in images_homogs_refs
     ], axis=1).reshape((-1, 3, 3))
+    if warp_to_pivot:
+        pivot = len(rel_homogs)-1
+        inv = np.linalg.inv(rel_homogs[pivot])
+        rel_homogs[:] = [np.matmul(inv, a) for a in rel_homogs]
     if optimize_fit:
         rel_homog_0 = rel_homogs[-1 if reverse else 0]
         rel_homogs = np.linalg.inv(rel_homog_0) @ rel_homogs

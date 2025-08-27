@@ -832,7 +832,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       output_mosaic_file = output_subdir + div + "mosaic" + padded_fid + ".jpg"
       try:
         create_mosaic.main_multi( output_mosaic_file, \
-          mosaic_args, step=1, start=fid_pair[0], stop=fid_pair[1] )
+          mosaic_args, step=1, start=fid_pair[0], stop=fid_pair[1],
+          warp_to_pivot=options.xcamera_only )
       except Exception as e:
         log_info( "Critical error computing mosaic starting on frame " + str( fid_pair[0] ) + lb )
         log_info( "Error: " + str( e ) + lb )
