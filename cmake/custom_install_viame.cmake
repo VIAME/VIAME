@@ -62,6 +62,12 @@ if( EXISTS ${OUTPUT_PYTHON_DIR}/torch_liberator )
   ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/torch_liberator/initializer.py
     "torch.load(fpath, map_location=_map_location)"
     "torch.load(fpath, map_location=_map_location, weights_only=False)" )
+  ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/torch_liberator/deployer.py
+    "map_location=lambda storage, location: storage)"
+    "map_location=lambda storage, location: storage, weights_only=False)" )
+  ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/torch_liberator/xpu_device.py
+    "torch.load(fpath, map_location=xpu._map_location)"
+    "torch.load(fpath, map_location=xpu._map_location, weights_only=False)" )
 else()
   message( WARNING "Not patching ${OUTPUT_PYTHON_DIR}/torch_liberator" )
 endif()
