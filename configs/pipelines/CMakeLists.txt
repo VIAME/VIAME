@@ -211,7 +211,7 @@ set( CORE_PIPELINE_FILES
   transcode_compress.pipe
   transcode_enhance.pipe
   transcode_tracks_only.pipe
-  utility_add_head_tail_keypoints.pipe
+  utility_add_head_tail_keypoints_from_dets.pipe
   utility_add_segmentations_watershed.pipe
   utility_add_segmentations_watershed_2x.pipe
   utility_debayer_and_enhance.pipe
@@ -373,7 +373,10 @@ endif()
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     utility_add_segmentations_default.pipe
-    utility_add_segmentations_sam2.pipe )
+    utility_add_segmentations_sam2.pipe
+    utility_add_segmentations_sam2_wo_prior.pipe
+    utility_add_head_tail_keypoints_default.pipe
+    utility_add_head_tail_keypoints_sam2.pipe )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )

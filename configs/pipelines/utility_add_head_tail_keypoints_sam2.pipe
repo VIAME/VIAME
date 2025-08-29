@@ -33,27 +33,31 @@ process ensure_rgb
 connect from downsampler.output_1
         to   ensure_rgb.image
 
-process detection_refiner
+process add_segmentations
   :: refine_detections
   :refiner:type                                               sam2        
   :refiner:sam2:cfg            configs/sam2.1/sam2.1_hiera_b+.yaml
   relativepath refiner:sam2:checkpoint =        models/sam2_hbp.pt
 
 connect from ensure_rgb.image
-        to   detection_refiner.image
+        to   add_segmentations.image
 connect from track_reader.object_track_set
-        to   detection_refiner.object_track_set
+        to   add_segmentations.object_track_set
+
+process add_head_tail
+  :: refine_detections
+  :refiner:type                         add_keypoints_oriented_box
+
+connect from add_segmentations.object_track_set
+        to   add_head_tail.object_track_set
 
 process track_writer
   :: write_object_track
   :file_name                               computed_detections.csv
   :writer:type                                           viame_csv
   :writer:viame_csv:mask_to_poly_points                         30
-  # Currently commented out and the above is used instead
-  #:writer:viame_csv:mask_to_poly_tol                         0.05
 
 connect from downsampler.output_2
         to   track_writer.image_file_name
-connect from detection_refiner.object_track_set
+connect from add_head_tail.object_track_set
         to   track_writer.object_track_set
-
