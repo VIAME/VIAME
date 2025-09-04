@@ -256,6 +256,10 @@ endif()
 ##
 
 # Alternative build directories for specific components
+set( VIAME_BUILD_FLETCH_DIR "${VIAME_BUILD_PREFIX}/src/fletch-build"
+     CACHE STRING "VIAME superbuild FLETCH build location" )
+mark_as_advanced( VIAME_BUILD_FLETCH_DIR )
+
 set( VIAME_BUILD_KWIVER_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
      CACHE STRING "VIAME superbuild KWIVER build location" )
 mark_as_advanced( VIAME_BUILD_KWIVER_DIR )

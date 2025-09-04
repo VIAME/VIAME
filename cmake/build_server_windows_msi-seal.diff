@@ -10,7 +10,7 @@ index 718d050..e71a201 100644
    "-DVIAME_DOWNLOAD_MODELS=ON"
    "-DVIAME_BUILD_KWIVER_DIR=C:/tmp/kv5"
    "-DVIAME_BUILD_PLUGINS_DIR=C:/tmp/vm5"
-+  "-DVIAME_FLETCH_BUILD_DIR=C:/tmp/fl5"
++  "-DVIAME_BUILD_FLETCH_DIR=C:/tmp/fl5"
  )
  
  set(platform Windows10)
