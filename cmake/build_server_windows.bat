@@ -46,6 +46,7 @@ IF "%1"=="true" (
   IF EXIST build rmdir /s /q build
 
   IF NOT EXIST C:\tmp mkdir C:\tmp
+  IF EXIST C:\tmp\fl1 rmdir /s /q C:\tmp\fl1
   IF EXIST C:\tmp\kv1 rmdir /s /q C:\tmp\kv1
   IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
 )
