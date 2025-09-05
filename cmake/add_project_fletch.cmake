@@ -257,6 +257,7 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_qtExtensions:BOOL=ON
     -DVTK_SELECT_VERSION:STRING=8.0
     -DQt_SELECT_VERSION:STRING=4.8.6
+    -DqtExtensions_SELECT_VERSION:STRING=20190905
     -Dfletch_ENABLE_libkml:BOOL=ON
   )
   if( NOT WIN32 )
@@ -271,6 +272,7 @@ elseif( VIAME_ENABLE_SEAL)
     -Dfletch_ENABLE_qtExtensions:BOOL=ON
     -Dfletch_ENABLE_VTK:BOOL=OFF
     -DQt_SELECT_VERSION:STRING=5.11.2
+    -DqtExtensions_SELECT_VERSION:STRING=20200330
   )
 else()
   set( FLETCH_DEP_FLAGS
