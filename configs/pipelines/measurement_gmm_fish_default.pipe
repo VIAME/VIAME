@@ -118,8 +118,7 @@ process add_segmentations1
   relativepath refiner:sam2:checkpoint =       models/sam2_hbp.pt
 
 process add_head_tail1
-  :: refine_detections
-  :refiner:type                                add_keypoints_oriented_box
+  :: add_keypoints_oriented_box
 
 connect from detector_input1.image
         to   add_segmentations1.image
@@ -138,8 +137,7 @@ process add_segmentations2
   relativepath refiner:sam2:checkpoint =       models/sam2_hbp.pt
 
 process add_head_tail2
-  :: refine_detections
-  :refiner:type                                add_keypoints_oriented_box
+  :: add_keypoints_oriented_box
 
 connect from detector_input2.image
         to   add_segmentations2.image
