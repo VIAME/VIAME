@@ -181,6 +181,7 @@ set( CORE_PIPELINE_FILES
   index_frame.pipe
   index_frame.svm.pipe
   index_frame.svm.annot_only.pipe
+  measurement_default.pipe
   measurement_default.trk.pipe
   measurement_gmm_only.pipe
   query_image_exemplar.cfe.pipe

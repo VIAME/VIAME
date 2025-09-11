@@ -1,0 +1,193 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    20
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================== INPUT FRAME LISTS =================================
+
+include common_stereo_input_with_downsampler.pipe
+
+# =================================== DETECTOR =====================================
+
+process detector_input1
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                1920
+    :chip_height                               1920
+    :chip_width_step                           960
+    :chip_height_step                          960
+    :chip_adaptive_thresh                      16000000
+
+    block detector:netharn
+      relativepath deployed =                  models/fish_no_motion_detector.zip
+    endblock
+  endblock
+
+process nms_refiner1
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from downsampler.output_1
+        to   detector_input1.image
+connect from detector_input1.image
+        to   detector1.image
+connect from detector_input1.image
+        to   nms_refiner1.image
+
+connect from detector1.detected_object_set
+        to   nms_refiner1.detected_object_set
+
+process detector_input2
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detector2
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                1920
+    :chip_height                               1920
+    :chip_width_step                           960
+    :chip_height_step                          960
+    :chip_adaptive_thresh                      16000000
+
+    block detector:netharn
+      relativepath deployed =                  models/fish_no_motion_detector.zip
+    endblock
+  endblock
+
+process nms_refiner2
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from downsampler.output_3
+        to   detector_input2.image
+connect from detector_input2.image
+        to   detector2.image
+connect from detector_input2.image
+        to   nms_refiner2.image
+
+connect from detector2.detected_object_set
+        to   nms_refiner2.detected_object_set
+
+# ================================ KP ASSIGNMENT ===================================
+
+process add_segmentations1
+  :: refine_detections
+  :refiner:type                                sam2        
+  :refiner:sam2:cfg                            configs/sam2.1/sam2.1_hiera_b+.yaml
+  relativepath refiner:sam2:checkpoint =       models/sam2_hbp.pt
+
+process add_head_tail1
+  :: refine_detections
+  :refiner:type                                add_keypoints_oriented_box
+
+connect from detector_input1.image
+        to   add_segmentations1.image
+connect from detector_input1.image
+        to   add_head_tail1.image
+
+connect from nms_refiner1.detected_object_set
+        to   add_segmentations1.detected_object_set
+connect from add_segmentations1.detected_object_set
+        to   add_head_tail1.detected_object_set
+
+process add_segmentations2
+  :: refine_detections
+  :refiner:type                                sam2        
+  :refiner:sam2:cfg                            configs/sam2.1/sam2.1_hiera_b+.yaml
+  relativepath refiner:sam2:checkpoint =       models/sam2_hbp.pt
+
+process add_head_tail2
+  :: refine_detections
+  :refiner:type                                add_keypoints_oriented_box
+
+connect from detector_input2.image
+        to   add_segmentations2.image
+connect from detector_input2.image
+        to   add_head_tail2.image
+
+connect from nms_refiner2.detected_object_set
+        to   add_segmentations2.detected_object_set
+connect from add_segmentations2.detected_object_set
+        to   add_head_tail2.detected_object_set
+
+# =================================== MEASURER =====================================
+
+process measurer
+  :: measure_using_stereo
+  :calibration_file                            ./calibration_matrices.npz
+
+connect from add_head_tail1.detected_object_set
+        to   measurer.detected_object_set1
+connect from add_head_tail2.detected_object_set
+        to   measurer.detected_object_set2
+
+# ==================================== WRITER ======================================
+
+process detector_writer1
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
+
+connect from measurer.detected_object_set1
+        to   detector_writer1.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer1.image_file_name
+
+process detector_writer2
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
+
+connect from measurer.detected_object_set2
+        to   detector_writer2.detected_object_set
+connect from downsampler.output_4
+        to   detector_writer2.image_file_name
+
+# -- end of file --
