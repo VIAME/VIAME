@@ -16,7 +16,7 @@ process track_reader
   :: read_object_track
   :file_name                                        detections.csv
   :reader:type                                           viame_csv
-  :reader:viame_csv:poly_to_mask                              true
+  :reader:viame_csv:poly_to_mask                             false
 
 connect from downsampler.output_2
         to   track_reader.image_file_name
