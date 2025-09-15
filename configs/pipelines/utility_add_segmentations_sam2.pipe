@@ -7,7 +7,7 @@ config _pipeline:_edge
   :capacity                                                      5
 
 config _scheduler
-  :type                                        pythread_per_process
+  :type                                       pythread_per_process
 
 # ====================== INPUT FRAME LIST ========================
 include common_default_input_with_downsampler.pipe
@@ -38,7 +38,7 @@ process detection_refiner
   :refiner:type                                               sam2        
   :refiner:sam2:cfg            configs/sam2.1/sam2.1_hiera_b+.yaml
   relativepath refiner:sam2:checkpoint =        models/sam2_hbp.pt
-  :refiner:sam2:overwrite_existing                           false
+  :refiner:sam2:overwrite_existing                            true
 
 connect from ensure_rgb.image
         to   detection_refiner.image

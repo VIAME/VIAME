@@ -38,6 +38,7 @@ process detection_refiner
   :refiner:type                                               sam2        
   :refiner:sam2:cfg            configs/sam2.1/sam2.1_hiera_b+.yaml
   relativepath refiner:sam2:checkpoint =        models/sam2_hbp.pt
+  :refiner:sam2:overwrite_existing                           false
 
 connect from ensure_rgb.image
         to   detection_refiner.image
@@ -56,4 +57,3 @@ connect from downsampler.output_2
         to   track_writer.image_file_name
 connect from detection_refiner.object_track_set
         to   track_writer.object_track_set
-
