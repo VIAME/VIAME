@@ -40,6 +40,8 @@ import numpy as np
 import math
 import delayed_image
 
+from distutils.util import strtobool
+
 
 class Sam2Refiner(RefineDetections):
     """
@@ -290,7 +292,7 @@ class Sam2Refiner(RefineDetections):
                 relative_submask = new_mask.data
 
             # Modify detection and add to output list
-            if bool(self._kwiver_config['overwrite_existing']) or not vital_det.mask:
+            if strtobool(self._kwiver_config['overwrite_existing']) or not vital_det.mask:
                 vital_det.mask = vital_image_container_from_ndarray(relative_submask)
             output.add(vital_det)
 
