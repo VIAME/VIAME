@@ -75,6 +75,80 @@ enum
 };
 
 // -----------------------------------------------------------------------------------
+void convert_polys_to_mask(
+  const std::vector< std::string >& polygons,
+  const kwiver::vital::bounding_box_d& bbox,
+  kwiver::vital::image_of< uint8_t >& output )
+{
+#ifdef VIAME_ENABLE_VXL
+  if( polygons.empty() )
+  {
+    return;
+  }
+
+  // Get the box coordinates for later use
+  int bbox_min_x = static_cast< int >( bbox.min_x() );
+  int bbox_max_x = static_cast< int >( bbox.max_x() );
+  int bbox_min_y = static_cast< int >( bbox.min_y() );
+  int bbox_max_y = static_cast< int >( bbox.max_y() );
+
+  size_t bbox_width = bbox_max_x - bbox_min_x;
+  size_t bbox_height = bbox_max_y - bbox_min_y;
+
+  // Create the mask as the size of the detection
+  kwiver::vital::image_of< uint8_t > mask_data( bbox_width, bbox_height, 1 );
+
+  // Set all the the data to 0
+  transform_image( mask_data, []( uint8_t ){ return 0; } );
+
+  for( unsigned i = 0; i < polygons.size(); i++ )
+  {
+    // Split the last field by spaces
+    std::vector< std::string > poly_elements;
+    kwiver::vital::tokenize( polygons[i], poly_elements, " ", true );
+
+    // Extract the x, y points from the split text, skipping '(poly)'
+    std::vector< vgl_point_2d< double > > pts;
+    for( unsigned j = 1; j < poly_elements.size(); j+=2 )
+    {
+      // Shift these points so they are in the coordinates of the box
+      pts.push_back( vgl_point_2d< double >( std::stoi(poly_elements[j] ) -
+        bbox_min_x, std::stoi( poly_elements[j+1]) - bbox_min_y ) );
+    }
+    // Create the polygon of the boundary
+    vgl_polygon< double > poly = vgl_polygon< double >(
+      pts.data(), static_cast< int >( pts.size() ) );
+
+    // Create a scan iterator
+    // x_min, x_max, y_min, y_max
+    // Don't provide points outside this box
+    vgl_box_2d< double > window( 0, bbox_width, 0, bbox_height );
+    vgl_polygon_scan_iterator< double > psi( poly );
+
+    for( psi.reset(); psi.next(); )
+    {
+      int y = psi.scany();
+
+      // Make sure this is within the image
+      if( y < 0 || y >= static_cast< int >( mask_data.height() ) )
+      {
+        continue;
+      }
+
+      int min_x = std::max( 0, psi.startx() );
+      int max_x = std::min( static_cast< int >( mask_data.width() ) - 1, psi.endx() );
+
+      for( int x = min_x; x <= max_x; ++x )
+      {
+        // TODO determine if there's a better value to set here
+        mask_data( x, y ) = 1;
+      }
+    }
+  }
+#endif
+}
+
+// -----------------------------------------------------------------------------------
 class read_detected_object_set_viame_csv::priv
 {
 public:
@@ -445,74 +519,14 @@ read_detected_object_set_viame_csv::priv
 #ifdef VIAME_ENABLE_VXL
     if( m_poly_to_mask && found_optional_field )
     {
+      kwiver::vital::image_of< uint8_t > mask_data;
 
-      if( !poly_strings.empty() )
-      {
-        // Get the box coordinates for later use
-        int bbox_min_x = static_cast< int >( bbox.min_x() );
-        int bbox_max_x = static_cast< int >( bbox.max_x() );
-        int bbox_min_y = static_cast< int >( bbox.min_y() );
-        int bbox_max_y = static_cast< int >( bbox.max_y() );
+      convert_polys_to_mask( poly_strings, bbox, mask_data );
 
-        size_t bbox_width = bbox_max_x - bbox_min_x;
-        size_t bbox_height = bbox_max_y - bbox_min_y;
+      kwiver::vital::image_container_scptr computed_mask =
+        std::make_shared< kwiver::vital::simple_image_container >( mask_data );
 
-        // Create the mask as the size of the detection
-        kwiver::vital::image_of< uint8_t > mask_data( bbox_width, bbox_height, 1 );
-
-        // Set all the the data to 0
-        transform_image( mask_data, []( uint8_t ){ return 0; } );
-
-        for( unsigned i = 0; i < poly_strings.size(); i++ )
-        {
-          // Split the last field by spaces
-          std::vector< std::string > poly_elements;
-          kwiver::vital::tokenize( poly_strings[i], poly_elements, " ", true );
-
-          // Extract the x, y points from the split text, skipping '(poly)'
-          std::vector< vgl_point_2d< double > > pts;
-          for( unsigned j = 1; j < poly_elements.size(); j+=2 )
-          {
-            // Shift these points so they are in the coordinates of the box
-            pts.push_back( vgl_point_2d< double >( std::stoi(poly_elements[j] ) -
-              bbox_min_x, std::stoi( poly_elements[j+1]) - bbox_min_y ) );
-          }
-          // Create the polygon of the boundary
-          vgl_polygon< double > poly = vgl_polygon< double >(
-            pts.data(), static_cast< int >( pts.size() ) );
-
-          // Create a scan iterator
-          // x_min, x_max, y_min, y_max
-          // Don't provide points outside this box
-          vgl_box_2d< double > window( 0, bbox_width, 0, bbox_height );
-          vgl_polygon_scan_iterator< double > psi( poly );
-
-          for( psi.reset(); psi.next(); )
-          {
-            int y = psi.scany();
-
-            // Make sure this is within the image
-            if( y < 0 || y >= static_cast< int >( mask_data.height() ) )
-            {
-              continue;
-            }
-
-            int min_x = std::max( 0, psi.startx() );
-            int max_x = std::min( static_cast< int >( mask_data.width() ) - 1, psi.endx() );
-
-            for( int x = min_x; x <= max_x; ++x )
-            {
-              // TODO determine if there's a better value to set here
-              mask_data( x, y ) = 1;
-            }
-          }
-        }
-
-        kwiver::vital::image_container_scptr computed_mask =
-          std::make_shared< kwiver::vital::simple_image_container >( mask_data );
-
-        dob->set_mask( computed_mask );
-      }
+      dob->set_mask( computed_mask );
     }
 #endif
 

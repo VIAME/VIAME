@@ -44,6 +44,13 @@
 
 namespace viame {
 
+
+void VIAME_CORE_EXPORT convert_polys_to_mask(
+  const std::vector< std::string >& polygons,
+  const kwiver::vital::bounding_box_d& bbox,
+  kwiver::vital::image_of< uint8_t >& output );
+
+
 class VIAME_CORE_EXPORT read_detected_object_set_viame_csv
   : public kwiver::vital::algo::detected_object_set_input
 {
