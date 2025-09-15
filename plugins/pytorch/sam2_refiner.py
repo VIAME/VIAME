@@ -144,6 +144,7 @@ class Sam2Refiner(RefineDetections):
             apply_postprocessing=True,
         )
         self.predictor = SAM2ImagePredictor(model)
+        self.overwrite_existing = strtobool(self._kwiver_config['overwrite_existing'])
         return True
 
     def check_configuration(self, cfg):
@@ -292,7 +293,7 @@ class Sam2Refiner(RefineDetections):
                 relative_submask = new_mask.data
 
             # Modify detection and add to output list
-            if strtobool(self._kwiver_config['overwrite_existing']) or not vital_det.mask:
+            if vital_det.mask is None or self.overwrite_existing:
                 vital_det.mask = vital_image_container_from_ndarray(relative_submask)
             output.add(vital_det)
 
