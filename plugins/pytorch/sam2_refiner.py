@@ -105,7 +105,7 @@ class Sam2Refiner(RefineDetections):
             'cfg': "configs/sam2.1/sam2.1_hiera_b+.yaml",
             'checkpoint': 'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
             'device': "cuda",
-
+            'overwrite_existing': 'True',
             'hole_policy': 'allow',  # can be allow or discard
             'multipolygon_policy': 'allow',  # can be allow, convex_hull, or largest
         }
@@ -290,7 +290,8 @@ class Sam2Refiner(RefineDetections):
                 relative_submask = new_mask.data
 
             # Modify detection and add to output list
-            vital_det.mask = vital_image_container_from_ndarray(relative_submask)
+            if bool(self._kwiver_config['overwrite_existing']) or not vital_det.mask:
+                vital_det.mask = vital_image_container_from_ndarray(relative_submask)
             output.add(vital_det)
 
         return output
