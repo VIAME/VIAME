@@ -34,8 +34,10 @@
  */
 
 #include "read_object_track_set_viame_csv.h"
+
 #include "filename_to_timestamp.h"
 #include "notes_to_attributes.h"
+#include "convert_polygons_to_mask.h"
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
@@ -70,6 +72,7 @@ public:
     , m_batch_load( false )
     , m_delim( "," )
     , m_confidence_override( -1.0 )
+    , m_poly_to_mask( false )
     , m_frame_id_adjustment( 0 )
     , m_single_state_only( false )
     , m_multi_state_only( false )
@@ -90,6 +93,7 @@ public:
   bool m_batch_load;
   std::string m_delim;
   double m_confidence_override;
+  bool m_poly_to_mask;
   frame_id_t m_frame_id_adjustment;
   bool m_single_state_only;
   bool m_multi_state_only;
@@ -157,6 +161,8 @@ read_object_track_set_viame_csv
     config->get_value< bool >( "batch_load", d->m_batch_load );
   d->m_confidence_override =
     config->get_value< double >( "confidence_override", d->m_confidence_override );
+  d->m_poly_to_mask =
+    config->get_value< bool >( "poly_to_mask", d->m_poly_to_mask );
   d->m_frame_id_adjustment =
     config->get_value< int >( "frame_id_adjustment", d->m_frame_id_adjustment );
   d->m_single_state_only =
@@ -363,6 +369,48 @@ read_object_track_set_viame_csv::priv
     {
       frame_time = frame_id;
     }
+
+    std::vector< std::string > poly_strings;
+
+    if( found_attribute )
+    {
+      for( unsigned i = COL_TOT; i < col.size(); i++ )
+      {
+        if( ( col[i].size() >= 6 && col[i].substr( 0, 6 ) == "(poly)" ) ||
+            ( col[i].size() >= 7 && col[i].substr( 0, 7 ) == "(+poly)" ) )
+        {
+          poly_strings.push_back( col[i] );
+        }
+      }
+    }
+
+    std::vector< std::string > poly_string_vertices;
+    std::vector< double > poly_floats;
+
+    if( !poly_strings.empty() )
+    {
+      // Only use the first polygon
+      kwiver::vital::tokenize( poly_strings[0], poly_string_vertices, " ", true );
+      for( size_t i = 1; i < poly_string_vertices.size(); ++i )
+      {
+        poly_floats.push_back( std::stof( poly_string_vertices[ i ] ) );
+      }
+      dob->set_flattened_polygon( poly_floats );
+    }
+
+#ifdef VIAME_ENABLE_VXL
+    if( m_poly_to_mask && found_attribute )
+    {
+      kwiver::vital::image_of< uint8_t > mask_data;
+
+      convert_polys_to_mask( poly_strings, bbox, mask_data );
+
+      kwiver::vital::image_container_scptr computed_mask =
+        std::make_shared< kwiver::vital::simple_image_container >( mask_data );
+
+      dob->set_mask( computed_mask );
+    }
+#endif
 
     if( found_attribute )
     {
