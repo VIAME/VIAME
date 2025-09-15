@@ -38,7 +38,6 @@
 #include "notes_to_attributes.h"
 #include "convert_polygons_to_mask.h"
 
-#include <vital/util/transform_image.h>
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/types/image.h>
