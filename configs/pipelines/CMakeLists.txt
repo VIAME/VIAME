@@ -375,7 +375,7 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     utility_add_segmentations_default.pipe
     utility_add_segmentations_sam2.pipe
-    utility_add_segmentations_sam2_wo_prior.pipe
+    utility_add_segmentations_sam2_no_replace.pipe
     utility_add_head_tail_keypoints_default.pipe
     utility_add_head_tail_keypoints_sam2.pipe )
 endif()
