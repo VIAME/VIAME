@@ -62,10 +62,10 @@ void convert_polys_to_mask(
   size_t bbox_height = bbox_max_y - bbox_min_y;
 
   // Create the mask as the size of the detection
-  kwiver::vital::image_of< uint8_t > mask_data( bbox_width, bbox_height, 1 );
+  output = kwiver::vital::image_of< uint8_t >( bbox_width, bbox_height, 1 );
 
   // Set all the the data to 0
-  transform_image( mask_data, []( uint8_t ){ return 0; } );
+  transform_image( output, []( uint8_t ){ return 0; } );
 
   for( unsigned i = 0; i < polygons.size(); i++ )
   {
@@ -96,18 +96,17 @@ void convert_polys_to_mask(
       int y = psi.scany();
 
       // Make sure this is within the image
-      if( y < 0 || y >= static_cast< int >( mask_data.height() ) )
+      if( y < 0 || y >= static_cast< int >( output.height() ) )
       {
         continue;
       }
 
       int min_x = std::max( 0, psi.startx() );
-      int max_x = std::min( static_cast< int >( mask_data.width() ) - 1, psi.endx() );
+      int max_x = std::min( static_cast< int >( output.width() ) - 1, psi.endx() );
 
       for( int x = min_x; x <= max_x; ++x )
       {
-        // TODO determine if there's a better value to set here
-        mask_data( x, y ) = 1;
+        output( x, y ) = 1;
       }
     }
   }
