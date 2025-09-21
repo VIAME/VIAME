@@ -134,13 +134,13 @@ set( CORE_PIPELINE_FILES
   common_generic_detector.pipe
   common_generic_detector_with_filter.pipe
   common_image_stabilizer.pipe
-  common_measurement_gmm_stereo_track_fish.pipe
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
   common_stabilized_iou_tracker.pipe
   common_stereo_input.pipe
   common_stereo_input_with_downsampler.pipe
   common_stereo_input_with_tracks.pipe
+  common_stereo_fish_tracker.pipe
   convert_add_filename_to_det_csv.pipe
   convert_add_filename_to_trk_csv.pipe
   convert_coco_json_to_viame_csv.pipe
@@ -182,9 +182,8 @@ set( CORE_PIPELINE_FILES
   index_frame.pipe
   index_frame.svm.pipe
   index_frame.svm.annot_only.pipe
-  measurement_gmm_fish_default.pipe
-  measurement_default.trk.pipe
-  measurement_gmm_only.pipe
+  measurement_automatic_fish_default.pipe
+  measurement_automatic_gmm_motion.pipe
   query_image_exemplar.cfe.pipe
   query_image_exemplar.pipe
   query_retrieval_and_iqr.cfe.pipe
@@ -240,8 +239,8 @@ if( VIAME_ENABLE_CUDA )
     common_stereo_fish_detector_with_filter.pipe
     common_stereo_fish_detector.pipe
     common_generic_detector.pipe
-    measurement_gmm_stereo_detect_fish.pipe
-    measurement_gmm_stereo_track_fish.pipe
+    measurement_detect_fish_only.pipe
+    measurement_track_fish_only.pipe
     query_augment_image.pipe
     tracker_fish.sfd.pipe )
 else()
@@ -356,13 +355,12 @@ if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     register_using_homographies.pipe
     register_multimodal_unsync_ocv.pipe
-    detector_ocv_target.pipe
-    tracker_ocv_target.pipe
-    measurement_gmm_stereo_track_ocv_target.pipe
-    measurement_gmm_stereo_rectified_disparity.pipe
-    measurement_gmm_stereo_track_fish_3d_from_detections_and_rectified_disparity.pipe
-    measurement_gmm_stereo_calibrate_cameras.pipe
-    measurement_gmm_calibrate_cameras.pipe
+    detector_calibration_target.pipe
+    tracker_calibration_target.pipe
+    measurement_calibrate_cameras.pipe
+    measurement_compute_rectified_disparity.pipe
+    measurement_detect_calibration_target.pipe
+    measurement_track_fish_in_3d_from_rectified_disparity.pipe
     )
 endif()
 
