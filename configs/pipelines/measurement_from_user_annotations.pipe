@@ -1,1 +1,18 @@
  
+ 
+ 
+ 
+ 
+
+ 
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+
+# Connect inputs to track writer
+connect from track_merger.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
