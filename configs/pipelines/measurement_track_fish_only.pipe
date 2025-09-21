@@ -15,7 +15,6 @@ process track_writer1
   :writer:viame_csv:stream_identifier          input_list.txt
   :writer:viame_csv:mask_to_poly_points        25
 
-
 # Connect inputs to track writer
 connect from tracker1.object_track_set
         to   track_writer1.object_track_set
