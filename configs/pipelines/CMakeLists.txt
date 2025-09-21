@@ -140,6 +140,7 @@ set( CORE_PIPELINE_FILES
   common_stabilized_iou_tracker.pipe
   common_stereo_input.pipe
   common_stereo_input_with_downsampler.pipe
+  common_stereo_input_with_tracks.pipe
   convert_add_filename_to_det_csv.pipe
   convert_add_filename_to_trk_csv.pipe
   convert_coco_json_to_viame_csv.pipe
