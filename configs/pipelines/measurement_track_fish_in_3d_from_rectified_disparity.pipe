@@ -23,7 +23,7 @@ config global
 
 ## ================================= DETECTION AND TRACKING =========================
 
-include common_measurement_gmm_stereo_track_fish.pipe
+include common_stereo_fish_tracker.pipe
 
 # =================================== DEPTH MAP ====================================
 

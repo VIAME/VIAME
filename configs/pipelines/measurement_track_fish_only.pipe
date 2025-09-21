@@ -3,7 +3,8 @@
 # Runs a tracking ipeline on each of the 2 images of a stereo pair
 
 ## ================================= DETECTION AND TRACKING =========================
-include common_measurement_gmm_stereo_track_fish.pipe
+
+include common_stereo_fish_tracker.pipe
 
 ## ================================= OUTPUT DATA ====================================
 
@@ -27,7 +28,6 @@ process track_writer2
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
   :writer:viame_csv:mask_to_poly_points        25
-
 
 # Connect inputs to track writer
 connect from tracker2.object_track_set
