@@ -43,6 +43,9 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
+#include <string>
+#include <map>
+
 namespace kv = kwiver::vital;
 
 namespace viame
@@ -52,7 +55,12 @@ namespace core
 {
 
 create_config_trait( calibration_file, std::string, "",
-  "Input filename for the calibration file to use"  );
+  "Input filename for the calibration file to use" );
+
+create_port_trait( object_track_set1, object_track_set,
+  "The stereo filtered object tracks1.")
+create_port_trait( object_track_set2, object_track_set,
+  "The stereo filtered object tracks2.")
 
 // =============================================================================
 // Private implementation class
@@ -121,8 +129,9 @@ manual_measurement_process
   declare_input_port_using_trait( timestamp, optional );
 
   // -- outputs --
+  declare_output_port_using_trait( object_track_set1, required );
+  declare_output_port_using_trait( object_track_set2, required );
   declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( object_track_set, required );
 }
 
 // -----------------------------------------------------------------------------
@@ -199,14 +208,73 @@ manual_measurement_process
     }
   }
 
+  kv::frame_id_t cur_frame_id = ( ts.has_valid_frame() ?
+                                  ts.get_frame() :
+                                  d->m_frame_counter );
+
+  d->m_frame_counter++;
+
   if( inputs.size() != 2 )
   {
-    LOG_ERROR( logger(), "Currently only 2 camera inputs are supported" );
+    const std::string err = "Currently only 2 camera inputs are supported";
+    LOG_ERROR( logger(), err );
+    throw std::runtime_error( err );
   }
 
-  output = inputs[0];
+  // Identify all input detections across all track sets on the current frame
+  typedef std::vector< std::map< kv::track_id_t, kv::detected_object_sptr > > map_t;
+  map_t dets( inputs.size() );
 
-  push_to_port_using_trait( object_track_set, output );
+  for( unsigned i = 0; i < inputs.size(); ++i )
+  {
+    for( auto& trk : inputs[i]->tracks() )
+    {
+      for( auto& state : *trk )
+      {
+        auto obj_state =
+          std::static_pointer_cast< kwiver::vital::object_track_state >( state );
+
+        if( state->frame() == cur_frame_id )
+        {
+          dets[i][trk->id()] = obj_state->detection();
+        }
+      }
+    }
+  }
+
+  // Identify which detections are matched on the current frame
+  std::vector< kv::track_id_t > common_ids;
+
+  for( auto itr : dets[0] )
+  {
+    bool found_match = false;
+
+    for( unsigned i = 1; i < inputs.size(); ++i )
+    {
+      if( dets[i].find( itr.first ) != dets[i].end() )
+      {
+        found_match = true;
+        common_ids.push_back( itr.first );
+        break;
+      }
+    }
+
+    if( found_match )
+    {
+      LOG_INFO( logger(), "Found match for track ID " + std::to_string( itr.first ) );
+    }
+    else
+    {
+      LOG_INFO( logger(), "No match for track ID " + std::to_string( itr.first ) );
+    }
+  }
+
+  // Run measurement on matched detections
+  // TODO
+
+  // Push outputs
+  push_to_port_using_trait( object_track_set1, inputs[0] );
+  push_to_port_using_trait( object_track_set2, inputs[1] );
   push_to_port_using_trait( timestamp, ts );
 }
 
