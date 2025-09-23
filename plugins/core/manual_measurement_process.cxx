@@ -321,6 +321,8 @@ manual_measurement_process
 
       const double length = ( pp2 - pp1 ).norm();
 
+      LOG_INFO( logger(), "Computed Length: " + std::to_string( length ) );
+
       det1->set_length( length );
       det2->set_length( length );
     }
