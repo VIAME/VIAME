@@ -40,6 +40,9 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/object_track_set.h>
 #include <vital/util/string.h>
+#include <vital/io/camera_rig_io.h>
+
+#include <arrows/mvg/triangulate.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
@@ -74,8 +77,9 @@ public:
   std::string m_calibration_file;
 
   // Other variables
-  std::set< std::string > p_port_list;
+  kv::camera_rig_stereo_sptr m_calibration;
   unsigned m_frame_counter;
+  std::set< std::string > p_port_list;
   manual_measurement_process* parent;
 };
 
@@ -84,6 +88,7 @@ public:
 manual_measurement_process::priv
 ::priv( manual_measurement_process* ptr )
   : m_calibration_file( "" )
+  , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
 {
@@ -148,6 +153,7 @@ manual_measurement_process
 ::_configure()
 {
   d->m_calibration_file = config_value_using_trait( calibration_file );
+  d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
 }
 
 // ----------------------------------------------------------------------------
@@ -223,6 +229,7 @@ manual_measurement_process
 
   // Identify all input detections across all track sets on the current frame
   typedef std::vector< std::map< kv::track_id_t, kv::detected_object_sptr > > map_t;
+
   map_t dets( inputs.size() );
 
   for( unsigned i = 0; i < inputs.size(); ++i )
@@ -270,7 +277,54 @@ manual_measurement_process
   }
 
   // Run measurement on matched detections
-  // TODO
+  if( !common_ids.empty() )
+  {
+    kv::simple_camera_perspective& left_cam(
+      dynamic_cast< kwiver::vital::simple_camera_perspective& >(
+        *(d->m_calibration->left())));
+    kv::simple_camera_perspective& right_cam(
+      dynamic_cast< kwiver::vital::simple_camera_perspective& >(
+        *(d->m_calibration->right())));
+
+    for( const kv::track_id_t& id : common_ids )
+    {
+      const auto& det1 = dets[0][id];
+      const auto& det2 = dets[1][id];
+
+      if( !det1 || !det2 )
+      {
+        continue;
+      }
+
+      const auto& kp1 = det1->keypoints();
+      const auto& kp2 = det2->keypoints();
+
+      if( kp1.find( "head" ) == kp1.end() ||
+          kp2.find( "head" ) == kp2.end() ||
+          kp1.find( "tail" ) == kp1.end() ||
+          kp2.find( "tail" ) == kp2.end() )
+      {
+        continue;
+      }
+
+      Eigen::Matrix<float, 2, 1>
+        lp1( kp1.at("head")[0], kp1.at("head")[1] ),
+        rp1( kp1.at("tail")[0], kp1.at("tail")[1] );
+      auto pp1 = kwiver::arrows::mvg::triangulate_fast_two_view(
+        left_cam, right_cam, lp1, rp1 );
+
+      Eigen::Matrix<float, 2, 1>
+        lp2( kp2.at("head")[0], kp2.at("head")[1] ),
+        rp2( kp2.at("tail")[0], kp2.at("tail")[1] );
+      auto pp2 = kwiver::arrows::mvg::triangulate_fast_two_view(
+        left_cam, right_cam, lp2, rp2 );
+
+      const double length = ( pp2 - pp1 ).norm();
+
+      det1->set_length( length );
+      det2->set_length( length );
+    }
+  }
 
   // Push outputs
   push_to_port_using_trait( object_track_set1, inputs[0] );
