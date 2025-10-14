@@ -93,7 +93,11 @@ structured, and have more capacities for optional fields.
 
 The COCO JSON reader/writer can be specified in config files using 'coco'.
 
-**HABCAM - Space or comma seperated annotation format used by the HabCam project**
+**************
+HABCAM CSV/SSV
+**************
+
+Space or comma seperated annotation format used by the HabCam project
 
 A typical habcam annotation looks like:
 
