@@ -310,7 +310,7 @@ if __name__ == "__main__" :
     help="Input image list file to run annotator on" )
 
   parser.add_argument( "-theme", dest="gui_theme",
-    default="gui-params" + div + "dark_gui_settings.ini",
+    default="gui-params" + div + "view_color_settings.ini",
     help="Predefined query directory, if present" )
 
   parser.add_argument( "-pipelines", dest="pipelines",

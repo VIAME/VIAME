@@ -81,7 +81,7 @@ if __name__ == "__main__" :
                       help="Optional detection threshold to apply")
 
   parser.add_argument("-theme", dest="gui_theme_file",
-                      default="gui-params" + div + "dark_gui_settings.ini",
+                      default="gui-params" + div + "view_color_settings.ini",
                       help="GUI default theme settings")
 
   parser.add_argument("-filter", dest="filter_file",
