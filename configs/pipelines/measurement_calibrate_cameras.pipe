@@ -19,7 +19,7 @@ config global
    :square_size                                1
 
 # ============================== INPUT FRAME LIST ==================================
-# Subsample input stereo camera feed
+
 include common_stereo_input_with_downsampler.pipe
 
 # =================================== OCV DETECTOR =====================================
@@ -69,6 +69,7 @@ process detector_writer2
   :writer:type                                 viame_csv
 
 # =============================== CAMERA CALIBRATION ===================================
+
 process cameras_calibration
   :: calibrate_cameras_from_tracks
   :output_cameras_directory                    $CONFIG{global:output_directory}
