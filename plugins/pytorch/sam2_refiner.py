@@ -538,7 +538,7 @@ def vital_detections_to_kwimage(vital_dets):
         offset = xyxy[0:2]
         boxes.append(xyxy)
         scores.append(obj.confidence)
-        if obj.mask is not None:
+        if obj.mask is not None and obj.mask.width() > 0 and obj.mask.height() > 0:
             vital_mask = obj.mask.image()
             nd_mask = vital_mask.asarray()
             if len(nd_mask.shape) == 3:
