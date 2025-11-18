@@ -2,7 +2,7 @@ REM ----------------------------------------------------------------------------
 REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
 
-SET "VIAME_SOURCE_DIR=C:\workspace\VIAME-Windows-GPU-Release"
+SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU"
 SET "OUTPUT_FILE=VIAME-v1.0.0-Windows-64Bit.zip"
 
 REM Make sure to have all of these things installed (and cuDNN in CUDA)

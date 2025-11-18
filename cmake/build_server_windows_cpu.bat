@@ -2,7 +2,7 @@ REM ----------------------------------------------------------------------------
 REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
 
-SET "VIAME_SOURCE_DIR=C:\workspace\VIAME-Windows-CPU-Release"
+SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\CPU"
 SET "OUTPUT_FILE=VIAME-CPU-v1.0.0-Windows-64Bit.zip"
 
 REM Make sure to have all of these things installed

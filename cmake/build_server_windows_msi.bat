@@ -2,7 +2,7 @@ REM ----------------------------------------------------------------------------
 REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
 
-SET VIAME_SOURCE_DIR=C:\workspace\VIAME-Windows-GPU-MSI
+SET VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU-MSI
 
 SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
 SET VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install

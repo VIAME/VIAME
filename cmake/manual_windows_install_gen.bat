@@ -2,7 +2,7 @@ REM ----------------------------------------------------------------------------
 REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
 
-SET "BUILD_DIR=C:\workspace\VIAME-Windows-GPU-Release"
+SET "BUILD_DIR=C:\VIAME-Builds\GPU"
 
 IF EXIST %BUILD_DIR% rmdir /s /q %BUILD_DIR%
 
