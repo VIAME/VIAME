@@ -1,5 +1,5 @@
-set(CTEST_SITE "zeah.kitware.com")
-set(CTEST_BUILD_NAME "Windows10_GPU_Master_Nightly")
+set(CTEST_SITE "noctae.kitware.com")
+set(CTEST_BUILD_NAME "Windows_GPU_Main")
 set(CTEST_SOURCE_DIRECTORY "C:/VIAME-Builds/GPU")
 set(CTEST_BINARY_DIRECTORY "C:/VIAME-Builds/GPU/build/")
 set(CTEST_CMAKE_GENERATOR "Visual Studio 16 2019")
