@@ -82,6 +82,8 @@ connect from detector1.detected_object_set
         to   measurer.detected_object_set1
 connect from detector2.detected_object_set
         to   measurer.detected_object_set2
+connect from downsampler.timestamp
+        to   measurer.timestamp
 
 process track_writer1
   :: write_object_track
