@@ -83,29 +83,29 @@ connect from detector1.detected_object_set
 connect from detector2.detected_object_set
         to   measurer.detected_object_set2
 
-process detector_writer1
-  :: detected_object_output
-
-  # Type of file to output
-  :file_name                                   computed_detections1.csv
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:mask_to_poly_points        25
 
-connect from measurer.detected_object_set1
-        to   detector_writer1.detected_object_set
+connect from measurer.object_track_set1
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
 connect from downsampler.output_2
-        to   detector_writer1.image_file_name
+        to   track_writer1.image_file_name
 
-process detector_writer2
-  :: detected_object_output
-
-  # Type of file to output
-  :file_name                                   computed_detections2.csv
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:mask_to_poly_points        25
 
-connect from measurer.detected_object_set2
-        to   detector_writer2.detected_object_set
+connect from measurer.object_track_set2
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
 connect from downsampler.output_4
-        to   detector_writer2.image_file_name
+        to   track_writer2.image_file_name
 
