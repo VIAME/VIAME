@@ -1,3 +1,14 @@
+v0.21.4-beta - 12/1/2025
+========================
+
+
+-Added additional stereo measurement pipelines
+
+
+-DIVE UI updates (bulk process on desktop, bulk highlight and edit type)
+
+
+
 v0.21.3 - 8/26/2024
 ===================
 
