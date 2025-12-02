@@ -7,7 +7,7 @@ file( MAKE_DIRECTORY ${VIAME_DIVE_BUILD_DIR} )
 if( WIN32 )
   DownloadAndExtract(
     https://github.com/Kitware/dive/releases/download/v1.9.10/DIVE-Desktop-1.9.10.zip
-    8e63ba265b1436a7cf6a85bdc3ea6d90
+    9177cce0cb8fe0f5dbb66f3bb850bc73
     ${VIAME_DOWNLOAD_DIR}/dive_interface_binaries.zip
     ${VIAME_DIVE_BUILD_DIR} )
 elseif( UNIX )
