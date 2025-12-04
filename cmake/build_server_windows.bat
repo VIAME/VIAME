@@ -24,7 +24,7 @@ SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
 SET "WIN64_ROOT=%WIN_ROOT%\SysWOW64"
-SET "VDIST_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.29.30133\x64\Microsoft.VC142.OpenMP"
+SET "VDIST_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Redist\MSVC\14.29.30133\x64\Microsoft.VC142.OpenMP"
 
 REM Do not modify the below unless you are changing python versions or have alternatively modified
 REM the build and install directories in cmake or the platforms.cmake file
