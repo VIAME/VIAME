@@ -426,7 +426,7 @@ manual_measurement_process
 
   // -- outputs --
   declare_output_port_using_trait( object_track_set1, required );
-  declare_output_port_using_trait( object_track_set2, required );
+  declare_output_port_using_trait( object_track_set2, optional );
   declare_output_port_using_trait( timestamp, optional );
 }
 
