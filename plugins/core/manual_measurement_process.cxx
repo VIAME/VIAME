@@ -89,6 +89,11 @@ create_config_trait( search_range, int, "128",
   "Search range (in pixels) along epipolar line for feature matching. "
   "Only used when matching_method is 'feature_matching'" );
 
+create_config_trait( use_distortion, bool, "true",
+  "Whether to use distortion coefficients from the calibration during rectification. "
+  "If true, distortion coefficients from the calibration file are used. "
+  "If false, zero distortion is assumed." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -137,6 +142,7 @@ public:
   std::string m_matching_method;
   int m_template_size;
   int m_search_range;
+  bool m_use_distortion;
 
   // Other variables
   kv::camera_rig_stereo_sptr m_calibration;
@@ -166,6 +172,7 @@ manual_measurement_process::priv
   , m_matching_method( "depth_projection" )
   , m_template_size( 31 )
   , m_search_range( 128 )
+  , m_use_distortion( true )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -207,22 +214,25 @@ manual_measurement_process::priv
   cv::eigen2cv( K2_eigen, K2 );
 
   // Distortion coefficients
-  std::vector<double> left_dist = left_intrinsics->dist_coeffs();
-  std::vector<double> right_dist = right_intrinsics->dist_coeffs();
-
-  // Convert distortion coefficients to OpenCV format
-  // Ensure we have at least 5 coefficients (k1, k2, p1, p2, k3)
   D1 = cv::Mat::zeros( 5, 1, CV_64F );
   D2 = cv::Mat::zeros( 5, 1, CV_64F );
 
-  for( size_t i = 0; i < std::min( left_dist.size(), size_t(5) ); ++i )
+  if( m_use_distortion )
   {
-    D1.at<double>( i, 0 ) = left_dist[i];
-  }
+    std::vector<double> left_dist = left_intrinsics->dist_coeffs();
+    std::vector<double> right_dist = right_intrinsics->dist_coeffs();
 
-  for( size_t i = 0; i < std::min( right_dist.size(), size_t(5) ); ++i )
-  {
-    D2.at<double>( i, 0 ) = right_dist[i];
+    // Convert distortion coefficients to OpenCV format
+    // Ensure we have at least 5 coefficients (k1, k2, p1, p2, k3)
+    for( size_t i = 0; i < std::min( left_dist.size(), size_t(5) ); ++i )
+    {
+      D1.at<double>( i, 0 ) = left_dist[i];
+    }
+
+    for( size_t i = 0; i < std::min( right_dist.size(), size_t(5) ); ++i )
+    {
+      D2.at<double>( i, 0 ) = right_dist[i];
+    }
   }
 
   // Compute rotation and translation between cameras
@@ -288,35 +298,38 @@ manual_measurement_process::priv
   double x_norm = norm_orig.at<double>( 0, 0 ) / norm_orig.at<double>( 2, 0 );
   double y_norm = norm_orig.at<double>( 1, 0 ) / norm_orig.at<double>( 2, 0 );
 
-  // Get distortion coefficients from camera
+  // Apply distortion model if enabled and distortion coefficients exist
   auto intrinsics = camera.get_intrinsics();
-  std::vector<double> dist_coeffs = intrinsics->dist_coeffs();
 
-  // Apply distortion model if distortion coefficients exist
-  if( !dist_coeffs.empty() )
+  if( m_use_distortion )
   {
-    // Extract distortion coefficients (OpenCV distortion model)
-    double k1 = dist_coeffs.size() > 0 ? dist_coeffs[0] : 0.0;
-    double k2 = dist_coeffs.size() > 1 ? dist_coeffs[1] : 0.0;
-    double p1 = dist_coeffs.size() > 2 ? dist_coeffs[2] : 0.0;
-    double p2 = dist_coeffs.size() > 3 ? dist_coeffs[3] : 0.0;
-    double k3 = dist_coeffs.size() > 4 ? dist_coeffs[4] : 0.0;
+    std::vector<double> dist_coeffs = intrinsics->dist_coeffs();
 
-    // Compute r^2
-    double r2 = x_norm * x_norm + y_norm * y_norm;
-    double r4 = r2 * r2;
-    double r6 = r2 * r4;
+    if( !dist_coeffs.empty() )
+    {
+      // Extract distortion coefficients (OpenCV distortion model)
+      double k1 = dist_coeffs.size() > 0 ? dist_coeffs[0] : 0.0;
+      double k2 = dist_coeffs.size() > 1 ? dist_coeffs[1] : 0.0;
+      double p1 = dist_coeffs.size() > 2 ? dist_coeffs[2] : 0.0;
+      double p2 = dist_coeffs.size() > 3 ? dist_coeffs[3] : 0.0;
+      double k3 = dist_coeffs.size() > 4 ? dist_coeffs[4] : 0.0;
 
-    // Radial distortion
-    double radial_distortion = 1.0 + k1 * r2 + k2 * r4 + k3 * r6;
+      // Compute r^2
+      double r2 = x_norm * x_norm + y_norm * y_norm;
+      double r4 = r2 * r2;
+      double r6 = r2 * r4;
 
-    // Tangential distortion
-    double x_tangential = 2.0 * p1 * x_norm * y_norm + p2 * ( r2 + 2.0 * x_norm * x_norm );
-    double y_tangential = p1 * ( r2 + 2.0 * y_norm * y_norm ) + 2.0 * p2 * x_norm * y_norm;
+      // Radial distortion
+      double radial_distortion = 1.0 + k1 * r2 + k2 * r4 + k3 * r6;
 
-    // Apply distortion
-    x_norm = x_norm * radial_distortion + x_tangential;
-    y_norm = y_norm * radial_distortion + y_tangential;
+      // Tangential distortion
+      double x_tangential = 2.0 * p1 * x_norm * y_norm + p2 * ( r2 + 2.0 * x_norm * x_norm );
+      double y_tangential = p1 * ( r2 + 2.0 * y_norm * y_norm ) + 2.0 * p2 * x_norm * y_norm;
+
+      // Apply distortion
+      x_norm = x_norm * radial_distortion + x_tangential;
+      y_norm = y_norm * radial_distortion + y_tangential;
+    }
   }
 
   // Project back using original camera matrix
@@ -495,6 +508,7 @@ manual_measurement_process
   declare_config_using_trait( matching_method );
   declare_config_using_trait( template_size );
   declare_config_using_trait( search_range );
+  declare_config_using_trait( use_distortion );
 }
 
 // -----------------------------------------------------------------------------
@@ -507,6 +521,7 @@ manual_measurement_process
   d->m_matching_method = config_value_using_trait( matching_method );
   d->m_template_size = config_value_using_trait( template_size );
   d->m_search_range = config_value_using_trait( search_range );
+  d->m_use_distortion = config_value_using_trait( use_distortion );
   d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
 
   // Ensure template size is odd
