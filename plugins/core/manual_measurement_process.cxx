@@ -128,7 +128,8 @@ public:
   // Helper function to unrectify a point from rectified space back to original
   kv::vector_2d unrectify_point(
     const kv::vector_2d& rectified_point,
-    bool is_right_camera );
+    bool is_right_camera,
+    const kv::simple_camera_perspective& camera );
 
   // Configuration settings
   std::string m_calibration_file;
@@ -205,9 +206,24 @@ manual_measurement_process::priv
   cv::eigen2cv( K1_eigen, K1 );
   cv::eigen2cv( K2_eigen, K2 );
 
-  // Distortion coefficients (assuming no distortion for now)
+  // Distortion coefficients
+  std::vector<double> left_dist = left_intrinsics->dist_coeffs();
+  std::vector<double> right_dist = right_intrinsics->dist_coeffs();
+
+  // Convert distortion coefficients to OpenCV format
+  // Ensure we have at least 5 coefficients (k1, k2, p1, p2, k3)
   D1 = cv::Mat::zeros( 5, 1, CV_64F );
   D2 = cv::Mat::zeros( 5, 1, CV_64F );
+
+  for( size_t i = 0; i < std::min( left_dist.size(), size_t(5) ); ++i )
+  {
+    D1.at<double>( i, 0 ) = left_dist[i];
+  }
+
+  for( size_t i = 0; i < std::min( right_dist.size(), size_t(5) ); ++i )
+  {
+    D2.at<double>( i, 0 ) = right_dist[i];
+  }
 
   // Compute rotation and translation between cameras
   Eigen::Matrix3d R_left = left_cam.rotation().matrix();
@@ -244,7 +260,8 @@ kv::vector_2d
 manual_measurement_process::priv
 ::unrectify_point(
   const kv::vector_2d& rectified_point,
-  bool is_right_camera )
+  bool is_right_camera,
+  const kv::simple_camera_perspective& camera )
 {
   // Select appropriate matrices
   const cv::Mat& R = is_right_camera ? m_R2 : m_R1;
@@ -267,14 +284,52 @@ manual_measurement_process::priv
   // Apply inverse rotation to get back to original camera frame
   cv::Mat norm_orig = R.t() * norm_rect;
 
+  // Get normalized coordinates (before applying camera matrix and distortion)
+  double x_norm = norm_orig.at<double>( 0, 0 ) / norm_orig.at<double>( 2, 0 );
+  double y_norm = norm_orig.at<double>( 1, 0 ) / norm_orig.at<double>( 2, 0 );
+
+  // Get distortion coefficients from camera
+  auto intrinsics = camera.get_intrinsics();
+  std::vector<double> dist_coeffs = intrinsics->dist_coeffs();
+
+  // Apply distortion model if distortion coefficients exist
+  if( !dist_coeffs.empty() )
+  {
+    // Extract distortion coefficients (OpenCV distortion model)
+    double k1 = dist_coeffs.size() > 0 ? dist_coeffs[0] : 0.0;
+    double k2 = dist_coeffs.size() > 1 ? dist_coeffs[1] : 0.0;
+    double p1 = dist_coeffs.size() > 2 ? dist_coeffs[2] : 0.0;
+    double p2 = dist_coeffs.size() > 3 ? dist_coeffs[3] : 0.0;
+    double k3 = dist_coeffs.size() > 4 ? dist_coeffs[4] : 0.0;
+
+    // Compute r^2
+    double r2 = x_norm * x_norm + y_norm * y_norm;
+    double r4 = r2 * r2;
+    double r6 = r2 * r4;
+
+    // Radial distortion
+    double radial_distortion = 1.0 + k1 * r2 + k2 * r4 + k3 * r6;
+
+    // Tangential distortion
+    double x_tangential = 2.0 * p1 * x_norm * y_norm + p2 * ( r2 + 2.0 * x_norm * x_norm );
+    double y_tangential = p1 * ( r2 + 2.0 * y_norm * y_norm ) + 2.0 * p2 * x_norm * y_norm;
+
+    // Apply distortion
+    x_norm = x_norm * radial_distortion + x_tangential;
+    y_norm = y_norm * radial_distortion + y_tangential;
+  }
+
   // Project back using original camera matrix
-  cv::Mat point_orig = K * norm_orig;
+  Eigen::Matrix3d K_eigen = intrinsics->as_matrix();
+  double fx = K_eigen( 0, 0 );
+  double fy = K_eigen( 1, 1 );
+  double cx = K_eigen( 0, 2 );
+  double cy = K_eigen( 1, 2 );
 
-  // Convert to 2D
-  kv::vector_2d result( point_orig.at<double>( 0, 0 ) / point_orig.at<double>( 2, 0 ),
-                        point_orig.at<double>( 1, 0 ) / point_orig.at<double>( 2, 0 ) );
+  double x_distorted = fx * x_norm + cx;
+  double y_distorted = fy * y_norm + cy;
 
-  return result;
+  return kv::vector_2d( x_distorted, y_distorted );
 }
 
 // -----------------------------------------------------------------------------
@@ -760,8 +815,8 @@ manual_measurement_process
         }
 
         // Unrectify right points back to original image coordinates
-        right_head_point = d->unrectify_point( right_head_rect, true );
-        right_tail_point = d->unrectify_point( right_tail_rect, true );
+        right_head_point = d->unrectify_point( right_head_rect, true, right_cam );
+        right_tail_point = d->unrectify_point( right_tail_rect, true, right_cam );
 
         LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
                             " matched using template matching" );
