@@ -46,8 +46,6 @@ SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_
 SET "VDIST_VER_STR=%MSVS_TOOLSET:.=%"
 SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC\%MSVS_REDIST_VER%\%MSVS_ARCH%\Microsoft.VC%MSVS_TOOLSET%.OpenMP"
 
-CALL "%MSVS_ROOT%\VC\Auxiliary\Build\vcvarsall.bat" x64 -vcvars_ver=%MSVS_TOOLSET%
-
 REM -------------------------------------------------------------------------------------------------------
 REM Perform Actual Build
 REM -------------------------------------------------------------------------------------------------------
