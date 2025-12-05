@@ -39,13 +39,24 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/image_container.h>
 #include <vital/types/vector.h>
 #include <vital/util/string.h>
 #include <vital/io/camera_rig_io.h>
 
 #include <arrows/mvg/triangulate.h>
+#include <arrows/mvg/epipolar_geometry.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
+
+#ifdef VIAME_ENABLE_OPENCV
+  #include <arrows/ocv/image_container.h>
+
+  #include <opencv2/core/core.hpp>
+  #include <opencv2/imgproc/imgproc.hpp>
+  #include <opencv2/calib3d/calib3d.hpp>
+  #include <opencv2/core/eigen.hpp>
+#endif
 
 #include <string>
 #include <map>
@@ -61,9 +72,22 @@ namespace core
 create_config_trait( calibration_file, std::string, "",
   "Input filename for the calibration file to use" );
 
+create_config_trait( matching_method, std::string, "depth_projection",
+  "Method to use for finding corresponding points in right camera for left-only tracks. "
+  "Options: 'depth_projection' (uses default_depth to project points), "
+  "'feature_matching' (rectifies images and searches along epipolar lines using template matching)" );
+
 create_config_trait( default_depth, double, "5.0",
   "Default depth (in meters) to use when projecting left camera points to right camera "
-  "for tracks that only exist in the left camera" );
+  "for tracks that only exist in the left camera, when using the depth_projection option" );
+
+create_config_trait( template_size, int, "31",
+  "Template window size (in pixels) for feature matching. Must be odd number. "
+  "Only used when matching_method is 'feature_matching'" );
+
+create_config_trait( search_range, int, "128",
+  "Search range (in pixels) along epipolar line for feature matching. "
+  "Only used when matching_method is 'feature_matching'" );
 
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
@@ -85,15 +109,51 @@ public:
     const kv::simple_camera_perspective& right_cam,
     const kv::vector_2d& left_point );
 
+#ifdef VIAME_ENABLE_OPENCV
+  // Helper function to find corresponding point in right image using template matching
+  // Returns true if match found, false otherwise
+  bool find_corresponding_point_template_matching(
+    const cv::Mat& left_image_rect,
+    const cv::Mat& right_image_rect,
+    const kv::vector_2d& left_point_rect,
+    kv::vector_2d& right_point_rect );
+
+  // Helper function to compute rectification maps
+  void compute_rectification_maps(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const cv::Size& image_size );
+#endif
+
+  // Helper function to unrectify a point from rectified space back to original
+  kv::vector_2d unrectify_point(
+    const kv::vector_2d& rectified_point,
+    bool is_right_camera );
+
   // Configuration settings
   std::string m_calibration_file;
   double m_default_depth;
+  std::string m_matching_method;
+  int m_template_size;
+  int m_search_range;
 
   // Other variables
   kv::camera_rig_stereo_sptr m_calibration;
   unsigned m_frame_counter;
   std::set< std::string > p_port_list;
   manual_measurement_process* parent;
+
+#ifdef VIAME_ENABLE_OPENCV
+  // Rectification maps (computed on first use)
+  bool m_rectification_computed;
+  cv::Mat m_rectification_map_left_x;
+  cv::Mat m_rectification_map_left_y;
+  cv::Mat m_rectification_map_right_x;
+  cv::Mat m_rectification_map_right_y;
+
+  // Rectification matrices for unrectifying points
+  cv::Mat m_K1, m_K2, m_R1, m_R2, m_P1, m_P2;
+#endif
 };
 
 
@@ -102,9 +162,13 @@ manual_measurement_process::priv
 ::priv( manual_measurement_process* ptr )
   : m_calibration_file( "" )
   , m_default_depth( 5.0 )
+  , m_matching_method( "depth_projection" )
+  , m_template_size( 31 )
+  , m_search_range( 128 )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
+  , m_rectification_computed( false )
 {
 }
 
@@ -113,6 +177,181 @@ manual_measurement_process::priv
 ::~priv()
 {
 }
+
+// -----------------------------------------------------------------------------
+#ifdef VIAME_ENABLE_OPENCV
+void
+manual_measurement_process::priv
+::compute_rectification_maps(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const cv::Size& image_size )
+{
+  if( m_rectification_computed )
+  {
+    return;
+  }
+
+  // Get camera intrinsics
+  auto left_intrinsics = left_cam.get_intrinsics();
+  auto right_intrinsics = right_cam.get_intrinsics();
+
+  // Convert to OpenCV matrices
+  cv::Mat K1, K2, D1, D2, R, T;
+
+  // Camera matrices
+  Eigen::Matrix3d K1_eigen = left_intrinsics->as_matrix();
+  Eigen::Matrix3d K2_eigen = right_intrinsics->as_matrix();
+  cv::eigen2cv( K1_eigen, K1 );
+  cv::eigen2cv( K2_eigen, K2 );
+
+  // Distortion coefficients (assuming no distortion for now)
+  D1 = cv::Mat::zeros( 5, 1, CV_64F );
+  D2 = cv::Mat::zeros( 5, 1, CV_64F );
+
+  // Compute rotation and translation between cameras
+  Eigen::Matrix3d R_left = left_cam.rotation().matrix();
+  Eigen::Matrix3d R_right = right_cam.rotation().matrix();
+  Eigen::Matrix3d R_relative = R_right * R_left.transpose();
+
+  Eigen::Vector3d t_relative = right_cam.center() - left_cam.center();
+  t_relative = R_right * t_relative;
+
+  cv::eigen2cv( R_relative, R );
+  cv::eigen2cv( t_relative, T );
+
+  // Compute rectification transforms
+  cv::Mat Q;
+  cv::stereoRectify( K1, D1, K2, D2, image_size, R, T,
+                     m_R1, m_R2, m_P1, m_P2, Q,
+                     cv::CALIB_ZERO_DISPARITY, 0 );
+
+  // Store camera matrices
+  m_K1 = K1.clone();
+  m_K2 = K2.clone();
+
+  // Compute rectification maps
+  cv::initUndistortRectifyMap( K1, D1, m_R1, m_P1, image_size, CV_32FC1,
+    m_rectification_map_left_x, m_rectification_map_left_y );
+  cv::initUndistortRectifyMap( K2, D2, m_R2, m_P2, image_size, CV_32FC1,
+    m_rectification_map_right_x, m_rectification_map_right_y );
+
+  m_rectification_computed = true;
+}
+
+// -----------------------------------------------------------------------------
+kv::vector_2d
+manual_measurement_process::priv
+::unrectify_point(
+  const kv::vector_2d& rectified_point,
+  bool is_right_camera )
+{
+  // Select appropriate matrices
+  const cv::Mat& R = is_right_camera ? m_R2 : m_R1;
+  const cv::Mat& P = is_right_camera ? m_P2 : m_P1;
+  const cv::Mat& K = is_right_camera ? m_K2 : m_K1;
+
+  // Convert point to homogeneous coordinates
+  cv::Mat point_rect = ( cv::Mat_<double>( 3, 1 ) <<
+    rectified_point.x(), rectified_point.y(), 1.0 );
+
+  // Invert the projection matrix to get normalized coordinates
+  // P = K * [R | t], so P^-1 gives us back to camera coordinates
+  // For rectified stereo, t is typically [0,0,0] for left camera
+  // We're only interested in the rotation part: K_rect = P[:, :3]
+  cv::Mat K_rect = P( cv::Rect( 0, 0, 3, 3 ) );
+
+  // Convert to normalized rectified coordinates
+  cv::Mat norm_rect = K_rect.inv() * point_rect;
+
+  // Apply inverse rotation to get back to original camera frame
+  cv::Mat norm_orig = R.t() * norm_rect;
+
+  // Project back using original camera matrix
+  cv::Mat point_orig = K * norm_orig;
+
+  // Convert to 2D
+  kv::vector_2d result( point_orig.at<double>( 0, 0 ) / point_orig.at<double>( 2, 0 ),
+                        point_orig.at<double>( 1, 0 ) / point_orig.at<double>( 2, 0 ) );
+
+  return result;
+}
+
+// -----------------------------------------------------------------------------
+bool
+manual_measurement_process::priv
+::find_corresponding_point_template_matching(
+  const cv::Mat& left_image_rect,
+  const cv::Mat& right_image_rect,
+  const kv::vector_2d& left_point_rect,
+  kv::vector_2d& right_point_rect )
+{
+  int half_template = m_template_size / 2;
+  int x_left = static_cast<int>( left_point_rect.x() );
+  int y_left = static_cast<int>( left_point_rect.y() );
+
+  // Check if template fits in left image
+  if( x_left < half_template || x_left >= left_image_rect.cols - half_template ||
+      y_left < half_template || y_left >= left_image_rect.rows - half_template )
+  {
+    return false;
+  }
+
+  // Extract template from left image
+  cv::Rect template_rect( x_left - half_template, y_left - half_template,
+                          m_template_size, m_template_size );
+  cv::Mat template_img = left_image_rect( template_rect );
+
+  // Define search region in right image (along the same scanline for rectified images)
+  // Search to the left of the left image point (disparity is typically negative for standard stereo)
+  int search_min_x = std::max( 0, x_left - m_search_range );
+  int search_max_x = std::min( right_image_rect.cols - m_template_size, x_left );
+
+  if( search_max_x <= search_min_x )
+  {
+    return false;
+  }
+
+  int search_y = std::max( half_template, std::min( y_left, right_image_rect.rows - half_template - 1 ) );
+
+  cv::Rect search_rect( search_min_x, search_y - half_template,
+                        search_max_x - search_min_x + m_template_size,
+                        m_template_size );
+
+  // Check search rect validity
+  if( search_rect.x < 0 || search_rect.y < 0 ||
+      search_rect.x + search_rect.width > right_image_rect.cols ||
+      search_rect.y + search_rect.height > right_image_rect.rows )
+  {
+    return false;
+  }
+
+  cv::Mat search_region = right_image_rect( search_rect );
+
+  // Perform template matching
+  cv::Mat result;
+  cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+
+  // Find best match
+  double min_val, max_val;
+  cv::Point min_loc, max_loc;
+  cv::minMaxLoc( result, &min_val, &max_val, &min_loc, &max_loc );
+
+  // Use a threshold for match quality
+  if( max_val < 0.7 )
+  {
+    return false;
+  }
+
+  // Compute the matched point in the right image
+  right_point_rect = kv::vector_2d(
+    search_rect.x + max_loc.x + half_template,
+    search_rect.y + max_loc.y + half_template );
+
+  return true;
+}
+
+#endif
 
 // -----------------------------------------------------------------------------
 kv::vector_2d
@@ -182,6 +421,8 @@ manual_measurement_process
 
   // -- inputs --
   declare_input_port_using_trait( timestamp, optional );
+  declare_input_port_using_trait( left_image, optional );
+  declare_input_port_using_trait( right_image, optional );
 
   // -- outputs --
   declare_output_port_using_trait( object_track_set1, required );
@@ -196,6 +437,9 @@ manual_measurement_process
 {
   declare_config_using_trait( calibration_file );
   declare_config_using_trait( default_depth );
+  declare_config_using_trait( matching_method );
+  declare_config_using_trait( template_size );
+  declare_config_using_trait( search_range );
 }
 
 // -----------------------------------------------------------------------------
@@ -205,7 +449,17 @@ manual_measurement_process
 {
   d->m_calibration_file = config_value_using_trait( calibration_file );
   d->m_default_depth = config_value_using_trait( default_depth );
+  d->m_matching_method = config_value_using_trait( matching_method );
+  d->m_template_size = config_value_using_trait( template_size );
+  d->m_search_range = config_value_using_trait( search_range );
   d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
+
+  // Ensure template size is odd
+  if( d->m_template_size % 2 == 0 )
+  {
+    d->m_template_size++;
+    LOG_WARN( logger(), "Template size must be odd, adjusted to " + std::to_string( d->m_template_size ) );
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -326,7 +580,7 @@ manual_measurement_process
     else
     {
       LOG_INFO( logger(), "No match for track ID " + std::to_string( itr.first ) +
-                          ", will compute right camera points using default depth" );
+                          ", will compute right camera points using " + d->m_matching_method );
       left_only_ids.push_back( itr.first );
     }
   }
@@ -386,9 +640,60 @@ manual_measurement_process
     }
   }
 
-  // Run measurement on left-only detections by projecting to right camera
+  // Run measurement on left-only detections
   if( !left_only_ids.empty() )
   {
+    // Get images if using feature matching
+    cv::Mat left_image_rect, right_image_rect;
+    bool use_feature_matching = ( d->m_matching_method == "feature_matching" );
+
+    if( use_feature_matching )
+    {
+#ifdef VIAME_ENABLE_OPENCV
+      // Read images from ports
+      kv::image_container_sptr left_image_container;
+      kv::image_container_sptr right_image_container;
+
+      if( has_input_port_edge_using_trait( left_image ) &&
+          has_input_port_edge_using_trait( right_image ) )
+      {
+        left_image_container = grab_from_port_using_trait( left_image );
+        right_image_container = grab_from_port_using_trait( right_image );
+
+        // Convert to OpenCV format and grayscale
+        cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
+          left_image_container->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+        cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
+          right_image_container->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+        // Convert to grayscale if needed
+        if( left_cv.channels() > 1 )
+        {
+          cv::cvtColor( left_cv, left_cv, cv::COLOR_BGR2GRAY );
+          cv::cvtColor( right_cv, right_cv, cv::COLOR_BGR2GRAY );
+        }
+
+        // Compute rectification maps if needed
+        d->compute_rectification_maps( left_cam, right_cam, left_cv.size() );
+
+        // Rectify images
+        cv::remap( left_cv, left_image_rect, d->m_rectification_map_left_x,
+                   d->m_rectification_map_left_y, cv::INTER_LINEAR );
+        cv::remap( right_cv, right_image_rect, d->m_rectification_map_right_x,
+                   d->m_rectification_map_right_y, cv::INTER_LINEAR );
+#else
+        LOG_ERROR( logger(), "Code not compiled with rectification support" );
+        use_feature_matching = false;
+#endif
+      }
+      else
+      {
+        LOG_WARN( logger(), "Feature matching requested but images not provided, "
+                            "falling back to depth projection" );
+        use_feature_matching = false;
+      }
+    }
+
     for( const kv::track_id_t& id : left_only_ids )
     {
       const auto& det1 = dets[0][id];
@@ -403,19 +708,70 @@ manual_measurement_process
       if( kp1.find( "head" ) == kp1.end() ||
           kp1.find( "tail" ) == kp1.end() )
       {
-        LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                            " missing required keypoints (head/tail)" );
+        LOG_INFO( logger(), "Track ID " + std::to_string( id ) + " " +
+                            "missing required keypoints (head/tail)" );
         continue;
       }
 
-      // Project left camera keypoints to right camera using default depth
       kv::vector_2d left_head_point( kp1.at("head")[0], kp1.at("head")[1] );
       kv::vector_2d left_tail_point( kp1.at("tail")[0], kp1.at("tail")[1] );
+      kv::vector_2d right_head_point, right_tail_point;
 
-      kv::vector_2d right_head_point = d->project_left_to_right(
-        left_cam, right_cam, left_head_point );
-      kv::vector_2d right_tail_point = d->project_left_to_right(
-        left_cam, right_cam, left_tail_point );
+      if( use_feature_matching )
+      {
+        // Rectify left keypoints using remap maps
+        // Sample the rectification map at the point location
+        int x_head = static_cast<int>( left_head_point.x() + 0.5 );
+        int y_head = static_cast<int>( left_head_point.y() + 0.5 );
+        int x_tail = static_cast<int>( left_tail_point.x() + 0.5 );
+        int y_tail = static_cast<int>( left_tail_point.y() + 0.5 );
+
+        // Check bounds
+        if( x_head < 0 || x_head >= d->m_rectification_map_left_x.cols ||
+            y_head < 0 || y_head >= d->m_rectification_map_left_x.rows ||
+            x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
+            y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows )
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " keypoints out of bounds, skipping" );
+          continue;
+        }
+
+        float rect_x_head = d->m_rectification_map_left_x.at<float>( y_head, x_head );
+        float rect_y_head = d->m_rectification_map_left_y.at<float>( y_head, x_head );
+        float rect_x_tail = d->m_rectification_map_left_x.at<float>( y_tail, x_tail );
+        float rect_y_tail = d->m_rectification_map_left_y.at<float>( y_tail, x_tail );
+
+        kv::vector_2d left_head_rect( rect_x_head, rect_y_head );
+        kv::vector_2d left_tail_rect( rect_x_tail, rect_y_tail );
+
+        // Find corresponding points in right image using template matching
+        kv::vector_2d right_head_rect, right_tail_rect;
+        bool head_found = d->find_corresponding_point_template_matching(
+          left_image_rect, right_image_rect, left_head_rect, right_head_rect );
+        bool tail_found = d->find_corresponding_point_template_matching(
+          left_image_rect, right_image_rect, left_tail_rect, right_tail_rect );
+
+        if( !head_found || !tail_found )
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " feature matching failed, skipping" );
+          continue;
+        }
+
+        // Unrectify right points back to original image coordinates
+        right_head_point = d->unrectify_point( right_head_rect, true );
+        right_tail_point = d->unrectify_point( right_tail_rect, true );
+
+        LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                            " matched using template matching" );
+      }
+      else
+      {
+        // Project left camera keypoints to right camera using default depth
+        right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
+        right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
+      }
 
       // Triangulate head keypoint
       Eigen::Matrix<float, 2, 1>
@@ -433,7 +789,8 @@ manual_measurement_process
 
       const double length = ( pp2 - pp1 ).norm();
 
-      LOG_INFO( logger(), "Computed Length (left-only, projected): " + std::to_string( length ) );
+      LOG_INFO( logger(), "Computed Length (left-only, " + d->m_matching_method + "): " +
+                          std::to_string( length ) );
 
       det1->set_length( length );
     }
