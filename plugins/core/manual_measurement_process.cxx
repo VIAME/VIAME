@@ -39,6 +39,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/vector.h>
 #include <vital/util/string.h>
 #include <vital/io/camera_rig_io.h>
 
@@ -60,6 +61,10 @@ namespace core
 create_config_trait( calibration_file, std::string, "",
   "Input filename for the calibration file to use" );
 
+create_config_trait( default_depth, double, "5.0",
+  "Default depth (in meters) to use when projecting left camera points to right camera "
+  "for tracks that only exist in the left camera" );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -73,8 +78,16 @@ public:
   explicit priv( manual_measurement_process* parent );
   ~priv();
 
+  // Helper function to project a left camera point to the right camera
+  // using the default depth
+  kv::vector_2d project_left_to_right(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::vector_2d& left_point );
+
   // Configuration settings
   std::string m_calibration_file;
+  double m_default_depth;
 
   // Other variables
   kv::camera_rig_stereo_sptr m_calibration;
@@ -88,6 +101,7 @@ public:
 manual_measurement_process::priv
 ::priv( manual_measurement_process* ptr )
   : m_calibration_file( "" )
+  , m_default_depth( 5.0 )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -98,6 +112,42 @@ manual_measurement_process::priv
 manual_measurement_process::priv
 ::~priv()
 {
+}
+
+// -----------------------------------------------------------------------------
+kv::vector_2d
+manual_measurement_process::priv
+::project_left_to_right(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_point )
+{
+  // Unproject the left camera point to normalized image coordinates
+  const auto left_intrinsics = left_cam.get_intrinsics();
+  const kv::vector_2d normalized_pt = left_intrinsics->unmap( left_point );
+
+  // Convert to homogeneous coordinates and add depth
+  kv::vector_3d ray_direction( normalized_pt.x(), normalized_pt.y(), 1.0 );
+  ray_direction.normalize();
+
+  // Compute 3D point at default depth in left camera coordinates
+  kv::vector_3d point_3d_left_cam = ray_direction * m_default_depth;
+
+  // Transform to world coordinates
+  const auto& left_rotation = left_cam.rotation();
+  const auto& left_center = left_cam.center();
+  kv::vector_3d point_3d_world = left_rotation.inverse() * point_3d_left_cam + left_center;
+
+  // Transform to right camera coordinates
+  const auto& right_rotation = right_cam.rotation();
+  const auto& right_center = right_cam.center();
+  kv::vector_3d point_3d_right_cam = right_rotation * ( point_3d_world - right_center );
+
+  // Project to right camera image
+  const auto right_intrinsics = right_cam.get_intrinsics();
+  kv::vector_2d normalized_right( point_3d_right_cam.x() / point_3d_right_cam.z(),
+                                   point_3d_right_cam.y() / point_3d_right_cam.z() );
+  return right_intrinsics->map( normalized_right );
 }
 
 // =============================================================================
@@ -145,6 +195,7 @@ manual_measurement_process
 ::make_config()
 {
   declare_config_using_trait( calibration_file );
+  declare_config_using_trait( default_depth );
 }
 
 // -----------------------------------------------------------------------------
@@ -153,6 +204,7 @@ manual_measurement_process
 ::_configure()
 {
   d->m_calibration_file = config_value_using_trait( calibration_file );
+  d->m_default_depth = config_value_using_trait( default_depth );
   d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
 }
 
@@ -251,6 +303,7 @@ manual_measurement_process
 
   // Identify which detections are matched on the current frame
   std::vector< kv::track_id_t > common_ids;
+  std::vector< kv::track_id_t > left_only_ids;
 
   for( auto itr : dets[0] )
   {
@@ -272,20 +325,23 @@ manual_measurement_process
     }
     else
     {
-      LOG_INFO( logger(), "No match for track ID " + std::to_string( itr.first ) );
+      LOG_INFO( logger(), "No match for track ID " + std::to_string( itr.first ) +
+                          ", will compute right camera points using default depth" );
+      left_only_ids.push_back( itr.first );
     }
   }
+
+  // Get camera references (needed for both matched and left-only detections)
+  kv::simple_camera_perspective& left_cam(
+    dynamic_cast< kwiver::vital::simple_camera_perspective& >(
+      *(d->m_calibration->left())));
+  kv::simple_camera_perspective& right_cam(
+    dynamic_cast< kwiver::vital::simple_camera_perspective& >(
+      *(d->m_calibration->right())));
 
   // Run measurement on matched detections
   if( !common_ids.empty() )
   {
-    kv::simple_camera_perspective& left_cam(
-      dynamic_cast< kwiver::vital::simple_camera_perspective& >(
-        *(d->m_calibration->left())));
-    kv::simple_camera_perspective& right_cam(
-      dynamic_cast< kwiver::vital::simple_camera_perspective& >(
-        *(d->m_calibration->right())));
-
     for( const kv::track_id_t& id : common_ids )
     {
       const auto& det1 = dets[0][id];
@@ -307,17 +363,19 @@ manual_measurement_process
         continue;
       }
 
+      // Triangulate head keypoint across both cameras
       Eigen::Matrix<float, 2, 1>
-        lp1( kp1.at("head")[0], kp1.at("head")[1] ),
-        rp1( kp1.at("tail")[0], kp1.at("tail")[1] );
+        left_head( kp1.at("head")[0], kp1.at("head")[1] ),
+        right_head( kp2.at("head")[0], kp2.at("head")[1] );
       auto pp1 = kwiver::arrows::mvg::triangulate_fast_two_view(
-        left_cam, right_cam, lp1, rp1 );
+        left_cam, right_cam, left_head, right_head );
 
+      // Triangulate tail keypoint across both cameras
       Eigen::Matrix<float, 2, 1>
-        lp2( kp2.at("head")[0], kp2.at("head")[1] ),
-        rp2( kp2.at("tail")[0], kp2.at("tail")[1] );
+        left_tail( kp1.at("tail")[0], kp1.at("tail")[1] ),
+        right_tail( kp2.at("tail")[0], kp2.at("tail")[1] );
       auto pp2 = kwiver::arrows::mvg::triangulate_fast_two_view(
-        left_cam, right_cam, lp2, rp2 );
+        left_cam, right_cam, left_tail, right_tail );
 
       const double length = ( pp2 - pp1 ).norm();
 
@@ -325,6 +383,59 @@ manual_measurement_process
 
       det1->set_length( length );
       det2->set_length( length );
+    }
+  }
+
+  // Run measurement on left-only detections by projecting to right camera
+  if( !left_only_ids.empty() )
+  {
+    for( const kv::track_id_t& id : left_only_ids )
+    {
+      const auto& det1 = dets[0][id];
+
+      if( !det1 )
+      {
+        continue;
+      }
+
+      const auto& kp1 = det1->keypoints();
+
+      if( kp1.find( "head" ) == kp1.end() ||
+          kp1.find( "tail" ) == kp1.end() )
+      {
+        LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                            " missing required keypoints (head/tail)" );
+        continue;
+      }
+
+      // Project left camera keypoints to right camera using default depth
+      kv::vector_2d left_head_point( kp1.at("head")[0], kp1.at("head")[1] );
+      kv::vector_2d left_tail_point( kp1.at("tail")[0], kp1.at("tail")[1] );
+
+      kv::vector_2d right_head_point = d->project_left_to_right(
+        left_cam, right_cam, left_head_point );
+      kv::vector_2d right_tail_point = d->project_left_to_right(
+        left_cam, right_cam, left_tail_point );
+
+      // Triangulate head keypoint
+      Eigen::Matrix<float, 2, 1>
+        left_head( kp1.at("head")[0], kp1.at("head")[1] ),
+        right_head( right_head_point.x(), right_head_point.y() );
+      auto pp1 = kwiver::arrows::mvg::triangulate_fast_two_view(
+        left_cam, right_cam, left_head, right_head );
+
+      // Triangulate tail keypoint
+      Eigen::Matrix<float, 2, 1>
+        left_tail( kp1.at("tail")[0], kp1.at("tail")[1] ),
+        right_tail( right_tail_point.x(), right_tail_point.y() );
+      auto pp2 = kwiver::arrows::mvg::triangulate_fast_two_view(
+        left_cam, right_cam, left_tail, right_tail );
+
+      const double length = ( pp2 - pp1 ).norm();
+
+      LOG_INFO( logger(), "Computed Length (left-only, projected): " + std::to_string( length ) );
+
+      det1->set_length( length );
     }
   }
 
