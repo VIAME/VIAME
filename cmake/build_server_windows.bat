@@ -3,9 +3,16 @@ REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
 
 SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU"
-SET "OUTPUT_FILE=VIAME-v1.0.0-Windows-64Bit.zip"
 
-REM Make sure to have all of these things installed (and cuDNN in CUDA)
+FOR /f "tokens=1 delims= " %%a IN ("RELEASE_NOTES.md") DO (
+    SET "VIAME_VER=%%a"
+    GOTO :LOOPEXIT
+)
+:LOOPEXIT
+
+SET "OUTPUT_FILE=VIAME-%VIAME_VERSION%-Windows-64Bit.zip"
+
+REM Make sure to have all of these things installed (and cuDNN in CUDA_ROOT)
 
 SET "CMAKE_ROOT=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
