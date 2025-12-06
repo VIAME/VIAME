@@ -72,7 +72,7 @@ namespace core
 create_config_trait( calibration_file, std::string, "",
   "Input filename for the calibration file to use" );
 
-create_config_trait( matching_method, std::string, "depth_projection",
+create_config_trait( matching_method, std::string, "feature_matching",
   "Method to use for finding corresponding points in right camera for left-only tracks. "
   "Options: 'depth_projection' (uses default_depth to project points), "
   "'feature_matching' (rectifies images and searches along epipolar lines using template matching)" );
