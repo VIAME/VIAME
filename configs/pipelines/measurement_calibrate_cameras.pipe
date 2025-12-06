@@ -10,7 +10,7 @@ config _pipeline:_edge
   :capacity                                    5
 
 config global
-   :output_directory                           .
+   :output_directory                           ./
    :image_width                                640
    :image_height                               480
    :frame_count_threshold                      50
