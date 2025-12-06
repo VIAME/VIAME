@@ -72,15 +72,11 @@ namespace core
 create_config_trait( calibration_file, std::string, "",
   "Input filename for the calibration file to use" );
 
-create_config_trait( matching_method, std::string, "feature_matching",
+create_config_trait( matching_method, std::string, "automatic",
   "Method to use for finding corresponding points in right camera for left-only tracks. "
   "Options: 'depth_projection' (uses default_depth to project points), "
   "'feature_matching' (rectifies images and searches along epipolar lines using template matching), "
   "'automatic' (tries matched tracks first, then feature_matching, then depth_projection)" );
-
-create_config_trait( default_depth, double, "5.0",
-  "Default depth (in meters) to use when projecting left camera points to right camera "
-  "for tracks that only exist in the left camera, when using the depth_projection option" );
 
 create_config_trait( template_size, int, "31",
   "Template window size (in pixels) for feature matching. Must be odd number. "
@@ -89,6 +85,10 @@ create_config_trait( template_size, int, "31",
 create_config_trait( search_range, int, "128",
   "Search range (in pixels) along epipolar line for feature matching. "
   "Only used when matching_method is 'feature_matching'" );
+
+create_config_trait( default_depth, double, "5.0",
+  "Default depth (in meters) to use when projecting left camera points to right camera "
+  "for tracks that only exist in the left camera, when using the depth_projection option" );
 
 create_config_trait( use_distortion, bool, "true",
   "Whether to use distortion coefficients from the calibration during rectification. "
@@ -490,8 +490,6 @@ manual_measurement_process
 
   // -- inputs --
   declare_input_port_using_trait( timestamp, optional );
-  declare_input_port_using_trait( left_image, optional );
-  declare_input_port_using_trait( right_image, optional );
 
   // -- outputs --
   declare_output_port_using_trait( object_track_set1, required );
@@ -558,11 +556,22 @@ manual_measurement_process
       required.insert( flag_required );
 
       // Create input port
-      declare_input_port(
-        port_name,                                 // port name
-        object_track_set_port_trait::type_name,    // port type
-        required,                                  // port flags
-        "object track set input" );
+      if( port_name.find( "image" ) != std::string::npos )
+      {
+        declare_input_port(
+          port_name,                                 // port name
+          object_track_set_port_trait::type_name,    // port type
+          required,                                  // port flags
+          "object track set input" );
+      }
+      else
+      {
+        declare_input_port(
+          port_name,                                 // port name
+          image_port_trait::type_name,               // port type
+          required,                                  // port flags
+          "image container input" );
+      }
 
       d->p_port_list.insert( port_name );
     }
@@ -574,20 +583,27 @@ void
 manual_measurement_process
 ::_step()
 {
-  std::vector< kv::object_track_set_sptr > inputs;
-  kv::object_track_set_sptr output;
+  std::vector< kv::object_track_set_sptr > input_tracks;
+  std::vector< kv::image_container_sptr > input_images;
   kv::timestamp ts;
+  kv::object_track_set_sptr output;
 
+  // Read port names allowing for an arbitrary number of inputs for multi-cam
   for( auto const& port_name : d->p_port_list )
   {
-    if( port_name != "timestamp" )
+    if( port_name == "timestamp" )
     {
-      inputs.push_back(
-        grab_from_port_as< kv::object_track_set_sptr >( port_name ) );
+      ts = grab_from_port_using_trait( timestamp );
+    }
+    else if( port_name.find( "image" ) != std::string::npos )
+    {
+      input_images.push_back( 
+        grab_from_port_as< kv::image_container_sptr >( port_name ) );
     }
     else
     {
-      ts = grab_from_port_using_trait( timestamp );
+      input_tracks.push_back(
+        grab_from_port_as< kv::object_track_set_sptr >( port_name ) );
     }
   }
 
@@ -597,7 +613,7 @@ manual_measurement_process
 
   d->m_frame_counter++;
 
-  if( inputs.size() != 2 )
+  if( input_tracks.size() != 2 )
   {
     const std::string err = "Currently only 2 camera inputs are supported";
     LOG_ERROR( logger(), err );
@@ -607,11 +623,11 @@ manual_measurement_process
   // Identify all input detections across all track sets on the current frame
   typedef std::vector< std::map< kv::track_id_t, kv::detected_object_sptr > > map_t;
 
-  map_t dets( inputs.size() );
+  map_t dets( input_tracks.size() );
 
-  for( unsigned i = 0; i < inputs.size(); ++i )
+  for( unsigned i = 0; i < input_tracks.size(); ++i )
   {
-    for( auto& trk : inputs[i]->tracks() )
+    for( auto& trk : input_tracks[i]->tracks() )
     {
       for( auto& state : *trk )
       {
@@ -634,7 +650,7 @@ manual_measurement_process
   {
     bool found_match = false;
 
-    for( unsigned i = 1; i < inputs.size(); ++i )
+    for( unsigned i = 1; i < input_tracks.size(); ++i )
     {
       if( dets[i].find( itr.first ) != dets[i].end() )
       {
@@ -716,28 +732,21 @@ manual_measurement_process
   {
     // Get images if using feature matching
     cv::Mat left_image_rect, right_image_rect;
-    bool use_feature_matching = ( d->m_matching_method == "feature_matching" ||
-                                  d->m_matching_method == "automatic" );
-    bool images_available = false;
+
+    bool use_feature_matching =
+      ( d->m_matching_method == "feature_matching" ||
+        d->m_matching_method == "automatic" );
 
     if( use_feature_matching )
     {
 #ifdef VIAME_ENABLE_OPENCV
-      // Read images from ports
-      kv::image_container_sptr left_image_container;
-      kv::image_container_sptr right_image_container;
-
-      if( has_input_port_edge_using_trait( left_image ) &&
-          has_input_port_edge_using_trait( right_image ) )
+      if( input_images.size() >= 2 )
       {
-        left_image_container = grab_from_port_using_trait( left_image );
-        right_image_container = grab_from_port_using_trait( right_image );
-
         // Convert to OpenCV format and grayscale
         cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-          left_image_container->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+          input_images[0]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
         cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-          right_image_container->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+          input_images[1]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
         // Convert to grayscale if needed
         if( left_cv.channels() > 1 )
@@ -755,7 +764,6 @@ manual_measurement_process
         cv::remap( right_cv, right_image_rect, d->m_rectification_map_right_x,
                    d->m_rectification_map_right_y, cv::INTER_LINEAR );
 
-        images_available = true;
 #else
         LOG_ERROR( logger(), "Code not compiled with rectification support" );
         use_feature_matching = false;
@@ -907,8 +915,8 @@ manual_measurement_process
   }
 
   // Push outputs
-  push_to_port_using_trait( object_track_set1, inputs[0] );
-  push_to_port_using_trait( object_track_set2, inputs[1] );
+  push_to_port_using_trait( object_track_set1, input_tracks[0] );
+  push_to_port_using_trait( object_track_set2, input_tracks[1] );
   push_to_port_using_trait( timestamp, ts );
 }
 
