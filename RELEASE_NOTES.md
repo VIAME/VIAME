@@ -1,11 +1,14 @@
-v0.21.4-beta - 12/1/2025
-========================
+v0.21.4 - 12/9/2025
+===================
 
 
 -Added additional stereo measurement pipelines
 
 
 -DIVE UI updates (e.g. bulk process on desktop, bulk highlight and edit type)
+
+
+-Fix to IQR and VIEW interfaces to re-allow embedded pipeline running
 
 
 
