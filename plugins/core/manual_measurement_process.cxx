@@ -817,10 +817,11 @@ manual_measurement_process
         int y_tail = static_cast<int>( left_tail_point.y() + 0.5 );
 
         // Check bounds
-        bool keypoints_in_bounds = !( x_head < 0 || x_head >= d->m_rectification_map_left_x.cols ||
-                                      y_head < 0 || y_head >= d->m_rectification_map_left_x.rows ||
-                                      x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
-                                      y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows );
+        bool keypoints_in_bounds =
+          !( x_head < 0 || x_head >= d->m_rectification_map_left_x.cols ||
+             y_head < 0 || y_head >= d->m_rectification_map_left_x.rows ||
+             x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
+             y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows );
 
         if( !keypoints_in_bounds )
         {
