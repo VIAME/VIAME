@@ -75,7 +75,8 @@ create_config_trait( calibration_file, std::string, "",
 create_config_trait( matching_method, std::string, "feature_matching",
   "Method to use for finding corresponding points in right camera for left-only tracks. "
   "Options: 'depth_projection' (uses default_depth to project points), "
-  "'feature_matching' (rectifies images and searches along epipolar lines using template matching)" );
+  "'feature_matching' (rectifies images and searches along epipolar lines using template matching), "
+  "'automatic' (tries matched tracks first, then feature_matching, then depth_projection)" );
 
 create_config_trait( default_depth, double, "5.0",
   "Default depth (in meters) to use when projecting left camera points to right camera "
@@ -715,7 +716,9 @@ manual_measurement_process
   {
     // Get images if using feature matching
     cv::Mat left_image_rect, right_image_rect;
-    bool use_feature_matching = ( d->m_matching_method == "feature_matching" );
+    bool use_feature_matching = ( d->m_matching_method == "feature_matching" ||
+                                  d->m_matching_method == "automatic" );
+    bool images_available = false;
 
     if( use_feature_matching )
     {
@@ -751,6 +754,8 @@ manual_measurement_process
                    d->m_rectification_map_left_y, cv::INTER_LINEAR );
         cv::remap( right_cv, right_image_rect, d->m_rectification_map_right_x,
                    d->m_rectification_map_right_y, cv::INTER_LINEAR );
+
+        images_available = true;
 #else
         LOG_ERROR( logger(), "Code not compiled with rectification support" );
         use_feature_matching = false;
@@ -758,8 +763,15 @@ manual_measurement_process
       }
       else
       {
-        LOG_WARN( logger(), "Feature matching requested but images not provided, "
-                            "falling back to depth projection" );
+        if( d->m_matching_method == "automatic" )
+        {
+          LOG_INFO( logger(), "Images not provided, automatic mode will use depth projection" );
+        }
+        else
+        {
+          LOG_WARN( logger(), "Feature matching requested but images not provided, "
+                              "falling back to depth projection" );
+        }
         use_feature_matching = false;
       }
     }
@@ -797,44 +809,72 @@ manual_measurement_process
         int y_tail = static_cast<int>( left_tail_point.y() + 0.5 );
 
         // Check bounds
-        if( x_head < 0 || x_head >= d->m_rectification_map_left_x.cols ||
-            y_head < 0 || y_head >= d->m_rectification_map_left_x.rows ||
-            x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
-            y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows )
+        bool keypoints_in_bounds = !( x_head < 0 || x_head >= d->m_rectification_map_left_x.cols ||
+                                      y_head < 0 || y_head >= d->m_rectification_map_left_x.rows ||
+                                      x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
+                                      y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows );
+
+        if( !keypoints_in_bounds )
         {
-          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                              " keypoints out of bounds, skipping" );
-          continue;
+          if( d->m_matching_method == "automatic" )
+          {
+            // Fall back to depth projection
+            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                                " keypoints out of bounds for rectification, falling back to depth projection" );
+            right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
+            right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
+          }
+          else
+          {
+            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                                " keypoints out of bounds, skipping" );
+            continue;
+          }
         }
-
-        float rect_x_head = d->m_rectification_map_left_x.at<float>( y_head, x_head );
-        float rect_y_head = d->m_rectification_map_left_y.at<float>( y_head, x_head );
-        float rect_x_tail = d->m_rectification_map_left_x.at<float>( y_tail, x_tail );
-        float rect_y_tail = d->m_rectification_map_left_y.at<float>( y_tail, x_tail );
-
-        kv::vector_2d left_head_rect( rect_x_head, rect_y_head );
-        kv::vector_2d left_tail_rect( rect_x_tail, rect_y_tail );
-
-        // Find corresponding points in right image using template matching
-        kv::vector_2d right_head_rect, right_tail_rect;
-        bool head_found = d->find_corresponding_point_template_matching(
-          left_image_rect, right_image_rect, left_head_rect, right_head_rect );
-        bool tail_found = d->find_corresponding_point_template_matching(
-          left_image_rect, right_image_rect, left_tail_rect, right_tail_rect );
-
-        if( !head_found || !tail_found )
+        else
         {
-          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                              " feature matching failed, skipping" );
-          continue;
+          float rect_x_head = d->m_rectification_map_left_x.at<float>( y_head, x_head );
+          float rect_y_head = d->m_rectification_map_left_y.at<float>( y_head, x_head );
+          float rect_x_tail = d->m_rectification_map_left_x.at<float>( y_tail, x_tail );
+          float rect_y_tail = d->m_rectification_map_left_y.at<float>( y_tail, x_tail );
+
+          kv::vector_2d left_head_rect( rect_x_head, rect_y_head );
+          kv::vector_2d left_tail_rect( rect_x_tail, rect_y_tail );
+
+          // Find corresponding points in right image using template matching
+          kv::vector_2d right_head_rect, right_tail_rect;
+          bool head_found = d->find_corresponding_point_template_matching(
+            left_image_rect, right_image_rect, left_head_rect, right_head_rect );
+          bool tail_found = d->find_corresponding_point_template_matching(
+            left_image_rect, right_image_rect, left_tail_rect, right_tail_rect );
+
+          if( !head_found || !tail_found )
+          {
+            if( d->m_matching_method == "automatic" )
+            {
+              // Fall back to depth projection
+              LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                                  " feature matching failed, falling back to depth projection" );
+              right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
+              right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
+            }
+            else
+            {
+              LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                                  " feature matching failed, skipping" );
+              continue;
+            }
+          }
+          else
+          {
+            // Unrectify right points back to original image coordinates
+            right_head_point = d->unrectify_point( right_head_rect, true, right_cam );
+            right_tail_point = d->unrectify_point( right_tail_rect, true, right_cam );
+
+            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                                " matched using template matching" );
+          }
         }
-
-        // Unrectify right points back to original image coordinates
-        right_head_point = d->unrectify_point( right_head_rect, true, right_cam );
-        right_tail_point = d->unrectify_point( right_tail_rect, true, right_cam );
-
-        LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                            " matched using template matching" );
       }
       else
       {
