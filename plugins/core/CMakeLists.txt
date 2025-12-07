@@ -135,6 +135,7 @@ set( process_headers
   filter_object_tracks_process.h
   frame_stacker_process.h
   full_frame_tracker_process.h
+  manual_measurement_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
   track_conductor_process.h
@@ -155,6 +156,7 @@ set( process_sources
   filter_object_tracks_process.cxx
   frame_stacker_process.cxx
   full_frame_tracker_process.cxx
+  manual_measurement_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
   track_conductor_process.cxx

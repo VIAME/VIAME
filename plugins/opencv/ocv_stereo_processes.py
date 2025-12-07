@@ -98,7 +98,10 @@ from kwiver.vital.types import (
     DetectedObjectSet,
     DetectedObjectType,
     ImageContainer,
+    ObjectTrackState,
+    ObjectTrackSet,
     Point2d,
+    Track,
 )
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
@@ -274,6 +277,8 @@ class MeasureProcess(KwiverProcess):
                               'matlab or npz file with calibration info')
         self.declare_config_using_trait('calibration_file')
 
+        optional = process.PortFlags()
+
         required = process.PortFlags()
         required.add(self.flag_required)
 
@@ -284,13 +289,25 @@ class MeasureProcess(KwiverProcess):
           'detected_object_set',
           'Detections from camera2')
 
+        self.add_port_trait('object_track_set1',
+          'object_track_set',
+          'Output tracks for camera1')
+        self.add_port_trait('object_track_set2',
+          'object_track_set',
+          'Output tracks for camera2')
+
         #  declare our input ports ( port-name,flags )
         self.declare_input_port_using_trait('detected_object_set1', required)
         self.declare_input_port_using_trait('detected_object_set2', required)
 
+        self.declare_input_port_using_trait('timestamp', required)
+
         #  declare our output ports ( port-name,flags )
-        self.declare_output_port_using_trait('detected_object_set1', required)
-        self.declare_output_port_using_trait('detected_object_set2', required)
+        self.declare_output_port_using_trait('detected_object_set1', optional)
+        self.declare_output_port_using_trait('detected_object_set2', optional)
+
+        self.declare_output_port_using_trait('object_track_set1', required)
+        self.declare_output_port_using_trait('object_track_set2', required)
 
     # --------------------------------------------------------------------------
     def _configure(self):
@@ -325,6 +342,7 @@ class MeasureProcess(KwiverProcess):
         self.prog.begin()
 
         self.frame_id = 0
+        self.track_id = 0
 
     # --------------------------------------------------------------------------
     def _step(self):
@@ -365,6 +383,8 @@ class MeasureProcess(KwiverProcess):
 
         detection_set1 = self.grab_input_using_trait('detected_object_set' + '1')
         detection_set2 = self.grab_input_using_trait('detected_object_set' + '2')
+
+        timestamp = self.grab_input_using_trait('timestamp')
 
         # Convert back to the format the algorithm understands
         def _detections_from_vital(detection_set):
@@ -415,28 +435,71 @@ class MeasureProcess(KwiverProcess):
                  self.output_file.flush()
 
         # Create output detection vectors
-        output1 = [d for d in detection_set1]
-        output2 = [d for d in detection_set2]
+        output_dets1 = [d for d in detection_set1]
+        output_dets2 = [d for d in detection_set2]
 
-        # Assign all points to detections for now
+        output_trks1 = []
+        output_trks2 = []
+
+        has_match1 = [False] * len(detection_set1)
+        has_match2 = [False] * len(detection_set2)
+
+        # Assign all lengths to detections and generate matched tracks
         for match in assign_data:
             i1 = match["ij"][0]
             i2 = match["ij"][1]
-            output1[i1].set_length(match["fishlen"])
-            output2[i2].set_length(match["fishlen"])
+
+            has_match1[i1] = True
+            has_match2[i2] = True
+  
+            output_dets1[i1].set_length(match["fishlen"])
+            output_dets2[i2].set_length(match["fishlen"])
+
             head, tail = detections1[i1].center_keypoints()
-            output1[i1].add_keypoint('head', Point2d(head))
-            output1[i1].add_keypoint('tail', Point2d(tail))
+            output_dets1[i1].add_keypoint('head', Point2d(head))
+            output_dets1[i1].add_keypoint('tail', Point2d(tail))
             head, tail = detections2[i2].center_keypoints()
-            output2[i2].add_keypoint('head', Point2d(head))
-            output2[i2].add_keypoint('tail', Point2d(tail))
+            output_dets2[i2].add_keypoint('head', Point2d(head))
+            output_dets2[i2].add_keypoint('tail', Point2d(tail))
 
-        output1 = DetectedObjectSet(output1)
-        output2 = DetectedObjectSet(output2)
+            state1 = ObjectTrackState(timestamp, output_dets1[i1])
+            state2 = ObjectTrackState(timestamp, output_dets2[i2])
+            track1 = Track(id=self.track_id)
+            track2 = Track(id=self.track_id)
+            track1.append(state1)
+            track2.append(state2)
+            output_trks1.append(track1)
+            output_trks2.append(track2)
+            self.track_id = self.track_id + 1
 
-        # Push output detections to port
-        self.push_to_port_using_trait('detected_object_set1', output1)
-        self.push_to_port_using_trait('detected_object_set2', output2)
+        # Add unmatched detections to tracks lists
+        for detection, matched in zip(output_dets1, has_match1):
+            if not matched:
+                state = ObjectTrackState(timestamp, detection)
+                track = Track(id=self.track_id)
+                track.append(state)
+                output_trks1.append(track)
+                self.track_id = self.track_id + 1
+        for detection, matched in zip(output_dets2, has_match2):
+            if not matched:
+                state = ObjectTrackState(timestamp, detection)
+                track = Track(id=self.track_id)
+                track.append(state)
+                output_trks2.append(track)
+                self.track_id = self.track_id + 1
+
+        # Format outputs as vital sets
+        detection_set1 = DetectedObjectSet(output_dets1)
+        detection_set2 = DetectedObjectSet(output_dets2)
+
+        self.push_to_port_using_trait('detected_object_set1', detection_set1)
+        self.push_to_port_using_trait('detected_object_set2', detection_set2)
+
+        track_set1 = ObjectTrackSet(output_trks1)
+        track_set2 = ObjectTrackSet(output_trks2)
+
+        self.push_to_port_using_trait('object_track_set1', track_set1)
+        self.push_to_port_using_trait('object_track_set2', track_set2)
         self._base_step()
 
 @tmp_sprokit_register_process(name='add_keypoints_from_oriented_bbox',
