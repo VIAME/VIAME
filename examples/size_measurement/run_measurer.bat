@@ -8,6 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\measurement_gmm_only.pipe"
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\measurement_automatic_gmm_motion.pipe"
 
 pause
