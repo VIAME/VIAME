@@ -1,0 +1,21 @@
+# ==================================================================================
+# Commonly used stereo input files source with included track inputs as well
+#
+
+include common_stereo_input_with_downsampler.pipe
+
+process track_reader1
+  :: read_object_track
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+
+connect from downsampler.output_2
+        to   track_reader1.image_file_name
+
+process track_reader2
+  :: read_object_track
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+
+connect from downsampler.output_2
+        to   track_reader2.image_file_name
