@@ -83,12 +83,13 @@ create_config_trait( calibration_file, std::string, "",
 
 create_config_trait( matching_method, std::string, "automatic",
   "Method to use for finding corresponding points in right camera for left-only tracks. "
-  "Options: 'depth_projection' (uses default_depth to project points), "
+  "Options: 'input_pairs_only' (only measure tracks with keypoints in both cameras), "
+  "'depth_projection' (uses default_depth to project points), "
   "'template_matching' (rectifies images and searches along epipolar lines using template matching), "
   "'sgbm_disparity' (uses Semi-Global Block Matching to compute disparity map), "
   "'feature_descriptor' (uses vital feature detection/descriptor/matching algorithms), "
   "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering), "
-  "'automatic' (tries matched tracks first, then template_matching, then depth_projection)" );
+  "'automatic' (uses matched tracks first, then tries template_matching, sgbm_disparity, depth_projection)" );
 
 create_config_trait( template_size, int, "31",
   "Template window size (in pixels) for template matching. Must be odd number. "
@@ -1090,9 +1091,17 @@ manual_measurement_process
     }
     else
     {
-      LOG_INFO( logger(), "No match for track ID " + std::to_string( itr.first ) +
-                          ", will compute right camera points using " + d->m_matching_method );
-      left_only_ids.push_back( itr.first );
+      if( d->m_matching_method == "input_pairs_only" )
+      {
+        LOG_INFO( logger(), "No match for track ID " + std::to_string( itr.first ) +
+                            ", skipping (input_pairs_only mode)" );
+      }
+      else
+      {
+        LOG_INFO( logger(), "No match for track ID " + std::to_string( itr.first ) +
+                            ", will compute right camera points using " + d->m_matching_method );
+        left_only_ids.push_back( itr.first );
+      }
     }
   }
 
@@ -1151,8 +1160,8 @@ manual_measurement_process
     }
   }
 
-  // Run measurement on left-only detections
-  if( !left_only_ids.empty() )
+  // Run measurement on left-only detections (skip if input_pairs_only mode)
+  if( !left_only_ids.empty() && d->m_matching_method != "input_pairs_only" )
   {
     // Clear cached feature data if frame changed
     if( d->m_cached_frame_id != cur_frame_id )
@@ -1165,12 +1174,14 @@ manual_measurement_process
       d->m_cached_frame_id = cur_frame_id;
     }
 
-    // Determine which methods require rectified images
-    bool use_template_matching =
-      ( d->m_matching_method == "template_matching" ||
-        d->m_matching_method == "automatic" );
+    // Determine which methods to use
+    bool is_automatic = ( d->m_matching_method == "automatic" );
 
-    bool use_sgbm_disparity = ( d->m_matching_method == "sgbm_disparity" );
+    bool use_template_matching =
+      ( d->m_matching_method == "template_matching" || is_automatic );
+
+    bool use_sgbm_disparity =
+      ( d->m_matching_method == "sgbm_disparity" || is_automatic );
 
     bool use_feature_descriptor =
       ( d->m_matching_method == "feature_descriptor" );
@@ -1211,7 +1222,7 @@ manual_measurement_process
 
       rectified_images_available = true;
 
-      // Compute SGBM disparity map if needed
+      // Compute SGBM disparity map for automatic or sgbm_disparity mode
       if( use_sgbm_disparity )
       {
         disparity_map = d->compute_sgbm_disparity( left_image_rect, right_image_rect );
@@ -1219,11 +1230,12 @@ manual_measurement_process
     }
     else if( needs_rectified_images )
     {
-      if( d->m_matching_method == "automatic" )
+      if( is_automatic )
       {
         LOG_INFO( logger(), "Images not provided, automatic mode will use depth projection" );
       }
-      else if( use_template_matching || use_sgbm_disparity )
+      else if( d->m_matching_method == "template_matching" ||
+               d->m_matching_method == "sgbm_disparity" )
       {
         LOG_WARN( logger(), d->m_matching_method + " requested but images not provided, "
                             "falling back to depth projection" );
@@ -1261,7 +1273,7 @@ manual_measurement_process
       bool head_found = false, tail_found = false;
       std::string method_used = "depth_projection";
 
-      // Try feature_descriptor method
+      // Try feature_descriptor method (only if explicitly selected)
       if( use_feature_descriptor && input_images.size() >= 2 )
       {
         head_found = d->find_corresponding_point_feature_descriptor(
@@ -1280,7 +1292,7 @@ manual_measurement_process
         }
       }
 
-      // Try ransac_feature method
+      // Try ransac_feature method (only if explicitly selected)
       if( use_ransac_feature && input_images.size() >= 2 )
       {
         head_found = d->find_corresponding_point_ransac_feature(
@@ -1300,60 +1312,12 @@ manual_measurement_process
       }
 
 #ifdef VIAME_ENABLE_OPENCV
-      // Try SGBM disparity method
-      if( use_sgbm_disparity && rectified_images_available && !disparity_map.empty() )
-      {
-        // Rectify left keypoints
-        int x_head = static_cast<int>( left_head_point.x() + 0.5 );
-        int y_head = static_cast<int>( left_head_point.y() + 0.5 );
-        int x_tail = static_cast<int>( left_tail_point.x() + 0.5 );
-        int y_tail = static_cast<int>( left_tail_point.y() + 0.5 );
+      // For automatic mode: try template_matching first, then sgbm_disparity
+      // For specific methods: only try the selected method
 
-        bool keypoints_in_bounds =
-          !( x_head < 0 || x_head >= d->m_rectification_map_left_x.cols ||
-             y_head < 0 || y_head >= d->m_rectification_map_left_x.rows ||
-             x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
-             y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows );
-
-        if( keypoints_in_bounds )
-        {
-          float rect_x_head = d->m_rectification_map_left_x.at<float>( y_head, x_head );
-          float rect_y_head = d->m_rectification_map_left_y.at<float>( y_head, x_head );
-          float rect_x_tail = d->m_rectification_map_left_x.at<float>( y_tail, x_tail );
-          float rect_y_tail = d->m_rectification_map_left_y.at<float>( y_tail, x_tail );
-
-          kv::vector_2d left_head_rect( rect_x_head, rect_y_head );
-          kv::vector_2d left_tail_rect( rect_x_tail, rect_y_tail );
-
-          kv::vector_2d right_head_rect, right_tail_rect;
-          head_found = d->find_corresponding_point_sgbm(
-            disparity_map, left_head_rect, right_head_rect );
-          tail_found = d->find_corresponding_point_sgbm(
-            disparity_map, left_tail_rect, right_tail_rect );
-
-          if( head_found && tail_found )
-          {
-            // Unrectify right points back to original image coordinates
-            right_head_point = d->unrectify_point( right_head_rect, true, right_cam );
-            right_tail_point = d->unrectify_point( right_tail_rect, true, right_cam );
-            method_used = "sgbm_disparity";
-          }
-          else
-          {
-            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                                " sgbm_disparity lookup failed (invalid disparity)" );
-          }
-        }
-        else
-        {
-          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                              " keypoints out of bounds for SGBM" );
-        }
-      }
-
-      // Try template_matching method (or automatic fallback)
-      if( ( use_template_matching || d->m_matching_method == "automatic" ) &&
-          rectified_images_available && ( !head_found || !tail_found ) )
+      // Try template_matching method (first choice for automatic mode)
+      if( use_template_matching && rectified_images_available &&
+          ( !head_found || !tail_found ) )
       {
         // Rectify left keypoints using remap maps
         int x_head = static_cast<int>( left_head_point.x() + 0.5 );
@@ -1404,13 +1368,64 @@ manual_measurement_process
                               " keypoints out of bounds for template_matching" );
         }
       }
+
+      // Try SGBM disparity method (second choice for automatic mode)
+      if( use_sgbm_disparity && rectified_images_available && !disparity_map.empty() &&
+          ( !head_found || !tail_found ) )
+      {
+        // Rectify left keypoints
+        int x_head = static_cast<int>( left_head_point.x() + 0.5 );
+        int y_head = static_cast<int>( left_head_point.y() + 0.5 );
+        int x_tail = static_cast<int>( left_tail_point.x() + 0.5 );
+        int y_tail = static_cast<int>( left_tail_point.y() + 0.5 );
+
+        bool keypoints_in_bounds =
+          !( x_head < 0 || x_head >= d->m_rectification_map_left_x.cols ||
+             y_head < 0 || y_head >= d->m_rectification_map_left_x.rows ||
+             x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
+             y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows );
+
+        if( keypoints_in_bounds )
+        {
+          float rect_x_head = d->m_rectification_map_left_x.at<float>( y_head, x_head );
+          float rect_y_head = d->m_rectification_map_left_y.at<float>( y_head, x_head );
+          float rect_x_tail = d->m_rectification_map_left_x.at<float>( y_tail, x_tail );
+          float rect_y_tail = d->m_rectification_map_left_y.at<float>( y_tail, x_tail );
+
+          kv::vector_2d left_head_rect( rect_x_head, rect_y_head );
+          kv::vector_2d left_tail_rect( rect_x_tail, rect_y_tail );
+
+          kv::vector_2d right_head_rect, right_tail_rect;
+          head_found = d->find_corresponding_point_sgbm(
+            disparity_map, left_head_rect, right_head_rect );
+          tail_found = d->find_corresponding_point_sgbm(
+            disparity_map, left_tail_rect, right_tail_rect );
+
+          if( head_found && tail_found )
+          {
+            // Unrectify right points back to original image coordinates
+            right_head_point = d->unrectify_point( right_head_rect, true, right_cam );
+            right_tail_point = d->unrectify_point( right_tail_rect, true, right_cam );
+            method_used = "sgbm_disparity";
+          }
+          else
+          {
+            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                                " sgbm_disparity lookup failed (invalid disparity)" );
+          }
+        }
+        else
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " keypoints out of bounds for SGBM" );
+        }
+      }
 #endif
 
-      // Fall back to depth projection if nothing else worked
+      // Fall back to depth projection if nothing else worked (last choice for automatic mode)
       if( !head_found || !tail_found )
       {
-        if( d->m_matching_method == "automatic" ||
-            d->m_matching_method == "depth_projection" )
+        if( is_automatic || d->m_matching_method == "depth_projection" )
         {
           right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
           right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
@@ -1418,7 +1433,7 @@ manual_measurement_process
           tail_found = true;
           method_used = "depth_projection";
 
-          if( d->m_matching_method == "automatic" )
+          if( is_automatic )
           {
             LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
                                 " falling back to depth_projection" );
