@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2025 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,50 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Defaults plugin algorithm registration interface impl
+#include <sprokit/pipeline/process_factory.h>
+#include <vital/plugin_loader/plugin_loader.h>
+
+#include "ocv_measurement_process.h"
+
+// -----------------------------------------------------------------------------
+/*! \brief Registers processes
+ *
  */
-
-#include <plugins/opencv/viame_opencv_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
-
-#include "ocv_stereo_depth_map.h"
-#include "ocv_rectified_stereo_disparity_map.h"
-#include "ocv_debayer_filter.h"
-#include "ocv_random_hue_shift.h"
-#include "ocv_image_enhancement.h"
-#include "ocv_target_detector.h"
-#include "ocv_optimize_stereo_cameras.h"
-#include "ocv_refiner_add_kps_from_mask.h"
-
-#include "split_image_habcam.h"
-
-namespace viame {
-
 extern "C"
-VIAME_OPENCV_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  kwiver::vital::algorithm_registrar reg( vpm, "viame.opencv" );
+  static auto const module_name =
+    kwiver::vital::plugin_manager::module_t( "viame_processes_opencv" );
 
-  if( reg.is_module_loaded() ) 
+  if( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  reg.register_algorithm< ocv_stereo_depth_map >();
-  reg.register_algorithm< ocv_debayer_filter >();
-  reg.register_algorithm< ocv_image_enhancement >();
-  reg.register_algorithm< ocv_random_hue_shift >();
-  reg.register_algorithm< ocv_rectified_stereo_disparity_map >();
-  reg.register_algorithm< ocv_target_detector >();
-  reg.register_algorithm< ocv_optimize_stereo_cameras >();
-  reg.register_algorithm< ocv_refiner_add_kps_from_mask >();
-  reg.register_algorithm< split_image_habcam >();
+  // ---------------------------------------------------------------------------
+  auto fact = vpm.ADD_PROCESS( viame::ocv_measurement_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
+                       "measure_using_stereo" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Stereo measurement process that matches detections between "
+                    "left and right cameras and computes fish length measurements "
+                    "using triangulation" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
-  reg.mark_module_as_loaded();
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }
-
-} // end namespace viame
