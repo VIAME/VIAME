@@ -90,118 +90,6 @@ create_port_trait( object_track_set2, object_track_set,
   "Output tracks for camera 2" );
 
 // =============================================================================
-// Internal detection representation
-struct InternalDetection
-{
-  kv::bounding_box_d bbox;
-  cv::Mat mask;
-  double bbox_factor;
-  std::vector<cv::Point2d> box_points;
-
-  InternalDetection() : bbox_factor(1.0) {}
-
-  // Compute oriented bounding box corners from mask or bbox
-  void compute_box_points()
-  {
-    box_points.clear();
-
-    if( mask.empty() )
-    {
-      // Use axis-aligned bbox corners
-      box_points.push_back( cv::Point2d( bbox.min_x(), bbox.min_y() ) );
-      box_points.push_back( cv::Point2d( bbox.max_x(), bbox.min_y() ) );
-      box_points.push_back( cv::Point2d( bbox.max_x(), bbox.max_y() ) );
-      box_points.push_back( cv::Point2d( bbox.min_x(), bbox.max_y() ) );
-    }
-    else
-    {
-      // Find convex hull from mask
-      std::vector<cv::Point> points;
-      cv::Mat mask_squeezed = mask;
-      if( mask.dims > 2 && mask.size[2] == 1 )
-      {
-        mask_squeezed = mask.reshape( 1, mask.rows );
-      }
-
-      for( int y = 0; y < mask_squeezed.rows; ++y )
-      {
-        for( int x = 0; x < mask_squeezed.cols; ++x )
-        {
-          if( mask_squeezed.at<uchar>( y, x ) > 0 )
-          {
-            points.push_back( cv::Point( x, y ) );
-          }
-        }
-      }
-
-      if( points.empty() )
-      {
-        // Fallback to bbox
-        box_points.push_back( cv::Point2d( bbox.min_x(), bbox.min_y() ) );
-        box_points.push_back( cv::Point2d( bbox.max_x(), bbox.min_y() ) );
-        box_points.push_back( cv::Point2d( bbox.max_x(), bbox.max_y() ) );
-        box_points.push_back( cv::Point2d( bbox.min_x(), bbox.max_y() ) );
-        return;
-      }
-
-      std::vector<cv::Point> hull;
-      cv::convexHull( points, hull );
-
-      // Find minimum area rotated rectangle
-      cv::RotatedRect rotated_rect = cv::minAreaRect( hull );
-      cv::Point2f vertices[4];
-      rotated_rect.points( vertices );
-
-      // Transform from mask coordinates to image coordinates
-      for( int i = 0; i < 4; ++i )
-      {
-        double x = vertices[i].x * bbox_factor + bbox.min_x();
-        double y = vertices[i].y * bbox_factor + bbox.min_y();
-        box_points.push_back( cv::Point2d( x, y ) );
-      }
-    }
-  }
-
-  // Get center keypoints (midpoints of box edges)
-  std::pair<cv::Point2d, cv::Point2d> center_keypoints() const
-  {
-    if( box_points.size() < 4 )
-    {
-      return std::make_pair( cv::Point2d(0, 0), cv::Point2d(0, 0) );
-    }
-
-    // Compute edge midpoints
-    std::vector<cv::Point2d> centers;
-    centers.push_back( ( box_points[0] + box_points[1] ) * 0.5 );
-    centers.push_back( ( box_points[1] + box_points[2] ) * 0.5 );
-    centers.push_back( ( box_points[2] + box_points[3] ) * 0.5 );
-    centers.push_back( ( box_points[3] + box_points[0] ) * 0.5 );
-
-    // Find min/max x points (head/tail)
-    cv::Point2d min_pt = centers[0];
-    cv::Point2d max_pt = centers[0];
-    double min_x = centers[0].x;
-    double max_x = centers[0].x;
-
-    for( const auto& pt : centers )
-    {
-      if( pt.x < min_x )
-      {
-        min_x = pt.x;
-        min_pt = pt;
-      }
-      if( pt.x > max_x )
-      {
-        max_x = pt.x;
-        max_pt = pt;
-      }
-    }
-
-    return std::make_pair( max_pt, min_pt );  // head (max_x), tail (min_x)
-  }
-};
-
-// =============================================================================
 // Match data structure
 struct MatchData
 {
@@ -225,8 +113,12 @@ public:
   explicit priv( ocv_measurement_process* parent );
   ~priv();
 
-  // Convert vital detection to internal format
-  InternalDetection detection_from_vital( kv::detected_object_sptr det );
+  // Compute oriented bounding box corners from detection's mask or bbox
+  std::vector<cv::Point2d> compute_box_points( kv::detected_object_sptr det );
+
+  // Get center keypoints (head/tail) from box points
+  std::pair<cv::Point2d, cv::Point2d> center_keypoints(
+    const std::vector<cv::Point2d>& box_points );
 
   // Triangulate a single point and compute reprojection error
   double triangulate_and_error(
@@ -238,8 +130,8 @@ public:
 
   // Find optimal matching between detection sets
   std::vector<MatchData> find_matches(
-    const std::vector<InternalDetection>& detections1,
-    const std::vector<InternalDetection>& detections2 );
+    const std::vector<kv::detected_object_sptr>& detections1,
+    const std::vector<kv::detected_object_sptr>& detections2 );
 
   // Hungarian algorithm for minimum weight assignment
   std::vector<std::pair<int, int>> minimum_weight_assignment(
@@ -286,23 +178,115 @@ ocv_measurement_process::priv
 }
 
 // -----------------------------------------------------------------------------
-InternalDetection
+std::vector<cv::Point2d>
 ocv_measurement_process::priv
-::detection_from_vital( kv::detected_object_sptr det )
+::compute_box_points( kv::detected_object_sptr det )
 {
-  InternalDetection internal;
+  std::vector<cv::Point2d> box_points;
+  kv::bounding_box_d bbox = det->bounding_box();
+  auto mask_container = det->mask();
 
-  internal.bbox = det->bounding_box();
-
-  auto mask = det->mask();
-  if( mask )
+  if( !mask_container )
   {
-    internal.mask = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      mask->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+    // Use axis-aligned bbox corners
+    box_points.push_back( cv::Point2d( bbox.min_x(), bbox.min_y() ) );
+    box_points.push_back( cv::Point2d( bbox.max_x(), bbox.min_y() ) );
+    box_points.push_back( cv::Point2d( bbox.max_x(), bbox.max_y() ) );
+    box_points.push_back( cv::Point2d( bbox.min_x(), bbox.max_y() ) );
+  }
+  else
+  {
+    // Convert mask to OpenCV format
+    cv::Mat mask = kwiver::arrows::ocv::image_container::vital_to_ocv(
+      mask_container->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+    // Find convex hull from mask
+    std::vector<cv::Point> points;
+    cv::Mat mask_squeezed = mask;
+    if( mask.dims > 2 && mask.size[2] == 1 )
+    {
+      mask_squeezed = mask.reshape( 1, mask.rows );
+    }
+
+    for( int y = 0; y < mask_squeezed.rows; ++y )
+    {
+      for( int x = 0; x < mask_squeezed.cols; ++x )
+      {
+        if( mask_squeezed.at<uchar>( y, x ) > 0 )
+        {
+          points.push_back( cv::Point( x, y ) );
+        }
+      }
+    }
+
+    if( points.empty() )
+    {
+      // Fallback to bbox
+      box_points.push_back( cv::Point2d( bbox.min_x(), bbox.min_y() ) );
+      box_points.push_back( cv::Point2d( bbox.max_x(), bbox.min_y() ) );
+      box_points.push_back( cv::Point2d( bbox.max_x(), bbox.max_y() ) );
+      box_points.push_back( cv::Point2d( bbox.min_x(), bbox.max_y() ) );
+      return box_points;
+    }
+
+    std::vector<cv::Point> hull;
+    cv::convexHull( points, hull );
+
+    // Find minimum area rotated rectangle
+    cv::RotatedRect rotated_rect = cv::minAreaRect( hull );
+    cv::Point2f vertices[4];
+    rotated_rect.points( vertices );
+
+    // Transform from mask coordinates to image coordinates
+    for( int i = 0; i < 4; ++i )
+    {
+      double x = vertices[i].x + bbox.min_x();
+      double y = vertices[i].y + bbox.min_y();
+      box_points.push_back( cv::Point2d( x, y ) );
+    }
   }
 
-  internal.compute_box_points();
-  return internal;
+  return box_points;
+}
+
+// -----------------------------------------------------------------------------
+std::pair<cv::Point2d, cv::Point2d>
+ocv_measurement_process::priv
+::center_keypoints( const std::vector<cv::Point2d>& box_points )
+{
+  if( box_points.size() < 4 )
+  {
+    return std::make_pair( cv::Point2d(0, 0), cv::Point2d(0, 0) );
+  }
+
+  // Compute edge midpoints
+  std::vector<cv::Point2d> centers;
+  centers.push_back( ( box_points[0] + box_points[1] ) * 0.5 );
+  centers.push_back( ( box_points[1] + box_points[2] ) * 0.5 );
+  centers.push_back( ( box_points[2] + box_points[3] ) * 0.5 );
+  centers.push_back( ( box_points[3] + box_points[0] ) * 0.5 );
+
+  // Find min/max x points (head/tail)
+  cv::Point2d min_pt = centers[0];
+  cv::Point2d max_pt = centers[0];
+  double min_x = centers[0].x;
+  double max_x = centers[0].x;
+
+  for( const auto& pt : centers )
+  {
+    if( pt.x < min_x )
+    {
+      min_x = pt.x;
+      min_pt = pt;
+    }
+    if( pt.x > max_x )
+    {
+      max_x = pt.x;
+      max_pt = pt;
+    }
+  }
+
+  return std::make_pair( max_pt, min_pt );  // head (max_x), tail (min_x)
 }
 
 // -----------------------------------------------------------------------------
@@ -379,7 +363,6 @@ ocv_measurement_process::priv
   }
 
   // Simple greedy assignment (approximation to Hungarian algorithm)
-  // For optimal results, consider using a proper Hungarian algorithm implementation
   std::vector<std::pair<int, int>> assignment;
   std::vector<bool> row_used( n, false );
   std::vector<bool> col_used( n, false );
@@ -426,8 +409,8 @@ ocv_measurement_process::priv
 std::vector<MatchData>
 ocv_measurement_process::priv
 ::find_matches(
-  const std::vector<InternalDetection>& detections1,
-  const std::vector<InternalDetection>& detections2 )
+  const std::vector<kv::detected_object_sptr>& detections1,
+  const std::vector<kv::detected_object_sptr>& detections2 )
 {
   size_t n1 = detections1.size();
   size_t n2 = detections2.size();
@@ -442,6 +425,17 @@ ocv_measurement_process::priv
     dynamic_cast<kv::simple_camera_perspective&>( *(m_calibration->left()) ) );
   kv::simple_camera_perspective& right_cam(
     dynamic_cast<kv::simple_camera_perspective&>( *(m_calibration->right()) ) );
+
+  // Pre-compute box points for all detections
+  std::vector<std::vector<cv::Point2d>> box_pts1( n1 ), box_pts2( n2 );
+  for( size_t i = 0; i < n1; ++i )
+  {
+    box_pts1[i] = compute_box_points( detections1[i] );
+  }
+  for( size_t j = 0; j < n2; ++j )
+  {
+    box_pts2[j] = compute_box_points( detections2[j] );
+  }
 
   cv::Mat cost_errors = cv::Mat::zeros( static_cast<int>(n1), static_cast<int>(n2), CV_64F );
   std::map<std::pair<int, int>, MatchData> cand_data;
@@ -461,12 +455,9 @@ ocv_measurement_process::priv
   {
     for( size_t j = 0; j < n2; ++j )
     {
-      const auto& det1 = detections1[i];
-      const auto& det2 = detections2[j];
-
-      // Get keypoints (using center keypoints like the Python version)
-      auto kp1 = det1.center_keypoints();
-      auto kp2 = det2.center_keypoints();
+      // Get keypoints from box points
+      auto kp1 = center_keypoints( box_pts1[i] );
+      auto kp2 = center_keypoints( box_pts2[j] );
 
       // Triangulate both keypoints
       Eigen::Vector3f world_pt_head, world_pt_tail;
@@ -495,8 +486,8 @@ ocv_measurement_process::priv
       data.range = range;
       data.error = error;
       data.dz = dz;
-      data.box_pts1 = det1.box_points;
-      data.box_pts2 = det2.box_points;
+      data.box_pts1 = box_pts1[i];
+      data.box_pts2 = box_pts2[j];
       data.world_pt1 = world_pt_head;
       data.world_pt2 = world_pt_tail;
 
@@ -638,17 +629,15 @@ ocv_measurement_process
   auto detection_set2 = grab_from_port_using_trait( detected_object_set2 );
   auto timestamp = grab_from_port_using_trait( timestamp );
 
-  // Convert to internal format
-  std::vector<InternalDetection> detections1, detections2;
-
+  // Convert to vectors for indexed access
+  std::vector<kv::detected_object_sptr> detections1, detections2;
   for( const auto& det : *detection_set1 )
   {
-    detections1.push_back( d->detection_from_vital( det ) );
+    detections1.push_back( det );
   }
-
   for( const auto& det : *detection_set2 )
   {
-    detections2.push_back( d->detection_from_vital( det ) );
+    detections2.push_back( det );
   }
 
   // Find matches
@@ -689,22 +678,9 @@ ocv_measurement_process
     }
   }
 
-  // Create output detection vectors
-  std::vector<kv::detected_object_sptr> output_dets1, output_dets2;
-
-  for( const auto& det : *detection_set1 )
-  {
-    output_dets1.push_back( det );
-  }
-
-  for( const auto& det : *detection_set2 )
-  {
-    output_dets2.push_back( det );
-  }
-
   // Track which detections have matches
-  std::vector<bool> has_match1( detection_set1->size(), false );
-  std::vector<bool> has_match2( detection_set2->size(), false );
+  std::vector<bool> has_match1( detections1.size(), false );
+  std::vector<bool> has_match2( detections2.size(), false );
 
   // Assign lengths to matched detections and create tracks
   std::vector<kv::track_sptr> output_trks1, output_trks2;
@@ -718,21 +694,21 @@ ocv_measurement_process
     has_match2[i2] = true;
 
     // Set length on detections
-    output_dets1[i1]->set_length( match.fishlen );
-    output_dets2[i2]->set_length( match.fishlen );
+    detections1[i1]->set_length( match.fishlen );
+    detections2[i2]->set_length( match.fishlen );
 
     // Add keypoints
-    auto kp1 = detections1[i1].center_keypoints();
-    auto kp2 = detections2[i2].center_keypoints();
+    auto kp1 = d->center_keypoints( match.box_pts1 );
+    auto kp2 = d->center_keypoints( match.box_pts2 );
 
-    output_dets1[i1]->add_keypoint( "head", kv::point_2d( kp1.first.x, kp1.first.y ) );
-    output_dets1[i1]->add_keypoint( "tail", kv::point_2d( kp1.second.x, kp1.second.y ) );
-    output_dets2[i2]->add_keypoint( "head", kv::point_2d( kp2.first.x, kp2.first.y ) );
-    output_dets2[i2]->add_keypoint( "tail", kv::point_2d( kp2.second.x, kp2.second.y ) );
+    detections1[i1]->add_keypoint( "head", kv::point_2d( kp1.first.x, kp1.first.y ) );
+    detections1[i1]->add_keypoint( "tail", kv::point_2d( kp1.second.x, kp1.second.y ) );
+    detections2[i2]->add_keypoint( "head", kv::point_2d( kp2.first.x, kp2.first.y ) );
+    detections2[i2]->add_keypoint( "tail", kv::point_2d( kp2.second.x, kp2.second.y ) );
 
     // Create tracks with same ID for matched pairs
-    auto state1 = std::make_shared<kv::object_track_state>( timestamp, output_dets1[i1] );
-    auto state2 = std::make_shared<kv::object_track_state>( timestamp, output_dets2[i2] );
+    auto state1 = std::make_shared<kv::object_track_state>( timestamp, detections1[i1] );
+    auto state2 = std::make_shared<kv::object_track_state>( timestamp, detections2[i2] );
 
     auto track1 = kv::track::create();
     track1->set_id( d->m_track_id );
@@ -749,11 +725,11 @@ ocv_measurement_process
   }
 
   // Add unmatched detections as separate tracks
-  for( size_t i = 0; i < output_dets1.size(); ++i )
+  for( size_t i = 0; i < detections1.size(); ++i )
   {
     if( !has_match1[i] )
     {
-      auto state = std::make_shared<kv::object_track_state>( timestamp, output_dets1[i] );
+      auto state = std::make_shared<kv::object_track_state>( timestamp, detections1[i] );
       auto track = kv::track::create();
       track->set_id( d->m_track_id );
       track->append( state );
@@ -762,11 +738,11 @@ ocv_measurement_process
     }
   }
 
-  for( size_t i = 0; i < output_dets2.size(); ++i )
+  for( size_t i = 0; i < detections2.size(); ++i )
   {
     if( !has_match2[i] )
     {
-      auto state = std::make_shared<kv::object_track_state>( timestamp, output_dets2[i] );
+      auto state = std::make_shared<kv::object_track_state>( timestamp, detections2[i] );
       auto track = kv::track::create();
       track->set_id( d->m_track_id );
       track->append( state );
@@ -776,8 +752,8 @@ ocv_measurement_process
   }
 
   // Create output sets
-  auto output_det_set1 = std::make_shared<kv::detected_object_set>( output_dets1 );
-  auto output_det_set2 = std::make_shared<kv::detected_object_set>( output_dets2 );
+  auto output_det_set1 = std::make_shared<kv::detected_object_set>( detections1 );
+  auto output_det_set2 = std::make_shared<kv::detected_object_set>( detections2 );
   auto output_track_set1 = std::make_shared<kv::object_track_set>( output_trks1 );
   auto output_track_set2 = std::make_shared<kv::object_track_set>( output_trks2 );
 
