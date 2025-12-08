@@ -32,7 +32,6 @@
 #include <vital/plugin_loader/plugin_loader.h>
 
 #include "ocv_measurement_process.h"
-#include "ocv_add_keypoints_from_poly.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -60,19 +59,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Stereo measurement process that matches detections between "
                     "left and right cameras and computes fish length measurements "
                     "using triangulation" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-  // ---------------------------------------------------------------------------
-  auto fact2 = vpm.ADD_PROCESS( viame::ocv_add_keypoints_from_poly );
-  fact2->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "add_keypoints_from_oriented_bbox" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Adds head and tail keypoints to detections based on their "
-                    "mask or bounding box. Computes an oriented bounding box and "
-                    "places keypoints at the midpoints of the short edges." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

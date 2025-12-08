@@ -36,6 +36,8 @@
 #ifndef VIAME_OCV_STEREO_UTILS_H
 #define VIAME_OCV_STEREO_UTILS_H
 
+#include <plugins/opencv/viame_opencv_export.h>
+
 #include <vital/types/detected_object.h>
 #include <vital/types/bounding_box.h>
 
@@ -55,6 +57,7 @@ namespace viame
 ///
 /// \param det The detection to compute box points for
 /// \return Vector of 4 corner points in image coordinates
+VIAME_OPENCV_EXPORT
 std::vector<cv::Point2d>
 compute_box_points( kwiver::vital::detected_object_sptr det );
 
@@ -66,6 +69,7 @@ compute_box_points( kwiver::vital::detected_object_sptr det );
 ///
 /// \param box_points Vector of 4 corner points
 /// \return Pair of (head, tail) points where head has max x and tail has min x
+VIAME_OPENCV_EXPORT
 std::pair<cv::Point2d, cv::Point2d>
 center_keypoints( const std::vector<cv::Point2d>& box_points );
 
@@ -76,6 +80,7 @@ center_keypoints( const std::vector<cv::Point2d>& box_points );
 ///
 /// \param det The detection to add keypoints to (modified in place)
 /// \return true if keypoints were added, false if detection has no valid geometry
+VIAME_OPENCV_EXPORT
 bool
 add_keypoints_from_box( kwiver::vital::detected_object_sptr det );
 

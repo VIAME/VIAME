@@ -30,48 +30,53 @@
 
 /**
  * \file
- * \brief Process to add keypoints to detections from oriented bounding box
+ * \brief Algorithm to add keypoints to detections from oriented bounding box
  */
 
 #ifndef VIAME_OCV_ADD_KEYPOINTS_FROM_POLY_H
 #define VIAME_OCV_ADD_KEYPOINTS_FROM_POLY_H
 
-#include <sprokit/pipeline/process.h>
-
 #include <plugins/opencv/viame_opencv_export.h>
 
-#include <memory>
+#include <vital/algo/refine_detections.h>
 
 namespace viame
 {
 
 // -----------------------------------------------------------------------------
 /**
- * @brief Process that adds head/tail keypoints to detections based on their
+ * @brief Algorithm that adds head/tail keypoints to detections based on their
  *        mask or bounding box.
  *
- * This process takes a detection set as input, computes an oriented bounding
+ * This algorithm takes a detection set as input, computes an oriented bounding
  * box from each detection's mask (or uses the axis-aligned bounding box if
  * no mask is present), and adds head/tail keypoints at the midpoints of the
  * short edges. The head keypoint is placed at the end with the larger x
  * coordinate.
  */
-class VIAME_OPENCV_NO_EXPORT ocv_add_keypoints_from_poly
-  : public sprokit::process
+class VIAME_OPENCV_EXPORT ocv_add_keypoints_from_poly
+  : public kwiver::vital::algorithm_impl<
+      ocv_add_keypoints_from_poly,
+      kwiver::vital::algo::refine_detections >
 {
 public:
-  // -- CONSTRUCTORS --
-  ocv_add_keypoints_from_poly( kwiver::vital::config_block_sptr const& config );
+  PLUGIN_INFO( "add_keypoints_from_oriented_bbox",
+    "Adds head and tail keypoints to detections based on their "
+    "mask or bounding box. Computes an oriented bounding box and "
+    "places keypoints at the midpoints of the short edges." )
+
+  ocv_add_keypoints_from_poly();
   virtual ~ocv_add_keypoints_from_poly();
 
-protected:
-  void _configure() override;
-  void _step() override;
+  virtual kwiver::vital::config_block_sptr get_configuration() const override;
+  virtual void set_configuration( kwiver::vital::config_block_sptr config ) override;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+
+  virtual kwiver::vital::detected_object_set_sptr
+  refine( kwiver::vital::image_container_sptr image_data,
+          kwiver::vital::detected_object_set_sptr detections ) const override;
 
 private:
-  void make_ports();
-  void make_config();
-
   class priv;
   const std::unique_ptr<priv> d;
 

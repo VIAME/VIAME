@@ -25,7 +25,9 @@ set( plugin_headers
   ocv_optimize_stereo_cameras.h
   ocv_stereo_feature_track_filter.h
   ocv_kmedians.h
-  split_image_habcam.h  
+  ocv_stereo_utils.h
+  ocv_add_keypoints_from_poly.h
+  split_image_habcam.h
   )
 
 set( plugin_sources
@@ -38,6 +40,8 @@ set( plugin_sources
   ocv_optimize_stereo_cameras.cxx
   ocv_stereo_feature_track_filter.cxx
   ocv_kmedians.cxx
+  ocv_stereo_utils.cxx
+  ocv_add_keypoints_from_poly.cxx
   split_image_habcam.cxx
   )
 
@@ -97,16 +101,12 @@ find_package( Eigen3 REQUIRED NO_MODULE )
 
 # Add process library
 set( process_headers
-  ocv_stereo_utils.h
   ocv_measurement_process.h
-  ocv_add_keypoints_from_poly.h
 )
 
 set( process_sources
   register_processes.cxx
-  ocv_stereo_utils.cxx
   ocv_measurement_process.cxx
-  ocv_add_keypoints_from_poly.cxx
 )
 
 kwiver_add_plugin( viame_processes_opencv

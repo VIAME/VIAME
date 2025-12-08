@@ -30,15 +30,11 @@
 
 /**
  * \file
- * \brief Process to add keypoints to detections from oriented bounding box
+ * \brief Algorithm to add keypoints to detections from oriented bounding box
  */
 
 #include "ocv_add_keypoints_from_poly.h"
 #include "ocv_stereo_utils.h"
-
-#include <vital/types/detected_object_set.h>
-
-#include <sprokit/processes/kwiver_type_traits.h>
 
 namespace kv = kwiver::vital;
 
@@ -50,33 +46,20 @@ namespace viame
 class ocv_add_keypoints_from_poly::priv
 {
 public:
-  explicit priv( ocv_add_keypoints_from_poly* parent );
-  ~priv();
+  priv()
+  {
+  }
 
-  ocv_add_keypoints_from_poly* parent;
+  ~priv()
+  {
+  }
 };
-
-// -----------------------------------------------------------------------------
-ocv_add_keypoints_from_poly::priv
-::priv( ocv_add_keypoints_from_poly* ptr )
-  : parent( ptr )
-{
-}
-
-// -----------------------------------------------------------------------------
-ocv_add_keypoints_from_poly::priv
-::~priv()
-{
-}
 
 // =============================================================================
 ocv_add_keypoints_from_poly
-::ocv_add_keypoints_from_poly( kv::config_block_sptr const& config )
-  : process( config ),
-    d( new ocv_add_keypoints_from_poly::priv( this ) )
+::ocv_add_keypoints_from_poly()
+  : d( new priv() )
 {
-  make_ports();
-  make_config();
 }
 
 ocv_add_keypoints_from_poly
@@ -85,64 +68,48 @@ ocv_add_keypoints_from_poly
 }
 
 // -----------------------------------------------------------------------------
-void
+kv::config_block_sptr
 ocv_add_keypoints_from_poly
-::make_ports()
+::get_configuration() const
 {
-  sprokit::process::port_flags_t required;
-
-  required.insert( flag_required );
-
-  // Input port
-  declare_input_port_using_trait( detected_object_set, required );
-
-  // Output port
-  declare_output_port_using_trait( detected_object_set, required );
+  kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
+  return config;
 }
 
 // -----------------------------------------------------------------------------
 void
 ocv_add_keypoints_from_poly
-::make_config()
+::set_configuration( kv::config_block_sptr config )
 {
-  // No configuration options needed for this simple process
 }
 
 // -----------------------------------------------------------------------------
-void
+bool
 ocv_add_keypoints_from_poly
-::_configure()
+::check_configuration( kv::config_block_sptr config ) const
 {
-  // Nothing to configure
+  return true;
 }
 
 // -----------------------------------------------------------------------------
-void
+kv::detected_object_set_sptr
 ocv_add_keypoints_from_poly
-::_step()
+::refine( kv::image_container_sptr image_data,
+          kv::detected_object_set_sptr detections ) const
 {
-  // Grab input
-  auto detection_set = grab_from_port_using_trait( detected_object_set );
+  auto output = std::make_shared<kv::detected_object_set>();
 
-  // Process each detection
-  std::vector<kv::detected_object_sptr> output_dets;
-
-  for( const auto& det : *detection_set )
+  for( auto det : *detections )
   {
-    // Only add keypoints if the detection has a mask
     if( det->mask() )
     {
       add_keypoints_from_box( det );
     }
 
-    output_dets.push_back( det );
+    output->add( det );
   }
 
-  // Create output set
-  auto output_set = std::make_shared<kv::detected_object_set>( output_dets );
-
-  // Push output
-  push_to_port_using_trait( detected_object_set, output_set );
+  return output;
 }
 
 } // end namespace viame
