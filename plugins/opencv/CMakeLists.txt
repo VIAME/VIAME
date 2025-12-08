@@ -97,12 +97,16 @@ find_package( Eigen3 REQUIRED NO_MODULE )
 
 # Add process library
 set( process_headers
+  ocv_stereo_utils.h
   ocv_measurement_process.h
+  ocv_add_keypoints_from_poly.h
 )
 
 set( process_sources
   register_processes.cxx
+  ocv_stereo_utils.cxx
   ocv_measurement_process.cxx
+  ocv_add_keypoints_from_poly.cxx
 )
 
 kwiver_add_plugin( viame_processes_opencv
