@@ -92,6 +92,36 @@ target_link_libraries( viame_opencv_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
+# Eigen is required for MVG triangulation
+find_package( Eigen3 REQUIRED NO_MODULE )
+
+# Add process library
+set( process_headers
+  ocv_measurement_process.h
+)
+
+set( process_sources
+  register_processes.cxx
+  ocv_measurement_process.cxx
+)
+
+kwiver_add_plugin( viame_processes_opencv
+  SUBDIR           ${viame_plugin_process_subdir}
+  SOURCES          ${process_sources}
+  PRIVATE          kwiver::vital
+                   kwiver::vital_algo
+                   kwiver::vital_config
+                   kwiver::vital_logger
+                   kwiver::vital_util
+                   kwiver::vital_vpm
+                   kwiver::sprokit_pipeline
+                   kwiver::kwiver_algo_ocv
+                   kwiver::kwiver_algo_mvg
+                   Eigen3::Eigen
+                   ${OpenCV_LIBRARIES}
+                   viame_opencv
+)
+
 if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames
     __init__
