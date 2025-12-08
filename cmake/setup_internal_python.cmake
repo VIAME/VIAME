@@ -6,8 +6,6 @@ list( GET Python_VERSION_LIST 2 Python_VERSION_PATCH )
 
 set( Python_VERSION ${VIAME_PYTHON_VERSION} CACHE INTERNAL "Forced" FORCE )
 set( Python_FOUND TRUE CACHE INTERNAL "Forced" FORCE )
-set( Python_Interpreter_FOUND TRUE CACHE INTERNAL "Forced" FORCE )
-set( Python_Development_FOUND TRUE CACHE INTERNAL "Forced" FORCE )
 set( Python_SOABI ""   CACHE INTERNAL "Forced" FORCE )
 
 set( Python_INCLUDE_DIR ${VIAME_INSTALL_PREFIX}/include CACHE PATH "Forced" FORCE )
