@@ -566,4 +566,53 @@ compute_keypoints_skeleton( kv::detected_object_sptr det )
   }
 }
 
+// -----------------------------------------------------------------------------
+std::pair<cv::Point2d, cv::Point2d>
+compute_keypoints( kv::detected_object_sptr det, const std::string& method )
+{
+  if( method == "pca" )
+  {
+    return compute_keypoints_pca( det );
+  }
+  else if( method == "farthest" )
+  {
+    return compute_keypoints_farthest( det );
+  }
+  else if( method == "hull_extremes" )
+  {
+    return compute_keypoints_hull_extremes( det );
+  }
+  else if( method == "skeleton" )
+  {
+    return compute_keypoints_skeleton( det );
+  }
+  else // oriented_bbox (default)
+  {
+    return compute_keypoints_oriented_bbox( det );
+  }
+}
+
+// -----------------------------------------------------------------------------
+bool
+is_valid_keypoint_method( const std::string& method )
+{
+  return method == "oriented_bbox" ||
+         method == "pca" ||
+         method == "farthest" ||
+         method == "hull_extremes" ||
+         method == "skeleton";
+}
+
+// -----------------------------------------------------------------------------
+std::string
+keypoint_method_description()
+{
+  return "Method for computing keypoints from polygon/mask. Options:\n"
+         "  oriented_bbox - Use midpoints of short edges of oriented bounding box (default)\n"
+         "  pca - Use Principal Component Analysis to find major axis extremes\n"
+         "  farthest - Find the two farthest points on the polygon\n"
+         "  hull_extremes - Use midpoints of short edges of convex hull's oriented bbox\n"
+         "  skeleton - Use endpoints of the medial axis/skeleton";
+}
+
 } // namespace viame

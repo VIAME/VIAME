@@ -147,6 +147,33 @@ VIAME_OPENCV_EXPORT
 std::pair<cv::Point2d, cv::Point2d>
 compute_keypoints_skeleton( kwiver::vital::detected_object_sptr det );
 
+/// Compute keypoints using specified method.
+///
+/// Convenience function that dispatches to the appropriate keypoint computation
+/// method based on the method string.
+///
+/// \param det The detection to compute keypoints for
+/// \param method Method name: "oriented_bbox", "pca", "farthest", "hull_extremes", or "skeleton"
+/// \return Pair of (head, tail) points where head has max x
+VIAME_OPENCV_EXPORT
+std::pair<cv::Point2d, cv::Point2d>
+compute_keypoints( kwiver::vital::detected_object_sptr det, const std::string& method );
+
+/// Check if a keypoint method string is valid.
+///
+/// \param method Method name to validate
+/// \return true if method is valid, false otherwise
+VIAME_OPENCV_EXPORT
+bool
+is_valid_keypoint_method( const std::string& method );
+
+/// Get description string for keypoint method configuration.
+///
+/// \return Configuration description string listing all available methods
+VIAME_OPENCV_EXPORT
+std::string
+keypoint_method_description();
+
 } // namespace viame
 
 #endif // VIAME_OCV_KEYPOINTS_FROM_MASK_H

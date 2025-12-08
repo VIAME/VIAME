@@ -80,13 +80,7 @@ ocv_add_keypoints_from_poly
 {
   kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
 
-  config->set_value( "method", d->method,
-    "Method for computing keypoints from polygon/mask. Options:\n"
-    "  oriented_bbox - Use midpoints of short edges of oriented bounding box (default)\n"
-    "  pca - Use Principal Component Analysis to find major axis extremes\n"
-    "  farthest - Find the two farthest points on the polygon\n"
-    "  hull_extremes - Use midpoints of short edges of convex hull's oriented bbox\n"
-    "  skeleton - Use endpoints of the medial axis/skeleton" );
+  config->set_value( "method", d->method, keypoint_method_description() );
 
   return config;
 }
@@ -106,14 +100,9 @@ ocv_add_keypoints_from_poly
 {
   std::string method = config->get_value<std::string>( "method", "oriented_bbox" );
 
-  if( method != "oriented_bbox" &&
-      method != "pca" &&
-      method != "farthest" &&
-      method != "hull_extremes" &&
-      method != "skeleton" )
+  if( !is_valid_keypoint_method( method ) )
   {
-    LOG_ERROR( logger(), "Invalid method: " << method <<
-      ". Must be one of: oriented_bbox, pca, farthest, hull_extremes, skeleton" );
+    LOG_ERROR( logger(), "Invalid method: " << method );
     return false;
   }
 
@@ -132,28 +121,7 @@ ocv_add_keypoints_from_poly
   {
     if( det->mask() )
     {
-      std::pair<cv::Point2d, cv::Point2d> keypoints;
-
-      if( d->method == "pca" )
-      {
-        keypoints = compute_keypoints_pca( det );
-      }
-      else if( d->method == "farthest" )
-      {
-        keypoints = compute_keypoints_farthest( det );
-      }
-      else if( d->method == "hull_extremes" )
-      {
-        keypoints = compute_keypoints_hull_extremes( det );
-      }
-      else if( d->method == "skeleton" )
-      {
-        keypoints = compute_keypoints_skeleton( det );
-      }
-      else // oriented_bbox (default)
-      {
-        keypoints = compute_keypoints_oriented_bbox( det );
-      }
+      auto keypoints = compute_keypoints( det, d->method );
 
       det->add_keypoint( "head", kv::point_2d( keypoints.first.x, keypoints.first.y ) );
       det->add_keypoint( "tail", kv::point_2d( keypoints.second.x, keypoints.second.y ) );

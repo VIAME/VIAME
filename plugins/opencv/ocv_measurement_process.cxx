@@ -77,6 +77,8 @@ create_config_trait( max_error_large, double, "14.0",
   "Maximum reprojection error threshold for large fish (fishlen > small_len)" );
 create_config_trait( small_len, double, "150.0",
   "Length threshold (in mm) to switch between small and large error thresholds" );
+create_config_trait( keypoint_method, std::string, "oriented_bbox",
+  "Method for computing keypoints from polygon/mask" );
 
 // Port traits
 create_port_trait( detected_object_set1, detected_object_set,
@@ -98,8 +100,8 @@ struct MatchData
   double range;             // Average Z distance
   double error;             // Reprojection error
   double dz;                // Z difference between keypoints
-  std::vector<cv::Point2d> box_pts1;
-  std::vector<cv::Point2d> box_pts2;
+  std::pair<cv::Point2d, cv::Point2d> keypoints1;  // head/tail for detection 1
+  std::pair<cv::Point2d, cv::Point2d> keypoints2;  // head/tail for detection 2
   Eigen::Vector3f world_pt1;  // 3D world point for head
   Eigen::Vector3f world_pt2;  // 3D world point for tail
 };
@@ -135,6 +137,7 @@ public:
   double m_max_error_small;
   double m_max_error_large;
   double m_small_len;
+  std::string m_keypoint_method;
 
   // State
   kv::camera_rig_stereo_sptr m_calibration;
@@ -153,6 +156,7 @@ ocv_measurement_process::priv
   , m_max_error_small( 6.0 )
   , m_max_error_large( 14.0 )
   , m_small_len( 150.0 )
+  , m_keypoint_method( "oriented_bbox" )
   , m_frame_id( 0 )
   , m_track_id( 0 )
   , parent( ptr )
@@ -306,15 +310,15 @@ ocv_measurement_process::priv
   kv::simple_camera_perspective& right_cam(
     dynamic_cast<kv::simple_camera_perspective&>( *(m_calibration->right()) ) );
 
-  // Pre-compute box points for all detections
-  std::vector<std::vector<cv::Point2d>> box_pts1( n1 ), box_pts2( n2 );
+  // Pre-compute keypoints for all detections using configured method
+  std::vector<std::pair<cv::Point2d, cv::Point2d>> kpts1( n1 ), kpts2( n2 );
   for( size_t i = 0; i < n1; ++i )
   {
-    box_pts1[i] = compute_box_points( detections1[i] );
+    kpts1[i] = compute_keypoints( detections1[i], m_keypoint_method );
   }
   for( size_t j = 0; j < n2; ++j )
   {
-    box_pts2[j] = compute_box_points( detections2[j] );
+    kpts2[j] = compute_keypoints( detections2[j], m_keypoint_method );
   }
 
   cv::Mat cost_errors = cv::Mat::zeros( static_cast<int>(n1), static_cast<int>(n2), CV_64F );
@@ -335,9 +339,9 @@ ocv_measurement_process::priv
   {
     for( size_t j = 0; j < n2; ++j )
     {
-      // Get keypoints from box points
-      auto kp1 = center_keypoints( box_pts1[i] );
-      auto kp2 = center_keypoints( box_pts2[j] );
+      // Get pre-computed keypoints
+      const auto& kp1 = kpts1[i];
+      const auto& kp2 = kpts2[j];
 
       // Triangulate both keypoints
       Eigen::Vector3f world_pt_head, world_pt_tail;
@@ -366,8 +370,8 @@ ocv_measurement_process::priv
       data.range = range;
       data.error = error;
       data.dz = dz;
-      data.box_pts1 = box_pts1[i];
-      data.box_pts2 = box_pts2[j];
+      data.keypoints1 = kp1;
+      data.keypoints2 = kp2;
       data.world_pt1 = world_pt_head;
       data.world_pt2 = world_pt_tail;
 
@@ -455,6 +459,7 @@ ocv_measurement_process
   declare_config_using_trait( max_error_small );
   declare_config_using_trait( max_error_large );
   declare_config_using_trait( small_len );
+  declare_config_using_trait( keypoint_method );
 }
 
 // -----------------------------------------------------------------------------
@@ -467,6 +472,13 @@ ocv_measurement_process
   d->m_max_error_small = config_value_using_trait( max_error_small );
   d->m_max_error_large = config_value_using_trait( max_error_large );
   d->m_small_len = config_value_using_trait( small_len );
+  d->m_keypoint_method = config_value_using_trait( keypoint_method );
+
+  // Validate keypoint method
+  if( !is_valid_keypoint_method( d->m_keypoint_method ) )
+  {
+    throw std::runtime_error( "Invalid keypoint_method: " + d->m_keypoint_method );
+  }
 
   // Load calibration using kwiver's stereo rig reader
   if( d->m_calibration_file.empty() )
@@ -492,7 +504,7 @@ ocv_measurement_process
     else
     {
       // Write header
-      d->m_output_file << "current_frame,fishlen,range,error,dz,box_pts1,box_pts2\n";
+      d->m_output_file << "current_frame,fishlen,range,error,dz,keypoints1,keypoints2\n";
     }
   }
 
@@ -536,20 +548,11 @@ ocv_measurement_process
                        << match.error << ","
                        << match.dz << ",";
 
-      // Box points as string
-      d->m_output_file << "[";
-      for( size_t k = 0; k < match.box_pts1.size(); ++k )
-      {
-        if( k > 0 ) d->m_output_file << ";";
-        d->m_output_file << "[" << match.box_pts1[k].x << ";" << match.box_pts1[k].y << "]";
-      }
-      d->m_output_file << "],[";
-      for( size_t k = 0; k < match.box_pts2.size(); ++k )
-      {
-        if( k > 0 ) d->m_output_file << ";";
-        d->m_output_file << "[" << match.box_pts2[k].x << ";" << match.box_pts2[k].y << "]";
-      }
-      d->m_output_file << "]\n";
+      // Keypoints as string (head;tail for each camera)
+      d->m_output_file << "[" << match.keypoints1.first.x << ";" << match.keypoints1.first.y << "];"
+                       << "[" << match.keypoints1.second.x << ";" << match.keypoints1.second.y << "],";
+      d->m_output_file << "[" << match.keypoints2.first.x << ";" << match.keypoints2.first.y << "];"
+                       << "[" << match.keypoints2.second.x << ";" << match.keypoints2.second.y << "]\n";
     }
 
     if( !matches.empty() )
@@ -577,9 +580,9 @@ ocv_measurement_process
     detections1[i1]->set_length( match.fishlen );
     detections2[i2]->set_length( match.fishlen );
 
-    // Add keypoints
-    auto kp1 = center_keypoints( match.box_pts1 );
-    auto kp2 = center_keypoints( match.box_pts2 );
+    // Add keypoints (already computed with configured method)
+    const auto& kp1 = match.keypoints1;
+    const auto& kp2 = match.keypoints2;
 
     detections1[i1]->add_keypoint( "head", kv::point_2d( kp1.first.x, kp1.first.y ) );
     detections1[i1]->add_keypoint( "tail", kv::point_2d( kp1.second.x, kp1.second.y ) );
