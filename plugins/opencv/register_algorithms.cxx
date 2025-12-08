@@ -43,7 +43,7 @@
 #include "ocv_image_enhancement.h"
 #include "ocv_target_detector.h"
 #include "ocv_optimize_stereo_cameras.h"
-#include "ocv_add_keypoints_from_poly.h"
+#include "ocv_refiner_add_kps_from_mask.h"
 
 #include "split_image_habcam.h"
 
@@ -68,7 +68,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< ocv_rectified_stereo_disparity_map >();
   reg.register_algorithm< ocv_target_detector >();
   reg.register_algorithm< ocv_optimize_stereo_cameras >();
-  reg.register_algorithm< ocv_add_keypoints_from_poly >();
+  reg.register_algorithm< ocv_refiner_add_kps_from_mask >();
   reg.register_algorithm< split_image_habcam >();
 
   reg.mark_module_as_loaded();

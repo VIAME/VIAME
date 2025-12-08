@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Algorithm to add keypoints to detections from oriented bounding box
+ * \brief Algorithm to add keypoints to detections from mask
  */
 
-#ifndef VIAME_OCV_ADD_KEYPOINTS_FROM_POLY_H
-#define VIAME_OCV_ADD_KEYPOINTS_FROM_POLY_H
+#ifndef VIAME_OCV_REFINER_ADD_KPS_FROM_MASK_H
+#define VIAME_OCV_REFINER_ADD_KPS_FROM_MASK_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -48,25 +48,23 @@ namespace viame
  * @brief Algorithm that adds head/tail keypoints to detections based on their
  *        mask or bounding box.
  *
- * This algorithm takes a detection set as input, computes an oriented bounding
- * box from each detection's mask (or uses the axis-aligned bounding box if
- * no mask is present), and adds head/tail keypoints at the midpoints of the
- * short edges. The head keypoint is placed at the end with the larger x
- * coordinate.
+ * This algorithm takes a detection set as input, computes keypoints using one
+ * of several methods (oriented bounding box, PCA, farthest points, hull extremes,
+ * or skeleton), and adds head/tail keypoints. The head keypoint is placed at
+ * the end with the larger x coordinate.
  */
-class VIAME_OPENCV_EXPORT ocv_add_keypoints_from_poly
+class VIAME_OPENCV_EXPORT ocv_refiner_add_kps_from_mask
   : public kwiver::vital::algorithm_impl<
-      ocv_add_keypoints_from_poly,
+      ocv_refiner_add_kps_from_mask,
       kwiver::vital::algo::refine_detections >
 {
 public:
-  PLUGIN_INFO( "add_keypoints_from_oriented_bbox",
+  PLUGIN_INFO( "add_keypoints_from_mask",
     "Adds head and tail keypoints to detections based on their "
-    "mask or bounding box. Computes an oriented bounding box and "
-    "places keypoints at the midpoints of the short edges." )
+    "mask or bounding box using configurable methods." )
 
-  ocv_add_keypoints_from_poly();
-  virtual ~ocv_add_keypoints_from_poly();
+  ocv_refiner_add_kps_from_mask();
+  virtual ~ocv_refiner_add_kps_from_mask();
 
   virtual kwiver::vital::config_block_sptr get_configuration() const override;
   virtual void set_configuration( kwiver::vital::config_block_sptr config ) override;
@@ -80,8 +78,8 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class ocv_add_keypoints_from_poly
+}; // end class ocv_refiner_add_kps_from_mask
 
 } // end namespace viame
 
-#endif // VIAME_OCV_ADD_KEYPOINTS_FROM_POLY_H
+#endif // VIAME_OCV_REFINER_ADD_KPS_FROM_MASK_H

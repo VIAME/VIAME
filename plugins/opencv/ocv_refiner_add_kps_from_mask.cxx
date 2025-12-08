@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Algorithm to add keypoints to detections from oriented bounding box
+ * \brief Algorithm to add keypoints to detections from mask
  */
 
-#include "ocv_add_keypoints_from_poly.h"
+#include "ocv_refiner_add_kps_from_mask.h"
 #include "ocv_keypoints_from_mask.h"
 
 #include <vital/types/point.h>
@@ -45,7 +45,7 @@ namespace viame
 
 // =============================================================================
 // Private implementation class
-class ocv_add_keypoints_from_poly::priv
+class ocv_refiner_add_kps_from_mask::priv
 {
 public:
   priv()
@@ -62,20 +62,20 @@ public:
 };
 
 // =============================================================================
-ocv_add_keypoints_from_poly
-::ocv_add_keypoints_from_poly()
+ocv_refiner_add_kps_from_mask
+::ocv_refiner_add_kps_from_mask()
   : d( new priv() )
 {
 }
 
-ocv_add_keypoints_from_poly
-::~ocv_add_keypoints_from_poly()
+ocv_refiner_add_kps_from_mask
+::~ocv_refiner_add_kps_from_mask()
 {
 }
 
 // -----------------------------------------------------------------------------
 kv::config_block_sptr
-ocv_add_keypoints_from_poly
+ocv_refiner_add_kps_from_mask
 ::get_configuration() const
 {
   kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
@@ -87,7 +87,7 @@ ocv_add_keypoints_from_poly
 
 // -----------------------------------------------------------------------------
 void
-ocv_add_keypoints_from_poly
+ocv_refiner_add_kps_from_mask
 ::set_configuration( kv::config_block_sptr config )
 {
   d->method = config->get_value<std::string>( "method", d->method );
@@ -95,7 +95,7 @@ ocv_add_keypoints_from_poly
 
 // -----------------------------------------------------------------------------
 bool
-ocv_add_keypoints_from_poly
+ocv_refiner_add_kps_from_mask
 ::check_configuration( kv::config_block_sptr config ) const
 {
   std::string method = config->get_value<std::string>( "method", "oriented_bbox" );
@@ -111,7 +111,7 @@ ocv_add_keypoints_from_poly
 
 // -----------------------------------------------------------------------------
 kv::detected_object_set_sptr
-ocv_add_keypoints_from_poly
+ocv_refiner_add_kps_from_mask
 ::refine( kv::image_container_sptr image_data,
           kv::detected_object_set_sptr detections ) const
 {

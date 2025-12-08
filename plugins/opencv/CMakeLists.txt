@@ -26,7 +26,7 @@ set( plugin_headers
   ocv_stereo_feature_track_filter.h
   ocv_kmedians.h
   ocv_keypoints_from_mask.h
-  ocv_add_keypoints_from_poly.h
+  ocv_refiner_add_kps_from_mask.h
   split_image_habcam.h
   )
 
@@ -41,7 +41,7 @@ set( plugin_sources
   ocv_stereo_feature_track_filter.cxx
   ocv_kmedians.cxx
   ocv_keypoints_from_mask.cxx
-  ocv_add_keypoints_from_poly.cxx
+  ocv_refiner_add_kps_from_mask.cxx
   split_image_habcam.cxx
   )
 
