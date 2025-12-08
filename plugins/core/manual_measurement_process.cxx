@@ -41,8 +41,16 @@
 #include <vital/types/object_track_set.h>
 #include <vital/types/image_container.h>
 #include <vital/types/vector.h>
+#include <vital/types/feature_set.h>
+#include <vital/types/descriptor_set.h>
+#include <vital/types/match_set.h>
 #include <vital/util/string.h>
 #include <vital/io/camera_rig_io.h>
+
+#include <vital/algo/detect_features.h>
+#include <vital/algo/extract_descriptors.h>
+#include <vital/algo/match_features.h>
+#include <vital/algo/estimate_fundamental_matrix.h>
 
 #include <arrows/mvg/triangulate.h>
 #include <arrows/mvg/epipolar_geometry.h>
@@ -60,6 +68,7 @@
 
 #include <string>
 #include <map>
+#include <limits>
 
 namespace kv = kwiver::vital;
 
@@ -75,16 +84,19 @@ create_config_trait( calibration_file, std::string, "",
 create_config_trait( matching_method, std::string, "automatic",
   "Method to use for finding corresponding points in right camera for left-only tracks. "
   "Options: 'depth_projection' (uses default_depth to project points), "
-  "'feature_matching' (rectifies images and searches along epipolar lines using template matching), "
-  "'automatic' (tries matched tracks first, then feature_matching, then depth_projection)" );
+  "'template_matching' (rectifies images and searches along epipolar lines using template matching), "
+  "'sgbm_disparity' (uses Semi-Global Block Matching to compute disparity map), "
+  "'feature_descriptor' (uses vital feature detection/descriptor/matching algorithms), "
+  "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering), "
+  "'automatic' (tries matched tracks first, then template_matching, then depth_projection)" );
 
 create_config_trait( template_size, int, "31",
-  "Template window size (in pixels) for feature matching. Must be odd number. "
-  "Only used when matching_method is 'feature_matching'" );
+  "Template window size (in pixels) for template matching. Must be odd number. "
+  "Only used when matching_method is 'template_matching'" );
 
 create_config_trait( search_range, int, "128",
-  "Search range (in pixels) along epipolar line for feature matching. "
-  "Only used when matching_method is 'feature_matching'" );
+  "Search range (in pixels) along epipolar line for template matching. "
+  "Only used when matching_method is 'template_matching'" );
 
 create_config_trait( default_depth, double, "5.0",
   "Default depth (in meters) to use when projecting left camera points to right camera "
@@ -94,6 +106,26 @@ create_config_trait( use_distortion, bool, "true",
   "Whether to use distortion coefficients from the calibration during rectification. "
   "If true, distortion coefficients from the calibration file are used. "
   "If false, zero distortion is assumed." );
+
+create_config_trait( sgbm_min_disparity, int, "0",
+  "Minimum possible disparity value for SGBM. Normally 0, but can be negative." );
+
+create_config_trait( sgbm_num_disparities, int, "128",
+  "Maximum disparity minus minimum disparity for SGBM. Must be divisible by 16." );
+
+create_config_trait( sgbm_block_size, int, "5",
+  "Block size for SGBM. Must be odd number >= 1. Typically 3-11." );
+
+create_config_trait( feature_search_radius, double, "50.0",
+  "Maximum distance (in pixels) to search for feature matches around the expected location. "
+  "Used for feature_descriptor and ransac_feature methods." );
+
+create_config_trait( ransac_inlier_scale, double, "3.0",
+  "Inlier threshold for RANSAC fundamental matrix estimation. "
+  "Points with reprojection error below this threshold are considered inliers." );
+
+create_config_trait( min_ransac_inliers, int, "10",
+  "Minimum number of inliers required for a valid RANSAC result." );
 
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
@@ -129,13 +161,43 @@ public:
     const kv::simple_camera_perspective& left_cam,
     const kv::simple_camera_perspective& right_cam,
     const cv::Size& image_size );
+
+  // Helper function to find corresponding point using SGBM disparity
+  // Returns true if valid disparity found, false otherwise
+  bool find_corresponding_point_sgbm(
+    const cv::Mat& disparity_map,
+    const kv::vector_2d& left_point_rect,
+    kv::vector_2d& right_point_rect );
+
+  // Helper function to compute SGBM disparity map
+  cv::Mat compute_sgbm_disparity(
+    const cv::Mat& left_image_rect,
+    const cv::Mat& right_image_rect );
 #endif
 
+  // Helper function to find corresponding point using vital feature detection/matching
+  // Returns true if match found, false otherwise
+  bool find_corresponding_point_feature_descriptor(
+    const kv::image_container_sptr& left_image,
+    const kv::image_container_sptr& right_image,
+    const kv::vector_2d& left_point,
+    kv::vector_2d& right_point );
+
+  // Helper function to find corresponding point using RANSAC feature matching
+  // Returns true if match found, false otherwise
+  bool find_corresponding_point_ransac_feature(
+    const kv::image_container_sptr& left_image,
+    const kv::image_container_sptr& right_image,
+    const kv::vector_2d& left_point,
+    kv::vector_2d& right_point );
+
+#ifdef VIAME_ENABLE_OPENCV
   // Helper function to unrectify a point from rectified space back to original
   kv::vector_2d unrectify_point(
     const kv::vector_2d& rectified_point,
     bool is_right_camera,
     const kv::simple_camera_perspective& camera );
+#endif
 
   // Configuration settings
   std::string m_calibration_file;
@@ -145,11 +207,35 @@ public:
   int m_search_range;
   bool m_use_distortion;
 
+  // SGBM configuration
+  int m_sgbm_min_disparity;
+  int m_sgbm_num_disparities;
+  int m_sgbm_block_size;
+
+  // Feature matching configuration
+  double m_feature_search_radius;
+  double m_ransac_inlier_scale;
+  int m_min_ransac_inliers;
+
   // Other variables
   kv::camera_rig_stereo_sptr m_calibration;
   unsigned m_frame_counter;
   std::set< std::string > p_port_list;
   manual_measurement_process* parent;
+
+  // Optional vital algorithms for feature-based matching
+  kv::algo::detect_features_sptr m_feature_detector;
+  kv::algo::extract_descriptors_sptr m_descriptor_extractor;
+  kv::algo::match_features_sptr m_feature_matcher;
+  kv::algo::estimate_fundamental_matrix_sptr m_fundamental_matrix_estimator;
+
+  // Cached feature detection/descriptor results per frame
+  kv::feature_set_sptr m_cached_left_features;
+  kv::feature_set_sptr m_cached_right_features;
+  kv::descriptor_set_sptr m_cached_left_descriptors;
+  kv::descriptor_set_sptr m_cached_right_descriptors;
+  kv::match_set_sptr m_cached_matches;
+  kv::frame_id_t m_cached_frame_id;
 
 #ifdef VIAME_ENABLE_OPENCV
   // Rectification maps (computed on first use)
@@ -161,6 +247,9 @@ public:
 
   // Rectification matrices for unrectifying points
   cv::Mat m_K1, m_K2, m_R1, m_R2, m_P1, m_P2;
+
+  // SGBM matcher (created on first use)
+  cv::Ptr<cv::StereoSGBM> m_sgbm;
 #endif
 };
 
@@ -174,10 +263,19 @@ manual_measurement_process::priv
   , m_template_size( 31 )
   , m_search_range( 128 )
   , m_use_distortion( true )
+  , m_sgbm_min_disparity( 0 )
+  , m_sgbm_num_disparities( 128 )
+  , m_sgbm_block_size( 5 )
+  , m_feature_search_radius( 50.0 )
+  , m_ransac_inlier_scale( 3.0 )
+  , m_min_ransac_inliers( 10 )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
+  , m_cached_frame_id( 0 )
+#ifdef VIAME_ENABLE_OPENCV
   , m_rectification_computed( false )
+#endif
 {
 }
 
@@ -420,7 +518,250 @@ manual_measurement_process::priv
   return true;
 }
 
+// -----------------------------------------------------------------------------
+cv::Mat
+manual_measurement_process::priv
+::compute_sgbm_disparity(
+  const cv::Mat& left_image_rect,
+  const cv::Mat& right_image_rect )
+{
+  // Create SGBM matcher if not already created
+  if( !m_sgbm )
+  {
+    m_sgbm = cv::StereoSGBM::create(
+      m_sgbm_min_disparity,
+      m_sgbm_num_disparities,
+      m_sgbm_block_size,
+      8 * m_sgbm_block_size * m_sgbm_block_size,   // P1
+      32 * m_sgbm_block_size * m_sgbm_block_size,  // P2
+      1,    // disp12MaxDiff
+      0,    // preFilterCap
+      10,   // uniquenessRatio
+      100,  // speckleWindowSize
+      32,   // speckleRange
+      cv::StereoSGBM::MODE_SGBM_3WAY );
+  }
+
+  cv::Mat disparity;
+  m_sgbm->compute( left_image_rect, right_image_rect, disparity );
+
+  return disparity;
+}
+
+// -----------------------------------------------------------------------------
+bool
+manual_measurement_process::priv
+::find_corresponding_point_sgbm(
+  const cv::Mat& disparity_map,
+  const kv::vector_2d& left_point_rect,
+  kv::vector_2d& right_point_rect )
+{
+  int x = static_cast<int>( left_point_rect.x() + 0.5 );
+  int y = static_cast<int>( left_point_rect.y() + 0.5 );
+
+  // Check bounds
+  if( x < 0 || x >= disparity_map.cols || y < 0 || y >= disparity_map.rows )
+  {
+    return false;
+  }
+
+  // Get disparity value (SGBM returns fixed-point values scaled by 16)
+  short disp_raw = disparity_map.at<short>( y, x );
+
+  // Check for invalid disparity
+  if( disp_raw < 0 || disp_raw == ( m_sgbm_min_disparity - 1 ) * 16 )
+  {
+    return false;
+  }
+
+  // Convert to float disparity
+  double disparity = static_cast<double>( disp_raw ) / 16.0;
+
+  // Compute right point (disparity is the shift from left to right)
+  right_point_rect = kv::vector_2d( left_point_rect.x() - disparity, left_point_rect.y() );
+
+  return true;
+}
+
 #endif
+
+// -----------------------------------------------------------------------------
+bool
+manual_measurement_process::priv
+::find_corresponding_point_feature_descriptor(
+  const kv::image_container_sptr& left_image,
+  const kv::image_container_sptr& right_image,
+  const kv::vector_2d& left_point,
+  kv::vector_2d& right_point )
+{
+  if( !m_feature_detector || !m_descriptor_extractor || !m_feature_matcher )
+  {
+    return false;
+  }
+
+  // Detect features and extract descriptors if not cached for this frame
+  if( !m_cached_left_features || !m_cached_right_features )
+  {
+    m_cached_left_features = m_feature_detector->detect( left_image );
+    m_cached_right_features = m_feature_detector->detect( right_image );
+
+    m_cached_left_descriptors = m_descriptor_extractor->extract(
+      left_image, m_cached_left_features );
+    m_cached_right_descriptors = m_descriptor_extractor->extract(
+      right_image, m_cached_right_features );
+
+    m_cached_matches = m_feature_matcher->match(
+      m_cached_left_features, m_cached_left_descriptors,
+      m_cached_right_features, m_cached_right_descriptors );
+  }
+
+  if( !m_cached_matches || m_cached_matches->size() == 0 )
+  {
+    return false;
+  }
+
+  // Get the feature vectors
+  auto left_features = m_cached_left_features->features();
+  auto right_features = m_cached_right_features->features();
+  auto matches = m_cached_matches->matches();
+
+  // Find the closest matched feature to our query point
+  double best_dist = std::numeric_limits<double>::max();
+  kv::vector_2d best_right_point;
+  bool found = false;
+
+  for( const auto& match : matches )
+  {
+    if( match.first >= left_features.size() ||
+        match.second >= right_features.size() )
+    {
+      continue;
+    }
+
+    const auto& left_feat = left_features[match.first];
+    const auto& right_feat = right_features[match.second];
+
+    kv::vector_2d left_feat_loc = left_feat->loc();
+    double dist = ( left_feat_loc - left_point ).norm();
+
+    if( dist < m_feature_search_radius && dist < best_dist )
+    {
+      best_dist = dist;
+      best_right_point = right_feat->loc();
+      found = true;
+    }
+  }
+
+  if( found )
+  {
+    right_point = best_right_point;
+  }
+
+  return found;
+}
+
+// -----------------------------------------------------------------------------
+bool
+manual_measurement_process::priv
+::find_corresponding_point_ransac_feature(
+  const kv::image_container_sptr& left_image,
+  const kv::image_container_sptr& right_image,
+  const kv::vector_2d& left_point,
+  kv::vector_2d& right_point )
+{
+  if( !m_feature_detector || !m_descriptor_extractor ||
+      !m_feature_matcher || !m_fundamental_matrix_estimator )
+  {
+    return false;
+  }
+
+  // Detect features and extract descriptors if not cached for this frame
+  if( !m_cached_left_features || !m_cached_right_features )
+  {
+    m_cached_left_features = m_feature_detector->detect( left_image );
+    m_cached_right_features = m_feature_detector->detect( right_image );
+
+    m_cached_left_descriptors = m_descriptor_extractor->extract(
+      left_image, m_cached_left_features );
+    m_cached_right_descriptors = m_descriptor_extractor->extract(
+      right_image, m_cached_right_features );
+
+    m_cached_matches = m_feature_matcher->match(
+      m_cached_left_features, m_cached_left_descriptors,
+      m_cached_right_features, m_cached_right_descriptors );
+  }
+
+  if( !m_cached_matches || m_cached_matches->size() == 0 )
+  {
+    return false;
+  }
+
+  // Get the feature vectors
+  auto left_features = m_cached_left_features->features();
+  auto right_features = m_cached_right_features->features();
+  auto matches = m_cached_matches->matches();
+
+  // Estimate fundamental matrix using RANSAC to filter outliers
+  std::vector<bool> inliers;
+  auto F = m_fundamental_matrix_estimator->estimate(
+    m_cached_left_features, m_cached_right_features,
+    m_cached_matches, inliers, m_ransac_inlier_scale );
+
+  // Count inliers
+  int inlier_count = 0;
+  for( bool is_inlier : inliers )
+  {
+    if( is_inlier )
+    {
+      ++inlier_count;
+    }
+  }
+
+  if( inlier_count < m_min_ransac_inliers )
+  {
+    return false;
+  }
+
+  // Find the closest inlier match to our query point
+  double best_dist = std::numeric_limits<double>::max();
+  kv::vector_2d best_right_point;
+  bool found = false;
+
+  for( size_t i = 0; i < matches.size(); ++i )
+  {
+    if( !inliers[i] )
+    {
+      continue;
+    }
+
+    const auto& match = matches[i];
+    if( match.first >= left_features.size() ||
+        match.second >= right_features.size() )
+    {
+      continue;
+    }
+
+    const auto& left_feat = left_features[match.first];
+    const auto& right_feat = right_features[match.second];
+
+    kv::vector_2d left_feat_loc = left_feat->loc();
+    double dist = ( left_feat_loc - left_point ).norm();
+
+    if( dist < m_feature_search_radius && dist < best_dist )
+    {
+      best_dist = dist;
+      best_right_point = right_feat->loc();
+      found = true;
+    }
+  }
+
+  if( found )
+  {
+    right_point = best_right_point;
+  }
+
+  return found;
+}
 
 // -----------------------------------------------------------------------------
 kv::vector_2d
@@ -508,6 +849,16 @@ manual_measurement_process
   declare_config_using_trait( template_size );
   declare_config_using_trait( search_range );
   declare_config_using_trait( use_distortion );
+
+  // SGBM configuration
+  declare_config_using_trait( sgbm_min_disparity );
+  declare_config_using_trait( sgbm_num_disparities );
+  declare_config_using_trait( sgbm_block_size );
+
+  // Feature matching configuration
+  declare_config_using_trait( feature_search_radius );
+  declare_config_using_trait( ransac_inlier_scale );
+  declare_config_using_trait( min_ransac_inliers );
 }
 
 // -----------------------------------------------------------------------------
@@ -523,11 +874,84 @@ manual_measurement_process
   d->m_use_distortion = config_value_using_trait( use_distortion );
   d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
 
+  // SGBM configuration
+  d->m_sgbm_min_disparity = config_value_using_trait( sgbm_min_disparity );
+  d->m_sgbm_num_disparities = config_value_using_trait( sgbm_num_disparities );
+  d->m_sgbm_block_size = config_value_using_trait( sgbm_block_size );
+
+  // Feature matching configuration
+  d->m_feature_search_radius = config_value_using_trait( feature_search_radius );
+  d->m_ransac_inlier_scale = config_value_using_trait( ransac_inlier_scale );
+  d->m_min_ransac_inliers = config_value_using_trait( min_ransac_inliers );
+
   // Ensure template size is odd
   if( d->m_template_size % 2 == 0 )
   {
     d->m_template_size++;
     LOG_WARN( logger(), "Template size must be odd, adjusted to " + std::to_string( d->m_template_size ) );
+  }
+
+  // Ensure SGBM num_disparities is divisible by 16
+  if( d->m_sgbm_num_disparities % 16 != 0 )
+  {
+    d->m_sgbm_num_disparities = ( ( d->m_sgbm_num_disparities / 16 ) + 1 ) * 16;
+    LOG_WARN( logger(), "SGBM num_disparities must be divisible by 16, adjusted to " +
+                        std::to_string( d->m_sgbm_num_disparities ) );
+  }
+
+  // Ensure SGBM block size is odd
+  if( d->m_sgbm_block_size % 2 == 0 )
+  {
+    d->m_sgbm_block_size++;
+    LOG_WARN( logger(), "SGBM block size must be odd, adjusted to " +
+                        std::to_string( d->m_sgbm_block_size ) );
+  }
+
+  // Configure optional vital algorithms for feature-based methods
+  kv::config_block_sptr algo_config = get_config();
+
+  // Try to configure feature detector (optional)
+  kv::algo::detect_features::set_nested_algo_configuration(
+    "feature_detector", algo_config, d->m_feature_detector );
+
+  // Try to configure descriptor extractor (optional)
+  kv::algo::extract_descriptors::set_nested_algo_configuration(
+    "descriptor_extractor", algo_config, d->m_descriptor_extractor );
+
+  // Try to configure feature matcher (optional)
+  kv::algo::match_features::set_nested_algo_configuration(
+    "feature_matcher", algo_config, d->m_feature_matcher );
+
+  // Try to configure fundamental matrix estimator (optional, needed for ransac_feature)
+  kv::algo::estimate_fundamental_matrix::set_nested_algo_configuration(
+    "fundamental_matrix_estimator", algo_config, d->m_fundamental_matrix_estimator );
+
+  // Check if feature-based methods are requested but algorithms are not configured
+  bool needs_feature_algos = ( d->m_matching_method == "feature_descriptor" ||
+                               d->m_matching_method == "ransac_feature" );
+
+  if( needs_feature_algos )
+  {
+    if( !d->m_feature_detector )
+    {
+      LOG_WARN( logger(), "Feature detector not configured; feature_descriptor and "
+                          "ransac_feature methods will not work" );
+    }
+    if( !d->m_descriptor_extractor )
+    {
+      LOG_WARN( logger(), "Descriptor extractor not configured; feature_descriptor and "
+                          "ransac_feature methods will not work" );
+    }
+    if( !d->m_feature_matcher )
+    {
+      LOG_WARN( logger(), "Feature matcher not configured; feature_descriptor and "
+                          "ransac_feature methods will not work" );
+    }
+    if( d->m_matching_method == "ransac_feature" && !d->m_fundamental_matrix_estimator )
+    {
+      LOG_WARN( logger(), "Fundamental matrix estimator not configured; "
+                          "ransac_feature method will not work" );
+    }
   }
 }
 
@@ -730,59 +1154,87 @@ manual_measurement_process
   // Run measurement on left-only detections
   if( !left_only_ids.empty() )
   {
-    // Get images if using feature matching
-    cv::Mat left_image_rect, right_image_rect;
+    // Clear cached feature data if frame changed
+    if( d->m_cached_frame_id != cur_frame_id )
+    {
+      d->m_cached_left_features.reset();
+      d->m_cached_right_features.reset();
+      d->m_cached_left_descriptors.reset();
+      d->m_cached_right_descriptors.reset();
+      d->m_cached_matches.reset();
+      d->m_cached_frame_id = cur_frame_id;
+    }
 
-    bool use_feature_matching =
-      ( d->m_matching_method == "feature_matching" ||
+    // Determine which methods require rectified images
+    bool use_template_matching =
+      ( d->m_matching_method == "template_matching" ||
         d->m_matching_method == "automatic" );
 
-    if( use_feature_matching )
-    {
+    bool use_sgbm_disparity = ( d->m_matching_method == "sgbm_disparity" );
+
+    bool use_feature_descriptor =
+      ( d->m_matching_method == "feature_descriptor" );
+
+    bool use_ransac_feature = ( d->m_matching_method == "ransac_feature" );
+
+    bool needs_rectified_images = use_template_matching || use_sgbm_disparity;
+
+    // Prepare rectified images if needed
+    cv::Mat left_image_rect, right_image_rect;
+    cv::Mat disparity_map;
+    bool rectified_images_available = false;
+
 #ifdef VIAME_ENABLE_OPENCV
-      if( input_images.size() >= 2 )
+    if( needs_rectified_images && input_images.size() >= 2 )
+    {
+      // Convert to OpenCV format and grayscale
+      cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        input_images[0]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+      cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        input_images[1]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+      // Convert to grayscale if needed
+      if( left_cv.channels() > 1 )
       {
-        // Convert to OpenCV format and grayscale
-        cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-          input_images[0]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-        cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-          input_images[1]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-        // Convert to grayscale if needed
-        if( left_cv.channels() > 1 )
-        {
-          cv::cvtColor( left_cv, left_cv, cv::COLOR_BGR2GRAY );
-          cv::cvtColor( right_cv, right_cv, cv::COLOR_BGR2GRAY );
-        }
-
-        // Compute rectification maps if needed
-        d->compute_rectification_maps( left_cam, right_cam, left_cv.size() );
-
-        // Rectify images
-        cv::remap( left_cv, left_image_rect, d->m_rectification_map_left_x,
-                   d->m_rectification_map_left_y, cv::INTER_LINEAR );
-        cv::remap( right_cv, right_image_rect, d->m_rectification_map_right_x,
-                   d->m_rectification_map_right_y, cv::INTER_LINEAR );
-
-#else
-        LOG_ERROR( logger(), "Code not compiled with rectification support" );
-        use_feature_matching = false;
-#endif
+        cv::cvtColor( left_cv, left_cv, cv::COLOR_BGR2GRAY );
+        cv::cvtColor( right_cv, right_cv, cv::COLOR_BGR2GRAY );
       }
-      else
+
+      // Compute rectification maps if needed
+      d->compute_rectification_maps( left_cam, right_cam, left_cv.size() );
+
+      // Rectify images
+      cv::remap( left_cv, left_image_rect, d->m_rectification_map_left_x,
+                 d->m_rectification_map_left_y, cv::INTER_LINEAR );
+      cv::remap( right_cv, right_image_rect, d->m_rectification_map_right_x,
+                 d->m_rectification_map_right_y, cv::INTER_LINEAR );
+
+      rectified_images_available = true;
+
+      // Compute SGBM disparity map if needed
+      if( use_sgbm_disparity )
       {
-        if( d->m_matching_method == "automatic" )
-        {
-          LOG_INFO( logger(), "Images not provided, automatic mode will use depth projection" );
-        }
-        else
-        {
-          LOG_WARN( logger(), "Feature matching requested but images not provided, "
-                              "falling back to depth projection" );
-        }
-        use_feature_matching = false;
+        disparity_map = d->compute_sgbm_disparity( left_image_rect, right_image_rect );
       }
     }
+    else if( needs_rectified_images )
+    {
+      if( d->m_matching_method == "automatic" )
+      {
+        LOG_INFO( logger(), "Images not provided, automatic mode will use depth projection" );
+      }
+      else if( use_template_matching || use_sgbm_disparity )
+      {
+        LOG_WARN( logger(), d->m_matching_method + " requested but images not provided, "
+                            "falling back to depth projection" );
+      }
+    }
+#else
+    if( needs_rectified_images )
+    {
+      LOG_ERROR( logger(), "Code not compiled with OpenCV support for rectification" );
+    }
+#endif
 
     for( const kv::track_id_t& id : left_only_ids )
     {
@@ -806,11 +1258,104 @@ manual_measurement_process
       kv::vector_2d left_head_point( kp1.at("head")[0], kp1.at("head")[1] );
       kv::vector_2d left_tail_point( kp1.at("tail")[0], kp1.at("tail")[1] );
       kv::vector_2d right_head_point, right_tail_point;
+      bool head_found = false, tail_found = false;
+      std::string method_used = "depth_projection";
 
-      if( use_feature_matching )
+      // Try feature_descriptor method
+      if( use_feature_descriptor && input_images.size() >= 2 )
+      {
+        head_found = d->find_corresponding_point_feature_descriptor(
+          input_images[0], input_images[1], left_head_point, right_head_point );
+        tail_found = d->find_corresponding_point_feature_descriptor(
+          input_images[0], input_images[1], left_tail_point, right_tail_point );
+
+        if( head_found && tail_found )
+        {
+          method_used = "feature_descriptor";
+        }
+        else
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " feature_descriptor matching failed" );
+        }
+      }
+
+      // Try ransac_feature method
+      if( use_ransac_feature && input_images.size() >= 2 )
+      {
+        head_found = d->find_corresponding_point_ransac_feature(
+          input_images[0], input_images[1], left_head_point, right_head_point );
+        tail_found = d->find_corresponding_point_ransac_feature(
+          input_images[0], input_images[1], left_tail_point, right_tail_point );
+
+        if( head_found && tail_found )
+        {
+          method_used = "ransac_feature";
+        }
+        else
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " ransac_feature matching failed" );
+        }
+      }
+
+#ifdef VIAME_ENABLE_OPENCV
+      // Try SGBM disparity method
+      if( use_sgbm_disparity && rectified_images_available && !disparity_map.empty() )
+      {
+        // Rectify left keypoints
+        int x_head = static_cast<int>( left_head_point.x() + 0.5 );
+        int y_head = static_cast<int>( left_head_point.y() + 0.5 );
+        int x_tail = static_cast<int>( left_tail_point.x() + 0.5 );
+        int y_tail = static_cast<int>( left_tail_point.y() + 0.5 );
+
+        bool keypoints_in_bounds =
+          !( x_head < 0 || x_head >= d->m_rectification_map_left_x.cols ||
+             y_head < 0 || y_head >= d->m_rectification_map_left_x.rows ||
+             x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
+             y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows );
+
+        if( keypoints_in_bounds )
+        {
+          float rect_x_head = d->m_rectification_map_left_x.at<float>( y_head, x_head );
+          float rect_y_head = d->m_rectification_map_left_y.at<float>( y_head, x_head );
+          float rect_x_tail = d->m_rectification_map_left_x.at<float>( y_tail, x_tail );
+          float rect_y_tail = d->m_rectification_map_left_y.at<float>( y_tail, x_tail );
+
+          kv::vector_2d left_head_rect( rect_x_head, rect_y_head );
+          kv::vector_2d left_tail_rect( rect_x_tail, rect_y_tail );
+
+          kv::vector_2d right_head_rect, right_tail_rect;
+          head_found = d->find_corresponding_point_sgbm(
+            disparity_map, left_head_rect, right_head_rect );
+          tail_found = d->find_corresponding_point_sgbm(
+            disparity_map, left_tail_rect, right_tail_rect );
+
+          if( head_found && tail_found )
+          {
+            // Unrectify right points back to original image coordinates
+            right_head_point = d->unrectify_point( right_head_rect, true, right_cam );
+            right_tail_point = d->unrectify_point( right_tail_rect, true, right_cam );
+            method_used = "sgbm_disparity";
+          }
+          else
+          {
+            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                                " sgbm_disparity lookup failed (invalid disparity)" );
+          }
+        }
+        else
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " keypoints out of bounds for SGBM" );
+        }
+      }
+
+      // Try template_matching method (or automatic fallback)
+      if( ( use_template_matching || d->m_matching_method == "automatic" ) &&
+          rectified_images_available && ( !head_found || !tail_found ) )
       {
         // Rectify left keypoints using remap maps
-        // Sample the rectification map at the point location
         int x_head = static_cast<int>( left_head_point.x() + 0.5 );
         int y_head = static_cast<int>( left_head_point.y() + 0.5 );
         int x_tail = static_cast<int>( left_tail_point.x() + 0.5 );
@@ -823,24 +1368,7 @@ manual_measurement_process
              x_tail < 0 || x_tail >= d->m_rectification_map_left_x.cols ||
              y_tail < 0 || y_tail >= d->m_rectification_map_left_x.rows );
 
-        if( !keypoints_in_bounds )
-        {
-          if( d->m_matching_method == "automatic" )
-          {
-            // Fall back to depth projection
-            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                                " keypoints out of bounds for rectification, falling back to depth projection" );
-            right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
-            right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
-          }
-          else
-          {
-            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                                " keypoints out of bounds, skipping" );
-            continue;
-          }
-        }
-        else
+        if( keypoints_in_bounds )
         {
           float rect_x_head = d->m_rectification_map_left_x.at<float>( y_head, x_head );
           float rect_y_head = d->m_rectification_map_left_y.at<float>( y_head, x_head );
@@ -852,44 +1380,56 @@ manual_measurement_process
 
           // Find corresponding points in right image using template matching
           kv::vector_2d right_head_rect, right_tail_rect;
-          bool head_found = d->find_corresponding_point_template_matching(
+          head_found = d->find_corresponding_point_template_matching(
             left_image_rect, right_image_rect, left_head_rect, right_head_rect );
-          bool tail_found = d->find_corresponding_point_template_matching(
+          tail_found = d->find_corresponding_point_template_matching(
             left_image_rect, right_image_rect, left_tail_rect, right_tail_rect );
 
-          if( !head_found || !tail_found )
-          {
-            if( d->m_matching_method == "automatic" )
-            {
-              // Fall back to depth projection
-              LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                                  " feature matching failed, falling back to depth projection" );
-              right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
-              right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
-            }
-            else
-            {
-              LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                                  " feature matching failed, skipping" );
-              continue;
-            }
-          }
-          else
+          if( head_found && tail_found )
           {
             // Unrectify right points back to original image coordinates
             right_head_point = d->unrectify_point( right_head_rect, true, right_cam );
             right_tail_point = d->unrectify_point( right_tail_rect, true, right_cam );
-
+            method_used = "template_matching";
+          }
+          else
+          {
             LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                                " matched using template matching" );
+                                " template_matching failed" );
           }
         }
+        else
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " keypoints out of bounds for template_matching" );
+        }
       }
-      else
+#endif
+
+      // Fall back to depth projection if nothing else worked
+      if( !head_found || !tail_found )
       {
-        // Project left camera keypoints to right camera using default depth
-        right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
-        right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
+        if( d->m_matching_method == "automatic" ||
+            d->m_matching_method == "depth_projection" )
+        {
+          right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
+          right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
+          head_found = true;
+          tail_found = true;
+          method_used = "depth_projection";
+
+          if( d->m_matching_method == "automatic" )
+          {
+            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                                " falling back to depth_projection" );
+          }
+        }
+        else
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " " + d->m_matching_method + " failed, skipping" );
+          continue;
+        }
       }
 
       // Triangulate head keypoint
@@ -908,7 +1448,7 @@ manual_measurement_process
 
       const double length = ( pp2 - pp1 ).norm();
 
-      LOG_INFO( logger(), "Computed Length (left-only, " + d->m_matching_method + "): " +
+      LOG_INFO( logger(), "Computed Length (left-only, " + method_used + "): " +
                           std::to_string( length ) );
 
       det1->set_length( length );
