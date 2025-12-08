@@ -34,7 +34,7 @@
  */
 
 #include "ocv_measurement_process.h"
-#include "ocv_stereo_utils.h"
+#include "ocv_keypoints_from_mask.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>

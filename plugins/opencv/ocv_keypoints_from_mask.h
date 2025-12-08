@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Utility functions for stereo processing and keypoint computation
+ * \brief Utility functions for computing keypoints from detection masks
  */
 
-#ifndef VIAME_OCV_STEREO_UTILS_H
-#define VIAME_OCV_STEREO_UTILS_H
+#ifndef VIAME_OCV_KEYPOINTS_FROM_MASK_H
+#define VIAME_OCV_KEYPOINTS_FROM_MASK_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -48,6 +48,14 @@
 
 namespace viame
 {
+
+/// Extract mask points from a detection in image coordinates.
+///
+/// \param det The detection to extract mask points from
+/// \return Vector of points in image coordinates, empty if no mask
+VIAME_OPENCV_EXPORT
+std::vector<cv::Point>
+get_mask_points( kwiver::vital::detected_object_sptr det );
 
 /// Compute oriented bounding box corner points from a detection's mask or bounding box.
 ///
@@ -84,6 +92,61 @@ VIAME_OPENCV_EXPORT
 bool
 add_keypoints_from_box( kwiver::vital::detected_object_sptr det );
 
+/// Compute keypoints using oriented bounding box method.
+///
+/// Uses midpoints of the short edges of the minimum-area oriented bounding box.
+///
+/// \param det The detection to compute keypoints for
+/// \return Pair of (head, tail) points where head has max x
+VIAME_OPENCV_EXPORT
+std::pair<cv::Point2d, cv::Point2d>
+compute_keypoints_oriented_bbox( kwiver::vital::detected_object_sptr det );
+
+/// Compute keypoints using Principal Component Analysis.
+///
+/// Finds the major axis of the mask points using PCA, then returns the
+/// extreme points along that axis.
+///
+/// \param det The detection to compute keypoints for
+/// \return Pair of (head, tail) points where head has max x
+VIAME_OPENCV_EXPORT
+std::pair<cv::Point2d, cv::Point2d>
+compute_keypoints_pca( kwiver::vital::detected_object_sptr det );
+
+/// Compute keypoints using farthest points method.
+///
+/// Finds the two points on the convex hull that are farthest apart
+/// (polygon diameter).
+///
+/// \param det The detection to compute keypoints for
+/// \return Pair of (head, tail) points where head has max x
+VIAME_OPENCV_EXPORT
+std::pair<cv::Point2d, cv::Point2d>
+compute_keypoints_farthest( kwiver::vital::detected_object_sptr det );
+
+/// Compute keypoints using convex hull extremes method.
+///
+/// Computes the convex hull of the mask, finds its oriented bounding box,
+/// and returns midpoints of the short edges.
+///
+/// \param det The detection to compute keypoints for
+/// \return Pair of (head, tail) points where head has max x
+VIAME_OPENCV_EXPORT
+std::pair<cv::Point2d, cv::Point2d>
+compute_keypoints_hull_extremes( kwiver::vital::detected_object_sptr det );
+
+/// Compute keypoints using skeleton/medial axis method.
+///
+/// Computes the medial axis/skeleton of the mask using morphological thinning,
+/// then finds the endpoints. If multiple endpoints exist, selects the two
+/// farthest apart.
+///
+/// \param det The detection to compute keypoints for
+/// \return Pair of (head, tail) points where head has max x
+VIAME_OPENCV_EXPORT
+std::pair<cv::Point2d, cv::Point2d>
+compute_keypoints_skeleton( kwiver::vital::detected_object_sptr det );
+
 } // namespace viame
 
-#endif // VIAME_OCV_STEREO_UTILS_H
+#endif // VIAME_OCV_KEYPOINTS_FROM_MASK_H
