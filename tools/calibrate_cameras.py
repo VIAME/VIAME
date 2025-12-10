@@ -110,6 +110,134 @@ def video_frames(video_file, frame_step=1):
     vf.release()
 
 
+def get_image_files(path):
+    """Get list of image files from a path (file, directory, or glob pattern)"""
+    if os.path.isdir(path):
+        # Directory: find all common image files
+        extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp', '*.tif', '*.tiff']
+        files = []
+        for ext in extensions:
+            files.extend(glob.glob(os.path.join(path, ext)))
+            files.extend(glob.glob(os.path.join(path, ext.upper())))
+        return sorted(files)
+    elif os.path.isfile(path):
+        # Single file or video
+        return [path]
+    else:
+        # Treat as glob pattern
+        return sorted(glob.glob(path))
+
+
+def stereo_frames_separate(left_path, right_path, frame_step=1):
+    """Yield paired frames from separate left and right image sources"""
+    left_files = get_image_files(left_path)
+    right_files = get_image_files(right_path)
+
+    if len(left_files) == 0:
+        raise ValueError(f"No images found in left path: {left_path}")
+    if len(right_files) == 0:
+        raise ValueError(f"No images found in right path: {right_path}")
+
+    # Check if inputs are videos
+    left_is_video = len(left_files) == 1 and cv2.VideoCapture(left_files[0]).isOpened()
+    right_is_video = len(right_files) == 1 and cv2.VideoCapture(right_files[0]).isOpened()
+
+    if left_is_video and right_is_video:
+        # Both are videos
+        left_cap = cv2.VideoCapture(left_files[0])
+        right_cap = cv2.VideoCapture(right_files[0])
+        frame_number = 0
+        while True:
+            ret_l, left_frame = left_cap.read()
+            ret_r, right_frame = right_cap.read()
+            if not ret_l or not ret_r:
+                break
+            frame_number += 1
+            if (frame_number - 1) % frame_step == 0:
+                yield left_frame, right_frame, frame_number
+        left_cap.release()
+        right_cap.release()
+    else:
+        # Image lists
+        if len(left_files) != len(right_files):
+            print(f"Warning: left ({len(left_files)}) and right ({len(right_files)}) "
+                  f"image counts differ. Using minimum count.")
+        num_frames = min(len(left_files), len(right_files))
+        for n in range(0, num_frames, frame_step):
+            print(f"Frame {n}: {left_files[n]}, {right_files[n]}")
+            left_frame = cv2.imread(left_files[n])
+            right_frame = cv2.imread(right_files[n])
+            if left_frame is None:
+                print(f"Warning: Could not read left image: {left_files[n]}")
+                continue
+            if right_frame is None:
+                print(f"Warning: Could not read right image: {right_files[n]}")
+                continue
+            yield left_frame, right_frame, n
+
+
+def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
+                                 frame_step=1, gui=False, bayer=False):
+    """Detect a grid in each frame from separate left/right image sources"""
+
+    # Dicts to store corner points from all the images.
+    left_data = {}
+    right_data = {}
+    img_shape = None
+
+    print(f"left: {left_path}")
+    print(f"right: {right_path}")
+
+    for left_frame, right_frame, frame_number in stereo_frames_separate(
+            left_path, right_path, frame_step):
+
+        if bayer:
+            left_gray = cv2.cvtColor(left_frame[:,:,0], cv2.COLOR_BayerBG2GRAY)
+            right_gray = cv2.cvtColor(right_frame[:,:,0], cv2.COLOR_BayerBG2GRAY)
+        else:
+            left_gray = cv2.cvtColor(left_frame, cv2.COLOR_BGR2GRAY)
+            right_gray = cv2.cvtColor(right_frame, cv2.COLOR_BGR2GRAY)
+
+        if img_shape is None:
+            img_shape = left_gray.shape[::-1]
+
+        left_corners = detect_grid_image(left_gray, grid_size)
+        right_corners = detect_grid_image(right_gray, grid_size)
+
+        # If found, add object points, image points (after refining them)
+        if left_corners is not None:
+            print("found checkerboard in frame %d left" % frame_number)
+            left_data[frame_number] = left_corners
+        if right_corners is not None:
+            print("found checkerboard in frame %d right" % frame_number)
+            right_data[frame_number] = right_corners
+        if left_corners is None and right_corners is None:
+            print("checkerboard not found in %d" % frame_number)
+
+        # Draw and display the corners
+        if gui:
+            if bayer:
+                left_color = cv2.cvtColor(left_frame[:,:,0], cv2.COLOR_BayerBG2BGR)
+                right_color = cv2.cvtColor(right_frame[:,:,0], cv2.COLOR_BayerBG2BGR)
+            else:
+                left_color = left_frame.copy()
+                right_color = right_frame.copy()
+            if left_corners is not None:
+                cv2.drawChessboardCorners(left_color, grid_size, left_corners, True)
+            if right_corners is not None:
+                cv2.drawChessboardCorners(right_color, grid_size, right_corners, True)
+            # Stack images side by side for display
+            combined = np.hstack([left_color, right_color])
+            cv2.imshow('img', combined)
+            cv2.waitKey(-1)
+
+    print("done")
+    if gui:
+        cv2.destroyAllWindows()
+
+    return img_shape, left_data, right_data
+
+
 def detect_grid_video(video_file, grid_size=(6,5), frame_step=1, gui=False, bayer=False):
     """Detect a grid in each frame of video"""
 
@@ -262,10 +390,30 @@ def calibrate_single_camera(data, object_points, img_shape):
 
 
 def main():
-    usage = "usage: %prog [options] video_file" + os.linesep + os.linesep
-    usage += "  Estimate calibration from video." + os.linesep
+    usage = "usage: %prog [options] [stitched_video_or_images]" + os.linesep + os.linesep
+    usage += "  Estimate stereo calibration from calibration target images." + os.linesep
+    usage += os.linesep
+    usage += "  Input modes:" + os.linesep
+    usage += "    1. Stitched stereo (default): Provide a single video file or image" + os.linesep
+    usage += "       glob pattern where left and right images are horizontally" + os.linesep
+    usage += "       concatenated (left on left half, right on right half)." + os.linesep
+    usage += "       Example: %prog calibration_video.mp4" + os.linesep
+    usage += "       Example: %prog 'calibration_images/*.png'" + os.linesep
+    usage += os.linesep
+    usage += "    2. Separate stereo: Use --left and --right options to specify" + os.linesep
+    usage += "       separate paths for left and right camera images. Each path" + os.linesep
+    usage += "       can be a video file, directory, or glob pattern." + os.linesep
+    usage += "       Example: %prog --left left_video.mp4 --right right_video.mp4" + os.linesep
+    usage += "       Example: %prog --left ./left_images/ --right ./right_images/" + os.linesep
+    usage += "       Example: %prog --left 'left/*.png' --right 'right/*.png'" + os.linesep
     parser = OptionParser(usage=usage)
 
+    parser.add_option("-l", "--left", type='string', default=None,
+                      action="store", dest="left_path",
+                      help="left camera images (video, directory, or glob pattern)")
+    parser.add_option("-r", "--right", type='string', default=None,
+                      action="store", dest="right_path",
+                      help="right camera images (video, directory, or glob pattern)")
     parser.add_option("-b", "--bayer", default=False,
                       action="store_true", dest="bayer",
                       help="input images are Bayer patterned")
@@ -296,7 +444,18 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    video_file = args[0]
+    # Determine input mode
+    use_separate_stereo = options.left_path is not None or options.right_path is not None
+
+    if use_separate_stereo:
+        if options.left_path is None or options.right_path is None:
+            parser.error("Both --left and --right must be specified for separate stereo mode")
+        if len(args) > 0:
+            parser.error("Cannot specify positional argument with --left/--right options")
+    else:
+        if len(args) < 1:
+            parser.error("Must specify either a stitched video/image path or --left and --right options")
+
     grid_size = (options.grid_x, options.grid_y)
 
     img_shape = None
@@ -308,9 +467,15 @@ def main():
             right_data = data["right_data"].item()
 
     if img_shape == None:
-        img_shape, left_data, right_data = detect_grid_video(video_file, grid_size,
-                                                             options.frame_step,
-                                                             options.gui, options.bayer)
+        if use_separate_stereo:
+            img_shape, left_data, right_data = detect_grid_stereo_separate(
+                options.left_path, options.right_path, grid_size,
+                options.frame_step, options.gui, options.bayer)
+        else:
+            video_file = args[0]
+            img_shape, left_data, right_data = detect_grid_video(
+                video_file, grid_size, options.frame_step,
+                options.gui, options.bayer)
         if options.corners_file:
             np.savez(options.corners_file, img_shape=img_shape,
                      left_data=left_data, right_data=right_data)
