@@ -1190,12 +1190,11 @@ manual_measurement_process
 
     bool needs_rectified_images = use_template_matching || use_sgbm_disparity;
 
+#ifdef VIAME_ENABLE_OPENCV
     // Prepare rectified images if needed
     cv::Mat left_image_rect, right_image_rect;
     cv::Mat disparity_map;
     bool rectified_images_available = false;
-
-#ifdef VIAME_ENABLE_OPENCV
     if( needs_rectified_images && input_images.size() >= 2 )
     {
       // Convert to OpenCV format and grayscale
@@ -1240,11 +1239,6 @@ manual_measurement_process
         LOG_WARN( logger(), d->m_matching_method + " requested but images not provided, "
                             "falling back to depth projection" );
       }
-    }
-#else
-    if( needs_rectified_images )
-    {
-      LOG_ERROR( logger(), "Code not compiled with OpenCV support for rectification" );
     }
 #endif
 
