@@ -55,6 +55,265 @@ namespace viame
 namespace core
 {
 
+// =============================================================================
+// measurement_settings implementation
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+measurement_settings
+::measurement_settings()
+  : matching_methods( "input_pairs_only,template_matching" )
+  , default_depth( 5.0 )
+  , template_size( 31 )
+  , search_range( 128 )
+  , use_distortion( true )
+  , sgbm_min_disparity( 0 )
+  , sgbm_num_disparities( 128 )
+  , sgbm_block_size( 5 )
+  , feature_search_radius( 50.0 )
+  , ransac_inlier_scale( 3.0 )
+  , min_ransac_inliers( 10 )
+  , box_scale_factor( 1.10 )
+  , record_stereo_method( true )
+{
+}
+
+// -----------------------------------------------------------------------------
+measurement_settings
+::~measurement_settings()
+{
+}
+
+// -----------------------------------------------------------------------------
+kv::config_block_sptr
+measurement_settings
+::get_configuration() const
+{
+  kv::config_block_sptr config = kv::config_block::empty_config();
+
+  config->set_value( "matching_methods", matching_methods,
+    "Comma-separated list of methods to try (in order) for finding corresponding points "
+    "in right camera for left-only tracks. Methods will be tried in the order specified "
+    "until one succeeds. Valid options: "
+    "'input_pairs_only' (use existing keypoints from right camera if available), "
+    "'depth_projection' (uses default_depth to project points), "
+    "'template_matching' (rectifies images and searches along epipolar lines), "
+    "'sgbm_disparity' (uses Semi-Global Block Matching to compute disparity map), "
+    "'feature_descriptor' (uses vital feature detection/descriptor/matching), "
+    "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering). "
+    "Example: 'input_pairs_only,template_matching,depth_projection'" );
+
+  config->set_value( "default_depth", default_depth,
+    "Default depth (in meters) to use when projecting left camera points to right camera "
+    "for tracks that only exist in the left camera, when using the depth_projection option" );
+
+  config->set_value( "template_size", template_size,
+    "Template window size (in pixels) for template matching. Must be odd number." );
+
+  config->set_value( "search_range", search_range,
+    "Search range (in pixels) along epipolar line for template matching." );
+
+  config->set_value( "use_distortion", use_distortion,
+    "Whether to use distortion coefficients from the calibration during rectification. "
+    "If true, distortion coefficients from the calibration file are used. "
+    "If false, zero distortion is assumed." );
+
+  config->set_value( "sgbm_min_disparity", sgbm_min_disparity,
+    "Minimum possible disparity value for SGBM. Normally 0, but can be negative." );
+
+  config->set_value( "sgbm_num_disparities", sgbm_num_disparities,
+    "Maximum disparity minus minimum disparity for SGBM. Must be divisible by 16." );
+
+  config->set_value( "sgbm_block_size", sgbm_block_size,
+    "Block size for SGBM. Must be odd number >= 1. Typically 3-11." );
+
+  config->set_value( "feature_search_radius", feature_search_radius,
+    "Maximum distance (in pixels) to search for feature matches around the expected location. "
+    "Used for feature_descriptor and ransac_feature methods." );
+
+  config->set_value( "ransac_inlier_scale", ransac_inlier_scale,
+    "Inlier threshold for RANSAC fundamental matrix estimation. "
+    "Points with reprojection error below this threshold are considered inliers." );
+
+  config->set_value( "min_ransac_inliers", min_ransac_inliers,
+    "Minimum number of inliers required for a valid RANSAC result." );
+
+  config->set_value( "box_scale_factor", box_scale_factor,
+    "Scale factor to expand the bounding box around keypoints when creating "
+    "new detections for the right image. A value of 1.10 means 10% expansion." );
+
+  config->set_value( "record_stereo_method", record_stereo_method,
+    "If true, record the stereo measurement method used as an attribute on each "
+    "output detection object. The attribute will be ':stereo_method=METHOD' "
+    "where METHOD is one of: input_kps_used, template_matching, sgbm_disparity, "
+    "feature_descriptor, ransac_feature, or depth_projection." );
+
+  // Add nested algorithm configurations
+  kv::algo::detect_features::get_nested_algo_configuration(
+    "feature_detector", config, feature_detector );
+  kv::algo::extract_descriptors::get_nested_algo_configuration(
+    "descriptor_extractor", config, descriptor_extractor );
+  kv::algo::match_features::get_nested_algo_configuration(
+    "feature_matcher", config, feature_matcher );
+  kv::algo::estimate_fundamental_matrix::get_nested_algo_configuration(
+    "fundamental_matrix_estimator", config, fundamental_matrix_estimator );
+
+  return config;
+}
+
+// -----------------------------------------------------------------------------
+void
+measurement_settings
+::set_configuration( kv::config_block_sptr config )
+{
+  matching_methods = config->get_value< std::string >( "matching_methods", matching_methods );
+  default_depth = config->get_value< double >( "default_depth", default_depth );
+  template_size = config->get_value< int >( "template_size", template_size );
+  search_range = config->get_value< int >( "search_range", search_range );
+  use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
+  sgbm_min_disparity = config->get_value< int >( "sgbm_min_disparity", sgbm_min_disparity );
+  sgbm_num_disparities = config->get_value< int >( "sgbm_num_disparities", sgbm_num_disparities );
+  sgbm_block_size = config->get_value< int >( "sgbm_block_size", sgbm_block_size );
+  feature_search_radius = config->get_value< double >( "feature_search_radius", feature_search_radius );
+  ransac_inlier_scale = config->get_value< double >( "ransac_inlier_scale", ransac_inlier_scale );
+  min_ransac_inliers = config->get_value< int >( "min_ransac_inliers", min_ransac_inliers );
+  box_scale_factor = config->get_value< double >( "box_scale_factor", box_scale_factor );
+  record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
+
+  // Configure nested algorithms
+  kv::algo::detect_features::set_nested_algo_configuration(
+    "feature_detector", config, feature_detector );
+  kv::algo::extract_descriptors::set_nested_algo_configuration(
+    "descriptor_extractor", config, descriptor_extractor );
+  kv::algo::match_features::set_nested_algo_configuration(
+    "feature_matcher", config, feature_matcher );
+  kv::algo::estimate_fundamental_matrix::set_nested_algo_configuration(
+    "fundamental_matrix_estimator", config, fundamental_matrix_estimator );
+}
+
+// -----------------------------------------------------------------------------
+bool
+measurement_settings
+::check_configuration( kv::config_block_sptr config ) const
+{
+  bool valid = true;
+
+  // Check nested algorithms if present
+  if( config->has_value( "feature_detector:type" ) &&
+      config->get_value< std::string >( "feature_detector:type" ) != "" )
+  {
+    valid = kv::algo::detect_features::check_nested_algo_configuration(
+      "feature_detector", config ) && valid;
+  }
+  if( config->has_value( "descriptor_extractor:type" ) &&
+      config->get_value< std::string >( "descriptor_extractor:type" ) != "" )
+  {
+    valid = kv::algo::extract_descriptors::check_nested_algo_configuration(
+      "descriptor_extractor", config ) && valid;
+  }
+  if( config->has_value( "feature_matcher:type" ) &&
+      config->get_value< std::string >( "feature_matcher:type" ) != "" )
+  {
+    valid = kv::algo::match_features::check_nested_algo_configuration(
+      "feature_matcher", config ) && valid;
+  }
+  if( config->has_value( "fundamental_matrix_estimator:type" ) &&
+      config->get_value< std::string >( "fundamental_matrix_estimator:type" ) != "" )
+  {
+    valid = kv::algo::estimate_fundamental_matrix::check_nested_algo_configuration(
+      "fundamental_matrix_estimator", config ) && valid;
+  }
+
+  return valid;
+}
+
+// -----------------------------------------------------------------------------
+std::vector< std::string >
+measurement_settings
+::get_matching_methods() const
+{
+  return measurement_utilities::parse_matching_methods( matching_methods );
+}
+
+// -----------------------------------------------------------------------------
+std::string
+measurement_settings
+::validate_matching_methods() const
+{
+  auto methods = get_matching_methods();
+
+  if( methods.empty() )
+  {
+    return "No valid matching methods specified";
+  }
+
+  auto valid_methods = measurement_utilities::get_valid_methods();
+  for( const auto& method : methods )
+  {
+    if( std::find( valid_methods.begin(), valid_methods.end(), method ) == valid_methods.end() )
+    {
+      return "Invalid matching method: " + method;
+    }
+  }
+
+  return "";
+}
+
+// -----------------------------------------------------------------------------
+bool
+measurement_settings
+::any_method_requires_images() const
+{
+  auto methods = get_matching_methods();
+  for( const auto& method : methods )
+  {
+    if( measurement_utilities::method_requires_images( method ) )
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+// -----------------------------------------------------------------------------
+std::vector< std::string >
+measurement_settings
+::check_feature_algorithm_warnings() const
+{
+  std::vector< std::string > warnings;
+
+  auto methods = get_matching_methods();
+  for( const auto& method : methods )
+  {
+    if( method == "feature_descriptor" || method == "ransac_feature" )
+    {
+      if( !feature_detector )
+      {
+        warnings.push_back( "Feature detector not configured; " + method + " method may not work" );
+      }
+      if( !descriptor_extractor )
+      {
+        warnings.push_back( "Descriptor extractor not configured; " + method + " method may not work" );
+      }
+      if( !feature_matcher )
+      {
+        warnings.push_back( "Feature matcher not configured; " + method + " method may not work" );
+      }
+      if( method == "ransac_feature" && !fundamental_matrix_estimator )
+      {
+        warnings.push_back( "Fundamental matrix estimator not configured; ransac_feature method may not work" );
+      }
+      break;  // Only need to check once
+    }
+  }
+
+  return warnings;
+}
+
+// =============================================================================
+// measurement_utilities implementation
+// =============================================================================
+
 // -----------------------------------------------------------------------------
 measurement_utilities
 ::measurement_utilities()
@@ -172,6 +431,23 @@ measurement_utilities
   m_descriptor_extractor = extractor;
   m_feature_matcher = matcher;
   m_fundamental_matrix_estimator = fundamental_estimator;
+}
+
+// -----------------------------------------------------------------------------
+void
+measurement_utilities
+::configure( const measurement_settings& settings )
+{
+  set_default_depth( settings.default_depth );
+  set_template_params( settings.template_size, settings.search_range );
+  set_use_distortion( settings.use_distortion );
+  set_sgbm_params( settings.sgbm_min_disparity, settings.sgbm_num_disparities,
+                   settings.sgbm_block_size );
+  set_feature_params( settings.feature_search_radius, settings.ransac_inlier_scale,
+                      settings.min_ransac_inliers );
+  set_box_scale_factor( settings.box_scale_factor );
+  set_feature_algorithms( settings.feature_detector, settings.descriptor_extractor,
+                          settings.feature_matcher, settings.fundamental_matrix_estimator );
 }
 
 // -----------------------------------------------------------------------------

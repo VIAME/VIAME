@@ -48,11 +48,6 @@
 #include <vital/util/string.h>
 #include <vital/io/camera_rig_io.h>
 
-#include <vital/algo/detect_features.h>
-#include <vital/algo/extract_descriptors.h>
-#include <vital/algo/match_features.h>
-#include <vital/algo/estimate_fundamental_matrix.h>
-
 #include <sprokit/processes/kwiver_type_traits.h>
 
 #include <string>
@@ -68,65 +63,9 @@ namespace viame
 namespace core
 {
 
+// Only calibration_file is process-specific; rest comes from measurement_settings
 create_config_trait( calibration_file, std::string, "",
   "Input filename for the calibration file to use" );
-
-create_config_trait( matching_methods, std::string, "input_pairs_only,template_matching",
-  "Comma-separated list of methods to try (in order) for finding corresponding points "
-  "in right camera for left-only tracks. Methods will be tried in the order specified "
-  "until one succeeds. Valid options: "
-  "'input_pairs_only' (use existing keypoints from right camera if available), "
-  "'depth_projection' (uses default_depth to project points), "
-  "'template_matching' (rectifies images and searches along epipolar lines), "
-  "'sgbm_disparity' (uses Semi-Global Block Matching to compute disparity map), "
-  "'feature_descriptor' (uses vital feature detection/descriptor/matching), "
-  "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering). "
-  "Example: 'input_pairs_only,template_matching,depth_projection'" );
-
-create_config_trait( template_size, int, "31",
-  "Template window size (in pixels) for template matching. Must be odd number." );
-
-create_config_trait( search_range, int, "128",
-  "Search range (in pixels) along epipolar line for template matching." );
-
-create_config_trait( default_depth, double, "5.0",
-  "Default depth (in meters) to use when projecting left camera points to right camera "
-  "for tracks that only exist in the left camera, when using the depth_projection option" );
-
-create_config_trait( use_distortion, bool, "true",
-  "Whether to use distortion coefficients from the calibration during rectification. "
-  "If true, distortion coefficients from the calibration file are used. "
-  "If false, zero distortion is assumed." );
-
-create_config_trait( sgbm_min_disparity, int, "0",
-  "Minimum possible disparity value for SGBM. Normally 0, but can be negative." );
-
-create_config_trait( sgbm_num_disparities, int, "128",
-  "Maximum disparity minus minimum disparity for SGBM. Must be divisible by 16." );
-
-create_config_trait( sgbm_block_size, int, "5",
-  "Block size for SGBM. Must be odd number >= 1. Typically 3-11." );
-
-create_config_trait( feature_search_radius, double, "50.0",
-  "Maximum distance (in pixels) to search for feature matches around the expected location. "
-  "Used for feature_descriptor and ransac_feature methods." );
-
-create_config_trait( ransac_inlier_scale, double, "3.0",
-  "Inlier threshold for RANSAC fundamental matrix estimation. "
-  "Points with reprojection error below this threshold are considered inliers." );
-
-create_config_trait( min_ransac_inliers, int, "10",
-  "Minimum number of inliers required for a valid RANSAC result." );
-
-create_config_trait( box_scale_factor, double, "1.10",
-  "Scale factor to expand the bounding box around keypoints when creating "
-  "new detections for the right image. A value of 1.10 means 10% expansion." );
-
-create_config_trait( record_stereo_method, bool, "true",
-  "If true, record the stereo measurement method used as an attribute on each "
-  "output detection object. The attribute will be ':stereo_method=METHOD' "
-  "where METHOD is one of: input_kps_used, template_matching, sgbm_disparity, "
-  "feature_descriptor, ransac_feature, or depth_projection." );
 
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
@@ -141,23 +80,20 @@ public:
   explicit priv( manual_measurement_process* parent );
   ~priv();
 
-  // Configuration settings
+  // Process-specific config
   std::string m_calibration_file;
-  std::string m_matching_methods_str;
+
+  // Measurement settings (contains all algo parameters and algorithm pointers)
+  measurement_settings m_settings;
+
+  // Parsed matching methods (derived from settings)
   std::vector< std::string > m_matching_methods;
-  bool m_record_stereo_method;
 
   // Other variables
   kv::camera_rig_stereo_sptr m_calibration;
   unsigned m_frame_counter;
   std::set< std::string > p_port_list;
   manual_measurement_process* parent;
-
-  // Optional vital algorithms for feature-based matching
-  kv::algo::detect_features_sptr m_feature_detector;
-  kv::algo::extract_descriptors_sptr m_descriptor_extractor;
-  kv::algo::match_features_sptr m_feature_matcher;
-  kv::algo::estimate_fundamental_matrix_sptr m_fundamental_matrix_estimator;
 
   // Measurement utilities
   measurement_utilities m_utilities;
@@ -168,8 +104,6 @@ public:
 manual_measurement_process::priv
 ::priv( manual_measurement_process* ptr )
   : m_calibration_file( "" )
-  , m_matching_methods_str( "input_pairs_only,template_matching" )
-  , m_record_stereo_method( true )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -226,28 +160,18 @@ void
 manual_measurement_process
 ::make_config()
 {
+  // Process-specific config
   declare_config_using_trait( calibration_file );
-  declare_config_using_trait( default_depth );
-  declare_config_using_trait( matching_methods );
-  declare_config_using_trait( template_size );
-  declare_config_using_trait( search_range );
-  declare_config_using_trait( use_distortion );
 
-  // SGBM configuration
-  declare_config_using_trait( sgbm_min_disparity );
-  declare_config_using_trait( sgbm_num_disparities );
-  declare_config_using_trait( sgbm_block_size );
-
-  // Feature matching configuration
-  declare_config_using_trait( feature_search_radius );
-  declare_config_using_trait( ransac_inlier_scale );
-  declare_config_using_trait( min_ransac_inliers );
-
-  // Right detection creation configuration
-  declare_config_using_trait( box_scale_factor );
-
-  // Recording options
-  declare_config_using_trait( record_stereo_method );
+  // Merge in measurement_settings configuration
+  kv::config_block_sptr settings_config = d->m_settings.get_configuration();
+  for( auto const& key : settings_config->available_values() )
+  {
+    declare_configuration_key(
+      key,
+      settings_config->get_value< std::string >( key ),
+      settings_config->get_description( key ) );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -255,9 +179,8 @@ void
 manual_measurement_process
 ::_configure()
 {
+  // Get process-specific config
   d->m_calibration_file = config_value_using_trait( calibration_file );
-  d->m_matching_methods_str = config_value_using_trait( matching_methods );
-  d->m_record_stereo_method = config_value_using_trait( record_stereo_method );
 
   if( d->m_calibration_file.empty() )
   {
@@ -273,84 +196,30 @@ manual_measurement_process
     throw std::runtime_error( "Failed to load calibration file: " + d->m_calibration_file );
   }
 
-  // Parse matching methods
-  d->m_matching_methods = measurement_utilities::parse_matching_methods( d->m_matching_methods_str );
+  // Configure settings from config block
+  d->m_settings.set_configuration( get_config() );
 
-  if( d->m_matching_methods.empty() )
+  // Validate matching methods
+  std::string validation_error = d->m_settings.validate_matching_methods();
+  if( !validation_error.empty() )
   {
-    LOG_ERROR( logger(), "No valid matching methods specified" );
-    throw std::runtime_error( "No valid matching methods specified" );
+    LOG_ERROR( logger(), validation_error );
+    throw std::runtime_error( validation_error );
   }
 
-  // Validate method names
-  auto valid_methods = measurement_utilities::get_valid_methods();
-  for( const auto& method : d->m_matching_methods )
+  // Get parsed methods
+  d->m_matching_methods = d->m_settings.get_matching_methods();
+
+  LOG_INFO( logger(), "Matching methods (in order): " + d->m_settings.matching_methods );
+
+  // Configure utilities from settings
+  d->m_utilities.configure( d->m_settings );
+
+  // Check for warnings about feature algorithms
+  auto warnings = d->m_settings.check_feature_algorithm_warnings();
+  for( const auto& warning : warnings )
   {
-    if( std::find( valid_methods.begin(), valid_methods.end(), method ) == valid_methods.end() )
-    {
-      LOG_ERROR( logger(), "Invalid matching method: " + method );
-      throw std::runtime_error( "Invalid matching method: " + method );
-    }
-  }
-
-  LOG_INFO( logger(), "Matching methods (in order): " + d->m_matching_methods_str );
-
-  // Configure utilities
-  d->m_utilities.set_default_depth( config_value_using_trait( default_depth ) );
-  d->m_utilities.set_template_params(
-    config_value_using_trait( template_size ),
-    config_value_using_trait( search_range ) );
-  d->m_utilities.set_use_distortion( config_value_using_trait( use_distortion ) );
-  d->m_utilities.set_sgbm_params(
-    config_value_using_trait( sgbm_min_disparity ),
-    config_value_using_trait( sgbm_num_disparities ),
-    config_value_using_trait( sgbm_block_size ) );
-  d->m_utilities.set_feature_params(
-    config_value_using_trait( feature_search_radius ),
-    config_value_using_trait( ransac_inlier_scale ),
-    config_value_using_trait( min_ransac_inliers ) );
-  d->m_utilities.set_box_scale_factor( config_value_using_trait( box_scale_factor ) );
-
-  // Configure optional vital algorithms for feature-based methods
-  kv::config_block_sptr algo_config = get_config();
-
-  kv::algo::detect_features::set_nested_algo_configuration(
-    "feature_detector", algo_config, d->m_feature_detector );
-  kv::algo::extract_descriptors::set_nested_algo_configuration(
-    "descriptor_extractor", algo_config, d->m_descriptor_extractor );
-  kv::algo::match_features::set_nested_algo_configuration(
-    "feature_matcher", algo_config, d->m_feature_matcher );
-  kv::algo::estimate_fundamental_matrix::set_nested_algo_configuration(
-    "fundamental_matrix_estimator", algo_config, d->m_fundamental_matrix_estimator );
-
-  d->m_utilities.set_feature_algorithms(
-    d->m_feature_detector,
-    d->m_descriptor_extractor,
-    d->m_feature_matcher,
-    d->m_fundamental_matrix_estimator );
-
-  // Check if feature-based methods are requested but algorithms are not configured
-  for( const auto& method : d->m_matching_methods )
-  {
-    if( method == "feature_descriptor" || method == "ransac_feature" )
-    {
-      if( !d->m_feature_detector )
-      {
-        LOG_WARN( logger(), "Feature detector not configured; " + method + " method may not work" );
-      }
-      if( !d->m_descriptor_extractor )
-      {
-        LOG_WARN( logger(), "Descriptor extractor not configured; " + method + " method may not work" );
-      }
-      if( !d->m_feature_matcher )
-      {
-        LOG_WARN( logger(), "Feature matcher not configured; " + method + " method may not work" );
-      }
-      if( method == "ransac_feature" && !d->m_fundamental_matrix_estimator )
-      {
-        LOG_WARN( logger(), "Fundamental matrix estimator not configured; ransac_feature method may not work" );
-      }
-    }
+    LOG_WARN( logger(), warning );
   }
 }
 
@@ -571,7 +440,7 @@ manual_measurement_process
     det1->set_length( length );
     det2->set_length( length );
 
-    if( d->m_record_stereo_method )
+    if( d->m_settings.record_stereo_method )
     {
       det1->add_note( ":stereo_method=input_kps_used" );
       det2->add_note( ":stereo_method=input_kps_used" );
@@ -668,7 +537,7 @@ manual_measurement_process
 
       det1->set_length( length );
 
-      if( d->m_record_stereo_method )
+      if( d->m_settings.record_stereo_method )
       {
         det1->add_note( ":stereo_method=" + result.method_used );
       }
@@ -683,7 +552,7 @@ manual_measurement_process
         det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
         det2->set_length( length );
 
-        if( d->m_record_stereo_method )
+        if( d->m_settings.record_stereo_method )
         {
           det2->add_note( ":stereo_method=" + result.method_used );
         }
@@ -717,7 +586,7 @@ manual_measurement_process
         det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
         det2->set_length( length );
 
-        if( d->m_record_stereo_method )
+        if( d->m_settings.record_stereo_method )
         {
           det2->add_note( ":stereo_method=" + result.method_used );
         }

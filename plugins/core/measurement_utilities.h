@@ -45,6 +45,7 @@
 #include <vital/types/feature_set.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/match_set.h>
+#include <vital/config/config_block.h>
 
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
@@ -69,6 +70,108 @@ namespace core
 namespace kv = kwiver::vital;
 
 /**
+ * \brief Configuration settings for stereo measurement operations
+ *
+ * This class encapsulates all configuration parameters for stereo measurement
+ * and provides standard kwiver get/set configuration functions.
+ */
+class VIAME_CORE_EXPORT measurement_settings
+{
+public:
+  measurement_settings();
+  ~measurement_settings();
+
+  // -------------------------------------------------------------------------
+  // Standard kwiver configuration functions
+  // -------------------------------------------------------------------------
+
+  /// Get the default configuration block with all parameters
+  kv::config_block_sptr get_configuration() const;
+
+  /// Set configuration from a config block
+  void set_configuration( kv::config_block_sptr config );
+
+  /// Check if configuration is valid
+  bool check_configuration( kv::config_block_sptr config ) const;
+
+  // -------------------------------------------------------------------------
+  // Parameter values
+  // -------------------------------------------------------------------------
+
+  /// Comma-separated list of matching methods to try in order
+  std::string matching_methods;
+
+  /// Default depth (in meters) for depth projection method
+  double default_depth;
+
+  /// Template window size (in pixels) for template matching. Must be odd.
+  int template_size;
+
+  /// Search range (in pixels) along epipolar line for template matching
+  int search_range;
+
+  /// Whether to use distortion coefficients from calibration
+  bool use_distortion;
+
+  /// Minimum disparity value for SGBM
+  int sgbm_min_disparity;
+
+  /// Maximum disparity minus minimum disparity for SGBM. Must be divisible by 16.
+  int sgbm_num_disparities;
+
+  /// Block size for SGBM. Must be odd >= 1.
+  int sgbm_block_size;
+
+  /// Maximum distance (in pixels) to search for feature matches
+  double feature_search_radius;
+
+  /// Inlier threshold for RANSAC fundamental matrix estimation
+  double ransac_inlier_scale;
+
+  /// Minimum number of inliers required for valid RANSAC result
+  int min_ransac_inliers;
+
+  /// Scale factor to expand bounding box around keypoints
+  double box_scale_factor;
+
+  /// Whether to record stereo measurement method as detection attribute
+  bool record_stereo_method;
+
+  // -------------------------------------------------------------------------
+  // Algorithm pointers (configured via nested algo configuration)
+  // -------------------------------------------------------------------------
+
+  /// Feature detector algorithm
+  kv::algo::detect_features_sptr feature_detector;
+
+  /// Descriptor extractor algorithm
+  kv::algo::extract_descriptors_sptr descriptor_extractor;
+
+  /// Feature matcher algorithm
+  kv::algo::match_features_sptr feature_matcher;
+
+  /// Fundamental matrix estimator for RANSAC filtering
+  kv::algo::estimate_fundamental_matrix_sptr fundamental_matrix_estimator;
+
+  // -------------------------------------------------------------------------
+  // Utility methods
+  // -------------------------------------------------------------------------
+
+  /// Get the parsed list of matching methods
+  std::vector< std::string > get_matching_methods() const;
+
+  /// Validate matching methods and return error message (empty if valid)
+  std::string validate_matching_methods() const;
+
+  /// Check if any configured method requires images
+  bool any_method_requires_images() const;
+
+  /// Check if feature algorithms are properly configured for the specified methods
+  std::vector< std::string > check_feature_algorithm_warnings() const;
+};
+
+
+/**
  * \brief Stereo measurement utility class
  *
  * This class provides helper functions for stereo measurement operations
@@ -82,7 +185,14 @@ public:
   ~measurement_utilities();
 
   // -------------------------------------------------------------------------
-  // Configuration setters
+  // Configuration from settings
+  // -------------------------------------------------------------------------
+
+  /// Configure all parameters from a measurement_settings object
+  void configure( const measurement_settings& settings );
+
+  // -------------------------------------------------------------------------
+  // Configuration setters (for individual parameter control)
   // -------------------------------------------------------------------------
 
   /// Set the default depth for depth projection method
