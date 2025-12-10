@@ -552,6 +552,12 @@ measurement_process
         det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
         det2->set_length( length );
 
+        if( det1->type() )
+        {
+          det2->set_type( det1->type() );
+        }
+        det2->set_confidence( det1->confidence() );
+
         if( d->m_settings.record_stereo_method )
         {
           det2->add_note( ":stereo_method=" + result.method_used );
