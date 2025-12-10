@@ -113,9 +113,21 @@ connect from detector2.detected_object_set
 
 process add_segmentations1
   :: refine_detections
-  :refiner:type                                sam2        
-  :refiner:sam2:cfg                            configs/sam2.1/sam2.1_hiera_b+.yaml
-  relativepath refiner:sam2:checkpoint =       models/sam2_hbp.pt
+  :refiner:type                                ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                      adaptive
+    :chip_adaptive_thresh                      25000000
+    :chip_width                                2000
+    :chip_height                               2000
+    :chip_step_width                           1000
+    :chip_step_height                          1000
+
+    :refiner:type                              sam2
+    :refiner:sam2:cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
+    :refiner:sam2:overwrite_existing           false
+    relativepath refiner:sam2:checkpoint =     models/sam2_hbp.pt
+  endblock
 
 process add_head_tail1
   :: add_keypoints_from_oriented_bbox
@@ -130,9 +142,21 @@ connect from add_segmentations1.detected_object_set
 
 process add_segmentations2
   :: refine_detections
-  :refiner:type                                sam2        
-  :refiner:sam2:cfg                            configs/sam2.1/sam2.1_hiera_b+.yaml
-  relativepath refiner:sam2:checkpoint =       models/sam2_hbp.pt
+  :refiner:type                                ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                      adaptive
+    :chip_adaptive_thresh                      25000000
+    :chip_width                                2000
+    :chip_height                               2000
+    :chip_step_width                           1000
+    :chip_step_height                          1000
+
+    :refiner:type                              sam2
+    :refiner:sam2:cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
+    :refiner:sam2:overwrite_existing           false
+    relativepath refiner:sam2:checkpoint =     models/sam2_hbp.pt
+  endblock
 
 process add_head_tail2
   :: add_keypoints_from_oriented_bbox
