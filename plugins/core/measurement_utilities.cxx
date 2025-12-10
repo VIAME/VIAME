@@ -757,12 +757,26 @@ measurement_utilities
   cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
     right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-  // Convert to grayscale
-  if( left_cv.channels() > 1 )
+  // Convert to grayscale (handle each image independently since they may have different channel counts)
+  if( left_cv.channels() == 3 )
   {
     cv::cvtColor( left_cv, left_cv, cv::COLOR_BGR2GRAY );
+  }
+  else if( left_cv.channels() == 4 )
+  {
+    cv::cvtColor( left_cv, left_cv, cv::COLOR_BGRA2GRAY );
+  }
+  // If already 1 channel, no conversion needed
+
+  if( right_cv.channels() == 3 )
+  {
     cv::cvtColor( right_cv, right_cv, cv::COLOR_BGR2GRAY );
   }
+  else if( right_cv.channels() == 4 )
+  {
+    cv::cvtColor( right_cv, right_cv, cv::COLOR_BGRA2GRAY );
+  }
+  // If already 1 channel, no conversion needed
 
   // Compute rectification maps if needed
   compute_rectification_maps( left_cam, right_cam, left_cv.size() );

@@ -249,14 +249,30 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
 
   cv::Mat ocv1_gray, ocv2_gray;
 
-  if( ocv1.channels() > 1 )
+  // Convert each image to grayscale independently (they may have different channel counts)
+  if( ocv1.channels() == 3 )
   {
-    cvtColor(ocv1, ocv1_gray, cv::COLOR_BGR2GRAY);
-    cvtColor(ocv2, ocv2_gray, cv::COLOR_BGR2GRAY);
+    cvtColor( ocv1, ocv1_gray, cv::COLOR_BGR2GRAY );
+  }
+  else if( ocv1.channels() == 4 )
+  {
+    cvtColor( ocv1, ocv1_gray, cv::COLOR_BGRA2GRAY );
   }
   else
   {
     ocv1_gray = ocv1;
+  }
+
+  if( ocv2.channels() == 3 )
+  {
+    cvtColor( ocv2, ocv2_gray, cv::COLOR_BGR2GRAY );
+  }
+  else if( ocv2.channels() == 4 )
+  {
+    cvtColor( ocv2, ocv2_gray, cv::COLOR_BGRA2GRAY );
+  }
+  else
+  {
     ocv2_gray = ocv2;
   }
 
