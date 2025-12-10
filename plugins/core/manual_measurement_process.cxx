@@ -135,6 +135,12 @@ create_config_trait( box_scale_factor, double, "1.10",
   "Scale factor to expand the bounding box around keypoints when creating "
   "new detections for the right image. A value of 1.10 means 10% expansion." );
 
+create_config_trait( record_stereo_method, bool, "false",
+  "If true, record the stereo measurement method used as an attribute on each "
+  "output detection object. The attribute will be ':stereo_method=METHOD' "
+  "where METHOD is one of: input_kps_used, template_matching, sgbm_disparity, "
+  "feature_descriptor, ransac_feature, or depth_projection." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -233,6 +239,9 @@ public:
   // Right detection creation configuration
   double m_box_scale_factor;
 
+  // Recording options
+  bool m_record_stereo_method;
+
   // Other variables
   kv::camera_rig_stereo_sptr m_calibration;
   unsigned m_frame_counter;
@@ -286,6 +295,7 @@ manual_measurement_process::priv
   , m_ransac_inlier_scale( 3.0 )
   , m_min_ransac_inliers( 10 )
   , m_box_scale_factor( 1.10 )
+  , m_record_stereo_method( false )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -911,6 +921,9 @@ manual_measurement_process
 
   // Right detection creation configuration
   declare_config_using_trait( box_scale_factor );
+
+  // Recording options
+  declare_config_using_trait( record_stereo_method );
 }
 
 // -----------------------------------------------------------------------------
@@ -952,6 +965,9 @@ manual_measurement_process
 
   // Right detection creation configuration
   d->m_box_scale_factor = config_value_using_trait( box_scale_factor );
+
+  // Recording options
+  d->m_record_stereo_method = config_value_using_trait( record_stereo_method );
 
   // Ensure template size is odd
   if( d->m_template_size % 2 == 0 )
@@ -1260,6 +1276,13 @@ manual_measurement_process
 
       det1->set_length( length );
       det2->set_length( length );
+
+      // Record stereo method if enabled
+      if( d->m_record_stereo_method )
+      {
+        det1->add_note( ":stereo_method=input_kps_used" );
+        det2->add_note( ":stereo_method=input_kps_used" );
+      }
     }
   }
 
@@ -1576,6 +1599,12 @@ manual_measurement_process
 
       det1->set_length( length );
 
+      // Record stereo method if enabled
+      if( d->m_record_stereo_method )
+      {
+        det1->add_note( ":stereo_method=" + method_used );
+      }
+
       if( is_left_only )
       {
         // Create a new detection for the right image with the computed keypoints
@@ -1586,6 +1615,12 @@ manual_measurement_process
         det2->add_keypoint( "head", kv::point_2d( right_head_point.x(), right_head_point.y() ) );
         det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
         det2->set_length( length );
+
+        // Record stereo method if enabled
+        if( d->m_record_stereo_method )
+        {
+          det2->add_note( ":stereo_method=" + method_used );
+        }
 
         // Ensure right track set exists
         if( !input_tracks[1] )
@@ -1619,6 +1654,12 @@ manual_measurement_process
         det2->add_keypoint( "head", kv::point_2d( right_head_point.x(), right_head_point.y() ) );
         det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
         det2->set_length( length );
+
+        // Record stereo method if enabled
+        if( d->m_record_stereo_method )
+        {
+          det2->add_note( ":stereo_method=" + method_used );
+        }
 
         LOG_INFO( logger(), "Added keypoints to existing right detection for track ID " +
                             std::to_string( id ) );
