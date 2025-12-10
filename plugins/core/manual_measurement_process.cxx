@@ -44,6 +44,9 @@
 #include <vital/types/feature_set.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/match_set.h>
+#include <vital/types/point.h>
+#include <vital/types/bounding_box.h>
+#include <vital/types/track.h>
 #include <vital/util/string.h>
 #include <vital/io/camera_rig_io.h>
 
@@ -128,6 +131,10 @@ create_config_trait( ransac_inlier_scale, double, "3.0",
 create_config_trait( min_ransac_inliers, int, "10",
   "Minimum number of inliers required for a valid RANSAC result." );
 
+create_config_trait( box_scale_factor, double, "1.10",
+  "Scale factor to expand the bounding box around keypoints when creating "
+  "new detections for the right image. A value of 1.10 means 10% expansion." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -192,6 +199,11 @@ public:
     const kv::vector_2d& left_point,
     kv::vector_2d& right_point );
 
+  // Helper function to compute a bounding box from keypoints with scale factor
+  kv::bounding_box_d compute_bbox_from_keypoints(
+    const kv::vector_2d& head_point,
+    const kv::vector_2d& tail_point );
+
 #ifdef VIAME_ENABLE_OPENCV
   // Helper function to unrectify a point from rectified space back to original
   kv::vector_2d unrectify_point(
@@ -217,6 +229,9 @@ public:
   double m_feature_search_radius;
   double m_ransac_inlier_scale;
   int m_min_ransac_inliers;
+
+  // Right detection creation configuration
+  double m_box_scale_factor;
 
   // Other variables
   kv::camera_rig_stereo_sptr m_calibration;
@@ -270,6 +285,7 @@ manual_measurement_process::priv
   , m_feature_search_radius( 50.0 )
   , m_ransac_inlier_scale( 3.0 )
   , m_min_ransac_inliers( 10 )
+  , m_box_scale_factor( 1.10 )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -800,6 +816,38 @@ manual_measurement_process::priv
   return right_intrinsics->map( normalized_right );
 }
 
+// -----------------------------------------------------------------------------
+kv::bounding_box_d
+manual_measurement_process::priv
+::compute_bbox_from_keypoints(
+  const kv::vector_2d& head_point,
+  const kv::vector_2d& tail_point )
+{
+  // Compute bounding box around the keypoints
+  double min_x = std::min( head_point.x(), tail_point.x() );
+  double max_x = std::max( head_point.x(), tail_point.x() );
+  double min_y = std::min( head_point.y(), tail_point.y() );
+  double max_y = std::max( head_point.y(), tail_point.y() );
+
+  // Compute center and dimensions
+  double center_x = ( min_x + max_x ) / 2.0;
+  double center_y = ( min_y + max_y ) / 2.0;
+  double width = max_x - min_x;
+  double height = max_y - min_y;
+
+  // Apply scale factor
+  double scaled_width = width * m_box_scale_factor;
+  double scaled_height = height * m_box_scale_factor;
+
+  // Compute new bounding box coordinates
+  double new_min_x = center_x - scaled_width / 2.0;
+  double new_max_x = center_x + scaled_width / 2.0;
+  double new_min_y = center_y - scaled_height / 2.0;
+  double new_max_y = center_y + scaled_height / 2.0;
+
+  return kv::bounding_box_d( new_min_x, new_min_y, new_max_x, new_max_y );
+}
+
 // =============================================================================
 manual_measurement_process
 ::manual_measurement_process( kv::config_block_sptr const& config )
@@ -860,6 +908,9 @@ manual_measurement_process
   declare_config_using_trait( feature_search_radius );
   declare_config_using_trait( ransac_inlier_scale );
   declare_config_using_trait( min_ransac_inliers );
+
+  // Right detection creation configuration
+  declare_config_using_trait( box_scale_factor );
 }
 
 // -----------------------------------------------------------------------------
@@ -884,6 +935,9 @@ manual_measurement_process
   d->m_feature_search_radius = config_value_using_trait( feature_search_radius );
   d->m_ransac_inlier_scale = config_value_using_trait( ransac_inlier_scale );
   d->m_min_ransac_inliers = config_value_using_trait( min_ransac_inliers );
+
+  // Right detection creation configuration
+  d->m_box_scale_factor = config_value_using_trait( box_scale_factor );
 
   // Ensure template size is odd
   if( d->m_template_size % 2 == 0 )
@@ -1461,6 +1515,33 @@ manual_measurement_process
                           std::to_string( length ) );
 
       det1->set_length( length );
+
+      // Create a new detection for the right image with the computed keypoints
+      kv::bounding_box_d right_bbox =
+        d->compute_bbox_from_keypoints( right_head_point, right_tail_point );
+
+      auto det2 = std::make_shared< kv::detected_object >( right_bbox );
+      det2->add_keypoint( "head", kv::point_2d( right_head_point.x(), right_head_point.y() ) );
+      det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
+      det2->set_length( length );
+
+      // Find or create the track with the same ID in the right track set
+      kv::track_sptr right_track = input_tracks[1]->get_track( id );
+
+      if( !right_track )
+      {
+        right_track = kv::track::create();
+        right_track->set_id( id );
+        input_tracks[1]->insert( right_track );
+      }
+
+      // Create and append a new track state with the detection
+      auto new_state = std::make_shared< kv::object_track_state >(
+        cur_frame_id, ts.get_time_usec(), det2 );
+      right_track->append( new_state );
+      input_tracks[1]->notify_new_state( new_state );
+
+      LOG_INFO( logger(), "Created right detection for track ID " + std::to_string( id ) );
     }
   }
 
