@@ -38,7 +38,7 @@
 #include "filter_object_tracks_process.h"
 #include "frame_stacker_process.h"
 #include "full_frame_tracker_process.h"
-#include "manual_measurement_process.h"
+#include "measurement_process.h"
 #include "read_habcam_metadata_process.h"
 #include "refine_measurements_process.h"
 #include "track_conductor_process.h"
@@ -148,13 +148,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::manual_measurement_process );
+  fact = vpm.ADD_PROCESS( viame::core::measurement_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "manual_measurement" )
+                        "measurement" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Manually measure objects using user supplied annotations" )
+                    "Compute stereo measurements from track data" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
