@@ -924,7 +924,21 @@ manual_measurement_process
   d->m_template_size = config_value_using_trait( template_size );
   d->m_search_range = config_value_using_trait( search_range );
   d->m_use_distortion = config_value_using_trait( use_distortion );
+
+  if( d->m_calibration_file.empty() )
+  {
+    LOG_ERROR( logger(), "Calibration file not specified" );
+    throw std::runtime_error( "Calibration file not specified" );
+  }
+
   d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
+
+  // Get camera references (needed for both matched and left-only detections)
+  if( !d->m_calibration || !d->m_calibration->left() || !d->m_calibration->right() )
+  {
+    LOG_ERROR( logger(), "Failed to load calibration file: " + d->m_calibration_file );
+    throw std::runtime_error( "Failed to load calibration file: " + d->m_calibration_file );
+  }
 
   // SGBM configuration
   d->m_sgbm_min_disparity = config_value_using_trait( sgbm_min_disparity );
@@ -943,7 +957,8 @@ manual_measurement_process
   if( d->m_template_size % 2 == 0 )
   {
     d->m_template_size++;
-    LOG_WARN( logger(), "Template size must be odd, adjusted to " + std::to_string( d->m_template_size ) );
+    LOG_WARN( logger(), "Template size must be odd, adjusted to " +
+                        std::to_string( d->m_template_size ) );
   }
 
   // Ensure SGBM num_disparities is divisible by 16
