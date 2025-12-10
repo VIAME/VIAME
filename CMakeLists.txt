@@ -107,7 +107,7 @@ option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
-option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLibL"      OFF )
+option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
