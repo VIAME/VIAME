@@ -7,6 +7,7 @@ set( plugin_headers
   convert_polygons_to_mask.h
   empty_detector.h
   filename_to_timestamp.h
+  measurement_utilities.h
   notes_to_attributes.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
@@ -26,6 +27,7 @@ set( plugin_sources
   convert_polygons_to_mask.cxx
   empty_detector.cxx
   filename_to_timestamp.cxx
+  measurement_utilities.cxx
   notes_to_attributes.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
@@ -135,7 +137,7 @@ set( process_headers
   filter_object_tracks_process.h
   frame_stacker_process.h
   full_frame_tracker_process.h
-  manual_measurement_process.h
+  measurement_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
   track_conductor_process.h
@@ -156,7 +158,7 @@ set( process_sources
   filter_object_tracks_process.cxx
   frame_stacker_process.cxx
   full_frame_tracker_process.cxx
-  manual_measurement_process.cxx
+  measurement_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
   track_conductor_process.cxx
