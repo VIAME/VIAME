@@ -92,7 +92,8 @@ create_config_trait( matching_method, std::string, "automatic",
   "'sgbm_disparity' (uses Semi-Global Block Matching to compute disparity map), "
   "'feature_descriptor' (uses vital feature detection/descriptor/matching algorithms), "
   "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering), "
-  "'automatic' (uses matched tracks first, then tries template_matching, sgbm_disparity, depth_projection)" );
+  "'automatic' (uses matched tracks first, then tries template_matching, sgbm_disparity, "
+  "feature_descriptor, ransac_feature; does not fall back to depth_projection)" );
 
 create_config_trait( template_size, int, "31",
   "Template window size (in pixels) for template matching. Must be odd number. "
@@ -135,7 +136,7 @@ create_config_trait( box_scale_factor, double, "1.10",
   "Scale factor to expand the bounding box around keypoints when creating "
   "new detections for the right image. A value of 1.10 means 10% expansion." );
 
-create_config_trait( record_stereo_method, bool, "false",
+create_config_trait( record_stereo_method, bool, "true",
   "If true, record the stereo measurement method used as an attribute on each "
   "output detection object. The attribute will be ':stereo_method=METHOD' "
   "where METHOD is one of: input_kps_used, template_matching, sgbm_disparity, "
@@ -191,18 +192,20 @@ public:
 
   // Helper function to find corresponding point using vital feature detection/matching
   // Returns true if match found, false otherwise
+  // Updates left_point to the actual feature location if a match is found
   bool find_corresponding_point_feature_descriptor(
     const kv::image_container_sptr& left_image,
     const kv::image_container_sptr& right_image,
-    const kv::vector_2d& left_point,
+    kv::vector_2d& left_point,
     kv::vector_2d& right_point );
 
   // Helper function to find corresponding point using RANSAC feature matching
   // Returns true if match found, false otherwise
+  // Updates left_point to the actual feature location if a match is found
   bool find_corresponding_point_ransac_feature(
     const kv::image_container_sptr& left_image,
     const kv::image_container_sptr& right_image,
-    const kv::vector_2d& left_point,
+    kv::vector_2d& left_point,
     kv::vector_2d& right_point );
 
   // Helper function to compute a bounding box from keypoints with scale factor
@@ -618,7 +621,7 @@ manual_measurement_process::priv
 ::find_corresponding_point_feature_descriptor(
   const kv::image_container_sptr& left_image,
   const kv::image_container_sptr& right_image,
-  const kv::vector_2d& left_point,
+  kv::vector_2d& left_point,
   kv::vector_2d& right_point )
 {
   if( !m_feature_detector || !m_descriptor_extractor || !m_feature_matcher )
@@ -654,6 +657,7 @@ manual_measurement_process::priv
 
   // Find the closest matched feature to our query point
   double best_dist = std::numeric_limits<double>::max();
+  kv::vector_2d best_left_point;
   kv::vector_2d best_right_point;
   bool found = false;
 
@@ -674,6 +678,7 @@ manual_measurement_process::priv
     if( dist < m_feature_search_radius && dist < best_dist )
     {
       best_dist = dist;
+      best_left_point = left_feat_loc;
       best_right_point = right_feat->loc();
       found = true;
     }
@@ -681,6 +686,8 @@ manual_measurement_process::priv
 
   if( found )
   {
+    // Update left_point to the actual feature location
+    left_point = best_left_point;
     right_point = best_right_point;
   }
 
@@ -693,7 +700,7 @@ manual_measurement_process::priv
 ::find_corresponding_point_ransac_feature(
   const kv::image_container_sptr& left_image,
   const kv::image_container_sptr& right_image,
-  const kv::vector_2d& left_point,
+  kv::vector_2d& left_point,
   kv::vector_2d& right_point )
 {
   if( !m_feature_detector || !m_descriptor_extractor ||
@@ -751,6 +758,7 @@ manual_measurement_process::priv
 
   // Find the closest inlier match to our query point
   double best_dist = std::numeric_limits<double>::max();
+  kv::vector_2d best_left_point;
   kv::vector_2d best_right_point;
   bool found = false;
 
@@ -777,6 +785,7 @@ manual_measurement_process::priv
     if( dist < m_feature_search_radius && dist < best_dist )
     {
       best_dist = dist;
+      best_left_point = left_feat_loc;
       best_right_point = right_feat->loc();
       found = true;
     }
@@ -784,6 +793,8 @@ manual_measurement_process::priv
 
   if( found )
   {
+    // Update left_point to the actual feature location
+    left_point = best_left_point;
     right_point = best_right_point;
   }
 
@@ -1318,9 +1329,10 @@ manual_measurement_process
       ( d->m_matching_method == "sgbm_disparity" || is_automatic );
 
     bool use_feature_descriptor =
-      ( d->m_matching_method == "feature_descriptor" );
+      ( d->m_matching_method == "feature_descriptor" || is_automatic );
 
-    bool use_ransac_feature = ( d->m_matching_method == "ransac_feature" );
+    bool use_ransac_feature =
+      ( d->m_matching_method == "ransac_feature" || is_automatic );
 
     bool needs_rectified_images = use_template_matching || use_sgbm_disparity;
 
@@ -1365,13 +1377,13 @@ manual_measurement_process
     {
       if( is_automatic )
       {
-        LOG_INFO( logger(), "Images not provided, automatic mode will use depth projection" );
+        LOG_WARN( logger(), "Images not provided for automatic mode, "
+                            "template_matching and sgbm_disparity will not be available" );
       }
       else if( d->m_matching_method == "template_matching" ||
                d->m_matching_method == "sgbm_disparity" )
       {
-        LOG_WARN( logger(), d->m_matching_method + " requested but images not provided, "
-                            "falling back to depth projection" );
+        LOG_ERROR( logger(), d->m_matching_method + " requested but images not provided" );
       }
     }
 #endif
@@ -1404,46 +1416,9 @@ manual_measurement_process
       bool head_found = false, tail_found = false;
       std::string method_used = "depth_projection";
 
-      // Try feature_descriptor method (only if explicitly selected)
-      if( use_feature_descriptor && input_images.size() >= 2 )
-      {
-        head_found = d->find_corresponding_point_feature_descriptor(
-          input_images[0], input_images[1], left_head_point, right_head_point );
-        tail_found = d->find_corresponding_point_feature_descriptor(
-          input_images[0], input_images[1], left_tail_point, right_tail_point );
-
-        if( head_found && tail_found )
-        {
-          method_used = "feature_descriptor";
-        }
-        else
-        {
-          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                              " feature_descriptor matching failed" );
-        }
-      }
-
-      // Try ransac_feature method (only if explicitly selected)
-      if( use_ransac_feature && input_images.size() >= 2 )
-      {
-        head_found = d->find_corresponding_point_ransac_feature(
-          input_images[0], input_images[1], left_head_point, right_head_point );
-        tail_found = d->find_corresponding_point_ransac_feature(
-          input_images[0], input_images[1], left_tail_point, right_tail_point );
-
-        if( head_found && tail_found )
-        {
-          method_used = "ransac_feature";
-        }
-        else
-        {
-          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                              " ransac_feature matching failed" );
-        }
-      }
-
 #ifdef VIAME_ENABLE_OPENCV
-      // For automatic mode: try template_matching first, then sgbm_disparity
+      // For automatic mode: try template_matching first, then sgbm_disparity,
+      // then feature_descriptor, then ransac_feature
       // For specific methods: only try the selected method
 
       // Try template_matching method (first choice for automatic mode)
@@ -1553,22 +1528,56 @@ manual_measurement_process
       }
 #endif
 
-      // Fall back to depth projection if nothing else worked (last choice for automatic mode)
+      // Try feature_descriptor method (third choice for automatic mode)
+      if( use_feature_descriptor && input_images.size() >= 2 &&
+          ( !head_found || !tail_found ) )
+      {
+        head_found = d->find_corresponding_point_feature_descriptor(
+          input_images[0], input_images[1], left_head_point, right_head_point );
+        tail_found = d->find_corresponding_point_feature_descriptor(
+          input_images[0], input_images[1], left_tail_point, right_tail_point );
+
+        if( head_found && tail_found )
+        {
+          method_used = "feature_descriptor";
+        }
+        else
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " feature_descriptor matching failed" );
+        }
+      }
+
+      // Try ransac_feature method (fourth choice for automatic mode)
+      if( use_ransac_feature && input_images.size() >= 2 &&
+          ( !head_found || !tail_found ) )
+      {
+        head_found = d->find_corresponding_point_ransac_feature(
+          input_images[0], input_images[1], left_head_point, right_head_point );
+        tail_found = d->find_corresponding_point_ransac_feature(
+          input_images[0], input_images[1], left_tail_point, right_tail_point );
+
+        if( head_found && tail_found )
+        {
+          method_used = "ransac_feature";
+        }
+        else
+        {
+          LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                              " ransac_feature matching failed" );
+        }
+      }
+
+      // Fall back to depth projection if nothing else worked (only if explicitly selected)
       if( !head_found || !tail_found )
       {
-        if( is_automatic || d->m_matching_method == "depth_projection" )
+        if( d->m_matching_method == "depth_projection" )
         {
           right_head_point = d->project_left_to_right( left_cam, right_cam, left_head_point );
           right_tail_point = d->project_left_to_right( left_cam, right_cam, left_tail_point );
           head_found = true;
           tail_found = true;
           method_used = "depth_projection";
-
-          if( is_automatic )
-          {
-            LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
-                                " falling back to depth_projection" );
-          }
         }
         else
         {
@@ -1579,15 +1588,17 @@ manual_measurement_process
       }
 
       // Triangulate head keypoint
+      // Note: left_head_point may have been updated by feature matching methods
       Eigen::Matrix<float, 2, 1>
-        left_head( kp1.at("head")[0], kp1.at("head")[1] ),
+        left_head( left_head_point.x(), left_head_point.y() ),
         right_head( right_head_point.x(), right_head_point.y() );
       auto pp1 = kwiver::arrows::mvg::triangulate_fast_two_view(
         left_cam, right_cam, left_head, right_head );
 
       // Triangulate tail keypoint
+      // Note: left_tail_point may have been updated by feature matching methods
       Eigen::Matrix<float, 2, 1>
-        left_tail( kp1.at("tail")[0], kp1.at("tail")[1] ),
+        left_tail( left_tail_point.x(), left_tail_point.y() ),
         right_tail( right_tail_point.x(), right_tail_point.y() );
       auto pp2 = kwiver::arrows::mvg::triangulate_fast_two_view(
         left_cam, right_cam, left_tail, right_tail );
