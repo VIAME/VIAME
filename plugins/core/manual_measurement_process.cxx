@@ -1039,17 +1039,17 @@ manual_measurement_process
       {
         declare_input_port(
           port_name,                                 // port name
-          object_track_set_port_trait::type_name,    // port type
+          image_port_trait::type_name,               // port type
           required,                                  // port flags
-          "object track set input" );
+          "image container input" );
       }
       else
       {
         declare_input_port(
           port_name,                                 // port name
-          image_port_trait::type_name,               // port type
+          object_track_set_port_trait::type_name,    // port type
           required,                                  // port flags
-          "image container input" );
+          "object track set input" );
       }
 
       d->p_port_list.insert( port_name );
