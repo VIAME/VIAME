@@ -169,7 +169,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${Python_EXECUTABLE} setup.py build_ext
           --include-dirs="${VIAME_INSTALL_PREFIX}/include"
           --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-          --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+          bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     endif()
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
@@ -258,7 +258,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if ("${LIB}" STREQUAL "mmdeploy")
 
     set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
-    set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
+    set( LIBRARY_CPP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/mmdeploy-cpp-build )
     file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
 
     set( LIBRARY_CPP_CONFIG

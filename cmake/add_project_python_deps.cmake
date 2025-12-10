@@ -348,7 +348,7 @@ else()
     ${Python_EXECUTABLE} setup.py build_ext
       --include-dirs="${VIAME_INSTALL_PREFIX}/include"
       --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-      --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+      bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${CMAKE_COMMAND}
       -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
