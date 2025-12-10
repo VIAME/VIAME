@@ -431,7 +431,7 @@ private:
   cv::Mat m_rectification_map_right_y;
 
   // Rectification matrices for unrectifying points
-  cv::Mat m_K1, m_K2, m_R1, m_R2, m_P1, m_P2;
+  cv::Mat m_K1, m_K2, m_R1, m_R2, m_P1, m_P2, m_D1, m_D2;
 
   // SGBM matcher
   cv::Ptr<cv::StereoSGBM> m_sgbm;

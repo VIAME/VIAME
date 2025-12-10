@@ -1056,13 +1056,14 @@ measurement_utilities
     }
   }
 
-  // Compute rotation and translation between cameras
+  // Compute rotation and translation from left camera frame to right camera frame
+  // X_right = R_relative * X_left + t_relative
   Eigen::Matrix3d R_left = left_cam.rotation().matrix();
   Eigen::Matrix3d R_right = right_cam.rotation().matrix();
   Eigen::Matrix3d R_relative = R_right * R_left.transpose();
 
-  Eigen::Vector3d t_relative = right_cam.center() - left_cam.center();
-  t_relative = R_right * t_relative;
+  // Translation: t = R_right * (C_left - C_right)
+  Eigen::Vector3d t_relative = R_right * ( left_cam.center() - right_cam.center() );
 
   cv::eigen2cv( R_relative, R );
   cv::eigen2cv( t_relative, T );
@@ -1073,9 +1074,11 @@ measurement_utilities
                      m_R1, m_R2, m_P1, m_P2, Q,
                      cv::CALIB_ZERO_DISPARITY, 0 );
 
-  // Store camera matrices
+  // Store camera matrices and distortion coefficients
   m_K1 = K1.clone();
   m_K2 = K2.clone();
+  m_D1 = D1.clone();
+  m_D2 = D2.clone();
 
   // Compute rectification maps
   cv::initUndistortRectifyMap( K1, D1, m_R1, m_P1, image_size, CV_32FC1,
@@ -1106,21 +1109,22 @@ measurement_utilities
     return original_point;
   }
 
-  const cv::Mat& map_x = is_right_camera ? m_rectification_map_right_x : m_rectification_map_left_x;
-  const cv::Mat& map_y = is_right_camera ? m_rectification_map_right_y : m_rectification_map_left_y;
+  const cv::Mat& K = is_right_camera ? m_K2 : m_K1;
+  const cv::Mat& D = is_right_camera ? m_D2 : m_D1;
+  const cv::Mat& R = is_right_camera ? m_R2 : m_R1;
+  const cv::Mat& P = is_right_camera ? m_P2 : m_P1;
 
-  int x = static_cast<int>( original_point.x() + 0.5 );
-  int y = static_cast<int>( original_point.y() + 0.5 );
-
-  if( x < 0 || x >= map_x.cols || y < 0 || y >= map_x.rows )
+  if( K.empty() || R.empty() || P.empty() )
   {
     return original_point;
   }
 
-  float rect_x = map_x.at<float>( y, x );
-  float rect_y = map_y.at<float>( y, x );
+  std::vector<cv::Point2f> pts_in = { cv::Point2f( original_point.x(), original_point.y() ) };
+  std::vector<cv::Point2f> pts_out;
 
-  return kv::vector_2d( rect_x, rect_y );
+  cv::undistortPoints( pts_in, pts_out, K, D, R, P );
+
+  return pts_out.empty() ? original_point : kv::vector_2d( pts_out[0].x, pts_out[0].y );
 }
 
 // -----------------------------------------------------------------------------
@@ -1129,70 +1133,44 @@ measurement_utilities
 ::unrectify_point(
   const kv::vector_2d& rectified_point,
   bool is_right_camera,
-  const kv::simple_camera_perspective& camera ) const
+  const kv::simple_camera_perspective& ) const
 {
-  // Select appropriate matrices
+  if( !m_rectification_computed )
+  {
+    return rectified_point;
+  }
+
   const cv::Mat& R = is_right_camera ? m_R2 : m_R1;
   const cv::Mat& P = is_right_camera ? m_P2 : m_P1;
   const cv::Mat& K = is_right_camera ? m_K2 : m_K1;
+  const cv::Mat& D = is_right_camera ? m_D2 : m_D1;
 
-  // Convert point to homogeneous coordinates
-  cv::Mat point_rect = ( cv::Mat_<double>( 3, 1 ) <<
-    rectified_point.x(), rectified_point.y(), 1.0 );
+  // Extract rectified camera intrinsics from P (3x4 projection matrix)
+  double fx_rect = P.at<double>( 0, 0 );
+  double fy_rect = P.at<double>( 1, 1 );
+  double cx_rect = P.at<double>( 0, 2 );
+  double cy_rect = P.at<double>( 1, 2 );
 
-  // Get the 3x3 portion of P (the rectified camera matrix)
-  cv::Mat K_rect = P( cv::Rect( 0, 0, 3, 3 ) );
+  // Convert rectified pixel to normalized rectified coordinates
+  double x_norm_rect = ( rectified_point.x() - cx_rect ) / fx_rect;
+  double y_norm_rect = ( rectified_point.y() - cy_rect ) / fy_rect;
 
-  // Convert to normalized rectified coordinates
-  cv::Mat norm_rect = K_rect.inv() * point_rect;
+  // Apply inverse rectification rotation to get normalized original coordinates
+  cv::Mat pt_rect = ( cv::Mat_<double>( 3, 1 ) << x_norm_rect, y_norm_rect, 1.0 );
+  cv::Mat pt_orig = R.t() * pt_rect;
 
-  // Apply inverse rotation to get back to original camera frame
-  cv::Mat norm_orig = R.t() * norm_rect;
+  double x_norm = pt_orig.at<double>( 0, 0 ) / pt_orig.at<double>( 2, 0 );
+  double y_norm = pt_orig.at<double>( 1, 0 ) / pt_orig.at<double>( 2, 0 );
 
-  // Get normalized coordinates
-  double x_norm = norm_orig.at<double>( 0, 0 ) / norm_orig.at<double>( 2, 0 );
-  double y_norm = norm_orig.at<double>( 1, 0 ) / norm_orig.at<double>( 2, 0 );
+  // Apply distortion and camera matrix using projectPoints with identity pose
+  std::vector<cv::Point3f> pts_3d = { cv::Point3f( x_norm, y_norm, 1.0f ) };
+  std::vector<cv::Point2f> pts_2d;
+  cv::Mat rvec = cv::Mat::zeros( 3, 1, CV_64F );
+  cv::Mat tvec = cv::Mat::zeros( 3, 1, CV_64F );
 
-  // Apply distortion model if enabled
-  auto intrinsics = camera.get_intrinsics();
+  cv::projectPoints( pts_3d, rvec, tvec, K, D, pts_2d );
 
-  if( m_use_distortion )
-  {
-    std::vector<double> dist_coeffs = intrinsics->dist_coeffs();
-
-    if( !dist_coeffs.empty() )
-    {
-      double k1 = dist_coeffs.size() > 0 ? dist_coeffs[0] : 0.0;
-      double k2 = dist_coeffs.size() > 1 ? dist_coeffs[1] : 0.0;
-      double p1 = dist_coeffs.size() > 2 ? dist_coeffs[2] : 0.0;
-      double p2 = dist_coeffs.size() > 3 ? dist_coeffs[3] : 0.0;
-      double k3 = dist_coeffs.size() > 4 ? dist_coeffs[4] : 0.0;
-
-      double r2 = x_norm * x_norm + y_norm * y_norm;
-      double r4 = r2 * r2;
-      double r6 = r2 * r4;
-
-      double radial_distortion = 1.0 + k1 * r2 + k2 * r4 + k3 * r6;
-
-      double x_tangential = 2.0 * p1 * x_norm * y_norm + p2 * ( r2 + 2.0 * x_norm * x_norm );
-      double y_tangential = p1 * ( r2 + 2.0 * y_norm * y_norm ) + 2.0 * p2 * x_norm * y_norm;
-
-      x_norm = x_norm * radial_distortion + x_tangential;
-      y_norm = y_norm * radial_distortion + y_tangential;
-    }
-  }
-
-  // Project back using original camera matrix
-  Eigen::Matrix3d K_eigen = intrinsics->as_matrix();
-  double fx = K_eigen( 0, 0 );
-  double fy = K_eigen( 1, 1 );
-  double cx = K_eigen( 0, 2 );
-  double cy = K_eigen( 1, 2 );
-
-  double x_distorted = fx * x_norm + cx;
-  double y_distorted = fy * y_norm + cy;
-
-  return kv::vector_2d( x_distorted, y_distorted );
+  return pts_2d.empty() ? rectified_point : kv::vector_2d( pts_2d[0].x, pts_2d[0].y );
 }
 
 // -----------------------------------------------------------------------------
