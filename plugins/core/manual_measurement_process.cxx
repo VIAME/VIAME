@@ -1167,29 +1167,58 @@ manual_measurement_process
     dynamic_cast< kwiver::vital::simple_camera_perspective& >(
       *(d->m_calibration->right())));
 
-  // Run measurement on matched detections
-  if( !common_ids.empty() )
+  // Separate matched detections into those with full keypoints and those missing right keypoints
+  std::vector< kv::track_id_t > fully_matched_ids;
+  std::vector< kv::track_id_t > missing_right_kps_ids;
+
+  for( const kv::track_id_t& id : common_ids )
   {
-    for( const kv::track_id_t& id : common_ids )
+    const auto& det1 = dets[0][id];
+    const auto& det2 = dets[1][id];
+
+    if( !det1 || !det2 )
+    {
+      continue;
+    }
+
+    const auto& kp1 = det1->keypoints();
+    const auto& kp2 = det2->keypoints();
+
+    bool left_has_kp = ( kp1.find( "head" ) != kp1.end() &&
+                         kp1.find( "tail" ) != kp1.end() );
+    bool right_has_kp = ( kp2.find( "head" ) != kp2.end() &&
+                          kp2.find( "tail" ) != kp2.end() );
+
+    if( left_has_kp && right_has_kp )
+    {
+      fully_matched_ids.push_back( id );
+    }
+    else if( left_has_kp && !right_has_kp )
+    {
+      if( d->m_matching_method == "input_pairs_only" )
+      {
+        LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                            " right detection missing keypoints, skipping (input_pairs_only mode)" );
+      }
+      else
+      {
+        LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                            " right detection missing keypoints, will compute using " + d->m_matching_method );
+        missing_right_kps_ids.push_back( id );
+      }
+    }
+  }
+
+  // Run measurement on fully matched detections (both have keypoints)
+  if( !fully_matched_ids.empty() )
+  {
+    for( const kv::track_id_t& id : fully_matched_ids )
     {
       const auto& det1 = dets[0][id];
       const auto& det2 = dets[1][id];
 
-      if( !det1 || !det2 )
-      {
-        continue;
-      }
-
       const auto& kp1 = det1->keypoints();
       const auto& kp2 = det2->keypoints();
-
-      if( kp1.find( "head" ) == kp1.end() ||
-          kp2.find( "head" ) == kp2.end() ||
-          kp1.find( "tail" ) == kp1.end() ||
-          kp2.find( "tail" ) == kp2.end() )
-      {
-        continue;
-      }
 
       // Triangulate head keypoint across both cameras
       Eigen::Matrix<float, 2, 1>
@@ -1214,8 +1243,16 @@ manual_measurement_process
     }
   }
 
-  // Run measurement on left-only detections (skip if input_pairs_only mode)
-  if( !left_only_ids.empty() && d->m_matching_method != "input_pairs_only" )
+  // Combine left-only IDs and matched IDs missing right keypoints for secondary matching
+  std::vector< kv::track_id_t > ids_needing_matching;
+  ids_needing_matching.insert( ids_needing_matching.end(),
+                               left_only_ids.begin(), left_only_ids.end() );
+  ids_needing_matching.insert( ids_needing_matching.end(),
+                               missing_right_kps_ids.begin(),
+                               missing_right_kps_ids.end() );
+
+  // Run measurement on detections needing secondary matching (skip if input_pairs_only mode)
+  if( !ids_needing_matching.empty() && d->m_matching_method != "input_pairs_only" )
   {
     // Clear cached feature data if frame changed
     if( d->m_cached_frame_id != cur_frame_id )
@@ -1296,7 +1333,7 @@ manual_measurement_process
     }
 #endif
 
-    for( const kv::track_id_t& id : left_only_ids )
+    for( const kv::track_id_t& id : ids_needing_matching )
     {
       const auto& det1 = dets[0][id];
 
@@ -1314,6 +1351,9 @@ manual_measurement_process
                             "missing required keypoints (head/tail)" );
         continue;
       }
+
+      // Check if this is a left-only track or a matched track missing right keypoints
+      bool is_left_only = ( dets[1].find( id ) == dets[1].end() );
 
       kv::vector_2d left_head_point( kp1.at("head")[0], kp1.at("head")[1] );
       kv::vector_2d left_tail_point( kp1.at("tail")[0], kp1.at("tail")[1] );
@@ -1511,37 +1551,51 @@ manual_measurement_process
 
       const double length = ( pp2 - pp1 ).norm();
 
-      LOG_INFO( logger(), "Computed Length (left-only, " + method_used + "): " +
+      LOG_INFO( logger(), "Computed Length (" + method_used + "): " +
                           std::to_string( length ) );
 
       det1->set_length( length );
 
-      // Create a new detection for the right image with the computed keypoints
-      kv::bounding_box_d right_bbox =
-        d->compute_bbox_from_keypoints( right_head_point, right_tail_point );
-
-      auto det2 = std::make_shared< kv::detected_object >( right_bbox );
-      det2->add_keypoint( "head", kv::point_2d( right_head_point.x(), right_head_point.y() ) );
-      det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
-      det2->set_length( length );
-
-      // Find or create the track with the same ID in the right track set
-      kv::track_sptr right_track = input_tracks[1]->get_track( id );
-
-      if( !right_track )
+      if( is_left_only )
       {
-        right_track = kv::track::create();
-        right_track->set_id( id );
-        input_tracks[1]->insert( right_track );
+        // Create a new detection for the right image with the computed keypoints
+        kv::bounding_box_d right_bbox =
+          d->compute_bbox_from_keypoints( right_head_point, right_tail_point );
+
+        auto det2 = std::make_shared< kv::detected_object >( right_bbox );
+        det2->add_keypoint( "head", kv::point_2d( right_head_point.x(), right_head_point.y() ) );
+        det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
+        det2->set_length( length );
+
+        // Find or create the track with the same ID in the right track set
+        kv::track_sptr right_track = input_tracks[1]->get_track( id );
+
+        if( !right_track )
+        {
+          right_track = kv::track::create();
+          right_track->set_id( id );
+          input_tracks[1]->insert( right_track );
+        }
+
+        // Create and append a new track state with the detection
+        auto new_state = std::make_shared< kv::object_track_state >(
+          cur_frame_id, ts.get_time_usec(), det2 );
+        right_track->append( new_state );
+        input_tracks[1]->notify_new_state( new_state );
+
+        LOG_INFO( logger(), "Created right detection for track ID " + std::to_string( id ) );
       }
+      else
+      {
+        // Existing right detection - add keypoints to it
+        auto& det2 = dets[1][id];
+        det2->add_keypoint( "head", kv::point_2d( right_head_point.x(), right_head_point.y() ) );
+        det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
+        det2->set_length( length );
 
-      // Create and append a new track state with the detection
-      auto new_state = std::make_shared< kv::object_track_state >(
-        cur_frame_id, ts.get_time_usec(), det2 );
-      right_track->append( new_state );
-      input_tracks[1]->notify_new_state( new_state );
-
-      LOG_INFO( logger(), "Created right detection for track ID " + std::to_string( id ) );
+        LOG_INFO( logger(), "Added keypoints to existing right detection for track ID " +
+                            std::to_string( id ) );
+      }
     }
   }
 
