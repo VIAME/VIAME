@@ -1106,6 +1106,11 @@ manual_measurement_process
 
   for( unsigned i = 0; i < input_tracks.size(); ++i )
   {
+    if( !input_tracks[i] )
+    {
+      continue;
+    }
+
     for( auto& trk : input_tracks[i]->tracks() )
     {
       for( auto& state : *trk )
@@ -1567,6 +1572,12 @@ manual_measurement_process
         det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
         det2->set_length( length );
 
+        // Ensure right track set exists
+        if( !input_tracks[1] )
+        {
+          input_tracks[1] = std::make_shared< kv::object_track_set >();
+        }
+
         // Find or create the track with the same ID in the right track set
         kv::track_sptr right_track = input_tracks[1]->get_track( id );
 
@@ -1578,8 +1589,9 @@ manual_measurement_process
         }
 
         // Create and append a new track state with the detection
+        kv::time_usec_t time_usec = ts.has_valid_time() ? ts.get_time_usec() : 0;
         auto new_state = std::make_shared< kv::object_track_state >(
-          cur_frame_id, ts.get_time_usec(), det2 );
+          cur_frame_id, time_usec, det2 );
         right_track->append( new_state );
         input_tracks[1]->notify_new_state( new_state );
 
@@ -1597,6 +1609,16 @@ manual_measurement_process
                             std::to_string( id ) );
       }
     }
+  }
+
+  // Ensure output track sets exist before pushing
+  if( !input_tracks[0] )
+  {
+    input_tracks[0] = std::make_shared< kv::object_track_set >();
+  }
+  if( !input_tracks[1] )
+  {
+    input_tracks[1] = std::make_shared< kv::object_track_set >();
   }
 
   // Push outputs
