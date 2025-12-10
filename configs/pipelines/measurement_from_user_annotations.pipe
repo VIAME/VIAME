@@ -14,7 +14,7 @@ include common_stereo_input_with_tracks.pipe
 # ============================= MEASUREMENT PROCESS ================================
 
 process measurer
-  :: manual_measurement
+  :: measurement
   :calibration_file                            ./calibration_matrices.npz
   :matching_methods                            input_pairs_only,template_matching,sgbm_disparity,feature_descriptor,ransac_feature
 
