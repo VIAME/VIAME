@@ -1141,6 +1141,23 @@ manual_measurement_process
     throw std::runtime_error( err );
   }
 
+  // Check if images are required but not provided
+  bool images_required = ( d->m_matching_method == "template_matching" ||
+                           d->m_matching_method == "sgbm_disparity" ||
+                           d->m_matching_method == "feature_descriptor" ||
+                           d->m_matching_method == "ransac_feature" ||
+                           d->m_matching_method == "automatic" );
+
+  if( images_required && input_images.size() < 2 )
+  {
+    const std::string err = "Input images are required for matching_method '" +
+                            d->m_matching_method + "' but were not provided. "
+                            "Please connect image inputs to the process or use "
+                            "'input_pairs_only' or 'depth_projection' methods.";
+    LOG_ERROR( logger(), err );
+    throw std::runtime_error( err );
+  }
+
   // Identify all input detections across all track sets on the current frame
   typedef std::vector< std::map< kv::track_id_t, kv::detected_object_sptr > > map_t;
 
@@ -1371,19 +1388,6 @@ manual_measurement_process
       if( use_sgbm_disparity )
       {
         disparity_map = d->compute_sgbm_disparity( left_image_rect, right_image_rect );
-      }
-    }
-    else if( needs_rectified_images )
-    {
-      if( is_automatic )
-      {
-        LOG_WARN( logger(), "Images not provided for automatic mode, "
-                            "template_matching and sgbm_disparity will not be available" );
-      }
-      else if( d->m_matching_method == "template_matching" ||
-               d->m_matching_method == "sgbm_disparity" )
-      {
-        LOG_ERROR( logger(), d->m_matching_method + " requested but images not provided" );
       }
     }
 #endif
