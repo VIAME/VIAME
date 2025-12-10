@@ -168,7 +168,7 @@ public:
 manual_measurement_process::priv
 ::priv( manual_measurement_process* ptr )
   : m_calibration_file( "" )
-  , m_matching_methods_str( "input_pairs_only,template_matching,sgbm_disparity,feature_descriptor,ransac_feature" )
+  , m_matching_methods_str( "input_pairs_only,template_matching" )
   , m_record_stereo_method( true )
   , m_calibration()
   , m_frame_counter( 0 )
