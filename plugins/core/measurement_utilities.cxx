@@ -37,6 +37,8 @@
 
 #include <vital/util/string.h>
 
+#include <arrows/mvg/triangulate.h>
+
 #ifdef VIAME_ENABLE_OPENCV
   #include <arrows/ocv/image_container.h>
   #include <opencv2/imgproc/imgproc.hpp>
@@ -239,6 +241,271 @@ measurement_utilities
 
   return kv::bounding_box_d( new_min_x, new_min_y, new_max_x, new_max_y );
 }
+
+// -----------------------------------------------------------------------------
+kv::vector_3d
+measurement_utilities
+::triangulate_point(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_point,
+  const kv::vector_2d& right_point ) const
+{
+  Eigen::Matrix<float, 2, 1> left_pt( left_point.x(), left_point.y() );
+  Eigen::Matrix<float, 2, 1> right_pt( right_point.x(), right_point.y() );
+
+  auto point_3d = kwiver::arrows::mvg::triangulate_fast_two_view(
+    left_cam, right_cam, left_pt, right_pt );
+
+  return kv::vector_3d( point_3d.x(), point_3d.y(), point_3d.z() );
+}
+
+// -----------------------------------------------------------------------------
+double
+measurement_utilities
+::compute_stereo_length(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_head,
+  const kv::vector_2d& right_head,
+  const kv::vector_2d& left_tail,
+  const kv::vector_2d& right_tail ) const
+{
+  kv::vector_3d head_3d = triangulate_point( left_cam, right_cam, left_head, right_head );
+  kv::vector_3d tail_3d = triangulate_point( left_cam, right_cam, left_tail, right_tail );
+
+  return ( tail_3d - head_3d ).norm();
+}
+
+// -----------------------------------------------------------------------------
+measurement_utilities::stereo_correspondence_result
+measurement_utilities
+::find_stereo_correspondence(
+  const std::vector< std::string >& methods,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_head,
+  const kv::vector_2d& left_tail,
+  const kv::vector_2d* right_head_input,
+  const kv::vector_2d* right_tail_input,
+  const kv::image_container_sptr& left_image,
+  const kv::image_container_sptr& right_image )
+{
+  stereo_correspondence_result result;
+  result.success = false;
+  result.left_head = left_head;
+  result.left_tail = left_tail;
+
+  bool head_found = false;
+  bool tail_found = false;
+
+#ifdef VIAME_ENABLE_OPENCV
+  // Prepare stereo images if needed
+  bool has_images = ( left_image && right_image );
+  if( has_images )
+  {
+    m_cached_stereo_images = prepare_stereo_images(
+      methods, left_cam, right_cam, left_image, right_image );
+  }
+#endif
+
+  for( const auto& method : methods )
+  {
+    if( head_found && tail_found )
+    {
+      break;
+    }
+
+    if( method == "input_pairs_only" )
+    {
+      if( right_head_input && right_tail_input )
+      {
+        result.right_head = *right_head_input;
+        result.right_tail = *right_tail_input;
+        head_found = true;
+        tail_found = true;
+        result.method_used = "input_pairs_only";
+      }
+    }
+    else if( method == "depth_projection" )
+    {
+      result.right_head = project_left_to_right( left_cam, right_cam, result.left_head );
+      result.right_tail = project_left_to_right( left_cam, right_cam, result.left_tail );
+      head_found = true;
+      tail_found = true;
+      result.method_used = "depth_projection";
+    }
+#ifdef VIAME_ENABLE_OPENCV
+    else if( method == "template_matching" && m_cached_stereo_images.rectified_available )
+    {
+      kv::vector_2d left_head_rect = rectify_point( result.left_head, false );
+      kv::vector_2d left_tail_rect = rectify_point( result.left_tail, false );
+
+      kv::vector_2d right_head_rect, right_tail_rect;
+      head_found = find_corresponding_point_template_matching(
+        m_cached_stereo_images.left_rectified, m_cached_stereo_images.right_rectified,
+        left_head_rect, right_head_rect );
+      tail_found = find_corresponding_point_template_matching(
+        m_cached_stereo_images.left_rectified, m_cached_stereo_images.right_rectified,
+        left_tail_rect, right_tail_rect );
+
+      if( head_found && tail_found )
+      {
+        result.right_head = unrectify_point( right_head_rect, true, right_cam );
+        result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
+        result.method_used = "template_matching";
+      }
+      else
+      {
+        head_found = false;
+        tail_found = false;
+      }
+    }
+    else if( method == "sgbm_disparity" && m_cached_stereo_images.disparity_available )
+    {
+      kv::vector_2d left_head_rect = rectify_point( result.left_head, false );
+      kv::vector_2d left_tail_rect = rectify_point( result.left_tail, false );
+
+      kv::vector_2d right_head_rect, right_tail_rect;
+      head_found = find_corresponding_point_sgbm(
+        m_cached_stereo_images.disparity_map, left_head_rect, right_head_rect );
+      tail_found = find_corresponding_point_sgbm(
+        m_cached_stereo_images.disparity_map, left_tail_rect, right_tail_rect );
+
+      if( head_found && tail_found )
+      {
+        result.right_head = unrectify_point( right_head_rect, true, right_cam );
+        result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
+        result.method_used = "sgbm_disparity";
+      }
+      else
+      {
+        head_found = false;
+        tail_found = false;
+      }
+    }
+#endif
+    else if( method == "feature_descriptor" && left_image && right_image )
+    {
+      kv::vector_2d left_head_copy = result.left_head;
+      kv::vector_2d left_tail_copy = result.left_tail;
+
+      head_found = find_corresponding_point_feature_descriptor(
+        left_image, right_image, left_head_copy, result.right_head );
+      tail_found = find_corresponding_point_feature_descriptor(
+        left_image, right_image, left_tail_copy, result.right_tail );
+
+      if( head_found && tail_found )
+      {
+        result.left_head = left_head_copy;
+        result.left_tail = left_tail_copy;
+        result.method_used = "feature_descriptor";
+      }
+      else
+      {
+        head_found = false;
+        tail_found = false;
+      }
+    }
+    else if( method == "ransac_feature" && left_image && right_image )
+    {
+      kv::vector_2d left_head_copy = result.left_head;
+      kv::vector_2d left_tail_copy = result.left_tail;
+
+      head_found = find_corresponding_point_ransac_feature(
+        left_image, right_image, left_head_copy, result.right_head );
+      tail_found = find_corresponding_point_ransac_feature(
+        left_image, right_image, left_tail_copy, result.right_tail );
+
+      if( head_found && tail_found )
+      {
+        result.left_head = left_head_copy;
+        result.left_tail = left_tail_copy;
+        result.method_used = "ransac_feature";
+      }
+      else
+      {
+        head_found = false;
+        tail_found = false;
+      }
+    }
+  }
+
+  result.success = ( head_found && tail_found );
+  return result;
+}
+
+#ifdef VIAME_ENABLE_OPENCV
+// -----------------------------------------------------------------------------
+measurement_utilities::stereo_image_data
+measurement_utilities
+::prepare_stereo_images(
+  const std::vector< std::string >& methods,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::image_container_sptr& left_image,
+  const kv::image_container_sptr& right_image )
+{
+  stereo_image_data data;
+  data.rectified_available = false;
+  data.disparity_available = false;
+
+  if( !left_image || !right_image )
+  {
+    return data;
+  }
+
+  // Check which methods need rectified images
+  bool needs_rectified = false;
+  bool needs_sgbm = false;
+  for( const auto& method : methods )
+  {
+    if( method == "template_matching" || method == "sgbm_disparity" )
+    {
+      needs_rectified = true;
+    }
+    if( method == "sgbm_disparity" )
+    {
+      needs_sgbm = true;
+    }
+  }
+
+  if( !needs_rectified )
+  {
+    return data;
+  }
+
+  // Convert to OpenCV format
+  cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
+    left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+  cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
+    right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+  // Convert to grayscale
+  if( left_cv.channels() > 1 )
+  {
+    cv::cvtColor( left_cv, left_cv, cv::COLOR_BGR2GRAY );
+    cv::cvtColor( right_cv, right_cv, cv::COLOR_BGR2GRAY );
+  }
+
+  // Compute rectification maps if needed
+  compute_rectification_maps( left_cam, right_cam, left_cv.size() );
+
+  // Rectify images
+  data.left_rectified = rectify_image( left_cv, false );
+  data.right_rectified = rectify_image( right_cv, true );
+  data.rectified_available = true;
+
+  // Compute disparity if needed
+  if( needs_sgbm )
+  {
+    data.disparity_map = compute_sgbm_disparity( data.left_rectified, data.right_rectified );
+    data.disparity_available = !data.disparity_map.empty();
+  }
+
+  return data;
+}
+#endif
 
 // -----------------------------------------------------------------------------
 bool

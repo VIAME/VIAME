@@ -126,6 +126,70 @@ public:
     const kv::vector_2d& head_point,
     const kv::vector_2d& tail_point ) const;
 
+  /// Triangulate a point from stereo correspondences and compute 3D position
+  kv::vector_3d triangulate_point(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::vector_2d& left_point,
+    const kv::vector_2d& right_point ) const;
+
+  /// Compute length between two 3D points from stereo keypoint pairs
+  double compute_stereo_length(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::vector_2d& left_head,
+    const kv::vector_2d& right_head,
+    const kv::vector_2d& left_tail,
+    const kv::vector_2d& right_tail ) const;
+
+  // -------------------------------------------------------------------------
+  // High-level stereo correspondence functions
+  // -------------------------------------------------------------------------
+
+  /// Result structure for stereo correspondence finding
+  struct stereo_correspondence_result
+  {
+    bool success;
+    kv::vector_2d left_head;
+    kv::vector_2d left_tail;
+    kv::vector_2d right_head;
+    kv::vector_2d right_tail;
+    std::string method_used;
+  };
+
+  /// Find stereo correspondences using specified methods in order
+  /// Tries each method until one succeeds for both head and tail points
+  stereo_correspondence_result find_stereo_correspondence(
+    const std::vector< std::string >& methods,
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::vector_2d& left_head,
+    const kv::vector_2d& left_tail,
+    const kv::vector_2d* right_head_input,
+    const kv::vector_2d* right_tail_input,
+    const kv::image_container_sptr& left_image,
+    const kv::image_container_sptr& right_image );
+
+#ifdef VIAME_ENABLE_OPENCV
+  /// Prepare stereo images for matching (convert to grayscale, rectify, compute disparity)
+  struct stereo_image_data
+  {
+    cv::Mat left_rectified;
+    cv::Mat right_rectified;
+    cv::Mat disparity_map;
+    bool rectified_available;
+    bool disparity_available;
+  };
+
+  /// Prepare stereo images for the specified methods
+  stereo_image_data prepare_stereo_images(
+    const std::vector< std::string >& methods,
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::image_container_sptr& left_image,
+    const kv::image_container_sptr& right_image );
+#endif
+
   // -------------------------------------------------------------------------
   // Feature-based matching functions
   // -------------------------------------------------------------------------
@@ -261,6 +325,9 @@ private:
 
   // SGBM matcher
   cv::Ptr<cv::StereoSGBM> m_sgbm;
+
+  // Cached stereo image data
+  stereo_image_data m_cached_stereo_images;
 #endif
 };
 

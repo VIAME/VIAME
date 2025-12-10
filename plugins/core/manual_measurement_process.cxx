@@ -53,15 +53,7 @@
 #include <vital/algo/match_features.h>
 #include <vital/algo/estimate_fundamental_matrix.h>
 
-#include <arrows/mvg/triangulate.h>
-
 #include <sprokit/processes/kwiver_type_traits.h>
-
-#ifdef VIAME_ENABLE_OPENCV
-  #include <arrows/ocv/image_container.h>
-  #include <opencv2/core/core.hpp>
-  #include <opencv2/imgproc/imgproc.hpp>
-#endif
 
 #include <string>
 #include <vector>
@@ -566,19 +558,13 @@ manual_measurement_process
     const auto& kp1 = det1->keypoints();
     const auto& kp2 = det2->keypoints();
 
-    Eigen::Matrix<float, 2, 1>
-      left_head( kp1.at("head")[0], kp1.at("head")[1] ),
-      right_head( kp2.at("head")[0], kp2.at("head")[1] );
-    auto pp1 = kwiver::arrows::mvg::triangulate_fast_two_view(
-      left_cam, right_cam, left_head, right_head );
+    kv::vector_2d left_head( kp1.at("head")[0], kp1.at("head")[1] );
+    kv::vector_2d right_head( kp2.at("head")[0], kp2.at("head")[1] );
+    kv::vector_2d left_tail( kp1.at("tail")[0], kp1.at("tail")[1] );
+    kv::vector_2d right_tail( kp2.at("tail")[0], kp2.at("tail")[1] );
 
-    Eigen::Matrix<float, 2, 1>
-      left_tail( kp1.at("tail")[0], kp1.at("tail")[1] ),
-      right_tail( kp2.at("tail")[0], kp2.at("tail")[1] );
-    auto pp2 = kwiver::arrows::mvg::triangulate_fast_two_view(
-      left_cam, right_cam, left_tail, right_tail );
-
-    const double length = ( pp2 - pp1 ).norm();
+    const double length = d->m_utilities.compute_stereo_length(
+      left_cam, right_cam, left_head, right_head, left_tail, right_tail );
 
     LOG_INFO( logger(), "Computed Length (input_kps_used): " + std::to_string( length ) );
 
@@ -609,52 +595,9 @@ manual_measurement_process
     // Update frame ID for caching
     d->m_utilities.set_frame_id( cur_frame_id );
 
-#ifdef VIAME_ENABLE_OPENCV
-    // Prepare rectified images if needed
-    cv::Mat left_image_rect, right_image_rect;
-    cv::Mat disparity_map;
-    bool rectified_images_available = false;
-
-    bool needs_rectified = false;
-    bool needs_sgbm = false;
-    for( const auto& method : d->m_matching_methods )
-    {
-      if( method == "template_matching" || method == "sgbm_disparity" )
-      {
-        needs_rectified = true;
-      }
-      if( method == "sgbm_disparity" )
-      {
-        needs_sgbm = true;
-      }
-    }
-
-    if( needs_rectified && input_images.size() >= 2 )
-    {
-      cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        input_images[0]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-      cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        input_images[1]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-      if( left_cv.channels() > 1 )
-      {
-        cv::cvtColor( left_cv, left_cv, cv::COLOR_BGR2GRAY );
-        cv::cvtColor( right_cv, right_cv, cv::COLOR_BGR2GRAY );
-      }
-
-      d->m_utilities.compute_rectification_maps( left_cam, right_cam, left_cv.size() );
-
-      left_image_rect = d->m_utilities.rectify_image( left_cv, false );
-      right_image_rect = d->m_utilities.rectify_image( right_cv, true );
-
-      rectified_images_available = true;
-
-      if( needs_sgbm )
-      {
-        disparity_map = d->m_utilities.compute_sgbm_disparity( left_image_rect, right_image_rect );
-      }
-    }
-#endif
+    // Get images for methods that need them
+    kv::image_container_sptr left_image = input_images.size() >= 1 ? input_images[0] : nullptr;
+    kv::image_container_sptr right_image = input_images.size() >= 2 ? input_images[1] : nullptr;
 
     for( const kv::track_id_t& id : ids_needing_matching )
     {
@@ -677,193 +620,72 @@ manual_measurement_process
 
       bool is_left_only = ( dets[1].find( id ) == dets[1].end() );
 
-      kv::vector_2d left_head_point( kp1.at("head")[0], kp1.at("head")[1] );
-      kv::vector_2d left_tail_point( kp1.at("tail")[0], kp1.at("tail")[1] );
-      kv::vector_2d right_head_point, right_tail_point;
-      bool head_found = false, tail_found = false;
-      std::string method_used;
+      kv::vector_2d left_head( kp1.at("head")[0], kp1.at("head")[1] );
+      kv::vector_2d left_tail( kp1.at("tail")[0], kp1.at("tail")[1] );
 
-      // Try each method in order until one succeeds
-      for( const auto& method : d->m_matching_methods )
+      // Check for existing right keypoints
+      const kv::vector_2d* right_head_input = nullptr;
+      const kv::vector_2d* right_tail_input = nullptr;
+      kv::vector_2d right_head_tmp, right_tail_tmp;
+
+      if( !is_left_only )
       {
-        if( head_found && tail_found )
+        const auto& det2 = dets[1].at( id );
+        if( det2 )
         {
-          break;
-        }
-
-        if( method == "input_pairs_only" )
-        {
-          // Check if there's a matching right detection with keypoints
-          if( !is_left_only )
+          const auto& kp2 = det2->keypoints();
+          if( kp2.find( "head" ) != kp2.end() && kp2.find( "tail" ) != kp2.end() )
           {
-            const auto& det2 = dets[1].at( id );
-            if( det2 )
-            {
-              const auto& kp2 = det2->keypoints();
-              if( kp2.find( "head" ) != kp2.end() &&
-                  kp2.find( "tail" ) != kp2.end() )
-              {
-                right_head_point = kv::vector_2d( kp2.at("head")[0], kp2.at("head")[1] );
-                right_tail_point = kv::vector_2d( kp2.at("tail")[0], kp2.at("tail")[1] );
-                head_found = true;
-                tail_found = true;
-                method_used = "input_pairs_only";
-              }
-            }
-          }
-          continue;
-        }
-        else if( method == "depth_projection" )
-        {
-          right_head_point = d->m_utilities.project_left_to_right(
-            left_cam, right_cam, left_head_point );
-          right_tail_point = d->m_utilities.project_left_to_right(
-            left_cam, right_cam, left_tail_point );
-          head_found = true;
-          tail_found = true;
-          method_used = "depth_projection";
-        }
-#ifdef VIAME_ENABLE_OPENCV
-        else if( method == "template_matching" && rectified_images_available )
-        {
-          kv::vector_2d left_head_rect = d->m_utilities.rectify_point( left_head_point, false );
-          kv::vector_2d left_tail_rect = d->m_utilities.rectify_point( left_tail_point, false );
-
-          kv::vector_2d right_head_rect, right_tail_rect;
-          head_found = d->m_utilities.find_corresponding_point_template_matching(
-            left_image_rect, right_image_rect, left_head_rect, right_head_rect );
-          tail_found = d->m_utilities.find_corresponding_point_template_matching(
-            left_image_rect, right_image_rect, left_tail_rect, right_tail_rect );
-
-          if( head_found && tail_found )
-          {
-            right_head_point = d->m_utilities.unrectify_point( right_head_rect, true, right_cam );
-            right_tail_point = d->m_utilities.unrectify_point( right_tail_rect, true, right_cam );
-            method_used = "template_matching";
-          }
-          else
-          {
-            head_found = false;
-            tail_found = false;
-          }
-        }
-        else if( method == "sgbm_disparity" && rectified_images_available && !disparity_map.empty() )
-        {
-          kv::vector_2d left_head_rect = d->m_utilities.rectify_point( left_head_point, false );
-          kv::vector_2d left_tail_rect = d->m_utilities.rectify_point( left_tail_point, false );
-
-          kv::vector_2d right_head_rect, right_tail_rect;
-          head_found = d->m_utilities.find_corresponding_point_sgbm(
-            disparity_map, left_head_rect, right_head_rect );
-          tail_found = d->m_utilities.find_corresponding_point_sgbm(
-            disparity_map, left_tail_rect, right_tail_rect );
-
-          if( head_found && tail_found )
-          {
-            right_head_point = d->m_utilities.unrectify_point( right_head_rect, true, right_cam );
-            right_tail_point = d->m_utilities.unrectify_point( right_tail_rect, true, right_cam );
-            method_used = "sgbm_disparity";
-          }
-          else
-          {
-            head_found = false;
-            tail_found = false;
-          }
-        }
-#endif
-        else if( method == "feature_descriptor" && input_images.size() >= 2 )
-        {
-          // Make copies since feature matching may modify left points
-          kv::vector_2d left_head_copy = left_head_point;
-          kv::vector_2d left_tail_copy = left_tail_point;
-
-          head_found = d->m_utilities.find_corresponding_point_feature_descriptor(
-            input_images[0], input_images[1], left_head_copy, right_head_point );
-          tail_found = d->m_utilities.find_corresponding_point_feature_descriptor(
-            input_images[0], input_images[1], left_tail_copy, right_tail_point );
-
-          if( head_found && tail_found )
-          {
-            // Use the updated left points from feature matching
-            left_head_point = left_head_copy;
-            left_tail_point = left_tail_copy;
-            method_used = "feature_descriptor";
-          }
-          else
-          {
-            head_found = false;
-            tail_found = false;
-          }
-        }
-        else if( method == "ransac_feature" && input_images.size() >= 2 )
-        {
-          kv::vector_2d left_head_copy = left_head_point;
-          kv::vector_2d left_tail_copy = left_tail_point;
-
-          head_found = d->m_utilities.find_corresponding_point_ransac_feature(
-            input_images[0], input_images[1], left_head_copy, right_head_point );
-          tail_found = d->m_utilities.find_corresponding_point_ransac_feature(
-            input_images[0], input_images[1], left_tail_copy, right_tail_point );
-
-          if( head_found && tail_found )
-          {
-            left_head_point = left_head_copy;
-            left_tail_point = left_tail_copy;
-            method_used = "ransac_feature";
-          }
-          else
-          {
-            head_found = false;
-            tail_found = false;
+            right_head_tmp = kv::vector_2d( kp2.at("head")[0], kp2.at("head")[1] );
+            right_tail_tmp = kv::vector_2d( kp2.at("tail")[0], kp2.at("tail")[1] );
+            right_head_input = &right_head_tmp;
+            right_tail_input = &right_tail_tmp;
           }
         }
       }
 
-      if( !head_found || !tail_found )
+      // Find stereo correspondences using utility function
+      auto result = d->m_utilities.find_stereo_correspondence(
+        d->m_matching_methods, left_cam, right_cam,
+        left_head, left_tail, right_head_input, right_tail_input,
+        left_image, right_image );
+
+      if( !result.success )
       {
         LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
                             " no matching method succeeded, skipping" );
         continue;
       }
 
-      // Triangulate
-      Eigen::Matrix<float, 2, 1>
-        left_head( left_head_point.x(), left_head_point.y() ),
-        right_head( right_head_point.x(), right_head_point.y() );
-      auto pp1 = kwiver::arrows::mvg::triangulate_fast_two_view(
-        left_cam, right_cam, left_head, right_head );
+      // Compute length
+      const double length = d->m_utilities.compute_stereo_length(
+        left_cam, right_cam,
+        result.left_head, result.right_head,
+        result.left_tail, result.right_tail );
 
-      Eigen::Matrix<float, 2, 1>
-        left_tail( left_tail_point.x(), left_tail_point.y() ),
-        right_tail( right_tail_point.x(), right_tail_point.y() );
-      auto pp2 = kwiver::arrows::mvg::triangulate_fast_two_view(
-        left_cam, right_cam, left_tail, right_tail );
-
-      const double length = ( pp2 - pp1 ).norm();
-
-      LOG_INFO( logger(), "Computed Length (" + method_used + "): " +
+      LOG_INFO( logger(), "Computed Length (" + result.method_used + "): " +
                           std::to_string( length ) );
 
       det1->set_length( length );
 
       if( d->m_record_stereo_method )
       {
-        det1->add_note( ":stereo_method=" + method_used );
+        det1->add_note( ":stereo_method=" + result.method_used );
       }
 
       if( is_left_only )
       {
         kv::bounding_box_d right_bbox =
-          d->m_utilities.compute_bbox_from_keypoints( right_head_point, right_tail_point );
+          d->m_utilities.compute_bbox_from_keypoints( result.right_head, result.right_tail );
 
         auto det2 = std::make_shared< kv::detected_object >( right_bbox );
-        det2->add_keypoint( "head", kv::point_2d( right_head_point.x(), right_head_point.y() ) );
-        det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
+        det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
+        det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
         det2->set_length( length );
 
         if( d->m_record_stereo_method )
         {
-          det2->add_note( ":stereo_method=" + method_used );
+          det2->add_note( ":stereo_method=" + result.method_used );
         }
 
         if( !input_tracks[1] )
@@ -891,13 +713,13 @@ manual_measurement_process
       else
       {
         auto& det2 = dets[1][id];
-        det2->add_keypoint( "head", kv::point_2d( right_head_point.x(), right_head_point.y() ) );
-        det2->add_keypoint( "tail", kv::point_2d( right_tail_point.x(), right_tail_point.y() ) );
+        det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
+        det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
         det2->set_length( length );
 
         if( d->m_record_stereo_method )
         {
-          det2->add_note( ":stereo_method=" + method_used );
+          det2->add_note( ":stereo_method=" + result.method_used );
         }
       }
     }
