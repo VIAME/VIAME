@@ -7,6 +7,7 @@ set( plugin_headers
   convert_polygons_to_mask.h
   empty_detector.h
   filename_to_timestamp.h
+  measurement_utilities.h
   notes_to_attributes.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
@@ -26,6 +27,7 @@ set( plugin_sources
   convert_polygons_to_mask.cxx
   empty_detector.cxx
   filename_to_timestamp.cxx
+  measurement_utilities.cxx
   notes_to_attributes.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
