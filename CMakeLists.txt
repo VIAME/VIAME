@@ -107,6 +107,7 @@ option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
+option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLibL"      OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
@@ -115,6 +116,7 @@ mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_LEARN )
 mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
+mark_as_advanced( VIAME_ENABLE_SEAGIS )
 mark_as_advanced( VIAME_ENABLE_SMQTK )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
@@ -785,6 +787,27 @@ endif()
 
 if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
   message( FATAL_ERROR "VIAME_ENABLE_DIVE requires VIAME_ENABLE_FFMPEG-X264 flag" )
+endif()
+
+if( VIAME_ENABLE_SEAGIS )
+  set( SEAGIS_ROOT_DIR ""
+       CACHE PATH "Path to SEAGIS StereoLibLX library" )
+
+  mark_as_advanced( SEAGIS_ROOT_DIR )
+
+  set( SEAGIS_INCLUDE_DIR "${SEAGIS_ROOT_DIR}"
+       CACHE INTERNAL "Path to SEAGIS include directory" )
+  set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX.lib"
+       CACHE INTERNAL "Path to SEAGIS library file" )
+
+  if( NOT EXISTS "${SEAGIS_INCLUDE_DIR}/LX_StereoInterface.h" )
+    message( FATAL_ERROR "SEAGIS include directory does not contain LX_StereoInterface.h. "
+      "Please set SEAGIS_ROOT_DIR to the correct location." )
+  endif()
+  if( NOT EXISTS "${SEAGIS_LIBRARY}" )
+    message( FATAL_ERROR "SEAGIS library not found at ${SEAGIS_LIBRARY}. "
+      "Please set SEAGIS_LIBRARY to the correct path." )
+  endif()
 endif()
 
 # Set default windows configuration mode to be 'Release'
