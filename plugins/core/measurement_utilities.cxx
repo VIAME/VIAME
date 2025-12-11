@@ -74,6 +74,8 @@ measurement_settings
   , ransac_inlier_scale( 3.0 )
   , min_ransac_inliers( 10 )
   , box_scale_factor( 1.10 )
+  , use_disparity_aware_feature_search( true )
+  , feature_search_depth( 5.0 )
   , record_stereo_method( true )
 {
 }
@@ -138,6 +140,18 @@ measurement_settings
   config->set_value( "min_ransac_inliers", min_ransac_inliers,
     "Minimum number of inliers required for a valid RANSAC result." );
 
+  config->set_value( "use_disparity_aware_feature_search", use_disparity_aware_feature_search,
+    "If true, use depth projection to estimate the expected location of corresponding "
+    "points in the right image when using feature_descriptor or ransac_feature methods. "
+    "This helps account for stereo disparity when searching for feature matches, making "
+    "the search more robust for objects at varying depths." );
+
+  config->set_value( "feature_search_depth", feature_search_depth,
+    "Depth (in meters) to use when estimating the expected location for disparity-aware "
+    "feature search. If set to 0 or negative, uses the default_depth parameter instead. "
+    "This allows using a different depth assumption for feature search than for the "
+    "depth_projection matching method." );
+
   config->set_value( "box_scale_factor", box_scale_factor,
     "Scale factor to expand the bounding box around keypoints when creating "
     "new detections for the right image. A value of 1.10 means 10% expansion." );
@@ -178,6 +192,8 @@ measurement_settings
   ransac_inlier_scale = config->get_value< double >( "ransac_inlier_scale", ransac_inlier_scale );
   min_ransac_inliers = config->get_value< int >( "min_ransac_inliers", min_ransac_inliers );
   box_scale_factor = config->get_value< double >( "box_scale_factor", box_scale_factor );
+  use_disparity_aware_feature_search = config->get_value< bool >( "use_disparity_aware_feature_search", use_disparity_aware_feature_search );
+  feature_search_depth = config->get_value< double >( "feature_search_depth", feature_search_depth );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
 
   // Configure nested algorithms
@@ -328,6 +344,8 @@ measurement_utilities
   , m_ransac_inlier_scale( 3.0 )
   , m_min_ransac_inliers( 10 )
   , m_box_scale_factor( 1.10 )
+  , m_use_disparity_aware_feature_search( true )
+  , m_feature_search_depth( 5.0 )
   , m_cached_frame_id( 0 )
 #ifdef VIAME_ENABLE_OPENCV
   , m_rectification_computed( false )
@@ -403,11 +421,15 @@ measurement_utilities
 void
 measurement_utilities
 ::set_feature_params( double search_radius, double ransac_inlier_scale,
-                      int min_ransac_inliers )
+                      int min_ransac_inliers,
+                      bool use_disparity_aware_search,
+                      double feature_search_depth )
 {
   m_feature_search_radius = search_radius;
   m_ransac_inlier_scale = ransac_inlier_scale;
   m_min_ransac_inliers = min_ransac_inliers;
+  m_use_disparity_aware_feature_search = use_disparity_aware_search;
+  m_feature_search_depth = feature_search_depth;
 }
 
 // -----------------------------------------------------------------------------
@@ -444,7 +466,9 @@ measurement_utilities
   set_sgbm_params( settings.sgbm_min_disparity, settings.sgbm_num_disparities,
                    settings.sgbm_block_size );
   set_feature_params( settings.feature_search_radius, settings.ransac_inlier_scale,
-                      settings.min_ransac_inliers );
+                      settings.min_ransac_inliers,
+                      settings.use_disparity_aware_feature_search,
+                      settings.feature_search_depth );
   set_box_scale_factor( settings.box_scale_factor );
   set_feature_algorithms( settings.feature_detector, settings.descriptor_extractor,
                           settings.feature_matcher, settings.fundamental_matrix_estimator );
@@ -458,6 +482,18 @@ measurement_utilities
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_point ) const
 {
+  return project_left_to_right( left_cam, right_cam, left_point, m_default_depth );
+}
+
+// -----------------------------------------------------------------------------
+kv::vector_2d
+measurement_utilities
+::project_left_to_right(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_point,
+  double depth ) const
+{
   // Unproject the left camera point to normalized image coordinates
   const auto left_intrinsics = left_cam.get_intrinsics();
   const kv::vector_2d normalized_pt = left_intrinsics->unmap( left_point );
@@ -466,8 +502,8 @@ measurement_utilities
   kv::vector_3d ray_direction( normalized_pt.x(), normalized_pt.y(), 1.0 );
   ray_direction.normalize();
 
-  // Compute 3D point at default depth in left camera coordinates
-  kv::vector_3d point_3d_left_cam = ray_direction * m_default_depth;
+  // Compute 3D point at specified depth in left camera coordinates
+  kv::vector_3d point_3d_left_cam = ray_direction * depth;
 
   // Transform to world coordinates
   const auto& left_rotation = left_cam.rotation();
@@ -667,9 +703,11 @@ measurement_utilities
       kv::vector_2d left_tail_copy = result.left_tail;
 
       head_found = find_corresponding_point_feature_descriptor(
-        left_image, right_image, left_head_copy, result.right_head );
+        left_image, right_image, left_head_copy, result.right_head,
+        &left_cam, &right_cam );
       tail_found = find_corresponding_point_feature_descriptor(
-        left_image, right_image, left_tail_copy, result.right_tail );
+        left_image, right_image, left_tail_copy, result.right_tail,
+        &left_cam, &right_cam );
 
       if( head_found && tail_found )
       {
@@ -689,9 +727,11 @@ measurement_utilities
       kv::vector_2d left_tail_copy = result.left_tail;
 
       head_found = find_corresponding_point_ransac_feature(
-        left_image, right_image, left_head_copy, result.right_head );
+        left_image, right_image, left_head_copy, result.right_head,
+        &left_cam, &right_cam );
       tail_found = find_corresponding_point_ransac_feature(
-        left_image, right_image, left_tail_copy, result.right_tail );
+        left_image, right_image, left_tail_copy, result.right_tail,
+        &left_cam, &right_cam );
 
       if( head_found && tail_found )
       {
@@ -804,7 +844,9 @@ measurement_utilities
   const kv::image_container_sptr& left_image,
   const kv::image_container_sptr& right_image,
   kv::vector_2d& left_point,
-  kv::vector_2d& right_point )
+  kv::vector_2d& right_point,
+  const kv::simple_camera_perspective* left_cam,
+  const kv::simple_camera_perspective* right_cam )
 {
   if( !m_feature_detector || !m_descriptor_extractor || !m_feature_matcher )
   {
@@ -837,7 +879,18 @@ measurement_utilities
   auto right_features = m_cached_right_features->features();
   auto matches = m_cached_matches->matches();
 
+  // Compute expected right point location using depth projection if enabled
+  kv::vector_2d expected_right_point = left_point;  // Default: same as left point
+  if( m_use_disparity_aware_feature_search && left_cam && right_cam )
+  {
+    // Use feature_search_depth if valid, otherwise fall back to default_depth
+    double search_depth = ( m_feature_search_depth > 0 ) ? m_feature_search_depth : m_default_depth;
+    expected_right_point = project_left_to_right( *left_cam, *right_cam, left_point, search_depth );
+  }
+
   // Find the closest matched feature to our query point
+  // For left features: search near left_point
+  // For right features: search near expected_right_point (disparity-aware)
   double best_dist = std::numeric_limits<double>::max();
   kv::vector_2d best_left_point;
   kv::vector_2d best_right_point;
@@ -855,13 +908,29 @@ measurement_utilities
     const auto& right_feat = right_features[match.second];
 
     kv::vector_2d left_feat_loc = left_feat->loc();
-    double dist = ( left_feat_loc - left_point ).norm();
+    kv::vector_2d right_feat_loc = right_feat->loc();
 
-    if( dist < m_feature_search_radius && dist < best_dist )
+    // Check if left feature is within search radius of query point
+    double left_dist = ( left_feat_loc - left_point ).norm();
+    if( left_dist >= m_feature_search_radius )
     {
-      best_dist = dist;
+      continue;
+    }
+
+    // Check if right feature is within search radius of expected location
+    double right_dist = ( right_feat_loc - expected_right_point ).norm();
+    if( right_dist >= m_feature_search_radius )
+    {
+      continue;
+    }
+
+    // Use combined distance metric (sum of left and right distances)
+    double combined_dist = left_dist + right_dist;
+    if( combined_dist < best_dist )
+    {
+      best_dist = combined_dist;
       best_left_point = left_feat_loc;
-      best_right_point = right_feat->loc();
+      best_right_point = right_feat_loc;
       found = true;
     }
   }
@@ -883,7 +952,9 @@ measurement_utilities
   const kv::image_container_sptr& left_image,
   const kv::image_container_sptr& right_image,
   kv::vector_2d& left_point,
-  kv::vector_2d& right_point )
+  kv::vector_2d& right_point,
+  const kv::simple_camera_perspective* left_cam,
+  const kv::simple_camera_perspective* right_cam )
 {
   if( !m_feature_detector || !m_descriptor_extractor ||
       !m_feature_matcher || !m_fundamental_matrix_estimator )
@@ -938,7 +1009,18 @@ measurement_utilities
     return false;
   }
 
+  // Compute expected right point location using depth projection if enabled
+  kv::vector_2d expected_right_point = left_point;  // Default: same as left point
+  if( m_use_disparity_aware_feature_search && left_cam && right_cam )
+  {
+    // Use feature_search_depth if valid, otherwise fall back to default_depth
+    double search_depth = ( m_feature_search_depth > 0 ) ? m_feature_search_depth : m_default_depth;
+    expected_right_point = project_left_to_right( *left_cam, *right_cam, left_point, search_depth );
+  }
+
   // Find the closest inlier match to our query point
+  // For left features: search near left_point
+  // For right features: search near expected_right_point (disparity-aware)
   double best_dist = std::numeric_limits<double>::max();
   kv::vector_2d best_left_point;
   kv::vector_2d best_right_point;
@@ -962,13 +1044,29 @@ measurement_utilities
     const auto& right_feat = right_features[match.second];
 
     kv::vector_2d left_feat_loc = left_feat->loc();
-    double dist = ( left_feat_loc - left_point ).norm();
+    kv::vector_2d right_feat_loc = right_feat->loc();
 
-    if( dist < m_feature_search_radius && dist < best_dist )
+    // Check if left feature is within search radius of query point
+    double left_dist = ( left_feat_loc - left_point ).norm();
+    if( left_dist >= m_feature_search_radius )
     {
-      best_dist = dist;
+      continue;
+    }
+
+    // Check if right feature is within search radius of expected location
+    double right_dist = ( right_feat_loc - expected_right_point ).norm();
+    if( right_dist >= m_feature_search_radius )
+    {
+      continue;
+    }
+
+    // Use combined distance metric (sum of left and right distances)
+    double combined_dist = left_dist + right_dist;
+    if( combined_dist < best_dist )
+    {
+      best_dist = combined_dist;
       best_left_point = left_feat_loc;
-      best_right_point = right_feat->loc();
+      best_right_point = right_feat_loc;
       found = true;
     }
   }

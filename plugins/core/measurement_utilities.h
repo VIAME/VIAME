@@ -134,6 +134,12 @@ public:
   /// Scale factor to expand bounding box around keypoints
   double box_scale_factor;
 
+  /// Whether to use depth projection to estimate initial search location for feature matching
+  bool use_disparity_aware_feature_search;
+
+  /// Depth to use for disparity-aware feature search (if different from default_depth)
+  double feature_search_depth;
+
   /// Whether to record stereo measurement method as detection attribute
   bool record_stereo_method;
 
@@ -209,7 +215,9 @@ public:
 
   /// Set feature matching parameters
   void set_feature_params( double search_radius, double ransac_inlier_scale,
-                           int min_ransac_inliers );
+                           int min_ransac_inliers,
+                           bool use_disparity_aware_search = false,
+                           double feature_search_depth = 5.0 );
 
   /// Set bounding box scale factor for creating detections from keypoints
   void set_box_scale_factor( double scale_factor );
@@ -230,6 +238,13 @@ public:
     const kv::simple_camera_perspective& left_cam,
     const kv::simple_camera_perspective& right_cam,
     const kv::vector_2d& left_point ) const;
+
+  /// Project a left camera point to the right camera using a specified depth
+  kv::vector_2d project_left_to_right(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::vector_2d& left_point,
+    double depth ) const;
 
   /// Compute a bounding box from keypoints with scale factor
   kv::bounding_box_d compute_bbox_from_keypoints(
@@ -307,20 +322,28 @@ public:
   /// Find corresponding point using vital feature detection/matching
   /// Returns true if match found, false otherwise
   /// Updates left_point to the actual feature location if a match is found
+  /// If cameras are provided and disparity-aware search is enabled, uses depth
+  /// projection to estimate the search location in the right image
   bool find_corresponding_point_feature_descriptor(
     const kv::image_container_sptr& left_image,
     const kv::image_container_sptr& right_image,
     kv::vector_2d& left_point,
-    kv::vector_2d& right_point );
+    kv::vector_2d& right_point,
+    const kv::simple_camera_perspective* left_cam = nullptr,
+    const kv::simple_camera_perspective* right_cam = nullptr );
 
   /// Find corresponding point using RANSAC feature matching
   /// Returns true if match found, false otherwise
   /// Updates left_point to the actual feature location if a match is found
+  /// If cameras are provided and disparity-aware search is enabled, uses depth
+  /// projection to estimate the search location in the right image
   bool find_corresponding_point_ransac_feature(
     const kv::image_container_sptr& left_image,
     const kv::image_container_sptr& right_image,
     kv::vector_2d& left_point,
-    kv::vector_2d& right_point );
+    kv::vector_2d& right_point,
+    const kv::simple_camera_perspective* left_cam = nullptr,
+    const kv::simple_camera_perspective* right_cam = nullptr );
 
   /// Clear cached feature data (call when frame changes)
   void clear_feature_cache();
@@ -407,6 +430,8 @@ private:
   double m_ransac_inlier_scale;
   int m_min_ransac_inliers;
   double m_box_scale_factor;
+  bool m_use_disparity_aware_feature_search;
+  double m_feature_search_depth;
 
   // Feature algorithms
   kv::algo::detect_features_sptr m_feature_detector;
