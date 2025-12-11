@@ -7,6 +7,7 @@
 # Features:
 #   - Auto-detects chessboard grid size from first frame
 #   - Image dimensions derived automatically from input images
+#   - Frame count accumulated from all input frames
 #   - Outputs both OpenCV YAML format and JSON format (camera_rig_io compatible)
 
 # ============================== GLOBAL PROPERTIES =================================
@@ -18,7 +19,6 @@ config _pipeline:_edge
 config global
    :output_directory                           ./
    :output_json_file                           calibration_matrices.json
-   :frame_count_threshold                      50
    :square_size                                80
 
 # ============================== INPUT FRAME LIST ==================================
@@ -48,8 +48,8 @@ process detector1
   endblock
 
 process append_detections1
-  ::append_detections_to_tracks
-  :do_wait_process_end_before_sending_output   true
+  ::accumulate_object_tracks
+  :single_final_output                         true
 
 process detector_writer1
   :: detected_object_output
@@ -70,13 +70,18 @@ process detector2
   endblock
 
 process append_detections2
-  ::append_detections_to_tracks
-  :do_wait_process_end_before_sending_output   true
+  ::accumulate_object_tracks
+  :single_final_output                         true
 
 process detector_writer2
   :: detected_object_output
   :file_name                                   tracks_right.csv
   :writer:type                                 viame_csv
+
+# =============================== IMAGE STATISTICS =================================
+
+process image_statistics
+  :: accumulate_image_statistics
 
 # =============================== CAMERA CALIBRATION ===============================
 
@@ -84,9 +89,6 @@ process cameras_calibration
   :: calibrate_cameras_from_tracks
   :output_cameras_directory                    $CONFIG{global:output_directory}
   :output_json_file                            $CONFIG{global:output_json_file}
-  :image_width                                 0
-  :image_height                                0
-  :frame_count_threshold                       $CONFIG{global:frame_count_threshold}
   :square_size                                 $CONFIG{global:square_size}
 
 # =============================== PROCESS CONNECTION ===============================
@@ -120,6 +122,12 @@ connect from detector2.detected_object_set
         to   detector_writer2.detected_object_set
 
 
+# Image statistics accumulation (use left split image)
+# --------------------------------------------------------------------------------------
+connect from split.left_image
+        to   image_statistics.image
+
+
 # Camera calibration
 # --------------------------------------------------------------------------------------
 connect from append_detections1.object_track_set
@@ -127,5 +135,11 @@ connect from append_detections1.object_track_set
 
 connect from append_detections2.object_track_set
         to   cameras_calibration.tracks_right
+
+connect from image_statistics.image_width
+        to   cameras_calibration.image_width
+
+connect from image_statistics.image_height
+        to   cameras_calibration.image_height
 
 # -- end of file --

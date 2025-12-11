@@ -36,8 +36,8 @@ process detector
   endblock
 
 process append_detections
-  ::append_detections_to_tracks
-  :do_wait_process_end_before_sending_output   true
+  ::accumulate_object_tracks
+  :single_final_output                         true
 
 process detector_writer
   :: detected_object_output

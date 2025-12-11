@@ -38,14 +38,14 @@ namespace core {
 
 create_config_trait(output_cameras_directory, std::string, "", "The calibrated cameras files directory");
 create_config_trait(output_json_file, std::string, "", "Output JSON calibration file path (camera_rig_io compatible)");
-create_config_trait(frame_count_threshold, unsigned, "50",
-                    "Maximum number of frames to use during calibration. 0 to use every frame available.");
+create_config_trait(frame_count_threshold, unsigned, "0",
+                    "Maximum number of frames to use during calibration. 0 to use all available frames.");
 create_config_trait(square_size, double, "1.0", "Calibration pattern square size in world units (e.g., mm)");
 
 create_port_trait(tracks_left, object_track_set, "Object track set of camera1.");
 create_port_trait(tracks_right, object_track_set, "Object track set of camera2.");
-create_port_trait(image1, image, "Left camera image (used to derive image dimensions).");
-create_port_trait(image2, image, "Right camera image (used to derive image dimensions).");
+create_port_trait(image_width, integer, "Width of the input images.");
+create_port_trait(image_height, integer, "Height of the input images.");
 
 // Create custom camera map type to push camera_map to the output port
 create_type_trait(camera_map, "kwiver:camera_map", kv::camera_map_sptr);
@@ -61,15 +61,8 @@ public:
   // Configuration settings
   std::string m_output_cameras_directory;
   std::string m_output_json_file;
-  std::string m_track_set_left;
-  std::string m_track_set_right;
   unsigned m_frame_count_threshold;
   double m_square_size;
-
-  // Image dimensions (derived from input images)
-  unsigned m_image_width;
-  unsigned m_image_height;
-  bool m_image_size_set;
 
   // Other variables
   calibrate_cameras_from_tracks_process *parent;
@@ -224,9 +217,8 @@ calibrate_cameras_from_tracks_process::priv::split_object_track(const kv::object
 
 // -----------------------------------------------------------------------------
 calibrate_cameras_from_tracks_process::priv::priv(calibrate_cameras_from_tracks_process *ptr)
-    : m_output_cameras_directory(""), m_output_json_file(""), m_track_set_left(""), m_track_set_right(""),
-      m_frame_count_threshold(50), m_square_size(1.0), m_image_width(0), m_image_height(0),
-      m_image_size_set(false), parent(ptr) {
+    : m_output_cameras_directory(""), m_output_json_file(""),
+      m_frame_count_threshold(0), m_square_size(1.0), parent(ptr) {
 }
 
 
@@ -259,8 +251,8 @@ void calibrate_cameras_from_tracks_process::make_ports() {
   // -- input --
   declare_input_port_using_trait(tracks_left, required);
   declare_input_port_using_trait(tracks_right, required);
-  declare_input_port_using_trait(image1, required);
-  declare_input_port_using_trait(image2, required);
+  declare_input_port_using_trait(image_width, required);
+  declare_input_port_using_trait(image_height, required);
 
   // -- outputs --
   declare_output_port_using_trait(camera_map, optional);
@@ -287,27 +279,20 @@ void calibrate_cameras_from_tracks_process::_configure() {
 // -----------------------------------------------------------------------------
 void calibrate_cameras_from_tracks_process::_step() {
   kv::object_track_set_sptr object_track_set1, object_track_set2;
-  kv::image_container_sptr img1, img2;
 
   object_track_set1 = grab_from_port_using_trait(tracks_left);
   object_track_set2 = grab_from_port_using_trait(tracks_right);
-  img1 = grab_from_port_using_trait(image1);
-  img2 = grab_from_port_using_trait(image2);
+  int64_t input_image_width = grab_from_port_using_trait(image_width);
+  int64_t input_image_height = grab_from_port_using_trait(image_height);
 
   if (!object_track_set1 || !object_track_set2)
     return;
 
-  // Derive image size from input images (only need to do this once)
-  if (!d->m_image_size_set && img1) {
-    d->m_image_width = static_cast<unsigned>(img1->width());
-    d->m_image_height = static_cast<unsigned>(img1->height());
-    d->m_image_size_set = true;
-    LOG_DEBUG(d->m_logger, "Image size from input: " << d->m_image_width << "x" << d->m_image_height);
-  }
+  LOG_DEBUG(d->m_logger, "Received image size: " << input_image_width << "x" << input_image_height);
 
   auto config_optimizer = kv::config_block::empty_config();
-  config_optimizer->set_value("image_width", d->m_image_width);
-  config_optimizer->set_value("image_height", d->m_image_height);
+  config_optimizer->set_value("image_width", static_cast<unsigned>(input_image_width));
+  config_optimizer->set_value("image_height", static_cast<unsigned>(input_image_height));
   config_optimizer->set_value("frame_count_threshold", d->m_frame_count_threshold);
   config_optimizer->set_value("output_calibration_directory", d->m_output_cameras_directory);
   config_optimizer->set_value("output_json_file", d->m_output_json_file);

@@ -72,7 +72,7 @@ connect from detector2.detected_object_set
 # ================================= CORE TRACKER ===================================
 
 process append_detections1
-  ::append_detections_to_tracks
+  ::accumulate_object_tracks
   :min_frame_count                           0
   :max_frame_count                           0
 
@@ -82,7 +82,7 @@ connect from detector1.detected_object_set
         to   append_detections1.detected_object_set
 
 process append_detections2
-  ::append_detections_to_tracks
+  ::accumulate_object_tracks
   :min_frame_count                           0
   :max_frame_count                           0
 

@@ -130,6 +130,7 @@ link_directories( ${Boost_LIBRARY_DIRS} )
 
 # Add process library
 set( process_headers
+  accumulate_image_statistics_process.h
   align_multimodal_imagery_process.h
   extract_desc_ids_for_training_process.h
   filter_frame_process.h
@@ -142,7 +143,7 @@ set( process_headers
   refine_measurements_process.h
   track_conductor_process.h
   write_homography_list_process.h
-  append_detections_to_tracks_process.h
+  accumulate_object_tracks_process.h
   split_object_track_to_feature_landmark_process.h
   calibrate_cameras_from_tracks_process.h
   detections_pairing_from_stereo_process.h
@@ -151,6 +152,7 @@ set( process_headers
 
 set( process_sources
   register_processes.cxx
+  accumulate_image_statistics_process.cxx
   align_multimodal_imagery_process.cxx
   extract_desc_ids_for_training_process.cxx
   filter_frame_process.cxx
@@ -163,7 +165,7 @@ set( process_sources
   refine_measurements_process.cxx
   track_conductor_process.cxx
   write_homography_list_process.cxx
-  append_detections_to_tracks_process.cxx
+  accumulate_object_tracks_process.cxx
   split_object_track_to_feature_landmark_process.cxx
   calibrate_cameras_from_tracks_process.cxx
   detections_pairing_from_stereo_process.cxx
