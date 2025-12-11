@@ -1,6 +1,11 @@
 # Estimate calibration from left and right camera videos
 #
 # Runs OCV corner detection on each camera feed and combine tracks to generate camera calibration
+#
+# Features:
+#   - Auto-detects chessboard grid size from first frame
+#   - Image dimensions derived automatically from input images
+#   - Outputs both OpenCV YAML format and JSON format (camera_rig_io compatible)
 
 
 # ============================== GLOBAL PROPERTIES =================================
@@ -11,12 +16,9 @@ config _pipeline:_edge
 
 config global
    :output_directory                           ./
-   :image_width                                640
-   :image_height                               480
+   :output_json_file                           calibration_matrices.json
    :frame_count_threshold                      50
-   :target_width                               9
-   :target_height                              6
-   :square_size                                1
+   :square_size                                80
 
 # ============================== INPUT FRAME LIST ==================================
 
@@ -30,8 +32,7 @@ process detector1
   :detector:type                               ocv_target_detector
 
   block detector:ocv_target_detector
-    :target_width                              $CONFIG{global:target_width}
-    :target_height                             $CONFIG{global:target_height}
+    :auto_detect_grid                          true
     :square_size                               $CONFIG{global:square_size}
     :object_type                               "corner"
   endblock
@@ -53,8 +54,7 @@ process detector2
   :detector:type                               ocv_target_detector
 
   block detector:ocv_target_detector
-    :target_width                              $CONFIG{global:target_width}
-    :target_height                             $CONFIG{global:target_height}
+    :auto_detect_grid                          true
     :square_size                               $CONFIG{global:square_size}
     :object_type                               "corner"
   endblock
@@ -73,9 +73,11 @@ process detector_writer2
 process cameras_calibration
   :: calibrate_cameras_from_tracks
   :output_cameras_directory                    $CONFIG{global:output_directory}
-  :image_width                                 $CONFIG{global:image_width}
-  :image_height                                $CONFIG{global:image_height}
+  :output_json_file                            $CONFIG{global:output_json_file}
+  :image_width                                 0
+  :image_height                                0
   :frame_count_threshold                       $CONFIG{global:frame_count_threshold}
+  :square_size                                 $CONFIG{global:square_size}
 
 # =============================== PROCESS CONNECTION ===================================
 # Detect tracks left camera

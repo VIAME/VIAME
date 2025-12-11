@@ -21,10 +21,10 @@ REM Additional options:
 REM   -a              Auto-detect grid size (recommended)
 REM   -x GRID_X       Number of inner corners in grid width (default: 6)
 REM   -y GRID_Y       Number of inner corners in grid height (default: 5)
-REM   -q SQUARE_SIZE  Width of calibration square in mm (default: 85)
+REM   -q SQUARE_SIZE  Width of calibration square in mm (default: 80)
 REM   -s FRAME_STEP   Process every Nth frame (default: 1)
 REM   -g              Show GUI with detection results
 
-python.exe "%VIAME_INSTALL%\tools\calibrate_cameras.py" -a -o calibration_matrices.json %*
+python.exe "%VIAME_INSTALL%\tools\calibrate_cameras.py" -a -q 80 -o calibration_matrices.json %*
 
 pause

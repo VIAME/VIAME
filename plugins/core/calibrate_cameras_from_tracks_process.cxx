@@ -37,10 +37,12 @@ namespace core {
 
 
 create_config_trait(output_cameras_directory, std::string, "", "The calibrated cameras files directory");
-create_config_trait(image_width, unsigned, "", "Camera image width in pixels.");
-create_config_trait(image_height, unsigned, "", "Camera image height in pixels.");
-create_config_trait(frame_count_threshold, unsigned, "",
+create_config_trait(output_json_file, std::string, "", "Output JSON calibration file path (camera_rig_io compatible)");
+create_config_trait(image_width, unsigned, "0", "Camera image width in pixels (0 to derive from data).");
+create_config_trait(image_height, unsigned, "0", "Camera image height in pixels (0 to derive from data).");
+create_config_trait(frame_count_threshold, unsigned, "50",
                     "Maximum number of frames to use during calibration. 0 to use every frame available.");
+create_config_trait(square_size, double, "1.0", "Calibration pattern square size in world units (e.g., mm)");
 
 create_port_trait(tracks_left, object_track_set, "Object track set of camera1.");
 create_port_trait(tracks_right, object_track_set, "Object track set of camera2.");
@@ -58,11 +60,13 @@ public:
 
   // Configuration settings
   std::string m_output_cameras_directory;
+  std::string m_output_json_file;
   std::string m_track_set_left;
   std::string m_track_set_right;
   unsigned m_image_width;
   unsigned m_image_height;
   unsigned m_frame_count_threshold;
+  double m_square_size;
 
   // Other variables
   calibrate_cameras_from_tracks_process *parent;
@@ -217,8 +221,8 @@ calibrate_cameras_from_tracks_process::priv::split_object_track(const kv::object
 
 // -----------------------------------------------------------------------------
 calibrate_cameras_from_tracks_process::priv::priv(calibrate_cameras_from_tracks_process *ptr)
-    : m_output_cameras_directory(""), m_track_set_left(""), m_track_set_right(""), m_frame_count_threshold(0), parent(
-    ptr) {
+    : m_output_cameras_directory(""), m_output_json_file(""), m_track_set_left(""), m_track_set_right(""),
+      m_image_width(0), m_image_height(0), m_frame_count_threshold(50), m_square_size(1.0), parent(ptr) {
 }
 
 
@@ -260,18 +264,22 @@ void calibrate_cameras_from_tracks_process::make_ports() {
 // -----------------------------------------------------------------------------
 void calibrate_cameras_from_tracks_process::make_config() {
   declare_config_using_trait(output_cameras_directory);
+  declare_config_using_trait(output_json_file);
   declare_config_using_trait(image_width);
   declare_config_using_trait(image_height);
   declare_config_using_trait(frame_count_threshold);
+  declare_config_using_trait(square_size);
 }
 
 
 // -----------------------------------------------------------------------------
 void calibrate_cameras_from_tracks_process::_configure() {
   d->m_output_cameras_directory = config_value_using_trait(output_cameras_directory);
+  d->m_output_json_file = config_value_using_trait(output_json_file);
   d->m_image_width = config_value_using_trait(image_width);
   d->m_image_height = config_value_using_trait(image_height);
   d->m_frame_count_threshold = config_value_using_trait(frame_count_threshold);
+  d->m_square_size = config_value_using_trait(square_size);
 }
 
 // -----------------------------------------------------------------------------
@@ -289,6 +297,8 @@ void calibrate_cameras_from_tracks_process::_step() {
   config_optimizer->set_value("image_height", d->m_image_height);
   config_optimizer->set_value("frame_count_threshold", d->m_frame_count_threshold);
   config_optimizer->set_value("output_calibration_directory", d->m_output_cameras_directory);
+  config_optimizer->set_value("output_json_file", d->m_output_json_file);
+  config_optimizer->set_value("square_size", d->m_square_size);
 
   kv::camera_map::map_camera_t cameras;
   cameras[0] = std::make_shared<kv::simple_camera_perspective>();
@@ -319,6 +329,8 @@ void calibrate_cameras_from_tracks_process::_step() {
   camera_optimizer->optimize(cameras_map, features, landmarks);
 
   kv::camera_map::map_camera_t cams = cameras_map->cameras();
+  // Use current directory if output directory not specified
+  std::string output_dir = d->m_output_cameras_directory.empty() ? "." : d->m_output_cameras_directory;
   unsigned cam_id = 1;
   for (const auto &cam: cams) {
     kv::simple_camera_perspective_sptr camera;
@@ -328,7 +340,7 @@ void calibrate_cameras_from_tracks_process::_step() {
       break;
     }
 
-    std::string out_fname1 = d->m_output_cameras_directory + "/camera" + std::to_string(cam_id) + ".krtd";
+    std::string out_fname1 = output_dir + "/camera" + std::to_string(cam_id) + ".krtd";
     kv::write_krtd_file(*camera, out_fname1);
     cam_id++;
   }

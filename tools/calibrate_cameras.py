@@ -683,8 +683,8 @@ Input modes:
                         help="corner file input/output path for caching detections")
     parser.add_argument("-i", "--intr-file", default=None, dest="intr_file",
                         help="input intrinsics file if only recomputing extrinsics")
-    parser.add_argument("-q", "--square-size", type=float, default=85,
-                        help="width of a single calibration square in mm (default: 85)")
+    parser.add_argument("-q", "--square-size", type=float, default=80,
+                        help="width of a single calibration square in mm (default: 80)")
     parser.add_argument("-x", "--grid-x", type=int, default=6,
                         help="number of inner corners in grid width (default: 6)")
     parser.add_argument("-y", "--grid-y", type=int, default=5,

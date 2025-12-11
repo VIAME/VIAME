@@ -4,6 +4,7 @@
 */
 
 #include "ocv_optimize_stereo_cameras.h"
+#include "ocv_stereo_calibration.h"
 #include "ocv_stereo_feature_track_filter.h"
 
 #include <vital/types/object_track_set.h>
@@ -39,6 +40,11 @@ public:
   unsigned m_image_height{};
   unsigned m_frame_count_threshold{};
   std::string m_output_calibration_directory{};
+  std::string m_output_json_file{};
+  double m_square_size{1.0};
+
+  // Shared calibration utility
+  stereo_calibration m_calibrator;
 
   kv::logger_handle_t m_logger;
 
@@ -67,12 +73,10 @@ public:
                                      const std::vector<double> &D2, const cv::Mat &R, const cv::Mat &T,
                                      const cv::Mat &R1, const cv::Mat &R2, const cv::Mat &P1, const cv::Mat &P2,
                                      const cv::Mat &Q) const {
-    if (m_output_calibration_directory.empty()) {
-      LOG_WARN(m_logger, "No output calibration directory set. Skipping stereo calibration OCV format write.");
-      return;
-    }
+    // Use current directory if output directory not specified
+    std::string output_dir = m_output_calibration_directory.empty() ? "." : m_output_calibration_directory;
 
-    auto fs = cv::FileStorage(m_output_calibration_directory + "/intrinsics.yml", cv::FileStorage::Mode::WRITE);
+    auto fs = cv::FileStorage(output_dir + "/intrinsics.yml", cv::FileStorage::Mode::WRITE);
     if (fs.isOpened()) {
       fs.write("M1", M1);
       fs.write("M2", M2);
@@ -82,7 +86,7 @@ public:
     fs.release();
 
     // write extrinsic file
-    fs = cv::FileStorage(m_output_calibration_directory + "/extrinsics.yml", cv::FileStorage::Mode::WRITE);
+    fs = cv::FileStorage(output_dir + "/extrinsics.yml", cv::FileStorage::Mode::WRITE);
     if (fs.isOpened()) {
       fs.write("R", R);
       fs.write("T", T);
@@ -347,6 +351,42 @@ void ocv_optimize_stereo_cameras::priv::calibrate_stereo_camera(kv::camera_map::
   LOG_DEBUG(m_logger, "Write calibration to file");
   write_stereo_calibration_file(cv_K1, cv_K2, dist_coeffs1, dist_coeffs2, cv_R, cv_T, cv_R1, cv_R2, cv_P1, cv_P2, cv_Q);
 
+  // Also write JSON output using the shared calibrator if configured
+  if (!m_output_json_file.empty()) {
+    StereoCalibrationResult json_result;
+    json_result.success = true;
+    json_result.image_size = image_size;
+    json_result.square_size = m_square_size;
+    // Grid size derived from world points - find max x and y indices
+    if (!world_points.empty() && !world_points[0].empty()) {
+      float max_x = 0, max_y = 0;
+      for (const auto& pt : world_points[0]) {
+        max_x = std::max(max_x, pt.x);
+        max_y = std::max(max_y, pt.y);
+      }
+      int grid_w = static_cast<int>(max_x / m_square_size) + 1;
+      int grid_h = static_cast<int>(max_y / m_square_size) + 1;
+      json_result.grid_size = cv::Size(grid_w, grid_h);
+    }
+    json_result.left.success = true;
+    json_result.left.camera_matrix = cv_K1;
+    json_result.left.dist_coeffs = cv::Mat(dist_coeffs1);
+    json_result.right.success = true;
+    json_result.right.camera_matrix = cv_K2;
+    json_result.right.dist_coeffs = cv::Mat(dist_coeffs2);
+    json_result.stereo_rms_error = rms;
+    json_result.R = cv_R;
+    json_result.T = cv_T;
+    json_result.R1 = cv_R1;
+    json_result.R2 = cv_R2;
+    json_result.P1 = cv_P1;
+    json_result.P2 = cv_P2;
+    json_result.Q = cv_Q;
+
+    m_calibrator.write_calibration_json(json_result, m_output_json_file);
+    LOG_DEBUG(m_logger, "Wrote JSON calibration to: " << m_output_json_file);
+  }
+
   // CALIBRATION QUALITY CHECK
   // because the output fundamental matrix implicitly
   // includes all the output information,
@@ -449,12 +489,18 @@ ocv_optimize_stereo_cameras::~ocv_optimize_stereo_cameras() {}
 kv::config_block_sptr ocv_optimize_stereo_cameras::get_configuration() const {
   // Get base config from base class
   kv::config_block_sptr config = kv::algorithm::get_configuration();
-  config->set_value("image_width", d_->m_image_width, "sensor image width");
-  config->set_value("image_height", d_->m_image_height, "sensor image height");
+  config->set_value("image_width", d_->m_image_width,
+                    "sensor image width (0 to derive from data)");
+  config->set_value("image_height", d_->m_image_height,
+                    "sensor image height (0 to derive from data)");
   config->set_value("frame_count_threshold", d_->m_frame_count_threshold,
                     "max number of frames to use during optimization");
   config->set_value("output_calibration_directory", d_->m_output_calibration_directory,
-                    "output path for the generated calibration files");
+                    "output path for the generated calibration files (OpenCV YAML format)");
+  config->set_value("output_json_file", d_->m_output_json_file,
+                    "output path for JSON calibration file (compatible with camera_rig_io)");
+  config->set_value("square_size", d_->m_square_size,
+                    "calibration pattern square size in world units (e.g., mm)");
 
   return config;
 }
@@ -464,10 +510,15 @@ kv::config_block_sptr ocv_optimize_stereo_cameras::get_configuration() const {
 void ocv_optimize_stereo_cameras::set_configuration(kv::config_block_sptr config_in) {
   kv::config_block_sptr config = this->get_configuration();
   config->merge_config(config_in);
-  d_->m_image_width = config->get_value<double>("image_width");
-  d_->m_image_height = config->get_value<double>("image_height");
-  d_->m_frame_count_threshold = config->get_value<double>("frame_count_threshold");
+  d_->m_image_width = config->get_value<unsigned>("image_width");
+  d_->m_image_height = config->get_value<unsigned>("image_height");
+  d_->m_frame_count_threshold = config->get_value<unsigned>("frame_count_threshold");
   d_->m_output_calibration_directory = config->get_value<std::string>("output_calibration_directory");
+  d_->m_output_json_file = config->get_value<std::string>("output_json_file");
+  d_->m_square_size = config->get_value<double>("square_size");
+
+  // Set logger on shared calibrator
+  d_->m_calibrator.set_logger(d_->m_logger);
 }
 
 // ----------------------------------------------------------------------------

@@ -21,8 +21,8 @@ source ${VIAME_INSTALL}/setup_viame.sh
 #   -a              Auto-detect grid size (recommended)
 #   -x GRID_X       Number of inner corners in grid width (default: 6)
 #   -y GRID_Y       Number of inner corners in grid height (default: 5)
-#   -q SQUARE_SIZE  Width of calibration square in mm (default: 85)
+#   -q SQUARE_SIZE  Width of calibration square in mm (default: 80)
 #   -s FRAME_STEP   Process every Nth frame (default: 1)
 #   -g              Show GUI with detection results
 
-python ${VIAME_INSTALL}/tools/calibrate_cameras.py -a -o calibration_matrices.json "$@"
+python ${VIAME_INSTALL}/tools/calibrate_cameras.py -a -q 80 -o calibration_matrices.json "$@"
