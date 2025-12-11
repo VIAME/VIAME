@@ -28,39 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_HELLO_WORLD_FILTER_H
-#define VIAME_HELLO_WORLD_FILTER_H
+/**
+ * \file
+ * \brief Defaults plugin algorithm registration interface impl
+ */
 
-#include <plugins/hello_world/viame_hello_world_export.h>
+#include <plugins/examples/viame_examples_plugin_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <vital/algo/image_filter.h>
+#include "hello_world_detector.h"
+#include "hello_world_filter.h"
+
 
 namespace viame {
 
-class VIAME_HELLO_WORLD_EXPORT hello_world_filter :
-  public kwiver::vital::algorithm_impl<
-    hello_world_filter, kwiver::vital::algo::image_filter >
+extern "C"
+VIAME_EXAMPLES_PLUGIN_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-public:
-  hello_world_filter();
-  virtual ~hello_world_filter();
+  static auto const module_name = std::string( "viame.examples" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
 
-  // Get the current configuration (parameters) for this filter
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
+  // add factory                  implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "hello_world", viame::hello_world_detector );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Hello world detector.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  // Set configurations automatically parsed from input pipeline and config files
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  fact = vpm.ADD_ALGORITHM( "hello_world", viame::hello_world_filter );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Hello world filter.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  // Main filtering method
-  virtual kwiver::vital::image_container_sptr filter(
-    kwiver::vital::image_container_sptr image_data );
+  // - - - - - - -
+  vpm.mark_module_as_loaded( module_name );
+}
 
-private:
-  class priv;
-  const std::unique_ptr< priv > d;
-};
-
-} // end namespace
-
-#endif /* VIAME_HELLO_WORLD_FILTER_H */
+} // end namespace viame

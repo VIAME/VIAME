@@ -31,13 +31,13 @@
 #ifndef VIAME_HELLO_WORLD_DETECTOR_H
 #define VIAME_HELLO_WORLD_DETECTOR_H
 
-#include <plugins/hello_world/viame_hello_world_export.h>
+#include <plugins/examples/viame_examples_export.h>
 
 #include <vital/algo/image_object_detector.h>
 
 namespace viame {
 
-class VIAME_HELLO_WORLD_EXPORT hello_world_detector :
+class VIAME_EXAMPLES_EXPORT hello_world_detector :
   public kwiver::vital::algorithm_impl<
     hello_world_detector, kwiver::vital::algo::image_object_detector >
 {

@@ -17,16 +17,16 @@ kwiver_install_headers(
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/viame_hello_world_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_examples_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_hello_world
+kwiver_add_library( viame_examples
   ${plugin_headers}
   ${plugin_sources}
   )
 
-target_link_libraries( viame_hello_world
+target_link_libraries( viame_examples
   PUBLIC               kwiver::vital
                        kwiver::vital_algo
                        kwiver::vital_config
@@ -36,28 +36,28 @@ target_link_libraries( viame_hello_world
                        ${OpenCV_LIBRARIES}
   )
 
-set_target_properties( viame_hello_world PROPERTIES
+set_target_properties( viame_examples PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_hello_world
+algorithms_create_plugin( viame_examples
   register_algorithms.cxx
   )
-  
-target_link_libraries( viame_hello_world_plugin
+
+target_link_libraries( viame_examples_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
 if( VIAME_ENABLE_PYTHON )
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    processes/hello_world
+    processes/examples
     __init__)
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_detector.py
-    processes/hello_world
+    processes/examples
     hello_world_detector)
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_filter.py
-    processes/hello_world
+    processes/examples
     hello_world_filter)
 endif()
