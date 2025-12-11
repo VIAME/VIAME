@@ -38,10 +38,13 @@
 namespace viame {
 
 class VIAME_EXAMPLES_EXPORT hello_world_detector :
-  public kwiver::vital::algorithm_impl<
-    hello_world_detector, kwiver::vital::algo::image_object_detector >
+  public kwiver::vital::algo::image_object_detector
 {
 public:
+  static constexpr char const* name = "hello_world";
+
+  static constexpr char const* description = "Example hello world detector";
+
   hello_world_detector();
   virtual ~hello_world_detector();
 

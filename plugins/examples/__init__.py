@@ -1,12 +1,12 @@
 
-from viame.processes.hello_world import hello_world_detector
-from viame.processes.hello_world import hello_world_filter
+from viame.processes.examples import hello_world_detector
+from viame.processes.examples import hello_world_filter
 
 
 def __sprokit_register__():
     from kwiver.sprokit.pipeline import process_factory
 
-    module_name = 'python:hello_world.hello_world_detector'
+    module_name = 'python:examples.example_processes'
 
     if process_factory.is_process_module_loaded( module_name ):
         return

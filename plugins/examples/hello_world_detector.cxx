@@ -31,7 +31,6 @@
 #include "hello_world_detector.h"
 
 #include <cmath>
-#include <iostream>
 
 namespace viame {
 
@@ -54,7 +53,9 @@ public:
 hello_world_detector::
 hello_world_detector()
   : d( new priv )
-{}
+{
+  attach_logger( "viame.examples.hello_world_detector" );
+}
 
 
 hello_world_detector::
@@ -68,7 +69,8 @@ hello_world_detector::
 get_configuration() const
 {
   // Get base config from base class
-  kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
+  kwiver::vital::config_block_sptr config =
+    kwiver::vital::algo::image_object_detector::get_configuration();
 
   config->set_value( "text", d->m_text, "Text to display to user." );
 
@@ -92,6 +94,7 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   if( d->m_text.empty() )
   {
+    LOG_ERROR( logger(), "Text configuration value cannot be empty" );
     return false;
   }
 
@@ -106,7 +109,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
 
-  std::cout << "Text: " << d->m_text << std::endl;
+  LOG_INFO( logger(), "Text: " << d->m_text );
 
   return detected_set;
 }

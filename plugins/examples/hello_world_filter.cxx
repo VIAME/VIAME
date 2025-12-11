@@ -31,7 +31,6 @@
 #include "hello_world_filter.h"
 
 #include <cmath>
-#include <iostream>
 
 namespace viame {
 
@@ -54,7 +53,9 @@ public:
 hello_world_filter::
 hello_world_filter()
   : d( new priv )
-{}
+{
+  attach_logger( "viame.examples.hello_world_filter" );
+}
 
 
 hello_world_filter::
@@ -68,7 +69,8 @@ hello_world_filter::
 get_configuration() const
 {
   // Get base config from base class
-  kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
+  kwiver::vital::config_block_sptr config =
+    kwiver::vital::algo::image_filter::get_configuration();
 
   config->set_value( "text", d->m_text, "Text to display to user." );
 
@@ -92,6 +94,7 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   if( d->m_text.empty() )
   {
+    LOG_ERROR( logger(), "Text configuration value cannot be empty" );
     return false;
   }
 
@@ -104,11 +107,9 @@ kwiver::vital::image_container_sptr
 hello_world_filter::
 filter( kwiver::vital::image_container_sptr image_data )
 {
-  kwiver::vital::image_container_sptr image_output;
+  LOG_INFO( logger(), "Text: " << d->m_text );
 
-  std::cout << "Text: " << d->m_text << std::endl;
-
-  return image_output;
+  return image_data;
 }
 
 

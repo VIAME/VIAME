@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Defaults plugin algorithm registration interface impl
+ * \brief Examples plugin algorithm registration interface impl
  */
 
 #include <plugins/examples/viame_examples_plugin_export.h>
@@ -39,38 +39,43 @@
 #include "hello_world_detector.h"
 #include "hello_world_filter.h"
 
-
 namespace viame {
+
+namespace {
+
+static auto const module_name         = std::string{ "viame.examples" };
+static auto const module_version      = std::string{ "1.0" };
+static auto const module_organization = std::string{ "Kitware Inc." };
+
+// ----------------------------------------------------------------------------
+template <typename algorithm_t>
+void register_algorithm( kwiver::vital::plugin_loader& vpm )
+{
+  using kvpf = kwiver::vital::plugin_factory;
+
+  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
+  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
+       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
+       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
+       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
+       ;
+}
+
+}
 
 extern "C"
 VIAME_EXAMPLES_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "viame.examples" );
-  if (vpm.is_module_loaded( module_name ) )
+  if( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
-  // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "hello_world", viame::hello_world_detector );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Hello world detector.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  register_algorithm< hello_world_detector >( vpm );
+  register_algorithm< hello_world_filter >( vpm );
 
-  fact = vpm.ADD_ALGORITHM( "hello_world", viame::hello_world_filter );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Hello world filter.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  // - - - - - - -
   vpm.mark_module_as_loaded( module_name );
 }
 

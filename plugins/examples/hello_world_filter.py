@@ -30,13 +30,12 @@
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
 
-from kwiver.vital.types import Image
 from kwiver.vital.types import ImageContainer
 
 class hello_world_filter(KwiverProcess):
     """
-    This process gets an image as input, does some stuff to it and
-    sends the modified version to the output port.
+    Example filter process that demonstrates how to create an image filter
+    in Python. Gets an image as input and outputs the same image.
     """
     # ----------------------------------------------
     def __init__(self, conf):
@@ -60,24 +59,22 @@ class hello_world_filter(KwiverProcess):
 
     # ----------------------------------------------
     def _configure(self):
-        print( "[DEBUG] ----- configure" )
         self.text = self.config_value('text')
 
         self._base_configure()
 
     # ----------------------------------------------
     def _step(self):
-        print( "[DEBUG] ----- start step" )
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
-        # Get python image from conatiner (just for show)
+        # Get python image from container
         in_img = in_img_c.get_image()
 
         # Print out text to screen
         print( "Text: " + str( self.text ) )
 
-        # push dummy image object (same as input) to output port
+        # push image object (same as input) to output port
         self.push_to_port_using_trait('out_image', ImageContainer(in_img))
 
         self._base_step()

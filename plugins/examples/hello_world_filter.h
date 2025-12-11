@@ -38,10 +38,13 @@
 namespace viame {
 
 class VIAME_EXAMPLES_EXPORT hello_world_filter :
-  public kwiver::vital::algorithm_impl<
-    hello_world_filter, kwiver::vital::algo::image_filter >
+  public kwiver::vital::algo::image_filter
 {
 public:
+  static constexpr char const* name = "hello_world";
+
+  static constexpr char const* description = "Example hello world image filter";
+
   hello_world_filter();
   virtual ~hello_world_filter();
 

@@ -26,21 +26,16 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from __future__ import print_function
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
 
-from kwiver.vital.types import Image
-from kwiver.vital.types import ImageContainer
-from kwiver.vital.types import DetectedObject
 from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import BoundingBoxD
 
 class hello_world_detector(KwiverProcess):
     """
-    This process gets an image as input, does some stuff to it and
-    sends the modified version to the output port.
+    Example detector process that demonstrates how to create a detector
+    in Python. Gets an image as input and outputs an empty detection set.
     """
     # ----------------------------------------------
     def __init__(self, conf):
@@ -50,8 +45,6 @@ class hello_world_detector(KwiverProcess):
           'Text to display to user.')
 
         self.declare_config_using_trait('text')
-
-        #self.add_port_trait('detections', 'detected_object_set', 'Output detections')
 
         # set up required flags
         optional = process.PortFlags()
@@ -73,11 +66,11 @@ class hello_world_detector(KwiverProcess):
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
-        # Get python image from conatiner (just for show)
+        # Get python image from container (just for show)
         in_img = in_img_c.image()
 
         # Print out text to screen
-        print( "Text: " + str( self.text )) 
+        print( "Text: " + str( self.text ))
 
         # push dummy detections object to output port
         detections = DetectedObjectSet()
