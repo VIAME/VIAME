@@ -38,14 +38,11 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/core/viame_processes_core_export.h>
+#include <plugins/opencv/viame_processes_opencv_export.h>
 
 #include <memory>
 
 namespace viame
-{
-
-namespace core
 {
 
 // -----------------------------------------------------------------------------
@@ -55,7 +52,7 @@ namespace core
  * Performs monocular camera calibration using detected chessboard corners.
  * Outputs camera intrinsics in OpenCV YAML and JSON formats.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT calibrate_single_camera_from_tracks_process
+class VIAME_PROCESSES_OPENCV_NO_EXPORT calibrate_single_camera_from_tracks_process
   : public sprokit::process
 {
 public:
@@ -76,7 +73,6 @@ private:
 
 }; // end class calibrate_single_camera_from_tracks_process
 
-} // end namespace core
 } // end namespace viame
 
 #endif // VIAME_CALIBRATE_SINGLE_CAMERA_FROM_TRACKS_PROCESS_H

@@ -57,8 +57,6 @@ namespace kv = kwiver::vital;
 
 namespace viame {
 
-namespace core {
-
 
 create_config_trait( output_directory, std::string, "./",
   "Output directory for calibration files" );
@@ -434,7 +432,5 @@ void calibrate_single_camera_from_tracks_process::_step()
   mark_process_as_complete();
 }
 
-
-} // end namespace core
 
 } // end namespace viame
