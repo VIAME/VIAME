@@ -373,7 +373,8 @@ def stereo_frames_separate(left_path, right_path, frame_step=1, show_progress=Tr
 
 
 def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
-                                 frame_step=1, gui=False, bayer=False, auto_grid=False):
+                                 frame_step=1, gui=False, bayer=False, auto_grid=False,
+                                 max_frames=0):
     """Detect a grid in each frame from separate left/right image sources
 
     Args:
@@ -384,6 +385,7 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
         gui: Show detection results in GUI
         bayer: Input is Bayer pattern
         auto_grid: Automatically detect grid size from first successful detection
+        max_frames: Maximum number of frames to use (0=unlimited)
 
     Returns:
         Tuple of (img_shape, left_data, right_data, detected_grid_size)
@@ -399,6 +401,10 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
 
     for left_frame, right_frame, frame_number in stereo_frames_separate(
             left_path, right_path, frame_step):
+        # Check if we've reached max_frames limit
+        if max_frames > 0 and len(left_data) >= max_frames and len(right_data) >= max_frames:
+            print(f"Reached max_frames limit ({max_frames}), stopping detection")
+            break
 
         left_gray = to_grayscale(left_frame, bayer)
         right_gray = to_grayscale(right_frame, bayer)
@@ -462,7 +468,7 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
 
 
 def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, bayer=False,
-                      auto_grid=False):
+                      auto_grid=False, max_frames=0):
     """Detect a grid in each frame of video or image(s)
 
     Args:
@@ -472,6 +478,7 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
         gui: Show detection results in GUI
         bayer: Input is Bayer pattern
         auto_grid: Automatically detect grid size from first successful detection
+        max_frames: Maximum number of frames to use (0=unlimited)
 
     Returns:
         Tuple of (img_shape, left_data, right_data, detected_grid_size)
@@ -489,6 +496,10 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
         frame_source = image_frames(input_path, frame_step)
 
     for frame, frame_number in frame_source:
+        # Check if we've reached max_frames limit
+        if max_frames > 0 and len(left_data) >= max_frames and len(right_data) >= max_frames:
+            print(f"Reached max_frames limit ({max_frames}), stopping detection")
+            break
 
         left_img = frame[:, 0:frame.shape[1] // 2]
         right_img = frame[:, frame.shape[1] // 2:]
@@ -695,6 +706,8 @@ Input modes:
                         help="automatically detect grid size from first image")
     parser.add_argument("-s", "--frame-step", type=int, default=1,
                         help="process every Nth frame (default: 1)")
+    parser.add_argument("-m", "--max-frames", type=int, default=0,
+                        help="maximum number of frames to use for calibration (0=unlimited)")
     parser.add_argument("-g", "--gui", action="store_true", default=False,
                         help="visualize detection results in a GUI")
     parser.add_argument("-o", "--output", default="calibration.json", dest="json_file",
@@ -733,11 +746,11 @@ Input modes:
         if use_separate_stereo:
             img_shape, left_data, right_data, detected_grid_size = detect_grid_stereo_separate(
                 args.left_path, args.right_path, grid_size,
-                args.frame_step, args.gui, args.bayer, args.auto_grid)
+                args.frame_step, args.gui, args.bayer, args.auto_grid, args.max_frames)
         else:
             img_shape, left_data, right_data, detected_grid_size = detect_grid_video(
                 args.input, grid_size, args.frame_step,
-                args.gui, args.bayer, args.auto_grid)
+                args.gui, args.bayer, args.auto_grid, args.max_frames)
         # Use detected grid size if auto-detection was enabled
         if args.auto_grid and detected_grid_size != grid_size:
             grid_size = detected_grid_size
@@ -840,11 +853,13 @@ Input modes:
         json_dict[f'cx_{side}'] = float(m[0][2])
         json_dict[f'cy_{side}'] = float(m[1][2])
 
-        json_dict[f'k1_{side}'] = float(d[0][0])
-        json_dict[f'k2_{side}'] = float(d[0][1])
-        json_dict[f'p1_{side}'] = float(d[0][2])
-        json_dict[f'p2_{side}'] = float(d[0][3])
-        json_dict[f'k3_{side}'] = float(d[0][4]) if len(d[0]) > 4 else 0.0
+        # Flatten distortion coefficients to handle various array shapes
+        d_flat = d.flatten()
+        json_dict[f'k1_{side}'] = float(d_flat[0]) if len(d_flat) > 0 else 0.0
+        json_dict[f'k2_{side}'] = float(d_flat[1]) if len(d_flat) > 1 else 0.0
+        json_dict[f'p1_{side}'] = float(d_flat[2]) if len(d_flat) > 2 else 0.0
+        json_dict[f'p2_{side}'] = float(d_flat[3]) if len(d_flat) > 3 else 0.0
+        json_dict[f'k3_{side}'] = float(d_flat[4]) if len(d_flat) > 4 else 0.0
 
     with open(args.json_file, 'w') as fh:
         fh.write(json.dumps(json_dict, indent=2))
