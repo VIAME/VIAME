@@ -33,7 +33,7 @@
  * \brief Calibrate a single camera from object track set
  */
 
-#include "calibrate_single_camera_from_tracks_process.h"
+#include "ocv_calibrate_single_camera_process.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -71,10 +71,10 @@ create_port_trait( tracks, object_track_set, "Object track set with detected cor
 
 // =============================================================================
 // Private implementation class
-class calibrate_single_camera_from_tracks_process::priv
+class ocv_calibrate_single_camera_process::priv
 {
 public:
-  explicit priv( calibrate_single_camera_from_tracks_process* parent );
+  explicit priv( ocv_calibrate_single_camera_process* parent );
   ~priv();
 
   // Configuration settings
@@ -84,7 +84,7 @@ public:
   double m_square_size;
 
   // Parent pointer
-  calibrate_single_camera_from_tracks_process* parent;
+  ocv_calibrate_single_camera_process* parent;
 
   // Logger
   kv::logger_handle_t m_logger;
@@ -111,7 +111,7 @@ public:
 
 // -----------------------------------------------------------------------------
 std::pair<std::string, float>
-calibrate_single_camera_from_tracks_process::priv::get_attribute_value(
+ocv_calibrate_single_camera_process::priv::get_attribute_value(
   const std::string& note )
 {
   // Read a formatted note in detection "(trk) :name=value"
@@ -135,7 +135,7 @@ calibrate_single_camera_from_tracks_process::priv::get_attribute_value(
 
 // -----------------------------------------------------------------------------
 bool
-calibrate_single_camera_from_tracks_process::priv::extract_calibration_data(
+ocv_calibrate_single_camera_process::priv::extract_calibration_data(
   const kv::object_track_set_sptr& object_track,
   std::vector<std::vector<cv::Point2f>>& image_points,
   std::vector<std::vector<cv::Point3f>>& object_points,
@@ -238,7 +238,7 @@ calibrate_single_camera_from_tracks_process::priv::extract_calibration_data(
 
 // -----------------------------------------------------------------------------
 void
-calibrate_single_camera_from_tracks_process::priv::write_calibration(
+ocv_calibrate_single_camera_process::priv::write_calibration(
   const MonoCalibrationResult& result,
   const cv::Size& image_size,
   const cv::Size& grid_size )
@@ -300,8 +300,8 @@ calibrate_single_camera_from_tracks_process::priv::write_calibration(
 
 
 // -----------------------------------------------------------------------------
-calibrate_single_camera_from_tracks_process::priv::priv(
-  calibrate_single_camera_from_tracks_process* ptr )
+ocv_calibrate_single_camera_process::priv::priv(
+  ocv_calibrate_single_camera_process* ptr )
   : m_output_directory( "./" )
   , m_output_json_file( "calibration.json" )
   , m_frame_count_threshold( 50 )
@@ -311,16 +311,16 @@ calibrate_single_camera_from_tracks_process::priv::priv(
 }
 
 
-calibrate_single_camera_from_tracks_process::priv::~priv()
+ocv_calibrate_single_camera_process::priv::~priv()
 {
 }
 
 
 // =============================================================================
-calibrate_single_camera_from_tracks_process::calibrate_single_camera_from_tracks_process(
+ocv_calibrate_single_camera_process::ocv_calibrate_single_camera_process(
   kv::config_block_sptr const& config )
   : process( config )
-  , d( new calibrate_single_camera_from_tracks_process::priv( this ) )
+  , d( new ocv_calibrate_single_camera_process::priv( this ) )
 {
   make_ports();
   make_config();
@@ -330,13 +330,13 @@ calibrate_single_camera_from_tracks_process::calibrate_single_camera_from_tracks
 }
 
 
-calibrate_single_camera_from_tracks_process::~calibrate_single_camera_from_tracks_process()
+ocv_calibrate_single_camera_process::~ocv_calibrate_single_camera_process()
 {
 }
 
 
 // -----------------------------------------------------------------------------
-void calibrate_single_camera_from_tracks_process::make_ports()
+void ocv_calibrate_single_camera_process::make_ports()
 {
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
@@ -347,7 +347,7 @@ void calibrate_single_camera_from_tracks_process::make_ports()
 
 
 // -----------------------------------------------------------------------------
-void calibrate_single_camera_from_tracks_process::make_config()
+void ocv_calibrate_single_camera_process::make_config()
 {
   declare_config_using_trait( output_directory );
   declare_config_using_trait( output_json_file );
@@ -357,7 +357,7 @@ void calibrate_single_camera_from_tracks_process::make_config()
 
 
 // -----------------------------------------------------------------------------
-void calibrate_single_camera_from_tracks_process::_configure()
+void ocv_calibrate_single_camera_process::_configure()
 {
   d->m_output_directory = config_value_using_trait( output_directory );
   d->m_output_json_file = config_value_using_trait( output_json_file );
@@ -367,7 +367,7 @@ void calibrate_single_camera_from_tracks_process::_configure()
 
 
 // -----------------------------------------------------------------------------
-void calibrate_single_camera_from_tracks_process::_step()
+void ocv_calibrate_single_camera_process::_step()
 {
   kv::object_track_set_sptr object_track_set;
   object_track_set = grab_from_port_using_trait( tracks );

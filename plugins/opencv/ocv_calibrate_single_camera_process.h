@@ -33,8 +33,8 @@
  * \brief Calibrate a single camera from object track set
  */
 
-#ifndef VIAME_CALIBRATE_SINGLE_CAMERA_FROM_TRACKS_PROCESS_H
-#define VIAME_CALIBRATE_SINGLE_CAMERA_FROM_TRACKS_PROCESS_H
+#ifndef VIAME_OCV_CALIBRATE_SINGLE_CAMERA_PROCESS_H
+#define VIAME_OCV_CALIBRATE_SINGLE_CAMERA_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -52,13 +52,13 @@ namespace viame
  * Performs monocular camera calibration using detected chessboard corners.
  * Outputs camera intrinsics in OpenCV YAML and JSON formats.
  */
-class VIAME_PROCESSES_OPENCV_NO_EXPORT calibrate_single_camera_from_tracks_process
+class VIAME_PROCESSES_OPENCV_NO_EXPORT ocv_calibrate_single_camera_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  calibrate_single_camera_from_tracks_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~calibrate_single_camera_from_tracks_process();
+  ocv_calibrate_single_camera_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~ocv_calibrate_single_camera_process();
 
 protected:
   void _configure() override;
@@ -71,8 +71,8 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class calibrate_single_camera_from_tracks_process
+}; // end class ocv_calibrate_single_camera_process
 
 } // end namespace viame
 
-#endif // VIAME_CALIBRATE_SINGLE_CAMERA_FROM_TRACKS_PROCESS_H
+#endif // VIAME_OCV_CALIBRATE_SINGLE_CAMERA_PROCESS_H

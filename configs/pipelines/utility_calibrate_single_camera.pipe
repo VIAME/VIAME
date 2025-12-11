@@ -47,7 +47,7 @@ process detector_writer
 # =============================== CAMERA CALIBRATION ===============================
 
 process camera_calibration
-  :: calibrate_single_camera_from_tracks
+  :: ocv_calibrate_single_camera
   :output_directory                            $CONFIG{global:output_directory}
   :output_json_file                            $CONFIG{global:output_json_file}
   :frame_count_threshold                       $CONFIG{global:frame_count_threshold}

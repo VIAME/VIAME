@@ -104,13 +104,13 @@ find_package( Eigen3 REQUIRED NO_MODULE )
 # Add process library
 set( process_headers
   ocv_measurement_process.h
-  calibrate_single_camera_from_tracks_process.h
+  ocv_calibrate_single_camera_process.h
 )
 
 set( process_sources
   register_processes.cxx
   ocv_measurement_process.cxx
-  calibrate_single_camera_from_tracks_process.cxx
+  ocv_calibrate_single_camera_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_opencv

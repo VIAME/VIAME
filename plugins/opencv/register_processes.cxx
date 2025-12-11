@@ -32,7 +32,7 @@
 #include <vital/plugin_loader/plugin_loader.h>
 
 #include "ocv_measurement_process.h"
-#include "calibrate_single_camera_from_tracks_process.h"
+#include "ocv_calibrate_single_camera_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -63,9 +63,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::calibrate_single_camera_from_tracks_process );
+  fact = vpm.ADD_PROCESS( viame::ocv_calibrate_single_camera_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
-                       "calibrate_single_camera_from_tracks" )
+                       "ocv_calibrate_single_camera" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
