@@ -353,7 +353,7 @@ void ocv_optimize_stereo_cameras::priv::calibrate_stereo_camera(kv::camera_map::
 
   // Also write JSON output using the shared calibrator if configured
   if (!m_output_json_file.empty()) {
-    StereoCalibrationResult json_result;
+    stereo_calibration_result json_result;
     json_result.success = true;
     json_result.image_size = image_size;
     json_result.square_size = m_square_size;

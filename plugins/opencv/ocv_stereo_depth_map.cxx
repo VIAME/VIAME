@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2025 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  */
 
 #include "ocv_stereo_depth_map.h"
+#include "ocv_stereo_calibration.h"
 
 #include <vital/vital_config.h>
 #include <vital/types/image_container.h>
@@ -40,41 +41,23 @@
 
 #include <arrows/ocv/image_container.h>
 
+namespace kv = kwiver::vital;
 
 namespace viame {
-
-using namespace kwiver;
 
 class ocv_stereo_depth_map::priv
 {
 public:
 
-  std::string algorithm;
-  int min_disparity;
-  int num_disparities;
-  int sad_window_size;
-  int block_size;
-  int speckle_window_size;
-  int speckle_range;
+  std::string algorithm{ "BM" };
+  int min_disparity{ 0 };
+  int num_disparities{ 16 };
+  int sad_window_size{ 21 };
+  int block_size{ 3 };
+  int speckle_window_size{ 50 };
+  int speckle_range{ 5 };
 
-#ifdef VIAME_OPENCV_VER_2
-  cv::StereoBM algo;
-#else
-  cv::Ptr< cv::StereoMatcher > algo;
-#endif
-
-  priv()
-    : algorithm( "BM" )
-    , min_disparity( 0 )
-    , num_disparities( 16 )
-    , sad_window_size( 21 )
-    , block_size( 3 )
-    , speckle_window_size( 50 )
-    , speckle_range( 5 )
-  {}
-
-  ~priv()
-  {}
+  cv::Ptr<cv::StereoMatcher> algo;
 };
 
 
@@ -90,12 +73,12 @@ ocv_stereo_depth_map::~ocv_stereo_depth_map()
 
 
 // ---------------------------------------------------------------------------------------
-vital::config_block_sptr
+kv::config_block_sptr
 ocv_stereo_depth_map
 ::get_configuration() const
 {
   // Get base config from base class
-  vital::config_block_sptr config = vital::algorithm::get_configuration();
+  kv::config_block_sptr config = kv::algorithm::get_configuration();
 
   config->set_value( "algorithm", d->algorithm, "Algorithm: BM or SGBM" );
   config->set_value( "min_disparity", d->min_disparity, "Min Disparity" );
@@ -110,9 +93,9 @@ ocv_stereo_depth_map
 
 // ---------------------------------------------------------------------------------------
 void ocv_stereo_depth_map
-::set_configuration( vital::config_block_sptr config_in )
+::set_configuration( kv::config_block_sptr config_in )
 {
-  vital::config_block_sptr config = this->get_configuration();
+  kv::config_block_sptr config = this->get_configuration();
   config->merge_config( config_in );
 
   d->algorithm = config->get_value< std::string >( "algorithm" );
@@ -123,113 +106,53 @@ void ocv_stereo_depth_map
   d->speckle_window_size = config->get_value< int >( "speckle_window_size" );
   d->speckle_range = config->get_value< int >( "speckle_range" );
 
-#ifdef VIAME_OPENCV_VER_2
-  if( d->algorithm == "BM" )
-  {
-    d->algo.init( 0, d->num_disparities, d->sad_window_size );
-  }
-  else if( d->algorithm == "SGBM" )
-  {
-    throw std::runtime_error( "Unable to use type SGBM with OpenCV 2" );
-  }
-  else
-  {
-    throw std::runtime_error( "Invalid algorithm type " + d->algorithm );
-  }
-#else
   if( d->algorithm == "BM" )
   {
     d->algo = cv::StereoBM::create( d->num_disparities, d->sad_window_size );
-    d->algo->setSpeckleWindowSize(d->speckle_window_size);
-    d->algo->setSpeckleRange (d->speckle_range);
+    d->algo->setSpeckleWindowSize( d->speckle_window_size );
+    d->algo->setSpeckleRange( d->speckle_range );
   }
   else if( d->algorithm == "SGBM" )
   {
     d->algo = cv::StereoSGBM::create( d->min_disparity, d->num_disparities, d->block_size );
-    d->algo->setSpeckleWindowSize(d->speckle_window_size);
-    d->algo->setSpeckleRange (d->speckle_range);
+    d->algo->setSpeckleWindowSize( d->speckle_window_size );
+    d->algo->setSpeckleRange( d->speckle_range );
   }
   else
   {
     throw std::runtime_error( "Invalid algorithm type " + d->algorithm );
   }
-#endif
 }
 
 
 // ---------------------------------------------------------------------------------------
 bool ocv_stereo_depth_map
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( kv::config_block_sptr config ) const
 {
   return true;
 }
 
 
 // ---------------------------------------------------------------------------------------
-kwiver::vital::image_container_sptr ocv_stereo_depth_map
-::compute( kwiver::vital::image_container_sptr left_image,
-           kwiver::vital::image_container_sptr right_image ) const
+kv::image_container_sptr ocv_stereo_depth_map
+::compute( kv::image_container_sptr left_image,
+           kv::image_container_sptr right_image ) const
 {
-  cv::Mat ocv1 = arrows::ocv::image_container::vital_to_ocv( left_image->get_image(),
-    kwiver::arrows::ocv::image_container::BGR_COLOR );
-  cv::Mat ocv2 = arrows::ocv::image_container::vital_to_ocv( right_image->get_image(),
-    kwiver::arrows::ocv::image_container::BGR_COLOR  );
-  
-  cv::Mat ocv1_gray, ocv2_gray;
+  cv::Mat ocv1 = kwiver::arrows::ocv::image_container::vital_to_ocv(
+    left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+  cv::Mat ocv2 = kwiver::arrows::ocv::image_container::vital_to_ocv(
+    right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-  // Convert each image to grayscale independently (they may have different channel counts)
-  if( ocv1.channels() == 3 )
-  {
-#if CV_MAJOR_VERSION < 4
-    cvtColor( ocv1, ocv1_gray, CV_BGR2GRAY );
-#else
-    cv::cvtColor( ocv1, ocv1_gray, cv::COLOR_BGR2GRAY );
-#endif
-  }
-  else if( ocv1.channels() == 4 )
-  {
-#if CV_MAJOR_VERSION < 4
-    cvtColor( ocv1, ocv1_gray, CV_BGRA2GRAY );
-#else
-    cv::cvtColor( ocv1, ocv1_gray, cv::COLOR_BGRA2GRAY );
-#endif
-  }
-  else
-  {
-    ocv1_gray = ocv1;
-  }
-
-  if( ocv2.channels() == 3 )
-  {
-#if CV_MAJOR_VERSION < 4
-    cvtColor( ocv2, ocv2_gray, CV_BGR2GRAY );
-#else
-    cv::cvtColor( ocv2, ocv2_gray, cv::COLOR_BGR2GRAY );
-#endif
-  }
-  else if( ocv2.channels() == 4 )
-  {
-#if CV_MAJOR_VERSION < 4
-    cvtColor( ocv2, ocv2_gray, CV_BGRA2GRAY );
-#else
-    cv::cvtColor( ocv2, ocv2_gray, cv::COLOR_BGRA2GRAY );
-#endif
-  }
-  else
-  {
-    ocv2_gray = ocv2;
-  }
+  // Convert to grayscale using shared utility
+  cv::Mat ocv1_gray = stereo_calibration::to_grayscale( ocv1 );
+  cv::Mat ocv2_gray = stereo_calibration::to_grayscale( ocv2 );
 
   cv::Mat output;
-
-#if CV_MAJOR_VERSION == 2
-  d->algo( ocv1_gray, ocv2_gray, output );
-#else
   d->algo->compute( ocv1_gray, ocv2_gray, output );
-#endif
 
-  return kwiver::vital::image_container_sptr( new arrows::ocv::image_container( output,
-    kwiver::arrows::ocv::image_container::BGR_COLOR ) );
+  return kv::image_container_sptr(
+    new kwiver::arrows::ocv::image_container(
+      output, kwiver::arrows::ocv::image_container::BGR_COLOR ) );
 }
 
 } //end namespace viame

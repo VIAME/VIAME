@@ -1,4 +1,35 @@
+/*ckwg +29
+ * Copyright 2020-2025 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "ocv_rectified_stereo_disparity_map.h"
+#include "ocv_stereo_calibration.h"
 
 #include <vital/vital_config.h>
 #include <vital/types/image_container.h>
@@ -24,22 +55,24 @@ namespace viame {
 class ocv_rectified_stereo_disparity_map::priv
 {
 public:
-  std::string algorithm;
-  int min_disparity;
-  int num_disparities;
-  int sad_window_size;
-  int block_size;
-  int speckle_window_size;
-  int speckle_range;
+  std::string algorithm{ "BM" };
+  int min_disparity{ 0 };
+  int num_disparities{ 16 };
+  int sad_window_size{ 21 };
+  int block_size{ 3 };
+  int speckle_window_size{ 50 };
+  int speckle_range{ 5 };
 
-  bool m_computed_rectification{};
-  bool m_use_filtered_disparity{};
-  bool m_set_disparity_as_alpha_chanel{};
-  bool m_invert_disparity_alpha_chanel{};
+  bool m_computed_rectification{ false };
+  bool m_use_filtered_disparity{ false };
+  bool m_set_disparity_as_alpha_chanel{ false };
+  bool m_invert_disparity_alpha_chanel{ false };
   std::string m_cameras_directory;
 
-  // intermediate variables
-  cv::Mat M1, M2, P1, P2, Q, R1, R2, R, T, D1, D2;
+  // Calibration data loaded via shared utility
+  stereo_calibration_result m_calibration;
+
+  // Rectification maps
   cv::Mat m_rectification_map11;
   cv::Mat m_rectification_map12;
   cv::Mat m_rectification_map21;
@@ -47,60 +80,19 @@ public:
 
   kv::logger_handle_t m_logger;
 
-  cv::Ptr< cv::StereoMatcher > left_matcher;
-  cv::Ptr< cv::StereoMatcher > right_matcher;
-  cv::Ptr< cv::ximgproc::DisparityWLSFilter > disparity_filter;
+  // Shared calibration utility
+  stereo_calibration m_calibrator;
 
-  priv()
-    : algorithm( "BM" )
-    , min_disparity( 0 )
-    , num_disparities( 16 )
-    , sad_window_size( 21 )
-    , block_size( 3 )
-    , speckle_window_size( 50 )
-    , speckle_range( 5 )
-    , m_computed_rectification(false)
-    , m_cameras_directory( "" )
-  {}
+  cv::Ptr<cv::StereoMatcher> left_matcher;
+  cv::Ptr<cv::StereoMatcher> right_matcher;
+  cv::Ptr<cv::ximgproc::DisparityWLSFilter> disparity_filter;
 
-  ~priv()
-  {}
-
-  void
-  load_camera_calibration()
+  void load_camera_calibration()
   {
-    try {
-      auto intrinsics_path = m_cameras_directory + "/intrinsics.yml";
-      auto extrinsics_path = m_cameras_directory + "/extrinsics.yml";
-      auto fs = cv::FileStorage(intrinsics_path, cv::FileStorage::Mode::READ);
-
-      // load intrinsic parameters
-      if (!fs.isOpened())
-        VITAL_THROW(kv::file_not_found_exception, intrinsics_path, "could not locate file in path");
-
-      fs["M1"] >> M1;
-      fs["M2"] >> M2;
-      fs["D1"] >> D1;
-      fs["D2"] >> D2;
-      fs.release();
-
-      // load extrinsic parameters
-      fs = cv::FileStorage(extrinsics_path, cv::FileStorage::Mode::READ);
-      if (!fs.isOpened())
-        VITAL_THROW(kv::file_not_found_exception, extrinsics_path, "could not locate file in path");
-
-      fs["R"] >> R;
-      fs["T"] >> T;
-      fs["R1"] >> R1;
-      fs["R2"] >> R2;
-      fs["P1"] >> P1;
-      fs["P2"] >> P2;
-      fs["Q"] >> Q;
-      fs.release();
-    }
-    catch ( const kv::file_not_found_exception& e)
+    if( !m_calibrator.load_calibration_opencv( m_cameras_directory, m_calibration ) )
     {
-      VITAL_THROW( kv::invalid_data, "Calibration file not found : " + std::string(e.what()) );
+      VITAL_THROW( kv::invalid_data,
+        "Failed to load calibration from: " + m_cameras_directory );
     }
   }
 };
@@ -108,10 +100,11 @@ public:
 
 ocv_rectified_stereo_disparity_map
 ::ocv_rectified_stereo_disparity_map()
-: d( new priv() )
+  : d( new priv() )
 {
-  attach_logger("viame.opencv.ocv_rectified_stereo_disparity_map");
+  attach_logger( "viame.opencv.ocv_rectified_stereo_disparity_map" );
   d->m_logger = logger();
+  d->m_calibrator.set_logger( d->m_logger );
 }
 
 
@@ -225,17 +218,22 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
   // Load cameras and compute needed rectification matrix
   if( !d->m_computed_rectification )
   {
-    LOG_DEBUG(d->m_logger, "Compute rectification matrix");
-    cv::Size img_size = cv::Size(left_image->get_image().width(),left_image->get_image().height());
-    cv::initUndistortRectifyMap(d->M1, d->D1, d->R1, d->P1,
-                                img_size, CV_16SC2, d->m_rectification_map11, d->m_rectification_map12);
-    cv::initUndistortRectifyMap(d->M2, d->D2, d->R2, d->P2,
-                                img_size, CV_16SC2, d->m_rectification_map21, d->m_rectification_map22);
+    LOG_DEBUG( d->m_logger, "Compute rectification matrix" );
+    cv::Size img_size = cv::Size(
+      left_image->get_image().width(), left_image->get_image().height() );
 
-    if(!d->m_rectification_map11.empty() ||
-       !d->m_rectification_map12.empty() ||
-       !d->m_rectification_map21.empty() ||
-       !d->m_rectification_map22.empty())
+    const auto& cal = d->m_calibration;
+    cv::initUndistortRectifyMap(
+      cal.left.camera_matrix, cal.left.dist_coeffs, cal.R1, cal.P1,
+      img_size, CV_16SC2, d->m_rectification_map11, d->m_rectification_map12 );
+    cv::initUndistortRectifyMap(
+      cal.right.camera_matrix, cal.right.dist_coeffs, cal.R2, cal.P2,
+      img_size, CV_16SC2, d->m_rectification_map21, d->m_rectification_map22 );
+
+    if( !d->m_rectification_map11.empty() ||
+        !d->m_rectification_map12.empty() ||
+        !d->m_rectification_map21.empty() ||
+        !d->m_rectification_map22.empty() )
     {
       d->m_computed_rectification = true;
     }
@@ -247,34 +245,9 @@ kv::image_container_sptr ocv_rectified_stereo_disparity_map
   cv::Mat ocv2 = kwiver::arrows::ocv::image_container::vital_to_ocv( right_image->get_image(),
     kwiver::arrows::ocv::image_container::BGR_COLOR  );
 
-  cv::Mat ocv1_gray, ocv2_gray;
-
-  // Convert each image to grayscale independently (they may have different channel counts)
-  if( ocv1.channels() == 3 )
-  {
-    cvtColor( ocv1, ocv1_gray, cv::COLOR_BGR2GRAY );
-  }
-  else if( ocv1.channels() == 4 )
-  {
-    cvtColor( ocv1, ocv1_gray, cv::COLOR_BGRA2GRAY );
-  }
-  else
-  {
-    ocv1_gray = ocv1;
-  }
-
-  if( ocv2.channels() == 3 )
-  {
-    cvtColor( ocv2, ocv2_gray, cv::COLOR_BGR2GRAY );
-  }
-  else if( ocv2.channels() == 4 )
-  {
-    cvtColor( ocv2, ocv2_gray, cv::COLOR_BGRA2GRAY );
-  }
-  else
-  {
-    ocv2_gray = ocv2;
-  }
+  // Convert to grayscale using shared utility
+  cv::Mat ocv1_gray = stereo_calibration::to_grayscale( ocv1 );
+  cv::Mat ocv2_gray = stereo_calibration::to_grayscale( ocv2 );
 
   cv::Mat img1r, img2r;
   cv::remap(ocv1_gray, img1r, d->m_rectification_map11, d->m_rectification_map12, cv::INTER_LINEAR);

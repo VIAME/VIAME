@@ -383,7 +383,7 @@ stereo_calibration::calibrate_single_camera(
 }
 
 // -----------------------------------------------------------------------------
-StereoCalibrationResult
+stereo_calibration_result
 stereo_calibration::calibrate_stereo(
   const std::vector<std::vector<cv::Point2f>>& left_image_points,
   const std::vector<std::vector<cv::Point2f>>& right_image_points,
@@ -392,7 +392,7 @@ stereo_calibration::calibrate_stereo(
   const cv::Size& grid_size,
   double square_size ) const
 {
-  StereoCalibrationResult result;
+  stereo_calibration_result result;
   result.image_size = image_size;
   result.grid_size = grid_size;
   result.square_size = square_size;
@@ -462,7 +462,7 @@ stereo_calibration::calibrate_stereo(
 // -----------------------------------------------------------------------------
 bool
 stereo_calibration::write_calibration_json(
-  const StereoCalibrationResult& result,
+  const stereo_calibration_result& result,
   const std::string& filename ) const
 {
   if( !result.success )
@@ -553,7 +553,7 @@ stereo_calibration::write_calibration_json(
 // -----------------------------------------------------------------------------
 bool
 stereo_calibration::write_calibration_opencv(
-  const StereoCalibrationResult& result,
+  const stereo_calibration_result& result,
   const std::string& output_directory ) const
 {
   if( !result.success )
@@ -602,13 +602,63 @@ stereo_calibration::write_calibration_opencv(
 // -----------------------------------------------------------------------------
 bool
 stereo_calibration::write_calibration_npz(
-  const StereoCalibrationResult& result,
+  const stereo_calibration_result& result,
   const std::string& filename ) const
 {
   // NPZ format is Python-specific; this is a placeholder
   // In practice, the Python tool would handle NPZ output
   LOG_WARN( d->m_logger, "NPZ output not implemented in C++; use Python tool" );
   return false;
+}
+
+// -----------------------------------------------------------------------------
+bool
+stereo_calibration::load_calibration_opencv(
+  const std::string& input_directory,
+  stereo_calibration_result& result ) const
+{
+  std::string intrinsics_file = input_directory + "/intrinsics.yml";
+  std::string extrinsics_file = input_directory + "/extrinsics.yml";
+
+  // Load intrinsics
+  cv::FileStorage fs_intr( intrinsics_file, cv::FileStorage::READ );
+  if( !fs_intr.isOpened() )
+  {
+    LOG_ERROR( d->m_logger, "Cannot open intrinsics file: " << intrinsics_file );
+    return false;
+  }
+
+  fs_intr["M1"] >> result.left.camera_matrix;
+  fs_intr["D1"] >> result.left.dist_coeffs;
+  fs_intr["M2"] >> result.right.camera_matrix;
+  fs_intr["D2"] >> result.right.dist_coeffs;
+  fs_intr.release();
+
+  result.left.success = !result.left.camera_matrix.empty();
+  result.right.success = !result.right.camera_matrix.empty();
+
+  // Load extrinsics
+  cv::FileStorage fs_extr( extrinsics_file, cv::FileStorage::READ );
+  if( !fs_extr.isOpened() )
+  {
+    LOG_ERROR( d->m_logger, "Cannot open extrinsics file: " << extrinsics_file );
+    return false;
+  }
+
+  fs_extr["R"] >> result.R;
+  fs_extr["T"] >> result.T;
+  fs_extr["R1"] >> result.R1;
+  fs_extr["R2"] >> result.R2;
+  fs_extr["P1"] >> result.P1;
+  fs_extr["P2"] >> result.P2;
+  fs_extr["Q"] >> result.Q;
+  fs_extr.release();
+
+  result.success = result.left.success && result.right.success &&
+                   !result.R.empty() && !result.T.empty();
+
+  LOG_DEBUG( d->m_logger, "Loaded calibration from: " << input_directory );
+  return result.success;
 }
 
 // -----------------------------------------------------------------------------
@@ -671,9 +721,15 @@ stereo_calibration::to_grayscale(
     cv::cvtColor( image, gray, cv::COLOR_BGR2GRAY );
     return gray;
   }
+  else if( image.channels() == 4 )
+  {
+    cv::Mat gray;
+    cv::cvtColor( image, gray, cv::COLOR_BGRA2GRAY );
+    return gray;
+  }
   else
   {
-    // Single channel with extra dimension or other format
+    // Unknown format - return as-is
     return image.clone();
   }
 }
@@ -714,7 +770,7 @@ stereo_calibration::to_kwiver_intrinsics(
 // -----------------------------------------------------------------------------
 void
 stereo_calibration::to_kwiver_cameras(
-  const StereoCalibrationResult& result,
+  const stereo_calibration_result& result,
   kv::simple_camera_perspective_sptr& left_camera,
   kv::simple_camera_perspective_sptr& right_camera )
 {
