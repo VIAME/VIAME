@@ -394,7 +394,7 @@ void ocv_optimize_stereo_cameras::priv::calibrate_stereo_camera(kv::camera_map::
   double err = 0;
   int nPoints = 0;
   std::vector<cv::Vec3f> leftCameraLines, rightCameraLines;
-  for (int i = 0; i < image_points1.size(); i++) {
+  for (size_t i = 0; i < image_points1.size(); i++) {
     int npt = (int) image_points1[i].size();
     cv::Mat leftImgPt, rightImgPt;
     leftImgPt = cv::Mat(image_points1[i]);
@@ -547,16 +547,16 @@ void ocv_optimize_stereo_cameras::optimize(kv::camera_map_sptr &cameras, kv::fea
   kv::landmark_map::map_landmark_t lms1, lms2;
   kv::landmark_map_sptr landmarks1, landmarks2;
 
-  auto features_half_size = (int) trks.size() / 2;
-  auto landmarks_half_size = (int) lms.size() / 2;
+  auto features_half_size = trks.size() / 2;
+  auto landmarks_half_size = lms.size() / 2;
   if (features_half_size % 2 || landmarks_half_size % 2) {
     LOG_WARN(d_->m_logger, "Inconsistant features or landmarks number.");
     return;
   }
 
-  for (auto i_track = 0; i_track < trks.size(); i_track++) {
+  for (size_t i_track = 0; i_track < trks.size(); i_track++) {
     auto is_left_cam = i_track < features_half_size;
-    int track_id = is_left_cam ? i_track : i_track - features_half_size;
+    size_t track_id = is_left_cam ? i_track : i_track - features_half_size;
 
     if (is_left_cam) {
       trks1.push_back(trks[i_track]);
