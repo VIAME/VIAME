@@ -1,38 +1,38 @@
 #!/usr/bin/env python
+# ckwg +29
+# Copyright 2015-2024 by Kitware, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+#    to endorse or promote products derived from this software without specific
+#    prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""ckwg +29
- * Copyright 2015-2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+"""
+Stereo camera calibration tool.
 
-Calibrate cameras from a video of a chessboard
-
-
+Estimates intrinsic and extrinsic parameters for a stereo camera rig
+from images of a chessboard calibration target.
 """
 
 import numpy as np
@@ -64,6 +64,41 @@ def make_object_points(grid_size=(6,5)):
     objp = np.zeros((grid_size[0]*grid_size[1],3), np.float32)
     objp[:,:2] = np.mgrid[0:grid_size[0],0:grid_size[1]].T.reshape(-1,2)
     return objp
+
+
+def detect_grid_auto(image, max_dim=5000, min_size=4, max_size=15):
+    """Automatically detect grid size by trying different configurations.
+
+    Args:
+        image: Grayscale input image
+        max_dim: Maximum dimension for detection (larger images are downscaled)
+        min_size: Minimum grid dimension to try
+        max_size: Maximum grid dimension to try
+
+    Returns:
+        Tuple of (corners, grid_size) if found, (None, None) otherwise
+    """
+    # Try various grid sizes, starting with common ones
+    common_sizes = [(6, 5), (7, 6), (8, 6), (9, 6), (5, 4), (8, 5), (7, 5)]
+
+    # Add other sizes systematically
+    all_sizes = list(common_sizes)
+    for x in range(min_size, max_size + 1):
+        for y in range(min_size, x + 1):  # y <= x to avoid duplicates like (5,6) and (6,5)
+            if (x, y) not in all_sizes and (y, x) not in all_sizes:
+                all_sizes.append((x, y))
+
+    for grid_size in all_sizes:
+        corners = detect_grid_image(image, grid_size, max_dim)
+        if corners is not None:
+            return corners, grid_size
+        # Also try transposed
+        if grid_size[0] != grid_size[1]:
+            corners = detect_grid_image(image, (grid_size[1], grid_size[0]), max_dim)
+            if corners is not None:
+                return corners, (grid_size[1], grid_size[0])
+
+    return None, None
 
 
 def detect_grid_image(image, grid_size=(6,5), max_dim=5000):
@@ -336,13 +371,26 @@ def stereo_frames_separate(left_path, right_path, frame_step=1, show_progress=Tr
 
 
 def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
-                                 frame_step=1, gui=False, bayer=False):
-    """Detect a grid in each frame from separate left/right image sources"""
+                                 frame_step=1, gui=False, bayer=False, auto_grid=False):
+    """Detect a grid in each frame from separate left/right image sources
 
+    Args:
+        left_path: Path to left camera images
+        right_path: Path to right camera images
+        grid_size: Tuple of (width, height) inner corners
+        frame_step: Process every Nth frame
+        gui: Show detection results in GUI
+        bayer: Input is Bayer pattern
+        auto_grid: Automatically detect grid size from first successful detection
+
+    Returns:
+        Tuple of (img_shape, left_data, right_data, detected_grid_size)
+    """
     # Dicts to store corner points from all the images.
     left_data = {}
     right_data = {}
     img_shape = None
+    detected_grid_size = grid_size
 
     print(f"left: {left_path}")
     print(f"right: {right_path}")
@@ -356,8 +404,26 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
         if img_shape is None:
             img_shape = left_gray.shape[::-1]
 
-        left_corners = detect_grid_image(left_gray, grid_size)
-        right_corners = detect_grid_image(right_gray, grid_size)
+        # Auto-detect grid size on first frame if requested
+        if auto_grid and not left_data and not right_data:
+            print("Auto-detecting grid size...")
+            left_corners, detected_size = detect_grid_auto(left_gray)
+            if left_corners is not None:
+                detected_grid_size = detected_size
+                print(f"Detected grid size: {detected_grid_size[0]}x{detected_grid_size[1]}")
+                right_corners = detect_grid_image(right_gray, detected_grid_size)
+            else:
+                right_corners, detected_size = detect_grid_auto(right_gray)
+                if right_corners is not None:
+                    detected_grid_size = detected_size
+                    print(f"Detected grid size: {detected_grid_size[0]}x{detected_grid_size[1]}")
+                else:
+                    print("Warning: Could not auto-detect grid size, using default")
+                    left_corners = None
+                    right_corners = None
+        else:
+            left_corners = detect_grid_image(left_gray, detected_grid_size)
+            right_corners = detect_grid_image(right_gray, detected_grid_size)
 
         # If found, add object points, image points (after refining them)
         if left_corners is not None:
@@ -374,9 +440,9 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
             left_color = to_color(left_frame, bayer)
             right_color = to_color(right_frame, bayer)
             if left_corners is not None:
-                cv2.drawChessboardCorners(left_color, grid_size, left_corners, True)
+                cv2.drawChessboardCorners(left_color, detected_grid_size, left_corners, True)
             if right_corners is not None:
-                cv2.drawChessboardCorners(right_color, grid_size, right_corners, True)
+                cv2.drawChessboardCorners(right_color, detected_grid_size, right_corners, True)
             # Stack images side by side for display
             combined = np.hstack([left_color, right_color])
             cv2.imshow('img', combined)
@@ -390,16 +456,29 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
         raise ValueError(f"No frames were processed from left='{left_path}' and "
                          f"right='{right_path}'. Check that the input paths are correct.")
 
-    return img_shape, left_data, right_data
+    return img_shape, left_data, right_data, detected_grid_size
 
 
-def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, bayer=False):
-    """Detect a grid in each frame of video or image(s)"""
+def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, bayer=False,
+                      auto_grid=False):
+    """Detect a grid in each frame of video or image(s)
 
+    Args:
+        input_path: Path to video file or image glob pattern
+        grid_size: Tuple of (width, height) inner corners
+        frame_step: Process every Nth frame
+        gui: Show detection results in GUI
+        bayer: Input is Bayer pattern
+        auto_grid: Automatically detect grid size from first successful detection
+
+    Returns:
+        Tuple of (img_shape, left_data, right_data, detected_grid_size)
+    """
     # Dicts to store corner points from all the images.
     left_data = {}
     right_data = {}
     img_shape = None
+    detected_grid_size = grid_size
 
     # Choose appropriate frame source based on input type
     if os.path.isfile(input_path) and is_video_file(input_path):
@@ -416,8 +495,33 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
         if img_shape is None:
             img_shape = left_gray.shape[::-1]
 
-        left_corners = detect_grid_image(left_gray, grid_size)
-        right_corners = detect_grid_image(right_gray, grid_size)
+        # Auto-detect grid size on first frame if requested
+        if auto_grid and not left_data and not right_data:
+            print("Auto-detecting grid size...")
+            left_corners, detected_size = detect_grid_auto(left_gray)
+            if left_corners is not None:
+                detected_grid_size = detected_size
+                print(f"Detected grid size: {detected_grid_size[0]}x{detected_grid_size[1]}")
+            else:
+                right_corners, detected_size = detect_grid_auto(right_gray)
+                if right_corners is not None:
+                    detected_grid_size = detected_size
+                    print(f"Detected grid size: {detected_grid_size[0]}x{detected_grid_size[1]}")
+                    left_corners = detect_grid_image(left_gray, detected_grid_size)
+                else:
+                    print("Warning: Could not auto-detect grid size, using default")
+                    left_corners = None
+                    right_corners = None
+        else:
+            left_corners = detect_grid_image(left_gray, detected_grid_size)
+            right_corners = detect_grid_image(right_gray, detected_grid_size)
+
+        if not auto_grid or left_data or right_data:
+            # Normal detection with known grid size
+            if left_corners is None:
+                left_corners = detect_grid_image(left_gray, detected_grid_size)
+            if right_corners is None:
+                right_corners = detect_grid_image(right_gray, detected_grid_size)
 
         # If found, add object points, image points (after refining them)
         if left_corners is not None:
@@ -433,15 +537,15 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
         if gui:
             color_frame = to_color(frame, bayer)
             if left_corners is not None:
-                cv2.drawChessboardCorners(color_frame, grid_size, left_corners, True)
+                cv2.drawChessboardCorners(color_frame, detected_grid_size, left_corners, True)
             if right_corners is not None:
                 offset = np.repeat(np.array([[[img_shape[0], 0]]],
                                             dtype=right_corners.dtype),
                                    right_corners.shape[0], axis=0)
                 shift_right_corners = right_corners + offset
-                cv2.drawChessboardCorners(color_frame, grid_size,
+                cv2.drawChessboardCorners(color_frame, detected_grid_size,
                                           shift_right_corners, True)
-            cv2.imshow('img',color_frame)
+            cv2.imshow('img', color_frame)
             cv2.waitKey(-1)
     print("done")
     if gui:
@@ -451,7 +555,7 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
         raise ValueError(f"No frames were processed from '{input_path}'. "
                          f"Check that the input video or image path is correct.")
 
-    return img_shape, left_data, right_data
+    return img_shape, left_data, right_data, detected_grid_size
 
 
 def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"):
@@ -585,6 +689,8 @@ Input modes:
                         help="number of inner corners in grid width (default: 6)")
     parser.add_argument("-y", "--grid-y", type=int, default=5,
                         help="number of inner corners in grid height (default: 5)")
+    parser.add_argument("-a", "--auto-grid", action="store_true", default=False,
+                        help="automatically detect grid size from first image")
     parser.add_argument("-s", "--frame-step", type=int, default=1,
                         help="process every Nth frame (default: 1)")
     parser.add_argument("-g", "--gui", action="store_true", default=False,
@@ -617,19 +723,26 @@ Input modes:
             img_shape = tuple(data["img_shape"])
             left_data = data["left_data"].item()
             right_data = data["right_data"].item()
+            # Load saved grid size if available (for auto-detection)
+            if "grid_size" in data:
+                grid_size = tuple(data["grid_size"])
 
     if img_shape is None:
         if use_separate_stereo:
-            img_shape, left_data, right_data = detect_grid_stereo_separate(
+            img_shape, left_data, right_data, detected_grid_size = detect_grid_stereo_separate(
                 args.left_path, args.right_path, grid_size,
-                args.frame_step, args.gui, args.bayer)
+                args.frame_step, args.gui, args.bayer, args.auto_grid)
         else:
-            img_shape, left_data, right_data = detect_grid_video(
+            img_shape, left_data, right_data, detected_grid_size = detect_grid_video(
                 args.input, grid_size, args.frame_step,
-                args.gui, args.bayer)
+                args.gui, args.bayer, args.auto_grid)
+        # Use detected grid size if auto-detection was enabled
+        if args.auto_grid and detected_grid_size != grid_size:
+            grid_size = detected_grid_size
         if args.corners_file:
             np.savez(args.corners_file, img_shape=img_shape,
-                     left_data=left_data, right_data=right_data)
+                     left_data=left_data, right_data=right_data,
+                     grid_size=grid_size)
 
     # Validate we have enough detections
     MIN_DETECTIONS = 3
@@ -701,8 +814,24 @@ Input modes:
 
     # write KWIVER camera_rig_io-compatible json file (default output)
     json_dict = dict()
+
+    # Image dimensions and grid
+    json_dict['image_width'] = img_shape[0]
+    json_dict['image_height'] = img_shape[1]
+    json_dict['grid_width'] = grid_size[0]
+    json_dict['grid_height'] = grid_size[1]
+    json_dict['square_size_mm'] = args.square_size
+
+    # Calibration quality metrics
+    json_dict['rms_error_left'] = float(left_rms)
+    json_dict['rms_error_right'] = float(right_rms)
+    json_dict['rms_error_stereo'] = float(stereo_rms_error)
+
+    # Extrinsics
     json_dict['T'] = T.flatten().tolist()
     json_dict['R'] = R.flatten().tolist()
+
+    # Intrinsics and distortion for each camera
     for (m, d, side) in ([K_left, dist_left, 'left'], [K_right, dist_right, 'right']):
         json_dict[f'fx_{side}'] = float(m[0][0])
         json_dict[f'fy_{side}'] = float(m[1][1])
@@ -734,7 +863,8 @@ Input modes:
     print("CALIBRATION SUMMARY")
     print("=" * 60)
     print(f"Image size:                 {img_shape[0]} x {img_shape[1]}")
-    print(f"Grid size:                  {grid_size[0]} x {grid_size[1]}")
+    grid_label = "Grid size (auto-detected):" if args.auto_grid else "Grid size:"
+    print(f"{grid_label:27} {grid_size[0]} x {grid_size[1]}")
     print(f"Square size:                {args.square_size} mm")
     print("-" * 60)
     print(f"Left camera detections:     {len(left_data)}")
@@ -756,5 +886,18 @@ Input modes:
         print(f"  - {args.corners_file}")
     print("=" * 60)
 
+    return 0
+
+
 if __name__ == "__main__":
-    main()
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        print("\nCalibration interrupted by user.", file=sys.stderr)
+        sys.exit(130)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
