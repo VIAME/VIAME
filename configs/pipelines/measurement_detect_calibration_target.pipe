@@ -1,5 +1,9 @@
 # Stereo track OCV targets
 # Runs automated ocv target detection on each of the images of a stereo camera
+#
+# Features:
+#   - Auto-detects chessboard grid size from first frame
+#   - Outputs detected corners with world coordinates
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -9,9 +13,7 @@ config _pipeline:_edge
 
 config global
    :output_directory                           ./
-   :target_width_value                         9
-   :target_height_value                        6
-   :square_size_value                          1.
+   :square_size                                80
 
 # =============================== INPUT FRAME LIST =================================
 
@@ -24,9 +26,8 @@ process detector1
   :detector:type                               ocv_target_detector
 
   block detector:ocv_target_detector
-    :target_width                              $CONFIG{global:target_width_value}
-    :target_height                             $CONFIG{global:target_height_value}
-    :square_size                               $CONFIG{global:square_size_value}
+    :auto_detect_grid                          true
+    :square_size                               $CONFIG{global:square_size}
     :object_type                               "corner"
   endblock
 
@@ -35,10 +36,9 @@ process detector2
   :detector:type                               ocv_target_detector
 
   block detector:ocv_target_detector
-  :target_width                                $CONFIG{global:target_width_value}
-  :target_height                               $CONFIG{global:target_height_value}
-  :square_size                                 $CONFIG{global:square_size_value}
-  :object_type                                 "corner"
+    :auto_detect_grid                          true
+    :square_size                               $CONFIG{global:square_size}
+    :object_type                               "corner"
   endblock
 
 process detector_writer1
