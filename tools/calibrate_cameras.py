@@ -561,9 +561,12 @@ def main():
     parser.add_option("-g", "--gui", default=False,
                       action="store_true", dest="gui",
                       help="visualize the results in a GUI")
-    parser.add_option("-j", "--json", type='string', default=None,
+    parser.add_option("-o", "--output", type='string', default="calibration.json",
                       action="store", dest="json_file",
-                      help="write as kwiver camera_rig_io compatible json")
+                      help="output json file path (default: calibration.json)")
+    parser.add_option("-n", "--npz", type='string', default=None,
+                      action="store", dest="npz_file",
+                      help="optional npz output file")
 
     (options, args) = parser.parse_args()
 
@@ -671,35 +674,34 @@ def main():
         fs.write("Q", Q)
     fs.release()
 
-    # write joint npz file usable with default VIAME measurement pipeline
-    npz_dict = dict()
-    npz_dict[ 'cameraMatrixL' ] = K_left
-    npz_dict[ 'cameraMatrixR' ] = K_right
-    npz_dict[ 'distCoeffsL' ] = dist_left
-    npz_dict[ 'distCoeffsR' ] = dist_right
-    npz_dict[ 'R' ] = R
-    npz_dict[ 'T' ] = T
-    np.savez("calibration.npz", **npz_dict)
+    # write KWIVER camera_rig_io-compatible json file (default output)
+    json_dict = dict()
+    json_dict['T'] = T.flatten().tolist()
+    json_dict['R'] = R.flatten().tolist()
+    for (m, d, side) in ([K_left, dist_left, 'left'], [K_right, dist_right, 'right']):
+        json_dict[f'fx_{side}'] = float(m[0][0])
+        json_dict[f'fy_{side}'] = float(m[1][1])
+        json_dict[f'cx_{side}'] = float(m[0][2])
+        json_dict[f'cy_{side}'] = float(m[1][2])
 
-    # if requested, write as KWIVER camera_rig_io-compatible json file
-    if options.json_file:
-        json_dict = dict()
-        json_dict['T'] = T.flatten().tolist()
-        json_dict['R'] = R.flatten().tolist()
-        for (m, d, side) in ([K_left, dist_left, 'left'], [K_right, dist_right, 'right']):
+        json_dict[f'k1_{side}'] = float(d[0][0])
+        json_dict[f'k2_{side}'] = float(d[0][1])
+        json_dict[f'p1_{side}'] = float(d[0][2])
+        json_dict[f'p2_{side}'] = float(d[0][3])
 
-            json_dict[f'fx_{side}'] = m[0][0]
-            json_dict[f'fy_{side}'] = m[1][1]
-            json_dict[f'cx_{side}'] = m[0][2]
-            json_dict[f'cy_{side}'] = m[1][2]
+    with open(options.json_file, 'w') as fh:
+        fh.write(json.dumps(json_dict, indent=2))
 
-            json_dict[f'k1_{side}'] = d[0][0]
-            json_dict[f'k2_{side}'] = d[0][1]
-            json_dict[f'p1_{side}'] = d[0][2]
-            json_dict[f'p2_{side}'] = d[0][3]
-
-        with open(options.json_file, 'w') as fh:
-            fh.write(json.dumps(json_dict))
+    # optionally write npz file
+    if options.npz_file:
+        npz_dict = dict()
+        npz_dict['cameraMatrixL'] = K_left
+        npz_dict['cameraMatrixR'] = K_right
+        npz_dict['distCoeffsL'] = dist_left
+        npz_dict['distCoeffsR'] = dist_right
+        npz_dict['R'] = R
+        npz_dict['T'] = T
+        np.savez(options.npz_file, **npz_dict)
 
     # Print summary statistics
     baseline = np.linalg.norm(T)
@@ -718,11 +720,11 @@ def main():
     print(f"Baseline distance:          {baseline:.2f} mm")
     print("-" * 60)
     print("Output files:")
+    print(f"  - {options.json_file}")
     print(f"  - intrinsics.yml")
     print(f"  - extrinsics.yml")
-    print(f"  - calibration.npz")
-    if options.json_file:
-        print(f"  - {options.json_file}")
+    if options.npz_file:
+        print(f"  - {options.npz_file}")
     if options.corners_file:
         print(f"  - {options.corners_file}")
     print("=" * 60)
