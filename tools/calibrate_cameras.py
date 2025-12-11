@@ -842,6 +842,7 @@ Input modes:
         json_dict[f'k2_{side}'] = float(d[0][1])
         json_dict[f'p1_{side}'] = float(d[0][2])
         json_dict[f'p2_{side}'] = float(d[0][3])
+        json_dict[f'k3_{side}'] = float(d[0][4]) if len(d[0]) > 4 else 0.0
 
     with open(args.json_file, 'w') as fh:
         fh.write(json.dumps(json_dict, indent=2))
