@@ -70,8 +70,6 @@
   namespace filesystem = std::experimental::filesystem;
 #endif
 
-#include <boost/algorithm/string.hpp>
-
 // =======================================================================================
 // Class storing all input parameters and private variables for tool
 class trainer_vars
@@ -88,7 +86,6 @@ public:
   bool opt_no_adv_print;
   bool opt_no_emb_pipe;
   bool opt_gt_only;
-  bool opt_convert_to_ff;
 
   std::string opt_config;
   std::string opt_input_dir;
@@ -114,7 +111,6 @@ public:
     opt_no_adv_print = false;
     opt_no_emb_pipe = false;
     opt_gt_only = false;
-    opt_convert_to_ff = false;
   }
 
   virtual ~trainer_vars()
@@ -824,7 +820,7 @@ bool run_pipeline_on_image( pipeline_t& pipe,
 
   auto const& success_flag = ods->find( "success_flag" );
 
-  return success_flag->second->get_datum< bool >();;
+  return success_flag->second->get_datum< bool >();
 }
 
 std::string get_augmented_filename( std::string name,
@@ -1153,9 +1149,9 @@ main( int argc, char* argv[] )
   g_params.m_args.AddArgument( "-p",              argT::SPACE_ARGUMENT,
     &g_params.opt_pipeline_file, "Pipeline file" );
   g_params.m_args.AddArgument( "--default-vfr",   argT::SPACE_ARGUMENT,
-    &g_params.opt_frame_rate, "Pipeline file" );
+    &g_params.opt_frame_rate, "Default video frame rate for extraction" );
   g_params.m_args.AddArgument( "-vfr",            argT::SPACE_ARGUMENT,
-    &g_params.opt_frame_rate, "Pipeline file" );
+    &g_params.opt_frame_rate, "Default video frame rate for extraction" );
   g_params.m_args.AddArgument( "--max-frame-count",argT::SPACE_ARGUMENT,
     &g_params.opt_max_frame_count, "Maximum frame count to use" );
   g_params.m_args.AddArgument( "-mfc",            argT::SPACE_ARGUMENT,
@@ -2018,7 +2014,7 @@ main( int argc, char* argv[] )
     {
       if( gt_files.size() != 1 )
       {
-        std::cout << "Error: iten " << data_item
+        std::cout << "Error: item " << data_item
                   << " must contain only 1 groundtruth file" << std::endl;
         return EXIT_FAILURE;
       }
