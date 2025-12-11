@@ -145,6 +145,7 @@ set( process_headers
   append_detections_to_tracks_process.h
   split_object_track_to_feature_landmark_process.h
   calibrate_cameras_from_tracks_process.h
+  calibrate_single_camera_from_tracks_process.h
   detections_pairing_from_stereo_process.h
   tracks_pairing_from_stereo_process.h
 )
@@ -166,6 +167,7 @@ set( process_sources
   append_detections_to_tracks_process.cxx
   split_object_track_to_feature_landmark_process.cxx
   calibrate_cameras_from_tracks_process.cxx
+  calibrate_single_camera_from_tracks_process.cxx
   detections_pairing_from_stereo_process.cxx
   tracks_pairing_from_stereo_process.cxx
 )
@@ -180,12 +182,13 @@ kwiver_add_plugin( viame_processes_core
                    kwiver::kwiver_adapter
                    kwiver::vital_util
                    kwiver::vital_vpm
-                   Eigen3::Eigen                   
+                   Eigen3::Eigen
                    kwiver::kwiver_algo_mvg
                    kwiver::kwiver_algo_ocv
                    ${Boost_SYSTEM_LIBRARY}
                    ${Boost_FILESYSTEM_LIBRARY}
                    viame_core
+                   viame_opencv
  )
 
 if( VIAME_ENABLE_PYTHON )
