@@ -103,6 +103,9 @@ def video_frames(video_file, frame_step=1):
     else:
         print("trying file glob",video_file, glob.glob(video_file))
         files = list(enumerate(sorted(glob.glob(video_file))))
+        if len(files) == 0:
+            raise ValueError(f"No frames found. Input '{video_file}' is not a valid "
+                             f"video file and no images match the glob pattern.")
         for n, f in files[::frame_step]:
             print(n,f)
             frame = cv2.imread(f)
@@ -235,6 +238,10 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
     if gui:
         cv2.destroyAllWindows()
 
+    if img_shape is None:
+        raise ValueError(f"No frames were processed from left='{left_path}' and "
+                         f"right='{right_path}'. Check that the input paths are correct.")
+
     return img_shape, left_data, right_data
 
 
@@ -244,6 +251,7 @@ def detect_grid_video(video_file, grid_size=(6,5), frame_step=1, gui=False, baye
     # Dicts to store corner points from all the images.
     left_data = {}
     right_data = {}
+    img_shape = None
 
     print("video: ",video_file)
     for frame, frame_number in video_frames(video_file, frame_step):
@@ -256,7 +264,8 @@ def detect_grid_video(video_file, grid_size=(6,5), frame_step=1, gui=False, baye
         else:
             left_gray = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)
             right_gray = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)
-        img_shape = left_gray.shape[::-1]
+        if img_shape is None:
+            img_shape = left_gray.shape[::-1]
 
         left_corners = detect_grid_image(left_gray, grid_size)
         right_corners = detect_grid_image(right_gray, grid_size)
@@ -292,6 +301,10 @@ def detect_grid_video(video_file, grid_size=(6,5), frame_step=1, gui=False, baye
     print("done")
     if gui:
         cv2.destroyAllWindows()
+
+    if img_shape is None:
+        raise ValueError(f"No frames were processed from '{video_file}'. "
+                         f"Check that the input video or image glob is correct.")
 
     return img_shape, left_data, right_data
 
