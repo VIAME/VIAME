@@ -83,34 +83,79 @@ def detect_grid_image(image, grid_size=(6,5), max_dim=5000):
         return None
 
 
-def video_frames(video_file, frame_step=1):
-    frame_number = 0
-    vf = cv2.VideoCapture(video_file)
-    if vf.isOpened():
-        print("opened video")
-        while(vf.isOpened()):
-            ret, frame = vf.read()
-            if not ret:
-                vf.release()
-                break
-            frame_number += 1
-            yield frame, frame_number
-        while(vf.isOpened() and frame_number % frame_step != 0):
-            ret = vf.grab()
-            if not ret:
-                vf.release()
-            frame_number += 1
+DEFAULT_VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mov', '.mkv', '.wmv', '.flv', '.webm', '.m4v', '.mpg', '.mpeg'}
+DEFAULT_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'}
+
+
+def is_video_file(filepath, video_extensions=None):
+    """Check if a file is a video (not an image) by extension"""
+    if video_extensions is None:
+        video_extensions = DEFAULT_VIDEO_EXTENSIONS
+    _, ext = os.path.splitext(filepath.lower())
+    return ext in video_extensions
+
+
+def image_frames(input_path, frame_step=1, image_extensions=None):
+    """Yield frames from image file(s) - single file, directory, or glob pattern"""
+    if image_extensions is None:
+        image_extensions = DEFAULT_IMAGE_EXTENSIONS
+
+    if os.path.isdir(input_path):
+        files = []
+        for ext in image_extensions:
+            pattern = '*' + ext if ext.startswith('.') else '*.' + ext
+            files.extend(glob.glob(os.path.join(input_path, pattern)))
+            files.extend(glob.glob(os.path.join(input_path, pattern.upper())))
+        files = sorted(files)
+    elif os.path.isfile(input_path):
+        files = [input_path]
     else:
-        print("trying file glob",video_file, glob.glob(video_file))
-        files = list(enumerate(sorted(glob.glob(video_file))))
-        if len(files) == 0:
-            raise ValueError(f"No frames found. Input '{video_file}' is not a valid "
-                             f"video file and no images match the glob pattern.")
-        for n, f in files[::frame_step]:
-            print(n,f)
-            frame = cv2.imread(f)
-            yield frame, n
+        files = sorted(glob.glob(input_path))
+
+    if len(files) == 0:
+        raise ValueError(f"No images found. Input '{input_path}' is not a valid "
+                         f"directory or glob pattern matching any images.")
+
+    print(f"processing {len(files)} image(s)")
+    frames_yielded = 0
+    for n, f in enumerate(files):
+        if n % frame_step != 0:
+            continue
+        print(f"  {n + 1}: {f}")
+        frame = cv2.imread(f)
+        if frame is None:
+            raise ValueError(f"Failed to read image file: {f}")
+        frames_yielded += 1
+        yield frame, n + 1
+
+    if frames_yielded == 0:
+        raise ValueError(f"No frames yielded from '{input_path}'. "
+                         f"frame_step ({frame_step}) may be too large for {len(files)} file(s).")
+
+
+def video_frames(video_file, frame_step=1):
+    """Yield frames from a video file"""
+    vf = cv2.VideoCapture(video_file)
+    if not vf.isOpened():
+        vf.release()
+        raise ValueError(f"Failed to open video file: {video_file}")
+
+    print("opened video:", video_file)
+    frame_number = 0
+    frames_yielded = 0
+    while True:
+        ret, frame = vf.read()
+        if not ret:
+            break
+        frame_number += 1
+        if (frame_number - 1) % frame_step == 0:
+            frames_yielded += 1
+            yield frame, frame_number
     vf.release()
+
+    if frames_yielded == 0:
+        raise ValueError(f"No frames yielded from '{video_file}'. "
+                         f"Video may be empty or frame_step ({frame_step}) is too large.")
 
 
 def get_image_files(path):
@@ -245,16 +290,21 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
     return img_shape, left_data, right_data
 
 
-def detect_grid_video(video_file, grid_size=(6,5), frame_step=1, gui=False, bayer=False):
-    """Detect a grid in each frame of video"""
+def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, bayer=False):
+    """Detect a grid in each frame of video or image(s)"""
 
     # Dicts to store corner points from all the images.
     left_data = {}
     right_data = {}
     img_shape = None
 
-    print("video: ",video_file)
-    for frame, frame_number in video_frames(video_file, frame_step):
+    # Choose appropriate frame source based on input type
+    if os.path.isfile(input_path) and is_video_file(input_path):
+        frame_source = video_frames(input_path, frame_step)
+    else:
+        frame_source = image_frames(input_path, frame_step)
+
+    for frame, frame_number in frame_source:
 
         left_img = frame[:, 0:frame.shape[1] // 2]
         right_img = frame[:, frame.shape[1] // 2:]
@@ -303,8 +353,8 @@ def detect_grid_video(video_file, grid_size=(6,5), frame_step=1, gui=False, baye
         cv2.destroyAllWindows()
 
     if img_shape is None:
-        raise ValueError(f"No frames were processed from '{video_file}'. "
-                         f"Check that the input video or image glob is correct.")
+        raise ValueError(f"No frames were processed from '{input_path}'. "
+                         f"Check that the input video or image path is correct.")
 
     return img_shape, left_data, right_data
 
