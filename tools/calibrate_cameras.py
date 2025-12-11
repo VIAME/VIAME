@@ -52,7 +52,9 @@ def print_progress(current, total, prefix='Progress', suffix='', bar_length=40):
     filled = int(bar_length * fraction)
     bar = '=' * filled + '-' * (bar_length - filled)
     percent = fraction * 100
-    sys.stderr.write(f'\r{prefix}: [{bar}] {percent:5.1f}% ({current}/{total}) {suffix}')
+    # Pad suffix to fixed width to overwrite previous longer text
+    line = f'\r{prefix}: [{bar}] {percent:5.1f}% ({current}/{total}) {suffix:<30}'
+    sys.stderr.write(line)
     sys.stderr.flush()
     if current == total:
         sys.stderr.write('\n')
