@@ -6,7 +6,7 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
-  convert_cam_zed_to_npz.py
+  convert_cam_format.py
   database_tool.py
   extract_video_frames.py
   process_video.py
@@ -21,7 +21,6 @@ if( VIAME_ENABLE_OPENCV )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
     calibrate_cameras.py
-    convert_cam_ocv_to_npz.py
     create_mosaic.py
     compute_depth.py
     compute_disparity.py
