@@ -182,8 +182,8 @@ set( CORE_PIPELINE_FILES
   index_frame.pipe
   index_frame.svm.pipe
   index_frame.svm.annot_only.pipe
-  measurement_automatic_fish_default.pipe
-  measurement_automatic_gmm_motion.pipe
+  measurement_fully_auto_fish_default.pipe
+  measurement_fully_auto_gmm_motion.pipe
   measurement_from_user_annotations.pipe
   query_image_exemplar.cfe.pipe
   query_image_exemplar.pipe
@@ -361,7 +361,7 @@ if( VIAME_ENABLE_OPENCV )
     measurement_calibrate_cameras.pipe
     measurement_compute_rectified_disparity.pipe
     measurement_detect_calibration_target.pipe
-    measurement_track_fish_in_3d_from_rectified_disparity.pipe
+    measurement_track_fish_in_3d_from_rect_disp.pipe
     )
 endif()
 
