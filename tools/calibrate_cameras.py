@@ -40,10 +40,8 @@ import cv2
 import os
 import sys
 import glob
-import operator
+import argparse
 import json
-
-from optparse import OptionParser
 
 
 def print_progress(current, total, prefix='Progress', suffix='', bar_length=40):
@@ -69,30 +67,33 @@ def make_object_points(grid_size=(6,5)):
 
 
 def detect_grid_image(image, grid_size=(6,5), max_dim=5000):
-    """Detect a grid in a grayscale image"""
+    """Detect a grid in a grayscale image.
+
+    For large images, detection is performed on a downscaled version first,
+    then corners are refined at full resolution.
+    """
     min_len = min(image.shape)
     scale = 1.0
-    while scale*min_len > max_dim:
+    while scale * min_len > max_dim:
         scale /= 2.0
-    print("scale = ", scale)
 
-    # termination criteria
+    # termination criteria for corner refinement
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
     # Find the chess board corners
-    flags =  cv2.CALIB_CB_ADAPTIVE_THRESH
+    flags = cv2.CALIB_CB_ADAPTIVE_THRESH
     if scale < 1.0:
-        small = cv2.resize(image, (0,0), fx=scale, fy=scale)
+        small = cv2.resize(image, (0, 0), fx=scale, fy=scale)
         ret, corners = cv2.findChessboardCorners(small, grid_size, flags=flags)
-        if ret == True:
-            cv2.cornerSubPix(small, corners, (11,11), (-1,-1), criteria)
+        if ret:
+            cv2.cornerSubPix(small, corners, (11, 11), (-1, -1), criteria)
             corners /= scale
     else:
         ret, corners = cv2.findChessboardCorners(image, grid_size, flags=flags)
 
-    if ret == True:
-        # refine the location of the corners
-        cv2.cornerSubPix(image, corners, (11,11), (-1,-1), criteria)
+    if ret:
+        # refine the location of the corners at full resolution
+        cv2.cornerSubPix(image, corners, (11, 11), (-1, -1), criteria)
         return corners
     else:
         return None
@@ -100,6 +101,58 @@ def detect_grid_image(image, grid_size=(6,5), max_dim=5000):
 
 DEFAULT_VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mov', '.mkv', '.wmv', '.flv', '.webm', '.m4v', '.mpg', '.mpeg'}
 DEFAULT_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'}
+
+
+def to_grayscale(image, bayer=False):
+    """Convert an image to grayscale, handling color, grayscale, and Bayer inputs.
+
+    Args:
+        image: Input image (BGR, grayscale, or Bayer)
+        bayer: If True, treat as Bayer pattern image
+
+    Returns:
+        Grayscale image
+    """
+    if bayer:
+        # Bayer images: extract first channel and debayer
+        if len(image.shape) == 3:
+            return cv2.cvtColor(image[:, :, 0], cv2.COLOR_BayerBG2GRAY)
+        else:
+            return cv2.cvtColor(image, cv2.COLOR_BayerBG2GRAY)
+    elif len(image.shape) == 2:
+        # Already grayscale
+        return image
+    elif image.shape[2] == 1:
+        # Single channel but with extra dimension
+        return image[:, :, 0]
+    else:
+        # Color image (BGR)
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+def to_color(image, bayer=False):
+    """Convert an image to BGR color for display.
+
+    Args:
+        image: Input image (BGR, grayscale, or Bayer)
+        bayer: If True, treat as Bayer pattern image
+
+    Returns:
+        BGR color image
+    """
+    if bayer:
+        if len(image.shape) == 3:
+            return cv2.cvtColor(image[:, :, 0], cv2.COLOR_BayerBG2BGR)
+        else:
+            return cv2.cvtColor(image, cv2.COLOR_BayerBG2BGR)
+    elif len(image.shape) == 2:
+        # Grayscale to BGR
+        return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    elif image.shape[2] == 1:
+        return cv2.cvtColor(image[:, :, 0], cv2.COLOR_GRAY2BGR)
+    else:
+        # Already BGR
+        return image.copy()
 
 
 def is_video_file(filepath, video_extensions=None):
@@ -216,11 +269,20 @@ def stereo_frames_separate(left_path, right_path, frame_step=1, show_progress=Tr
         print(f"processing up to {total_frames} stereo frame(s)")
 
         frame_number = 0
+        size_validated = False
         while True:
             ret_l, left_frame = left_cap.read()
             ret_r, right_frame = right_cap.read()
             if not ret_l or not ret_r:
                 break
+            # Validate image sizes match on first frame
+            if not size_validated:
+                if left_frame.shape != right_frame.shape:
+                    left_cap.release()
+                    right_cap.release()
+                    raise ValueError(f"Left and right video frame sizes do not match: "
+                                     f"left={left_frame.shape[:2]}, right={right_frame.shape[:2]}")
+                size_validated = True
             frame_number += 1
             if (frame_number - 1) % frame_step == 0:
                 if show_progress and total_frames > 0:
@@ -251,6 +313,7 @@ def stereo_frames_separate(left_path, right_path, frame_step=1, show_progress=Tr
 
         num_frames = min(len(left_files), len(right_files))
         print(f"processing {num_frames} stereo image pair(s)")
+        size_validated = False
         for n in range(0, num_frames, frame_step):
             left_frame = cv2.imread(left_files[n])
             right_frame = cv2.imread(right_files[n])
@@ -258,6 +321,12 @@ def stereo_frames_separate(left_path, right_path, frame_step=1, show_progress=Tr
                 raise ValueError(f"Failed to read left image: {left_files[n]}")
             if right_frame is None:
                 raise ValueError(f"Failed to read right image: {right_files[n]}")
+            # Validate image sizes match on first frame
+            if not size_validated:
+                if left_frame.shape != right_frame.shape:
+                    raise ValueError(f"Left and right image sizes do not match: "
+                                     f"left={left_frame.shape[:2]}, right={right_frame.shape[:2]}")
+                size_validated = True
             if show_progress:
                 print_progress(n + 1, num_frames, prefix='Reading stereo images')
             yield left_frame, right_frame, n + 1
@@ -281,12 +350,8 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
     for left_frame, right_frame, frame_number in stereo_frames_separate(
             left_path, right_path, frame_step):
 
-        if bayer:
-            left_gray = cv2.cvtColor(left_frame[:,:,0], cv2.COLOR_BayerBG2GRAY)
-            right_gray = cv2.cvtColor(right_frame[:,:,0], cv2.COLOR_BayerBG2GRAY)
-        else:
-            left_gray = cv2.cvtColor(left_frame, cv2.COLOR_BGR2GRAY)
-            right_gray = cv2.cvtColor(right_frame, cv2.COLOR_BGR2GRAY)
+        left_gray = to_grayscale(left_frame, bayer)
+        right_gray = to_grayscale(right_frame, bayer)
 
         if img_shape is None:
             img_shape = left_gray.shape[::-1]
@@ -296,22 +361,18 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
 
         # If found, add object points, image points (after refining them)
         if left_corners is not None:
-            print("found checkerboard in frame %d left" % frame_number)
+            print(f"found checkerboard in frame {frame_number} left")
             left_data[frame_number] = left_corners
         if right_corners is not None:
-            print("found checkerboard in frame %d right" % frame_number)
+            print(f"found checkerboard in frame {frame_number} right")
             right_data[frame_number] = right_corners
         if left_corners is None and right_corners is None:
-            print("checkerboard not found in %d" % frame_number)
+            print(f"checkerboard not found in frame {frame_number}")
 
         # Draw and display the corners
         if gui:
-            if bayer:
-                left_color = cv2.cvtColor(left_frame[:,:,0], cv2.COLOR_BayerBG2BGR)
-                right_color = cv2.cvtColor(right_frame[:,:,0], cv2.COLOR_BayerBG2BGR)
-            else:
-                left_color = left_frame.copy()
-                right_color = right_frame.copy()
+            left_color = to_color(left_frame, bayer)
+            right_color = to_color(right_frame, bayer)
             if left_corners is not None:
                 cv2.drawChessboardCorners(left_color, grid_size, left_corners, True)
             if right_corners is not None:
@@ -350,12 +411,8 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
 
         left_img = frame[:, 0:frame.shape[1] // 2]
         right_img = frame[:, frame.shape[1] // 2:]
-        if bayer:
-            left_gray = cv2.cvtColor(left_img[:,:,0], cv2.COLOR_BayerBG2GRAY)
-            right_gray = cv2.cvtColor(right_img[:,:,0], cv2.COLOR_BayerBG2GRAY)
-        else:
-            left_gray = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)
-            right_gray = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)
+        left_gray = to_grayscale(left_img, bayer)
+        right_gray = to_grayscale(right_img, bayer)
         if img_shape is None:
             img_shape = left_gray.shape[::-1]
 
@@ -364,21 +421,17 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
 
         # If found, add object points, image points (after refining them)
         if left_corners is not None:
-            print("found checkerboard in frame %d left" % frame_number)
+            print(f"found checkerboard in frame {frame_number} left")
             left_data[frame_number] = left_corners
         if right_corners is not None:
-            print("found checkerboard in frame %d right" % frame_number)
+            print(f"found checkerboard in frame {frame_number} right")
             right_data[frame_number] = right_corners
         if left_corners is None and right_corners is None:
-            print("checkerboard not found in %d" % frame_number)
-
+            print(f"checkerboard not found in frame {frame_number}")
 
         # Draw and display the corners
         if gui:
-            if bayer:
-                color_frame = cv2.cvtColor(frame[:,:,0], cv2.COLOR_BayerBG2BGR)
-            else:
-                color_frame = frame
+            color_frame = to_color(frame, bayer)
             if left_corners is not None:
                 cv2.drawChessboardCorners(color_frame, grid_size, left_corners, True)
             if right_corners is not None:
@@ -399,26 +452,6 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
                          f"Check that the input video or image path is correct.")
 
     return img_shape, left_data, right_data
-
-
-def evaluate_error(imgpoints, objp, frames, cal_result):
-    ret, mtx, dist, rvecs, tvecs = cal_result
-    new_frames = []
-    new_imgpoints = []
-    new_objpoints = []
-    frame_errors = {}
-    for c, r, t, n in zip(imgpoints, rvecs, tvecs, frames):
-        proj_pts, _ = cv2.projectPoints(objp, r, t, mtx, dist)
-        frame_errors[n] = np.sqrt(np.mean((proj_pts.get() - c)**2))
-        if frame_errors[n] < 1.0:
-            new_frames.append(n)
-            new_imgpoints.append(c)
-            new_objpoints.append(objp)
-
-    for n,v in sorted(frame_errors.items(), key=operator.itemgetter(1)):
-        print(v, n)
-
-    return new_frames, new_imgpoints, new_objpoints
 
 
 def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"):
@@ -513,97 +546,89 @@ def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"
 
 
 def main():
-    usage = "usage: %prog [options] [stitched_video_or_images]" + os.linesep + os.linesep
-    usage += "  Estimate stereo calibration from calibration target images." + os.linesep
-    usage += os.linesep
-    usage += "  Input modes:" + os.linesep
-    usage += "    1. Stitched stereo (default): Provide a single video file or image" + os.linesep
-    usage += "       glob pattern where left and right images are horizontally" + os.linesep
-    usage += "       concatenated (left on left half, right on right half)." + os.linesep
-    usage += "       Example: %prog calibration_video.mp4" + os.linesep
-    usage += "       Example: %prog 'calibration_images/*.png'" + os.linesep
-    usage += os.linesep
-    usage += "    2. Separate stereo: Use --left and --right options to specify" + os.linesep
-    usage += "       separate paths for left and right camera images. Each path" + os.linesep
-    usage += "       can be a video file, directory, or glob pattern." + os.linesep
-    usage += "       Example: %prog --left left_video.mp4 --right right_video.mp4" + os.linesep
-    usage += "       Example: %prog --left ./left_images/ --right ./right_images/" + os.linesep
-    usage += "       Example: %prog --left 'left/*.png' --right 'right/*.png'" + os.linesep
-    parser = OptionParser(usage=usage)
+    description = "Estimate stereo calibration from calibration target images."
+    epilog = """
+Input modes:
+  1. Stitched stereo (default): Provide a single video file or image
+     glob pattern where left and right images are horizontally
+     concatenated (left on left half, right on right half).
+     Example: %(prog)s calibration_video.mp4
+     Example: %(prog)s 'calibration_images/*.png'
 
-    parser.add_option("-l", "--left", type='string', default=None,
-                      action="store", dest="left_path",
-                      help="left camera images (video, directory, or glob pattern)")
-    parser.add_option("-r", "--right", type='string', default=None,
-                      action="store", dest="right_path",
-                      help="right camera images (video, directory, or glob pattern)")
-    parser.add_option("-b", "--bayer", default=False,
-                      action="store_true", dest="bayer",
-                      help="input images are Bayer patterned")
-    parser.add_option("-c", "--corners-file", type='string', default=None,
-                      action="store", dest="corners_file",
-                      help="corner file input path")
-    parser.add_option("-i", "--intr-file", type='string', default=None,
-                      action="store", dest="intr_file",
-                      help="input intrinsics file if only recomputing extr")
-    parser.add_option("-q", "--square-size", type='float', default=85,
-                      action="store", dest="square_size",
-                      help="width of a single calibration square (mm)")
-    parser.add_option("-x", "--grid-x", type='int', default=6,
-                      action="store", dest="grid_x",
-                      help="width of the grid to detect")
-    parser.add_option("-y", "--grid-y", type='int', default=5,
-                      action="store", dest="grid_y",
-                      help="height of the grid to detect")
-    parser.add_option("-s", "--frame-step", type='int', default=1,
-                      action="store", dest="frame_step",
-                      help="number of frames to step between each detection")
-    parser.add_option("-g", "--gui", default=False,
-                      action="store_true", dest="gui",
-                      help="visualize the results in a GUI")
-    parser.add_option("-o", "--output", type='string', default="calibration.json",
-                      action="store", dest="json_file",
-                      help="output json file path (default: calibration.json)")
-    parser.add_option("-n", "--npz", type='string', default=None,
-                      action="store", dest="npz_file",
-                      help="optional npz output file")
+  2. Separate stereo: Use --left and --right options to specify
+     separate paths for left and right camera images. Each path
+     can be a video file, directory, or glob pattern.
+     Example: %(prog)s --left left_video.mp4 --right right_video.mp4
+     Example: %(prog)s --left ./left_images/ --right ./right_images/
+     Example: %(prog)s --left 'left/*.png' --right 'right/*.png'
+"""
+    parser = argparse.ArgumentParser(
+        description=description,
+        epilog=epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    (options, args) = parser.parse_args()
+    parser.add_argument("input", nargs='?', default=None,
+                        help="stitched video or image path/glob pattern")
+    parser.add_argument("-l", "--left", default=None, dest="left_path",
+                        help="left camera images (video, directory, or glob pattern)")
+    parser.add_argument("-r", "--right", default=None, dest="right_path",
+                        help="right camera images (video, directory, or glob pattern)")
+    parser.add_argument("-b", "--bayer", action="store_true", default=False,
+                        help="input images are Bayer patterned")
+    parser.add_argument("-c", "--corners-file", default=None, dest="corners_file",
+                        help="corner file input/output path for caching detections")
+    parser.add_argument("-i", "--intr-file", default=None, dest="intr_file",
+                        help="input intrinsics file if only recomputing extrinsics")
+    parser.add_argument("-q", "--square-size", type=float, default=85,
+                        help="width of a single calibration square in mm (default: 85)")
+    parser.add_argument("-x", "--grid-x", type=int, default=6,
+                        help="number of inner corners in grid width (default: 6)")
+    parser.add_argument("-y", "--grid-y", type=int, default=5,
+                        help="number of inner corners in grid height (default: 5)")
+    parser.add_argument("-s", "--frame-step", type=int, default=1,
+                        help="process every Nth frame (default: 1)")
+    parser.add_argument("-g", "--gui", action="store_true", default=False,
+                        help="visualize detection results in a GUI")
+    parser.add_argument("-o", "--output", default="calibration.json", dest="json_file",
+                        help="output json file path (default: calibration.json)")
+    parser.add_argument("-n", "--npz", default=None, dest="npz_file",
+                        help="optional npz output file")
+
+    args = parser.parse_args()
 
     # Determine input mode
-    use_separate_stereo = options.left_path is not None or options.right_path is not None
+    use_separate_stereo = args.left_path is not None or args.right_path is not None
 
     if use_separate_stereo:
-        if options.left_path is None or options.right_path is None:
+        if args.left_path is None or args.right_path is None:
             parser.error("Both --left and --right must be specified for separate stereo mode")
-        if len(args) > 0:
+        if args.input is not None:
             parser.error("Cannot specify positional argument with --left/--right options")
     else:
-        if len(args) < 1:
+        if args.input is None:
             parser.error("Must specify either a stitched video/image path or --left and --right options")
 
-    grid_size = (options.grid_x, options.grid_y)
+    grid_size = (args.grid_x, args.grid_y)
 
     img_shape = None
-    if options.corners_file:
-        if os.path.exists(options.corners_file):
-            data = np.load(options.corners_file, allow_pickle=True)
+    if args.corners_file:
+        if os.path.exists(args.corners_file):
+            data = np.load(args.corners_file, allow_pickle=True)
             img_shape = tuple(data["img_shape"])
             left_data = data["left_data"].item()
             right_data = data["right_data"].item()
 
-    if img_shape == None:
+    if img_shape is None:
         if use_separate_stereo:
             img_shape, left_data, right_data = detect_grid_stereo_separate(
-                options.left_path, options.right_path, grid_size,
-                options.frame_step, options.gui, options.bayer)
+                args.left_path, args.right_path, grid_size,
+                args.frame_step, args.gui, args.bayer)
         else:
-            video_file = args[0]
             img_shape, left_data, right_data = detect_grid_video(
-                video_file, grid_size, options.frame_step,
-                options.gui, options.bayer)
-        if options.corners_file:
-            np.savez(options.corners_file, img_shape=img_shape,
+                args.input, grid_size, args.frame_step,
+                args.gui, args.bayer)
+        if args.corners_file:
+            np.savez(args.corners_file, img_shape=img_shape,
                      left_data=left_data, right_data=right_data)
 
     # Validate we have enough detections
@@ -623,12 +648,12 @@ def main():
                          f"Left has {len(left_data)}, right has {len(right_data)} detections.")
 
     print("computing calibration")
-    objp = make_object_points(grid_size) * options.square_size
-    (_, K_left, dist_left, _, _), _ = calibrate_single_camera(left_data, objp, img_shape, "left")
-    (_, K_right, dist_right, _, _), _ = calibrate_single_camera(right_data, objp, img_shape, "right")
+    objp = make_object_points(grid_size) * args.square_size
+    (left_rms, K_left, dist_left, _, _), _ = calibrate_single_camera(left_data, objp, img_shape, "left")
+    (right_rms, K_right, dist_right, _, _), _ = calibrate_single_camera(right_data, objp, img_shape, "right")
 
     # write the intrinsics file
-    if not options.intr_file:
+    if not args.intr_file:
         fs = cv2.FileStorage("intrinsics.yml", cv2.FILE_STORAGE_WRITE)
         if (fs.isOpened()):
             fs.write("M1", K_left)
@@ -637,7 +662,7 @@ def main():
             fs.write("D2", dist_right)
         fs.release()
     else:
-        npz_dict = dict(np.load(options.intr_file))
+        npz_dict = dict(np.load(args.intr_file))
         K_left = npz_dict[ 'cameraMatrixL' ]
         K_right = npz_dict[ 'cameraMatrixR' ]
         dist_left = npz_dict[ 'distCoeffsL' ]
@@ -689,11 +714,11 @@ def main():
         json_dict[f'p1_{side}'] = float(d[0][2])
         json_dict[f'p2_{side}'] = float(d[0][3])
 
-    with open(options.json_file, 'w') as fh:
+    with open(args.json_file, 'w') as fh:
         fh.write(json.dumps(json_dict, indent=2))
 
     # optionally write npz file
-    if options.npz_file:
+    if args.npz_file:
         npz_dict = dict()
         npz_dict['cameraMatrixL'] = K_left
         npz_dict['cameraMatrixR'] = K_right
@@ -701,7 +726,7 @@ def main():
         npz_dict['distCoeffsR'] = dist_right
         npz_dict['R'] = R
         npz_dict['T'] = T
-        np.savez(options.npz_file, **npz_dict)
+        np.savez(args.npz_file, **npz_dict)
 
     # Print summary statistics
     baseline = np.linalg.norm(T)
@@ -710,23 +735,25 @@ def main():
     print("=" * 60)
     print(f"Image size:                 {img_shape[0]} x {img_shape[1]}")
     print(f"Grid size:                  {grid_size[0]} x {grid_size[1]}")
-    print(f"Square size:                {options.square_size} mm")
+    print(f"Square size:                {args.square_size} mm")
     print("-" * 60)
     print(f"Left camera detections:     {len(left_data)}")
     print(f"Right camera detections:    {len(right_data)}")
     print(f"Common stereo detections:   {len(frames)}")
     print("-" * 60)
+    print(f"Left camera RMS error:      {left_rms:.4f} pixels")
+    print(f"Right camera RMS error:     {right_rms:.4f} pixels")
     print(f"Stereo RMS error:           {stereo_rms_error:.4f} pixels")
     print(f"Baseline distance:          {baseline:.2f} mm")
     print("-" * 60)
     print("Output files:")
-    print(f"  - {options.json_file}")
+    print(f"  - {args.json_file}")
     print(f"  - intrinsics.yml")
     print(f"  - extrinsics.yml")
-    if options.npz_file:
-        print(f"  - {options.npz_file}")
-    if options.corners_file:
-        print(f"  - {options.corners_file}")
+    if args.npz_file:
+        print(f"  - {args.npz_file}")
+    if args.corners_file:
+        print(f"  - {args.corners_file}")
     print("=" * 60)
 
 if __name__ == "__main__":
