@@ -527,8 +527,8 @@ measurement_utilities
   const kv::vector_2d& left_point,
   const kv::vector_2d& right_point ) const
 {
-  Eigen::Matrix<float, 2, 1> left_pt( left_point.x(), left_point.y() );
-  Eigen::Matrix<float, 2, 1> right_pt( right_point.x(), right_point.y() );
+  Eigen::Matrix<double, 2, 1> left_pt( left_point.x(), left_point.y() );
+  Eigen::Matrix<double, 2, 1> right_pt( right_point.x(), right_point.y() );
 
   auto point_3d = kwiver::arrows::mvg::triangulate_fast_two_view(
     left_cam, right_cam, left_pt, right_pt );
