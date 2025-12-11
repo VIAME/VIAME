@@ -42,6 +42,7 @@ create_config_trait(frame_count_threshold, unsigned, "0",
                     "Maximum number of frames to use during calibration. 0 to use all available frames.");
 create_config_trait(square_size, double, "1.0", "Calibration pattern square size in world units (e.g., mm)");
 
+create_type_trait(integer, "kwiver:integer", int64_t);
 create_port_trait(tracks_left, object_track_set, "Object track set of camera1.");
 create_port_trait(tracks_right, object_track_set, "Object track set of camera2.");
 create_port_trait(image_width, integer, "Width of the input images.");

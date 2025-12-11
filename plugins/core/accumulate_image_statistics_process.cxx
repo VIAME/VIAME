@@ -21,6 +21,7 @@ namespace viame
 namespace core
 {
 
+create_type_trait( integer, "kwiver:integer", int64_t );
 create_port_trait( image_width, integer, "Width of the input images." );
 create_port_trait( image_height, integer, "Height of the input images." );
 
