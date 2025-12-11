@@ -1047,12 +1047,12 @@ measurement_utilities
     // Convert distortion coefficients to OpenCV format
     for( size_t i = 0; i < std::min( left_dist.size(), size_t(5) ); ++i )
     {
-      D1.at<double>( i, 0 ) = left_dist[i];
+      D1.at<double>( static_cast<int>( i ), 0 ) = left_dist[i];
     }
 
     for( size_t i = 0; i < std::min( right_dist.size(), size_t(5) ); ++i )
     {
-      D2.at<double>( i, 0 ) = right_dist[i];
+      D2.at<double>( static_cast<int>( i ), 0 ) = right_dist[i];
     }
   }
 

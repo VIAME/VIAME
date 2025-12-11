@@ -38,7 +38,7 @@ public:
 
   // Configuration settings
   std::string m_cameras_directory;
-  float m_iou_pair_threshold{.1};
+  float m_iou_pair_threshold{0.1f};
   std::string m_pairing_method{"PAIRING_3D"};
   bool m_verbose{}; // Set to true to activate debug print
 

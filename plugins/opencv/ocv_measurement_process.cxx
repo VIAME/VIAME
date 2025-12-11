@@ -48,10 +48,14 @@
 #include <sprokit/processes/kwiver_type_traits.h>
 
 // Suppress warnings from external headers
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreorder"
+#endif
 #include <arrows/mvg/triangulate.h>
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>

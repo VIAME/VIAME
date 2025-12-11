@@ -394,7 +394,7 @@ viame::core::Detections3DPositions viame::core::detections_pairing_from_stereo::
     const kwiver::vital::detected_object_sptr &detection, const cv::Mat &cv_pos_3d_map) const {
 
   // Process 3D coordinates for frame matching the current depth image
-  auto position = estimate_3d_position_from_detection(detection, cv_pos_3d_map, true, 1. / 3.);
+  auto position = estimate_3d_position_from_detection(detection, cv_pos_3d_map, true, 1.f / 3.f);
 
   // Add 3d estimations to state if score is valid
   if (position.score > 0) {
