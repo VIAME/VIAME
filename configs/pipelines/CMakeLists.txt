@@ -184,7 +184,7 @@ set( CORE_PIPELINE_FILES
   index_frame.svm.annot_only.pipe
   measurement_fully_auto_fish_default.pipe
   measurement_fully_auto_gmm_motion.pipe
-  measurement_from_user_annotations.pipe
+  measurement_from_annotations.pipe
   query_image_exemplar.cfe.pipe
   query_image_exemplar.pipe
   query_retrieval_and_iqr.cfe.pipe
