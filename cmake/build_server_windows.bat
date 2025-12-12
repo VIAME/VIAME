@@ -4,8 +4,9 @@ REM ----------------------------------------------------------------------------
 
 SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU"
 
-FOR /f "tokens=1 delims= " %%a IN ("RELEASE_NOTES.md") DO (
-    SET "VIAME_VER=%%a"
+REM Extract version from RELEASE_NOTES.md (first token of first line)
+FOR /f "tokens=1 delims= " %%a IN (%VIAME_SOURCE_DIR%\RELEASE_NOTES.md) DO (
+    SET "VIAME_VERSION=%%a"
     GOTO :LOOPEXIT
 )
 :LOOPEXIT

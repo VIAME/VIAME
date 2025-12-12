@@ -4,6 +4,9 @@
 set -x
 
 export VIAME_SOURCE_DIR=/viame
+
+# Extract version from RELEASE_NOTES.md (first token of first line)
+export VIAME_VERSION=$(head -n 1 $VIAME_SOURCE_DIR/RELEASE_NOTES.md | awk '{print $1}')
 export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
 export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
@@ -105,8 +108,8 @@ if grep -q "Built target viame" build_log.txt; then
 
   # Make zip file of install
   mv install viame
-  rm VIAME-v1.0.0-Linux-64Bit.tar.gz ||:
-  tar -zcvf VIAME-v1.0.0-Linux-64Bit.tar.gz viame
+  rm VIAME-${VIAME_VERSION}-Linux-64Bit.tar.gz ||:
+  tar -zcvf VIAME-${VIAME_VERSION}-Linux-64Bit.tar.gz viame
   mv viame install
 else
   echo "VIAME Build Failed"

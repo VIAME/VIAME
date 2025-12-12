@@ -19,25 +19,31 @@ set( plugin_headers
   ocv_image_enhancement.h
   ocv_debayer_filter.h
   ocv_random_hue_shift.h
+  ocv_stereo_calibration.h
   ocv_stereo_depth_map.h
   ocv_rectified_stereo_disparity_map.h
   ocv_target_detector.h
   ocv_optimize_stereo_cameras.h
   ocv_stereo_feature_track_filter.h
   ocv_kmedians.h
-  split_image_habcam.h  
+  ocv_keypoints_from_mask.h
+  ocv_refiner_add_kps_from_mask.h
+  split_image_habcam.h
   )
 
 set( plugin_sources
   ocv_image_enhancement.cxx
   ocv_debayer_filter.cxx
   ocv_random_hue_shift.cxx
+  ocv_stereo_calibration.cxx
   ocv_stereo_depth_map.cxx
   ocv_rectified_stereo_disparity_map.cxx
   ocv_target_detector.cxx
   ocv_optimize_stereo_cameras.cxx
   ocv_stereo_feature_track_filter.cxx
   ocv_kmedians.cxx
+  ocv_keypoints_from_mask.cxx
+  ocv_refiner_add_kps_from_mask.cxx
   split_image_habcam.cxx
   )
 
@@ -91,6 +97,38 @@ algorithms_create_plugin( viame_opencv
 target_link_libraries( viame_opencv_plugin
   PUBLIC               kwiver::vital_vpm
   )
+
+# Eigen is required for MVG triangulation
+find_package( Eigen3 REQUIRED NO_MODULE )
+
+# Add process library
+set( process_headers
+  ocv_measurement_process.h
+  ocv_calibrate_single_camera_process.h
+)
+
+set( process_sources
+  register_processes.cxx
+  ocv_measurement_process.cxx
+  ocv_calibrate_single_camera_process.cxx
+)
+
+kwiver_add_plugin( viame_processes_opencv
+  SUBDIR           ${viame_plugin_process_subdir}
+  SOURCES          ${process_sources}
+  PRIVATE          kwiver::vital
+                   kwiver::vital_algo
+                   kwiver::vital_config
+                   kwiver::vital_logger
+                   kwiver::vital_util
+                   kwiver::vital_vpm
+                   kwiver::sprokit_pipeline
+                   kwiver::kwiver_algo_ocv
+                   kwiver::kwiver_algo_mvg
+                   Eigen3::Eigen
+                   ${OpenCV_LIBRARIES}
+                   viame_opencv
+)
 
 if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames

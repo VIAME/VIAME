@@ -35,10 +35,21 @@ connect from downsampler.output_1
 
 process detection_refiner
   :: refine_detections
-  :refiner:type                                               sam2        
-  :refiner:sam2:cfg            configs/sam2.1/sam2.1_hiera_b+.yaml
-  relativepath refiner:sam2:checkpoint =        models/sam2_hbp.pt
-  :refiner:sam2:overwrite_existing                            true
+  :refiner:type                                       ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                                 adaptive
+    :chip_adaptive_thresh                                 25000000
+    :chip_width                                               2000
+    :chip_height                                              2000
+    :chip_step_width                                          1000
+    :chip_step_height                                         1000
+
+    :refiner:type                                             sam2
+    :refiner:sam2:cfg          configs/sam2.1/sam2.1_hiera_b+.yaml
+    :refiner:sam2:overwrite_existing                          true
+    relativepath refiner:sam2:checkpoint =      models/sam2_hbp.pt
+  endblock
 
 connect from ensure_rgb.image
         to   detection_refiner.image
@@ -50,8 +61,6 @@ process track_writer
   :file_name                               computed_detections.csv
   :writer:type                                           viame_csv
   :writer:viame_csv:mask_to_poly_points                         30
-  # Currently commented out and the above is used instead
-  #:writer:viame_csv:mask_to_poly_tol                         0.05
 
 connect from downsampler.output_2
         to   track_writer.image_file_name

@@ -116,7 +116,7 @@ write_object_track_set_viame_csv::priv
   if( m_write_time_as_uid )
   {
     char output[10];
-    const kwiver::vital::time_usec_t usec( 1e6 );
+    const kwiver::vital::time_usec_t usec( 1000000 );
     const kwiver::vital::time_usec_t time_s = ts->time() / usec;
     unsigned time_us = ts->time() % usec;
     std::string time_us_str = std::to_string( time_us );
@@ -130,7 +130,7 @@ write_object_track_set_viame_csv::priv
   }
   else if( !m_frame_uids.empty() )
   {
-    std::string fileuid = m_frame_uids[ ts->frame() ];
+    std::string fileuid = m_frame_uids[ static_cast<unsigned>( ts->frame() ) ];
 
     const size_t last_slash_idx = fileuid.find_last_of("\\/");
 
@@ -436,7 +436,7 @@ void write_object_track_set_viame_csv
         kwiver::vital::bounding_box_d( -1, -1, -1, -1 );
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
       auto confidence = ( det ? det->confidence() : 0 );
-      int frame_id = ts->frame() + d->m_frame_id_adjustment;
+      kwiver::vital::frame_id_t frame_id = ts->frame() + d->m_frame_id_adjustment;
 
       stream() << trk_ptr->id() << d->m_delim            // 1: track id
                << d->format_image_id( ts ) << d->m_delim // 2: video or image id
@@ -555,7 +555,7 @@ write_object_track_set_viame_csv
 
   if( !file_id.empty() && ts.has_valid_frame() )
   {
-    d->m_frame_uids[ ts.get_frame() ] = file_id;
+    d->m_frame_uids[ static_cast<unsigned>( ts.get_frame() ) ] = file_id;
   }
 
   if( !set )
@@ -567,7 +567,7 @@ write_object_track_set_viame_csv
   {
     for( auto trk : set->tracks() )
     {
-      d->m_tracks[ trk->id() ] = trk;
+      d->m_tracks[ static_cast<unsigned>( trk->id() ) ] = trk;
     }
   }
   else
@@ -606,7 +606,7 @@ write_object_track_set_viame_csv
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
       auto confidence = ( det ? det->confidence() : 0 );
-      int frame_id = state->frame() + d->m_frame_id_adjustment;
+      kwiver::vital::frame_id_t frame_id = state->frame() + d->m_frame_id_adjustment;
 
       stream() << trk_ptr->id() << d->m_delim               // 1: track id
                << d->format_image_id( state ) << d->m_delim // 2: video or image id

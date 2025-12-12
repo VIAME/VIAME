@@ -3,7 +3,15 @@ REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
 
 SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\CPU"
-SET "OUTPUT_FILE=VIAME-CPU-v1.0.0-Windows-64Bit.zip"
+
+REM Extract version from RELEASE_NOTES.md (first token of first line)
+FOR /f "tokens=1 delims= " %%a IN (%VIAME_SOURCE_DIR%\RELEASE_NOTES.md) DO (
+    SET "VIAME_VERSION=%%a"
+    GOTO :LOOPEXIT
+)
+:LOOPEXIT
+
+SET "OUTPUT_FILE=VIAME-CPU-%VIAME_VERSION%-Windows-64Bit.zip"
 
 REM Make sure to have all of these things installed
 

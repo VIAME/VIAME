@@ -32,17 +32,19 @@
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
 
+#include "accumulate_image_statistics_process.h"
 #include "align_multimodal_imagery_process.h"
 #include "extract_desc_ids_for_training_process.h"
 #include "filter_frame_process.h"
 #include "filter_object_tracks_process.h"
 #include "frame_stacker_process.h"
 #include "full_frame_tracker_process.h"
+#include "measurement_process.h"
 #include "read_habcam_metadata_process.h"
 #include "refine_measurements_process.h"
 #include "track_conductor_process.h"
 #include "write_homography_list_process.h"
-#include "append_detections_to_tracks_process.h"
+#include "accumulate_object_tracks_process.h"
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
 #include "split_object_track_to_feature_landmark_process.h"
@@ -67,7 +69,17 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // ---------------------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( viame::core::align_multimodal_imagery_process );
+  auto fact = vpm.ADD_PROCESS( viame::core::accumulate_image_statistics_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "accumulate_image_statistics" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Accumulate image statistics (frame count, dimensions) over a stream" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::align_multimodal_imagery_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "align_multimodal_imagery" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
@@ -137,13 +149,23 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
   
-  fact = vpm.ADD_PROCESS( viame::core::append_detections_to_tracks_process );
+  fact = vpm.ADD_PROCESS( viame::core::accumulate_object_tracks_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "append_detections_to_tracks" )
+                        "accumulate_object_tracks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Append consistent detected object set to an object track set" )
+                    "Accumulate detected objects into an object track set" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::measurement_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "measurement" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Compute stereo measurements from track data" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
@@ -163,10 +185,10 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Calibrate cameras from object track sets" )
+                    "Calibrate stereo cameras from object track sets" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
-  
+
   fact = vpm.ADD_PROCESS( viame::core::tracks_pairing_from_stereo_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "tracks_pairing_from_stereo" )

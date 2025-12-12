@@ -44,7 +44,7 @@ public:
   // Configuration settings
   std::string m_cameras_directory;
   kwiver::vital::logger_handle_t m_logger;
-  float m_iou_pair_threshold{.1};
+  float m_iou_pair_threshold{0.1f};
   int m_min_detection_number_threshold{0};
   int m_max_detection_number_threshold{std::numeric_limits<int>::max()};
   int m_min_detection_surface_threshold_pix{0};

@@ -70,8 +70,6 @@
   namespace filesystem = std::experimental::filesystem;
 #endif
 
-#include <boost/algorithm/string.hpp>
-
 // =======================================================================================
 // Class storing all input parameters and private variables for tool
 class trainer_vars
@@ -88,7 +86,6 @@ public:
   bool opt_no_adv_print;
   bool opt_no_emb_pipe;
   bool opt_gt_only;
-  bool opt_convert_to_ff;
 
   std::string opt_config;
   std::string opt_input_dir;
@@ -114,7 +111,6 @@ public:
     opt_no_adv_print = false;
     opt_no_emb_pipe = false;
     opt_gt_only = false;
-    opt_convert_to_ff = false;
   }
 
   virtual ~trainer_vars()
@@ -824,7 +820,7 @@ bool run_pipeline_on_image( pipeline_t& pipe,
 
   auto const& success_flag = ods->find( "success_flag" );
 
-  return success_flag->second->get_datum< bool >();;
+  return success_flag->second->get_datum< bool >();
 }
 
 std::string get_augmented_filename( std::string name,
@@ -1153,9 +1149,9 @@ main( int argc, char* argv[] )
   g_params.m_args.AddArgument( "-p",              argT::SPACE_ARGUMENT,
     &g_params.opt_pipeline_file, "Pipeline file" );
   g_params.m_args.AddArgument( "--default-vfr",   argT::SPACE_ARGUMENT,
-    &g_params.opt_frame_rate, "Pipeline file" );
+    &g_params.opt_frame_rate, "Default video frame rate for extraction" );
   g_params.m_args.AddArgument( "-vfr",            argT::SPACE_ARGUMENT,
-    &g_params.opt_frame_rate, "Pipeline file" );
+    &g_params.opt_frame_rate, "Default video frame rate for extraction" );
   g_params.m_args.AddArgument( "--max-frame-count",argT::SPACE_ARGUMENT,
     &g_params.opt_max_frame_count, "Maximum frame count to use" );
   g_params.m_args.AddArgument( "-mfc",            argT::SPACE_ARGUMENT,
@@ -1822,21 +1818,41 @@ main( int argc, char* argv[] )
 
     if( !auto_detect_truth )
     {
-      if( !does_file_exist( g_params.opt_input_truth ) ||
-          !load_file_list( g_params.opt_input_truth, all_truth ) )
+      // Check if input_truth is a single file (CSV) or a list file
+      if( does_file_exist( g_params.opt_input_truth ) )
       {
-        std::cout << "Unable to load: " << g_params.opt_input_truth << std::endl;
-        return EXIT_FAILURE;
-      }
+        // Check if it's a groundtruth file directly (e.g., .csv) or a list file
+        bool is_truth_file = ends_with_extension( g_params.opt_input_truth, groundtruth_exts );
 
-      while( all_truth.size() > all_data.size() && all_truth.back().empty() )
-      {
-        all_truth.pop_back();
-      }
+        if( is_truth_file )
+        {
+          // Single truth file for all images - replicate it for each data entry
+          all_truth.resize( all_data.size(), g_params.opt_input_truth );
+        }
+        else
+        {
+          // It's a list file containing paths to truth files
+          if( !load_file_list( g_params.opt_input_truth, all_truth ) )
+          {
+            std::cout << "Unable to load: " << g_params.opt_input_truth << std::endl;
+            return EXIT_FAILURE;
+          }
 
-      if( all_data.size() != all_truth.size() )
+          while( all_truth.size() > all_data.size() && all_truth.back().empty() )
+          {
+            all_truth.pop_back();
+          }
+
+          if( all_data.size() != all_truth.size() )
+          {
+            std::cout << "Training data and truth list lengths do not match" << std::endl;
+            return EXIT_FAILURE;
+          }
+        }
+      }
+      else
       {
-        std::cout << "Training data and truth list lengths do not match" << std::endl;
+        std::cout << "Unable to find: " << g_params.opt_input_truth << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -1943,19 +1959,29 @@ main( int argc, char* argv[] )
       gt_files.resize( 1, all_truth[i] );
     }
 
-    // Either the input is a video file directly, or a directory containing images or video
-    //  - In case of the latter, autodetect presence of images or video
-    list_files_in_folder( data_item, video_files, true, video_exts );
+    // Either the input is a video file directly, a single image file, or a directory
+    // containing images or video. In case of the latter, autodetect presence of images or video.
+    bool is_image = ends_with_extension( data_item, image_exts );
 
-    if( !is_video )
+    if( is_image )
     {
-      list_files_in_folder( data_item, image_files, true, image_exts );
+      // Single image file provided directly
+      image_files.push_back( data_item );
+    }
+    else
+    {
+      list_files_in_folder( data_item, video_files, true, video_exts );
 
-      if( video_files.size() == 1 && image_files.size() < 2 )
+      if( !is_video )
       {
-        image_files.clear();
-        is_video = true;
-        data_item = video_files[0];
+        list_files_in_folder( data_item, image_files, true, image_exts );
+
+        if( video_files.size() == 1 && image_files.size() < 2 )
+        {
+          image_files.clear();
+          is_video = true;
+          data_item = video_files[0];
+        }
       }
     }
 
@@ -1988,7 +2014,7 @@ main( int argc, char* argv[] )
     {
       if( gt_files.size() != 1 )
       {
-        std::cout << "Error: iten " << data_item
+        std::cout << "Error: item " << data_item
                   << " must contain only 1 groundtruth file" << std::endl;
         return EXIT_FAILURE;
       }
@@ -2023,7 +2049,7 @@ main( int argc, char* argv[] )
     // Read all images and detections in sequence
     if( image_files.size() == 0 )
     {
-      std::cout << "Error: folder contains no image files." << std::endl;
+      std::cout << "Error: entry " << data_item << " contains no image files." << std::endl;
     }
 
     for( unsigned i = 0; i < image_files.size(); ++i )

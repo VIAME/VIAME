@@ -4,6 +4,7 @@
 */
 
 #include "ocv_optimize_stereo_cameras.h"
+#include "ocv_stereo_calibration.h"
 #include "ocv_stereo_feature_track_filter.h"
 
 #include <vital/types/object_track_set.h>
@@ -39,6 +40,11 @@ public:
   unsigned m_image_height{};
   unsigned m_frame_count_threshold{};
   std::string m_output_calibration_directory{};
+  std::string m_output_json_file{};
+  double m_square_size{1.0};
+
+  // Shared calibration utility
+  stereo_calibration m_calibrator;
 
   kv::logger_handle_t m_logger;
 
@@ -67,12 +73,10 @@ public:
                                      const std::vector<double> &D2, const cv::Mat &R, const cv::Mat &T,
                                      const cv::Mat &R1, const cv::Mat &R2, const cv::Mat &P1, const cv::Mat &P2,
                                      const cv::Mat &Q) const {
-    if (m_output_calibration_directory.empty()) {
-      LOG_WARN(m_logger, "No output calibration directory set. Skipping stereo calibration OCV format write.");
-      return;
-    }
+    // Use current directory if output directory not specified
+    std::string output_dir = m_output_calibration_directory.empty() ? "." : m_output_calibration_directory;
 
-    auto fs = cv::FileStorage(m_output_calibration_directory + "/intrinsics.yml", cv::FileStorage::Mode::WRITE);
+    auto fs = cv::FileStorage(output_dir + "/intrinsics.yml", cv::FileStorage::Mode::WRITE);
     if (fs.isOpened()) {
       fs.write("M1", M1);
       fs.write("M2", M2);
@@ -82,7 +86,7 @@ public:
     fs.release();
 
     // write extrinsic file
-    fs = cv::FileStorage(m_output_calibration_directory + "/extrinsics.yml", cv::FileStorage::Mode::WRITE);
+    fs = cv::FileStorage(output_dir + "/extrinsics.yml", cv::FileStorage::Mode::WRITE);
     if (fs.isOpened()) {
       fs.write("R", R);
       fs.write("T", T);
@@ -143,15 +147,15 @@ bool ocv_optimize_stereo_cameras::priv::try_improve_camera_calibration(
   prev_R1 = R1.clone();
   prev_T1 = T1.clone();
 
-  LOG_DEBUG(m_logger, "Running intrinsic calibration : " << context);
+  LOG_INFO(m_logger, "  - Running intrinsic calibration: " << context);
   error = cv::calibrateCamera(world_points, image_points, image_size, K1, D1, R1, T1, flags);
-  LOG_DEBUG(m_logger, "Calibration error (" << context << ") : " << error);
+  LOG_INFO(m_logger, "    Calibration error: " << error);
 
   if (error < max_error)
     return true;
 
   // Rollback parameters
-  LOG_DEBUG(m_logger, "Calibration error is too high. Keeping previous calibration parameters.");
+  LOG_INFO(m_logger, "    Error too high, keeping previous parameters");
   K1 = prev_K1.clone();
   D1 = prev_D1.clone();
   R1 = prev_R1.clone();
@@ -193,7 +197,7 @@ void ocv_optimize_stereo_cameras::priv::calibrate_camera(const kv::camera_sptr &
   // Performing camera calibration by passing the value of known 3D world points (objpoints)
   // and corresponding pixel coordinates of the detected corners (imgpoints)
   size_t n_frames = world_points.size();
-  LOG_DEBUG(m_logger, "Running intrinsic calibration of " << suffix << " camera ...");
+  LOG_INFO(m_logger, "Calibrating " << suffix << " camera (" << n_frames << " frames)...");
 
   int flags{};
   double error{};
@@ -203,7 +207,7 @@ void ocv_optimize_stereo_cameras::priv::calibrate_camera(const kv::camera_sptr &
 
   // Fix aspect ratio if necessary
   auto aspect_ratio = cv_K1.at<double>(0, 0) / cv_K1.at<double>(1, 1);
-  LOG_DEBUG(m_logger, "Aspect ratio : " << aspect_ratio);
+  LOG_INFO(m_logger, "  - Aspect ratio: " << aspect_ratio);
 
   if (1.0 - std::min(aspect_ratio, 1.0 / aspect_ratio) < 0.01) {
     flags |= cv::CALIB_FIX_ASPECT_RATIO;
@@ -214,7 +218,7 @@ void ocv_optimize_stereo_cameras::priv::calibrate_camera(const kv::camera_sptr &
   // Fix principal point to center if necessary
   auto pp1 = cv_K1.at<double>(0, 2);
   auto pp2 = cv_K1.at<double>(1, 2);
-  LOG_DEBUG(m_logger, "Principal point: " << pp1 << "," << pp2);
+  LOG_INFO(m_logger, "  - Principal point: (" << pp1 << ", " << pp2 << ")");
 
   auto rel_pp_diff_1 = std::abs(pp1 - image_size.width / 2.) / image_size.width;
   auto rel_pp_diff_2 = std::abs(pp2 - image_size.height / 2.) / image_size.width;
@@ -269,7 +273,7 @@ ocv_optimize_stereo_cameras::priv::convert_features_and_landmarks_to_calib_point
   for (const auto &feature: features)
     n_frames << feature->all_frame_ids().size() << ",";
 
-  LOG_DEBUG(m_logger, "Selecting (" << m_frame_count_threshold << "/" << n_frames.str() << ") frames.");
+  LOG_INFO(m_logger, "Selecting frames for calibration (" << m_frame_count_threshold << "/" << n_frames.str() << ")...");
   auto points = StereoFeatureTrackFilter::select_frames(features, landmarks, m_frame_count_threshold);
   success = !points.image_pts.empty() && !points.image_pts[0].empty() &&
             (points.image_pts[0].size() == points.world_pts.size()) &&
@@ -280,13 +284,12 @@ ocv_optimize_stereo_cameras::priv::convert_features_and_landmarks_to_calib_point
 
   auto n_cams = std::min(features.size(), points.image_pts.size());
 
-  LOG_DEBUG(m_logger, "image_width : " << m_image_width);
-  LOG_DEBUG(m_logger, "image_height : " << m_image_height);
-  LOG_DEBUG(m_logger, "N Cameras : " << n_cams);
+  LOG_INFO(m_logger, "Calibration data prepared:");
+  LOG_INFO(m_logger, "  - Image size: " << m_image_width << "x" << m_image_height);
+  LOG_INFO(m_logger, "  - Number of cameras: " << n_cams);
   for (size_t i_cam = 0; i_cam < n_cams; i_cam++)
-    LOG_DEBUG(m_logger, "N Cam points (" << i_cam << ") : " << points.image_pts[i_cam].size());
-
-  LOG_DEBUG(m_logger, "N World points : " << points.world_pts.size());
+    LOG_INFO(m_logger, "  - Camera " << i_cam << " points: " << points.image_pts[i_cam].size() << " frames");
+  LOG_INFO(m_logger, "  - World points: " << points.world_pts.size() << " frames");
 
   return points;
 }
@@ -329,12 +332,12 @@ void ocv_optimize_stereo_cameras::priv::calibrate_stereo_camera(kv::camera_map::
   eigen2cv(K2, cv_K2);
   auto dist_coeffs2 = kwiver::arrows::ocv::get_ocv_dist_coeffs(cam2->intrinsics());
 
-  LOG_DEBUG(m_logger, "Launch stereo calibration...");
+  LOG_INFO(m_logger, "Running stereo calibration...");
   cv::Mat cv_R, cv_T, cv_E, cv_F;
   float rms = cv::stereoCalibrate(world_points, image_points1, image_points2, cv_K1, dist_coeffs1, cv_K2, dist_coeffs2,
                                   image_size, cv_R, cv_T, cv_E, cv_F, cv::CALIB_FIX_INTRINSIC);
 
-  LOG_DEBUG(m_logger, "Finished calibration.");
+  LOG_INFO(m_logger, "Stereo calibration complete, RMS error: " << rms);
   cv::Mat cv_R1, cv_P1, cv_R2, cv_P2, cv_Q;
   cv::stereoRectify(cv_K1, dist_coeffs1, cv_K2, dist_coeffs2, image_size, cv_R, cv_T, cv_R1, cv_R2, cv_P1, cv_P2, cv_Q,
                     cv::CALIB_ZERO_DISPARITY);
@@ -343,9 +346,45 @@ void ocv_optimize_stereo_cameras::priv::calibrate_stereo_camera(kv::camera_map::
   cv::initUndistortRectifyMap(cv_K1, dist_coeffs1, cv_R1, cv_P1, image_size, CV_16SC2, rectMap11, rectMap12);
   cv::initUndistortRectifyMap(cv_K2, dist_coeffs2, cv_R2, cv_P2, image_size, CV_16SC2, rectMap21, rectMap22);
 
-  LOG_DEBUG(m_logger, "Stereo calibration run with RMS error = " << rms);
-  LOG_DEBUG(m_logger, "Write calibration to file");
+  LOG_INFO(m_logger, "Computing stereo rectification...");
+  LOG_INFO(m_logger, "Writing calibration files...");
   write_stereo_calibration_file(cv_K1, cv_K2, dist_coeffs1, dist_coeffs2, cv_R, cv_T, cv_R1, cv_R2, cv_P1, cv_P2, cv_Q);
+
+  // Also write JSON output using the shared calibrator if configured
+  if (!m_output_json_file.empty()) {
+    stereo_calibration_result json_result;
+    json_result.success = true;
+    json_result.image_size = image_size;
+    json_result.square_size = m_square_size;
+    // Grid size derived from world points - find max x and y indices
+    if (!world_points.empty() && !world_points[0].empty()) {
+      float max_x = 0, max_y = 0;
+      for (const auto& pt : world_points[0]) {
+        max_x = std::max(max_x, pt.x);
+        max_y = std::max(max_y, pt.y);
+      }
+      int grid_w = static_cast<int>(max_x / m_square_size) + 1;
+      int grid_h = static_cast<int>(max_y / m_square_size) + 1;
+      json_result.grid_size = cv::Size(grid_w, grid_h);
+    }
+    json_result.left.success = true;
+    json_result.left.camera_matrix = cv_K1;
+    json_result.left.dist_coeffs = cv::Mat(dist_coeffs1);
+    json_result.right.success = true;
+    json_result.right.camera_matrix = cv_K2;
+    json_result.right.dist_coeffs = cv::Mat(dist_coeffs2);
+    json_result.stereo_rms_error = rms;
+    json_result.R = cv_R;
+    json_result.T = cv_T;
+    json_result.R1 = cv_R1;
+    json_result.R2 = cv_R2;
+    json_result.P1 = cv_P1;
+    json_result.P2 = cv_P2;
+    json_result.Q = cv_Q;
+
+    m_calibrator.write_calibration_json(json_result, m_output_json_file);
+    LOG_DEBUG(m_logger, "Wrote JSON calibration to: " << m_output_json_file);
+  }
 
   // CALIBRATION QUALITY CHECK
   // because the output fundamental matrix implicitly
@@ -355,7 +394,7 @@ void ocv_optimize_stereo_cameras::priv::calibrate_stereo_camera(kv::camera_map::
   double err = 0;
   int nPoints = 0;
   std::vector<cv::Vec3f> leftCameraLines, rightCameraLines;
-  for (int i = 0; i < image_points1.size(); i++) {
+  for (size_t i = 0; i < image_points1.size(); i++) {
     int npt = (int) image_points1[i].size();
     cv::Mat leftImgPt, rightImgPt;
     leftImgPt = cv::Mat(image_points1[i]);
@@ -376,7 +415,7 @@ void ocv_optimize_stereo_cameras::priv::calibrate_stereo_camera(kv::camera_map::
     nPoints += npt;
   }
   float epipolarError = err / nPoints;
-  LOG_DEBUG(m_logger, "Average epipolar err = " << epipolarError);
+  LOG_INFO(m_logger, "Quality check - average epipolar error: " << epipolarError);
 
   // Setup calibrate stereo camera1
   auto res_cam1 = std::make_shared<kv::simple_camera_perspective>();
@@ -449,12 +488,18 @@ ocv_optimize_stereo_cameras::~ocv_optimize_stereo_cameras() {}
 kv::config_block_sptr ocv_optimize_stereo_cameras::get_configuration() const {
   // Get base config from base class
   kv::config_block_sptr config = kv::algorithm::get_configuration();
-  config->set_value("image_width", d_->m_image_width, "sensor image width");
-  config->set_value("image_height", d_->m_image_height, "sensor image height");
+  config->set_value("image_width", d_->m_image_width,
+                    "sensor image width (0 to derive from data)");
+  config->set_value("image_height", d_->m_image_height,
+                    "sensor image height (0 to derive from data)");
   config->set_value("frame_count_threshold", d_->m_frame_count_threshold,
                     "max number of frames to use during optimization");
   config->set_value("output_calibration_directory", d_->m_output_calibration_directory,
-                    "output path for the generated calibration files");
+                    "output path for the generated calibration files (OpenCV YAML format)");
+  config->set_value("output_json_file", d_->m_output_json_file,
+                    "output path for JSON calibration file (compatible with camera_rig_io)");
+  config->set_value("square_size", d_->m_square_size,
+                    "calibration pattern square size in world units (e.g., mm)");
 
   return config;
 }
@@ -464,10 +509,15 @@ kv::config_block_sptr ocv_optimize_stereo_cameras::get_configuration() const {
 void ocv_optimize_stereo_cameras::set_configuration(kv::config_block_sptr config_in) {
   kv::config_block_sptr config = this->get_configuration();
   config->merge_config(config_in);
-  d_->m_image_width = config->get_value<double>("image_width");
-  d_->m_image_height = config->get_value<double>("image_height");
-  d_->m_frame_count_threshold = config->get_value<double>("frame_count_threshold");
+  d_->m_image_width = config->get_value<unsigned>("image_width");
+  d_->m_image_height = config->get_value<unsigned>("image_height");
+  d_->m_frame_count_threshold = config->get_value<unsigned>("frame_count_threshold");
   d_->m_output_calibration_directory = config->get_value<std::string>("output_calibration_directory");
+  d_->m_output_json_file = config->get_value<std::string>("output_json_file");
+  d_->m_square_size = config->get_value<double>("square_size");
+
+  // Set logger on shared calibrator
+  d_->m_calibrator.set_logger(d_->m_logger);
 }
 
 // ----------------------------------------------------------------------------
@@ -497,16 +547,16 @@ void ocv_optimize_stereo_cameras::optimize(kv::camera_map_sptr &cameras, kv::fea
   kv::landmark_map::map_landmark_t lms1, lms2;
   kv::landmark_map_sptr landmarks1, landmarks2;
 
-  auto features_half_size = (int) trks.size() / 2;
-  auto landmarks_half_size = (int) lms.size() / 2;
+  auto features_half_size = trks.size() / 2;
+  auto landmarks_half_size = lms.size() / 2;
   if (features_half_size % 2 || landmarks_half_size % 2) {
     LOG_WARN(d_->m_logger, "Inconsistant features or landmarks number.");
     return;
   }
 
-  for (auto i_track = 0; i_track < trks.size(); i_track++) {
+  for (size_t i_track = 0; i_track < trks.size(); i_track++) {
     auto is_left_cam = i_track < features_half_size;
-    int track_id = is_left_cam ? i_track : i_track - features_half_size;
+    size_t track_id = is_left_cam ? i_track : i_track - features_half_size;
 
     if (is_left_cam) {
       trks1.push_back(trks[i_track]);

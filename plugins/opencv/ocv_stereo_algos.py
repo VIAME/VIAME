@@ -1013,11 +1013,12 @@ class StereoCalibration(object):
     @classmethod
     def from_file(StereoCalibration, cal_fpath):
         """
-        Loads a camera calebration from a .mat or .npz file
+        Loads a camera calibration from a .mat, .npz, or .json file
 
         SeeAlso:
             from_npzfile
             from_matfile
+            from_jsonfile
 
         Example:
             >>> # xdoctest: +SKIP
@@ -1030,6 +1031,8 @@ class StereoCalibration(object):
             return StereoCalibration.from_matfile(cal_fpath)
         elif ext == '.npz':
             return StereoCalibration.from_npzfile(cal_fpath)
+        elif ext == '.json':
+            return StereoCalibration.from_jsonfile(cal_fpath)
         else:
             raise ValueError('unknown extension {}'.format(ext))
 
@@ -1070,6 +1073,68 @@ class StereoCalibration(object):
         flat_dict['cc_right'] = intrin2['cc']
         flat_dict['alpha_c_right'] = intrin2['alpha_c']
         flat_dict['kc_right'] = data['distCoeffsR'].ravel()
+        return StereoCalibration._from_flat_dict(flat_dict)
+
+    @classmethod
+    def from_jsonfile(StereoCalibration, cal_fpath):
+        """
+        Loads a camera calibration from a KWIVER-compatible JSON file.
+
+        This format is produced by tools/calibrate_cameras.py and is compatible
+        with the KWIVER camera_rig_io JSON format.
+
+        The JSON file should contain the following keys:
+            R: flattened 3x3 rotation matrix (9 elements)
+            T: translation vector (3 elements)
+            fx_left, fy_left, cx_left, cy_left: left camera intrinsics
+            fx_right, fy_right, cx_right, cy_right: right camera intrinsics
+            k1_left, k2_left, p1_left, p2_left, k3_left: left distortion coefficients
+            k1_right, k2_right, p1_right, p2_right, k3_right: right distortion coefficients
+
+        Example:
+            >>> # xdoctest: +SKIP
+            >>> from viame.processes.opencv.algos import *
+            >>> cal_fpath = 'calibration.json'
+            >>> cal = StereoCalibration.from_jsonfile(cal_fpath)
+        """
+        import json
+        logger.debug('Loading jsonfile {}'.format(cal_fpath))
+
+        with open(cal_fpath, 'r') as f:
+            data = json.load(f)
+
+        # Convert rotation matrix to Rodrigues vector
+        R = np.array(data['R']).reshape(3, 3)
+        om = cv2.Rodrigues(R)[0].ravel()
+
+        flat_dict = {}
+        flat_dict['om'] = om
+        flat_dict['T'] = np.array(data['T']).ravel()
+
+        # Left camera intrinsics
+        flat_dict['fc_left'] = np.array([data['fx_left'], data['fy_left']])
+        flat_dict['cc_left'] = np.array([data['cx_left'], data['cy_left']])
+        flat_dict['alpha_c_left'] = np.array([0.0])  # JSON format doesn't include skew
+        flat_dict['kc_left'] = np.array([
+            data['k1_left'],
+            data['k2_left'],
+            data['p1_left'],
+            data['p2_left'],
+            data.get('k3_left', 0.0)
+        ])
+
+        # Right camera intrinsics
+        flat_dict['fc_right'] = np.array([data['fx_right'], data['fy_right']])
+        flat_dict['cc_right'] = np.array([data['cx_right'], data['cy_right']])
+        flat_dict['alpha_c_right'] = np.array([0.0])  # JSON format doesn't include skew
+        flat_dict['kc_right'] = np.array([
+            data['k1_right'],
+            data['k2_right'],
+            data['p1_right'],
+            data['p2_right'],
+            data.get('k3_right', 0.0)
+        ])
+
         return StereoCalibration._from_flat_dict(flat_dict)
 
     def from_cameras(StereoCalibration, camera1, camera2):
