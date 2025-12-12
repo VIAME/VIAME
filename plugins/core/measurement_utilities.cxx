@@ -66,6 +66,7 @@ measurement_settings
   , default_depth( 5.0 )
   , template_size( 31 )
   , search_range( 128 )
+  , template_matching_threshold( 0.7 )
   , use_distortion( true )
   , sgbm_min_disparity( 0 )
   , sgbm_num_disparities( 128 )
@@ -114,6 +115,10 @@ measurement_settings
 
   config->set_value( "search_range", search_range,
     "Search range (in pixels) along epipolar line for template matching." );
+
+  config->set_value( "template_matching_threshold", template_matching_threshold,
+    "Minimum normalized correlation threshold for template matching (0.0 to 1.0). "
+    "Higher values require better matches but may miss valid correspondences." );
 
   config->set_value( "use_distortion", use_distortion,
     "Whether to use distortion coefficients from the calibration during rectification. "
@@ -184,6 +189,7 @@ measurement_settings
   default_depth = config->get_value< double >( "default_depth", default_depth );
   template_size = config->get_value< int >( "template_size", template_size );
   search_range = config->get_value< int >( "search_range", search_range );
+  template_matching_threshold = config->get_value< double >( "template_matching_threshold", template_matching_threshold );
   use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
   sgbm_min_disparity = config->get_value< int >( "sgbm_min_disparity", sgbm_min_disparity );
   sgbm_num_disparities = config->get_value< int >( "sgbm_num_disparities", sgbm_num_disparities );
@@ -336,6 +342,7 @@ measurement_utilities
   : m_default_depth( 5.0 )
   , m_template_size( 31 )
   , m_search_range( 128 )
+  , m_template_matching_threshold( 0.7 )
   , m_use_distortion( true )
   , m_sgbm_min_disparity( 0 )
   , m_sgbm_num_disparities( 128 )
@@ -370,10 +377,12 @@ measurement_utilities
 // -----------------------------------------------------------------------------
 void
 measurement_utilities
-::set_template_params( int template_size, int search_range )
+::set_template_params( int template_size, int search_range,
+                       double matching_threshold )
 {
   m_template_size = template_size;
   m_search_range = search_range;
+  m_template_matching_threshold = matching_threshold;
 
   // Ensure template size is odd
   if( m_template_size % 2 == 0 )
@@ -461,7 +470,8 @@ measurement_utilities
 ::configure( const measurement_settings& settings )
 {
   set_default_depth( settings.default_depth );
-  set_template_params( settings.template_size, settings.search_range );
+  set_template_params( settings.template_size, settings.search_range,
+                       settings.template_matching_threshold );
   set_use_distortion( settings.use_distortion );
   set_sgbm_params( settings.sgbm_min_disparity, settings.sgbm_num_disparities,
                    settings.sgbm_block_size );
@@ -1355,7 +1365,7 @@ measurement_utilities
   cv::minMaxLoc( result, &min_val, &max_val, &min_loc, &max_loc );
 
   // Use a threshold for match quality
-  if( max_val < 0.7 )
+  if( max_val < m_template_matching_threshold )
   {
     return false;
   }

@@ -110,6 +110,9 @@ public:
   /// Search range (in pixels) along epipolar line for template matching
   int search_range;
 
+  /// Minimum correlation threshold for template matching (0.0 to 1.0)
+  double template_matching_threshold;
+
   /// Whether to use distortion coefficients from calibration
   bool use_distortion;
 
@@ -205,7 +208,8 @@ public:
   void set_default_depth( double depth );
 
   /// Set template matching parameters
-  void set_template_params( int template_size, int search_range );
+  void set_template_params( int template_size, int search_range,
+                            double matching_threshold = 0.7 );
 
   /// Set whether to use distortion coefficients
   void set_use_distortion( bool use_distortion );
@@ -422,6 +426,7 @@ private:
   double m_default_depth;
   int m_template_size;
   int m_search_range;
+  double m_template_matching_threshold;
   bool m_use_distortion;
   int m_sgbm_min_disparity;
   int m_sgbm_num_disparities;
