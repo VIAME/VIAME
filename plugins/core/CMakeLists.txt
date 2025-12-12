@@ -72,6 +72,7 @@ set( CORE_LINK_LIBRARIES
   kwiver::vital_logger
   kwiver::vital_util
   kwiver::kwiversys
+  kwiver::kwiver_algo_mvg
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   )
