@@ -1402,9 +1402,25 @@ map_keypoints_to_camera
                           m_template_size, m_template_size );
   cv::Mat template_img = left_image_rect( template_rect );
 
-  // Define search region in right image
-  int search_min_x = std::max( 0, x_left - m_search_range );
-  int search_max_x = std::min( right_image_rect.cols - m_template_size, x_left );
+  // Compute expected disparity from default depth using rectified camera parameters
+  // In P2, element [0,3] = -fx * baseline, so disparity = -P2[0,3] / depth
+  double expected_disparity = 0.0;
+  if( !m_P2.empty() && m_default_depth > 0 )
+  {
+    expected_disparity = -m_P2.at<double>( 0, 3 ) / m_default_depth;
+  }
+
+  // Compute expected right x position based on disparity
+  int expected_right_x = static_cast<int>( x_left - expected_disparity );
+
+  // Define search region centered around expected position
+  // Use half the search range on each side of expected position for efficiency
+  int half_search = m_search_range / 2;
+  int search_min_x = std::max( 0, expected_right_x - half_search );
+  int search_max_x = std::min( right_image_rect.cols - m_template_size, expected_right_x + half_search );
+
+  // Ensure we don't search past the left point (disparity is always positive in standard stereo)
+  search_max_x = std::min( search_max_x, x_left );
 
   if( search_max_x <= search_min_x )
   {
