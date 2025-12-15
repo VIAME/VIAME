@@ -48,6 +48,8 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
+#include <plugins/core/measurement_utilities.h>
+
 #include <LX_StereoInterface.h>
 
 #include <string>
@@ -112,15 +114,8 @@ public:
   std::set< std::string > p_port_list;
   seagis_measurement_process* parent;
 
-  // Measurement result structure
-  struct measurement_result
-  {
-    double length;
-    double x, y, z;  // midpoint 3D position
-    double range;    // distance from midpoint to camera
-    double rms;      // combined RMS error
-    bool valid;
-  };
+  // Use shared measurement result type from core
+  using measurement_result = core::stereo_measurement_result;
 
   // Helper functions
   measurement_result compute_measurement(
@@ -163,11 +158,6 @@ seagis_measurement_process::priv
   const kv::vector_2d& right_tail )
 {
   measurement_result result;
-  result.valid = false;
-  result.length = -1.0;
-  result.x = result.y = result.z = 0.0;
-  result.range = 0.0;
-  result.rms = 0.0;
 
   // Intersect head points
   C2DPt ptLeftHead( left_head.x(), left_head.y() );
@@ -522,26 +512,11 @@ seagis_measurement_process
               << measurement.y << ", " << measurement.z << ")" );
     LOG_INFO( logger(), "  Range: " << measurement.range << ", RMS: " << measurement.rms );
 
-    det1->set_length( measurement.length );
-    det2->set_length( measurement.length );
-
     det1->add_note( ":stereo_method=seagis" );
     det2->add_note( ":stereo_method=seagis" );
 
-    det1->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
-    det2->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
-
-    det1->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
-    det2->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
-
-    det1->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
-    det2->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
-
-    det1->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
-    det2->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
-
-    det1->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
-    det2->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
+    core::add_measurement_attributes( det1, measurement );
+    core::add_measurement_attributes( det2, measurement );
   }
 
   // Ensure output track sets exist

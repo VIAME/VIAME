@@ -254,7 +254,7 @@ std::vector< std::string >
 measurement_settings
 ::get_matching_methods() const
 {
-  return measurement_utilities::parse_matching_methods( matching_methods );
+  return parse_matching_methods( matching_methods );
 }
 
 // -----------------------------------------------------------------------------
@@ -269,7 +269,7 @@ measurement_settings
     return "No valid matching methods specified";
   }
 
-  auto valid_methods = measurement_utilities::get_valid_methods();
+  auto valid_methods = get_valid_methods();
   for( const auto& method : methods )
   {
     if( std::find( valid_methods.begin(), valid_methods.end(), method ) == valid_methods.end() )
@@ -289,7 +289,7 @@ measurement_settings
   auto methods = get_matching_methods();
   for( const auto& method : methods )
   {
-    if( measurement_utilities::method_requires_images( method ) )
+    if( method_requires_images( method ) )
     {
       return true;
     }
@@ -600,7 +600,7 @@ measurement_utilities
 }
 
 // -----------------------------------------------------------------------------
-measurement_utilities::stereo_measurement_result
+stereo_measurement_result
 measurement_utilities
 ::compute_stereo_measurement(
   const kv::simple_camera_perspective& left_cam,
@@ -611,11 +611,6 @@ measurement_utilities
   const kv::vector_2d& right_tail ) const
 {
   stereo_measurement_result result;
-  result.valid = false;
-  result.length = 0.0;
-  result.x = result.y = result.z = 0.0;
-  result.range = 0.0;
-  result.rms = 0.0;
 
   // Triangulate head and tail points
   kv::vector_3d head_3d = triangulate_point( left_cam, right_cam, left_head, right_head );
@@ -660,6 +655,20 @@ measurement_utilities
 
   result.valid = true;
   return result;
+}
+
+// -----------------------------------------------------------------------------
+void
+add_measurement_attributes(
+  kv::detected_object_sptr det,
+  const stereo_measurement_result& measurement )
+{
+  det->set_length( measurement.length );
+  det->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+  det->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+  det->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+  det->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+  det->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
 }
 
 // -----------------------------------------------------------------------------
@@ -1526,8 +1535,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 std::vector< std::string >
-measurement_utilities
-::parse_matching_methods( const std::string& methods_str )
+parse_matching_methods( const std::string& methods_str )
 {
   std::vector< std::string > methods;
   std::stringstream ss( methods_str );
@@ -1550,8 +1558,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 bool
-measurement_utilities
-::method_requires_images( const std::string& method )
+method_requires_images( const std::string& method )
 {
   return ( method == "template_matching" ||
            method == "sgbm_disparity" ||
@@ -1561,8 +1568,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 std::vector< std::string >
-measurement_utilities
-::get_valid_methods()
+get_valid_methods()
 {
   return {
     "input_pairs_only",

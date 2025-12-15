@@ -42,6 +42,7 @@
 #include <vital/types/bounding_box.h>
 #include <vital/types/image_container.h>
 #include <vital/types/camera_perspective.h>
+#include <vital/types/detected_object.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/match_set.h>
@@ -68,6 +69,43 @@ namespace core
 {
 
 namespace kv = kwiver::vital;
+
+// =============================================================================
+// Free-standing structs and utility functions
+// =============================================================================
+
+/// Result structure for full stereo measurement (length + 3D position + error)
+struct VIAME_CORE_EXPORT stereo_measurement_result
+{
+  double length;         // distance between head and tail in 3D
+  double x, y, z;        // midpoint 3D position (real-world location)
+  double range;          // distance from midpoint to camera
+  double rms;            // RMS error
+  bool valid;
+
+  stereo_measurement_result()
+    : length( 0.0 ), x( 0.0 ), y( 0.0 ), z( 0.0 )
+    , range( 0.0 ), rms( 0.0 ), valid( false ) {}
+};
+
+/// Add measurement attributes (length, midpoint, range, rms) to a detection
+VIAME_CORE_EXPORT void add_measurement_attributes(
+  kv::detected_object_sptr det,
+  const stereo_measurement_result& measurement );
+
+/// Parse a comma-separated list of matching methods
+VIAME_CORE_EXPORT std::vector< std::string > parse_matching_methods(
+  const std::string& methods_str );
+
+/// Check if a method requires images
+VIAME_CORE_EXPORT bool method_requires_images( const std::string& method );
+
+/// Get list of all valid method names
+VIAME_CORE_EXPORT std::vector< std::string > get_valid_methods();
+
+// =============================================================================
+// Classes
+// =============================================================================
 
 /**
  * \brief Configuration settings for stereo measurement operations
@@ -271,16 +309,6 @@ public:
     const kv::vector_2d& left_tail,
     const kv::vector_2d& right_tail ) const;
 
-  /// Result structure for full stereo measurement (length + 3D position + error)
-  struct stereo_measurement_result
-  {
-    double length;         // distance between head and tail in 3D
-    double x, y, z;        // midpoint 3D position (real-world location)
-    double range;          // distance from midpoint to left camera center
-    double rms;            // RMS reprojection error
-    bool valid;
-  };
-
   /// Compute full stereo measurement including length, 3D position, range, and RMS
   stereo_measurement_result compute_stereo_measurement(
     const kv::simple_camera_perspective& left_cam,
@@ -426,19 +454,6 @@ public:
   const cv::Mat& get_rectification_map_x( bool is_right_camera ) const;
   const cv::Mat& get_rectification_map_y( bool is_right_camera ) const;
 #endif
-
-  // -------------------------------------------------------------------------
-  // Method name parsing utilities
-  // -------------------------------------------------------------------------
-
-  /// Parse a comma-separated list of matching methods
-  static std::vector< std::string > parse_matching_methods( const std::string& methods_str );
-
-  /// Check if a method requires images
-  static bool method_requires_images( const std::string& method );
-
-  /// Get list of all valid method names
-  static std::vector< std::string > get_valid_methods();
 
 private:
   // Configuration
