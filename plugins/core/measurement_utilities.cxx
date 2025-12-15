@@ -56,12 +56,12 @@ namespace core
 {
 
 // =============================================================================
-// measurement_settings implementation
+// map_keypoints_to_camera_settings implementation
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-measurement_settings
-::measurement_settings()
+map_keypoints_to_camera_settings
+::map_keypoints_to_camera_settings()
   : matching_methods( "input_pairs_only,template_matching" )
   , default_depth( 5.0 )
   , template_size( 31 )
@@ -82,14 +82,14 @@ measurement_settings
 }
 
 // -----------------------------------------------------------------------------
-measurement_settings
-::~measurement_settings()
+map_keypoints_to_camera_settings
+::~map_keypoints_to_camera_settings()
 {
 }
 
 // -----------------------------------------------------------------------------
 kv::config_block_sptr
-measurement_settings
+map_keypoints_to_camera_settings
 ::get_configuration() const
 {
   kv::config_block_sptr config = kv::config_block::empty_config();
@@ -182,7 +182,7 @@ measurement_settings
 
 // -----------------------------------------------------------------------------
 void
-measurement_settings
+map_keypoints_to_camera_settings
 ::set_configuration( kv::config_block_sptr config )
 {
   matching_methods = config->get_value< std::string >( "matching_methods", matching_methods );
@@ -215,7 +215,7 @@ measurement_settings
 
 // -----------------------------------------------------------------------------
 bool
-measurement_settings
+map_keypoints_to_camera_settings
 ::check_configuration( kv::config_block_sptr config ) const
 {
   bool valid = true;
@@ -251,7 +251,7 @@ measurement_settings
 
 // -----------------------------------------------------------------------------
 std::vector< std::string >
-measurement_settings
+map_keypoints_to_camera_settings
 ::get_matching_methods() const
 {
   return parse_matching_methods( matching_methods );
@@ -259,7 +259,7 @@ measurement_settings
 
 // -----------------------------------------------------------------------------
 std::string
-measurement_settings
+map_keypoints_to_camera_settings
 ::validate_matching_methods() const
 {
   auto methods = get_matching_methods();
@@ -283,7 +283,7 @@ measurement_settings
 
 // -----------------------------------------------------------------------------
 bool
-measurement_settings
+map_keypoints_to_camera_settings
 ::any_method_requires_images() const
 {
   auto methods = get_matching_methods();
@@ -299,7 +299,7 @@ measurement_settings
 
 // -----------------------------------------------------------------------------
 std::vector< std::string >
-measurement_settings
+map_keypoints_to_camera_settings
 ::check_feature_algorithm_warnings() const
 {
   std::vector< std::string > warnings;
@@ -333,12 +333,12 @@ measurement_settings
 }
 
 // =============================================================================
-// measurement_utilities implementation
+// map_keypoints_to_camera implementation
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-measurement_utilities
-::measurement_utilities()
+map_keypoints_to_camera
+::map_keypoints_to_camera()
   : m_default_depth( 5.0 )
   , m_template_size( 31 )
   , m_search_range( 128 )
@@ -361,14 +361,14 @@ measurement_utilities
 }
 
 // -----------------------------------------------------------------------------
-measurement_utilities
-::~measurement_utilities()
+map_keypoints_to_camera
+::~map_keypoints_to_camera()
 {
 }
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::set_default_depth( double depth )
 {
   m_default_depth = depth;
@@ -376,7 +376,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::set_template_params( int template_size, int search_range,
                        double matching_threshold )
 {
@@ -393,7 +393,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::set_use_distortion( bool use_distortion )
 {
   m_use_distortion = use_distortion;
@@ -401,7 +401,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::set_sgbm_params( int min_disparity, int num_disparities, int block_size )
 {
   m_sgbm_min_disparity = min_disparity;
@@ -428,7 +428,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::set_feature_params( double search_radius, double ransac_inlier_scale,
                       int min_ransac_inliers,
                       bool use_disparity_aware_search,
@@ -443,7 +443,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::set_box_scale_factor( double scale_factor )
 {
   m_box_scale_factor = scale_factor;
@@ -451,7 +451,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::set_feature_algorithms(
   kv::algo::detect_features_sptr detector,
   kv::algo::extract_descriptors_sptr extractor,
@@ -466,8 +466,8 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
-::configure( const measurement_settings& settings )
+map_keypoints_to_camera
+::configure( const map_keypoints_to_camera_settings& settings )
 {
   set_default_depth( settings.default_depth );
   set_template_params( settings.template_size, settings.search_range,
@@ -486,7 +486,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 kv::vector_2d
-measurement_utilities
+map_keypoints_to_camera
 ::project_left_to_right(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -497,7 +497,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 kv::vector_2d
-measurement_utilities
+map_keypoints_to_camera
 ::project_left_to_right(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -534,7 +534,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 kv::bounding_box_d
-measurement_utilities
+map_keypoints_to_camera
 ::compute_bbox_from_keypoints(
   const kv::vector_2d& head_point,
   const kv::vector_2d& tail_point ) const
@@ -566,7 +566,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 kv::vector_3d
-measurement_utilities
+map_keypoints_to_camera
 ::triangulate_point(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -584,7 +584,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 double
-measurement_utilities
+map_keypoints_to_camera
 ::compute_stereo_length(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -601,7 +601,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 stereo_measurement_result
-measurement_utilities
+map_keypoints_to_camera
 ::compute_stereo_measurement(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -672,8 +672,8 @@ add_measurement_attributes(
 }
 
 // -----------------------------------------------------------------------------
-measurement_utilities::stereo_correspondence_result
-measurement_utilities
+map_keypoints_to_camera::stereo_correspondence_result
+map_keypoints_to_camera
 ::find_stereo_correspondence(
   const std::vector< std::string >& methods,
   const kv::simple_camera_perspective& left_cam,
@@ -835,8 +835,8 @@ measurement_utilities
 
 #ifdef VIAME_ENABLE_OPENCV
 // -----------------------------------------------------------------------------
-measurement_utilities::stereo_image_data
-measurement_utilities
+map_keypoints_to_camera::stereo_image_data
+map_keypoints_to_camera
 ::prepare_stereo_images(
   const std::vector< std::string >& methods,
   const kv::simple_camera_perspective& left_cam,
@@ -921,7 +921,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 bool
-measurement_utilities
+map_keypoints_to_camera
 ::find_corresponding_point_feature_descriptor(
   const kv::image_container_sptr& left_image,
   const kv::image_container_sptr& right_image,
@@ -1029,7 +1029,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 bool
-measurement_utilities
+map_keypoints_to_camera
 ::find_corresponding_point_ransac_feature(
   const kv::image_container_sptr& left_image,
   const kv::image_container_sptr& right_image,
@@ -1165,7 +1165,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::clear_feature_cache()
 {
   m_cached_left_features.reset();
@@ -1177,7 +1177,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::set_frame_id( kv::frame_id_t frame_id )
 {
   if( m_cached_frame_id != frame_id )
@@ -1191,7 +1191,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 void
-measurement_utilities
+map_keypoints_to_camera
 ::compute_rectification_maps(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -1271,7 +1271,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 bool
-measurement_utilities
+map_keypoints_to_camera
 ::rectification_computed() const
 {
   return m_rectification_computed;
@@ -1279,7 +1279,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 kv::vector_2d
-measurement_utilities
+map_keypoints_to_camera
 ::rectify_point(
   const kv::vector_2d& original_point,
   bool is_right_camera ) const
@@ -1309,7 +1309,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 kv::vector_2d
-measurement_utilities
+map_keypoints_to_camera
 ::unrectify_point(
   const kv::vector_2d& rectified_point,
   bool is_right_camera,
@@ -1355,7 +1355,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 cv::Mat
-measurement_utilities
+map_keypoints_to_camera
 ::rectify_image( const cv::Mat& image, bool is_right_camera ) const
 {
   if( !m_rectification_computed )
@@ -1379,7 +1379,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 bool
-measurement_utilities
+map_keypoints_to_camera
 ::find_corresponding_point_template_matching(
   const cv::Mat& left_image_rect,
   const cv::Mat& right_image_rect,
@@ -1452,7 +1452,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 cv::Mat
-measurement_utilities
+map_keypoints_to_camera
 ::compute_sgbm_disparity(
   const cv::Mat& left_image_rect,
   const cv::Mat& right_image_rect )
@@ -1482,7 +1482,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 bool
-measurement_utilities
+map_keypoints_to_camera
 ::find_corresponding_point_sgbm(
   const cv::Mat& disparity_map,
   const kv::vector_2d& left_point_rect,
@@ -1517,7 +1517,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 const cv::Mat&
-measurement_utilities
+map_keypoints_to_camera
 ::get_rectification_map_x( bool is_right_camera ) const
 {
   return is_right_camera ? m_rectification_map_right_x : m_rectification_map_left_x;
@@ -1525,7 +1525,7 @@ measurement_utilities
 
 // -----------------------------------------------------------------------------
 const cv::Mat&
-measurement_utilities
+map_keypoints_to_camera
 ::get_rectification_map_y( bool is_right_camera ) const
 {
   return is_right_camera ? m_rectification_map_right_y : m_rectification_map_left_y;

@@ -63,7 +63,7 @@ namespace viame
 namespace core
 {
 
-// Only calibration_file is process-specific; rest comes from measurement_settings
+// Only calibration_file is process-specific; rest comes from map_keypoints_to_camera_settings
 create_config_trait( calibration_file, std::string, "",
   "Input filename for the calibration file to use" );
 
@@ -84,7 +84,7 @@ public:
   std::string m_calibration_file;
 
   // Measurement settings (contains all algo parameters and algorithm pointers)
-  measurement_settings m_settings;
+  map_keypoints_to_camera_settings m_settings;
 
   // Parsed matching methods (derived from settings)
   std::vector< std::string > m_matching_methods;
@@ -96,7 +96,7 @@ public:
   measurement_process* parent;
 
   // Measurement utilities
-  measurement_utilities m_utilities;
+  map_keypoints_to_camera m_utilities;
 };
 
 
@@ -163,7 +163,7 @@ measurement_process
   // Process-specific config
   declare_config_using_trait( calibration_file );
 
-  // Merge in measurement_settings configuration
+  // Merge in map_keypoints_to_camera_settings configuration
   kv::config_block_sptr settings_config = d->m_settings.get_configuration();
   for( auto const& key : settings_config->available_values() )
   {

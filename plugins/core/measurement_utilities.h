@@ -113,11 +113,11 @@ VIAME_CORE_EXPORT std::vector< std::string > get_valid_methods();
  * This class encapsulates all configuration parameters for stereo measurement
  * and provides standard kwiver get/set configuration functions.
  */
-class VIAME_CORE_EXPORT measurement_settings
+class VIAME_CORE_EXPORT map_keypoints_to_camera_settings
 {
 public:
-  measurement_settings();
-  ~measurement_settings();
+  map_keypoints_to_camera_settings();
+  ~map_keypoints_to_camera_settings();
 
   // -------------------------------------------------------------------------
   // Standard kwiver configuration functions
@@ -225,18 +225,18 @@ public:
  * including point projection, template matching, SGBM disparity, and
  * feature-based correspondence finding.
  */
-class VIAME_CORE_EXPORT measurement_utilities
+class VIAME_CORE_EXPORT map_keypoints_to_camera
 {
 public:
-  measurement_utilities();
-  ~measurement_utilities();
+  map_keypoints_to_camera();
+  ~map_keypoints_to_camera();
 
   // -------------------------------------------------------------------------
   // Configuration from settings
   // -------------------------------------------------------------------------
 
-  /// Configure all parameters from a measurement_settings object
-  void configure( const measurement_settings& settings );
+  /// Configure all parameters from a map_keypoints_to_camera_settings object
+  void configure( const map_keypoints_to_camera_settings& settings );
 
   // -------------------------------------------------------------------------
   // Configuration setters (for individual parameter control)
