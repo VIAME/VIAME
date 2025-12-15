@@ -28,6 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <plugins/opencv/viame_processes_opencv_export.h>
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
 
@@ -39,6 +40,7 @@
  *
  */
 extern "C"
+VIAME_PROCESSES_OPENCV_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
