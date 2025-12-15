@@ -600,6 +600,69 @@ measurement_utilities
 }
 
 // -----------------------------------------------------------------------------
+measurement_utilities::stereo_measurement_result
+measurement_utilities
+::compute_stereo_measurement(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_head,
+  const kv::vector_2d& right_head,
+  const kv::vector_2d& left_tail,
+  const kv::vector_2d& right_tail ) const
+{
+  stereo_measurement_result result;
+  result.valid = false;
+  result.length = 0.0;
+  result.x = result.y = result.z = 0.0;
+  result.range = 0.0;
+  result.rms = 0.0;
+
+  // Triangulate head and tail points
+  kv::vector_3d head_3d = triangulate_point( left_cam, right_cam, left_head, right_head );
+  kv::vector_3d tail_3d = triangulate_point( left_cam, right_cam, left_tail, right_tail );
+
+  // Compute length
+  result.length = ( tail_3d - head_3d ).norm();
+
+  // Compute midpoint (real-world 3D location)
+  kv::vector_3d midpoint_3d = ( head_3d + tail_3d ) / 2.0;
+  result.x = midpoint_3d.x();
+  result.y = midpoint_3d.y();
+  result.z = midpoint_3d.z();
+
+  // Compute range (distance from midpoint to left camera center)
+  const kv::vector_3d& left_center = left_cam.center();
+  result.range = ( midpoint_3d - left_center ).norm();
+
+  // Compute RMS reprojection error
+  // Project the 3D points back to both cameras and measure error
+  auto compute_reprojection_error = [&]( const kv::vector_3d& pt_3d,
+                                          const kv::vector_2d& left_pt,
+                                          const kv::vector_2d& right_pt ) -> double
+  {
+    // Project to left camera
+    kv::vector_2d left_reproj = left_cam.project( pt_3d );
+    double left_err_sq = ( left_reproj - left_pt ).squaredNorm();
+
+    // Project to right camera
+    kv::vector_2d right_reproj = right_cam.project( pt_3d );
+    double right_err_sq = ( right_reproj - right_pt ).squaredNorm();
+
+    return left_err_sq + right_err_sq;
+  };
+
+  double head_err_sq = compute_reprojection_error( head_3d, left_head, right_head );
+  double tail_err_sq = compute_reprojection_error( tail_3d, left_tail, right_tail );
+
+  // RMS = sqrt( sum of squared errors / number of measurements )
+  // 4 measurements total: left_head, right_head, left_tail, right_tail
+  result.rms = std::sqrt( ( head_err_sq + tail_err_sq ) / 4.0 );
+
+  result.valid = true;
+  return result;
+}
+
+// -----------------------------------------------------------------------------
 measurement_utilities::stereo_correspondence_result
 measurement_utilities
 ::find_stereo_correspondence(

@@ -432,19 +432,38 @@ measurement_process
     kv::vector_2d left_tail( kp1.at("tail")[0], kp1.at("tail")[1] );
     kv::vector_2d right_tail( kp2.at("tail")[0], kp2.at("tail")[1] );
 
-    const double length = d->m_utilities.compute_stereo_length(
+    const auto measurement = d->m_utilities.compute_stereo_measurement(
       left_cam, right_cam, left_head, right_head, left_tail, right_tail );
 
-    LOG_INFO( logger(), "Computed Length (input_kps_used): " + std::to_string( length ) );
+    LOG_INFO( logger(), "Computed Length (input_kps_used): " + std::to_string( measurement.length ) );
+    LOG_INFO( logger(), "  Midpoint (x,y,z): (" + std::to_string( measurement.x ) + ", "
+              + std::to_string( measurement.y ) + ", " + std::to_string( measurement.z ) + ")" );
+    LOG_INFO( logger(), "  Range: " + std::to_string( measurement.range ) +
+              ", RMS: " + std::to_string( measurement.rms ) );
 
-    det1->set_length( length );
-    det2->set_length( length );
+    det1->set_length( measurement.length );
+    det2->set_length( measurement.length );
 
     if( d->m_settings.record_stereo_method )
     {
       det1->add_note( ":stereo_method=input_kps_used" );
       det2->add_note( ":stereo_method=input_kps_used" );
     }
+
+    det1->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+    det2->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+
+    det1->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+    det2->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+
+    det1->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+    det2->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+
+    det1->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+    det2->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+
+    det1->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
+    det2->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
   }
 
   // Combine left-only IDs and matched IDs missing right keypoints
@@ -526,21 +545,31 @@ measurement_process
         continue;
       }
 
-      // Compute length
-      const double length = d->m_utilities.compute_stereo_length(
+      // Compute full measurement
+      const auto measurement = d->m_utilities.compute_stereo_measurement(
         left_cam, right_cam,
         result.left_head, result.right_head,
         result.left_tail, result.right_tail );
 
       LOG_INFO( logger(), "Computed Length (" + result.method_used + "): " +
-                          std::to_string( length ) );
+                          std::to_string( measurement.length ) );
+      LOG_INFO( logger(), "  Midpoint (x,y,z): (" + std::to_string( measurement.x ) + ", "
+                + std::to_string( measurement.y ) + ", " + std::to_string( measurement.z ) + ")" );
+      LOG_INFO( logger(), "  Range: " + std::to_string( measurement.range ) +
+                ", RMS: " + std::to_string( measurement.rms ) );
 
-      det1->set_length( length );
+      det1->set_length( measurement.length );
 
       if( d->m_settings.record_stereo_method )
       {
         det1->add_note( ":stereo_method=" + result.method_used );
       }
+
+      det1->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+      det1->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+      det1->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+      det1->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+      det1->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
 
       if( is_left_only )
       {
@@ -550,7 +579,7 @@ measurement_process
         auto det2 = std::make_shared< kv::detected_object >( right_bbox );
         det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
         det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
-        det2->set_length( length );
+        det2->set_length( measurement.length );
 
         if( det1->type() )
         {
@@ -562,6 +591,12 @@ measurement_process
         {
           det2->add_note( ":stereo_method=" + result.method_used );
         }
+
+        det2->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+        det2->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+        det2->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+        det2->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+        det2->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
 
         if( !input_tracks[1] )
         {
@@ -590,12 +625,18 @@ measurement_process
         auto& det2 = dets[1][id];
         det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
         det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
-        det2->set_length( length );
+        det2->set_length( measurement.length );
 
         if( d->m_settings.record_stereo_method )
         {
           det2->add_note( ":stereo_method=" + result.method_used );
         }
+
+        det2->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+        det2->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+        det2->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+        det2->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+        det2->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
       }
     }
   }

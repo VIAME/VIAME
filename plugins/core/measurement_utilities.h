@@ -271,6 +271,25 @@ public:
     const kv::vector_2d& left_tail,
     const kv::vector_2d& right_tail ) const;
 
+  /// Result structure for full stereo measurement (length + 3D position + error)
+  struct stereo_measurement_result
+  {
+    double length;         // distance between head and tail in 3D
+    double x, y, z;        // midpoint 3D position (real-world location)
+    double range;          // distance from midpoint to left camera center
+    double rms;            // RMS reprojection error
+    bool valid;
+  };
+
+  /// Compute full stereo measurement including length, 3D position, range, and RMS
+  stereo_measurement_result compute_stereo_measurement(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::vector_2d& left_head,
+    const kv::vector_2d& right_head,
+    const kv::vector_2d& left_tail,
+    const kv::vector_2d& right_tail ) const;
+
   // -------------------------------------------------------------------------
   // High-level stereo correspondence functions
   // -------------------------------------------------------------------------
