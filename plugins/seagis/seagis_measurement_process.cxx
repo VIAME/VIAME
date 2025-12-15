@@ -54,6 +54,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <cmath>
 
 namespace kv = kwiver::vital;
 
@@ -111,8 +112,18 @@ public:
   std::set< std::string > p_port_list;
   seagis_measurement_process* parent;
 
+  // Measurement result structure
+  struct measurement_result
+  {
+    double length;
+    double x, y, z;  // midpoint 3D position
+    double range;    // distance from midpoint to camera
+    double rms;      // combined RMS error
+    bool valid;
+  };
+
   // Helper functions
-  double compute_length(
+  measurement_result compute_measurement(
     const kv::vector_2d& left_head,
     const kv::vector_2d& right_head,
     const kv::vector_2d& left_tail,
@@ -143,14 +154,21 @@ seagis_measurement_process::priv
 
 
 // -----------------------------------------------------------------------------
-double
+seagis_measurement_process::priv::measurement_result
 seagis_measurement_process::priv
-::compute_length(
+::compute_measurement(
   const kv::vector_2d& left_head,
   const kv::vector_2d& right_head,
   const kv::vector_2d& left_tail,
   const kv::vector_2d& right_tail )
 {
+  measurement_result result;
+  result.valid = false;
+  result.length = -1.0;
+  result.x = result.y = result.z = 0.0;
+  result.range = 0.0;
+  result.rms = 0.0;
+
   // Intersect head points
   C2DPt ptLeftHead( left_head.x(), left_head.y() );
   C2DPt ptRightHead( right_head.x(), right_head.y() );
@@ -161,7 +179,7 @@ seagis_measurement_process::priv
                                     pt3DHead, dRMSHead, pt3DHeadSD );
   if( res != OK )
   {
-    return -1.0;
+    return result;
   }
 
   // Intersect tail points
@@ -174,14 +192,28 @@ seagis_measurement_process::priv
                              pt3DTail, dRMSTail, pt3DTailSD );
   if( res != OK )
   {
-    return -1.0;
+    return result;
   }
 
-  // Compute distance
+  // Compute length (distance between head and tail)
   double dSD;
-  double length = CStereoInt::Distance( pt3DHead, pt3DHeadSD, pt3DTail, pt3DTailSD, dSD );
+  result.length = CStereoInt::Distance( pt3DHead, pt3DHeadSD, pt3DTail, pt3DTailSD, dSD );
 
-  return length;
+  // Compute midpoint of head-tail line (real-world location)
+  result.x = ( pt3DHead.X() + pt3DTail.X() ) / 2.0;
+  result.y = ( pt3DHead.Y() + pt3DTail.Y() ) / 2.0;
+  result.z = ( pt3DHead.Z() + pt3DTail.Z() ) / 2.0;
+
+  // Compute range (distance from midpoint to camera origin at 0,0,0)
+  result.range = std::sqrt( result.x * result.x +
+                            result.y * result.y +
+                            result.z * result.z );
+
+  // Compute combined RMS (average of head and tail RMS values)
+  result.rms = ( dRMSHead + dRMSTail ) / 2.0;
+
+  result.valid = true;
+  return result;
 }
 
 
@@ -476,22 +508,40 @@ seagis_measurement_process
     kv::vector_2d left_tail( kp1.at("tail")[0], kp1.at("tail")[1] );
     kv::vector_2d right_tail( kp2.at("tail")[0], kp2.at("tail")[1] );
 
-    const double length = d->compute_length(
+    const auto measurement = d->compute_measurement(
       left_head, right_head, left_tail, right_tail );
 
-    if( length < 0 )
+    if( !measurement.valid )
     {
-      LOG_WARN( logger(), "Failed to compute length for track ID " << id );
+      LOG_WARN( logger(), "Failed to compute measurement for track ID " << id );
       continue;
     }
 
-    LOG_INFO( logger(), "Computed Length (SEAGIS): " << length );
+    LOG_INFO( logger(), "Computed Length (SEAGIS): " << measurement.length );
+    LOG_INFO( logger(), "  Midpoint (x,y,z): (" << measurement.x << ", "
+              << measurement.y << ", " << measurement.z << ")" );
+    LOG_INFO( logger(), "  Range: " << measurement.range << ", RMS: " << measurement.rms );
 
-    det1->set_length( length );
-    det2->set_length( length );
+    det1->set_length( measurement.length );
+    det2->set_length( measurement.length );
 
     det1->add_note( ":stereo_method=seagis" );
     det2->add_note( ":stereo_method=seagis" );
+
+    det1->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+    det2->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+
+    det1->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+    det2->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+
+    det1->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+    det2->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+
+    det1->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+    det2->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+
+    det1->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
+    det2->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
   }
 
   // Ensure output track sets exist
