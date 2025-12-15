@@ -10,7 +10,7 @@ from functools import partial
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from timm.models.layers import trunc_normal_, DropPath
+from timm.layers import trunc_normal_, DropPath
 
 from ..util.misc import NestedTensor
 # from timm.models.registry import register_model
