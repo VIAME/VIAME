@@ -151,6 +151,10 @@ public:
   /// Minimum correlation threshold for template matching (0.0 to 1.0)
   double template_matching_threshold;
 
+  /// Expected disparity (in pixels) for template matching search centering.
+  /// If <= 0, disparity is computed from default_depth using camera parameters.
+  double template_matching_disparity;
+
   /// Whether to use distortion coefficients from calibration
   bool use_distortion;
 
@@ -247,7 +251,8 @@ public:
 
   /// Set template matching parameters
   void set_template_params( int template_size, int search_range,
-                            double matching_threshold = 0.7 );
+                            double matching_threshold = 0.7,
+                            double disparity = 0.0 );
 
   /// Set whether to use distortion coefficients
   void set_use_distortion( bool use_distortion );
@@ -461,6 +466,7 @@ private:
   int m_template_size;
   int m_search_range;
   double m_template_matching_threshold;
+  double m_template_matching_disparity;
   bool m_use_distortion;
   int m_sgbm_min_disparity;
   int m_sgbm_num_disparities;

@@ -67,6 +67,7 @@ map_keypoints_to_camera_settings
   , template_size( 31 )
   , search_range( 128 )
   , template_matching_threshold( 0.7 )
+  , template_matching_disparity( 0.0 )
   , use_distortion( true )
   , sgbm_min_disparity( 0 )
   , sgbm_num_disparities( 128 )
@@ -119,6 +120,12 @@ map_keypoints_to_camera_settings
   config->set_value( "template_matching_threshold", template_matching_threshold,
     "Minimum normalized correlation threshold for template matching (0.0 to 1.0). "
     "Higher values require better matches but may miss valid correspondences." );
+
+  config->set_value( "template_matching_disparity", template_matching_disparity,
+    "Expected disparity (in pixels) for centering the template matching search region. "
+    "If set to 0 or negative, disparity is computed automatically from default_depth "
+    "using the stereo camera parameters. Set this to override the automatic computation "
+    "when the expected object depth differs from default_depth." );
 
   config->set_value( "use_distortion", use_distortion,
     "Whether to use distortion coefficients from the calibration during rectification. "
@@ -190,6 +197,7 @@ map_keypoints_to_camera_settings
   template_size = config->get_value< int >( "template_size", template_size );
   search_range = config->get_value< int >( "search_range", search_range );
   template_matching_threshold = config->get_value< double >( "template_matching_threshold", template_matching_threshold );
+  template_matching_disparity = config->get_value< double >( "template_matching_disparity", template_matching_disparity );
   use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
   sgbm_min_disparity = config->get_value< int >( "sgbm_min_disparity", sgbm_min_disparity );
   sgbm_num_disparities = config->get_value< int >( "sgbm_num_disparities", sgbm_num_disparities );
@@ -343,6 +351,7 @@ map_keypoints_to_camera
   , m_template_size( 31 )
   , m_search_range( 128 )
   , m_template_matching_threshold( 0.7 )
+  , m_template_matching_disparity( 0.0 )
   , m_use_distortion( true )
   , m_sgbm_min_disparity( 0 )
   , m_sgbm_num_disparities( 128 )
@@ -378,11 +387,12 @@ map_keypoints_to_camera
 void
 map_keypoints_to_camera
 ::set_template_params( int template_size, int search_range,
-                       double matching_threshold )
+                       double matching_threshold, double disparity )
 {
   m_template_size = template_size;
   m_search_range = search_range;
   m_template_matching_threshold = matching_threshold;
+  m_template_matching_disparity = disparity;
 
   // Ensure template size is odd
   if( m_template_size % 2 == 0 )
@@ -471,7 +481,8 @@ map_keypoints_to_camera
 {
   set_default_depth( settings.default_depth );
   set_template_params( settings.template_size, settings.search_range,
-                       settings.template_matching_threshold );
+                       settings.template_matching_threshold,
+                       settings.template_matching_disparity );
   set_use_distortion( settings.use_distortion );
   set_sgbm_params( settings.sgbm_min_disparity, settings.sgbm_num_disparities,
                    settings.sgbm_block_size );
@@ -1402,11 +1413,17 @@ map_keypoints_to_camera
                           m_template_size, m_template_size );
   cv::Mat template_img = left_image_rect( template_rect );
 
-  // Compute expected disparity from default depth using rectified camera parameters
+  // Use configured disparity if set, otherwise compute from default depth
   // In P2, element [0,3] = -fx * baseline, so disparity = -P2[0,3] / depth
   double expected_disparity = 0.0;
-  if( !m_P2.empty() && m_default_depth > 0 )
+  if( m_template_matching_disparity > 0 )
   {
+    // Use explicitly configured disparity
+    expected_disparity = m_template_matching_disparity;
+  }
+  else if( !m_P2.empty() && m_default_depth > 0 )
+  {
+    // Compute disparity from default depth using camera parameters
     expected_disparity = -m_P2.at<double>( 0, 3 ) / m_default_depth;
   }
 
