@@ -155,6 +155,22 @@ public:
   /// If <= 0, disparity is computed from default_depth using camera parameters.
   double template_matching_disparity;
 
+  /// Whether to use SGBM disparity map to estimate initial disparity for template matching.
+  /// If enabled and SGBM disparity is available, samples the disparity map near the query
+  /// point to get a local disparity estimate, which can be more accurate than using
+  /// a fixed default_depth for objects at varying distances.
+  bool use_sgbm_disparity_hint;
+
+  /// Whether to use multi-resolution search for template matching.
+  /// If enabled, performs a coarse search first with larger step size, then refines
+  /// around the best coarse match. This can improve performance for large search ranges.
+  bool use_multires_search;
+
+  /// Step size (in pixels) for coarse search pass in multi-resolution template matching.
+  /// Only used when use_multires_search is enabled. Larger values are faster but may
+  /// miss optimal matches. Typical values are 2-4.
+  int multires_coarse_step;
+
   /// Whether to use distortion coefficients from calibration
   bool use_distortion;
 
@@ -252,7 +268,10 @@ public:
   /// Set template matching parameters
   void set_template_params( int template_size, int search_range,
                             double matching_threshold = 0.7,
-                            double disparity = 0.0 );
+                            double disparity = 0.0,
+                            bool use_sgbm_hint = false,
+                            bool use_multires = false,
+                            int multires_step = 4 );
 
   /// Set whether to use distortion coefficients
   void set_use_distortion( bool use_distortion );
@@ -437,11 +456,14 @@ public:
 
   /// Find corresponding point in right image using template matching
   /// Returns true if match found, false otherwise
+  /// If disparity_map is provided and use_sgbm_disparity_hint is enabled,
+  /// it will be used to estimate initial disparity for search centering.
   bool find_corresponding_point_template_matching(
     const cv::Mat& left_image_rect,
     const cv::Mat& right_image_rect,
     const kv::vector_2d& left_point_rect,
-    kv::vector_2d& right_point_rect ) const;
+    kv::vector_2d& right_point_rect,
+    const cv::Mat& disparity_map = cv::Mat() ) const;
 
   /// Compute SGBM disparity map
   cv::Mat compute_sgbm_disparity(
@@ -467,6 +489,9 @@ private:
   int m_search_range;
   double m_template_matching_threshold;
   double m_template_matching_disparity;
+  bool m_use_sgbm_disparity_hint;
+  bool m_use_multires_search;
+  int m_multires_coarse_step;
   bool m_use_distortion;
   int m_sgbm_min_disparity;
   int m_sgbm_num_disparities;

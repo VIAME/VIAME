@@ -68,6 +68,9 @@ map_keypoints_to_camera_settings
   , search_range( 128 )
   , template_matching_threshold( 0.7 )
   , template_matching_disparity( 0.0 )
+  , use_sgbm_disparity_hint( false )
+  , use_multires_search( false )
+  , multires_coarse_step( 4 )
   , use_distortion( true )
   , sgbm_min_disparity( 0 )
   , sgbm_num_disparities( 128 )
@@ -126,6 +129,23 @@ map_keypoints_to_camera_settings
     "If set to 0 or negative, disparity is computed automatically from default_depth "
     "using the stereo camera parameters. Set this to override the automatic computation "
     "when the expected object depth differs from default_depth." );
+
+  config->set_value( "use_sgbm_disparity_hint", use_sgbm_disparity_hint,
+    "If true and SGBM disparity map is available, sample the disparity map near the "
+    "query point to estimate initial disparity for template matching. This provides "
+    "spatially-varying disparity estimates that can be more accurate than using a "
+    "fixed default_depth for objects at varying distances." );
+
+  config->set_value( "use_multires_search", use_multires_search,
+    "If true, use multi-resolution search for template matching. First performs a "
+    "coarse search with larger step size over the full search range, then refines "
+    "around the best coarse match. This can significantly improve performance for "
+    "large search ranges while maintaining accuracy." );
+
+  config->set_value( "multires_coarse_step", multires_coarse_step,
+    "Step size (in pixels) for the coarse search pass in multi-resolution template "
+    "matching. Only used when use_multires_search is enabled. Larger values are "
+    "faster but may miss optimal matches. Typical values are 2-4." );
 
   config->set_value( "use_distortion", use_distortion,
     "Whether to use distortion coefficients from the calibration during rectification. "
@@ -198,6 +218,9 @@ map_keypoints_to_camera_settings
   search_range = config->get_value< int >( "search_range", search_range );
   template_matching_threshold = config->get_value< double >( "template_matching_threshold", template_matching_threshold );
   template_matching_disparity = config->get_value< double >( "template_matching_disparity", template_matching_disparity );
+  use_sgbm_disparity_hint = config->get_value< bool >( "use_sgbm_disparity_hint", use_sgbm_disparity_hint );
+  use_multires_search = config->get_value< bool >( "use_multires_search", use_multires_search );
+  multires_coarse_step = config->get_value< int >( "multires_coarse_step", multires_coarse_step );
   use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
   sgbm_min_disparity = config->get_value< int >( "sgbm_min_disparity", sgbm_min_disparity );
   sgbm_num_disparities = config->get_value< int >( "sgbm_num_disparities", sgbm_num_disparities );
@@ -352,6 +375,9 @@ map_keypoints_to_camera
   , m_search_range( 128 )
   , m_template_matching_threshold( 0.7 )
   , m_template_matching_disparity( 0.0 )
+  , m_use_sgbm_disparity_hint( false )
+  , m_use_multires_search( false )
+  , m_multires_coarse_step( 4 )
   , m_use_distortion( true )
   , m_sgbm_min_disparity( 0 )
   , m_sgbm_num_disparities( 128 )
@@ -387,17 +413,28 @@ map_keypoints_to_camera
 void
 map_keypoints_to_camera
 ::set_template_params( int template_size, int search_range,
-                       double matching_threshold, double disparity )
+                       double matching_threshold, double disparity,
+                       bool use_sgbm_hint, bool use_multires,
+                       int multires_step )
 {
   m_template_size = template_size;
   m_search_range = search_range;
   m_template_matching_threshold = matching_threshold;
   m_template_matching_disparity = disparity;
+  m_use_sgbm_disparity_hint = use_sgbm_hint;
+  m_use_multires_search = use_multires;
+  m_multires_coarse_step = multires_step;
 
   // Ensure template size is odd
   if( m_template_size % 2 == 0 )
   {
     m_template_size++;
+  }
+
+  // Ensure coarse step is at least 2 for multi-res to be useful
+  if( m_multires_coarse_step < 2 )
+  {
+    m_multires_coarse_step = 2;
   }
 }
 
@@ -482,7 +519,10 @@ map_keypoints_to_camera
   set_default_depth( settings.default_depth );
   set_template_params( settings.template_size, settings.search_range,
                        settings.template_matching_threshold,
-                       settings.template_matching_disparity );
+                       settings.template_matching_disparity,
+                       settings.use_sgbm_disparity_hint,
+                       settings.use_multires_search,
+                       settings.multires_coarse_step );
   set_use_distortion( settings.use_distortion );
   set_sgbm_params( settings.sgbm_min_disparity, settings.sgbm_num_disparities,
                    settings.sgbm_block_size );
@@ -746,13 +786,17 @@ map_keypoints_to_camera
       kv::vector_2d left_head_rect = rectify_point( result.left_head, false );
       kv::vector_2d left_tail_rect = rectify_point( result.left_tail, false );
 
+      // Pass disparity map for SGBM hint if available
+      const cv::Mat& disp_hint = m_cached_stereo_images.disparity_available ?
+        m_cached_stereo_images.disparity_map : cv::Mat();
+
       kv::vector_2d right_head_rect, right_tail_rect;
       head_found = find_corresponding_point_template_matching(
         m_cached_stereo_images.left_rectified, m_cached_stereo_images.right_rectified,
-        left_head_rect, right_head_rect );
+        left_head_rect, right_head_rect, disp_hint );
       tail_found = find_corresponding_point_template_matching(
         m_cached_stereo_images.left_rectified, m_cached_stereo_images.right_rectified,
-        left_tail_rect, right_tail_rect );
+        left_tail_rect, right_tail_rect, disp_hint );
 
       if( head_found && tail_found )
       {
@@ -1395,7 +1439,8 @@ map_keypoints_to_camera
   const cv::Mat& left_image_rect,
   const cv::Mat& right_image_rect,
   const kv::vector_2d& left_point_rect,
-  kv::vector_2d& right_point_rect ) const
+  kv::vector_2d& right_point_rect,
+  const cv::Mat& disparity_map ) const
 {
   int half_template = m_template_size / 2;
   int x_left = static_cast<int>( left_point_rect.x() );
@@ -1413,13 +1458,56 @@ map_keypoints_to_camera
                           m_template_size, m_template_size );
   cv::Mat template_img = left_image_rect( template_rect );
 
-  // Use configured disparity if set, otherwise compute from default depth
-  // In P2, element [0,3] = -fx * baseline, so disparity = -P2[0,3] / depth
+  // Determine expected disparity using priority:
+  // 1. Explicitly configured disparity (if > 0)
+  // 2. SGBM disparity hint from disparity map (if enabled and available)
+  // 3. Computed from default_depth using camera parameters
   double expected_disparity = 0.0;
+
   if( m_template_matching_disparity > 0 )
   {
     // Use explicitly configured disparity
     expected_disparity = m_template_matching_disparity;
+  }
+  else if( m_use_sgbm_disparity_hint && !disparity_map.empty() )
+  {
+    // Sample SGBM disparity map near the query point
+    // Average over a small window for robustness
+    int window_size = 5;
+    int half_window = window_size / 2;
+    double disparity_sum = 0.0;
+    int valid_count = 0;
+
+    for( int dy = -half_window; dy <= half_window; ++dy )
+    {
+      for( int dx = -half_window; dx <= half_window; ++dx )
+      {
+        int sample_x = x_left + dx;
+        int sample_y = y_left + dy;
+
+        if( sample_x >= 0 && sample_x < disparity_map.cols &&
+            sample_y >= 0 && sample_y < disparity_map.rows )
+        {
+          short disp_raw = disparity_map.at<short>( sample_y, sample_x );
+          // SGBM returns fixed-point values scaled by 16, invalid values are negative
+          if( disp_raw > 0 )
+          {
+            disparity_sum += static_cast<double>( disp_raw ) / 16.0;
+            ++valid_count;
+          }
+        }
+      }
+    }
+
+    if( valid_count > 0 )
+    {
+      expected_disparity = disparity_sum / valid_count;
+    }
+    else if( !m_P2.empty() && m_default_depth > 0 )
+    {
+      // Fall back to default depth computation
+      expected_disparity = -m_P2.at<double>( 0, 3 ) / m_default_depth;
+    }
   }
   else if( !m_P2.empty() && m_default_depth > 0 )
   {
@@ -1459,15 +1547,61 @@ map_keypoints_to_camera
   }
 
   cv::Mat search_region = right_image_rect( search_rect );
-
-  // Perform template matching
   cv::Mat result;
-  cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+  double max_val;
+  cv::Point max_loc;
 
-  // Find best match
-  double min_val, max_val;
-  cv::Point min_loc, max_loc;
-  cv::minMaxLoc( result, &min_val, &max_val, &min_loc, &max_loc );
+  if( m_use_multires_search && search_rect.width > m_template_size + m_multires_coarse_step * 4 )
+  {
+    // Multi-resolution search: coarse pass then fine pass
+    // Only use if search region is large enough to benefit
+
+    // Coarse pass: subsample the result
+    cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+
+    // Find best match in coarse grid
+    double coarse_max_val = -1.0;
+    cv::Point coarse_max_loc( 0, 0 );
+
+    for( int x = 0; x < result.cols; x += m_multires_coarse_step )
+    {
+      double val = result.at<float>( 0, x );
+      if( val > coarse_max_val )
+      {
+        coarse_max_val = val;
+        coarse_max_loc.x = x;
+      }
+    }
+
+    // Fine pass: search around the coarse best match
+    int fine_half_range = m_multires_coarse_step * 2;
+    int fine_min_x = std::max( 0, coarse_max_loc.x - fine_half_range );
+    int fine_max_x = std::min( result.cols - 1, coarse_max_loc.x + fine_half_range );
+
+    max_val = coarse_max_val;
+    max_loc = coarse_max_loc;
+
+    for( int x = fine_min_x; x <= fine_max_x; ++x )
+    {
+      double val = result.at<float>( 0, x );
+      if( val > max_val )
+      {
+        max_val = val;
+        max_loc.x = x;
+      }
+    }
+    max_loc.y = 0;  // Single row result for epipolar search
+  }
+  else
+  {
+    // Standard single-pass template matching
+    cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+
+    // Find best match
+    double min_val;
+    cv::Point min_loc;
+    cv::minMaxLoc( result, &min_val, &max_val, &min_loc, &max_loc );
+  }
 
   // Use a threshold for match quality
   if( max_val < m_template_matching_threshold )
