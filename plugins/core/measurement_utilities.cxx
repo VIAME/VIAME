@@ -71,6 +71,8 @@ map_keypoints_to_camera_settings
   , use_sgbm_disparity_hint( false )
   , use_multires_search( false )
   , multires_coarse_step( 4 )
+  , use_census_transform( false )
+  , epipolar_band_halfwidth( 0 )
   , use_distortion( true )
   , sgbm_min_disparity( 0 )
   , sgbm_num_disparities( 128 )
@@ -147,6 +149,18 @@ map_keypoints_to_camera_settings
     "matching. Only used when use_multires_search is enabled. Larger values are "
     "faster but may miss optimal matches. Typical values are 2-4." );
 
+  config->set_value( "use_census_transform", use_census_transform,
+    "If true, apply census transform preprocessing before template matching. "
+    "Census transform compares each pixel to its neighbors creating a binary pattern, "
+    "which is highly robust to illumination changes and camera gain differences "
+    "between stereo cameras." );
+
+  config->set_value( "epipolar_band_halfwidth", epipolar_band_halfwidth,
+    "Half-width of the epipolar band for template matching search (in pixels). "
+    "Set to 0 for exact epipolar line search (single row, fastest). "
+    "Set to 1-3 to allow small vertical deviation to handle imperfect rectification. "
+    "The search will cover (2 * epipolar_band_halfwidth + 1) rows." );
+
   config->set_value( "use_distortion", use_distortion,
     "Whether to use distortion coefficients from the calibration during rectification. "
     "If true, distortion coefficients from the calibration file are used. "
@@ -221,6 +235,8 @@ map_keypoints_to_camera_settings
   use_sgbm_disparity_hint = config->get_value< bool >( "use_sgbm_disparity_hint", use_sgbm_disparity_hint );
   use_multires_search = config->get_value< bool >( "use_multires_search", use_multires_search );
   multires_coarse_step = config->get_value< int >( "multires_coarse_step", multires_coarse_step );
+  use_census_transform = config->get_value< bool >( "use_census_transform", use_census_transform );
+  epipolar_band_halfwidth = config->get_value< int >( "epipolar_band_halfwidth", epipolar_band_halfwidth );
   use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
   sgbm_min_disparity = config->get_value< int >( "sgbm_min_disparity", sgbm_min_disparity );
   sgbm_num_disparities = config->get_value< int >( "sgbm_num_disparities", sgbm_num_disparities );
@@ -378,6 +394,8 @@ map_keypoints_to_camera
   , m_use_sgbm_disparity_hint( false )
   , m_use_multires_search( false )
   , m_multires_coarse_step( 4 )
+  , m_use_census_transform( false )
+  , m_epipolar_band_halfwidth( 0 )
   , m_use_distortion( true )
   , m_sgbm_min_disparity( 0 )
   , m_sgbm_num_disparities( 128 )
@@ -415,7 +433,8 @@ map_keypoints_to_camera
 ::set_template_params( int template_size, int search_range,
                        double matching_threshold, double disparity,
                        bool use_sgbm_hint, bool use_multires,
-                       int multires_step )
+                       int multires_step, bool use_census,
+                       int epipolar_band )
 {
   m_template_size = template_size;
   m_search_range = search_range;
@@ -424,6 +443,8 @@ map_keypoints_to_camera
   m_use_sgbm_disparity_hint = use_sgbm_hint;
   m_use_multires_search = use_multires;
   m_multires_coarse_step = multires_step;
+  m_use_census_transform = use_census;
+  m_epipolar_band_halfwidth = epipolar_band;
 
   // Ensure template size is odd
   if( m_template_size % 2 == 0 )
@@ -435,6 +456,16 @@ map_keypoints_to_camera
   if( m_multires_coarse_step < 2 )
   {
     m_multires_coarse_step = 2;
+  }
+
+  // Clamp epipolar band to reasonable range
+  if( m_epipolar_band_halfwidth < 0 )
+  {
+    m_epipolar_band_halfwidth = 0;
+  }
+  else if( m_epipolar_band_halfwidth > 10 )
+  {
+    m_epipolar_band_halfwidth = 10;
   }
 }
 
@@ -522,7 +553,9 @@ map_keypoints_to_camera
                        settings.template_matching_disparity,
                        settings.use_sgbm_disparity_hint,
                        settings.use_multires_search,
-                       settings.multires_coarse_step );
+                       settings.multires_coarse_step,
+                       settings.use_census_transform,
+                       settings.epipolar_band_halfwidth );
   set_use_distortion( settings.use_distortion );
   set_sgbm_params( settings.sgbm_min_disparity, settings.sgbm_num_disparities,
                    settings.sgbm_block_size );
@@ -1433,6 +1466,92 @@ map_keypoints_to_camera
 }
 
 // -----------------------------------------------------------------------------
+// Helper function to compute census transform of an image
+// Census transform compares each pixel to its neighbors, creating a binary pattern
+// that is robust to illumination changes
+namespace {
+cv::Mat compute_census_transform( const cv::Mat& input, int window_radius = 2 )
+{
+  cv::Mat gray;
+  if( input.channels() == 3 )
+  {
+    cv::cvtColor( input, gray, cv::COLOR_BGR2GRAY );
+  }
+  else
+  {
+    gray = input;
+  }
+
+  cv::Mat census( gray.size(), CV_32S, cv::Scalar( 0 ) );
+
+  for( int y = window_radius; y < gray.rows - window_radius; ++y )
+  {
+    for( int x = window_radius; x < gray.cols - window_radius; ++x )
+    {
+      unsigned int census_val = 0;
+      uchar center = gray.at<uchar>( y, x );
+      int bit_pos = 0;
+
+      for( int dy = -window_radius; dy <= window_radius; ++dy )
+      {
+        for( int dx = -window_radius; dx <= window_radius; ++dx )
+        {
+          if( dx == 0 && dy == 0 ) continue;  // Skip center
+
+          if( gray.at<uchar>( y + dy, x + dx ) < center )
+          {
+            census_val |= ( 1u << bit_pos );
+          }
+          ++bit_pos;
+        }
+      }
+      census.at<int>( y, x ) = static_cast<int>( census_val );
+    }
+  }
+
+  return census;
+}
+
+// Compute Hamming distance between two census values
+int census_hamming_distance( int a, int b )
+{
+  unsigned int xor_val = static_cast<unsigned int>( a ^ b );
+  int dist = 0;
+  while( xor_val )
+  {
+    dist += xor_val & 1;
+    xor_val >>= 1;
+  }
+  return dist;
+}
+
+// Template matching using census transform (sum of Hamming distances)
+// Returns correlation-like score (higher is better, normalized to 0-1 range)
+double census_template_match(
+  const cv::Mat& census_template,
+  const cv::Mat& census_search,
+  int search_x, int search_y,
+  int template_width, int template_height )
+{
+  int max_distance = template_width * template_height * 24;  // 24 bits max per pixel for 5x5 window
+  int total_distance = 0;
+
+  for( int ty = 0; ty < template_height; ++ty )
+  {
+    for( int tx = 0; tx < template_width; ++tx )
+    {
+      int t_val = census_template.at<int>( ty, tx );
+      int s_val = census_search.at<int>( search_y + ty, search_x + tx );
+      total_distance += census_hamming_distance( t_val, s_val );
+    }
+  }
+
+  // Convert to correlation-like score (1.0 = perfect match, 0.0 = worst)
+  return 1.0 - static_cast<double>( total_distance ) / max_distance;
+}
+} // anonymous namespace
+
+// -----------------------------------------------------------------------------
 bool
 map_keypoints_to_camera
 ::find_corresponding_point_template_matching(
@@ -1446,17 +1565,13 @@ map_keypoints_to_camera
   int x_left = static_cast<int>( left_point_rect.x() );
   int y_left = static_cast<int>( left_point_rect.y() );
 
-  // Check if template fits in left image
-  if( x_left < half_template || x_left >= left_image_rect.cols - half_template ||
-      y_left < half_template || y_left >= left_image_rect.rows - half_template )
+  // Check if template fits in left image (with extra margin for census transform)
+  int margin = m_use_census_transform ? half_template + 2 : half_template;
+  if( x_left < margin || x_left >= left_image_rect.cols - margin ||
+      y_left < margin || y_left >= left_image_rect.rows - margin )
   {
     return false;
   }
-
-  // Extract template from left image
-  cv::Rect template_rect( x_left - half_template, y_left - half_template,
-                          m_template_size, m_template_size );
-  cv::Mat template_img = left_image_rect( template_rect );
 
   // Determine expected disparity using priority:
   // 1. Explicitly configured disparity (if > 0)
@@ -1521,8 +1636,8 @@ map_keypoints_to_camera
   // Define search region centered around expected position
   // Use half the search range on each side of expected position for efficiency
   int half_search = m_search_range / 2;
-  int search_min_x = std::max( 0, expected_right_x - half_search );
-  int search_max_x = std::min( right_image_rect.cols - m_template_size, expected_right_x + half_search );
+  int search_min_x = std::max( margin, expected_right_x - half_search );
+  int search_max_x = std::min( right_image_rect.cols - margin, expected_right_x + half_search );
 
   // Ensure we don't search past the left point (disparity is always positive in standard stereo)
   search_max_x = std::min( search_max_x, x_left );
@@ -1532,75 +1647,167 @@ map_keypoints_to_camera
     return false;
   }
 
-  int search_y = std::max( half_template, std::min( y_left, right_image_rect.rows - half_template - 1 ) );
+  // Determine vertical search range based on epipolar band setting
+  int search_min_y = y_left - m_epipolar_band_halfwidth;
+  int search_max_y = y_left + m_epipolar_band_halfwidth;
 
-  cv::Rect search_rect( search_min_x, search_y - half_template,
-                        search_max_x - search_min_x + m_template_size,
-                        m_template_size );
+  // Clamp to valid image bounds
+  search_min_y = std::max( margin, search_min_y );
+  search_max_y = std::min( right_image_rect.rows - margin, search_max_y );
 
-  // Check search rect validity
-  if( search_rect.x < 0 || search_rect.y < 0 ||
-      search_rect.x + search_rect.width > right_image_rect.cols ||
-      search_rect.y + search_rect.height > right_image_rect.rows )
+  if( search_max_y < search_min_y )
   {
     return false;
   }
 
-  cv::Mat search_region = right_image_rect( search_rect );
-  cv::Mat result;
-  double max_val;
-  cv::Point max_loc;
+  double max_val = -1.0;
+  cv::Point max_loc( 0, 0 );
 
-  if( m_use_multires_search && search_rect.width > m_template_size + m_multires_coarse_step * 4 )
+  if( m_use_census_transform )
   {
-    // Multi-resolution search: coarse pass then fine pass
-    // Only use if search region is large enough to benefit
+    // Census transform based matching
+    // Extract template region with margin for census computation
+    int census_margin = 2;  // Radius for census transform
+    cv::Rect template_rect_ext( x_left - half_template - census_margin,
+                                 y_left - half_template - census_margin,
+                                 m_template_size + 2 * census_margin,
+                                 m_template_size + 2 * census_margin );
+    cv::Mat template_region = left_image_rect( template_rect_ext );
+    cv::Mat census_template = compute_census_transform( template_region, census_margin );
 
-    // Coarse pass: subsample the result
-    cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+    // Extract the valid central portion of the census template
+    cv::Rect valid_rect( census_margin, census_margin, m_template_size, m_template_size );
+    cv::Mat census_template_valid = census_template( valid_rect );
 
-    // Find best match in coarse grid
-    double coarse_max_val = -1.0;
-    cv::Point coarse_max_loc( 0, 0 );
+    // Compute census transform of search region
+    cv::Rect search_rect_ext( search_min_x - half_template - census_margin,
+                               search_min_y - half_template - census_margin,
+                               ( search_max_x - search_min_x ) + m_template_size + 2 * census_margin,
+                               ( search_max_y - search_min_y ) + m_template_size + 2 * census_margin );
 
-    for( int x = 0; x < result.cols; x += m_multires_coarse_step )
+    // Bounds check
+    if( search_rect_ext.x < 0 || search_rect_ext.y < 0 ||
+        search_rect_ext.x + search_rect_ext.width > right_image_rect.cols ||
+        search_rect_ext.y + search_rect_ext.height > right_image_rect.rows )
     {
-      double val = result.at<float>( 0, x );
-      if( val > coarse_max_val )
+      return false;
+    }
+
+    cv::Mat search_region = right_image_rect( search_rect_ext );
+    cv::Mat census_search = compute_census_transform( search_region, census_margin );
+
+    // Search over the valid region
+    int result_width = search_max_x - search_min_x + 1;
+    int result_height = search_max_y - search_min_y + 1;
+
+    for( int sy = 0; sy < result_height; ++sy )
+    {
+      for( int sx = 0; sx < result_width; ++sx )
       {
-        coarse_max_val = val;
-        coarse_max_loc.x = x;
+        double score = census_template_match( census_template_valid, census_search,
+                                               sx + census_margin, sy + census_margin,
+                                               m_template_size, m_template_size );
+        if( score > max_val )
+        {
+          max_val = score;
+          max_loc.x = sx;
+          max_loc.y = sy;
+        }
       }
     }
 
-    // Fine pass: search around the coarse best match
-    int fine_half_range = m_multires_coarse_step * 2;
-    int fine_min_x = std::max( 0, coarse_max_loc.x - fine_half_range );
-    int fine_max_x = std::min( result.cols - 1, coarse_max_loc.x + fine_half_range );
-
-    max_val = coarse_max_val;
-    max_loc = coarse_max_loc;
-
-    for( int x = fine_min_x; x <= fine_max_x; ++x )
-    {
-      double val = result.at<float>( 0, x );
-      if( val > max_val )
-      {
-        max_val = val;
-        max_loc.x = x;
-      }
-    }
-    max_loc.y = 0;  // Single row result for epipolar search
+    // Convert max_loc to image coordinates
+    right_point_rect = kv::vector_2d(
+      search_min_x + max_loc.x,
+      search_min_y + max_loc.y );
   }
   else
   {
-    // Standard single-pass template matching
-    cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+    // Standard intensity-based template matching
+    cv::Rect template_rect( x_left - half_template, y_left - half_template,
+                            m_template_size, m_template_size );
+    cv::Mat template_img = left_image_rect( template_rect );
 
-    // Find best match
-    double min_val;
-    cv::Point min_loc;
-    cv::minMaxLoc( result, &min_val, &max_val, &min_loc, &max_loc );
+    // Define search region including epipolar band
+    int search_height = ( search_max_y - search_min_y ) + m_template_size;
+    cv::Rect search_rect( search_min_x - half_template,
+                          search_min_y - half_template,
+                          search_max_x - search_min_x + m_template_size,
+                          search_height );
+
+    // Check search rect validity
+    if( search_rect.x < 0 || search_rect.y < 0 ||
+        search_rect.x + search_rect.width > right_image_rect.cols ||
+        search_rect.y + search_rect.height > right_image_rect.rows )
+    {
+      return false;
+    }
+
+    cv::Mat search_region = right_image_rect( search_rect );
+    cv::Mat result;
+
+    if( m_use_multires_search && search_rect.width > m_template_size + m_multires_coarse_step * 4 )
+    {
+      // Multi-resolution search: coarse pass then fine pass
+      cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+
+      // Find best match in coarse grid
+      double coarse_max_val = -1.0;
+      cv::Point coarse_max_loc( 0, 0 );
+
+      for( int ry = 0; ry < result.rows; ++ry )
+      {
+        for( int rx = 0; rx < result.cols; rx += m_multires_coarse_step )
+        {
+          double val = result.at<float>( ry, rx );
+          if( val > coarse_max_val )
+          {
+            coarse_max_val = val;
+            coarse_max_loc.x = rx;
+            coarse_max_loc.y = ry;
+          }
+        }
+      }
+
+      // Fine pass: search around the coarse best match
+      int fine_half_range = m_multires_coarse_step * 2;
+      int fine_min_x = std::max( 0, coarse_max_loc.x - fine_half_range );
+      int fine_max_x = std::min( result.cols - 1, coarse_max_loc.x + fine_half_range );
+      int fine_min_y = std::max( 0, coarse_max_loc.y - fine_half_range );
+      int fine_max_y = std::min( result.rows - 1, coarse_max_loc.y + fine_half_range );
+
+      max_val = coarse_max_val;
+      max_loc = coarse_max_loc;
+
+      for( int ry = fine_min_y; ry <= fine_max_y; ++ry )
+      {
+        for( int rx = fine_min_x; rx <= fine_max_x; ++rx )
+        {
+          double val = result.at<float>( ry, rx );
+          if( val > max_val )
+          {
+            max_val = val;
+            max_loc.x = rx;
+            max_loc.y = ry;
+          }
+        }
+      }
+    }
+    else
+    {
+      // Standard single-pass template matching
+      cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+
+      // Find best match
+      double min_val;
+      cv::Point min_loc;
+      cv::minMaxLoc( result, &min_val, &max_val, &min_loc, &max_loc );
+    }
+
+    // Convert max_loc to image coordinates
+    right_point_rect = kv::vector_2d(
+      search_rect.x + max_loc.x + half_template,
+      search_rect.y + max_loc.y + half_template );
   }
 
   // Use a threshold for match quality
@@ -1608,11 +1815,6 @@ map_keypoints_to_camera
   {
     return false;
   }
-
-  // Compute the matched point in the right image
-  right_point_rect = kv::vector_2d(
-    search_rect.x + max_loc.x + half_template,
-    search_rect.y + max_loc.y + half_template );
 
   return true;
 }

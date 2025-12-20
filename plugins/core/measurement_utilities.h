@@ -171,6 +171,17 @@ public:
   /// miss optimal matches. Typical values are 2-4.
   int multires_coarse_step;
 
+  /// Whether to use census transform preprocessing for template matching.
+  /// Census transform compares each pixel to its neighbors creating a binary pattern,
+  /// which is highly robust to illumination changes and camera gain differences.
+  bool use_census_transform;
+
+  /// Half-width of the epipolar band for template matching search (in pixels).
+  /// Set to 0 for exact epipolar line search (single row).
+  /// Set to 1-3 to allow small vertical deviation to handle imperfect rectification.
+  /// The search will cover (2 * epipolar_band_halfwidth + 1) rows.
+  int epipolar_band_halfwidth;
+
   /// Whether to use distortion coefficients from calibration
   bool use_distortion;
 
@@ -271,7 +282,9 @@ public:
                             double disparity = 0.0,
                             bool use_sgbm_hint = false,
                             bool use_multires = false,
-                            int multires_step = 4 );
+                            int multires_step = 4,
+                            bool use_census = false,
+                            int epipolar_band = 0 );
 
   /// Set whether to use distortion coefficients
   void set_use_distortion( bool use_distortion );
@@ -492,6 +505,8 @@ private:
   bool m_use_sgbm_disparity_hint;
   bool m_use_multires_search;
   int m_multires_coarse_step;
+  bool m_use_census_transform;
+  int m_epipolar_band_halfwidth;
   bool m_use_distortion;
   int m_sgbm_min_disparity;
   int m_sgbm_num_disparities;
