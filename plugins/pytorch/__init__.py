@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from viame.processes.pytorch import convert_to_onnx_process
+from viame.processes.pytorch import foundation_stereo_process
 
 def __sprokit_register__():
     from kwiver.sprokit.pipeline import process_factory
@@ -41,6 +42,12 @@ def __sprokit_register__():
         'OnnxConverter',
         'Convert a yolo/cfrcnn model to onnx',
         convert_to_onnx_process.OnnxConverter
+    )
+
+    process_factory.add_process(
+        'foundation_stereo',
+        'Stereo disparity estimation using NVIDIA Foundation-Stereo model',
+        foundation_stereo_process.FoundationStereoProcess
     )
 
     process_factory.mark_process_module_as_loaded( module_name )
