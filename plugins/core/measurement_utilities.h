@@ -372,6 +372,8 @@ public:
 
   /// Find stereo correspondences using specified methods in order
   /// Tries each method until one succeeds for both head and tail points
+  /// If external_disparity is provided and "external_disparity" method is used,
+  /// it will be used to warp points from left to right image.
   stereo_correspondence_result find_stereo_correspondence(
     const std::vector< std::string >& methods,
     const kv::simple_camera_perspective& left_cam,
@@ -381,7 +383,8 @@ public:
     const kv::vector_2d* right_head_input,
     const kv::vector_2d* right_tail_input,
     const kv::image_container_sptr& left_image,
-    const kv::image_container_sptr& right_image );
+    const kv::image_container_sptr& right_image,
+    const kv::image_container_sptr& external_disparity = nullptr );
 
 #ifdef VIAME_ENABLE_OPENCV
   /// Prepare stereo images for matching (convert to grayscale, rectify, compute disparity)
@@ -494,6 +497,19 @@ public:
   const cv::Mat& get_rectification_map_x( bool is_right_camera ) const;
   const cv::Mat& get_rectification_map_y( bool is_right_camera ) const;
 #endif
+
+  // -------------------------------------------------------------------------
+  // External disparity functions (no OpenCV required)
+  // -------------------------------------------------------------------------
+
+  /// Find corresponding point using external disparity map (e.g., from Foundation-Stereo)
+  /// The disparity map is expected to be in unrectified image space with disparity
+  /// values scaled by 256 (stored as uint16).
+  /// Returns true if valid disparity found, false otherwise
+  bool find_corresponding_point_external_disparity(
+    const kv::image_container_sptr& disparity_image,
+    const kv::vector_2d& left_point,
+    kv::vector_2d& right_point ) const;
 
 private:
   // Configuration

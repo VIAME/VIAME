@@ -71,6 +71,8 @@ create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
   "The stereo filtered object tracks2.")
+create_port_trait( disparity_image, image,
+  "External disparity map for external_disparity matching method.")
 
 // =============================================================================
 // Private implementation class
@@ -148,6 +150,7 @@ measurement_process
 
   // -- inputs --
   declare_input_port_using_trait( timestamp, optional );
+  declare_input_port_using_trait( disparity_image, optional );
 
   // -- outputs --
   declare_output_port_using_trait( object_track_set1, required );
@@ -274,7 +277,14 @@ measurement_process
 {
   std::vector< kv::object_track_set_sptr > input_tracks;
   std::vector< kv::image_container_sptr > input_images;
+  kv::image_container_sptr disparity_image;
   kv::timestamp ts;
+
+  // Grab optional disparity image if connected
+  if( has_input_port_edge_using_trait( disparity_image ) )
+  {
+    disparity_image = grab_from_port_using_trait( disparity_image );
+  }
 
   // Read port names
   for( auto const& port_name : d->p_port_list )
@@ -521,7 +531,7 @@ measurement_process
       auto result = d->m_utilities.find_stereo_correspondence(
         d->m_matching_methods, left_cam, right_cam,
         left_head, left_tail, right_head_input, right_tail_input,
-        left_image, right_image );
+        left_image, right_image, disparity_image );
 
       if( !result.success )
       {

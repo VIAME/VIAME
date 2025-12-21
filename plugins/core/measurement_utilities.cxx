@@ -767,7 +767,8 @@ map_keypoints_to_camera
   const kv::vector_2d* right_head_input,
   const kv::vector_2d* right_tail_input,
   const kv::image_container_sptr& left_image,
-  const kv::image_container_sptr& right_image )
+  const kv::image_container_sptr& right_image,
+  const kv::image_container_sptr& external_disparity )
 {
   stereo_correspondence_result result;
   result.success = false;
@@ -812,6 +813,23 @@ map_keypoints_to_camera
       head_found = true;
       tail_found = true;
       result.method_used = "depth_projection";
+    }
+    else if( method == "external_disparity" && external_disparity )
+    {
+      head_found = find_corresponding_point_external_disparity(
+        external_disparity, result.left_head, result.right_head );
+      tail_found = find_corresponding_point_external_disparity(
+        external_disparity, result.left_tail, result.right_tail );
+
+      if( head_found && tail_found )
+      {
+        result.method_used = "external_disparity";
+      }
+      else
+      {
+        head_found = false;
+        tail_found = false;
+      }
     }
 #ifdef VIAME_ENABLE_OPENCV
     else if( method == "template_matching" && m_cached_stereo_images.rectified_available )
@@ -1903,6 +1921,68 @@ map_keypoints_to_camera
 #endif // VIAME_ENABLE_OPENCV
 
 // -----------------------------------------------------------------------------
+bool
+map_keypoints_to_camera
+::find_corresponding_point_external_disparity(
+  const kv::image_container_sptr& disparity_image,
+  const kv::vector_2d& left_point,
+  kv::vector_2d& right_point ) const
+{
+  if( !disparity_image )
+  {
+    return false;
+  }
+
+  const auto& img = disparity_image->get_image();
+  int x = static_cast<int>( left_point.x() + 0.5 );
+  int y = static_cast<int>( left_point.y() + 0.5 );
+
+  // Check bounds
+  if( x < 0 || x >= static_cast<int>( img.width() ) ||
+      y < 0 || y >= static_cast<int>( img.height() ) )
+  {
+    return false;
+  }
+
+  // Get disparity value - expected to be uint16 scaled by 256
+  // (as produced by foundation_stereo_process)
+  double disparity = 0.0;
+
+  if( img.pixel_traits().type == kv::image_pixel_traits::UNSIGNED &&
+      img.pixel_traits().num_bytes == 2 )
+  {
+    // uint16 format scaled by 256
+    const uint16_t* ptr = reinterpret_cast<const uint16_t*>(
+      img.first_pixel() + y * img.h_step() + x * img.w_step() );
+    disparity = static_cast<double>( *ptr ) / 256.0;
+  }
+  else if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
+           img.pixel_traits().num_bytes == 4 )
+  {
+    // float32 format (raw disparity)
+    const float* ptr = reinterpret_cast<const float*>(
+      img.first_pixel() + y * img.h_step() + x * img.w_step() );
+    disparity = static_cast<double>( *ptr );
+  }
+  else
+  {
+    // Unsupported format
+    return false;
+  }
+
+  // Check for invalid disparity
+  if( disparity <= 0.0 || !std::isfinite( disparity ) )
+  {
+    return false;
+  }
+
+  // Compute right point (standard stereo: right_x = left_x - disparity)
+  right_point = kv::vector_2d( left_point.x() - disparity, left_point.y() );
+
+  return true;
+}
+
+// -----------------------------------------------------------------------------
 std::vector< std::string >
 parse_matching_methods( const std::string& methods_str )
 {
@@ -1942,6 +2022,7 @@ get_valid_methods()
   return {
     "input_pairs_only",
     "depth_projection",
+    "external_disparity",
     "template_matching",
     "sgbm_disparity",
     "feature_descriptor",
