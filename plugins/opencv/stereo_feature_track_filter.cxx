@@ -275,7 +275,7 @@ viame::StereoFeatureTrackFilter
   auto world_points_corner_values = get_world_point_corner_values( coordinates.world_pts );
 
   // For each frame, fill the extent matrix with 2D corner position
-  for( int i_frame = 0; i_frame < coordinates.world_pts.size(); i_frame++ )
+  for( size_t i_frame = 0; i_frame < coordinates.world_pts.size(); i_frame++ )
   {
     for( size_t i_point = 0; i_point < coordinates.world_pts[i_frame].size(); i_point++ )
     {

@@ -145,9 +145,9 @@ filter_frame_index_process
 
   timestamp = grab_from_port_using_trait( timestamp );
   
-  if(!d->m_max_frame_count && !d->m_frame_step ||
-     timestamp.get_frame() >= d->m_min_frame_count && 
-     timestamp.get_frame() <= d->m_max_frame_count)
+  if( ( !d->m_max_frame_count && !d->m_frame_step ) ||
+      ( timestamp.get_frame() >= d->m_min_frame_count &&
+        timestamp.get_frame() <= d->m_max_frame_count ) )
   {
     if(d->m_first_frame ||
        (timestamp.get_frame() - d->m_last_frame_id) >= d->m_frame_step)
