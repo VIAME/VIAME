@@ -34,6 +34,8 @@
 
 #include "ocv_measurement_process.h"
 #include "ocv_calibrate_single_camera_process.h"
+#include "ocv_pair_stereo_detections_process.h"
+#include "ocv_pair_stereo_tracks_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -72,6 +74,26 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Calibrate a single camera from object track set" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::ocv_pair_stereo_detections_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
+                       "ocv_pair_stereo_detections" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Compute object detections pair from stereo depth map information" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::ocv_pair_stereo_tracks_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
+                       "ocv_pair_stereo_tracks" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Compute object tracks pair from stereo depth map information" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

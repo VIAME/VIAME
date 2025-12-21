@@ -48,8 +48,6 @@
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
 #include "split_object_track_to_feature_landmark_process.h"
-#include "tracks_pairing_from_stereo_process.h"
-#include "detections_pairing_from_stereo_process.h"
 #include "stereo_detection_pairing_process.h"
 
 // -----------------------------------------------------------------------------
@@ -187,26 +185,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Calibrate stereo cameras from object track sets" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-  fact = vpm.ADD_PROCESS( viame::core::tracks_pairing_from_stereo_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "tracks_pairing_from_stereo" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Compute object tracks pair from stereo depth map information" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-  fact = vpm.ADD_PROCESS( viame::core::detections_pairing_from_stereo_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "detections_pairing_from_stereo" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Compute object detections pair from stereo depth map information" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

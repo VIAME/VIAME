@@ -17,8 +17,6 @@ set( plugin_headers
   read_object_track_set_viame_csv.h
   write_detected_object_set_viame_csv.h
   write_object_track_set_viame_csv.h
-  detections_pairing_from_stereo.h
-  tracks_pairing_from_stereo.h
   )
 
 set( plugin_sources
@@ -38,8 +36,6 @@ set( plugin_sources
   read_object_track_set_viame_csv.cxx
   write_detected_object_set_viame_csv.cxx
   write_object_track_set_viame_csv.cxx
-  detections_pairing_from_stereo.cxx
-  tracks_pairing_from_stereo.cxx
   )
 
 kwiver_install_headers(
@@ -149,8 +145,6 @@ set( process_headers
   accumulate_object_tracks_process.h
   split_object_track_to_feature_landmark_process.h
   calibrate_cameras_from_tracks_process.h
-  detections_pairing_from_stereo_process.h
-  tracks_pairing_from_stereo_process.h
   stereo_detection_pairing_process.h
 )
 
@@ -172,8 +166,6 @@ set( process_sources
   accumulate_object_tracks_process.cxx
   split_object_track_to_feature_landmark_process.cxx
   calibrate_cameras_from_tracks_process.cxx
-  detections_pairing_from_stereo_process.cxx
-  tracks_pairing_from_stereo_process.cxx
   stereo_detection_pairing_process.cxx
 )
 

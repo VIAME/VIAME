@@ -28,6 +28,8 @@ set( plugin_headers
   ocv_keypoints_from_mask.h
   ocv_refiner_add_kps_from_mask.h
   split_image_habcam.h
+  ocv_pair_stereo_detections.h
+  ocv_pair_stereo_tracks.h
   )
 
 set( plugin_sources
@@ -43,6 +45,8 @@ set( plugin_sources
   ocv_keypoints_from_mask.cxx
   ocv_refiner_add_kps_from_mask.cxx
   split_image_habcam.cxx
+  ocv_pair_stereo_detections.cxx
+  ocv_pair_stereo_tracks.cxx
   )
 
 kwiver_install_headers(
@@ -103,12 +107,16 @@ find_package( Eigen3 REQUIRED NO_MODULE )
 set( process_headers
   ocv_measurement_process.h
   ocv_calibrate_single_camera_process.h
+  ocv_pair_stereo_detections_process.h
+  ocv_pair_stereo_tracks_process.h
 )
 
 set( process_sources
   register_processes.cxx
   ocv_measurement_process.cxx
   ocv_calibrate_single_camera_process.cxx
+  ocv_pair_stereo_detections_process.cxx
+  ocv_pair_stereo_tracks_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_opencv

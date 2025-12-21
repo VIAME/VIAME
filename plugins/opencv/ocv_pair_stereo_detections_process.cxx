@@ -3,8 +3,8 @@
  * \brief Compute object detections pair from stereo depth map information
  */
 
-#include "detections_pairing_from_stereo_process.h"
-#include "detections_pairing_from_stereo.h"
+#include "ocv_pair_stereo_detections_process.h"
+#include "ocv_pair_stereo_detections.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/detected_object_set.h>
@@ -17,7 +17,6 @@
 namespace kv = kwiver::vital;
 
 namespace viame {
-namespace core {
 
 create_config_trait(cameras_directory, std::string, "", "The calibrated cameras files directory")
 create_config_trait(pairing_method, std::string, "PAIRING_3D", "One of PAIRING_3D, PAIRING_IOU, PAIRING_RECTIFIED_IOU")
@@ -30,18 +29,18 @@ create_port_trait(detected_object_set_out1, detected_object_set, "The stereo fil
 create_port_trait(detected_object_set_out2, detected_object_set, "The stereo filtered object detections2.")
 
 // =============================================================================
-detections_pairing_from_stereo_process::detections_pairing_from_stereo_process(kv::config_block_sptr const &config)
-    : process(config), d(new detections_pairing_from_stereo()) {
+ocv_pair_stereo_detections_process::ocv_pair_stereo_detections_process(kv::config_block_sptr const &config)
+    : process(config), d(new ocv_pair_stereo_detections()) {
   make_ports();
   make_config();
 }
 
 
-detections_pairing_from_stereo_process::~detections_pairing_from_stereo_process() = default;
+ocv_pair_stereo_detections_process::~ocv_pair_stereo_detections_process() = default;
 
 
 // -----------------------------------------------------------------------------
-void detections_pairing_from_stereo_process::make_ports() {
+void ocv_pair_stereo_detections_process::make_ports() {
   // Set up for required ports
   sprokit::process::port_flags_t required;
   sprokit::process::port_flags_t optional;
@@ -59,7 +58,7 @@ void detections_pairing_from_stereo_process::make_ports() {
 }
 
 // -----------------------------------------------------------------------------
-void detections_pairing_from_stereo_process::make_config() {
+void ocv_pair_stereo_detections_process::make_config() {
   declare_config_using_trait(cameras_directory);
   declare_config_using_trait(pairing_method);
   declare_config_using_trait(iou_pair_threshold);
@@ -67,7 +66,7 @@ void detections_pairing_from_stereo_process::make_config() {
 }
 
 // -----------------------------------------------------------------------------
-void detections_pairing_from_stereo_process::_configure() {
+void ocv_pair_stereo_detections_process::_configure() {
   d->m_cameras_directory = config_value_using_trait(cameras_directory);
   d->m_pairing_method = config_value_using_trait(pairing_method);
   d->m_iou_pair_threshold = config_value_using_trait(iou_pair_threshold);
@@ -76,7 +75,7 @@ void detections_pairing_from_stereo_process::_configure() {
 }
 
 // -----------------------------------------------------------------------------
-void detections_pairing_from_stereo_process::_step() {
+void ocv_pair_stereo_detections_process::_step() {
   // Grab inputs from previous process
   auto left_detected_object_set = grab_from_port_using_trait(detected_object_set1);
   auto right_detected_object_set = grab_from_port_using_trait(detected_object_set2);
@@ -110,5 +109,4 @@ void detections_pairing_from_stereo_process::_step() {
   push_to_port_using_trait(detected_object_set_out2, right_detected_object_set);
 }
 
-} // end namespace core
 } // end namespace viame

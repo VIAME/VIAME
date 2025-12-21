@@ -1,5 +1,5 @@
-#ifndef VIAME_DETECTIONS_PAIRING_FROM_STEREO_H
-#define VIAME_DETECTIONS_PAIRING_FROM_STEREO_H
+#ifndef VIAME_OCV_PAIR_STEREO_DETECTIONS_H
+#define VIAME_OCV_PAIR_STEREO_DETECTIONS_H
 
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object.h>
@@ -7,16 +7,15 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <plugins/core/viame_core_export.h>
+#include <plugins/opencv/viame_opencv_export.h>
 
 #include <memory>
 
 namespace viame {
-namespace core {
 
 /// @brief Structure containing extracted 3D information for each track in left image and mapping to right track
 /// coordinates
-struct VIAME_CORE_EXPORT Detections3DPositions {
+struct VIAME_OPENCV_EXPORT Detections3DPositions {
   cv::Point3f center3d{};
   cv::Point2f center3d_proj_to_right_image{};
   kwiver::vital::bounding_box_d rectified_left_bbox{};
@@ -32,9 +31,9 @@ struct VIAME_CORE_EXPORT Detections3DPositions {
 /// @brief Class responsible for the detection stereo pairing logic
 /// Uses camera calibration information, left and right tracks and disparity map to find corresponding detection from
 /// left to right.
-class VIAME_CORE_EXPORT detections_pairing_from_stereo {
+class VIAME_OPENCV_EXPORT ocv_pair_stereo_detections {
 public:
-  detections_pairing_from_stereo() = default;
+  ocv_pair_stereo_detections() = default;
 
   // Configuration settings
   std::string m_cameras_directory;
@@ -66,7 +65,7 @@ public:
   /// within the left camera image, calculates position given mask bounds.
   /// Otherwise, returns detection for the input detection bounding box cropped to given bbox crop ratio.
   /// Set bbox_crop_ratio to 1.0 to use full bbox for 3D estimation.
-  viame::core::Detections3DPositions
+  viame::Detections3DPositions
   estimate_3d_position_from_detection(const kwiver::vital::detected_object_sptr &detection, const cv::Mat &pos_3d_map,
                                       bool do_undistort_points, float bbox_crop_ratio) const;
 
@@ -92,7 +91,7 @@ public:
   ///     Set to 1.f to use full bounding box.
   /// @param do_undistort_points: If true, will undistort bounding box corners by camera intrinsic. Otherwise, will use
   ///     provided bounding box coordinates directly.
-  viame::core::Detections3DPositions
+  viame::Detections3DPositions
   estimate_3d_position_from_bbox(const kwiver::vital::bounding_box_d &bbox, const cv::Mat &pos_3d_map,
                                  float crop_ratio, bool do_undistort_points) const;
 
@@ -103,7 +102,7 @@ public:
   ///     used for the 3D position evaluation.
   /// @param do_undistort_points: If true, will undistort mask coordinates by camera intrinsic. Otherwise, will use
   ///     provided mask coordinates directly.
-  viame::core::Detections3DPositions
+  viame::Detections3DPositions
   estimate_3d_position_from_unrectified_mask(const kwiver::vital::bounding_box_d &bbox, const cv::Mat &pos_3d_map,
                                              const cv::Mat &mask, bool do_undistort_points) const;
 
@@ -132,11 +131,11 @@ public:
   cv::Point2f project_to_right_image(const cv::Point3f &points_3d) const;
 
   /// @brief Update 3D tracks positions given a list of tracks and tracks disparity map
-  std::vector<viame::core::Detections3DPositions>
+  std::vector<viame::Detections3DPositions>
   update_left_detections_3d_positions(const std::vector<kwiver::vital::detected_object_sptr> &detections,
                                       const cv::Mat &cv_disparity_map) const;
 
-  viame::core::Detections3DPositions
+  viame::Detections3DPositions
   update_left_detection_3d_position(const kwiver::vital::detected_object_sptr &detection,
                                     const cv::Mat &cv_pos_3d_map) const;
 
@@ -150,7 +149,7 @@ public:
   ///     - For each right bounding box containing projected left center, find closest
   static std::vector<std::vector<size_t>>
   pair_left_right_detections_using_3d_center(const std::vector<kwiver::vital::detected_object_sptr> &left_detections,
-                                             const std::vector<viame::core::Detections3DPositions> &left_3d_pos,
+                                             const std::vector<viame::Detections3DPositions> &left_3d_pos,
                                              const std::vector<kwiver::vital::detected_object_sptr> &right_detections);
 
   /// @brief Update left and right tracks pairs using left and right bounding boxes
@@ -165,7 +164,7 @@ public:
   ///     Otherwise, uses @ref pair_left_right_tracks_using_bbox_iou.
   std::vector<std::vector<size_t>>
   pair_left_right_detections(const std::vector<kwiver::vital::detected_object_sptr> &left_detections,
-                             const std::vector<viame::core::Detections3DPositions> &left_3d_pos,
+                             const std::vector<viame::Detections3DPositions> &left_3d_pos,
                              const std::vector<kwiver::vital::detected_object_sptr> &right_detections);
 
   /// @brief Returns most likely detection class associated with input track
@@ -174,7 +173,6 @@ public:
 
 };
 
-} // core
 } // viame
 
-#endif // VIAME_DETECTIONS_PAIRING_FROM_STEREO_H
+#endif // VIAME_OCV_PAIR_STEREO_DETECTIONS_H

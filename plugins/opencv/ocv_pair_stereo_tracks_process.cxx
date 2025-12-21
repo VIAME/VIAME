@@ -3,9 +3,9 @@
  * \brief Compute object tracks pair from stereo depth map information
  */
 
-#include "tracks_pairing_from_stereo_process.h"
-#include "tracks_pairing_from_stereo.h"
-#include "detections_pairing_from_stereo.h"
+#include "ocv_pair_stereo_tracks_process.h"
+#include "ocv_pair_stereo_tracks.h"
+#include "ocv_pair_stereo_detections.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/image_container.h>
@@ -22,8 +22,6 @@
 namespace kv = kwiver::vital;
 
 namespace viame {
-
-namespace core {
 
 create_config_trait(cameras_directory, std::string, "", "The calibrated cameras files directory")
 create_config_trait(pairing_method, std::string, "PAIRING_3D", "One of PAIRING_3D, PAIRING_IOU, PAIRING_RECTIFIED_IOU")
@@ -50,18 +48,18 @@ create_port_trait(filtered_object_track_set2, object_track_set, "The stereo filt
 
 
 // =============================================================================
-tracks_pairing_from_stereo_process::tracks_pairing_from_stereo_process(kv::config_block_sptr const &config)
-    : process(config), d(new tracks_pairing_from_stereo()) {
+ocv_pair_stereo_tracks_process::ocv_pair_stereo_tracks_process(kv::config_block_sptr const &config)
+    : process(config), d(new ocv_pair_stereo_tracks()) {
   make_ports();
   make_config();
 }
 
 
-tracks_pairing_from_stereo_process::~tracks_pairing_from_stereo_process() = default;
+ocv_pair_stereo_tracks_process::~ocv_pair_stereo_tracks_process() = default;
 
 
 // -----------------------------------------------------------------------------
-void tracks_pairing_from_stereo_process::make_ports() {
+void ocv_pair_stereo_tracks_process::make_ports() {
   // Set up for required ports
   sprokit::process::port_flags_t required;
   sprokit::process::port_flags_t optional;
@@ -83,7 +81,7 @@ void tracks_pairing_from_stereo_process::make_ports() {
 }
 
 // -----------------------------------------------------------------------------
-void tracks_pairing_from_stereo_process::make_config() {
+void ocv_pair_stereo_tracks_process::make_config() {
   declare_config_using_trait(cameras_directory);
   declare_config_using_trait(min_detection_number_threshold);
   declare_config_using_trait(max_detection_number_threshold);
@@ -97,7 +95,7 @@ void tracks_pairing_from_stereo_process::make_config() {
 }
 
 // -----------------------------------------------------------------------------
-void tracks_pairing_from_stereo_process::_configure() {
+void ocv_pair_stereo_tracks_process::_configure() {
   d->m_cameras_directory = config_value_using_trait(cameras_directory);
   d->m_min_detection_number_threshold = config_value_using_trait(min_detection_number_threshold);
   d->m_max_detection_number_threshold = config_value_using_trait(max_detection_number_threshold);
@@ -112,7 +110,7 @@ void tracks_pairing_from_stereo_process::_configure() {
 }
 
 // -----------------------------------------------------------------------------
-void tracks_pairing_from_stereo_process::_step() {
+void ocv_pair_stereo_tracks_process::_step() {
   // Grab inputs from previous process
   kv::object_track_set_sptr input_tracks1 = grab_from_port_using_trait(object_track_set1);
   kv::object_track_set_sptr input_tracks2 = grab_from_port_using_trait(object_track_set2);
@@ -157,7 +155,5 @@ void tracks_pairing_from_stereo_process::_step() {
     push_to_port_using_trait(filtered_object_track_set2, no_tracks);
   }
 }
-
-} // end namespace core
 
 } // end namespace viame

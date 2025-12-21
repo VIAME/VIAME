@@ -1,18 +1,17 @@
-#ifndef VIAME_TRACKS_PAIRING_FROM_STEREO_H
-#define VIAME_TRACKS_PAIRING_FROM_STEREO_H
+#ifndef VIAME_OCV_PAIR_STEREO_TRACKS_H
+#define VIAME_OCV_PAIR_STEREO_TRACKS_H
 
 #include <vital/types/timestamp.h>
 #include <vital/types/object_track_set.h>
-#include <plugins/core/viame_core_export.h>
+#include <plugins/opencv/viame_opencv_export.h>
 
 namespace cv {
 class Mat;
 }
 
 namespace viame {
-namespace core {
 
-class detections_pairing_from_stereo;
+class ocv_pair_stereo_detections;
 
 struct Detections3DPositions;
 
@@ -22,7 +21,7 @@ struct IdPair {
   kwiver::vital::track_id_t right_id;
 };
 
-struct VIAME_CORE_EXPORT Pairing {
+struct VIAME_OPENCV_EXPORT Pairing {
   std::set<kwiver::vital::frame_id_t> frame_set;
   IdPair left_right_id_pair;
 };
@@ -34,12 +33,12 @@ struct VIAME_CORE_EXPORT Pairing {
 ///
 /// Instance keeps track of the different tracks seen in left and right camera.
 /// Otherwise, class is meant to be used as a toolkit for pairing the two track feeds.
-class VIAME_CORE_EXPORT tracks_pairing_from_stereo {
-  const std::shared_ptr<detections_pairing_from_stereo> m_detection_pairing;
+class VIAME_OPENCV_EXPORT ocv_pair_stereo_tracks {
+  const std::shared_ptr<ocv_pair_stereo_detections> m_detection_pairing;
 
 public:
 
-  tracks_pairing_from_stereo();
+  ocv_pair_stereo_tracks();
 
   // Configuration settings
   std::string m_cameras_directory;
@@ -65,7 +64,7 @@ public:
   void load_camera_calibration();
 
   /// @brief Update 3D tracks positions given a list of tracks and tracks disparity map
-  std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<viame::core::Detections3DPositions>>
+  std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<viame::Detections3DPositions>>
   update_left_tracks_3d_position(const std::vector<kwiver::vital::track_sptr> &tracks, const cv::Mat &cv_disparity_map,
                                  const kwiver::vital::timestamp &timestamp);
 
@@ -81,7 +80,7 @@ public:
   ///     If pairing is set to 3D, uses @ref pair_left_right_tracks_using_3d_center.
   ///     Otherwise, uses @ref pair_left_right_tracks_using_bbox_iou.
   void pair_left_right_tracks(const std::vector<kwiver::vital::track_sptr> &left_tracks,
-                              const std::vector<viame::core::Detections3DPositions> &left_3d_pos,
+                              const std::vector<viame::Detections3DPositions> &left_3d_pos,
                               const std::vector<kwiver::vital::track_sptr> &right_tracks,
                               const kwiver::vital::timestamp &timestamp);
 
@@ -121,10 +120,7 @@ public:
   };
 
   /// @brief Creates ranges from input frame / pairing list corresponding to coherent detection pairings.
-  ///     If detection pairing shifts from one track to another, a Range will be returned given this new detection
-  ///     pairing. Detection pairings having more than m_detection_split_threshold successive pairings will be
-  ///     considered coherent and will lead to new output range.
-  std::vector<viame::core::tracks_pairing_from_stereo::Range>
+  std::vector<viame::ocv_pair_stereo_tracks::Range>
   create_split_ranges_from_track_pairs(const std::map<size_t, Pairing> &source_range) const;
 
   /// @brief Uses input slit ranges to create new left / rigth tracks with associated track ids.
@@ -133,7 +129,6 @@ public:
                          std::vector<kwiver::vital::track_sptr> &right_tracks);
 };
 
-} // core
 } // viame
 
-#endif // VIAME_TRACKS_PAIRING_FROM_STEREO_H
+#endif // VIAME_OCV_PAIR_STEREO_TRACKS_H

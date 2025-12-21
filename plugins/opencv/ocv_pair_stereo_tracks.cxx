@@ -1,17 +1,17 @@
 #include <vital/types/timestamp.h>
-#include "tracks_pairing_from_stereo.h"
-#include "detections_pairing_from_stereo.h"
+#include "ocv_pair_stereo_tracks.h"
+#include "ocv_pair_stereo_detections.h"
 
-viame::core::tracks_pairing_from_stereo::tracks_pairing_from_stereo()
-    : m_detection_pairing(new detections_pairing_from_stereo()) {}
+viame::ocv_pair_stereo_tracks::ocv_pair_stereo_tracks()
+    : m_detection_pairing(new ocv_pair_stereo_detections()) {}
 
-void viame::core::tracks_pairing_from_stereo::load_camera_calibration() {
+void viame::ocv_pair_stereo_tracks::load_camera_calibration() {
   m_detection_pairing->m_cameras_directory = m_cameras_directory;
   m_detection_pairing->load_camera_calibration();
 }
 
-std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<viame::core::Detections3DPositions>>
-viame::core::tracks_pairing_from_stereo::update_left_tracks_3d_position(
+std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<viame::Detections3DPositions>>
+viame::ocv_pair_stereo_tracks::update_left_tracks_3d_position(
     const std::vector<kwiver::vital::track_sptr> &tracks, const cv::Mat &cv_disparity_map,
     const kwiver::vital::timestamp &timestamp) {
   m_detection_pairing->m_verbose = m_verbose;
@@ -59,7 +59,7 @@ viame::core::tracks_pairing_from_stereo::update_left_tracks_3d_position(
   return {filtered_tracks, tracks_positions};
 }
 
-std::vector<kwiver::vital::track_sptr> viame::core::tracks_pairing_from_stereo::keep_right_tracks_in_current_frame(
+std::vector<kwiver::vital::track_sptr> viame::ocv_pair_stereo_tracks::keep_right_tracks_in_current_frame(
     const std::vector<kwiver::vital::track_sptr> &tracks, const kwiver::vital::timestamp &timestamp) {
   std::vector<kwiver::vital::track_sptr> filtered_tracks;
 
@@ -86,7 +86,7 @@ std::vector<kwiver::vital::track_sptr> viame::core::tracks_pairing_from_stereo::
 }
 
 
-kwiver::vital::track_id_t viame::core::tracks_pairing_from_stereo::last_left_right_track_id() const {
+kwiver::vital::track_id_t viame::ocv_pair_stereo_tracks::last_left_right_track_id() const {
   auto get_map_ids = [](const std::map<kwiver::vital::track_id_t, kwiver::vital::track_sptr> &map) {
     std::set<kwiver::vital::track_id_t> track_ids;
     for (const auto &track: map) {
@@ -111,7 +111,7 @@ struct MostLikelyPair {
 
 
 std::tuple<std::vector<kwiver::vital::track_sptr>, std::vector<kwiver::vital::track_sptr>>
-viame::core::tracks_pairing_from_stereo::get_left_right_tracks_with_pairing() {
+viame::ocv_pair_stereo_tracks::get_left_right_tracks_with_pairing() {
   std::vector<kwiver::vital::track_sptr> left_tracks, right_tracks;
 
   auto proc_tracks = m_do_split_detections ? split_paired_tracks_to_new_tracks(left_tracks, right_tracks)
@@ -137,7 +137,7 @@ viame::core::tracks_pairing_from_stereo::get_left_right_tracks_with_pairing() {
 }
 
 std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
-viame::core::tracks_pairing_from_stereo::select_most_likely_pairing(std::vector<kwiver::vital::track_sptr> &left_tracks,
+viame::ocv_pair_stereo_tracks::select_most_likely_pairing(std::vector<kwiver::vital::track_sptr> &left_tracks,
                                                                     std::vector<kwiver::vital::track_sptr> &right_tracks) {
   std::map<kwiver::vital::track_id_t, MostLikelyPair> most_likely_left_to_right_pair;
   // Find the most likely pair from all pairs across all frames
@@ -190,14 +190,14 @@ viame::core::tracks_pairing_from_stereo::select_most_likely_pairing(std::vector<
 }
 
 std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
-viame::core::tracks_pairing_from_stereo::split_paired_tracks_to_new_tracks(
+viame::ocv_pair_stereo_tracks::split_paired_tracks_to_new_tracks(
     std::vector<kwiver::vital::track_sptr> &left_tracks, std::vector<kwiver::vital::track_sptr> &right_tracks) {
   const auto ranges = create_split_ranges_from_track_pairs(m_left_to_right_pairing);
   return split_ranges_to_tracks(ranges, left_tracks, right_tracks);
 }
 
 
-void viame::core::tracks_pairing_from_stereo::append_paired_frame(const kwiver::vital::track_sptr &left_track,
+void viame::ocv_pair_stereo_tracks::append_paired_frame(const kwiver::vital::track_sptr &left_track,
                                                                   const kwiver::vital::track_sptr &right_track,
                                                                   const kwiver::vital::timestamp &timestamp) {
   // Pair left to right for given frame
@@ -213,9 +213,9 @@ void viame::core::tracks_pairing_from_stereo::append_paired_frame(const kwiver::
   m_left_to_right_pairing[pairing].frame_set.emplace(timestamp.get_frame());
 }
 
-void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks(
+void viame::ocv_pair_stereo_tracks::pair_left_right_tracks(
     const std::vector<kwiver::vital::track_sptr> &left_tracks,
-    const std::vector<viame::core::Detections3DPositions> &left_3d_pos,
+    const std::vector<viame::Detections3DPositions> &left_3d_pos,
     const std::vector<kwiver::vital::track_sptr> &right_tracks, const kwiver::vital::timestamp &timestamp) {
   m_detection_pairing->m_verbose = m_verbose;
   m_detection_pairing->m_pairing_method = m_pairing_method;
@@ -223,7 +223,7 @@ void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks(
 
   std::vector<kwiver::vital::track_sptr> filtered_left, filtered_right;
   std::vector<kwiver::vital::detected_object_sptr> filtered_left_detections, filtered_right_detections;
-  std::vector<viame::core::Detections3DPositions> filtered_3d_pos;
+  std::vector<viame::Detections3DPositions> filtered_3d_pos;
 
   auto get_current_track_detection = [&timestamp](
       const kwiver::vital::track_sptr &track) -> kwiver::vital::detected_object_sptr {
@@ -266,7 +266,7 @@ void viame::core::tracks_pairing_from_stereo::pair_left_right_tracks(
 }
 
 
-std::vector<kwiver::vital::track_sptr> viame::core::tracks_pairing_from_stereo::filter_tracks_with_threshold(
+std::vector<kwiver::vital::track_sptr> viame::ocv_pair_stereo_tracks::filter_tracks_with_threshold(
     std::vector<kwiver::vital::track_sptr> tracks) const {
   const auto is_outside_detection_number_threshold = [this](const kwiver::vital::track_sptr &track) {
     return ((int) track->size() < m_min_detection_number_threshold) ||
@@ -303,7 +303,7 @@ void erase_if(ContainerT &items, const PredicateT &predicate) {
   }
 }
 
-inline std::string to_string(const std::map<size_t, viame::core::Pairing> &left_to_right_pairing) {
+inline std::string to_string(const std::map<size_t, viame::Pairing> &left_to_right_pairing) {
   std::stringstream ss;
 
   ss << "PAIRINGS TO SPLIT : " << std::endl;
@@ -319,8 +319,8 @@ inline std::string to_string(const std::map<size_t, viame::core::Pairing> &left_
   return ss.str();
 }
 
-std::vector<viame::core::tracks_pairing_from_stereo::Range>
-viame::core::tracks_pairing_from_stereo::create_split_ranges_from_track_pairs(
+std::vector<viame::ocv_pair_stereo_tracks::Range>
+viame::ocv_pair_stereo_tracks::create_split_ranges_from_track_pairs(
     const std::map<size_t, Pairing> &left_to_right_pairing) const {
 
   if (m_verbose)
@@ -473,7 +473,7 @@ viame::core::tracks_pairing_from_stereo::create_split_ranges_from_track_pairs(
 
 
 std::tuple<std::set<kwiver::vital::track_id_t>, std::set<kwiver::vital::track_id_t>>
-viame::core::tracks_pairing_from_stereo::split_ranges_to_tracks(const std::vector<Range> &ranges,
+viame::ocv_pair_stereo_tracks::split_ranges_to_tracks(const std::vector<Range> &ranges,
                                                                 std::vector<kwiver::vital::track_sptr> &left_tracks,
                                                                 std::vector<kwiver::vital::track_sptr> &right_tracks) {
 
