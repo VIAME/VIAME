@@ -5,6 +5,7 @@ set( plugin_headers
   auto_detect_transform.h
   convert_head_tail_points.h
   convert_polygons_to_mask.h
+  disparity_map_writer.h
   empty_detector.h
   filename_to_timestamp.h
   measurement_utilities.h
@@ -25,6 +26,7 @@ set( plugin_sources
   auto_detect_transform.cxx
   convert_head_tail_points.cxx
   convert_polygons_to_mask.cxx
+  disparity_map_writer.cxx
   empty_detector.cxx
   filename_to_timestamp.cxx
   measurement_utilities.cxx

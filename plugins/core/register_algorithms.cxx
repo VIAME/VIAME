@@ -39,6 +39,7 @@
 #include "add_timestamp_from_filename.h"
 #include "auto_detect_transform.h"
 #include "convert_head_tail_points.h"
+#include "disparity_map_writer.h"
 #include "empty_detector.h"
 #include "read_detected_object_set_fishnet.h"
 #include "read_detected_object_set_habcam.h"
@@ -85,6 +86,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< add_timestamp_from_filename >( vpm );
   register_algorithm< auto_detect_transform_io >( vpm );
   register_algorithm< convert_head_tail_points >( vpm );
+  register_algorithm< disparity_map_writer >( vpm );
   register_algorithm< empty_detector >( vpm );
   register_algorithm< read_detected_object_set_fishnet >( vpm );
   register_algorithm< read_detected_object_set_habcam >( vpm );
