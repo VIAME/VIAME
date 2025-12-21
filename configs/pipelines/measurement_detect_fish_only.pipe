@@ -29,9 +29,9 @@ include common_stereo_fish_detector_with_filter.pipe
 
 process depth_map
   :: compute_stereo_depth_map
-  :computer:type                              ocv_rectified_stereo_disparity_map
+  :computer:type                              ocv_stereo_disparity_map
 
-block computer:ocv_rectified_stereo_disparity_map
+block computer:ocv_stereo_disparity_map
   :algorithm                                 	SGBM
   :min_disparity                             	0
   :num_disparities                           	240
@@ -39,8 +39,8 @@ block computer:ocv_rectified_stereo_disparity_map
   :block_size                                	11
   :speckle_window_size			                0
   :speckle_range				                0
-  :cameras_directory                            $CONFIG{global:input_cameras_directory}
-  :use_filtered_disparity                       true
+  :calibration_file                             $CONFIG{global:input_cameras_directory}
+  :use_wls_filter                               true
 endblock
 
 # =================================== DETECTOR WRITER ==============================
@@ -64,7 +64,7 @@ process detector_writer2
 # ============================== DETECTIONS PAIRING ==============================
 
 process stereo_pairing
-  ::detections_pairing_from_stereo
+  ::ocv_pair_stereo_detections
   :cameras_directory                      $CONFIG{global:input_cameras_directory}
   :pairing_method                         $CONFIG{global:pairing_method}
   :iou_pair_threshold                     $CONFIG{global:iou_pair_threshold}

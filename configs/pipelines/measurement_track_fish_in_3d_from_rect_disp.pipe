@@ -29,9 +29,9 @@ include common_stereo_fish_tracker.pipe
 
 process depth_map
   :: compute_stereo_depth_map
-  :computer:type                              ocv_rectified_stereo_disparity_map
+  :computer:type                              ocv_stereo_disparity_map
 
-block computer:ocv_rectified_stereo_disparity_map
+block computer:ocv_stereo_disparity_map
   :algorithm                                 	SGBM
   :min_disparity                             	0
   :num_disparities                           	240
@@ -39,8 +39,8 @@ block computer:ocv_rectified_stereo_disparity_map
   :block_size                                	11
   :speckle_window_size			                0
   :speckle_range				                0
-  :cameras_directory                            $CONFIG{global:input_cameras_directory}
-  :use_filtered_disparity                       true
+  :calibration_file                             $CONFIG{global:input_cameras_directory}
+  :use_wls_filter                               true
 endblock
 
 connect from downsampler.output_1
@@ -49,7 +49,7 @@ connect from downsampler.output_3
         to   depth_map.right_image
 
 process stereo_pairing
-  ::tracks_pairing_from_stereo
+  ::ocv_pair_stereo_tracks
   :cameras_directory                      $CONFIG{global:input_cameras_directory}
   :min_detection_number_threshold         $CONFIG{global:min_detection_number_threshold}
   :max_detection_number_threshold         $CONFIG{global:max_detection_number_threshold}
