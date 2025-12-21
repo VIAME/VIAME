@@ -449,7 +449,7 @@ measurement_process
     kv::vector_2d left_tail( kp1.at("tail")[0], kp1.at("tail")[1] );
     kv::vector_2d right_tail( kp2.at("tail")[0], kp2.at("tail")[1] );
 
-    const auto measurement = d->m_utilities.compute_stereo_measurement(
+    const auto measurement = viame::core::compute_stereo_measurement(
       left_cam, right_cam, left_head, right_head, left_tail, right_tail );
 
     LOG_INFO( logger(), "Computed Length (input_kps_used): " + std::to_string( measurement.length ) );
@@ -548,7 +548,7 @@ measurement_process
       }
 
       // Compute full measurement
-      const auto measurement = d->m_utilities.compute_stereo_measurement(
+      const auto measurement = viame::core::compute_stereo_measurement(
         left_cam, right_cam,
         result.left_head, result.right_head,
         result.left_tail, result.right_tail );

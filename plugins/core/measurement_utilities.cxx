@@ -78,6 +78,7 @@ map_keypoints_to_camera_settings
   , ransac_inlier_scale( 3.0 )
   , min_ransac_inliers( 10 )
   , box_scale_factor( 1.10 )
+  , box_min_aspect_ratio( 0.10 )
   , use_disparity_aware_feature_search( true )
   , feature_search_depth( 5.0 )
   , record_stereo_method( true )
@@ -191,6 +192,11 @@ map_keypoints_to_camera_settings
     "Scale factor to expand the bounding box around keypoints when creating "
     "new detections for the right image. A value of 1.10 means 10% expansion." );
 
+  config->set_value( "box_min_aspect_ratio", box_min_aspect_ratio,
+    "Minimum aspect ratio for bounding boxes (smaller dimension / larger dimension). "
+    "Prevents very thin boxes when keypoints are nearly collinear. "
+    "Set to 0 to disable. Default is 0.10 (10%)." );
+
   config->set_value( "record_stereo_method", record_stereo_method,
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
@@ -234,6 +240,7 @@ map_keypoints_to_camera_settings
   ransac_inlier_scale = config->get_value< double >( "ransac_inlier_scale", ransac_inlier_scale );
   min_ransac_inliers = config->get_value< int >( "min_ransac_inliers", min_ransac_inliers );
   box_scale_factor = config->get_value< double >( "box_scale_factor", box_scale_factor );
+  box_min_aspect_ratio = config->get_value< double >( "box_min_aspect_ratio", box_min_aspect_ratio );
   use_disparity_aware_feature_search = config->get_value< bool >( "use_disparity_aware_feature_search", use_disparity_aware_feature_search );
   feature_search_depth = config->get_value< double >( "feature_search_depth", feature_search_depth );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
@@ -398,6 +405,7 @@ map_keypoints_to_camera
   , m_ransac_inlier_scale( 3.0 )
   , m_min_ransac_inliers( 10 )
   , m_box_scale_factor( 1.10 )
+  , m_box_min_aspect_ratio( 0.10 )
   , m_use_disparity_aware_feature_search( true )
   , m_feature_search_depth( 5.0 )
   , m_cached_frame_id( 0 )
@@ -529,6 +537,7 @@ map_keypoints_to_camera
                       settings.use_disparity_aware_feature_search,
                       settings.feature_search_depth );
   set_box_scale_factor( settings.box_scale_factor );
+  m_box_min_aspect_ratio = settings.box_min_aspect_ratio;
   set_feature_algorithms( settings.feature_detector, settings.descriptor_extractor,
                           settings.feature_matcher, settings.fundamental_matrix_estimator );
 
@@ -544,17 +553,41 @@ map_keypoints_to_camera
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_point ) const
 {
-  return project_left_to_right( left_cam, right_cam, left_point, m_default_depth );
+  return viame::core::project_left_to_right( left_cam, right_cam, left_point, m_default_depth );
+}
+
+// -----------------------------------------------------------------------------
+kv::bounding_box_d
+map_keypoints_to_camera
+::compute_bbox_from_keypoints(
+  const kv::vector_2d& head_point,
+  const kv::vector_2d& tail_point ) const
+{
+  return viame::core::compute_bbox_from_keypoints(
+    head_point, tail_point, m_box_scale_factor, m_box_min_aspect_ratio );
+}
+
+// -----------------------------------------------------------------------------
+void
+add_measurement_attributes(
+  kv::detected_object_sptr det,
+  const stereo_measurement_result& measurement )
+{
+  det->set_length( measurement.length );
+  det->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
+  det->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
+  det->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
+  det->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
+  det->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
 }
 
 // -----------------------------------------------------------------------------
 kv::vector_2d
-map_keypoints_to_camera
-::project_left_to_right(
+project_left_to_right(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_point,
-  double depth ) const
+  double depth )
 {
   // Unproject the left camera point to normalized image coordinates
   const auto left_intrinsics = left_cam.get_intrinsics();
@@ -585,45 +618,12 @@ map_keypoints_to_camera
 }
 
 // -----------------------------------------------------------------------------
-kv::bounding_box_d
-map_keypoints_to_camera
-::compute_bbox_from_keypoints(
-  const kv::vector_2d& head_point,
-  const kv::vector_2d& tail_point ) const
-{
-  // Compute bounding box around the keypoints
-  double min_x = std::min( head_point.x(), tail_point.x() );
-  double max_x = std::max( head_point.x(), tail_point.x() );
-  double min_y = std::min( head_point.y(), tail_point.y() );
-  double max_y = std::max( head_point.y(), tail_point.y() );
-
-  // Compute center and dimensions
-  double center_x = ( min_x + max_x ) / 2.0;
-  double center_y = ( min_y + max_y ) / 2.0;
-  double width = max_x - min_x;
-  double height = max_y - min_y;
-
-  // Apply scale factor
-  double scaled_width = width * m_box_scale_factor;
-  double scaled_height = height * m_box_scale_factor;
-
-  // Compute new bounding box coordinates
-  double new_min_x = center_x - scaled_width / 2.0;
-  double new_max_x = center_x + scaled_width / 2.0;
-  double new_min_y = center_y - scaled_height / 2.0;
-  double new_max_y = center_y + scaled_height / 2.0;
-
-  return kv::bounding_box_d( new_min_x, new_min_y, new_max_x, new_max_y );
-}
-
-// -----------------------------------------------------------------------------
 kv::vector_3d
-map_keypoints_to_camera
-::triangulate_point(
+triangulate_point(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_point,
-  const kv::vector_2d& right_point ) const
+  const kv::vector_2d& right_point )
 {
   Eigen::Matrix<double, 2, 1> left_pt( left_point.x(), left_point.y() );
   Eigen::Matrix<double, 2, 1> right_pt( right_point.x(), right_point.y() );
@@ -636,14 +636,13 @@ map_keypoints_to_camera
 
 // -----------------------------------------------------------------------------
 double
-map_keypoints_to_camera
-::compute_stereo_length(
+compute_stereo_length(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_head,
   const kv::vector_2d& right_head,
   const kv::vector_2d& left_tail,
-  const kv::vector_2d& right_tail ) const
+  const kv::vector_2d& right_tail )
 {
   kv::vector_3d head_3d = triangulate_point( left_cam, right_cam, left_head, right_head );
   kv::vector_3d tail_3d = triangulate_point( left_cam, right_cam, left_tail, right_tail );
@@ -653,14 +652,13 @@ map_keypoints_to_camera
 
 // -----------------------------------------------------------------------------
 stereo_measurement_result
-map_keypoints_to_camera
-::compute_stereo_measurement(
+compute_stereo_measurement(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_head,
   const kv::vector_2d& right_head,
   const kv::vector_2d& left_tail,
-  const kv::vector_2d& right_tail ) const
+  const kv::vector_2d& right_tail )
 {
   stereo_measurement_result result;
 
@@ -710,17 +708,57 @@ map_keypoints_to_camera
 }
 
 // -----------------------------------------------------------------------------
-void
-add_measurement_attributes(
-  kv::detected_object_sptr det,
-  const stereo_measurement_result& measurement )
+kv::bounding_box_d
+compute_bbox_from_keypoints(
+  const kv::vector_2d& head_point,
+  const kv::vector_2d& tail_point,
+  double box_scale_factor,
+  double min_aspect_ratio )
 {
-  det->set_length( measurement.length );
-  det->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
-  det->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
-  det->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
-  det->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
-  det->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
+  // Compute bounding box around the keypoints
+  double min_x = std::min( head_point.x(), tail_point.x() );
+  double max_x = std::max( head_point.x(), tail_point.x() );
+  double min_y = std::min( head_point.y(), tail_point.y() );
+  double max_y = std::max( head_point.y(), tail_point.y() );
+
+  // Compute center and dimensions
+  double center_x = ( min_x + max_x ) / 2.0;
+  double center_y = ( min_y + max_y ) / 2.0;
+  double width = max_x - min_x;
+  double height = max_y - min_y;
+
+  // Apply scale factor
+  double scaled_width = width * box_scale_factor;
+  double scaled_height = height * box_scale_factor;
+
+  // Enforce minimum aspect ratio (smaller dimension >= min_aspect_ratio * larger dimension)
+  if( min_aspect_ratio > 0.0 )
+  {
+    if( scaled_width > scaled_height )
+    {
+      double min_height = scaled_width * min_aspect_ratio;
+      if( scaled_height < min_height )
+      {
+        scaled_height = min_height;
+      }
+    }
+    else
+    {
+      double min_width = scaled_height * min_aspect_ratio;
+      if( scaled_width < min_width )
+      {
+        scaled_width = min_width;
+      }
+    }
+  }
+
+  // Compute new bounding box coordinates
+  double new_min_x = center_x - scaled_width / 2.0;
+  double new_max_x = center_x + scaled_width / 2.0;
+  double new_min_y = center_y - scaled_height / 2.0;
+  double new_max_y = center_y + scaled_height / 2.0;
+
+  return kv::bounding_box_d( new_min_x, new_min_y, new_max_x, new_max_y );
 }
 
 // -----------------------------------------------------------------------------
@@ -1063,7 +1101,7 @@ map_keypoints_to_camera
   {
     // Use feature_search_depth if valid, otherwise fall back to default_depth
     double search_depth = ( m_feature_search_depth > 0 ) ? m_feature_search_depth : m_default_depth;
-    expected_right_point = project_left_to_right( *left_cam, *right_cam, left_point, search_depth );
+    expected_right_point = viame::core::project_left_to_right( *left_cam, *right_cam, left_point, search_depth );
   }
 
   // Find the closest matched feature to our query point
@@ -1193,7 +1231,7 @@ map_keypoints_to_camera
   {
     // Use feature_search_depth if valid, otherwise fall back to default_depth
     double search_depth = ( m_feature_search_depth > 0 ) ? m_feature_search_depth : m_default_depth;
-    expected_right_point = project_left_to_right( *left_cam, *right_cam, left_point, search_depth );
+    expected_right_point = viame::core::project_left_to_right( *left_cam, *right_cam, left_point, search_depth );
   }
 
   // Find the closest inlier match to our query point

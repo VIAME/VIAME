@@ -104,6 +104,47 @@ VIAME_CORE_EXPORT bool method_requires_images( const std::string& method );
 /// Get list of all valid method names
 VIAME_CORE_EXPORT std::vector< std::string > get_valid_methods();
 
+/// Project a point from left camera to right camera using a specified depth
+VIAME_CORE_EXPORT kv::vector_2d project_left_to_right(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_point,
+  double depth );
+
+/// Triangulate a 3D point from stereo correspondences
+VIAME_CORE_EXPORT kv::vector_3d triangulate_point(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_point,
+  const kv::vector_2d& right_point );
+
+/// Compute length between two 3D points from stereo keypoint pairs
+VIAME_CORE_EXPORT double compute_stereo_length(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_head,
+  const kv::vector_2d& right_head,
+  const kv::vector_2d& left_tail,
+  const kv::vector_2d& right_tail );
+
+/// Compute full stereo measurement including length, 3D position, range, and RMS
+VIAME_CORE_EXPORT stereo_measurement_result compute_stereo_measurement(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_head,
+  const kv::vector_2d& right_head,
+  const kv::vector_2d& left_tail,
+  const kv::vector_2d& right_tail );
+
+/// Compute a bounding box from keypoints with scale factor
+/// If min_aspect_ratio > 0, ensures the smaller dimension is at least
+/// min_aspect_ratio times the larger dimension (prevents very thin boxes)
+VIAME_CORE_EXPORT kv::bounding_box_d compute_bbox_from_keypoints(
+  const kv::vector_2d& head_point,
+  const kv::vector_2d& tail_point,
+  double box_scale_factor,
+  double min_aspect_ratio = 0.10 );
+
 // =============================================================================
 // Classes
 // =============================================================================
@@ -197,6 +238,10 @@ public:
 
   /// Scale factor to expand bounding box around keypoints
   double box_scale_factor;
+
+  /// Minimum aspect ratio for bounding boxes (smaller dim / larger dim).
+  /// Prevents very thin boxes. Set to 0 to disable.
+  double box_min_aspect_ratio;
 
   /// Whether to use depth projection to estimate initial search location for feature matching
   bool use_disparity_aware_feature_search;
@@ -310,42 +355,10 @@ public:
     const kv::simple_camera_perspective& right_cam,
     const kv::vector_2d& left_point ) const;
 
-  /// Project a left camera point to the right camera using a specified depth
-  kv::vector_2d project_left_to_right(
-    const kv::simple_camera_perspective& left_cam,
-    const kv::simple_camera_perspective& right_cam,
-    const kv::vector_2d& left_point,
-    double depth ) const;
-
   /// Compute a bounding box from keypoints with scale factor
   kv::bounding_box_d compute_bbox_from_keypoints(
     const kv::vector_2d& head_point,
     const kv::vector_2d& tail_point ) const;
-
-  /// Triangulate a point from stereo correspondences and compute 3D position
-  kv::vector_3d triangulate_point(
-    const kv::simple_camera_perspective& left_cam,
-    const kv::simple_camera_perspective& right_cam,
-    const kv::vector_2d& left_point,
-    const kv::vector_2d& right_point ) const;
-
-  /// Compute length between two 3D points from stereo keypoint pairs
-  double compute_stereo_length(
-    const kv::simple_camera_perspective& left_cam,
-    const kv::simple_camera_perspective& right_cam,
-    const kv::vector_2d& left_head,
-    const kv::vector_2d& right_head,
-    const kv::vector_2d& left_tail,
-    const kv::vector_2d& right_tail ) const;
-
-  /// Compute full stereo measurement including length, 3D position, range, and RMS
-  stereo_measurement_result compute_stereo_measurement(
-    const kv::simple_camera_perspective& left_cam,
-    const kv::simple_camera_perspective& right_cam,
-    const kv::vector_2d& left_head,
-    const kv::vector_2d& right_head,
-    const kv::vector_2d& left_tail,
-    const kv::vector_2d& right_tail ) const;
 
   // -------------------------------------------------------------------------
   // High-level stereo correspondence functions
@@ -532,6 +545,7 @@ private:
   double m_ransac_inlier_scale;
   int m_min_ransac_inliers;
   double m_box_scale_factor;
+  double m_box_min_aspect_ratio;
   bool m_use_disparity_aware_feature_search;
   double m_feature_search_depth;
 
