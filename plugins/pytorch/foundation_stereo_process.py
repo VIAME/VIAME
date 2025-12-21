@@ -168,8 +168,8 @@ class FoundationStereoProcess(KwiverProcess):
         self.declare_config_using_trait("z_far")
 
         self.add_config_trait("point_cloud_dir", "point_cloud_dir",
-            '/tmp',
-            'Directory to save point cloud PLY files')
+            '',
+            'Directory to save point cloud PLY files (required if output_point_cloud is enabled)')
         self.declare_config_using_trait("point_cloud_dir")
 
         self.add_config_trait("remove_invisible", "remove_invisible",
@@ -281,6 +281,8 @@ class FoundationStereoProcess(KwiverProcess):
 
         # Create point cloud output directory if needed
         if self._output_point_cloud:
+            if not self._point_cloud_dir:
+                raise RuntimeError("point_cloud_dir must be specified when output_point_cloud is enabled")
             os.makedirs(self._point_cloud_dir, exist_ok=True)
 
         self._base_configure()
