@@ -32,9 +32,9 @@ public:
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual kwiver::vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Optimize Stereo camera parameters given sets of landmarks and feature tracks
   /**
@@ -49,16 +49,16 @@ public:
    *                          optimization.
    */
   virtual void
-  optimize(kwiver::vital::camera_map_sptr & cameras,
-           kwiver::vital::feature_track_set_sptr tracks,
-           kwiver::vital::landmark_map_sptr landmarks,
-           kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
+  optimize( kwiver::vital::camera_map_sptr& cameras,
+            kwiver::vital::feature_track_set_sptr tracks,
+            kwiver::vital::landmark_map_sptr landmarks,
+            kwiver::vital::sfm_constraints_sptr constraints = nullptr ) const;
 
   /// @brief Left / Right camera optimization
   void
-  optimize(kwiver::vital::camera_map::map_camera_t cams,
-           const std::vector<kwiver::vital::feature_track_set_sptr>& tracks,
-           const std::vector<kwiver::vital::landmark_map_sptr>& landmarks) const;
+  optimize( kwiver::vital::camera_map::map_camera_t cams,
+            const std::vector< kwiver::vital::feature_track_set_sptr >& tracks,
+            const std::vector< kwiver::vital::landmark_map_sptr >& landmarks ) const;
 
   /// Optimize a single camera given corresponding features and landmarks
   /**
@@ -75,10 +75,10 @@ public:
    *                          optimization.
    */
   virtual void
-  optimize(kwiver::vital::camera_perspective_sptr& camera,
-           const std::vector<kwiver::vital::feature_sptr>& features,
-           const std::vector<kwiver::vital::landmark_sptr>& landmarks,
-           kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
+  optimize( kwiver::vital::camera_perspective_sptr& camera,
+            const std::vector< kwiver::vital::feature_sptr >& features,
+            const std::vector< kwiver::vital::landmark_sptr >& landmarks,
+            kwiver::vital::sfm_constraints_sptr constraints = nullptr ) const;
 
 private:
   /// private implementation class
