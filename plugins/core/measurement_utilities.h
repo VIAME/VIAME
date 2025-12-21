@@ -52,6 +52,7 @@
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/match_features.h>
 #include <vital/algo/estimate_fundamental_matrix.h>
+#include <vital/algo/compute_stereo_depth_map.h>
 
 #ifdef VIAME_ENABLE_OPENCV
   #include <opencv2/core/core.hpp>
@@ -230,6 +231,9 @@ public:
 
   /// Fundamental matrix estimator for RANSAC filtering
   kv::algo::estimate_fundamental_matrix_sptr fundamental_matrix_estimator;
+
+  /// Stereo depth/disparity map algorithm for computed_disparity method
+  kv::algo::compute_stereo_depth_map_sptr stereo_depth_map_algorithm;
 
   // -------------------------------------------------------------------------
   // Utility methods
@@ -539,6 +543,12 @@ private:
   kv::algo::extract_descriptors_sptr m_descriptor_extractor;
   kv::algo::match_features_sptr m_feature_matcher;
   kv::algo::estimate_fundamental_matrix_sptr m_fundamental_matrix_estimator;
+
+  // Stereo depth map algorithm for computed_disparity method
+  kv::algo::compute_stereo_depth_map_sptr m_stereo_depth_map_algorithm;
+
+  // Cached computed disparity from the algorithm
+  kv::image_container_sptr m_cached_computed_disparity;
 
   // Cached feature detection/descriptor results per frame
   kv::feature_set_sptr m_cached_left_features;

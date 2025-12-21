@@ -106,11 +106,13 @@ map_keypoints_to_camera_settings
     "until one succeeds. Valid options: "
     "'input_pairs_only' (use existing keypoints from right camera if available), "
     "'depth_projection' (uses default_depth to project points), "
+    "'external_disparity' (uses externally provided disparity map), "
+    "'computed_disparity' (uses stereo_disparity algorithm to compute disparity from rectified images), "
     "'template_matching' (rectifies images and searches along epipolar lines), "
     "'sgbm_disparity' (uses Semi-Global Block Matching to compute disparity map), "
     "'feature_descriptor' (uses vital feature detection/descriptor/matching), "
     "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering). "
-    "Example: 'input_pairs_only,template_matching,depth_projection'" );
+    "Example: 'input_pairs_only,computed_disparity,depth_projection'" );
 
   config->set_value( "default_depth", default_depth,
     "Default depth (in meters) to use when projecting left camera points to right camera "
@@ -206,7 +208,8 @@ map_keypoints_to_camera_settings
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
     "where METHOD is one of: input_kps_used, template_matching, sgbm_disparity, "
-    "feature_descriptor, ransac_feature, or depth_projection." );
+    "feature_descriptor, ransac_feature, depth_projection, external_disparity, "
+    "or computed_disparity." );
 
   // Add nested algorithm configurations
   kv::algo::detect_features::get_nested_algo_configuration(
@@ -217,6 +220,8 @@ map_keypoints_to_camera_settings
     "feature_matcher", config, feature_matcher );
   kv::algo::estimate_fundamental_matrix::get_nested_algo_configuration(
     "fundamental_matrix_estimator", config, fundamental_matrix_estimator );
+  kv::algo::compute_stereo_depth_map::get_nested_algo_configuration(
+    "stereo_disparity", config, stereo_depth_map_algorithm );
 
   return config;
 }
@@ -258,6 +263,8 @@ map_keypoints_to_camera_settings
     "feature_matcher", config, feature_matcher );
   kv::algo::estimate_fundamental_matrix::set_nested_algo_configuration(
     "fundamental_matrix_estimator", config, fundamental_matrix_estimator );
+  kv::algo::compute_stereo_depth_map::set_nested_algo_configuration(
+    "stereo_disparity", config, stereo_depth_map_algorithm );
 }
 
 // -----------------------------------------------------------------------------
@@ -291,6 +298,12 @@ map_keypoints_to_camera_settings
   {
     valid = kv::algo::estimate_fundamental_matrix::check_nested_algo_configuration(
       "fundamental_matrix_estimator", config ) && valid;
+  }
+  if( config->has_value( "stereo_disparity:type" ) &&
+      config->get_value< std::string >( "stereo_disparity:type" ) != "" )
+  {
+    valid = kv::algo::compute_stereo_depth_map::check_nested_algo_configuration(
+      "stereo_disparity", config ) && valid;
   }
 
   return valid;
@@ -566,6 +579,9 @@ map_keypoints_to_camera
   set_box_scale_factor( settings.box_scale_factor );
   set_feature_algorithms( settings.feature_detector, settings.descriptor_extractor,
                           settings.feature_matcher, settings.fundamental_matrix_estimator );
+
+  // Set the stereo depth map algorithm for computed_disparity method
+  m_stereo_depth_map_algorithm = settings.stereo_depth_map_algorithm;
 }
 
 // -----------------------------------------------------------------------------
@@ -832,6 +848,56 @@ map_keypoints_to_camera
       }
     }
 #ifdef VIAME_ENABLE_OPENCV
+    else if( method == "computed_disparity" && m_stereo_depth_map_algorithm &&
+             m_cached_stereo_images.rectified_available )
+    {
+      // Compute disparity map using the configured algorithm if not cached for this frame
+      if( !m_cached_computed_disparity )
+      {
+        // Convert rectified cv::Mat images to ImageContainers using OCV wrapper
+        kv::image_container_sptr left_rect_container =
+          std::make_shared< kwiver::arrows::ocv::image_container >(
+            m_cached_stereo_images.left_rectified,
+            kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+        kv::image_container_sptr right_rect_container =
+          std::make_shared< kwiver::arrows::ocv::image_container >(
+            m_cached_stereo_images.right_rectified,
+            kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+
+        // Compute disparity using the configured algorithm
+        m_cached_computed_disparity = m_stereo_depth_map_algorithm->compute(
+          left_rect_container, right_rect_container );
+      }
+
+      if( m_cached_computed_disparity )
+      {
+        // Use the computed disparity to find correspondences
+        // Note: The disparity is in rectified image space, so we need to
+        // rectify points, find correspondences, then unrectify
+        kv::vector_2d left_head_rect = rectify_point( result.left_head, false );
+        kv::vector_2d left_tail_rect = rectify_point( result.left_tail, false );
+
+        kv::vector_2d right_head_rect, right_tail_rect;
+
+        head_found = find_corresponding_point_external_disparity(
+          m_cached_computed_disparity, left_head_rect, right_head_rect );
+        tail_found = find_corresponding_point_external_disparity(
+          m_cached_computed_disparity, left_tail_rect, right_tail_rect );
+
+        if( head_found && tail_found )
+        {
+          // Unrectify the found right image points
+          result.right_head = unrectify_point( right_head_rect, true, right_cam );
+          result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
+          result.method_used = "computed_disparity";
+        }
+        else
+        {
+          head_found = false;
+          tail_found = false;
+        }
+      }
+    }
     else if( method == "template_matching" && m_cached_stereo_images.rectified_available )
     {
       kv::vector_2d left_head_rect = rectify_point( result.left_head, false );
@@ -1279,6 +1345,7 @@ map_keypoints_to_camera
   m_cached_left_descriptors.reset();
   m_cached_right_descriptors.reset();
   m_cached_matches.reset();
+  m_cached_computed_disparity.reset();
 }
 
 // -----------------------------------------------------------------------------
@@ -1948,12 +2015,15 @@ map_keypoints_to_camera
   // (as produced by foundation_stereo_process)
   double disparity = 0.0;
 
+  // Cast to char* for pointer arithmetic (void* arithmetic is undefined)
+  const char* img_data = reinterpret_cast<const char*>( img.first_pixel() );
+
   if( img.pixel_traits().type == kv::image_pixel_traits::UNSIGNED &&
       img.pixel_traits().num_bytes == 2 )
   {
     // uint16 format scaled by 256
     const uint16_t* ptr = reinterpret_cast<const uint16_t*>(
-      img.first_pixel() + y * img.h_step() + x * img.w_step() );
+      img_data + y * img.h_step() + x * img.w_step() );
     disparity = static_cast<double>( *ptr ) / 256.0;
   }
   else if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
@@ -1961,7 +2031,7 @@ map_keypoints_to_camera
   {
     // float32 format (raw disparity)
     const float* ptr = reinterpret_cast<const float*>(
-      img.first_pixel() + y * img.h_step() + x * img.w_step() );
+      img_data + y * img.h_step() + x * img.w_step() );
     disparity = static_cast<double>( *ptr );
   }
   else
@@ -2012,7 +2082,8 @@ method_requires_images( const std::string& method )
   return ( method == "template_matching" ||
            method == "sgbm_disparity" ||
            method == "feature_descriptor" ||
-           method == "ransac_feature" );
+           method == "ransac_feature" ||
+           method == "computed_disparity" );
 }
 
 // -----------------------------------------------------------------------------
@@ -2023,6 +2094,7 @@ get_valid_methods()
     "input_pairs_only",
     "depth_projection",
     "external_disparity",
+    "computed_disparity",
     "template_matching",
     "sgbm_disparity",
     "feature_descriptor",
