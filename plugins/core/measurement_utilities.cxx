@@ -1941,8 +1941,10 @@ map_keypoints_to_camera
     return false;
   }
 
-  // Get disparity value - expected to be uint16 scaled by 256
-  // (as produced by foundation_stereo_process)
+  // Get disparity value - supports multiple formats:
+  // - uint16 scaled by 256 (as produced by foundation_stereo or ocv with uint16_scaled)
+  // - int16 scaled by 16 (OpenCV raw format from ocv_stereo_disparity_map with raw)
+  // - float32 (raw disparity in pixels)
   double disparity = 0.0;
 
   // Cast to char* for pointer arithmetic (void* arithmetic is undefined)
@@ -1956,10 +1958,24 @@ map_keypoints_to_camera
       img_data + y * img.h_step() + x * img.w_step() );
     disparity = static_cast<double>( *ptr ) / 256.0;
   }
+  else if( img.pixel_traits().type == kv::image_pixel_traits::SIGNED &&
+           img.pixel_traits().num_bytes == 2 )
+  {
+    // int16 format scaled by 16 (OpenCV raw format)
+    const int16_t* ptr = reinterpret_cast<const int16_t*>(
+      img_data + y * img.h_step() + x * img.w_step() );
+    int16_t raw_val = *ptr;
+    if( raw_val < 0 )
+    {
+      // Invalid disparity in OpenCV raw format
+      return false;
+    }
+    disparity = static_cast<double>( raw_val ) / 16.0;
+  }
   else if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
            img.pixel_traits().num_bytes == 4 )
   {
-    // float32 format (raw disparity)
+    // float32 format (raw disparity in pixels)
     const float* ptr = reinterpret_cast<const float*>(
       img_data + y * img.h_step() + x * img.w_step() );
     disparity = static_cast<double>( *ptr );
