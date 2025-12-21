@@ -37,8 +37,8 @@
  * and class label matching to find corresponding detections.
  */
 
-#ifndef VIAME_STEREO_DETECTION_PAIRING_PROCESS_H
-#define VIAME_STEREO_DETECTION_PAIRING_PROCESS_H
+#ifndef VIAME_PAIR_STEREO_DETECTIONS_PROCESS_H
+#define VIAME_PAIR_STEREO_DETECTIONS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -65,13 +65,13 @@ namespace core
  * - Bounding box IOU (Intersection over Union)
  * - Greedy or optimal assignment
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT stereo_detection_pairing_process
+class VIAME_PROCESSES_CORE_NO_EXPORT pair_stereo_detections_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  stereo_detection_pairing_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~stereo_detection_pairing_process();
+  pair_stereo_detections_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~pair_stereo_detections_process();
 
 protected:
   virtual void _configure();
@@ -84,9 +84,9 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class stereo_detection_pairing_process
+}; // end class pair_stereo_detections_process
 
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_STEREO_DETECTION_PAIRING_PROCESS_H
+#endif // VIAME_PAIR_STEREO_DETECTIONS_PROCESS_H

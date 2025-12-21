@@ -48,7 +48,7 @@
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
 #include "split_object_track_to_feature_landmark_process.h"
-#include "stereo_detection_pairing_process.h"
+#include "pair_stereo_detections_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -188,9 +188,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::stereo_detection_pairing_process );
+  fact = vpm.ADD_PROCESS( viame::core::pair_stereo_detections_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "stereo_detection_pairing" )
+                        "pair_stereo_detections" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

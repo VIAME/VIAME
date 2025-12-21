@@ -33,7 +33,7 @@
  * \brief Stereo detection pairing process implementation
  */
 
-#include "stereo_detection_pairing_process.h"
+#include "pair_stereo_detections_process.h"
 #include "measurement_utilities.h"
 
 #include <vital/vital_types.h>
@@ -104,10 +104,10 @@ create_port_trait( object_track_set2, object_track_set,
 
 // =============================================================================
 // Private implementation class
-class stereo_detection_pairing_process::priv
+class pair_stereo_detections_process::priv
 {
 public:
-  explicit priv( stereo_detection_pairing_process* parent );
+  explicit priv( pair_stereo_detections_process* parent );
   ~priv();
 
   // Compute IOU between two bounding boxes
@@ -156,12 +156,12 @@ public:
   // State
   kv::track_id_t m_next_track_id;
 
-  stereo_detection_pairing_process* parent;
+  pair_stereo_detections_process* parent;
 };
 
 // -----------------------------------------------------------------------------
-stereo_detection_pairing_process::priv
-::priv( stereo_detection_pairing_process* ptr )
+pair_stereo_detections_process::priv
+::priv( pair_stereo_detections_process* ptr )
   : m_matching_method( "iou" )
   , m_calibration_file( "" )
   , m_iou_threshold( 0.1 )
@@ -176,14 +176,14 @@ stereo_detection_pairing_process::priv
 }
 
 // -----------------------------------------------------------------------------
-stereo_detection_pairing_process::priv
+pair_stereo_detections_process::priv
 ::~priv()
 {
 }
 
 // -----------------------------------------------------------------------------
 double
-stereo_detection_pairing_process::priv
+pair_stereo_detections_process::priv
 ::compute_iou(
   const kv::bounding_box_d& bbox1,
   const kv::bounding_box_d& bbox2 ) const
@@ -223,7 +223,7 @@ stereo_detection_pairing_process::priv
 
 // -----------------------------------------------------------------------------
 std::string
-stereo_detection_pairing_process::priv
+pair_stereo_detections_process::priv
 ::get_class_label( const kv::detected_object_sptr& det ) const
 {
   if( !det )
@@ -244,7 +244,7 @@ stereo_detection_pairing_process::priv
 
 // -----------------------------------------------------------------------------
 double
-stereo_detection_pairing_process::priv
+pair_stereo_detections_process::priv
 ::compute_reprojection_error(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -278,7 +278,7 @@ stereo_detection_pairing_process::priv
 
 // -----------------------------------------------------------------------------
 std::vector<std::pair<int, int>>
-stereo_detection_pairing_process::priv
+pair_stereo_detections_process::priv
 ::greedy_assignment(
   const std::vector<std::vector<double>>& cost_matrix,
   int n1, int n2 )
@@ -323,7 +323,7 @@ stereo_detection_pairing_process::priv
 
 // -----------------------------------------------------------------------------
 std::vector<std::pair<int, int>>
-stereo_detection_pairing_process::priv
+pair_stereo_detections_process::priv
 ::find_matches_iou(
   const std::vector<kv::detected_object_sptr>& detections1,
   const std::vector<kv::detected_object_sptr>& detections2 )
@@ -413,7 +413,7 @@ stereo_detection_pairing_process::priv
 
 // -----------------------------------------------------------------------------
 std::vector<std::pair<int, int>>
-stereo_detection_pairing_process::priv
+pair_stereo_detections_process::priv
 ::find_matches_calibration(
   const std::vector<kv::detected_object_sptr>& detections1,
   const std::vector<kv::detected_object_sptr>& detections2 )
@@ -543,23 +543,23 @@ stereo_detection_pairing_process::priv
 }
 
 // =============================================================================
-stereo_detection_pairing_process
-::stereo_detection_pairing_process( kv::config_block_sptr const& config )
+pair_stereo_detections_process
+::pair_stereo_detections_process( kv::config_block_sptr const& config )
   : process( config ),
-    d( new stereo_detection_pairing_process::priv( this ) )
+    d( new pair_stereo_detections_process::priv( this ) )
 {
   make_ports();
   make_config();
 }
 
-stereo_detection_pairing_process
-::~stereo_detection_pairing_process()
+pair_stereo_detections_process
+::~pair_stereo_detections_process()
 {
 }
 
 // -----------------------------------------------------------------------------
 void
-stereo_detection_pairing_process
+pair_stereo_detections_process
 ::make_ports()
 {
   sprokit::process::port_flags_t required;
@@ -579,7 +579,7 @@ stereo_detection_pairing_process
 
 // -----------------------------------------------------------------------------
 void
-stereo_detection_pairing_process
+pair_stereo_detections_process
 ::make_config()
 {
   declare_config_using_trait( matching_method );
@@ -594,7 +594,7 @@ stereo_detection_pairing_process
 
 // -----------------------------------------------------------------------------
 void
-stereo_detection_pairing_process
+pair_stereo_detections_process
 ::_configure()
 {
   d->m_matching_method = config_value_using_trait( matching_method );
@@ -649,7 +649,7 @@ stereo_detection_pairing_process
 
 // -----------------------------------------------------------------------------
 void
-stereo_detection_pairing_process
+pair_stereo_detections_process
 ::_step()
 {
   // Grab inputs
