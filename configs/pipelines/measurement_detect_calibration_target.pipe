@@ -1,9 +1,11 @@
+# ==================================================================================
 # Stereo track OCV targets
 # Runs automated ocv target detection on each of the images of a stereo camera
 #
 # Features:
 #   - Auto-detects chessboard grid size from first frame
 #   - Outputs detected corners with world coordinates
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -72,7 +74,7 @@ connect from detector2.detected_object_set
 # ================================= CORE TRACKER ===================================
 
 process append_detections1
-  ::accumulate_object_tracks
+  :: accumulate_object_tracks
   :min_frame_count                           0
   :max_frame_count                           0
 
@@ -82,7 +84,7 @@ connect from detector1.detected_object_set
         to   append_detections1.detected_object_set
 
 process append_detections2
-  ::accumulate_object_tracks
+  :: accumulate_object_tracks
   :min_frame_count                           0
   :max_frame_count                           0
 

@@ -1,4 +1,6 @@
+# ==================================================================================
 # Common fish detection and tracking util include file
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -61,7 +63,6 @@ process tracker1
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
 
-
 # Connect inputs to tracker
 connect from downsampler.output_1
         to   tracker1.image
@@ -90,7 +91,6 @@ process tracker2
   relativepath targetRNN_AIM_V_model_path =    $CONFIG{srnn:targetRNN_AIM_V_model_path}
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
-
 
 # Connect inputs to tracker
 connect from downsampler.output_3

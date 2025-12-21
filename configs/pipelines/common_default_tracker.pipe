@@ -1,9 +1,9 @@
-
 # ==================================================================================
 # Commonly used default tracker when the user hasn't specified one.
 #
 # Current incumbent is a modified version of "Tracking the Untrackable" implemented
 # in pytorch, trained on assorted fish data.
+# ==================================================================================
 
 process tracker
   :: srnn_tracker
@@ -25,3 +25,5 @@ process tracker
   relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
+
+# -- end of file --

@@ -1,6 +1,6 @@
 # ==================================================================================
 # Commonly used stereo input files source with included track inputs as well
-#
+# ==================================================================================
 
 include common_stereo_input_with_downsampler.pipe
 
@@ -19,3 +19,5 @@ process track_reader2
 
 connect from downsampler.output_2
         to   track_reader2.image_file_name
+
+# -- end of file --

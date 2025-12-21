@@ -1,3 +1,7 @@
+# ==================================================================================
+# Measurement from annotations pipeline
+# ==================================================================================
+
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
 #
@@ -9,8 +13,8 @@ config _scheduler
 
 # ================================= DATA INPUTS ====================================
 
-include common_stereo_input_with_tracks.pipe 
- 
+include common_stereo_input_with_tracks.pipe
+
 # ============================= MEASUREMENT PROCESS ================================
 
 process measurer
@@ -60,8 +64,8 @@ connect from downsampler.output_1
 connect from downsampler.output_3
         to   measurer.image2
 
-# ================================ OUTPUT WRITIERS =================================
- 
+# ================================= OUTPUT WRITERS =================================
+
 process track_writer1
   :: write_object_track
   :file_name                                   computed_tracks1.csv
@@ -81,3 +85,5 @@ connect from measurer.object_track_set2
         to   track_writer2.object_track_set
 connect from downsampler.timestamp
         to   track_writer2.timestamp
+
+# -- end of file --

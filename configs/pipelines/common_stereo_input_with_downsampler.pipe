@@ -3,6 +3,7 @@
 #
 # By default, this is an image list reader, but this can be over-riden by changing
 # :video_reader:type to be vidl_ffmpeg for videos
+# ==================================================================================
 
 include common_stereo_input.pipe
 
@@ -27,3 +28,5 @@ connect from input2.image
         to   downsampler.input_3
 connect from input2.file_name
         to   downsampler.input_4
+
+# -- end of file --

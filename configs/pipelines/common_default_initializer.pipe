@@ -1,8 +1,8 @@
-
 # ==================================================================================
 # Commonly used default initializer when the user hasn't specified one.
 #
 # Current incumbent is just a straight-up threshold on detection scores.
+# ==================================================================================
 
 process track_initializer
   :: initialize_object_tracks
@@ -14,3 +14,5 @@ process track_initializer
     :class_probablity_filter:keep_all_classes  true
     :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
   endblock
+
+# -- end of file --

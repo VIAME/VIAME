@@ -2,6 +2,7 @@
 # Commonly used generic detector when the user hasn't specified one.
 #
 # Generates generic object proposals as opposed to any specific class labels
+# ==================================================================================
 
 process detector_input
   :: image_filter
@@ -42,3 +43,5 @@ process detector_output
 
 connect from detector1.detected_object_set
         to   detector_output.detected_object_set1
+
+# -- end of file --

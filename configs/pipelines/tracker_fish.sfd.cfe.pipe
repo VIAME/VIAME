@@ -1,6 +1,8 @@
+# ==================================================================================
 # Example simple tracker pipeline
 #
 # Runs a 8-node object tracking pipeline
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -8,7 +10,7 @@
 config _pipeline:_edge
   :capacity                                    5
 
-# ============================== INPUT FRAME LIST ==================================
+# =============================== INPUT FRAME LIST =================================
 
 include common_default_input_with_downsampler.pipe
 
@@ -34,13 +36,13 @@ connect from downsampler.output_2
 # ================================ CORE TRACKER ====================================
 
 process detection_descriptor
- :: compute_track_descriptors
+  :: compute_track_descriptors
   :inject_to_detections                        true
   :computer:type                               burnout
   relativepath computer:burnout:config_file =  burnout_det_descriptors.conf
 
 process tracker
- :: compute_association_matrix
+  :: compute_association_matrix
   :matrix_generator:type                       from_features
   :matrix_generator:from_features:max_distance 40
 

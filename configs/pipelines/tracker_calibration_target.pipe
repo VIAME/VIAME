@@ -1,6 +1,8 @@
+# ==================================================================================
 # OCV target Tracker Pipeline
 #
 # Runs automated ocv target detection on image then generate corners tracks
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -55,7 +57,7 @@ connect from detector1.detected_object_set
 # ================================= CORE TRACKER ===================================
 
 process append_detections
-  ::accumulate_object_tracks
+  :: accumulate_object_tracks
   :min_frame_count                           0
   :max_frame_count                           0
 
