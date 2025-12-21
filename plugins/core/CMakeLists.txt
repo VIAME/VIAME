@@ -151,6 +151,7 @@ set( process_headers
   calibrate_cameras_from_tracks_process.h
   detections_pairing_from_stereo_process.h
   tracks_pairing_from_stereo_process.h
+  stereo_detection_pairing_process.h
 )
 
 set( process_sources
@@ -173,6 +174,7 @@ set( process_sources
   calibrate_cameras_from_tracks_process.cxx
   detections_pairing_from_stereo_process.cxx
   tracks_pairing_from_stereo_process.cxx
+  stereo_detection_pairing_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_core
