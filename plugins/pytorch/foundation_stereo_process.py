@@ -45,7 +45,7 @@ import numpy as np
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
 
-from kwiver.vital.types import ImageContainer
+from kwiver.vital.types import ImageContainer, DetectedObjectSet
 from kwiver.vital.util import VitalPIL
 from PIL import Image as PILImage
 
@@ -76,6 +76,8 @@ class FoundationStereoProcess(KwiverProcess):
     Input Ports:
         left_image: Left stereo image (required)
         right_image: Right stereo image (required)
+        detected_object_set: Input detections (optional, if connected and empty,
+            disparity/depth computation is skipped)
         timestamp: Frame timestamp (optional, passed through)
 
     Output Ports:
@@ -190,6 +192,7 @@ class FoundationStereoProcess(KwiverProcess):
         # Input ports
         self.declare_input_port_using_trait('left_image', required)
         self.declare_input_port_using_trait('right_image', required)
+        self.declare_input_port_using_trait('detected_object_set', optional)
         self.declare_input_port_using_trait('timestamp', optional)
 
         # Output ports
@@ -312,10 +315,28 @@ class FoundationStereoProcess(KwiverProcess):
         left_img_c = self.grab_input_using_trait('left_image')
         right_img_c = self.grab_input_using_trait('right_image')
 
+        # Get optional detections - if port is connected and no detections, skip processing
+        has_detections = True
+        if self.has_input_port_edge_using_trait('detected_object_set'):
+            detections = self.grab_input_using_trait('detected_object_set')
+            has_detections = len(detections) > 0
+
         # Get optional timestamp
         timestamp = None
         if self.has_input_port_edge_using_trait('timestamp'):
             timestamp = self.grab_input_using_trait('timestamp')
+
+        # If detection port is connected but no detections, skip all computation
+        # and output empty images to maintain pipeline flow
+        if not has_detections:
+            if self.count_output_port_edges('disparity_image') > 0:
+                self.push_to_port_using_trait('disparity_image', ImageContainer())
+            if self.count_output_port_edges('depth_image') > 0:
+                self.push_to_port_using_trait('depth_image', ImageContainer())
+            if timestamp is not None:
+                self.push_to_port_using_trait('timestamp', timestamp)
+            self._base_step()
+            return
 
         # Convert to numpy arrays
         left_npy = self._format_image(left_img_c)
