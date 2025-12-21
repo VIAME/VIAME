@@ -131,11 +131,6 @@ class FoundationStereoProcess(KwiverProcess):
         self.declare_config_using_trait("low_memory")
 
         # Output control
-        self.add_config_trait("output_disparity", "output_disparity",
-            'True',
-            'Output disparity map')
-        self.declare_config_using_trait("output_disparity")
-
         self.add_config_trait("output_depth", "output_depth",
             'False',
             'Output depth map (requires focal_length and baseline)')
@@ -218,7 +213,6 @@ class FoundationStereoProcess(KwiverProcess):
         self._hierarchical_ratio = float(self.config_value('hierarchical_ratio'))
         self._mixed_precision = str(self.config_value('mixed_precision')).lower() == 'true'
         self._low_memory = str(self.config_value('low_memory')).lower() == 'true'
-        self._output_disparity = str(self.config_value('output_disparity')).lower() == 'true'
         self._output_depth = str(self.config_value('output_depth')).lower() == 'true'
         self._output_point_cloud = str(self.config_value('output_point_cloud')).lower() == 'true'
         self._focal_length = float(self.config_value('focal_length'))
@@ -428,16 +422,14 @@ class FoundationStereoProcess(KwiverProcess):
 
         self._frame_counter += 1
 
-        # Output disparity image
-        if self._output_disparity:
+        # Output disparity image if port is connected
+        if self.count_output_port_edges('disparity_image') > 0:
             # Convert to float32 for output (preserves precision)
             disp_output = disp_npy.astype(np.float32)
             disp_container = vital_image_container_from_ndarray(
                 (disp_output * 256).clip(0, 65535).astype(np.uint16)
             )
             self.push_to_port_using_trait('disparity_image', disp_container)
-        else:
-            self.push_to_port_using_trait('disparity_image', ImageContainer())
 
         # Output depth image
         if self._output_depth and depth_npy is not None:
