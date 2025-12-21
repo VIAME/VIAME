@@ -62,7 +62,7 @@ public:
   int speckle_range{ 32 };
 
   // Output format: "raw", "float32", or "uint16_scaled"
-  std::string output_format{ "uint16_scaled" };
+  std::string output_format{ "raw" };
 
   // Alpha channel output options
   bool disparity_as_alpha{ false };
@@ -248,7 +248,8 @@ ocv_stereo_disparity_map
 
   config->set_value( "calibration_file", d->calibration_file,
     "Path to stereo calibration file (OpenCV YAML/XML format). If specified, images will be "
-    "rectified before computing disparity. Leave empty if input images are already rectified." );
+    "rectified before computing disparity. Leave empty if input images are already rectified "
+    "(e.g., when called from measurement_utilities which handles its own rectification)." );
 
   return config;
 }
