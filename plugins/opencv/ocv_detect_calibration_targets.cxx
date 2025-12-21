@@ -1,4 +1,4 @@
-#include "ocv_target_detector.h"
+#include "ocv_detect_calibration_targets.h"
 #include "ocv_stereo_calibration.h"
 
 #include <arrows/ocv/image_container.h>
@@ -18,7 +18,7 @@ namespace viame {
 /**
  * @brief Storage class for private member variables
  */
-class ocv_target_detector::priv
+class ocv_detect_calibration_targets::priv
 {
 public:
 
@@ -51,29 +51,29 @@ public:
   stereo_calibration m_calibrator;
 
   kv::logger_handle_t m_logger;
-}; // end class ocv_target_detector::priv
+}; // end class ocv_detect_calibration_targets::priv
 
 
 // =================================================================================================
 
-ocv_target_detector::
-ocv_target_detector()
+ocv_detect_calibration_targets::
+ocv_detect_calibration_targets()
   : d( new priv )
 {
-  attach_logger( "viame.opencv.ocv_target_detector" );  
-  
-  d->m_logger = logger();  
+  attach_logger( "viame.opencv.ocv_detect_calibration_targets" );
+
+  d->m_logger = logger();
 }
 
 
-ocv_target_detector::
-  ~ocv_target_detector()
+ocv_detect_calibration_targets::
+  ~ocv_detect_calibration_targets()
 {}
 
 
 // -------------------------------------------------------------------------------------------------
 kv::config_block_sptr
-ocv_target_detector::
+ocv_detect_calibration_targets::
 get_configuration() const
 {
   // Get base config from base class
@@ -95,7 +95,7 @@ get_configuration() const
 
 // -------------------------------------------------------------------------------------------------
 void
-ocv_target_detector::
+ocv_detect_calibration_targets::
 set_configuration( kv::config_block_sptr config_in )
 {
   kv::config_block_sptr config = this->get_configuration();
@@ -115,7 +115,7 @@ set_configuration( kv::config_block_sptr config_in )
 
 // -------------------------------------------------------------------------------------------------
 bool
-ocv_target_detector::
+ocv_detect_calibration_targets::
 check_configuration( kv::config_block_sptr config ) const
 {
   return true;
@@ -124,7 +124,7 @@ check_configuration( kv::config_block_sptr config ) const
 
 // -------------------------------------------------------------------------------------------------
 kv::detected_object_set_sptr
-ocv_target_detector::
+ocv_detect_calibration_targets::
 detect( kv::image_container_sptr image_data ) const
 {
   auto detected_set = std::make_shared< kv::detected_object_set >();

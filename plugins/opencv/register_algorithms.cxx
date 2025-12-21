@@ -40,7 +40,7 @@
 #include "ocv_debayer_filter.h"
 #include "ocv_random_hue_shift.h"
 #include "ocv_image_enhancement.h"
-#include "ocv_target_detector.h"
+#include "ocv_detect_calibration_targets.h"
 #include "ocv_optimize_stereo_cameras.h"
 #include "ocv_refiner_add_kps_from_mask.h"
 
@@ -64,7 +64,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< ocv_debayer_filter >();
   reg.register_algorithm< ocv_image_enhancement >();
   reg.register_algorithm< ocv_random_hue_shift >();
-  reg.register_algorithm< ocv_target_detector >();
+  reg.register_algorithm< ocv_detect_calibration_targets >();
   reg.register_algorithm< ocv_optimize_stereo_cameras >();
   reg.register_algorithm< ocv_refiner_add_kps_from_mask >();
   reg.register_algorithm< split_image_habcam >();

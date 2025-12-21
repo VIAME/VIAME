@@ -39,9 +39,9 @@ connect from downsampler.output_1
 # --------------------------------------------------------------------------------------
 process detector1
   :: image_object_detector
-  :detector:type                               ocv_target_detector
+  :detector:type                               ocv_detect_calibration_targets
 
-  block detector:ocv_target_detector
+  block detector:ocv_detect_calibration_targets
     :auto_detect_grid                          true
     :square_size                               $CONFIG{global:square_size}
     :object_type                               "corner"
@@ -61,9 +61,9 @@ process detector_writer1
 # --------------------------------------------------------------------------------------
 process detector2
   :: image_object_detector
-  :detector:type                               ocv_target_detector
+  :detector:type                               ocv_detect_calibration_targets
 
-  block detector:ocv_target_detector
+  block detector:ocv_detect_calibration_targets
     :auto_detect_grid                          true
     :square_size                               $CONFIG{global:square_size}
     :object_type                               "corner"

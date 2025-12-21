@@ -56,7 +56,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // ---------------------------------------------------------------------------
   auto fact = vpm.ADD_PROCESS( viame::itk::itk_eo_ir_registration_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "itk_eo_ir_registration" )
+                        "register_images_itk_eo_ir" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

@@ -1,5 +1,5 @@
-#ifndef VIAME_ocv_target_detector_H
-#define VIAME_ocv_target_detector_H
+#ifndef VIAME_ocv_detect_calibration_targets_H
+#define VIAME_ocv_detect_calibration_targets_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -7,16 +7,16 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT ocv_target_detector :
+class VIAME_OPENCV_EXPORT ocv_detect_calibration_targets :
   public kwiver::vital::algorithm_impl<
-    ocv_target_detector, kwiver::vital::algo::image_object_detector >
+    ocv_detect_calibration_targets, kwiver::vital::algo::image_object_detector >
 {
 public:
-  PLUGIN_INFO( "ocv_target_detector",
+  PLUGIN_INFO( "ocv_detect_calibration_targets",
                "Detects checkerboard corners in input images for camera calibration processes." )
 
-  ocv_target_detector();
-  virtual ~ocv_target_detector();
+  ocv_detect_calibration_targets();
+  virtual ~ocv_detect_calibration_targets();
 
   // Get the current configuration (parameters) for this detector
   virtual kwiver::vital::config_block_sptr get_configuration() const;
@@ -36,4 +36,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_ocv_target_detector_H */
+#endif /* VIAME_ocv_detect_calibration_targets_H */

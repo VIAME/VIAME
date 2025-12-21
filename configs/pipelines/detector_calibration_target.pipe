@@ -16,9 +16,9 @@ include common_default_input_with_downsampler.pipe
 
 process detector1
   :: image_object_detector
-  :detector:type                               ocv_target_detector
-  
-  block detector:ocv_target_detector
+  :detector:type                               ocv_detect_calibration_targets
+
+  block detector:ocv_detect_calibration_targets
     :target_width                              9
     :target_height                             6
     :square_size                               1

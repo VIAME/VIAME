@@ -120,7 +120,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_PROCESS( viame::core::frame_stacker_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "frame_stacker_process" )
+                        "stack_frames" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
@@ -130,7 +130,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_PROCESS( viame::core::full_frame_tracker_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "full_frame_tracker" )
+                        "track_full_frames" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
@@ -160,7 +160,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_PROCESS( viame::core::measurement_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "measurement" )
+                        "compute_measurements" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

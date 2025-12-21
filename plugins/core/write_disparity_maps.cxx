@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "disparity_map_writer.h"
+#include "write_disparity_maps.h"
 
 #include <vital/types/image.h>
 #include <vital/types/image_container.h>
@@ -175,7 +175,7 @@ void apply_grayscale( double normalized, uint8_t& r, uint8_t& g, uint8_t& b )
 // Private implementation
 // =============================================================================
 
-class disparity_map_writer::priv
+class write_disparity_maps::priv
 {
 public:
   priv()
@@ -223,23 +223,23 @@ public:
 };
 
 // =============================================================================
-// disparity_map_writer implementation
+// write_disparity_maps implementation
 // =============================================================================
 
-disparity_map_writer
-::disparity_map_writer()
+write_disparity_maps
+::write_disparity_maps()
   : d( new priv() )
 {
 }
 
-disparity_map_writer
-::~disparity_map_writer()
+write_disparity_maps
+::~write_disparity_maps()
 {
 }
 
 // -----------------------------------------------------------------------------
 kv::config_block_sptr
-disparity_map_writer
+write_disparity_maps
 ::get_configuration() const
 {
   auto config = kv::algo::image_io::get_configuration();
@@ -271,7 +271,7 @@ disparity_map_writer
 
 // -----------------------------------------------------------------------------
 void
-disparity_map_writer
+write_disparity_maps
 ::set_configuration( kv::config_block_sptr config )
 {
   d->m_colormap = config->get_value< std::string >( "colormap", d->m_colormap );
@@ -296,7 +296,7 @@ disparity_map_writer
 
 // -----------------------------------------------------------------------------
 bool
-disparity_map_writer
+write_disparity_maps
 ::check_configuration( kv::config_block_sptr config ) const
 {
   std::string colormap = config->get_value< std::string >( "colormap", "jet" );
@@ -317,16 +317,16 @@ disparity_map_writer
 
 // -----------------------------------------------------------------------------
 kv::image_container_sptr
-disparity_map_writer
+write_disparity_maps
 ::load_( std::string const& filename ) const
 {
   throw kv::file_not_read_exception( filename,
-    "disparity_map_writer does not support loading images" );
+    "write_disparity_maps does not support loading images" );
 }
 
 // -----------------------------------------------------------------------------
 void
-disparity_map_writer
+write_disparity_maps
 ::save_( std::string const& filename, kv::image_container_sptr data ) const
 {
   if( !data )

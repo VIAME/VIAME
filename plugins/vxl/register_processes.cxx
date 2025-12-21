@@ -54,7 +54,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // ---------------------------------------------------------------------------
   auto fact = vpm.ADD_PROCESS( viame::vxl::vxl_srm_image_formatter_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "srm_image_formatter_process" )
+                        "format_srm_images" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

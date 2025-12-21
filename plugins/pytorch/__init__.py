@@ -39,7 +39,7 @@ def __sprokit_register__():
         return
 
     process_factory.add_process(
-        'OnnxConverter',
+        'convert_to_onnx',
         'Convert a yolo/cfrcnn model to onnx',
         convert_to_onnx_process.OnnxConverter
     )

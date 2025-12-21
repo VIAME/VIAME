@@ -21,7 +21,7 @@ set( plugin_headers
   ocv_random_hue_shift.h
   ocv_stereo_calibration.h
   ocv_stereo_disparity_map.h
-  ocv_target_detector.h
+  ocv_detect_calibration_targets.h
   ocv_optimize_stereo_cameras.h
   ocv_stereo_feature_track_filter.h
   ocv_kmedians.h
@@ -38,7 +38,7 @@ set( plugin_sources
   ocv_random_hue_shift.cxx
   ocv_stereo_calibration.cxx
   ocv_stereo_disparity_map.cxx
-  ocv_target_detector.cxx
+  ocv_detect_calibration_targets.cxx
   ocv_optimize_stereo_cameras.cxx
   ocv_stereo_feature_track_filter.cxx
   ocv_kmedians.cxx

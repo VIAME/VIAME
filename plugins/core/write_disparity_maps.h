@@ -33,8 +33,8 @@
  * \brief Disparity map visualization and writing algorithm
  */
 
-#ifndef VIAME_DISPARITY_MAP_WRITER_H
-#define VIAME_DISPARITY_MAP_WRITER_H
+#ifndef VIAME_WRITE_DISPARITY_MAPS_H
+#define VIAME_WRITE_DISPARITY_MAPS_H
 
 #include <plugins/core/viame_core_export.h>
 
@@ -60,19 +60,19 @@ namespace viame {
  * - Automatic or manual min/max range for normalization
  * - Invalid disparity handling
  */
-class VIAME_CORE_EXPORT disparity_map_writer :
+class VIAME_CORE_EXPORT write_disparity_maps :
   public kwiver::vital::algo::image_io
 {
 public:
-  static constexpr char const* name = "disparity_map";
+  static constexpr char const* name = "write_disparity_maps";
 
   static constexpr char const* description =
     "Visualize and write disparity maps using colormaps. "
     "Converts disparity data to colorized images for visualization, "
     "then uses an internal image_io algorithm to write the result.";
 
-  disparity_map_writer();
-  virtual ~disparity_map_writer();
+  write_disparity_maps();
+  virtual ~write_disparity_maps();
 
   /// Get the current configuration
   virtual kwiver::vital::config_block_sptr get_configuration() const override;
@@ -99,4 +99,4 @@ private:
 
 } // namespace viame
 
-#endif // VIAME_DISPARITY_MAP_WRITER_H
+#endif // VIAME_WRITE_DISPARITY_MAPS_H

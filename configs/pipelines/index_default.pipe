@@ -16,7 +16,7 @@ config _scheduler
 include common_default_input_with_downsampler.pipe
 
 process image_filter
-  :: srm_image_formatter_process
+  :: format_srm_images
 
   :fix_output_size                             true
   :resize_option                               crop
