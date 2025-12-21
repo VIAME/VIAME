@@ -160,7 +160,7 @@ public:
   /// If enabled and SGBM disparity is available, samples the disparity map near the query
   /// point to get a local disparity estimate, which can be more accurate than using
   /// a fixed default_depth for objects at varying distances.
-  bool use_sgbm_disparity_hint;
+  bool use_disparity_hint;
 
   /// Whether to use multi-resolution search for template matching.
   /// If enabled, performs a coarse search first with larger step size, then refines
@@ -185,15 +185,6 @@ public:
 
   /// Whether to use distortion coefficients from calibration
   bool use_distortion;
-
-  /// Minimum disparity value for SGBM
-  int sgbm_min_disparity;
-
-  /// Maximum disparity minus minimum disparity for SGBM. Must be divisible by 16.
-  int sgbm_num_disparities;
-
-  /// Block size for SGBM. Must be odd >= 1.
-  int sgbm_block_size;
 
   /// Maximum distance (in pixels) to search for feature matches
   double feature_search_radius;
@@ -232,7 +223,7 @@ public:
   /// Fundamental matrix estimator for RANSAC filtering
   kv::algo::estimate_fundamental_matrix_sptr fundamental_matrix_estimator;
 
-  /// Stereo depth/disparity map algorithm for computed_disparity method
+  /// Stereo depth/disparity map algorithm for compute_disparity method
   kv::algo::compute_stereo_depth_map_sptr stereo_depth_map_algorithm;
 
   // -------------------------------------------------------------------------
@@ -292,9 +283,6 @@ public:
 
   /// Set whether to use distortion coefficients
   void set_use_distortion( bool use_distortion );
-
-  /// Set SGBM parameters
-  void set_sgbm_params( int min_disparity, int num_disparities, int block_size );
 
   /// Set feature matching parameters
   void set_feature_params( double search_radius, double ransac_inlier_scale,
@@ -476,7 +464,7 @@ public:
 
   /// Find corresponding point in right image using template matching
   /// Returns true if match found, false otherwise
-  /// If disparity_map is provided and use_sgbm_disparity_hint is enabled,
+  /// If disparity_map is provided and use_disparity_hint is enabled,
   /// it will be used to estimate initial disparity for search centering.
   bool find_corresponding_point_template_matching(
     const cv::Mat& left_image_rect,
@@ -522,15 +510,12 @@ private:
   int m_search_range;
   double m_template_matching_threshold;
   double m_template_matching_disparity;
-  bool m_use_sgbm_disparity_hint;
+  bool m_use_disparity_hint;
   bool m_use_multires_search;
   int m_multires_coarse_step;
   bool m_use_census_transform;
   int m_epipolar_band_halfwidth;
   bool m_use_distortion;
-  int m_sgbm_min_disparity;
-  int m_sgbm_num_disparities;
-  int m_sgbm_block_size;
   double m_feature_search_radius;
   double m_ransac_inlier_scale;
   int m_min_ransac_inliers;
@@ -544,11 +529,11 @@ private:
   kv::algo::match_features_sptr m_feature_matcher;
   kv::algo::estimate_fundamental_matrix_sptr m_fundamental_matrix_estimator;
 
-  // Stereo depth map algorithm for computed_disparity method
+  // Stereo depth map algorithm for compute_disparity method
   kv::algo::compute_stereo_depth_map_sptr m_stereo_depth_map_algorithm;
 
   // Cached computed disparity from the algorithm
-  kv::image_container_sptr m_cached_computed_disparity;
+  kv::image_container_sptr m_cached_compute_disparity;
 
   // Cached feature detection/descriptor results per frame
   kv::feature_set_sptr m_cached_left_features;
@@ -569,8 +554,6 @@ private:
   // Rectification matrices for unrectifying points
   cv::Mat m_K1, m_K2, m_R1, m_R2, m_P1, m_P2, m_D1, m_D2;
 
-  // SGBM matcher
-  cv::Ptr<cv::StereoSGBM> m_sgbm;
 
   // Cached stereo image data
   stereo_image_data m_cached_stereo_images;

@@ -20,8 +20,7 @@ set( plugin_headers
   ocv_debayer_filter.h
   ocv_random_hue_shift.h
   ocv_stereo_calibration.h
-  ocv_stereo_depth_map.h
-  ocv_rectified_stereo_disparity_map.h
+  ocv_stereo_disparity_map.h
   ocv_target_detector.h
   ocv_optimize_stereo_cameras.h
   ocv_stereo_feature_track_filter.h
@@ -36,8 +35,7 @@ set( plugin_sources
   ocv_debayer_filter.cxx
   ocv_random_hue_shift.cxx
   ocv_stereo_calibration.cxx
-  ocv_stereo_depth_map.cxx
-  ocv_rectified_stereo_disparity_map.cxx
+  ocv_stereo_disparity_map.cxx
   ocv_target_detector.cxx
   ocv_optimize_stereo_cameras.cxx
   ocv_stereo_feature_track_filter.cxx

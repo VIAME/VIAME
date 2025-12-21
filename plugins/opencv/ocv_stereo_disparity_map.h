@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2025 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_OPENCV_STEREO_DEPTH_MAP_H
-#define VIAME_OPENCV_STEREO_DEPTH_MAP_H
+/**
+ * \file
+ * \brief OpenCV stereo disparity map computation algorithm
+ *
+ * This algorithm computes stereo disparity maps using OpenCV's
+ * StereoBM or StereoSGBM algorithms. It supports:
+ *   - Pre-rectified images (default) or internal rectification with calibration
+ *   - BM (Block Matching) or SGBM (Semi-Global Block Matching) algorithms
+ *   - Optional WLS (Weighted Least Squares) disparity filtering
+ *   - Various output formats (raw disparity, scaled uint16, float32)
+ */
+
+#ifndef VIAME_OPENCV_STEREO_DISPARITY_MAP_H
+#define VIAME_OPENCV_STEREO_DISPARITY_MAP_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -37,21 +49,29 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT ocv_stereo_depth_map
+class VIAME_OPENCV_EXPORT ocv_stereo_disparity_map
   : public kwiver::vital::algo::compute_stereo_depth_map
 {
 public:
   PLUGIN_INFO( "ocv",
-               "OpenCV compute stereo depth map" )
+               "OpenCV stereo disparity map computation using BM or SGBM" )
 
-  ocv_stereo_depth_map();
-  virtual ~ocv_stereo_depth_map();
+  ocv_stereo_disparity_map();
+  virtual ~ocv_stereo_disparity_map();
 
   virtual kwiver::vital::config_block_sptr get_configuration() const;
 
   virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
+  /// Compute stereo disparity map from left and right images
+  ///
+  /// \param left_image Left stereo image (grayscale or color)
+  /// \param right_image Right stereo image (grayscale or color)
+  /// \returns Disparity map image. Format depends on output_format config:
+  ///          - "raw": CV_16S with disparity * 16 (OpenCV native format)
+  ///          - "float32": CV_32F with disparity in pixels
+  ///          - "uint16_scaled": CV_16U with disparity * 256 (for external algorithms)
   virtual kwiver::vital::image_container_sptr
   compute( kwiver::vital::image_container_sptr left_image,
            kwiver::vital::image_container_sptr right_image ) const;
@@ -64,4 +84,4 @@ private:
 
 }
 
-#endif // VIAME_OPENCV_STEREO_DEPTH_MAP_H
+#endif // VIAME_OPENCV_STEREO_DISPARITY_MAP_H

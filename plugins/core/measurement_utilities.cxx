@@ -68,15 +68,12 @@ map_keypoints_to_camera_settings
   , search_range( 128 )
   , template_matching_threshold( 0.7 )
   , template_matching_disparity( 0.0 )
-  , use_sgbm_disparity_hint( false )
+  , use_disparity_hint( false )
   , use_multires_search( false )
   , multires_coarse_step( 4 )
   , use_census_transform( false )
   , epipolar_band_halfwidth( 0 )
   , use_distortion( true )
-  , sgbm_min_disparity( 0 )
-  , sgbm_num_disparities( 128 )
-  , sgbm_block_size( 5 )
   , feature_search_radius( 50.0 )
   , ransac_inlier_scale( 3.0 )
   , min_ransac_inliers( 10 )
@@ -107,12 +104,11 @@ map_keypoints_to_camera_settings
     "'input_pairs_only' (use existing keypoints from right camera if available), "
     "'depth_projection' (uses default_depth to project points), "
     "'external_disparity' (uses externally provided disparity map), "
-    "'computed_disparity' (uses stereo_disparity algorithm to compute disparity from rectified images), "
+    "'compute_disparity' (uses stereo_disparity algorithm to compute disparity from rectified images), "
     "'template_matching' (rectifies images and searches along epipolar lines), "
-    "'sgbm_disparity' (uses Semi-Global Block Matching to compute disparity map), "
     "'feature_descriptor' (uses vital feature detection/descriptor/matching), "
     "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering). "
-    "Example: 'input_pairs_only,computed_disparity,depth_projection'" );
+    "Example: 'input_pairs_only,compute_disparity,depth_projection'" );
 
   config->set_value( "default_depth", default_depth,
     "Default depth (in meters) to use when projecting left camera points to right camera "
@@ -134,7 +130,7 @@ map_keypoints_to_camera_settings
     "using the stereo camera parameters. Set this to override the automatic computation "
     "when the expected object depth differs from default_depth." );
 
-  config->set_value( "use_sgbm_disparity_hint", use_sgbm_disparity_hint,
+  config->set_value( "use_disparity_hint", use_disparity_hint,
     "If true and SGBM disparity map is available, sample the disparity map near the "
     "query point to estimate initial disparity for template matching. This provides "
     "spatially-varying disparity estimates that can be more accurate than using a "
@@ -168,15 +164,6 @@ map_keypoints_to_camera_settings
     "If true, distortion coefficients from the calibration file are used. "
     "If false, zero distortion is assumed." );
 
-  config->set_value( "sgbm_min_disparity", sgbm_min_disparity,
-    "Minimum possible disparity value for SGBM. Normally 0, but can be negative." );
-
-  config->set_value( "sgbm_num_disparities", sgbm_num_disparities,
-    "Maximum disparity minus minimum disparity for SGBM. Must be divisible by 16." );
-
-  config->set_value( "sgbm_block_size", sgbm_block_size,
-    "Block size for SGBM. Must be odd number >= 1. Typically 3-11." );
-
   config->set_value( "feature_search_radius", feature_search_radius,
     "Maximum distance (in pixels) to search for feature matches around the expected location. "
     "Used for feature_descriptor and ransac_feature methods." );
@@ -207,9 +194,9 @@ map_keypoints_to_camera_settings
   config->set_value( "record_stereo_method", record_stereo_method,
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
-    "where METHOD is one of: input_kps_used, template_matching, sgbm_disparity, "
+    "where METHOD is one of: input_kps_used, template_matching,"
     "feature_descriptor, ransac_feature, depth_projection, external_disparity, "
-    "or computed_disparity." );
+    "or compute_disparity." );
 
   // Add nested algorithm configurations
   kv::algo::detect_features::get_nested_algo_configuration(
@@ -237,15 +224,12 @@ map_keypoints_to_camera_settings
   search_range = config->get_value< int >( "search_range", search_range );
   template_matching_threshold = config->get_value< double >( "template_matching_threshold", template_matching_threshold );
   template_matching_disparity = config->get_value< double >( "template_matching_disparity", template_matching_disparity );
-  use_sgbm_disparity_hint = config->get_value< bool >( "use_sgbm_disparity_hint", use_sgbm_disparity_hint );
+  use_disparity_hint = config->get_value< bool >( "use_disparity_hint", use_disparity_hint );
   use_multires_search = config->get_value< bool >( "use_multires_search", use_multires_search );
   multires_coarse_step = config->get_value< int >( "multires_coarse_step", multires_coarse_step );
   use_census_transform = config->get_value< bool >( "use_census_transform", use_census_transform );
   epipolar_band_halfwidth = config->get_value< int >( "epipolar_band_halfwidth", epipolar_band_halfwidth );
   use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
-  sgbm_min_disparity = config->get_value< int >( "sgbm_min_disparity", sgbm_min_disparity );
-  sgbm_num_disparities = config->get_value< int >( "sgbm_num_disparities", sgbm_num_disparities );
-  sgbm_block_size = config->get_value< int >( "sgbm_block_size", sgbm_block_size );
   feature_search_radius = config->get_value< double >( "feature_search_radius", feature_search_radius );
   ransac_inlier_scale = config->get_value< double >( "ransac_inlier_scale", ransac_inlier_scale );
   min_ransac_inliers = config->get_value< int >( "min_ransac_inliers", min_ransac_inliers );
@@ -404,15 +388,12 @@ map_keypoints_to_camera
   , m_search_range( 128 )
   , m_template_matching_threshold( 0.7 )
   , m_template_matching_disparity( 0.0 )
-  , m_use_sgbm_disparity_hint( false )
+  , m_use_disparity_hint( false )
   , m_use_multires_search( false )
   , m_multires_coarse_step( 4 )
   , m_use_census_transform( false )
   , m_epipolar_band_halfwidth( 0 )
   , m_use_distortion( true )
-  , m_sgbm_min_disparity( 0 )
-  , m_sgbm_num_disparities( 128 )
-  , m_sgbm_block_size( 5 )
   , m_feature_search_radius( 50.0 )
   , m_ransac_inlier_scale( 3.0 )
   , m_min_ransac_inliers( 10 )
@@ -453,7 +434,7 @@ map_keypoints_to_camera
   m_search_range = search_range;
   m_template_matching_threshold = matching_threshold;
   m_template_matching_disparity = disparity;
-  m_use_sgbm_disparity_hint = use_sgbm_hint;
+  m_use_disparity_hint = use_sgbm_hint;
   m_use_multires_search = use_multires;
   m_multires_coarse_step = multires_step;
   m_use_census_transform = use_census;
@@ -488,33 +469,6 @@ map_keypoints_to_camera
 ::set_use_distortion( bool use_distortion )
 {
   m_use_distortion = use_distortion;
-}
-
-// -----------------------------------------------------------------------------
-void
-map_keypoints_to_camera
-::set_sgbm_params( int min_disparity, int num_disparities, int block_size )
-{
-  m_sgbm_min_disparity = min_disparity;
-  m_sgbm_num_disparities = num_disparities;
-  m_sgbm_block_size = block_size;
-
-  // Ensure num_disparities is divisible by 16
-  if( m_sgbm_num_disparities % 16 != 0 )
-  {
-    m_sgbm_num_disparities = ( ( m_sgbm_num_disparities / 16 ) + 1 ) * 16;
-  }
-
-  // Ensure block size is odd
-  if( m_sgbm_block_size % 2 == 0 )
-  {
-    m_sgbm_block_size++;
-  }
-
-#ifdef VIAME_ENABLE_OPENCV
-  // Reset SGBM matcher so it will be recreated with new params
-  m_sgbm.release();
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -564,14 +518,12 @@ map_keypoints_to_camera
   set_template_params( settings.template_size, settings.search_range,
                        settings.template_matching_threshold,
                        settings.template_matching_disparity,
-                       settings.use_sgbm_disparity_hint,
+                       settings.use_disparity_hint,
                        settings.use_multires_search,
                        settings.multires_coarse_step,
                        settings.use_census_transform,
                        settings.epipolar_band_halfwidth );
   set_use_distortion( settings.use_distortion );
-  set_sgbm_params( settings.sgbm_min_disparity, settings.sgbm_num_disparities,
-                   settings.sgbm_block_size );
   set_feature_params( settings.feature_search_radius, settings.ransac_inlier_scale,
                       settings.min_ransac_inliers,
                       settings.use_disparity_aware_feature_search,
@@ -580,7 +532,7 @@ map_keypoints_to_camera
   set_feature_algorithms( settings.feature_detector, settings.descriptor_extractor,
                           settings.feature_matcher, settings.fundamental_matrix_estimator );
 
-  // Set the stereo depth map algorithm for computed_disparity method
+  // Set the stereo depth map algorithm for compute_disparity method
   m_stereo_depth_map_algorithm = settings.stereo_depth_map_algorithm;
 }
 
@@ -848,11 +800,11 @@ map_keypoints_to_camera
       }
     }
 #ifdef VIAME_ENABLE_OPENCV
-    else if( method == "computed_disparity" && m_stereo_depth_map_algorithm &&
+    else if( method == "compute_disparity" && m_stereo_depth_map_algorithm &&
              m_cached_stereo_images.rectified_available )
     {
       // Compute disparity map using the configured algorithm if not cached for this frame
-      if( !m_cached_computed_disparity )
+      if( !m_cached_compute_disparity )
       {
         // Convert rectified cv::Mat images to ImageContainers using OCV wrapper
         kv::image_container_sptr left_rect_container =
@@ -865,11 +817,11 @@ map_keypoints_to_camera
             kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
 
         // Compute disparity using the configured algorithm
-        m_cached_computed_disparity = m_stereo_depth_map_algorithm->compute(
+        m_cached_compute_disparity = m_stereo_depth_map_algorithm->compute(
           left_rect_container, right_rect_container );
       }
 
-      if( m_cached_computed_disparity )
+      if( m_cached_compute_disparity )
       {
         // Use the computed disparity to find correspondences
         // Note: The disparity is in rectified image space, so we need to
@@ -880,16 +832,16 @@ map_keypoints_to_camera
         kv::vector_2d right_head_rect, right_tail_rect;
 
         head_found = find_corresponding_point_external_disparity(
-          m_cached_computed_disparity, left_head_rect, right_head_rect );
+          m_cached_compute_disparity, left_head_rect, right_head_rect );
         tail_found = find_corresponding_point_external_disparity(
-          m_cached_computed_disparity, left_tail_rect, right_tail_rect );
+          m_cached_compute_disparity, left_tail_rect, right_tail_rect );
 
         if( head_found && tail_found )
         {
           // Unrectify the found right image points
           result.right_head = unrectify_point( right_head_rect, true, right_cam );
           result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
-          result.method_used = "computed_disparity";
+          result.method_used = "compute_disparity";
         }
         else
         {
@@ -920,29 +872,6 @@ map_keypoints_to_camera
         result.right_head = unrectify_point( right_head_rect, true, right_cam );
         result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
         result.method_used = "template_matching";
-      }
-      else
-      {
-        head_found = false;
-        tail_found = false;
-      }
-    }
-    else if( method == "sgbm_disparity" && m_cached_stereo_images.disparity_available )
-    {
-      kv::vector_2d left_head_rect = rectify_point( result.left_head, false );
-      kv::vector_2d left_tail_rect = rectify_point( result.left_tail, false );
-
-      kv::vector_2d right_head_rect, right_tail_rect;
-      head_found = find_corresponding_point_sgbm(
-        m_cached_stereo_images.disparity_map, left_head_rect, right_head_rect );
-      tail_found = find_corresponding_point_sgbm(
-        m_cached_stereo_images.disparity_map, left_tail_rect, right_tail_rect );
-
-      if( head_found && tail_found )
-      {
-        result.right_head = unrectify_point( right_head_rect, true, right_cam );
-        result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
-        result.method_used = "sgbm_disparity";
       }
       else
       {
@@ -1027,16 +956,11 @@ map_keypoints_to_camera
 
   // Check which methods need rectified images
   bool needs_rectified = false;
-  bool needs_sgbm = false;
   for( const auto& method : methods )
   {
-    if( method == "template_matching" || method == "sgbm_disparity" )
+    if( method == "template_matching" || method == "compute_disparity" )
     {
       needs_rectified = true;
-    }
-    if( method == "sgbm_disparity" )
-    {
-      needs_sgbm = true;
     }
   }
 
@@ -1080,8 +1004,8 @@ map_keypoints_to_camera
   data.right_rectified = rectify_image( right_cv, true );
   data.rectified_available = true;
 
-  // Compute disparity if needed
-  if( needs_sgbm )
+  // Compute disparity if needed for template matching disparity hint
+  if( m_use_disparity_hint && m_stereo_depth_map_algorithm )
   {
     data.disparity_map = compute_sgbm_disparity( data.left_rectified, data.right_rectified );
     data.disparity_available = !data.disparity_map.empty();
@@ -1345,7 +1269,7 @@ map_keypoints_to_camera
   m_cached_left_descriptors.reset();
   m_cached_right_descriptors.reset();
   m_cached_matches.reset();
-  m_cached_computed_disparity.reset();
+  m_cached_compute_disparity.reset();
 }
 
 // -----------------------------------------------------------------------------
@@ -1669,7 +1593,7 @@ map_keypoints_to_camera
     // Use explicitly configured disparity
     expected_disparity = m_template_matching_disparity;
   }
-  else if( m_use_sgbm_disparity_hint && !disparity_map.empty() )
+  else if( m_use_disparity_hint && !disparity_map.empty() )
   {
     // Sample SGBM disparity map near the query point
     // Average over a small window for robustness
@@ -1911,27 +1835,33 @@ map_keypoints_to_camera
   const cv::Mat& left_image_rect,
   const cv::Mat& right_image_rect )
 {
-  // Create SGBM matcher if not already created
-  if( !m_sgbm )
+  if( !m_stereo_depth_map_algorithm )
   {
-    m_sgbm = cv::StereoSGBM::create(
-      m_sgbm_min_disparity,
-      m_sgbm_num_disparities,
-      m_sgbm_block_size,
-      8 * m_sgbm_block_size * m_sgbm_block_size,   // P1
-      32 * m_sgbm_block_size * m_sgbm_block_size,  // P2
-      1,    // disp12MaxDiff
-      0,    // preFilterCap
-      10,   // uniquenessRatio
-      100,  // speckleWindowSize
-      32,   // speckleRange
-      cv::StereoSGBM::MODE_SGBM_3WAY );
+    // Algorithm not configured, return empty
+    return cv::Mat();
   }
 
-  cv::Mat disparity;
-  m_sgbm->compute( left_image_rect, right_image_rect, disparity );
+  // Convert cv::Mat to ImageContainers
+  kv::image_container_sptr left_container =
+    std::make_shared< kwiver::arrows::ocv::image_container >(
+      left_image_rect, kwiver::arrows::ocv::image_container::BGR_COLOR );
+  kv::image_container_sptr right_container =
+    std::make_shared< kwiver::arrows::ocv::image_container >(
+      right_image_rect, kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-  return disparity;
+  // Compute disparity using the algorithm
+  kv::image_container_sptr disparity_container =
+    m_stereo_depth_map_algorithm->compute( left_container, right_container );
+
+  if( !disparity_container )
+  {
+    return cv::Mat();
+  }
+
+  // Convert result back to cv::Mat
+  return kwiver::arrows::ocv::image_container::vital_to_ocv(
+    disparity_container->get_image(),
+    kwiver::arrows::ocv::image_container::BGR_COLOR );
 }
 
 // -----------------------------------------------------------------------------
@@ -1954,8 +1884,8 @@ map_keypoints_to_camera
   // Get disparity value (SGBM returns fixed-point values scaled by 16)
   short disp_raw = disparity_map.at<short>( y, x );
 
-  // Check for invalid disparity
-  if( disp_raw < 0 || disp_raw == ( m_sgbm_min_disparity - 1 ) * 16 )
+  // Check for invalid disparity (OpenCV marks invalid as negative values)
+  if( disp_raw < 0 )
   {
     return false;
   }
@@ -2080,10 +2010,9 @@ bool
 method_requires_images( const std::string& method )
 {
   return ( method == "template_matching" ||
-           method == "sgbm_disparity" ||
            method == "feature_descriptor" ||
            method == "ransac_feature" ||
-           method == "computed_disparity" );
+           method == "compute_disparity" );
 }
 
 // -----------------------------------------------------------------------------
@@ -2094,9 +2023,8 @@ get_valid_methods()
     "input_pairs_only",
     "depth_projection",
     "external_disparity",
-    "computed_disparity",
+    "compute_disparity",
     "template_matching",
-    "sgbm_disparity",
     "feature_descriptor",
     "ransac_feature"
   };

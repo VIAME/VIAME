@@ -36,8 +36,7 @@
 #include <plugins/opencv/viame_opencv_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
-#include "ocv_stereo_depth_map.h"
-#include "ocv_rectified_stereo_disparity_map.h"
+#include "ocv_stereo_disparity_map.h"
 #include "ocv_debayer_filter.h"
 #include "ocv_random_hue_shift.h"
 #include "ocv_image_enhancement.h"
@@ -61,11 +60,10 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
-  reg.register_algorithm< ocv_stereo_depth_map >();
+  reg.register_algorithm< ocv_stereo_disparity_map >();
   reg.register_algorithm< ocv_debayer_filter >();
   reg.register_algorithm< ocv_image_enhancement >();
   reg.register_algorithm< ocv_random_hue_shift >();
-  reg.register_algorithm< ocv_rectified_stereo_disparity_map >();
   reg.register_algorithm< ocv_target_detector >();
   reg.register_algorithm< ocv_optimize_stereo_cameras >();
   reg.register_algorithm< ocv_refiner_add_kps_from_mask >();
