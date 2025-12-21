@@ -148,3 +148,12 @@ if( VIAME_ENABLE_PYTORCH-SAM )
       sam2_refiner )
 
 endif()
+
+if( VIAME_ENABLE_PYTORCH-STEREO )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/foundation_stereo.py
+      arrows/pytorch
+      foundation_stereo )
+
+endif()
