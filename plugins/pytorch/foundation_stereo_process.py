@@ -40,6 +40,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+import json
 import numpy as np
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
@@ -70,8 +71,8 @@ class FoundationStereoProcess(KwiverProcess):
     Sprokit process for stereo disparity estimation using NVIDIA Foundation-Stereo.
 
     This process takes left and right stereo images as input and produces
-    disparity maps. Optionally, it can also compute depth maps (when camera
-    parameters are provided) and generate 3D point clouds.
+    disparity maps. Optionally, it can also compute depth maps (when a stereo
+    calibration file is provided) and generate 3D point clouds.
 
     Input Ports:
         left_image: Left stereo image (required)
@@ -134,34 +135,19 @@ class FoundationStereoProcess(KwiverProcess):
         # Output control
         self.add_config_trait("output_depth", "output_depth",
             'False',
-            'Output depth map (requires focal_length and baseline)')
+            'Output depth map (requires calibration_file)')
         self.declare_config_using_trait("output_depth")
 
         self.add_config_trait("output_point_cloud", "output_point_cloud",
             'False',
-            'Output 3D point cloud PLY file (requires focal_length and baseline)')
+            'Output 3D point cloud PLY file (requires calibration_file)')
         self.declare_config_using_trait("output_point_cloud")
 
-        # Camera parameters for depth/point cloud
-        self.add_config_trait("focal_length", "focal_length",
-            '0.0',
-            'Focal length in pixels (for depth conversion)')
-        self.declare_config_using_trait("focal_length")
-
-        self.add_config_trait("baseline", "baseline",
-            '0.0',
-            'Stereo camera baseline in meters (for depth conversion)')
-        self.declare_config_using_trait("baseline")
-
-        self.add_config_trait("principal_x", "principal_x",
-            '0.0',
-            'Principal point X coordinate (defaults to image center if 0)')
-        self.declare_config_using_trait("principal_x")
-
-        self.add_config_trait("principal_y", "principal_y",
-            '0.0',
-            'Principal point Y coordinate (defaults to image center if 0)')
-        self.declare_config_using_trait("principal_y")
+        # Camera calibration for depth/point cloud
+        self.add_config_trait("calibration_file", "calibration_file",
+            '',
+            'Path to KWIVER stereo calibration file (JSON format) for depth conversion')
+        self.declare_config_using_trait("calibration_file")
 
         self.add_config_trait("z_far", "z_far",
             '10.0',
@@ -215,11 +201,19 @@ class FoundationStereoProcess(KwiverProcess):
         self._low_memory = str(self.config_value('low_memory')).lower() == 'true'
         self._output_depth = str(self.config_value('output_depth')).lower() == 'true'
         self._output_point_cloud = str(self.config_value('output_point_cloud')).lower() == 'true'
-        self._focal_length = float(self.config_value('focal_length'))
-        self._baseline = float(self.config_value('baseline'))
-        self._principal_x = float(self.config_value('principal_x'))
-        self._principal_y = float(self.config_value('principal_y'))
+        self._calibration_file = str(self.config_value('calibration_file'))
         self._z_far = float(self.config_value('z_far'))
+
+        # Initialize camera parameters from calibration file
+        self._focal_length = 0.0
+        self._baseline = 0.0
+        self._principal_x = 0.0
+        self._principal_y = 0.0
+
+        if self._calibration_file:
+            if not os.path.exists(self._calibration_file):
+                raise RuntimeError(f"Calibration file not found: {self._calibration_file}")
+            self._load_calibration(self._calibration_file)
         self._point_cloud_dir = str(self.config_value('point_cloud_dir'))
         self._remove_invisible = str(self.config_value('remove_invisible')).lower() == 'true'
 
@@ -232,7 +226,7 @@ class FoundationStereoProcess(KwiverProcess):
         # Validate depth/point cloud requirements
         if (self._output_depth or self._output_point_cloud) and \
            (self._focal_length <= 0 or self._baseline <= 0):
-            print("Warning: focal_length and baseline required for depth/point cloud output")
+            print("Warning: calibration_file with valid focal length and baseline required for depth/point cloud output")
 
         # Add foundation-stereo to path
         foundation_stereo_dir = os.path.join(
@@ -286,6 +280,45 @@ class FoundationStereoProcess(KwiverProcess):
             os.makedirs(self._point_cloud_dir, exist_ok=True)
 
         self._base_configure()
+
+    # --------------------------------------------------------------------------
+    def _load_calibration(self, cal_fpath):
+        """Load stereo calibration from a JSON file.
+
+        Supports KWIVER stereo rig JSON format with keys:
+            - fx_left, fy_left, cx_left, cy_left: left camera intrinsics
+            - T: translation vector between cameras (baseline)
+
+        Args:
+            cal_fpath: Path to calibration JSON file
+        """
+        with open(cal_fpath, 'r') as f:
+            data = json.load(f)
+
+        # Extract focal length from left camera (use fx_left as primary)
+        self._focal_length = float(data.get('fx_left', 0.0))
+
+        # Extract principal point from left camera
+        self._principal_x = float(data.get('cx_left', 0.0))
+        self._principal_y = float(data.get('cy_left', 0.0))
+
+        # Compute baseline from translation vector
+        # T is the translation from left to right camera in the left camera's frame
+        # Baseline is the magnitude of this translation (typically the X component
+        # for horizontal stereo rigs, but we use full magnitude for generality)
+        T = data.get('T', [0.0, 0.0, 0.0])
+        if isinstance(T, list) and len(T) >= 3:
+            # Baseline is typically the absolute X component for horizontal stereo
+            # but using magnitude works for any rig orientation
+            self._baseline = abs(T[0])
+            # If X is near zero, use full magnitude
+            if self._baseline < 1e-6:
+                self._baseline = np.sqrt(T[0]**2 + T[1]**2 + T[2]**2)
+        else:
+            self._baseline = 0.0
+
+        print(f"Loaded calibration: focal_length={self._focal_length}, "
+              f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})")
 
     # --------------------------------------------------------------------------
     def _format_image(self, image_container):
