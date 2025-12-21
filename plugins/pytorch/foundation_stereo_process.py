@@ -81,7 +81,6 @@ class FoundationStereoProcess(KwiverProcess):
     Output Ports:
         disparity_image: Disparity map as float32 image
         depth_image: Depth map as float32 image (when enabled)
-        point_cloud_file: Path to PLY point cloud file (when enabled)
         timestamp: Passed-through timestamp
     """
 
@@ -182,7 +181,6 @@ class FoundationStereoProcess(KwiverProcess):
         self.add_port_trait("right_image", "image", "Right stereo image")
         self.add_port_trait("disparity_image", "image", "Output disparity map")
         self.add_port_trait("depth_image", "image", "Output depth map")
-        self.add_port_trait("point_cloud_file", "string", "Path to output PLY file")
 
         # Set up port flags
         optional = process.PortFlags()
@@ -197,7 +195,6 @@ class FoundationStereoProcess(KwiverProcess):
         # Output ports
         self.declare_output_port_using_trait('disparity_image', optional)
         self.declare_output_port_using_trait('depth_image', optional)
-        self.declare_output_port_using_trait('point_cloud_file', optional)
         self.declare_output_port_using_trait('timestamp', optional)
 
     # --------------------------------------------------------------------------
@@ -441,9 +438,6 @@ class FoundationStereoProcess(KwiverProcess):
             self.push_to_port_using_trait('depth_image', depth_container)
         else:
             self.push_to_port_using_trait('depth_image', ImageContainer())
-
-        # Output point cloud path
-        self.push_to_port_using_trait('point_cloud_file', point_cloud_path)
 
         # Pass through timestamp
         if timestamp is not None:
