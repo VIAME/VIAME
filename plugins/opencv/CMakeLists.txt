@@ -16,37 +16,37 @@ include_directories( "${OpenCV_INCLUDE_DIRS}" )
 link_directories( "${OpenCV_LIBRARY_DIR}" )
 
 set( plugin_headers
-  ocv_image_enhancement.h
-  ocv_debayer_filter.h
-  ocv_random_hue_shift.h
-  ocv_stereo_calibration.h
-  ocv_stereo_disparity_map.h
-  ocv_detect_calibration_targets.h
-  ocv_optimize_stereo_cameras.h
-  ocv_stereo_feature_track_filter.h
-  ocv_kmedians.h
-  ocv_keypoints_from_mask.h
-  ocv_refiner_add_kps_from_mask.h
+  image_enhancement.h
+  debayer_filter.h
+  random_hue_shift.h
+  stereo_calibration.h
+  stereo_disparity_map.h
+  detect_calibration_targets.h
+  optimize_stereo_cameras.h
+  stereo_feature_track_filter.h
+  kmedians.h
+  keypoints_from_mask.h
+  refiner_add_kps_from_mask.h
   split_image_habcam.h
-  ocv_pair_stereo_detections.h
-  ocv_pair_stereo_tracks.h
+  pair_stereo_detections.h
+  pair_stereo_tracks.h
   )
 
 set( plugin_sources
-  ocv_image_enhancement.cxx
-  ocv_debayer_filter.cxx
-  ocv_random_hue_shift.cxx
-  ocv_stereo_calibration.cxx
-  ocv_stereo_disparity_map.cxx
-  ocv_detect_calibration_targets.cxx
-  ocv_optimize_stereo_cameras.cxx
-  ocv_stereo_feature_track_filter.cxx
-  ocv_kmedians.cxx
-  ocv_keypoints_from_mask.cxx
-  ocv_refiner_add_kps_from_mask.cxx
+  image_enhancement.cxx
+  debayer_filter.cxx
+  random_hue_shift.cxx
+  stereo_calibration.cxx
+  stereo_disparity_map.cxx
+  detect_calibration_targets.cxx
+  optimize_stereo_cameras.cxx
+  stereo_feature_track_filter.cxx
+  kmedians.cxx
+  keypoints_from_mask.cxx
+  refiner_add_kps_from_mask.cxx
   split_image_habcam.cxx
-  ocv_pair_stereo_detections.cxx
-  ocv_pair_stereo_tracks.cxx
+  pair_stereo_detections.cxx
+  pair_stereo_tracks.cxx
   )
 
 kwiver_install_headers(
@@ -105,18 +105,18 @@ find_package( Eigen3 REQUIRED NO_MODULE )
 
 # Add process library
 set( process_headers
-  ocv_measurement_process.h
-  ocv_calibrate_single_camera_process.h
-  ocv_pair_stereo_detections_process.h
-  ocv_pair_stereo_tracks_process.h
+  measurement_process.h
+  calibrate_single_camera_process.h
+  pair_stereo_detections_process.h
+  pair_stereo_tracks_process.h
 )
 
 set( process_sources
   register_processes.cxx
-  ocv_measurement_process.cxx
-  ocv_calibrate_single_camera_process.cxx
-  ocv_pair_stereo_detections_process.cxx
-  ocv_pair_stereo_tracks_process.cxx
+  measurement_process.cxx
+  calibrate_single_camera_process.cxx
+  pair_stereo_detections_process.cxx
+  pair_stereo_tracks_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_opencv
@@ -139,14 +139,14 @@ kwiver_add_plugin( viame_processes_opencv
 if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames
     __init__
-    ocv_multimodal_registration
-    ocv_fft_filter_based_on_ref
-    ocv_stereo_algos
-    ocv_stereo_demo
-    ocv_stereo_expt
-    ocv_stereo_pipeline
-    ocv_stereo_processes
-    ocv_stereo_utils
+    multimodal_registration
+    fft_filter_based_on_ref
+    stereo_algos
+    stereo_demo
+    stereo_expt
+    stereo_pipeline
+    stereo_processes
+    stereo_utils
     )
 
   foreach( rel_modname IN ITEMS ${_rel_modnames} )

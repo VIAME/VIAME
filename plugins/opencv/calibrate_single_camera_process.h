@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2025 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,46 +30,49 @@
 
 /**
  * \file
- * \brief Defaults plugin algorithm registration interface impl
+ * \brief Calibrate a single camera from object track set
  */
 
-#include <plugins/opencv/viame_opencv_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
+#ifndef VIAME_OPENCV_CALIBRATE_SINGLE_CAMERA_PROCESS_H
+#define VIAME_OPENCV_CALIBRATE_SINGLE_CAMERA_PROCESS_H
 
-#include "stereo_disparity_map.h"
-#include "debayer_filter.h"
-#include "random_hue_shift.h"
-#include "image_enhancement.h"
-#include "detect_calibration_targets.h"
-#include "optimize_stereo_cameras.h"
-#include "refiner_add_kps_from_mask.h"
+#include <sprokit/pipeline/process.h>
 
-#include "split_image_habcam.h"
+#include <plugins/opencv/viame_processes_opencv_export.h>
 
-namespace viame {
+#include <memory>
 
-extern "C"
-VIAME_OPENCV_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+namespace viame
 {
-  kwiver::vital::algorithm_registrar reg( vpm, "viame.opencv" );
 
-  if( reg.is_module_loaded() ) 
-  {
-    return;
-  }
+// -----------------------------------------------------------------------------
+/**
+ * @brief Calibrate a single camera from object track set
+ *
+ * Performs monocular camera calibration using detected chessboard corners.
+ * Outputs camera intrinsics in OpenCV YAML and JSON formats.
+ */
+class VIAME_PROCESSES_OPENCV_NO_EXPORT calibrate_single_camera_process
+  : public sprokit::process
+{
+public:
+  // -- CONSTRUCTORS --
+  calibrate_single_camera_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~calibrate_single_camera_process();
 
-  reg.register_algorithm< stereo_disparity_map >();
-  reg.register_algorithm< debayer_filter >();
-  reg.register_algorithm< image_enhancement >();
-  reg.register_algorithm< random_hue_shift >();
-  reg.register_algorithm< detect_calibration_targets >();
-  reg.register_algorithm< optimize_stereo_cameras >();
-  reg.register_algorithm< refiner_add_kps_from_mask >();
-  reg.register_algorithm< split_image_habcam >();
+protected:
+  void _configure() override;
+  void _step() override;
 
-  reg.mark_module_as_loaded();
-}
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+
+}; // end class calibrate_single_camera_process
 
 } // end namespace viame
+
+#endif // VIAME_OPENCV_CALIBRATE_SINGLE_CAMERA_PROCESS_H

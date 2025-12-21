@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Defaults plugin algorithm registration interface impl
- */
+#ifndef VIAME_OPENCV_IMAGE_ENHANCEMENT_H
+#define VIAME_OPENCV_IMAGE_ENHANCEMENT_H
 
-#include <plugins/opencv/viame_opencv_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
+#include <plugins/opencv/viame_opencv_export.h>
 
-#include "stereo_disparity_map.h"
-#include "debayer_filter.h"
-#include "random_hue_shift.h"
-#include "image_enhancement.h"
-#include "detect_calibration_targets.h"
-#include "optimize_stereo_cameras.h"
-#include "refiner_add_kps_from_mask.h"
-
-#include "split_image_habcam.h"
+#include <vital/algo/image_filter.h>
 
 namespace viame {
 
-extern "C"
-VIAME_OPENCV_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+class VIAME_OPENCV_EXPORT image_enhancement
+  : public kwiver::vital::algo::image_filter
 {
-  kwiver::vital::algorithm_registrar reg( vpm, "viame.opencv" );
+public:
+  PLUGIN_INFO( "ocv_enhancer",
+               "Simple illumination normalization using Lab space and CLAHE" )
 
-  if( reg.is_module_loaded() ) 
-  {
-    return;
-  }
+  image_enhancement();
+  virtual ~image_enhancement();
 
-  reg.register_algorithm< stereo_disparity_map >();
-  reg.register_algorithm< debayer_filter >();
-  reg.register_algorithm< image_enhancement >();
-  reg.register_algorithm< random_hue_shift >();
-  reg.register_algorithm< detect_calibration_targets >();
-  reg.register_algorithm< optimize_stereo_cameras >();
-  reg.register_algorithm< refiner_add_kps_from_mask >();
-  reg.register_algorithm< split_image_habcam >();
+  // Get the current configuration (parameters) for this filter
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
 
-  reg.mark_module_as_loaded();
-}
+  // Set configurations automatically parsed from input pipeline and config files
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-} // end namespace viame
+  // Main filtering method
+  virtual kwiver::vital::image_container_sptr filter(
+    kwiver::vital::image_container_sptr image_data );
+
+private:
+  class priv;
+  const std::unique_ptr< priv > d;
+};
+
+} // end namespace
+
+#endif /* VIAME_OPENCV_IMAGE_ENHANCEMENT_H */

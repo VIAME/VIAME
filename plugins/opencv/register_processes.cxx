@@ -32,10 +32,10 @@
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
 
-#include "ocv_measurement_process.h"
-#include "ocv_calibrate_single_camera_process.h"
-#include "ocv_pair_stereo_detections_process.h"
-#include "ocv_pair_stereo_tracks_process.h"
+#include "measurement_process.h"
+#include "calibrate_single_camera_process.h"
+#include "pair_stereo_detections_process.h"
+#include "pair_stereo_tracks_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -55,7 +55,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // ---------------------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( viame::ocv_measurement_process );
+  auto fact = vpm.ADD_PROCESS( viame::measurement_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
                        "measure_using_stereo" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
@@ -67,7 +67,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::ocv_calibrate_single_camera_process );
+  fact = vpm.ADD_PROCESS( viame::calibrate_single_camera_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
                        "ocv_calibrate_single_camera" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
@@ -77,7 +77,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::ocv_pair_stereo_detections_process );
+  fact = vpm.ADD_PROCESS( viame::pair_stereo_detections_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
                        "ocv_pair_stereo_detections" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
@@ -87,7 +87,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::ocv_pair_stereo_tracks_process );
+  fact = vpm.ADD_PROCESS( viame::pair_stereo_tracks_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
                        "ocv_pair_stereo_tracks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
