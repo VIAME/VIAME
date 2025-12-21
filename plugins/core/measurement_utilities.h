@@ -434,6 +434,18 @@ public:
   /// Set the current frame ID for caching
   void set_frame_id( kv::frame_id_t frame_id );
 
+  /// Get the cached computed disparity map (if available)
+  /// This returns the disparity map from the last compute_disparity method call
+  kv::image_container_sptr get_cached_disparity() const;
+
+  /// Get the cached rectified left image (if available)
+  /// This returns the rectified left image from the last stereo processing call
+  kv::image_container_sptr get_cached_rectified_left() const;
+
+  /// Get the cached rectified right image (if available)
+  /// This returns the rectified right image from the last stereo processing call
+  kv::image_container_sptr get_cached_rectified_right() const;
+
 #ifdef VIAME_ENABLE_OPENCV
   // -------------------------------------------------------------------------
   // OpenCV-based matching functions

@@ -72,7 +72,11 @@ create_port_trait( object_track_set1, object_track_set,
 create_port_trait( object_track_set2, object_track_set,
   "The stereo filtered object tracks2.")
 create_port_trait( disparity_image, image,
-  "External disparity map for external_disparity matching method.")
+  "Disparity map (input for external_disparity method, output from compute_disparity method).")
+create_port_trait( rectified_left_image, image,
+  "Output rectified left image.")
+create_port_trait( rectified_right_image, image,
+  "Output rectified right image.")
 
 // =============================================================================
 // Private implementation class
@@ -156,6 +160,9 @@ measurement_process
   declare_output_port_using_trait( object_track_set1, required );
   declare_output_port_using_trait( object_track_set2, optional );
   declare_output_port_using_trait( timestamp, optional );
+  declare_output_port_using_trait( disparity_image, optional );
+  declare_output_port_using_trait( rectified_left_image, optional );
+  declare_output_port_using_trait( rectified_right_image, optional );
 }
 
 // -----------------------------------------------------------------------------
@@ -277,13 +284,13 @@ measurement_process
 {
   std::vector< kv::object_track_set_sptr > input_tracks;
   std::vector< kv::image_container_sptr > input_images;
-  kv::image_container_sptr disparity_image;
+  kv::image_container_sptr external_disparity;
   kv::timestamp ts;
 
   // Grab optional disparity image if connected
   if( has_input_port_edge_using_trait( disparity_image ) )
   {
-    disparity_image = grab_from_port_using_trait( disparity_image );
+    external_disparity = grab_from_port_using_trait( disparity_image );
   }
 
   // Read port names
@@ -531,7 +538,7 @@ measurement_process
       auto result = d->m_utilities.find_stereo_correspondence(
         d->m_matching_methods, left_cam, right_cam,
         left_head, left_tail, right_head_input, right_tail_input,
-        left_image, right_image, disparity_image );
+        left_image, right_image, external_disparity );
 
       if( !result.success )
       {
@@ -634,6 +641,16 @@ measurement_process
   push_to_port_using_trait( object_track_set1, input_tracks[0] );
   push_to_port_using_trait( object_track_set2, input_tracks[1] );
   push_to_port_using_trait( timestamp, ts );
+
+  // Push disparity image if computed
+  kv::image_container_sptr computed_disparity = d->m_utilities.get_cached_disparity();
+  push_to_port_using_trait( disparity_image, computed_disparity );
+
+  // Push rectified images if available
+  kv::image_container_sptr rectified_left = d->m_utilities.get_cached_rectified_left();
+  kv::image_container_sptr rectified_right = d->m_utilities.get_cached_rectified_right();
+  push_to_port_using_trait( rectified_left_image, rectified_left );
+  push_to_port_using_trait( rectified_right_image, rectified_right );
 }
 
 } // end namespace core

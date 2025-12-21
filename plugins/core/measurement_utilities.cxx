@@ -1284,6 +1284,48 @@ map_keypoints_to_camera
   }
 }
 
+// -----------------------------------------------------------------------------
+kv::image_container_sptr
+map_keypoints_to_camera
+::get_cached_disparity() const
+{
+  return m_cached_compute_disparity;
+}
+
+// -----------------------------------------------------------------------------
+kv::image_container_sptr
+map_keypoints_to_camera
+::get_cached_rectified_left() const
+{
+#ifdef VIAME_ENABLE_OPENCV
+  if( m_cached_stereo_images.rectified_available &&
+      !m_cached_stereo_images.left_rectified.empty() )
+  {
+    return std::make_shared< kwiver::arrows::ocv::image_container >(
+      m_cached_stereo_images.left_rectified,
+      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+  }
+#endif
+  return nullptr;
+}
+
+// -----------------------------------------------------------------------------
+kv::image_container_sptr
+map_keypoints_to_camera
+::get_cached_rectified_right() const
+{
+#ifdef VIAME_ENABLE_OPENCV
+  if( m_cached_stereo_images.rectified_available &&
+      !m_cached_stereo_images.right_rectified.empty() )
+  {
+    return std::make_shared< kwiver::arrows::ocv::image_container >(
+      m_cached_stereo_images.right_rectified,
+      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+  }
+#endif
+  return nullptr;
+}
+
 #ifdef VIAME_ENABLE_OPENCV
 
 // -----------------------------------------------------------------------------
