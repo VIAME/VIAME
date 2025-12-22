@@ -53,7 +53,7 @@ class VIAME_OPENCV_EXPORT stereo_disparity_map
   : public kwiver::vital::algo::compute_stereo_depth_map
 {
 public:
-  PLUGIN_INFO( "ocv",
+  PLUGIN_INFO( "ocv_stereo_disparity",
                "OpenCV stereo disparity map computation using BM or SGBM" )
 
   stereo_disparity_map();

@@ -29,9 +29,9 @@ include common_stereo_fish_tracker.pipe
 
 process depth_map
   :: compute_stereo_depth_map
-  :computer:type                              ocv_stereo_disparity_map
+  :computer:type                              ocv_stereo_disparity
 
-block computer:ocv_stereo_disparity_map
+block computer:ocv_stereo_disparity
   :algorithm                                 	SGBM
   :min_disparity                             	0
   :num_disparities                           	240

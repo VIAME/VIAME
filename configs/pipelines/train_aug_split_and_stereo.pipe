@@ -29,9 +29,9 @@ connect from image_reader.image
 
 process depth_map
   :: compute_stereo_depth_map
-  :computer:type                               ocv
+  :computer:type                               ocv_stereo_disparity
 
-  block computer:ocv
+  block computer:ocv_stereo_disparity
     :num_disparities                           256
     :sad_window_size                           21
   endblock
