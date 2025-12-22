@@ -291,7 +291,7 @@ pair_stereo_detections_process::priv
   const kv::vector_2d& right_point ) const
 {
   // Triangulate the point
-  kv::vector_3d point_3d = viame::core::triangulate_point(
+  kv::vector_3d point_3d = triangulate_point(
     left_cam, right_cam, left_point, right_point );
 
   // Check if point is in front of both cameras (positive Z in camera coordinates)
@@ -353,7 +353,7 @@ pair_stereo_detections_process::priv
       }
 
       // Compute IOU
-      double iou = viame::core::compute_iou( det1->bounding_box(), det2->bounding_box() );
+      double iou = compute_iou( det1->bounding_box(), det2->bounding_box() );
 
       // Check threshold
       if( iou >= m_iou_threshold )
@@ -367,7 +367,7 @@ pair_stereo_detections_process::priv
   // Find optimal assignment
   if( m_use_optimal_assignment )
   {
-    return viame::core::greedy_assignment( cost_matrix, n1, n2 );
+    return greedy_assignment( cost_matrix, n1, n2 );
   }
   else
   {
@@ -449,7 +449,7 @@ pair_stereo_detections_process::priv
     kv::vector_2d left_center = bbox1.center();
 
     // Project left center to right camera at default depth
-    kv::vector_2d expected_right = viame::core::project_left_to_right(
+    kv::vector_2d expected_right = project_left_to_right(
       left_cam, right_cam, left_center, m_default_depth );
 
     for( int j = 0; j < n2; ++j )
@@ -498,7 +498,7 @@ pair_stereo_detections_process::priv
   // Find optimal assignment
   if( m_use_optimal_assignment )
   {
-    return viame::core::greedy_assignment( cost_matrix, n1, n2 );
+    return greedy_assignment( cost_matrix, n1, n2 );
   }
   else
   {
@@ -964,7 +964,7 @@ pair_stereo_detections_process::priv
   // Find optimal assignment
   if( m_use_optimal_assignment )
   {
-    return viame::core::greedy_assignment( cost_matrix, n1, n2 );
+    return greedy_assignment( cost_matrix, n1, n2 );
   }
   else
   {
@@ -1382,9 +1382,9 @@ pair_stereo_detections_process
       {
         kv::vector_2d left_head, left_tail, right_head, right_tail;
 
-        if( viame::core::find_furthest_apart_points( correspondences,
-                                                      left_head, left_tail,
-                                                      right_head, right_tail ) )
+        if( find_furthest_apart_points( correspondences,
+                                         left_head, left_tail,
+                                         right_head, right_tail ) )
         {
           // Add head/tail keypoints to both detections
           detections1[i1]->add_keypoint( "head", kv::point_2d( left_head.x(), left_head.y() ) );
