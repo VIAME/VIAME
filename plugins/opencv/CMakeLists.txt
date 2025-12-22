@@ -25,7 +25,6 @@ set( plugin_headers
   optimize_stereo_cameras.h
   filter_stereo_feature_tracks.h
   kmedians.h
-  keypoints_from_mask.h
   add_keypoints_from_mask.h
   split_image_habcam.h
   pair_stereo_detections.h
@@ -42,7 +41,6 @@ set( plugin_sources
   optimize_stereo_cameras.cxx
   filter_stereo_feature_tracks.cxx
   kmedians.cxx
-  keypoints_from_mask.cxx
   add_keypoints_from_mask.cxx
   split_image_habcam.cxx
   pair_stereo_detections.cxx

@@ -34,7 +34,7 @@
  */
 
 #include "measure_objects_process.h"
-#include "keypoints_from_mask.h"
+#include "add_keypoints_from_mask.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
