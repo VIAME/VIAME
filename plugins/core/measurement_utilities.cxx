@@ -761,6 +761,164 @@ compute_bbox_from_keypoints(
   return kv::bounding_box_d( new_min_x, new_min_y, new_max_x, new_max_y );
 }
 
+// =============================================================================
+// Free-standing utility function implementations
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+double
+compute_iou(
+  const kv::bounding_box_d& bbox1,
+  const kv::bounding_box_d& bbox2 )
+{
+  if( !bbox1.is_valid() || !bbox2.is_valid() )
+  {
+    return 0.0;
+  }
+
+  // Compute intersection
+  double x1 = std::max( bbox1.min_x(), bbox2.min_x() );
+  double y1 = std::max( bbox1.min_y(), bbox2.min_y() );
+  double x2 = std::min( bbox1.max_x(), bbox2.max_x() );
+  double y2 = std::min( bbox1.max_y(), bbox2.max_y() );
+
+  double intersection_width = std::max( 0.0, x2 - x1 );
+  double intersection_height = std::max( 0.0, y2 - y1 );
+  double intersection_area = intersection_width * intersection_height;
+
+  if( intersection_area <= 0.0 )
+  {
+    return 0.0;
+  }
+
+  // Compute union
+  double area1 = bbox1.width() * bbox1.height();
+  double area2 = bbox2.width() * bbox2.height();
+  double union_area = area1 + area2 - intersection_area;
+
+  if( union_area <= 0.0 )
+  {
+    return 0.0;
+  }
+
+  return intersection_area / union_area;
+}
+
+// -----------------------------------------------------------------------------
+std::string
+get_detection_class_label( const kv::detected_object_sptr& det )
+{
+  if( !det )
+  {
+    return "";
+  }
+
+  auto det_type = det->type();
+  if( !det_type )
+  {
+    return "";
+  }
+
+  std::string most_likely;
+  det_type->get_most_likely( most_likely );
+  return most_likely;
+}
+
+// -----------------------------------------------------------------------------
+std::vector<std::pair<int, int>>
+greedy_assignment(
+  const std::vector<std::vector<double>>& cost_matrix,
+  int n_rows, int n_cols )
+{
+  std::vector<std::pair<int, int>> assignment;
+  std::vector<bool> row_used( n_rows, false );
+  std::vector<bool> col_used( n_cols, false );
+
+  // Collect all valid costs with their indices
+  std::vector<std::tuple<double, int, int>> costs;
+  for( int i = 0; i < n_rows; ++i )
+  {
+    for( int j = 0; j < n_cols; ++j )
+    {
+      double cost = cost_matrix[i][j];
+      if( std::isfinite( cost ) && cost < 1e9 )
+      {
+        costs.push_back( std::make_tuple( cost, i, j ) );
+      }
+    }
+  }
+
+  // Sort by cost (ascending - lower is better)
+  std::sort( costs.begin(), costs.end() );
+
+  // Greedily assign
+  for( const auto& entry : costs )
+  {
+    int i = std::get<1>( entry );
+    int j = std::get<2>( entry );
+
+    if( !row_used[i] && !col_used[j] )
+    {
+      assignment.push_back( std::make_pair( i, j ) );
+      row_used[i] = true;
+      col_used[j] = true;
+    }
+  }
+
+  return assignment;
+}
+
+// -----------------------------------------------------------------------------
+bool
+find_furthest_apart_points(
+  const std::vector<stereo_feature_correspondence>& correspondences,
+  kv::vector_2d& left_head, kv::vector_2d& left_tail,
+  kv::vector_2d& right_head, kv::vector_2d& right_tail )
+{
+  if( correspondences.size() < 2 )
+  {
+    return false;
+  }
+
+  // Find the two points in the left image that are furthest apart
+  double max_dist_sq = 0.0;
+  size_t best_i = 0, best_j = 1;
+
+  for( size_t i = 0; i < correspondences.size(); ++i )
+  {
+    for( size_t j = i + 1; j < correspondences.size(); ++j )
+    {
+      double dist_sq = ( correspondences[i].left_point -
+                         correspondences[j].left_point ).squaredNorm();
+      if( dist_sq > max_dist_sq )
+      {
+        max_dist_sq = dist_sq;
+        best_i = i;
+        best_j = j;
+      }
+    }
+  }
+
+  // Assign head and tail based on which point is more to the left (lower x)
+  // This provides a consistent ordering
+  if( correspondences[best_i].left_point.x() < correspondences[best_j].left_point.x() )
+  {
+    left_head = correspondences[best_i].left_point;
+    left_tail = correspondences[best_j].left_point;
+    right_head = correspondences[best_i].right_point;
+    right_tail = correspondences[best_j].right_point;
+  }
+  else
+  {
+    left_head = correspondences[best_j].left_point;
+    left_tail = correspondences[best_i].left_point;
+    right_head = correspondences[best_j].right_point;
+    right_tail = correspondences[best_i].right_point;
+  }
+
+  return true;
+}
+
 // -----------------------------------------------------------------------------
 map_keypoints_to_camera::stereo_correspondence_result
 map_keypoints_to_camera

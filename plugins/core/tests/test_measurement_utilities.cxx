@@ -524,3 +524,192 @@ TEST_F( MeasurementUtilitiesTest, SetFrameIdClearsCache )
   // Clear cache explicitly
   utilities.clear_feature_cache();
 }
+
+// =============================================================================
+// IOU Tests
+// =============================================================================
+
+TEST( MeasurementUtilitiesIOU, ComputeIOUPerfectOverlap )
+{
+  kv::bounding_box_d box1( 0, 0, 100, 100 );
+  kv::bounding_box_d box2( 0, 0, 100, 100 );
+
+  double iou = viame::core::compute_iou( box1, box2 );
+  EXPECT_NEAR( iou, 1.0, 0.001 );
+}
+
+TEST( MeasurementUtilitiesIOU, ComputeIOUNoOverlap )
+{
+  kv::bounding_box_d box1( 0, 0, 100, 100 );
+  kv::bounding_box_d box2( 200, 200, 300, 300 );
+
+  double iou = viame::core::compute_iou( box1, box2 );
+  EXPECT_NEAR( iou, 0.0, 0.001 );
+}
+
+TEST( MeasurementUtilitiesIOU, ComputeIOUPartialOverlap )
+{
+  kv::bounding_box_d box1( 0, 0, 100, 100 );
+  kv::bounding_box_d box2( 50, 50, 150, 150 );
+
+  // Intersection: 50x50 = 2500
+  // Union: 10000 + 10000 - 2500 = 17500
+  // IOU: 2500 / 17500 = 0.1429
+  double iou = viame::core::compute_iou( box1, box2 );
+  EXPECT_NEAR( iou, 2500.0 / 17500.0, 0.01 );
+}
+
+TEST( MeasurementUtilitiesIOU, ComputeIOUInvalidBox )
+{
+  kv::bounding_box_d box1;  // Invalid (default constructed)
+  kv::bounding_box_d box2( 0, 0, 100, 100 );
+
+  double iou = viame::core::compute_iou( box1, box2 );
+  EXPECT_NEAR( iou, 0.0, 0.001 );
+}
+
+// =============================================================================
+// Class Label Tests
+// =============================================================================
+
+TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelValid )
+{
+  auto det = std::make_shared<kv::detected_object>( kv::bounding_box_d( 0, 0, 100, 100 ) );
+  auto dot = std::make_shared<kv::detected_object_type>();
+  dot->set_score( "fish", 0.9 );
+  dot->set_score( "shark", 0.1 );
+  det->set_type( dot );
+
+  std::string label = viame::core::get_detection_class_label( det );
+  EXPECT_EQ( label, "fish" );
+}
+
+TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelNullDetection )
+{
+  std::string label = viame::core::get_detection_class_label( nullptr );
+  EXPECT_EQ( label, "" );
+}
+
+TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelNullType )
+{
+  auto det = std::make_shared<kv::detected_object>( kv::bounding_box_d( 0, 0, 100, 100 ) );
+  // No type set
+
+  std::string label = viame::core::get_detection_class_label( det );
+  EXPECT_EQ( label, "" );
+}
+
+// =============================================================================
+// Greedy Assignment Tests
+// =============================================================================
+
+TEST( MeasurementUtilitiesAssignment, GreedyAssignmentSimple )
+{
+  // Simple 2x2 cost matrix
+  std::vector<std::vector<double>> cost_matrix = {
+    { 1.0, 2.0 },
+    { 3.0, 0.5 }
+  };
+
+  auto assignment = viame::core::greedy_assignment( cost_matrix, 2, 2 );
+
+  ASSERT_EQ( assignment.size(), 2 );
+  // Should assign (1,1) first (cost 0.5), then (0,0) (cost 1.0)
+  // Resulting in assignments: (0,0) and (1,1)
+  std::set<std::pair<int,int>> result_set( assignment.begin(), assignment.end() );
+  EXPECT_TRUE( result_set.count( std::make_pair( 0, 0 ) ) > 0 );
+  EXPECT_TRUE( result_set.count( std::make_pair( 1, 1 ) ) > 0 );
+}
+
+TEST( MeasurementUtilitiesAssignment, GreedyAssignmentWithInfinity )
+{
+  std::vector<std::vector<double>> cost_matrix = {
+    { 1.0, 1e10 },
+    { 1e10, 0.5 }
+  };
+
+  auto assignment = viame::core::greedy_assignment( cost_matrix, 2, 2 );
+
+  ASSERT_EQ( assignment.size(), 2 );
+  std::set<std::pair<int,int>> result_set( assignment.begin(), assignment.end() );
+  EXPECT_TRUE( result_set.count( std::make_pair( 0, 0 ) ) > 0 );
+  EXPECT_TRUE( result_set.count( std::make_pair( 1, 1 ) ) > 0 );
+}
+
+TEST( MeasurementUtilitiesAssignment, GreedyAssignmentRectangular )
+{
+  // 3x2 cost matrix (more rows than columns)
+  std::vector<std::vector<double>> cost_matrix = {
+    { 1.0, 2.0 },
+    { 0.5, 3.0 },
+    { 4.0, 0.3 }
+  };
+
+  auto assignment = viame::core::greedy_assignment( cost_matrix, 3, 2 );
+
+  // Should assign at most min(3, 2) = 2 pairs
+  ASSERT_EQ( assignment.size(), 2 );
+  // Best: (2,1) cost 0.3, (1,0) cost 0.5
+  std::set<std::pair<int,int>> result_set( assignment.begin(), assignment.end() );
+  EXPECT_TRUE( result_set.count( std::make_pair( 1, 0 ) ) > 0 );
+  EXPECT_TRUE( result_set.count( std::make_pair( 2, 1 ) ) > 0 );
+}
+
+// =============================================================================
+// Furthest Apart Points Tests
+// =============================================================================
+
+TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsBasic )
+{
+  std::vector<stereo_feature_correspondence> correspondences = {
+    { kv::vector_2d( 10, 50 ), kv::vector_2d( 5, 50 ) },
+    { kv::vector_2d( 100, 50 ), kv::vector_2d( 95, 50 ) },
+    { kv::vector_2d( 50, 50 ), kv::vector_2d( 45, 50 ) }
+  };
+
+  kv::vector_2d left_head, left_tail, right_head, right_tail;
+  bool found = viame::core::find_furthest_apart_points(
+    correspondences, left_head, left_tail, right_head, right_tail );
+
+  EXPECT_TRUE( found );
+  // Points at x=10 and x=100 are furthest apart
+  // Head should have smaller x (10)
+  EXPECT_NEAR( left_head.x(), 10.0, 0.001 );
+  EXPECT_NEAR( left_tail.x(), 100.0, 0.001 );
+  EXPECT_NEAR( right_head.x(), 5.0, 0.001 );
+  EXPECT_NEAR( right_tail.x(), 95.0, 0.001 );
+}
+
+TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsNotEnough )
+{
+  std::vector<stereo_feature_correspondence> correspondences = {
+    { kv::vector_2d( 10, 50 ), kv::vector_2d( 5, 50 ) }
+  };
+
+  kv::vector_2d left_head, left_tail, right_head, right_tail;
+  bool found = viame::core::find_furthest_apart_points(
+    correspondences, left_head, left_tail, right_head, right_tail );
+
+  EXPECT_FALSE( found );  // Need at least 2 points
+}
+
+TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsDiagonal )
+{
+  std::vector<stereo_feature_correspondence> correspondences = {
+    { kv::vector_2d( 0, 0 ), kv::vector_2d( 0, 0 ) },
+    { kv::vector_2d( 100, 100 ), kv::vector_2d( 90, 100 ) },
+    { kv::vector_2d( 50, 50 ), kv::vector_2d( 45, 50 ) }
+  };
+
+  kv::vector_2d left_head, left_tail, right_head, right_tail;
+  bool found = viame::core::find_furthest_apart_points(
+    correspondences, left_head, left_tail, right_head, right_tail );
+
+  EXPECT_TRUE( found );
+  // Diagonal distance is sqrt(100^2 + 100^2) = 141.4
+  // Head should have smaller x (0)
+  EXPECT_NEAR( left_head.x(), 0.0, 0.001 );
+  EXPECT_NEAR( left_head.y(), 0.0, 0.001 );
+  EXPECT_NEAR( left_tail.x(), 100.0, 0.001 );
+  EXPECT_NEAR( left_tail.y(), 100.0, 0.001 );
+}

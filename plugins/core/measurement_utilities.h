@@ -145,6 +145,40 @@ VIAME_CORE_EXPORT kv::bounding_box_d compute_bbox_from_keypoints(
   double box_scale_factor,
   double min_aspect_ratio = 0.10 );
 
+/// Compute intersection-over-union (IOU) between two bounding boxes
+VIAME_CORE_EXPORT double compute_iou(
+  const kv::bounding_box_d& bbox1,
+  const kv::bounding_box_d& bbox2 );
+
+/// Get the most likely class label from a detection
+/// Returns empty string if detection or type is null
+VIAME_CORE_EXPORT std::string get_detection_class_label(
+  const kv::detected_object_sptr& det );
+
+/// Perform greedy minimum weight assignment given a cost matrix
+/// cost_matrix[i][j] is the cost of assigning row i to column j
+/// Returns pairs of (row, column) assignments, sorted by increasing cost
+/// Ignores costs that are infinity or >= 1e9
+VIAME_CORE_EXPORT std::vector<std::pair<int, int>> greedy_assignment(
+  const std::vector<std::vector<double>>& cost_matrix,
+  int n_rows, int n_cols );
+
+/// Structure to store stereo feature correspondences for head/tail computation
+struct VIAME_CORE_EXPORT stereo_feature_correspondence
+{
+  kv::vector_2d left_point;
+  kv::vector_2d right_point;
+};
+
+/// Find the two furthest apart points from a set of stereo correspondences
+/// Uses the left image points to compute distance
+/// Returns true if found (requires at least 2 correspondences), false otherwise
+/// Head/tail ordering is consistent: head has smaller x coordinate in left image
+VIAME_CORE_EXPORT bool find_furthest_apart_points(
+  const std::vector<stereo_feature_correspondence>& correspondences,
+  kv::vector_2d& left_head, kv::vector_2d& left_tail,
+  kv::vector_2d& right_head, kv::vector_2d& right_tail );
+
 // =============================================================================
 // Classes
 // =============================================================================

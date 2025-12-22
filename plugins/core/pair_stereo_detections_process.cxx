@@ -164,14 +164,6 @@ public:
   explicit priv( pair_stereo_detections_process* parent );
   ~priv();
 
-  // Compute IOU between two bounding boxes
-  double compute_iou(
-    const kv::bounding_box_d& bbox1,
-    const kv::bounding_box_d& bbox2 ) const;
-
-  // Get most likely class label from a detection
-  std::string get_class_label( const kv::detected_object_sptr& det ) const;
-
   // Compute reprojection error for a pair of points
   double compute_reprojection_error(
     const kv::simple_camera_perspective& left_cam,
@@ -211,37 +203,18 @@ public:
     kv::feature_set_sptr& features,
     kv::descriptor_set_sptr& descriptors );
 
-  // Structure to store inlier feature correspondences for head/tail computation
-  struct feature_correspondence
-  {
-    kv::vector_2d left_point;
-    kv::vector_2d right_point;
-  };
-
   // Filter matches by homography estimation and return inlier correspondences
-  std::vector<feature_correspondence> filter_matches_by_homography(
+  std::vector<stereo_feature_correspondence> filter_matches_by_homography(
     const kv::feature_set_sptr& features1,
     const kv::feature_set_sptr& features2,
     const kv::match_set_sptr& matches );
 
-  // Find the two furthest apart points from a set of correspondences
-  // Returns true if found, false if not enough points
-  bool find_furthest_apart_points(
-    const std::vector<feature_correspondence>& correspondences,
-    kv::vector_2d& left_head, kv::vector_2d& left_tail,
-    kv::vector_2d& right_head, kv::vector_2d& right_tail );
-
   // Compute feature matches and return inlier correspondences for head/tail computation
-  std::vector<feature_correspondence> compute_feature_correspondences(
+  std::vector<stereo_feature_correspondence> compute_feature_correspondences(
     const kv::detected_object_sptr& det1,
     const kv::detected_object_sptr& det2,
     const kv::image_container_sptr& image1,
     const kv::image_container_sptr& image2 );
-
-  // Greedy minimum weight assignment
-  std::vector<std::pair<int, int>> greedy_assignment(
-    const std::vector<std::vector<double>>& cost_matrix,
-    int n1, int n2 );
 
   // Configuration values
   std::string m_matching_method;
@@ -311,67 +284,6 @@ pair_stereo_detections_process::priv
 // -----------------------------------------------------------------------------
 double
 pair_stereo_detections_process::priv
-::compute_iou(
-  const kv::bounding_box_d& bbox1,
-  const kv::bounding_box_d& bbox2 ) const
-{
-  if( !bbox1.is_valid() || !bbox2.is_valid() )
-  {
-    return 0.0;
-  }
-
-  // Compute intersection
-  double x1 = std::max( bbox1.min_x(), bbox2.min_x() );
-  double y1 = std::max( bbox1.min_y(), bbox2.min_y() );
-  double x2 = std::min( bbox1.max_x(), bbox2.max_x() );
-  double y2 = std::min( bbox1.max_y(), bbox2.max_y() );
-
-  double intersection_width = std::max( 0.0, x2 - x1 );
-  double intersection_height = std::max( 0.0, y2 - y1 );
-  double intersection_area = intersection_width * intersection_height;
-
-  if( intersection_area <= 0.0 )
-  {
-    return 0.0;
-  }
-
-  // Compute union
-  double area1 = bbox1.width() * bbox1.height();
-  double area2 = bbox2.width() * bbox2.height();
-  double union_area = area1 + area2 - intersection_area;
-
-  if( union_area <= 0.0 )
-  {
-    return 0.0;
-  }
-
-  return intersection_area / union_area;
-}
-
-// -----------------------------------------------------------------------------
-std::string
-pair_stereo_detections_process::priv
-::get_class_label( const kv::detected_object_sptr& det ) const
-{
-  if( !det )
-  {
-    return "";
-  }
-
-  auto det_type = det->type();
-  if( !det_type )
-  {
-    return "";
-  }
-
-  std::string most_likely;
-  det_type->get_most_likely( most_likely );
-  return most_likely;
-}
-
-// -----------------------------------------------------------------------------
-double
-pair_stereo_detections_process::priv
 ::compute_reprojection_error(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -406,51 +318,6 @@ pair_stereo_detections_process::priv
 // -----------------------------------------------------------------------------
 std::vector<std::pair<int, int>>
 pair_stereo_detections_process::priv
-::greedy_assignment(
-  const std::vector<std::vector<double>>& cost_matrix,
-  int n1, int n2 )
-{
-  std::vector<std::pair<int, int>> assignment;
-  std::vector<bool> row_used( n1, false );
-  std::vector<bool> col_used( n2, false );
-
-  // Collect all valid costs with their indices
-  std::vector<std::tuple<double, int, int>> costs;
-  for( int i = 0; i < n1; ++i )
-  {
-    for( int j = 0; j < n2; ++j )
-    {
-      double cost = cost_matrix[i][j];
-      if( std::isfinite( cost ) && cost < 1e9 )
-      {
-        costs.push_back( std::make_tuple( cost, i, j ) );
-      }
-    }
-  }
-
-  // Sort by cost (ascending - lower is better)
-  std::sort( costs.begin(), costs.end() );
-
-  // Greedily assign
-  for( const auto& entry : costs )
-  {
-    int i = std::get<1>( entry );
-    int j = std::get<2>( entry );
-
-    if( !row_used[i] && !col_used[j] )
-    {
-      assignment.push_back( std::make_pair( i, j ) );
-      row_used[i] = true;
-      col_used[j] = true;
-    }
-  }
-
-  return assignment;
-}
-
-// -----------------------------------------------------------------------------
-std::vector<std::pair<int, int>>
-pair_stereo_detections_process::priv
 ::find_matches_iou(
   const std::vector<kv::detected_object_sptr>& detections1,
   const std::vector<kv::detected_object_sptr>& detections2 )
@@ -469,7 +336,7 @@ pair_stereo_detections_process::priv
   for( int i = 0; i < n1; ++i )
   {
     const auto& det1 = detections1[i];
-    std::string class1 = get_class_label( det1 );
+    std::string class1 = get_detection_class_label( det1 );
 
     for( int j = 0; j < n2; ++j )
     {
@@ -478,7 +345,7 @@ pair_stereo_detections_process::priv
       // Check class match if required
       if( m_require_class_match )
       {
-        std::string class2 = get_class_label( det2 );
+        std::string class2 = get_detection_class_label( det2 );
         if( class1 != class2 )
         {
           continue;
@@ -486,7 +353,7 @@ pair_stereo_detections_process::priv
       }
 
       // Compute IOU
-      double iou = compute_iou( det1->bounding_box(), det2->bounding_box() );
+      double iou = viame::core::compute_iou( det1->bounding_box(), det2->bounding_box() );
 
       // Check threshold
       if( iou >= m_iou_threshold )
@@ -500,7 +367,7 @@ pair_stereo_detections_process::priv
   // Find optimal assignment
   if( m_use_optimal_assignment )
   {
-    return greedy_assignment( cost_matrix, n1, n2 );
+    return viame::core::greedy_assignment( cost_matrix, n1, n2 );
   }
   else
   {
@@ -571,7 +438,7 @@ pair_stereo_detections_process::priv
   for( int i = 0; i < n1; ++i )
   {
     const auto& det1 = detections1[i];
-    std::string class1 = get_class_label( det1 );
+    std::string class1 = get_detection_class_label( det1 );
 
     // Get left detection center
     const auto& bbox1 = det1->bounding_box();
@@ -592,7 +459,7 @@ pair_stereo_detections_process::priv
       // Check class match if required
       if( m_require_class_match )
       {
-        std::string class2 = get_class_label( det2 );
+        std::string class2 = get_detection_class_label( det2 );
         if( class1 != class2 )
         {
           continue;
@@ -631,7 +498,7 @@ pair_stereo_detections_process::priv
   // Find optimal assignment
   if( m_use_optimal_assignment )
   {
-    return greedy_assignment( cost_matrix, n1, n2 );
+    return viame::core::greedy_assignment( cost_matrix, n1, n2 );
   }
   else
   {
@@ -760,14 +627,14 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-std::vector<pair_stereo_detections_process::priv::feature_correspondence>
+std::vector<stereo_feature_correspondence>
 pair_stereo_detections_process::priv
 ::filter_matches_by_homography(
   const kv::feature_set_sptr& features1,
   const kv::feature_set_sptr& features2,
   const kv::match_set_sptr& matches )
 {
-  std::vector<feature_correspondence> inlier_correspondences;
+  std::vector<stereo_feature_correspondence> inlier_correspondences;
 
   if( !m_homography_estimator || !matches || matches->size() < 4 )
   {
@@ -782,7 +649,7 @@ pair_stereo_detections_process::priv
       {
         if( m.first < feat1_vec.size() && m.second < feat2_vec.size() )
         {
-          feature_correspondence corr;
+          stereo_feature_correspondence corr;
           corr.left_point = feat1_vec[m.first]->loc();
           corr.right_point = feat2_vec[m.second]->loc();
           inlier_correspondences.push_back( corr );
@@ -812,7 +679,7 @@ pair_stereo_detections_process::priv
     // Return all as correspondences if not enough for homography
     for( size_t i = 0; i < pts1.size(); ++i )
     {
-      feature_correspondence corr;
+      stereo_feature_correspondence corr;
       corr.left_point = pts1[i];
       corr.right_point = pts2[i];
       inlier_correspondences.push_back( corr );
@@ -837,7 +704,7 @@ pair_stereo_detections_process::priv
     {
       if( inliers[i] )
       {
-        feature_correspondence corr;
+        stereo_feature_correspondence corr;
         corr.left_point = pts1[i];
         corr.right_point = pts2[i];
         inlier_correspondences.push_back( corr );
@@ -854,59 +721,7 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-bool
-pair_stereo_detections_process::priv
-::find_furthest_apart_points(
-  const std::vector<feature_correspondence>& correspondences,
-  kv::vector_2d& left_head, kv::vector_2d& left_tail,
-  kv::vector_2d& right_head, kv::vector_2d& right_tail )
-{
-  if( correspondences.size() < 2 )
-  {
-    return false;
-  }
-
-  // Find the two points in the left image that are furthest apart
-  double max_dist_sq = 0.0;
-  size_t best_i = 0, best_j = 1;
-
-  for( size_t i = 0; i < correspondences.size(); ++i )
-  {
-    for( size_t j = i + 1; j < correspondences.size(); ++j )
-    {
-      double dist_sq = ( correspondences[i].left_point -
-                         correspondences[j].left_point ).squaredNorm();
-      if( dist_sq > max_dist_sq )
-      {
-        max_dist_sq = dist_sq;
-        best_i = i;
-        best_j = j;
-      }
-    }
-  }
-
-  // Assign head and tail based on which point is more to the left (lower x)
-  // This provides a consistent ordering
-  if( correspondences[best_i].left_point.x() < correspondences[best_j].left_point.x() )
-  {
-    left_head = correspondences[best_i].left_point;
-    left_tail = correspondences[best_j].left_point;
-    right_head = correspondences[best_i].right_point;
-    right_tail = correspondences[best_j].right_point;
-  }
-  else
-  {
-    left_head = correspondences[best_j].left_point;
-    left_tail = correspondences[best_i].left_point;
-    right_head = correspondences[best_j].right_point;
-    right_tail = correspondences[best_i].right_point;
-  }
-
-  return true;
-}
-
-// -----------------------------------------------------------------------------
-std::vector<pair_stereo_detections_process::priv::feature_correspondence>
+std::vector<stereo_feature_correspondence>
 pair_stereo_detections_process::priv
 ::compute_feature_correspondences(
   const kv::detected_object_sptr& det1,
@@ -914,7 +729,7 @@ pair_stereo_detections_process::priv
   const kv::image_container_sptr& image1,
   const kv::image_container_sptr& image2 )
 {
-  std::vector<feature_correspondence> result;
+  std::vector<stereo_feature_correspondence> result;
 
   if( !det1 || !det2 || !image1 || !image2 )
   {
@@ -976,7 +791,7 @@ pair_stereo_detections_process::priv
     {
       if( m.first < feat1_vec.size() && m.second < feat2_vec.size() )
       {
-        feature_correspondence corr;
+        stereo_feature_correspondence corr;
         corr.left_point = feat1_vec[m.first]->loc();
         corr.right_point = feat2_vec[m.second]->loc();
         result.push_back( corr );
@@ -1120,7 +935,7 @@ pair_stereo_detections_process::priv
   for( int i = 0; i < n1; ++i )
   {
     const auto& det1 = detections1[i];
-    std::string class1 = get_class_label( det1 );
+    std::string class1 = get_detection_class_label( det1 );
 
     for( int j = 0; j < n2; ++j )
     {
@@ -1129,7 +944,7 @@ pair_stereo_detections_process::priv
       // Check class match if required
       if( m_require_class_match )
       {
-        std::string class2 = get_class_label( det2 );
+        std::string class2 = get_detection_class_label( det2 );
         if( class1 != class2 )
         {
           continue;
@@ -1149,7 +964,7 @@ pair_stereo_detections_process::priv
   // Find optimal assignment
   if( m_use_optimal_assignment )
   {
-    return greedy_assignment( cost_matrix, n1, n2 );
+    return viame::core::greedy_assignment( cost_matrix, n1, n2 );
   }
   else
   {
@@ -1567,9 +1382,9 @@ pair_stereo_detections_process
       {
         kv::vector_2d left_head, left_tail, right_head, right_tail;
 
-        if( d->find_furthest_apart_points( correspondences,
-                                            left_head, left_tail,
-                                            right_head, right_tail ) )
+        if( viame::core::find_furthest_apart_points( correspondences,
+                                                      left_head, left_tail,
+                                                      right_head, right_tail ) )
         {
           // Add head/tail keypoints to both detections
           detections1[i1]->add_keypoint( "head", kv::point_2d( left_head.x(), left_head.y() ) );
