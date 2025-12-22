@@ -43,7 +43,18 @@
 #include <vital/types/object_track_set.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/camera_perspective.h>
+#include <vital/types/image.h>
+#include <vital/types/image_container.h>
+#include <vital/types/feature.h>
+#include <vital/types/feature_set.h>
+#include <vital/types/descriptor_set.h>
+#include <vital/types/match_set.h>
 #include <vital/io/camera_rig_io.h>
+
+#include <vital/algo/detect_features.h>
+#include <vital/algo/extract_descriptors.h>
+#include <vital/algo/match_features.h>
+#include <vital/algo/estimate_homography.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
@@ -64,7 +75,8 @@ namespace core
 // Config traits
 create_config_trait( matching_method, std::string, "iou",
   "Matching method to use. Options: 'iou' (bounding box overlap), "
-  "'calibration' (uses stereo geometry and reprojection error)" );
+  "'calibration' (uses stereo geometry and reprojection error), "
+  "'feature_matching' (uses feature detection and matching within bounding boxes)" );
 
 create_config_trait( calibration_file, std::string, "",
   "Stereo calibration file (JSON format). Required when matching_method is 'calibration'." );
@@ -92,6 +104,34 @@ create_config_trait( output_unmatched, bool, "true",
   "If true, output unmatched detections as separate tracks with unique IDs. "
   "If false, only output matched detection pairs." );
 
+// Feature matching config traits
+create_config_trait( min_feature_match_count, int, "5",
+  "Minimum number of feature matches required between two detection boxes "
+  "to consider them a valid match. Used with 'feature_matching' method." );
+
+create_config_trait( min_feature_match_ratio, double, "0.1",
+  "Minimum ratio of feature matches to total features detected in the left box. "
+  "A ratio of 0.1 means at least 10% of left features must match. "
+  "Used with 'feature_matching' method." );
+
+create_config_trait( use_homography_filtering, bool, "true",
+  "If true, estimate a homography between matched features and reject outliers. "
+  "This helps filter spurious matches that don't follow a consistent geometric "
+  "transformation. Used with 'feature_matching' method." );
+
+create_config_trait( homography_inlier_threshold, double, "5.0",
+  "Maximum reprojection error (in pixels) for a match to be considered an inlier "
+  "when estimating the homography. Used with 'feature_matching' method." );
+
+create_config_trait( min_homography_inlier_ratio, double, "0.5",
+  "Minimum ratio of inlier matches to total matches after homography estimation. "
+  "A ratio of 0.5 means at least 50% of matches must be inliers. "
+  "Used with 'feature_matching' method." );
+
+create_config_trait( box_expansion_factor, double, "1.1",
+  "Factor to expand bounding boxes when extracting features. "
+  "A value of 1.1 expands boxes by 10%. Used with 'feature_matching' method." );
+
 // Port traits
 create_port_trait( detected_object_set1, detected_object_set,
   "Detections from camera 1 (left)" );
@@ -101,6 +141,10 @@ create_port_trait( object_track_set1, object_track_set,
   "Output tracks for camera 1" );
 create_port_trait( object_track_set2, object_track_set,
   "Output tracks for camera 2" );
+create_port_trait( image1, image,
+  "Image from camera 1 (left). Required for feature_matching method." );
+create_port_trait( image2, image,
+  "Image from camera 2 (right). Required for feature_matching method." );
 
 // =============================================================================
 // Private implementation class
@@ -135,6 +179,34 @@ public:
     const std::vector<kv::detected_object_sptr>& detections1,
     const std::vector<kv::detected_object_sptr>& detections2 );
 
+  // Find matches using feature matching method
+  std::vector<std::pair<int, int>> find_matches_feature(
+    const std::vector<kv::detected_object_sptr>& detections1,
+    const std::vector<kv::detected_object_sptr>& detections2,
+    const kv::image_container_sptr& image1,
+    const kv::image_container_sptr& image2 );
+
+  // Compute feature match score between two detection boxes
+  // Returns a score where lower is better (like a cost), or infinity if no valid match
+  double compute_feature_match_score(
+    const kv::detected_object_sptr& det1,
+    const kv::detected_object_sptr& det2,
+    const kv::image_container_sptr& image1,
+    const kv::image_container_sptr& image2 );
+
+  // Extract features within a bounding box region
+  void extract_box_features(
+    const kv::image_container_sptr& image,
+    const kv::bounding_box_d& bbox,
+    kv::feature_set_sptr& features,
+    kv::descriptor_set_sptr& descriptors );
+
+  // Filter matches by homography estimation and return inlier count
+  int filter_matches_by_homography(
+    const kv::feature_set_sptr& features1,
+    const kv::feature_set_sptr& features2,
+    const kv::match_set_sptr& matches );
+
   // Greedy minimum weight assignment
   std::vector<std::pair<int, int>> greedy_assignment(
     const std::vector<std::vector<double>>& cost_matrix,
@@ -150,8 +222,22 @@ public:
   bool m_use_optimal_assignment;
   bool m_output_unmatched;
 
+  // Feature matching configuration
+  int m_min_feature_match_count;
+  double m_min_feature_match_ratio;
+  bool m_use_homography_filtering;
+  double m_homography_inlier_threshold;
+  double m_min_homography_inlier_ratio;
+  double m_box_expansion_factor;
+
   // Calibration data
   kv::camera_rig_stereo_sptr m_calibration;
+
+  // Feature matching algorithms
+  kv::algo::detect_features_sptr m_feature_detector;
+  kv::algo::extract_descriptors_sptr m_descriptor_extractor;
+  kv::algo::match_features_sptr m_feature_matcher;
+  kv::algo::estimate_homography_sptr m_homography_estimator;
 
   // State
   kv::track_id_t m_next_track_id;
@@ -170,6 +256,12 @@ pair_stereo_detections_process::priv
   , m_require_class_match( true )
   , m_use_optimal_assignment( true )
   , m_output_unmatched( true )
+  , m_min_feature_match_count( 5 )
+  , m_min_feature_match_ratio( 0.1 )
+  , m_use_homography_filtering( true )
+  , m_homography_inlier_threshold( 5.0 )
+  , m_min_homography_inlier_ratio( 0.5 )
+  , m_box_expansion_factor( 1.1 )
   , m_next_track_id( 0 )
   , parent( ptr )
 {
@@ -542,6 +634,357 @@ pair_stereo_detections_process::priv
   }
 }
 
+// -----------------------------------------------------------------------------
+void
+pair_stereo_detections_process::priv
+::extract_box_features(
+  const kv::image_container_sptr& image,
+  const kv::bounding_box_d& bbox,
+  kv::feature_set_sptr& features,
+  kv::descriptor_set_sptr& descriptors )
+{
+  features = nullptr;
+  descriptors = nullptr;
+
+  if( !image || !m_feature_detector || !m_descriptor_extractor )
+  {
+    return;
+  }
+
+  // Expand the bounding box
+  double cx = bbox.center().x();
+  double cy = bbox.center().y();
+  double w = bbox.width() * m_box_expansion_factor;
+  double h = bbox.height() * m_box_expansion_factor;
+
+  // Clamp to image bounds
+  double img_w = static_cast< double >( image->width() );
+  double img_h = static_cast< double >( image->height() );
+
+  double x1 = std::max( 0.0, cx - w / 2.0 );
+  double y1 = std::max( 0.0, cy - h / 2.0 );
+  double x2 = std::min( img_w, cx + w / 2.0 );
+  double y2 = std::min( img_h, cy + h / 2.0 );
+
+  if( x2 <= x1 || y2 <= y1 )
+  {
+    return;
+  }
+
+  // Crop image to the bounding box region
+  kv::image_of< uint8_t > cropped_img(
+    static_cast< size_t >( x2 - x1 ),
+    static_cast< size_t >( y2 - y1 ),
+    image->depth() );
+
+  const kv::image& src_img = image->get_image();
+
+  for( size_t dy = 0; dy < cropped_img.height(); ++dy )
+  {
+    for( size_t dx = 0; dx < cropped_img.width(); ++dx )
+    {
+      size_t sx = static_cast< size_t >( x1 ) + dx;
+      size_t sy = static_cast< size_t >( y1 ) + dy;
+
+      for( size_t c = 0; c < cropped_img.depth(); ++c )
+      {
+        cropped_img( dx, dy, c ) = src_img.at< uint8_t >( sx, sy, c );
+      }
+    }
+  }
+
+  auto cropped_container = std::make_shared< kv::simple_image_container >( cropped_img );
+
+  // Detect features in the cropped region
+  auto local_features = m_feature_detector->detect( cropped_container );
+
+  if( !local_features || local_features->size() == 0 )
+  {
+    return;
+  }
+
+  // Offset feature locations back to full image coordinates
+  std::vector< kv::feature_sptr > offset_features;
+  for( const auto& feat : local_features->features() )
+  {
+    auto new_feat = feat->clone();
+    kv::vector_2d loc = new_feat->loc();
+    loc.x() += x1;
+    loc.y() += y1;
+    new_feat->set_loc( loc );
+    offset_features.push_back( new_feat );
+  }
+
+  features = std::make_shared< kv::simple_feature_set >( offset_features );
+
+  // Extract descriptors
+  descriptors = m_descriptor_extractor->extract( cropped_container, local_features );
+}
+
+// -----------------------------------------------------------------------------
+int
+pair_stereo_detections_process::priv
+::filter_matches_by_homography(
+  const kv::feature_set_sptr& features1,
+  const kv::feature_set_sptr& features2,
+  const kv::match_set_sptr& matches )
+{
+  if( !m_homography_estimator || !matches || matches->size() < 4 )
+  {
+    // Not enough matches for homography estimation
+    return static_cast< int >( matches ? matches->size() : 0 );
+  }
+
+  // Convert matches to point vectors for homography estimation
+  std::vector< kv::vector_2d > pts1, pts2;
+  auto feat1_vec = features1->features();
+  auto feat2_vec = features2->features();
+  auto match_vec = matches->matches();
+
+  for( const auto& m : match_vec )
+  {
+    if( m.first < feat1_vec.size() && m.second < feat2_vec.size() )
+    {
+      pts1.push_back( feat1_vec[m.first]->loc() );
+      pts2.push_back( feat2_vec[m.second]->loc() );
+    }
+  }
+
+  if( pts1.size() < 4 )
+  {
+    return static_cast< int >( pts1.size() );
+  }
+
+  // Estimate homography using RANSAC
+  std::vector< bool > inliers;
+  try
+  {
+    auto homography = m_homography_estimator->estimate( pts1, pts2, inliers,
+                                                         m_homography_inlier_threshold );
+
+    if( !homography )
+    {
+      return 0;
+    }
+
+    // Count inliers
+    int inlier_count = 0;
+    for( bool is_inlier : inliers )
+    {
+      if( is_inlier )
+      {
+        ++inlier_count;
+      }
+    }
+
+    return inlier_count;
+  }
+  catch( const std::exception& e )
+  {
+    LOG_DEBUG( parent->logger(), "Homography estimation failed: " << e.what() );
+    return 0;
+  }
+}
+
+// -----------------------------------------------------------------------------
+double
+pair_stereo_detections_process::priv
+::compute_feature_match_score(
+  const kv::detected_object_sptr& det1,
+  const kv::detected_object_sptr& det2,
+  const kv::image_container_sptr& image1,
+  const kv::image_container_sptr& image2 )
+{
+  if( !det1 || !det2 || !image1 || !image2 )
+  {
+    return std::numeric_limits< double >::infinity();
+  }
+
+  const auto& bbox1 = det1->bounding_box();
+  const auto& bbox2 = det2->bounding_box();
+
+  if( !bbox1.is_valid() || !bbox2.is_valid() )
+  {
+    return std::numeric_limits< double >::infinity();
+  }
+
+  // Extract features from both detection regions
+  kv::feature_set_sptr features1, features2;
+  kv::descriptor_set_sptr descriptors1, descriptors2;
+
+  extract_box_features( image1, bbox1, features1, descriptors1 );
+  extract_box_features( image2, bbox2, features2, descriptors2 );
+
+  if( !features1 || !features2 || !descriptors1 || !descriptors2 )
+  {
+    return std::numeric_limits< double >::infinity();
+  }
+
+  int num_features1 = static_cast< int >( features1->size() );
+  int num_features2 = static_cast< int >( features2->size() );
+
+  if( num_features1 == 0 || num_features2 == 0 )
+  {
+    return std::numeric_limits< double >::infinity();
+  }
+
+  // Match features
+  if( !m_feature_matcher )
+  {
+    return std::numeric_limits< double >::infinity();
+  }
+
+  auto matches = m_feature_matcher->match( features1, descriptors1,
+                                           features2, descriptors2 );
+
+  if( !matches || matches->size() == 0 )
+  {
+    return std::numeric_limits< double >::infinity();
+  }
+
+  int match_count = static_cast< int >( matches->size() );
+
+  // Check minimum match count
+  if( match_count < m_min_feature_match_count )
+  {
+    return std::numeric_limits< double >::infinity();
+  }
+
+  // Check minimum match ratio
+  double match_ratio = static_cast< double >( match_count ) /
+                       static_cast< double >( num_features1 );
+
+  if( match_ratio < m_min_feature_match_ratio )
+  {
+    return std::numeric_limits< double >::infinity();
+  }
+
+  // Optionally filter by homography
+  int inlier_count = match_count;
+  if( m_use_homography_filtering && m_homography_estimator )
+  {
+    inlier_count = filter_matches_by_homography( features1, features2, matches );
+
+    // Check minimum inlier ratio
+    double inlier_ratio = static_cast< double >( inlier_count ) /
+                          static_cast< double >( match_count );
+
+    if( inlier_ratio < m_min_homography_inlier_ratio )
+    {
+      return std::numeric_limits< double >::infinity();
+    }
+  }
+
+  // Compute score: lower is better
+  // Use 1 - inlier_ratio so that higher inlier ratio gives lower cost
+  double inlier_ratio = static_cast< double >( inlier_count ) /
+                        static_cast< double >( std::max( num_features1, num_features2 ) );
+
+  return 1.0 - inlier_ratio;
+}
+
+// -----------------------------------------------------------------------------
+std::vector<std::pair<int, int>>
+pair_stereo_detections_process::priv
+::find_matches_feature(
+  const std::vector<kv::detected_object_sptr>& detections1,
+  const std::vector<kv::detected_object_sptr>& detections2,
+  const kv::image_container_sptr& image1,
+  const kv::image_container_sptr& image2 )
+{
+  int n1 = static_cast<int>( detections1.size() );
+  int n2 = static_cast<int>( detections2.size() );
+
+  if( n1 == 0 || n2 == 0 )
+  {
+    return std::vector<std::pair<int, int>>();
+  }
+
+  if( !image1 || !image2 )
+  {
+    LOG_ERROR( parent->logger(), "Images not provided for feature matching method" );
+    return std::vector<std::pair<int, int>>();
+  }
+
+  if( !m_feature_detector || !m_descriptor_extractor || !m_feature_matcher )
+  {
+    LOG_ERROR( parent->logger(), "Feature algorithms not configured for feature matching method" );
+    return std::vector<std::pair<int, int>>();
+  }
+
+  // Build cost matrix using feature match scores
+  std::vector<std::vector<double>> cost_matrix( n1, std::vector<double>( n2, 1e10 ) );
+
+  for( int i = 0; i < n1; ++i )
+  {
+    const auto& det1 = detections1[i];
+    std::string class1 = get_class_label( det1 );
+
+    for( int j = 0; j < n2; ++j )
+    {
+      const auto& det2 = detections2[j];
+
+      // Check class match if required
+      if( m_require_class_match )
+      {
+        std::string class2 = get_class_label( det2 );
+        if( class1 != class2 )
+        {
+          continue;
+        }
+      }
+
+      // Compute feature match score
+      double score = compute_feature_match_score( det1, det2, image1, image2 );
+
+      if( std::isfinite( score ) )
+      {
+        cost_matrix[i][j] = score;
+      }
+    }
+  }
+
+  // Find optimal assignment
+  if( m_use_optimal_assignment )
+  {
+    return greedy_assignment( cost_matrix, n1, n2 );
+  }
+  else
+  {
+    // Simple sequential matching
+    std::vector<std::pair<int, int>> matches;
+    std::set<int> used_j;
+
+    for( int i = 0; i < n1; ++i )
+    {
+      int best_j = -1;
+      double best_cost = 1e10;
+
+      for( int j = 0; j < n2; ++j )
+      {
+        if( used_j.find( j ) != used_j.end() )
+        {
+          continue;
+        }
+
+        if( cost_matrix[i][j] < best_cost )
+        {
+          best_cost = cost_matrix[i][j];
+          best_j = j;
+        }
+      }
+
+      if( best_j >= 0 && best_cost < 1e9 )
+      {
+        matches.push_back( std::make_pair( i, best_j ) );
+        used_j.insert( best_j );
+      }
+    }
+
+    return matches;
+  }
+}
+
 // =============================================================================
 pair_stereo_detections_process
 ::pair_stereo_detections_process( kv::config_block_sptr const& config )
@@ -573,6 +1016,8 @@ pair_stereo_detections_process
   declare_input_port_using_trait( object_track_set1, optional );
   declare_input_port_using_trait( object_track_set2, optional );
   declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( image1, optional );
+  declare_input_port_using_trait( image2, optional );
 
   // Output ports
   declare_output_port_using_trait( object_track_set1, optional );
@@ -592,6 +1037,27 @@ pair_stereo_detections_process
   declare_config_using_trait( require_class_match );
   declare_config_using_trait( use_optimal_assignment );
   declare_config_using_trait( output_unmatched );
+
+  // Feature matching configuration
+  declare_config_using_trait( min_feature_match_count );
+  declare_config_using_trait( min_feature_match_ratio );
+  declare_config_using_trait( use_homography_filtering );
+  declare_config_using_trait( homography_inlier_threshold );
+  declare_config_using_trait( min_homography_inlier_ratio );
+  declare_config_using_trait( box_expansion_factor );
+
+  // Algorithm configuration (nested algorithms for feature matching)
+  kv::algo::detect_features::get_nested_algo_configuration(
+    "feature_detector", get_config(), d->m_feature_detector );
+
+  kv::algo::extract_descriptors::get_nested_algo_configuration(
+    "descriptor_extractor", get_config(), d->m_descriptor_extractor );
+
+  kv::algo::match_features::get_nested_algo_configuration(
+    "feature_matcher", get_config(), d->m_feature_matcher );
+
+  kv::algo::estimate_homography::get_nested_algo_configuration(
+    "homography_estimator", get_config(), d->m_homography_estimator );
 }
 
 // -----------------------------------------------------------------------------
@@ -608,11 +1074,21 @@ pair_stereo_detections_process
   d->m_use_optimal_assignment = config_value_using_trait( use_optimal_assignment );
   d->m_output_unmatched = config_value_using_trait( output_unmatched );
 
+  // Feature matching configuration
+  d->m_min_feature_match_count = config_value_using_trait( min_feature_match_count );
+  d->m_min_feature_match_ratio = config_value_using_trait( min_feature_match_ratio );
+  d->m_use_homography_filtering = config_value_using_trait( use_homography_filtering );
+  d->m_homography_inlier_threshold = config_value_using_trait( homography_inlier_threshold );
+  d->m_min_homography_inlier_ratio = config_value_using_trait( min_homography_inlier_ratio );
+  d->m_box_expansion_factor = config_value_using_trait( box_expansion_factor );
+
   // Validate matching method
-  if( d->m_matching_method != "iou" && d->m_matching_method != "calibration" )
+  if( d->m_matching_method != "iou" &&
+      d->m_matching_method != "calibration" &&
+      d->m_matching_method != "feature_matching" )
   {
     throw std::runtime_error( "Invalid matching_method: '" + d->m_matching_method +
-                              "'. Must be 'iou' or 'calibration'." );
+                              "'. Must be 'iou', 'calibration', or 'feature_matching'." );
   }
 
   // Load calibration if using calibration method
@@ -633,16 +1109,81 @@ pair_stereo_detections_process
     LOG_INFO( logger(), "Loaded stereo calibration from: " << d->m_calibration_file );
   }
 
+  // Configure feature matching algorithms if using feature_matching method
+  if( d->m_matching_method == "feature_matching" )
+  {
+    // Get nested algorithm configuration
+    kv::config_block_sptr config = get_config();
+
+    kv::algo::detect_features::set_nested_algo_configuration(
+      "feature_detector", config, d->m_feature_detector );
+
+    kv::algo::extract_descriptors::set_nested_algo_configuration(
+      "descriptor_extractor", config, d->m_descriptor_extractor );
+
+    kv::algo::match_features::set_nested_algo_configuration(
+      "feature_matcher", config, d->m_feature_matcher );
+
+    if( d->m_use_homography_filtering )
+    {
+      kv::algo::estimate_homography::set_nested_algo_configuration(
+        "homography_estimator", config, d->m_homography_estimator );
+    }
+
+    // Validate that required algorithms are configured
+    if( !d->m_feature_detector )
+    {
+      throw std::runtime_error(
+        "feature_detector algorithm is required when matching_method is 'feature_matching'. "
+        "Configure it using 'feature_detector:type = <algorithm_name>'" );
+    }
+
+    if( !d->m_descriptor_extractor )
+    {
+      throw std::runtime_error(
+        "descriptor_extractor algorithm is required when matching_method is 'feature_matching'. "
+        "Configure it using 'descriptor_extractor:type = <algorithm_name>'" );
+    }
+
+    if( !d->m_feature_matcher )
+    {
+      throw std::runtime_error(
+        "feature_matcher algorithm is required when matching_method is 'feature_matching'. "
+        "Configure it using 'feature_matcher:type = <algorithm_name>'" );
+    }
+
+    if( d->m_use_homography_filtering && !d->m_homography_estimator )
+    {
+      throw std::runtime_error(
+        "homography_estimator algorithm is required when use_homography_filtering is true. "
+        "Configure it using 'homography_estimator:type = <algorithm_name>'" );
+    }
+
+    LOG_INFO( logger(), "Feature matching algorithms configured" );
+  }
+
   LOG_INFO( logger(), "Stereo detection pairing configured:" );
   LOG_INFO( logger(), "  Matching method: " << d->m_matching_method );
   if( d->m_matching_method == "iou" )
   {
     LOG_INFO( logger(), "  IOU threshold: " << d->m_iou_threshold );
   }
-  else
+  else if( d->m_matching_method == "calibration" )
   {
     LOG_INFO( logger(), "  Max reprojection error: " << d->m_max_reprojection_error );
     LOG_INFO( logger(), "  Default depth: " << d->m_default_depth );
+  }
+  else if( d->m_matching_method == "feature_matching" )
+  {
+    LOG_INFO( logger(), "  Min feature match count: " << d->m_min_feature_match_count );
+    LOG_INFO( logger(), "  Min feature match ratio: " << d->m_min_feature_match_ratio );
+    LOG_INFO( logger(), "  Use homography filtering: " << ( d->m_use_homography_filtering ? "true" : "false" ) );
+    if( d->m_use_homography_filtering )
+    {
+      LOG_INFO( logger(), "  Homography inlier threshold: " << d->m_homography_inlier_threshold );
+      LOG_INFO( logger(), "  Min homography inlier ratio: " << d->m_min_homography_inlier_ratio );
+    }
+    LOG_INFO( logger(), "  Box expansion factor: " << d->m_box_expansion_factor );
   }
   LOG_INFO( logger(), "  Require class match: " << ( d->m_require_class_match ? "true" : "false" ) );
   LOG_INFO( logger(), "  Use optimal assignment: " << ( d->m_use_optimal_assignment ? "true" : "false" ) );
@@ -725,15 +1266,36 @@ pair_stereo_detections_process
     }
   }
 
+  // Grab images if needed for feature matching
+  kv::image_container_sptr image1, image2;
+  if( d->m_matching_method == "feature_matching" )
+  {
+    bool has_image1 = has_input_port_edge_using_trait( image1 );
+    bool has_image2 = has_input_port_edge_using_trait( image2 );
+
+    if( !has_image1 || !has_image2 )
+    {
+      throw std::runtime_error( "Images are required for feature_matching method. "
+        "Connect image1 and image2 ports." );
+    }
+
+    image1 = grab_from_port_using_trait( image1 );
+    image2 = grab_from_port_using_trait( image2 );
+  }
+
   // Find matches using configured method
   std::vector<std::pair<int, int>> matches;
   if( d->m_matching_method == "iou" )
   {
     matches = d->find_matches_iou( detections1, detections2 );
   }
-  else // calibration
+  else if( d->m_matching_method == "calibration" )
   {
     matches = d->find_matches_calibration( detections1, detections2 );
+  }
+  else // feature_matching
+  {
+    matches = d->find_matches_feature( detections1, detections2, image1, image2 );
   }
 
   LOG_DEBUG( logger(), "Frame " << timestamp.get_frame()
