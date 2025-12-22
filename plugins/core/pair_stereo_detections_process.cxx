@@ -567,9 +567,11 @@ pair_stereo_detections_process
 
   required.insert( flag_required );
 
-  // Input ports
-  declare_input_port_using_trait( detected_object_set1, required );
-  declare_input_port_using_trait( detected_object_set2, required );
+  // Input ports - either detections or tracks can be connected
+  declare_input_port_using_trait( detected_object_set1, optional );
+  declare_input_port_using_trait( detected_object_set2, optional );
+  declare_input_port_using_trait( object_track_set1, optional );
+  declare_input_port_using_trait( object_track_set2, optional );
   declare_input_port_using_trait( timestamp, required );
 
   // Output ports
@@ -652,20 +654,75 @@ void
 pair_stereo_detections_process
 ::_step()
 {
-  // Grab inputs
-  auto detection_set1 = grab_from_port_using_trait( detected_object_set1 );
-  auto detection_set2 = grab_from_port_using_trait( detected_object_set2 );
+  // Grab timestamp (always required)
   auto timestamp = grab_from_port_using_trait( timestamp );
 
-  // Convert to vectors for indexed access
+  // Determine input source and grab detections
   std::vector<kv::detected_object_sptr> detections1, detections2;
-  for( const auto& det : *detection_set1 )
+
+  bool use_detections1 = has_input_port_edge_using_trait( detected_object_set1 );
+  bool use_detections2 = has_input_port_edge_using_trait( detected_object_set2 );
+  bool use_tracks1 = has_input_port_edge_using_trait( object_track_set1 );
+  bool use_tracks2 = has_input_port_edge_using_trait( object_track_set2 );
+
+  // Validate input configuration
+  if( !use_detections1 && !use_tracks1 )
   {
-    detections1.push_back( det );
+    throw std::runtime_error( "No input connected for camera 1. "
+      "Connect either detected_object_set1 or object_track_set1." );
   }
-  for( const auto& det : *detection_set2 )
+  if( !use_detections2 && !use_tracks2 )
   {
-    detections2.push_back( det );
+    throw std::runtime_error( "No input connected for camera 2. "
+      "Connect either detected_object_set2 or object_track_set2." );
+  }
+
+  // Grab camera 1 input
+  if( use_detections1 )
+  {
+    auto detection_set1 = grab_from_port_using_trait( detected_object_set1 );
+    for( const auto& det : *detection_set1 )
+    {
+      detections1.push_back( det );
+    }
+  }
+  else if( use_tracks1 )
+  {
+    auto track_set1 = grab_from_port_using_trait( object_track_set1 );
+    for( const auto& track : track_set1->tracks() )
+    {
+      // Get the state for the current frame
+      auto state = std::dynamic_pointer_cast<kv::object_track_state>(
+        track->find( timestamp.get_frame() ) );
+      if( state && state->detection() )
+      {
+        detections1.push_back( state->detection() );
+      }
+    }
+  }
+
+  // Grab camera 2 input
+  if( use_detections2 )
+  {
+    auto detection_set2 = grab_from_port_using_trait( detected_object_set2 );
+    for( const auto& det : *detection_set2 )
+    {
+      detections2.push_back( det );
+    }
+  }
+  else if( use_tracks2 )
+  {
+    auto track_set2 = grab_from_port_using_trait( object_track_set2 );
+    for( const auto& track : track_set2->tracks() )
+    {
+      // Get the state for the current frame
+      auto state = std::dynamic_pointer_cast<kv::object_track_state>(
+        track->find( timestamp.get_frame() ) );
+      if( state && state->detection() )
+      {
+        detections2.push_back( state->detection() );
+      }
+    }
   }
 
   // Find matches using configured method

@@ -35,6 +35,10 @@
  * This process matches detections across stereo camera views without requiring
  * OpenCV or calibration data. It uses simple criteria like bounding box overlap
  * and class label matching to find corresponding detections.
+ *
+ * Input can be either detected_object_set or object_track_set ports. When using
+ * track inputs, detections are extracted from each track's state for the current
+ * frame. The process auto-detects which input type is connected.
  */
 
 #ifndef VIAME_CORE_PAIR_STEREO_DETECTIONS_PROCESS_H
@@ -59,6 +63,10 @@ namespace core
  * Matches detections from two stereo camera views and outputs track sets with
  * aligned track IDs for matched detection pairs. Unmatched detections are
  * assigned unique track IDs.
+ *
+ * Inputs: Either detected_object_set1/2 or object_track_set1/2 ports can be
+ * connected. The process auto-detects which type is connected. When using
+ * track inputs, detections are extracted from each track's current frame state.
  *
  * Matching is based on:
  * - Class label matching (optional)
