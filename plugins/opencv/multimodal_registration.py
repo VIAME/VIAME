@@ -1,3 +1,7 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 # Copyright (c) Microsoft Corporation. All rights reserved.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
