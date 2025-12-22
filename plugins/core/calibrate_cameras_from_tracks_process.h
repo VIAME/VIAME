@@ -3,8 +3,8 @@
  * \brief Calibrate two cameras from two objects track set
  */
 
-#ifndef VIAME_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
-#define VIAME_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
+#ifndef VIAME_CORE_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
+#define VIAME_CORE_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -46,4 +46,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
+#endif // VIAME_CORE_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H

@@ -33,8 +33,8 @@
  * \brief Read habcam metadata from file
  */
 
-#ifndef VIAME_READ_HABCAM_METADATA_PROCESS_H
-#define VIAME_READ_HABCAM_METADATA_PROCESS_H
+#ifndef VIAME_CORE_READ_HABCAM_METADATA_PROCESS_H
+#define VIAME_CORE_READ_HABCAM_METADATA_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -76,4 +76,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_READ_HABCAM_METADATA_PROCESS_H
+#endif // VIAME_CORE_READ_HABCAM_METADATA_PROCESS_H

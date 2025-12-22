@@ -33,8 +33,8 @@
  * \brief Consolidate and control the output of multiple object trackers
  */
 
-#ifndef VIAME_TRACK_CONDUCTOR_PROCESS_H
-#define VIAME_TRACK_CONDUCTOR_PROCESS_H
+#ifndef VIAME_CORE_TRACK_CONDUCTOR_PROCESS_H
+#define VIAME_CORE_TRACK_CONDUCTOR_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -88,4 +88,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_TRACK_CONDUCTOR_PROCESS_H
+#endif // VIAME_CORE_TRACK_CONDUCTOR_PROCESS_H

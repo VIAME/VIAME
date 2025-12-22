@@ -3,8 +3,8 @@
  * \brief Split an object track set into a feature_track_set and a landmark_map
  */
 
-#ifndef VIAME_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H
-#define VIAME_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H
+#ifndef VIAME_CORE_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H
+#define VIAME_CORE_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -46,4 +46,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H
+#endif // VIAME_CORE_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H

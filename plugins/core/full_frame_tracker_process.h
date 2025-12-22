@@ -33,8 +33,8 @@
  * \brief Link full frame detections into full frame tracks
  */
 
-#ifndef VIAME_FULL_FRAME_TRACKER_PROCESS_H
-#define VIAME_FULL_FRAME_TRACKER_PROCESS_H
+#ifndef VIAME_CORE_FULL_FRAME_TRACKER_PROCESS_H
+#define VIAME_CORE_FULL_FRAME_TRACKER_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -76,4 +76,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_FULL_FRAME_TRACKER_PROCESS_H
+#endif // VIAME_CORE_FULL_FRAME_TRACKER_PROCESS_H

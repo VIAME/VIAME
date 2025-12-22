@@ -33,8 +33,8 @@
  * \brief Refine measurements in object detections via multiple methods
  */
 
-#ifndef VIAME_REFINE_MEASUREMENTS_PROCESS_H
-#define VIAME_REFINE_MEASUREMENTS_PROCESS_H
+#ifndef VIAME_CORE_REFINE_MEASUREMENTS_PROCESS_H
+#define VIAME_CORE_REFINE_MEASUREMENTS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -76,4 +76,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_REFINE_MEASUREMENTS_PROCESS_H
+#endif // VIAME_CORE_REFINE_MEASUREMENTS_PROCESS_H

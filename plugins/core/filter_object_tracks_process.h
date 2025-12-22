@@ -33,8 +33,8 @@
  * \brief Filter object tracks process
  */
 
-#ifndef VIAME_FILTER_OBJECT_TRACKS_PROCESS_H
-#define VIAME_FILTER_OBJECT_TRACKS_PROCESS_H
+#ifndef VIAME_CORE_FILTER_OBJECT_TRACKS_PROCESS_H
+#define VIAME_CORE_FILTER_OBJECT_TRACKS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -76,4 +76,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_FILTER_OBJECT_TRACKS_PROCESS_H
+#endif // VIAME_CORE_FILTER_OBJECT_TRACKS_PROCESS_H

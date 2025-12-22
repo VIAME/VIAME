@@ -33,8 +33,8 @@
  * \brief Stack multiple frames together onto the same output
  */
 
-#ifndef VIAME_FRAME_STACKER_PROCESS_H
-#define VIAME_FRAME_STACKER_PROCESS_H
+#ifndef VIAME_CORE_FRAME_STACKER_PROCESS_H
+#define VIAME_CORE_FRAME_STACKER_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -98,4 +98,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_FRAME_STACKER_PROCESS_H
+#endif // VIAME_CORE_FRAME_STACKER_PROCESS_H

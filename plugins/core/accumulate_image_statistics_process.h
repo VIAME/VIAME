@@ -3,8 +3,8 @@
  * \brief Accumulate image statistics (frame count, image dimensions) over a stream
  */
 
-#ifndef VIAME_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
-#define VIAME_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
+#ifndef VIAME_CORE_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
+#define VIAME_CORE_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -50,4 +50,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
+#endif // VIAME_CORE_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H

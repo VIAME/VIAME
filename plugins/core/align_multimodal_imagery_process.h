@@ -33,8 +33,8 @@
  * \brief Align multi modal images that may be temporally out of sync
  */
 
-#ifndef VIAME_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
-#define VIAME_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
+#ifndef VIAME_CORE_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
+#define VIAME_CORE_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -130,4 +130,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
+#endif // VIAME_CORE_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H

@@ -33,8 +33,8 @@
  * \brief Stereo measurement process
  */
 
-#ifndef VIAME_MEASURE_OBJECTS_PROCESS_H
-#define VIAME_MEASURE_OBJECTS_PROCESS_H
+#ifndef VIAME_CORE_MEASURE_OBJECTS_PROCESS_H
+#define VIAME_CORE_MEASURE_OBJECTS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -82,4 +82,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_MEASURE_OBJECTS_PROCESS_H
+#endif // VIAME_CORE_MEASURE_OBJECTS_PROCESS_H

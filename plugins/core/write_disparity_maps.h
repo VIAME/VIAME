@@ -33,8 +33,8 @@
  * \brief Disparity map visualization and writing algorithm
  */
 
-#ifndef VIAME_WRITE_DISPARITY_MAPS_H
-#define VIAME_WRITE_DISPARITY_MAPS_H
+#ifndef VIAME_CORE_WRITE_DISPARITY_MAPS_H
+#define VIAME_CORE_WRITE_DISPARITY_MAPS_H
 
 #include <plugins/core/viame_core_export.h>
 
@@ -99,4 +99,4 @@ private:
 
 } // namespace viame
 
-#endif // VIAME_WRITE_DISPARITY_MAPS_H
+#endif // VIAME_CORE_WRITE_DISPARITY_MAPS_H

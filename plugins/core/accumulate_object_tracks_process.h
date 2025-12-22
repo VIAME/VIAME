@@ -3,8 +3,8 @@
  * \brief Accumulate detected objects into an object track set
  */
 
-#ifndef VIAME_ACCUMULATE_OBJECT_TRACKS_PROCESS_H
-#define VIAME_ACCUMULATE_OBJECT_TRACKS_PROCESS_H
+#ifndef VIAME_CORE_ACCUMULATE_OBJECT_TRACKS_PROCESS_H
+#define VIAME_CORE_ACCUMULATE_OBJECT_TRACKS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -46,4 +46,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_ACCUMULATE_OBJECT_TRACKS_PROCESS_H
+#endif // VIAME_CORE_ACCUMULATE_OBJECT_TRACKS_PROCESS_H
