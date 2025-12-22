@@ -39,7 +39,7 @@
 #include "compute_stereo_disparity.h"
 #include "debayer_filter.h"
 #include "random_hue_shift.h"
-#include "image_enhancement.h"
+#include "enhance_images.h"
 #include "detect_calibration_targets.h"
 #include "optimize_stereo_cameras.h"
 #include "add_keypoints_from_mask.h"
@@ -62,7 +62,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   reg.register_algorithm< compute_stereo_disparity >();
   reg.register_algorithm< debayer_filter >();
-  reg.register_algorithm< image_enhancement >();
+  reg.register_algorithm< enhance_images >();
   reg.register_algorithm< random_hue_shift >();
   reg.register_algorithm< detect_calibration_targets >();
   reg.register_algorithm< optimize_stereo_cameras >();

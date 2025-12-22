@@ -16,7 +16,7 @@ include_directories( "${OpenCV_INCLUDE_DIRS}" )
 link_directories( "${OpenCV_LIBRARY_DIR}" )
 
 set( plugin_headers
-  image_enhancement.h
+  enhance_images.h
   debayer_filter.h
   random_hue_shift.h
   calibrate_stereo_cameras.h
@@ -33,7 +33,7 @@ set( plugin_headers
   )
 
 set( plugin_sources
-  image_enhancement.cxx
+  enhance_images.cxx
   debayer_filter.cxx
   random_hue_shift.cxx
   calibrate_stereo_cameras.cxx

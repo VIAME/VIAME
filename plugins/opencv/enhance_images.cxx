@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "image_enhancement.h"
+#include "enhance_images.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/photo/photo.hpp>
@@ -45,7 +45,7 @@ using namespace kwiver;
 /**
  * @brief Storage class for private member variables
  */
-class image_enhancement::priv
+class enhance_images::priv
 {
 public:
 
@@ -84,23 +84,23 @@ public:
 
 // =================================================================================================
 
-image_enhancement
-::image_enhancement()
+enhance_images
+::enhance_images()
   : d( new priv )
 {
-  attach_logger( "viame.opencv.image_enhancement" );
+  attach_logger( "viame.opencv.enhance_images" );
 }
 
 
-image_enhancement
-::~image_enhancement()
+enhance_images
+::~enhance_images()
 {
 }
 
 
 // -------------------------------------------------------------------------------------------------
 kwiver::vital::config_block_sptr
-image_enhancement
+enhance_images
 ::get_configuration() const
 {
   // Get base config from base class
@@ -126,7 +126,7 @@ image_enhancement
 
 // -------------------------------------------------------------------------------------------------
 void
-image_enhancement
+enhance_images
 ::set_configuration( kwiver::vital::config_block_sptr config_in )
 {
   vital::config_block_sptr config = this->get_configuration();
@@ -150,7 +150,7 @@ image_enhancement
 
 // -------------------------------------------------------------------------------------------------
 bool
-image_enhancement
+enhance_images
 ::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   return true;
@@ -159,7 +159,7 @@ image_enhancement
 
 // -------------------------------------------------------------------------------------------------
 kwiver::vital::image_container_sptr
-image_enhancement
+enhance_images
 ::filter( kwiver::vital::image_container_sptr image_data )
 {
   cv::Mat input_ocv =

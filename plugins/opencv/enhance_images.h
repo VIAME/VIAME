@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_OPENCV_IMAGE_ENHANCEMENT_H
-#define VIAME_OPENCV_IMAGE_ENHANCEMENT_H
+#ifndef VIAME_OPENCV_ENHANCE_IMAGES_H
+#define VIAME_OPENCV_ENHANCE_IMAGES_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -37,15 +37,15 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT image_enhancement
+class VIAME_OPENCV_EXPORT enhance_images
   : public kwiver::vital::algo::image_filter
 {
 public:
   PLUGIN_INFO( "ocv_enhancer",
                "Simple illumination normalization using Lab space and CLAHE" )
 
-  image_enhancement();
-  virtual ~image_enhancement();
+  enhance_images();
+  virtual ~enhance_images();
 
   // Get the current configuration (parameters) for this filter
   virtual kwiver::vital::config_block_sptr get_configuration() const;
@@ -65,4 +65,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_OPENCV_IMAGE_ENHANCEMENT_H */
+#endif /* VIAME_OPENCV_ENHANCE_IMAGES_H */
