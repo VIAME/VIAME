@@ -33,8 +33,8 @@
  * \brief Algorithm to add keypoints to detections from mask
  */
 
-#ifndef VIAME_OPENCV_REFINER_ADD_KPS_FROM_MASK_H
-#define VIAME_OPENCV_REFINER_ADD_KPS_FROM_MASK_H
+#ifndef VIAME_OPENCV_ADD_KEYPOINTS_FROM_MASK_H
+#define VIAME_OPENCV_ADD_KEYPOINTS_FROM_MASK_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -53,9 +53,9 @@ namespace viame
  * or skeleton), and adds head/tail keypoints. The head keypoint is placed at
  * the end with the larger x coordinate.
  */
-class VIAME_OPENCV_EXPORT refiner_add_kps_from_mask
+class VIAME_OPENCV_EXPORT add_keypoints_from_mask
   : public kwiver::vital::algorithm_impl<
-      refiner_add_kps_from_mask,
+      add_keypoints_from_mask,
       kwiver::vital::algo::refine_detections >
 {
 public:
@@ -63,8 +63,8 @@ public:
     "Adds head and tail keypoints to detections based on their "
     "mask or bounding box using configurable methods." )
 
-  refiner_add_kps_from_mask();
-  virtual ~refiner_add_kps_from_mask();
+  add_keypoints_from_mask();
+  virtual ~add_keypoints_from_mask();
 
   virtual kwiver::vital::config_block_sptr get_configuration() const override;
   virtual void set_configuration( kwiver::vital::config_block_sptr config ) override;
@@ -78,8 +78,8 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class refiner_add_kps_from_mask
+}; // end class add_keypoints_from_mask
 
 } // end namespace viame
 
-#endif // VIAME_OPENCV_REFINER_ADD_KPS_FROM_MASK_H
+#endif // VIAME_OPENCV_ADD_KEYPOINTS_FROM_MASK_H

@@ -33,7 +33,7 @@
  * \brief Algorithm to add keypoints to detections from mask
  */
 
-#include "refiner_add_kps_from_mask.h"
+#include "add_keypoints_from_mask.h"
 #include "keypoints_from_mask.h"
 
 #include <vital/types/point.h>
@@ -45,7 +45,7 @@ namespace viame
 
 // =============================================================================
 // Private implementation class
-class refiner_add_kps_from_mask::priv
+class add_keypoints_from_mask::priv
 {
 public:
   priv()
@@ -62,20 +62,20 @@ public:
 };
 
 // =============================================================================
-refiner_add_kps_from_mask
-::refiner_add_kps_from_mask()
+add_keypoints_from_mask
+::add_keypoints_from_mask()
   : d( new priv() )
 {
 }
 
-refiner_add_kps_from_mask
-::~refiner_add_kps_from_mask()
+add_keypoints_from_mask
+::~add_keypoints_from_mask()
 {
 }
 
 // -----------------------------------------------------------------------------
 kv::config_block_sptr
-refiner_add_kps_from_mask
+add_keypoints_from_mask
 ::get_configuration() const
 {
   kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
@@ -87,7 +87,7 @@ refiner_add_kps_from_mask
 
 // -----------------------------------------------------------------------------
 void
-refiner_add_kps_from_mask
+add_keypoints_from_mask
 ::set_configuration( kv::config_block_sptr config )
 {
   d->method = config->get_value<std::string>( "method", d->method );
@@ -95,7 +95,7 @@ refiner_add_kps_from_mask
 
 // -----------------------------------------------------------------------------
 bool
-refiner_add_kps_from_mask
+add_keypoints_from_mask
 ::check_configuration( kv::config_block_sptr config ) const
 {
   std::string method = config->get_value<std::string>( "method", "oriented_bbox" );
@@ -111,7 +111,7 @@ refiner_add_kps_from_mask
 
 // -----------------------------------------------------------------------------
 kv::detected_object_set_sptr
-refiner_add_kps_from_mask
+add_keypoints_from_mask
 ::refine( kv::image_container_sptr image_data,
           kv::detected_object_set_sptr detections ) const
 {

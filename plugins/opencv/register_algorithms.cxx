@@ -42,7 +42,7 @@
 #include "image_enhancement.h"
 #include "detect_calibration_targets.h"
 #include "optimize_stereo_cameras.h"
-#include "refiner_add_kps_from_mask.h"
+#include "add_keypoints_from_mask.h"
 
 #include "split_image_habcam.h"
 
@@ -66,7 +66,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< random_hue_shift >();
   reg.register_algorithm< detect_calibration_targets >();
   reg.register_algorithm< optimize_stereo_cameras >();
-  reg.register_algorithm< refiner_add_kps_from_mask >();
+  reg.register_algorithm< add_keypoints_from_mask >();
   reg.register_algorithm< split_image_habcam >();
 
   reg.mark_module_as_loaded();

@@ -26,7 +26,7 @@ set( plugin_headers
   stereo_feature_track_filter.h
   kmedians.h
   keypoints_from_mask.h
-  refiner_add_kps_from_mask.h
+  add_keypoints_from_mask.h
   split_image_habcam.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
@@ -43,7 +43,7 @@ set( plugin_sources
   stereo_feature_track_filter.cxx
   kmedians.cxx
   keypoints_from_mask.cxx
-  refiner_add_kps_from_mask.cxx
+  add_keypoints_from_mask.cxx
   split_image_habcam.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
