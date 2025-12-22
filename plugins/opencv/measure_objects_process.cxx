@@ -127,12 +127,12 @@ public:
     Eigen::Vector3f& world_pt );
 
   // Find optimal matching between detection sets
-  std::vector<MatchData> find_matches(
-    const std::vector<kv::detected_object_sptr>& detections1,
-    const std::vector<kv::detected_object_sptr>& detections2 );
+  std::vector< MatchData > find_matches(
+    const std::vector< kv::detected_object_sptr >& detections1,
+    const std::vector< kv::detected_object_sptr >& detections2 );
 
   // Hungarian algorithm for minimum weight assignment
-  std::vector<std::pair<int, int>> minimum_weight_assignment(
+  std::vector< std::pair< int, int > > minimum_weight_assignment(
     const cv::Mat& cost_matrix );
 
   // Configuration values
@@ -188,8 +188,8 @@ measure_objects_process::priv
   Eigen::Vector3f& world_pt )
 {
   // Convert to Eigen format
-  Eigen::Matrix<float, 2, 1> left_pt( static_cast<float>(pt1.x), static_cast<float>(pt1.y) );
-  Eigen::Matrix<float, 2, 1> right_pt( static_cast<float>(pt2.x), static_cast<float>(pt2.y) );
+  Eigen::Matrix< float, 2, 1 > left_pt( static_cast< float >( pt1.x ), static_cast< float >( pt1.y ) );
+  Eigen::Matrix< float, 2, 1 > right_pt( static_cast< float >( pt2.x ), static_cast< float >( pt2.y ) );
 
   // Triangulate using kwiver's fast two-view method
   world_pt = kwiver::arrows::mvg::triangulate_fast_two_view(
@@ -209,7 +209,7 @@ measure_objects_process::priv
 }
 
 // -----------------------------------------------------------------------------
-std::vector<std::pair<int, int>>
+std::vector< std::pair< int, int > >
 measure_objects_process::priv
 ::minimum_weight_assignment( const cv::Mat& cost_matrix )
 {
@@ -225,7 +225,7 @@ measure_objects_process::priv
   {
     for( int j = 0; j < n2; ++j )
     {
-      double val = cost_matrix.at<double>(i, j);
+      double val = cost_matrix.at< double >( i, j );
       if( std::isfinite( val ) && val > 0 )
       {
         large_val += val;
@@ -240,20 +240,20 @@ measure_objects_process::priv
     {
       if( i < n1 && j < n2 )
       {
-        double val = cost_matrix.at<double>(i, j);
-        padded.at<double>(i, j) = std::isfinite( val ) ? val : large_val;
+        double val = cost_matrix.at< double >( i, j );
+        padded.at< double >( i, j ) = std::isfinite( val ) ? val : large_val;
       }
       else
       {
-        padded.at<double>(i, j) = large_val;
+        padded.at< double >( i, j ) = large_val;
       }
     }
   }
 
   // Simple greedy assignment (approximation to Hungarian algorithm)
-  std::vector<std::pair<int, int>> assignment;
-  std::vector<bool> row_used( n, false );
-  std::vector<bool> col_used( n, false );
+  std::vector< std::pair< int, int > > assignment;
+  std::vector< bool > row_used( n, false );
+  std::vector< bool > col_used( n, false );
 
   for( int iter = 0; iter < n; ++iter )
   {
@@ -266,9 +266,9 @@ measure_objects_process::priv
       for( int j = 0; j < n; ++j )
       {
         if( col_used[j] ) continue;
-        if( padded.at<double>(i, j) < min_val )
+        if( padded.at< double >( i, j ) < min_val )
         {
-          min_val = padded.at<double>(i, j);
+          min_val = padded.at< double >( i, j );
           min_i = i;
           min_j = j;
         }
@@ -294,28 +294,28 @@ measure_objects_process::priv
 }
 
 // -----------------------------------------------------------------------------
-std::vector<MatchData>
+std::vector< MatchData >
 measure_objects_process::priv
 ::find_matches(
-  const std::vector<kv::detected_object_sptr>& detections1,
-  const std::vector<kv::detected_object_sptr>& detections2 )
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2 )
 {
   size_t n1 = detections1.size();
   size_t n2 = detections2.size();
 
   if( n1 == 0 || n2 == 0 )
   {
-    return std::vector<MatchData>();
+    return std::vector< MatchData >();
   }
 
   // Get camera references
   kv::simple_camera_perspective& left_cam(
-    dynamic_cast<kv::simple_camera_perspective&>( *(m_calibration->left()) ) );
+    dynamic_cast< kv::simple_camera_perspective& >( *( m_calibration->left() ) ) );
   kv::simple_camera_perspective& right_cam(
-    dynamic_cast<kv::simple_camera_perspective&>( *(m_calibration->right()) ) );
+    dynamic_cast< kv::simple_camera_perspective& >( *( m_calibration->right() ) ) );
 
   // Pre-compute keypoints for all detections using configured method
-  std::vector<std::pair<cv::Point2d, cv::Point2d>> kpts1( n1 ), kpts2( n2 );
+  std::vector< std::pair< cv::Point2d, cv::Point2d > > kpts1( n1 ), kpts2( n2 );
   for( size_t i = 0; i < n1; ++i )
   {
     kpts1[i] = compute_keypoints( detections1[i], m_keypoint_method );
@@ -325,16 +325,16 @@ measure_objects_process::priv
     kpts2[j] = compute_keypoints( detections2[j], m_keypoint_method );
   }
 
-  cv::Mat cost_errors = cv::Mat::zeros( static_cast<int>(n1), static_cast<int>(n2), CV_64F );
-  std::map<std::pair<int, int>, MatchData> cand_data;
+  cv::Mat cost_errors = cv::Mat::zeros( static_cast< int >( n1 ), static_cast< int >( n2 ), CV_64F );
+  std::map< std::pair< int, int >, MatchData > cand_data;
 
   // Initialize with infinity
   for( size_t i = 0; i < n1; ++i )
   {
     for( size_t j = 0; j < n2; ++j )
     {
-      cost_errors.at<double>( static_cast<int>(i), static_cast<int>(j) ) =
-        std::numeric_limits<double>::infinity();
+      cost_errors.at< double >( static_cast< int >( i ), static_cast< int >( j ) ) =
+        std::numeric_limits< double >::infinity();
     }
   }
 
@@ -368,8 +368,8 @@ measure_objects_process::priv
 
       // Store candidate data
       MatchData data;
-      data.i = static_cast<int>(i);
-      data.j = static_cast<int>(j);
+      data.i = static_cast< int >( i );
+      data.j = static_cast< int >( j );
       data.fishlen = fishlen;
       data.range = range;
       data.error = error;
@@ -379,7 +379,7 @@ measure_objects_process::priv
       data.world_pt1 = world_pt_head;
       data.world_pt2 = world_pt_tail;
 
-      cand_data[std::make_pair( static_cast<int>(i), static_cast<int>(j) )] = data;
+      cand_data[std::make_pair( static_cast< int >( i ), static_cast< int >( j ) )] = data;
 
       // Check chirality (both Z coordinates must be positive - in front of cameras)
       bool both_in_front = ( world_pt_head.z() > 0 ) && ( world_pt_tail.z() > 0 );
@@ -395,7 +395,7 @@ measure_objects_process::priv
         continue;
       }
 
-      cost_errors.at<double>( static_cast<int>(i), static_cast<int>(j) ) = error;
+      cost_errors.at< double >( static_cast< int >( i ), static_cast< int >( j ) ) = error;
     }
   }
 
@@ -403,7 +403,7 @@ measure_objects_process::priv
   auto assignment = minimum_weight_assignment( cost_errors );
 
   // Collect match data
-  std::vector<MatchData> matches;
+  std::vector< MatchData > matches;
   for( const auto& pair : assignment )
   {
     auto it = cand_data.find( pair );
@@ -526,7 +526,7 @@ measure_objects_process
   auto timestamp = grab_from_port_using_trait( timestamp );
 
   // Convert to vectors for indexed access
-  std::vector<kv::detected_object_sptr> detections1, detections2;
+  std::vector< kv::detected_object_sptr > detections1, detections2;
   for( const auto& det : *detection_set1 )
   {
     detections1.push_back( det );
@@ -566,11 +566,11 @@ measure_objects_process
   }
 
   // Track which detections have matches
-  std::vector<bool> has_match1( detections1.size(), false );
-  std::vector<bool> has_match2( detections2.size(), false );
+  std::vector< bool > has_match1( detections1.size(), false );
+  std::vector< bool > has_match2( detections2.size(), false );
 
   // Assign lengths to matched detections and create tracks
-  std::vector<kv::track_sptr> output_trks1, output_trks2;
+  std::vector< kv::track_sptr > output_trks1, output_trks2;
 
   for( const auto& match : matches )
   {
@@ -594,8 +594,8 @@ measure_objects_process
     detections2[i2]->add_keypoint( "tail", kv::point_2d( kp2.second.x, kp2.second.y ) );
 
     // Create tracks with same ID for matched pairs
-    auto state1 = std::make_shared<kv::object_track_state>( timestamp, detections1[i1] );
-    auto state2 = std::make_shared<kv::object_track_state>( timestamp, detections2[i2] );
+    auto state1 = std::make_shared< kv::object_track_state >( timestamp, detections1[i1] );
+    auto state2 = std::make_shared< kv::object_track_state >( timestamp, detections2[i2] );
 
     auto track1 = kv::track::create();
     track1->set_id( d->m_track_id );
@@ -616,7 +616,7 @@ measure_objects_process
   {
     if( !has_match1[i] )
     {
-      auto state = std::make_shared<kv::object_track_state>( timestamp, detections1[i] );
+      auto state = std::make_shared< kv::object_track_state >( timestamp, detections1[i] );
       auto track = kv::track::create();
       track->set_id( d->m_track_id );
       track->append( state );
@@ -629,7 +629,7 @@ measure_objects_process
   {
     if( !has_match2[i] )
     {
-      auto state = std::make_shared<kv::object_track_state>( timestamp, detections2[i] );
+      auto state = std::make_shared< kv::object_track_state >( timestamp, detections2[i] );
       auto track = kv::track::create();
       track->set_id( d->m_track_id );
       track->append( state );
@@ -639,10 +639,10 @@ measure_objects_process
   }
 
   // Create output sets
-  auto output_det_set1 = std::make_shared<kv::detected_object_set>( detections1 );
-  auto output_det_set2 = std::make_shared<kv::detected_object_set>( detections2 );
-  auto output_track_set1 = std::make_shared<kv::object_track_set>( output_trks1 );
-  auto output_track_set2 = std::make_shared<kv::object_track_set>( output_trks2 );
+  auto output_det_set1 = std::make_shared< kv::detected_object_set >( detections1 );
+  auto output_det_set2 = std::make_shared< kv::detected_object_set >( detections2 );
+  auto output_track_set1 = std::make_shared< kv::object_track_set >( output_trks1 );
+  auto output_track_set2 = std::make_shared< kv::object_track_set >( output_trks2 );
 
   // Push outputs
   push_to_port_using_trait( detected_object_set1, output_det_set1 );

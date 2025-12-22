@@ -57,11 +57,11 @@ namespace viame {
 /// Result of chessboard corner detection
 struct VIAME_OPENCV_EXPORT ChessboardDetectionResult
 {
-  bool found;                         ///< Whether corners were detected
-  std::vector<cv::Point2f> corners;   ///< Detected corner positions (image coords)
-  cv::Size grid_size;                 ///< Grid size used for detection (width x height)
+  bool found;                           ///< Whether corners were detected
+  std::vector< cv::Point2f > corners;   ///< Detected corner positions (image coords)
+  cv::Size grid_size;                   ///< Grid size used for detection (width x height)
 
-  ChessboardDetectionResult() : found(false), grid_size(0, 0) {}
+  ChessboardDetectionResult() : found( false ), grid_size( 0, 0 ) {}
 };
 
 // =============================================================================
@@ -74,7 +74,7 @@ struct VIAME_OPENCV_EXPORT MonoCalibrationResult
   cv::Mat dist_coeffs;                ///< Distortion coefficients [k1,k2,p1,p2,k3]
   int calibration_flags;              ///< OpenCV calibration flags used
 
-  MonoCalibrationResult() : success(false), rms_error(0.0), calibration_flags(0) {}
+  MonoCalibrationResult() : success( false ), rms_error( 0.0 ), calibration_flags( 0 ) {}
 };
 
 // =============================================================================
@@ -167,8 +167,8 @@ public:
   /// \param camera_name Name for logging purposes
   /// \return Calibration result
   MonoCalibrationResult calibrate_single_camera(
-    const std::vector<std::vector<cv::Point2f>>& image_points,
-    const std::vector<std::vector<cv::Point3f>>& object_points,
+    const std::vector< std::vector< cv::Point2f > >& image_points,
+    const std::vector< std::vector< cv::Point3f > >& object_points,
     const cv::Size& image_size,
     const std::string& camera_name = "camera" ) const;
 
@@ -189,9 +189,9 @@ public:
   /// \param square_size Square size in world units
   /// \return Stereo calibration result
   calibrate_stereo_cameras_result calibrate_stereo(
-    const std::vector<std::vector<cv::Point2f>>& left_image_points,
-    const std::vector<std::vector<cv::Point2f>>& right_image_points,
-    const std::vector<std::vector<cv::Point3f>>& object_points,
+    const std::vector< std::vector< cv::Point2f > >& left_image_points,
+    const std::vector< std::vector< cv::Point2f > >& right_image_points,
+    const std::vector< std::vector< cv::Point3f > >& object_points,
     const cv::Size& image_size,
     const cv::Size& grid_size,
     double square_size ) const;
@@ -248,7 +248,7 @@ public:
   /// \param grid_size Grid size (inner corners)
   /// \param square_size Square size in world units
   /// \return Vector of 3D points in the pattern plane (Z=0)
-  static std::vector<cv::Point3f> make_object_points(
+  static std::vector< cv::Point3f > make_object_points(
     const cv::Size& grid_size,
     double square_size = 1.0 );
 

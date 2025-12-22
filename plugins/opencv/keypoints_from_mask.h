@@ -54,7 +54,7 @@ namespace viame
 /// \param det The detection to extract mask points from
 /// \return Vector of points in image coordinates, empty if no mask
 VIAME_OPENCV_EXPORT
-std::vector<cv::Point>
+std::vector< cv::Point >
 get_mask_points( kwiver::vital::detected_object_sptr det );
 
 /// Compute oriented bounding box corner points from a detection's mask or bounding box.
@@ -66,7 +66,7 @@ get_mask_points( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute box points for
 /// \return Vector of 4 corner points in image coordinates
 VIAME_OPENCV_EXPORT
-std::vector<cv::Point2d>
+std::vector< cv::Point2d >
 compute_box_points( kwiver::vital::detected_object_sptr det );
 
 /// Compute head and tail keypoints from oriented bounding box points.
@@ -78,8 +78,8 @@ compute_box_points( kwiver::vital::detected_object_sptr det );
 /// \param box_points Vector of 4 corner points
 /// \return Pair of (head, tail) points where head has max x and tail has min x
 VIAME_OPENCV_EXPORT
-std::pair<cv::Point2d, cv::Point2d>
-center_keypoints( const std::vector<cv::Point2d>& box_points );
+std::pair< cv::Point2d, cv::Point2d >
+center_keypoints( const std::vector< cv::Point2d >& box_points );
 
 /// Add head and tail keypoints to a detection based on its mask or bounding box.
 ///

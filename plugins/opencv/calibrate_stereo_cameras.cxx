@@ -159,14 +159,14 @@ calibrate_stereo_cameras::detect_chessboard_auto(
   int max_size ) const
 {
   // Common grid sizes to try first
-  std::vector<cv::Size> common_sizes = {
+  std::vector< cv::Size > common_sizes = {
     cv::Size( 6, 5 ), cv::Size( 7, 6 ), cv::Size( 8, 6 ),
     cv::Size( 9, 6 ), cv::Size( 5, 4 ), cv::Size( 8, 5 ),
     cv::Size( 7, 5 )
   };
 
   // Build list of all sizes to try
-  std::vector<cv::Size> all_sizes = common_sizes;
+  std::vector< cv::Size > all_sizes = common_sizes;
   for( int x = min_size; x <= max_size; ++x )
   {
     for( int y = min_size; y <= x; ++y )
@@ -226,8 +226,8 @@ calibrate_stereo_cameras::detect_chessboard_auto(
 // -----------------------------------------------------------------------------
 MonoCalibrationResult
 calibrate_stereo_cameras::calibrate_single_camera(
-  const std::vector<std::vector<cv::Point2f>>& image_points,
-  const std::vector<std::vector<cv::Point3f>>& object_points,
+  const std::vector< std::vector< cv::Point2f > >& image_points,
+  const std::vector< std::vector< cv::Point3f > >& object_points,
   const cv::Size& image_size,
   const std::string& camera_name ) const
 {
@@ -247,7 +247,7 @@ calibrate_stereo_cameras::calibrate_single_camera(
   K.at<double>( 1, 2 ) = image_size.height / 2.0;  // cy
 
   cv::Mat dist = cv::Mat::zeros( 5, 1, CV_64F );
-  std::vector<cv::Mat> rvecs, tvecs;
+  std::vector< cv::Mat > rvecs, tvecs;
 
   int flags = 0;
 
@@ -385,9 +385,9 @@ calibrate_stereo_cameras::calibrate_single_camera(
 // -----------------------------------------------------------------------------
 calibrate_stereo_cameras_result
 calibrate_stereo_cameras::calibrate_stereo(
-  const std::vector<std::vector<cv::Point2f>>& left_image_points,
-  const std::vector<std::vector<cv::Point2f>>& right_image_points,
-  const std::vector<std::vector<cv::Point3f>>& object_points,
+  const std::vector< std::vector< cv::Point2f > >& left_image_points,
+  const std::vector< std::vector< cv::Point2f > >& right_image_points,
+  const std::vector< std::vector< cv::Point3f > >& object_points,
   const cv::Size& image_size,
   const cv::Size& grid_size,
   double square_size ) const
@@ -662,12 +662,12 @@ calibrate_stereo_cameras::load_calibration_opencv(
 }
 
 // -----------------------------------------------------------------------------
-std::vector<cv::Point3f>
+std::vector< cv::Point3f >
 calibrate_stereo_cameras::make_object_points(
   const cv::Size& grid_size,
   double square_size )
 {
-  std::vector<cv::Point3f> points;
+  std::vector< cv::Point3f > points;
   points.reserve( grid_size.width * grid_size.height );
 
   for( int j = 0; j < grid_size.height; ++j )
@@ -675,8 +675,8 @@ calibrate_stereo_cameras::make_object_points(
     for( int i = 0; i < grid_size.width; ++i )
     {
       points.emplace_back(
-        static_cast<float>( i * square_size ),
-        static_cast<float>( j * square_size ),
+        static_cast< float >( i * square_size ),
+        static_cast< float >( j * square_size ),
         0.0f );
     }
   }
@@ -701,7 +701,7 @@ calibrate_stereo_cameras::to_grayscale(
     if( image.channels() == 3 )
     {
       // Extract first channel and debayer
-      std::vector<cv::Mat> channels;
+      std::vector< cv::Mat > channels;
       cv::split( image, channels );
       cv::cvtColor( channels[0], gray, cv::COLOR_BayerBG2GRAY );
     }

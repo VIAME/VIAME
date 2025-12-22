@@ -50,10 +50,10 @@ namespace viame
 {
 
 // -----------------------------------------------------------------------------
-std::vector<cv::Point>
+std::vector< cv::Point >
 get_mask_points( kv::detected_object_sptr det )
 {
-  std::vector<cv::Point> points;
+  std::vector< cv::Point > points;
   kv::bounding_box_d bbox = det->bounding_box();
   auto mask_container = det->mask();
 
@@ -89,10 +89,10 @@ get_mask_points( kv::detected_object_sptr det )
 }
 
 // -----------------------------------------------------------------------------
-std::vector<cv::Point2d>
+std::vector< cv::Point2d >
 compute_box_points( kv::detected_object_sptr det )
 {
-  std::vector<cv::Point2d> box_points;
+  std::vector< cv::Point2d > box_points;
   kv::bounding_box_d bbox = det->bounding_box();
   auto mask_container = det->mask();
 
@@ -111,7 +111,7 @@ compute_box_points( kv::detected_object_sptr det )
       mask_container->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
     // Find convex hull from mask
-    std::vector<cv::Point> points;
+    std::vector< cv::Point > points;
     cv::Mat mask_squeezed = mask;
     if( mask.dims > 2 && mask.size[2] == 1 )
     {
@@ -139,7 +139,7 @@ compute_box_points( kv::detected_object_sptr det )
       return box_points;
     }
 
-    std::vector<cv::Point> hull;
+    std::vector< cv::Point > hull;
     cv::convexHull( points, hull );
 
     // Find minimum area rotated rectangle
@@ -160,16 +160,16 @@ compute_box_points( kv::detected_object_sptr det )
 }
 
 // -----------------------------------------------------------------------------
-std::pair<cv::Point2d, cv::Point2d>
-center_keypoints( const std::vector<cv::Point2d>& box_points )
+std::pair< cv::Point2d, cv::Point2d >
+center_keypoints( const std::vector< cv::Point2d >& box_points )
 {
   if( box_points.size() < 4 )
   {
-    return std::make_pair( cv::Point2d(0, 0), cv::Point2d(0, 0) );
+    return std::make_pair( cv::Point2d( 0, 0 ), cv::Point2d( 0, 0 ) );
   }
 
   // Compute edge midpoints
-  std::vector<cv::Point2d> centers;
+  std::vector< cv::Point2d > centers;
   centers.push_back( ( box_points[0] + box_points[1] ) * 0.5 );
   centers.push_back( ( box_points[1] + box_points[2] ) * 0.5 );
   centers.push_back( ( box_points[2] + box_points[3] ) * 0.5 );
@@ -222,19 +222,19 @@ add_keypoints_from_box( kv::detected_object_sptr det )
 }
 
 // -----------------------------------------------------------------------------
-std::pair<cv::Point2d, cv::Point2d>
+std::pair< cv::Point2d, cv::Point2d >
 compute_keypoints_oriented_bbox( kv::detected_object_sptr det )
 {
   auto box_pts = compute_box_points( det );
   if( box_pts.size() < 4 )
   {
-    return std::make_pair( cv::Point2d(0, 0), cv::Point2d(0, 0) );
+    return std::make_pair( cv::Point2d( 0, 0 ), cv::Point2d( 0, 0 ) );
   }
   return center_keypoints( box_pts );
 }
 
 // -----------------------------------------------------------------------------
-std::pair<cv::Point2d, cv::Point2d>
+std::pair< cv::Point2d, cv::Point2d >
 compute_keypoints_pca( kv::detected_object_sptr det )
 {
   auto points = get_mask_points( det );
@@ -298,7 +298,7 @@ compute_keypoints_pca( kv::detected_object_sptr det )
 }
 
 // -----------------------------------------------------------------------------
-std::pair<cv::Point2d, cv::Point2d>
+std::pair< cv::Point2d, cv::Point2d >
 compute_keypoints_farthest( kv::detected_object_sptr det )
 {
   auto points = get_mask_points( det );
@@ -309,7 +309,7 @@ compute_keypoints_farthest( kv::detected_object_sptr det )
   }
 
   // Get convex hull to reduce search space
-  std::vector<cv::Point> hull;
+  std::vector< cv::Point > hull;
   cv::convexHull( points, hull );
 
   if( hull.size() < 2 )
@@ -351,7 +351,7 @@ compute_keypoints_farthest( kv::detected_object_sptr det )
 }
 
 // -----------------------------------------------------------------------------
-std::pair<cv::Point2d, cv::Point2d>
+std::pair< cv::Point2d, cv::Point2d >
 compute_keypoints_hull_extremes( kv::detected_object_sptr det )
 {
   auto points = get_mask_points( det );
@@ -362,7 +362,7 @@ compute_keypoints_hull_extremes( kv::detected_object_sptr det )
   }
 
   // Get convex hull
-  std::vector<cv::Point> hull;
+  std::vector< cv::Point > hull;
   cv::convexHull( points, hull );
 
   if( hull.size() < 2 )
@@ -412,7 +412,7 @@ compute_keypoints_hull_extremes( kv::detected_object_sptr det )
 }
 
 // -----------------------------------------------------------------------------
-std::pair<cv::Point2d, cv::Point2d>
+std::pair< cv::Point2d, cv::Point2d >
 compute_keypoints_skeleton( kv::detected_object_sptr det )
 {
   kv::bounding_box_d bbox = det->bounding_box();
@@ -462,8 +462,8 @@ compute_keypoints_skeleton( kv::detected_object_sptr det )
   }
 
   // Find skeleton endpoints (pixels with only one neighbor)
-  std::vector<cv::Point> endpoints;
-  std::vector<cv::Point> skeleton_points;
+  std::vector< cv::Point > endpoints;
+  std::vector< cv::Point > skeleton_points;
 
   for( int y = 1; y < skeleton.rows - 1; ++y )
   {
@@ -567,7 +567,7 @@ compute_keypoints_skeleton( kv::detected_object_sptr det )
 }
 
 // -----------------------------------------------------------------------------
-std::pair<cv::Point2d, cv::Point2d>
+std::pair< cv::Point2d, cv::Point2d >
 compute_keypoints( kv::detected_object_sptr det, const std::string& method )
 {
   if( method == "pca" )
