@@ -56,7 +56,7 @@ protected:
     double principal_y = 360.0;
     double baseline = 0.1;  // 10cm baseline
 
-    auto intrinsics = std::make_shared<kv::simple_camera_intrinsics>(
+    auto intrinsics = std::make_shared< kv::simple_camera_intrinsics >(
       focal_length, kv::vector_2d( principal_x, principal_y ) );
 
     // Left camera at origin looking down +Z
@@ -389,7 +389,7 @@ TEST_F( MeasurementUtilitiesTest, ComputeBboxFromKeypointsReversedOrder )
 
 TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceInputPairsOnly )
 {
-  std::vector<std::string> methods = { "input_pairs_only" };
+  std::vector< std::string > methods = { "input_pairs_only" };
 
   kv::vector_2d left_head( 100, 100 );
   kv::vector_2d left_tail( 200, 200 );
@@ -411,7 +411,7 @@ TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceInputPairsOnly )
 
 TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceInputPairsOnlyNoInput )
 {
-  std::vector<std::string> methods = { "input_pairs_only" };
+  std::vector< std::string > methods = { "input_pairs_only" };
 
   kv::vector_2d left_head( 100, 100 );
   kv::vector_2d left_tail( 200, 200 );
@@ -427,7 +427,7 @@ TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceInputPairsOnlyNoInput 
 
 TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceDepthProjection )
 {
-  std::vector<std::string> methods = { "depth_projection" };
+  std::vector< std::string > methods = { "depth_projection" };
   utilities.set_default_depth( 1.0 );
 
   kv::vector_2d left_head( 640, 360 );
@@ -450,7 +450,7 @@ TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceDepthProjection )
 TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceFallback )
 {
   // Test that methods are tried in order and fallback works
-  std::vector<std::string> methods = { "input_pairs_only", "depth_projection" };
+  std::vector< std::string > methods = { "input_pairs_only", "depth_projection" };
   utilities.set_default_depth( 1.0 );
 
   kv::vector_2d left_head( 640, 360 );
@@ -574,8 +574,8 @@ TEST( MeasurementUtilitiesIOU, ComputeIOUInvalidBox )
 
 TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelValid )
 {
-  auto det = std::make_shared<kv::detected_object>( kv::bounding_box_d( 0, 0, 100, 100 ) );
-  auto dot = std::make_shared<kv::detected_object_type>();
+  auto det = std::make_shared< kv::detected_object >( kv::bounding_box_d( 0, 0, 100, 100 ) );
+  auto dot = std::make_shared< kv::detected_object_type >();
   dot->set_score( "fish", 0.9 );
   dot->set_score( "shark", 0.1 );
   det->set_type( dot );
@@ -592,7 +592,7 @@ TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelNullDetection )
 
 TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelNullType )
 {
-  auto det = std::make_shared<kv::detected_object>( kv::bounding_box_d( 0, 0, 100, 100 ) );
+  auto det = std::make_shared< kv::detected_object >( kv::bounding_box_d( 0, 0, 100, 100 ) );
   // No type set
 
   std::string label = viame::core::get_detection_class_label( det );
@@ -606,7 +606,7 @@ TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelNullType )
 TEST( MeasurementUtilitiesAssignment, GreedyAssignmentSimple )
 {
   // Simple 2x2 cost matrix
-  std::vector<std::vector<double>> cost_matrix = {
+  std::vector< std::vector< double > > cost_matrix = {
     { 1.0, 2.0 },
     { 3.0, 0.5 }
   };
@@ -616,14 +616,14 @@ TEST( MeasurementUtilitiesAssignment, GreedyAssignmentSimple )
   ASSERT_EQ( assignment.size(), 2 );
   // Should assign (1,1) first (cost 0.5), then (0,0) (cost 1.0)
   // Resulting in assignments: (0,0) and (1,1)
-  std::set<std::pair<int,int>> result_set( assignment.begin(), assignment.end() );
+  std::set< std::pair< int, int > > result_set( assignment.begin(), assignment.end() );
   EXPECT_TRUE( result_set.count( std::make_pair( 0, 0 ) ) > 0 );
   EXPECT_TRUE( result_set.count( std::make_pair( 1, 1 ) ) > 0 );
 }
 
 TEST( MeasurementUtilitiesAssignment, GreedyAssignmentWithInfinity )
 {
-  std::vector<std::vector<double>> cost_matrix = {
+  std::vector< std::vector< double > > cost_matrix = {
     { 1.0, 1e10 },
     { 1e10, 0.5 }
   };
@@ -631,7 +631,7 @@ TEST( MeasurementUtilitiesAssignment, GreedyAssignmentWithInfinity )
   auto assignment = viame::core::greedy_assignment( cost_matrix, 2, 2 );
 
   ASSERT_EQ( assignment.size(), 2 );
-  std::set<std::pair<int,int>> result_set( assignment.begin(), assignment.end() );
+  std::set< std::pair< int, int > > result_set( assignment.begin(), assignment.end() );
   EXPECT_TRUE( result_set.count( std::make_pair( 0, 0 ) ) > 0 );
   EXPECT_TRUE( result_set.count( std::make_pair( 1, 1 ) ) > 0 );
 }
@@ -639,7 +639,7 @@ TEST( MeasurementUtilitiesAssignment, GreedyAssignmentWithInfinity )
 TEST( MeasurementUtilitiesAssignment, GreedyAssignmentRectangular )
 {
   // 3x2 cost matrix (more rows than columns)
-  std::vector<std::vector<double>> cost_matrix = {
+  std::vector< std::vector< double > > cost_matrix = {
     { 1.0, 2.0 },
     { 0.5, 3.0 },
     { 4.0, 0.3 }
@@ -650,7 +650,7 @@ TEST( MeasurementUtilitiesAssignment, GreedyAssignmentRectangular )
   // Should assign at most min(3, 2) = 2 pairs
   ASSERT_EQ( assignment.size(), 2 );
   // Best: (2,1) cost 0.3, (1,0) cost 0.5
-  std::set<std::pair<int,int>> result_set( assignment.begin(), assignment.end() );
+  std::set< std::pair< int, int > > result_set( assignment.begin(), assignment.end() );
   EXPECT_TRUE( result_set.count( std::make_pair( 1, 0 ) ) > 0 );
   EXPECT_TRUE( result_set.count( std::make_pair( 2, 1 ) ) > 0 );
 }
@@ -661,7 +661,7 @@ TEST( MeasurementUtilitiesAssignment, GreedyAssignmentRectangular )
 
 TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsBasic )
 {
-  std::vector<stereo_feature_correspondence> correspondences = {
+  std::vector< stereo_feature_correspondence > correspondences = {
     { kv::vector_2d( 10, 50 ), kv::vector_2d( 5, 50 ) },
     { kv::vector_2d( 100, 50 ), kv::vector_2d( 95, 50 ) },
     { kv::vector_2d( 50, 50 ), kv::vector_2d( 45, 50 ) }
@@ -682,7 +682,7 @@ TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsBasic )
 
 TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsNotEnough )
 {
-  std::vector<stereo_feature_correspondence> correspondences = {
+  std::vector< stereo_feature_correspondence > correspondences = {
     { kv::vector_2d( 10, 50 ), kv::vector_2d( 5, 50 ) }
   };
 
@@ -695,7 +695,7 @@ TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsNotEnough )
 
 TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsDiagonal )
 {
-  std::vector<stereo_feature_correspondence> correspondences = {
+  std::vector< stereo_feature_correspondence > correspondences = {
     { kv::vector_2d( 0, 0 ), kv::vector_2d( 0, 0 ) },
     { kv::vector_2d( 100, 100 ), kv::vector_2d( 90, 100 ) },
     { kv::vector_2d( 50, 50 ), kv::vector_2d( 45, 50 ) }

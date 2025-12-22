@@ -825,17 +825,17 @@ get_detection_class_label( const kv::detected_object_sptr& det )
 }
 
 // -----------------------------------------------------------------------------
-std::vector<std::pair<int, int>>
+std::vector< std::pair< int, int > >
 greedy_assignment(
-  const std::vector<std::vector<double>>& cost_matrix,
+  const std::vector< std::vector< double > >& cost_matrix,
   int n_rows, int n_cols )
 {
-  std::vector<std::pair<int, int>> assignment;
-  std::vector<bool> row_used( n_rows, false );
-  std::vector<bool> col_used( n_cols, false );
+  std::vector< std::pair< int, int > > assignment;
+  std::vector< bool > row_used( n_rows, false );
+  std::vector< bool > col_used( n_cols, false );
 
   // Collect all valid costs with their indices
-  std::vector<std::tuple<double, int, int>> costs;
+  std::vector< std::tuple< double, int, int > > costs;
   for( int i = 0; i < n_rows; ++i )
   {
     for( int j = 0; j < n_cols; ++j )
@@ -854,8 +854,8 @@ greedy_assignment(
   // Greedily assign
   for( const auto& entry : costs )
   {
-    int i = std::get<1>( entry );
-    int j = std::get<2>( entry );
+    int i = std::get< 1 >( entry );
+    int j = std::get< 2 >( entry );
 
     if( !row_used[i] && !col_used[j] )
     {
@@ -871,7 +871,7 @@ greedy_assignment(
 // -----------------------------------------------------------------------------
 bool
 find_furthest_apart_points(
-  const std::vector<stereo_feature_correspondence>& correspondences,
+  const std::vector< stereo_feature_correspondence >& correspondences,
   kv::vector_2d& left_head, kv::vector_2d& left_tail,
   kv::vector_2d& right_head, kv::vector_2d& right_tail )
 {
@@ -1363,7 +1363,7 @@ map_keypoints_to_camera
   auto matches = m_cached_matches->matches();
 
   // Estimate fundamental matrix using RANSAC to filter outliers
-  std::vector<bool> inliers;
+  std::vector< bool > inliers;
   auto F = m_fundamental_matrix_estimator->estimate(
     m_cached_left_features, m_cached_right_features,
     m_cached_matches, inliers, m_ransac_inlier_scale );
@@ -1556,18 +1556,18 @@ map_keypoints_to_camera
 
   if( m_use_distortion )
   {
-    std::vector<double> left_dist = left_intrinsics->dist_coeffs();
-    std::vector<double> right_dist = right_intrinsics->dist_coeffs();
+    std::vector< double > left_dist = left_intrinsics->dist_coeffs();
+    std::vector< double > right_dist = right_intrinsics->dist_coeffs();
 
     // Convert distortion coefficients to OpenCV format
     for( size_t i = 0; i < std::min( left_dist.size(), size_t(5) ); ++i )
     {
-      D1.at<double>( static_cast<int>( i ), 0 ) = left_dist[i];
+      D1.at< double >( static_cast< int >( i ), 0 ) = left_dist[i];
     }
 
     for( size_t i = 0; i < std::min( right_dist.size(), size_t(5) ); ++i )
     {
-      D2.at<double>( static_cast<int>( i ), 0 ) = right_dist[i];
+      D2.at< double >( static_cast< int >( i ), 0 ) = right_dist[i];
     }
   }
 
@@ -1634,8 +1634,8 @@ map_keypoints_to_camera
     return original_point;
   }
 
-  std::vector<cv::Point2f> pts_in = { cv::Point2f( original_point.x(), original_point.y() ) };
-  std::vector<cv::Point2f> pts_out;
+  std::vector< cv::Point2f > pts_in = { cv::Point2f( original_point.x(), original_point.y() ) };
+  std::vector< cv::Point2f > pts_out;
 
   cv::undistortPoints( pts_in, pts_out, K, D, R, P );
 
@@ -1661,10 +1661,10 @@ map_keypoints_to_camera
   const cv::Mat& D = is_right_camera ? m_D2 : m_D1;
 
   // Extract rectified camera intrinsics from P (3x4 projection matrix)
-  double fx_rect = P.at<double>( 0, 0 );
-  double fy_rect = P.at<double>( 1, 1 );
-  double cx_rect = P.at<double>( 0, 2 );
-  double cy_rect = P.at<double>( 1, 2 );
+  double fx_rect = P.at< double >( 0, 0 );
+  double fy_rect = P.at< double >( 1, 1 );
+  double cx_rect = P.at< double >( 0, 2 );
+  double cy_rect = P.at< double >( 1, 2 );
 
   // Convert rectified pixel to normalized rectified coordinates
   double x_norm_rect = ( rectified_point.x() - cx_rect ) / fx_rect;
@@ -1674,12 +1674,12 @@ map_keypoints_to_camera
   cv::Mat pt_rect = ( cv::Mat_<double>( 3, 1 ) << x_norm_rect, y_norm_rect, 1.0 );
   cv::Mat pt_orig = R.t() * pt_rect;
 
-  double x_norm = pt_orig.at<double>( 0, 0 ) / pt_orig.at<double>( 2, 0 );
-  double y_norm = pt_orig.at<double>( 1, 0 ) / pt_orig.at<double>( 2, 0 );
+  double x_norm = pt_orig.at< double >( 0, 0 ) / pt_orig.at< double >( 2, 0 );
+  double y_norm = pt_orig.at< double >( 1, 0 ) / pt_orig.at< double >( 2, 0 );
 
   // Apply distortion and camera matrix using projectPoints with identity pose
-  std::vector<cv::Point3f> pts_3d = { cv::Point3f( x_norm, y_norm, 1.0f ) };
-  std::vector<cv::Point2f> pts_2d;
+  std::vector< cv::Point3f > pts_3d = { cv::Point3f( x_norm, y_norm, 1.0f ) };
+  std::vector< cv::Point2f > pts_2d;
   cv::Mat rvec = cv::Mat::zeros( 3, 1, CV_64F );
   cv::Mat tvec = cv::Mat::zeros( 3, 1, CV_64F );
 
@@ -1736,7 +1736,7 @@ cv::Mat compute_census_transform( const cv::Mat& input, int window_radius = 2 )
     for( int x = window_radius; x < gray.cols - window_radius; ++x )
     {
       unsigned int census_val = 0;
-      uchar center = gray.at<uchar>( y, x );
+      uchar center = gray.at< uchar >( y, x );
       int bit_pos = 0;
 
       for( int dy = -window_radius; dy <= window_radius; ++dy )
@@ -1745,14 +1745,14 @@ cv::Mat compute_census_transform( const cv::Mat& input, int window_radius = 2 )
         {
           if( dx == 0 && dy == 0 ) continue;  // Skip center
 
-          if( gray.at<uchar>( y + dy, x + dx ) < center )
+          if( gray.at< uchar >( y + dy, x + dx ) < center )
           {
             census_val |= ( 1u << bit_pos );
           }
           ++bit_pos;
         }
       }
-      census.at<int>( y, x ) = static_cast<int>( census_val );
+      census.at< int >( y, x ) = static_cast< int >( census_val );
     }
   }
 
@@ -1762,7 +1762,7 @@ cv::Mat compute_census_transform( const cv::Mat& input, int window_radius = 2 )
 // Compute Hamming distance between two census values
 int census_hamming_distance( int a, int b )
 {
-  unsigned int xor_val = static_cast<unsigned int>( a ^ b );
+  unsigned int xor_val = static_cast< unsigned int >( a ^ b );
   int dist = 0;
   while( xor_val )
   {
@@ -1787,14 +1787,14 @@ double census_template_match(
   {
     for( int tx = 0; tx < template_width; ++tx )
     {
-      int t_val = census_template.at<int>( ty, tx );
-      int s_val = census_search.at<int>( search_y + ty, search_x + tx );
+      int t_val = census_template.at< int >( ty, tx );
+      int s_val = census_search.at< int >( search_y + ty, search_x + tx );
       total_distance += census_hamming_distance( t_val, s_val );
     }
   }
 
   // Convert to correlation-like score (1.0 = perfect match, 0.0 = worst)
-  return 1.0 - static_cast<double>( total_distance ) / max_distance;
+  return 1.0 - static_cast< double >( total_distance ) / max_distance;
 }
 } // anonymous namespace
 
@@ -1809,8 +1809,8 @@ map_keypoints_to_camera
   const cv::Mat& disparity_map ) const
 {
   int half_template = m_template_size / 2;
-  int x_left = static_cast<int>( left_point_rect.x() );
-  int y_left = static_cast<int>( left_point_rect.y() );
+  int x_left = static_cast< int >( left_point_rect.x() );
+  int y_left = static_cast< int >( left_point_rect.y() );
 
   // Check if template fits in left image (with extra margin for census transform)
   int margin = m_use_census_transform ? half_template + 2 : half_template;
@@ -1850,11 +1850,11 @@ map_keypoints_to_camera
         if( sample_x >= 0 && sample_x < disparity_map.cols &&
             sample_y >= 0 && sample_y < disparity_map.rows )
         {
-          short disp_raw = disparity_map.at<short>( sample_y, sample_x );
+          short disp_raw = disparity_map.at< short >( sample_y, sample_x );
           // SGBM returns fixed-point values scaled by 16, invalid values are negative
           if( disp_raw > 0 )
           {
-            disparity_sum += static_cast<double>( disp_raw ) / 16.0;
+            disparity_sum += static_cast< double >( disp_raw ) / 16.0;
             ++valid_count;
           }
         }
@@ -1868,17 +1868,17 @@ map_keypoints_to_camera
     else if( !m_P2.empty() && m_default_depth > 0 )
     {
       // Fall back to default depth computation
-      expected_disparity = -m_P2.at<double>( 0, 3 ) / m_default_depth;
+      expected_disparity = -m_P2.at< double >( 0, 3 ) / m_default_depth;
     }
   }
   else if( !m_P2.empty() && m_default_depth > 0 )
   {
     // Compute disparity from default depth using camera parameters
-    expected_disparity = -m_P2.at<double>( 0, 3 ) / m_default_depth;
+    expected_disparity = -m_P2.at< double >( 0, 3 ) / m_default_depth;
   }
 
   // Compute expected right x position based on disparity
-  int expected_right_x = static_cast<int>( x_left - expected_disparity );
+  int expected_right_x = static_cast< int >( x_left - expected_disparity );
 
   // Define search region centered around expected position
   // Use half the search range on each side of expected position for efficiency
@@ -2006,7 +2006,7 @@ map_keypoints_to_camera
       {
         for( int rx = 0; rx < result.cols; rx += m_multires_coarse_step )
         {
-          double val = result.at<float>( ry, rx );
+          double val = result.at< float >( ry, rx );
           if( val > coarse_max_val )
           {
             coarse_max_val = val;
@@ -2030,7 +2030,7 @@ map_keypoints_to_camera
       {
         for( int rx = fine_min_x; rx <= fine_max_x; ++rx )
         {
-          double val = result.at<float>( ry, rx );
+          double val = result.at< float >( ry, rx );
           if( val > max_val )
           {
             max_val = val;
@@ -2110,8 +2110,8 @@ map_keypoints_to_camera
   const kv::vector_2d& left_point_rect,
   kv::vector_2d& right_point_rect ) const
 {
-  int x = static_cast<int>( left_point_rect.x() + 0.5 );
-  int y = static_cast<int>( left_point_rect.y() + 0.5 );
+  int x = static_cast< int >( left_point_rect.x() + 0.5 );
+  int y = static_cast< int >( left_point_rect.y() + 0.5 );
 
   // Check bounds
   if( x < 0 || x >= disparity_map.cols || y < 0 || y >= disparity_map.rows )
@@ -2120,7 +2120,7 @@ map_keypoints_to_camera
   }
 
   // Get disparity value (SGBM returns fixed-point values scaled by 16)
-  short disp_raw = disparity_map.at<short>( y, x );
+  short disp_raw = disparity_map.at< short >( y, x );
 
   // Check for invalid disparity (OpenCV marks invalid as negative values)
   if( disp_raw < 0 )
@@ -2129,7 +2129,7 @@ map_keypoints_to_camera
   }
 
   // Convert to float disparity
-  double disparity = static_cast<double>( disp_raw ) / 16.0;
+  double disparity = static_cast< double >( disp_raw ) / 16.0;
 
   // Compute right point
   right_point_rect = kv::vector_2d( left_point_rect.x() - disparity, left_point_rect.y() );
@@ -2169,12 +2169,12 @@ map_keypoints_to_camera
   }
 
   const auto& img = disparity_image->get_image();
-  int x = static_cast<int>( left_point.x() + 0.5 );
-  int y = static_cast<int>( left_point.y() + 0.5 );
+  int x = static_cast< int >( left_point.x() + 0.5 );
+  int y = static_cast< int >( left_point.y() + 0.5 );
 
   // Check bounds
-  if( x < 0 || x >= static_cast<int>( img.width() ) ||
-      y < 0 || y >= static_cast<int>( img.height() ) )
+  if( x < 0 || x >= static_cast< int >( img.width() ) ||
+      y < 0 || y >= static_cast< int >( img.height() ) )
   {
     return false;
   }
@@ -2194,7 +2194,7 @@ map_keypoints_to_camera
     // uint16 format scaled by 256
     const uint16_t* ptr = reinterpret_cast<const uint16_t*>(
       img_data + y * img.h_step() + x * img.w_step() );
-    disparity = static_cast<double>( *ptr ) / 256.0;
+    disparity = static_cast< double >( *ptr ) / 256.0;
   }
   else if( img.pixel_traits().type == kv::image_pixel_traits::SIGNED &&
            img.pixel_traits().num_bytes == 2 )
@@ -2208,7 +2208,7 @@ map_keypoints_to_camera
       // Invalid disparity in OpenCV raw format
       return false;
     }
-    disparity = static_cast<double>( raw_val ) / 16.0;
+    disparity = static_cast< double >( raw_val ) / 16.0;
   }
   else if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
            img.pixel_traits().num_bytes == 4 )
@@ -2216,7 +2216,7 @@ map_keypoints_to_camera
     // float32 format (raw disparity in pixels)
     const float* ptr = reinterpret_cast<const float*>(
       img_data + y * img.h_step() + x * img.w_step() );
-    disparity = static_cast<double>( *ptr );
+    disparity = static_cast< double >( *ptr );
   }
   else
   {

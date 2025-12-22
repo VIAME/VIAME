@@ -159,8 +159,8 @@ VIAME_CORE_EXPORT std::string get_detection_class_label(
 /// cost_matrix[i][j] is the cost of assigning row i to column j
 /// Returns pairs of (row, column) assignments, sorted by increasing cost
 /// Ignores costs that are infinity or >= 1e9
-VIAME_CORE_EXPORT std::vector<std::pair<int, int>> greedy_assignment(
-  const std::vector<std::vector<double>>& cost_matrix,
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > greedy_assignment(
+  const std::vector< std::vector< double > >& cost_matrix,
   int n_rows, int n_cols );
 
 /// Structure to store stereo feature correspondences for head/tail computation
@@ -175,7 +175,7 @@ struct VIAME_CORE_EXPORT stereo_feature_correspondence
 /// Returns true if found (requires at least 2 correspondences), false otherwise
 /// Head/tail ordering is consistent: head has smaller x coordinate in left image
 VIAME_CORE_EXPORT bool find_furthest_apart_points(
-  const std::vector<stereo_feature_correspondence>& correspondences,
+  const std::vector< stereo_feature_correspondence >& correspondences,
   kv::vector_2d& left_head, kv::vector_2d& left_tail,
   kv::vector_2d& right_head, kv::vector_2d& right_tail );
 

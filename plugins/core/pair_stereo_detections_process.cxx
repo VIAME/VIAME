@@ -172,19 +172,19 @@ public:
     const kv::vector_2d& right_point ) const;
 
   // Find matches using IOU method
-  std::vector<std::pair<int, int>> find_matches_iou(
-    const std::vector<kv::detected_object_sptr>& detections1,
-    const std::vector<kv::detected_object_sptr>& detections2 );
+  std::vector< std::pair< int, int > > find_matches_iou(
+    const std::vector< kv::detected_object_sptr >& detections1,
+    const std::vector< kv::detected_object_sptr >& detections2 );
 
   // Find matches using calibration method
-  std::vector<std::pair<int, int>> find_matches_calibration(
-    const std::vector<kv::detected_object_sptr>& detections1,
-    const std::vector<kv::detected_object_sptr>& detections2 );
+  std::vector< std::pair< int, int > > find_matches_calibration(
+    const std::vector< kv::detected_object_sptr >& detections1,
+    const std::vector< kv::detected_object_sptr >& detections2 );
 
   // Find matches using feature matching method
-  std::vector<std::pair<int, int>> find_matches_feature(
-    const std::vector<kv::detected_object_sptr>& detections1,
-    const std::vector<kv::detected_object_sptr>& detections2,
+  std::vector< std::pair< int, int > > find_matches_feature(
+    const std::vector< kv::detected_object_sptr >& detections1,
+    const std::vector< kv::detected_object_sptr >& detections2,
     const kv::image_container_sptr& image1,
     const kv::image_container_sptr& image2 );
 
@@ -204,13 +204,13 @@ public:
     kv::descriptor_set_sptr& descriptors );
 
   // Filter matches by homography estimation and return inlier correspondences
-  std::vector<stereo_feature_correspondence> filter_matches_by_homography(
+  std::vector< stereo_feature_correspondence > filter_matches_by_homography(
     const kv::feature_set_sptr& features1,
     const kv::feature_set_sptr& features2,
     const kv::match_set_sptr& matches );
 
   // Compute feature matches and return inlier correspondences for head/tail computation
-  std::vector<stereo_feature_correspondence> compute_feature_correspondences(
+  std::vector< stereo_feature_correspondence > compute_feature_correspondences(
     const kv::detected_object_sptr& det1,
     const kv::detected_object_sptr& det2,
     const kv::image_container_sptr& image1,
@@ -300,7 +300,7 @@ pair_stereo_detections_process::priv
 
   if( left_cam_point.z() <= 0 || right_cam_point.z() <= 0 )
   {
-    return std::numeric_limits<double>::infinity();
+    return std::numeric_limits< double >::infinity();
   }
 
   // Reproject to both cameras
@@ -316,22 +316,22 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-std::vector<std::pair<int, int>>
+std::vector< std::pair< int, int > >
 pair_stereo_detections_process::priv
 ::find_matches_iou(
-  const std::vector<kv::detected_object_sptr>& detections1,
-  const std::vector<kv::detected_object_sptr>& detections2 )
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2 )
 {
-  int n1 = static_cast<int>( detections1.size() );
-  int n2 = static_cast<int>( detections2.size() );
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
 
   if( n1 == 0 || n2 == 0 )
   {
-    return std::vector<std::pair<int, int>>();
+    return std::vector< std::pair< int, int > >();
   }
 
   // Build cost matrix (1 - IOU, so lower is better)
-  std::vector<std::vector<double>> cost_matrix( n1, std::vector<double>( n2, 1e10 ) );
+  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
 
   for( int i = 0; i < n1; ++i )
   {
@@ -372,8 +372,8 @@ pair_stereo_detections_process::priv
   else
   {
     // Simple sequential matching
-    std::vector<std::pair<int, int>> matches;
-    std::set<int> used_j;
+    std::vector< std::pair< int, int > > matches;
+    std::set< int > used_j;
 
     for( int i = 0; i < n1; ++i )
     {
@@ -406,34 +406,34 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-std::vector<std::pair<int, int>>
+std::vector< std::pair< int, int > >
 pair_stereo_detections_process::priv
 ::find_matches_calibration(
-  const std::vector<kv::detected_object_sptr>& detections1,
-  const std::vector<kv::detected_object_sptr>& detections2 )
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2 )
 {
-  int n1 = static_cast<int>( detections1.size() );
-  int n2 = static_cast<int>( detections2.size() );
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
 
   if( n1 == 0 || n2 == 0 )
   {
-    return std::vector<std::pair<int, int>>();
+    return std::vector< std::pair< int, int > >();
   }
 
   if( !m_calibration || !m_calibration->left() || !m_calibration->right() )
   {
     LOG_ERROR( parent->logger(), "Calibration not loaded for calibration matching method" );
-    return std::vector<std::pair<int, int>>();
+    return std::vector< std::pair< int, int > >();
   }
 
   // Get camera references
   const kv::simple_camera_perspective& left_cam =
-    dynamic_cast<const kv::simple_camera_perspective&>( *( m_calibration->left() ) );
+    dynamic_cast< const kv::simple_camera_perspective& >( *( m_calibration->left() ) );
   const kv::simple_camera_perspective& right_cam =
-    dynamic_cast<const kv::simple_camera_perspective&>( *( m_calibration->right() ) );
+    dynamic_cast< const kv::simple_camera_perspective& >( *( m_calibration->right() ) );
 
   // Build cost matrix using reprojection error
-  std::vector<std::vector<double>> cost_matrix( n1, std::vector<double>( n2, 1e10 ) );
+  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
 
   for( int i = 0; i < n1; ++i )
   {
@@ -503,8 +503,8 @@ pair_stereo_detections_process::priv
   else
   {
     // Simple sequential matching
-    std::vector<std::pair<int, int>> matches;
-    std::set<int> used_j;
+    std::vector< std::pair< int, int > > matches;
+    std::set< int > used_j;
 
     for( int i = 0; i < n1; ++i )
     {
@@ -627,14 +627,14 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-std::vector<stereo_feature_correspondence>
+std::vector< stereo_feature_correspondence >
 pair_stereo_detections_process::priv
 ::filter_matches_by_homography(
   const kv::feature_set_sptr& features1,
   const kv::feature_set_sptr& features2,
   const kv::match_set_sptr& matches )
 {
-  std::vector<stereo_feature_correspondence> inlier_correspondences;
+  std::vector< stereo_feature_correspondence > inlier_correspondences;
 
   if( !m_homography_estimator || !matches || matches->size() < 4 )
   {
@@ -721,7 +721,7 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-std::vector<stereo_feature_correspondence>
+std::vector< stereo_feature_correspondence >
 pair_stereo_detections_process::priv
 ::compute_feature_correspondences(
   const kv::detected_object_sptr& det1,
@@ -729,7 +729,7 @@ pair_stereo_detections_process::priv
   const kv::image_container_sptr& image1,
   const kv::image_container_sptr& image2 )
 {
-  std::vector<stereo_feature_correspondence> result;
+  std::vector< stereo_feature_correspondence > result;
 
   if( !det1 || !det2 || !image1 || !image2 )
   {
@@ -901,36 +901,36 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-std::vector<std::pair<int, int>>
+std::vector< std::pair< int, int > >
 pair_stereo_detections_process::priv
 ::find_matches_feature(
-  const std::vector<kv::detected_object_sptr>& detections1,
-  const std::vector<kv::detected_object_sptr>& detections2,
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
   const kv::image_container_sptr& image1,
   const kv::image_container_sptr& image2 )
 {
-  int n1 = static_cast<int>( detections1.size() );
-  int n2 = static_cast<int>( detections2.size() );
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
 
   if( n1 == 0 || n2 == 0 )
   {
-    return std::vector<std::pair<int, int>>();
+    return std::vector< std::pair< int, int > >();
   }
 
   if( !image1 || !image2 )
   {
     LOG_ERROR( parent->logger(), "Images not provided for feature matching method" );
-    return std::vector<std::pair<int, int>>();
+    return std::vector< std::pair< int, int > >();
   }
 
   if( !m_feature_detector || !m_descriptor_extractor || !m_feature_matcher )
   {
     LOG_ERROR( parent->logger(), "Feature algorithms not configured for feature matching method" );
-    return std::vector<std::pair<int, int>>();
+    return std::vector< std::pair< int, int > >();
   }
 
   // Build cost matrix using feature match scores
-  std::vector<std::vector<double>> cost_matrix( n1, std::vector<double>( n2, 1e10 ) );
+  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
 
   for( int i = 0; i < n1; ++i )
   {
@@ -969,8 +969,8 @@ pair_stereo_detections_process::priv
   else
   {
     // Simple sequential matching
-    std::vector<std::pair<int, int>> matches;
-    std::set<int> used_j;
+    std::vector< std::pair< int, int > > matches;
+    std::set< int > used_j;
 
     for( int i = 0; i < n1; ++i )
     {
@@ -1232,7 +1232,7 @@ pair_stereo_detections_process
   auto timestamp = grab_from_port_using_trait( timestamp );
 
   // Determine input source and grab detections
-  std::vector<kv::detected_object_sptr> detections1, detections2;
+  std::vector< kv::detected_object_sptr > detections1, detections2;
 
   bool use_detections1 = has_input_port_edge_using_trait( detected_object_set1 );
   bool use_detections2 = has_input_port_edge_using_trait( detected_object_set2 );
@@ -1269,7 +1269,7 @@ pair_stereo_detections_process
       auto it = track->find( timestamp.get_frame() );
       if( it != track->end() )
       {
-        auto state = std::dynamic_pointer_cast<kv::object_track_state>( *it );
+        auto state = std::dynamic_pointer_cast< kv::object_track_state >( *it );
         if( state && state->detection() )
         {
           detections1.push_back( state->detection() );
@@ -1296,7 +1296,7 @@ pair_stereo_detections_process
       auto it = track->find( timestamp.get_frame() );
       if( it != track->end() )
       {
-        auto state = std::dynamic_pointer_cast<kv::object_track_state>( *it );
+        auto state = std::dynamic_pointer_cast< kv::object_track_state >( *it );
         if( state && state->detection() )
         {
           detections2.push_back( state->detection() );
@@ -1338,7 +1338,7 @@ pair_stereo_detections_process
   }
 
   // Find matches using configured method
-  std::vector<std::pair<int, int>> matches;
+  std::vector< std::pair< int, int > > matches;
   if( d->m_matching_method == "iou" )
   {
     matches = d->find_matches_iou( detections1, detections2 );
@@ -1357,11 +1357,11 @@ pair_stereo_detections_process
              << detections1.size() << " left, " << detections2.size() << " right detections" );
 
   // Track which detections have matches
-  std::vector<bool> has_match1( detections1.size(), false );
-  std::vector<bool> has_match2( detections2.size(), false );
+  std::vector< bool > has_match1( detections1.size(), false );
+  std::vector< bool > has_match2( detections2.size(), false );
 
   // Create tracks for matched pairs
-  std::vector<kv::track_sptr> output_trks1, output_trks2;
+  std::vector< kv::track_sptr > output_trks1, output_trks2;
 
   for( const auto& match : matches )
   {
@@ -1378,7 +1378,7 @@ pair_stereo_detections_process
       auto correspondences = d->compute_feature_correspondences(
         detections1[i1], detections2[i2], image1, image2 );
 
-      if( static_cast<int>( correspondences.size() ) >= d->m_min_inliers_for_head_tail )
+      if( static_cast< int >( correspondences.size() ) >= d->m_min_inliers_for_head_tail )
       {
         kv::vector_2d left_head, left_tail, right_head, right_tail;
 
@@ -1405,8 +1405,8 @@ pair_stereo_detections_process
     }
 
     // Create tracks with same ID for matched pairs
-    auto state1 = std::make_shared<kv::object_track_state>( timestamp, detections1[i1] );
-    auto state2 = std::make_shared<kv::object_track_state>( timestamp, detections2[i2] );
+    auto state1 = std::make_shared< kv::object_track_state >( timestamp, detections1[i1] );
+    auto state2 = std::make_shared< kv::object_track_state >( timestamp, detections2[i2] );
 
     auto track1 = kv::track::create();
     track1->set_id( d->m_next_track_id );
@@ -1429,7 +1429,7 @@ pair_stereo_detections_process
     {
       if( !has_match1[i] )
       {
-        auto state = std::make_shared<kv::object_track_state>( timestamp, detections1[i] );
+        auto state = std::make_shared< kv::object_track_state >( timestamp, detections1[i] );
         auto track = kv::track::create();
         track->set_id( d->m_next_track_id );
         track->append( state );
@@ -1442,7 +1442,7 @@ pair_stereo_detections_process
     {
       if( !has_match2[i] )
       {
-        auto state = std::make_shared<kv::object_track_state>( timestamp, detections2[i] );
+        auto state = std::make_shared< kv::object_track_state >( timestamp, detections2[i] );
         auto track = kv::track::create();
         track->set_id( d->m_next_track_id );
         track->append( state );
@@ -1453,8 +1453,8 @@ pair_stereo_detections_process
   }
 
   // Create output sets
-  auto output_track_set1 = std::make_shared<kv::object_track_set>( output_trks1 );
-  auto output_track_set2 = std::make_shared<kv::object_track_set>( output_trks2 );
+  auto output_track_set1 = std::make_shared< kv::object_track_set >( output_trks1 );
+  auto output_track_set2 = std::make_shared< kv::object_track_set >( output_trks2 );
 
   // Push outputs
   push_to_port_using_trait( object_track_set1, output_track_set1 );
