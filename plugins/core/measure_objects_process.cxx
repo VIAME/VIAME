@@ -33,7 +33,7 @@
  * \brief Stereo measurement process implementation
  */
 
-#include "measurement_process.h"
+#include "measure_objects_process.h"
 #include "measurement_utilities.h"
 
 #include <vital/vital_types.h>
@@ -80,10 +80,10 @@ create_port_trait( rectified_right_image, image,
 
 // =============================================================================
 // Private implementation class
-class measurement_process::priv
+class measure_objects_process::priv
 {
 public:
-  explicit priv( measurement_process* parent );
+  explicit priv( measure_objects_process* parent );
   ~priv();
 
   // Process-specific config
@@ -99,7 +99,7 @@ public:
   kv::camera_rig_stereo_sptr m_calibration;
   unsigned m_frame_counter;
   std::set< std::string > p_port_list;
-  measurement_process* parent;
+  measure_objects_process* parent;
 
   // Measurement utilities
   map_keypoints_to_camera m_utilities;
@@ -107,8 +107,8 @@ public:
 
 
 // -----------------------------------------------------------------------------
-measurement_process::priv
-::priv( measurement_process* ptr )
+measure_objects_process::priv
+::priv( measure_objects_process* ptr )
   : m_calibration_file( "" )
   , m_calibration()
   , m_frame_counter( 0 )
@@ -117,16 +117,16 @@ measurement_process::priv
 }
 
 
-measurement_process::priv
+measure_objects_process::priv
 ::~priv()
 {
 }
 
 // =============================================================================
-measurement_process
-::measurement_process( kv::config_block_sptr const& config )
+measure_objects_process
+::measure_objects_process( kv::config_block_sptr const& config )
   : process( config ),
-    d( new measurement_process::priv( this ) )
+    d( new measure_objects_process::priv( this ) )
 {
   this->set_data_checking_level( check_none );
 
@@ -135,15 +135,15 @@ measurement_process
 }
 
 
-measurement_process
-::~measurement_process()
+measure_objects_process
+::~measure_objects_process()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::make_ports()
 {
   // Set up for required ports
@@ -167,7 +167,7 @@ measurement_process
 
 // -----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::make_config()
 {
   // Process-specific config
@@ -186,7 +186,7 @@ measurement_process
 
 // -----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::_configure()
 {
   // Get process-specific config
@@ -235,7 +235,7 @@ measurement_process
 
 // ----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::_init()
 {
   this->set_data_checking_level( check_valid );
@@ -243,7 +243,7 @@ measurement_process
 
 // ----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::input_port_undefined( port_t const& port_name )
 {
   LOG_TRACE( logger(), "Processing undefined input port: \"" << port_name << "\"" );
@@ -279,7 +279,7 @@ measurement_process
 
 // -----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::_step()
 {
   std::vector< kv::object_track_set_sptr > input_tracks;
