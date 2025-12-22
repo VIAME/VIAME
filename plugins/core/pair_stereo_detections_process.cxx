@@ -132,6 +132,16 @@ create_config_trait( box_expansion_factor, double, "1.1",
   "Factor to expand bounding boxes when extracting features. "
   "A value of 1.1 expands boxes by 10%. Used with 'feature_matching' method." );
 
+create_config_trait( compute_head_tail_points, bool, "false",
+  "If true, compute head and tail keypoints from the two furthest apart inlier "
+  "feature matches and add them to the paired detections. Only applies when "
+  "matching_method is 'feature_matching'. The head/tail points are useful for "
+  "downstream stereo measurement algorithms." );
+
+create_config_trait( min_inliers_for_head_tail, int, "4",
+  "Minimum number of inlier feature matches required to compute head/tail points. "
+  "If fewer inliers are found, no head/tail points will be added to the detection." );
+
 // Port traits
 create_port_trait( detected_object_set1, detected_object_set,
   "Detections from camera 1 (left)" );
@@ -201,11 +211,32 @@ public:
     kv::feature_set_sptr& features,
     kv::descriptor_set_sptr& descriptors );
 
-  // Filter matches by homography estimation and return inlier count
-  int filter_matches_by_homography(
+  // Structure to store inlier feature correspondences for head/tail computation
+  struct feature_correspondence
+  {
+    kv::vector_2d left_point;
+    kv::vector_2d right_point;
+  };
+
+  // Filter matches by homography estimation and return inlier correspondences
+  std::vector<feature_correspondence> filter_matches_by_homography(
     const kv::feature_set_sptr& features1,
     const kv::feature_set_sptr& features2,
     const kv::match_set_sptr& matches );
+
+  // Find the two furthest apart points from a set of correspondences
+  // Returns true if found, false if not enough points
+  bool find_furthest_apart_points(
+    const std::vector<feature_correspondence>& correspondences,
+    kv::vector_2d& left_head, kv::vector_2d& left_tail,
+    kv::vector_2d& right_head, kv::vector_2d& right_tail );
+
+  // Compute feature matches and return inlier correspondences for head/tail computation
+  std::vector<feature_correspondence> compute_feature_correspondences(
+    const kv::detected_object_sptr& det1,
+    const kv::detected_object_sptr& det2,
+    const kv::image_container_sptr& image1,
+    const kv::image_container_sptr& image2 );
 
   // Greedy minimum weight assignment
   std::vector<std::pair<int, int>> greedy_assignment(
@@ -229,6 +260,8 @@ public:
   double m_homography_inlier_threshold;
   double m_min_homography_inlier_ratio;
   double m_box_expansion_factor;
+  bool m_compute_head_tail_points;
+  int m_min_inliers_for_head_tail;
 
   // Calibration data
   kv::camera_rig_stereo_sptr m_calibration;
@@ -262,6 +295,8 @@ pair_stereo_detections_process::priv
   , m_homography_inlier_threshold( 5.0 )
   , m_min_homography_inlier_ratio( 0.5 )
   , m_box_expansion_factor( 1.1 )
+  , m_compute_head_tail_points( false )
+  , m_min_inliers_for_head_tail( 4 )
   , m_next_track_id( 0 )
   , parent( ptr )
 {
@@ -707,11 +742,14 @@ pair_stereo_detections_process::priv
   std::vector< kv::feature_sptr > offset_features;
   for( const auto& feat : local_features->features() )
   {
-    auto new_feat = feat->clone();
-    kv::vector_2d loc = new_feat->loc();
+    // Get original feature properties
+    kv::vector_2d loc = feat->loc();
     loc.x() += x1;
     loc.y() += y1;
-    new_feat->set_loc( loc );
+
+    // Create new feature with offset location
+    auto new_feat = std::make_shared< kv::feature_d >(
+      loc, feat->magnitude(), feat->scale(), feat->angle(), feat->color() );
     offset_features.push_back( new_feat );
   }
 
@@ -722,17 +760,36 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-int
+std::vector<pair_stereo_detections_process::priv::feature_correspondence>
 pair_stereo_detections_process::priv
 ::filter_matches_by_homography(
   const kv::feature_set_sptr& features1,
   const kv::feature_set_sptr& features2,
   const kv::match_set_sptr& matches )
 {
+  std::vector<feature_correspondence> inlier_correspondences;
+
   if( !m_homography_estimator || !matches || matches->size() < 4 )
   {
-    // Not enough matches for homography estimation
-    return static_cast< int >( matches ? matches->size() : 0 );
+    // Not enough matches for homography estimation, return all matches as correspondences
+    if( matches )
+    {
+      auto feat1_vec = features1->features();
+      auto feat2_vec = features2->features();
+      auto match_vec = matches->matches();
+
+      for( const auto& m : match_vec )
+      {
+        if( m.first < feat1_vec.size() && m.second < feat2_vec.size() )
+        {
+          feature_correspondence corr;
+          corr.left_point = feat1_vec[m.first]->loc();
+          corr.right_point = feat2_vec[m.second]->loc();
+          inlier_correspondences.push_back( corr );
+        }
+      }
+    }
+    return inlier_correspondences;
   }
 
   // Convert matches to point vectors for homography estimation
@@ -752,7 +809,15 @@ pair_stereo_detections_process::priv
 
   if( pts1.size() < 4 )
   {
-    return static_cast< int >( pts1.size() );
+    // Return all as correspondences if not enough for homography
+    for( size_t i = 0; i < pts1.size(); ++i )
+    {
+      feature_correspondence corr;
+      corr.left_point = pts1[i];
+      corr.right_point = pts2[i];
+      inlier_correspondences.push_back( corr );
+    }
+    return inlier_correspondences;
   }
 
   // Estimate homography using RANSAC
@@ -764,26 +829,162 @@ pair_stereo_detections_process::priv
 
     if( !homography )
     {
-      return 0;
+      return inlier_correspondences; // Return empty
     }
 
-    // Count inliers
-    int inlier_count = 0;
-    for( bool is_inlier : inliers )
+    // Collect inlier correspondences
+    for( size_t i = 0; i < inliers.size() && i < pts1.size(); ++i )
     {
-      if( is_inlier )
+      if( inliers[i] )
       {
-        ++inlier_count;
+        feature_correspondence corr;
+        corr.left_point = pts1[i];
+        corr.right_point = pts2[i];
+        inlier_correspondences.push_back( corr );
       }
     }
 
-    return inlier_count;
+    return inlier_correspondences;
   }
   catch( const std::exception& e )
   {
     LOG_DEBUG( parent->logger(), "Homography estimation failed: " << e.what() );
-    return 0;
+    return inlier_correspondences; // Return empty
   }
+}
+
+// -----------------------------------------------------------------------------
+bool
+pair_stereo_detections_process::priv
+::find_furthest_apart_points(
+  const std::vector<feature_correspondence>& correspondences,
+  kv::vector_2d& left_head, kv::vector_2d& left_tail,
+  kv::vector_2d& right_head, kv::vector_2d& right_tail )
+{
+  if( correspondences.size() < 2 )
+  {
+    return false;
+  }
+
+  // Find the two points in the left image that are furthest apart
+  double max_dist_sq = 0.0;
+  size_t best_i = 0, best_j = 1;
+
+  for( size_t i = 0; i < correspondences.size(); ++i )
+  {
+    for( size_t j = i + 1; j < correspondences.size(); ++j )
+    {
+      double dist_sq = ( correspondences[i].left_point -
+                         correspondences[j].left_point ).squaredNorm();
+      if( dist_sq > max_dist_sq )
+      {
+        max_dist_sq = dist_sq;
+        best_i = i;
+        best_j = j;
+      }
+    }
+  }
+
+  // Assign head and tail based on which point is more to the left (lower x)
+  // This provides a consistent ordering
+  if( correspondences[best_i].left_point.x() < correspondences[best_j].left_point.x() )
+  {
+    left_head = correspondences[best_i].left_point;
+    left_tail = correspondences[best_j].left_point;
+    right_head = correspondences[best_i].right_point;
+    right_tail = correspondences[best_j].right_point;
+  }
+  else
+  {
+    left_head = correspondences[best_j].left_point;
+    left_tail = correspondences[best_i].left_point;
+    right_head = correspondences[best_j].right_point;
+    right_tail = correspondences[best_i].right_point;
+  }
+
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+std::vector<pair_stereo_detections_process::priv::feature_correspondence>
+pair_stereo_detections_process::priv
+::compute_feature_correspondences(
+  const kv::detected_object_sptr& det1,
+  const kv::detected_object_sptr& det2,
+  const kv::image_container_sptr& image1,
+  const kv::image_container_sptr& image2 )
+{
+  std::vector<feature_correspondence> result;
+
+  if( !det1 || !det2 || !image1 || !image2 )
+  {
+    return result;
+  }
+
+  const auto& bbox1 = det1->bounding_box();
+  const auto& bbox2 = det2->bounding_box();
+
+  if( !bbox1.is_valid() || !bbox2.is_valid() )
+  {
+    return result;
+  }
+
+  // Extract features from both detection regions
+  kv::feature_set_sptr features1, features2;
+  kv::descriptor_set_sptr descriptors1, descriptors2;
+
+  extract_box_features( image1, bbox1, features1, descriptors1 );
+  extract_box_features( image2, bbox2, features2, descriptors2 );
+
+  if( !features1 || !features2 || !descriptors1 || !descriptors2 )
+  {
+    return result;
+  }
+
+  if( features1->size() == 0 || features2->size() == 0 )
+  {
+    return result;
+  }
+
+  // Match features
+  if( !m_feature_matcher )
+  {
+    return result;
+  }
+
+  auto matches = m_feature_matcher->match( features1, descriptors1,
+                                           features2, descriptors2 );
+
+  if( !matches || matches->size() == 0 )
+  {
+    return result;
+  }
+
+  // Filter by homography and get inlier correspondences
+  if( m_use_homography_filtering && m_homography_estimator )
+  {
+    result = filter_matches_by_homography( features1, features2, matches );
+  }
+  else
+  {
+    // No filtering, convert all matches to correspondences
+    auto feat1_vec = features1->features();
+    auto feat2_vec = features2->features();
+    auto match_vec = matches->matches();
+
+    for( const auto& m : match_vec )
+    {
+      if( m.first < feat1_vec.size() && m.second < feat2_vec.size() )
+      {
+        feature_correspondence corr;
+        corr.left_point = feat1_vec[m.first]->loc();
+        corr.right_point = feat2_vec[m.second]->loc();
+        result.push_back( corr );
+      }
+    }
+  }
+
+  return result;
 }
 
 // -----------------------------------------------------------------------------
@@ -863,7 +1064,8 @@ pair_stereo_detections_process::priv
   int inlier_count = match_count;
   if( m_use_homography_filtering && m_homography_estimator )
   {
-    inlier_count = filter_matches_by_homography( features1, features2, matches );
+    auto inlier_correspondences = filter_matches_by_homography( features1, features2, matches );
+    inlier_count = static_cast< int >( inlier_correspondences.size() );
 
     // Check minimum inlier ratio
     double inlier_ratio = static_cast< double >( inlier_count ) /
@@ -1045,6 +1247,8 @@ pair_stereo_detections_process
   declare_config_using_trait( homography_inlier_threshold );
   declare_config_using_trait( min_homography_inlier_ratio );
   declare_config_using_trait( box_expansion_factor );
+  declare_config_using_trait( compute_head_tail_points );
+  declare_config_using_trait( min_inliers_for_head_tail );
 
   // Algorithm configuration (nested algorithms for feature matching)
   kv::algo::detect_features::get_nested_algo_configuration(
@@ -1081,6 +1285,8 @@ pair_stereo_detections_process
   d->m_homography_inlier_threshold = config_value_using_trait( homography_inlier_threshold );
   d->m_min_homography_inlier_ratio = config_value_using_trait( min_homography_inlier_ratio );
   d->m_box_expansion_factor = config_value_using_trait( box_expansion_factor );
+  d->m_compute_head_tail_points = config_value_using_trait( compute_head_tail_points );
+  d->m_min_inliers_for_head_tail = config_value_using_trait( min_inliers_for_head_tail );
 
   // Validate matching method
   if( d->m_matching_method != "iou" &&
@@ -1109,8 +1315,11 @@ pair_stereo_detections_process
     LOG_INFO( logger(), "Loaded stereo calibration from: " << d->m_calibration_file );
   }
 
-  // Configure feature matching algorithms if using feature_matching method
-  if( d->m_matching_method == "feature_matching" )
+  // Configure feature matching algorithms if using feature_matching method or compute_head_tail_points
+  bool need_feature_algorithms = ( d->m_matching_method == "feature_matching" ) ||
+                                  d->m_compute_head_tail_points;
+
+  if( need_feature_algorithms )
   {
     // Get nested algorithm configuration
     kv::config_block_sptr config = get_config();
@@ -1131,24 +1340,28 @@ pair_stereo_detections_process
     }
 
     // Validate that required algorithms are configured
+    std::string context = d->m_matching_method == "feature_matching"
+      ? "matching_method is 'feature_matching'"
+      : "compute_head_tail_points is enabled";
+
     if( !d->m_feature_detector )
     {
       throw std::runtime_error(
-        "feature_detector algorithm is required when matching_method is 'feature_matching'. "
+        "feature_detector algorithm is required when " + context + ". "
         "Configure it using 'feature_detector:type = <algorithm_name>'" );
     }
 
     if( !d->m_descriptor_extractor )
     {
       throw std::runtime_error(
-        "descriptor_extractor algorithm is required when matching_method is 'feature_matching'. "
+        "descriptor_extractor algorithm is required when " + context + ". "
         "Configure it using 'descriptor_extractor:type = <algorithm_name>'" );
     }
 
     if( !d->m_feature_matcher )
     {
       throw std::runtime_error(
-        "feature_matcher algorithm is required when matching_method is 'feature_matching'. "
+        "feature_matcher algorithm is required when " + context + ". "
         "Configure it using 'feature_matcher:type = <algorithm_name>'" );
     }
 
@@ -1188,6 +1401,11 @@ pair_stereo_detections_process
   LOG_INFO( logger(), "  Require class match: " << ( d->m_require_class_match ? "true" : "false" ) );
   LOG_INFO( logger(), "  Use optimal assignment: " << ( d->m_use_optimal_assignment ? "true" : "false" ) );
   LOG_INFO( logger(), "  Output unmatched: " << ( d->m_output_unmatched ? "true" : "false" ) );
+  LOG_INFO( logger(), "  Compute head/tail points: " << ( d->m_compute_head_tail_points ? "true" : "false" ) );
+  if( d->m_compute_head_tail_points )
+  {
+    LOG_INFO( logger(), "  Min inliers for head/tail: " << d->m_min_inliers_for_head_tail );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -1233,11 +1451,14 @@ pair_stereo_detections_process
     for( const auto& track : track_set1->tracks() )
     {
       // Get the state for the current frame
-      auto state = std::dynamic_pointer_cast<kv::object_track_state>(
-        track->find( timestamp.get_frame() ) );
-      if( state && state->detection() )
+      auto it = track->find( timestamp.get_frame() );
+      if( it != track->end() )
       {
-        detections1.push_back( state->detection() );
+        auto state = std::dynamic_pointer_cast<kv::object_track_state>( *it );
+        if( state && state->detection() )
+        {
+          detections1.push_back( state->detection() );
+        }
       }
     }
   }
@@ -1257,30 +1478,48 @@ pair_stereo_detections_process
     for( const auto& track : track_set2->tracks() )
     {
       // Get the state for the current frame
-      auto state = std::dynamic_pointer_cast<kv::object_track_state>(
-        track->find( timestamp.get_frame() ) );
-      if( state && state->detection() )
+      auto it = track->find( timestamp.get_frame() );
+      if( it != track->end() )
       {
-        detections2.push_back( state->detection() );
+        auto state = std::dynamic_pointer_cast<kv::object_track_state>( *it );
+        if( state && state->detection() )
+        {
+          detections2.push_back( state->detection() );
+        }
       }
     }
   }
 
-  // Grab images if needed for feature matching
+  // Grab images if needed for feature matching or head/tail point computation
   kv::image_container_sptr image1, image2;
-  if( d->m_matching_method == "feature_matching" )
+  bool need_images = ( d->m_matching_method == "feature_matching" ) ||
+                     d->m_compute_head_tail_points;
+
+  if( need_images )
   {
     bool has_image1 = has_input_port_edge_using_trait( image1 );
     bool has_image2 = has_input_port_edge_using_trait( image2 );
 
     if( !has_image1 || !has_image2 )
     {
-      throw std::runtime_error( "Images are required for feature_matching method. "
-        "Connect image1 and image2 ports." );
+      if( d->m_matching_method == "feature_matching" )
+      {
+        throw std::runtime_error( "Images are required for feature_matching method. "
+          "Connect image1 and image2 ports." );
+      }
+      else if( d->m_compute_head_tail_points )
+      {
+        LOG_WARN( logger(), "Images not connected but compute_head_tail_points is enabled. "
+          "Head/tail points will not be computed." );
+        // Reset flag since we can't compute without images
+        need_images = false;
+      }
     }
-
-    image1 = grab_from_port_using_trait( image1 );
-    image2 = grab_from_port_using_trait( image2 );
+    else
+    {
+      image1 = grab_from_port_using_trait( image1 );
+      image2 = grab_from_port_using_trait( image2 );
+    }
   }
 
   // Find matches using configured method
@@ -1316,6 +1555,39 @@ pair_stereo_detections_process
 
     has_match1[i1] = true;
     has_match2[i2] = true;
+
+    // Compute head/tail keypoints if enabled and images are available
+    if( d->m_compute_head_tail_points && image1 && image2 )
+    {
+      // Get feature correspondences with outlier rejection
+      auto correspondences = d->compute_feature_correspondences(
+        detections1[i1], detections2[i2], image1, image2 );
+
+      if( static_cast<int>( correspondences.size() ) >= d->m_min_inliers_for_head_tail )
+      {
+        kv::vector_2d left_head, left_tail, right_head, right_tail;
+
+        if( d->find_furthest_apart_points( correspondences,
+                                            left_head, left_tail,
+                                            right_head, right_tail ) )
+        {
+          // Add head/tail keypoints to both detections
+          detections1[i1]->add_keypoint( "head", kv::point_2d( left_head.x(), left_head.y() ) );
+          detections1[i1]->add_keypoint( "tail", kv::point_2d( left_tail.x(), left_tail.y() ) );
+          detections2[i2]->add_keypoint( "head", kv::point_2d( right_head.x(), right_head.y() ) );
+          detections2[i2]->add_keypoint( "tail", kv::point_2d( right_tail.x(), right_tail.y() ) );
+
+          LOG_DEBUG( logger(), "Added head/tail keypoints for matched pair with "
+                     << correspondences.size() << " inlier correspondences" );
+        }
+      }
+      else
+      {
+        LOG_DEBUG( logger(), "Not enough inliers (" << correspondences.size()
+                   << " < " << d->m_min_inliers_for_head_tail
+                   << ") to compute head/tail keypoints" );
+      }
+    }
 
     // Create tracks with same ID for matched pairs
     auto state1 = std::make_shared<kv::object_track_state>( timestamp, detections1[i1] );
