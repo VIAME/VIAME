@@ -50,13 +50,13 @@ public:
     float value = 0.;
     if( pos == std::string::npos || pos2 == std::string::npos || pos2 == pos + 1 )
     {
-      return std::make_pair(attr_name, value);
+      return std::make_pair( attr_name, value );
     }
     
     attr_name = note.substr( pos+1, pos2-1 );
-    value = std::stof(note.substr( pos2 + 1 ));
+    value = std::stof( note.substr( pos2 + 1 ) );
     
-    return std::make_pair(attr_name, value);
+    return std::make_pair( attr_name, value );
   }
 };
 
@@ -134,35 +134,35 @@ split_object_track_to_feature_landmark_process
   kv::landmark_map::map_landmark_t landmarks;
 
   object_track = grab_from_port_using_trait( object_track_set );
-  std::vector<kv::track_sptr> all_tracks = object_track->tracks();
-  features = std::make_shared<kv::feature_track_set>(all_tracks);
-  
-  for (auto track : all_tracks )
+  std::vector< kv::track_sptr > all_tracks = object_track->tracks();
+  features = std::make_shared< kv::feature_track_set >( all_tracks );
+
+  for( auto track : all_tracks )
   {
-    for ( auto state : *track | kv::as_object_track )
+    for( auto state : *track | kv::as_object_track )
     {
-      if(!state->detection()->notes().size())
+      if( !state->detection()->notes().size() )
         break;
-      
+
       // get xyz attributes from detection notes
-      std::map<std::string, double> attrs;
-      for(auto note : state->detection()->notes())
+      std::map< std::string, double > attrs;
+      for( auto note : state->detection()->notes() )
       {
-        attrs.insert(d->get_attribut_value(note));
+        attrs.insert( d->get_attribut_value( note ) );
       }
-      
+
       // Only keep image and world points for which xyz values has been found in notes
-      if(attrs.count("x") && attrs.count("y") && attrs.count("z"))
+      if( attrs.count( "x" ) && attrs.count( "y" ) && attrs.count( "z" ) )
       {
-        kv::vector_3d pt = kv::vector_3d(attrs["x"], attrs["y"], attrs["z"]);
-        kv::landmark_sptr landmark = kv::landmark_sptr(new kv::landmark_d( pt ));
+        kv::vector_3d pt = kv::vector_3d( attrs["x"], attrs["y"], attrs["z"] );
+        kv::landmark_sptr landmark = kv::landmark_sptr( new kv::landmark_d( pt ) );
         landmarks[track->id()] = landmark;
       }
     }
   }
-  
+
   push_to_port_using_trait( feature_track_set, features );
-  push_to_port_using_trait( landmark_map, kv::landmark_map_sptr(new kv::simple_landmark_map( landmarks )) );
+  push_to_port_using_trait( landmark_map, kv::landmark_map_sptr( new kv::simple_landmark_map( landmarks ) ) );
 }
 
 } // end namespace core

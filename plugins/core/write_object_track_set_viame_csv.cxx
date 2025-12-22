@@ -199,7 +199,7 @@ void write_object_track_set_viame_csv::priv::write_detection_info(
   const kwiver::vital::detected_object_sptr &det )
 {
   // Sanity return in case method was called with empty detection
-  if(!det)
+  if( !det )
     return;
 
   auto bbox = det->bounding_box();

@@ -50,7 +50,7 @@ public:
   unsigned m_track_counter;
   unsigned m_frame_counter;
   kv::object_track_set_sptr m_output{};
-  std::vector<std::vector< kv::track_state_sptr >> m_states;
+  std::vector< std::vector< kv::track_state_sptr > > m_states;
 
   // Other variables
   accumulate_object_tracks_process* parent;
@@ -157,18 +157,18 @@ accumulate_object_tracks_process
   timestamp = grab_from_port_using_trait( timestamp );
   detections = grab_from_port_using_trait( detected_object_set );
 
-  d->m_max_detection = std::max((int) d->m_max_detection,(int) detections->size());
+  d->m_max_detection = std::max( (int)d->m_max_detection, (int)detections->size() );
 
   if( !d->m_max_frame_count ||
-      (timestamp.get_frame() >= d->m_min_frame_count && timestamp.get_frame() <= d->m_max_frame_count))
+      ( timestamp.get_frame() >= d->m_min_frame_count && timestamp.get_frame() <= d->m_max_frame_count ) )
   {
     // init track states if m_track_counter == 0
-    if(d->m_max_detection > d->m_states.size())
+    if( d->m_max_detection > d->m_states.size() )
     {
-      d->m_states.resize(d->m_max_detection);
+      d->m_states.resize( d->m_max_detection );
     }
 
-    if( !d->m_states.empty() &&  d->m_states.size() == detections->size())
+    if( !d->m_states.empty() && d->m_states.size() == detections->size() )
     {
       std::vector< kv::track_sptr > all_tracks;
       for( unsigned detectId = 0; detectId < detections->size(); ++detectId )
@@ -185,33 +185,37 @@ accumulate_object_tracks_process
           ot->append( state );
         }
 
-        all_tracks.push_back(ot);
+        all_tracks.push_back( ot );
       }
 
-      d->m_output = std::make_shared<kv::object_track_set>(all_tracks);
+      d->m_output = std::make_shared< kv::object_track_set >( all_tracks );
       d->m_track_counter++;
     }
   }
   d->m_frame_counter++;
-  LOG_DEBUG(d->m_logger, "Accumulated non empty tracks (" << d->m_track_counter << "/" << d->m_frame_counter << ")");
+  LOG_DEBUG( d->m_logger, "Accumulated non empty tracks (" << d->m_track_counter << "/" << d->m_frame_counter << ")" );
 
   // Send the object tracks through the output port in case the "wait_process_end" flag is set to false (default) or
   // if the process has reached its end.
   // Otherwise, send an empty datum in the output ports
-  auto port_info = peek_at_port_using_trait(detected_object_set);
+  auto port_info = peek_at_port_using_trait( detected_object_set );
   auto is_input_complete = port_info.datum->type() == sprokit::datum::complete;
-  if (!d->m_single_final_output || is_input_complete) {
-    LOG_DEBUG(d->m_logger, "Sending accumulated object tracks.");
-    push_to_port_using_trait(timestamp, timestamp);
-    push_to_port_using_trait(object_track_set, d->m_output);
-  } else {
-    LOG_DEBUG(d->m_logger, "Sending empty.");
+  if( !d->m_single_final_output || is_input_complete )
+  {
+    LOG_DEBUG( d->m_logger, "Sending accumulated object tracks." );
+    push_to_port_using_trait( timestamp, timestamp );
+    push_to_port_using_trait( object_track_set, d->m_output );
+  }
+  else
+  {
+    LOG_DEBUG( d->m_logger, "Sending empty." );
     const auto dat = sprokit::datum::empty_datum();
-    push_datum_to_port_using_trait(timestamp, dat);
-    push_datum_to_port_using_trait(object_track_set, dat);
+    push_datum_to_port_using_trait( timestamp, dat );
+    push_datum_to_port_using_trait( object_track_set, dat );
   }
 
-  if (is_input_complete) {
+  if( is_input_complete )
+  {
     mark_process_as_complete();
   }
 }
