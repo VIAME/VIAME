@@ -20,9 +20,20 @@ include common_stereo_input_with_tracks.pipe
 process measurer
   :: compute_measurements
   :calibration_file                            ./calibration_matrices.npz
-  :matching_methods                input_pairs_only,template_matching,sgbm_disparity
+  :matching_methods                            input_pairs_only,compute_disparity
 
-  # Feature detector configuration
+  # Stereo disparity algorithm configuration (for compute_disparity method)
+  # Uses Foundation-Stereo deep learning model for high-quality disparity estimation
+  stereo_disparity:type                        = foundation_stereo
+
+  block stereo_disparity:foundation_stereo
+    # Model variant: base or small (base is more accurate, small is faster)
+    model_variant                              = base
+    # Output type: disparity (default) or depth
+    output_type                                = disparity
+  endblock
+
+  # Feature detector configuration (for feature-based methods if needed)
   # Options: ocv_BRISK, ocv_FAST, ocv_GFTT, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
   feature_detector:type                        = ocv_ORB
 
