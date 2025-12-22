@@ -33,7 +33,7 @@
  * \brief Stereo camera calibration utilities implementation
  */
 
-#include "stereo_calibration.h"
+#include "calibrate_stereo_cameras.h"
 
 #include <vital/types/camera_intrinsics.h>
 
@@ -52,39 +52,39 @@ namespace viame {
 // =============================================================================
 // Private implementation
 // =============================================================================
-class stereo_calibration::priv
+class calibrate_stereo_cameras::priv
 {
 public:
   priv()
-    : m_logger( kv::get_logger( "viame.opencv.stereo_calibration" ) )
+    : m_logger( kv::get_logger( "viame.opencv.calibrate_stereo_cameras" ) )
   {}
 
   kv::logger_handle_t m_logger;
 };
 
 // =============================================================================
-// stereo_calibration implementation
+// calibrate_stereo_cameras implementation
 // =============================================================================
 
-stereo_calibration::stereo_calibration()
+calibrate_stereo_cameras::calibrate_stereo_cameras()
   : d( new priv )
 {
 }
 
-stereo_calibration::~stereo_calibration()
+calibrate_stereo_cameras::~calibrate_stereo_cameras()
 {
 }
 
 // -----------------------------------------------------------------------------
 void
-stereo_calibration::set_logger( kv::logger_handle_t logger )
+calibrate_stereo_cameras::set_logger( kv::logger_handle_t logger )
 {
   d->m_logger = logger;
 }
 
 // -----------------------------------------------------------------------------
 ChessboardDetectionResult
-stereo_calibration::detect_chessboard(
+calibrate_stereo_cameras::detect_chessboard(
   const cv::Mat& image,
   const cv::Size& grid_size,
   int max_dim ) const
@@ -152,7 +152,7 @@ stereo_calibration::detect_chessboard(
 
 // -----------------------------------------------------------------------------
 ChessboardDetectionResult
-stereo_calibration::detect_chessboard_auto(
+calibrate_stereo_cameras::detect_chessboard_auto(
   const cv::Mat& image,
   int max_dim,
   int min_size,
@@ -225,7 +225,7 @@ stereo_calibration::detect_chessboard_auto(
 
 // -----------------------------------------------------------------------------
 MonoCalibrationResult
-stereo_calibration::calibrate_single_camera(
+calibrate_stereo_cameras::calibrate_single_camera(
   const std::vector<std::vector<cv::Point2f>>& image_points,
   const std::vector<std::vector<cv::Point3f>>& object_points,
   const cv::Size& image_size,
@@ -383,8 +383,8 @@ stereo_calibration::calibrate_single_camera(
 }
 
 // -----------------------------------------------------------------------------
-stereo_calibration_result
-stereo_calibration::calibrate_stereo(
+calibrate_stereo_cameras_result
+calibrate_stereo_cameras::calibrate_stereo(
   const std::vector<std::vector<cv::Point2f>>& left_image_points,
   const std::vector<std::vector<cv::Point2f>>& right_image_points,
   const std::vector<std::vector<cv::Point3f>>& object_points,
@@ -392,7 +392,7 @@ stereo_calibration::calibrate_stereo(
   const cv::Size& grid_size,
   double square_size ) const
 {
-  stereo_calibration_result result;
+  calibrate_stereo_cameras_result result;
   result.image_size = image_size;
   result.grid_size = grid_size;
   result.square_size = square_size;
@@ -461,8 +461,8 @@ stereo_calibration::calibrate_stereo(
 
 // -----------------------------------------------------------------------------
 bool
-stereo_calibration::write_calibration_json(
-  const stereo_calibration_result& result,
+calibrate_stereo_cameras::write_calibration_json(
+  const calibrate_stereo_cameras_result& result,
   const std::string& filename ) const
 {
   if( !result.success )
@@ -552,8 +552,8 @@ stereo_calibration::write_calibration_json(
 
 // -----------------------------------------------------------------------------
 bool
-stereo_calibration::write_calibration_opencv(
-  const stereo_calibration_result& result,
+calibrate_stereo_cameras::write_calibration_opencv(
+  const calibrate_stereo_cameras_result& result,
   const std::string& output_directory ) const
 {
   if( !result.success )
@@ -601,8 +601,8 @@ stereo_calibration::write_calibration_opencv(
 
 // -----------------------------------------------------------------------------
 bool
-stereo_calibration::write_calibration_npz(
-  const stereo_calibration_result& result,
+calibrate_stereo_cameras::write_calibration_npz(
+  const calibrate_stereo_cameras_result& result,
   const std::string& filename ) const
 {
   // NPZ format is Python-specific; this is a placeholder
@@ -613,9 +613,9 @@ stereo_calibration::write_calibration_npz(
 
 // -----------------------------------------------------------------------------
 bool
-stereo_calibration::load_calibration_opencv(
+calibrate_stereo_cameras::load_calibration_opencv(
   const std::string& input_directory,
-  stereo_calibration_result& result ) const
+  calibrate_stereo_cameras_result& result ) const
 {
   std::string intrinsics_file = input_directory + "/intrinsics.yml";
   std::string extrinsics_file = input_directory + "/extrinsics.yml";
@@ -663,7 +663,7 @@ stereo_calibration::load_calibration_opencv(
 
 // -----------------------------------------------------------------------------
 std::vector<cv::Point3f>
-stereo_calibration::make_object_points(
+calibrate_stereo_cameras::make_object_points(
   const cv::Size& grid_size,
   double square_size )
 {
@@ -686,7 +686,7 @@ stereo_calibration::make_object_points(
 
 // -----------------------------------------------------------------------------
 cv::Mat
-stereo_calibration::to_grayscale(
+calibrate_stereo_cameras::to_grayscale(
   const cv::Mat& image,
   bool is_bayer )
 {
@@ -736,7 +736,7 @@ stereo_calibration::to_grayscale(
 
 // -----------------------------------------------------------------------------
 kv::camera_intrinsics_sptr
-stereo_calibration::to_kwiver_intrinsics(
+calibrate_stereo_cameras::to_kwiver_intrinsics(
   const MonoCalibrationResult& result )
 {
   if( !result.success )
@@ -769,8 +769,8 @@ stereo_calibration::to_kwiver_intrinsics(
 
 // -----------------------------------------------------------------------------
 void
-stereo_calibration::to_kwiver_cameras(
-  const stereo_calibration_result& result,
+calibrate_stereo_cameras::to_kwiver_cameras(
+  const calibrate_stereo_cameras_result& result,
   kv::simple_camera_perspective_sptr& left_camera,
   kv::simple_camera_perspective_sptr& right_camera )
 {

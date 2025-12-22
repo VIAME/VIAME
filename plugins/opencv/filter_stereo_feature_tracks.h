@@ -1,5 +1,5 @@
-#ifndef VIAME_OPENCV_STEREO_FEATURE_TRACK_FILTER_H
-#define VIAME_OPENCV_STEREO_FEATURE_TRACK_FILTER_H
+#ifndef VIAME_OPENCV_FILTER_STEREO_FEATURE_TRACKS_H
+#define VIAME_OPENCV_FILTER_STEREO_FEATURE_TRACKS_H
 
 #include <vital/types/feature_track_set.h>
 #include <vital/types/landmark_map.h>
@@ -32,7 +32,7 @@ struct VIAME_OPENCV_EXPORT StereoPointCoordinates
 };
 
 /// @brief Class responsible for selecting the best tracks in given feature track vector for the calibration
-class VIAME_OPENCV_EXPORT StereoFeatureTrackFilter
+class VIAME_OPENCV_EXPORT filter_stereo_feature_tracks
 {
 public:
   static StereoPointCoordinates
@@ -94,4 +94,4 @@ private:
 
 } // viame
 
-#endif // VIAME_OPENCV_STEREO_FEATURE_TRACK_FILTER_H
+#endif // VIAME_OPENCV_FILTER_STEREO_FEATURE_TRACKS_H

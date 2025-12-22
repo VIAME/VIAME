@@ -19,11 +19,11 @@ set( plugin_headers
   image_enhancement.h
   debayer_filter.h
   random_hue_shift.h
-  stereo_calibration.h
-  stereo_disparity_map.h
+  calibrate_stereo_cameras.h
+  compute_stereo_disparity.h
   detect_calibration_targets.h
   optimize_stereo_cameras.h
-  stereo_feature_track_filter.h
+  filter_stereo_feature_tracks.h
   kmedians.h
   keypoints_from_mask.h
   add_keypoints_from_mask.h
@@ -36,11 +36,11 @@ set( plugin_sources
   image_enhancement.cxx
   debayer_filter.cxx
   random_hue_shift.cxx
-  stereo_calibration.cxx
-  stereo_disparity_map.cxx
+  calibrate_stereo_cameras.cxx
+  compute_stereo_disparity.cxx
   detect_calibration_targets.cxx
   optimize_stereo_cameras.cxx
-  stereo_feature_track_filter.cxx
+  filter_stereo_feature_tracks.cxx
   kmedians.cxx
   keypoints_from_mask.cxx
   add_keypoints_from_mask.cxx

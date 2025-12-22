@@ -4,8 +4,8 @@
 */
 
 #include "optimize_stereo_cameras.h"
-#include "stereo_calibration.h"
-#include "stereo_feature_track_filter.h"
+#include "calibrate_stereo_cameras.h"
+#include "filter_stereo_feature_tracks.h"
 
 #include <vital/types/object_track_set.h>
 #include <vital/types/camera_perspective_map.h>
@@ -45,7 +45,7 @@ public:
   double m_square_size{ 1.0 };
 
   // Shared calibration utility
-  stereo_calibration m_calibrator;
+  calibrate_stereo_cameras m_calibrator;
 
   kv::logger_handle_t m_logger;
 
@@ -307,7 +307,7 @@ optimize_stereo_cameras::priv
     n_frames << feature->all_frame_ids().size() << ",";
 
   LOG_INFO( m_logger, "Selecting frames for calibration (" << m_frame_count_threshold << "/" << n_frames.str() << ")..." );
-  auto points = StereoFeatureTrackFilter::select_frames( features, landmarks, m_frame_count_threshold );
+  auto points = filter_stereo_feature_tracks::select_frames( features, landmarks, m_frame_count_threshold );
   success = !points.image_pts.empty() && !points.image_pts[0].empty() &&
             ( points.image_pts[0].size() == points.world_pts.size() ) &&
             ( points.image_pts[0].size() == points.image_pts[1].size() );
@@ -390,7 +390,7 @@ optimize_stereo_cameras::priv
   // Also write JSON output using the shared calibrator if configured
   if( !m_output_json_file.empty() )
   {
-    stereo_calibration_result json_result;
+    calibrate_stereo_cameras_result json_result;
     json_result.success = true;
     json_result.image_size = image_size;
     json_result.square_size = m_square_size;

@@ -37,8 +37,8 @@
  * distortion model selection, and stereo calibration.
  */
 
-#ifndef VIAME_OPENCV_STEREO_CALIBRATION_H
-#define VIAME_OPENCV_STEREO_CALIBRATION_H
+#ifndef VIAME_OPENCV_CALIBRATE_STEREO_CAMERAS_H
+#define VIAME_OPENCV_CALIBRATE_STEREO_CAMERAS_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -79,7 +79,7 @@ struct VIAME_OPENCV_EXPORT MonoCalibrationResult
 
 // =============================================================================
 /// Result of stereo camera calibration
-struct VIAME_OPENCV_EXPORT stereo_calibration_result
+struct VIAME_OPENCV_EXPORT calibrate_stereo_cameras_result
 {
   bool success;                       ///< Whether calibration succeeded
 
@@ -104,7 +104,7 @@ struct VIAME_OPENCV_EXPORT stereo_calibration_result
   cv::Size grid_size;                 ///< Chessboard grid size (inner corners)
   double square_size;                 ///< Square size in world units (e.g., mm)
 
-  stereo_calibration_result()
+  calibrate_stereo_cameras_result()
     : success(false), stereo_rms_error(0.0), square_size(0.0) {}
 };
 
@@ -114,11 +114,11 @@ struct VIAME_OPENCV_EXPORT stereo_calibration_result
 /// Provides methods for chessboard detection, mono calibration with automatic
 /// distortion model selection, and stereo calibration. Mirrors functionality
 /// from calibrate_cameras.py for consistency.
-class VIAME_OPENCV_EXPORT stereo_calibration
+class VIAME_OPENCV_EXPORT calibrate_stereo_cameras
 {
 public:
-  stereo_calibration();
-  ~stereo_calibration();
+  calibrate_stereo_cameras();
+  ~calibrate_stereo_cameras();
 
   // -------------------------------------------------------------------------
   // Chessboard Detection
@@ -188,7 +188,7 @@ public:
   /// \param grid_size Chessboard grid size
   /// \param square_size Square size in world units
   /// \return Stereo calibration result
-  stereo_calibration_result calibrate_stereo(
+  calibrate_stereo_cameras_result calibrate_stereo(
     const std::vector<std::vector<cv::Point2f>>& left_image_points,
     const std::vector<std::vector<cv::Point2f>>& right_image_points,
     const std::vector<std::vector<cv::Point3f>>& object_points,
@@ -206,7 +206,7 @@ public:
   /// \param filename Output JSON file path
   /// \return true on success
   bool write_calibration_json(
-    const stereo_calibration_result& result,
+    const calibrate_stereo_cameras_result& result,
     const std::string& filename ) const;
 
   /// Write calibration to OpenCV YAML files (intrinsics.yml + extrinsics.yml)
@@ -215,7 +215,7 @@ public:
   /// \param output_directory Directory for output files
   /// \return true on success
   bool write_calibration_opencv(
-    const stereo_calibration_result& result,
+    const calibrate_stereo_cameras_result& result,
     const std::string& output_directory ) const;
 
   /// Write calibration to NPZ file
@@ -227,7 +227,7 @@ public:
   /// \param filename Output file path
   /// \return true on success
   bool write_calibration_npz(
-    const stereo_calibration_result& result,
+    const calibrate_stereo_cameras_result& result,
     const std::string& filename ) const;
 
   /// Load calibration from OpenCV YAML files (intrinsics.yml + extrinsics.yml)
@@ -237,7 +237,7 @@ public:
   /// \return true on success
   bool load_calibration_opencv(
     const std::string& input_directory,
-    stereo_calibration_result& result ) const;
+    calibrate_stereo_cameras_result& result ) const;
 
   // -------------------------------------------------------------------------
   // Utility Methods
@@ -268,13 +268,13 @@ public:
   static kwiver::vital::camera_intrinsics_sptr to_kwiver_intrinsics(
     const MonoCalibrationResult& result );
 
-  /// Convert stereo_calibration_result to KWIVER camera perspective pair
+  /// Convert calibrate_stereo_cameras_result to KWIVER camera perspective pair
   ///
   /// \param result Stereo calibration result
   /// \param[out] left_camera Left camera
   /// \param[out] right_camera Right camera
   static void to_kwiver_cameras(
-    const stereo_calibration_result& result,
+    const calibrate_stereo_cameras_result& result,
     kwiver::vital::simple_camera_perspective_sptr& left_camera,
     kwiver::vital::simple_camera_perspective_sptr& right_camera );
 
@@ -292,4 +292,4 @@ private:
 
 } // namespace viame
 
-#endif // VIAME_OPENCV_STEREO_CALIBRATION_H
+#endif // VIAME_OPENCV_CALIBRATE_STEREO_CAMERAS_H

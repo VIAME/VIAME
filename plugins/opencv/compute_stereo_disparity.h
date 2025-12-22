@@ -40,8 +40,8 @@
  *   - Various output formats (raw disparity, scaled uint16, float32)
  */
 
-#ifndef VIAME_OPENCV_STEREO_DISPARITY_MAP_H
-#define VIAME_OPENCV_STEREO_DISPARITY_MAP_H
+#ifndef VIAME_OPENCV_COMPUTE_STEREO_DISPARITY_H
+#define VIAME_OPENCV_COMPUTE_STEREO_DISPARITY_H
 
 #include <plugins/opencv/viame_opencv_export.h>
 
@@ -49,15 +49,15 @@
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT stereo_disparity_map
+class VIAME_OPENCV_EXPORT compute_stereo_disparity
   : public kwiver::vital::algo::compute_stereo_depth_map
 {
 public:
   PLUGIN_INFO( "ocv_stereo_disparity",
                "OpenCV stereo disparity map computation using BM or SGBM" )
 
-  stereo_disparity_map();
-  virtual ~stereo_disparity_map();
+  compute_stereo_disparity();
+  virtual ~compute_stereo_disparity();
 
   virtual kwiver::vital::config_block_sptr get_configuration() const;
 
@@ -84,4 +84,4 @@ private:
 
 }
 
-#endif // VIAME_OPENCV_STEREO_DISPARITY_MAP_H
+#endif // VIAME_OPENCV_COMPUTE_STEREO_DISPARITY_H

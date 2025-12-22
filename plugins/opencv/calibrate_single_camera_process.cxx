@@ -48,7 +48,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 
-#include "stereo_calibration.h"
+#include "calibrate_stereo_cameras.h"
 
 #include <memory>
 #include <fstream>
@@ -90,7 +90,7 @@ public:
   kv::logger_handle_t m_logger;
 
   // Shared calibration utility
-  stereo_calibration m_calibrator;
+  calibrate_stereo_cameras m_calibrator;
 
   // Extract image points and world points from object tracks
   bool extract_calibration_data(

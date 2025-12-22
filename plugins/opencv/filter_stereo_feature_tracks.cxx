@@ -1,4 +1,4 @@
-#include "stereo_feature_track_filter.h"
+#include "filter_stereo_feature_tracks.h"
 #include "kmedians.h"
 #include <cmath>
 
@@ -100,7 +100,7 @@ viame::StereoPointCoordinates::StereoPointCoordinates()
 }
 
 viame::FrameFeatureTrackStates
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::remove_empty_frames( viame::FrameFeatureTrackStates frame_feature_tracks )
 {
   frame_feature_tracks.erase(
@@ -111,7 +111,7 @@ viame::StereoFeatureTrackFilter
 }
 
 viame::FrameFeatureTrackStates
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::group_by_frame_id( const viame::FeatureTracks& feature_tracks )
 {
   if( feature_tracks.empty() )
@@ -148,7 +148,7 @@ viame::StereoFeatureTrackFilter
 }
 
 viame::FrameFeatureTrackStates
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::remove_frames_without_corresponding_left_right_match( viame::FrameFeatureTrackStates features )
 {
   // For single camera case, no need to check for correspondence
@@ -183,7 +183,7 @@ viame::StereoFeatureTrackFilter
 }
 
 viame::StereoPointCoordinates
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::select_points_maximizing_variance( const StereoPointCoordinates& coordinates,
                                      size_t frame_count_threshold )
 {
@@ -213,7 +213,7 @@ viame::StereoFeatureTrackFilter
 }
 
 viame::StereoPointCoordinates
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::select_frames( const viame::FeatureTracks& features,
                  const viame::Landmarks& landmarks,
                  size_t frame_count_threshold )
@@ -232,7 +232,7 @@ viame::StereoFeatureTrackFilter
 }
 
 int64_t
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::max_feature_id( const viame::FeatureTracks& feature_tracks,
                   const std::function< int64_t( const kwiver::vital::feature_track_set_sptr& ) >& max_f )
 {
@@ -246,7 +246,7 @@ viame::StereoFeatureTrackFilter
 }
 
 int64_t
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::max_feature_tracks_track_id( const viame::FeatureTracks& feature_tracks )
 {
   auto max_track_id_f = []( const kwiver::vital::feature_track_set_sptr& f ) { return *f->all_track_ids().rbegin(); };
@@ -254,7 +254,7 @@ viame::StereoFeatureTrackFilter
 }
 
 int64_t
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::max_feature_tracks_frame_id( const viame::FeatureTracks& feature_tracks )
 {
   auto max_frame_id_f = []( const kwiver::vital::feature_track_set_sptr& f ) { return *f->all_frame_ids().rbegin(); };
@@ -262,7 +262,7 @@ viame::StereoFeatureTrackFilter
 }
 
 cv::Mat
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::create_frames_extents_matrix( const viame::StereoPointCoordinates& coordinates, int n_frames )
 {
   // Initialize extent matrix to 0
@@ -298,7 +298,7 @@ viame::StereoFeatureTrackFilter
 }
 
 std::array< cv::Point3f, 4 >
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::get_world_point_corner_values( const std::vector< std::vector< cv::Point3f > >& world_pts )
 {
   // Find world X and Y bounds while ignoring Z (using flat calibration pattern)
@@ -324,7 +324,7 @@ viame::StereoFeatureTrackFilter
 }
 
 std::array< int, 2 >
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::get_destination_extent( const cv::Point3f& world_pt,
                           const std::array< cv::Point3f, 4 >& world_points_corner_values )
 {
@@ -341,7 +341,7 @@ viame::StereoFeatureTrackFilter
 }
 
 std::set< size_t >
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::select_frames_in_cluster( const cv::Mat& frames_matrix,
                             const cv::Mat& cluster_labels,
                             const cv::Mat& cluster_centers )
@@ -358,7 +358,7 @@ viame::StereoFeatureTrackFilter
 }
 
 viame::StereoPointCoordinates
-viame::StereoFeatureTrackFilter
+viame::filter_stereo_feature_tracks
 ::filter_points_in_kept_frames( const viame::StereoPointCoordinates& coordinates,
                                 const std::set< size_t >& selected_frame_idx )
 {

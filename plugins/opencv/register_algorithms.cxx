@@ -36,7 +36,7 @@
 #include <plugins/opencv/viame_opencv_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
-#include "stereo_disparity_map.h"
+#include "compute_stereo_disparity.h"
 #include "debayer_filter.h"
 #include "random_hue_shift.h"
 #include "image_enhancement.h"
@@ -60,7 +60,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
-  reg.register_algorithm< stereo_disparity_map >();
+  reg.register_algorithm< compute_stereo_disparity >();
   reg.register_algorithm< debayer_filter >();
   reg.register_algorithm< image_enhancement >();
   reg.register_algorithm< random_hue_shift >();

@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "stereo_disparity_map.h"
-#include "stereo_calibration.h"
+#include "compute_stereo_disparity.h"
+#include "calibrate_stereo_cameras.h"
 
 #include <vital/vital_config.h>
 #include <vital/types/image_container.h>
@@ -47,7 +47,7 @@ namespace kv = kwiver::vital;
 
 namespace viame {
 
-class stereo_disparity_map::priv
+class compute_stereo_disparity::priv
 {
 public:
   // Algorithm selection
@@ -83,8 +83,8 @@ public:
   mutable cv::Mat rectification_map_right_y;
 
   // Calibration data (loaded if calibration_file is set)
-  stereo_calibration_result calibration;
-  stereo_calibration calibrator;
+  calibrate_stereo_cameras_result calibration;
+  calibrate_stereo_cameras calibrator;
 
   // Stereo matchers
   cv::Ptr<cv::StereoMatcher> left_matcher;
@@ -176,23 +176,23 @@ public:
 };
 
 
-stereo_disparity_map::stereo_disparity_map()
+compute_stereo_disparity::compute_stereo_disparity()
 : d( new priv() )
 {
-  attach_logger( "viame.opencv.stereo_disparity_map" );
+  attach_logger( "viame.opencv.compute_stereo_disparity" );
   d->logger = logger();
   d->calibrator.set_logger( d->logger );
 }
 
 
-stereo_disparity_map::~stereo_disparity_map()
+compute_stereo_disparity::~compute_stereo_disparity()
 {
 }
 
 
 // ---------------------------------------------------------------------------------------
 kv::config_block_sptr
-stereo_disparity_map
+compute_stereo_disparity
 ::get_configuration() const
 {
   kv::config_block_sptr config = kv::algorithm::get_configuration();
@@ -255,7 +255,7 @@ stereo_disparity_map
 }
 
 // ---------------------------------------------------------------------------------------
-void stereo_disparity_map
+void compute_stereo_disparity
 ::set_configuration( kv::config_block_sptr config_in )
 {
   kv::config_block_sptr config = this->get_configuration();
@@ -300,7 +300,7 @@ void stereo_disparity_map
 
 
 // ---------------------------------------------------------------------------------------
-bool stereo_disparity_map
+bool compute_stereo_disparity
 ::check_configuration( kv::config_block_sptr config ) const
 {
   std::string algorithm = config->get_value< std::string >( "algorithm" );
@@ -323,7 +323,7 @@ bool stereo_disparity_map
 
 
 // ---------------------------------------------------------------------------------------
-kv::image_container_sptr stereo_disparity_map
+kv::image_container_sptr compute_stereo_disparity
 ::compute( kv::image_container_sptr left_image,
            kv::image_container_sptr right_image ) const
 {
@@ -346,8 +346,8 @@ kv::image_container_sptr stereo_disparity_map
     right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
   // Convert to grayscale
-  cv::Mat left_gray = stereo_calibration::to_grayscale( ocv_left );
-  cv::Mat right_gray = stereo_calibration::to_grayscale( ocv_right );
+  cv::Mat left_gray = calibrate_stereo_cameras::to_grayscale( ocv_left );
+  cv::Mat right_gray = calibrate_stereo_cameras::to_grayscale( ocv_right );
 
   // Rectify if calibration is loaded
   cv::Mat left_rect, right_rect;

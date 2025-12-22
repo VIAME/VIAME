@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ocv_stereo_feature_track_filter.h"
+#include "filter_stereo_feature_tracks.h"
 
 namespace kv = kwiver::vital;
 using namespace viame;
@@ -115,38 +115,38 @@ convert_to_feature_tracks_and_landmarks(const StereoPointCoordinates &coordinate
   return {feature_tracks, landmarks};
 }
 
-TEST(StereoFeatureTrackFilterTest, with_empty_input_coordinates_does_nothing) {
+TEST(filter_stereo_feature_tracksTest, with_empty_input_coordinates_does_nothing) {
   StereoPointCoordinates coordinates;
-  auto out_coord = StereoFeatureTrackFilter::select_points_maximizing_variance(coordinates, 50);
+  auto out_coord = filter_stereo_feature_tracks::select_points_maximizing_variance(coordinates, 50);
   EXPECT_TRUE(out_coord.world_pts.empty());
 }
 
-TEST(StereoFeatureTrackFilterTest, returns_every_points_when_number_of_points_is_less_than_threshold) {
+TEST(filter_stereo_feature_tracksTest, returns_every_points_when_number_of_points_is_less_than_threshold) {
   size_t n_frames{45};
   auto coordinates = generate_54_stereo_points_per_frame(n_frames);
 
   size_t max_frame_count{50};
-  auto out_coord = StereoFeatureTrackFilter::select_points_maximizing_variance(coordinates, max_frame_count);
+  auto out_coord = filter_stereo_feature_tracks::select_points_maximizing_variance(coordinates, max_frame_count);
 
   EXPECT_EQ(out_coord.world_pts.size(), n_frames);
   EXPECT_EQ(coordinates.image_pts[0].size(), n_frames);
   EXPECT_EQ(coordinates.image_pts[1].size(), n_frames);
 }
 
-TEST(StereoFeatureTrackFilterTest,
+TEST(filter_stereo_feature_tracksTest,
      returns_at_most_number_of_threshold_points_when_number_of_frames_greater_than_points) {
   size_t n_frames{100};
   auto coordinates = generate_54_stereo_points_per_frame(n_frames);
 
   size_t max_frame_count{50};
-  auto out_coord = StereoFeatureTrackFilter::select_points_maximizing_variance(coordinates, max_frame_count);
+  auto out_coord = filter_stereo_feature_tracks::select_points_maximizing_variance(coordinates, max_frame_count);
 
   EXPECT_EQ(out_coord.world_pts.size(), max_frame_count);
   EXPECT_EQ(out_coord.image_pts[0].size(), max_frame_count);
   EXPECT_EQ(out_coord.image_pts[1].size(), max_frame_count);
 }
 
-TEST(StereoFeatureTrackFilterTest, filter_is_independant_from_mono_or_stereo_config) {
+TEST(filter_stereo_feature_tracksTest, filter_is_independant_from_mono_or_stereo_config) {
   size_t n_frames{100};
   auto coordinates = generate_54_stereo_points_per_frame(n_frames);
 
@@ -154,7 +154,7 @@ TEST(StereoFeatureTrackFilterTest, filter_is_independant_from_mono_or_stereo_con
     auto tracks_and_landmarks = convert_to_feature_tracks_and_landmarks(coordinates, n_cam, n_frames);
 
     size_t max_frame_count{50};
-    auto out_coord = StereoFeatureTrackFilter::select_frames(std::get<0>(tracks_and_landmarks),
+    auto out_coord = filter_stereo_feature_tracks::select_frames(std::get<0>(tracks_and_landmarks),
                                                              std::get<1>(tracks_and_landmarks), max_frame_count);
 
     EXPECT_EQ(out_coord.world_pts.size(), max_frame_count);
@@ -163,17 +163,17 @@ TEST(StereoFeatureTrackFilterTest, filter_is_independant_from_mono_or_stereo_con
   }
 }
 
-TEST(StereoFeatureTrackFilterTest, keeping_every_frame_returns_every_frame_point_coordinate) {
+TEST(filter_stereo_feature_tracksTest, keeping_every_frame_returns_every_frame_point_coordinate) {
   size_t n_frames{100}, max_frame_count{100};
   size_t n_cam{2};
   auto coordinates = generate_54_stereo_points_per_frame(n_frames);
   auto tracks_and_landmarks = convert_to_feature_tracks_and_landmarks(coordinates, n_cam, n_frames);
-  auto out_coord = StereoFeatureTrackFilter::select_frames(std::get<0>(tracks_and_landmarks),
+  auto out_coord = filter_stereo_feature_tracks::select_frames(std::get<0>(tracks_and_landmarks),
                                                            std::get<1>(tracks_and_landmarks), max_frame_count);
   EXPECT_EQ(out_coord.frame_ids.size(), coordinates.frame_ids.size());
 }
 
-TEST(StereoFeatureTrackFilterTest, frames_with_incoherent_left_right_tracks_are_dropped) {
+TEST(filter_stereo_feature_tracksTest, frames_with_incoherent_left_right_tracks_are_dropped) {
   size_t n_frames{100}, max_frame_count{100};
   size_t n_cam{2};
   auto coordinates = generate_54_stereo_points_per_frame(n_frames);
@@ -187,16 +187,16 @@ TEST(StereoFeatureTrackFilterTest, frames_with_incoherent_left_right_tracks_are_
   ASSERT_NE(feature_tracks[0]->all_track_ids(), feature_tracks[1]->all_track_ids());
 
   // Expect output to be empty (53 tracks left vs 54 right)
-  auto out_coord = StereoFeatureTrackFilter::select_frames(feature_tracks, landmarks, max_frame_count);
+  auto out_coord = filter_stereo_feature_tracks::select_frames(feature_tracks, landmarks, max_frame_count);
   EXPECT_TRUE(out_coord.frame_ids.empty());
 
   // Remove same track from right cam and expect output to have all frames
   feature_tracks[1]->remove(feature_tracks[1]->tracks()[i_track_to_remove]);
-  out_coord = StereoFeatureTrackFilter::select_frames(feature_tracks, landmarks, max_frame_count);
+  out_coord = filter_stereo_feature_tracks::select_frames(feature_tracks, landmarks, max_frame_count);
   EXPECT_EQ(out_coord.frame_ids.size(), n_frames);
 }
 
-TEST(StereoFeatureTrackFilterTest, empty_frames_are_dropped) {
+TEST(filter_stereo_feature_tracksTest, empty_frames_are_dropped) {
   size_t n_frames{100}, max_frame_count{100};
   size_t n_cam{2};
   auto coordinates = generate_54_stereo_points_per_frame(n_frames);
@@ -214,12 +214,12 @@ TEST(StereoFeatureTrackFilterTest, empty_frames_are_dropped) {
   ASSERT_TRUE(frame_ids_left.find(i_frame_tracks_to_remove) == std::end(frame_ids_left));
 
   // Expect output to contain n_frames - 1
-  auto out_coord = StereoFeatureTrackFilter::select_frames(feature_tracks, landmarks, max_frame_count);
+  auto out_coord = filter_stereo_feature_tracks::select_frames(feature_tracks, landmarks, max_frame_count);
   EXPECT_EQ(out_coord.frame_ids.size(), (n_frames - 1));
 }
 
 
-TEST(StereoFeatureTrackFilterTest, using_max_frame_count_of_0_returns_all_frames) {
+TEST(filter_stereo_feature_tracksTest, using_max_frame_count_of_0_returns_all_frames) {
   size_t n_frames{100}, max_frame_count{0};
   size_t n_cam{2};
   auto coordinates = generate_54_stereo_points_per_frame(n_frames);
@@ -228,6 +228,6 @@ TEST(StereoFeatureTrackFilterTest, using_max_frame_count_of_0_returns_all_frames
   auto landmarks = std::get<1>(tracks_and_landmarks);
 
   // Expect output to contain n_frames - 1
-  auto out_coord = StereoFeatureTrackFilter::select_frames(feature_tracks, landmarks, max_frame_count);
+  auto out_coord = filter_stereo_feature_tracks::select_frames(feature_tracks, landmarks, max_frame_count);
   EXPECT_EQ(out_coord.frame_ids.size(), n_frames);
 }

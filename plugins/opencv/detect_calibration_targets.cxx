@@ -1,5 +1,5 @@
 #include "detect_calibration_targets.h"
-#include "stereo_calibration.h"
+#include "calibrate_stereo_cameras.h"
 
 #include <arrows/ocv/image_container.h>
 
@@ -48,7 +48,7 @@ public:
   mutable cv::Size m_detected_grid_size;
 
   /// Calibration utility
-  stereo_calibration m_calibrator;
+  calibrate_stereo_cameras m_calibrator;
 
   kv::logger_handle_t m_logger;
 }; // end class detect_calibration_targets::priv
@@ -139,7 +139,7 @@ detect( kv::image_container_sptr image_data ) const
   // Convert image to OpenCV format and grayscale
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv(
     image_data->get_image(), kwiver::arrows::ocv::image_container::RGB_COLOR );
-  cv::Mat gray = stereo_calibration::to_grayscale( src );
+  cv::Mat gray = calibrate_stereo_cameras::to_grayscale( src );
 
   // Determine grid size to use
   cv::Size grid_size;
@@ -183,7 +183,7 @@ detect( kv::image_container_sptr image_data ) const
 
   // Generate world points for the detected grid
   std::vector<cv::Point3f> world_corners =
-    stereo_calibration::make_object_points( grid_size, d->m_square_size );
+    calibrate_stereo_cameras::make_object_points( grid_size, d->m_square_size );
 
   if( detection.corners.size() != world_corners.size() )
   {
