@@ -33,8 +33,8 @@
  * \brief Stereo measurement process using calibration data
  */
 
-#ifndef VIAME_OPENCV_MEASUREMENT_PROCESS_H
-#define VIAME_OPENCV_MEASUREMENT_PROCESS_H
+#ifndef VIAME_OPENCV_MEASURE_OBJECTS_PROCESS_H
+#define VIAME_OPENCV_MEASURE_OBJECTS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -55,13 +55,13 @@ namespace viame
  * and computes length measurements. Output includes detection sets with length
  * annotations and track sets for matched/unmatched detections.
  */
-class VIAME_OPENCV_NO_EXPORT measurement_process
+class VIAME_OPENCV_NO_EXPORT measure_objects_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  measurement_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~measurement_process();
+  measure_objects_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~measure_objects_process();
 
 protected:
   void _configure() override;
@@ -74,8 +74,8 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class measurement_process
+}; // end class measure_objects_process
 
 } // end namespace viame
 
-#endif // VIAME_OPENCV_MEASUREMENT_PROCESS_H
+#endif // VIAME_OPENCV_MEASURE_OBJECTS_PROCESS_H

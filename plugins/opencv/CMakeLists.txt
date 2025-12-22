@@ -105,7 +105,7 @@ find_package( Eigen3 REQUIRED NO_MODULE )
 
 # Add process library
 set( process_headers
-  measurement_process.h
+  measure_objects_process.h
   calibrate_single_camera_process.h
   pair_stereo_detections_process.h
   pair_stereo_tracks_process.h
@@ -113,7 +113,7 @@ set( process_headers
 
 set( process_sources
   register_processes.cxx
-  measurement_process.cxx
+  measure_objects_process.cxx
   calibrate_single_camera_process.cxx
   pair_stereo_detections_process.cxx
   pair_stereo_tracks_process.cxx

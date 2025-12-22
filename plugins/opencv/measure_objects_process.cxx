@@ -33,7 +33,7 @@
  * \brief Stereo measurement process implementation
  */
 
-#include "measurement_process.h"
+#include "measure_objects_process.h"
 #include "keypoints_from_mask.h"
 
 #include <vital/vital_types.h>
@@ -112,10 +112,10 @@ struct MatchData
 
 // =============================================================================
 // Private implementation class
-class measurement_process::priv
+class measure_objects_process::priv
 {
 public:
-  explicit priv( measurement_process* parent );
+  explicit priv( measure_objects_process* parent );
   ~priv();
 
   // Triangulate a single point and compute reprojection error
@@ -149,12 +149,12 @@ public:
   kv::frame_id_t m_frame_id;
   kv::track_id_t m_track_id;
 
-  measurement_process* parent;
+  measure_objects_process* parent;
 };
 
 // -----------------------------------------------------------------------------
-measurement_process::priv
-::priv( measurement_process* ptr )
+measure_objects_process::priv
+::priv( measure_objects_process* ptr )
   : m_calibration_file( "" )
   , m_measurement_file( "" )
   , m_max_error_small( 6.0 )
@@ -168,7 +168,7 @@ measurement_process::priv
 }
 
 // -----------------------------------------------------------------------------
-measurement_process::priv
+measure_objects_process::priv
 ::~priv()
 {
   if( m_output_file.is_open() )
@@ -179,7 +179,7 @@ measurement_process::priv
 
 // -----------------------------------------------------------------------------
 double
-measurement_process::priv
+measure_objects_process::priv
 ::triangulate_and_error(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
@@ -210,7 +210,7 @@ measurement_process::priv
 
 // -----------------------------------------------------------------------------
 std::vector<std::pair<int, int>>
-measurement_process::priv
+measure_objects_process::priv
 ::minimum_weight_assignment( const cv::Mat& cost_matrix )
 {
   int n1 = cost_matrix.rows;
@@ -295,7 +295,7 @@ measurement_process::priv
 
 // -----------------------------------------------------------------------------
 std::vector<MatchData>
-measurement_process::priv
+measure_objects_process::priv
 ::find_matches(
   const std::vector<kv::detected_object_sptr>& detections1,
   const std::vector<kv::detected_object_sptr>& detections2 )
@@ -417,23 +417,23 @@ measurement_process::priv
 }
 
 // =============================================================================
-measurement_process
-::measurement_process( kv::config_block_sptr const& config )
+measure_objects_process
+::measure_objects_process( kv::config_block_sptr const& config )
   : process( config ),
-    d( new measurement_process::priv( this ) )
+    d( new measure_objects_process::priv( this ) )
 {
   make_ports();
   make_config();
 }
 
-measurement_process
-::~measurement_process()
+measure_objects_process
+::~measure_objects_process()
 {
 }
 
 // -----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::make_ports()
 {
   sprokit::process::port_flags_t required;
@@ -455,7 +455,7 @@ measurement_process
 
 // -----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::make_config()
 {
   declare_config_using_trait( calibration_file );
@@ -468,7 +468,7 @@ measurement_process
 
 // -----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::_configure()
 {
   d->m_calibration_file = config_value_using_trait( calibration_file );
@@ -517,7 +517,7 @@ measurement_process
 
 // -----------------------------------------------------------------------------
 void
-measurement_process
+measure_objects_process
 ::_step()
 {
   // Grab inputs

@@ -32,7 +32,7 @@
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
 
-#include "measurement_process.h"
+#include "measure_objects_process.h"
 #include "calibrate_single_camera_process.h"
 #include "pair_stereo_detections_process.h"
 #include "pair_stereo_tracks_process.h"
@@ -55,7 +55,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // ---------------------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( viame::measurement_process );
+  auto fact = vpm.ADD_PROCESS( viame::measure_objects_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
                        "measure_using_stereo" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
