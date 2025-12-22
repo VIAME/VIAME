@@ -19,6 +19,7 @@ set( plugin_headers
   enhance_images.h
   debayer_filter.h
   random_hue_shift.h
+  calibrate_single_camera.h
   calibrate_stereo_cameras.h
   compute_stereo_disparity.h
   detect_calibration_targets.h
@@ -35,6 +36,7 @@ set( plugin_sources
   enhance_images.cxx
   debayer_filter.cxx
   random_hue_shift.cxx
+  calibrate_single_camera.cxx
   calibrate_stereo_cameras.cxx
   compute_stereo_disparity.cxx
   detect_calibration_targets.cxx
