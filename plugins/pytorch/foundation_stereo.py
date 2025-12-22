@@ -43,10 +43,42 @@ import sys
 import json
 import numpy as np
 
+import scriptconfig as scfg
+
 from kwiver.vital.algo import ComputeStereoDepthMap
 from kwiver.vital.types import Image, ImageContainer
 
-from kwiver.vital.config import config
+from str2bool import str2bool
+
+from ._utils import vital_config_update
+
+
+class FoundationStereoConfig(scfg.DataConfig):
+    """
+    Configuration for :class:`FoundationStereo`.
+    """
+    checkpoint_path = scfg.Value(
+        '', help='Path to the pretrained model checkpoint (.pth file)')
+    vit_size = scfg.Value(
+        'vitl', help='Vision Transformer backbone size: vitl (large), vitb (base), or vits (small)')
+    device = scfg.Value(
+        'auto', help="Device to run inference on: 'auto' (use GPU if available), 'cpu', or specific GPU (e.g., 'cuda:0')")
+    num_iters = scfg.Value(
+        32, help='Number of GRU refinement iterations during inference')
+    use_hierarchical = scfg.Value(
+        False, help='Use hierarchical inference for high-resolution images (>1K pixels)')
+    hierarchical_ratio = scfg.Value(
+        0.5, help='Scale ratio for first pass in hierarchical inference')
+    mixed_precision = scfg.Value(
+        True, help='Use mixed precision (FP16) inference for faster computation')
+    low_memory = scfg.Value(
+        False, help='Enable low memory mode for limited GPU RAM')
+    output_mode = scfg.Value(
+        'disparity', help="Output mode: 'disparity' (scaled by 256, uint16) or 'depth' (millimeters, uint16)")
+    calibration_file = scfg.Value(
+        '', help='Path to KWIVER stereo calibration file (JSON format) - required for depth output')
+    remove_invisible = scfg.Value(
+        True, help='Set invalid disparity values (negative x in right image) to infinity')
 
 
 class FoundationStereo(ComputeStereoDepthMap):
@@ -64,18 +96,8 @@ class FoundationStereo(ComputeStereoDepthMap):
     def __init__(self):
         ComputeStereoDepthMap.__init__(self)
 
-        # Configuration values (set in set_configuration)
-        self._checkpoint_path = ''
-        self._vit_size = 'vitl'
-        self._device = 'cuda:0'
-        self._num_iters = 32
-        self._use_hierarchical = False
-        self._hierarchical_ratio = 0.5
-        self._mixed_precision = True
-        self._low_memory = False
-        self._output_mode = 'disparity'  # 'disparity' or 'depth'
-        self._calibration_file = ''
-        self._remove_invisible = True
+        # Configuration
+        self._config = FoundationStereoConfig()
 
         # Camera parameters (loaded from calibration file)
         self._focal_length = 0.0
@@ -89,80 +111,41 @@ class FoundationStereo(ComputeStereoDepthMap):
         self._torch_device = None
 
     def get_configuration(self):
-        cfg = config.empty_config()
-
-        cfg.set_value("checkpoint_path", self._checkpoint_path)
-        cfg.set_value("checkpoint_path:description",
-                      "Path to the pretrained model checkpoint (.pth file)")
-
-        cfg.set_value("vit_size", self._vit_size)
-        cfg.set_value("vit_size:description",
-                      "Vision Transformer backbone size: vitl (large), vitb (base), or vits (small)")
-
-        cfg.set_value("device", self._device)
-        cfg.set_value("device:description",
-                      "Device to run inference on (e.g., cuda:0, cuda:1, cpu)")
-
-        cfg.set_value("num_iters", str(self._num_iters))
-        cfg.set_value("num_iters:description",
-                      "Number of GRU refinement iterations during inference")
-
-        cfg.set_value("use_hierarchical", str(self._use_hierarchical).lower())
-        cfg.set_value("use_hierarchical:description",
-                      "Use hierarchical inference for high-resolution images (>1K pixels)")
-
-        cfg.set_value("hierarchical_ratio", str(self._hierarchical_ratio))
-        cfg.set_value("hierarchical_ratio:description",
-                      "Scale ratio for first pass in hierarchical inference")
-
-        cfg.set_value("mixed_precision", str(self._mixed_precision).lower())
-        cfg.set_value("mixed_precision:description",
-                      "Use mixed precision (FP16) inference for faster computation")
-
-        cfg.set_value("low_memory", str(self._low_memory).lower())
-        cfg.set_value("low_memory:description",
-                      "Enable low memory mode for limited GPU RAM")
-
-        cfg.set_value("output_mode", self._output_mode)
-        cfg.set_value("output_mode:description",
-                      "Output mode: 'disparity' (scaled by 256, uint16) or 'depth' (millimeters, uint16)")
-
-        cfg.set_value("calibration_file", self._calibration_file)
-        cfg.set_value("calibration_file:description",
-                      "Path to KWIVER stereo calibration file (JSON format) - required for depth output")
-
-        cfg.set_value("remove_invisible", str(self._remove_invisible).lower())
-        cfg.set_value("remove_invisible:description",
-                      "Set invalid disparity values (negative x in right image) to infinity")
-
+        cfg = super(ComputeStereoDepthMap, self).get_configuration()
+        for key, value in self._config.items():
+            cfg.set_value(key, str(value))
         return cfg
 
     def set_configuration(self, cfg_in):
         import torch
 
-        self._checkpoint_path = str(cfg_in.get_value("checkpoint_path"))
-        self._vit_size = str(cfg_in.get_value("vit_size"))
-        self._device = str(cfg_in.get_value("device"))
-        self._num_iters = int(cfg_in.get_value("num_iters"))
-        self._use_hierarchical = str(cfg_in.get_value("use_hierarchical")).lower() == 'true'
-        self._hierarchical_ratio = float(cfg_in.get_value("hierarchical_ratio"))
-        self._mixed_precision = str(cfg_in.get_value("mixed_precision")).lower() == 'true'
-        self._low_memory = str(cfg_in.get_value("low_memory")).lower() == 'true'
-        self._output_mode = str(cfg_in.get_value("output_mode"))
-        self._calibration_file = str(cfg_in.get_value("calibration_file"))
-        self._remove_invisible = str(cfg_in.get_value("remove_invisible")).lower() == 'true'
+        cfg = self.get_configuration()
+        vital_config_update(cfg, cfg_in)
+
+        for key in self._config.keys():
+            self._config[key] = str(cfg.get_value(key))
+
+        # Convert types appropriately
+        self._config['num_iters'] = int(self._config['num_iters'])
+        self._config['use_hierarchical'] = str2bool(self._config['use_hierarchical'])
+        self._config['hierarchical_ratio'] = float(self._config['hierarchical_ratio'])
+        self._config['mixed_precision'] = str2bool(self._config['mixed_precision'])
+        self._config['low_memory'] = str2bool(self._config['low_memory'])
+        self._config['remove_invisible'] = str2bool(self._config['remove_invisible'])
 
         # Load calibration if needed for depth output
-        if self._calibration_file and os.path.exists(self._calibration_file):
-            self._load_calibration(self._calibration_file)
+        calibration_file = self._config['calibration_file']
+        if calibration_file and os.path.exists(calibration_file):
+            self._load_calibration(calibration_file)
 
         # Validate configuration
-        if not self._checkpoint_path:
+        checkpoint_path = self._config['checkpoint_path']
+        if not checkpoint_path:
             raise RuntimeError("checkpoint_path must be specified")
-        if not os.path.exists(self._checkpoint_path):
-            raise RuntimeError(f"Checkpoint file not found: {self._checkpoint_path}")
+        if not os.path.exists(checkpoint_path):
+            raise RuntimeError(f"Checkpoint file not found: {checkpoint_path}")
 
-        if self._output_mode == 'depth':
+        if self._config['output_mode'] == 'depth':
             if self._focal_length <= 0 or self._baseline <= 0:
                 raise RuntimeError("calibration_file with valid focal length and baseline required for depth output")
 
@@ -183,7 +166,7 @@ class FoundationStereo(ComputeStereoDepthMap):
         self._InputPadder = InputPadder
 
         # Load model configuration
-        ckpt_dir = os.path.dirname(self._checkpoint_path)
+        ckpt_dir = os.path.dirname(checkpoint_path)
         cfg_path = os.path.join(ckpt_dir, 'cfg.yaml')
         if os.path.exists(cfg_path):
             model_cfg = OmegaConf.load(cfg_path)
@@ -191,17 +174,20 @@ class FoundationStereo(ComputeStereoDepthMap):
             model_cfg = OmegaConf.create({})
 
         # Set vit_size
-        model_cfg['vit_size'] = self._vit_size
+        model_cfg['vit_size'] = self._config['vit_size']
 
         # Create model
         self._model = FoundationStereoModel(model_cfg)
 
         # Load checkpoint
-        ckpt = torch.load(self._checkpoint_path, map_location='cpu')
+        ckpt = torch.load(checkpoint_path, map_location='cpu')
         self._model.load_state_dict(ckpt['model'])
 
-        # Move to device and set eval mode
-        self._torch_device = torch.device(self._device)
+        # Resolve device (handle 'auto' mode)
+        device = self._config['device']
+        if device == 'auto':
+            device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+        self._torch_device = torch.device(device)
         self._model.to(self._torch_device)
         self._model.eval()
 
@@ -317,20 +303,20 @@ class FoundationStereo(ComputeStereoDepthMap):
         left_padded, right_padded = padder.pad(left_tensor, right_tensor)
 
         # Run inference
-        with torch.cuda.amp.autocast(self._mixed_precision):
-            if self._use_hierarchical:
+        with torch.cuda.amp.autocast(self._config['mixed_precision']):
+            if self._config['use_hierarchical']:
                 disp = self._model.run_hierachical(
                     left_padded, right_padded,
-                    iters=self._num_iters,
+                    iters=self._config['num_iters'],
                     test_mode=True,
-                    small_ratio=self._hierarchical_ratio
+                    small_ratio=self._config['hierarchical_ratio']
                 )
             else:
                 disp = self._model.forward(
                     left_padded, right_padded,
-                    iters=self._num_iters,
+                    iters=self._config['num_iters'],
                     test_mode=True,
-                    low_memory=self._low_memory
+                    low_memory=self._config['low_memory']
                 )
 
         # Unpad and convert to numpy
@@ -338,14 +324,14 @@ class FoundationStereo(ComputeStereoDepthMap):
         disp_npy = disp.data.cpu().numpy().reshape(H, W)
 
         # Handle invisible regions if requested
-        if self._remove_invisible:
+        if self._config['remove_invisible']:
             yy, xx = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
             us_right = xx - disp_npy
             invalid = us_right < 0
             disp_npy[invalid] = np.inf
 
         # Output based on mode
-        if self._output_mode == 'depth':
+        if self._config['output_mode'] == 'depth':
             # Compute depth: depth = focal_length * baseline / disparity
             safe_disp = np.where(disp_npy > 0, disp_npy, 1e-6)
             depth_npy = (self._focal_length * self._baseline) / safe_disp
