@@ -30,7 +30,6 @@ process measurer
     # Model variant: base or small (base is more accurate, small is faster)
     vit_size                                   = vits
     relativepath checkpoint_path               = models/stereo_s.pth
-    # Output type: disparity (default) or depth
     output_type                                = disparity
   endblock
 
