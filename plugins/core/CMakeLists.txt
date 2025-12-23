@@ -4,13 +4,12 @@ set( plugin_headers
   add_timestamp_from_filename.h
   auto_detect_transform.h
   convert_head_tail_points.h
+  convert_notes_to_attributes.h
   convert_polygons_to_mask.h
   detect_shot_breaks.h
-  write_disparity_maps.h
   empty_detector.h
   filename_to_timestamp.h
   measurement_utilities.h
-  convert_notes_to_attributes.h
   pair_stereo_detections.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
@@ -18,6 +17,7 @@ set( plugin_headers
   read_detected_object_set_viame_csv.h
   read_object_track_set_viame_csv.h
   write_detected_object_set_viame_csv.h
+  write_disparity_maps.h
   write_object_track_set_viame_csv.h
   )
 
@@ -25,13 +25,12 @@ set( plugin_sources
   add_timestamp_from_filename.cxx
   auto_detect_transform.cxx
   convert_head_tail_points.cxx
+  convert_notes_to_attributes.cxx
   convert_polygons_to_mask.cxx
   detect_shot_breaks.cxx
-  write_disparity_maps.cxx
   empty_detector.cxx
   filename_to_timestamp.cxx
   measurement_utilities.cxx
-  convert_notes_to_attributes.cxx
   pair_stereo_detections.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
@@ -39,6 +38,7 @@ set( plugin_sources
   read_detected_object_set_viame_csv.cxx
   read_object_track_set_viame_csv.cxx
   write_detected_object_set_viame_csv.cxx
+  write_disparity_maps.cxx
   write_object_track_set_viame_csv.cxx
   )
 
@@ -134,43 +134,43 @@ link_directories( ${Boost_LIBRARY_DIRS} )
 # Add process library
 set( process_headers
   accumulate_image_statistics_process.h
+  accumulate_object_tracks_process.h
   align_multimodal_imagery_process.h
-  extract_desc_ids_for_training_process.h
-  filter_frame_process.h
-  filter_frame_index_process.h
-  filter_object_tracks_process.h
-  stack_frames_process.h
+  calibrate_cameras_from_tracks_process.h
   detect_shot_breaks_process.h
+  extract_desc_ids_for_training_process.h
+  filter_frame_index_process.h
+  filter_frame_process.h
+  filter_object_tracks_process.h
   measure_objects_process.h
+  pair_stereo_detections_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
+  split_object_track_to_feature_landmark_process.h
+  stack_frames_process.h
   track_conductor_process.h
   write_homography_list_process.h
-  accumulate_object_tracks_process.h
-  split_object_track_to_feature_landmark_process.h
-  calibrate_cameras_from_tracks_process.h
-  pair_stereo_detections_process.h
 )
 
 set( process_sources
   register_processes.cxx
   accumulate_image_statistics_process.cxx
+  accumulate_object_tracks_process.cxx
   align_multimodal_imagery_process.cxx
-  extract_desc_ids_for_training_process.cxx
-  filter_frame_process.cxx
-  filter_frame_index_process.cxx
-  filter_object_tracks_process.cxx
-  stack_frames_process.cxx
+  calibrate_cameras_from_tracks_process.cxx
   detect_shot_breaks_process.cxx
+  extract_desc_ids_for_training_process.cxx
+  filter_frame_index_process.cxx
+  filter_frame_process.cxx
+  filter_object_tracks_process.cxx
   measure_objects_process.cxx
+  pair_stereo_detections_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
+  split_object_track_to_feature_landmark_process.cxx
+  stack_frames_process.cxx
   track_conductor_process.cxx
   write_homography_list_process.cxx
-  accumulate_object_tracks_process.cxx
-  split_object_track_to_feature_landmark_process.cxx
-  calibrate_cameras_from_tracks_process.cxx
-  pair_stereo_detections_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_core
