@@ -6,7 +6,7 @@
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
 
-#include "vxl_srm_image_formatter_process.h"
+#include "format_images_srm_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -26,9 +26,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // ---------------------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( viame::vxl::vxl_srm_image_formatter_process );
+  auto fact = vpm.ADD_PROCESS( viame::vxl::format_images_srm_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "format_srm_images" )
+                        "format_images_srm" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

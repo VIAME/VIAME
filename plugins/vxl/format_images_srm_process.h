@@ -7,8 +7,8 @@
  * \brief Format images in a way optimized for later IQR processing
  */
 
-#ifndef VIAME_VXL_SRM_IMAGE_FORMATTER_PROCESS_H
-#define VIAME_VXL_SRM_IMAGE_FORMATTER_PROCESS_H
+#ifndef VIAME_VXL_FORMAT_IMAGES_SRM_PROCESS_H
+#define VIAME_VXL_FORMAT_IMAGES_SRM_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -36,13 +36,13 @@ namespace vxl
  * way the current descktop GUI interface uses video-based KWA files for image
  * storage, to reduce disk usage and increase processing speeds.
  */
-class VIAME_PROCESSES_VXL_NO_EXPORT vxl_srm_image_formatter_process
+class VIAME_PROCESSES_VXL_NO_EXPORT format_images_srm_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  vxl_srm_image_formatter_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~vxl_srm_image_formatter_process();
+  format_images_srm_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~format_images_srm_process();
 
 protected:
   virtual void _configure();
@@ -55,9 +55,9 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class vxl_srm_image_formatter_process
+}; // end class format_images_srm_process
 
 } // end namespace vxl
 } // end namespace viame
 
-#endif // VIAME_VXL_SRM_IMAGE_FORMATTER_PROCESS_H
+#endif // VIAME_VXL_FORMAT_IMAGES_SRM_PROCESS_H

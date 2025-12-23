@@ -7,7 +7,7 @@
  * \brief Register multi-modal images.
  */
 
-#include "vxl_srm_image_formatter_process.h"
+#include "format_images_srm_process.h"
 
 #include <vital/vital_types.h>
 
@@ -59,7 +59,7 @@ create_config_trait( max_images_per_index, unsigned, "-1",
 
 //------------------------------------------------------------------------------
 // Private implementation class
-class vxl_srm_image_formatter_process::priv
+class format_images_srm_process::priv
 {
 public:
   priv();
@@ -93,25 +93,25 @@ public:
 
 // =============================================================================
 
-vxl_srm_image_formatter_process
-::vxl_srm_image_formatter_process( kwiver::vital::config_block_sptr const& config )
+format_images_srm_process
+::format_images_srm_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new vxl_srm_image_formatter_process::priv() )
+    d( new format_images_srm_process::priv() )
 {
   make_ports();
   make_config();
 }
 
 
-vxl_srm_image_formatter_process
-::~vxl_srm_image_formatter_process()
+format_images_srm_process
+::~format_images_srm_process()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 void
-vxl_srm_image_formatter_process
+format_images_srm_process
 ::_configure()
 {
   d->m_fix_output_size =
@@ -152,7 +152,7 @@ vxl_srm_image_formatter_process
 
 // -----------------------------------------------------------------------------
 template< typename PixType >
-void vxl_srm_image_formatter_process::priv
+void format_images_srm_process::priv
 ::filter( const vil_image_view< PixType >& raw_input,
           std::vector< vil_image_view< PixType > >& output )
 {
@@ -285,7 +285,7 @@ void vxl_srm_image_formatter_process::priv
 
 // -----------------------------------------------------------------------------
 void
-vxl_srm_image_formatter_process
+format_images_srm_process
 ::_step()
 {
   kwiver::vital::image_container_sptr input_image =
@@ -336,7 +336,7 @@ vxl_srm_image_formatter_process
 
 // -----------------------------------------------------------------------------
 void
-vxl_srm_image_formatter_process
+format_images_srm_process
 ::make_ports()
 {
   // Set up for required ports
@@ -357,7 +357,7 @@ vxl_srm_image_formatter_process
 
 // -----------------------------------------------------------------------------
 void
-vxl_srm_image_formatter_process
+format_images_srm_process
 ::make_config()
 {
   declare_config_using_trait( fix_output_size );
@@ -372,7 +372,7 @@ vxl_srm_image_formatter_process
 
 
 // =============================================================================
-vxl_srm_image_formatter_process::priv
+format_images_srm_process::priv
 ::priv()
   : m_max_input_width( 0 )
   , m_max_input_height( 0 )
@@ -382,7 +382,7 @@ vxl_srm_image_formatter_process::priv
 }
 
 
-vxl_srm_image_formatter_process::priv
+format_images_srm_process::priv
 ::~priv()
 {
 }
