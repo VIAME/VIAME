@@ -14,6 +14,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/feature.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/match_set.h>
@@ -54,7 +55,8 @@ create_config_trait( shot_break_method, std::string, "histogram",
   "'histogram' - Compare color histograms (good for lighting/color changes), "
   "'pixel_diff' - Compare mean absolute pixel difference (good for content changes), "
   "'combined' - Use histogram and pixel_diff methods together (most robust), "
-  "'feature' - Use feature point matching (best for camera motion/content tracking)." );
+  "'feature' - Use feature point matching (best for camera motion/content tracking), "
+  "'descriptor' - Use global frame descriptor comparison (good for semantic changes)." );
 
 create_config_trait( min_track_length, unsigned, "1",
   "Minimum number of frames before a shot break can trigger a new track. "
@@ -73,6 +75,11 @@ create_config_trait( feature_match_ratio, double, "0.3",
   "If the ratio falls below this threshold, a shot break is triggered. "
   "Only used if min_feature_matches is also not met." );
 
+create_config_trait( descriptor_distance_threshold, double, "0.5",
+  "Maximum normalized distance between frame descriptors before triggering a shot break. "
+  "Lower values are more sensitive to changes. The distance is normalized to 0-1 range "
+  "based on the descriptor type." );
+
 // =============================================================================
 // Private implementation class
 class full_frame_tracker_process::priv
@@ -89,6 +96,9 @@ public:
                                     const kv::image_container_sptr& img2 ) const;
   std::vector< double > compute_histogram( const kv::image_container_sptr& img ) const;
   bool detect_shot_break_features( const kv::image_container_sptr& current_image );
+  bool detect_shot_break_descriptor( const kv::image_container_sptr& current_image );
+  double compute_descriptor_distance( const kv::descriptor_sptr& desc1,
+                                       const kv::descriptor_sptr& desc2 ) const;
 
   // Configuration settings
   unsigned m_fixed_frame_count;
@@ -99,11 +109,15 @@ public:
   unsigned m_histogram_bins;
   unsigned m_min_feature_matches;
   double m_feature_match_ratio;
+  double m_descriptor_distance_threshold;
 
   // Feature matching algorithms
   kv::algo::detect_features_sptr m_feature_detector;
   kv::algo::extract_descriptors_sptr m_descriptor_extractor;
   kv::algo::match_features_sptr m_feature_matcher;
+
+  // Frame descriptor algorithm (for descriptor-based shot break)
+  kv::algo::extract_descriptors_sptr m_frame_descriptor_extractor;
 
   // Internal variables
   unsigned m_frame_counter;
@@ -117,6 +131,9 @@ public:
   // Feature-based shot break detection state
   kv::feature_set_sptr m_previous_features;
   kv::descriptor_set_sptr m_previous_descriptors;
+
+  // Descriptor-based shot break detection state
+  kv::descriptor_sptr m_previous_frame_descriptor;
 
   // Other variables
   full_frame_tracker_process* parent;
@@ -134,6 +151,7 @@ full_frame_tracker_process::priv
   , m_histogram_bins( 32 )
   , m_min_feature_matches( 20 )
   , m_feature_match_ratio( 0.3 )
+  , m_descriptor_distance_threshold( 0.5 )
   , m_frame_counter( 0 )
   , m_track_counter( 1 )
   , parent( ptr )
@@ -308,6 +326,34 @@ full_frame_tracker_process::priv
     return detect_shot_break_features( current_image );
   }
 
+  // Descriptor-based detection has its own handling
+  if( m_shot_break_method == "descriptor" )
+  {
+    // Check minimum track length
+    if( m_states.size() < m_min_track_length )
+    {
+      // Still need to update descriptor cache for first frames
+      if( m_frame_descriptor_extractor )
+      {
+        double cx = current_image->width() / 2.0;
+        double cy = current_image->height() / 2.0;
+        double scale = std::min( current_image->width(), current_image->height() ) / 2.0;
+        auto center_feature = std::make_shared< kv::feature_d >(
+          kv::vector_2d( cx, cy ), scale, 0.0 );
+        std::vector< kv::feature_sptr > feature_vec;
+        feature_vec.push_back( center_feature );
+        auto feature_set = std::make_shared< kv::simple_feature_set >( feature_vec );
+        auto desc_set = m_frame_descriptor_extractor->extract( current_image, feature_set );
+        if( desc_set && desc_set->size() > 0 )
+        {
+          m_previous_frame_descriptor = desc_set->descriptors()[0];
+        }
+      }
+      return false;
+    }
+    return detect_shot_break_descriptor( current_image );
+  }
+
   // Check minimum track length for other methods
   if( m_states.size() < m_min_track_length )
   {
@@ -471,6 +517,120 @@ full_frame_tracker_process::priv
   return is_shot_break;
 }
 
+// -----------------------------------------------------------------------------
+double
+full_frame_tracker_process::priv
+::compute_descriptor_distance( const kv::descriptor_sptr& desc1,
+                                const kv::descriptor_sptr& desc2 ) const
+{
+  if( !desc1 || !desc2 )
+  {
+    return 1.0; // Maximum distance if either descriptor is null
+  }
+
+  // Get descriptor data as doubles
+  std::vector< double > vec1 = desc1->as_double();
+  std::vector< double > vec2 = desc2->as_double();
+
+  if( vec1.empty() || vec2.empty() || vec1.size() != vec2.size() )
+  {
+    return 1.0; // Maximum distance if sizes don't match
+  }
+
+  // Compute L2 (Euclidean) distance
+  double sum_sq = 0.0;
+  double norm1_sq = 0.0;
+  double norm2_sq = 0.0;
+
+  for( size_t i = 0; i < vec1.size(); ++i )
+  {
+    double diff = vec1[i] - vec2[i];
+    sum_sq += diff * diff;
+    norm1_sq += vec1[i] * vec1[i];
+    norm2_sq += vec2[i] * vec2[i];
+  }
+
+  // Normalize distance to 0-1 range using cosine distance approach
+  // cosine_similarity = dot(v1, v2) / (norm(v1) * norm(v2))
+  // For normalized descriptors, we use: distance = sqrt(sum_sq) / sqrt(norm1_sq + norm2_sq)
+  double max_dist = std::sqrt( norm1_sq + norm2_sq );
+  if( max_dist > 0 )
+  {
+    return std::sqrt( sum_sq ) / max_dist;
+  }
+
+  return 0.0;
+}
+
+// -----------------------------------------------------------------------------
+bool
+full_frame_tracker_process::priv
+::detect_shot_break_descriptor( const kv::image_container_sptr& current_image )
+{
+  if( !current_image )
+  {
+    return false;
+  }
+
+  // Check if frame descriptor algorithm is configured
+  if( !m_frame_descriptor_extractor )
+  {
+    LOG_WARN( parent->logger(), "Descriptor-based shot break detection requires "
+              "'frame_descriptor_extractor' algorithm. Falling back to histogram method." );
+    return false;
+  }
+
+  // Create a single feature at the center of the image to extract a global descriptor
+  double cx = current_image->width() / 2.0;
+  double cy = current_image->height() / 2.0;
+  double scale = std::min( current_image->width(), current_image->height() ) / 2.0;
+
+  auto center_feature = std::make_shared< kv::feature_d >(
+    kv::vector_2d( cx, cy ), scale, 0.0 );
+
+  std::vector< kv::feature_sptr > feature_vec;
+  feature_vec.push_back( center_feature );
+  auto feature_set = std::make_shared< kv::simple_feature_set >( feature_vec );
+
+  // Extract descriptor for the center feature (should give global descriptor)
+  kv::descriptor_set_sptr desc_set =
+    m_frame_descriptor_extractor->extract( current_image, feature_set );
+
+  if( !desc_set || desc_set->size() == 0 )
+  {
+    LOG_WARN( parent->logger(), "Failed to extract frame descriptor" );
+    m_previous_frame_descriptor = nullptr;
+    return true; // Treat as shot break if we can't get a descriptor
+  }
+
+  kv::descriptor_sptr current_descriptor = desc_set->descriptors()[0];
+
+  // If no previous descriptor, this is the first frame
+  if( !m_previous_frame_descriptor )
+  {
+    m_previous_frame_descriptor = current_descriptor;
+    return false;
+  }
+
+  // Compute distance between descriptors
+  double distance = compute_descriptor_distance( m_previous_frame_descriptor, current_descriptor );
+
+  // Update cached descriptor
+  m_previous_frame_descriptor = current_descriptor;
+
+  // Check threshold
+  bool is_shot_break = ( distance >= m_descriptor_distance_threshold );
+
+  if( is_shot_break )
+  {
+    LOG_DEBUG( parent->logger(), "Descriptor-based shot break detected: distance "
+               << distance << " >= threshold " << m_descriptor_distance_threshold
+               << " (track had " << m_states.size() << " frames)" );
+  }
+
+  return is_shot_break;
+}
+
 
 // =============================================================================
 full_frame_tracker_process
@@ -523,6 +683,7 @@ full_frame_tracker_process
   declare_config_using_trait( histogram_bins );
   declare_config_using_trait( min_feature_matches );
   declare_config_using_trait( feature_match_ratio );
+  declare_config_using_trait( descriptor_distance_threshold );
 }
 
 // -----------------------------------------------------------------------------
@@ -538,6 +699,7 @@ full_frame_tracker_process
   d->m_histogram_bins = config_value_using_trait( histogram_bins );
   d->m_min_feature_matches = config_value_using_trait( min_feature_matches );
   d->m_feature_match_ratio = config_value_using_trait( feature_match_ratio );
+  d->m_descriptor_distance_threshold = config_value_using_trait( descriptor_distance_threshold );
 
   // Validate configuration
   if( d->m_shot_break_threshold < 0.0 || d->m_shot_break_threshold > 1.0 )
@@ -550,7 +712,8 @@ full_frame_tracker_process
   if( d->m_shot_break_method != "histogram" &&
       d->m_shot_break_method != "pixel_diff" &&
       d->m_shot_break_method != "combined" &&
-      d->m_shot_break_method != "feature" )
+      d->m_shot_break_method != "feature" &&
+      d->m_shot_break_method != "descriptor" )
   {
     LOG_WARN( logger(), "Invalid shot_break_method '" << d->m_shot_break_method
               << "', defaulting to 'histogram'" );
@@ -569,6 +732,13 @@ full_frame_tracker_process
     LOG_WARN( logger(), "feature_match_ratio should be between 0.0 and 1.0, "
               "clamping value " << d->m_feature_match_ratio );
     d->m_feature_match_ratio = std::max( 0.0, std::min( 1.0, d->m_feature_match_ratio ) );
+  }
+
+  if( d->m_descriptor_distance_threshold < 0.0 || d->m_descriptor_distance_threshold > 1.0 )
+  {
+    LOG_WARN( logger(), "descriptor_distance_threshold should be between 0.0 and 1.0, "
+              "clamping value " << d->m_descriptor_distance_threshold );
+    d->m_descriptor_distance_threshold = std::max( 0.0, std::min( 1.0, d->m_descriptor_distance_threshold ) );
   }
 
   // Set up feature matching algorithms if using feature-based method
@@ -600,6 +770,21 @@ full_frame_tracker_process
     }
   }
 
+  // Set up frame descriptor algorithm if using descriptor-based method
+  if( d->m_use_shot_break_detection && d->m_shot_break_method == "descriptor" )
+  {
+    kv::config_block_sptr algo_config = get_config();
+
+    kv::algo::extract_descriptors::set_nested_algo_configuration(
+      "frame_descriptor_extractor", algo_config, d->m_frame_descriptor_extractor );
+
+    if( !d->m_frame_descriptor_extractor )
+    {
+      LOG_ERROR( logger(), "Descriptor-based shot break detection requires "
+                 "'frame_descriptor_extractor' algorithm to be configured." );
+    }
+  }
+
   // Log configuration
   if( d->m_use_shot_break_detection )
   {
@@ -621,6 +806,10 @@ full_frame_tracker_process
     {
       LOG_INFO( logger(), "  Min feature matches: " << d->m_min_feature_matches );
       LOG_INFO( logger(), "  Feature match ratio: " << d->m_feature_match_ratio );
+    }
+    if( d->m_shot_break_method == "descriptor" )
+    {
+      LOG_INFO( logger(), "  Descriptor distance threshold: " << d->m_descriptor_distance_threshold );
     }
   }
 }
@@ -693,6 +882,8 @@ full_frame_tracker_process
       // (detect_shot_break_features will repopulate with current frame)
       d->m_previous_features = nullptr;
       d->m_previous_descriptors = nullptr;
+      // For descriptor method, clear cached frame descriptor
+      d->m_previous_frame_descriptor = nullptr;
       // Keep the current image as reference for the new track
     }
   }
