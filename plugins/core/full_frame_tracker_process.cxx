@@ -346,7 +346,8 @@ full_frame_tracker_process::priv
           kv::vector_2d( cx, cy ), scale, 0.0 );
         std::vector< kv::feature_sptr > feature_vec;
         feature_vec.push_back( center_feature );
-        auto feature_set = std::make_shared< kv::simple_feature_set >( feature_vec );
+        kv::feature_set_sptr feature_set =
+          std::make_shared< kv::simple_feature_set >( feature_vec );
         auto desc_set = m_frame_descriptor_extractor->extract( current_image, feature_set );
         if( desc_set && desc_set->size() > 0 )
         {
@@ -601,7 +602,8 @@ full_frame_tracker_process::priv
 
   std::vector< kv::feature_sptr > feature_vec;
   feature_vec.push_back( center_feature );
-  auto feature_set = std::make_shared< kv::simple_feature_set >( feature_vec );
+  kv::feature_set_sptr feature_set =
+    std::make_shared< kv::simple_feature_set >( feature_vec );
 
   // Extract descriptor for the center feature (should give global descriptor)
   kv::descriptor_set_sptr desc_set =
