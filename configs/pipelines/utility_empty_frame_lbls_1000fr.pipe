@@ -21,7 +21,7 @@ connect from downsampler.output_1
         to   detector.image
 
 process full_frame_tracker
-  :: track_full_frames
+  :: detect_shot_breaks
   :fixed_frame_count                           1000
 
 connect from downsampler.timestamp

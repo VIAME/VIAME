@@ -24,7 +24,7 @@ connect from in_adapt.image
 # ==================================================================================
 
 process full_frame_tracker
-  :: track_full_frames
+  :: detect_shot_breaks
   :fixed_frame_count                           1000
 
 connect from in_adapt.timestamp
