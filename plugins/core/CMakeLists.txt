@@ -146,7 +146,7 @@ set( process_headers
   pair_stereo_detections_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
-  split_object_track_to_feature_landmark_process.h
+  split_tracks_to_feature_landmarks_process.h
   stack_frames_process.h
   track_conductor_process.h
   write_homography_list_process.h
@@ -167,7 +167,7 @@ set( process_sources
   pair_stereo_detections_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
-  split_object_track_to_feature_landmark_process.cxx
+  split_tracks_to_feature_landmarks_process.cxx
   stack_frames_process.cxx
   track_conductor_process.cxx
   write_homography_list_process.cxx

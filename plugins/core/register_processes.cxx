@@ -21,7 +21,7 @@
 #include "accumulate_object_tracks_process.h"
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
-#include "split_object_track_to_feature_landmark_process.h"
+#include "split_tracks_to_feature_landmarks_process.h"
 #include "pair_stereo_detections_process.h"
 
 // -----------------------------------------------------------------------------
@@ -142,9 +142,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::split_object_track_to_feature_landmark_process );
+  fact = vpm.ADD_PROCESS( viame::core::split_tracks_to_feature_landmarks_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "split_object_track_to_feature_landmark" )
+                        "split_tracks_to_feature_landmarks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

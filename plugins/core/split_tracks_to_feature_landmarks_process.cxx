@@ -7,7 +7,7 @@
  * \brief Split an object track set into a feature_track_set and a landmark_map
  */
 
-#include "split_object_track_to_feature_landmark_process.h"
+#include "split_tracks_to_feature_landmarks_process.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/detected_object_set.h>
@@ -34,14 +34,14 @@ namespace core
 
 // =============================================================================
 // Private implementation class
-class split_object_track_to_feature_landmark_process::priv
+class split_tracks_to_feature_landmarks_process::priv
 {
 public:
-  explicit priv( split_object_track_to_feature_landmark_process* parent );
+  explicit priv( split_tracks_to_feature_landmarks_process* parent );
   ~priv();
 
   // Other variables
-  split_object_track_to_feature_landmark_process* parent;
+  split_tracks_to_feature_landmarks_process* parent;
   
   std::pair<std::string, float>
   get_attribut_value(const std::string& note)
@@ -66,38 +66,38 @@ public:
 
 
 // -----------------------------------------------------------------------------
-split_object_track_to_feature_landmark_process::priv
-::priv( split_object_track_to_feature_landmark_process* ptr )
+split_tracks_to_feature_landmarks_process::priv
+::priv( split_tracks_to_feature_landmarks_process* ptr )
   : parent( ptr )
 {
 }
 
 
-split_object_track_to_feature_landmark_process::priv
+split_tracks_to_feature_landmarks_process::priv
 ::~priv()
 {
 }
 
 
 // =============================================================================
-split_object_track_to_feature_landmark_process
-::split_object_track_to_feature_landmark_process( kv::config_block_sptr const& config )
+split_tracks_to_feature_landmarks_process
+::split_tracks_to_feature_landmarks_process( kv::config_block_sptr const& config )
   : process( config ),
-    d( new split_object_track_to_feature_landmark_process::priv( this ) )
+    d( new split_tracks_to_feature_landmarks_process::priv( this ) )
 {
   make_ports();
   make_config();
 }
 
 
-split_object_track_to_feature_landmark_process
-::~split_object_track_to_feature_landmark_process()
+split_tracks_to_feature_landmarks_process
+::~split_tracks_to_feature_landmarks_process()
 {
 }
 
 // -----------------------------------------------------------------------------
 void
-split_object_track_to_feature_landmark_process
+split_tracks_to_feature_landmarks_process
 ::make_ports()
 {
   // Set up for required ports
@@ -116,21 +116,21 @@ split_object_track_to_feature_landmark_process
 
 // -----------------------------------------------------------------------------
 void
-split_object_track_to_feature_landmark_process
+split_tracks_to_feature_landmarks_process
 ::make_config()
 {
 }
 
 // -----------------------------------------------------------------------------
 void
-split_object_track_to_feature_landmark_process
+split_tracks_to_feature_landmarks_process
 ::_configure()
 {
 }
 
 // -----------------------------------------------------------------------------
 void
-split_object_track_to_feature_landmark_process
+split_tracks_to_feature_landmarks_process
 ::_step()
 {
   kv::object_track_set_sptr object_track;

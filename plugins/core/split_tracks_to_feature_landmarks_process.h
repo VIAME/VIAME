@@ -7,8 +7,8 @@
  * \brief Split an object track set into a feature_track_set and a landmark_map
  */
 
-#ifndef VIAME_CORE_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H
-#define VIAME_CORE_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H
+#ifndef VIAME_CORE_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H
+#define VIAME_CORE_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -26,13 +26,13 @@ namespace core
 /**
  * @brief Split an object track set into a feature_track_set and a landmark_map
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT split_object_track_to_feature_landmark_process
+class VIAME_PROCESSES_CORE_NO_EXPORT split_tracks_to_feature_landmarks_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  split_object_track_to_feature_landmark_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~split_object_track_to_feature_landmark_process();
+  split_tracks_to_feature_landmarks_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~split_tracks_to_feature_landmarks_process();
 
 protected:
   virtual void _configure();
@@ -45,9 +45,9 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class split_object_track_to_feature_landmark_process
+}; // end class split_tracks_to_feature_landmarks_process
 
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_SPLIT_OBJECT_TRACK_TO_FEATURE_LANDMARK_PROCESS_H
+#endif // VIAME_CORE_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H
