@@ -221,6 +221,7 @@ set( CORE_PIPELINE_FILES
   utility_empty_frame_lbls_10fr.pipe
   utility_empty_frame_lbls_100fr.pipe
   utility_empty_frame_lbls_1000fr.pipe
+  utility_empty_frame_lbls_auto.pipe
   utility_enhance.pipe
   utility_extract_chips.pipe
   utility_link_detections_default.pipe
@@ -291,6 +292,7 @@ if( VIAME_ENABLE_VIVIA )
     embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_1000fr.pipe
+    embedded_single_stream/generate_empty_frame_lbls_auto.pipe
     embedded_single_stream/generic_proposal_detector.pipe
     embedded_single_stream/generic_proposal_tracker.pipe
     embedded_single_stream/local_deep_detector.pipe
