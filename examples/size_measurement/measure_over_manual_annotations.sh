@@ -7,4 +7,4 @@ export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/measurement_from_user_annotations.pipe
+kwiver runner ${VIAME_INSTALL}/configs/pipelines/measurement_from_annotations.pipe
