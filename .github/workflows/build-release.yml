@@ -49,6 +49,36 @@ jobs:
           # Run the build script
           docker exec viame_build /viame/cmake/build_server_rocky.sh
 
+      - name: Verify Linux build completed successfully
+        run: |
+          echo "Checking if build completed successfully..."
+
+          # Check that setup_viame.sh exists in the install directory
+          # The build script renames install to viame for packaging, so check both locations
+          if docker exec viame_build test -f /viame/build/install/setup_viame.sh; then
+            echo "SUCCESS: setup_viame.sh found in /viame/build/install/"
+          elif docker exec viame_build test -f /viame/build/viame/setup_viame.sh; then
+            echo "SUCCESS: setup_viame.sh found in /viame/build/viame/"
+          else
+            echo "ERROR: setup_viame.sh not found in install directory"
+            echo "Listing /viame/build/ contents:"
+            docker exec viame_build ls -la /viame/build/ || true
+            echo "Listing /viame/build/install/ contents (if exists):"
+            docker exec viame_build ls -la /viame/build/install/ 2>/dev/null || true
+            exit 1
+          fi
+
+          # Check that the tarball was created
+          if docker exec viame_build find /viame/build -name "VIAME-*-Linux-64Bit.tar.gz" | grep -q .; then
+            echo "SUCCESS: Linux tarball found"
+            docker exec viame_build find /viame/build -name "VIAME-*-Linux-64Bit.tar.gz"
+          else
+            echo "ERROR: Linux tarball not found"
+            exit 1
+          fi
+
+          echo "Linux build verification passed!"
+
       - name: Extract build artifacts
         run: |
           mkdir -p artifacts
@@ -194,6 +224,42 @@ jobs:
         working-directory: C:\VIAME-Builds\GPU
         run: |
           call cmake\build_server_windows.bat
+
+      - name: Verify Windows build completed successfully
+        shell: powershell
+        run: |
+          Write-Host "Checking if build completed successfully..."
+
+          $installPath = "C:\VIAME-Builds\GPU\build\install"
+          $viamePath = "C:\VIAME-Builds\GPU\build\VIAME"
+          $setupScript = "setup_viame.bat"
+
+          # Check that setup_viame.bat exists in the install directory
+          # The build script renames install to VIAME for packaging, so check both locations
+          if (Test-Path "$installPath\$setupScript") {
+            Write-Host "SUCCESS: $setupScript found in $installPath"
+          } elseif (Test-Path "$viamePath\$setupScript") {
+            Write-Host "SUCCESS: $setupScript found in $viamePath"
+          } else {
+            Write-Host "ERROR: $setupScript not found in install directory"
+            Write-Host "Listing C:\VIAME-Builds\GPU\build\ contents:"
+            Get-ChildItem -Path "C:\VIAME-Builds\GPU\build\" -ErrorAction SilentlyContinue | Format-Table Name, Length, LastWriteTime
+            Write-Host "Listing $installPath contents (if exists):"
+            Get-ChildItem -Path $installPath -ErrorAction SilentlyContinue | Format-Table Name, Length, LastWriteTime
+            exit 1
+          }
+
+          # Check that the zip file was created
+          $zipFiles = Get-ChildItem -Path "C:\VIAME-Builds\GPU\build\" -Filter "VIAME-*-Windows-64Bit.zip" -ErrorAction SilentlyContinue
+          if ($zipFiles) {
+            Write-Host "SUCCESS: Windows zip file found:"
+            $zipFiles | ForEach-Object { Write-Host $_.FullName }
+          } else {
+            Write-Host "ERROR: Windows zip file not found"
+            exit 1
+          }
+
+          Write-Host "Windows build verification passed!"
 
       - name: Get version from release notes
         id: version
