@@ -76,8 +76,7 @@ Script Configuration
 The ``summarize_and_index_videos`` script accepts several key parameters:
 
 - ``-d INPUT_DIRECTORY`` - Path to your video folder
-- ``-p pipelines/index_mouss.pipe`` - Detection/indexing pipeline to use
-- ``-plot-objects <species_list>`` - Comma-separated species names to plot
+- ``-p pipelines/index_default.pipe`` - Detection/indexing pipeline to use
 - ``-plot-threshold 0.25`` - Minimum detection confidence for plotting
 - ``-frate 2`` - Frame rate for processing (frames per second)
 - ``-plot-smooth 2`` - Smoothing factor for timeline plots
@@ -106,23 +105,15 @@ After processing, results are organized as:
 Pipeline Selection
 ------------------
 
-The default uses ``pipelines/index_mouss.pipe`` designed for MOUSS underwater
-camera systems. For other camera types, you may need to modify the pipeline
+The default uses ``pipelines/index_default.pipe`` which runs a generic fish
+detector. For other use cases, you may need to modify the pipeline
 or use a different pre-trained model.
 
 Available pipelines vary by installation but may include:
 
-- ``index_mouss.pipe`` - MOUSS bottom fish
-- ``index_habcam.pipe`` - HabCam scallop surveys
+- ``index_default.pipe`` - Default detection and indexing
+- ``index_fish.svm.pipe`` - Fish detection with SVM classifier
+- ``index_frame.pipe`` - Frame-level indexing
 - Custom pipelines for your specific use case
-
-
-Related Examples
-----------------
-
-- ``search_and_rapid_model_generation/`` - Similar search interface with model training
-- ``object_detection/`` - Running detectors on images and videos
-- ``scoring_and_evaluation/`` - Evaluating detection results
-
 
 
