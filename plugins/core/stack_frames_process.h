@@ -7,8 +7,8 @@
  * \brief Stack multiple frames together onto the same output
  */
 
-#ifndef VIAME_CORE_FRAME_STACKER_PROCESS_H
-#define VIAME_CORE_FRAME_STACKER_PROCESS_H
+#ifndef VIAME_CORE_STACK_FRAMES_PROCESS_H
+#define VIAME_CORE_STACK_FRAMES_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -31,13 +31,13 @@ namespace core
 /**
  * @brief Stack frames with some gap into one output image temporally.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT frame_stacker_process
+class VIAME_PROCESSES_CORE_NO_EXPORT stack_frames_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  frame_stacker_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~frame_stacker_process();
+  stack_frames_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~stack_frames_process();
 
 protected:
   virtual void _configure();
@@ -67,9 +67,9 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class frame_stacker_process
+}; // end class stack_frames_process
 
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_FRAME_STACKER_PROCESS_H
+#endif // VIAME_CORE_STACK_FRAMES_PROCESS_H

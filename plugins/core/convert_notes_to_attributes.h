@@ -7,8 +7,8 @@
  * \brief Helper functions for dealing with notes and attributes in viame csvs
  */
 
-#ifndef VIAME_CORE_NOTES_TO_ATTRIBUTES_H
-#define VIAME_CORE_NOTES_TO_ATTRIBUTES_H
+#ifndef VIAME_CORE_CONVERT_NOTES_TO_ATTRIBUTES_H
+#define VIAME_CORE_CONVERT_NOTES_TO_ATTRIBUTES_H
 
 #include <plugins/core/viame_core_export.h>
 
@@ -34,4 +34,4 @@ add_attributes_to_detection( kwiver::vital::detected_object& detection,
 
 } // end namespace
 
-#endif // VIAME_CORE_NOTES_TO_ATTRIBUTES_H
+#endif // VIAME_CORE_CONVERT_NOTES_TO_ATTRIBUTES_H

@@ -2,7 +2,7 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include "notes_to_attributes.h"
+#include "convert_notes_to_attributes.h"
 
 #include <vital/util/tokenize.h>
 

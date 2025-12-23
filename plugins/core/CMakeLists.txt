@@ -10,7 +10,7 @@ set( plugin_headers
   empty_detector.h
   filename_to_timestamp.h
   measurement_utilities.h
-  notes_to_attributes.h
+  convert_notes_to_attributes.h
   pair_stereo_detections.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
@@ -31,7 +31,7 @@ set( plugin_sources
   empty_detector.cxx
   filename_to_timestamp.cxx
   measurement_utilities.cxx
-  notes_to_attributes.cxx
+  convert_notes_to_attributes.cxx
   pair_stereo_detections.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
@@ -139,7 +139,7 @@ set( process_headers
   filter_frame_process.h
   filter_frame_index_process.h
   filter_object_tracks_process.h
-  frame_stacker_process.h
+  stack_frames_process.h
   detect_shot_breaks_process.h
   measure_objects_process.h
   read_habcam_metadata_process.h
@@ -160,7 +160,7 @@ set( process_sources
   filter_frame_process.cxx
   filter_frame_index_process.cxx
   filter_object_tracks_process.cxx
-  frame_stacker_process.cxx
+  stack_frames_process.cxx
   detect_shot_breaks_process.cxx
   measure_objects_process.cxx
   read_habcam_metadata_process.cxx
@@ -197,9 +197,9 @@ if( VIAME_ENABLE_PYTHON )
   kwiver_create_python_init( arrows/core )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/npy_image_normalization.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_npy.py
     arrows/core
-    npy_image_normalization )
+    normalize_image_npy )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py

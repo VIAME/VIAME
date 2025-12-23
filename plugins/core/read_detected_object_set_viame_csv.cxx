@@ -9,7 +9,7 @@
 
 #include "read_detected_object_set_viame_csv.h"
 
-#include "notes_to_attributes.h"
+#include "convert_notes_to_attributes.h"
 #include "convert_polygons_to_mask.h"
 
 #include <vital/util/tokenize.h>

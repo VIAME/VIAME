@@ -17,7 +17,7 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include "notes_to_attributes.h"
+#include "convert_notes_to_attributes.h"
 
 
 namespace kv = kwiver::vital;

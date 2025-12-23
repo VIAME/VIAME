@@ -7,7 +7,7 @@
  * \brief Stack frames with some gap into one output image temporally.
  */
 
-#include "frame_stacker_process.h"
+#include "stack_frames_process.h"
 
 #include <vital/vital_types.h>
 
@@ -34,7 +34,7 @@ create_config_trait( target_time_gap, unsigned, "10",
 
 //------------------------------------------------------------------------------
 // Private implementation class
-class frame_stacker_process::priv
+class stack_frames_process::priv
 {
 public:
   priv();
@@ -50,25 +50,25 @@ public:
 
 // =============================================================================
 
-frame_stacker_process
-::frame_stacker_process( kwiver::vital::config_block_sptr const& config )
+stack_frames_process
+::stack_frames_process( kwiver::vital::config_block_sptr const& config )
   : process( config )
-  , d( new frame_stacker_process::priv() )
+  , d( new stack_frames_process::priv() )
 {
   make_ports();
   make_config();
 }
 
 
-frame_stacker_process
-::~frame_stacker_process()
+stack_frames_process
+::~stack_frames_process()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 void
-frame_stacker_process
+stack_frames_process
 ::_configure()
 {
   d->m_target_frame_gap =
@@ -80,7 +80,7 @@ frame_stacker_process
 
 // -----------------------------------------------------------------------------
 void
-frame_stacker_process
+stack_frames_process
 ::_step()
 {
 }
@@ -88,7 +88,7 @@ frame_stacker_process
 
 // -----------------------------------------------------------------------------
 void
-frame_stacker_process
+stack_frames_process
 ::make_ports()
 {
   // Set up for required ports
@@ -108,7 +108,7 @@ frame_stacker_process
 
 // -----------------------------------------------------------------------------
 void
-frame_stacker_process
+stack_frames_process
 ::make_config()
 {
   declare_config_using_trait( target_time_gap );
@@ -117,13 +117,13 @@ frame_stacker_process
 
 
 // =============================================================================
-frame_stacker_process::priv
+stack_frames_process::priv
 ::priv()
 {
 }
 
 
-frame_stacker_process::priv
+stack_frames_process::priv
 ::~priv()
 {
 }
