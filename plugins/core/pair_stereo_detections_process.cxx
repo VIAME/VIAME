@@ -8,6 +8,7 @@
  */
 
 #include "pair_stereo_detections_process.h"
+#include "pair_stereo_detections.h"
 #include "measurement_utilities.h"
 
 #include <vital/vital_types.h>
@@ -138,57 +139,11 @@ public:
   explicit priv( pair_stereo_detections_process* parent );
   ~priv();
 
-  // Compute reprojection error for a pair of points
-  double compute_reprojection_error(
-    const kv::simple_camera_perspective& left_cam,
-    const kv::simple_camera_perspective& right_cam,
-    const kv::vector_2d& left_point,
-    const kv::vector_2d& right_point ) const;
-
-  // Find matches using IOU method
-  std::vector< std::pair< int, int > > find_matches_iou(
-    const std::vector< kv::detected_object_sptr >& detections1,
-    const std::vector< kv::detected_object_sptr >& detections2 );
-
-  // Find matches using calibration method
-  std::vector< std::pair< int, int > > find_matches_calibration(
-    const std::vector< kv::detected_object_sptr >& detections1,
-    const std::vector< kv::detected_object_sptr >& detections2 );
-
-  // Find matches using feature matching method
-  std::vector< std::pair< int, int > > find_matches_feature(
-    const std::vector< kv::detected_object_sptr >& detections1,
-    const std::vector< kv::detected_object_sptr >& detections2,
-    const kv::image_container_sptr& image1,
-    const kv::image_container_sptr& image2 );
-
-  // Compute feature match score between two detection boxes
-  // Returns a score where lower is better (like a cost), or infinity if no valid match
-  double compute_feature_match_score(
-    const kv::detected_object_sptr& det1,
-    const kv::detected_object_sptr& det2,
-    const kv::image_container_sptr& image1,
-    const kv::image_container_sptr& image2 );
-
-  // Extract features within a bounding box region
-  void extract_box_features(
-    const kv::image_container_sptr& image,
-    const kv::bounding_box_d& bbox,
-    kv::feature_set_sptr& features,
-    kv::descriptor_set_sptr& descriptors );
-
-  // Filter matches by homography estimation and return inlier correspondences
-  std::vector< stereo_feature_correspondence > filter_matches_by_homography(
-    const kv::feature_set_sptr& features1,
-    const kv::feature_set_sptr& features2,
-    const kv::match_set_sptr& matches );
-
-  // Compute feature matches and return inlier correspondences for head/tail computation
-  std::vector< stereo_feature_correspondence > compute_feature_correspondences(
-    const kv::detected_object_sptr& det1,
-    const kv::detected_object_sptr& det2,
-    const kv::image_container_sptr& image1,
-    const kv::image_container_sptr& image2 );
+  // Build option structs from configuration
+  iou_matching_options get_iou_options() const;
+  calibration_matching_options get_calibration_options() const;
+  feature_matching_options get_feature_options() const;
+  feature_matching_algorithms get_feature_algorithms() const;
 
   // Configuration values
   std::string m_matching_method;
@@ -256,724 +211,58 @@ pair_stereo_detections_process::priv
 }
 
 // -----------------------------------------------------------------------------
-double
+iou_matching_options
 pair_stereo_detections_process::priv
-::compute_reprojection_error(
-  const kv::simple_camera_perspective& left_cam,
-  const kv::simple_camera_perspective& right_cam,
-  const kv::vector_2d& left_point,
-  const kv::vector_2d& right_point ) const
+::get_iou_options() const
 {
-  // Triangulate the point
-  kv::vector_3d point_3d = triangulate_point(
-    left_cam, right_cam, left_point, right_point );
-
-  // Check if point is in front of both cameras (positive Z in camera coordinates)
-  kv::vector_3d left_cam_point = left_cam.rotation() * ( point_3d - left_cam.center() );
-  kv::vector_3d right_cam_point = right_cam.rotation() * ( point_3d - right_cam.center() );
-
-  if( left_cam_point.z() <= 0 || right_cam_point.z() <= 0 )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  // Reproject to both cameras
-  kv::vector_2d left_reproj = left_cam.project( point_3d );
-  kv::vector_2d right_reproj = right_cam.project( point_3d );
-
-  // Compute reprojection error
-  double left_err_sq = ( left_reproj - left_point ).squaredNorm();
-  double right_err_sq = ( right_reproj - right_point ).squaredNorm();
-
-  // Return RMS error
-  return std::sqrt( ( left_err_sq + right_err_sq ) / 2.0 );
+  iou_matching_options options;
+  options.iou_threshold = m_iou_threshold;
+  options.require_class_match = m_require_class_match;
+  options.use_optimal_assignment = m_use_optimal_assignment;
+  return options;
 }
 
 // -----------------------------------------------------------------------------
-std::vector< std::pair< int, int > >
+calibration_matching_options
 pair_stereo_detections_process::priv
-::find_matches_iou(
-  const std::vector< kv::detected_object_sptr >& detections1,
-  const std::vector< kv::detected_object_sptr >& detections2 )
+::get_calibration_options() const
 {
-  int n1 = static_cast< int >( detections1.size() );
-  int n2 = static_cast< int >( detections2.size() );
-
-  if( n1 == 0 || n2 == 0 )
-  {
-    return std::vector< std::pair< int, int > >();
-  }
-
-  // Build cost matrix (1 - IOU, so lower is better)
-  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
-
-  for( int i = 0; i < n1; ++i )
-  {
-    const auto& det1 = detections1[i];
-    std::string class1 = get_detection_class_label( det1 );
-
-    for( int j = 0; j < n2; ++j )
-    {
-      const auto& det2 = detections2[j];
-
-      // Check class match if required
-      if( m_require_class_match )
-      {
-        std::string class2 = get_detection_class_label( det2 );
-        if( class1 != class2 )
-        {
-          continue;
-        }
-      }
-
-      // Compute IOU
-      double iou = compute_iou( det1->bounding_box(), det2->bounding_box() );
-
-      // Check threshold
-      if( iou >= m_iou_threshold )
-      {
-        // Use 1 - IOU as cost (lower is better)
-        cost_matrix[i][j] = 1.0 - iou;
-      }
-    }
-  }
-
-  // Find optimal assignment
-  if( m_use_optimal_assignment )
-  {
-    return greedy_assignment( cost_matrix, n1, n2 );
-  }
-  else
-  {
-    // Simple sequential matching
-    std::vector< std::pair< int, int > > matches;
-    std::set< int > used_j;
-
-    for( int i = 0; i < n1; ++i )
-    {
-      int best_j = -1;
-      double best_cost = 1e10;
-
-      for( int j = 0; j < n2; ++j )
-      {
-        if( used_j.find( j ) != used_j.end() )
-        {
-          continue;
-        }
-
-        if( cost_matrix[i][j] < best_cost )
-        {
-          best_cost = cost_matrix[i][j];
-          best_j = j;
-        }
-      }
-
-      if( best_j >= 0 && best_cost < 1e9 )
-      {
-        matches.push_back( std::make_pair( i, best_j ) );
-        used_j.insert( best_j );
-      }
-    }
-
-    return matches;
-  }
+  calibration_matching_options options;
+  options.max_reprojection_error = m_max_reprojection_error;
+  options.default_depth = m_default_depth;
+  options.require_class_match = m_require_class_match;
+  options.use_optimal_assignment = m_use_optimal_assignment;
+  return options;
 }
 
 // -----------------------------------------------------------------------------
-std::vector< std::pair< int, int > >
+feature_matching_options
 pair_stereo_detections_process::priv
-::find_matches_calibration(
-  const std::vector< kv::detected_object_sptr >& detections1,
-  const std::vector< kv::detected_object_sptr >& detections2 )
+::get_feature_options() const
 {
-  int n1 = static_cast< int >( detections1.size() );
-  int n2 = static_cast< int >( detections2.size() );
-
-  if( n1 == 0 || n2 == 0 )
-  {
-    return std::vector< std::pair< int, int > >();
-  }
-
-  if( !m_calibration || !m_calibration->left() || !m_calibration->right() )
-  {
-    LOG_ERROR( parent->logger(), "Calibration not loaded for calibration matching method" );
-    return std::vector< std::pair< int, int > >();
-  }
-
-  // Get camera references
-  const kv::simple_camera_perspective& left_cam =
-    dynamic_cast< const kv::simple_camera_perspective& >( *( m_calibration->left() ) );
-  const kv::simple_camera_perspective& right_cam =
-    dynamic_cast< const kv::simple_camera_perspective& >( *( m_calibration->right() ) );
-
-  // Build cost matrix using reprojection error
-  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
-
-  for( int i = 0; i < n1; ++i )
-  {
-    const auto& det1 = detections1[i];
-    std::string class1 = get_detection_class_label( det1 );
-
-    // Get left detection center
-    const auto& bbox1 = det1->bounding_box();
-    if( !bbox1.is_valid() )
-    {
-      continue;
-    }
-    kv::vector_2d left_center = bbox1.center();
-
-    // Project left center to right camera at default depth
-    kv::vector_2d expected_right = project_left_to_right(
-      left_cam, right_cam, left_center, m_default_depth );
-
-    for( int j = 0; j < n2; ++j )
-    {
-      const auto& det2 = detections2[j];
-
-      // Check class match if required
-      if( m_require_class_match )
-      {
-        std::string class2 = get_detection_class_label( det2 );
-        if( class1 != class2 )
-        {
-          continue;
-        }
-      }
-
-      // Get right detection center
-      const auto& bbox2 = det2->bounding_box();
-      if( !bbox2.is_valid() )
-      {
-        continue;
-      }
-      kv::vector_2d right_center = bbox2.center();
-
-      // Quick check: is the right detection center reasonably close to expected position?
-      // This is a heuristic to avoid expensive triangulation for obviously bad matches
-      double expected_dist = ( right_center - expected_right ).norm();
-      double search_radius = std::max( bbox1.width(), bbox1.height() ) * 2.0;
-      if( expected_dist > search_radius )
-      {
-        continue;
-      }
-
-      // Compute reprojection error by triangulating the centers
-      double reproj_error = compute_reprojection_error(
-        left_cam, right_cam, left_center, right_center );
-
-      // Check threshold
-      if( reproj_error < m_max_reprojection_error )
-      {
-        cost_matrix[i][j] = reproj_error;
-      }
-    }
-  }
-
-  // Find optimal assignment
-  if( m_use_optimal_assignment )
-  {
-    return greedy_assignment( cost_matrix, n1, n2 );
-  }
-  else
-  {
-    // Simple sequential matching
-    std::vector< std::pair< int, int > > matches;
-    std::set< int > used_j;
-
-    for( int i = 0; i < n1; ++i )
-    {
-      int best_j = -1;
-      double best_cost = 1e10;
-
-      for( int j = 0; j < n2; ++j )
-      {
-        if( used_j.find( j ) != used_j.end() )
-        {
-          continue;
-        }
-
-        if( cost_matrix[i][j] < best_cost )
-        {
-          best_cost = cost_matrix[i][j];
-          best_j = j;
-        }
-      }
-
-      if( best_j >= 0 && best_cost < 1e9 )
-      {
-        matches.push_back( std::make_pair( i, best_j ) );
-        used_j.insert( best_j );
-      }
-    }
-
-    return matches;
-  }
+  feature_matching_options options;
+  options.min_feature_match_count = m_min_feature_match_count;
+  options.min_feature_match_ratio = m_min_feature_match_ratio;
+  options.use_homography_filtering = m_use_homography_filtering;
+  options.homography_inlier_threshold = m_homography_inlier_threshold;
+  options.min_homography_inlier_ratio = m_min_homography_inlier_ratio;
+  options.box_expansion_factor = m_box_expansion_factor;
+  options.require_class_match = m_require_class_match;
+  options.use_optimal_assignment = m_use_optimal_assignment;
+  return options;
 }
 
 // -----------------------------------------------------------------------------
-void
+feature_matching_algorithms
 pair_stereo_detections_process::priv
-::extract_box_features(
-  const kv::image_container_sptr& image,
-  const kv::bounding_box_d& bbox,
-  kv::feature_set_sptr& features,
-  kv::descriptor_set_sptr& descriptors )
+::get_feature_algorithms() const
 {
-  features = nullptr;
-  descriptors = nullptr;
-
-  if( !image || !m_feature_detector || !m_descriptor_extractor )
-  {
-    return;
-  }
-
-  // Expand the bounding box
-  double cx = bbox.center().x();
-  double cy = bbox.center().y();
-  double w = bbox.width() * m_box_expansion_factor;
-  double h = bbox.height() * m_box_expansion_factor;
-
-  // Clamp to image bounds
-  double img_w = static_cast< double >( image->width() );
-  double img_h = static_cast< double >( image->height() );
-
-  double x1 = std::max( 0.0, cx - w / 2.0 );
-  double y1 = std::max( 0.0, cy - h / 2.0 );
-  double x2 = std::min( img_w, cx + w / 2.0 );
-  double y2 = std::min( img_h, cy + h / 2.0 );
-
-  if( x2 <= x1 || y2 <= y1 )
-  {
-    return;
-  }
-
-  // Crop image to the bounding box region
-  kv::image_of< uint8_t > cropped_img(
-    static_cast< size_t >( x2 - x1 ),
-    static_cast< size_t >( y2 - y1 ),
-    image->depth() );
-
-  const kv::image& src_img = image->get_image();
-
-  for( size_t dy = 0; dy < cropped_img.height(); ++dy )
-  {
-    for( size_t dx = 0; dx < cropped_img.width(); ++dx )
-    {
-      size_t sx = static_cast< size_t >( x1 ) + dx;
-      size_t sy = static_cast< size_t >( y1 ) + dy;
-
-      for( size_t c = 0; c < cropped_img.depth(); ++c )
-      {
-        cropped_img( dx, dy, c ) = src_img.at< uint8_t >( sx, sy, c );
-      }
-    }
-  }
-
-  auto cropped_container = std::make_shared< kv::simple_image_container >( cropped_img );
-
-  // Detect features in the cropped region
-  auto local_features = m_feature_detector->detect( cropped_container );
-
-  if( !local_features || local_features->size() == 0 )
-  {
-    return;
-  }
-
-  // Offset feature locations back to full image coordinates
-  std::vector< kv::feature_sptr > offset_features;
-  for( const auto& feat : local_features->features() )
-  {
-    // Get original feature properties
-    kv::vector_2d loc = feat->loc();
-    loc.x() += x1;
-    loc.y() += y1;
-
-    // Create new feature with offset location
-    auto new_feat = std::make_shared< kv::feature_d >(
-      loc, feat->magnitude(), feat->scale(), feat->angle(), feat->color() );
-    offset_features.push_back( new_feat );
-  }
-
-  features = std::make_shared< kv::simple_feature_set >( offset_features );
-
-  // Extract descriptors
-  descriptors = m_descriptor_extractor->extract( cropped_container, local_features );
-}
-
-// -----------------------------------------------------------------------------
-std::vector< stereo_feature_correspondence >
-pair_stereo_detections_process::priv
-::filter_matches_by_homography(
-  const kv::feature_set_sptr& features1,
-  const kv::feature_set_sptr& features2,
-  const kv::match_set_sptr& matches )
-{
-  std::vector< stereo_feature_correspondence > inlier_correspondences;
-
-  if( !m_homography_estimator || !matches || matches->size() < 4 )
-  {
-    // Not enough matches for homography estimation, return all matches as correspondences
-    if( matches )
-    {
-      auto feat1_vec = features1->features();
-      auto feat2_vec = features2->features();
-      auto match_vec = matches->matches();
-
-      for( const auto& m : match_vec )
-      {
-        if( m.first < feat1_vec.size() && m.second < feat2_vec.size() )
-        {
-          stereo_feature_correspondence corr;
-          corr.left_point = feat1_vec[m.first]->loc();
-          corr.right_point = feat2_vec[m.second]->loc();
-          inlier_correspondences.push_back( corr );
-        }
-      }
-    }
-    return inlier_correspondences;
-  }
-
-  // Convert matches to point vectors for homography estimation
-  std::vector< kv::vector_2d > pts1, pts2;
-  auto feat1_vec = features1->features();
-  auto feat2_vec = features2->features();
-  auto match_vec = matches->matches();
-
-  for( const auto& m : match_vec )
-  {
-    if( m.first < feat1_vec.size() && m.second < feat2_vec.size() )
-    {
-      pts1.push_back( feat1_vec[m.first]->loc() );
-      pts2.push_back( feat2_vec[m.second]->loc() );
-    }
-  }
-
-  if( pts1.size() < 4 )
-  {
-    // Return all as correspondences if not enough for homography
-    for( size_t i = 0; i < pts1.size(); ++i )
-    {
-      stereo_feature_correspondence corr;
-      corr.left_point = pts1[i];
-      corr.right_point = pts2[i];
-      inlier_correspondences.push_back( corr );
-    }
-    return inlier_correspondences;
-  }
-
-  // Estimate homography using RANSAC
-  std::vector< bool > inliers;
-  try
-  {
-    auto homography = m_homography_estimator->estimate( pts1, pts2, inliers,
-                                                         m_homography_inlier_threshold );
-
-    if( !homography )
-    {
-      return inlier_correspondences; // Return empty
-    }
-
-    // Collect inlier correspondences
-    for( size_t i = 0; i < inliers.size() && i < pts1.size(); ++i )
-    {
-      if( inliers[i] )
-      {
-        stereo_feature_correspondence corr;
-        corr.left_point = pts1[i];
-        corr.right_point = pts2[i];
-        inlier_correspondences.push_back( corr );
-      }
-    }
-
-    return inlier_correspondences;
-  }
-  catch( const std::exception& e )
-  {
-    LOG_DEBUG( parent->logger(), "Homography estimation failed: " << e.what() );
-    return inlier_correspondences; // Return empty
-  }
-}
-
-// -----------------------------------------------------------------------------
-std::vector< stereo_feature_correspondence >
-pair_stereo_detections_process::priv
-::compute_feature_correspondences(
-  const kv::detected_object_sptr& det1,
-  const kv::detected_object_sptr& det2,
-  const kv::image_container_sptr& image1,
-  const kv::image_container_sptr& image2 )
-{
-  std::vector< stereo_feature_correspondence > result;
-
-  if( !det1 || !det2 || !image1 || !image2 )
-  {
-    return result;
-  }
-
-  const auto& bbox1 = det1->bounding_box();
-  const auto& bbox2 = det2->bounding_box();
-
-  if( !bbox1.is_valid() || !bbox2.is_valid() )
-  {
-    return result;
-  }
-
-  // Extract features from both detection regions
-  kv::feature_set_sptr features1, features2;
-  kv::descriptor_set_sptr descriptors1, descriptors2;
-
-  extract_box_features( image1, bbox1, features1, descriptors1 );
-  extract_box_features( image2, bbox2, features2, descriptors2 );
-
-  if( !features1 || !features2 || !descriptors1 || !descriptors2 )
-  {
-    return result;
-  }
-
-  if( features1->size() == 0 || features2->size() == 0 )
-  {
-    return result;
-  }
-
-  // Match features
-  if( !m_feature_matcher )
-  {
-    return result;
-  }
-
-  auto matches = m_feature_matcher->match( features1, descriptors1,
-                                           features2, descriptors2 );
-
-  if( !matches || matches->size() == 0 )
-  {
-    return result;
-  }
-
-  // Filter by homography and get inlier correspondences
-  if( m_use_homography_filtering && m_homography_estimator )
-  {
-    result = filter_matches_by_homography( features1, features2, matches );
-  }
-  else
-  {
-    // No filtering, convert all matches to correspondences
-    auto feat1_vec = features1->features();
-    auto feat2_vec = features2->features();
-    auto match_vec = matches->matches();
-
-    for( const auto& m : match_vec )
-    {
-      if( m.first < feat1_vec.size() && m.second < feat2_vec.size() )
-      {
-        stereo_feature_correspondence corr;
-        corr.left_point = feat1_vec[m.first]->loc();
-        corr.right_point = feat2_vec[m.second]->loc();
-        result.push_back( corr );
-      }
-    }
-  }
-
-  return result;
-}
-
-// -----------------------------------------------------------------------------
-double
-pair_stereo_detections_process::priv
-::compute_feature_match_score(
-  const kv::detected_object_sptr& det1,
-  const kv::detected_object_sptr& det2,
-  const kv::image_container_sptr& image1,
-  const kv::image_container_sptr& image2 )
-{
-  if( !det1 || !det2 || !image1 || !image2 )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  const auto& bbox1 = det1->bounding_box();
-  const auto& bbox2 = det2->bounding_box();
-
-  if( !bbox1.is_valid() || !bbox2.is_valid() )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  // Extract features from both detection regions
-  kv::feature_set_sptr features1, features2;
-  kv::descriptor_set_sptr descriptors1, descriptors2;
-
-  extract_box_features( image1, bbox1, features1, descriptors1 );
-  extract_box_features( image2, bbox2, features2, descriptors2 );
-
-  if( !features1 || !features2 || !descriptors1 || !descriptors2 )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  int num_features1 = static_cast< int >( features1->size() );
-  int num_features2 = static_cast< int >( features2->size() );
-
-  if( num_features1 == 0 || num_features2 == 0 )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  // Match features
-  if( !m_feature_matcher )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  auto matches = m_feature_matcher->match( features1, descriptors1,
-                                           features2, descriptors2 );
-
-  if( !matches || matches->size() == 0 )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  int match_count = static_cast< int >( matches->size() );
-
-  // Check minimum match count
-  if( match_count < m_min_feature_match_count )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  // Check minimum match ratio
-  double match_ratio = static_cast< double >( match_count ) /
-                       static_cast< double >( num_features1 );
-
-  if( match_ratio < m_min_feature_match_ratio )
-  {
-    return std::numeric_limits< double >::infinity();
-  }
-
-  // Optionally filter by homography
-  int inlier_count = match_count;
-  if( m_use_homography_filtering && m_homography_estimator )
-  {
-    auto inlier_correspondences = filter_matches_by_homography( features1, features2, matches );
-    inlier_count = static_cast< int >( inlier_correspondences.size() );
-
-    // Check minimum inlier ratio
-    double inlier_ratio = static_cast< double >( inlier_count ) /
-                          static_cast< double >( match_count );
-
-    if( inlier_ratio < m_min_homography_inlier_ratio )
-    {
-      return std::numeric_limits< double >::infinity();
-    }
-  }
-
-  // Compute score: lower is better
-  // Use 1 - inlier_ratio so that higher inlier ratio gives lower cost
-  double inlier_ratio = static_cast< double >( inlier_count ) /
-                        static_cast< double >( std::max( num_features1, num_features2 ) );
-
-  return 1.0 - inlier_ratio;
-}
-
-// -----------------------------------------------------------------------------
-std::vector< std::pair< int, int > >
-pair_stereo_detections_process::priv
-::find_matches_feature(
-  const std::vector< kv::detected_object_sptr >& detections1,
-  const std::vector< kv::detected_object_sptr >& detections2,
-  const kv::image_container_sptr& image1,
-  const kv::image_container_sptr& image2 )
-{
-  int n1 = static_cast< int >( detections1.size() );
-  int n2 = static_cast< int >( detections2.size() );
-
-  if( n1 == 0 || n2 == 0 )
-  {
-    return std::vector< std::pair< int, int > >();
-  }
-
-  if( !image1 || !image2 )
-  {
-    LOG_ERROR( parent->logger(), "Images not provided for feature matching method" );
-    return std::vector< std::pair< int, int > >();
-  }
-
-  if( !m_feature_detector || !m_descriptor_extractor || !m_feature_matcher )
-  {
-    LOG_ERROR( parent->logger(), "Feature algorithms not configured for feature matching method" );
-    return std::vector< std::pair< int, int > >();
-  }
-
-  // Build cost matrix using feature match scores
-  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
-
-  for( int i = 0; i < n1; ++i )
-  {
-    const auto& det1 = detections1[i];
-    std::string class1 = get_detection_class_label( det1 );
-
-    for( int j = 0; j < n2; ++j )
-    {
-      const auto& det2 = detections2[j];
-
-      // Check class match if required
-      if( m_require_class_match )
-      {
-        std::string class2 = get_detection_class_label( det2 );
-        if( class1 != class2 )
-        {
-          continue;
-        }
-      }
-
-      // Compute feature match score
-      double score = compute_feature_match_score( det1, det2, image1, image2 );
-
-      if( std::isfinite( score ) )
-      {
-        cost_matrix[i][j] = score;
-      }
-    }
-  }
-
-  // Find optimal assignment
-  if( m_use_optimal_assignment )
-  {
-    return greedy_assignment( cost_matrix, n1, n2 );
-  }
-  else
-  {
-    // Simple sequential matching
-    std::vector< std::pair< int, int > > matches;
-    std::set< int > used_j;
-
-    for( int i = 0; i < n1; ++i )
-    {
-      int best_j = -1;
-      double best_cost = 1e10;
-
-      for( int j = 0; j < n2; ++j )
-      {
-        if( used_j.find( j ) != used_j.end() )
-        {
-          continue;
-        }
-
-        if( cost_matrix[i][j] < best_cost )
-        {
-          best_cost = cost_matrix[i][j];
-          best_j = j;
-        }
-      }
-
-      if( best_j >= 0 && best_cost < 1e9 )
-      {
-        matches.push_back( std::make_pair( i, best_j ) );
-        used_j.insert( best_j );
-      }
-    }
-
-    return matches;
-  }
+  feature_matching_algorithms algorithms;
+  algorithms.feature_detector = m_feature_detector;
+  algorithms.descriptor_extractor = m_descriptor_extractor;
+  algorithms.feature_matcher = m_feature_matcher;
+  algorithms.homography_estimator = m_homography_estimator;
+  return algorithms;
 }
 
 // =============================================================================
@@ -1315,15 +604,29 @@ pair_stereo_detections_process
   std::vector< std::pair< int, int > > matches;
   if( d->m_matching_method == "iou" )
   {
-    matches = d->find_matches_iou( detections1, detections2 );
+    matches = find_stereo_matches_iou( detections1, detections2, d->get_iou_options() );
   }
   else if( d->m_matching_method == "calibration" )
   {
-    matches = d->find_matches_calibration( detections1, detections2 );
+    if( !d->m_calibration || !d->m_calibration->left() || !d->m_calibration->right() )
+    {
+      LOG_ERROR( logger(), "Calibration not loaded for calibration matching method" );
+    }
+    else
+    {
+      const kv::simple_camera_perspective& left_cam =
+        dynamic_cast< const kv::simple_camera_perspective& >( *( d->m_calibration->left() ) );
+      const kv::simple_camera_perspective& right_cam =
+        dynamic_cast< const kv::simple_camera_perspective& >( *( d->m_calibration->right() ) );
+
+      matches = find_stereo_matches_calibration( detections1, detections2,
+        left_cam, right_cam, d->get_calibration_options(), logger() );
+    }
   }
   else // feature_matching
   {
-    matches = d->find_matches_feature( detections1, detections2, image1, image2 );
+    matches = find_stereo_matches_feature( detections1, detections2, image1, image2,
+      d->get_feature_algorithms(), d->get_feature_options(), logger() );
   }
 
   LOG_DEBUG( logger(), "Frame " << timestamp.get_frame()
@@ -1349,8 +652,9 @@ pair_stereo_detections_process
     if( d->m_compute_head_tail_points && image1 && image2 )
     {
       // Get feature correspondences with outlier rejection
-      auto correspondences = d->compute_feature_correspondences(
-        detections1[i1], detections2[i2], image1, image2 );
+      auto correspondences = compute_detection_feature_correspondences(
+        detections1[i1], detections2[i2], image1, image2,
+        d->get_feature_algorithms(), d->get_feature_options(), logger() );
 
       if( static_cast< int >( correspondences.size() ) >= d->m_min_inliers_for_head_tail )
       {

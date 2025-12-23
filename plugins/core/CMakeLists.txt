@@ -10,6 +10,7 @@ set( plugin_headers
   filename_to_timestamp.h
   measurement_utilities.h
   notes_to_attributes.h
+  pair_stereo_detections.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
   read_detected_object_set_oceaneyes.h
@@ -29,6 +30,7 @@ set( plugin_sources
   filename_to_timestamp.cxx
   measurement_utilities.cxx
   notes_to_attributes.cxx
+  pair_stereo_detections.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
   read_detected_object_set_oceaneyes.cxx
