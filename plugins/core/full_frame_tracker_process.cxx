@@ -60,7 +60,11 @@ create_config_trait( shot_break_method, std::string, "histogram",
 
 create_config_trait( min_track_length, unsigned, "1",
   "Minimum number of frames before a shot break can trigger a new track. "
-  "Prevents very short tracks from being created." );
+  "Prevents very short tracks from being created. Applies to all shot break methods." );
+
+create_config_trait( max_track_length, unsigned, "0",
+  "Maximum number of frames in a track before forcing a shot break. "
+  "Set to 0 to disable maximum length enforcement. Applies to all shot break methods." );
 
 create_config_trait( histogram_bins, unsigned, "32",
   "Number of bins per channel for histogram comparison. "
@@ -106,6 +110,7 @@ public:
   double m_shot_break_threshold;
   std::string m_shot_break_method;
   unsigned m_min_track_length;
+  unsigned m_max_track_length;
   unsigned m_histogram_bins;
   unsigned m_min_feature_matches;
   double m_feature_match_ratio;
@@ -148,6 +153,7 @@ full_frame_tracker_process::priv
   , m_shot_break_threshold( 0.3 )
   , m_shot_break_method( "histogram" )
   , m_min_track_length( 1 )
+  , m_max_track_length( 0 )
   , m_histogram_bins( 32 )
   , m_min_feature_matches( 20 )
   , m_feature_match_ratio( 0.3 )
@@ -305,13 +311,20 @@ full_frame_tracker_process::priv
     return false;
   }
 
-  // Feature-based detection has its own min track length check
-  if( m_shot_break_method == "feature" )
+  // Check maximum track length first - force shot break if exceeded
+  if( m_max_track_length > 0 && m_states.size() >= m_max_track_length )
   {
-    // Check minimum track length
-    if( m_states.size() < m_min_track_length )
+    LOG_DEBUG( parent->logger(), "Maximum track length reached ("
+               << m_max_track_length << " frames), forcing shot break" );
+    return true;
+  }
+
+  // Check minimum track length - no shot break allowed yet, but update caches
+  if( m_states.size() < m_min_track_length )
+  {
+    // Update caches for the appropriate method
+    if( m_shot_break_method == "feature" )
     {
-      // Still need to update feature cache for first frames
       if( m_feature_detector && m_descriptor_extractor )
       {
         m_previous_features = m_feature_detector->detect( current_image );
@@ -321,18 +334,9 @@ full_frame_tracker_process::priv
             current_image, m_previous_features );
         }
       }
-      return false;
     }
-    return detect_shot_break_features( current_image );
-  }
-
-  // Descriptor-based detection has its own handling
-  if( m_shot_break_method == "descriptor" )
-  {
-    // Check minimum track length
-    if( m_states.size() < m_min_track_length )
+    else if( m_shot_break_method == "descriptor" )
     {
-      // Still need to update descriptor cache for first frames
       if( m_frame_descriptor_extractor )
       {
         double cx = current_image->width() / 2.0;
@@ -349,18 +353,25 @@ full_frame_tracker_process::priv
           m_previous_frame_descriptor = desc_set->descriptors()[0];
         }
       }
-      return false;
     }
-    return detect_shot_break_descriptor( current_image );
+    else
+    {
+      // histogram, pixel_diff, or combined methods
+      m_previous_image = current_image;
+      m_previous_histogram = compute_histogram( current_image );
+    }
+    return false;
   }
 
-  // Check minimum track length for other methods
-  if( m_states.size() < m_min_track_length )
+  // Dispatch to method-specific detection
+  if( m_shot_break_method == "feature" )
   {
-    // Update previous image for next comparison
-    m_previous_image = current_image;
-    m_previous_histogram = compute_histogram( current_image );
-    return false;
+    return detect_shot_break_features( current_image );
+  }
+
+  if( m_shot_break_method == "descriptor" )
+  {
+    return detect_shot_break_descriptor( current_image );
   }
 
   // If no previous image, this is the first frame - no shot break
@@ -680,6 +691,7 @@ full_frame_tracker_process
   declare_config_using_trait( shot_break_threshold );
   declare_config_using_trait( shot_break_method );
   declare_config_using_trait( min_track_length );
+  declare_config_using_trait( max_track_length );
   declare_config_using_trait( histogram_bins );
   declare_config_using_trait( min_feature_matches );
   declare_config_using_trait( feature_match_ratio );
@@ -696,6 +708,7 @@ full_frame_tracker_process
   d->m_shot_break_threshold = config_value_using_trait( shot_break_threshold );
   d->m_shot_break_method = config_value_using_trait( shot_break_method );
   d->m_min_track_length = config_value_using_trait( min_track_length );
+  d->m_max_track_length = config_value_using_trait( max_track_length );
   d->m_histogram_bins = config_value_using_trait( histogram_bins );
   d->m_min_feature_matches = config_value_using_trait( min_feature_matches );
   d->m_feature_match_ratio = config_value_using_trait( feature_match_ratio );
@@ -718,6 +731,15 @@ full_frame_tracker_process
     LOG_WARN( logger(), "Invalid shot_break_method '" << d->m_shot_break_method
               << "', defaulting to 'histogram'" );
     d->m_shot_break_method = "histogram";
+  }
+
+  // Validate min/max track length consistency
+  if( d->m_max_track_length > 0 && d->m_max_track_length < d->m_min_track_length )
+  {
+    LOG_WARN( logger(), "max_track_length (" << d->m_max_track_length
+              << ") is less than min_track_length (" << d->m_min_track_length
+              << "), setting max_track_length to min_track_length" );
+    d->m_max_track_length = d->m_min_track_length;
   }
 
   if( d->m_histogram_bins < 4 || d->m_histogram_bins > 256 )
@@ -791,6 +813,14 @@ full_frame_tracker_process
     LOG_INFO( logger(), "Shot break detection enabled:" );
     LOG_INFO( logger(), "  Method: " << d->m_shot_break_method );
     LOG_INFO( logger(), "  Min track length: " << d->m_min_track_length );
+    if( d->m_max_track_length > 0 )
+    {
+      LOG_INFO( logger(), "  Max track length: " << d->m_max_track_length );
+    }
+    else
+    {
+      LOG_INFO( logger(), "  Max track length: unlimited" );
+    }
 
     if( d->m_shot_break_method == "histogram" ||
         d->m_shot_break_method == "pixel_diff" ||
