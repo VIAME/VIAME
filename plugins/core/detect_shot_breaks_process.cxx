@@ -4,10 +4,11 @@
 
 /**
  * \file
- * \brief Consolidate the output of multiple object trackers
+ * \brief Detect shot breaks and create tracks for each shot
  */
 
-#include "full_frame_tracker_process.h"
+#include "detect_shot_breaks_process.h"
+#include "detect_shot_breaks.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/image_container.h>
@@ -86,23 +87,16 @@ create_config_trait( descriptor_distance_threshold, double, "0.5",
 
 // =============================================================================
 // Private implementation class
-class full_frame_tracker_process::priv
+class detect_shot_breaks_process::priv
 {
 public:
-  explicit priv( full_frame_tracker_process* parent );
+  explicit priv( detect_shot_breaks_process* parent );
   ~priv();
 
   // Shot break detection methods
   bool detect_shot_break( const kv::image_container_sptr& current_image );
-  double compute_histogram_difference( const kv::image_container_sptr& img1,
-                                        const kv::image_container_sptr& img2 ) const;
-  double compute_pixel_difference( const kv::image_container_sptr& img1,
-                                    const kv::image_container_sptr& img2 ) const;
-  std::vector< double > compute_histogram( const kv::image_container_sptr& img ) const;
   bool detect_shot_break_features( const kv::image_container_sptr& current_image );
   bool detect_shot_break_descriptor( const kv::image_container_sptr& current_image );
-  double compute_descriptor_distance( const kv::descriptor_sptr& desc1,
-                                       const kv::descriptor_sptr& desc2 ) const;
 
   // Configuration settings
   unsigned m_fixed_frame_count;
@@ -141,13 +135,13 @@ public:
   kv::descriptor_sptr m_previous_frame_descriptor;
 
   // Other variables
-  full_frame_tracker_process* parent;
+  detect_shot_breaks_process* parent;
 };
 
 
 // -----------------------------------------------------------------------------
-full_frame_tracker_process::priv
-::priv( full_frame_tracker_process* ptr )
+detect_shot_breaks_process::priv
+::priv( detect_shot_breaks_process* ptr )
   : m_fixed_frame_count( 0 )
   , m_use_shot_break_detection( false )
   , m_shot_break_threshold( 0.3 )
@@ -165,145 +159,14 @@ full_frame_tracker_process::priv
 }
 
 // -----------------------------------------------------------------------------
-full_frame_tracker_process::priv
+detect_shot_breaks_process::priv
 ::~priv()
 {
 }
 
 // -----------------------------------------------------------------------------
-std::vector< double >
-full_frame_tracker_process::priv
-::compute_histogram( const kv::image_container_sptr& img ) const
-{
-  if( !img )
-  {
-    return std::vector< double >();
-  }
-
-  const kv::image& image = img->get_image();
-  size_t width = image.width();
-  size_t height = image.height();
-  size_t depth = image.depth();
-
-  // Create histogram bins for each channel
-  size_t total_bins = m_histogram_bins * depth;
-  std::vector< double > histogram( total_bins, 0.0 );
-
-  // Sample pixels (use stride for large images to improve performance)
-  size_t stride = std::max( size_t( 1 ), std::min( width, height ) / 100 );
-  size_t sample_count = 0;
-
-  for( size_t y = 0; y < height; y += stride )
-  {
-    for( size_t x = 0; x < width; x += stride )
-    {
-      for( size_t c = 0; c < depth; ++c )
-      {
-        uint8_t pixel_val = image.at< uint8_t >( x, y, c );
-        size_t bin = static_cast< size_t >( pixel_val ) * m_histogram_bins / 256;
-        bin = std::min( bin, static_cast< size_t >( m_histogram_bins - 1 ) );
-        histogram[c * m_histogram_bins + bin] += 1.0;
-      }
-      sample_count++;
-    }
-  }
-
-  // Normalize histogram
-  if( sample_count > 0 )
-  {
-    for( auto& val : histogram )
-    {
-      val /= static_cast< double >( sample_count );
-    }
-  }
-
-  return histogram;
-}
-
-// -----------------------------------------------------------------------------
-double
-full_frame_tracker_process::priv
-::compute_histogram_difference( const kv::image_container_sptr& img1,
-                                 const kv::image_container_sptr& img2 ) const
-{
-  auto hist1 = compute_histogram( img1 );
-  auto hist2 = compute_histogram( img2 );
-
-  if( hist1.empty() || hist2.empty() || hist1.size() != hist2.size() )
-  {
-    return 0.0;
-  }
-
-  // Compute histogram intersection (similarity measure)
-  // Intersection = sum of min values, result is 0-1 where 1 = identical
-  double intersection = 0.0;
-  for( size_t i = 0; i < hist1.size(); ++i )
-  {
-    intersection += std::min( hist1[i], hist2[i] );
-  }
-
-  // Convert to difference (0 = identical, 1 = completely different)
-  return 1.0 - intersection;
-}
-
-// -----------------------------------------------------------------------------
-double
-full_frame_tracker_process::priv
-::compute_pixel_difference( const kv::image_container_sptr& img1,
-                             const kv::image_container_sptr& img2 ) const
-{
-  if( !img1 || !img2 )
-  {
-    return 0.0;
-  }
-
-  const kv::image& image1 = img1->get_image();
-  const kv::image& image2 = img2->get_image();
-
-  // Check dimensions match
-  if( image1.width() != image2.width() ||
-      image1.height() != image2.height() ||
-      image1.depth() != image2.depth() )
-  {
-    // Different dimensions = scene change
-    return 1.0;
-  }
-
-  size_t width = image1.width();
-  size_t height = image1.height();
-  size_t depth = image1.depth();
-
-  // Sample pixels (use stride for large images to improve performance)
-  size_t stride = std::max( size_t( 1 ), std::min( width, height ) / 100 );
-  double total_diff = 0.0;
-  size_t sample_count = 0;
-
-  for( size_t y = 0; y < height; y += stride )
-  {
-    for( size_t x = 0; x < width; x += stride )
-    {
-      for( size_t c = 0; c < depth; ++c )
-      {
-        int val1 = static_cast< int >( image1.at< uint8_t >( x, y, c ) );
-        int val2 = static_cast< int >( image2.at< uint8_t >( x, y, c ) );
-        total_diff += std::abs( val1 - val2 );
-      }
-      sample_count++;
-    }
-  }
-
-  // Normalize to 0-1 range (max difference is 255 per channel)
-  if( sample_count > 0 && depth > 0 )
-  {
-    return total_diff / ( sample_count * depth * 255.0 );
-  }
-
-  return 0.0;
-}
-
-// -----------------------------------------------------------------------------
 bool
-full_frame_tracker_process::priv
+detect_shot_breaks_process::priv
 ::detect_shot_break( const kv::image_container_sptr& current_image )
 {
   if( !current_image || !m_use_shot_break_detection )
@@ -359,7 +222,7 @@ full_frame_tracker_process::priv
     {
       // histogram, pixel_diff, or combined methods
       m_previous_image = current_image;
-      m_previous_histogram = compute_histogram( current_image );
+      m_previous_histogram = compute_image_histogram( current_image, m_histogram_bins );
     }
     return false;
   }
@@ -379,7 +242,7 @@ full_frame_tracker_process::priv
   if( !m_previous_image )
   {
     m_previous_image = current_image;
-    m_previous_histogram = compute_histogram( current_image );
+    m_previous_histogram = compute_image_histogram( current_image, m_histogram_bins );
     return false;
   }
 
@@ -388,7 +251,7 @@ full_frame_tracker_process::priv
   if( m_shot_break_method == "histogram" )
   {
     // Use cached histogram if available for efficiency
-    std::vector< double > current_hist = compute_histogram( current_image );
+    std::vector< double > current_hist = compute_image_histogram( current_image, m_histogram_bins );
 
     if( !m_previous_histogram.empty() && !current_hist.empty() &&
         m_previous_histogram.size() == current_hist.size() )
@@ -410,14 +273,14 @@ full_frame_tracker_process::priv
   }
   else // combined
   {
-    double hist_diff = compute_histogram_difference( m_previous_image, current_image );
+    double hist_diff = compute_histogram_difference( m_previous_image, current_image, m_histogram_bins );
     double pixel_diff = compute_pixel_difference( m_previous_image, current_image );
 
     // Use maximum of both methods
     change_score = std::max( hist_diff, pixel_diff );
 
     // Update cached histogram for next frame
-    m_previous_histogram = compute_histogram( current_image );
+    m_previous_histogram = compute_image_histogram( current_image, m_histogram_bins );
   }
 
   // Update previous image reference
@@ -438,7 +301,7 @@ full_frame_tracker_process::priv
 
 // -----------------------------------------------------------------------------
 bool
-full_frame_tracker_process::priv
+detect_shot_breaks_process::priv
 ::detect_shot_break_features( const kv::image_container_sptr& current_image )
 {
   if( !current_image )
@@ -530,53 +393,8 @@ full_frame_tracker_process::priv
 }
 
 // -----------------------------------------------------------------------------
-double
-full_frame_tracker_process::priv
-::compute_descriptor_distance( const kv::descriptor_sptr& desc1,
-                                const kv::descriptor_sptr& desc2 ) const
-{
-  if( !desc1 || !desc2 )
-  {
-    return 1.0; // Maximum distance if either descriptor is null
-  }
-
-  // Get descriptor data as doubles
-  std::vector< double > vec1 = desc1->as_double();
-  std::vector< double > vec2 = desc2->as_double();
-
-  if( vec1.empty() || vec2.empty() || vec1.size() != vec2.size() )
-  {
-    return 1.0; // Maximum distance if sizes don't match
-  }
-
-  // Compute L2 (Euclidean) distance
-  double sum_sq = 0.0;
-  double norm1_sq = 0.0;
-  double norm2_sq = 0.0;
-
-  for( size_t i = 0; i < vec1.size(); ++i )
-  {
-    double diff = vec1[i] - vec2[i];
-    sum_sq += diff * diff;
-    norm1_sq += vec1[i] * vec1[i];
-    norm2_sq += vec2[i] * vec2[i];
-  }
-
-  // Normalize distance to 0-1 range using cosine distance approach
-  // cosine_similarity = dot(v1, v2) / (norm(v1) * norm(v2))
-  // For normalized descriptors, we use: distance = sqrt(sum_sq) / sqrt(norm1_sq + norm2_sq)
-  double max_dist = std::sqrt( norm1_sq + norm2_sq );
-  if( max_dist > 0 )
-  {
-    return std::sqrt( sum_sq ) / max_dist;
-  }
-
-  return 0.0;
-}
-
-// -----------------------------------------------------------------------------
 bool
-full_frame_tracker_process::priv
+detect_shot_breaks_process::priv
 ::detect_shot_break_descriptor( const kv::image_container_sptr& current_image )
 {
   if( !current_image )
@@ -646,25 +464,25 @@ full_frame_tracker_process::priv
 
 
 // =============================================================================
-full_frame_tracker_process
-::full_frame_tracker_process( kv::config_block_sptr const& config )
+detect_shot_breaks_process
+::detect_shot_breaks_process( kv::config_block_sptr const& config )
   : process( config ),
-    d( new full_frame_tracker_process::priv( this ) )
+    d( new detect_shot_breaks_process::priv( this ) )
 {
   make_ports();
   make_config();
 }
 
 
-full_frame_tracker_process
-::~full_frame_tracker_process()
+detect_shot_breaks_process
+::~detect_shot_breaks_process()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 void
-full_frame_tracker_process
+detect_shot_breaks_process
 ::make_ports()
 {
   // Set up for required ports
@@ -685,7 +503,7 @@ full_frame_tracker_process
 
 // -----------------------------------------------------------------------------
 void
-full_frame_tracker_process
+detect_shot_breaks_process
 ::make_config()
 {
   declare_config_using_trait( fixed_frame_count );
@@ -702,7 +520,7 @@ full_frame_tracker_process
 
 // -----------------------------------------------------------------------------
 void
-full_frame_tracker_process
+detect_shot_breaks_process
 ::_configure()
 {
   d->m_fixed_frame_count = config_value_using_trait( fixed_frame_count );
@@ -848,7 +666,7 @@ full_frame_tracker_process
 
 // -----------------------------------------------------------------------------
 void
-full_frame_tracker_process
+detect_shot_breaks_process
 ::_step()
 {
   kv::image_container_sptr image;

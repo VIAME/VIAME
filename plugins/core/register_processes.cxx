@@ -12,7 +12,7 @@
 #include "filter_frame_process.h"
 #include "filter_object_tracks_process.h"
 #include "frame_stacker_process.h"
-#include "full_frame_tracker_process.h"
+#include "detect_shot_breaks_process.h"
 #include "measure_objects_process.h"
 #include "read_habcam_metadata_process.h"
 #include "refine_measurements_process.h"
@@ -102,13 +102,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::full_frame_tracker_process );
+  fact = vpm.ADD_PROCESS( viame::core::detect_shot_breaks_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "track_full_frames" )
+                        "detect_shot_breaks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Generate tracks covering entire input frames" )
+                    "Detect shot breaks and create tracks for each shot" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
   

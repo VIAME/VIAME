@@ -5,6 +5,7 @@ set( plugin_headers
   auto_detect_transform.h
   convert_head_tail_points.h
   convert_polygons_to_mask.h
+  detect_shot_breaks.h
   write_disparity_maps.h
   empty_detector.h
   filename_to_timestamp.h
@@ -25,6 +26,7 @@ set( plugin_sources
   auto_detect_transform.cxx
   convert_head_tail_points.cxx
   convert_polygons_to_mask.cxx
+  detect_shot_breaks.cxx
   write_disparity_maps.cxx
   empty_detector.cxx
   filename_to_timestamp.cxx
@@ -138,7 +140,7 @@ set( process_headers
   filter_frame_index_process.h
   filter_object_tracks_process.h
   frame_stacker_process.h
-  full_frame_tracker_process.h
+  detect_shot_breaks_process.h
   measure_objects_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
@@ -159,7 +161,7 @@ set( process_sources
   filter_frame_index_process.cxx
   filter_object_tracks_process.cxx
   frame_stacker_process.cxx
-  full_frame_tracker_process.cxx
+  detect_shot_breaks_process.cxx
   measure_objects_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx

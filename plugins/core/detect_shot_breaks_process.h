@@ -4,11 +4,11 @@
 
 /**
  * \file
- * \brief Link full frame detections into full frame tracks
+ * \brief Detect shot breaks and create tracks for each shot
  */
 
-#ifndef VIAME_CORE_FULL_FRAME_TRACKER_PROCESS_H
-#define VIAME_CORE_FULL_FRAME_TRACKER_PROCESS_H
+#ifndef VIAME_CORE_DETECT_SHOT_BREAKS_PROCESS_H
+#define VIAME_CORE_DETECT_SHOT_BREAKS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -24,15 +24,15 @@ namespace core
 
 // -----------------------------------------------------------------------------
 /**
- * @brief Link full frame detections into full frame tracks
+ * @brief Detect shot breaks and create tracks for each shot
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT full_frame_tracker_process
+class VIAME_PROCESSES_CORE_NO_EXPORT detect_shot_breaks_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  full_frame_tracker_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~full_frame_tracker_process();
+  detect_shot_breaks_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~detect_shot_breaks_process();
 
 protected:
   virtual void _configure();
@@ -45,9 +45,9 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class full_frame_tracker_process
+}; // end class detect_shot_breaks_process
 
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_FULL_FRAME_TRACKER_PROCESS_H
+#endif // VIAME_CORE_DETECT_SHOT_BREAKS_PROCESS_H
