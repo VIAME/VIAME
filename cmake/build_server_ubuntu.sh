@@ -29,8 +29,8 @@ source ./viame/cmake/linux_add_internal_py36_paths.sh
 
 # Configure VIAME using cache presets
 cmake ../ \
-  -C ../cmake/viame_cmake_base.cmake \
-  -C ../cmake/viame_cmake_desktop.cmake \
+  -C ../cmake/build_cmake_base.cmake \
+  -C ../cmake/build_cmake_desktop.cmake \
   -DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=ON
 
 # Build VIAME, pipe output to file

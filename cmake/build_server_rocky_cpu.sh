@@ -36,9 +36,9 @@ setup_build_environment $VIAME_INSTALL_DIR "" "3.10"
 
 # Configure VIAME using cache presets
 cmake ../ \
-  -C ../cmake/viame_cmake_base.cmake \
-  -C ../cmake/viame_cmake_desktop.cmake \
-  -C ../cmake/viame_cmake_cpu.cmake
+  -C ../cmake/build_cmake_base.cmake \
+  -C ../cmake/build_cmake_desktop.cmake \
+  -C ../cmake/build_cmake_cpu.cmake
 
 # Build VIAME and setup libraries, pipe output to file
 run_build_and_setup_libraries > build_log.txt 2>&1

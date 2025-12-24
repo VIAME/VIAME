@@ -49,8 +49,8 @@ setup_build_environment $VIAME_INSTALL_DIR "" "3.10"
 echo "Beginning VIAME CMake configuration"
 
 cmake ../ \
-  -C ../cmake/viame_cmake_base.cmake \
-  -C ../cmake/viame_cmake_desktop.cmake \
+  -C ../cmake/build_cmake_base.cmake \
+  -C ../cmake/build_cmake_desktop.cmake \
   -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
   -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
   -DVIAME_ENABLE_PYTORCH-ULTRALYTICS:BOOL=OFF

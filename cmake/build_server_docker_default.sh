@@ -24,8 +24,8 @@ setup_basic_build_environment /viame/build/install /usr/local/cuda
 
 # Configure VIAME using cache presets
 cmake ../ \
-  -C ../cmake/viame_cmake_base.cmake \
-  -C ../cmake/viame_cmake_docker.cmake \
+  -C ../cmake/build_cmake_base.cmake \
+  -C ../cmake/build_cmake_docker.cmake \
   -DVIAME_ENABLE_KWANT:BOOL=ON \
   -DVIAME_ENABLE_LEARN:BOOL=ON \
   -DVIAME_ENABLE_ONNX:BOOL=ON \

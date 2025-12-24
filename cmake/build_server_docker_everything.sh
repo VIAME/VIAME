@@ -25,8 +25,8 @@ setup_basic_build_environment /viame/build/install /usr/local/cuda
 
 # Configure VIAME using cache presets with additional features
 cmake ../ \
-  -C ../cmake/viame_cmake_base.cmake \
-  -C ../cmake/viame_cmake_docker.cmake \
+  -C ../cmake/build_cmake_base.cmake \
+  -C ../cmake/build_cmake_docker.cmake \
   -DVIAME_ENABLE_BURNOUT:BOOL=ON \
   -DVIAME_ENABLE_ITK:BOOL=ON \
   -DVIAME_ENABLE_KWANT:BOOL=ON \
