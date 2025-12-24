@@ -1,0 +1,332 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-linux:
+    name: Build Linux Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 720  # 12 hours - VIAME builds take a long time
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false  # We handle submodules in the build script
+
+      - name: Free disk space
+        run: |
+          # Remove unnecessary files to free up disk space
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h
+
+      - name: Set up Docker
+        run: |
+          # Ensure docker is available
+          docker --version
+
+      - name: Build in Rocky Linux container
+        run: |
+          # Pull the Rocky Linux CUDA image
+          docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux9
+
+          # Start container (no GPU runtime needed for compilation)
+          docker run -td --name viame_build nvidia/cuda:12.6.3-cudnn-devel-rockylinux9 bash
+
+          # Copy source into container
+          docker cp . viame_build:/viame/
+
+          # Make build script executable
+          docker exec viame_build chmod +x /viame/cmake/build_server_rocky.sh
+
+          # Run the build script
+          docker exec viame_build /viame/cmake/build_server_rocky.sh
+
+      - name: Verify Linux build completed successfully
+        run: |
+          echo "Checking if build completed successfully..."
+
+          # Check that setup_viame.sh exists in the install directory
+          # The build script renames install to viame for packaging, so check both locations
+          if docker exec viame_build test -f /viame/build/install/setup_viame.sh; then
+            echo "SUCCESS: setup_viame.sh found in /viame/build/install/"
+          elif docker exec viame_build test -f /viame/build/viame/setup_viame.sh; then
+            echo "SUCCESS: setup_viame.sh found in /viame/build/viame/"
+          else
+            echo "ERROR: setup_viame.sh not found in install directory"
+            echo "Listing /viame/build/ contents:"
+            docker exec viame_build ls -la /viame/build/ || true
+            echo "Listing /viame/build/install/ contents (if exists):"
+            docker exec viame_build ls -la /viame/build/install/ 2>/dev/null || true
+            exit 1
+          fi
+
+          # Check that the tarball was created
+          if docker exec viame_build find /viame/build -name "VIAME-*-Linux-64Bit.tar.gz" | grep -q .; then
+            echo "SUCCESS: Linux tarball found"
+            docker exec viame_build find /viame/build -name "VIAME-*-Linux-64Bit.tar.gz"
+          else
+            echo "ERROR: Linux tarball not found"
+            exit 1
+          fi
+
+          echo "Linux build verification passed!"
+
+      - name: Extract build artifacts
+        run: |
+          mkdir -p artifacts
+          # Copy the generated tarball (version is extracted from RELEASE_NOTES.md in the script)
+          docker cp viame_build:/viame/build/. artifacts/ 2>/dev/null || true
+          # Find and copy the tarball
+          docker exec viame_build find /viame/build -name "VIAME-*-Linux-64Bit.tar.gz" -exec cat {} \; > artifacts/viame-linux.tar.gz 2>/dev/null || \
+          docker cp viame_build:/viame/build/VIAME-v1.0.0-Linux-64Bit.tar.gz artifacts/viame-linux.tar.gz 2>/dev/null || true
+          # Also try to get build log for debugging
+          docker cp viame_build:/viame/build/build_log.txt artifacts/build_log_linux.txt 2>/dev/null || true
+          ls -la artifacts/
+
+      - name: Get version from release notes
+        id: version
+        run: |
+          VERSION=$(head -n 1 RELEASE_NOTES.md | awk '{print $1}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Rename artifact with version
+        run: |
+          cd artifacts
+          if [ -f viame-linux.tar.gz ]; then
+            mv viame-linux.tar.gz VIAME-${{ steps.version.outputs.version }}-Linux-64Bit.tar.gz
+          fi
+          ls -la
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: viame-linux-release
+          path: artifacts/VIAME-*-Linux-64Bit.tar.gz
+          retention-days: 7
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop viame_build || true
+          docker rm --force viame_build || true
+
+  build-windows:
+    name: Build Windows Release
+    runs-on: windows-2019  # VS 2019
+    timeout-minutes: 720  # 12 hours
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false  # We handle submodules in the build script
+
+      - name: Set up CUDA
+        uses: Jimver/cuda-toolkit@v0.2.21
+        id: cuda-toolkit
+        with:
+          cuda: '12.8.0'
+          method: 'network'
+
+      - name: Download and install cuDNN
+        shell: powershell
+        run: |
+          $CUDA_ROOT = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
+
+          # Create temp directory
+          New-Item -ItemType Directory -Force -Path "C:\temp"
+
+          # Download cuDNN from Kitware
+          Write-Host "Downloading cuDNN..."
+          Invoke-WebRequest -Uri "https://data.kitware.com/api/v1/file/694b27c937f3e31fb199e235/download" -OutFile "C:\temp\cudnn.zip"
+
+          # Create temp directory and extract
+          New-Item -ItemType Directory -Force -Path "C:\temp\cudnn_temp"
+          Expand-Archive -Path "C:\temp\cudnn.zip" -DestinationPath "C:\temp\cudnn_temp" -Force
+
+          # Find the extracted directory (cudnn-windows-x86_64-*-archive)
+          $cudnnDir = Get-ChildItem -Path "C:\temp\cudnn_temp" -Directory | Select-Object -First 1
+
+          # Copy cuDNN files directly into CUDA tree
+          Write-Host "Installing cuDNN into CUDA directory..."
+          Copy-Item -Path "$($cudnnDir.FullName)\bin\*" -Destination "$CUDA_ROOT\bin" -Force
+          Copy-Item -Path "$($cudnnDir.FullName)\include\*" -Destination "$CUDA_ROOT\include" -Force
+          Copy-Item -Path "$($cudnnDir.FullName)\lib\x64\*" -Destination "$CUDA_ROOT\lib\x64" -Force
+
+          # Verify installation
+          Write-Host "cuDNN files installed:"
+          Get-ChildItem "$CUDA_ROOT\bin\cudnn*.dll" | ForEach-Object { Write-Host $_.Name }
+
+          # Cleanup
+          Remove-Item -Path "C:\temp\cudnn.zip" -Force
+          Remove-Item -Path "C:\temp\cudnn_temp" -Recurse -Force
+
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          # Install 7-Zip
+          choco install 7zip -y
+
+          # Verify 7-Zip installation
+          if (!(Test-Path "C:\Program Files\7-Zip\7z.exe")) {
+            Write-Error "7-Zip installation failed"
+            exit 1
+          }
+
+          # Install zlib
+          choco install zlib -y
+
+          # Create ZLib directory structure expected by build script
+          New-Item -ItemType Directory -Force -Path "C:\Program Files\ZLib\dll_x64"
+
+          # Copy zlib DLL to expected location (choco installs to different path)
+          $zlibPath = "C:\ProgramData\chocolatey\lib\zlib\tools"
+          if (Test-Path "$zlibPath\zlibwapi.dll") {
+            Copy-Item -Path "$zlibPath\zlibwapi.dll" -Destination "C:\Program Files\ZLib\dll_x64\" -Force
+          } elseif (Test-Path "C:\Windows\System32\zlibwapi.dll") {
+            Copy-Item -Path "C:\Windows\System32\zlibwapi.dll" -Destination "C:\Program Files\ZLib\dll_x64\" -Force
+          } else {
+            # Download zlib DLL directly if not found
+            Write-Host "Downloading zlibwapi.dll..."
+            Invoke-WebRequest -Uri "https://www.winimage.com/zLibDll/zlib123dllx64.zip" -OutFile "C:\temp\zlib.zip"
+            Expand-Archive -Path "C:\temp\zlib.zip" -DestinationPath "C:\temp\zlib_temp" -Force
+            Copy-Item -Path "C:\temp\zlib_temp\dll_x64\zlibwapi.dll" -Destination "C:\Program Files\ZLib\dll_x64\" -Force
+            Remove-Item -Path "C:\temp\zlib.zip" -Force
+            Remove-Item -Path "C:\temp\zlib_temp" -Recurse -Force
+          }
+
+          # Install CMake
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+
+          # Install Git
+          choco install git -y
+
+      - name: Configure build paths
+        shell: powershell
+        run: |
+          # Create required directories
+          New-Item -ItemType Directory -Force -Path "C:\VIAME-Builds\GPU"
+
+          # Copy source to expected location
+          Copy-Item -Path ".\*" -Destination "C:\VIAME-Builds\GPU" -Recurse -Force
+
+      - name: Run Windows build
+        shell: cmd
+        working-directory: C:\VIAME-Builds\GPU
+        run: |
+          call cmake\build_server_windows.bat
+
+      - name: Verify Windows build completed successfully
+        shell: powershell
+        run: |
+          Write-Host "Checking if build completed successfully..."
+
+          $installPath = "C:\VIAME-Builds\GPU\build\install"
+          $viamePath = "C:\VIAME-Builds\GPU\build\VIAME"
+          $setupScript = "setup_viame.bat"
+
+          # Check that setup_viame.bat exists in the install directory
+          # The build script renames install to VIAME for packaging, so check both locations
+          if (Test-Path "$installPath\$setupScript") {
+            Write-Host "SUCCESS: $setupScript found in $installPath"
+          } elseif (Test-Path "$viamePath\$setupScript") {
+            Write-Host "SUCCESS: $setupScript found in $viamePath"
+          } else {
+            Write-Host "ERROR: $setupScript not found in install directory"
+            Write-Host "Listing C:\VIAME-Builds\GPU\build\ contents:"
+            Get-ChildItem -Path "C:\VIAME-Builds\GPU\build\" -ErrorAction SilentlyContinue | Format-Table Name, Length, LastWriteTime
+            Write-Host "Listing $installPath contents (if exists):"
+            Get-ChildItem -Path $installPath -ErrorAction SilentlyContinue | Format-Table Name, Length, LastWriteTime
+            exit 1
+          }
+
+          # Check that the zip file was created
+          $zipFiles = Get-ChildItem -Path "C:\VIAME-Builds\GPU\build\" -Filter "VIAME-*-Windows-64Bit.zip" -ErrorAction SilentlyContinue
+          if ($zipFiles) {
+            Write-Host "SUCCESS: Windows zip file found:"
+            $zipFiles | ForEach-Object { Write-Host $_.FullName }
+          } else {
+            Write-Host "ERROR: Windows zip file not found"
+            exit 1
+          }
+
+          Write-Host "Windows build verification passed!"
+
+      - name: Get version from release notes
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(head -n 1 RELEASE_NOTES.md | awk '{print $1}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: viame-windows-release
+          path: C:\VIAME-Builds\GPU\build\VIAME-*-Windows-64Bit.zip
+          retention-days: 7
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version from release notes
+        id: version
+        run: |
+          VERSION=$(head -n 1 RELEASE_NOTES.md | awk '{print $1}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: viame-linux-release
+          path: ./release-artifacts
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: viame-windows-release
+          path: ./release-artifacts
+
+      - name: List artifacts
+        run: ls -la ./release-artifacts
+
+      - name: Delete existing 'current' release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Delete the existing 'current' release if it exists
+          gh release delete current --yes || true
+          # Also delete the tag
+          git push origin :refs/tags/current || true
+
+      - name: Create 'current' release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create current \
+            --title "Current Build (${{ steps.version.outputs.version }})" \
+            --notes "Automated build from main branch.
+
+          Version: ${{ steps.version.outputs.version }}
+          Commit: ${{ github.sha }}
+          Built: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          This release is automatically updated whenever the main branch is updated." \
+            --prerelease \
+            ./release-artifacts/*
