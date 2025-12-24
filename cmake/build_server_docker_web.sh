@@ -1,23 +1,26 @@
-#! /bin/bash
+#!/bin/bash
+
+# VIAME Docker Web Build Script
 
 # debugging flag
 set -x
 
+# Source utility scripts
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/build_common_functions.sh"
+
 # Install required system dependencies
-/viame/cmake/build_server_deps_apt.sh
+install_system_deps apt
 
 # Install CMake
-/viame/cmake/build_server_linux_cmake.sh
+install_cmake
 
 # Update VIAME sub git deps
-cd /viame/
-git submodule update --init --recursive
-mkdir build
-cd build
+update_git_submodules /viame
+setup_build_directory /viame
 
 # Add VIAME and CUDA paths to build
-export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/usr/local/cuda/lib64
+setup_basic_build_environment /viame/build/install /usr/local/cuda
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -73,10 +76,10 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
 
 # Download OCV aux files from local server copy
-./viame/cmake/build_server_linux_ocv_extra.sh
+download_opencv_extras
 
 # Perform multi-threaded build
-make -j$(nproc) > build_log.txt 2>&1 || true
+run_build build_log.txt true
 
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
@@ -89,20 +92,8 @@ tar -xvf download
 cp -r lib install
 rm -rf lib download
 
-# HACK: Ensure invalid libsvm symlink isn't created
-# Should be removed when this issue is fixed
-rm install/lib/libsvm.so
-cp install/lib/libsvm.so.2 install/lib/libsvm.so
+# Fix libsvm symlink issue
+fix_libsvm_symlink install
 
-# Remove all source files used for the build to save space and mode
-# viame install to default linux install location
-if [ -f "install/setup_viame.sh" ]; then
-  cd /viame/build
-  rm build_log.txt
-  mkdir /opt/noaa
-  mv install viame
-  mv viame /opt/noaa
-  cd /
-  rm -rf /viame
-  chown -R 1099:1099 /opt/noaa/viame
-fi
+# Finalize Docker install
+finalize_docker_install /viame/build

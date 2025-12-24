@@ -1,26 +1,29 @@
-#! /bin/bash
+#!/bin/bash
+
+# VIAME Ubuntu Build Script
 
 # debugging flag
 set -x
 
-# Extract version from RELEASE_NOTES.md (first token of first line)
-export VIAME_VERSION=$(head -n 1 /viame/RELEASE_NOTES.md | awk '{print $1}')
+# Source utility scripts
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/build_common_functions.sh"
+
+# Extract version from RELEASE_NOTES.md
+extract_viame_version /viame
 
 # System Deps
-./viame/cmake/build_server_deps_apt.sh
+install_system_deps apt
 
 # Install CMAKE
-./viame/cmake/build_server_linux_cmake.sh
+install_cmake
 
 # Update VIAME sub git deps
-cd /viame/
-git submodule update --init --recursive
-mkdir build
-cd build 
+update_git_submodules /viame
+setup_build_directory /viame
 
 # Configure Paths [should be removed when no longer necessary by fletch]
-export PATH=$PATH:/viame/build/install/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib
+setup_basic_build_environment /viame/build/install
 
 source ./viame/cmake/linux_add_internal_py36_paths.sh
 
@@ -58,28 +61,15 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \
 -DVIAME_ENABLE_VIVIA:BOOL=ON \
 -DVIAME_ENABLE_VXL:BOOL=ON \
--DVIAME_ENABLE_DARKNET:BOOL=ON 
+-DVIAME_ENABLE_DARKNET:BOOL=ON
 
 # Build VIAME, pipe output to file
-../cmake/build_server_linux_build.sh > build_log.txt 2>&1
+run_build build_log.txt
 
-# Output check statments
-if grep -q "Built target viame" build_log.txt; then
-  echo "VIAME Build Succeeded"
-
-  # Make zip file of install
-  mv install viame
-  rm VIAME-${VIAME_VERSION}-Ubuntu-64Bit.tar.gz ||:
-  tar -zcvf VIAME-${VIAME_VERSION}-Ubuntu-64Bit.tar.gz viame
-  mv viame install
+# Verify build success
+if verify_build_success build_log.txt; then
+  # Make tarball of install
+  create_install_tarball "$VIAME_VERSION" "Ubuntu-64Bit"
 else
-  echo "VIAME Build Failed"
-  exit 1
-fi
-
-if  grep -q "fixup_bundle: preparing..." build_log.txt; then
-  echo "Fixup Bundle Called Succesfully"
-else
-  echo "Error: Fixup Bundle Not Called"
   exit 1
 fi

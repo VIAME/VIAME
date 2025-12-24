@@ -1,40 +1,38 @@
-#! /bin/bash
+#!/bin/bash
+
+# VIAME Rocky Linux CPU-Only Build Script
 
 # Debugging, logging, and options
 set -x
 
+# Source utility scripts
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/build_common_functions.sh"
+
 export VIAME_SOURCE_DIR=/viame
 
-# Extract version from RELEASE_NOTES.md (first token of first line)
-export VIAME_VERSION=$(head -n 1 $VIAME_SOURCE_DIR/RELEASE_NOTES.md | awk '{print $1}')
+# Extract version from RELEASE_NOTES.md
+extract_viame_version $VIAME_SOURCE_DIR
 export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
 export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
 
 # Install system dependencies and use more recent compiler
-$VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
+install_system_deps yum
 
 # Install more modern CMAKE and OpenSSL from source
-./viame/cmake/build_server_linux_ssl.sh
-./viame/cmake/build_server_linux_cmake.sh
+install_openssl
+install_cmake
 
 # Use GCC11 for build
 yum install -y gcc-toolset-11
 source /opt/rh/gcc-toolset-11/enable
 
 # Update VIAME sub git sources
-echo "Checking out VIAME submodules"
-
-cd $VIAME_SOURCE_DIR
-git config --global --add safe.directory $VIAME_SOURCE_DIR
-git submodule update --init --recursive
-mkdir build
-cd build
+update_git_submodules $VIAME_SOURCE_DIR
+setup_build_directory $VIAME_SOURCE_DIR
 
 # Configure Paths [should be removed when no longer necessary by fletch]
-export PATH=$VIAME_INSTALL_DIR/bin:$PATH
-export LD_LIBRARY_PATH=$VIAME_INSTALL_DIR/lib:$VIAME_INSTALL_DIR/lib/python3.10:$LD_LIBRARY_PATH
-export C_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$CPLUS_INCLUDE_PATH
+setup_build_environment $VIAME_INSTALL_DIR "" "3.10"
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -82,26 +80,12 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 # Download OCV aux files from local server copy
 #./viame/cmake/build_server_linux_ocv_extra.sh
 
-# Build VIAME, pipe output to file
-../cmake/build_server_linux_build.sh > build_log.txt 2>&1
+# Build VIAME and setup libraries, pipe output to file
+run_build_and_setup_libraries > build_log.txt 2>&1
 
-# Output check statments
-if grep -q "Built target viame" build_log.txt; then
-  echo "VIAME Build Succeeded"
-
-  # Make zip file of install
-  mv install viame
-  rm VIAME-CPU-${VIAME_VERSION}-Linux-64Bit.tar.gz ||:
-  tar -zcvf VIAME-CPU-${VIAME_VERSION}-Linux-64Bit.tar.gz viame
-  mv viame install
+# Verify build success and create tarball
+if verify_build_success build_log.txt; then
+  create_install_tarball "CPU-$VIAME_VERSION" "Linux-64Bit"
 else
-  echo "VIAME Build Failed"
-  exit 1
-fi
-
-if  grep -q "fixup_bundle: preparing..." build_log.txt; then
-  echo "Fixup Bundle Called Succesfully"
-else
-  echo "Error: Fixup Bundle Not Called"
   exit 1
 fi
