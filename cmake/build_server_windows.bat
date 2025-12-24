@@ -65,6 +65,7 @@ IF "%1"=="true" (
   IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
 )
 
+git config --system core.longpaths true
 git submodule update --init --recursive
 
 REM If running locally instead of on Jenkins server, file jenkins_dashboard.cmake should be a renamed
