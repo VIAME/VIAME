@@ -71,10 +71,8 @@ the source. In the pre-built binaries they are all enabled by default.
 |
 | Per-Example:
 |
-| run_habcam - VIAME_ENABLE_OPENCV, VIAME_ENABLE_DARKNET, VIAME_ENABLE_SCALLOP_TK
-| run_scallop_tk - VIAME_ENABLE_SCALLOP_TK
-| run_yolo - VIAME_ENABLE_DARKNET
-| run_lanl - VIAME_ENABLE_MATLAB
+| run_fish_without_motion - VIAME_ENABLE_PYTORCH
+| run_generic_proposals - VIAME_ENABLE_PYTORCH
 
 
 *******************************
