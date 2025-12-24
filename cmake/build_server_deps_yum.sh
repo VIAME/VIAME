@@ -10,6 +10,7 @@ git \
 wget \
 zlib \
 zlib-devel \
+zstd \
 freeglut-devel \
 freetype-devel \
 mesa-libGLU-devel \
