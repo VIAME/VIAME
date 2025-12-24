@@ -301,15 +301,6 @@ jobs:
           cuda: '12.8.0'
           method: 'network'
 
-      - name: Install 7-Zip (needed for cuDNN extraction)
-        shell: powershell
-        run: |
-          choco install 7zip -y
-          if (!(Test-Path "C:\Program Files\7-Zip\7z.exe")) {
-            Write-Error "7-Zip installation failed"
-            exit 1
-          }
-
       - name: Download and install cuDNN
         shell: powershell
         run: |
@@ -318,35 +309,43 @@ jobs:
           # Create temp directory
           New-Item -ItemType Directory -Force -Path "C:\temp"
 
-          # Download cuDNN from Kitware
+          # Download cuDNN from Kitware (this is a .zip file)
           Write-Host "Downloading cuDNN..."
-          $cudnnArchive = "C:\temp\cudnn_archive"
+          $cudnnArchive = "C:\temp\cudnn.zip"
           Invoke-WebRequest -Uri "https://data.kitware.com/api/v1/file/694b27c937f3e31fb199e235/download" -OutFile $cudnnArchive
 
-          # Check file size and first bytes to diagnose issues
+          # Check file size
           $fileInfo = Get-Item $cudnnArchive
           Write-Host "Downloaded file size: $($fileInfo.Length) bytes"
 
-          # Use 7-Zip to extract (handles .zip, .tar.gz, .tar.xz, etc.)
+          # Extract using Expand-Archive (native PowerShell for zip files)
           Write-Host "Extracting cuDNN archive..."
           New-Item -ItemType Directory -Force -Path "C:\temp\cudnn_temp"
-          & "C:\Program Files\7-Zip\7z.exe" x $cudnnArchive -o"C:\temp\cudnn_temp" -y
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "First extraction may have produced a tar file, trying nested extraction..."
-            $innerArchive = Get-ChildItem -Path "C:\temp\cudnn_temp" -File | Select-Object -First 1
-            if ($innerArchive -and $innerArchive.Name -match "\.tar$") {
-              & "C:\Program Files\7-Zip\7z.exe" x $innerArchive.FullName -o"C:\temp\cudnn_temp" -y
-            }
-          }
+          Expand-Archive -Path $cudnnArchive -DestinationPath "C:\temp\cudnn_temp" -Force
+
+          # List what was extracted
+          Write-Host "Extracted contents:"
+          Get-ChildItem -Path "C:\temp\cudnn_temp" -Recurse -Depth 2 | ForEach-Object { Write-Host $_.FullName }
 
           # Find the extracted directory (cudnn-windows-x86_64-*-archive)
-          $cudnnDir = Get-ChildItem -Path "C:\temp\cudnn_temp" -Directory -Recurse | Where-Object { $_.Name -match "cudnn" } | Select-Object -First 1
+          $cudnnDir = Get-ChildItem -Path "C:\temp\cudnn_temp" -Directory | Where-Object { $_.Name -match "cudnn" } | Select-Object -First 1
           if (-not $cudnnDir) {
             $cudnnDir = Get-ChildItem -Path "C:\temp\cudnn_temp" -Directory | Select-Object -First 1
           }
 
+          if (-not $cudnnDir) {
+            Write-Error "Failed to find cuDNN directory after extraction"
+            exit 1
+          }
+
           Write-Host "Found cuDNN directory: $($cudnnDir.FullName)"
           Get-ChildItem -Path $cudnnDir.FullName
+
+          # Verify expected directories exist
+          if (-not (Test-Path "$($cudnnDir.FullName)\include")) {
+            Write-Error "cuDNN include directory not found - extraction may have failed"
+            exit 1
+          }
 
           # Copy cuDNN files directly into CUDA tree
           Write-Host "Installing cuDNN into CUDA directory..."
