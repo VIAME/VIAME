@@ -24,14 +24,7 @@ install_openssl
 install_cmake
 
 # Use GCC11 for build (Rocky 9 has GCC 11 by default, Rocky 8 needs toolset)
-if grep -q "release 8" /etc/redhat-release 2>/dev/null; then
-  echo "Rocky/CentOS 8 detected, installing gcc-toolset-11..."
-  yum install -y gcc-toolset-11
-  source /opt/rh/gcc-toolset-11/enable
-else
-  echo "Rocky/CentOS 9+ detected, using default GCC 11..."
-  gcc --version
-fi
+setup_gcc_toolset 11
 
 # Update VIAME sub git sources
 update_git_submodules $VIAME_SOURCE_DIR
