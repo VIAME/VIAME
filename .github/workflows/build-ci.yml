@@ -274,7 +274,8 @@ jobs:
         shell: cmd
         run: |
           mkdir C:\VIAME-CI
-          xcopy /E /I /Y . C:\VIAME-CI\src
+          robocopy . C:\VIAME-CI\src /E /XD ".git" "docs" "__pycache__" /XF "*.md" /NFL /NDL /NJH /NJS /R:0 /W:0
+          if %ERRORLEVEL% LEQ 7 exit /b 0
 
       - name: Configure CMake
         shell: cmd
