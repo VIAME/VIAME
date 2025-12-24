@@ -268,6 +268,34 @@ install_system_deps() {
 }
 
 # ==============================================================================
+# GCC TOOLSET (RHEL/Rocky/CentOS)
+# ==============================================================================
+
+# Setup modern GCC toolset for RHEL-based systems
+# Rocky/CentOS 9+ has GCC 11+ by default, Rocky/CentOS 8 needs gcc-toolset
+# This function installs and enables the toolset if needed
+setup_gcc_toolset() {
+  local toolset_version="${1:-11}"
+
+  # Only applicable for RHEL-based systems
+  if [ ! -f /etc/redhat-release ]; then
+    echo "Not a RHEL-based system, skipping gcc-toolset setup"
+    return 0
+  fi
+
+  if grep -q "release 8" /etc/redhat-release 2>/dev/null; then
+    echo "Rocky/CentOS 8 detected, installing gcc-toolset-${toolset_version}..."
+    yum install -y "gcc-toolset-${toolset_version}"
+    source "/opt/rh/gcc-toolset-${toolset_version}/enable"
+    echo "GCC toolset ${toolset_version} enabled"
+    gcc --version
+  else
+    echo "Rocky/CentOS 9+ detected, using default GCC..."
+    gcc --version
+  fi
+}
+
+# ==============================================================================
 # CMAKE INSTALLATION
 # ==============================================================================
 
