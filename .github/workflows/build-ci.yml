@@ -1,0 +1,330 @@
+name: CI Build
+
+on:
+  push:
+    branches:
+      - next
+  pull_request:
+    branches:
+      - main
+      - next
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-linux:
+    name: Linux CI Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 hours for cached builds
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          # Remove unnecessary files to free up disk space
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            git \
+            libgl1-mesa-dev \
+            libxt-dev \
+            libx11-dev \
+            libssl-dev \
+            libcurl4-openssl-dev \
+            libeigen3-dev \
+            libgtk2.0-dev \
+            liblapack-dev \
+            liblapacke-dev \
+            libopenblas-dev \
+            nasm \
+            yasm \
+            python3-dev \
+            python3-pip \
+            python3-venv
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python build dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install numpy
+
+      # Generate cache keys based on package hashes
+      - name: Generate cache keys
+        id: cache-keys
+        run: |
+          # Hash for fletch (packages/fletch directory and cmake config)
+          FLETCH_HASH=$(find packages/fletch -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.patch" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+          FLETCH_CMAKE_HASH=$(sha256sum cmake/add_project_fletch.cmake | cut -d' ' -f1)
+          echo "fletch-hash=${FLETCH_HASH:0:16}-${FLETCH_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
+
+          # Hash for kwiver (packages/kwiver directory and cmake config)
+          KWIVER_HASH=$(find packages/kwiver -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.cxx" -o -name "*.h" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+          KWIVER_CMAKE_HASH=$(sha256sum cmake/add_project_kwiver.cmake | cut -d' ' -f1)
+          echo "kwiver-hash=${KWIVER_HASH:0:16}-${KWIVER_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
+
+          # Hash for pytorch-libs (packages/pytorch-libs directory and cmake config)
+          PYTORCH_HASH=$(find packages/pytorch-libs -type f \( -name "*.py" -o -name "setup.py" -o -name "setup.cfg" -o -name "pyproject.toml" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+          PYTORCH_CMAKE_HASH=$(sha256sum cmake/add_project_pytorch.cmake | cut -d' ' -f1)
+          echo "pytorch-hash=${PYTORCH_HASH:0:16}-${PYTORCH_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
+
+      # Cache fletch build
+      - name: Cache fletch build
+        id: cache-fletch
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/build/src/fletch-build
+            build/install
+          key: linux-fletch-${{ steps.cache-keys.outputs.fletch-hash }}
+          restore-keys: |
+            linux-fletch-
+
+      # Cache kwiver build
+      - name: Cache kwiver build
+        id: cache-kwiver
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/build/src/kwiver-build
+          key: linux-kwiver-${{ steps.cache-keys.outputs.kwiver-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
+          restore-keys: |
+            linux-kwiver-${{ steps.cache-keys.outputs.kwiver-hash }}-
+            linux-kwiver-
+
+      # Cache pytorch-libs build
+      - name: Cache pytorch-libs build
+        id: cache-pytorch
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/build/src/pytorch-build
+          key: linux-pytorch-${{ steps.cache-keys.outputs.pytorch-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
+          restore-keys: |
+            linux-pytorch-${{ steps.cache-keys.outputs.pytorch-hash }}-
+            linux-pytorch-
+
+      - name: Create build directory
+        run: mkdir -p build
+
+      - name: Configure CMake
+        working-directory: build
+        run: |
+          cmake .. \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DVIAME_ENABLE_CUDA:BOOL=OFF \
+            -DVIAME_ENABLE_CUDNN:BOOL=OFF \
+            -DVIAME_ENABLE_PYTORCH:BOOL=ON \
+            -DVIAME_ENABLE_OPENCV:BOOL=ON \
+            -DVIAME_ENABLE_VXL:BOOL=ON \
+            -DVIAME_ENABLE_PYTHON:BOOL=ON \
+            -DVIAME_ENABLE_DARKNET:BOOL=OFF \
+            -DVIAME_ENABLE_DIVE:BOOL=OFF \
+            -DVIAME_ENABLE_VIVIA:BOOL=OFF \
+            -DVIAME_ENABLE_SEAL:BOOL=OFF \
+            -DVIAME_ENABLE_DOCS:BOOL=OFF \
+            -DVIAME_ENABLE_FFMPEG:BOOL=OFF \
+            -DVIAME_DOWNLOAD_MODELS:BOOL=OFF \
+            -DVIAME_BUILD_TESTS:BOOL=OFF \
+            -DVIAME_FORCEBUILD:BOOL=OFF
+
+      - name: Build fletch (if not cached)
+        if: steps.cache-fletch.outputs.cache-hit != 'true'
+        working-directory: build
+        run: |
+          cmake --build . --target fletch -- -j$(nproc)
+
+      - name: Build kwiver (if not cached)
+        if: steps.cache-kwiver.outputs.cache-hit != 'true'
+        working-directory: build
+        run: |
+          cmake --build . --target kwiver -- -j$(nproc)
+
+      - name: Build pytorch-libs (if not cached)
+        if: steps.cache-pytorch.outputs.cache-hit != 'true'
+        working-directory: build
+        run: |
+          cmake --build . --target pytorch || true
+
+      - name: Build VIAME
+        working-directory: build
+        run: |
+          cmake --build . --target viame -- -j$(nproc)
+
+      - name: Verify build
+        run: |
+          if [ -f build/install/setup_viame.sh ]; then
+            echo "SUCCESS: setup_viame.sh found"
+          else
+            echo "ERROR: setup_viame.sh not found"
+            ls -la build/install/ || true
+            exit 1
+          fi
+
+  build-windows:
+    name: Windows CI Build
+    runs-on: windows-2019
+    timeout-minutes: 360  # 6 hours for cached builds
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install numpy
+
+      # Generate cache keys based on package hashes
+      - name: Generate cache keys
+        id: cache-keys
+        shell: bash
+        run: |
+          # Hash for fletch
+          FLETCH_HASH=$(find packages/fletch -type f \( -name "*.cmake" -o -name "CMakeLists.txt" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+          FLETCH_CMAKE_HASH=$(sha256sum cmake/add_project_fletch.cmake | cut -d' ' -f1)
+          echo "fletch-hash=${FLETCH_HASH:0:16}-${FLETCH_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
+
+          # Hash for kwiver
+          KWIVER_HASH=$(find packages/kwiver -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.cxx" -o -name "*.h" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+          KWIVER_CMAKE_HASH=$(sha256sum cmake/add_project_kwiver.cmake | cut -d' ' -f1)
+          echo "kwiver-hash=${KWIVER_HASH:0:16}-${KWIVER_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
+
+          # Hash for pytorch-libs
+          PYTORCH_HASH=$(find packages/pytorch-libs -type f \( -name "*.py" -o -name "setup.py" -o -name "setup.cfg" -o -name "pyproject.toml" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
+          PYTORCH_CMAKE_HASH=$(sha256sum cmake/add_project_pytorch.cmake | cut -d' ' -f1)
+          echo "pytorch-hash=${PYTORCH_HASH:0:16}-${PYTORCH_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
+
+      # Cache fletch build
+      - name: Cache fletch build
+        id: cache-fletch
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/VIAME-CI/build/src/fletch-build
+            C:/VIAME-CI/install
+          key: windows-fletch-${{ steps.cache-keys.outputs.fletch-hash }}
+          restore-keys: |
+            windows-fletch-
+
+      # Cache kwiver build
+      - name: Cache kwiver build
+        id: cache-kwiver
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/VIAME-CI/build/src/kwiver-build
+          key: windows-kwiver-${{ steps.cache-keys.outputs.kwiver-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
+          restore-keys: |
+            windows-kwiver-${{ steps.cache-keys.outputs.kwiver-hash }}-
+            windows-kwiver-
+
+      # Cache pytorch-libs build
+      - name: Cache pytorch-libs build
+        id: cache-pytorch
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/VIAME-CI/build/src/pytorch-build
+          key: windows-pytorch-${{ steps.cache-keys.outputs.pytorch-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
+          restore-keys: |
+            windows-pytorch-${{ steps.cache-keys.outputs.pytorch-hash }}-
+            windows-pytorch-
+
+      - name: Create build directory
+        shell: cmd
+        run: |
+          mkdir C:\VIAME-CI
+          xcopy /E /I /Y . C:\VIAME-CI\src
+
+      - name: Configure CMake
+        shell: cmd
+        working-directory: C:\VIAME-CI
+        run: |
+          mkdir build
+          cd build
+          cmake ..\src ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DVIAME_ENABLE_CUDA:BOOL=OFF ^
+            -DVIAME_ENABLE_CUDNN:BOOL=OFF ^
+            -DVIAME_ENABLE_PYTORCH:BOOL=ON ^
+            -DVIAME_ENABLE_OPENCV:BOOL=ON ^
+            -DVIAME_ENABLE_VXL:BOOL=ON ^
+            -DVIAME_ENABLE_PYTHON:BOOL=ON ^
+            -DVIAME_ENABLE_DARKNET:BOOL=OFF ^
+            -DVIAME_ENABLE_DIVE:BOOL=OFF ^
+            -DVIAME_ENABLE_VIVIA:BOOL=OFF ^
+            -DVIAME_ENABLE_SEAL:BOOL=OFF ^
+            -DVIAME_ENABLE_DOCS:BOOL=OFF ^
+            -DVIAME_ENABLE_FFMPEG:BOOL=OFF ^
+            -DVIAME_DOWNLOAD_MODELS:BOOL=OFF ^
+            -DVIAME_BUILD_TESTS:BOOL=OFF ^
+            -DVIAME_FORCEBUILD:BOOL=OFF ^
+            -DVIAME_BUILD_KWIVER_DIR:PATH=C:/tmp/kv1 ^
+            -DVIAME_BUILD_PLUGINS_DIR:PATH=C:/tmp/vm1
+
+      - name: Build fletch (if not cached)
+        if: steps.cache-fletch.outputs.cache-hit != 'true'
+        shell: cmd
+        working-directory: C:\VIAME-CI\build
+        run: |
+          cmake --build . --target fletch --config Release
+
+      - name: Build kwiver (if not cached)
+        if: steps.cache-kwiver.outputs.cache-hit != 'true'
+        shell: cmd
+        working-directory: C:\VIAME-CI\build
+        run: |
+          cmake --build . --target kwiver --config Release
+
+      - name: Build pytorch-libs (if not cached)
+        if: steps.cache-pytorch.outputs.cache-hit != 'true'
+        shell: cmd
+        working-directory: C:\VIAME-CI\build
+        run: |
+          cmake --build . --target pytorch --config Release || exit 0
+
+      - name: Build VIAME
+        shell: cmd
+        working-directory: C:\VIAME-CI\build
+        run: |
+          cmake --build . --target viame --config Release
+
+      - name: Verify build
+        shell: powershell
+        run: |
+          if (Test-Path "C:\VIAME-CI\install\setup_viame.bat") {
+            Write-Host "SUCCESS: setup_viame.bat found"
+          } else {
+            Write-Host "ERROR: setup_viame.bat not found"
+            Get-ChildItem -Path "C:\VIAME-CI\install\" -ErrorAction SilentlyContinue
+            exit 1
+          }
