@@ -193,6 +193,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Enable long paths on Windows
+        if: runner.os == 'Windows'
+        run: git config --system core.longpaths true
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

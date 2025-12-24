@@ -133,6 +133,10 @@ jobs:
         with:
           submodules: false  # We handle submodules in the build script
 
+      - name: Enable long paths on Windows
+        if: runner.os == 'Windows'
+        run: git config --system core.longpaths true
+
       - name: Set up CUDA
         uses: Jimver/cuda-toolkit@v0.2.21
         id: cuda-toolkit
