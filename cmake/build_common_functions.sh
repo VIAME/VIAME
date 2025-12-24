@@ -220,6 +220,7 @@ install_deps_yum() {
     wget \
     zlib \
     zlib-devel \
+    zstd \
     freeglut-devel \
     freetype-devel \
     mesa-libGLU-devel \
