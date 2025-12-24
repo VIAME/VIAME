@@ -191,11 +191,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: false
 
       - name: Enable long paths on Windows
-        if: runner.os == 'Windows'
         run: git config --system core.longpaths true
+
+      - name: Initialize submodules (excluding pytorch)
+        shell: bash
+        run: |
+          git submodule init
+          # Disable pytorch submodule - too many long paths for Windows
+          git config --local submodule.packages/pytorch.update none
+          git submodule update --recursive
 
       - name: Set up Python
         uses: actions/setup-python@v5
