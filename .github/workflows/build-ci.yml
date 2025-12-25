@@ -215,6 +215,7 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
+        id: setup-python
         with:
           python-version: '3.11'
 
@@ -310,7 +311,8 @@ jobs:
             -DVIAME_BUILD_TESTS:BOOL=OFF ^
             -DVIAME_FORCEBUILD:BOOL=OFF ^
             -DVIAME_BUILD_KWIVER_DIR:PATH=C:/tmp/kv1 ^
-            -DVIAME_BUILD_PLUGINS_DIR:PATH=C:/tmp/vm1
+            -DVIAME_BUILD_PLUGINS_DIR:PATH=C:/tmp/vm1 ^
+            -DPYTHON_EXECUTABLE:PATH="${{ steps.setup-python.outputs.python-path }}"
 
       - name: Build fletch (if not cached)
         if: steps.cache-fletch.outputs.cache-hit != 'true'
