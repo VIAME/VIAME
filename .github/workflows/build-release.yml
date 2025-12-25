@@ -446,18 +446,52 @@ jobs:
         shell: powershell
         run: |
           $CUDA_ROOT = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
+          $cudnnArchive = "C:\temp\cudnn.zip"
+          $cudnnUrl = "https://data.kitware.com/api/v1/file/694b27c937f3e31fb199e235/download"
+          $expectedMD5 = "b448b131951f661e470e649c96a93ca1"
+          $maxRetries = 3
 
           # Create temp directory
           New-Item -ItemType Directory -Force -Path "C:\temp"
 
-          # Download cuDNN from Kitware (this is a .zip file)
-          Write-Host "Downloading cuDNN..."
-          $cudnnArchive = "C:\temp\cudnn.zip"
-          Invoke-WebRequest -Uri "https://data.kitware.com/api/v1/file/694b27c937f3e31fb199e235/download" -OutFile $cudnnArchive
+          # Download cuDNN with retry logic and MD5 verification
+          $downloadSuccess = $false
+          for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+            Write-Host "Downloading cuDNN (attempt $attempt of $maxRetries)..."
+            try {
+              if (Test-Path $cudnnArchive) { Remove-Item $cudnnArchive -Force }
+              Invoke-WebRequest -Uri $cudnnUrl -OutFile $cudnnArchive -TimeoutSec 300
 
-          # Check file size
-          $fileInfo = Get-Item $cudnnArchive
-          Write-Host "Downloaded file size: $($fileInfo.Length) bytes"
+              # Check file size
+              $fileInfo = Get-Item $cudnnArchive
+              Write-Host "Downloaded file size: $($fileInfo.Length) bytes"
+
+              # Verify MD5 hash
+              $actualMD5 = (Get-FileHash -Path $cudnnArchive -Algorithm MD5).Hash.ToLower()
+              Write-Host "Expected MD5: $expectedMD5"
+              Write-Host "Actual MD5:   $actualMD5"
+
+              if ($actualMD5 -eq $expectedMD5) {
+                Write-Host "MD5 hash verification passed"
+                $downloadSuccess = $true
+                break
+              } else {
+                Write-Host "MD5 hash mismatch, will retry..."
+              }
+            } catch {
+              Write-Host "Download failed: $_"
+            }
+
+            if ($attempt -lt $maxRetries) {
+              Write-Host "Waiting 10 seconds before retry..."
+              Start-Sleep -Seconds 10
+            }
+          }
+
+          if (-not $downloadSuccess) {
+            Write-Error "Failed to download cuDNN after $maxRetries attempts"
+            exit 1
+          }
 
           # Extract using Expand-Archive (native PowerShell for zip files)
           Write-Host "Extracting cuDNN archive..."
