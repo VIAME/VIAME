@@ -1,5 +1,0 @@
-COPY cmake\build_server_windows.cmake platform.cmake
-
-COPY cmake\build_server_windows.bat build_server_windows.bat
-
-call build_server_windows.bat
