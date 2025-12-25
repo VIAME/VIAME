@@ -47,7 +47,10 @@ IF EXIST C:\tmp\vm5 rmdir /s /q C:\tmp\vm5
 
 git submodule update --init --recursive
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+REM Generate CTest dashboard file for initial build
+CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
 
 COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
 COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
@@ -70,9 +73,11 @@ XCOPY /E /I "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_INSTALL_DIR%"
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > files-core.txt
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-torch.diff"
-COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+REM Regenerate CTest dashboard file after applying patch
+CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
 
 DEL "%VIAME_INSTALL_DIR%\lib\python3.10\site-packages\torch\lib\cu*"
 
@@ -105,9 +110,11 @@ REM Round3 - Build with darknet
 REM -------------------------------------------------------------------------------------------------------
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-darknet.diff"
-COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+REM Regenerate CTest dashboard file after applying patch
+CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-darknet.txt
@@ -121,9 +128,11 @@ REM Round4 - Build with dive
 REM --------------------------------------------------------------------------------------------------------
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-dive.diff"
-COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+REM Regenerate CTest dashboard file after applying patch
+CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-dive.txt
@@ -137,9 +146,11 @@ REM Round5 - Build with vivia
 REM -------------------------------------------------------------------------------------------------------
 
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-view.diff"
-COPY /Y "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi.cmake" platform.cmake
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+REM Regenerate CTest dashboard file after applying patch
+CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-view.txt
@@ -149,3 +160,22 @@ FOR /f "delims=" %%A in (files-view.txt) do @find "%%A" "files-dive.txt" >nul2>n
 "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-VIEW.zip" @diff-view.lst
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME-VIEW"
+
+GOTO :EOF
+
+REM ==============================================================================
+REM Subroutines
+REM ==============================================================================
+
+:GenerateCTestDashboard
+REM Generate CTest dashboard cmake file
+REM %1 = Platform cmake file, %2 = Output file
+(
+    ECHO # Auto-generated CTest dashboard file
+    ECHO include^(%~1^)
+    ECHO ctest_start^(${CTEST_BUILD_MODEL}^)
+    ECHO ctest_configure^(BUILD ${CTEST_BINARY_DIRECTORY} SOURCE ${CTEST_SOURCE_DIRECTORY} OPTIONS "${OPTIONS}"^)
+    ECHO ctest_build^(^)
+    ECHO ctest_submit^(^)
+) > %VIAME_SOURCE_DIR%\cmake\%~2
+GOTO :EOF

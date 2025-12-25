@@ -53,11 +53,10 @@ IF EXIST C:\tmp\vm2 rmdir /s /q C:\tmp\vm2
 
 git submodule update --init --recursive
 
-REM If running locally instead of on Jenkins server, file jenkins_dashboard.cmake should be a renamed
-REM version of the file located at jenkins/CTestBuildOnlyPipeline, with 'platform.cmake' in the
-REM file pointed to build_server_windows_cpu.cmake (or alternatively the latter renamed to platform.cmake).
+REM Generate CTest dashboard file
+CALL :GenerateCTestDashboard build_server_windows_cpu.cmake ctest_dashboard.cmake
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
 
 REM -------------------------------------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
@@ -79,3 +78,22 @@ MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
 "%ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME
 
 MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"
+
+GOTO :EOF
+
+REM ==============================================================================
+REM Subroutines
+REM ==============================================================================
+
+:GenerateCTestDashboard
+REM Generate CTest dashboard cmake file
+REM %1 = Platform cmake file, %2 = Output file
+(
+    ECHO # Auto-generated CTest dashboard file
+    ECHO include^(%~1^)
+    ECHO ctest_start^(${CTEST_BUILD_MODEL}^)
+    ECHO ctest_configure^(BUILD ${CTEST_BINARY_DIRECTORY} SOURCE ${CTEST_SOURCE_DIRECTORY} OPTIONS "${OPTIONS}"^)
+    ECHO ctest_build^(^)
+    ECHO ctest_submit^(^)
+) > %VIAME_SOURCE_DIR%\cmake\%~2
+GOTO :EOF
