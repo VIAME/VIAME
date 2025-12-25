@@ -297,6 +297,29 @@ setup_gcc_toolset() {
 }
 
 # ==============================================================================
+# PYTHON PACKAGE MANAGEMENT
+# ==============================================================================
+
+# Upgrade pip and setuptools to ensure Python 3.12 compatibility
+# This fixes the "pkgutil.ImpImporter" error with old setuptools
+# Arguments:
+#   $1 = Python executable (default: python)
+upgrade_pip_setuptools() {
+  local python_exec="${1:-python}"
+
+  echo "Upgrading pip and setuptools for $python_exec..."
+
+  # Upgrade pip first
+  "$python_exec" -m pip install --upgrade pip 2>/dev/null || true
+
+  # Upgrade setuptools to a version compatible with Python 3.12+
+  # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
+  "$python_exec" -m pip install --upgrade "setuptools>=70.0.0" wheel 2>/dev/null || true
+
+  echo "pip and setuptools upgrade complete"
+}
+
+# ==============================================================================
 # CMAKE INSTALLATION
 # ==============================================================================
 

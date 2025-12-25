@@ -155,6 +155,15 @@ jobs:
         run: |
           cmake --build . --target fletch -- -j$(nproc)
 
+      - name: Upgrade pip/setuptools for built Python
+        run: |
+          # Fix Python 3.12 compatibility issue with old setuptools
+          # (pkgutil.ImpImporter was removed in Python 3.12)
+          if [ -f build/install/bin/python ]; then
+            build/install/bin/python -m pip install --upgrade pip
+            build/install/bin/python -m pip install --upgrade "setuptools>=70.0.0" wheel
+          fi
+
       - name: Build kwiver (if not cached)
         if: steps.cache-kwiver.outputs.cache-hit != 'true'
         working-directory: build
