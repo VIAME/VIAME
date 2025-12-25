@@ -10,7 +10,7 @@ config _pipeline:_edge
   :capacity                                    5
 
 config global
-   :output_directory                           /home/<user>/Desktop/camera_calibrations/
+   :output_directory                           ./
    :image_width                                640
    :image_height                               480
    :frame_count_threshold                      50
@@ -19,7 +19,7 @@ config global
    :square_size                                1
 
 # ============================== INPUT FRAME LIST ==================================
-# Subsample input stereo camera feed
+
 include common_stereo_input_with_downsampler.pipe
 
 # =================================== OCV DETECTOR =====================================
@@ -69,6 +69,7 @@ process detector_writer2
   :writer:type                                 viame_csv
 
 # =============================== CAMERA CALIBRATION ===================================
+
 process cameras_calibration
   :: calibrate_cameras_from_tracks
   :output_cameras_directory                    $CONFIG{global:output_directory}
