@@ -64,10 +64,10 @@ jobs:
         if: steps.cache-stage1.outputs.cache-hit != 'true'
         run: |
           # Pull the Rocky Linux CUDA image
-          docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux9
+          docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux8
 
           # Start container (no GPU runtime needed for compilation)
-          docker run -td --name viame_build nvidia/cuda:12.6.3-cudnn-devel-rockylinux9 bash
+          docker run -td --name viame_build nvidia/cuda:12.6.3-cudnn-devel-rockylinux8 bash
 
           # Copy source into container
           docker cp . viame_build:/viame/
@@ -210,10 +210,10 @@ jobs:
         if: steps.cache-stage2.outputs.cache-hit != 'true'
         run: |
           # Pull the Rocky Linux CUDA image
-          docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux9
+          docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux8
 
           # Start container (no GPU runtime needed for compilation)
-          docker run -td --name viame_build nvidia/cuda:12.6.3-cudnn-devel-rockylinux9 bash
+          docker run -td --name viame_build nvidia/cuda:12.6.3-cudnn-devel-rockylinux8 bash
 
           # Copy source into container
           docker cp . viame_build:/viame/
@@ -333,10 +333,10 @@ jobs:
       - name: Build Stage 3 in Rocky Linux container
         run: |
           # Pull the Rocky Linux CUDA image
-          docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux9
+          docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux8
 
           # Start container (no GPU runtime needed for compilation)
-          docker run -td --name viame_build nvidia/cuda:12.6.3-cudnn-devel-rockylinux9 bash
+          docker run -td --name viame_build nvidia/cuda:12.6.3-cudnn-devel-rockylinux8 bash
 
           # Copy source into container
           docker cp . viame_build:/viame/
