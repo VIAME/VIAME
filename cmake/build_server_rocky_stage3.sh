@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Stage 2: Build pytorch
-# This script continues from the Stage 1 artifact which contains fletch builds.
-# It builds pytorch and packages the result for Stage 3 to continue from.
+# Stage 3: Build remaining components (kwiver, pytorch-libs, viame)
+# This script continues from the Stage 2 artifact which contains fletch and pytorch builds.
+# It builds all remaining components and creates the final release package.
 
 set -x
 set -e
@@ -39,28 +39,25 @@ rm -f /usr/local/cuda
 rm -f /usr/local/cuda-12
 mv /usr/local/cuda-12.6 $CUDA_DIRECTORY
 
-# Update VIAME sub git sources (needed for source files not in Stage 1 artifact)
+# Update VIAME sub git sources (needed for source files not in Stage 2 artifact)
 update_git_submodules $VIAME_SOURCE_DIR
 
-# Build directory should already exist from Stage 1 artifact
+# Build directory should already exist from Stage 2 artifact
 cd $VIAME_BUILD_DIR
 
 # Configure Paths [should be removed when no longer necessary by fletch]
 setup_build_environment $VIAME_INSTALL_DIR "" "3.10"
 
-# Build Stage 2 target: pytorch
-echo "Beginning Stage 2 build (pytorch), routing build info to build_log_stage2.txt"
+# Build Stage 3: Everything else (kwiver, pytorch-libs, viame)
+echo "Beginning Stage 3 build (kwiver, pytorch-libs, viame), routing build info to build_log_stage3.txt"
 
-# Build pytorch (requires fletch from Stage 1)
-echo "Building pytorch..."
-make -j$(nproc) pytorch 2>&1 | tee build_log_stage2.txt
+# Run full build and setup libraries - CMake will skip already-built targets from Stage 1 and 2
+run_build_and_setup_libraries "$CUDA_DIRECTORY" > build_log_stage3.txt 2>&1
 
-# Verify Stage 2 completed
-if grep -q "Built target pytorch" build_log_stage2.txt; then
-  echo "Stage 2: pytorch build succeeded"
+# Verify build success and create tarball
+if verify_build_success build_log_stage3.txt; then
+  create_install_tarball "$VIAME_VERSION" "Linux-64Bit"
+  echo "Stage 3 build completed successfully - Final release package created"
 else
-  echo "Stage 2: pytorch build FAILED"
   exit 1
 fi
-
-echo "Stage 2 build completed successfully"

@@ -72,7 +72,7 @@ REM If running locally instead of on Jenkins server, file jenkins_dashboard.cmak
 REM version of the file located at jenkins/CTestBuildOnlyPipeline, with 'platform.cmake' in the
 REM file pointed to build_server_windows.cmake (or alternatively the latter renamed to platform.cmake).
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\build_server_windows_ctest.cmake -VV
 
 REM -------------------------------------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake

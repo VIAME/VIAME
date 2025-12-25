@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Stage 1: Build fletch and pytorch (foundational dependencies)
-# This script builds the base dependencies that rarely change and take the longest to compile.
-# The output is packaged as an artifact for Stage 2 to continue from.
+# Stage 1: Build fletch (foundational dependencies)
+# This script builds the base fletch dependencies that rarely change and take the longest to compile.
+# The output is packaged as an artifact for Stage 2 (pytorch) to continue from.
 
 set -x
 set -e
@@ -35,8 +35,8 @@ patch_cudnn_headers
 setup_gcc_toolset 11
 
 # Hack for storing paths to CUDA libs for some libraries
-rm /usr/local/cuda
-rm /usr/local/cuda-12
+rm -f /usr/local/cuda
+rm -f /usr/local/cuda-12
 mv /usr/local/cuda-12.6 $CUDA_DIRECTORY
 
 # Update VIAME sub git sources
@@ -56,29 +56,18 @@ cmake ../ \
   -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
   -DVIAME_ENABLE_PYTORCH-ULTRALYTICS:BOOL=OFF
 
-# Build Stage 1 targets: fletch and pytorch
-echo "Beginning Stage 1 build (fletch + pytorch), routing build info to build_log_stage1.txt"
+# Build Stage 1 target: fletch
+echo "Beginning Stage 1 build (fletch), routing build info to build_log_stage1.txt"
 
-# Build fletch first (all external dependencies)
+# Build fletch (all external dependencies)
 echo "Building fletch..."
 make -j$(nproc) fletch 2>&1 | tee build_log_stage1.txt
-
-# Build pytorch (requires fletch)
-echo "Building pytorch..."
-make -j$(nproc) pytorch 2>&1 | tee -a build_log_stage1.txt
 
 # Verify Stage 1 completed
 if grep -q "Built target fletch" build_log_stage1.txt; then
   echo "Stage 1: fletch build succeeded"
 else
   echo "Stage 1: fletch build FAILED"
-  exit 1
-fi
-
-if grep -q "Built target pytorch" build_log_stage1.txt; then
-  echo "Stage 1: pytorch build succeeded"
-else
-  echo "Stage 1: pytorch build FAILED"
   exit 1
 fi
 
