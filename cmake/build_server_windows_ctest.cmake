@@ -1,5 +1,5 @@
 # Get platform specific build info
-include(platform.cmake)
+include(build_server_windows.cmake)
 
 # Run CTest
 ctest_start(${CTEST_BUILD_MODEL})
