@@ -11,9 +11,9 @@ concurrency:
 
 jobs:
   build-linux-stage1:
-    name: Build Linux Stage 1 (fletch + pytorch)
+    name: Build Linux Stage 1 (fletch)
     runs-on: ubuntu-latest
-    timeout-minutes: 480  # 8 hours for fletch + pytorch
+    timeout-minutes: 480  # 8 hours for fletch
     outputs:
       cache-hit: ${{ steps.cache-stage1.outputs.cache-hit }}
       cache-key: ${{ steps.cache-key.outputs.key }}
@@ -27,14 +27,12 @@ jobs:
       - name: Compute Stage 1 cache key
         id: cache-key
         run: |
-          # Compute hash of files that affect Stage 1 build
+          # Compute hash of files that affect Stage 1 build (fletch only)
           FLETCH_CMAKE_HASH=$(sha256sum cmake/add_project_fletch.cmake | cut -c1-16)
           FLETCH_PKG_HASH=$(find packages/fletch -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.patch" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -c1-16)
-          PYTORCH_PKG_HASH=$(find packages/pytorch -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.patch" -o -name "*.py" -o -name "setup.py" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -c1-16)
-          PYTORCH_CMAKE_HASH=$(sha256sum cmake/add_project_pytorch.cmake | cut -c1-16)
           BUILD_SCRIPT_HASH=$(sha256sum cmake/build_server_rocky_stage1.sh cmake/build_server_deps_yum.sh cmake/build_server_linux_ssl.sh cmake/build_server_linux_cmake.sh 2>/dev/null | sort | sha256sum | cut -c1-16)
 
-          CACHE_KEY="linux-stage1-${FLETCH_CMAKE_HASH}-${FLETCH_PKG_HASH}-${PYTORCH_CMAKE_HASH}-${PYTORCH_PKG_HASH}-${BUILD_SCRIPT_HASH}"
+          CACHE_KEY="linux-stage1-${FLETCH_CMAKE_HASH}-${FLETCH_PKG_HASH}-${BUILD_SCRIPT_HASH}"
           echo "key=$CACHE_KEY" >> $GITHUB_OUTPUT
           echo "Cache key: $CACHE_KEY"
 
@@ -90,14 +88,6 @@ jobs:
             echo "SUCCESS: fletch-build directory found"
           else
             echo "ERROR: fletch-build directory not found"
-            exit 1
-          fi
-
-          # Check that pytorch was built
-          if docker exec viame_build test -d /viame/build/build/src/pytorch-build; then
-            echo "SUCCESS: pytorch-build directory found"
-          else
-            echo "ERROR: pytorch-build directory not found"
             exit 1
           fi
 
@@ -157,18 +147,43 @@ jobs:
           docker rm --force viame_build || true
 
   build-linux-stage2:
-    name: Build Linux Stage 2 (kwiver + viame)
+    name: Build Linux Stage 2 (pytorch)
     runs-on: ubuntu-latest
     needs: build-linux-stage1
-    timeout-minutes: 480  # 8 hours for remaining builds
+    timeout-minutes: 480  # 8 hours for pytorch
+    outputs:
+      cache-hit: ${{ steps.cache-stage2.outputs.cache-hit }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: false  # We handle submodules in the build script
+          submodules: true  # Need submodules to compute hashes
+
+      - name: Compute Stage 2 cache key
+        id: cache-key
+        run: |
+          # Compute hash of files that affect Stage 2 build (pytorch)
+          # Include Stage 1 cache key to ensure we rebuild if fletch changes
+          STAGE1_KEY="${{ needs.build-linux-stage1.outputs.cache-key }}"
+          PYTORCH_PKG_HASH=$(find packages/pytorch -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.patch" -o -name "*.py" -o -name "setup.py" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -c1-16)
+          PYTORCH_CMAKE_HASH=$(sha256sum cmake/add_project_pytorch.cmake | cut -c1-16)
+          BUILD_SCRIPT_HASH=$(sha256sum cmake/build_server_rocky_stage2.sh 2>/dev/null | cut -c1-16)
+
+          CACHE_KEY="linux-stage2-${STAGE1_KEY}-${PYTORCH_CMAKE_HASH}-${PYTORCH_PKG_HASH}-${BUILD_SCRIPT_HASH}"
+          echo "key=$CACHE_KEY" >> $GITHUB_OUTPUT
+          echo "Cache key: $CACHE_KEY"
+
+      - name: Check Stage 2 cache
+        id: cache-stage2
+        uses: actions/cache@v4
+        with:
+          path: stage2-artifacts/stage2-build.tar.zst
+          key: ${{ steps.cache-key.outputs.key }}
 
       - name: Free disk space
+        if: steps.cache-stage2.outputs.cache-hit != 'true'
         run: |
           # Remove unnecessary files to free up disk space
           sudo rm -rf /usr/share/dotnet
@@ -179,17 +194,20 @@ jobs:
           df -h
 
       - name: Download Stage 1 artifact
+        if: steps.cache-stage2.outputs.cache-hit != 'true'
         uses: actions/download-artifact@v4
         with:
           name: linux-stage1-build
           path: stage1-artifacts
 
       - name: Set up Docker
+        if: steps.cache-stage2.outputs.cache-hit != 'true'
         run: |
           # Ensure docker is available
           docker --version
 
       - name: Build Stage 2 in Rocky Linux container
+        if: steps.cache-stage2.outputs.cache-hit != 'true'
         run: |
           # Pull the Rocky Linux CUDA image
           docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux9
@@ -210,6 +228,129 @@ jobs:
 
           # Run the Stage 2 build script
           docker exec viame_build /viame/cmake/build_server_rocky_stage2.sh
+
+      - name: Verify Stage 2 completed successfully
+        if: steps.cache-stage2.outputs.cache-hit != 'true'
+        run: |
+          echo "Checking if Stage 2 build completed successfully..."
+
+          # Check that pytorch was built
+          if docker exec viame_build test -d /viame/build/build/src/pytorch-build; then
+            echo "SUCCESS: pytorch-build directory found"
+          else
+            echo "ERROR: pytorch-build directory not found"
+            exit 1
+          fi
+
+          # Check for install directory
+          if docker exec viame_build test -d /viame/build/install; then
+            echo "SUCCESS: install directory found"
+          else
+            echo "ERROR: install directory not found"
+            exit 1
+          fi
+
+          echo "Stage 2 verification passed!"
+
+      - name: Package Stage 2 artifact
+        if: steps.cache-stage2.outputs.cache-hit != 'true'
+        run: |
+          # Create a compressed archive of the build directory for Stage 3
+          echo "Creating Stage 2 artifact..."
+          docker exec viame_build bash -c "cd /viame && tar -cf - build | zstd -T0 -3 > /viame/stage2-build.tar.zst"
+
+          # Copy artifact out of container
+          mkdir -p stage2-artifacts
+          docker cp viame_build:/viame/stage2-build.tar.zst stage2-artifacts/
+          docker cp viame_build:/viame/build/build_log_stage2.txt stage2-artifacts/ 2>/dev/null || true
+
+          ls -lh stage2-artifacts/
+
+      - name: Report cache status
+        run: |
+          if [ "${{ steps.cache-stage2.outputs.cache-hit }}" == "true" ]; then
+            echo "Stage 2 cache HIT - skipped build"
+            ls -lh stage2-artifacts/
+          else
+            echo "Stage 2 cache MISS - full build completed"
+          fi
+
+      - name: Upload Stage 2 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-stage2-build
+          path: stage2-artifacts/stage2-build.tar.zst
+          retention-days: 1
+          compression-level: 0  # Already compressed with zstd
+
+      - name: Upload Stage 2 build log
+        uses: actions/upload-artifact@v4
+        if: steps.cache-stage2.outputs.cache-hit != 'true'
+        with:
+          name: linux-stage2-log
+          path: stage2-artifacts/build_log_stage2.txt
+          retention-days: 7
+
+      - name: Cleanup
+        if: always() && steps.cache-stage2.outputs.cache-hit != 'true'
+        run: |
+          docker stop viame_build || true
+          docker rm --force viame_build || true
+
+  build-linux-stage3:
+    name: Build Linux Stage 3 (kwiver + viame)
+    runs-on: ubuntu-latest
+    needs: build-linux-stage2
+    timeout-minutes: 480  # 8 hours for remaining builds
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false  # We handle submodules in the build script
+
+      - name: Free disk space
+        run: |
+          # Remove unnecessary files to free up disk space
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h
+
+      - name: Download Stage 2 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-stage2-build
+          path: stage2-artifacts
+
+      - name: Set up Docker
+        run: |
+          # Ensure docker is available
+          docker --version
+
+      - name: Build Stage 3 in Rocky Linux container
+        run: |
+          # Pull the Rocky Linux CUDA image
+          docker pull nvidia/cuda:12.6.3-cudnn-devel-rockylinux9
+
+          # Start container (no GPU runtime needed for compilation)
+          docker run -td --name viame_build nvidia/cuda:12.6.3-cudnn-devel-rockylinux9 bash
+
+          # Copy source into container
+          docker cp . viame_build:/viame/
+
+          # Copy and extract Stage 2 artifact
+          echo "Extracting Stage 2 build artifact..."
+          docker cp stage2-artifacts/stage2-build.tar.zst viame_build:/viame/
+          docker exec viame_build bash -c "cd /viame && zstd -d stage2-build.tar.zst -c | tar -xf - && rm stage2-build.tar.zst"
+
+          # Make build script executable
+          docker exec viame_build chmod +x /viame/cmake/build_server_rocky_stage3.sh
+
+          # Run the Stage 3 build script
+          docker exec viame_build /viame/cmake/build_server_rocky_stage3.sh
 
       - name: Verify Linux build completed successfully
         run: |
@@ -250,7 +391,7 @@ jobs:
           docker exec viame_build find /viame/build -name "VIAME-*-Linux-64Bit.tar.gz" -exec cat {} \; > artifacts/viame-linux.tar.gz 2>/dev/null || \
           docker cp viame_build:/viame/build/VIAME-v1.0.0-Linux-64Bit.tar.gz artifacts/viame-linux.tar.gz 2>/dev/null || true
           # Also try to get build log for debugging
-          docker cp viame_build:/viame/build/build_log_stage2.txt artifacts/build_log_linux.txt 2>/dev/null || true
+          docker cp viame_build:/viame/build/build_log_stage3.txt artifacts/build_log_linux.txt 2>/dev/null || true
           ls -la artifacts/
 
       - name: Get version from release notes
@@ -459,7 +600,7 @@ jobs:
 
   create-release:
     name: Create GitHub Release
-    needs: [build-linux-stage2, build-windows]
+    needs: [build-linux-stage3, build-windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -1,8 +1,8 @@
 #! /bin/bash
 
-# Stage 2: Build pytorch
-# This script continues from the Stage 1 artifact which contains fletch builds.
-# It builds pytorch and packages the result for Stage 3 to continue from.
+# Stage 3: Build remaining components (kwiver, pytorch-libs, viame)
+# This script continues from the Stage 2 artifact which contains fletch and pytorch builds.
+# It builds all remaining components and creates the final release package.
 
 set -x
 set -e
@@ -27,6 +27,10 @@ $VIAME_SOURCE_DIR/cmake/build_server_deps_yum.sh
 # Patch CUDNN when required
 ./viame/cmake/build_server_patch_cudnn.sh
 
+# Use GCC11 for build
+yum install -y gcc-toolset-11
+source /opt/rh/gcc-toolset-11/enable
+
 # Hack for storing paths to CUDA libs for some libraries
 rm -f /usr/local/cuda
 rm -f /usr/local/cuda-12
@@ -39,7 +43,7 @@ cd $VIAME_SOURCE_DIR
 git config --global --add safe.directory $VIAME_SOURCE_DIR
 git submodule update --init --recursive
 
-# Build directory should already exist from Stage 1 artifact
+# Build directory should already exist from Stage 2 artifact
 cd build
 
 # Configure Paths [should be removed when no longer necessary by fletch]
@@ -48,19 +52,31 @@ export LD_LIBRARY_PATH=$VIAME_INSTALL_DIR/lib:$VIAME_INSTALL_DIR/lib/python3.10:
 export C_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=$VIAME_INSTALL_DIR/include/python3.10:$CPLUS_INCLUDE_PATH
 
-# Build Stage 2 target: pytorch
-echo "Beginning Stage 2 build (pytorch), routing build info to build_log_stage2.txt"
+# Build Stage 3: Everything else (kwiver, pytorch-libs, viame)
+echo "Beginning Stage 3 build (kwiver, pytorch-libs, viame), routing build info to build_log_stage3.txt"
 
-# Build pytorch (requires fletch from Stage 1)
-echo "Building pytorch..."
-make -j$(nproc) pytorch 2>&1 | tee build_log_stage2.txt
+# Run full build - CMake will skip already-built targets from Stage 1 and 2
+../cmake/build_server_linux_build.sh $CUDA_DIRECTORY > build_log_stage3.txt 2>&1
 
-# Verify Stage 2 completed
-if grep -q "Built target pytorch" build_log_stage2.txt; then
-  echo "Stage 2: pytorch build succeeded"
+# Output check statements
+if grep -q "Built target viame" build_log_stage3.txt; then
+  echo "VIAME Build Succeeded"
+
+  # Make tarball of install
+  mv install viame
+  rm VIAME-${VIAME_VERSION}-Linux-64Bit.tar.gz ||:
+  tar -zcvf VIAME-${VIAME_VERSION}-Linux-64Bit.tar.gz viame
+  mv viame install
 else
-  echo "Stage 2: pytorch build FAILED"
+  echo "VIAME Build Failed"
   exit 1
 fi
 
-echo "Stage 2 build completed successfully"
+if grep -q "fixup_bundle: preparing..." build_log_stage3.txt; then
+  echo "Fixup Bundle Called Successfully"
+else
+  echo "Error: Fixup Bundle Not Called"
+  exit 1
+fi
+
+echo "Stage 3 build completed successfully - Final release package created"
