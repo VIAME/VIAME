@@ -52,11 +52,7 @@ CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmak
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
 
-COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN64_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
+CALL :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%WIN64_ROOT%" "%ZLIB_ROOT%"
 
 powershell.exe "Get-ChildItem -Recurse "%VIAME_INSTALL_DIR%" | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-core.lst
@@ -168,8 +164,6 @@ REM Subroutines
 REM ==============================================================================
 
 :GenerateCTestDashboard
-REM Generate CTest dashboard cmake file
-REM %1 = Platform cmake file, %2 = Output file
 (
     ECHO # Auto-generated CTest dashboard file
     ECHO include^(%~1^)
@@ -178,4 +172,13 @@ REM %1 = Platform cmake file, %2 = Output file
     ECHO ctest_build^(^)
     ECHO ctest_submit^(^)
 ) > %VIAME_SOURCE_DIR%\cmake\%~2
+GOTO :EOF
+
+:CopySystemDlls
+COPY "%WINDIR%\System32\msvcr100.dll" "%~1" 2>NUL
+COPY "%WINDIR%\System32\vcruntime140_1.dll" "%~1" 2>NUL
+COPY "%~2\vcomp140.dll" "%~1" 2>NUL
+COPY "%WINDIR%\SysWOW64\msvcr120.dll" "%~1" 2>NUL
+COPY "%~3\dll_x64\zlibwapi.dll" "%~1" 2>NUL
+IF NOT "%~4"=="" COPY "%~4\Release\zlib1.dll" "%~1" 2>NUL
 GOTO :EOF

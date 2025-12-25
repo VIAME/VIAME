@@ -77,44 +77,18 @@ REM ----------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
 REM -------------------------------------------------------------------------------------------------------
 
-COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%VDIST_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_BUILD_DIR%\Release\zlib1.dll" %VIAME_INSTALL_DIR%\bin
+CALL :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
 
 DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"
 
-COPY "%CUDA_ROOT%\bin\cublas64_12.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cublasLt64_12.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudart64_12.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_adv64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_cnn64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_engines_precompiled64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_engines_runtime_compiled64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_graph64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_heuristic64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_ops64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cufft64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cufftw64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\curand64_10.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cusolver64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cusolverMg64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cusparse64_12.dll" %VIAME_INSTALL_DIR%\bin
-
+CALL :CopyCuda12Dlls "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
 COPY "%CUDA_ROOT%\extras\CUPTI\lib64\cupti64_2025.1.0.dll" %VIAME_INSTALL_DIR%\bin
 
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
-MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
-
-"%ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME
-
-MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"
+CALL :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
 
 GOTO :EOF
 
@@ -123,8 +97,6 @@ REM Subroutines
 REM ==============================================================================
 
 :GenerateCTestDashboard
-REM Generate CTest dashboard cmake file
-REM %1 = Platform cmake file, %2 = Output file
 (
     ECHO # Auto-generated CTest dashboard file
     ECHO include^(%~1^)
@@ -133,4 +105,39 @@ REM %1 = Platform cmake file, %2 = Output file
     ECHO ctest_build^(^)
     ECHO ctest_submit^(^)
 ) > %VIAME_SOURCE_DIR%\cmake\%~2
+GOTO :EOF
+
+:CopySystemDlls
+COPY "%WINDIR%\System32\msvcr100.dll" "%~1" 2>NUL
+COPY "%WINDIR%\System32\vcruntime140_1.dll" "%~1" 2>NUL
+COPY "%~2\vcomp140.dll" "%~1" 2>NUL
+COPY "%WINDIR%\SysWOW64\msvcr120.dll" "%~1" 2>NUL
+COPY "%~3\dll_x64\zlibwapi.dll" "%~1" 2>NUL
+IF NOT "%~4"=="" COPY "%~4\Release\zlib1.dll" "%~1" 2>NUL
+GOTO :EOF
+
+:CopyCuda12Dlls
+COPY "%~1\bin\cublas64_12.dll" "%~2" 2>NUL
+COPY "%~1\bin\cublasLt64_12.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudart64_12.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudnn_adv64_9.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudnn_cnn64_9.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudnn_engines_precompiled64_9.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudnn_engines_runtime_compiled64_9.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudnn_graph64_9.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudnn_heuristic64_9.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudnn_ops64_9.dll" "%~2" 2>NUL
+COPY "%~1\bin\cudnn64_9.dll" "%~2" 2>NUL
+COPY "%~1\bin\cufft64_11.dll" "%~2" 2>NUL
+COPY "%~1\bin\cufftw64_11.dll" "%~2" 2>NUL
+COPY "%~1\bin\curand64_10.dll" "%~2" 2>NUL
+COPY "%~1\bin\cusolver64_11.dll" "%~2" 2>NUL
+COPY "%~1\bin\cusolverMg64_11.dll" "%~2" 2>NUL
+COPY "%~1\bin\cusparse64_12.dll" "%~2" 2>NUL
+GOTO :EOF
+
+:CreateZipPackage
+MOVE "%~1" "%~2\VIAME"
+"%~4\7z.exe" a "%~2\%~3" "%~2\VIAME"
+MOVE "%~2\VIAME" "%~1"
 GOTO :EOF

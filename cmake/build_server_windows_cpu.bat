@@ -62,22 +62,13 @@ REM ----------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
 REM -------------------------------------------------------------------------------------------------------
 
-COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%VDIST_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_BUILD_DIR%\Release\zlib1.dll" %VIAME_INSTALL_DIR%\bin
+CALL :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
 
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
-MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
-
-"%ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME
-
-MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"
+CALL :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
 
 GOTO :EOF
 
@@ -86,8 +77,6 @@ REM Subroutines
 REM ==============================================================================
 
 :GenerateCTestDashboard
-REM Generate CTest dashboard cmake file
-REM %1 = Platform cmake file, %2 = Output file
 (
     ECHO # Auto-generated CTest dashboard file
     ECHO include^(%~1^)
@@ -96,4 +85,19 @@ REM %1 = Platform cmake file, %2 = Output file
     ECHO ctest_build^(^)
     ECHO ctest_submit^(^)
 ) > %VIAME_SOURCE_DIR%\cmake\%~2
+GOTO :EOF
+
+:CopySystemDlls
+COPY "%WINDIR%\System32\msvcr100.dll" "%~1" 2>NUL
+COPY "%WINDIR%\System32\vcruntime140_1.dll" "%~1" 2>NUL
+COPY "%~2\vcomp140.dll" "%~1" 2>NUL
+COPY "%WINDIR%\SysWOW64\msvcr120.dll" "%~1" 2>NUL
+COPY "%~3\dll_x64\zlibwapi.dll" "%~1" 2>NUL
+IF NOT "%~4"=="" COPY "%~4\Release\zlib1.dll" "%~1" 2>NUL
+GOTO :EOF
+
+:CreateZipPackage
+MOVE "%~1" "%~2\VIAME"
+"%~4\7z.exe" a "%~2\%~3" "%~2\VIAME"
+MOVE "%~2\VIAME" "%~1"
 GOTO :EOF
