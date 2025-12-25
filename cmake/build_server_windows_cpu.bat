@@ -51,12 +51,17 @@ IF NOT EXIST C:\tmp mkdir C:\tmp
 IF EXIST C:\tmp\kv2 rmdir /s /q C:\tmp\kv2
 IF EXIST C:\tmp\vm2 rmdir /s /q C:\tmp\vm2
 
+git config --system core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file
 CALL :GenerateCTestDashboard build_server_windows_cpu.cmake ctest_dashboard.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO CTest build failed with error code %ERRORLEVEL%
+    EXIT /B %ERRORLEVEL%
+)
 
 REM -------------------------------------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake

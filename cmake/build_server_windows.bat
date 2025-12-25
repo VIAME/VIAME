@@ -24,7 +24,7 @@ SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
 
 SET "MSVS_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional"
 SET "MSVS_ARCH=x64"
-SET "MSVS_TOOLSET=14.2
+SET "MSVS_TOOLSET=14.2"
 SET "MSVS_REDIST_VER=14.29.30133"
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
@@ -72,6 +72,10 @@ REM Generate CTest dashboard file
 CALL :GenerateCTestDashboard build_server_windows.cmake ctest_dashboard.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO CTest build failed with error code %ERRORLEVEL%
+    EXIT /B %ERRORLEVEL%
+)
 
 REM -------------------------------------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake

@@ -45,12 +45,14 @@ IF EXIST C:\tmp\fl5 rmdir /s /q C:\tmp\fl5
 IF EXIST C:\tmp\kv5 rmdir /s /q C:\tmp\kv5
 IF EXIST C:\tmp\vm5 rmdir /s /q C:\tmp\vm5
 
+git config --system core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file for initial build
 CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
+CALL :CheckCTestError "Round1 - VIAME Core"
 
 CALL :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%WIN64_ROOT%" "%ZLIB_ROOT%"
 
@@ -74,6 +76,7 @@ REM Regenerate CTest dashboard file after applying patch
 CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
+CALL :CheckCTestError "Round2 - Torch"
 
 DEL "%VIAME_INSTALL_DIR%\lib\python3.10\site-packages\torch\lib\cu*"
 
@@ -111,6 +114,7 @@ REM Regenerate CTest dashboard file after applying patch
 CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
+CALL :CheckCTestError "Round3 - Darknet"
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-darknet.txt
@@ -129,6 +133,7 @@ REM Regenerate CTest dashboard file after applying patch
 CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
+CALL :CheckCTestError "Round4 - DIVE"
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-dive.txt
@@ -147,6 +152,7 @@ REM Regenerate CTest dashboard file after applying patch
 CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
 
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
+CALL :CheckCTestError "Round5 - VIEW"
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-view.txt
@@ -181,4 +187,11 @@ COPY "%~2\vcomp140.dll" "%~1" 2>NUL
 COPY "%WINDIR%\SysWOW64\msvcr120.dll" "%~1" 2>NUL
 COPY "%~3\dll_x64\zlibwapi.dll" "%~1" 2>NUL
 IF NOT "%~4"=="" COPY "%~4\Release\zlib1.dll" "%~1" 2>NUL
+GOTO :EOF
+
+:CheckCTestError
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO CTest build failed at %~1 with error code %ERRORLEVEL%
+    EXIT /B %ERRORLEVEL%
+)
 GOTO :EOF
