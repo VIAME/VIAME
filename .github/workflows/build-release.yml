@@ -221,6 +221,7 @@ jobs:
           # Copy and extract Stage 1 artifact
           echo "Extracting Stage 1 build artifact..."
           docker cp stage1-artifacts/stage1-build.tar.zst viame_build:/viame/
+          docker exec viame_build yum install -y zstd
           docker exec viame_build bash -c "cd /viame && zstd -d stage1-build.tar.zst -c | tar -xf - && rm stage1-build.tar.zst"
 
           # Make build script executable
@@ -344,6 +345,7 @@ jobs:
           # Copy and extract Stage 2 artifact
           echo "Extracting Stage 2 build artifact..."
           docker cp stage2-artifacts/stage2-build.tar.zst viame_build:/viame/
+          docker exec viame_build yum install -y zstd
           docker exec viame_build bash -c "cd /viame && zstd -d stage2-build.tar.zst -c | tar -xf - && rm stage2-build.tar.zst"
 
           # Make build script executable
