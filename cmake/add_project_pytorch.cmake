@@ -312,7 +312,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   # Use smart rebuild for slow-to-build packages, old method for others
   if( VIAME_FORCEBUILD )
-    if( "${LIB}" STREQUAL "detectron2" OR "${LIB}" STREQUAL "sam2" )
+    if( "${LIB}" STREQUAL "detectron2" OR "${LIB}" STREQUAL "sam2" OR "${LIB}" STREQUAL "mmdeploy" )
       BuildOnHashChangeOnly( ${LIB} ${LIBRARY_LOCATION} )
     else()
       RemoveProjectCMakeStamp( ${LIB} )
