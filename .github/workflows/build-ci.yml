@@ -61,8 +61,24 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
+        id: setup-python
         with:
           python-version: '3.10'
+
+      - name: Get Python paths
+        id: python-paths
+        run: |
+          PYTHON_PATH="${{ steps.setup-python.outputs.python-path }}"
+          PYTHON_DIR=$(dirname "$PYTHON_PATH")
+          # Get Python library and include paths
+          PYTHON_LIBRARY=$(python -c "import sysconfig; import os; lib_dir = sysconfig.get_config_var('LIBDIR'); lib_name = sysconfig.get_config_var('LDLIBRARY'); print(os.path.join(lib_dir, lib_name) if lib_dir and lib_name else '')")
+          PYTHON_INCLUDE=$(python -c "import sysconfig; print(sysconfig.get_path('include'))")
+          echo "python-exe=$PYTHON_PATH" >> $GITHUB_OUTPUT
+          echo "python-dir=$PYTHON_DIR" >> $GITHUB_OUTPUT
+          echo "python-library=$PYTHON_LIBRARY" >> $GITHUB_OUTPUT
+          echo "python-include=$PYTHON_INCLUDE" >> $GITHUB_OUTPUT
+          echo "Using Python executable: $PYTHON_PATH"
+          echo "Python include dir: $PYTHON_INCLUDE"
 
       - name: Install Python build dependencies
         run: |
@@ -147,7 +163,10 @@ jobs:
             -DVIAME_ENABLE_FFMPEG:BOOL=OFF \
             -DVIAME_DOWNLOAD_MODELS:BOOL=OFF \
             -DVIAME_BUILD_TESTS:BOOL=OFF \
-            -DVIAME_FORCEBUILD:BOOL=OFF
+            -DVIAME_FORCEBUILD:BOOL=OFF \
+            -DPYTHON_EXECUTABLE:PATH="${{ steps.python-paths.outputs.python-exe }}" \
+            -DPYTHON_INCLUDE_DIR:PATH="${{ steps.python-paths.outputs.python-include }}" \
+            -DPYTHON_LIBRARY:PATH="${{ steps.python-paths.outputs.python-library }}"
 
       - name: Build fletch (if not cached)
         if: steps.cache-fletch.outputs.cache-hit != 'true'
@@ -286,9 +305,16 @@ jobs:
         run: |
           PYTHON_PATH="${{ steps.setup-python.outputs.python-path }}"
           PYTHON_DIR=$(dirname "$PYTHON_PATH")
+          # Get Python library and include paths for Windows
+          PYTHON_INCLUDE=$(python -c "import sysconfig; print(sysconfig.get_path('include'))")
+          PYTHON_LIBRARY=$(python -c "import sysconfig; import os; base = sysconfig.get_config_var('base'); ver = sysconfig.get_config_var('py_version_nodot'); print(os.path.join(base, 'libs', f'python{ver}.lib'))")
+          echo "python-exe=$PYTHON_PATH" >> $GITHUB_OUTPUT
           echo "python-dir=$PYTHON_DIR" >> $GITHUB_OUTPUT
+          echo "python-include=$PYTHON_INCLUDE" >> $GITHUB_OUTPUT
+          echo "python-library=$PYTHON_LIBRARY" >> $GITHUB_OUTPUT
           echo "Using Python at: $PYTHON_PATH"
-          echo "Python directory: $PYTHON_DIR"
+          echo "Python include: $PYTHON_INCLUDE"
+          echo "Python library: $PYTHON_LIBRARY"
 
       - name: Remove other Python versions from PATH
         shell: powershell
@@ -340,11 +366,9 @@ jobs:
             -DVIAME_FORCEBUILD:BOOL=OFF ^
             -DVIAME_BUILD_KWIVER_DIR:PATH=C:/tmp/kv1 ^
             -DVIAME_BUILD_PLUGINS_DIR:PATH=C:/tmp/vm1 ^
-            -DPYTHON_EXECUTABLE:PATH="${{ steps.setup-python.outputs.python-path }}" ^
-            -DPython3_EXECUTABLE:PATH="${{ steps.setup-python.outputs.python-path }}" ^
-            -DPython3_ROOT_DIR:PATH="${{ steps.python-paths.outputs.python-dir }}" ^
-            -DPython_EXECUTABLE:PATH="${{ steps.setup-python.outputs.python-path }}" ^
-            -DPython_ROOT_DIR:PATH="${{ steps.python-paths.outputs.python-dir }}"
+            -DPYTHON_EXECUTABLE:PATH="${{ steps.python-paths.outputs.python-exe }}" ^
+            -DPYTHON_INCLUDE_DIR:PATH="${{ steps.python-paths.outputs.python-include }}" ^
+            -DPYTHON_LIBRARY:PATH="${{ steps.python-paths.outputs.python-library }}"
 
       - name: Build fletch (if not cached)
         if: steps.cache-fletch.outputs.cache-hit != 'true'
