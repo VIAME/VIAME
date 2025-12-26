@@ -335,20 +335,27 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pymotmetrics )
 
 set( PROJECT_DEPS fletch python-deps )
 
+set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
+CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
+
+# Set up compiler/linker flags for C extensions that need external libraries
+set( LIBRARY_BUILD_ENV_VARS
+  "CFLAGS=-I${VIAME_INSTALL_PREFIX}/include"
+  "CXXFLAGS=-I${VIAME_INSTALL_PREFIX}/include"
+  "LDFLAGS=-L${VIAME_INSTALL_PREFIX}/lib" )
+
 if( VIAME_PYTHON_SYMLINK )
-  set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build )
+  # In development mode, pip install -e handles both build and install
+  set( LIBRARY_PIP_BUILD_CMD "" )
   set( LIBRARY_PIP_INSTALL_CMD
     ${Python_EXECUTABLE} -m pip install --user -e . )
 else()
-  set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
-  CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
-
+  # Use python -m build for PEP 517 compliant wheel building
   set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build_ext
-      --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-      --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-      --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+    ${Python_EXECUTABLE} -m build
+      --wheel
+      --no-isolation
+      --outdir ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${CMAKE_COMMAND}
       -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
@@ -357,11 +364,16 @@ else()
       -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
-set( LIBRARY_PYTHON_BUILD
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  ${LIBRARY_PIP_BUILD_CMD} )
+if( LIBRARY_PIP_BUILD_CMD )
+  set( LIBRARY_PYTHON_BUILD
+    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}" "${LIBRARY_BUILD_ENV_VARS}"
+    ${LIBRARY_PIP_BUILD_CMD} )
+else()
+  # For symlink mode, no separate build step needed
+  set( LIBRARY_PYTHON_BUILD ${CMAKE_COMMAND} -E echo "Skipping build step for editable install" )
+endif()
 set( LIBRARY_PYTHON_INSTALL
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}" "${LIBRARY_BUILD_ENV_VARS}"
   ${LIBRARY_PIP_INSTALL_CMD} )
 
 ExternalProject_Add( pymotmetrics

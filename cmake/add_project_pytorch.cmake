@@ -143,38 +143,28 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PIP_CACHE_DIR_CMD --cache-dir ${LIBRARY_PIP_CACHE_DIR} )
 
   # For each python library split the build and install into two steps.
+  # Use modern `python -m build` instead of deprecated `setup.py` calls.
+
+  # Set up compiler/linker flags for C extensions that need external libraries
+  set( LIBRARY_BUILD_ENV_VARS
+    "CFLAGS=-I${VIAME_INSTALL_PREFIX}/include"
+    "CXXFLAGS=-I${VIAME_INSTALL_PREFIX}/include"
+    "LDFLAGS=-L${VIAME_INSTALL_PREFIX}/lib" )
 
   if( VIAME_PYTHON_SYMLINK )
     # In development mode, install with the -e flag for editable.
-    set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} setup.py build )
+    # pip install -e handles both build and install in one step.
+    set( LIBRARY_PIP_BUILD_CMD "" )
     set( LIBRARY_PIP_INSTALL_CMD
       ${Python_EXECUTABLE} -m pip install --user -e . )
   else()
-    # TODO:
-    # replace direct calls to setup.py with `python -m build`
-    if( "${LIB}" STREQUAL "mit-yolo" )
-      # For now just use -m build with MIT-YOLO
-      # FIXME:
-      # If we remove no-isolation then it will complain that pip cannot be found.
-      # I don't know exactly why, but for now it works.
-      set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} -m build
-          --wheel
-          --no-isolation
-          --outdir ${LIBRARY_PIP_BUILD_DIR}
-      )
-    elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
-      set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} setup.py
-          bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
-    else()
-      set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} setup.py build_ext
-          --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-          --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-          --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
-    endif()
+    # Use python -m build for PEP 517 compliant wheel building.
+    # --no-isolation uses current environment instead of creating isolated venv.
+    set( LIBRARY_PIP_BUILD_CMD
+      ${Python_EXECUTABLE} -m build
+        --wheel
+        --no-isolation
+        --outdir ${LIBRARY_PIP_BUILD_DIR} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
         -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
@@ -183,12 +173,17 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
   endif()
 
-  set( LIBRARY_PYTHON_BUILD
-    ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
-    "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
-    ${LIBRARY_PIP_BUILD_CMD} )
+  if( LIBRARY_PIP_BUILD_CMD )
+    set( LIBRARY_PYTHON_BUILD
+      ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}" "${LIBRARY_BUILD_ENV_VARS}"
+      "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
+      ${LIBRARY_PIP_BUILD_CMD} )
+  else()
+    # For symlink mode, no separate build step needed (pip install -e does both)
+    set( LIBRARY_PYTHON_BUILD ${CMAKE_COMMAND} -E echo "Skipping build step for editable install" )
+  endif()
   set( LIBRARY_PYTHON_INSTALL
-    ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
+    ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}" "${LIBRARY_BUILD_ENV_VARS}"
     "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
     ${LIBRARY_PIP_INSTALL_CMD} )
 
@@ -262,7 +257,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if ("${LIB}" STREQUAL "mmdeploy")
 
     set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
-    set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
+    set( LIBRARY_CPP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-cpp-build )
     file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
 
     set( LIBRARY_CPP_CONFIG

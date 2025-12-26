@@ -47,30 +47,41 @@ list( APPEND TENSORFLOW_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
 list( APPEND TENSORFLOW_ENV_VARS "PYTHONUSERBASE=${VIAME_INSTALL_PREFIX}" )
 
 if( VIAME_ENABLE_TENSORFLOW-MODELS )
+  set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/tensorflow-build/models-build )
+  set( LIBRARY_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/tensorflow-build/models-tmp )
+  CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
+  CreateDirectory( ${LIBRARY_PIP_TMP_DIR} )
+
+  # Use modern python -m build instead of deprecated setup.py calls
   if( VIAME_PYTHON_SYMLINK )
-    set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} setup.py build )
+    # In development mode, pip install -e handles both build and install
+    set( LIBRARY_PIP_BUILD_CMD "" )
     set( LIBRARY_PIP_INSTALL_CMD
       ${Python_EXECUTABLE} -m pip install --user -e . )
   else()
+    # Use python -m build for PEP 517 compliant wheel building
     set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} setup.py build_ext
-        --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-        --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-        --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+      ${Python_EXECUTABLE} -m build
+        --wheel
+        --no-isolation
+        --outdir ${LIBRARY_PIP_BUILD_DIR} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
         -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
         -DPython_EXECUTABLE=${Python_EXECUTABLE}
         -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
-        -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
         -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
   endif()
 
-  set( LIBRARY_PYTHON_BUILD
-    ${CMAKE_COMMAND} -E env "${TENSORFLOW_ENV_VARS}"
-    "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
-    ${LIBRARY_PIP_BUILD_CMD} )
+  if( LIBRARY_PIP_BUILD_CMD )
+    set( LIBRARY_PYTHON_BUILD
+      ${CMAKE_COMMAND} -E env "${TENSORFLOW_ENV_VARS}"
+      "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
+      ${LIBRARY_PIP_BUILD_CMD} )
+  else()
+    # For symlink mode, no separate build step needed
+    set( LIBRARY_PYTHON_BUILD ${CMAKE_COMMAND} -E echo "Skipping build step for editable install" )
+  endif()
   set( LIBRARY_PYTHON_INSTALL
     ${CMAKE_COMMAND} -E env "${TENSORFLOW_ENV_VARS}"
     "TMPDIR=${LIBRARY_PIP_TMP_DIR}"

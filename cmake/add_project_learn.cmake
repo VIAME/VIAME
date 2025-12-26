@@ -55,17 +55,18 @@ set( LEARN_REQ_PIP_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip install --user )
 
+# Use modern python -m build instead of deprecated setup.py calls
 if( VIAME_PYTHON_SYMLINK )
-  set( LEARN_BUILD_CMD
+  # In development mode, pip install -e handles both build and install
+  set( LEARN_BUILD_AND_INSTALL_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip install --user -e . )
-  set( LEARN_INSTALL_CMD )
+  set( LEARN_INSTALL_CMD "" )
 else()
-  # This is only required for no symlink install without a -e with older
-  # versions of pip, for never versions the above command works with no -e
-  set( LEARN_BUILD_CMD
+  # Use python -m build for PEP 517 compliant wheel building
+  set( LEARN_BUILD_AND_INSTALL_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} setup.py bdist_wheel -d ${LEARN_BUILD_DIR} )
+    ${Python_EXECUTABLE} -m build --wheel --no-isolation --outdir ${LEARN_BUILD_DIR} )
   set( LEARN_INSTALL_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${CMAKE_COMMAND} -DWHEEL_DIR=${LEARN_BUILD_DIR}
@@ -73,9 +74,10 @@ else()
     -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
-set( REMAX_BUILD_CMD
+# REMAX uses pip install directly instead of deprecated setup.py install
+set( REMAX_BUILD_AND_INSTALL_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} setup.py build install )
+    ${Python_EXECUTABLE} -m pip install --user . )
 
 if( Python_VERSION VERSION_LESS "3.7" )
   set( FINAL_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -93,10 +95,10 @@ ExternalProject_Add( learn
     CONFIGURE_COMMAND "${LEARN_CLONE_CMD}"
     BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${LEARN_DIR}/requirements.txt
           COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
-          COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_BUILD_CMD}
-          COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_BUILD_CMD}
-          COMMAND cd ${REMAX_OPS_DIR} && ${LEARN_BUILD_CMD}
-          COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_CMD}
+          COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_BUILD_AND_INSTALL_CMD}
+          COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_BUILD_AND_INSTALL_CMD}
+          COMMAND cd ${REMAX_OPS_DIR} && ${REMAX_BUILD_AND_INSTALL_CMD}
+          COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_AND_INSTALL_CMD}
           COMMAND ${FINAL_PATCH_COMMAND}
     INSTALL_COMMAND ${LEARN_INSTALL_CMD}
     LIST_SEPARATOR "----"
