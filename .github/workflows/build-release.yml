@@ -460,7 +460,7 @@ jobs:
             Write-Host "Downloading cuDNN (attempt $attempt of $maxRetries)..."
             try {
               if (Test-Path $cudnnArchive) { Remove-Item $cudnnArchive -Force }
-              Invoke-WebRequest -Uri $cudnnUrl -OutFile $cudnnArchive -TimeoutSec 600
+              Invoke-WebRequest -Uri $cudnnUrl -OutFile $cudnnArchive -TimeoutSec 1200
 
               # Check file size
               $fileInfo = Get-Item $cudnnArchive

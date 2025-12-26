@@ -34,6 +34,10 @@ patch_cudnn_headers
 # Use GCC11 for build (Rocky 9 has GCC 11 by default, Rocky 8 needs toolset)
 setup_gcc_toolset 11
 
+# Use GCC11 for build
+yum install -y gcc-toolset-11
+source /opt/rh/gcc-toolset-11/enable
+
 # Hack for storing paths to CUDA libs for some libraries
 rm -f /usr/local/cuda
 rm -f /usr/local/cuda-12
