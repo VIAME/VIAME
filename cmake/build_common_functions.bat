@@ -20,7 +20,7 @@ REM ============================================================================
 :GenerateCTestDashboard
 (
     ECHO # Auto-generated CTest dashboard file
-    ECHO include^(%~1^)
+    ECHO include^(${CMAKE_CURRENT_LIST_DIR}/%~1^)
     ECHO ctest_start^(${CTEST_BUILD_MODEL}^)
     ECHO ctest_configure^(BUILD ${CTEST_BINARY_DIRECTORY} SOURCE ${CTEST_SOURCE_DIRECTORY} OPTIONS "${OPTIONS}"^)
     ECHO ctest_build^(^)
