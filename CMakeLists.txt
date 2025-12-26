@@ -276,7 +276,7 @@ mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 # If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
 # other superbuild projects (except for viame). This makes development builds
 # much quicker if just doing development only in VIAME plugins if OFF.
-option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
+option( VIAME_FORCEBUILD "Enable force-building of all subpackages" OFF )
 mark_as_advanced( VIAME_FORCEBUILD )
 
 ###
