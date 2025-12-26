@@ -187,3 +187,39 @@ function( ReplaceStringInFile ifile oldstr newstr )
   string( REPLACE "${oldstr}" "${newstr}" FILE_CONTENTS "${FILE_CONTENTS}" )
   file( WRITE "${ifile}" "${FILE_CONTENTS}" )
 endfunction()
+
+# Remove project CMake stamp file to trigger rebuild.
+# This is the traditional method - always rebuilds.
+#
+# Usage: RemoveProjectCMakeStamp( project_name )
+#
+function( RemoveProjectCMakeStamp _project_name )
+  ExternalProject_Add_Step( ${_project_name} forcebuild
+    COMMAND ${CMAKE_COMMAND}
+      -E remove ${VIAME_BUILD_PREFIX}/src/${_project_name}-stamp/${_project_name}-build
+    COMMENT "Removing build stamp file for build update (forcebuild)."
+    DEPENDEES configure
+    DEPENDERS build
+    ALWAYS 1
+    )
+endfunction()
+
+# Only rebuild when source hash changes.
+# Uses git commit hash to detect changes in submodules/source directories.
+#
+# Usage: BuildOnHashChangeOnly( project_name source_dir )
+#
+function( BuildOnHashChangeOnly _project_name _source_dir )
+  ExternalProject_Add_Step( ${_project_name} forcebuild
+    COMMAND ${CMAKE_COMMAND}
+      -DLIB_NAME=${_project_name}
+      -DLIB_SOURCE_DIR=${_source_dir}
+      -DSTAMP_DIR=${VIAME_BUILD_PREFIX}/src/${_project_name}-stamp
+      -DHASH_FILE=${VIAME_BUILD_PREFIX}/src/${_project_name}-source-hash.txt
+      -P ${VIAME_CMAKE_DIR}/check_source_changed.cmake
+    COMMENT "Checking if ${_project_name} source has changed..."
+    DEPENDEES configure
+    DEPENDERS build
+    ALWAYS 1
+    )
+endfunction()

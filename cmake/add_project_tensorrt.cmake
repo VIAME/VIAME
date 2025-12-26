@@ -41,14 +41,7 @@ ExternalProject_Add( tensorrt
   )
 
 if( VIAME_FORCEBUILD )
-ExternalProject_Add_Step( tensorrt forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/tensorrt-stamp/tensorrt-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+  RemoveProjectCMakeStamp( tensorrt )
 endif()
 
 set( VIAME_ARGS_TENSOR_RT

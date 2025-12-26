@@ -43,14 +43,7 @@ ExternalProject_Add( seal_tk
   )
 
 if( VIAME_FORCEBUILD )
-  ExternalProject_Add_Step(seal_tk forcebuild
-    COMMAND ${CMAKE_COMMAND}
-      -E remove ${VIAME_BUILD_PREFIX}/src/seal_tk-stamp/seal_tk-build
-    COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
-    )
+  RemoveProjectCMakeStamp( seal_tk )
 endif()
 
 set( VIAME_ARGS_seal_tk

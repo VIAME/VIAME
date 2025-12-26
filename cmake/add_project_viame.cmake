@@ -84,13 +84,6 @@ ExternalProject_Add_Step(viame restructuring_tests
   DEPENDEES install
   )
 
-#if ( VIAME_FORCEBUILD )
-ExternalProject_Add_Step(viame forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/viame-stamp/viame-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
-#endif()
+if( VIAME_FORCEBUILD )
+  RemoveProjectCMakeStamp( viame )
+endif()

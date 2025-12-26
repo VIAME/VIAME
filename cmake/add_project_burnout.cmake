@@ -43,15 +43,8 @@ ExternalProject_Add(burnout
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-if ( VIAME_FORCEBUILD )
-ExternalProject_Add_Step(burnout forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/burnout-stamp/burnout-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+if( VIAME_FORCEBUILD )
+  RemoveProjectCMakeStamp( burnout )
 endif()
 
 set(VIAME_ARGS_burnout
