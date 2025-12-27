@@ -524,8 +524,12 @@ if __name__ == "__main__":
 
     write_version_file()
 
-    with open("README.rst") as f:
-        readme = f.read()
+    readme = ""
+    for readme_file in ("README.md", "README.rst"):
+        if os.path.exists(readme_file):
+            with open(readme_file) as f:
+                readme = f.read()
+            break
 
     setup(
         # Metadata
