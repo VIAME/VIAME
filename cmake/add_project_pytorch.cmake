@@ -238,6 +238,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${VIAME_PACKAGES_DIR}/python-utils/pyav )
   elseif( "${LIB}" STREQUAL "torchvideo" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pyav )
+  elseif( "${LIB}" STREQUAL "mmcv" )
+    if( WIN32 )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/mmcv
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/mmcv )
+    endif()
   elseif( "${LIB}" STREQUAL "mmdetection" )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmcv )
   elseif( "${LIB}" STREQUAL "mmdeploy" )
