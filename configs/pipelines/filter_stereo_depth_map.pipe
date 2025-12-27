@@ -22,9 +22,9 @@ connect from input.image
 
 process depth_map
   :: compute_stereo_depth_map
-  :computer:type                               ocv
-  :computer:ocv:num_disparities                256
-  :computer:ocv:sad_window_size                21
+  :computer:type                               ocv_stereo_disparity
+  :computer:ocv_stereo_disparity:num_disparities                256
+  :computer:ocv_stereo_disparity:sad_window_size                21
 
 connect from split.left_image
         to   depth_map.left_image

@@ -24,12 +24,5 @@ ExternalProject_Add( itk_module_tps
 )
 
 if( VIAME_FORCEBUILD )
-  ExternalProject_Add_Step( itk_module_tps forcebuild
-    COMMAND ${CMAKE_COMMAND}
-      -E remove ${VIAME_BUILD_PREFIX}/src/itk_module_tps-stamp/itk_module_tps-build
-    COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
-  )
+  RemoveProjectCMakeStamp( itk_module_tps )
 endif()

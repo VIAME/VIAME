@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2017-2025 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 /**
  * \file
@@ -35,7 +9,7 @@
 
 #include "write_object_track_set_viame_csv.h"
 
-#include "notes_to_attributes.h"
+#include "convert_notes_to_attributes.h"
 
 #include <ctime>
 #include <sstream>
@@ -116,7 +90,7 @@ write_object_track_set_viame_csv::priv
   if( m_write_time_as_uid )
   {
     char output[10];
-    const kwiver::vital::time_usec_t usec( 1e6 );
+    const kwiver::vital::time_usec_t usec( 1000000 );
     const kwiver::vital::time_usec_t time_s = ts->time() / usec;
     unsigned time_us = ts->time() % usec;
     std::string time_us_str = std::to_string( time_us );
@@ -130,7 +104,7 @@ write_object_track_set_viame_csv::priv
   }
   else if( !m_frame_uids.empty() )
   {
-    std::string fileuid = m_frame_uids[ ts->frame() ];
+    std::string fileuid = m_frame_uids[ static_cast<unsigned>( ts->frame() ) ];
 
     const size_t last_slash_idx = fileuid.find_last_of("\\/");
 
@@ -199,7 +173,7 @@ void write_object_track_set_viame_csv::priv::write_detection_info(
   const kwiver::vital::detected_object_sptr &det )
 {
   // Sanity return in case method was called with empty detection
-  if(!det)
+  if( !det )
     return;
 
   auto bbox = det->bounding_box();
@@ -436,7 +410,7 @@ void write_object_track_set_viame_csv
         kwiver::vital::bounding_box_d( -1, -1, -1, -1 );
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
       auto confidence = ( det ? det->confidence() : 0 );
-      int frame_id = ts->frame() + d->m_frame_id_adjustment;
+      kwiver::vital::frame_id_t frame_id = ts->frame() + d->m_frame_id_adjustment;
 
       stream() << trk_ptr->id() << d->m_delim            // 1: track id
                << d->format_image_id( ts ) << d->m_delim // 2: video or image id
@@ -555,7 +529,7 @@ write_object_track_set_viame_csv
 
   if( !file_id.empty() && ts.has_valid_frame() )
   {
-    d->m_frame_uids[ ts.get_frame() ] = file_id;
+    d->m_frame_uids[ static_cast<unsigned>( ts.get_frame() ) ] = file_id;
   }
 
   if( !set )
@@ -567,7 +541,7 @@ write_object_track_set_viame_csv
   {
     for( auto trk : set->tracks() )
     {
-      d->m_tracks[ trk->id() ] = trk;
+      d->m_tracks[ static_cast<unsigned>( trk->id() ) ] = trk;
     }
   }
   else
@@ -606,7 +580,7 @@ write_object_track_set_viame_csv
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
       auto confidence = ( det ? det->confidence() : 0 );
-      int frame_id = state->frame() + d->m_frame_id_adjustment;
+      kwiver::vital::frame_id_t frame_id = state->frame() + d->m_frame_id_adjustment;
 
       stream() << trk_ptr->id() << d->m_delim               // 1: track id
                << d->format_image_id( state ) << d->m_delim // 2: video or image id

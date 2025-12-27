@@ -1,6 +1,8 @@
+# ==================================================================================
 # Example simple tracker pipeline
 #
 # Runs a standalone TUT object tracking pipeline
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -11,7 +13,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ============================== INPUT FRAME LIST ==================================
+# =============================== INPUT FRAME LIST =================================
 
 include common_default_input_with_downsampler.pipe
 
@@ -21,14 +23,13 @@ include $ENV{VIAME_PROJECT_DIR}/category_models/detector.pipe
 
 connect from downsampler.output_1
         to   detector_input.image
-  
+
 process detector_writer
   :: detected_object_output
 
   # Type of file to output
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
-
 
 connect from detector_output.detected_object_set
         to   detector_writer.detected_object_set

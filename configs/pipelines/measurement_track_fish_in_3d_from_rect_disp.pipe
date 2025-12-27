@@ -1,0 +1,110 @@
+# track fish 3d from detections and stereo rectified disparity
+#
+# Compute rectified disparity map from stereo images, detect and track fish
+# in each camera, then associate tracks from the 2 cameras to create 3d tracks
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               5
+
+config global
+   :input_cameras_directory                    /home/<user>/Desktop/viame_tests/camera_calibrations
+   :output_depths_directory                    /home/<user>/Desktop/viame_tests/depthMap
+   :min_detection_number_threshold              0
+   :max_detection_number_threshold              1000000
+   :min_detection_surface_threshold_pix         0
+   :max_detection_surface_threshold_pix         1000000
+   :pairing_method                              PAIRING_RECTIFIED_IOU
+   :iou_pair_threshold                          0.1
+   :do_split_detections                        1
+   :detection_split_threshold                  3
+
+## ================================= DETECTION AND TRACKING =========================
+
+include common_stereo_fish_tracker.pipe
+
+# =================================== DEPTH MAP ====================================
+
+process depth_map
+  :: compute_stereo_depth_map
+  :computer:type                              ocv_stereo_disparity
+
+block computer:ocv_stereo_disparity
+  :algorithm                                 	SGBM
+  :min_disparity                             	0
+  :num_disparities                           	240
+  :sad_window_size                           	11
+  :block_size                                	11
+  :speckle_window_size			                0
+  :speckle_range				                0
+  :calibration_file                             $CONFIG{global:input_cameras_directory}
+  :use_wls_filter                               true
+endblock
+
+connect from downsampler.output_1
+        to   depth_map.left_image
+connect from downsampler.output_3
+        to   depth_map.right_image
+
+process stereo_pairing
+  ::ocv_pair_stereo_tracks
+  :cameras_directory                      $CONFIG{global:input_cameras_directory}
+  :min_detection_number_threshold         $CONFIG{global:min_detection_number_threshold}
+  :max_detection_number_threshold         $CONFIG{global:max_detection_number_threshold}
+  :min_detection_surface_threshold_pix    $CONFIG{global:min_detection_surface_threshold_pix}
+  :max_detection_surface_threshold_pix    $CONFIG{global:max_detection_surface_threshold_pix}
+  :pairing_method                         $CONFIG{global:pairing_method}
+  :iou_pair_threshold                     $CONFIG{global:iou_pair_threshold}
+  :do_split_detections                    $CONFIG{global:do_split_detections}
+  :detection_split_threshold              $CONFIG{global:detection_split_threshold}
+
+
+connect from downsampler.timestamp
+        to   stereo_pairing.timestamp
+connect from depth_map.depth_map
+        to   stereo_pairing.depth_map
+connect from tracker1.object_track_set
+        to   stereo_pairing.object_track_set1
+connect from tracker2.object_track_set
+        to   stereo_pairing.object_track_set2
+
+# ==================================== OUTPUT ======================================
+
+process output
+  :: image_writer
+  :file_name_template                          $CONFIG{global:output_depths_directory}/depth_map%06d.png
+  :image_writer:type                           ocv
+
+connect from depth_map.depth_map
+        to   output.image
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        25
+
+
+# Connect inputs to track writer
+connect from stereo_pairing.filtered_object_track_set1
+        to   track_writer1.object_track_set
+connect from stereo_pairing.timestamp
+        to   track_writer1.timestamp
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        25
+
+# Connect inputs to track writer
+connect from stereo_pairing.filtered_object_track_set2
+        to   track_writer2.object_track_set
+connect from stereo_pairing.timestamp
+        to   track_writer2.timestamp
+
+# -- end of file --

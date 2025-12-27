@@ -10,12 +10,12 @@ link_directories( ${VXL_LIBRARY_DIR} )
 
 # Add process library
 set( process_headers
-  vxl_srm_image_formatter_process.h
+  format_images_srm_process.h
 )
 
 set( process_sources
   register_processes.cxx
-  vxl_srm_image_formatter_process.cxx
+  format_images_srm_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_vxl

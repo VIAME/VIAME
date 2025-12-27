@@ -1,4 +1,4 @@
-Copyright 2016-2024 Kitware, Inc., NOAA, Univ. of Washington, others.
+Copyright 2016-2026 Kitware, Inc., NOAA, Univ. of Washington, others.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

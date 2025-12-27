@@ -1,0 +1,100 @@
+# ==================================================================================
+# Measurement from annotations pipeline
+# ==================================================================================
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    20
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ================================= DATA INPUTS ====================================
+
+include common_stereo_input_with_tracks.pipe
+
+# ============================= MEASUREMENT PROCESS ================================
+
+process measurer
+  :: compute_measurements
+  :calibration_file                            ./calibration_matrices.npz
+  :matching_methods                            input_pairs_only,compute_disparity
+
+  # Stereo disparity algorithm configuration (for compute_disparity method)
+  # Uses Foundation-Stereo deep learning model for high-quality disparity estimation
+  stereo_disparity:type                        = foundation_stereo
+
+  block stereo_disparity:foundation_stereo
+    # Model variant: base or small (base is more accurate, small is faster)
+    vit_size                                   = vits
+    relativepath checkpoint_path               = models/stereo_s.pth
+    output_type                                = disparity
+  endblock
+
+  # Feature detector configuration (for feature-based methods if needed)
+  # Options: ocv_BRISK, ocv_FAST, ocv_GFTT, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
+  feature_detector:type                        = ocv_ORB
+
+  block feature_detector:ocv_ORB
+    n_features                                 = 2000
+    scale_factor                               = 1.2
+    n_levels                                   = 8
+  endblock
+
+  # Descriptor extractor configuration
+  # Options: ocv_BRISK, ocv_BRIEF, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
+  descriptor_extractor:type                    = ocv_ORB
+
+  block descriptor_extractor:ocv_ORB
+    n_features                                 = 2000
+    scale_factor                               = 1.2
+    n_levels                                   = 8
+  endblock
+
+  # Feature matcher configuration
+  # Options: ocv_brute_force, ocv_flann_based
+  feature_matcher:type                         = ocv_brute_force
+
+  block feature_matcher:ocv_brute_force
+    cross_check                                = true
+  endblock
+
+  # Fundamental matrix estimator configuration (for ransac_feature method)
+  # Options: ocv, vxl
+  fundamental_matrix_estimator:type            = ocv
+
+connect from track_reader1.object_track_set
+        to   measurer.object_track_set1
+connect from track_reader2.object_track_set
+        to   measurer.object_track_set2
+
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+
+# ================================= OUTPUT WRITERS =================================
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+
+connect from measurer.object_track_set1
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+
+connect from measurer.object_track_set2
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+
+# -- end of file --

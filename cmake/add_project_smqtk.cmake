@@ -84,15 +84,8 @@ ExternalProject_Add_Step(smqtk install_cleanup
   DEPENDEES install
   )
 
-if ( VIAME_FORCEBUILD )
-ExternalProject_Add_Step(smqtk forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/smqtk-stamp/smqtk-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+if( VIAME_FORCEBUILD )
+  RemoveProjectCMakeStamp( smqtk )
 endif()
 
 set(VIAME_ARGS_SMQTK

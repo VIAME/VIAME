@@ -1,0 +1,106 @@
+# Stereo detect fish
+#
+# Basic stereo detector for each image of a stereo pair
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                     5
+
+config _scheduler
+   :type                         pythread_per_process
+
+config global
+   :input_cameras_directory                     /home/<user>/Desktop/viame_tests/camera_calibrations
+   :output_depths_directory                     /home/<user>/Desktop/viame_tests/depthMap
+   :pairing_method                              PAIRING_RECTIFIED_IOU
+   :iou_pair_threshold                          0.1
+
+# ============================== INPUT FRAME LIST ==================================
+
+include common_stereo_input_with_downsampler.pipe
+
+# ================================== DETECTOR ======================================
+
+include common_stereo_fish_detector_with_filter.pipe
+
+# =================================== DEPTH MAP ====================================
+
+process depth_map
+  :: compute_stereo_depth_map
+  :computer:type                              ocv_stereo_disparity
+
+block computer:ocv_stereo_disparity
+  :algorithm                                 	SGBM
+  :min_disparity                             	0
+  :num_disparities                           	240
+  :sad_window_size                           	11
+  :block_size                                	11
+  :speckle_window_size			                0
+  :speckle_range				                0
+  :calibration_file                             $CONFIG{global:input_cameras_directory}
+  :use_wls_filter                               true
+endblock
+
+# =================================== DETECTOR WRITER ==============================
+
+process detector_writer1
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections_cam1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
+
+process detector_writer2
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections_cam2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
+
+# ============================== DETECTIONS PAIRING ==============================
+
+process stereo_pairing
+  ::ocv_pair_stereo_detections
+  :cameras_directory                      $CONFIG{global:input_cameras_directory}
+  :pairing_method                         $CONFIG{global:pairing_method}
+  :iou_pair_threshold                     $CONFIG{global:iou_pair_threshold}
+
+# =================================== PROCESS CONNECTIONS ===========================
+
+# Connect left / right input images to depth map
+connect from downsampler.output_1
+        to   depth_map.left_image
+connect from downsampler.output_3
+        to   depth_map.right_image
+
+# Connect left / right images to object detectors
+connect from downsampler.output_1
+        to   detector_input1.image
+connect from downsampler.output_3
+        to   detector_input2.image
+
+# Connect detector outputs and depth map to stereo pairing
+connect from depth_map.depth_map
+        to   stereo_pairing.depth_map
+connect from detector_filter1.detected_object_set
+        to   stereo_pairing.detected_object_set1
+connect from detector_filter2.detected_object_set
+        to   stereo_pairing.detected_object_set2
+
+# Connect stereo pairing output to output writer
+connect from stereo_pairing.detected_object_set_out1
+        to   detector_writer1.detected_object_set
+connect from stereo_pairing.detected_object_set_out2
+        to   detector_writer2.detected_object_set
+
+# Connect image names to detector writer
+connect from downsampler.output_2
+        to   detector_writer1.image_file_name
+connect from downsampler.output_4
+        to   detector_writer2.image_file_name
+
+# -- end of file --

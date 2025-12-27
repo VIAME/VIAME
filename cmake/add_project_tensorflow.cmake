@@ -94,13 +94,6 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS )
     )
 
   if( VIAME_FORCEBUILD )
-    ExternalProject_Add_Step( tensorflow-models forcebuild
-      COMMAND ${CMAKE_COMMAND}
-        -E remove ${VIAME_BUILD_PREFIX}/src/{LIB}-stamp
-      COMMENT "Removing build stamp file for build update (forcebuild)."
-      DEPENDEES configure
-      DEPENDERS build
-      ALWAYS 1
-      )
+    RemoveProjectCMakeStamp( tensorflow-models )
   endif()
 endif()

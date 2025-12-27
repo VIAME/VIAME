@@ -10,16 +10,9 @@ ExternalProject_Add(ifremer_tk
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-if (VIAME_FORCEBUILD)
-  ExternalProject_Add_Step(ifremer_tk forcebuild
-    COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/ifremer_tk-stamp/ifremer_tk-build
-    COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
-    )
-endif ()
+if( VIAME_FORCEBUILD )
+  RemoveProjectCMakeStamp( ifremer_tk )
+endif()
 
 set(VIAME_ARGS_ifremer_tk
   -Difremer_tk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/ifremer_tk-build

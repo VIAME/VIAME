@@ -1,0 +1,37 @@
+# Tracker piepline for fish on stereo cameras
+#
+# Runs a tracking ipeline on each of the 2 images of a stereo pair
+
+## ================================= DETECTION AND TRACKING =========================
+
+include common_stereo_fish_tracker.pipe
+
+## ================================= OUTPUT DATA ====================================
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        25
+
+# Connect inputs to track writer
+connect from tracker1.object_track_set
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        25
+
+# Connect inputs to track writer
+connect from tracker2.object_track_set
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+
+# -- end of file --

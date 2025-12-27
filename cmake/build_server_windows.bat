@@ -4,8 +4,9 @@ REM ----------------------------------------------------------------------------
 
 SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU"
 
-FOR /f "tokens=1 delims= " %%a IN ("RELEASE_NOTES.md") DO (
-    SET "VIAME_VER=%%a"
+REM Extract version from RELEASE_NOTES.md (first token of first line)
+FOR /f "tokens=1 delims= " %%a IN (%VIAME_SOURCE_DIR%\RELEASE_NOTES.md) DO (
+    SET "VIAME_VERSION=%%a"
     GOTO :LOOPEXIT
 )
 :LOOPEXIT
@@ -23,7 +24,7 @@ SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
 
 SET "MSVS_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional"
 SET "MSVS_ARCH=x64"
-SET "MSVS_TOOLSET=14.2
+SET "MSVS_TOOLSET=14.2"
 SET "MSVS_REDIST_VER=14.29.30133"
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
@@ -64,53 +65,31 @@ IF "%1"=="true" (
   IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
 )
 
+git config --system core.longpaths true
 git submodule update --init --recursive
 
-REM If running locally instead of on Jenkins server, file jenkins_dashboard.cmake should be a renamed
-REM version of the file located at jenkins/CTestBuildOnlyPipeline, with 'platform.cmake' in the
-REM file pointed to build_server_windows.cmake (or alternatively the latter renamed to platform.cmake).
+REM Generate CTest dashboard file
+CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\build_server_windows_ctest.cmake -VV
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO CTest build failed with error code %ERRORLEVEL%
+    EXIT /B %ERRORLEVEL%
+)
 
 REM -------------------------------------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
 REM -------------------------------------------------------------------------------------------------------
 
-COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%VDIST_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_BUILD_DIR%\Release\zlib1.dll" %VIAME_INSTALL_DIR%\bin
+CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
 
 DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"
 
-COPY "%CUDA_ROOT%\bin\cublas64_12.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cublasLt64_12.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudart64_12.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_adv64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_cnn64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_engines_precompiled64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_engines_runtime_compiled64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_graph64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_heuristic64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn_ops64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cudnn64_9.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cufft64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cufftw64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\curand64_10.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cusolver64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cusolverMg64_11.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%CUDA_ROOT%\bin\cusparse64_12.dll" %VIAME_INSTALL_DIR%\bin
-
+CALL %~dp0build_common_functions.bat :CopyCuda12Dlls "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
 COPY "%CUDA_ROOT%\extras\CUPTI\lib64\cupti64_2025.1.0.dll" %VIAME_INSTALL_DIR%\bin
 
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
-MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
-
-"%ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME
-
-MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"
+CALL %~dp0build_common_functions.bat :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"

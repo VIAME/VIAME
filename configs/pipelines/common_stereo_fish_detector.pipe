@@ -113,3 +113,5 @@ process detector_output2
 
 connect from detector2.detected_object_set
         to   detector_output2.detected_object_set
+
+# -- end of file --

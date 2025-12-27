@@ -6,10 +6,10 @@ config _pipeline:_edge
 
 # ==================================================================================
 process in_adapt
- :: input_adapter
+  :: input_adapter
 
 process out_adapt
- :: output_adapter
+  :: output_adapter
 
 # =================================== FILTERS ======================================
 

@@ -9,10 +9,10 @@ config _scheduler
 
 # ==================================================================================
 process in_adapt
- :: input_adapter
+  :: input_adapter
 
 process out_adapt
- :: output_adapter
+  :: output_adapter
 
 # ==================================================================================
 
@@ -27,7 +27,7 @@ process svm_refiner
 process nms_refiner
   :: refine_detections
   :refiner:type                                nms
-  
+
   block refiner:nms
     :max_overlap                               0.50
     :nms_scale_factor                          1.5

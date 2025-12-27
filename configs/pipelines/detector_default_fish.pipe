@@ -1,6 +1,8 @@
+# ==================================================================================
 # Default Detector Pipeline
 #
 # Runs pre-trained default object detector targeting vertebrate and invertebrates
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config

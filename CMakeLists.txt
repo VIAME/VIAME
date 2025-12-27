@@ -2,8 +2,9 @@
 # Top-level CMakeLists.txt build file for the VIAME super-build and project
 ##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <><
 
-cmake_minimum_required( VERSION 3.13.0 )
+cmake_minimum_required( VERSION 3.16.0 )
 set( CMAKE_CXX_STANDARD 17 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 project( VIAME )
 
@@ -106,6 +107,7 @@ option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
+option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
@@ -114,6 +116,7 @@ mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_LEARN )
 mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
+mark_as_advanced( VIAME_ENABLE_SEAGIS )
 mark_as_advanced( VIAME_ENABLE_SMQTK )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
@@ -195,7 +198,9 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-DETECTRON   "Enable detectron2 algorithms"   OFF )
   option( VIAME_ENABLE_PYTORCH-MDNET       "Enable mdnet algorithms"        OFF )
   option( VIAME_ENABLE_PYTORCH-SAM         "Enable SAM2 algorithms"         OFF )
+  option( VIAME_ENABLE_PYTORCH-STEREO      "Enable stereo algorithms"       OFF )
   option( VIAME_ENABLE_PYTORCH-ULTRALYTICS "Enable ultralytics algorithms"  OFF )
+  option( VIAME_ENABLE_PYTORCH-RF-DETR     "Enable RF-DETR algorithms"      OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VIDEO )
@@ -206,7 +211,9 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-DETECTRON )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-SAM )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-STEREO )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-RF-DETR )
 
   option( VIAME_PYTORCH_BUILD_FROM_SOURCE  "Build PyTorch from source"      OFF )
   option( VIAME_PYTORCH_BUILD_TORCHVISION  "Build TorchVision from source"  ON )
@@ -271,7 +278,7 @@ mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 # If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
 # other superbuild projects (except for viame). This makes development builds
 # much quicker if just doing development only in VIAME plugins if OFF.
-option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
+option( VIAME_FORCEBUILD "Enable force-building of all subpackages" OFF )
 mark_as_advanced( VIAME_FORCEBUILD )
 
 ###
@@ -784,6 +791,27 @@ endif()
 
 if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
   message( FATAL_ERROR "VIAME_ENABLE_DIVE requires VIAME_ENABLE_FFMPEG-X264 flag" )
+endif()
+
+if( VIAME_ENABLE_SEAGIS )
+  set( SEAGIS_ROOT_DIR ""
+       CACHE PATH "Path to SEAGIS StereoLibLX library" )
+
+  mark_as_advanced( SEAGIS_ROOT_DIR )
+
+  set( SEAGIS_INCLUDE_DIR "${SEAGIS_ROOT_DIR}"
+       CACHE INTERNAL "Path to SEAGIS include directory" )
+  set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX.lib"
+       CACHE INTERNAL "Path to SEAGIS library file" )
+
+  if( NOT EXISTS "${SEAGIS_INCLUDE_DIR}/LX_StereoInterface.h" )
+    message( FATAL_ERROR "SEAGIS include directory does not contain LX_StereoInterface.h. "
+      "Please set SEAGIS_ROOT_DIR to the correct location." )
+  endif()
+  if( NOT EXISTS "${SEAGIS_LIBRARY}" )
+    message( FATAL_ERROR "SEAGIS library not found at ${SEAGIS_LIBRARY}. "
+      "Please set SEAGIS_LIBRARY to the correct path." )
+  endif()
 endif()
 
 # Set default windows configuration mode to be 'Release'

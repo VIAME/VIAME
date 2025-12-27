@@ -42,7 +42,7 @@ if( VIAME_ENABLE_PYTHON )
     -Dfletch_PYTHON_MAJOR_VERSION:STRING=${Python_VERSION_MAJOR}
     -Dfletch_ENABLE_pybind11:BOOL=${DEP_COND_ENABLE}
     -Dfletch_ENABLE_PyBind11:BOOL=${DEP_COND_ENABLE}
-    -Dpybind11_SELECT_VERSION:STRING=2.8.1
+    -Dpybind11_SELECT_VERSION:STRING=2.10.3
   )
 else()
   set( FLETCH_DEP_FLAGS
@@ -421,14 +421,7 @@ ExternalProject_Add(fletch
   )
 
 if( VIAME_FORCEBUILD )
-  ExternalProject_Add_Step(fletch forcebuild
-    COMMAND ${CMAKE_COMMAND}
-      -E remove ${VIAME_BUILD_PREFIX}/src/fletch-stamp/fletch-build
-    COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
-    )
+  RemoveProjectCMakeStamp( fletch )
 endif()
 
 if( WIN32 )

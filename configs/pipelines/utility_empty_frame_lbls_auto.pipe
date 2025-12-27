@@ -1,0 +1,57 @@
+# Generate empty per-frame labels with automatic shot break detection
+#
+# This pipeline uses descriptor-based shot break detection to automatically
+# segment a video into shots based on visual content changes.
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================== INPUT FRAME LIST =================================
+
+include common_default_input_with_downsampler.pipe
+
+# =================================== DETECTOR =====================================
+
+process detector
+  :: image_object_detector
+  :detector:type                               full_frame
+  :detector:full_frame:detection_type          unannotated_sequence
+
+connect from downsampler.output_1
+        to   detector.image
+
+# ================================ SHOT BREAK DETECTOR =============================
+
+process shot_break_detector
+  :: detect_shot_breaks
+  :use_shot_break_detection                    true
+  :shot_break_method                           descriptor
+  :descriptor_distance_threshold               0.5
+  :min_track_length                            5
+  :max_track_length                            0
+  :frame_descriptor_extractor:type             ocv_SIFT
+
+connect from downsampler.output_1
+        to   shot_break_detector.image
+connect from downsampler.timestamp
+        to   shot_break_detector.timestamp
+connect from detector.detected_object_set
+        to   shot_break_detector.detected_object_set
+
+# ================================== TRACK WRITER ==================================
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+
+connect from shot_break_detector.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+
+# -- end of file --

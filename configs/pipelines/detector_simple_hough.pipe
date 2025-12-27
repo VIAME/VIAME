@@ -1,6 +1,8 @@
-# Simple hough transform example detector
-
 # ==================================================================================
+# Simple hough transform example detector
+# ==================================================================================
+
+# ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
 #
 config _pipeline:_edge

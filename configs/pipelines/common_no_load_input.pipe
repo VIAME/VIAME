@@ -1,9 +1,9 @@
-
 # ==================================================================================
 # Commonly used default input file source.
 #
 # By default, this is an image list reader, but this can be over-riden by changing
 # :video_reader:type to be vidl_ffmpeg for videos
+# ==================================================================================
 
 process input
   :: video_input
@@ -34,3 +34,5 @@ process input
       endblock
     endblock
   endblock
+
+# -- end of file --

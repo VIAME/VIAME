@@ -1,6 +1,8 @@
+# ==================================================================================
 # Default local detector pipeline
 #
 # Runs a local detector, as specified in the file 'category_models/detector.pipe'
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config

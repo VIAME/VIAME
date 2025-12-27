@@ -58,7 +58,7 @@ VIAME_ENABLE_PYTORCH-VISION enable flags are required. There are a number of pie
 used in the approach, including:
 
 * packages/kwiver/python/kwiver/sprokit/processes/pytorch/srnn_tracker.py
-* configs/pipelines/tracker_fish.pipe
+* configs/pipelines/tracker_fish.sfd.pipe
 * packages/kwiver/vital/types/object_track_set.h
 * packages/kwiver/python/kwiver/vital/types/object_track_set.h
 * packages/kwiver/python/kwiver/vital/types/object_track_set.cxx
@@ -99,7 +99,7 @@ There are a number of pieces of code used in the system, including:
 
 * packages/kwiver/python/kwiver/sprokit/processes/pytorch/pysot_tracker.py
 * configs/pipelines/utility_track_selections_default_mask.pipe
-* configs/pipelines/utility_track_selections_fish_box.pipe
+* configs/pipelines/utility_track_selections_fish_box_only.pipe
 * packages/kwiver/vital/types/object_track_set.h
 * packages/kwiver/python/kwiver/vital/types/object_track_set.h
 * packages/kwiver/python/kwiver/vital/types/object_track_set.cxx

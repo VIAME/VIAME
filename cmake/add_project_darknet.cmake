@@ -59,14 +59,7 @@ ExternalProject_Add(darknet
   )
 
 if( VIAME_FORCEBUILD )
-ExternalProject_Add_Step(darknet forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/darknet-stamp/darknet-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+  RemoveProjectCMakeStamp( darknet )
 endif()
 
 set( VIAME_ARGS_darknet

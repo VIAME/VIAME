@@ -1,4 +1,7 @@
+# ==================================================================================
 # Based on Kwiver's stabilize_images.pipe
+# ==================================================================================
+
 process stabilizer
   :: stabilize_image
 
@@ -32,7 +35,6 @@ process stabilizer
       upright            = true
     endblock
 
-
     # Algorithm to use for 'feature_detector'.
     # Must be one of the following options:
     #   - ocv_AGAST
@@ -57,7 +59,6 @@ process stabilizer
       n_octaves          = 4
       upright            = true
     endblock
-
 
     # Algorithm to use for 'feature_matcher'.
     # Must be one of the following options:
@@ -102,7 +103,6 @@ process stabilizer
 
     # Number of loop closure methods to use.
     loop_closer:multi_method:count = 2
-
 
     # Algorithm to use for 'method1'.
     # Must be one of the following options:
@@ -198,7 +198,6 @@ process stabilizer
       # Maximum past search distance in terms of number of frames.
       max_checkpoint_frames = 1000
 
-
       # Algorithm to use for 'feature_matcher'.
       # Must be one of the following options:
       #   - homography_guided
@@ -285,7 +284,7 @@ process stabilizer
     #   - ocv
     #   - vxl
     estimator:type = vxl
-    
+
     # After how many frames should we forget all info about a track?
     forget_track_threshold = 5
 

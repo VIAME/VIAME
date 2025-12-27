@@ -69,9 +69,9 @@ connect from initial_filter.image
 
 process depth_map
   :: compute_stereo_depth_map
-  :computer:type                               ocv
+  :computer:type                               ocv_stereo_disparity
 
-  block computer:ocv
+  block computer:ocv_stereo_disparity
     :algorithm                                 SGBM
     :min_disparity                             64
     :num_disparities                           192

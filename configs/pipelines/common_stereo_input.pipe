@@ -1,9 +1,9 @@
-
 # ==================================================================================
 # Commonly used stereo input files source.
 #
 # By default, this is an image list reader, but this can be over-riden by changing
 # :video_reader:type to be vidl_ffmpeg for videos
+# ==================================================================================
 
 process input1
   :: video_input
@@ -62,3 +62,5 @@ process input2
       endblock
     endblock
   endblock
+
+# -- end of file --

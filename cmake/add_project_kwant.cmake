@@ -28,15 +28,8 @@ ExternalProject_Add(kwant
   INSTALL_DIR ${VIAME_INSTALL_PREFIX}
   )
 
-if ( VIAME_FORCEBUILD )
-ExternalProject_Add_Step(kwant forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/kwant-stamp/kwant-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+if( VIAME_FORCEBUILD )
+  RemoveProjectCMakeStamp( kwant )
 endif()
 
 set(VIAME_ARGS_kwant

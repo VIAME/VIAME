@@ -6,10 +6,10 @@ config _pipeline:_edge
 
 # ==================================================================================
 process in_adapt
- :: input_adapter
+  :: input_adapter
 
 process out_adapt
- :: output_adapter
+  :: output_adapter
 
 # ==================================================================================
 
@@ -39,7 +39,7 @@ process random_hue
 connect from random_grey.image
         to   random_hue.image
 
-# ==============================================================================
+# ==================================================================================
 
 process tracks_to_detections
   :: convert_tracks_to_detections
