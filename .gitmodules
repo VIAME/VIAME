@@ -96,3 +96,6 @@
 [submodule "packages/pytorch-libs/foundation-stereo"]
 	path = packages/pytorch-libs/foundation-stereo
 	url = https://github.com/VIAME/foundation-stereo.git
+[submodule "packages/pytorch-libs/rf-detr"]
+	path = packages/pytorch-libs/rf-detr
+	url = https://github.com/roboflow/rf-detr.git

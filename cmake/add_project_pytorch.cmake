@@ -67,6 +67,10 @@ if( VIAME_ENABLE_PYTORCH-STEREO )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} foundation-stereo )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-RF-DETR )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} rf-detr )
+endif()
+
 if( VIAME_ENABLE_TENSORRT )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torch2rt )
 endif()
@@ -153,8 +157,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   else()
     # TODO:
     # replace direct calls to setup.py with `python -m build`
-    if( "${LIB}" STREQUAL "mit-yolo" )
-      # For now just use -m build with MIT-YOLO
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" )
+      # Use -m build for pyproject.toml-based packages
       # FIXME:
       # If we remove no-isolation then it will complain that pip cannot be found.
       # I don't know exactly why, but for now it works.
