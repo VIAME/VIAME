@@ -112,9 +112,9 @@ jobs:
           path: |
             build/build/src/fletch-build
             build/install
-          key: linux-fletch-${{ steps.cache-keys.outputs.fletch-hash }}
+          key: linux-fletch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.fletch-hash }}
           restore-keys: |
-            linux-fletch-
+            linux-fletch-py${{ steps.setup-python.outputs.python-version }}-
 
       # Cache kwiver build
       - name: Cache kwiver build
@@ -123,10 +123,10 @@ jobs:
         with:
           path: |
             build/build/src/kwiver-build
-          key: linux-kwiver-${{ steps.cache-keys.outputs.kwiver-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
+          key: linux-kwiver-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.kwiver-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
           restore-keys: |
-            linux-kwiver-${{ steps.cache-keys.outputs.kwiver-hash }}-
-            linux-kwiver-
+            linux-kwiver-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.kwiver-hash }}-
+            linux-kwiver-py${{ steps.setup-python.outputs.python-version }}-
 
       # Cache pytorch-libs build
       - name: Cache pytorch-libs build
@@ -135,10 +135,10 @@ jobs:
         with:
           path: |
             build/build/src/pytorch-build
-          key: linux-pytorch-${{ steps.cache-keys.outputs.pytorch-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
+          key: linux-pytorch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.pytorch-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
           restore-keys: |
-            linux-pytorch-${{ steps.cache-keys.outputs.pytorch-hash }}-
-            linux-pytorch-
+            linux-pytorch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.pytorch-hash }}-
+            linux-pytorch-py${{ steps.setup-python.outputs.python-version }}-
 
       - name: Create build directory
         run: mkdir -p build
@@ -271,9 +271,9 @@ jobs:
           path: |
             C:/VIAME-CI/build/src/fletch-build
             C:/VIAME-CI/install
-          key: windows-fletch-${{ steps.cache-keys.outputs.fletch-hash }}
+          key: windows-fletch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.fletch-hash }}
           restore-keys: |
-            windows-fletch-
+            windows-fletch-py${{ steps.setup-python.outputs.python-version }}-
 
       # Cache kwiver build
       - name: Cache kwiver build
@@ -282,10 +282,10 @@ jobs:
         with:
           path: |
             C:/VIAME-CI/build/src/kwiver-build
-          key: windows-kwiver-${{ steps.cache-keys.outputs.kwiver-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
+          key: windows-kwiver-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.kwiver-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
           restore-keys: |
-            windows-kwiver-${{ steps.cache-keys.outputs.kwiver-hash }}-
-            windows-kwiver-
+            windows-kwiver-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.kwiver-hash }}-
+            windows-kwiver-py${{ steps.setup-python.outputs.python-version }}-
 
       # Cache pytorch-libs build
       - name: Cache pytorch-libs build
@@ -294,10 +294,10 @@ jobs:
         with:
           path: |
             C:/VIAME-CI/build/src/pytorch-build
-          key: windows-pytorch-${{ steps.cache-keys.outputs.pytorch-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
+          key: windows-pytorch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.pytorch-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
           restore-keys: |
-            windows-pytorch-${{ steps.cache-keys.outputs.pytorch-hash }}-
-            windows-pytorch-
+            windows-pytorch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.pytorch-hash }}-
+            windows-pytorch-py${{ steps.setup-python.outputs.python-version }}-
 
       - name: Get Python paths
         id: python-paths
