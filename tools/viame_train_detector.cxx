@@ -1079,9 +1079,9 @@ main( int argc, char* argv[] )
   g_params.m_args.AddArgument( "-gto",            argT::NO_ARGUMENT,
     &g_params.opt_gt_only, "Use frames with annotations only" );
   g_params.m_args.AddArgument( "--config",        argT::SPACE_ARGUMENT,
-    &g_params.opt_config, "Input configuration file with parameters" );
+    &g_params.opt_config, "Input configuration file(s) with parameters" );
   g_params.m_args.AddArgument( "-c",              argT::SPACE_ARGUMENT,
-    &g_params.opt_config, "Input configuration file with parameters" );
+    &g_params.opt_config, "Input configuration file(s) with parameters" );
   g_params.m_args.AddArgument( "--input",         argT::SPACE_ARGUMENT,
     &g_params.opt_input_dir, "Input directory containing groundtruth" );
   g_params.m_args.AddArgument( "-i",              argT::SPACE_ARGUMENT,
@@ -1103,9 +1103,9 @@ main( int argc, char* argv[] )
   g_params.m_args.AddArgument( "-v",              argT::SPACE_ARGUMENT,
     &g_params.opt_validation_dir, "Optional validation input directory" );
   g_params.m_args.AddArgument( "--detector",      argT::SPACE_ARGUMENT,
-    &g_params.opt_detector, "Type of detector to train if no config" );
+    &g_params.opt_detector, "Type of detector(s) to train if no config" );
   g_params.m_args.AddArgument( "-d",              argT::SPACE_ARGUMENT,
-    &g_params.opt_detector, "Type of detector to train if no config" );
+    &g_params.opt_detector, "Type of detector(s) to train if no config" );
   g_params.m_args.AddArgument( "--output-config", argT::SPACE_ARGUMENT,
     &g_params.opt_out_config, "Output a sample configuration to file" );
   g_params.m_args.AddArgument( "-o",              argT::SPACE_ARGUMENT,
@@ -1208,6 +1208,30 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
+  // Parse comma-separated configs or detectors for multi-model training
+  std::vector< std::string > training_configs;
+  std::vector< std::string > training_detectors;
+
+  if( !g_params.opt_config.empty() )
+  {
+    string_to_vector( g_params.opt_config, training_configs, "," );
+  }
+  if( !g_params.opt_detector.empty() )
+  {
+    string_to_vector( g_params.opt_detector, training_detectors, "," );
+  }
+
+  const bool multi_model_training =
+    ( training_configs.size() > 1 || training_detectors.size() > 1 );
+  const unsigned model_count =
+    std::max( training_configs.size(), training_detectors.size() );
+
+  if( multi_model_training )
+  {
+    std::cout << "Multi-model training enabled: " << model_count
+              << " models will be trained sequentially" << std::endl;
+  }
+
   // Load KWIVER plugins
   kwiver::vital::plugin_manager::instance().load_all_plugins();
   kwiver::vital::config_block_sptr config = default_config();
@@ -1215,25 +1239,28 @@ main( int argc, char* argv[] )
   kwiver::vital::algo::image_io_sptr image_reader;
   kwiver::vital::algo::train_detector_sptr detector_trainer;
 
-  // Read all configuration options and check settings
-  if( !g_params.opt_config.empty() )
+  // Read all configuration options and check settings (use first config/detector for data loading)
+  std::string first_config = training_configs.empty() ? "" : training_configs[0];
+  std::string first_detector = training_detectors.empty() ? "" : training_detectors[0];
+
+  if( !first_config.empty() )
   {
     try
     {
-      config->merge_config( kwiver::vital::read_config_file( g_params.opt_config ) );
+      config->merge_config( kwiver::vital::read_config_file( first_config ) );
     }
     catch( const std::exception& e )
     {
       std::cerr << "Received exception: " << e.what() << std::endl
                 << "Unable to load configuration file: "
-                << g_params.opt_config << std::endl;
+                << first_config << std::endl;
 
       return EXIT_FAILURE;
     }
   }
   else
   {
-    config->set_value( "detector_trainer:type", g_params.opt_detector );
+    config->set_value( "detector_trainer:type", first_detector );
   }
 
   if( !g_params.opt_settings.empty() )
@@ -2486,43 +2513,130 @@ main( int argc, char* argv[] )
     adjust_labels( validation_gt, model_labels, secondary_frame_labels );
   }
 
-  // Run training algorithm
-  std::cout << "Beginning Training Process" << std::endl;
-  std::string error;
-
-  try
+  // Run training algorithm(s) - loop through all configs/detectors for multi-model training
+  for( unsigned model_idx = 0; model_idx < model_count; ++model_idx )
   {
-    detector_trainer->add_data_from_disk( model_labels,
-      train_image_fn, train_gt, validation_image_fn, validation_gt );
-
-    detector_trainer->update_model();
-  }
-  catch( const std::exception& e )
-  {
-    error = e.what();
-  }
-  catch( const std::string& str )
-  {
-    error = str;
-  }
-  catch( ... )
-  {
-    error = "unknown fault";
-  }
-
-  if( !error.empty() )
-  {
-    if( error.find( "interupt_handler" ) != std::string::npos ||
-        error.find( "KeyboardInterrupt" ) != std::string::npos )
+    if( multi_model_training )
     {
-      std::cout << "Finished spooling down run after interrupt" << std::endl << std::endl;
+      std::cout << std::endl << "========================================" << std::endl;
+      std::cout << "Training model " << ( model_idx + 1 ) << " of " << model_count << std::endl;
+      std::cout << "========================================" << std::endl;
+
+      // Reconfigure for this model
+      kwiver::vital::config_block_sptr model_config = default_config();
+
+      if( !training_configs.empty() )
+      {
+        std::string current_config = training_configs[ model_idx ];
+        std::cout << "Using config: " << current_config << std::endl;
+
+        try
+        {
+          model_config->merge_config( kwiver::vital::read_config_file( current_config ) );
+        }
+        catch( const std::exception& e )
+        {
+          std::cerr << "Received exception: " << e.what() << std::endl
+                    << "Unable to load configuration file: "
+                    << current_config << std::endl;
+          continue;
+        }
+      }
+      else
+      {
+        std::string current_detector = training_detectors[ model_idx ];
+        std::cout << "Using detector type: " << current_detector << std::endl;
+        model_config->set_value( "detector_trainer:type", current_detector );
+      }
+
+      // Apply command line settings override
+      if( !g_params.opt_settings.empty() )
+      {
+        const std::string& setting = g_params.opt_settings;
+        size_t const split_pos = setting.find( "=" );
+
+        if( split_pos != std::string::npos )
+        {
+          kwiver::vital::config_block_key_t setting_key =
+            setting.substr( 0, split_pos );
+          kwiver::vital::config_block_value_t setting_value =
+            setting.substr( split_pos + 1 );
+          model_config->set_value( setting_key, setting_value );
+        }
+      }
+
+      // Reinitialize detector trainer for this model
+      detector_trainer.reset();
+      kwiver::vital::algo::train_detector::set_nested_algo_configuration
+        ( "detector_trainer", model_config, detector_trainer );
+      kwiver::vital::algo::train_detector::get_nested_algo_configuration
+        ( "detector_trainer", model_config, detector_trainer );
+
+      if( !kwiver::vital::algo::train_detector::
+            check_nested_algo_configuration( "detector_trainer", model_config ) )
+      {
+        std::cout << "Configuration not valid for model " << ( model_idx + 1 ) << std::endl;
+        continue;
+      }
     }
-    else
+
+    std::cout << "Beginning Training Process" << std::endl;
+    std::string error;
+
+    try
     {
-      std::cout << "Received exception: " << error << std::endl;
-      std::cout << std::endl;
-      std::cout << "Shutting down" << std::endl << std::endl;
+      detector_trainer->add_data_from_disk( model_labels,
+        train_image_fn, train_gt, validation_image_fn, validation_gt );
+
+      detector_trainer->update_model();
     }
+    catch( const std::exception& e )
+    {
+      error = e.what();
+    }
+    catch( const std::string& str )
+    {
+      error = str;
+    }
+    catch( ... )
+    {
+      error = "unknown fault";
+    }
+
+    if( !error.empty() )
+    {
+      if( error.find( "interupt_handler" ) != std::string::npos ||
+          error.find( "KeyboardInterrupt" ) != std::string::npos )
+      {
+        std::cout << "Finished spooling down run after interrupt" << std::endl << std::endl;
+        break; // Exit loop on interrupt
+      }
+      else
+      {
+        std::cout << "Received exception: " << error << std::endl;
+        std::cout << std::endl;
+        if( multi_model_training )
+        {
+          std::cout << "Continuing to next model..." << std::endl << std::endl;
+        }
+        else
+        {
+          std::cout << "Shutting down" << std::endl << std::endl;
+        }
+      }
+    }
+    else if( multi_model_training )
+    {
+      std::cout << "Model " << ( model_idx + 1 ) << " training completed successfully"
+                << std::endl;
+    }
+  }
+
+  if( multi_model_training )
+  {
+    std::cout << std::endl << "========================================" << std::endl;
+    std::cout << "Multi-model training complete" << std::endl;
+    std::cout << "========================================" << std::endl;
   }
 
   return EXIT_SUCCESS;
