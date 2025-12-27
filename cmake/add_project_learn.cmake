@@ -77,14 +77,6 @@ set( REMAX_BUILD_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} setup.py build install )
 
-if( Python_VERSION VERSION_LESS "3.7" )
-  set( FINAL_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${VIAME_PATCHES_DIR}/timm
-        ${VIAME_PYTHON_INSTALL}/site-packages/timm )
-else()
-  set( FINAL_PATCH_COMMAND )
-endif()
-
 # Install required dependencies and learn repository
 ExternalProject_Add( learn
     DEPENDS python-deps detectron2 torchvideo
@@ -97,7 +89,6 @@ ExternalProject_Add( learn
           COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_BUILD_CMD}
           COMMAND cd ${REMAX_OPS_DIR} && ${LEARN_BUILD_CMD}
           COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_CMD}
-          COMMAND ${FINAL_PATCH_COMMAND}
     INSTALL_COMMAND ${LEARN_INSTALL_CMD}
     LIST_SEPARATOR "----"
     )
