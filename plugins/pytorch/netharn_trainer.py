@@ -34,8 +34,7 @@ import time
 import random
 import math
 
-from ._utils import safe_crop
-from ._utils import recurse_copy
+from .utilities import safe_crop, recurse_copy
 
 
 class NetHarnTrainer( TrainDetector ):

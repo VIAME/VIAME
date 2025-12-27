@@ -25,7 +25,7 @@ from kwiver.vital.types import Image, ImageContainer
 
 from str2bool import str2bool
 
-from ._utils import vital_config_update
+from .utilities import vital_config_update
 
 
 class FoundationStereoConfig(scfg.DataConfig):

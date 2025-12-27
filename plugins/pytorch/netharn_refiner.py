@@ -19,7 +19,7 @@ import ubelt as ub
 import math
 import cv2
 
-from ._utils import safe_crop
+from .utilities import safe_crop
 
 
 class NetharnRefiner(RefineDetections):
