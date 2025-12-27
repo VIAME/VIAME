@@ -55,9 +55,9 @@ git config --system core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file
-CALL :GenerateCTestDashboard build_server_windows_cpu.cmake ctest_dashboard.cmake
+CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_cpu.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF %ERRORLEVEL% NEQ 0 (
     ECHO CTest build failed with error code %ERRORLEVEL%
     EXIT /B %ERRORLEVEL%
@@ -67,42 +67,10 @@ REM ----------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
 REM -------------------------------------------------------------------------------------------------------
 
-CALL :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
+CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
 
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
-CALL :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
-
-GOTO :EOF
-
-REM ==============================================================================
-REM Subroutines
-REM ==============================================================================
-
-:GenerateCTestDashboard
-(
-    ECHO # Auto-generated CTest dashboard file
-    ECHO include^(%~1^)
-    ECHO ctest_start^(${CTEST_BUILD_MODEL}^)
-    ECHO ctest_configure^(BUILD ${CTEST_BINARY_DIRECTORY} SOURCE ${CTEST_SOURCE_DIRECTORY} OPTIONS "${OPTIONS}"^)
-    ECHO ctest_build^(^)
-    ECHO ctest_submit^(^)
-) > %VIAME_SOURCE_DIR%\cmake\%~2
-GOTO :EOF
-
-:CopySystemDlls
-COPY "%WINDIR%\System32\msvcr100.dll" "%~1" 2>NUL
-COPY "%WINDIR%\System32\vcruntime140_1.dll" "%~1" 2>NUL
-COPY "%~2\vcomp140.dll" "%~1" 2>NUL
-COPY "%WINDIR%\SysWOW64\msvcr120.dll" "%~1" 2>NUL
-COPY "%~3\dll_x64\zlibwapi.dll" "%~1" 2>NUL
-IF NOT "%~4"=="" COPY "%~4\Release\zlib1.dll" "%~1" 2>NUL
-GOTO :EOF
-
-:CreateZipPackage
-MOVE "%~1" "%~2\VIAME"
-"%~4\7z.exe" a "%~2\%~3" "%~2\VIAME"
-MOVE "%~2\VIAME" "%~1"
-GOTO :EOF
+CALL %~dp0build_common_functions.bat :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"

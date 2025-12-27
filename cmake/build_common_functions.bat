@@ -3,10 +3,11 @@ REM ============================================================================
 REM VIAME Build Common Functions for Windows
 REM Utility functions for all Windows build scripts
 REM
-REM Usage: CALL :FunctionName args...
-REM        (Include subroutine definitions at end of your script)
+REM Usage: CALL %~dp0build_common_functions.bat :FunctionName arg1 arg2 ...
 REM ==============================================================================
 
+REM Jump to the requested function if called with a label argument
+IF NOT "%~1"=="" GOTO %~1
 GOTO :EOF
 
 REM ==============================================================================
@@ -86,4 +87,17 @@ REM ============================================================================
 MOVE "%~1" "%~2\VIAME"
 "%~4\7z.exe" a "%~2\%~3" "%~2\VIAME"
 MOVE "%~2\VIAME" "%~1"
+GOTO :EOF
+
+REM ==============================================================================
+REM CheckCTestError
+REM Check if previous command failed and exit with error message
+REM Arguments:
+REM   %1 = Build stage name for error message
+REM ==============================================================================
+:CheckCTestError
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO CTest build failed at %~1 with error code %ERRORLEVEL%
+    EXIT /B %ERRORLEVEL%
+)
 GOTO :EOF

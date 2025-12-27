@@ -49,12 +49,12 @@ git config --system core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file for initial build
-CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_msi.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
-CALL :CheckCTestError "Round1 - VIAME Core"
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+CALL %~dp0build_common_functions.bat :CheckCTestError "Round1 - VIAME Core"
 
-CALL :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%WIN64_ROOT%" "%ZLIB_ROOT%"
+CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%WIN64_ROOT%" "%ZLIB_ROOT%"
 
 powershell.exe "Get-ChildItem -Recurse "%VIAME_INSTALL_DIR%" | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-core.lst
@@ -73,10 +73,10 @@ powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relat
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-torch.diff"
 
 REM Regenerate CTest dashboard file after applying patch
-CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_msi.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
-CALL :CheckCTestError "Round2 - Torch"
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+CALL %~dp0build_common_functions.bat :CheckCTestError "Round2 - Torch"
 
 DEL "%VIAME_INSTALL_DIR%\lib\python3.10\site-packages\torch\lib\cu*"
 
@@ -111,10 +111,10 @@ REM ----------------------------------------------------------------------------
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-darknet.diff"
 
 REM Regenerate CTest dashboard file after applying patch
-CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_msi.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
-CALL :CheckCTestError "Round3 - Darknet"
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+CALL %~dp0build_common_functions.bat :CheckCTestError "Round3 - Darknet"
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-darknet.txt
@@ -130,10 +130,10 @@ REM ----------------------------------------------------------------------------
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-dive.diff"
 
 REM Regenerate CTest dashboard file after applying patch
-CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_msi.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
-CALL :CheckCTestError "Round4 - DIVE"
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+CALL %~dp0build_common_functions.bat :CheckCTestError "Round4 - DIVE"
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-dive.txt
@@ -149,10 +149,10 @@ REM ----------------------------------------------------------------------------
 git apply "%VIAME_SOURCE_DIR%\cmake\build_server_windows_msi-view.diff"
 
 REM Regenerate CTest dashboard file after applying patch
-CALL :GenerateCTestDashboard build_server_windows_msi.cmake ctest_dashboard.cmake
+CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_msi.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_dashboard.cmake -VV
-CALL :CheckCTestError "Round5 - VIEW"
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+CALL %~dp0build_common_functions.bat :CheckCTestError "Round5 - VIEW"
 
 powershell.exe "Get-ChildItem -Recurse %VIAME_INSTALL_DIR% | Resolve-Path -Relative" > tmp.txt
 TYPE tmp.txt | findstr /v "install\include" > files-view.txt
@@ -163,35 +163,3 @@ FOR /f "delims=" %%A in (files-view.txt) do @find "%%A" "files-dive.txt" >nul2>n
 
 MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME-VIEW"
 
-GOTO :EOF
-
-REM ==============================================================================
-REM Subroutines
-REM ==============================================================================
-
-:GenerateCTestDashboard
-(
-    ECHO # Auto-generated CTest dashboard file
-    ECHO include^(%~1^)
-    ECHO ctest_start^(${CTEST_BUILD_MODEL}^)
-    ECHO ctest_configure^(BUILD ${CTEST_BINARY_DIRECTORY} SOURCE ${CTEST_SOURCE_DIRECTORY} OPTIONS "${OPTIONS}"^)
-    ECHO ctest_build^(^)
-    ECHO ctest_submit^(^)
-) > %VIAME_SOURCE_DIR%\cmake\%~2
-GOTO :EOF
-
-:CopySystemDlls
-COPY "%WINDIR%\System32\msvcr100.dll" "%~1" 2>NUL
-COPY "%WINDIR%\System32\vcruntime140_1.dll" "%~1" 2>NUL
-COPY "%~2\vcomp140.dll" "%~1" 2>NUL
-COPY "%WINDIR%\SysWOW64\msvcr120.dll" "%~1" 2>NUL
-COPY "%~3\dll_x64\zlibwapi.dll" "%~1" 2>NUL
-IF NOT "%~4"=="" COPY "%~4\Release\zlib1.dll" "%~1" 2>NUL
-GOTO :EOF
-
-:CheckCTestError
-IF %ERRORLEVEL% NEQ 0 (
-    ECHO CTest build failed at %~1 with error code %ERRORLEVEL%
-    EXIT /B %ERRORLEVEL%
-)
-GOTO :EOF
