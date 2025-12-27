@@ -95,4 +95,4 @@
 	url = https://github.com/VIAME/YOLO.git
 [submodule "packages/pytorch-libs/foundation-stereo"]
 	path = packages/pytorch-libs/foundation-stereo
-	url = https://github.com/NVlabs/FoundationStereo.git
+	url = https://github.com/VIAME/foundation-stereo.git
