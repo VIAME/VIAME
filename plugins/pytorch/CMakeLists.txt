@@ -26,9 +26,9 @@ endif()
 
 # Common Utilities
 kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/_utils.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/utilities.py
   arrows/pytorch
-  _utils )
+  utilities )
 
 kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_train_detector.py
