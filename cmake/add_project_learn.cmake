@@ -10,7 +10,6 @@ set( REMAX_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/remax )
 set( REMAX_OPS_DIR ${REMAX_DIR}/model/ops )
 
 set( LEARN_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/learn-build )
-set( LEARN_CLONE_CMD )
 
 set( LEARN_ENV_VARS ${PYTHON_DEP_ENV_VARS} )
 
@@ -28,27 +27,13 @@ if( NOT EXISTS "${LEARN_DEPS_DIR}" )
   file( MAKE_DIRECTORY "${LEARN_DEPS_DIR}" )
 endif()
 
-if( NOT EXISTS "${PYDENSECRF_DIR}" )
-  set( LEARN_CLONE_CMD git clone https://github.com/lucasb-eyer/pydensecrf.git ${PYDENSECRF_DIR} )
-else()
-  set( LEARN_CLONE_CMD git -C ${PYDENSECRF_DIR} pull )
-endif()
-
-if( NOT EXISTS "${PANOPTICAPI_DIR}" )
-  set( LEARN_CLONE_CMD ${LEARN_CLONE_CMD} &&
-    git clone https://github.com/cocodataset/panopticapi.git ${PANOPTICAPI_DIR} )
-else()
-  set( LEARN_CLONE_CMD ${LEARN_CLONE_CMD} &&
-    git -C ${PANOPTICAPI_DIR} pull )
-endif()
-
-if( NOT EXISTS "${LEARN_DIR}" )
-  set( LEARN_CLONE_CMD ${LEARN_CLONE_CMD} &&
-    git clone --branch viame/master https://gitlab.kitware.com/darpa_learn/learn.git ${LEARN_DIR} )
-else()
-  set( LEARN_CLONE_CMD ${LEARN_CLONE_CMD} &&
-    git -C ${LEARN_DIR} pull )
-endif()
+# Generate git clone/pull commands (uses runtime checks for rebuild safety)
+GitCloneOrPullCmd( PYDENSECRF_CLONE_CMD
+  https://github.com/lucasb-eyer/pydensecrf.git ${PYDENSECRF_DIR} )
+GitCloneOrPullCmd( PANOPTICAPI_CLONE_CMD
+  https://github.com/cocodataset/panopticapi.git ${PANOPTICAPI_DIR} )
+GitCloneOrPullCmd( LEARN_CLONE_CMD
+  https://gitlab.kitware.com/darpa_learn/learn.git ${LEARN_DIR} viame/master )
 
 # Setup python env vars and commands
 set( LEARN_REQ_PIP_CMD
@@ -82,13 +67,15 @@ ExternalProject_Add( learn
     DEPENDS python-deps detectron2 torchvideo
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${VIAME_PACKAGES_DIR}
-    CONFIGURE_COMMAND "${LEARN_CLONE_CMD}"
+    CONFIGURE_COMMAND ${PYDENSECRF_CLONE_CMD}
+      COMMAND ${PANOPTICAPI_CLONE_CMD}
+      COMMAND ${LEARN_CLONE_CMD}
     BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${LEARN_DIR}/requirements.txt
-          COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
-          COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_BUILD_CMD}
-          COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_BUILD_CMD}
-          COMMAND cd ${REMAX_OPS_DIR} && ${LEARN_BUILD_CMD}
-          COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_CMD}
+      COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
+      COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_BUILD_CMD}
+      COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_BUILD_CMD}
+      COMMAND cd ${REMAX_OPS_DIR} && ${LEARN_BUILD_CMD}
+      COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_CMD}
     INSTALL_COMMAND ${LEARN_INSTALL_CMD}
     LIST_SEPARATOR "----"
     )

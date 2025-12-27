@@ -188,6 +188,55 @@ function( ReplaceStringInFile ifile oldstr newstr )
   file( WRITE "${ifile}" "${FILE_CONTENTS}" )
 endfunction()
 
+# Generate a runtime git clone-or-pull command for use in ExternalProject_Add.
+# Uses runtime checks instead of CMake configure-time checks to handle rebuilds
+# correctly. If the directory contains a .git folder, it pulls; otherwise it
+# removes any existing directory and clones fresh.
+#
+# Usage in ExternalProject_Add:
+#   GitCloneOrPullCmd( MY_CMD https://github.com/org/repo.git ${TARGET_DIR} )
+#   ExternalProject_Add( myproject
+#     CONFIGURE_COMMAND ${MY_CMD}
+#     ...
+#   )
+#
+# With optional branch:
+#   GitCloneOrPullCmd( MY_CMD https://github.com/org/repo.git ${TARGET_DIR} my-branch )
+#
+function( GitCloneOrPullCmd _output_var _repo_url _target_dir )
+  set( _branch "${ARGN}" )
+
+  # Generate a unique script name based on target directory
+  string( MD5 _hash "${_target_dir}" )
+  set( _script_dir "${CMAKE_BINARY_DIR}/git_scripts" )
+  set( _script_path "${_script_dir}/git_clone_or_pull_${_hash}.sh" )
+
+  file( MAKE_DIRECTORY "${_script_dir}" )
+
+  if( _branch )
+    set( _clone_cmd "git clone --branch ${_branch} ${_repo_url} ${_target_dir}" )
+  else()
+    set( _clone_cmd "git clone ${_repo_url} ${_target_dir}" )
+  endif()
+
+  file( WRITE "${_script_path}"
+"#!/bin/sh
+if [ -d \"${_target_dir}/.git\" ]; then
+  echo \"Pulling updates in ${_target_dir}\"
+  git -C \"${_target_dir}\" pull
+else
+  if [ -d \"${_target_dir}\" ]; then
+    echo \"Removing non-git directory ${_target_dir}\"
+    rm -rf \"${_target_dir}\"
+  fi
+  echo \"Cloning ${_repo_url} to ${_target_dir}\"
+  ${_clone_cmd}
+fi
+" )
+
+  set( ${_output_var} sh "${_script_path}" PARENT_SCOPE )
+endfunction()
+
 # Remove project CMake stamp file to trigger rebuild.
 # This is the traditional method - always rebuilds.
 #
