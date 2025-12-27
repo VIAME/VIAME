@@ -240,6 +240,17 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
   endif()
 
+  # For slow-to-build packages, use conditional build that checks source hash
+  # This prevents unnecessary recompilation when source hasn't changed
+  set( SLOW_BUILD_PACKAGE FALSE )
+  if( "${LIB}" STREQUAL "detectron2" OR "${LIB}" STREQUAL "sam2" OR "${LIB}" STREQUAL "mmdeploy" )
+    set( SLOW_BUILD_PACKAGE TRUE )
+    set( LIB_HASH_FILE ${VIAME_BUILD_PREFIX}/src/${LIB}-source-hash.txt )
+
+    # Convert environment variables list to semicolon-separated string for passing to cmake script
+    string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS}" )
+  endif()
+
   if ("${LIB}" STREQUAL "mmdeploy")
 
     set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
@@ -260,6 +271,20 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       list( APPEND LIBRARY_CPP_INSTALL --config Release)
     endif()
 
+    # Use conditional build wrapper for mmdeploy
+    set( MMDEPLOY_CONDITIONAL_BUILD
+      ${CMAKE_COMMAND}
+        -DLIB_NAME=${LIB}
+        -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
+        -DHASH_FILE=${LIB_HASH_FILE}
+        -DCPP_BUILD_CMD="${LIBRARY_CPP_BUILD}"
+        -DCPP_INSTALL_CMD="${LIBRARY_CPP_INSTALL}"
+        -DPYTHON_BUILD_CMD="${LIBRARY_PIP_BUILD_CMD}"
+        -DENV_VARS="${PYTORCH_ENV_VARS_STR}"
+        -DTMPDIR="${LIBRARY_PIP_TMP_DIR}"
+        -DWORKING_DIR=${LIBRARY_LOCATION}
+        -P ${VIAME_CMAKE_DIR}/custom_build_mmdeploy.cmake )
+
     ExternalProject_Add( ${LIB}
       DEPENDS ${PROJECT_DEPS}
       PREFIX ${VIAME_BUILD_PREFIX}
@@ -267,7 +292,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       BUILD_IN_SOURCE 1
       PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
       CONFIGURE_COMMAND ${LIBRARY_CPP_CONFIG}
-      BUILD_COMMAND ${LIBRARY_CPP_BUILD} && ${LIBRARY_CPP_INSTALL} && ${LIBRARY_PYTHON_BUILD}
+      BUILD_COMMAND ${MMDEPLOY_CONDITIONAL_BUILD}
       INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
       LIST_SEPARATOR "----" )
 
@@ -276,6 +301,31 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       postinstall
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBRARY_LOCATION}/configs ${MMDEPLOY_INSTALL_DIR}/configs
       DEPENDEES install )
+
+  elseif( SLOW_BUILD_PACKAGE )
+    # Use conditional build for detectron2 and sam2
+    set( CONDITIONAL_PYTHON_BUILD
+      ${CMAKE_COMMAND}
+        -DLIB_NAME=${LIB}
+        -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
+        -DHASH_FILE=${LIB_HASH_FILE}
+        -DBUILD_COMMAND="${LIBRARY_PIP_BUILD_CMD}"
+        -DENV_VARS="${PYTORCH_ENV_VARS_STR}"
+        -DTMPDIR="${LIBRARY_PIP_TMP_DIR}"
+        -DWORKING_DIR=${LIBRARY_LOCATION}
+        -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+
+    ExternalProject_Add( ${LIB}
+      DEPENDS ${PROJECT_DEPS}
+      PREFIX ${VIAME_BUILD_PREFIX}
+      SOURCE_DIR ${LIBRARY_LOCATION}
+      BUILD_IN_SOURCE 1
+      PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ${CONDITIONAL_PYTHON_BUILD}
+      INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
+      LIST_SEPARATOR "----"
+      )
 
   else()
     ExternalProject_Add( ${LIB}
@@ -291,13 +341,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       )
   endif()
 
-  # Use smart rebuild for slow-to-build packages, old method for others
-  if( VIAME_FORCEBUILD )
-    if( "${LIB}" STREQUAL "detectron2" OR "${LIB}" STREQUAL "sam2" OR "${LIB}" STREQUAL "mmdeploy" )
-      BuildOnHashChangeOnly( ${LIB} ${LIBRARY_LOCATION} )
-    else()
-      RemoveProjectCMakeStamp( ${LIB} )
-    endif()
+  # For non-slow packages, use traditional forcebuild method if VIAME_FORCEBUILD is on
+  if( NOT SLOW_BUILD_PACKAGE AND VIAME_FORCEBUILD )
+    RemoveProjectCMakeStamp( ${LIB} )
   endif()
 endforeach()
 

@@ -265,7 +265,7 @@ function( BuildOnHashChangeOnly _project_name _source_dir )
       -DLIB_SOURCE_DIR=${_source_dir}
       -DSTAMP_DIR=${VIAME_BUILD_PREFIX}/src/${_project_name}-stamp
       -DHASH_FILE=${VIAME_BUILD_PREFIX}/src/${_project_name}-source-hash.txt
-      -P ${VIAME_CMAKE_DIR}/check_source_changed.cmake
+      -P ${VIAME_CMAKE_DIR}/custom_build_check_source.cmake
     COMMENT "Checking if ${_project_name} source has changed..."
     DEPENDEES configure
     DEPENDERS build
