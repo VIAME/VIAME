@@ -157,3 +157,17 @@ if( VIAME_ENABLE_PYTORCH-STEREO )
       foundation_stereo )
 
 endif()
+
+if( VIAME_ENABLE_PYTORCH-RF-DETR )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_detector.py
+      arrows/pytorch
+      rf_detr_detector )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_trainer.py
+      arrows/pytorch
+      rf_detr_trainer )
+
+endif()
