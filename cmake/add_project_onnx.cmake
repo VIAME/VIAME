@@ -7,20 +7,16 @@ CreateDirectory( ${ONNXRUNTIME_PIP_BUILD_DIR} )
 set( ONNXRUNTIME_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/${ONNXRUNTIME_PYTHON}-tmp )
 CreateDirectory( ${ONNXRUNTIME_PIP_TMP_DIR} )
 
-set( ONNXRUNTIME_PIP_INSTALL_CMD "" )
-if( VIAME_SYMLINK_PYTHON )
-  set( ONNXRUNTIME_PIP_INSTALL_CMD
-    ${Python_EXECUTABLE} -m pip install --user -e . )
-else()
-  set( ONNXRUNTIME_PIP_INSTALL_CMD
-    ${CMAKE_COMMAND}
-      -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
-      -DPython_EXECUTABLE=${Python_EXECUTABLE}
-      -DWHEEL_DIR=${ONNXRUNTIME_PIP_BUILD_DIR}
-      -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
-endif()
+# Download the wheel directly to the build folder and install from there.
+# Editable installs don't apply to downloaded wheels, so use the same
+# install method for both symlink and non-symlink modes.
+set( ONNXRUNTIME_PIP_INSTALL_CMD
+  ${CMAKE_COMMAND}
+    -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
+    -DPython_EXECUTABLE=${Python_EXECUTABLE}
+    -DWHEEL_DIR=${ONNXRUNTIME_PIP_BUILD_DIR}
+    -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 
-# Instead of building the wheel, we download it directly in the build folder
 set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download
   --no-deps onnxruntime==1.12.1 -d "${ONNXRUNTIME_PIP_BUILD_DIR}" )
 set( ONNXRUNTIME_PYTHON_INSTALL ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
@@ -30,8 +26,8 @@ ExternalProject_Add( ${ONNXRUNTIME_PYTHON}
   DEPENDS fletch python-deps
   PREFIX ${VIAME_BUILD_PREFIX}
   DOWNLOAD_COMMAND ${ONNXRUNTIME_PYTHON_DOWNLOAD}
-  SOURCE_DIR ""
-  BUILD_IN_SOURCE 1
+  SOURCE_DIR ${ONNXRUNTIME_PIP_BUILD_DIR}
+  BINARY_DIR ${ONNXRUNTIME_PIP_BUILD_DIR}
   PATCH_COMMAND ""
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""

@@ -9,19 +9,25 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} keypointgui )
 
+set( KEYPOINTGUI_SOURCE_DIR ${VIAME_PACKAGES_DIR}/itk-modules/keypointgui )
+set( KEYPOINTGUI_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/keypointgui-build )
+CreateDirectory( ${KEYPOINTGUI_BUILD_DIR} )
+
 if( WIN32 )
   string( REPLACE ";" "----" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
   string( REPLACE ";" "----" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
 endif()
 
+# Use pip install with absolute paths to avoid BUILD_IN_SOURCE.
+# pip install with file:// URL builds in a temporary directory, keeping source clean.
 if( VIAME_PYTHON_SYMLINK )
+  # Editable install - will create .egg-info in source (unavoidable)
   set( KEYPOINTGUI_PIP_CMD
-    pip install --user -e . )
+    pip install --user -e ${KEYPOINTGUI_SOURCE_DIR} )
 else()
-  # This is only required for no symlink install without a -e with older
-  # versions of pip, for never versions the above command works with no -e
+  # pip install with file:// URL builds in pip's cache/temp directory
   set( KEYPOINTGUI_PIP_CMD
-    pip install --user file://${VIAME_PACKAGES_DIR}/itk-modules/keypointgui )
+    pip install --user file://${KEYPOINTGUI_SOURCE_DIR} )
 endif()
 
 set( KEYPOINTGUI_INSTALL
@@ -34,8 +40,8 @@ set( KEYPOINTGUI_INSTALL
 ExternalProject_Add( keypointgui
   DEPENDS fletch python-deps wxPython
   PREFIX ${VIAME_BUILD_PREFIX}
-  SOURCE_DIR  ${VIAME_PACKAGES_DIR}/itk-modules/keypointgui
-  BUILD_IN_SOURCE 1
+  SOURCE_DIR ${KEYPOINTGUI_SOURCE_DIR}
+  BINARY_DIR ${KEYPOINTGUI_BUILD_DIR}
   USES_TERMINAL_BUILD 1
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ${KEYPOINTGUI_INSTALL}

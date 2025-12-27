@@ -143,7 +143,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PIP_CACHE_DIR_CMD --cache-dir ${LIBRARY_PIP_CACHE_DIR} )
 
   # For each python library split the build and install into two steps.
-  # Use modern `python -m build` instead of deprecated `setup.py` calls.
 
   # Set up compiler/linker flags for C extensions that need external libraries
   set( LIBRARY_BUILD_ENV_VARS
@@ -154,17 +153,19 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( VIAME_PYTHON_SYMLINK )
     # In development mode, install with the -e flag for editable.
     # pip install -e handles both build and install in one step.
+    # Build files in source tree are acceptable in symlink/development mode.
     set( LIBRARY_PIP_BUILD_CMD "" )
     set( LIBRARY_PIP_INSTALL_CMD
-      ${Python_EXECUTABLE} -m pip install --user -e . )
+      ${Python_EXECUTABLE} -m pip install --user -e ${LIBRARY_LOCATION} )
   else()
-    # Use python -m build for PEP 517 compliant wheel building.
-    # --no-isolation uses current environment instead of creating isolated venv.
+    # Use pip wheel for PEP 517 compliant wheel building.
+    # pip wheel builds in a temp directory and outputs wheel to --wheel-dir.
+    # --no-build-isolation uses current environment (needed for CUDA/torch access).
     set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} -m build
-        --wheel
-        --no-isolation
-        --outdir ${LIBRARY_PIP_BUILD_DIR} )
+      ${Python_EXECUTABLE} -m pip wheel
+        --no-build-isolation
+        --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
+        ${LIBRARY_LOCATION} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
         -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
@@ -278,7 +279,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       DEPENDS ${PROJECT_DEPS}
       PREFIX ${VIAME_BUILD_PREFIX}
       SOURCE_DIR ${LIBRARY_LOCATION}
-      BUILD_IN_SOURCE 1
+      BINARY_DIR ${LIBRARY_PIP_BUILD_DIR}
       PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
       CONFIGURE_COMMAND ${LIBRARY_CPP_CONFIG}
       BUILD_COMMAND ${LIBRARY_CPP_BUILD} && ${LIBRARY_CPP_INSTALL} && ${LIBRARY_PYTHON_BUILD}
@@ -296,7 +297,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       DEPENDS ${PROJECT_DEPS}
       PREFIX ${VIAME_BUILD_PREFIX}
       SOURCE_DIR ${LIBRARY_LOCATION}
-      BUILD_IN_SOURCE 1
+      BINARY_DIR ${LIBRARY_PIP_BUILD_DIR}
       PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
       CONFIGURE_COMMAND ""
       BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}

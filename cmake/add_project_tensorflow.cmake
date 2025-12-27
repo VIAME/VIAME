@@ -47,24 +47,26 @@ list( APPEND TENSORFLOW_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
 list( APPEND TENSORFLOW_ENV_VARS "PYTHONUSERBASE=${VIAME_INSTALL_PREFIX}" )
 
 if( VIAME_ENABLE_TENSORFLOW-MODELS )
+  set( TENSORFLOW_MODELS_SOURCE_DIR ${VIAME_PACKAGES_DIR}/tensorflow-libs/models )
   set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/tensorflow-build/models-build )
   set( LIBRARY_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/tensorflow-build/models-tmp )
   CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
   CreateDirectory( ${LIBRARY_PIP_TMP_DIR} )
 
-  # Use modern python -m build instead of deprecated setup.py calls
   if( VIAME_PYTHON_SYMLINK )
-    # In development mode, pip install -e handles both build and install
+    # In development mode, pip install -e handles both build and install.
+    # Build files in source tree are acceptable in symlink/development mode.
     set( LIBRARY_PIP_BUILD_CMD "" )
     set( LIBRARY_PIP_INSTALL_CMD
-      ${Python_EXECUTABLE} -m pip install --user -e . )
+      ${Python_EXECUTABLE} -m pip install --user -e ${TENSORFLOW_MODELS_SOURCE_DIR} )
   else()
-    # Use python -m build for PEP 517 compliant wheel building
+    # Use pip wheel for PEP 517 compliant wheel building.
+    # pip wheel builds in a temp directory and outputs wheel to --wheel-dir.
     set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} -m build
-        --wheel
-        --no-isolation
-        --outdir ${LIBRARY_PIP_BUILD_DIR} )
+      ${Python_EXECUTABLE} -m pip wheel
+        --no-build-isolation
+        --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
+        ${TENSORFLOW_MODELS_SOURCE_DIR} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
         -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
@@ -96,8 +98,8 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS )
   ExternalProject_Add( tensorflow-models
     DEPENDS ${PROJECT_DEPS}
     PREFIX ${VIAME_BUILD_PREFIX}
-    SOURCE_DIR ${LIBRARY_LOCATION}
-    BUILD_IN_SOURCE 1
+    SOURCE_DIR ${TENSORFLOW_MODELS_SOURCE_DIR}
+    BINARY_DIR ${LIBRARY_PIP_BUILD_DIR}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
