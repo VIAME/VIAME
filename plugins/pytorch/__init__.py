@@ -2,9 +2,6 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from viame.processes.pytorch import convert_to_onnx_process
-from viame.processes.pytorch import foundation_stereo_process
-
 def __sprokit_register__():
     from kwiver.sprokit.pipeline import process_factory
 
@@ -12,6 +9,9 @@ def __sprokit_register__():
 
     if process_factory.is_process_module_loaded( module_name ):
         return
+
+    from viame.processes.pytorch import convert_to_onnx_process
+    from viame.processes.pytorch import foundation_stereo_process
 
     process_factory.add_process(
         'convert_to_onnx',
