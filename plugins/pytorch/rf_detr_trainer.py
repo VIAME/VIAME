@@ -9,17 +9,20 @@ from kwiver.vital.algo import (
 )
 
 import os
-import signal
-import sys
-import threading
-import time
 
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
-from ._utils import vital_config_update
 
 import scriptconfig as scfg
 import ubelt as ub
+
+from .utilities import (
+    vital_config_update,
+    resolve_device_str,
+    parse_bool,
+    register_vital_algorithm,
+    TrainingInterruptHandler,
+)
 
 
 class RFDETRTrainerConfig(KWCocoTrainDetectorConfig):
@@ -266,12 +269,7 @@ class RFDETRTrainer(KWCocoTrainDetector):
         )
 
         # Determine device
-        device = self._device
-        if device == 'auto':
-            if torch.cuda.is_available():
-                device = 'cuda'
-            else:
-                device = 'cpu'
+        device = resolve_device_str(self._device)
 
         # Select model class based on size
         model_size = self._model_size.lower()
@@ -319,53 +317,45 @@ class RFDETRTrainer(KWCocoTrainDetector):
         weight_decay = float(self._weight_decay)
         warmup_epochs = float(self._warmup_epochs)
         lr_drop = int(self._lr_drop)
-        use_ema = str(self._use_ema).lower() in ('true', '1', 'yes')
+        use_ema = parse_bool(self._use_ema)
         ema_decay = float(self._ema_decay)
-        early_stopping = str(self._early_stopping).lower() in ('true', '1', 'yes')
+        early_stopping = parse_bool(self._early_stopping)
         early_stopping_patience = int(self._early_stopping_patience)
-        multi_scale = str(self._multi_scale).lower() in ('true', '1', 'yes')
+        multi_scale = parse_bool(self._multi_scale)
         checkpoint_interval = int(self._checkpoint_interval)
-        use_tensorboard = str(self._use_tensorboard).lower() in ('true', '1', 'yes')
+        use_tensorboard = parse_bool(self._use_tensorboard)
 
         output_dir = ub.Path(self._train_directory) / "rf_detr_output"
         output_dir.ensuredir()
 
-        # Set up signal handler for graceful interruption
-        self._interrupted = False
+        # Signal handler for graceful interruption
+        with TrainingInterruptHandler("RFDETRTrainer") as handler:
+            try:
+                # Train the model
+                model.train(
+                    dataset_dir=str(dataset_dir),
+                    output_dir=str(output_dir),
+                    epochs=epochs,
+                    batch_size=batch_size,
+                    lr=lr,
+                    lr_encoder=lr_encoder,
+                    grad_accum_steps=grad_accum_steps,
+                    weight_decay=weight_decay,
+                    warmup_epochs=warmup_epochs,
+                    lr_drop=lr_drop,
+                    use_ema=use_ema,
+                    ema_decay=ema_decay,
+                    early_stopping=early_stopping,
+                    early_stopping_patience=early_stopping_patience,
+                    multi_scale=multi_scale,
+                    checkpoint_interval=checkpoint_interval,
+                    tensorboard=use_tensorboard,
+                    wandb=False,
+                )
+            except KeyboardInterrupt:
+                print("[RFDETRTrainer] Training interrupted by user")
 
-        def signal_handler(signum, frame):
-            print("\n[RFDETRTrainer] Training interrupted, saving model...")
-            self._interrupted = True
-
-        if threading.current_thread().__class__.__name__ == '_MainThread':
-            signal.signal(signal.SIGINT, signal_handler)
-            signal.signal(signal.SIGTERM, signal_handler)
-
-        try:
-            # Train the model
-            model.train(
-                dataset_dir=str(dataset_dir),
-                output_dir=str(output_dir),
-                epochs=epochs,
-                batch_size=batch_size,
-                lr=lr,
-                lr_encoder=lr_encoder,
-                grad_accum_steps=grad_accum_steps,
-                weight_decay=weight_decay,
-                warmup_epochs=warmup_epochs,
-                lr_drop=lr_drop,
-                use_ema=use_ema,
-                ema_decay=ema_decay,
-                early_stopping=early_stopping,
-                early_stopping_patience=early_stopping_patience,
-                multi_scale=multi_scale,
-                checkpoint_interval=checkpoint_interval,
-                tensorboard=use_tensorboard,
-                wandb=False,
-            )
-        except KeyboardInterrupt:
-            print("[RFDETRTrainer] Training interrupted by user")
-            self._interrupted = True
+            self._interrupted = handler.interrupted
 
         self.save_final_model(model, output_dir)
 
@@ -418,16 +408,6 @@ class RFDETRTrainer(KWCocoTrainDetector):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
-
-    implementation_name = "rf_detr"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            RFDETRTrainer.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name, "PyTorch RF-DETR detection training routine",
-        RFDETRTrainer)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(
+        RFDETRTrainer, "rf_detr", "PyTorch RF-DETR detection training routine"
+    )

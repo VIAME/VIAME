@@ -6,18 +6,16 @@ from __future__ import print_function
 
 from kwiver.vital.algo import ImageObjectDetector
 
-try:
-    from kwiver.vital.types import BoundingBoxD
-except ImportError:
-    from kwiver.vital.types import BoundingBox as BoundingBoxD
-
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import DetectedObjectType
-
 import scriptconfig as scfg
-import numpy as np
 import ubelt as ub
+
+from .utilities import (
+    resolve_device_str,
+    vital_config_update,
+    supervision_to_kwiver_detections,
+    register_vital_algorithm,
+    parse_bool,
+)
 
 
 class RFDETRDetectorConfig(scfg.DataConfig):
@@ -69,18 +67,8 @@ class RFDETRDetector(ImageObjectDetector):
 
         weight_fpath = self._kwiver_config['weight']
         model_size = self._kwiver_config['model_size'].lower()
-        device = self._kwiver_config['device']
-        optimize = self._kwiver_config['optimize_inference']
-
-        if isinstance(optimize, str):
-            optimize = optimize.lower() in ('true', '1', 'yes')
-
-        # Handle device selection
-        if device == 'auto':
-            if torch.cuda.is_available():
-                device = 'cuda'
-            else:
-                device = 'cpu'
+        device = resolve_device_str(self._kwiver_config['device'])
+        optimize = parse_bool(self._kwiver_config['optimize_inference'])
 
         # Import the appropriate RF-DETR model class based on size
         if model_size == 'nano':
@@ -163,60 +151,11 @@ class RFDETRDetector(ImageObjectDetector):
             detections = self._model.predict(pil_img, threshold=threshold)
 
         # Convert supervision Detections to kwiver format
-        output = DetectedObjectSet()
-
-        for i in range(len(detections.xyxy)):
-            box = detections.xyxy[i]
-            score = detections.confidence[i]
-            class_id = detections.class_id[i]
-
-            # Get class name
-            if class_id < len(self._classes):
-                class_name = self._classes[class_id]
-            else:
-                class_name = str(class_id)
-
-            # Create bounding box
-            bbox = BoundingBoxD(
-                float(box[0]), float(box[1]),
-                float(box[2]), float(box[3])
-            )
-
-            # Create detected object
-            detected_object_type = DetectedObjectType(class_name, float(score))
-            detected_object = DetectedObject(bbox, float(score), detected_object_type)
-
-            output.add(detected_object)
-
+        output = supervision_to_kwiver_detections(detections, self._classes)
         return output
 
 
-def _vital_config_update(cfg, cfg_in):
-    """
-    Treat a vital Config object like a python dictionary
-    """
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError('cfg has no key={}'.format(key))
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
-
-
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
-
-    implementation_name = "rf_detr"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            RFDETRDetector.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name, "PyTorch RF-DETR detection routine",
-        RFDETRDetector)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(
+        RFDETRDetector, "rf_detr", "PyTorch RF-DETR detection routine"
+    )

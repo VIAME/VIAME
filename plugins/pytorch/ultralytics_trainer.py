@@ -5,15 +5,18 @@
 from kwiver.vital.algo import TrainDetector
 
 import os
-import signal
-import sys
-import threading
 
 import scriptconfig as scfg
 import ubelt as ub
 import yaml
 
-from ._utils import vital_config_update
+from .utilities import (
+    vital_config_update,
+    resolve_device,
+    parse_bool,
+    register_vital_algorithm,
+    TrainingInterruptHandler,
+)
 
 
 class UltralyticsTrainerConfig(scfg.DataConfig):
@@ -429,9 +432,12 @@ class UltralyticsTrainer(TrainDetector):
         from ultralytics import YOLO
 
         # Determine device
-        device = self._device
-        if device == 'auto':
-            device = 0 if torch.cuda.is_available() else 'cpu'
+        device = resolve_device(self._device)
+        # Ultralytics accepts int for GPU index
+        if hasattr(device, 'index') and device.index is not None:
+            device = device.index
+        elif str(device) == 'cpu':
+            device = 'cpu'
 
         # Load model
         model_type = self._model_type
@@ -474,14 +480,14 @@ class UltralyticsTrainer(TrainDetector):
 
         # Parse other options
         optimizer = self._optimizer
-        cos_lr = str(self._cos_lr).lower() in ('true', '1', 'yes')
-        amp = str(self._amp).lower() in ('true', '1', 'yes')
+        cos_lr = parse_bool(self._cos_lr)
+        amp = parse_bool(self._amp)
         fraction = float(self._fraction)
-        multi_scale = str(self._multi_scale).lower() in ('true', '1', 'yes')
-        overlap_mask = str(self._overlap_mask).lower() in ('true', '1', 'yes')
+        multi_scale = parse_bool(self._multi_scale)
+        overlap_mask = parse_bool(self._overlap_mask)
         mask_ratio = int(self._mask_ratio)
         dropout = float(self._dropout)
-        resume = str(self._resume).lower() in ('true', '1', 'yes')
+        resume = parse_bool(self._resume)
 
         freeze = self._freeze
         if freeze and freeze != 'None' and freeze != '':
@@ -494,67 +500,59 @@ class UltralyticsTrainer(TrainDetector):
         run_name = self._identifier
 
         # Signal handler for graceful interruption
-        self._interrupted = False
+        with TrainingInterruptHandler("UltralyticsTrainer") as handler:
+            try:
+                model.train(
+                    data=str(self._data_yaml_path),
+                    epochs=epochs,
+                    batch=batch_size,
+                    imgsz=image_size,
+                    device=device,
+                    project=str(project_dir),
+                    name=run_name,
+                    exist_ok=True,
+                    pretrained=True,
+                    optimizer=optimizer,
+                    lr0=lr0,
+                    lrf=lrf,
+                    momentum=momentum,
+                    weight_decay=weight_decay,
+                    warmup_epochs=warmup_epochs,
+                    warmup_momentum=warmup_momentum,
+                    patience=patience,
+                    workers=workers,
+                    save_period=save_period,
+                    # Augmentation
+                    hsv_h=hsv_h,
+                    hsv_s=hsv_s,
+                    hsv_v=hsv_v,
+                    degrees=degrees,
+                    translate=translate,
+                    scale=scale,
+                    shear=shear,
+                    perspective=perspective,
+                    flipud=flipud,
+                    fliplr=fliplr,
+                    mosaic=mosaic,
+                    mixup=mixup,
+                    copy_paste=copy_paste,
+                    close_mosaic=close_mosaic,
+                    # Other options
+                    cos_lr=cos_lr,
+                    amp=amp,
+                    fraction=fraction,
+                    multi_scale=multi_scale,
+                    overlap_mask=overlap_mask,
+                    mask_ratio=mask_ratio,
+                    dropout=dropout,
+                    freeze=freeze,
+                    resume=resume,
+                    verbose=True,
+                )
+            except KeyboardInterrupt:
+                print("[UltralyticsTrainer] Training interrupted by user")
 
-        def signal_handler(signum, frame):
-            print("\n[UltralyticsTrainer] Training interrupted, model will be saved...")
-            self._interrupted = True
-
-        if threading.current_thread().__class__.__name__ == '_MainThread':
-            signal.signal(signal.SIGINT, signal_handler)
-            signal.signal(signal.SIGTERM, signal_handler)
-
-        try:
-            model.train(
-                data=str(self._data_yaml_path),
-                epochs=epochs,
-                batch=batch_size,
-                imgsz=image_size,
-                device=device,
-                project=str(project_dir),
-                name=run_name,
-                exist_ok=True,
-                pretrained=True,
-                optimizer=optimizer,
-                lr0=lr0,
-                lrf=lrf,
-                momentum=momentum,
-                weight_decay=weight_decay,
-                warmup_epochs=warmup_epochs,
-                warmup_momentum=warmup_momentum,
-                patience=patience,
-                workers=workers,
-                save_period=save_period,
-                # Augmentation
-                hsv_h=hsv_h,
-                hsv_s=hsv_s,
-                hsv_v=hsv_v,
-                degrees=degrees,
-                translate=translate,
-                scale=scale,
-                shear=shear,
-                perspective=perspective,
-                flipud=flipud,
-                fliplr=fliplr,
-                mosaic=mosaic,
-                mixup=mixup,
-                copy_paste=copy_paste,
-                close_mosaic=close_mosaic,
-                # Other options
-                cos_lr=cos_lr,
-                amp=amp,
-                fraction=fraction,
-                multi_scale=multi_scale,
-                overlap_mask=overlap_mask,
-                mask_ratio=mask_ratio,
-                dropout=dropout,
-                freeze=freeze,
-                resume=resume,
-                verbose=True,
-            )
-        except KeyboardInterrupt:
-            print("[UltralyticsTrainer] Training interrupted by user")
-            self._interrupted = True
+            self._interrupted = handler.interrupted
 
         self._save_final_model(project_dir / run_name)
         print("\n[UltralyticsTrainer] Model training complete!\n")
@@ -609,16 +607,6 @@ class UltralyticsTrainer(TrainDetector):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
-
-    implementation_name = "ultralytics"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            UltralyticsTrainer.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name, "PyTorch Ultralytics YOLO training routine",
-        UltralyticsTrainer)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(
+        UltralyticsTrainer, "ultralytics", "PyTorch Ultralytics YOLO training routine"
+    )
