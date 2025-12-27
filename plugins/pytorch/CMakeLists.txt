@@ -76,6 +76,11 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
     ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_detector.py
     arrows/pytorch
     ultralytics_detector )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_trainer.py
+    arrows/pytorch
+    ultralytics_trainer )
 endif()
 
 if( VIAME_ENABLE_ONNX AND ( VIAME_ENABLE_DARKNET OR VIAME_ENABLE_PYTORCH-MMDET ) )
