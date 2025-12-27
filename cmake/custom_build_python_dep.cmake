@@ -2,15 +2,21 @@
 #
 # This script wraps Python package builds to skip compilation when source hasn't changed.
 # It checks a hash file and only runs the actual build if the hash differs.
+# Optionally supports C++ build/install steps before the Python build.
 #
 # Required variables:
-#   LIB_NAME       - Name of the library
-#   LIB_SOURCE_DIR - Path to the library source directory
-#   HASH_FILE      - Path to the hash file for comparison
-#   BUILD_COMMAND  - The actual build command to run (quoted string)
-#   ENV_VARS       - Environment variables (----separated KEY=VALUE pairs)
-#   TMPDIR         - Temporary directory for Python builds
-#   WORKING_DIR    - Working directory for the build command
+#   LIB_NAME        - Name of the library
+#   LIB_SOURCE_DIR  - Path to the library source directory
+#   HASH_FILE       - Path to the hash file for comparison
+#   WORKING_DIR     - Working directory for the build command
+#
+# Optional variables:
+#   CPP_BUILD_CMD    - C++ build command (run before Python build)
+#   CPP_INSTALL_CMD  - C++ install command (run after C++ build)
+#   PYTHON_BUILD_CMD - Python build command (preferred name)
+#   BUILD_COMMAND    - Python build command (legacy name, same as PYTHON_BUILD_CMD)
+#   ENV_VARS         - Environment variables (----separated KEY=VALUE pairs)
+#   TMPDIR           - Temporary directory for Python builds
 
 cmake_minimum_required(VERSION 3.16)
 
@@ -38,14 +44,15 @@ function(get_source_hash SOURCE_DIR OUT_HASH)
 
   # Fallback: use file modification times
   set(HASH_INPUT "")
-  foreach(CHECK_FILE setup.py pyproject.toml setup.cfg)
+  foreach(CHECK_FILE setup.py pyproject.toml setup.cfg CMakeLists.txt)
     if(EXISTS "${SOURCE_DIR}/${CHECK_FILE}")
       file(TIMESTAMP "${SOURCE_DIR}/${CHECK_FILE}" FILE_TIME)
       string(APPEND HASH_INPUT "${CHECK_FILE}:${FILE_TIME};")
     endif()
   endforeach()
 
-  foreach(CHECK_DIR src csrc detectron2 sam2)
+  # Check common source directories
+  foreach(CHECK_DIR src csrc detectron2 sam2 mmdeploy)
     if(IS_DIRECTORY "${SOURCE_DIR}/${CHECK_DIR}")
       file(GLOB_RECURSE SRC_FILES "${SOURCE_DIR}/${CHECK_DIR}/*")
       list(LENGTH SRC_FILES FILE_COUNT)
@@ -58,8 +65,13 @@ function(get_source_hash SOURCE_DIR OUT_HASH)
 endfunction()
 
 # Validate required variables
-if(NOT LIB_NAME OR NOT LIB_SOURCE_DIR OR NOT HASH_FILE OR NOT BUILD_COMMAND)
-  message(FATAL_ERROR "custom_build_python_dep.cmake requires LIB_NAME, LIB_SOURCE_DIR, HASH_FILE, and BUILD_COMMAND")
+if(NOT LIB_NAME OR NOT LIB_SOURCE_DIR OR NOT HASH_FILE)
+  message(FATAL_ERROR "custom_build_python_dep.cmake requires LIB_NAME, LIB_SOURCE_DIR, and HASH_FILE")
+endif()
+
+# Support both PYTHON_BUILD_CMD and BUILD_COMMAND (legacy)
+if(NOT PYTHON_BUILD_CMD AND BUILD_COMMAND)
+  set(PYTHON_BUILD_CMD "${BUILD_COMMAND}")
 endif()
 
 # Get current source hash
@@ -74,12 +86,12 @@ endif()
 
 # Compare hashes
 if(CURRENT_HASH STREQUAL STORED_HASH)
-  message(STATUS "${LIB_NAME}: Source unchanged (${CURRENT_HASH}), skipping Python build")
+  message(STATUS "${LIB_NAME}: Source unchanged (${CURRENT_HASH}), skipping build")
 else()
   if(STORED_HASH)
-    message(STATUS "${LIB_NAME}: Source changed (${STORED_HASH} -> ${CURRENT_HASH}), running Python build")
+    message(STATUS "${LIB_NAME}: Source changed (${STORED_HASH} -> ${CURRENT_HASH}), running build")
   else()
-    message(STATUS "${LIB_NAME}: First build, running Python build")
+    message(STATUS "${LIB_NAME}: First build, running build")
   endif()
 
   # Convert ----separated env vars back to list
@@ -94,20 +106,49 @@ else()
     list(APPEND ENV_VARS_LIST "TMPDIR=${TMPDIR}")
   endif()
 
-  # BUILD_COMMAND comes in as a semicolon-separated list (CMake list format)
-  # Just use it directly as a list
-  set(BUILD_ARGS "${BUILD_COMMAND}")
+  # Run C++ build if provided
+  if(CPP_BUILD_CMD)
+    message(STATUS "${LIB_NAME}: Running C++ build...")
+    set(CPP_BUILD_ARGS "${CPP_BUILD_CMD}")
+    execute_process(
+      COMMAND ${CPP_BUILD_ARGS}
+      WORKING_DIRECTORY "${WORKING_DIR}"
+      RESULT_VARIABLE BUILD_RESULT
+      COMMAND_ECHO STDOUT
+    )
+    if(NOT BUILD_RESULT EQUAL 0)
+      message(FATAL_ERROR "${LIB_NAME}: C++ build failed with exit code ${BUILD_RESULT}")
+    endif()
+  endif()
 
-  # Execute the build command
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} -E env ${ENV_VARS_LIST} ${BUILD_ARGS}
-    WORKING_DIRECTORY "${WORKING_DIR}"
-    RESULT_VARIABLE BUILD_RESULT
-    COMMAND_ECHO STDOUT
-  )
+  # Run C++ install if provided
+  if(CPP_INSTALL_CMD)
+    message(STATUS "${LIB_NAME}: Running C++ install...")
+    set(CPP_INSTALL_ARGS "${CPP_INSTALL_CMD}")
+    execute_process(
+      COMMAND ${CPP_INSTALL_ARGS}
+      WORKING_DIRECTORY "${WORKING_DIR}"
+      RESULT_VARIABLE INSTALL_RESULT
+      COMMAND_ECHO STDOUT
+    )
+    if(NOT INSTALL_RESULT EQUAL 0)
+      message(FATAL_ERROR "${LIB_NAME}: C++ install failed with exit code ${INSTALL_RESULT}")
+    endif()
+  endif()
 
-  if(NOT BUILD_RESULT EQUAL 0)
-    message(FATAL_ERROR "${LIB_NAME}: Build failed with exit code ${BUILD_RESULT}")
+  # Run Python build if provided
+  if(PYTHON_BUILD_CMD)
+    message(STATUS "${LIB_NAME}: Running Python build...")
+    set(PYTHON_BUILD_ARGS "${PYTHON_BUILD_CMD}")
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} -E env ${ENV_VARS_LIST} ${PYTHON_BUILD_ARGS}
+      WORKING_DIRECTORY "${WORKING_DIR}"
+      RESULT_VARIABLE PY_BUILD_RESULT
+      COMMAND_ECHO STDOUT
+    )
+    if(NOT PY_BUILD_RESULT EQUAL 0)
+      message(FATAL_ERROR "${LIB_NAME}: Python build failed with exit code ${PY_BUILD_RESULT}")
+    endif()
   endif()
 
   # Store the new hash only after successful build

@@ -251,39 +251,51 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS}" )
   endif()
 
-  if ("${LIB}" STREQUAL "mmdeploy")
+  if( SLOW_BUILD_PACKAGE )
+    # Use conditional build for slow packages (detectron2, sam2, mmdeploy)
+    # This checks source hash and skips rebuild if unchanged
 
-    set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
-    set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
-    file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
-
-    set( LIBRARY_CPP_CONFIG
-      ${CMAKE_COMMAND}
-      -DMMDEPLOY_TARGET_BACKENDS=ort
-      -DONNXRUNTIME_DIR=${ONNXRUNTIME_DIR}
-      -S "${LIBRARY_LOCATION}"
-      -B "${LIBRARY_CPP_BUILD_DIR}" )
-
-    set(LIBRARY_CPP_BUILD ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}")
-    set(LIBRARY_CPP_INSTALL ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}")
-    if ((CMAKE_CONFIGURATION_TYPES STREQUAL "Release") OR (CMAKE_BUILD_TYPE STREQUAL "Release"))
-      list( APPEND LIBRARY_CPP_BUILD --config Release)
-      list( APPEND LIBRARY_CPP_INSTALL --config Release)
-    endif()
-
-    # Use conditional build wrapper for mmdeploy
-    set( MMDEPLOY_CONDITIONAL_BUILD
+    # Base conditional build command
+    set( CONDITIONAL_BUILD_CMD
       ${CMAKE_COMMAND}
         -DLIB_NAME=${LIB}
         -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
         -DHASH_FILE=${LIB_HASH_FILE}
-        -DCPP_BUILD_CMD="${LIBRARY_CPP_BUILD}"
-        -DCPP_INSTALL_CMD="${LIBRARY_CPP_INSTALL}"
         -DPYTHON_BUILD_CMD="${LIBRARY_PIP_BUILD_CMD}"
         -DENV_VARS="${PYTORCH_ENV_VARS_STR}"
         -DTMPDIR="${LIBRARY_PIP_TMP_DIR}"
-        -DWORKING_DIR=${LIBRARY_LOCATION}
-        -P ${VIAME_CMAKE_DIR}/custom_build_mmdeploy.cmake )
+        -DWORKING_DIR=${LIBRARY_LOCATION} )
+
+    # mmdeploy has additional C++ build steps
+    if( "${LIB}" STREQUAL "mmdeploy" )
+      set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
+      set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
+      file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
+
+      set( LIBRARY_CPP_CONFIG
+        ${CMAKE_COMMAND}
+        -DMMDEPLOY_TARGET_BACKENDS=ort
+        -DONNXRUNTIME_DIR=${ONNXRUNTIME_DIR}
+        -S "${LIBRARY_LOCATION}"
+        -B "${LIBRARY_CPP_BUILD_DIR}" )
+
+      set( LIBRARY_CPP_BUILD ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}" )
+      set( LIBRARY_CPP_INSTALL ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}" )
+      if( (CMAKE_CONFIGURATION_TYPES STREQUAL "Release") OR (CMAKE_BUILD_TYPE STREQUAL "Release") )
+        list( APPEND LIBRARY_CPP_BUILD --config Release )
+        list( APPEND LIBRARY_CPP_INSTALL --config Release )
+      endif()
+
+      list( APPEND CONDITIONAL_BUILD_CMD
+        -DCPP_BUILD_CMD="${LIBRARY_CPP_BUILD}"
+        -DCPP_INSTALL_CMD="${LIBRARY_CPP_INSTALL}" )
+
+      set( LIBRARY_CONFIGURE_CMD ${LIBRARY_CPP_CONFIG} )
+    else()
+      set( LIBRARY_CONFIGURE_CMD "" )
+    endif()
+
+    list( APPEND CONDITIONAL_BUILD_CMD -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
 
     ExternalProject_Add( ${LIB}
       DEPENDS ${PROJECT_DEPS}
@@ -291,41 +303,18 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       SOURCE_DIR ${LIBRARY_LOCATION}
       BUILD_IN_SOURCE 1
       PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
-      CONFIGURE_COMMAND ${LIBRARY_CPP_CONFIG}
-      BUILD_COMMAND ${MMDEPLOY_CONDITIONAL_BUILD}
+      CONFIGURE_COMMAND "${LIBRARY_CONFIGURE_CMD}"
+      BUILD_COMMAND ${CONDITIONAL_BUILD_CMD}
       INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
       LIST_SEPARATOR "----" )
 
-    set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy)
-    ExternalProject_Add_Step(${LIB}
-      postinstall
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBRARY_LOCATION}/configs ${MMDEPLOY_INSTALL_DIR}/configs
-      DEPENDEES install )
-
-  elseif( SLOW_BUILD_PACKAGE )
-    # Use conditional build for detectron2 and sam2
-    set( CONDITIONAL_PYTHON_BUILD
-      ${CMAKE_COMMAND}
-        -DLIB_NAME=${LIB}
-        -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
-        -DHASH_FILE=${LIB_HASH_FILE}
-        -DBUILD_COMMAND="${LIBRARY_PIP_BUILD_CMD}"
-        -DENV_VARS="${PYTORCH_ENV_VARS_STR}"
-        -DTMPDIR="${LIBRARY_PIP_TMP_DIR}"
-        -DWORKING_DIR=${LIBRARY_LOCATION}
-        -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
-
-    ExternalProject_Add( ${LIB}
-      DEPENDS ${PROJECT_DEPS}
-      PREFIX ${VIAME_BUILD_PREFIX}
-      SOURCE_DIR ${LIBRARY_LOCATION}
-      BUILD_IN_SOURCE 1
-      PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND ${CONDITIONAL_PYTHON_BUILD}
-      INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-      LIST_SEPARATOR "----"
-      )
+    if( "${LIB}" STREQUAL "mmdeploy" )
+      set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy )
+      ExternalProject_Add_Step(${LIB}
+        postinstall
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBRARY_LOCATION}/configs ${MMDEPLOY_INSTALL_DIR}/configs
+        DEPENDEES install )
+    endif()
 
   else()
     ExternalProject_Add( ${LIB}
