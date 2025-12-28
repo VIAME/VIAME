@@ -270,7 +270,7 @@ jobs:
         with:
           path: |
             C:/VIAME-CI/build/src/fletch-build
-            C:/VIAME-CI/install
+            C:/VIAME-CI/build/install
           key: windows-fletch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.fletch-hash }}
           restore-keys: |
             windows-fletch-py${{ steps.setup-python.outputs.python-version }}-
@@ -400,10 +400,10 @@ jobs:
       - name: Verify build
         shell: powershell
         run: |
-          if (Test-Path "C:\VIAME-CI\install\setup_viame.bat") {
+          if (Test-Path "C:\VIAME-CI\build\install\setup_viame.bat") {
             Write-Host "SUCCESS: setup_viame.bat found"
           } else {
             Write-Host "ERROR: setup_viame.bat not found"
-            Get-ChildItem -Path "C:\VIAME-CI\install\" -ErrorAction SilentlyContinue
+            Get-ChildItem -Path "C:\VIAME-CI\build\install\" -ErrorAction SilentlyContinue
             exit 1
           }
