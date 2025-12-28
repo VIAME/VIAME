@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 
+import logging
 import smqtk.algorithms
 import smqtk.iqr
 import smqtk.representation
@@ -19,6 +20,8 @@ import ctypes
 import sys
 import random
 import numpy
+
+logger = logging.getLogger(__name__)
 
 default_desc_config = "/configs/pipelines/smqtk_desc_index.json"
 default_nn_config = "/configs/pipelines/smqtk_nn_index.json"
@@ -42,7 +45,7 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     smqtk_params['train_on_neighbors_only'] = False
 
   # Load indices
-  print( " - Loading descriptor indices" )
+  logger.info( "Loading descriptor indices" )
 
   di_json_config_path = smqtk_params['descriptor_index_config_file']
   with open( di_json_config_path ) as f:
@@ -73,7 +76,7 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
         neg_uuids.append( uuid )
 
   if len( pos_uuids ) == 0 or len( neg_uuids ) == 0:
-    print( "Error: Not enough training samples" )
+    logger.error( "Not enough training samples (pos=%d, neg=%d)", len(pos_uuids), len(neg_uuids) )
     return
 
   # Set of descriptors to pull positive/negative querys from.
@@ -109,14 +112,14 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
   iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
   pos_descrs = descriptor_set.get_many_descriptors( pos_uuids )
 
-  print( " - Formatting data for initial search" )
+  logger.info( "Formatting data for initial search" )
   iqr_session.adjudicate( set( pos_descrs ) )
 
   iqr_session.update_working_index( neighbor_index )
   iqr_session.refine()
 
   # Perform 2nd round training on negatives from NN search
-  print( " - Formatting data for SVM model train" )
+  logger.info( "Formatting data for SVM model train" )
   ordered_results = iqr_session.ordered_results()
   if ordered_results is None:
     ordered_results = []
@@ -143,16 +146,17 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
 
   iqr_session.adjudicate( set( pos_descrs ), set( best_neg_descrs ) )
 
-  print( " - Training SVM model" )
-  print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
-  print( "     + Negative sample count: " + str( len( best_neg_uuids ) ) )
+  logger.info( "Training SVM model" )
+  logger.info( "Positive sample count: %d", len( pos_uuids ) )
+  logger.info( "Negative sample count: %d", len( best_neg_uuids ) )
   iqr_session.update_working_index( neighbor_index )
   iqr_session.refine()
 
   try:
     svm_model = iqr_session.rel_index.get_model()
     svmutil.svm_save_model( output_file.encode(), svm_model )
-  except:
+  except Exception as e:
+    logger.error( "Failed to save SVM model: %s", e )
     return
 
 def generate_svm_models( folder = "database", id_extension = "lbl",
@@ -164,7 +168,7 @@ def generate_svm_models( folder = "database", id_extension = "lbl",
     folder = folder + ".lnk"
   folder = folder if not os.path.islink( folder ) else os.readlink( folder )
   if not os.path.isdir( folder ):
-    print( "Input folder \"" + folder + "\" does not exist" )
+    logger.error( "Input folder '%s' does not exist", folder )
     return
   label_files = [
     os.path.join( folder, f ) for f in sorted( os.listdir( folder ) )
@@ -173,7 +177,7 @@ def generate_svm_models( folder = "database", id_extension = "lbl",
 
   # Error checking on inputs
   if len( label_files ) == 0:
-    print( "No label files present in input folder \"" + folder + "\"" )
+    logger.error( "No label files present in input folder '%s'", folder )
     return
 
   # Generate output folder
@@ -189,7 +193,7 @@ def generate_svm_models( folder = "database", id_extension = "lbl",
   for category in all_categories:
     if category == background_id:
       continue
-    print( "Training model for category: " + category )
+    logger.info( "Training model for category: %s", category )
     positive_files = []
     negative_files = []
     output_file = output_folder + '/' + category + '.svm'
@@ -198,5 +202,5 @@ def generate_svm_models( folder = "database", id_extension = "lbl",
         positive_files.append( label_file )
       else:
         negative_files.append( label_file )
-    print( " - Positive files " + str( positive_files ) )
+    logger.debug( "Positive files: %s", positive_files )
     generate_svm_model( positive_files, negative_files, output_file, smqtk_params )

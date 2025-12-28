@@ -34,8 +34,11 @@ from kwiver.vital.util.VitalPIL import get_pil_image, from_pil
 
 import cv2
 import csv
+import logging
 import numpy as np
 import scipy.spatial
+
+logger = logging.getLogger(__name__)
 
 def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
   match_low_res=True, good_match_percent = 0.15, ratio_test = .85,
@@ -64,11 +67,11 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
     keypoints2, descriptors2 = sift.detectAndCompute( optical_gray, None )
 
     if len( keypoints1 ) < 2:
-        print("not enough keypoints")
+        logger.warning("Not enough keypoints in thermal image")
         return False, np.identity( 3 ), 0
 
     if len( keypoints2 ) < 2:
-        print("not enough keypoints")
+        logger.warning("Not enough keypoints in optical image")
         return False, np.identity( 3 ), 0
 
     # scale feature points back to original size
@@ -102,10 +105,10 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
         num_good_matches = int( len( matches ) * good_match_percent )
         matches = matches[:num_good_matches]
    
-    print( "%d matches" % len(matches) )
+    logger.debug( "%d matches found", len(matches) )
 
     if len( matches ) < min_matches:
-        print( "not enough matches" )
+        logger.warning( "Not enough matches: %d < %d", len(matches), min_matches )
         return False, np.identity( 3 ), 0
 
     # Extract location of good matches
@@ -119,23 +122,24 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
     # Find homography
     h, mask = cv2.findHomography( points1, points2, cv2.RANSAC )
  
-    print( "%d inliers" % sum( mask ) )
+    logger.debug( "%d inliers found", sum( mask ) )
 
     if sum( mask ) < min_inliers:
-        print( "not enough inliers" )
+        logger.warning( "Not enough inliers: %d < %d", sum(mask), min_inliers )
         return False, np.identity( 3 ), 0
 
     # Check if we have a robust set of inliers by computing the area of the convex hull
     
     # Good area is 11392
     try:
-        print( 'Inlier area ', scipy.spatial.ConvexHull( points2[ np.isclose( mask.ravel(), 1 ) ] ).area )
+        inlier_area = scipy.spatial.ConvexHull( points2[ np.isclose( mask.ravel(), 1 ) ] ).area
+        logger.debug( "Inlier area: %f", inlier_area )
 
-        if scipy.spatial.ConvexHull( points2[ np.isclose( mask.ravel(), 1 ) ] ).area < 1000:
-            print("Inliers seem colinear or too close, skipping")
+        if inlier_area < 1000:
+            logger.warning("Inliers seem colinear or too close, skipping")
             return False, np.identity(3), 0
-    except:
-        print( "Inliers seem colinear or too close, skipping" )
+    except (scipy.spatial.QhullError, ValueError) as e:
+        logger.warning( "Inliers seem colinear or too close, skipping: %s", e )
         return False, np.identity(3), 0
 
     # if non homography requested, compute from inliers
@@ -279,7 +283,7 @@ class register_frames_process( KwiverProcess ):
             self.push_to_port_using_trait( 'warped_optical_image',
               ImageContainer.fromarray( optical_warped ) )
         else:
-            print( 'alignment failed!' )
+            logger.warning( "Frame alignment failed" )
 
             #self.push_to_port_using_trait( "thermal_to_optical_homog", F2FHomography() )
             #self.push_to_port_using_trait( "optical_to_thermal_homog", F2FHomography() )

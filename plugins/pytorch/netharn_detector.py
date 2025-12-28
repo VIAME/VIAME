@@ -4,7 +4,11 @@
 
 from __future__ import print_function
 
+import logging
+
 from kwiver.vital.algo import ImageObjectDetector
+
+logger = logging.getLogger(__name__)
 
 from .utilities import (
     vital_config_update,
@@ -144,7 +148,7 @@ class NetharnDetector(ImageObjectDetector):
 
     def check_configuration(self, cfg):
         if not cfg.has_value("deployed"):
-            print("A network deploy file must be specified!")
+            logger.error("A network deploy file must be specified!")
             return False
         return True
 

@@ -176,7 +176,7 @@ class SLConfig(object):
             elif isinstance(b, list):
                 try:
                     _ = int(k)
-                except:
+                except ValueError:
                     raise TypeError(
                         f'b is a list, '
                         f'index {k} should be an int when input but {type(k)}'

@@ -1052,8 +1052,8 @@ def build_deformable_transformer(args):
     use_detached_boxes_dec_out = False
     try:
         use_detached_boxes_dec_out = args.use_detached_boxes_dec_out
-    except:
-        use_detached_boxes_dec_out =False
+    except AttributeError:
+        use_detached_boxes_dec_out = False
 
     return DeformableTransformer(
         d_model=args.hidden_dim,

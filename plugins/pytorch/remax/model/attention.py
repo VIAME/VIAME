@@ -54,7 +54,7 @@ from torch import _VF
 from torch._jit_internal import boolean_dispatch, List, Optional, _overload, Tuple
 try:
     from torch.overrides import has_torch_function, handle_torch_function
-except:
+except ImportError:
     from torch._overrides import has_torch_function, handle_torch_function
 Tensor = torch.Tensor
 

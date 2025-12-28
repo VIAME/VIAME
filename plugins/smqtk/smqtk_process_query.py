@@ -3,6 +3,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 from __future__ import print_function
 
+import logging
 import json
 
 from six.moves import zip
@@ -27,19 +28,20 @@ import threading
 import traceback
 import numpy
 
-def print(msg):
-   import threading
-   import traceback
-   try:
-       msg = '[{}] {}'.format(threading.current_thread(), msg)
-       with open('database/logs/SMQTK_Query_Log', 'a') as f:
-           f.write(str(msg) + '\n')
-   except Exception as ex:
-       with open('database/logs/SMQTK_Query_Error_Log', 'a') as f:
-           f.write('Error durring print! Attempting to report\n')
-           f.write(repr(ex) + '\n')
-           f.write(traceback.format_exc() + '\n')
-           raise
+# Configure module logger with file handler for SMQTK queries
+logger = logging.getLogger(__name__)
+
+def _setup_file_logging():
+    """Setup file-based logging for SMQTK query process."""
+    import os
+    log_dir = 'database/logs'
+    if os.path.exists(log_dir):
+        handler = logging.FileHandler(os.path.join(log_dir, 'SMQTK_Query_Log'))
+        handler.setFormatter(logging.Formatter('[%(thread)d] %(message)s'))
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
+_setup_file_logging()
 
 class SmqtkProcessQuery (KwiverProcess):
     """
@@ -213,7 +215,7 @@ class SmqtkProcessQuery (KwiverProcess):
 
     def _configure(self):
       try:
-        print( "Configuring Process" )
+        logger.info( "Configuring SMQTK Query Process" )
 
         self.di_json_config_path = self.config_value('descriptor_index_config_file')
         self.nn_json_config_path = self.config_value('neighbor_index_config_file')
@@ -242,14 +244,11 @@ class SmqtkProcessQuery (KwiverProcess):
         self._base_configure()
 
       except BaseException as e:
-        print( repr( e ) )
-        import traceback
-        print( traceback.format_exc() )
-        #sys.stdout.flush()
+        logger.exception( "Error configuring SMQTK Query Process: %s", e )
 
     def _step(self):
       try:
-        print( "Stepping SMQTK Query Process" )
+        logger.debug( "Stepping SMQTK Query Process" )
         #
         # Grab input values from ports using traits.
         #
@@ -342,7 +341,8 @@ class SmqtkProcessQuery (KwiverProcess):
         # Retrive IQR model from class
         try:
           return_model = self.get_svm_bytes()
-        except:
+        except Exception as e:
+          logger.warning( "Failed to retrieve SVM model bytes: %s", e )
           return_model = []
 
         # Pass on input descriptors and UIDs
@@ -362,7 +362,4 @@ class SmqtkProcessQuery (KwiverProcess):
         self._base_step()
 
       except BaseException as e:
-        print( repr( e ) )
-        import traceback
-        print( traceback.format_exc() )
-        # sys.stdout.flush()
+        logger.exception( "Error in SMQTK Query Process step: %s", e )

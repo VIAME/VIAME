@@ -19,7 +19,7 @@ def match_name_keywords(n: str, name_keywords: list):
 def get_param_dict(args, model_without_ddp: nn.Module):
     try:
         param_dict_type = args.param_dict_type
-    except:
+    except AttributeError:
         param_dict_type = 'default'
     assert param_dict_type in ['default', 'ddetr_in_mmdet', 'large_wd']
 

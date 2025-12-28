@@ -747,17 +747,17 @@ def build_dino(args):
     try:
         match_unstable_error = args.match_unstable_error
         dn_labelbook_size = args.dn_labelbook_size
-    except:
+    except AttributeError:
         match_unstable_error = True
         dn_labelbook_size = num_classes
 
     try:
         dec_pred_class_embed_share = args.dec_pred_class_embed_share
-    except:
+    except AttributeError:
         dec_pred_class_embed_share = True
     try:
         dec_pred_bbox_embed_share = args.dec_pred_bbox_embed_share
-    except:
+    except AttributeError:
         dec_pred_bbox_embed_share = True
 
 
@@ -819,7 +819,7 @@ def build_dino(args):
         interm_weight_dict = {}
         try:
             no_interm_box_loss = args.no_interm_box_loss
-        except:
+        except AttributeError:
             no_interm_box_loss = False
         _coeff_weight_dict = {
             'loss_ce': 1.0,
@@ -828,7 +828,7 @@ def build_dino(args):
         }
         try:
             interm_loss_coef = args.interm_loss_coef
-        except:
+        except AttributeError:
             interm_loss_coef = 1.0
         interm_weight_dict.update({k + f'_interm': v * interm_loss_coef * _coeff_weight_dict[k] for k, v in clean_weight_dict_wo_dn.items()})
         weight_dict.update(interm_weight_dict)

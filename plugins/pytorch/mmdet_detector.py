@@ -4,10 +4,13 @@
 
 from collections import namedtuple
 
+import logging
 import sys
 import cv2
 import mmcv
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 from distutils.util import strtobool
 
@@ -202,12 +205,11 @@ class MMDetDetector(ImageObjectDetector):
                             for element in v:
                                 replace(element, depth-1)
                         else:
-                            # print(k,v)
                             if k == 'num_classes':
                                 conf[k] = self._num_classes
                             if k == 'CLASSES':
                                 conf[k] = self.toolset['target_dataset'].categories
-                except:
+                except (AttributeError, TypeError, KeyError):
                     pass
 
             replace(mmdet_config, 500)
@@ -217,13 +219,13 @@ class MMDetDetector(ImageObjectDetector):
 
     def check_configuration(self, cfg):
         if not cfg.has_value("net_config"):
-            print("A network config file must be specified!")
+            logger.error("A network config file must be specified!")
             return False
         if not cfg.has_value("class_names"):
-            print("A class file must be specified!")
+            logger.error("A class file must be specified!")
             return False
         if not cfg.has_value("weight_file"):
-            print("No weight file specified")
+            logger.error("No weight file specified")
             return False
         return True
 

@@ -4,7 +4,11 @@
 
 from __future__ import print_function
 
+import logging
+
 from kwiver.vital.algo import ImageObjectDetector
+
+logger = logging.getLogger(__name__)
 
 from kwiver.vital.types import Image
 from kwiver.vital.types import ImageContainer
@@ -77,7 +81,7 @@ class TFDetector( ImageObjectDetector ):
 
   def check_configuration( self, cfg ):
     if not cfg.has_value( "model_file" ) or len( cfg.get_value("model_file")) == 0:
-      print( "A network model file must be specified!" )
+      logger.error( "A network model file must be specified!" )
       return False
     return True
 
@@ -90,7 +94,7 @@ class TFDetector( ImageObjectDetector ):
     image_height = in_img_c.height(); image_width = in_img_c.width()
 
     if (self.norm_image_type and self.norm_image_type != "none"):
-      print("Normalizing input image")
+      logger.debug("Normalizing input image")
 
       in_img = in_img_c.image().asarray().astype("uint16")
 
@@ -104,7 +108,7 @@ class TFDetector( ImageObjectDetector ):
     start_time = time.time()
     boxes, scores, classes = self.generate_detection(self.detection_graph, in_img)
     elapsed = time.time() - start_time
-    print("Done running detector in {}".format(humanfriendly.format_timespan(elapsed)))
+    logger.debug("Done running detector in %s", humanfriendly.format_timespan(elapsed))
 
     good_boxes = []
     detections = DetectedObjectSet()
@@ -128,7 +132,7 @@ class TFDetector( ImageObjectDetector ):
          obj = DetectedObject(BoundingBoxD(xmin, ymin, xmax, ymax), scores[i], dot)
          detections.add(obj)
 
-    print("Detected {}".format(len(good_boxes)))
+    logger.debug("Detected %d objects", len(good_boxes))
     return detections
 
   def load_model(self, checkpoint):
@@ -136,7 +140,7 @@ class TFDetector( ImageObjectDetector ):
     Load a detection model (i.e., create a graph) from a .pb file
     """
 
-    print("Creating Graph...")
+    logger.info("Creating TensorFlow Graph...")
     import tensorflow as tf
 
     detection_graph = tf.Graph()
@@ -146,7 +150,7 @@ class TFDetector( ImageObjectDetector ):
         serialized_graph = fid.read()
         od_graph_def.ParseFromString(serialized_graph)
         tf.import_graph_def(od_graph_def, name="")
-    print("...done")
+    logger.info("TensorFlow Graph created successfully")
 
     return detection_graph
 
@@ -224,7 +228,7 @@ class TFDetector( ImageObjectDetector ):
         bottom = 50500
         top = 58500
       else:
-        print("Unknown camera size for file %s" % filename)
+        logger.warning("Unknown camera size: %d rows", num_rows)
     elif norm_method == "C":
       bottom = 50500
       top = 58500

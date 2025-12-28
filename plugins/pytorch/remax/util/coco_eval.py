@@ -113,8 +113,10 @@ class CocoEvaluator(object):
                         for k, box in enumerate(boxes)
                     ]
                 )
-            except:
-                import ipdb; ipdb.set_trace()
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error("Error preparing COCO detection result for image %s: %s", original_id, e)
+                raise
         return coco_results
 
     def prepare_for_coco_segmentation(self, predictions):
