@@ -14,7 +14,6 @@
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
-#include <kwiversys/Glob.hxx>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -575,9 +574,28 @@ darknet_trainer::priv
 {
   std::vector< std::string > output;
 
-  kwiversys::Glob glob;
-  glob.FindFiles( folder + div + "*" + extension );
-  output = glob.GetFiles();
+  kwiversys::Directory dir;
+  if( dir.Load( folder ) )
+  {
+    for( unsigned long i = 0; i < dir.GetNumberOfFiles(); ++i )
+    {
+      std::string filename = dir.GetFile( i );
+
+      // Skip directories and files not matching extension
+      if( filename == "." || filename == ".." )
+      {
+        continue;
+      }
+
+      // Check if file ends with extension
+      if( filename.size() >= extension.size() &&
+          filename.compare( filename.size() - extension.size(),
+                            extension.size(), extension ) == 0 )
+      {
+        output.push_back( folder + div + filename );
+      }
+    }
+  }
 
   // Filter out files ending with _N.ext where N is a number
   int index = 1;
