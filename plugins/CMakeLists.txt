@@ -45,6 +45,10 @@ if( VIAME_ENABLE_PYTORCH )
   add_subdirectory( pytorch )
 endif()
 
+if( VIAME_ENABLE_DARKNET )
+  add_subdirectory( darknet )
+endif()
+
 if( VIAME_ENABLE_VXL )
   add_subdirectory( vxl )
 endif()
