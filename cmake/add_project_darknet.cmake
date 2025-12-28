@@ -63,5 +63,5 @@ if( VIAME_FORCEBUILD )
 endif()
 
 set( VIAME_ARGS_darknet
-  -Ddarknet_DIR:PATH=${VIAME_BUILD_PREFIX}/src/darknet-build
+  -DDarknet_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/share/darknet
   )

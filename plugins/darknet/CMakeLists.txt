@@ -1,5 +1,8 @@
 # Build/install plugin for darknet CNN support
 
+# Add fletch cmake directory for FindCUDNN.cmake needed by DarknetConfig.cmake
+list( INSERT CMAKE_MODULE_PATH 0 "${VIAME_PACKAGES_DIR}/fletch/CMake" )
+
 find_package( Darknet REQUIRED )
 
 set( headers
@@ -13,34 +16,27 @@ set( sources
   darknet_trainer.cxx )
 
 set( darknet_linked_libs
-  darknet
+  Darknet::dark
   kwiver::kwiversys
   kwiver::kwiver_algo_ocv
   ${OpenCV_LIBS} )
 
-# needed for certain headers
-add_definitions( -DOPENCV )               # needed by darknet detector
+add_definitions( -DOPENCV )
 
-# if darknet was built with the GPU support
-if( Darknet_USING_GPU )
-  find_package( CUDA QUIET REQUIRED )
+if( VIAME_ENABLE_CUDA )
   include_directories( ${CUDA_TOOLKIT_ROOT_DIR}/include )
-  add_definitions( -DDARKNET_USE_GPU )    # needed by darknet detector
+  add_definitions( -DDARKNET_USE_GPU )
 endif()
 
-if( Darknet_USING_CUDNN )
-  include_directories( ${CUDNN_ROOT_DIR}/include )
-  add_definitions( -DDARKNET_USE_CUDNN )  # needed by darknet detector
+if( VIAME_ENABLE_CUDNN )
+  include_directories( ${CUDNN_INCLUDE_DIR} )
+  add_definitions( -DDARKNET_USE_CUDNN )
 endif()
 
-
-# Visual Studio links to a static lib of darknet due to the pthread dependency
-# So we need to add all libraries to this arrow, if darknet was a dll, we would
-# not have this issue, but we need pthreads and it likes static for some reason
 if( WIN32 )
   add_definitions( -D_TIMESPEC_DEFINED )
 
-  if( Darknet_USING_GPU )
+  if( VIAME_ENABLE_CUDA )
     set( darknet_linked_libs
          ${darknet_linked_libs}
          ${CUDA_CUDA_LIBRARY}
@@ -48,22 +44,8 @@ if( WIN32 )
          ${CUDA_CUBLAS_LIBRARIES}
          ${CUDA_curand_LIBRARY} )
   endif()
-  if( Darknet_USING_CUDNN )
-    if( CUDNN_LIBRARY AND EXISTS ${CUDNN_LIBRARY} )
-      set( CUDNN_LIBRARIES "${CUDNN_LIBRARY}" )
-    else()
-      message( STATUS "Darknet plugin using CUDNN, looking for it here : ${CUDNN_ROOT_DIR}" )
-      find_library( CUDNN_LIBRARIES
-      NAMES cudnn libcudnn
-      HINTS ${CUDNN_ROOT_DIR}
-      PATH_SUFFIXES lib lib64 lib/x64 lib/x86 targets/aarch64-linux
-      )
-    endif()
 
-    if( NOT CUDNN_LIBRARIES )
-      message( FATAL_ERROR "Unable to find cudnn libraries" )
-    endif()
-    include_directories( ${CUDNN_ROOT_DIR}/include )
+  if( VIAME_ENABLE_CUDNN )
     set( darknet_linked_libs
          ${darknet_linked_libs}
          ${CUDNN_LIBRARIES} )

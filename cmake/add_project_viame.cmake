@@ -42,6 +42,7 @@ ExternalProject_Add(viame
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
+    ${VIAME_ARGS_darknet}
     ${VIAME_ARGS_scallop_tk}
     ${VIAME_ARGS_ITK}
     ${VIAME_BUILD_FLAGS}
