@@ -13,6 +13,8 @@
 #include <arrows/ocv/image_container.h>
 
 #include <kwiversys/SystemTools.hxx>
+#include <kwiversys/Directory.hxx>
+#include <kwiversys/Glob.hxx>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -24,6 +26,8 @@
 #include <iomanip>
 #include <cstdlib>
 #include <map>
+#include <algorithm>
+#include <random>
 
 namespace viame {
 
@@ -101,7 +105,35 @@ public:
   int m_truth_chip_counter;
   int m_no_truth_chip_counter;
 
-  // Helper functions
+  // Helper functions for training file generation
+  void replace_strings_in_file(
+    const std::string& input_fn,
+    const std::string& output_fn,
+    const std::vector< std::pair< std::string, std::string > >& replacements );
+
+  std::vector< std::string > list_files_in_dir(
+    const std::string& folder,
+    const std::string& extension );
+
+  void generate_yolo_headers(
+    const std::string& working_dir,
+    const std::vector< std::string >& labels,
+    int width, int height, int channels, int filter_count,
+    int batch_size, int batch_subdivisions,
+    const std::string& input_model,
+    int samp_count, int gt_count,
+    const std::string& output_str = "yolo",
+    const std::string& image_ext = ".png",
+    double test_per = 0.05 );
+
+  void generate_kwiver_pipeline(
+    const std::string& input_pipe,
+    const std::string& output_pipe,
+    const std::string& net_config,
+    const std::string& wgt_file,
+    const std::string& lbl_file );
+
+  // Helper functions for image formatting
   void format_images(
     std::string folder,
     std::string prefix,
@@ -414,56 +446,36 @@ darknet_trainer
     nfilters = d->filter_count( nclasses );
 
     // Generate train/test image list and header information
-#ifdef WIN32
-    const std::string eq = "\\\"";  // Escaped Quotation mark
-    std::string python_cmd = "python.exe -c \"";
-#else
-    const std::string eq = "\"";  // Escaped Quotation mark
-    std::string python_cmd = "python -c '";
-#endif
-    std::string import_cmd = "import viame.arrows.darknet.generate_headers as dth;";
-    std::string header_cmd = "dth.generate_yolo_headers(";
-
-    std::string header_args = eq + d->m_train_directory + eq + ",[";
+    std::vector< std::string > labels;
 
     if( d->m_object_labels )
     {
       for( auto label : d->m_object_labels->child_class_names() )
       {
-        header_args = header_args + eq + label + eq + ",";
+        labels.push_back( label );
       }
     }
     else
     {
       for( auto itr : d->m_category_map )
       {
-        header_args = header_args + eq + itr.first + eq + ",";
+        labels.push_back( itr.first );
       }
     }
 
-    header_args = header_args +"]," + std::to_string( d->m_resize_width );
-    header_args = header_args + "," + std::to_string( d->m_resize_height );
-    header_args = header_args + "," + std::to_string( d->m_channel_count );
-    header_args = header_args + "," + std::to_string( nfilters );
-    header_args = header_args + "," + std::to_string( d->m_batch_size );
-    header_args = header_args + "," + std::to_string( d->m_batch_subdivisions );
-    header_args = header_args + "," + eq + d->m_net_config + eq;
-    header_args = header_args + "," + std::to_string( d->m_output_chip_counter );
-    header_args = header_args + "," + std::to_string( d->m_total_entry_counter );
-    header_args = header_args + "," + eq + d->m_output_model_name + eq;
-
-#ifdef WIN32
-    std::string header_end  = ")\"";
-#else
-    std::string header_end  = ")'";
-#endif
-
-    std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
-
-    if( system( full_cmd.c_str() ) != 0 )
-    {
-      LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
-    }
+    d->generate_yolo_headers(
+      d->m_train_directory,
+      labels,
+      d->m_resize_width,
+      d->m_resize_height,
+      d->m_channel_count,
+      nfilters,
+      d->m_batch_size,
+      d->m_batch_subdivisions,
+      d->m_net_config,
+      d->m_output_chip_counter,
+      d->m_total_entry_counter,
+      d->m_output_model_name );
   }
 
   // Run training routine
@@ -502,6 +514,242 @@ darknet_trainer
   }
 
   d->save_model_files( true );
+}
+
+
+// -----------------------------------------------------------------------------
+void
+darknet_trainer::priv
+::replace_strings_in_file(
+  const std::string& input_fn,
+  const std::string& output_fn,
+  const std::vector< std::pair< std::string, std::string > >& replacements )
+{
+  std::ifstream inputf( input_fn );
+  if( !inputf.is_open() )
+  {
+    LOG_ERROR( m_logger, "Unable to open input file: " << input_fn );
+    return;
+  }
+
+  std::vector< std::string > all_lines;
+  std::string line;
+  while( std::getline( inputf, line ) )
+  {
+    all_lines.push_back( line );
+  }
+  inputf.close();
+
+  for( const auto& repl : replacements )
+  {
+    for( auto& s : all_lines )
+    {
+      size_t pos = 0;
+      while( ( pos = s.find( repl.first, pos ) ) != std::string::npos )
+      {
+        s.replace( pos, repl.first.length(), repl.second );
+        pos += repl.second.length();
+      }
+    }
+  }
+
+  std::ofstream outputf( output_fn );
+  if( !outputf.is_open() )
+  {
+    LOG_ERROR( m_logger, "Unable to open output file: " << output_fn );
+    return;
+  }
+
+  for( const auto& s : all_lines )
+  {
+    outputf << s << "\n";
+  }
+  outputf.close();
+}
+
+
+// -----------------------------------------------------------------------------
+std::vector< std::string >
+darknet_trainer::priv
+::list_files_in_dir( const std::string& folder, const std::string& extension )
+{
+  std::vector< std::string > output;
+
+  kwiversys::Glob glob;
+  glob.FindFiles( folder + div + "*" + extension );
+  output = glob.GetFiles();
+
+  // Filter out files ending with _N.ext where N is a number
+  int index = 1;
+  while( true )
+  {
+    std::string ending_pf = "_" + std::to_string( index ) + extension;
+    size_t initial_size = output.size();
+
+    output.erase(
+      std::remove_if( output.begin(), output.end(),
+        [&ending_pf]( const std::string& v )
+        {
+          return v.size() >= ending_pf.size() &&
+                 v.compare( v.size() - ending_pf.size(), ending_pf.size(), ending_pf ) == 0;
+        } ),
+      output.end() );
+
+    if( initial_size == output.size() )
+    {
+      break;
+    }
+    index++;
+  }
+
+  return output;
+}
+
+
+// -----------------------------------------------------------------------------
+void
+darknet_trainer::priv
+::generate_yolo_headers(
+  const std::string& working_dir,
+  const std::vector< std::string >& labels,
+  int width, int height, int channels, int nfilters,
+  int batch_size, int batch_subdivisions,
+  const std::string& input_model,
+  int samp_count, VITAL_UNUSED int gt_count,
+  const std::string& output_str,
+  const std::string& image_ext,
+  double test_per )
+{
+  if( labels.empty() )
+  {
+    LOG_ERROR( m_logger, "Must specify labels vector" );
+    return;
+  }
+
+  // Hard coded configs
+  std::string label_file = output_str + ".lbl";
+  std::string train_conf_file = output_str + ".cfg";
+  std::string test_conf_file = output_str + "_test.cfg";
+  std::string train_file = output_str + ".data";
+
+  // Approximate max_batches
+  int max_batches = 7500;
+  if( samp_count > max_batches )
+  {
+    max_batches = samp_count;
+  }
+  if( max_batches > 100000 )
+  {
+    max_batches = 100000;
+  }
+
+  int step1 = max_batches * 2 / 3;
+  int step2 = max_batches * 5 / 6;
+
+  int nclasses = static_cast< int >( labels.size() );
+
+  // Training config replacements
+  std::vector< std::pair< std::string, std::string > > train_repl_strs = {
+    { "[-HEIGHT_INSERT-]", std::to_string( height ) },
+    { "[-WIDTH_INSERT-]", std::to_string( width ) },
+    { "[-CHANNEL_INSERT-]", std::to_string( channels ) },
+    { "[-FILTER_COUNT_INSERT-]", std::to_string( nfilters ) },
+    { "[-BATCH_SIZE_INSERT-]", std::to_string( batch_size ) },
+    { "[-BATCH_SUBDIVISIONS_INSERT-]", std::to_string( batch_subdivisions ) },
+    { "[-MAX_BATCHES-]", std::to_string( max_batches ) },
+    { "[-STEP1-]", std::to_string( step1 ) },
+    { "[-STEP2-]", std::to_string( step2 ) },
+    { "[-CLASS_COUNT_INSERT-]", std::to_string( nclasses ) }
+  };
+
+  // Test config replacements (batch_size=1, batch_subdivisions=1)
+  std::vector< std::pair< std::string, std::string > > test_repl_strs = {
+    { "[-HEIGHT_INSERT-]", std::to_string( height ) },
+    { "[-WIDTH_INSERT-]", std::to_string( width ) },
+    { "[-CHANNEL_INSERT-]", std::to_string( channels ) },
+    { "[-FILTER_COUNT_INSERT-]", std::to_string( nfilters ) },
+    { "[-BATCH_SIZE_INSERT-]", "1" },
+    { "[-BATCH_SUBDIVISIONS_INSERT-]", "1" },
+    { "[-MAX_BATCHES-]", std::to_string( max_batches ) },
+    { "[-STEP1-]", std::to_string( step1 ) },
+    { "[-STEP2-]", std::to_string( step2 ) },
+    { "[-CLASS_COUNT_INSERT-]", std::to_string( nclasses ) }
+  };
+
+  std::string output_train_cfg = working_dir + div + train_conf_file;
+  std::string output_test_cfg = working_dir + div + test_conf_file;
+
+  replace_strings_in_file( input_model, output_train_cfg, train_repl_strs );
+  replace_strings_in_file( input_model, output_test_cfg, test_repl_strs );
+
+  // Dump out labels file
+  {
+    std::ofstream f( working_dir + div + label_file );
+    for( const auto& item : labels )
+    {
+      f << item << "\n";
+    }
+  }
+
+  // Dump out special files for variants
+  {
+    std::ofstream f( working_dir + div + train_file );
+    f << "train = " << working_dir << div << "train_files.txt\n";
+    f << "valid = " << working_dir << div << "test_files.txt\n";
+    f << "names = " << label_file << "\n";
+    f << "backup = " << working_dir << div << "models\n";
+  }
+
+  // Create models directory
+  kwiversys::SystemTools::MakeDirectory( working_dir + div + "models" );
+
+  // Get image list and shuffle
+  std::vector< std::string > image_list = list_files_in_dir(
+    working_dir + div + "train_images", image_ext );
+
+  std::random_device rd;
+  std::mt19937 g( rd() );
+  std::shuffle( image_list.begin(), image_list.end(), g );
+
+  size_t pivot = static_cast< size_t >( ( 1.0 - test_per ) * image_list.size() );
+
+  // Write train files list
+  {
+    std::ofstream f( working_dir + div + "train_files.txt" );
+    for( size_t i = 0; i < pivot && i < image_list.size(); ++i )
+    {
+      f << image_list[i] << "\n";
+    }
+  }
+
+  // Write test files list
+  {
+    std::ofstream f( working_dir + div + "test_files.txt" );
+    for( size_t i = pivot; i < image_list.size(); ++i )
+    {
+      f << image_list[i] << "\n";
+    }
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+void
+darknet_trainer::priv
+::generate_kwiver_pipeline(
+  const std::string& input_pipe,
+  const std::string& output_pipe,
+  const std::string& net_config,
+  const std::string& wgt_file,
+  const std::string& lbl_file )
+{
+  std::vector< std::pair< std::string, std::string > > repl_strs = {
+    { "[-NETWORK-CONFIG-]", net_config },
+    { "[-NETWORK-WEIGHTS-]", wgt_file },
+    { "[-NETWORK-CLASSES-]", lbl_file }
+  };
+
+  replace_strings_in_file( input_pipe, output_pipe, repl_strs );
 }
 
 
@@ -557,46 +805,24 @@ darknet_trainer::priv
 
   if( !m_pipeline_template.empty() )
   {
-#ifdef WIN32
-    const std::string eq = "\\\"";  // Escaped Quotation mark
-    std::string python_cmd = "python.exe -c \"";
-#else
-    const std::string eq = "\"";  // Escaped Quotation mark
-    std::string python_cmd = "python -c '";
-#endif
-    std::string import_cmd = "import viame.arrows.darknet.generate_headers as dth;";
-    std::string header_cmd = "dth.generate_kwiver_pipeline(";
-
     std::string output_pipeline = m_output_directory + div + "detector.pipe";
 
-    std::string header_args = eq + m_pipeline_template + eq;
-    header_args = header_args + "," + eq + output_pipeline + eq;
-    header_args = header_args + "," + eq + output_cfg + eq;
-
+    std::string model_path;
     if( is_final )
     {
-      header_args = header_args + "," + eq + output_model + eq;
+      model_path = output_model;
     }
     else
     {
-      header_args = header_args + "," + eq + ".." + div + input_model + eq;
+      model_path = ".." + div + input_model;
     }
 
-    header_args = header_args + "," + eq + output_labels + eq;
-
-#ifdef WIN32
-    std::string header_end  = ")\"";
-#else
-    std::string header_end  = ")'";
-#endif
-
-    std::string full_cmd = python_cmd +
-                           import_cmd +
-                           header_cmd +
-                           header_args +
-                           header_end;
-
-    system( full_cmd.c_str() );
+    generate_kwiver_pipeline(
+      m_pipeline_template,
+      output_pipeline,
+      output_cfg,
+      model_path,
+      output_labels );
   }
 }
 

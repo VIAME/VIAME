@@ -102,11 +102,3 @@ algorithms_create_plugin( viame_darknet
 target_link_libraries( viame_darknet_plugin
   PUBLIC               kwiver::vital_vpm
   )
-
-if( VIAME_ENABLE_PYTHON )
-  kwiver_create_python_init( arrows/darknet )
-
-  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/generate_headers.py
-    arrows/darknet
-    generate_headers )
-endif()
