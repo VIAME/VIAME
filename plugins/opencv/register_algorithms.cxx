@@ -11,6 +11,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include "add_keypoints_from_mask.h"
+#include "apply_color_correction.h"
 #include "compute_stereo_disparity.h"
 #include "debayer_filter.h"
 #include "detect_calibration_targets.h"
@@ -40,6 +41,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   reg.register_algorithm< add_keypoints_from_mask >();
+  reg.register_algorithm< apply_color_correction >();
   reg.register_algorithm< compute_stereo_disparity >();
   reg.register_algorithm< debayer_filter >();
   reg.register_algorithm< detect_calibration_targets >();
