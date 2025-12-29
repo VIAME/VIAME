@@ -61,6 +61,6 @@ if( VIAME_ENABLE_POSTGRESQL )
   add_subdirectory( cppdb )
 endif()
 
-if( VIAME_ENABLE_SVM )
+if( VIAME_ENABLE_SMQTK )
   add_subdirectory( svm )
 endif()
