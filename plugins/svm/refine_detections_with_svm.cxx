@@ -54,9 +54,9 @@
 
 #include <svm.h>
 
-using namespace kwiver::vital;
-
 namespace viame {
+
+namespace kv = kwiver::vital;
 
 typedef kwiversys::SystemTools ST;
 
@@ -174,11 +174,11 @@ refine_detections_with_svm::priv
 
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink
-vital::config_block_sptr
+kv::config_block_sptr
 refine_detections_with_svm
 ::get_configuration() const
 {
-  vital::config_block_sptr config = vital::algo::refine_detections::get_configuration();
+  kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
 
   config->set_value( "model_dir", d_->model_dir,
                      "The directory where the SVM models are placed." );
@@ -192,9 +192,9 @@ refine_detections_with_svm
 /// Set this algorithm's properties via a config block
 void
 refine_detections_with_svm
-::set_configuration( vital::config_block_sptr in_config )
+::set_configuration( kv::config_block_sptr in_config )
 {
-  vital::config_block_sptr config = this->get_configuration();
+  kv::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
   d_->model_dir = config->get_value<std::string>( "model_dir" );
@@ -207,7 +207,7 @@ refine_detections_with_svm
 /// Check that the algorithm's currently configuration is valid
 bool
 refine_detections_with_svm
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration(kv::config_block_sptr config) const
 {
   return true;
 }
@@ -230,10 +230,10 @@ refine_detections_with_svm::priv::apply_svms( svm_node *x ) const
 }
 
 
-vital::detected_object_set_sptr
+kv::detected_object_set_sptr
 refine_detections_with_svm
-::refine( vital::image_container_sptr image_data,
-          vital::detected_object_set_sptr detections ) const
+::refine( kv::image_container_sptr image_data,
+          kv::detected_object_set_sptr detections ) const
 {
 
   if( !detections )
@@ -258,11 +258,11 @@ refine_detections_with_svm
     result_map res = d_->apply_svms( svm_nodes );
 
     // Set output detected object type using map
-    detected_object_type_sptr new_type;
+    kv::detected_object_type_sptr new_type;
 
     if( d_->override_original || !det->type() )
     {
-      new_type = std::make_shared< detected_object_type >();
+      new_type = std::make_shared< kv::detected_object_type >();
     }
     else
     {

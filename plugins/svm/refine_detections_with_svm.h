@@ -36,18 +36,23 @@
 #ifndef VIAME_SVM_REFINE_DETECTIONS_WITH_SVM_H
 #define VIAME_SVM_REFINE_DETECTIONS_WITH_SVM_H
 
-#include <viame_svm_export.h>
+#include <plugins/svm/viame_svm_export.h>
 
 #include <vital/algo/refine_detections.h>
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
 /// A class for drawing various information about feature tracks
 class VIAME_SVM_EXPORT refine_detections_with_svm
-: public kwiver::vital::algorithm_impl<refine_detections_with_svm,
-    kwiver::vital::algo::refine_detections>
+: public kv::algorithm_impl<refine_detections_with_svm,
+    kv::algo::refine_detections>
 {
 public:
+
+  PLUGIN_INFO( "svm_refiner",
+               "Refine detections using SVM." )
 
   /// Constructor
   refine_detections_with_svm();
@@ -56,11 +61,11 @@ public:
   virtual ~refine_detections_with_svm();
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
-  virtual vital::config_block_sptr get_configuration() const;
+  virtual kv::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
-  virtual void set_configuration(vital::config_block_sptr config);
+  virtual void set_configuration(kv::config_block_sptr config);
   /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  virtual bool check_configuration(kv::config_block_sptr config) const;
 
   /// Refine all object detections on the provided image
   /**
@@ -71,9 +76,9 @@ public:
    * \param detections detected objects
    * \returns vector of image objects refined
    */
-  virtual vital::detected_object_set_sptr
-  refine( vital::image_container_sptr image_data,
-          vital::detected_object_set_sptr detections ) const;
+  virtual kv::detected_object_set_sptr
+  refine( kv::image_container_sptr image_data,
+          kv::detected_object_set_sptr detections ) const;
 
 private:
 
