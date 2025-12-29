@@ -49,10 +49,11 @@ include common_generic_detector.pipe
 connect from reader.image
         to   detector_input.image
 
-process detection_descriptor
- :: compute_track_descriptors
-  :computer:type                               burnout
-  relativepath computer:burnout:config_file =  burnout_det_descriptors.conf
+# Burnout-based descriptor computation removed
+#process detection_descriptor
+# :: compute_track_descriptors
+#  :computer:type                               burnout
+#  relativepath computer:burnout:config_file =  burnout_det_descriptors.conf
 
 connect from reader.image
         to   detection_descriptor.image

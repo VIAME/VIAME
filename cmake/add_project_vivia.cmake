@@ -25,7 +25,6 @@ ExternalProject_Add(vivia
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_Boost}
     ${VIAME_ARGS_fletch}
-    ${VIAME_ARGS_burnout}
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_libkml}
     ${VIAME_ARGS_PROJ4}

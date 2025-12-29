@@ -13,9 +13,6 @@
 [submodule "packages/kwant"]
 	path = packages/kwant
 	url = https://github.com/Kitware/kwant.git
-[submodule "packages/burn-out"]
-	path = packages/burn-out
-	url = https://github.com/Kitware/burn-out.git
 [submodule "packages/darknet"]
 	path = packages/darknet
 	url = https://github.com/VIAME/darknet.git

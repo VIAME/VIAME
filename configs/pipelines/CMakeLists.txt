@@ -326,20 +326,6 @@ if( VIAME_ENABLE_VIVIA )
            DESTINATION configs/pipelines/embedded_single_stream )
 endif()
 
-if( VIAME_ENABLE_BURNOUT )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    burnout_det_descriptor.cfe.conf
-    burnout_det_descriptors.conf
-    burnout_enhancement.conf
-    burnout_trk_descriptor.cfe.conf
-    burnout_trk_descriptors.conf
-    burnout_pixel_classification.conf
-    burnout_pixel_detection.conf
-    burnout_train_classifier.conf
-    detector_burnout.pipe
-    filter_burnout.pipe )
-endif()
-
 if( VIAME_ENABLE_SMQTK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     smqtk_compute_hashes.json
@@ -427,11 +413,6 @@ if( VIAME_ENABLE_MATLAB )
     detector_matlab_camtrawl.pipe )
 endif()
 
-if( VIAME_ENABLE_CAFFE )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    tracker_fish.sfd.cfe.pipe
-    index_default.sfd.cfe.pipe )
-endif()
 
 if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( DUAL_EMBEDDED_FILES

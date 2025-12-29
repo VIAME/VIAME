@@ -102,7 +102,6 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 ###
 # Add tertiary plugin enable flags (advanced)
 ##
-option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
@@ -111,7 +110,6 @@ option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
-mark_as_advanced( VIAME_ENABLE_BURNOUT )
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_LEARN )
@@ -348,12 +346,11 @@ include( old_version_checks )
 ###
 # Add logic and error checking relating to enable flags
 ##
-if( VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_DARKNET )
+if( VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
-if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA OR
-    VIAME_ENABLE_ITK )
+if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA OR VIAME_ENABLE_ITK )
   set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"     FORCE )
 endif()
 
@@ -867,10 +864,6 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Add optional projects depended on by other projects
   if( VIAME_ENABLE_DARKNET )
     include( add_project_darknet )
-  endif()
-
-  if( VIAME_ENABLE_BURNOUT )
-    include( add_project_burnout )
   endif()
 
   if( VIAME_ENABLE_SMQTK )
