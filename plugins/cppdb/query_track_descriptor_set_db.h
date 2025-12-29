@@ -39,7 +39,7 @@
 #define VIAME_CPPDB_QUERY_TRACK_DESCRIPTOR_SET_DB_H
 
 #include <vital/algo/query_track_descriptor_set.h>
-#include <viame_cppdb_export.h>
+#include <plugins/cppdb/viame_cppdb_export.h>
 
 #include <cppdb/frontend.h>
 
@@ -53,8 +53,8 @@ public:
   query_track_descriptor_set_db();
   virtual ~query_track_descriptor_set_db();
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
   virtual bool get_track_descriptor( std::string const& uid,
     desc_tuple_t& result );
 

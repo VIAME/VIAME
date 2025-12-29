@@ -37,7 +37,7 @@
 #define VIAME_CPPDB_WRITE_TRACK_DESCRIPTOR_SET_DB_H
 
 #include <vital/vital_config.h>
-#include <viame_cppdb_export.h>
+#include <plugins/cppdb/viame_cppdb_export.h>
 
 #include <vital/algo/write_track_descriptor_set.h>
 
@@ -53,8 +53,8 @@ public:
   write_track_descriptor_set_db();
   virtual ~write_track_descriptor_set_db();
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   virtual void open( std::string const& filename );
   virtual void close();

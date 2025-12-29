@@ -39,13 +39,15 @@
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
 // -------------------------------------------------------------------------------
 class read_object_track_set_db::priv
 {
 public:
   priv( read_object_track_set_db* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "read_object_track_set_db" ) )
+    , m_logger( kv::get_logger( "read_object_track_set_db" ) )
     , m_first( true )
     , m_batch_load( true )
     , m_current_idx( 0 )
@@ -55,27 +57,27 @@ public:
   ~priv() { }
 
   read_object_track_set_db* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
+  kv::logger_handle_t m_logger;
   bool m_first;
   bool m_batch_load;
   cppdb::session m_conn;
   std::string m_conn_str;
   std::string m_video_name;
 
-  vital::frame_id_t m_current_idx;
-  vital::frame_id_t m_last_idx;
+  kv::frame_id_t m_current_idx;
+  kv::frame_id_t m_last_idx;
 
   void read_all();
 
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
-  std::map< vital::frame_id_t, std::vector< vital::track_sptr > > m_tracks_by_frame_id;
+  std::map< kv::frame_id_t, std::vector< kv::track_sptr > > m_tracks_by_frame_id;
 
   // Compilation of all loaded tracks, track id -> track sptr mapping
-  std::map< vital::frame_id_t, vital::track_sptr > m_all_tracks;
+  std::map< kv::frame_id_t, kv::track_sptr > m_all_tracks;
 
   // Compilation of all loaded track IDs, track id -> type string
-  std::map< vital::frame_id_t, std::string > m_track_ids;
+  std::map< kv::frame_id_t, std::string > m_track_ids;
 };
 
 
@@ -96,7 +98,7 @@ read_object_track_set_db
 // -------------------------------------------------------------------------------
 void
 read_object_track_set_db
-::set_configuration(vital::config_block_sptr config)
+::set_configuration(kv::config_block_sptr config)
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
   d->m_video_name = config->get_value< std::string > ( "video_name", "" );
@@ -107,7 +109,7 @@ read_object_track_set_db
 // -------------------------------------------------------------------------------
 bool
 read_object_track_set_db
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration(kv::config_block_sptr config) const
 {
   if( !config->has_value( "conn_str" ) )
   {
@@ -146,7 +148,7 @@ read_object_track_set_db
 // -------------------------------------------------------------------------------
 bool
 read_object_track_set_db
-::read_set( kwiver::vital::object_track_set_sptr& set )
+::read_set( kv::object_track_set_sptr& set )
 {
   auto const first = d->m_first;
   if( first )
@@ -162,14 +164,14 @@ read_object_track_set_db
     {
       return false;
     }
-    std::vector< vital::track_sptr > trks;
+    std::vector< kv::track_sptr > trks;
 
     for( auto it = d->m_all_tracks.begin(); it != d->m_all_tracks.end(); ++it )
     {
       trks.push_back( it->second );
     }
 
-    set = vital::object_track_set_sptr( new vital::object_track_set( trks ) );
+    set = kv::object_track_set_sptr( new kv::object_track_set( trks ) );
     return true;
   }
 
@@ -182,12 +184,12 @@ read_object_track_set_db
   if( d->m_tracks_by_frame_id.count( d->m_current_idx ) == 0 )
   {
     // Return empty set
-    set = std::make_shared< vital::object_track_set >();
+    set = std::make_shared< kv::object_track_set >();
   }
   else
   {
     // Return tracks for this frame
-    set = std::make_shared< vital::object_track_set >( d->m_tracks_by_frame_id[ d->m_current_idx ] );
+    set = std::make_shared< kv::object_track_set >( d->m_tracks_by_frame_id[ d->m_current_idx ] );
   }
 
   ++d->m_current_idx;
@@ -232,8 +234,8 @@ read_object_track_set_db::priv
      * This allows for track states to be written in a non-contiguous
      * manner as may be done by streaming writers.
      */
-    vital::frame_id_t frame_index;
-    vital::time_usec_t frame_time;
+    kv::frame_id_t frame_index;
+    kv::time_usec_t frame_time;
     int track_index;
 
     row.fetch( 0, track_index );
@@ -247,7 +249,7 @@ read_object_track_set_db::priv
     row.fetch( 5, max_x );
     row.fetch( 6, max_y );
 
-    vital::bounding_box_d bbox(
+    kv::bounding_box_d bbox(
       min_x,
       min_y,
       max_x,
@@ -257,19 +259,19 @@ read_object_track_set_db::priv
     row.fetch( 7, conf );
 
     // Create new detection
-    vital::detected_object_sptr det =
-      std::make_shared< vital::detected_object >( bbox, conf );
+    kv::detected_object_sptr det =
+      std::make_shared< kv::detected_object >( bbox, conf );
 
     // Create new object track state
-    vital::track_state_sptr ots =
-      std::make_shared< vital::object_track_state >( frame_index, frame_time, det );
+    kv::track_state_sptr ots =
+      std::make_shared< kv::object_track_state >( frame_index, frame_time, det );
 
     // Assign object track state to track
-    vital::track_sptr trk;
+    kv::track_sptr trk;
 
     if( m_all_tracks.count( track_index ) == 0 )
     {
-      trk = vital::track::create();
+      trk = kv::track::create();
       trk->set_id( track_index );
       m_all_tracks[ track_index ] = trk;
     }

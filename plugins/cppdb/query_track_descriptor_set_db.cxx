@@ -34,20 +34,22 @@
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
 // -------------------------------------------------------------------------------
 class query_track_descriptor_set_db::priv
 {
 public:
   priv( query_track_descriptor_set_db* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "query_track_descriptor_set_db" ) )
+    , m_logger( kv::get_logger( "query_track_descriptor_set_db" ) )
     , m_use_tracks_for_history( false )
   { }
 
   ~priv() { }
 
   query_track_descriptor_set_db* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
+  kv::logger_handle_t m_logger;
   cppdb::session m_conn;
   std::string m_conn_str;
   bool m_use_tracks_for_history;
@@ -62,12 +64,12 @@ query_track_descriptor_set_db::~query_track_descriptor_set_db()
 {
 }
 
-void query_track_descriptor_set_db::set_configuration( vital::config_block_sptr config )
+void query_track_descriptor_set_db::set_configuration( kv::config_block_sptr config )
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
 }
 
-bool query_track_descriptor_set_db::check_configuration( vital::config_block_sptr config ) const
+bool query_track_descriptor_set_db::check_configuration( kv::config_block_sptr config ) const
 {
   if( !config->has_value( "conn_str" ) )
   {
@@ -102,7 +104,7 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
     return false;
   }
 
-  vital::track_descriptor_sptr td = vital::track_descriptor::create( type );
+  kv::track_descriptor_sptr td = kv::track_descriptor::create( type );
   td->resize_descriptor( 0 );
   std::get< 1 >( result ) = td;
 
@@ -146,7 +148,7 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
   std::get< 2 >( result ).clear();
   for( uint64_t track_id : track_ids )
   {
-    vital::track_sptr trk = vital::track::create();
+    kv::track_sptr trk = kv::track::create();
     trk->set_id( track_id );
 
     stmt.bind( 1, track_id );
@@ -164,21 +166,21 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
       row.fetch( 3, min_y );
       row.fetch( 4, max_x );
       row.fetch( 5, max_y );
-      vital::bounding_box_d bbox( min_x, min_y, max_x, max_y );
+      kv::bounding_box_d bbox( min_x, min_y, max_x, max_y );
 
       double conf;
       row.fetch( 6, conf );
 
-      vital::detected_object_sptr det =
-        std::make_shared< vital::detected_object > ( bbox, conf );
-      vital::track_state_sptr ots =
-        std::make_shared< vital::object_track_state > ( frame_index, time, det );
+      kv::detected_object_sptr det =
+        std::make_shared< kv::detected_object > ( bbox, conf );
+      kv::track_state_sptr ots =
+        std::make_shared< kv::object_track_state > ( frame_index, time, det );
       trk->append( ots );
 
       if( d->m_use_tracks_for_history )
       {
-        vital::timestamp ts( time, frame_index );
-        td->add_history_entry( vital::track_descriptor::history_entry( ts, bbox ) );
+        kv::timestamp ts( time, frame_index );
+        td->add_history_entry( kv::track_descriptor::history_entry( ts, bbox ) );
       }
     }
 
@@ -208,12 +210,12 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
     row = stmt.query();
     while( row.next() )
     {
-      vital::timestamp::frame_t frame_number;
-      vital::timestamp::time_t timestamp;
+      kv::timestamp::frame_t frame_number;
+      kv::timestamp::time_t timestamp;
 
       row.fetch( 0, frame_number );
       row.fetch( 1, timestamp );
-      vital::timestamp ts( timestamp, frame_number );
+      kv::timestamp ts( timestamp, frame_number );
 
       double image_bbox_tl_x;
       double image_bbox_tl_y;
@@ -225,7 +227,7 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
       row.fetch( 4, image_bbox_br_x );
       row.fetch( 5, image_bbox_br_y );
 
-      vital::bounding_box_d bbox(
+      kv::bounding_box_d bbox(
         image_bbox_tl_x,
         image_bbox_tl_y,
         image_bbox_br_x,
@@ -241,20 +243,20 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
           row.fetch( 8, world_bbox_br_x ) &&
           row.fetch( 9, world_bbox_br_y ) )
       {
-        vital::bounding_box_d world_bbox(
+        kv::bounding_box_d world_bbox(
           world_bbox_tl_x,
           world_bbox_tl_y,
           world_bbox_br_x,
           world_bbox_br_y );
 
         td->add_history_entry(
-          vital::track_descriptor::history_entry(
+          kv::track_descriptor::history_entry(
             ts, bbox, world_bbox ) );
       }
       else
       {
         td->add_history_entry(
-          vital::track_descriptor::history_entry(
+          kv::track_descriptor::history_entry(
             ts, bbox ) );
       }
     }

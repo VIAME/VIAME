@@ -41,13 +41,15 @@
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
 // -------------------------------------------------------------------------------
 class write_object_track_set_db::priv
 {
 public:
   priv( write_object_track_set_db* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "write_object_track_set_db" ) )
+    , m_logger( kv::get_logger( "write_object_track_set_db" ) )
     , m_commit_interval( 1 )
     , m_matching_frames_only( true )
   { }
@@ -55,7 +57,7 @@ public:
   ~priv() { }
 
   write_object_track_set_db* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
+  kv::logger_handle_t m_logger;
   cppdb::session m_conn;
   std::string m_conn_str;
   std::string m_video_name;
@@ -83,7 +85,7 @@ write_object_track_set_db
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_db
-::set_configuration(vital::config_block_sptr config)
+::set_configuration(kv::config_block_sptr config)
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
   d->m_video_name = config->get_value< std::string > ( "video_name", "" );
@@ -97,7 +99,7 @@ write_object_track_set_db
 // -------------------------------------------------------------------------------
 bool
 write_object_track_set_db
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration(kv::config_block_sptr config) const
 {
   if( !config->has_value( "conn_str" ) )
   {
@@ -149,8 +151,8 @@ write_object_track_set_db
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_db
-::write_set( kwiver::vital::object_track_set_sptr const& set,
-             kwiver::vital::timestamp const& ts,
+::write_set( kv::object_track_set_sptr const& set,
+             kv::timestamp const& ts,
              std::string const & file_id )
 {
   cppdb::statement update_stmt = d->m_conn.create_prepared_statement( "UPDATE OBJECT_TRACK SET "
@@ -180,8 +182,8 @@ write_object_track_set_db
   {
     for( auto ts_ptr : *trk )
     {
-      vital::object_track_state* trkstate =
-        dynamic_cast< vital::object_track_state* >( ts_ptr.get() );
+      kv::object_track_state* trkstate =
+        dynamic_cast< kv::object_track_state* >( ts_ptr.get() );
 
       if( !trkstate )
       {
@@ -194,9 +196,9 @@ write_object_track_set_db
         continue;
       }
 
-      vital::detected_object_sptr det = trkstate->detection();
-      const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
-      vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
+      kv::detected_object_sptr det = trkstate->detection();
+      const kv::bounding_box_d empty_box = kv::bounding_box_d( -1, -1, -1, -1 );
+      kv::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
       update_stmt.bind( 1, trkstate->time() );
       update_stmt.bind( 2, bbox.min_x() );

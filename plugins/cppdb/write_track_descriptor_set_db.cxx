@@ -42,13 +42,15 @@
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
 // -------------------------------------------------------------------------------
 class write_track_descriptor_set_db::priv
 {
 public:
   priv( write_track_descriptor_set_db* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "write_track_descriptor_set_db" ) )
+    , m_logger( kv::get_logger( "write_track_descriptor_set_db" ) )
     , m_write_world_loc( false )
     , m_commit_interval( 1 )
   {}
@@ -56,7 +58,7 @@ public:
   ~priv() {}
 
   write_track_descriptor_set_db* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
+  kv::logger_handle_t m_logger;
   cppdb::session m_conn;
   std::string m_conn_str;
   std::string m_video_name;
@@ -84,7 +86,7 @@ write_track_descriptor_set_db
 // -------------------------------------------------------------------------------
 void
 write_track_descriptor_set_db
-::set_configuration( vital::config_block_sptr config )
+::set_configuration( kv::config_block_sptr config )
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
   d->m_video_name = config->get_value< std::string > ( "video_name", "" );
@@ -98,7 +100,7 @@ write_track_descriptor_set_db
 // -------------------------------------------------------------------------------
 bool
 write_track_descriptor_set_db
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration(kv::config_block_sptr config) const
 {
   if( !config->has_value( "conn_str" ) )
   {
@@ -180,7 +182,7 @@ write_track_descriptor_set_db
 // -------------------------------------------------------------------------------
 void
 write_track_descriptor_set_db
-::write_set( const kwiver::vital::track_descriptor_set_sptr set,
+::write_set( const kv::track_descriptor_set_sptr set,
              const std::string& source_id )
 {
   cppdb::statement insert_td_stmt = d->m_conn.create_prepared_statement( "INSERT INTO TRACK_DESCRIPTOR("
@@ -229,7 +231,7 @@ write_track_descriptor_set_db
       insert_tdt_stmt.reset();
     }
 
-    for( vital::track_descriptor::history_entry h : td->get_history() )
+    for( kv::track_descriptor::history_entry h : td->get_history() )
     {
       insert_tdh_stmt.bind( 1, td->get_uid().value() );
       insert_tdh_stmt.bind( 2, h.get_timestamp().get_frame() );

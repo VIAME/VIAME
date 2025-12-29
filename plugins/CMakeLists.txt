@@ -57,7 +57,7 @@ if( VIAME_ENABLE_BURNOUT )
   add_subdirectory( burnout )
 endif()
 
-if( VIAME_ENABLE_CPPDB )
+if( VIAME_ENABLE_POSTGRESQL )
   add_subdirectory( cppdb )
 endif()
 

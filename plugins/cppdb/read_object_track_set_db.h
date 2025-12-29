@@ -37,7 +37,7 @@
 #define VIAME_CPPDB_READ_OBJECT_TRACK_SET_DB_H
 
 #include <vital/vital_config.h>
-#include <viame_cppdb_export.h>
+#include <plugins/cppdb/viame_cppdb_export.h>
 
 #include <vital/algo/read_object_track_set.h>
 
@@ -53,8 +53,8 @@ public:
   read_object_track_set_db();
   virtual ~read_object_track_set_db();
 
-  void set_configuration( vital::config_block_sptr config ) override;
-  bool check_configuration( vital::config_block_sptr config ) const override;
+  void set_configuration( kwiver::vital::config_block_sptr config ) override;
+  bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
 
   void open( std::string const& filename ) override;
   void close() override;
