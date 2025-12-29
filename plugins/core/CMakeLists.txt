@@ -3,19 +3,24 @@
 set( plugin_headers
   add_timestamp_from_filename.h
   auto_detect_transform.h
+  average_track_descriptors.h
   convert_head_tail_points.h
   convert_notes_to_attributes.h
   convert_polygons_to_mask.h
   detect_shot_breaks.h
   empty_detector.h
   filename_to_timestamp.h
+  full_frame_detector.h
   measurement_utilities.h
+  merge_detections_suppress_in_regions.h
   pair_stereo_detections.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
   read_detected_object_set_oceaneyes.h
   read_detected_object_set_viame_csv.h
   read_object_track_set_viame_csv.h
+  refine_detections_add_fixed.h
+  refine_detections_nms.h
   write_detected_object_set_viame_csv.h
   write_disparity_maps.h
   write_object_track_set_viame_csv.h
@@ -24,19 +29,24 @@ set( plugin_headers
 set( plugin_sources
   add_timestamp_from_filename.cxx
   auto_detect_transform.cxx
+  average_track_descriptors.cxx
   convert_head_tail_points.cxx
   convert_notes_to_attributes.cxx
   convert_polygons_to_mask.cxx
   detect_shot_breaks.cxx
   empty_detector.cxx
   filename_to_timestamp.cxx
+  full_frame_detector.cxx
   measurement_utilities.cxx
+  merge_detections_suppress_in_regions.cxx
   pair_stereo_detections.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
   read_detected_object_set_oceaneyes.cxx
   read_detected_object_set_viame_csv.cxx
   read_object_track_set_viame_csv.cxx
+  refine_detections_add_fixed.cxx
+  refine_detections_nms.cxx
   write_detected_object_set_viame_csv.cxx
   write_disparity_maps.cxx
   write_object_track_set_viame_csv.cxx

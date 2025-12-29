@@ -28,8 +28,16 @@ set( plugin_headers
   kmedians.h
   add_keypoints_from_mask.h
   split_image_habcam.h
+  split_image_horizontally.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
+  refine_detections_grabcut.h
+  refine_detections_util.h
+  refine_detections_watershed.h
+  windowed_detector.h
+  windowed_refiner.h
+  windowed_trainer.h
+  windowed_utils.h
   )
 
 set( plugin_sources
@@ -45,8 +53,16 @@ set( plugin_sources
   kmedians.cxx
   add_keypoints_from_mask.cxx
   split_image_habcam.cxx
+  split_image_horizontally.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
+  refine_detections_grabcut.cxx
+  refine_detections_util.cxx
+  refine_detections_watershed.cxx
+  windowed_detector.cxx
+  windowed_refiner.cxx
+  windowed_trainer.cxx
+  windowed_utils.cxx
   )
 
 kwiver_install_headers(

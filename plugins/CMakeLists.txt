@@ -52,3 +52,15 @@ endif()
 if( VIAME_ENABLE_VXL )
   add_subdirectory( vxl )
 endif()
+
+if( VIAME_ENABLE_BURNOUT )
+  add_subdirectory( burnout )
+endif()
+
+if( VIAME_ENABLE_CPPDB )
+  add_subdirectory( cppdb )
+endif()
+
+if( VIAME_ENABLE_SVM )
+  add_subdirectory( svm )
+endif()

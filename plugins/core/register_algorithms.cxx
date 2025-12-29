@@ -12,15 +12,20 @@
 
 #include "add_timestamp_from_filename.h"
 #include "auto_detect_transform.h"
+#include "average_track_descriptors.h"
 #include "convert_head_tail_points.h"
-#include "write_disparity_maps.h"
 #include "empty_detector.h"
+#include "full_frame_detector.h"
+#include "merge_detections_suppress_in_regions.h"
 #include "read_detected_object_set_fishnet.h"
 #include "read_detected_object_set_habcam.h"
 #include "read_detected_object_set_oceaneyes.h"
 #include "read_detected_object_set_viame_csv.h"
-#include "write_detected_object_set_viame_csv.h"
 #include "read_object_track_set_viame_csv.h"
+#include "refine_detections_add_fixed.h"
+#include "refine_detections_nms.h"
+#include "write_detected_object_set_viame_csv.h"
+#include "write_disparity_maps.h"
 #include "write_object_track_set_viame_csv.h"
 
 namespace viame {
@@ -60,15 +65,23 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< add_timestamp_from_filename >( vpm );
   register_algorithm< auto_detect_transform_io >( vpm );
   register_algorithm< convert_head_tail_points >( vpm );
-  register_algorithm< write_disparity_maps >( vpm );
   register_algorithm< empty_detector >( vpm );
   register_algorithm< read_detected_object_set_fishnet >( vpm );
   register_algorithm< read_detected_object_set_habcam >( vpm );
   register_algorithm< read_detected_object_set_oceaneyes >( vpm );
   register_algorithm< read_detected_object_set_viame_csv >( vpm );
-  register_algorithm< write_detected_object_set_viame_csv >( vpm );
   register_algorithm< read_object_track_set_viame_csv >( vpm );
+  register_algorithm< write_detected_object_set_viame_csv >( vpm );
+  register_algorithm< write_disparity_maps >( vpm );
   register_algorithm< write_object_track_set_viame_csv >( vpm );
+
+  // Algorithms using PLUGIN_INFO macro
+  ::kwiver::vital::algorithm_registrar reg( vpm, module_name );
+  reg.register_algorithm< ::viame::average_track_descriptors >();
+  reg.register_algorithm< ::viame::full_frame_detector >();
+  reg.register_algorithm< ::viame::merge_detections_suppress_in_regions >();
+  reg.register_algorithm< ::viame::refine_detections_add_fixed >();
+  reg.register_algorithm< ::viame::refine_detections_nms >();
 
   vpm.mark_module_as_loaded( module_name );
 }

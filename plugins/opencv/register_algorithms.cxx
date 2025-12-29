@@ -10,15 +10,20 @@
 #include <plugins/opencv/viame_opencv_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
+#include "add_keypoints_from_mask.h"
 #include "compute_stereo_disparity.h"
 #include "debayer_filter.h"
-#include "random_hue_shift.h"
-#include "enhance_images.h"
 #include "detect_calibration_targets.h"
+#include "enhance_images.h"
 #include "optimize_stereo_cameras.h"
-#include "add_keypoints_from_mask.h"
-
+#include "random_hue_shift.h"
+#include "refine_detections_grabcut.h"
+#include "refine_detections_watershed.h"
 #include "split_image_habcam.h"
+#include "split_image_horizontally.h"
+#include "windowed_detector.h"
+#include "windowed_refiner.h"
+#include "windowed_trainer.h"
 
 namespace viame {
 
@@ -29,19 +34,25 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 {
   kwiver::vital::algorithm_registrar reg( vpm, "viame.opencv" );
 
-  if( reg.is_module_loaded() ) 
+  if( reg.is_module_loaded() )
   {
     return;
   }
 
+  reg.register_algorithm< add_keypoints_from_mask >();
   reg.register_algorithm< compute_stereo_disparity >();
   reg.register_algorithm< debayer_filter >();
-  reg.register_algorithm< enhance_images >();
-  reg.register_algorithm< random_hue_shift >();
   reg.register_algorithm< detect_calibration_targets >();
+  reg.register_algorithm< enhance_images >();
   reg.register_algorithm< optimize_stereo_cameras >();
-  reg.register_algorithm< add_keypoints_from_mask >();
+  reg.register_algorithm< random_hue_shift >();
+  reg.register_algorithm< refine_detections_grabcut >();
+  reg.register_algorithm< refine_detections_watershed >();
   reg.register_algorithm< split_image_habcam >();
+  reg.register_algorithm< split_image_horizontally >();
+  reg.register_algorithm< windowed_detector >();
+  reg.register_algorithm< windowed_refiner >();
+  reg.register_algorithm< windowed_trainer >();
 
   reg.mark_module_as_loaded();
 }
