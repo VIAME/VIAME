@@ -6,10 +6,6 @@
 # Desktop-specific settings
 set(VIAME_FIXUP_BUNDLE ON CACHE BOOL "Fixup bundle for distribution")
 
-# CUDA support
-set(VIAME_ENABLE_CUDA ON CACHE BOOL "Enable CUDA")
-set(VIAME_ENABLE_CUDNN ON CACHE BOOL "Enable cuDNN")
-
 # Build Python from source for portability
 set(VIAME_PYTHON_BUILD_FROM_SOURCE ON CACHE BOOL "Build Python from source")
 set(VIAME_PYTHON_VERSION "3.10.4" CACHE STRING "Python version")
@@ -26,7 +22,3 @@ set(VIAME_ENABLE_KWANT ON CACHE BOOL "Enable KWANT")
 set(VIAME_ENABLE_LEARN ON CACHE BOOL "Enable learning/training")
 set(VIAME_ENABLE_ONNX ON CACHE BOOL "Enable ONNX")
 set(VIAME_ENABLE_POSTGRESQL ON CACHE BOOL "Enable PostgreSQL")
-
-# PyTorch plugins
-set(VIAME_ENABLE_PYTORCH-PYSOT ON CACHE BOOL "Enable PySoT")
-set(VIAME_ENABLE_PYTORCH-SAM ON CACHE BOOL "Enable SAM")

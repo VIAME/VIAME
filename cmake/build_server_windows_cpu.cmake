@@ -29,8 +29,7 @@ add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm2")
 
 # Windows-specific overrides
 add_option("VIAME_ENABLE_DARKNET" "OFF")
-add_option("VIAME_ENABLE_PYTORCH-PYSOT" "ON")
-add_option("VIAME_ENABLE_PYTORCH-ULTRALYTICS:BOOL" "OFF")
+add_option("VIAME_PYTORCH_BUILD_FROM_SOURCE:BOOL" "OFF")
 
 # Finalize OPTIONS variable
 finalize_options()
