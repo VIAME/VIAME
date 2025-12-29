@@ -13,10 +13,12 @@ link_directories( ${VXL_LIBRARY_DIR} )
 ##
 
 set( plugin_headers
+  enhance_images.h
   perform_white_balancing.h
   )
 
 set( plugin_sources
+  enhance_images.cxx
   perform_white_balancing.cxx
   )
 

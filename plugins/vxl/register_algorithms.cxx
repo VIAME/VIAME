@@ -10,6 +10,7 @@
 #include <plugins/vxl/viame_vxl_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
+#include "enhance_images.h"
 #include "perform_white_balancing.h"
 
 namespace viame {
@@ -26,6 +27,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
+  reg.register_algorithm< enhance_images >();
   reg.register_algorithm< perform_white_balancing >();
 
   reg.mark_module_as_loaded();
