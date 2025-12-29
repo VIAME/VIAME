@@ -2,10 +2,15 @@
 
 find_package( OpenCV REQUIRED )
 
-if( WIN32 )
-  set( SVM_LIBRARY libsvm )
-else()
-  set( SVM_LIBRARY svm )
+# Find libsvm in the install prefix (lib on Linux, bin or lib on Windows)
+find_library( SVM_LIBRARY
+  NAMES svm libsvm
+  PATHS ${VIAME_INSTALL_PREFIX}/lib ${VIAME_INSTALL_PREFIX}/bin
+  NO_DEFAULT_PATH
+)
+
+if( NOT SVM_LIBRARY )
+  message( FATAL_ERROR "Could not find libsvm library in ${VIAME_INSTALL_PREFIX}" )
 endif()
 
 set( headers
