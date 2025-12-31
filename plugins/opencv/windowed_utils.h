@@ -32,7 +32,7 @@
 #define VIAME_OPENCV_WINDOWED_UTILS_H
 
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <opencv2/core/core.hpp>
 

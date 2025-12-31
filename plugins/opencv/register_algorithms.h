@@ -5,7 +5,7 @@
 #ifndef VIAME_OPENCV_REGISTER_ALGORITHMS_H
 #define VIAME_OPENCV_REGISTER_ALGORITHMS_H
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <vital/registrar.h>
 

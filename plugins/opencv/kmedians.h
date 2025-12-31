@@ -2,7 +2,7 @@
 #define VIAME_OPENCV_KMEDIANS_H
 
 #include <opencv2/core.hpp>
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 namespace viame {
 

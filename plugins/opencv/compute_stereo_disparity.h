@@ -17,7 +17,7 @@
 #ifndef VIAME_OPENCV_COMPUTE_STEREO_DISPARITY_H
 #define VIAME_OPENCV_COMPUTE_STEREO_DISPARITY_H
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <vital/algo/compute_stereo_depth_map.h>
 

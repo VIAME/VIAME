@@ -10,7 +10,7 @@
 #ifndef VIAME_CORE_CONVERT_NOTES_TO_ATTRIBUTES_H
 #define VIAME_CORE_CONVERT_NOTES_TO_ATTRIBUTES_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/types/detected_object.h>
 

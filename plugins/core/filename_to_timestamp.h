@@ -5,7 +5,7 @@
 #ifndef VIAME_CORE_FILENAME_TO_TIMESTAMP_H
 #define VIAME_CORE_FILENAME_TO_TIMESTAMP_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/types/timestamp.h>
 

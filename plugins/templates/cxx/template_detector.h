@@ -5,7 +5,7 @@
 #ifndef VIAME_@TEMPLATE@_DETECTOR_H
 #define VIAME_@TEMPLATE@_DETECTOR_H
 
-#include <plugins/@template_dir@/viame_@template_lib@_export.h>
+#include "viame_@template_lib@_export.h"
 
 #include <vital/algo/image_object_detector.h>
 

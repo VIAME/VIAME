@@ -7,7 +7,7 @@
  * \brief Default plugin algorithm registration interface impl
  */
 
-#include <plugins/@template_dir@/viame_@template_lib@_plugin_export.h>
+#include "viame_@template_lib@_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "@template@_detector.h"

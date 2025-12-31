@@ -102,9 +102,10 @@ target_link_libraries( viame_opencv
                        ${OpenCV_LIBRARIES}
   )
 
-target_include_directories(viame_opencv PUBLIC
+target_include_directories( viame_opencv PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR})
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
 
 set_target_properties( viame_opencv PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
@@ -153,6 +154,11 @@ kwiver_add_plugin( viame_processes_opencv
                    ${OpenCV_LIBRARIES}
                    viame_opencv
 )
+
+target_include_directories( viame_processes_opencv PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
 
 if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames

@@ -39,6 +39,11 @@ kwiver_add_library( viame_itk
   ${plugin_sources}
   )
 
+target_include_directories( viame_itk PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
 target_link_libraries( viame_itk
   PUBLIC               kwiver::vital kwiver::vital_algo kwiver::vital_config
                        kwiver::vital_exceptions kwiver::vital_logger kwiver::vital_util
@@ -105,6 +110,12 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
                      ITKIOTransformInsightLegacy
                      ITKIOHDF5 ITKIOTransformHDF5 ITKIOTransformMatlab
    )
+
+  target_include_directories( viame_processes_itk PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../core>
+    )
 endif()
 
 # Add auxiliary standalone tools

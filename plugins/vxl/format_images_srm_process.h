@@ -12,7 +12,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/vxl/viame_processes_vxl_export.h>
+#include "viame_processes_vxl_export.h"
 
 #include <sprokit/processes/kwiver_type_traits.h>
 

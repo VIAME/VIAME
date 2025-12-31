@@ -26,6 +26,11 @@ kwiver_add_library( viame_examples
   ${plugin_sources}
   )
 
+target_include_directories( viame_examples PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
 target_link_libraries( viame_examples
   PUBLIC               kwiver::vital
                        kwiver::vital_algo

@@ -10,7 +10,7 @@
 #ifndef VIAME_CORE_PAIR_STEREO_DETECTIONS_H
 #define VIAME_CORE_PAIR_STEREO_DETECTIONS_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>

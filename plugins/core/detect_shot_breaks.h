@@ -10,7 +10,7 @@
 #ifndef VIAME_CORE_DETECT_SHOT_BREAKS_H
 #define VIAME_CORE_DETECT_SHOT_BREAKS_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/types/image_container.h>
 #include <vital/types/descriptor.h>

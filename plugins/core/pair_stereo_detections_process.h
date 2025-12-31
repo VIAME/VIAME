@@ -25,7 +25,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/core/viame_processes_core_export.h>
+#include "viame_processes_core_export.h"
 
 #include <memory>
 

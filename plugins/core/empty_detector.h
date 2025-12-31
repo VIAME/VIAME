@@ -5,7 +5,7 @@
 #ifndef VIAME_CORE_EMPTY_DETECTOR_H
 #define VIAME_CORE_EMPTY_DETECTOR_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/image_object_detector.h>
 

@@ -12,7 +12,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <memory>
 

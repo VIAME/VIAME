@@ -7,7 +7,7 @@
  * \brief VXL plugin algorithm registration interface impl
  */
 
-#include <plugins/vxl/viame_vxl_plugin_export.h>
+#include "viame_vxl_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "enhance_images.h"

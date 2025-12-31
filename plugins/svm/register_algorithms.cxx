@@ -33,7 +33,7 @@
  * \brief SVM algorithm registration implementation
  */
 
-#include <plugins/svm/viame_svm_plugin_export.h>
+#include "viame_svm_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "refine_detections_with_svm.h"

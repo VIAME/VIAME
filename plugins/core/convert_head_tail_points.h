@@ -5,7 +5,7 @@
 #ifndef VIAME_CORE_CONVERT_HEAD_TAIL_POINTS_H
 #define VIAME_CORE_CONVERT_HEAD_TAIL_POINTS_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/refine_detections.h>
 

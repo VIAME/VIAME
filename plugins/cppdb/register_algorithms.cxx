@@ -33,7 +33,7 @@
  * \brief CppDB plugin algorithm registration interface impl
  */
 
-#include <plugins/cppdb/viame_cppdb_plugin_export.h>
+#include "viame_cppdb_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "write_object_track_set_db.h"

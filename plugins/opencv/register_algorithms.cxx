@@ -7,7 +7,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/opencv/viame_opencv_plugin_export.h>
+#include "viame_opencv_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "add_keypoints_from_mask.h"

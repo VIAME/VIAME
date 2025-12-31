@@ -12,8 +12,8 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/itk/viame_itk_export.h>
-#include <plugins/core/align_multimodal_imagery_process.h>
+#include "viame_itk_export.h"
+#include "../core/align_multimodal_imagery_process.h"
 
 #include <memory>
 

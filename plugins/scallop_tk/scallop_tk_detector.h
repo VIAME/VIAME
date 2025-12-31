@@ -5,7 +5,7 @@
 #ifndef VIAME_SCALLOP_TK_DETECTOR_H
 #define VIAME_SCALLOP_TK_DETECTOR_H
 
-#include <plugins/scallop_tk/viame_scallop_tk_export.h>
+#include "viame_scallop_tk_export.h"
 
 #include <vital/algo/image_object_detector.h>
 

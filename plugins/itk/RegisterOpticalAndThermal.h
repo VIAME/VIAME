@@ -5,7 +5,7 @@
 #ifndef VIAME_ITK_REGISTER_OPTICAL_AND_THERMAL_H
 #define VIAME_ITK_REGISTER_OPTICAL_AND_THERMAL_H
 
-#include <plugins/itk/viame_itk_export.h>
+#include "viame_itk_export.h"
 
 #include "itkImage.h"
 #include "itkAffineTransform.h"

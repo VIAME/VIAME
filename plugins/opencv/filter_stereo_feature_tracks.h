@@ -4,7 +4,7 @@
 #include <vital/types/feature_track_set.h>
 #include <vital/types/landmark_map.h>
 #include <opencv2/core/eigen.hpp>
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 namespace viame {
 

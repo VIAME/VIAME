@@ -3,7 +3,7 @@
 
 #include <vital/types/timestamp.h>
 #include <vital/types/object_track_set.h>
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 namespace cv {
 class Mat;

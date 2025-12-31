@@ -7,7 +7,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/scallop_tk/viame_scallop_tk_plugin_export.h>
+#include "viame_scallop_tk_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "scallop_tk_detector.h"

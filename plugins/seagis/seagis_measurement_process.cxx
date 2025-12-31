@@ -22,7 +22,7 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <plugins/core/measurement_utilities.h>
+#include "../core/measurement_utilities.h"
 
 #include <LX_StereoInterface.h>
 

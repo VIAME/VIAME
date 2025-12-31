@@ -2,7 +2,7 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include <plugins/darknet/viame_darknet_plugin_export.h>
+#include "viame_darknet_plugin_export.h"
 
 #include <vital/algo/algorithm_factory.h>
 

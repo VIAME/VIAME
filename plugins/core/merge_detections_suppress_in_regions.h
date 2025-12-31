@@ -5,7 +5,7 @@
 #ifndef VIAME_CORE_MERGE_DETECTIONS_SUPPRESS_IN_REGIONS_H
 #define VIAME_CORE_MERGE_DETECTIONS_SUPPRESS_IN_REGIONS_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/merge_detections.h>
 

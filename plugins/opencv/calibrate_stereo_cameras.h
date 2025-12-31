@@ -14,7 +14,7 @@
 #ifndef VIAME_OPENCV_CALIBRATE_STEREO_CAMERAS_H
 #define VIAME_OPENCV_CALIBRATE_STEREO_CAMERAS_H
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <vital/types/camera_perspective.h>
 #include <vital/logger/logger.h>

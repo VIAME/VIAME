@@ -5,7 +5,7 @@
 #ifndef VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
 #define VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/image_io.h>
 

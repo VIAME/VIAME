@@ -5,7 +5,7 @@
 #ifndef VIAME_HELLO_WORLD_DETECTOR_H
 #define VIAME_HELLO_WORLD_DETECTOR_H
 
-#include <plugins/examples/viame_examples_export.h>
+#include "viame_examples_export.h"
 
 #include <vital/algo/image_object_detector.h>
 

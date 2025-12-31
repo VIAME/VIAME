@@ -10,7 +10,7 @@
 #ifndef VIAME_CORE_READ_OBJECT_TRACK_SET_VIAME_CSV_H
 #define VIAME_CORE_READ_OBJECT_TRACK_SET_VIAME_CSV_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/read_object_track_set.h>
 

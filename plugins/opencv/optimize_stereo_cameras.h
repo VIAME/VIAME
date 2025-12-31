@@ -10,7 +10,7 @@
 #ifndef VIAME_OPENCV_OPTIMIZE_STEREO_CAMERAS_H
 #define VIAME_OPENCV_OPTIMIZE_STEREO_CAMERAS_H
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <vital/algo/optimize_cameras.h>
 

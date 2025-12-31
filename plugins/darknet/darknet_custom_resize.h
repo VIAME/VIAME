@@ -5,7 +5,7 @@
 #ifndef VIAME_DARKNET_CUSTOM_RESIZE_H
 #define VIAME_DARKNET_CUSTOM_RESIZE_H
 
-#include <plugins/darknet/viame_darknet_export.h>
+#include "viame_darknet_export.h"
 
 #include <vital/algo/image_object_detector.h>
 

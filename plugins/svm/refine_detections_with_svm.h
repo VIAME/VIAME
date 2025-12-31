@@ -36,7 +36,7 @@
 #ifndef VIAME_SVM_REFINE_DETECTIONS_WITH_SVM_H
 #define VIAME_SVM_REFINE_DETECTIONS_WITH_SVM_H
 
-#include <plugins/svm/viame_svm_export.h>
+#include "viame_svm_export.h"
 
 #include <vital/algo/refine_detections.h>
 

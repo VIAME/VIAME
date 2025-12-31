@@ -5,7 +5,7 @@
 #ifndef VIAME_DARKNET_TRAINER_H
 #define VIAME_DARKNET_TRAINER_H
 
-#include <plugins/darknet/viame_darknet_export.h>
+#include "viame_darknet_export.h"
 
 #include <vital/algo/train_detector.h>
 

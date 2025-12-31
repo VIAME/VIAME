@@ -5,7 +5,7 @@
 #ifndef VIAME_VXL_PERFORM_WHITE_BALANCING_H
 #define VIAME_VXL_PERFORM_WHITE_BALANCING_H
 
-#include <plugins/vxl/viame_vxl_export.h>
+#include "viame_vxl_export.h"
 
 #include <vital/algo/image_filter.h>
 

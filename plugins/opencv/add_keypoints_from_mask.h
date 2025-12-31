@@ -10,7 +10,7 @@
 #ifndef VIAME_OPENCV_ADD_KEYPOINTS_FROM_MASK_H
 #define VIAME_OPENCV_ADD_KEYPOINTS_FROM_MASK_H
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
 #include <vital/types/detected_object.h>

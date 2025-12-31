@@ -5,7 +5,7 @@
 #ifndef VIAME_CORE_CONVERT_POLYGONS_TO_MASK_H
 #define VIAME_CORE_CONVERT_POLYGONS_TO_MASK_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/types/image.h>
 #include <vital/types/image_container.h>

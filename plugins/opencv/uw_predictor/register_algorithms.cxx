@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/uw_predictor/viame_uw_predictor_plugin_export.h>
+#include "viame_uw_predictor_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "uw_predictor_classifier.h"

@@ -31,7 +31,7 @@
 #ifndef VIAME_CORE_AVERAGE_TRACK_DESCRIPTORS_H
 #define VIAME_CORE_AVERAGE_TRACK_DESCRIPTORS_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/compute_track_descriptors.h>
 

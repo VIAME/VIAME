@@ -31,7 +31,7 @@
 #ifndef VIAME_CORE_REFINE_DETECTIONS_ADD_FIXED_H
 #define VIAME_CORE_REFINE_DETECTIONS_ADD_FIXED_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/refine_detections.h>
 

@@ -67,6 +67,11 @@ kwiver_add_library( viame_darknet
   ${sources}
   )
 
+target_include_directories( viame_darknet PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
 target_link_libraries( viame_darknet
   PUBLIC               kwiver::vital
                        kwiver::vital_algo

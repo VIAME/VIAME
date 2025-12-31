@@ -7,7 +7,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/itk/viame_itk_plugin_export.h>
+#include "viame_itk_plugin_export.h"
 
 #include <vital/algo/algorithm_factory.h>
 

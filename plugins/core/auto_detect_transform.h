@@ -5,7 +5,7 @@
 #ifndef VIAME_CORE_AUTO_DETECT_TRANSFORM_H
 #define VIAME_CORE_AUTO_DETECT_TRANSFORM_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/transform_2d_io.h>
 #include <vital/types/transform_2d.h>

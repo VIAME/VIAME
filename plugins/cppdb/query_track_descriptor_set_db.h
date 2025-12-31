@@ -39,7 +39,7 @@
 #define VIAME_CPPDB_QUERY_TRACK_DESCRIPTOR_SET_DB_H
 
 #include <vital/algo/query_track_descriptor_set.h>
-#include <plugins/cppdb/viame_cppdb_export.h>
+#include "viame_cppdb_export.h"
 
 #include <cppdb/frontend.h>
 

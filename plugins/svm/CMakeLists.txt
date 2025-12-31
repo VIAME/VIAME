@@ -36,6 +36,11 @@ kwiver_add_library( viame_svm
   ${sources}
   )
 
+target_include_directories( viame_svm PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
 find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
   COMPONENTS
     filesystem

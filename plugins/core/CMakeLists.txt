@@ -67,6 +67,11 @@ kwiver_add_library( viame_core
   ${plugin_sources}
   )
 
+target_include_directories( viame_core PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
 find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
   COMPONENTS
   chrono
@@ -201,6 +206,11 @@ kwiver_add_plugin( viame_processes_core
                    viame_core
                    viame_opencv
  )
+
+target_include_directories( viame_processes_core PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
 
 if( VIAME_ENABLE_PYTHON )
 

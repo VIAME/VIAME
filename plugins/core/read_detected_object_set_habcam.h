@@ -10,7 +10,7 @@
 #ifndef VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
 #define VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
 
-#include <plugins/core/viame_core_export.h>
+#include "viame_core_export.h"
 
 #include <vital/algo/detected_object_set_input.h>
 

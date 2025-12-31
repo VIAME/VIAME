@@ -37,7 +37,7 @@
 #define VIAME_CPPDB_WRITE_TRACK_DESCRIPTOR_SET_DB_H
 
 #include <vital/vital_config.h>
-#include <plugins/cppdb/viame_cppdb_export.h>
+#include "viame_cppdb_export.h"
 
 #include <vital/algo/write_track_descriptor_set.h>
 

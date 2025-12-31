@@ -7,7 +7,7 @@
  * \brief Examples plugin algorithm registration interface impl
  */
 
-#include <plugins/examples/viame_examples_plugin_export.h>
+#include "viame_examples_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "hello_world_detector.h"

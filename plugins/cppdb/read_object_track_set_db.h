@@ -37,7 +37,7 @@
 #define VIAME_CPPDB_READ_OBJECT_TRACK_SET_DB_H
 
 #include <vital/vital_config.h>
-#include <plugins/cppdb/viame_cppdb_export.h>
+#include "viame_cppdb_export.h"
 
 #include <vital/algo/read_object_track_set.h>
 

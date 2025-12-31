@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include <plugins/core/measurement_utilities.h>
+#include "../measurement_utilities.h"
 
 #include <vital/types/camera_intrinsics.h>
 #include <vital/types/rotation.h>

@@ -1,7 +1,7 @@
 #ifndef VIAME_OPENCV_DETECT_CALIBRATION_TARGETS_H
 #define VIAME_OPENCV_DETECT_CALIBRATION_TARGETS_H
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <vital/algo/image_object_detector.h>
 

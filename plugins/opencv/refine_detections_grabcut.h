@@ -8,7 +8,7 @@
 #ifndef VIAME_OPENCV_REFINE_DETECTIONS_GRABCUT_H
 #define VIAME_OPENCV_REFINE_DETECTIONS_GRABCUT_H
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
 

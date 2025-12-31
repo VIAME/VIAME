@@ -2,8 +2,8 @@
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include <plugins/core/tracks_pairing_from_stereo.h>
-#include <plugins/core/detections_pairing_from_stereo.h>
+#include "../tracks_pairing_from_stereo.h"
+#include "../detections_pairing_from_stereo.h"
 #include <vital/types/track.h>
 #include <vital/types/timestamp.h>
 #include <arrows/ocv/image_container.h>

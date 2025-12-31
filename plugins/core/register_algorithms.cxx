@@ -7,7 +7,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/core/viame_core_plugin_export.h>
+#include "viame_core_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "add_timestamp_from_filename.h"

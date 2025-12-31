@@ -12,7 +12,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/seagis/viame_processes_seagis_export.h>
+#include "viame_processes_seagis_export.h"
 
 #include <memory>
 

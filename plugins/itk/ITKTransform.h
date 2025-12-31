@@ -5,7 +5,7 @@
 #ifndef VIAME_ITK_ITK_TRANSFORM_H
 #define VIAME_ITK_ITK_TRANSFORM_H
 
-#include <plugins/itk/viame_itk_export.h>
+#include "viame_itk_export.h"
 
 #include <vital/algo/transform_2d_io.h>
 #include <vital/types/transform_2d.h>

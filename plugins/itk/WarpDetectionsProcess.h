@@ -12,7 +12,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/itk/viame_itk_export.h>
+#include "viame_itk_export.h"
 
 #include <memory>
 
