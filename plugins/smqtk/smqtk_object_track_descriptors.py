@@ -9,7 +9,9 @@ from kwiver.sprokit.pipeline import process
 
 from kwiver.vital.types import new_descriptor, DescriptorSet
 
-import smqtk.utils.plugin
+# Use local smqtk package for VIAME
+from .smqtk import representation as smqtk_representation
+from .smqtk.utils import plugin as smqtk_plugin
 
 import psycopg2
 
@@ -54,10 +56,10 @@ class SmqtkObjectTrackDescriptors (KwiverProcess):
         with open(self.config_file) as data_file:
             self.json_config = json.load(data_file)
 
-        #: :type: smqtk.representation.DescriptorIndex
-        self.smqtk_descriptor_index = smqtk.utils.plugin.from_plugin_config(
+        #: :type: smqtk_representation.DescriptorIndex
+        self.smqtk_descriptor_index = smqtk_plugin.from_plugin_config(
             self.json_config,
-            smqtk.representation.get_descriptor_index_impls()
+            smqtk_representation.get_descriptor_index_impls()
         )
 
         self.conn = psycopg2.connect(self.conn_str)

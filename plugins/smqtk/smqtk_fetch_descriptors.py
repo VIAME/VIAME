@@ -2,9 +2,16 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
+import json
+
 from kwiver.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
 
 from kwiver.vital.types import new_descriptor, DescriptorSet
+
+# Use local smqtk package for VIAME
+from .smqtk import representation as smqtk_representation
+from .smqtk.utils import plugin as smqtk_plugin
 
 class SmqtkFetchDescriptors (KwiverProcess):
     def __init__(self, conf):
@@ -34,14 +41,14 @@ class SmqtkFetchDescriptors (KwiverProcess):
 
         # setup smqtk elements
         self.smqtk_descriptor_element_factory = \
-            smqtk.representation.DescriptorElementFactory.from_config(
+            smqtk_representation.DescriptorElementFactory.from_config(
                 self.json_config['descriptor_factory']
             )
 
-        #: :type: smqtk.representation.DescriptorIndex
-        self.smqtk_descriptor_index = smqtk.utils.plugin.from_plugin_config(
+        #: :type: smqtk_representation.DescriptorIndex
+        self.smqtk_descriptor_index = smqtk_plugin.from_plugin_config(
             self.json_config['descriptor_index'],
-            smqtk.representation.get_descriptor_index_impls()
+            smqtk_representation.get_descriptor_index_impls()
         )
 
         self._base_configure()

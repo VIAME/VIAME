@@ -5,11 +5,12 @@
 from __future__ import print_function
 
 import logging
-import smqtk.algorithms
-import smqtk.iqr
-import smqtk.representation
-import smqtk.representation.descriptor_element.local_elements
-import smqtk.utils.plugin
+
+# Use local smqtk package for VIAME
+from .smqtk import algorithms as smqtk_algorithms
+from .smqtk import iqr as smqtk_iqr
+from .smqtk import representation as smqtk_representation
+from .smqtk.utils import plugin as smqtk_plugin
 
 import json
 import math
@@ -80,15 +81,15 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     return
 
   # Set of descriptors to pull positive/negative querys from.
-  descriptor_set = smqtk.utils.plugin.from_plugin_config(
+  descriptor_set = smqtk_plugin.from_plugin_config(
     di_json_config,
-    smqtk.representation.get_descriptor_index_impls()
+    smqtk_representation.get_descriptor_index_impls()
   )
 
   # Nearest Neighbors index to use for IQR working index population.
-  neighbor_index = smqtk.utils.plugin.from_plugin_config(
+  neighbor_index = smqtk_plugin.from_plugin_config(
     nn_json_config,
-    smqtk.algorithms.get_nn_index_impls()
+    smqtk_algorithms.get_nn_index_impls()
   )
 
   # Max count threshold
@@ -109,7 +110,7 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     pos_seed_neighbors = 2
 
   # Reset index on new query, a new query is one without IQR feedback
-  iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
+  iqr_session = smqtk_iqr.IqrSession( pos_seed_neighbors )
   pos_descrs = descriptor_set.get_many_descriptors( pos_uuids )
 
   logger.info( "Formatting data for initial search" )
