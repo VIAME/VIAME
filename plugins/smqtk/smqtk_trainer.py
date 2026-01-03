@@ -19,7 +19,8 @@ import subprocess
 import threading
 import time
 
-import viame.arrows.smqtk.smqtk_train_svm_models as trainer
+# Use local module
+from . import smqtk_train_svm_models as trainer
 
 class SMQTKTrainer( TrainDetector ):
     """

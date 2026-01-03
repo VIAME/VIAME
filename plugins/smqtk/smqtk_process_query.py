@@ -12,11 +12,11 @@ from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
 from kwiver.sprokit.pipeline import datum
 
-import smqtk.algorithms
-import smqtk.iqr
-import smqtk.representation
-import smqtk.representation.descriptor_element.local_elements
-import smqtk.utils.plugin
+# Use local smqtk package for VIAME
+from .smqtk import algorithms as smqtk_algorithms
+from .smqtk import iqr as smqtk_iqr
+from .smqtk import representation as smqtk_representation
+from .smqtk.utils import plugin as smqtk_plugin
 import svmutil
 import svm
 import os
@@ -109,8 +109,8 @@ class SmqtkProcessQuery (KwiverProcess):
         self.iqr_session = None
         # Factory for converting vital descriptors to smqtk. Currently just
         # use in-memory elements for conversion.
-        self.smqtk_descriptor_element_factory = smqtk.representation.DescriptorElementFactory(
-            smqtk.representation.descriptor_element.local_elements.DescriptorMemoryElement,
+        self.smqtk_descriptor_element_factory = smqtk_representation.DescriptorElementFactory(
+            smqtk_representation.DescriptorMemoryElement,
             {}
         )
 
@@ -228,18 +228,18 @@ class SmqtkProcessQuery (KwiverProcess):
         with open(self.nn_json_config_path) as f:
             self.nn_json_config = json.load(f)
 
-        self.descriptor_set = smqtk.utils.plugin.from_plugin_config(
+        self.descriptor_set = smqtk_plugin.from_plugin_config(
             self.di_json_config,
-            smqtk.representation.get_descriptor_index_impls()
+            smqtk_representation.get_descriptor_index_impls()
         )
-        self.neighbor_index = smqtk.utils.plugin.from_plugin_config(
+        self.neighbor_index = smqtk_plugin.from_plugin_config(
             self.nn_json_config,
-            smqtk.algorithms.get_nn_index_impls()
+            smqtk_algorithms.get_nn_index_impls()
         )
 
         # Using default relevancy index configuration, which as of 2017/08/24
         # is the only one: libSVM-based relevancy ranking.
-        self.iqr_session = smqtk.iqr.IqrSession(self.pos_seed_neighbors)
+        self.iqr_session = smqtk_iqr.IqrSession(self.pos_seed_neighbors)
 
         self._base_configure()
 
@@ -277,7 +277,7 @@ class SmqtkProcessQuery (KwiverProcess):
 
         # Reset index on new query, a new query is one without IQR feedback
         if len( iqr_positive_tuple ) == 0 and len( iqr_negative_tuple ) == 0:
-          self.iqr_session = smqtk.iqr.IqrSession(self.pos_seed_neighbors)
+          self.iqr_session = smqtk_iqr.IqrSession(self.pos_seed_neighbors)
 
         # Convert descriptors to SMQTK elements.
         #: :type: list[DescriptorElement]
