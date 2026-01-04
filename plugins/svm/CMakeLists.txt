@@ -19,12 +19,12 @@ if( VIAME_ENABLE_POSTGRESQL )
 endif()
 
 set( headers
-  refine_detections_with_svm.h
+  refine_detections_svm.h
   train_detector_svm.h
   )
 
 set( sources
-  refine_detections_with_svm.cxx
+  refine_detections_svm.cxx
   train_detector_svm.cxx
   )
 

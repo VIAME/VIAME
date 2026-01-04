@@ -33,8 +33,8 @@
  * \brief Header for refine detections using SVM
  */
 
-#ifndef VIAME_SVM_REFINE_DETECTIONS_WITH_SVM_H
-#define VIAME_SVM_REFINE_DETECTIONS_WITH_SVM_H
+#ifndef VIAME_SVM_REFINE_DETECTIONS_SVM_H
+#define VIAME_SVM_REFINE_DETECTIONS_SVM_H
 
 #include "viame_svm_export.h"
 
@@ -45,8 +45,8 @@ namespace viame {
 namespace kv = kwiver::vital;
 
 /// A class for drawing various information about feature tracks
-class VIAME_SVM_EXPORT refine_detections_with_svm
-: public kv::algorithm_impl<refine_detections_with_svm,
+class VIAME_SVM_EXPORT refine_detections_svm
+: public kv::algorithm_impl<refine_detections_svm,
     kv::algo::refine_detections>
 {
 public:
@@ -55,10 +55,10 @@ public:
                "Refine detections using SVM." )
 
   /// Constructor
-  refine_detections_with_svm();
+  refine_detections_svm();
 
   /// Destructor
-  virtual ~refine_detections_with_svm();
+  virtual ~refine_detections_svm();
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual kv::config_block_sptr get_configuration() const;
@@ -89,4 +89,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_SVM_REFINE_DETECTIONS_WITH_SVM_H
+#endif // VIAME_SVM_REFINE_DETECTIONS_SVM_H

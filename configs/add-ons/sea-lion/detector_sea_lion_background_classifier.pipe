@@ -26,8 +26,8 @@ include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
-  :refiner:type                                svm_refine
-  relativepath refiner:svm_refine:model_dir =  models/sea_lion_v3_bg_classifiers
+  :refiner:type                                svm
+  relativepath refiner:svm:model_dir =         models/sea_lion_v3_bg_classifiers
 
 connect from downsampler.output_1
         to   detector.image

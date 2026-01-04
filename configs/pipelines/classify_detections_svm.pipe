@@ -36,8 +36,8 @@ connect from detection_reader.detected_object_set
 
 process svm_refiner
   :: refine_detections
-  :refiner:type                                svm_refine
-  :refiner:svm_refine:model_dir                category_models
+  :refiner:type                                svm
+  :refiner:svm:model_dir                       category_models
 
 connect from downsampler.output_1
         to   svm_refiner.image
