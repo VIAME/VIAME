@@ -77,7 +77,7 @@ create_config_trait( conn_str, std::string, "",
   "If set, descriptors are loaded from the DESCRIPTOR table instead of CSV file." );
 create_config_trait( pos_seed_neighbors, unsigned, "500",
   "Number of nearest neighbors to retrieve for each positive example" );
-create_config_trait( query_return_size, unsigned, "300",
+create_config_trait( query_return_size, unsigned, "500",
   "Number of ranked elements to return. 0 returns all." );
 create_config_trait( svm_kernel_type, std::string, "histogram",
   "SVM kernel type: linear, poly, rbf, sigmoid, or histogram" );
@@ -117,10 +117,10 @@ create_config_trait( lsh_bit_length, unsigned, "256",
 create_config_trait( lsh_neighbor_multiplier, unsigned, "10",
   "Multiplier for LSH candidate retrieval. Retrieves k * multiplier candidates "
   "via hamming distance, then re-ranks with the configured distance method to get top k." );
-create_config_trait( nn_distance_method, std::string, "hik",
+create_config_trait( nn_distance_method, std::string, "euclidean",
   "Distance method for nearest neighbor re-ranking after LSH candidate retrieval. "
   "Options: 'euclidean', 'cosine', 'hik' (histogram intersection). "
-  "Default is 'hik' (histogram intersection)." );
+  "Default is 'euclidean'." );
 create_config_trait( use_platt_scaling, bool, "false",
   "Use custom Platt scaling with HIK distance for probability estimation. "
   "When false (default), uses libsvm's built-in probability prediction. "

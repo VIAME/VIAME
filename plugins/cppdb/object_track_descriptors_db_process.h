@@ -29,8 +29,7 @@ namespace cppdb
  * @brief Attach descriptors to object track states from database
  *
  * This process takes in an object_track_set and attaches descriptors to each
- * track state by querying them from a database. This is a C++ replacement for
- * the SMQTK-based smqtk_object_track_descriptors Python process.
+ * track state by querying them from a database.
  *
  * Uses the same database schema as the original Python version:
  * - track_descriptor table: uid, type, video_name

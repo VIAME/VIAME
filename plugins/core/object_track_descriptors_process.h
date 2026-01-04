@@ -29,8 +29,7 @@ namespace core
  * @brief Attach descriptors to object track states from file
  *
  * This process takes in an object_track_set and attaches descriptors to each
- * track state by looking them up from a CSV file. This is a C++ replacement
- * for the SMQTK-based smqtk_object_track_descriptors Python process.
+ * track state by looking them up from a CSV file.
  *
  * The input file format is CSV: track_id,frame_id,val1,val2,...,valN
  */

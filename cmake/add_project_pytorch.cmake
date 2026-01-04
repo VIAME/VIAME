@@ -199,10 +199,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PATCH_COMMAND "" )
   set( PROJECT_DEPS fletch python-deps )
 
-  if( VIAME_ENABLE_SMQTK )
-    set( PROJECT_DEPS ${PROJECT_DEPS} smqtk )
-  endif()
-
   if( NOT "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch )
     if( VIAME_ENABLE_PYTORCH-VISION AND

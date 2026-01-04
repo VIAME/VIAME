@@ -42,7 +42,6 @@ set(VIAME_ENABLE_PYTORCH-ULTRALYTICS ON CACHE BOOL "Enable Ultralytics")
 
 # Other frameworks
 set(VIAME_ENABLE_DARKNET ON CACHE BOOL "Enable Darknet")
-set(VIAME_ENABLE_SMQTK ON CACHE BOOL "Enable SMQTK")
 
 # Typically disabled features
 set(VIAME_ENABLE_FLASK OFF CACHE BOOL "Enable Flask")

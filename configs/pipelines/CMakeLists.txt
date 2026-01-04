@@ -326,7 +326,7 @@ if( VIAME_ENABLE_VIVIA )
            DESTINATION configs/pipelines/embedded_single_stream )
 endif()
 
-if( VIAME_ENABLE_SMQTK )
+if( VIAME_ENABLE_SVM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     query_and_iqr.pipe
     train_detector_svm_over_fish_detections.conf
