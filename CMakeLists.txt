@@ -2,7 +2,7 @@
 # Top-level CMakeLists.txt build file for the VIAME super-build and project
 ##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <><
 
-cmake_minimum_required( VERSION 3.16.0 )
+cmake_minimum_required( VERSION 3.23 )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
