@@ -7,7 +7,7 @@
  * \brief Implementation of CSV descriptor storage backend
  */
 
-#include "descriptor_backend.h"
+#include "store_descriptors_csv.h"
 
 #include <fstream>
 #include <sstream>

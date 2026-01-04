@@ -7,8 +7,8 @@
  * \brief CSV descriptor storage backend for sprokit processes
  */
 
-#ifndef VIAME_CORE_DESCRIPTOR_BACKEND_H
-#define VIAME_CORE_DESCRIPTOR_BACKEND_H
+#ifndef VIAME_CORE_STORE_DESCRIPTORS_CSV_H
+#define VIAME_CORE_STORE_DESCRIPTORS_CSV_H
 
 #include "viame_processes_core_export.h"
 
@@ -67,4 +67,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_DESCRIPTOR_BACKEND_H
+#endif // VIAME_CORE_STORE_DESCRIPTORS_CSV_H
