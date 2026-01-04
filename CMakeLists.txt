@@ -420,6 +420,14 @@ endif()
 if( VIAME_ENABLE_CUDA )
   find_package( CUDA QUIET REQUIRED )
 
+  # Resolve symlinks in CUDA_NVCC_EXECUTABLE to avoid CMake 3.31+ detection issues
+  # When nvcc is invoked via a symlink (e.g., /usr/bin/nvcc -> /usr/local/cuda/bin/nvcc),
+  # it reports incorrect paths that break CMake's CUDA toolkit detection
+  if( CUDA_NVCC_EXECUTABLE AND IS_SYMLINK "${CUDA_NVCC_EXECUTABLE}" )
+    get_filename_component( CUDA_NVCC_EXECUTABLE "${CUDA_NVCC_EXECUTABLE}" REALPATH )
+    set( CUDA_NVCC_EXECUTABLE "${CUDA_NVCC_EXECUTABLE}" CACHE FILEPATH "CUDA nvcc executable" FORCE )
+  endif()
+
   if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND NOT CUDA_cublas_device_LIBRARY )
     set( CUDA_cublas_device_LIBRARY CACHE INTERNAL "${CUDA_cublas_LIBRARY}" )
   endif()
