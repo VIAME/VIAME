@@ -185,9 +185,7 @@ set( CORE_PIPELINE_FILES
   measurement_fully_auto_fish_default.pipe
   measurement_fully_auto_gmm_motion.pipe
   measurement_from_annotations.pipe
-  query_image_exemplar.cfe.pipe
   query_image_exemplar.pipe
-  query_retrieval_and_iqr.cfe.pipe
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
   sql_init_table.sql
