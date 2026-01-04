@@ -152,7 +152,7 @@ set( process_headers
   accumulate_object_tracks_process.h
   align_multimodal_imagery_process.h
   calibrate_cameras_from_tracks_process.h
-  descriptor_backend.h
+  store_descriptors_csv.h
   detect_shot_breaks_process.h
   extract_desc_ids_for_training_process.h
   fetch_descriptors_process.h
@@ -177,7 +177,7 @@ set( process_sources
   accumulate_object_tracks_process.cxx
   align_multimodal_imagery_process.cxx
   calibrate_cameras_from_tracks_process.cxx
-  descriptor_backend.cxx
+  store_descriptors_csv.cxx
   detect_shot_breaks_process.cxx
   extract_desc_ids_for_training_process.cxx
   fetch_descriptors_process.cxx
