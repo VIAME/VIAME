@@ -17,7 +17,7 @@ namespace kv = kwiver::vital;
 ///
 /// This method contains basic methods for image filtering on top of input
 /// images via automatic white balancing, smoothing, and illumination
-/// normalization, without depending on the burnout library.
+/// normalization.
 class VIAME_VXL_EXPORT enhance_images
   : public kv::algorithm_impl< enhance_images,
       kv::algo::image_filter >
