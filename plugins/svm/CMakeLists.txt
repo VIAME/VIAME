@@ -13,12 +13,19 @@ if( NOT SVM_LIBRARY )
   message( FATAL_ERROR "Could not find libsvm library in ${VIAME_INSTALL_PREFIX}" )
 endif()
 
+# Optionally find CppDB for database backend support
+if( VIAME_ENABLE_POSTGRESQL )
+  find_package( CppDB REQUIRED )
+endif()
+
 set( headers
   refine_detections_with_svm.h
+  train_detector_svm.h
   )
 
 set( sources
   refine_detections_with_svm.cxx
+  train_detector_svm.cxx
   )
 
 kwiver_install_headers(
@@ -74,3 +81,39 @@ algorithms_create_plugin( viame_svm
 target_link_libraries( viame_svm_plugin
   PUBLIC               kwiver::vital_vpm
   )
+
+# Add process library
+set( process_headers
+  process_query_process.h
+  train_svm_models_process.h
+)
+
+set( process_sources
+  register_processes.cxx
+  process_query_process.cxx
+  train_svm_models_process.cxx
+)
+
+kwiver_add_plugin( viame_processes_svm
+  SUBDIR           ${viame_plugin_process_subdir}
+  SOURCES          ${process_sources}
+  PRIVATE          kwiver::vital
+                   kwiver::vital_algo
+                   kwiver::vital_config
+                   kwiver::vital_logger
+                   kwiver::vital_util
+                   kwiver::vital_vpm
+                   kwiver::sprokit_pipeline
+                   ${SVM_LIBRARY}
+ )
+
+target_include_directories( viame_processes_svm PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
+# Optionally link CppDB for database backend support in process_query
+if( VIAME_ENABLE_POSTGRESQL )
+  target_compile_definitions( viame_processes_svm PRIVATE VIAME_ENABLE_CPPDB )
+  target_link_libraries( viame_processes_svm PRIVATE ${CppDB_LIBRARY} )
+endif()
