@@ -116,10 +116,18 @@ create_config_trait( lsh_bit_length, unsigned, "256",
 create_config_trait( lsh_neighbor_multiplier, unsigned, "10",
   "Multiplier for LSH candidate retrieval. Retrieves k * multiplier candidates "
   "via hamming distance, then re-ranks with the configured distance method to get top k." );
-create_config_trait( nn_distance_method, std::string, "euclidean",
+create_config_trait( nn_distance_method, std::string, "hik",
   "Distance method for nearest neighbor re-ranking after LSH candidate retrieval. "
   "Options: 'euclidean', 'cosine', 'hik' (histogram intersection). "
-  "Default is 'euclidean'." );
+  "Default is 'hik' (histogram intersection)." );
+create_config_trait( use_platt_scaling, bool, "true",
+  "Use custom Platt scaling with HIK distance for probability estimation. "
+  "When true (default), uses custom Platt scaling matching the original Python implementation. "
+  "When false, uses libsvm's built-in probability prediction." );
+create_config_trait( force_exemplar_scores, bool, "false",
+  "Force positive exemplars to score 1.0 and negative exemplars to score 0.0. "
+  "When true, exemplar scores are overwritten after prediction. "
+  "When false (default), exemplars receive their predicted scores." );
 
 //--------------------------------------------------------------------------------
 // Descriptor element for IQR
@@ -599,8 +607,7 @@ public:
 
     // Auto-select negatives if none provided
     std::vector< descriptor_element > auto_negatives;
-    if( m_negative_descriptors.empty() && m_full_index_ref &&
-        m_autoneg_select_ratio > 0 )
+    if( m_negative_descriptors.empty() && m_autoneg_select_ratio > 0 )
     {
       auto_negatives = select_auto_negatives();
     }
@@ -759,17 +766,20 @@ public:
       }
     }
 
-    // Force positive exemplars to score 1.0 and negative to 0.0
+    // Optionally force positive exemplars to score 1.0 and negative to 0.0
     // This is done AFTER the inversion check
-    for( auto& r : results )
+    if( m_force_exemplar_scores )
     {
-      if( m_positive_descriptors.find( r.first ) != m_positive_descriptors.end() )
+      for( auto& r : results )
       {
-        r.second = 1.0;
-      }
-      else if( m_negative_descriptors.find( r.first ) != m_negative_descriptors.end() )
-      {
-        r.second = 0.0;
+        if( m_positive_descriptors.find( r.first ) != m_positive_descriptors.end() )
+        {
+          r.second = 1.0;
+        }
+        else if( m_negative_descriptors.find( r.first ) != m_negative_descriptors.end() )
+        {
+          r.second = 0.0;
+        }
       }
     }
 
@@ -954,6 +964,8 @@ public:
   void set_lsh_index_ref( const lsh_index* index ) { m_lsh_index_ref = index; }
   void set_lsh_neighbor_multiplier( unsigned mult ) { m_lsh_neighbor_multiplier = mult; }
   void set_nn_distance_method( const std::string& method ) { m_nn_distance_method = method; }
+  void set_use_platt_scaling( bool use_platt ) { m_use_platt_scaling = use_platt; }
+  void set_force_exemplar_scores( bool force ) { m_force_exemplar_scores = force; }
 
 private:
   void free_model()
@@ -1008,11 +1020,76 @@ private:
     return nodes;
   }
 
-  double predict_score( const std::vector< double >& vec ) const
+  // Custom Platt scaling using histogram intersection distance.
+  // Computes: margin = sum(sv_coef[i] * HIK_distance(SV[i], test_vec))
+  // Then applies: prob = 1.0 / (1.0 + exp((margin - rho) * probA + probB))
+  double predict_score_platt( const std::vector< double >& vec ) const
   {
     if( !is_model_valid() )
     {
-      // No valid model - use distance to positive centroid
+      return compute_positive_similarity( vec );
+    }
+
+    // Safety checks
+    if( !m_svm_model->SV || !m_svm_model->sv_coef || !m_svm_model->rho )
+    {
+      return compute_positive_similarity( vec );
+    }
+
+    // Get model parameters
+    int num_svs = m_svm_model->l;
+    if( num_svs <= 0 )
+    {
+      return compute_positive_similarity( vec );
+    }
+
+    double rho = m_svm_model->rho[0];
+    double probA = m_svm_model->probA ? m_svm_model->probA[0] : 0.0;
+    double probB = m_svm_model->probB ? m_svm_model->probB[0] : 0.0;
+
+    // Compute margin using histogram intersection distance
+    // margin = sum(sv_coef[i] * HIK_distance(SV[i], vec))
+    double margin = 0.0;
+    size_t vec_dim = vec.size();
+
+    for( int i = 0; i < num_svs; ++i )
+    {
+      if( !m_svm_model->SV[i] || !m_svm_model->sv_coef[0] )
+      {
+        continue;
+      }
+
+      // Pre-allocate support vector with zeros to match input dimension
+      std::vector< double > sv( vec_dim, 0.0 );
+
+      // Extract non-zero elements from sparse SV representation
+      for( int j = 0; m_svm_model->SV[i][j].index != -1; ++j )
+      {
+        int idx = m_svm_model->SV[i][j].index - 1;  // libsvm uses 1-based indexing
+        if( idx >= 0 && idx < static_cast< int >( vec_dim ) )
+        {
+          sv[idx] = m_svm_model->SV[i][j].value;
+        }
+      }
+
+      // Compute histogram intersection distance
+      double dist = histogram_intersection_distance( sv, vec );
+
+      // sv_coef is alpha * y for each SV (for binary classification, sv_coef[0])
+      margin += m_svm_model->sv_coef[0][i] * dist;
+    }
+
+    // Apply Platt scaling formula
+    double prob = 1.0 / ( 1.0 + std::exp( ( margin - rho ) * probA + probB ) );
+
+    return prob;
+  }
+
+  // Use libsvm's built-in probability prediction
+  double predict_score_libsvm( const std::vector< double >& vec ) const
+  {
+    if( !is_model_valid() )
+    {
       return compute_positive_similarity( vec );
     }
 
@@ -1029,6 +1106,20 @@ private:
 
     // Return probability for positive class
     return ( labels[0] == 1 ) ? prob_estimates[0] : prob_estimates[1];
+  }
+
+  double predict_score( const std::vector< double >& vec ) const
+  {
+    if( m_use_platt_scaling )
+    {
+      // Use custom Platt scaling with HIK distance
+      return predict_score_platt( vec );
+    }
+    else
+    {
+      // Use libsvm's built-in probability prediction with HIK kernel
+      return predict_score_libsvm( vec );
+    }
   }
 
   double predict_distance( const std::vector< double >& vec ) const
@@ -1069,12 +1160,12 @@ private:
 
   // Auto-select negative examples by finding the most distant descriptors
   // from each positive example using histogram intersection distance.
-  // Auto-negatives are selected from the WORKING INDEX
-  // (already populated with NN of positives), not the full database.
+  // Auto-negatives are selected from the working index (neighbors of positives)
+  // to find "hard negatives" that are close but not positive.
   std::vector< descriptor_element > select_auto_negatives() const
   {
-    if( m_working_index.empty() || m_positive_descriptors.empty() ||
-        m_autoneg_select_ratio == 0 )
+    if( m_working_index.empty() ||
+        m_positive_descriptors.empty() || m_autoneg_select_ratio == 0 )
     {
       return {};
     }
@@ -1082,7 +1173,7 @@ private:
     std::unordered_set< std::string > selected_uids;
     std::vector< descriptor_element > auto_negatives;
 
-    // For each positive, find the most distant descriptors in working index
+    // For each positive, find the most distant descriptors in the working index
     for( const auto& pos : m_positive_descriptors )
     {
       // Priority queue to track most distant descriptors (min-heap by distance)
@@ -1131,7 +1222,7 @@ private:
         if( selected_uids.find( uid ) == selected_uids.end() )
         {
           selected_uids.insert( uid );
-          auto_negatives.emplace_back( m_working_index.at( uid ) );
+          auto_negatives.push_back( m_working_index.at( uid ) );
         }
         pq.pop();
       }
@@ -1349,7 +1440,9 @@ private:
   unsigned m_nn_max_linear_search = 50000;
   double m_nn_sample_fraction = 0.1;
   unsigned m_autoneg_select_ratio = 1;
-  std::string m_nn_distance_method = "euclidean";
+  std::string m_nn_distance_method = "hik";
+  bool m_use_platt_scaling = true;
+  bool m_force_exemplar_scores = false;
 
   std::unordered_map< std::string, descriptor_element > m_positive_descriptors;
   std::unordered_map< std::string, descriptor_element > m_negative_descriptors;
@@ -1387,6 +1480,8 @@ public:
     , m_use_lsh_index( true )
     , m_lsh_bit_length( 256 )
     , m_lsh_neighbor_multiplier( 10 )
+    , m_use_platt_scaling( true )
+    , m_force_exemplar_scores( false )
     , m_index_loaded( false )
     , m_lsh_loaded( false )
     , m_iqr_session( nullptr )
@@ -1414,6 +1509,8 @@ public:
   unsigned m_lsh_bit_length;
   unsigned m_lsh_neighbor_multiplier;
   std::string m_nn_distance_method;
+  bool m_use_platt_scaling;
+  bool m_force_exemplar_scores;
 
   bool m_index_loaded;
   bool m_lsh_loaded;
@@ -1567,6 +1664,8 @@ process_query_process
   d->m_lsh_bit_length = config_value_using_trait( lsh_bit_length );
   d->m_lsh_neighbor_multiplier = config_value_using_trait( lsh_neighbor_multiplier );
   d->m_nn_distance_method = config_value_using_trait( nn_distance_method );
+  d->m_use_platt_scaling = config_value_using_trait( use_platt_scaling );
+  d->m_force_exemplar_scores = config_value_using_trait( force_exemplar_scores );
 
   d->load_descriptor_index();
 
@@ -1618,6 +1717,8 @@ process_query_process
     d->m_iqr_session->set_lsh_neighbor_multiplier( d->m_lsh_neighbor_multiplier );
   }
   d->m_iqr_session->set_nn_distance_method( d->m_nn_distance_method );
+  d->m_iqr_session->set_use_platt_scaling( d->m_use_platt_scaling );
+  d->m_iqr_session->set_force_exemplar_scores( d->m_force_exemplar_scores );
 }
 
 
@@ -1819,6 +1920,8 @@ process_query_process
   declare_config_using_trait( lsh_bit_length );
   declare_config_using_trait( lsh_neighbor_multiplier );
   declare_config_using_trait( nn_distance_method );
+  declare_config_using_trait( use_platt_scaling );
+  declare_config_using_trait( force_exemplar_scores );
 }
 
 } // end namespace svm
