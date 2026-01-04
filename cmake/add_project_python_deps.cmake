@@ -68,7 +68,7 @@ if( VIAME_ENABLE_OPENCV )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tqdm" "scipy" )
 endif()
 
-# For PostgreSQL database support (used by native ITQ indexer, SMQTK, etc.)
+# For PostgreSQL database support (used by native ITQ indexer, etc.)
 if( VIAME_ENABLE_POSTGRESQL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
 endif()

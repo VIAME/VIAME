@@ -29,8 +29,7 @@ namespace cppdb
  * @brief Ingest descriptors and write them to database
  *
  * This process takes in descriptor sets and matching UIDs, buffers them,
- * and writes them out to a database. This is a C++ replacement for the
- * SMQTK-based smqtk_ingest_descriptors Python process with database backend.
+ * and writes them out to a database.
  *
  * Features:
  * - Buffering by frame count or descriptor count for efficient batch writes

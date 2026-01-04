@@ -29,8 +29,7 @@ namespace core
  * @brief Fetch descriptors from file given UIDs
  *
  * This process takes in a vector of UIDs and fetches the corresponding
- * descriptors from a CSV file. This is a C++ replacement for the SMQTK-based
- * smqtk_fetch_descriptors Python process.
+ * descriptors from a CSV file.
  *
  * The input file format is CSV: uid,val1,val2,...,valN (one descriptor per line)
  */

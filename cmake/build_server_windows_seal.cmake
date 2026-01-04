@@ -38,7 +38,6 @@ add_option("VIAME_ENABLE_ONNX" "OFF")
 add_option("VIAME_ENABLE_PYTORCH-PYSOT" "OFF")
 add_option("VIAME_ENABLE_PYTORCH-ULTRALYTICS:BOOL" "ON")
 add_option("VIAME_ENABLE_SEAL" "ON")
-add_option("VIAME_ENABLE_SMQTK" "OFF")
 add_option("VIAME_ENABLE_VIVIA" "OFF")
 
 # Finalize OPTIONS variable

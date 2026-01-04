@@ -29,8 +29,7 @@ namespace core
  * @brief Ingest descriptors and write them to file
  *
  * This process takes in descriptor sets and matching UIDs, buffers them,
- * and writes them out to a file in batches. This is a C++ replacement for
- * the SMQTK-based smqtk_ingest_descriptors Python process.
+ * and writes them out to a file in batches.
  *
  * Features:
  * - Buffering by frame count or descriptor count for efficient batch writes

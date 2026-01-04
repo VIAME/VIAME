@@ -204,7 +204,6 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                       |
 | VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                   |
 | VIAME_ENABLE_TENSORRT        | Builds TensorRT object detector plugin                                         |
-| VIAME_ENABLE_SMQTK           | Builds SMQTK plugins to support image/video indexing and search                |
 | VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                    |
 | VIAME_ENABLE_LEARN           | Builds additional methods for low-shot learning                                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                 |

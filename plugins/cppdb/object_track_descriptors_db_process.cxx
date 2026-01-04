@@ -109,7 +109,7 @@ object_track_descriptors_db_process
   kwiver::vital::object_track_set_sptr object_tracks =
     grab_from_port_using_trait( object_track_set );
 
-  // Prepare query statement - same query as Python smqtk_object_track_descriptors
+  // Prepare query statement
   ::cppdb::statement uid_stmt = d->m_conn.create_prepared_statement(
     "SELECT track_descriptor.uid FROM track_descriptor "
     "INNER JOIN track_descriptor_track ON track_descriptor.uid = track_descriptor_track.uid "

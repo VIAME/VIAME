@@ -78,10 +78,6 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS )
 
   set( PROJECT_DEPS fletch python-deps )
 
-  if( VIAME_ENABLE_SMQTK )
-    set( PROJECT_DEPS ${PROJECT_DEPS} smqtk )
-  endif()
-
   ExternalProject_Add( tensorflow-models
     DEPENDS ${PROJECT_DEPS}
     PREFIX ${VIAME_BUILD_PREFIX}

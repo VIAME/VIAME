@@ -41,7 +41,7 @@ process query_handler
   :itq_rotation_file                           $CONFIG{global:database_folder}/ITQ/itq.model.b256_i100_r0.rotation.npy
   :lsh_bit_length                              256
   :lsh_neighbor_multiplier                     10
-  :nn_distance_method                          euclidean
+  :nn_distance_method                          hik
 
 connect from in_adapt.positive_descriptor_set
         to   query_handler.positive_descriptor_set

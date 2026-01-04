@@ -90,6 +90,7 @@ option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
+option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
 
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
@@ -107,8 +108,6 @@ option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
-option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
-option( VIAME_ENABLE_SVM            "Enable SVM plugins"            OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
@@ -116,7 +115,6 @@ mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_LEARN )
 mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
-mark_as_advanced( VIAME_ENABLE_SMQTK )
 mark_as_advanced( VIAME_ENABLE_SVM )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
@@ -361,18 +359,13 @@ if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA OR VIAME_ENABLE_ITK )
   set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"     FORCE )
 endif()
 
-if( VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR
-    VIAME_ENABLE_SEAL )
+if( VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR VIAME_ENABLE_SEAL )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"  FORCE )
 endif()
 
 if( VIAME_ENABLE_LEARN )
   set( VIAME_ENABLE_PYTORCH-DETECTRON  ON CACHE BOOL "Detectron required for project" FORCE )
   set( VIAME_ENABLE_PYTORCH-VIDEO      ON CACHE BOOL "Torch Video required for project" FORCE )
-endif()
-
-if( VIAME_ENABLE_SMQTK )
-  set( VIAME_ENABLE_POSTGRESQL  ON CACHE BOOL "PostgreSQL required for project" FORCE )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-VIDEO )
@@ -883,10 +876,6 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Add optional projects depended on by other projects
   if( VIAME_ENABLE_DARKNET )
     include( add_project_darknet )
-  endif()
-
-  if( VIAME_ENABLE_SMQTK )
-    include( add_project_smqtk )
   endif()
 
   # Add (usually required) kwiver requirement

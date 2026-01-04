@@ -29,8 +29,7 @@ namespace cppdb
  * @brief Fetch descriptors from database given UIDs
  *
  * This process takes in a vector of UIDs and fetches the corresponding
- * descriptors from a database. This is a C++ replacement for the SMQTK-based
- * smqtk_fetch_descriptors Python process with database backend.
+ * descriptors from a database.
  */
 class VIAME_PROCESSES_CPPDB_NO_EXPORT fetch_descriptors_db_process
   : public sprokit::process
