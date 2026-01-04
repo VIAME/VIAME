@@ -311,6 +311,13 @@ else()
   )
 endif()
 
+if( VIAME_ENABLE_SVM AND NOT VIAME_ENABLE_SMQTK )
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_libsvm:BOOL=ON
+  )
+endif()
+
 if( WIN32 AND VIAME_ENABLE_ITK )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
