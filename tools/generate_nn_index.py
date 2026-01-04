@@ -22,14 +22,11 @@ The ITQ algorithm:
 5. Produces binary hash codes for efficient similarity search
 
 Usage:
-    # Train and compute hashes using SMQTK-compatible config
-    python build_itq_index.py --config smqtk_train_itq.json
-
     # Train and compute hashes from CSV file
-    python build_itq_index.py --descriptor-file descriptors.csv --output-dir database/ITQ
+    python generate_nn_index.py --descriptor-file descriptors.csv --output-dir database/ITQ
 
     # Compute hashes only using existing model
-    python build_itq_index.py --descriptor-file descriptors.csv --model-dir database/ITQ --hash-only
+    python generate_nn_index.py --descriptor-file descriptors.csv --model-dir database/ITQ --hash-only
 
 References:
     Gong, Y., & Lazebnik, S. (2011). Iterative quantization: A procrustean approach
@@ -829,17 +826,16 @@ def load_uuids_list(filepath):
     return uids
 
 
-def build_itq_index(descriptor_source, output_dir, bit_length=256,
-                    itq_iterations=100, random_seed=0, normalize=None,
-                    pca_method='cov_eig', init_method='svd',
-                    max_train_descriptors=100000, random_sample=True,
-                    train_uids=None, report_interval=1.0,
-                    incremental=False, verbose=True):
+def generate_nn_index(descriptor_source, output_dir, bit_length=256,
+                      itq_iterations=100, random_seed=0, normalize=None,
+                      pca_method='cov_eig', init_method='svd',
+                      max_train_descriptors=100000, random_sample=True,
+                      train_uids=None, report_interval=1.0,
+                      incremental=False, verbose=True):
     """
-    Build ITQ LSH index from descriptors.
+    Generate ITQ LSH index from descriptors for nearest neighbor search.
 
-    This is the main entry point that replicates SMQTK's build_standard_index.
-    Default parameters match VIAME's smqtk_train_itq.json configuration.
+    This is the main entry point for building an ITQ-based LSH index.
 
     Args:
         descriptor_source: DescriptorSource instance
@@ -1468,7 +1464,7 @@ def main():
             )
         else:
             # Full train + hash mode
-            model, hash2uuid, linear_index = build_itq_index(
+            model, hash2uuid, linear_index = generate_nn_index(
                 descriptor_source=source,
                 output_dir=args.output_dir,
                 bit_length=bit_length,

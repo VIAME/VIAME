@@ -180,15 +180,15 @@ def build_index(log_file=""):
     """
     Build ITQ LSH index for efficient nearest neighbor search.
 
-    Uses the build_itq_index module to create an ITQ index from descriptors
+    Uses the generate_nn_index module to create an ITQ index from descriptors
     stored in the database or a CSV file.
     """
     global _log_file
     _log_file = log_file
 
     try:
-        from build_itq_index import (
-            build_itq_index,
+        from generate_nn_index import (
+            generate_nn_index,
             CSVDescriptorSource,
             PostgresDescriptorSource
         )
@@ -222,7 +222,7 @@ def build_index(log_file=""):
 
         output_dir = os.path.join(DATABASE_DIR, "ITQ")
 
-        build_itq_index(
+        generate_nn_index(
             descriptor_source=source,
             output_dir=output_dir,
             bit_length=256,
