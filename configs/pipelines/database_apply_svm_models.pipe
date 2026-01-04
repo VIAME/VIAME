@@ -20,9 +20,8 @@ process reader
   :reader:db:video_name                      [INSERT_ME]
 
 process descriptors
-  :: smqtk_object_track_descriptors
-  relativepath config_file =                 smqtk_desc_index.json
-  :conn_str                                  host=localhost user=postgres
+  :: object_track_descriptors_db
+  :conn_str                                  postgresql:host=localhost;user=postgres
   :video_name                                [INSERT_ME]
 
 process unwrapper

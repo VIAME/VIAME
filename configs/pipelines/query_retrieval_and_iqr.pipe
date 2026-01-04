@@ -35,7 +35,7 @@ connect from descriptor_generator.track_descriptor_set
 process database_query_handler
   :: perform_query
   :external_handler                             true
-  relativepath external_pipeline_file =         smqtk_query.pipe
+  relativepath external_pipeline_file =         query_and_iqr.pipe
   #relativepath augmentation_pipeline_file =     query_augment_image.pipe
   :database_folder                              $CONFIG{global:database_folder}
   :max_result_count                             200
