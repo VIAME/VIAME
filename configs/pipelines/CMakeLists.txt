@@ -328,13 +328,7 @@ endif()
 
 if( VIAME_ENABLE_SMQTK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    smqtk_compute_hashes.json
-    smqtk_desc_index.json
-    smqtk_make_balltree.json
-    smqtk_nn_index.json
-    smqtk_postgres_ingest.json
-    smqtk_query.pipe
-    smqtk_train_itq.json
+    query_and_iqr.pipe
     train_detector_svm_over_fish_detections.conf
     train_detector_svm_over_generic_detections.conf
     train_frame_classifier_libsvm_svm.conf )
