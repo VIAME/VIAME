@@ -8,11 +8,8 @@
 """
 Build ITQ (Iterative Quantization) LSH index for efficient nearest neighbor search.
 
-This tool replaces the SMQTK-based build_standard_index functionality, implementing
-ITQ training and hash code computation using only numpy and standard Python libraries.
-
-The implementation closely matches SMQTK's ItqFunctor for compatibility, with options
-for alternative algorithms.
+This tool implements ITQ training and hash code computation using only numpy
+and standard Python libraries.
 
 The ITQ algorithm:
 1. Optionally normalizes input descriptors
@@ -49,8 +46,7 @@ class ITQModel:
     Iterative Quantization (ITQ) model for locality-sensitive hashing.
 
     This class implements the ITQ algorithm for learning binary hash codes
-    from high-dimensional descriptor vectors. The implementation closely
-    matches SMQTK's ItqFunctor for compatibility.
+    from high-dimensional descriptor vectors.
     """
 
     # PCA method options
@@ -66,7 +62,7 @@ class ITQModel:
         """
         Initialize ITQ model parameters.
 
-        Default values match VIAME's smqtk_train_itq.json configuration.
+        Default values are for the standard ITQ configuration.
 
         Args:
             bit_length: Number of bits in the hash code (default: 256)
@@ -74,12 +70,11 @@ class ITQModel:
             random_seed: Random seed for reproducibility (default: 0)
             normalize: Normalization order for input vectors (default: None = no normalization).
                        Can be any valid numpy.linalg.norm 'ord' parameter (e.g., 2 for L2 norm).
-                       Matches SMQTK's normalize parameter.
-            pca_method: PCA computation method (default: 'cov_eig' to match SMQTK)
-                       - 'cov_eig': Covariance matrix + eigendecomposition (SMQTK default)
+            pca_method: PCA computation method (default: 'cov_eig')
+                       - 'cov_eig': Covariance matrix + eigendecomposition (default)
                        - 'direct_svd': Direct SVD on centered data (more numerically stable)
-            init_method: Rotation matrix initialization method (default: 'svd' to match SMQTK)
-                        - 'svd': SVD orthogonalization (SMQTK default)
+            init_method: Rotation matrix initialization method (default: 'svd')
+                        - 'svd': SVD orthogonalization (default)
                         - 'qr': QR decomposition
         """
         self.bit_length = bit_length
@@ -166,12 +161,10 @@ class ITQModel:
             ux[z >= 0] = 1
 
             # Update rotation matrix using Orthogonal Procrustes
-            # Given: minimize ||ux - v @ r||_F^2 subject to r.T @ r = I
-            # Solution: if ux.T @ v = U @ S @ Vh, then r = Vh.T @ U.T
-            # SMQTK computes: c = ux.T @ v, then r = Vh @ U.T
+            # This matches the original SMQTK ITQ implementation exactly
             c = np.dot(ux.transpose(), v)
             ub, sigma, ua = np.linalg.svd(c)
-            r = np.dot(ua.transpose(), ub.transpose())
+            r = np.dot(ua, ub.transpose())
 
             # Progress reporting
             current_time = time.time()
