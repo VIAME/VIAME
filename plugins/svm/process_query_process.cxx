@@ -121,10 +121,10 @@ create_config_trait( nn_distance_method, std::string, "euclidean",
   "Distance method for nearest neighbor re-ranking after LSH candidate retrieval. "
   "Options: 'euclidean', 'cosine', 'hik' (histogram intersection). "
   "Default is 'euclidean'." );
-create_config_trait( use_platt_scaling, bool, "false",
+create_config_trait( use_platt_scaling, bool, "true",
   "Use custom Platt scaling with HIK distance for probability estimation. "
-  "When false (default), uses libsvm's built-in probability prediction. "
-  "When true, uses custom Platt scaling with explicit HIK distance computation." );
+  "When true (default), uses custom Platt scaling with explicit HIK distance computation. "
+  "When false, uses libsvm's built-in probability prediction." );
 create_config_trait( force_exemplar_scores, bool, "false",
   "Force positive exemplars to score 1.0 and negative exemplars to score 0.0. "
   "When true, exemplar scores are overwritten after prediction. "
@@ -635,7 +635,7 @@ public:
     prob.y = new double[n_total];
     prob.x = new svm_node*[n_total];
 
-    // Fill in positive samples
+    // Fill in positive samples (label +1)
     size_t idx = 0;
     for( const auto& p : m_positive_descriptors )
     {
@@ -644,7 +644,7 @@ public:
       ++idx;
     }
 
-    // Fill in negative samples (manual adjudications)
+    // Fill in negative samples (label -1)
     for( const auto& n : m_negative_descriptors )
     {
       prob.y[idx] = -1.0;
@@ -652,7 +652,7 @@ public:
       ++idx;
     }
 
-    // Fill in auto-selected negative samples
+    // Fill in auto-selected negative samples (label -1)
     for( const auto& n : auto_negatives )
     {
       prob.y[idx] = -1.0;
@@ -800,13 +800,6 @@ public:
 
     for( const auto& entry : m_working_index )
     {
-      // Skip positive and negative exemplars
-      if( m_positive_descriptors.find( entry.first ) != m_positive_descriptors.end() ||
-          m_negative_descriptors.find( entry.first ) != m_negative_descriptors.end() )
-      {
-        continue;
-      }
-
       if( has_valid_model )
       {
         // With SVM model: use distance to decision boundary
@@ -1105,7 +1098,7 @@ private:
     int labels[2];
     svm_get_labels( m_svm_model, labels );
 
-    // Return probability for positive class
+    // Return probability for positive class (label +1)
     return ( labels[0] == 1 ) ? prob_estimates[0] : prob_estimates[1];
   }
 
@@ -1441,8 +1434,8 @@ private:
   unsigned m_nn_max_linear_search = 50000;
   double m_nn_sample_fraction = 0.1;
   unsigned m_autoneg_select_ratio = 0;
-  std::string m_nn_distance_method = "hik";
-  bool m_use_platt_scaling = false;
+  std::string m_nn_distance_method = "euclidean";
+  bool m_use_platt_scaling = true;
   bool m_force_exemplar_scores = false;
 
   std::unordered_map< std::string, descriptor_element > m_positive_descriptors;
@@ -1481,7 +1474,7 @@ public:
     , m_use_lsh_index( true )
     , m_lsh_bit_length( 256 )
     , m_lsh_neighbor_multiplier( 10 )
-    , m_use_platt_scaling( false )
+    , m_use_platt_scaling( true )
     , m_force_exemplar_scores( false )
     , m_index_loaded( false )
     , m_lsh_loaded( false )
