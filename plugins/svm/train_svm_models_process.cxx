@@ -116,7 +116,7 @@ create_config_trait( nn_index_type, std::string, "brute_force",
   "Nearest neighbor index type: 'brute_force' (default) or 'lsh'. "
   "LSH uses ITQ locality-sensitive hashing for faster approximate NN search." );
 create_config_trait( lsh_model_dir, std::string, "",
-  "Directory containing ITQ model files from build_itq_index.py. "
+  "Directory containing ITQ model files from generate_nn_index.py."
   "Required when nn_index_type is 'lsh'." );
 create_config_trait( lsh_bit_length, unsigned, "256",
   "Number of bits in the ITQ hash code. Must match the trained model." );

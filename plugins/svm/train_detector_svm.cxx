@@ -610,7 +610,7 @@ train_detector_svm::priv
     return false;
   }
 
-  // Construct model file paths using the same naming convention as build_itq_index.py
+  // Construct model file paths using the same naming convention as generate_nn_index.py
   std::ostringstream suffix;
   suffix << "b" << lsh_bit_length << "_i" << lsh_itq_iterations << "_r" << lsh_random_seed;
 
@@ -1851,7 +1851,7 @@ train_detector_svm
     "LSH uses ITQ locality-sensitive hashing for faster approximate NN search." );
 
   config->set_value( "lsh_model_dir", d_->lsh_model_dir,
-    "Directory containing ITQ model files from build_itq_index.py. "
+    "Directory containing ITQ model files from generate_nn_index.py."
     "Required when nn_index_type is 'lsh'." );
 
   config->set_value( "lsh_bit_length", d_->lsh_bit_length,
