@@ -296,6 +296,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         list( APPEND LIBRARY_CPP_BUILD --config Release )
         list( APPEND LIBRARY_CPP_INSTALL --config Release )
       endif()
+      if( VIAME_BUILD_MAX_THREADS )
+        list( APPEND LIBRARY_CPP_BUILD -j ${VIAME_BUILD_MAX_THREADS} )
+      endif()
 
       list( APPEND CONDITIONAL_BUILD_CMD
         -DCPP_BUILD_CMD="${LIBRARY_CPP_BUILD}"

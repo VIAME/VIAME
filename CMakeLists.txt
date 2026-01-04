@@ -279,6 +279,11 @@ mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 option( VIAME_FORCEBUILD "Enable force-building of all subpackages" OFF )
 mark_as_advanced( VIAME_FORCEBUILD )
 
+# Control the number of parallel build threads for subprojects like PyTorch.
+# Set this to limit the number of concurrent compilation jobs (e.g., 4 or 8).
+set( VIAME_BUILD_MAX_THREADS "" CACHE STRING "Parallel threads for subprojects (empty = auto)" )
+mark_as_advanced( VIAME_BUILD_MAX_THREADS )
+
 ###
 # Other advanced hidden flags used for disabling core features
 #
@@ -707,6 +712,10 @@ if( VIAME_ENABLE_PYTHON )
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}" )
   list( APPEND PYTHON_DEP_ENV_VARS "PKG_CONFIG_PATH=${VIAME_INSTALL_PREFIX}/lib/pkgconfig" )
+
+  if( VIAME_BUILD_MAX_THREADS )
+    list( APPEND PYTHON_DEP_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
+  endif()
 endif()
 
 if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
