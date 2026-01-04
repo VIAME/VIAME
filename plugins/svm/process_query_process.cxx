@@ -91,10 +91,11 @@ create_config_trait( nn_max_linear_search, unsigned, "50000",
 create_config_trait( nn_sample_fraction, double, "0.1",
   "Fraction of index to sample when using approximate NN search (0.0-1.0). "
   "Only used when index size exceeds nn_max_linear_search." );
-create_config_trait( autoneg_select_ratio, unsigned, "1",
+create_config_trait( autoneg_select_ratio, unsigned, "0",
   "Number of maximally distant descriptors to auto-select as negatives "
   "for each positive example when no negative examples are provided. "
-  "This enables SVM training on the first query iteration." );
+  "Set to 0 (default) to disable auto-negatives. "
+  "Set to 1+ to enable SVM training on the first query iteration." );
 
 // LSH (Locality Sensitive Hashing) config traits for fast approximate NN search
 create_config_trait( use_lsh_index, bool, "true",
@@ -120,10 +121,10 @@ create_config_trait( nn_distance_method, std::string, "hik",
   "Distance method for nearest neighbor re-ranking after LSH candidate retrieval. "
   "Options: 'euclidean', 'cosine', 'hik' (histogram intersection). "
   "Default is 'hik' (histogram intersection)." );
-create_config_trait( use_platt_scaling, bool, "true",
+create_config_trait( use_platt_scaling, bool, "false",
   "Use custom Platt scaling with HIK distance for probability estimation. "
-  "When true (default), uses custom Platt scaling matching the original Python implementation. "
-  "When false, uses libsvm's built-in probability prediction." );
+  "When false (default), uses libsvm's built-in probability prediction. "
+  "When true, uses custom Platt scaling with explicit HIK distance computation." );
 create_config_trait( force_exemplar_scores, bool, "false",
   "Force positive exemplars to score 1.0 and negative exemplars to score 0.0. "
   "When true, exemplar scores are overwritten after prediction. "
@@ -1439,9 +1440,9 @@ private:
   double m_gamma = 0.0078125;
   unsigned m_nn_max_linear_search = 50000;
   double m_nn_sample_fraction = 0.1;
-  unsigned m_autoneg_select_ratio = 1;
+  unsigned m_autoneg_select_ratio = 0;
   std::string m_nn_distance_method = "hik";
-  bool m_use_platt_scaling = true;
+  bool m_use_platt_scaling = false;
   bool m_force_exemplar_scores = false;
 
   std::unordered_map< std::string, descriptor_element > m_positive_descriptors;
@@ -1476,11 +1477,11 @@ public:
     , m_svm_gamma( 0.0078125 )
     , m_nn_max_linear_search( 50000 )
     , m_nn_sample_fraction( 0.1 )
-    , m_autoneg_select_ratio( 1 )
+    , m_autoneg_select_ratio( 0 )
     , m_use_lsh_index( true )
     , m_lsh_bit_length( 256 )
     , m_lsh_neighbor_multiplier( 10 )
-    , m_use_platt_scaling( true )
+    , m_use_platt_scaling( false )
     , m_force_exemplar_scores( false )
     , m_index_loaded( false )
     , m_lsh_loaded( false )
