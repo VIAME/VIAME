@@ -37,6 +37,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include "refine_detections_with_svm.h"
+#include "train_detector_svm.h"
 
 namespace viame {
 
@@ -54,6 +55,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   auto fact = vpm.ADD_ALGORITHM( "svm_refine", viame::refine_detections_with_svm );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Apply svm to refine detection" )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+      ;
+
+  auto fact2 = vpm.ADD_ALGORITHM( "svm", viame::train_detector_svm );
+  fact2->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                        "Train SVM models for object detection" )
       .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
       .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
       .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
