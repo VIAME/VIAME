@@ -201,6 +201,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     ${LIBRARY_PIP_INSTALL_CMD} )
 
   set( LIBRARY_PATCH_COMMAND "" )
+  set( LIBRARY_SYMLINK_CMD
+    ${CMAKE_COMMAND}
+      -DSOURCE_DIR=${LIBRARY_LOCATION}
+      -DBUILD_DIR=${LIBRARY_PIP_BUILD_DIR}
+      -P ${VIAME_CMAKE_DIR}/setup_build_symlink.cmake )
   set( PROJECT_DEPS fletch python-deps )
 
   if( NOT "${LIB}" STREQUAL "pytorch" )
@@ -321,6 +326,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
       LIST_SEPARATOR "----" )
 
+    ExternalProject_Add_Step(${LIB} setup_symlink
+      COMMAND ${LIBRARY_SYMLINK_CMD}
+      DEPENDEES patch
+      DEPENDERS configure )
+
     if( "${LIB}" STREQUAL "mmdeploy" )
       set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy )
       ExternalProject_Add_Step(${LIB}
@@ -341,6 +351,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
       LIST_SEPARATOR "----"
       )
+
+    ExternalProject_Add_Step(${LIB} setup_symlink
+      COMMAND ${LIBRARY_SYMLINK_CMD}
+      DEPENDEES patch
+      DEPENDERS build )
   endif()
 
   # For non-slow packages, use traditional forcebuild method if VIAME_FORCEBUILD is on
