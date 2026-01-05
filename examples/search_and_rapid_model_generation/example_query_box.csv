@@ -1,0 +1,3 @@
+# 1: Detection or Track-id,2: Video or Image Identifier,3: Unique Frame Identifier,4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y),8: Detection or Length Confidence,9: Target Length (0 or -1 if invalid),10-11+: Repeated Species,Confidence Pairs or Attributes
+# metadata,fps: 1,"exported_by: ""dive:typescript""","exported_time: ""1/5/2026, 6:10:16 PM"""
+0,20151023.200145.662.017459.png,0,347,157,558,328,1,-1,unknown,1

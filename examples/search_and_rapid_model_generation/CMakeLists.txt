@@ -4,6 +4,7 @@
 
 set( EXAMPLE_INSTALL_FILES
      README.rst
+     example_query_box.csv
      input_list.txt )
 
 if( WIN32 )
