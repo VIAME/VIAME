@@ -315,7 +315,7 @@ if( VIAME_ENABLE_SVM )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_libsvm:BOOL=ON
-    -Dlibsvm_SELECT_VERSION:STRING=3.1
+    -Dlibsvm_SELECT_VERSION:STRING=3.11
   )
 endif()
 
