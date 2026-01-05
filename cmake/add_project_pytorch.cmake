@@ -134,30 +134,15 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/pytorch-libs/${LIB} )
   endif()
 
-  set( LIBRARY_LOCATION_URL file://${LIBRARY_LOCATION} )
-
-  set( LIBRARY_PIP_CACHE_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-cache )
   set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-build )
-  set( LIBRARY_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-tmp )
-
-  CreateDirectory( ${LIBRARY_PIP_CACHE_DIR} )
   CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
-  CreateDirectory( ${LIBRARY_PIP_TMP_DIR} )
-
-  set( LIBRARY_PIP_BUILD_DIR_CMD -b ${LIBRARY_PIP_BUILD_DIR} )
-  set( LIBRARY_PIP_CACHE_DIR_CMD --cache-dir ${LIBRARY_PIP_CACHE_DIR} )
-
-  # For each python library split the build and install into two steps.
 
   if( VIAME_PYTHON_SYMLINK )
-    # In development mode, install with the -e flag for editable.
     set( LIBRARY_PIP_BUILD_CMD
       ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${Python_EXECUTABLE} -m pip install --user -e . )
   else()
-    # TODO:
-    # replace direct calls to setup.py with `python -m build`
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" )
       # Use pip wheel for pyproject.toml-based packages
       # This avoids creating build directories in source tree
@@ -192,7 +177,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   set( LIBRARY_PYTHON_INSTALL
     ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
-    "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
     "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}"
     ${LIBRARY_PIP_INSTALL_CMD} )
 
@@ -258,7 +242,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( PYTORCH_ENV_VARS_WITH_BUILD_DIR ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
   string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS_WITH_BUILD_DIR}" )
 
-  # Base conditional build command - uses source hash to skip unnecessary rebuilds
   set( CONDITIONAL_BUILD_CMD
     ${CMAKE_COMMAND}
       -DLIB_NAME=${LIB}
@@ -266,7 +249,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       -DHASH_FILE=${LIB_HASH_FILE}
       -DPYTHON_BUILD_CMD="${LIBRARY_PIP_BUILD_CMD}"
       -DENV_VARS="${PYTORCH_ENV_VARS_STR}"
-      -DTMPDIR="${LIBRARY_PIP_TMP_DIR}"
       -DWORKING_DIR=${LIBRARY_LOCATION} )
 
   # mmdeploy has additional C++ build steps
