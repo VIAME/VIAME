@@ -46,21 +46,17 @@ if( VIAME_PYTHON_SYMLINK )
     ${Python_EXECUTABLE} -m pip install --user -e . )
   set( LEARN_INSTALL_CMD )
 else()
-  # This is only required for no symlink install without a -e with older
-  # versions of pip, for never versions the above command works with no -e
   set( LEARN_BUILD_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} setup.py bdist_wheel -d ${LEARN_BUILD_DIR} )
+    ${Python_EXECUTABLE} setup.py
+      build --build-base=${LEARN_BUILD_DIR}
+      bdist_wheel -d ${LEARN_BUILD_DIR} )
   set( LEARN_INSTALL_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${CMAKE_COMMAND} -DWHEEL_DIR=${LEARN_BUILD_DIR}
     -DPYTHON_EXECUTABLE=${Python_EXECUTABLE} -DPython_EXECUTABLE=${Python_EXECUTABLE}
     -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
-
-set( REMAX_BUILD_CMD
-    ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} setup.py build install )
 
 # Install required dependencies and learn repository
 ExternalProject_Add( learn

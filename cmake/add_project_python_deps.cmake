@@ -286,20 +286,22 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pymotmetrics )
 
 set( PROJECT_DEPS fletch python-deps )
 
+set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
+CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
+
 if( VIAME_PYTHON_SYMLINK )
   set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build )
+    ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${Python_EXECUTABLE} -m pip install --user -e . )
 else()
-  set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
-  CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
-
   set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build_ext
-      --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-      --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-      --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+    ${Python_EXECUTABLE} setup.py
+      build --build-base=${LIBRARY_PIP_BUILD_DIR}
+      build_ext
+        --include-dirs="${VIAME_INSTALL_PREFIX}/include"
+        --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
+      bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${CMAKE_COMMAND}
       -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
