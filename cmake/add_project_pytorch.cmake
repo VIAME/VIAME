@@ -159,15 +159,14 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     # TODO:
     # replace direct calls to setup.py with `python -m build`
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" )
-      # Use -m build for pyproject.toml-based packages
-      # FIXME:
-      # If we remove no-isolation then it will complain that pip cannot be found.
-      # I don't know exactly why, but for now it works.
+      # Use pip wheel for pyproject.toml-based packages
+      # This avoids creating build directories in source tree
       set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} -m build
-          --wheel
-          --no-isolation
-          --outdir ${LIBRARY_PIP_BUILD_DIR}
+        ${Python_EXECUTABLE} -m pip wheel
+          --no-build-isolation
+          --no-deps
+          --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
+          ${LIBRARY_LOCATION}
       )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       set( LIBRARY_PIP_BUILD_CMD
