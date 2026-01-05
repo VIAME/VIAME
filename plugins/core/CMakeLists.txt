@@ -244,6 +244,11 @@ if( VIAME_ENABLE_PYTHON )
     processes/core
     utility_processes )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py
+    processes/core
+    bytetrack_tracker )
+
 endif()
 
 if (VIAME_BUILD_TESTS)
