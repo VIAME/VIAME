@@ -152,7 +152,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( VIAME_PYTHON_SYMLINK )
     # In development mode, install with the -e flag for editable.
     set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} setup.py build )
+      ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${Python_EXECUTABLE} -m pip install --user -e . )
   else()
@@ -172,13 +172,16 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py
+          build --build-base=${LIBRARY_PIP_BUILD_DIR}
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     else()
       set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} setup.py build_ext
-          --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-          --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-          --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+        ${Python_EXECUTABLE} setup.py
+          build --build-base=${LIBRARY_PIP_BUILD_DIR}
+          build_ext
+            --include-dirs="${VIAME_INSTALL_PREFIX}/include"
+            --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
+          bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     endif()
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
@@ -276,7 +279,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     # mmdeploy has additional C++ build steps
     if( "${LIB}" STREQUAL "mmdeploy" )
       set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
-      set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
+      set( LIBRARY_CPP_BUILD_DIR ${LIBRARY_PIP_BUILD_DIR} )
       file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
 
       set( LIBRARY_CPP_CONFIG
