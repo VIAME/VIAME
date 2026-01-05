@@ -244,17 +244,18 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   # This prevents unnecessary recompilation when source hasn't changed
   set( LIB_HASH_FILE ${VIAME_BUILD_PREFIX}/src/${LIB}-source-hash.txt )
 
-  # Convert environment variables list to semicolon-separated string for passing to cmake script
+  # Convert lists to ----separated strings for passing through ExternalProject_Add
   set( PYTORCH_ENV_VARS_WITH_BUILD_DIR ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
   string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS_WITH_BUILD_DIR}" )
+  string( REPLACE ";" "----" LIBRARY_PIP_BUILD_CMD_STR "${LIBRARY_PIP_BUILD_CMD}" )
 
   set( CONDITIONAL_BUILD_CMD
     ${CMAKE_COMMAND}
       -DLIB_NAME=${LIB}
       -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
       -DHASH_FILE=${LIB_HASH_FILE}
-      -DPYTHON_BUILD_CMD="${LIBRARY_PIP_BUILD_CMD}"
-      -DENV_VARS="${PYTORCH_ENV_VARS_STR}"
+      -DPYTHON_BUILD_CMD=${LIBRARY_PIP_BUILD_CMD_STR}
+      -DENV_VARS=${PYTORCH_ENV_VARS_STR}
       -DWORKING_DIR=${LIBRARY_LOCATION} )
 
   # mmdeploy has additional C++ build steps

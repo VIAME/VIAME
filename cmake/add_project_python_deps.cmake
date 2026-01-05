@@ -282,20 +282,10 @@ if( VIAME_PYTHON_SYMLINK )
     ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${Python_EXECUTABLE} -m pip install --user -e . )
-
-  set( LIBRARY_PYTHON_BUILD
-    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-    ${LIBRARY_PIP_BUILD_CMD} )
-  set( LIBRARY_PYTHON_INSTALL
-    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-    ${LIBRARY_PIP_INSTALL_CMD} )
 else()
   set( LIBRARY_PIP_BUILD_CMD
     ${Python_EXECUTABLE} setup.py
       build --build-base=${LIBRARY_PIP_BUILD_DIR}
-      build_ext
-        --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-        --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
       bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${CMAKE_COMMAND}
@@ -303,24 +293,14 @@ else()
       -DPython_EXECUTABLE=${Python_EXECUTABLE}
       -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
       -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
-
-  set( LIBRARY_PYTHON_INSTALL
-    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-    ${LIBRARY_PIP_INSTALL_CMD} )
-
-  set( LIB_HASH_FILE ${VIAME_BUILD_PREFIX}/src/pymotmetrics-source-hash.txt )
-  string( REPLACE ";" "----" PYTHON_ENV_VARS_STR "${PYTHON_DEP_ENV_VARS}" )
-
-  set( LIBRARY_PYTHON_BUILD
-    ${CMAKE_COMMAND}
-      -DLIB_NAME=pymotmetrics
-      -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
-      -DHASH_FILE=${LIB_HASH_FILE}
-      -DPYTHON_BUILD_CMD="${LIBRARY_PIP_BUILD_CMD}"
-      -DENV_VARS="${PYTHON_ENV_VARS_STR}"
-      -DWORKING_DIR=${LIBRARY_LOCATION}
-      -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
 endif()
+
+set( LIBRARY_PYTHON_BUILD
+  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+  ${LIBRARY_PIP_BUILD_CMD} )
+set( LIBRARY_PYTHON_INSTALL
+  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
+  ${LIBRARY_PIP_INSTALL_CMD} )
 
 ExternalProject_Add( pymotmetrics
   DEPENDS ${PROJECT_DEPS}
