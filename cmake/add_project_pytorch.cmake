@@ -194,18 +194,15 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PYTHON_BUILD
     ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
     "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
+    "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}"
     ${LIBRARY_PIP_BUILD_CMD} )
   set( LIBRARY_PYTHON_INSTALL
     ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
     "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
+    "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}"
     ${LIBRARY_PIP_INSTALL_CMD} )
 
   set( LIBRARY_PATCH_COMMAND "" )
-  set( LIBRARY_SYMLINK_CMD
-    ${CMAKE_COMMAND}
-      -DSOURCE_DIR=${LIBRARY_LOCATION}
-      -DBUILD_DIR=${LIBRARY_PIP_BUILD_DIR}
-      -P ${VIAME_CMAKE_DIR}/setup_build_symlink.cmake )
   set( PROJECT_DEPS fletch python-deps )
 
   if( NOT "${LIB}" STREQUAL "pytorch" )
@@ -216,7 +213,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     endif()
   endif()
 
-  if( "${LIB}" STREQUAL "bioharn" )
+  if( "${LIB}" STREQUAL "pytorch" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/pytorch
+      ${VIAME_PACKAGES_DIR}/pytorch )
+  elseif( "${LIB}" STREQUAL "bioharn" )
     set( PROJECT_DEPS netharn )
   elseif( "${LIB}" STREQUAL "netharn" )
     set( PROJECT_DEPS mmdetection )
@@ -263,7 +264,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIB_HASH_FILE ${VIAME_BUILD_PREFIX}/src/${LIB}-source-hash.txt )
 
     # Convert environment variables list to semicolon-separated string for passing to cmake script
-    string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS}" )
+    set( PYTORCH_ENV_VARS_WITH_BUILD_DIR ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
+    string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS_WITH_BUILD_DIR}" )
   endif()
 
   if( SLOW_BUILD_PACKAGE )
@@ -326,11 +328,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
       LIST_SEPARATOR "----" )
 
-    ExternalProject_Add_Step(${LIB} setup_symlink
-      COMMAND ${LIBRARY_SYMLINK_CMD}
-      DEPENDEES patch
-      DEPENDERS configure )
-
     if( "${LIB}" STREQUAL "mmdeploy" )
       set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy )
       ExternalProject_Add_Step(${LIB}
@@ -351,11 +348,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
       LIST_SEPARATOR "----"
       )
-
-    ExternalProject_Add_Step(${LIB} setup_symlink
-      COMMAND ${LIBRARY_SYMLINK_CMD}
-      DEPENDEES patch
-      DEPENDERS build )
   endif()
 
   # For non-slow packages, use traditional forcebuild method if VIAME_FORCEBUILD is on
