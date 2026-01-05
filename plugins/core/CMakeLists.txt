@@ -152,6 +152,7 @@ set( process_headers
   accumulate_object_tracks_process.h
   align_multimodal_imagery_process.h
   calibrate_cameras_from_tracks_process.h
+  create_database_query_process.h
   detect_shot_breaks_process.h
   extract_desc_ids_for_training_process.h
   filter_frame_index_process.h
@@ -159,6 +160,7 @@ set( process_headers
   filter_object_tracks_process.h
   measure_objects_process.h
   pair_stereo_detections_process.h
+  query_results_to_tracks_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
   split_tracks_to_feature_landmarks_process.h
@@ -173,6 +175,7 @@ set( process_sources
   accumulate_object_tracks_process.cxx
   align_multimodal_imagery_process.cxx
   calibrate_cameras_from_tracks_process.cxx
+  create_database_query_process.cxx
   detect_shot_breaks_process.cxx
   extract_desc_ids_for_training_process.cxx
   filter_frame_index_process.cxx
@@ -180,6 +183,7 @@ set( process_sources
   filter_object_tracks_process.cxx
   measure_objects_process.cxx
   pair_stereo_detections_process.cxx
+  query_results_to_tracks_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
   split_tracks_to_feature_landmarks_process.cxx
