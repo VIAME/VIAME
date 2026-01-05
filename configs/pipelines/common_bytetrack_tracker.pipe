@@ -1,0 +1,29 @@
+# ==================================================================================
+# ByteTrack multi-object tracker component pipeline.
+#
+# Uses two-stage association: high-confidence detections first, then low-confidence
+# to recover objects during occlusion.
+#
+# Reference: Zhang et al., "ByteTrack: Multi-Object Tracking by Associating
+# Every Detection Box" (ECCV 2022)
+# ==================================================================================
+
+process tracker
+  :: bytetrack_tracker
+
+  # Confidence threshold for first-stage matching (high-confidence detections)
+  :high_thresh                                 0.6
+
+  # Confidence threshold for second-stage matching (low-confidence detections)
+  :low_thresh                                  0.1
+
+  # IOU threshold for matching (cost = 1 - IOU must be below this)
+  :match_thresh                                0.8
+
+  # Number of frames to keep lost tracks before removal
+  :track_buffer                                30
+
+  # Minimum confidence to create new track from unmatched detection
+  :new_track_thresh                            0.6
+
+# -- end of file --
