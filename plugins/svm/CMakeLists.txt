@@ -4,7 +4,7 @@ find_package( OpenCV REQUIRED )
 
 # Find libsvm in the install prefix (lib on Linux, bin or lib on Windows)
 find_library( SVM_LIBRARY
-  NAMES svm libsvm
+  NAMES svm libsvm svm.2 libsvm.so.2
   PATHS ${VIAME_INSTALL_PREFIX}/lib ${VIAME_INSTALL_PREFIX}/bin
   NO_DEFAULT_PATH
 )
