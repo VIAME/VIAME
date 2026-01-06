@@ -385,10 +385,6 @@ if( VIAME_ENABLE_DOCS )
   find_package( Doxygen REQUIRED )
 endif()
 
-if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL )
-  message( FATAL_ERROR "Cannot enable both VIVIA and Seal-TK GUIs" )
-endif()
-
 if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
   message( FATAL_ERROR "Building core VIAME plugins require KWIVER" )
 endif()

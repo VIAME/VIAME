@@ -237,40 +237,6 @@ else()
   )
 endif()
 
-if( VIAME_ENABLE_VIVIA )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_shapelib:BOOL=OFF
-    -Dfletch_ENABLE_VTK:BOOL=ON
-    -Dfletch_ENABLE_VTK_PYTHON:BOOL=OFF
-    -Dfletch_ENABLE_qtExtensions:BOOL=ON
-    -DVTK_SELECT_VERSION:STRING=8.0
-    -DQt_SELECT_VERSION:STRING=4.8.6
-    -DqtExtensions_SELECT_VERSION:STRING=20190905
-    -Dfletch_ENABLE_libkml:BOOL=ON
-  )
-  if( NOT WIN32 )
-    set( FLETCH_DEP_FLAGS
-      ${FLETCH_DEP_FLAGS}
-      -Dfletch_ENABLE_libxml2:BOOL=ON
-    )
-  endif()
-elseif( VIAME_ENABLE_SEAL)
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_qtExtensions:BOOL=ON
-    -Dfletch_ENABLE_VTK:BOOL=OFF
-    -DQt_SELECT_VERSION:STRING=5.11.2
-    -DqtExtensions_SELECT_VERSION:STRING=20200330
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_qtExtensions:BOOL=OFF
-    -Dfletch_ENABLE_VTK:BOOL=OFF
-  )
-endif()
-
 if( EXTERNAL_Qt )
   if( WIN32 )
     set( FLETCH_DEP_FLAGS
@@ -296,6 +262,42 @@ else()
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_Qt:BOOL=OFF
+  )
+endif()
+
+if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL )
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -DQt_SELECT_VERSION:STRING=5.11.2
+    -Dfletch_ENABLE_qtExtensions:BOOL=ON
+    -DqtExtensions_SELECT_VERSION:STRING=20200330
+    -Dfletch_ENABLE_libkml:BOOL=ON
+    -Dfletch_ENABLE_shapelib:BOOL=OFF
+  )
+else()
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_qtExtensions:BOOL=OFF
+  )
+endif()
+
+if( VIAME_ENABLE_VIVIA )
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_VTK:BOOL=ON
+    -Dfletch_ENABLE_VTK_PYTHON:BOOL=OFF
+    -DVTK_SELECT_VERSION:STRING=8.0
+  )
+  if( NOT WIN32 )
+    set( FLETCH_DEP_FLAGS
+      ${FLETCH_DEP_FLAGS}
+      -Dfletch_ENABLE_libxml2:BOOL=ON
+    )
+  endif()
+else()
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_VTK:BOOL=OFF
   )
 endif()
 
