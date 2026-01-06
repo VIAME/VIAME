@@ -1072,13 +1072,13 @@ private:
         }
       }
 
-      // Compute histogram intersection KERNEL (similarity), not distance
-      // HIK kernel = intersection_sum, distance = 1 - intersection_sum
-      // For SVM margin computation, we need the kernel value
-      double kernel_value = 1.0 - histogram_intersection_distance( sv, vec );
+      // Compute histogram intersection distance
+      // SMQTK uses distance directly in margin computation, not kernel value
+      // margin = sum(sv_coef[i] * HIK_distance(SV[i], vec))
+      double dist = histogram_intersection_distance( sv, vec );
 
       // sv_coef is alpha * y for each SV (for binary classification, sv_coef[0])
-      margin += m_svm_model->sv_coef[0][i] * kernel_value;
+      margin += m_svm_model->sv_coef[0][i] * dist;
     }
 
     // Apply Platt scaling formula
