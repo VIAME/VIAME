@@ -181,10 +181,17 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
   endif()
 
+  # Convert install command and env vars to ----separated strings for the wrapper script
+  set( PYTORCH_INSTALL_ENV_VARS ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
+  string( REPLACE ";" "----" PYTORCH_INSTALL_CMD_STR "${LIBRARY_PIP_INSTALL_CMD}" )
+  string( REPLACE ";" "----" PYTORCH_INSTALL_ENV_STR "${PYTORCH_INSTALL_ENV_VARS}" )
+
   set( LIBRARY_PYTHON_INSTALL
-    ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
-    "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}"
-    ${LIBRARY_PIP_INSTALL_CMD} )
+    ${CMAKE_COMMAND}
+      -DCOMMAND_TO_RUN=${PYTORCH_INSTALL_CMD_STR}
+      -DENV_VARS=${PYTORCH_INSTALL_ENV_STR}
+      -DWORKING_DIR=${LIBRARY_LOCATION}
+      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 
   set( LIBRARY_PATCH_COMMAND "" )
   set( PROJECT_DEPS fletch python-deps )

@@ -12,8 +12,16 @@ set( ONNXRUNTIME_PIP_INSTALL_CMD
 
 set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download
   --no-deps onnxruntime==${ONNXRUNTIME_VERSION} -d "${ONNXRUNTIME_DOWNLOAD_DIR}" )
-set( ONNXRUNTIME_PYTHON_INSTALL ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  ${ONNXRUNTIME_PIP_INSTALL_CMD} )
+
+# Convert install command and env vars to ----separated strings for the wrapper script
+string( REPLACE ";" "----" ONNX_INSTALL_CMD_STR "${ONNXRUNTIME_PIP_INSTALL_CMD}" )
+string( REPLACE ";" "----" ONNX_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
+set( ONNXRUNTIME_PYTHON_INSTALL
+  ${CMAKE_COMMAND}
+    -DCOMMAND_TO_RUN=${ONNX_INSTALL_CMD_STR}
+    -DENV_VARS=${ONNX_ENV_STR}
+    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 
 ExternalProject_Add( ${ONNXRUNTIME_PYTHON}
   DEPENDS fletch python-deps

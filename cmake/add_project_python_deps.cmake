@@ -240,9 +240,16 @@ foreach( ID RANGE ${DEP_COUNT} )
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
+  # Build the full command list and convert to ----separated string
+  set( PYTHON_DEP_FULL_CMD ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD} )
+  string( REPLACE ";" "----" PYTHON_DEP_CMD_STR "${PYTHON_DEP_FULL_CMD}" )
+  string( REPLACE ";" "----" PYTHON_DEP_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
   set( PYTHON_DEP_BUILD
-    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-      ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD}
+    ${CMAKE_COMMAND}
+      -DCOMMAND_TO_RUN=${PYTHON_DEP_CMD_STR}
+      -DENV_VARS=${PYTHON_DEP_ENV_STR}
+      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake
     )
 
   if( "${DEP}" STREQUAL "pytorch" )
@@ -295,12 +302,23 @@ else()
       -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
+# Convert commands and env vars to ----separated strings for the wrapper script
+string( REPLACE ";" "----" LIBRARY_BUILD_CMD_STR "${LIBRARY_PIP_BUILD_CMD}" )
+string( REPLACE ";" "----" LIBRARY_INSTALL_CMD_STR "${LIBRARY_PIP_INSTALL_CMD}" )
+string( REPLACE ";" "----" PYMOT_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
 set( LIBRARY_PYTHON_BUILD
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  ${LIBRARY_PIP_BUILD_CMD} )
+  ${CMAKE_COMMAND}
+    -DCOMMAND_TO_RUN=${LIBRARY_BUILD_CMD_STR}
+    -DENV_VARS=${PYMOT_ENV_STR}
+    -DWORKING_DIR=${LIBRARY_LOCATION}
+    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 set( LIBRARY_PYTHON_INSTALL
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  ${LIBRARY_PIP_INSTALL_CMD} )
+  ${CMAKE_COMMAND}
+    -DCOMMAND_TO_RUN=${LIBRARY_INSTALL_CMD_STR}
+    -DENV_VARS=${PYMOT_ENV_STR}
+    -DWORKING_DIR=${LIBRARY_LOCATION}
+    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 
 ExternalProject_Add( pymotmetrics
   DEPENDS ${PROJECT_DEPS}
