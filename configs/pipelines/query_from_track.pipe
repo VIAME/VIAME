@@ -116,22 +116,14 @@ connect from image_set_creator.image_set
 
 # ============================ CONVERT RESULTS TO TRACKS ===========================
 
-process results_to_tracks
-  :: query_results_to_tracks
+process track_writer
+  :: write_query_results_as_tracks
   :output_label                               query_result
   :use_relevancy_as_confidence                true
-
-connect from query_handler.query_result
-        to   results_to_tracks.query_result
-
-# ================================== TRACK OUTPUT ==================================
-
-process track_writer
-  :: write_object_track
   :file_name                                  query_results.csv
   :writer:type                                viame_csv
 
-connect from results_to_tracks.object_track_set
-        to   track_writer.object_track_set
+connect from query_handler.query_result
+        to   track_writer.query_result
 
 # -- end of file --

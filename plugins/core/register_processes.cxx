@@ -23,7 +23,7 @@
 #include "calibrate_cameras_from_tracks_process.h"
 #include "split_tracks_to_feature_landmarks_process.h"
 #include "pair_stereo_detections_process.h"
-#include "query_results_to_tracks_process.h"
+#include "write_query_results_as_tracks_process.h"
 #include "create_database_query_process.h"
 #include "image_to_image_set_process.h"
 
@@ -215,13 +215,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::query_results_to_tracks_process );
+  fact = vpm.ADD_PROCESS( viame::core::write_query_results_as_tracks_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "query_results_to_tracks" )
+                        "write_query_results_as_tracks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Convert query results to object track set with NN scores as confidence" )
+                    "Write query results as object track CSV with NN scores as confidence" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

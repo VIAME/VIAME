@@ -4,10 +4,10 @@
 
 /**
  * \file
- * \brief Convert query results to object track set
+ * \brief Write query results as object track CSV
  */
 
-#include "query_results_to_tracks_process.h"
+#include "write_query_results_as_tracks_process.h"
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
@@ -21,10 +21,9 @@
 #include <vital/types/object_track_set.h>
 #include <vital/types/query_result_set.h>
 #include <vital/types/track_descriptor.h>
+#include <vital/algo/write_object_track_set.h>
 
-#include <sstream>
-#include <iostream>
-#include <limits>
+#include <map>
 
 
 namespace viame
@@ -41,9 +40,22 @@ create_config_trait( output_label, std::string, "query_result",
 create_config_trait( use_relevancy_as_confidence, bool, "true",
   "Use the query result relevancy score as the detection confidence" );
 
+create_config_trait( file_name, std::string, "",
+  "Output file name for writing tracks. If empty, no file is written." );
+
+create_algorithm_name_config_trait( writer );
+
+// Structure to hold tracks grouped by frame
+struct frame_track_info
+{
+  kv::timestamp timestamp;
+  std::string stream_id;
+  std::vector< kv::track_sptr > tracks;
+};
+
 //------------------------------------------------------------------------------
 // Private implementation class
-class query_results_to_tracks_process::priv
+class write_query_results_as_tracks_process::priv
 {
 public:
   priv();
@@ -52,70 +64,126 @@ public:
   // Configuration values
   std::string m_output_label;
   bool m_use_relevancy_as_confidence;
+  std::string m_file_name;
+
+  // Track writer algorithm
+  kv::algo::write_object_track_set_sptr m_writer;
 
   // Track ID counter
   kv::track_id_t m_next_track_id;
+
+  // Collected frames for writing (frame_id -> frame_track_info)
+  std::map< kv::frame_id_t, frame_track_info > m_frame_tracks;
 };
 
 // =============================================================================
 
-query_results_to_tracks_process
-::query_results_to_tracks_process( kv::config_block_sptr const& config )
+write_query_results_as_tracks_process
+::write_query_results_as_tracks_process( kv::config_block_sptr const& config )
   : process( config ),
-    d( new query_results_to_tracks_process::priv() )
+    d( new write_query_results_as_tracks_process::priv() )
 {
   make_ports();
   make_config();
+
+  // Set data checking level to ensure this sink process is stepped
+  set_data_checking_level( check_sync );
 }
 
 
-query_results_to_tracks_process
-::~query_results_to_tracks_process()
+write_query_results_as_tracks_process
+::~write_query_results_as_tracks_process()
 {
+  // Write and close writer if still open (safety net for cases where
+  // completion signal wasn't received)
+  if( d->m_writer && !d->m_frame_tracks.empty() )
+  {
+    for( auto& frame_pair : d->m_frame_tracks )
+    {
+      auto& info = frame_pair.second;
+      auto track_set = std::make_shared< kv::object_track_set >( info.tracks );
+      d->m_writer->write_set( track_set, info.timestamp, info.stream_id );
+    }
+    d->m_writer->close();
+  }
 }
 
 
 // -----------------------------------------------------------------------------
 void
-query_results_to_tracks_process
+write_query_results_as_tracks_process
 ::_configure()
 {
   d->m_output_label = config_value_using_trait( output_label );
   d->m_use_relevancy_as_confidence = config_value_using_trait( use_relevancy_as_confidence );
+  d->m_file_name = config_value_using_trait( file_name );
+
+  // Configure the writer if file name is specified
+  if( !d->m_file_name.empty() )
+  {
+    kv::config_block_sptr algo_config = get_config();
+
+    kv::algo::write_object_track_set::set_nested_algo_configuration_using_trait(
+      writer,
+      algo_config,
+      d->m_writer );
+
+    if( !d->m_writer )
+    {
+      LOG_WARN( logger(), "Unable to create track writer, will not write output file" );
+    }
+  }
 }
 
 
 // -----------------------------------------------------------------------------
 void
-query_results_to_tracks_process
+write_query_results_as_tracks_process
+::_init()
+{
+  // Open the writer file
+  if( d->m_writer && !d->m_file_name.empty() )
+  {
+    d->m_writer->open( d->m_file_name );
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+void
+write_query_results_as_tracks_process
 ::_step()
 {
-  std::cerr << "[query_results_to_tracks] _step() called" << std::endl;
-
   // Check for completion signal
   auto const& p_info = peek_at_port_using_trait( query_result );
 
   if( p_info.datum->type() == sprokit::datum::complete )
   {
-    std::cerr << "[query_results_to_tracks] Received completion signal" << std::endl;
     grab_edge_datum_using_trait( query_result );
+
+    // Write all accumulated tracks grouped by frame
+    if( d->m_writer )
+    {
+      for( auto& frame_pair : d->m_frame_tracks )
+      {
+        auto& info = frame_pair.second;
+        auto track_set = std::make_shared< kv::object_track_set >( info.tracks );
+        d->m_writer->write_set( track_set, info.timestamp, info.stream_id );
+      }
+      d->m_writer->close();
+      d->m_writer.reset();
+      d->m_frame_tracks.clear();
+    }
+
     mark_process_as_complete();
     return;
   }
 
-  kv::query_result_set_sptr query_results;
-
-  query_results = grab_from_port_using_trait( query_result );
-
-  std::vector< kv::track_sptr > output_tracks;
-
-  std::cerr << "[query_results_to_tracks] query_results is "
-            << (query_results ? "not null" : "null") << std::endl;
+  kv::query_result_set_sptr query_results = grab_from_port_using_trait( query_result );
 
   if( query_results )
   {
-    std::cerr << "[query_results_to_tracks] query_results size: "
-              << query_results->size() << std::endl;
+
     for( auto const& result : *query_results )
     {
       if( !result )
@@ -169,12 +237,23 @@ query_results_to_tracks_process
               frame, time, det );
 
             trk->append( state );
+
+            // Store frame info for writing
+            if( d->m_frame_tracks.find( frame ) == d->m_frame_tracks.end() )
+            {
+              frame_track_info info;
+              info.timestamp = ts;
+              info.stream_id = stream_id;
+              d->m_frame_tracks[ frame ] = info;
+            }
           }
 
           // Only add track if it has states
           if( trk->size() > 0 )
           {
-            output_tracks.push_back( trk );
+            // Add to frame-grouped tracks for writing
+            kv::frame_id_t last_frame = trk->back()->frame();
+            d->m_frame_tracks[ last_frame ].tracks.push_back( trk );
           }
         }
       }
@@ -194,6 +273,8 @@ query_results_to_tracks_process
           // Clone the track with updated confidence
           kv::track_sptr new_trk = kv::track::create();
           new_trk->set_id( d->m_next_track_id++ );
+
+          kv::frame_id_t last_frame = 0;
 
           for( auto const& state_ptr : *trk )
           {
@@ -222,67 +303,71 @@ query_results_to_tracks_process
               ots->frame(), ots->time(), new_det );
 
             new_trk->append( new_state );
+
+            // Store frame info for writing
+            kv::frame_id_t frame = ots->frame();
+            if( d->m_frame_tracks.find( frame ) == d->m_frame_tracks.end() )
+            {
+              kv::timestamp ts( ots->time(), frame );
+              frame_track_info info;
+              info.timestamp = ts;
+              info.stream_id = stream_id;
+              d->m_frame_tracks[ frame ] = info;
+            }
+
+            last_frame = frame;
           }
 
           if( new_trk->size() > 0 )
           {
-            output_tracks.push_back( new_trk );
+            d->m_frame_tracks[ last_frame ].tracks.push_back( new_trk );
           }
         }
       }
     }
   }
-
-  // Create output track set
-  auto output_set = std::make_shared< kv::object_track_set >( output_tracks );
-
-  std::cerr << "[query_results_to_tracks] Outputting " << output_tracks.size()
-            << " tracks" << std::endl;
-
-  push_to_port_using_trait( object_track_set, output_set );
 }
 
 
 // -----------------------------------------------------------------------------
 void
-query_results_to_tracks_process
+write_query_results_as_tracks_process
 ::make_ports()
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
 
   required.insert( flag_required );
 
   // -- input --
   declare_input_port_using_trait( query_result, required );
-
-  // -- output --
-  declare_output_port_using_trait( object_track_set, optional );
 }
 
 
 // -----------------------------------------------------------------------------
 void
-query_results_to_tracks_process
+write_query_results_as_tracks_process
 ::make_config()
 {
   declare_config_using_trait( output_label );
   declare_config_using_trait( use_relevancy_as_confidence );
+  declare_config_using_trait( file_name );
+  declare_config_using_trait( writer );
 }
 
 
 // =============================================================================
-query_results_to_tracks_process::priv
+write_query_results_as_tracks_process::priv
 ::priv()
   : m_output_label( "query_result" )
   , m_use_relevancy_as_confidence( true )
+  , m_file_name( "" )
   , m_next_track_id( 0 )
 {
 }
 
 
-query_results_to_tracks_process::priv
+write_query_results_as_tracks_process::priv
 ::~priv()
 {
 }

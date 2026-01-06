@@ -4,11 +4,11 @@
 
 /**
  * \file
- * \brief Convert query results to object track set
+ * \brief Write query results as object track CSV
  */
 
-#ifndef VIAME_CORE_QUERY_RESULTS_TO_TRACKS_PROCESS_H
-#define VIAME_CORE_QUERY_RESULTS_TO_TRACKS_PROCESS_H
+#ifndef VIAME_CORE_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H
+#define VIAME_CORE_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -24,24 +24,25 @@ namespace core
 
 // -----------------------------------------------------------------------------
 /**
- * @brief Converts query_result_set to object_track_set
+ * @brief Writes query results as object track CSV
  *
  * This process takes query results (from a database query) and extracts
- * the bounding box information from the track descriptor history to create
- * an object_track_set. The relevancy score from each query result is used
+ * the bounding box information from the track descriptor history to write
+ * an object track CSV. The relevancy score from each query result is used
  * as the detection confidence. This supports both single-frame detections
  * (as single-state tracks) and multi-frame tracks.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT query_results_to_tracks_process
+class VIAME_PROCESSES_CORE_NO_EXPORT write_query_results_as_tracks_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  query_results_to_tracks_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~query_results_to_tracks_process();
+  write_query_results_as_tracks_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~write_query_results_as_tracks_process();
 
 protected:
   virtual void _configure();
+  virtual void _init();
   virtual void _step();
 
 private:
@@ -51,9 +52,9 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class query_results_to_tracks_process
+}; // end class write_query_results_as_tracks_process
 
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_QUERY_RESULTS_TO_TRACKS_PROCESS_H
+#endif // VIAME_CORE_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H
