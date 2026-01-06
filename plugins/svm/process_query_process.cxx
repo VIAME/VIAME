@@ -1488,11 +1488,13 @@ private:
     std::priority_queue< pair_type > pq;
 
     // Try LSH-based search first for fast approximate nearest neighbors
-    // Algorithm: get k unique hashes, expand to all UIDs, re-rank by distance
+    // Algorithm: get k*multiplier unique hashes, expand to all UIDs, re-rank by distance
     if( m_lsh_index_ref && m_lsh_index_ref->is_loaded() )
     {
-      // Get k unique hashes, expand to all UIDs with those hashes
-      auto expanded_uids = m_lsh_index_ref->find_neighbors_by_hash( query, k );
+      // Get k*multiplier unique hashes, expand to all UIDs with those hashes
+      // The multiplier increases the candidate pool for better recall
+      size_t num_hashes = k * m_lsh_neighbor_multiplier;
+      auto expanded_uids = m_lsh_index_ref->find_neighbors_by_hash( query, num_hashes );
 
       // Re-rank candidates using configured distance method
       for( const std::string& uid : expanded_uids )
