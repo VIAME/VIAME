@@ -863,6 +863,11 @@ public:
             reordered.push_back( feedback[right] );
             ++right;
           }
+          else
+          {
+            // Safety break to prevent infinite loop
+            break;
+          }
           pick_left = !pick_left;
         }
         feedback = std::move( reordered );
@@ -1014,8 +1019,9 @@ private:
     return nodes;
   }
 
-  // Custom Platt scaling using histogram intersection distance.
-  // Computes: margin = sum(sv_coef[i] * HIK_distance(SV[i], test_vec))
+  // Custom Platt scaling using histogram intersection kernel.
+  // Computes: margin = sum(sv_coef[i] * HIK_kernel(SV[i], test_vec))
+  // where HIK_kernel = sum(min(a[i], b[i])) is the intersection (similarity)
   // Then applies: prob = 1.0 / (1.0 + exp((margin - rho) * probA + probB))
   double predict_score_platt( const std::vector< double >& vec ) const
   {
@@ -1066,11 +1072,13 @@ private:
         }
       }
 
-      // Compute histogram intersection distance
-      double dist = histogram_intersection_distance( sv, vec );
+      // Compute histogram intersection KERNEL (similarity), not distance
+      // HIK kernel = intersection_sum, distance = 1 - intersection_sum
+      // For SVM margin computation, we need the kernel value
+      double kernel_value = 1.0 - histogram_intersection_distance( sv, vec );
 
       // sv_coef is alpha * y for each SV (for binary classification, sv_coef[0])
-      margin += m_svm_model->sv_coef[0][i] * dist;
+      margin += m_svm_model->sv_coef[0][i] * kernel_value;
     }
 
     // Apply Platt scaling formula
@@ -1139,13 +1147,14 @@ private:
       return 0.0;
     }
 
-    // Compute mean histogram intersection similarity to positive descriptors
-    // HI distance is 0 for identical, 1 for no intersection
-    // So similarity = 1 - distance
+    // Compute mean cosine similarity to positive descriptors
+    // Cosine similarity is better for unnormalized feature vectors (like CNN features)
+    // Returns value in [0, 1] where 1 = identical direction
     double total_similarity = 0.0;
     for( const auto& p : m_positive_descriptors )
     {
-      double dist = histogram_intersection_distance( vec, p.second.vector );
+      double dist = cosine_distance( vec, p.second.vector );
+      // Cosine distance is in [0, 1], so similarity = 1 - distance
       total_similarity += ( 1.0 - dist );
     }
 
