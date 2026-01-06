@@ -62,8 +62,8 @@ with descriptors generated around generic objects to be queried upon. Here, [typ
 be 'around_detections', 'detection_and_tracking', or 'full_frame_only', depending on if you want
 to run matching on spatio-temporal object tracks, object detections, or full frames respectively
 (see VIAME quick start guide). If you want to run it on a custom selection of images, make a file
-list of images called 'input_list.txt' containing your images, one per line. For example, if you
-have a folder containing png images, run 'ls [folder]/*.png > input_list.txt' on the command line
+list of images called 'ingest_list.txt' containing your images, one per line. For example, if you
+have a folder containing png images, run 'ls [folder]/*.png > ingest_list.txt' on the command line
 to make this list. Alternatively, if ingesting videos, make a directory called 'videos' which contains
 all of your .mpg, .avi, .etc videos. If you look in the ingest scripts, you can see links to these
 sources if you wish to change them. Next run the ingest script, as below.
@@ -236,7 +236,7 @@ Re-Run Models on Additional Data
 If you have one or more .svm model files in your category_models folder, you can run the
 'bash process_list_using_models.sh' script in your project folder. This can either be on
 the same data you just processed, or new data. By default, this script consumes the supplied
-input_list.txt and produces a detection file called 'svm_detections.csv' containing a probability
+ingest_list.txt and produces a detection file called 'svm_detections.csv' containing a probability
 for each input model in the category_models directory per detection. Alternatively this pipeline,
 this can be run from `within the annotation GUI`_.
 

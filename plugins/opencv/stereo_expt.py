@@ -17,7 +17,7 @@ import scipy.io
 import pandas as pd
 
 from os.path import expanduser
-from . import ocv_stereo_algos as ctalgo
+from . import stereo_algos as ctalgo
 
 def to_mat_format():
     import pandas as pd
