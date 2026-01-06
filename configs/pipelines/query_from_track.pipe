@@ -98,7 +98,7 @@ connect from track_descriptor.track_descriptor_set
 process query_handler
   :: perform_query
   :external_handler                           true
-  relativepath external_pipeline_file =       smqtk_query.pipe
+  relativepath external_pipeline_file =       query_and_iqr.pipe
   :database_folder                            database
   :max_result_count                           100
   :unused_descriptors_as_negative             false
