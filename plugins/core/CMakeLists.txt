@@ -157,6 +157,7 @@ set( process_headers
   extract_desc_ids_for_training_process.h
   filter_frame_index_process.h
   filter_frame_process.h
+  image_to_image_set_process.h
   filter_object_tracks_process.h
   measure_objects_process.h
   pair_stereo_detections_process.h
@@ -180,6 +181,7 @@ set( process_sources
   extract_desc_ids_for_training_process.cxx
   filter_frame_index_process.cxx
   filter_frame_process.cxx
+  image_to_image_set_process.cxx
   filter_object_tracks_process.cxx
   measure_objects_process.cxx
   pair_stereo_detections_process.cxx

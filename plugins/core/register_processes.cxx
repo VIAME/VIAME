@@ -25,6 +25,7 @@
 #include "pair_stereo_detections_process.h"
 #include "query_results_to_tracks_process.h"
 #include "create_database_query_process.h"
+#include "image_to_image_set_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -231,6 +232,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Create database query from track descriptors for use with perform_query" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::image_to_image_set_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "image_to_image_set" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Convert single image to image_set" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

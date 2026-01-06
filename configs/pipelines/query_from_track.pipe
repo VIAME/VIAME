@@ -34,6 +34,7 @@ connect from downsampler.output_2
 # Convert tracks to detections for descriptor computation
 process track_to_detection
   :: convert_tracks_to_detections
+  :frame_ids_only                             true
 
 connect from track_reader.object_track_set
         to   track_to_detection.object_track_set
@@ -74,6 +75,14 @@ connect from downsampler.timestamp
 connect from track_initializer.object_track_set
         to   track_descriptor.object_track_set
 
+# ============================ CREATE IMAGE SET =====================================
+
+process image_set_creator
+  :: image_to_image_set
+
+connect from downsampler.output_1
+        to   image_set_creator.image
+
 # ============================ CREATE DATABASE QUERY ===============================
 
 process create_query
@@ -102,6 +111,8 @@ connect from create_query.database_query
         to   query_handler.database_query
 connect from track_descriptor.track_descriptor_set
         to   query_handler.track_descriptor_set
+connect from image_set_creator.image_set
+        to   query_handler.image_set
 
 # ============================ CONVERT RESULTS TO TRACKS ===========================
 
@@ -120,8 +131,6 @@ process track_writer
   :file_name                                  query_results.csv
   :writer:type                                viame_csv
 
-connect from downsampler.timestamp
-        to   track_writer.timestamp
 connect from results_to_tracks.object_track_set
         to   track_writer.object_track_set
 

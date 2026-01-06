@@ -98,9 +98,30 @@ void
 create_database_query_process
 ::_step()
 {
+  std::cerr << "[create_database_query] _step() called" << std::endl;
+
+  // Check for completion signal
+  auto const& p_info = peek_at_port_using_trait( track_descriptor_set );
+
+  if( p_info.datum->type() == sprokit::datum::complete )
+  {
+    std::cerr << "[create_database_query] Received completion signal" << std::endl;
+    grab_edge_datum_using_trait( track_descriptor_set );
+    mark_process_as_complete();
+    return;
+  }
+
   kv::track_descriptor_set_sptr descriptors;
 
   descriptors = grab_from_port_using_trait( track_descriptor_set );
+
+  std::cerr << "[create_database_query] descriptors is "
+            << (descriptors ? "not null" : "null") << std::endl;
+  if( descriptors )
+  {
+    std::cerr << "[create_database_query] descriptors size: "
+              << descriptors->size() << std::endl;
+  }
 
   // Create new database query
   auto query = std::make_shared< kv::database_query >();
@@ -121,6 +142,9 @@ create_database_query_process
 
   // Set threshold
   query->set_threshold( d->m_threshold );
+
+  std::cerr << "[create_database_query] Pushing query with id: "
+            << query->id().value() << std::endl;
 
   push_to_port_using_trait( database_query, query );
 }

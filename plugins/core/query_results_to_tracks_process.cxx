@@ -90,14 +90,32 @@ void
 query_results_to_tracks_process
 ::_step()
 {
+  std::cerr << "[query_results_to_tracks] _step() called" << std::endl;
+
+  // Check for completion signal
+  auto const& p_info = peek_at_port_using_trait( query_result );
+
+  if( p_info.datum->type() == sprokit::datum::complete )
+  {
+    std::cerr << "[query_results_to_tracks] Received completion signal" << std::endl;
+    grab_edge_datum_using_trait( query_result );
+    mark_process_as_complete();
+    return;
+  }
+
   kv::query_result_set_sptr query_results;
 
   query_results = grab_from_port_using_trait( query_result );
 
   std::vector< kv::track_sptr > output_tracks;
 
+  std::cerr << "[query_results_to_tracks] query_results is "
+            << (query_results ? "not null" : "null") << std::endl;
+
   if( query_results )
   {
+    std::cerr << "[query_results_to_tracks] query_results size: "
+              << query_results->size() << std::endl;
     for( auto const& result : *query_results )
     {
       if( !result )
@@ -107,6 +125,9 @@ query_results_to_tracks_process
 
       double confidence = d->m_use_relevancy_as_confidence ?
         result->relevancy_score() : 1.0;
+
+      // Get stream_id (source video/image identifier) from result
+      std::string stream_id = result->stream_id();
 
       // Get track descriptors from the result
       kv::track_descriptor_set_sptr descriptors = result->descriptors();
@@ -214,6 +235,9 @@ query_results_to_tracks_process
 
   // Create output track set
   auto output_set = std::make_shared< kv::object_track_set >( output_tracks );
+
+  std::cerr << "[query_results_to_tracks] Outputting " << output_tracks.size()
+            << " tracks" << std::endl;
 
   push_to_port_using_trait( object_track_set, output_set );
 }
