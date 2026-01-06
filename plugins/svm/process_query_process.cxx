@@ -1163,11 +1163,11 @@ private:
 
   // Auto-select negative examples by finding the most distant descriptors
   // from each positive example using histogram intersection distance.
-  // Auto-negatives are selected from the working index (neighbors of positives)
-  // to find "hard negatives" that are close but not positive.
+  // Auto-negatives are selected from the FULL descriptor index (like SMQTK)
+  // to find the most distant descriptors in the entire dataset.
   std::vector< descriptor_element > select_auto_negatives() const
   {
-    if( m_working_index.empty() ||
+    if( !m_full_index_ref || m_full_index_ref->empty() ||
         m_positive_descriptors.empty() || m_autoneg_select_ratio == 0 )
     {
       return {};
@@ -1176,7 +1176,8 @@ private:
     std::unordered_set< std::string > selected_uids;
     std::vector< descriptor_element > auto_negatives;
 
-    // For each positive, find the most distant descriptors in the working index
+    // For each positive, find the most distant descriptors in the FULL index
+    // (matching SMQTK behavior which selects from the entire descriptor cache)
     for( const auto& pos : m_positive_descriptors )
     {
       // Priority queue to track most distant descriptors (min-heap by distance)
@@ -1185,7 +1186,7 @@ private:
       std::priority_queue< pair_type, std::vector< pair_type >,
         std::greater< pair_type > > pq;
 
-      for( const auto& entry : m_working_index )
+      for( const auto& entry : *m_full_index_ref )
       {
         // Skip if already a positive or negative or already selected
         if( m_positive_descriptors.find( entry.first ) !=
@@ -1205,7 +1206,7 @@ private:
 
         // Use histogram intersection distance
         double dist = histogram_intersection_distance(
-          pos.second.vector, entry.second.vector );
+          pos.second.vector, entry.second );
 
         if( pq.size() < m_autoneg_select_ratio )
         {
@@ -1225,7 +1226,7 @@ private:
         if( selected_uids.find( uid ) == selected_uids.end() )
         {
           selected_uids.insert( uid );
-          auto_negatives.push_back( m_working_index.at( uid ) );
+          auto_negatives.emplace_back( uid, m_full_index_ref->at( uid ) );
         }
         pq.pop();
       }
