@@ -144,10 +144,51 @@ struct descriptor_element
 
 //--------------------------------------------------------------------------------
 // Simple numpy file reader for 1D and 2D arrays
-// Supports float64 and uint8 types (sufficient for ITQ model and hash codes)
+// Supports float64, complex128, and uint8 types (sufficient for ITQ model and hash codes)
 class numpy_array_reader
 {
 public:
+  // Parse dtype descriptor from numpy header
+  // Returns: "f8" for float64, "c16" for complex128, "u1" for uint8, etc.
+  static std::string parse_dtype( const std::string& header )
+  {
+    // Look for 'descr': '<f8' or 'descr': '<c16' etc.
+    size_t descr_start = header.find( "'descr':" );
+    if( descr_start == std::string::npos )
+    {
+      descr_start = header.find( "\"descr\":" );
+    }
+    if( descr_start == std::string::npos )
+    {
+      return "";
+    }
+
+    // Find the quote after the colon
+    size_t quote_start = header.find_first_of( "'\"", descr_start + 8 );
+    if( quote_start == std::string::npos )
+    {
+      return "";
+    }
+
+    char quote_char = header[quote_start];
+    size_t quote_end = header.find( quote_char, quote_start + 1 );
+    if( quote_end == std::string::npos )
+    {
+      return "";
+    }
+
+    std::string descr = header.substr( quote_start + 1, quote_end - quote_start - 1 );
+
+    // Strip byte order prefix (<, >, |, =)
+    if( !descr.empty() && ( descr[0] == '<' || descr[0] == '>' ||
+                            descr[0] == '|' || descr[0] == '=' ) )
+    {
+      descr = descr.substr( 1 );
+    }
+
+    return descr;
+  }
+
   static bool read_float64_array( const std::string& filepath,
                                    std::vector< double >& out_data,
                                    std::vector< size_t >& out_shape )
@@ -185,6 +226,10 @@ public:
     std::string header( header_len, '\0' );
     file.read( &header[0], header_len );
 
+    // Parse dtype to check for complex128
+    std::string dtype = parse_dtype( header );
+    bool is_complex128 = ( dtype == "c16" );
+
     // Parse shape from header (simple parsing for common cases)
     out_shape.clear();
     size_t shape_start = header.find( "\'shape\': (" );
@@ -214,10 +259,28 @@ public:
       total_elements *= dim;
     }
 
-    // Read data
-    out_data.resize( total_elements );
-    file.read( reinterpret_cast< char* >( out_data.data() ),
-               total_elements * sizeof( double ) );
+    // Read data based on dtype
+    if( is_complex128 )
+    {
+      // complex128: 16 bytes per element (8 real + 8 imag)
+      // Read all data, then extract only real parts
+      std::vector< double > raw_data( total_elements * 2 );
+      file.read( reinterpret_cast< char* >( raw_data.data() ),
+                 total_elements * 2 * sizeof( double ) );
+
+      out_data.resize( total_elements );
+      for( size_t i = 0; i < total_elements; ++i )
+      {
+        out_data[i] = raw_data[i * 2];  // Take only real part, skip imaginary
+      }
+    }
+    else
+    {
+      // float64: 8 bytes per element
+      out_data.resize( total_elements );
+      file.read( reinterpret_cast< char* >( out_data.data() ),
+                 total_elements * sizeof( double ) );
+    }
 
     return file.good() || file.eof();
   }
