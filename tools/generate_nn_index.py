@@ -50,11 +50,11 @@ class ITQModel:
     """
 
     # PCA method options
-    PCA_COV_EIG = 'cov_eig'      # Covariance + eigendecomposition (SMQTK default)
+    PCA_COV_EIG = 'cov_eig'      # Covariance + eigendecomposition (default)
     PCA_DIRECT_SVD = 'direct_svd'  # Direct SVD on centered data (more stable)
 
     # Rotation initialization options
-    INIT_SVD = 'svd'    # SVD orthogonalization (SMQTK default)
+    INIT_SVD = 'svd'    # SVD orthogonalization (default)
     INIT_QR = 'qr'      # QR decomposition
 
     def __init__(self, bit_length=256, itq_iterations=100, random_seed=0,
@@ -96,8 +96,6 @@ class ITQModel:
         """
         Normalize vector(s) using configured normalization order.
 
-        Matches SMQTK's _norm_vector method.
-
         Args:
             v: Input vector or matrix (if matrix, normalizes along last axis)
 
@@ -115,8 +113,6 @@ class ITQModel:
         """
         Find optimal rotation matrix using ITQ algorithm.
 
-        This method matches SMQTK's _find_itq_rotation exactly.
-
         Args:
             v: PCA-projected data, shape (n_samples, bit_length)
             n_iter: Number of ITQ iterations
@@ -130,7 +126,7 @@ class ITQModel:
 
         bit = v.shape[1]
 
-        # Initialize with orthogonal random rotation using SVD (SMQTK default)
+        # Initialize with orthogonal random rotation using SVD (default)
         # or QR decomposition (alternative)
         if self.random_seed is not None:
             np.random.seed(self.random_seed)
@@ -138,7 +134,7 @@ class ITQModel:
         r = np.random.randn(bit, bit)
 
         if self.init_method == self.INIT_SVD:
-            # SMQTK's method: SVD orthogonalization
+            # SVD orthogonalization
             u11, s2, v2 = np.linalg.svd(r)
             r = u11[:, :bit]
         else:  # INIT_QR
@@ -156,12 +152,11 @@ class ITQModel:
             z = np.dot(v, r)
 
             # Compute binary codes using sign function
-            # SMQTK uses -1/+1 representation during iteration
+            # Uses -1/+1 representation during iteration
             ux = np.ones(z.shape) * (-1)
             ux[z >= 0] = 1
 
             # Update rotation matrix using Orthogonal Procrustes
-            # This matches the original SMQTK ITQ implementation exactly
             c = np.dot(ux.transpose(), v)
             ub, sigma, ua = np.linalg.svd(c)
             r = np.dot(ua, ub.transpose())
@@ -176,7 +171,7 @@ class ITQModel:
                 last_report_time = current_time
 
         # Compute final binary codes with the final rotation matrix
-        # This ensures b and r are synchronized (SMQTK fix)
+        # This ensures b and r are synchronized
         z = np.dot(v, r)
         b = np.zeros(z.shape, dtype=np.bool_)
         b[z >= 0] = True
@@ -186,8 +181,6 @@ class ITQModel:
     def fit(self, descriptors, verbose=True, report_interval=1.0):
         """
         Train the ITQ model on a set of descriptors.
-
-        This method matches SMQTK's ItqFunctor.fit() implementation.
 
         Args:
             descriptors: numpy array of shape (n_samples, n_features)
@@ -227,7 +220,7 @@ class ITQModel:
             print(f"    Computing PCA transformation (method: {self.pca_method})...")
 
         if self.pca_method == self.PCA_COV_EIG:
-            # SMQTK's method: Covariance matrix + eigendecomposition
+            # Covariance matrix + eigendecomposition
             if verbose:
                 print("      Computing covariance matrix...")
             # numpy.cov expects features as rows, observations as columns
@@ -282,8 +275,6 @@ class ITQModel:
     def get_hash(self, descriptor):
         """
         Compute hash code for a single descriptor.
-
-        Matches SMQTK's ItqFunctor.get_hash() method.
 
         Args:
             descriptor: 1D numpy array of shape (n_features,)
@@ -369,8 +360,6 @@ class ITQModel:
         """
         Save model parameters to numpy files.
 
-        Output format matches SMQTK's ItqFunctor cache format.
-
         Args:
             output_dir: Directory to save model files
             prefix: Filename prefix (default: "itq.model")
@@ -380,7 +369,7 @@ class ITQModel:
         """
         os.makedirs(output_dir, exist_ok=True)
 
-        # Use same naming convention as SMQTK config files
+        # Use standard naming convention
         r_str = self.random_seed if self.random_seed is not None else 0
         suffix = f"b{self.bit_length}_i{self.itq_iterations}_r{r_str}"
 
@@ -502,7 +491,7 @@ class CSVDescriptorSource(DescriptorSource):
 
         if max_count is not None and max_count < len(all_uids):
             if random_sample:
-                # Random subsampling (matching SMQTK behavior)
+                # Random subsampling
                 indices = np.random.choice(len(all_uids), max_count, replace=False)
                 return [all_uids[i] for i in indices], all_descs[indices]
             else:
@@ -697,7 +686,7 @@ class LinearHashIndex:
     Linear hash index for nearest neighbor search.
 
     This class stores unique hash codes as integers for efficient
-    hamming distance computation. Matches SMQTK's LinearHashIndex.
+    hamming distance computation.
     """
 
     def __init__(self, bit_length=256):
@@ -740,13 +729,11 @@ class LinearHashIndex:
     def save(self, file_path):
         """
         Save index to numpy file.
-
-        Matches SMQTK's LinearHashIndex cache format.
         """
         dir_path = os.path.dirname(file_path)
         if dir_path:
             os.makedirs(dir_path, exist_ok=True)
-        # Save as tuple of integers (matching SMQTK format)
+        # Save as array of integers
         np.save(file_path, np.array(list(self.index), dtype=object))
 
     def load(self, file_path):
@@ -801,8 +788,6 @@ class LinearHashIndex:
 def load_uuids_list(filepath):
     """
     Load list of UUIDs from a file (one UUID per line).
-
-    Matches SMQTK's uuids_list_filepath functionality.
 
     Args:
         filepath: Path to file containing UUIDs
@@ -1138,8 +1123,6 @@ def compute_hashes_only(descriptor_source, model_dir, output_dir=None,
 def load_config(config_path):
     """
     Load configuration from JSON file.
-
-    Supports SMQTK-style config format for compatibility.
     """
     with open(config_path, 'r') as f:
         config = json.load(f)
@@ -1211,7 +1194,7 @@ def main():
     input_group = parser.add_mutually_exclusive_group(required=True)
     input_group.add_argument(
         '--config', '-c',
-        help='Path to JSON config file (SMQTK-compatible format)'
+        help='Path to JSON config file'
     )
     input_group.add_argument(
         '--descriptor-file', '-f',
@@ -1261,7 +1244,7 @@ def main():
         help='Column name for descriptor data (default: VECTOR_DATA)'
     )
 
-    # ITQ parameters (defaults match VIAME smqtk_train_itq.json)
+    # ITQ parameters
     parser.add_argument(
         '--bit-length', '-b',
         type=int,
@@ -1297,14 +1280,13 @@ def main():
     # Training options
     parser.add_argument(
         '--uuids-list',
-        help='Path to file containing UIDs to use for training (one per line). '
-             'Matches SMQTK uuids_list_filepath option.'
+        help='Path to file containing UIDs to use for training (one per line).'
     )
     parser.add_argument(
         '--no-random-sample',
         action='store_true',
         help='Disable random subsampling when max_train_descriptors < total. '
-             'By default, descriptors are randomly sampled (matching SMQTK behavior).'
+             'By default, descriptors are randomly sampled.'
     )
 
     # Algorithm options
@@ -1312,7 +1294,7 @@ def main():
         '--pca-method',
         choices=['cov_eig', 'direct_svd'],
         default='cov_eig',
-        help='PCA computation method (default: cov_eig to match SMQTK). '
+        help='PCA computation method (default: cov_eig). '
              'cov_eig: covariance + eigendecomposition, '
              'direct_svd: direct SVD (more numerically stable)'
     )
@@ -1320,7 +1302,7 @@ def main():
         '--init-method',
         choices=['svd', 'qr'],
         default='svd',
-        help='Rotation initialization method (default: svd to match SMQTK). '
+        help='Rotation initialization method (default: svd). '
              'svd: SVD orthogonalization, qr: QR decomposition'
     )
 
