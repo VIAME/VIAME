@@ -74,9 +74,17 @@ if( NOT PYTHON_BUILD_CMD AND BUILD_COMMAND )
   set( PYTHON_BUILD_CMD "${BUILD_COMMAND}" )
 endif()
 
-# Convert ----separated build command back to list
+# Convert ----separated build commands back to lists
 if( PYTHON_BUILD_CMD )
   string( REPLACE "----" ";" PYTHON_BUILD_CMD "${PYTHON_BUILD_CMD}" )
+endif()
+
+if( CPP_BUILD_CMD )
+  string( REPLACE "----" ";" CPP_BUILD_CMD "${CPP_BUILD_CMD}" )
+endif()
+
+if( CPP_INSTALL_CMD )
+  string( REPLACE "----" ";" CPP_INSTALL_CMD "${CPP_INSTALL_CMD}" )
 endif()
 
 # Get current source hash

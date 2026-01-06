@@ -282,9 +282,13 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       list( APPEND LIBRARY_CPP_BUILD -j ${VIAME_BUILD_MAX_THREADS} )
     endif()
 
+    # Convert C++ build/install commands to ----separated strings (like PYTHON_BUILD_CMD)
+    string( REPLACE ";" "----" LIBRARY_CPP_BUILD_STR "${LIBRARY_CPP_BUILD}" )
+    string( REPLACE ";" "----" LIBRARY_CPP_INSTALL_STR "${LIBRARY_CPP_INSTALL}" )
+
     list( APPEND CONDITIONAL_BUILD_CMD
-      -DCPP_BUILD_CMD="${LIBRARY_CPP_BUILD}"
-      -DCPP_INSTALL_CMD="${LIBRARY_CPP_INSTALL}" )
+      -DCPP_BUILD_CMD=${LIBRARY_CPP_BUILD_STR}
+      -DCPP_INSTALL_CMD=${LIBRARY_CPP_INSTALL_STR} )
 
     set( LIBRARY_CONFIGURE_CMD ${LIBRARY_CPP_CONFIG} )
   endif()
