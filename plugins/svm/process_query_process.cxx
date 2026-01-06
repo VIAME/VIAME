@@ -382,6 +382,22 @@ public:
       m_uid_to_index[m_uids[i]] = i;
     }
 
+    // Build hash-to-UIDs mapping (groups UIDs by their hash code)
+    // This groups all UIDs that have the same hash code
+    m_hash_to_uids.clear();
+    for( size_t i = 0; i < m_num_descriptors; ++i )
+    {
+      // Get hash code for this descriptor
+      std::vector< uint8_t > hash( m_bit_length );
+      for( size_t j = 0; j < m_bit_length; ++j )
+      {
+        hash[j] = m_hash_codes[i * m_bit_length + j];
+      }
+
+      std::string hash_key = hash_to_string( hash );
+      m_hash_to_uids[hash_key].push_back( m_uids[i] );
+    }
+
     return true;
   }
 
@@ -514,6 +530,78 @@ public:
   size_t size() const { return m_num_descriptors; }
   unsigned bit_length() const { return m_bit_length; }
 
+  // Convert hash code to string key for hash table (supports full 256 bits)
+  static std::string hash_to_string( const std::vector< uint8_t >& hash )
+  {
+    std::string result;
+    result.reserve( hash.size() );
+    for( uint8_t bit : hash )
+    {
+      result += ( bit ? '1' : '0' );
+    }
+    return result;
+  }
+
+  // LSH NN search: get n unique hashes, expand to all UIDs
+  // Groups results by hash code before expanding to individual descriptors
+  std::vector< std::string > find_neighbors_by_hash(
+    const std::vector< double >& query_descriptor,
+    size_t n ) const
+  {
+    if( !is_loaded() )
+    {
+      return {};
+    }
+
+    // Compute query hash
+    std::vector< uint8_t > query_hash = compute_hash( query_descriptor );
+    if( query_hash.empty() )
+    {
+      return {};
+    }
+
+    // Get all unique hashes with their hamming distances to query
+    // pair: (hamming_distance, hash_string_key)
+    std::vector< std::pair< unsigned, std::string > > hash_distances;
+    hash_distances.reserve( m_hash_to_uids.size() );
+
+    for( const auto& entry : m_hash_to_uids )
+    {
+      // Reconstruct hash vector from string key
+      std::vector< uint8_t > hash( entry.first.size() );
+      for( size_t i = 0; i < entry.first.size(); ++i )
+      {
+        hash[i] = ( entry.first[i] == '1' ) ? 1 : 0;
+      }
+
+      unsigned dist = hamming_distance( query_hash, hash );
+      hash_distances.emplace_back( dist, entry.first );
+    }
+
+    // Sort by hamming distance
+    std::sort( hash_distances.begin(), hash_distances.end() );
+
+    // Take n nearest unique hashes
+    size_t num_hashes = std::min( n, hash_distances.size() );
+
+    // Expand to all UIDs
+    std::vector< std::string > neighbor_uids;
+    for( size_t i = 0; i < num_hashes; ++i )
+    {
+      const std::string& hash_key = hash_distances[i].second;
+      auto it = m_hash_to_uids.find( hash_key );
+      if( it != m_hash_to_uids.end() )
+      {
+        for( const std::string& uid : it->second )
+        {
+          neighbor_uids.push_back( uid );
+        }
+      }
+    }
+
+    return neighbor_uids;
+  }
+
 private:
   unsigned m_bit_length;
   size_t m_num_descriptors;
@@ -525,6 +613,10 @@ private:
   std::vector< uint8_t > m_hash_codes;
   std::vector< std::string > m_uids;
   std::unordered_map< std::string, size_t > m_uid_to_index;
+
+  // Hash-to-UIDs mapping (groups UIDs by hash code)
+  // Key is string representation of hash (e.g., "0110...1")
+  std::unordered_map< std::string, std::vector< std::string > > m_hash_to_uids;
 };
 
 //--------------------------------------------------------------------------------
@@ -1073,7 +1165,7 @@ private:
       }
 
       // Compute histogram intersection distance
-      // SMQTK uses distance directly in margin computation, not kernel value
+      // Use distance directly in margin computation, not kernel value
       // margin = sum(sv_coef[i] * HIK_distance(SV[i], vec))
       double dist = histogram_intersection_distance( sv, vec );
 
@@ -1163,11 +1255,13 @@ private:
 
   // Auto-select negative examples by finding the most distant descriptors
   // from each positive example using histogram intersection distance.
-  // Auto-negatives are selected from the FULL descriptor index (like SMQTK)
-  // to find the most distant descriptors in the entire dataset.
+  // Auto-negatives are selected from the WORKING index (neighbors of positives),
+  // not from the full descriptor index.
   std::vector< descriptor_element > select_auto_negatives() const
   {
-    if( !m_full_index_ref || m_full_index_ref->empty() ||
+    // Select auto-negatives from the working index (neighbors of positives),
+    // not from the full descriptor index.
+    if( m_working_index.empty() ||
         m_positive_descriptors.empty() || m_autoneg_select_ratio == 0 )
     {
       return {};
@@ -1176,8 +1270,8 @@ private:
     std::unordered_set< std::string > selected_uids;
     std::vector< descriptor_element > auto_negatives;
 
-    // For each positive, find the most distant descriptors in the FULL index
-    // (matching SMQTK behavior which selects from the entire descriptor cache)
+    // For each positive, find the most distant descriptors in the WORKING index
+    // This ensures auto-negatives come from the same pool as the working index
     for( const auto& pos : m_positive_descriptors )
     {
       // Priority queue to track most distant descriptors (min-heap by distance)
@@ -1186,7 +1280,7 @@ private:
       std::priority_queue< pair_type, std::vector< pair_type >,
         std::greater< pair_type > > pq;
 
-      for( const auto& entry : *m_full_index_ref )
+      for( const auto& entry : m_working_index )
       {
         // Skip if already a positive or negative or already selected
         if( m_positive_descriptors.find( entry.first ) !=
@@ -1206,7 +1300,7 @@ private:
 
         // Use histogram intersection distance
         double dist = histogram_intersection_distance(
-          pos.second.vector, entry.second );
+          pos.second.vector, entry.second.vector );
 
         if( pq.size() < m_autoneg_select_ratio )
         {
@@ -1226,7 +1320,7 @@ private:
         if( selected_uids.find( uid ) == selected_uids.end() )
         {
           selected_uids.insert( uid );
-          auto_negatives.emplace_back( uid, m_full_index_ref->at( uid ) );
+          auto_negatives.emplace_back( m_working_index.at( uid ) );
         }
         pq.pop();
       }
@@ -1331,16 +1425,15 @@ private:
     std::priority_queue< pair_type > pq;
 
     // Try LSH-based search first for fast approximate nearest neighbors
+    // Algorithm: get k unique hashes, expand to all UIDs, re-rank by distance
     if( m_lsh_index_ref && m_lsh_index_ref->is_loaded() )
     {
-      // Use LSH to get candidates, then re-rank with histogram intersection
-      size_t lsh_k = k * m_lsh_neighbor_multiplier;
-      auto lsh_candidates = m_lsh_index_ref->find_neighbors_lsh( query, lsh_k );
+      // Get k unique hashes, expand to all UIDs with those hashes
+      auto expanded_uids = m_lsh_index_ref->find_neighbors_by_hash( query, k );
 
-      // Re-rank candidates using histogram intersection distance
-      for( const auto& candidate : lsh_candidates )
+      // Re-rank candidates using configured distance method
+      for( const std::string& uid : expanded_uids )
       {
-        const std::string& uid = candidate.first;
         auto it = index.find( uid );
         if( it == index.end() )
         {
