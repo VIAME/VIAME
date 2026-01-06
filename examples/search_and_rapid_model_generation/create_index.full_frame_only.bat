@@ -8,6 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -l input_list.txt -p pipelines\index_frame.pipe -o database --build-index -install "%VIAME_INSTALL%"
+python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -l ingest_list.txt -p pipelines\index_frame.pipe -o database --build-index -install "%VIAME_INSTALL%"
 
 pause

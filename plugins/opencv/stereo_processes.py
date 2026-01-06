@@ -2,7 +2,8 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-# -*- coding: utf-8 -*-"""
+# -*- coding: utf-8 -*-
+"""
 Ignore:
     workon_py2
     source ~/code/VIAME/build/install/setup_viame.sh
@@ -87,7 +88,7 @@ import ubelt as ub
 import os
 import itertools as it
 
-from . import ocv_stereo_algos as ctalgo
+from . import stereo_algos as ctalgo
 
 from kwiver.vital import vital_logging
 

@@ -1,0 +1,129 @@
+# Query database using tracks from CSV file
+#
+# This pipeline reads an image list and track CSV, computes descriptors
+# for the input tracks, queries the database for similar descriptors,
+# and outputs the results as an object track CSV with NN scores as confidence.
+#
+# Input tracks can be either single-frame detections or multi-frame tracks.
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    10
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ================================== VIDEO INPUT ===================================
+
+include common_default_input_with_downsampler.pipe
+
+# ================================= TRACK INPUT ====================================
+
+process track_reader
+  :: read_object_track
+  :file_name                                   input_tracks.csv
+  :reader:type                                 viame_csv
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
+# ============================== DESCRIPTOR EXTRACTION =============================
+
+# Convert tracks to detections for descriptor computation
+process track_to_detection
+  :: convert_tracks_to_detections
+  :frame_ids_only                             true
+
+connect from track_reader.object_track_set
+        to   track_to_detection.object_track_set
+connect from downsampler.timestamp
+        to   track_to_detection.timestamp
+
+include common_default_descriptor.pipe
+
+connect from downsampler.output_1
+        to   descriptor.image
+connect from downsampler.timestamp
+        to   descriptor.timestamp
+connect from track_to_detection.detected_object_set
+        to   descriptor.detected_object_set
+
+# Re-initialize tracks with descriptors
+include common_default_initializer.pipe
+
+connect from downsampler.output_1
+        to   track_initializer.image
+connect from downsampler.timestamp
+        to   track_initializer.timestamp
+connect from descriptor.detected_object_set
+        to   track_initializer.detected_object_set
+
+# ============================ COMPUTE TRACK DESCRIPTORS ===========================
+
+process track_descriptor
+ :: compute_track_descriptors
+  :add_custom_uid                             true
+  :uid_basename                               query
+  :computer:type                              average
+
+connect from downsampler.output_1
+        to   track_descriptor.image
+connect from downsampler.timestamp
+        to   track_descriptor.timestamp
+connect from track_initializer.object_track_set
+        to   track_descriptor.object_track_set
+
+# ============================ CREATE IMAGE SET =====================================
+
+process image_set_creator
+  :: image_to_image_set
+
+connect from downsampler.output_1
+        to   image_set_creator.image
+
+# ============================ CREATE DATABASE QUERY ===============================
+
+process create_query
+  :: create_database_query
+  :query_type                                 similarity
+  :threshold                                  0.0
+
+connect from track_descriptor.track_descriptor_set
+        to   create_query.track_descriptor_set
+
+# ================================ PERFORM QUERY ===================================
+
+process query_handler
+  :: perform_query
+  :external_handler                           true
+  relativepath external_pipeline_file =       smqtk_query.pipe
+  :database_folder                            database
+  :max_result_count                           100
+  :unused_descriptors_as_negative             false
+  :use_tracks_for_history                     true
+  :merge_duplicate_results                    true
+  :descriptor_query:type                      db
+  :descriptor_query:db:conn_str               postgresql:host=localhost;user=postgres
+
+connect from create_query.database_query
+        to   query_handler.database_query
+connect from track_descriptor.track_descriptor_set
+        to   query_handler.track_descriptor_set
+connect from image_set_creator.image_set
+        to   query_handler.image_set
+
+# ============================ CONVERT RESULTS TO TRACKS ===========================
+
+process track_writer
+  :: write_query_results_as_tracks
+  :output_label                               query_result
+  :use_relevancy_as_confidence                true
+  :file_name                                  query_results.csv
+  :writer:type                                viame_csv
+
+connect from query_handler.query_result
+        to   track_writer.query_result
+
+# -- end of file --

@@ -21,8 +21,8 @@ import ubelt as ub
 import threading
 import logging
 
-from .ocv_stereo_utils import (imscale, overlay_heatmask, putMultiLineText)
-from . import ocv_stereo_algos as ctalgo
+from .stereo_utils import (imscale, overlay_heatmask, putMultiLineText)
+from . import stereo_algos as ctalgo
 from six.moves import zip, range
 
 logger = logging.getLogger(__name__)
