@@ -47,24 +47,56 @@ connect from in_adapt.stream_id
 connect from kwa_writer.complete_flag
         to   out_adapt.complete_flag
 
-include common_generic_detector.pipe
+# ==================================================================================
+# Filter the image for detector: when boxes are provided in the request,
+# suppress the image so detector is skipped (invert=true means suppress when
+# detections are present). When no boxes provided, pass through normally.
+
+process filter_image_for_detector
+  :: filter_frames
+  :detection_threshold                         0.0
+  :invert                                      true
 
 connect from reader.image
+        to   filter_image_for_detector.image
+connect from in_adapt.detected_object_set
+        to   filter_image_for_detector.detected_object_set
+
+# ==================================================================================
+
+include common_generic_detector.pipe
+
+connect from filter_image_for_detector.image
         to   detector_input.image
 
 process add_fixed_detection
   :: refine_detections
   :refiner:type                                add_fixed
-  
+
   block refiner:add_fixed
     :detection_type                            generic_object_proposal
     :add_full_image_detection                  true
   endblock
 
-connect from reader.image
+connect from filter_image_for_detector.image
         to   add_fixed_detection.image
 connect from detector_output.detected_object_set
         to   add_fixed_detection.detected_object_set
+
+# ==================================================================================
+# Merge input bounding boxes (from descriptor request spatial_regions) with
+# detector output. When boxes are provided in the request, detector output
+# will be empty so only the input boxes are used.
+
+process merge_detections
+  :: merge_detection_sets
+
+connect from in_adapt.detected_object_set
+        to   merge_detections.input_boxes
+connect from add_fixed_detection.detected_object_set
+        to   merge_detections.detector_output
+
+# ==================================================================================
 
 include common_default_descriptor.pipe
 
@@ -72,7 +104,7 @@ connect from reader.image
         to   descriptor.image
 connect from reader.timestamp
         to   descriptor.timestamp
-connect from add_fixed_detection.detected_object_set
+connect from merge_detections.detected_object_set
         to   descriptor.detected_object_set
 
 process track_initializer

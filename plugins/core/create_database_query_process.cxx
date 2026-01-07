@@ -34,6 +34,9 @@ create_config_trait( query_type, std::string, "similarity",
 create_config_trait( threshold, double, "0.0",
   "Relevancy threshold for query results" );
 
+create_port_trait( boxes_provided, bool,
+  "Flag indicating if bounding boxes were provided - only create query when true" );
+
 //------------------------------------------------------------------------------
 // Private implementation class
 class create_database_query_process::priv
@@ -103,13 +106,31 @@ create_database_query_process
   if( p_info.datum->type() == sprokit::datum::complete )
   {
     grab_edge_datum_using_trait( track_descriptor_set );
+    if( has_input_port_edge_using_trait( boxes_provided ) )
+    {
+      grab_edge_datum_using_trait( boxes_provided );
+    }
     mark_process_as_complete();
     return;
   }
 
   kv::track_descriptor_set_sptr descriptors;
-
   descriptors = grab_from_port_using_trait( track_descriptor_set );
+
+  // Check if boxes_provided flag is connected and if boxes were provided
+  bool should_create_query = true;
+  if( has_input_port_edge_using_trait( boxes_provided ) )
+  {
+    should_create_query = grab_from_port_using_trait( boxes_provided );
+  }
+
+  // Only create a query when boxes were provided (for auto-query mode)
+  // When no boxes, output null so perform_query waits for external input
+  if( !should_create_query )
+  {
+    push_to_port_using_trait( database_query, kv::database_query_sptr() );
+    return;
+  }
 
   // Create new database query
   auto query = std::make_shared< kv::database_query >();
@@ -148,6 +169,7 @@ create_database_query_process
 
   // -- input --
   declare_input_port_using_trait( track_descriptor_set, required );
+  declare_input_port_using_trait( boxes_provided, optional );
 
   // -- output --
   declare_output_port_using_trait( database_query, optional );

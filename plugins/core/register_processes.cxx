@@ -25,6 +25,7 @@
 #include "pair_stereo_detections_process.h"
 #include "write_query_results_as_tracks_process.h"
 #include "create_database_query_process.h"
+#include "select_database_query_process.h"
 #include "image_to_image_set_process.h"
 
 // -----------------------------------------------------------------------------
@@ -232,6 +233,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Create database query from track descriptors for use with perform_query" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::select_database_query_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "select_database_query" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Select between two database query inputs (primary if non-null, otherwise fallback)" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

@@ -153,6 +153,7 @@ set( process_headers
   align_multimodal_imagery_process.h
   calibrate_cameras_from_tracks_process.h
   create_database_query_process.h
+  select_database_query_process.h
   detect_shot_breaks_process.h
   extract_desc_ids_for_training_process.h
   filter_frame_index_process.h
@@ -177,6 +178,7 @@ set( process_sources
   align_multimodal_imagery_process.cxx
   calibrate_cameras_from_tracks_process.cxx
   create_database_query_process.cxx
+  select_database_query_process.cxx
   detect_shot_breaks_process.cxx
   extract_desc_ids_for_training_process.cxx
   filter_frame_index_process.cxx
