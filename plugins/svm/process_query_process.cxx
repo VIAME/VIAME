@@ -486,25 +486,11 @@ public:
       return {};
     }
 
-    // Normalize descriptor (L2)
-    // We enforce this to match the Python index generation change
-    std::vector< double > normalized( m_feature_dim );
-    double norm_sq = 0.0;
-    for( double v : descriptor )
-    {
-      norm_sq += v * v;
-    }
-    double norm = ( norm_sq > 0 ) ? std::sqrt( norm_sq ) : 1.0;
-    for( size_t i = 0; i < m_feature_dim; ++i )
-    {
-      normalized[i] = descriptor[i] / norm;
-    }
-
     // Center the descriptor
     std::vector< double > centered( m_feature_dim );
     for( size_t i = 0; i < m_feature_dim; ++i )
     {
-      centered[i] = normalized[i] - m_mean_vec[i];
+      centered[i] = descriptor[i] - m_mean_vec[i];
     }
 
     // Project using rotation matrix: z = centered @ rotation
