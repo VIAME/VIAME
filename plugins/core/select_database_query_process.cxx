@@ -27,6 +27,8 @@ create_port_trait( primary_query, database_query,
   "Primary database query input - used if non-null" );
 create_port_trait( fallback_query, database_query,
   "Fallback database query input - used if primary is null" );
+create_port_trait( use_primary, bool,
+  "Flag to use primary and skip fallback - typically connected to boxes_provided" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -74,6 +76,10 @@ select_database_query_process
   if( p_info.datum->type() == sprokit::datum::complete )
   {
     grab_edge_datum_using_trait( primary_query );
+    if( has_input_port_edge_using_trait( use_primary ) )
+    {
+      grab_edge_datum_using_trait( use_primary );
+    }
     if( has_input_port_edge_using_trait( fallback_query ) )
     {
       grab_edge_datum_using_trait( fallback_query );
@@ -87,7 +93,15 @@ select_database_query_process
 
   primary = grab_from_port_using_trait( primary_query );
 
-  if( has_input_port_edge_using_trait( fallback_query ) )
+  // Check if use_primary flag is set - when true, skip waiting for fallback
+  bool skip_fallback = false;
+  if( has_input_port_edge_using_trait( use_primary ) )
+  {
+    skip_fallback = grab_from_port_using_trait( use_primary );
+  }
+
+  // Only grab from fallback if we're not skipping it and it's connected
+  if( !skip_fallback && has_input_port_edge_using_trait( fallback_query ) )
   {
     fallback = grab_from_port_using_trait( fallback_query );
   }
@@ -118,6 +132,7 @@ select_database_query_process
   // -- input --
   declare_input_port_using_trait( primary_query, required );
   declare_input_port_using_trait( fallback_query, optional );
+  declare_input_port_using_trait( use_primary, optional );
 
   // -- output --
   declare_output_port_using_trait( database_query, optional );
