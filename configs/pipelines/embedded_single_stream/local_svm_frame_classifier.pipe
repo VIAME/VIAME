@@ -37,8 +37,8 @@ connect from detector.detected_object_set
 
 process svm_refiner
   :: refine_detections
-  :refiner:type                                svm_refine
-  :refiner:svm_refine:model_dir                category_models
+  :refiner:type                                svm
+  :refiner:svm:model_dir                       category_models
 
 connect from in_adapt.image
         to   svm_refiner.image

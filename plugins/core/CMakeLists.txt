@@ -156,17 +156,21 @@ set( process_headers
   select_database_query_process.h
   detect_shot_breaks_process.h
   extract_desc_ids_for_training_process.h
+  fetch_descriptors_process.h
   filter_frame_index_process.h
   filter_frame_process.h
   image_to_image_set_process.h
   filter_object_tracks_process.h
+  ingest_descriptors_process.h
   measure_objects_process.h
+  object_track_descriptors_process.h
   pair_stereo_detections_process.h
   write_query_results_as_tracks_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
   split_tracks_to_feature_landmarks_process.h
   stack_frames_process.h
+  store_descriptors_csv.h
   track_conductor_process.h
   write_homography_list_process.h
 )
@@ -181,17 +185,21 @@ set( process_sources
   select_database_query_process.cxx
   detect_shot_breaks_process.cxx
   extract_desc_ids_for_training_process.cxx
+  fetch_descriptors_process.cxx
   filter_frame_index_process.cxx
   filter_frame_process.cxx
   image_to_image_set_process.cxx
   filter_object_tracks_process.cxx
+  ingest_descriptors_process.cxx
   measure_objects_process.cxx
+  object_track_descriptors_process.cxx
   pair_stereo_detections_process.cxx
   write_query_results_as_tracks_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
   split_tracks_to_feature_landmarks_process.cxx
   stack_frames_process.cxx
+  store_descriptors_csv.cxx
   track_conductor_process.cxx
   write_homography_list_process.cxx
 )

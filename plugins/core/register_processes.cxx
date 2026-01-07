@@ -9,8 +9,11 @@
 #include "accumulate_image_statistics_process.h"
 #include "align_multimodal_imagery_process.h"
 #include "extract_desc_ids_for_training_process.h"
+#include "fetch_descriptors_process.h"
 #include "filter_frame_process.h"
+#include "ingest_descriptors_process.h"
 #include "filter_object_tracks_process.h"
+#include "object_track_descriptors_process.h"
 #include "stack_frames_process.h"
 #include "detect_shot_breaks_process.h"
 #include "measure_objects_process.h"
@@ -73,6 +76,36 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Extract descriptor IDs overlapping with groundtruth" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::ingest_descriptors_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "ingest_descriptors" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Ingest descriptors with UIDs and write to file" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::fetch_descriptors_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "fetch_descriptors" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Fetch descriptors from file given UIDs" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::object_track_descriptors_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "object_track_descriptors" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Attach descriptors to object track states from file" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

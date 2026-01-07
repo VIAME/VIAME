@@ -35,7 +35,7 @@ Initial Setup
 | Building and running this example requires either a VIAME install or a build from source with: 
 |
 |  (a) The python packages: numpy, pymongo, torch, torchvision, matplotlib, and python-tk
-|  (b) A VIAME build with VIAME_ENABLE_SMQTK, YOLO, OPENCV, PYTORCH, VXL, and VIVIA enabled.
+|  (b) A VIAME build with VIAME_ENABLE_SVM, YOLO, OPENCV, PYTORCH, VXL, and VIVIA enabled.
 |
 First, you should decide where you want to run this example from. Doing it in the example folder
 tree is fine as a first pass, but if it is something you plan on running a few times or on multiple

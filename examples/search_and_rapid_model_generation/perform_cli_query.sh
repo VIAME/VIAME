@@ -42,6 +42,12 @@ if [ ! -d "database" ]; then
     exit 1
 fi
 
+PIPELINE_FILE="${VIAME_INSTALL}/configs/pipelines/query_from_track.pipe"
+if [ ! -f "${PIPELINE_FILE}" ]; then
+    echo "Error: Pipeline file not found: ${PIPELINE_FILE}"
+    exit 1
+fi
+
 echo ""
 echo "============================================"
 echo "Perform CLI Query"
@@ -56,11 +62,24 @@ echo ""
 python ${VIAME_INSTALL}/configs/database_tool.py start 2>/dev/null || true
 
 # Run the query pipeline
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/query_from_track.pipe \
+if kwiver runner ${VIAME_INSTALL}/configs/pipelines/query_from_track.pipe \
   -s input:video_filename=${INPUT_LIST} \
   -s track_reader:file_name=${INPUT_TRACKS} \
   -s track_writer:file_name=${OUTPUT_FILE}
-
-echo ""
-echo "Query complete. Results written to: ${OUTPUT_FILE}"
-echo ""
+then
+    if [ -f "${OUTPUT_FILE}" ]; then
+        echo ""
+        echo "Query complete. Results written to: ${OUTPUT_FILE}"
+        echo ""
+    else
+        echo ""
+        echo "Error: Pipeline completed but output file was not created: ${OUTPUT_FILE}"
+        echo ""
+        exit 1
+    fi
+else
+    echo ""
+    echo "Error: Pipeline failed to execute"
+    echo ""
+    exit 1
+fi

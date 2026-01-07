@@ -33,10 +33,6 @@ if( VIAME_ENABLE_MATLAB )
   add_subdirectory( matlab )
 endif()
 
-if( VIAME_ENABLE_SMQTK )
-  add_subdirectory( smqtk )
-endif()
-
 if( VIAME_ENABLE_TENSORFLOW )
   add_subdirectory( tensorflow )
 endif()
@@ -57,6 +53,6 @@ if( VIAME_ENABLE_POSTGRESQL )
   add_subdirectory( cppdb )
 endif()
 
-if( VIAME_ENABLE_SMQTK )
+if( VIAME_ENABLE_SVM )
   add_subdirectory( svm )
 endif()

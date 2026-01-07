@@ -6,6 +6,7 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
+  generate_nn_index.py
   convert_cam_format.py
   database_tool.py
   extract_video_frames.py

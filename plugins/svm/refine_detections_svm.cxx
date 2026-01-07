@@ -33,7 +33,7 @@
  * \brief Implementation of refine detections using SVM
  */
 
-#include "refine_detections_with_svm.h"
+#include "refine_detections_svm.h"
 
 #include <fstream>
 #include <sstream>
@@ -61,7 +61,7 @@ namespace kv = kwiver::vital;
 typedef kwiversys::SystemTools ST;
 
 /// Private implementation class
-class refine_detections_with_svm::priv
+class refine_detections_svm::priv
 {
  public:
 
@@ -99,18 +99,18 @@ class refine_detections_with_svm::priv
 
 
 /// Constructor
-refine_detections_with_svm
-::refine_detections_with_svm()
+refine_detections_svm
+::refine_detections_svm()
     : d_( new priv() )
 {
-  attach_logger( "viame.svm.refine_detections_with_svm" );
+  attach_logger( "viame.svm.refine_detections_svm" );
   d_->m_logger = logger();
 }
 
 
 /// Destructor
-refine_detections_with_svm
-::~refine_detections_with_svm()
+refine_detections_svm
+::~refine_detections_svm()
 {
   d_->dealloc_models();
 }
@@ -118,7 +118,7 @@ refine_detections_with_svm
 
 /// Helper function to deallocate model memory
 void
-refine_detections_with_svm::priv
+refine_detections_svm::priv
 ::dealloc_models()
 {
   for( auto p : models )
@@ -134,7 +134,7 @@ refine_detections_with_svm::priv
 
 /// Helper function to load models from folder
 void
-refine_detections_with_svm::priv
+refine_detections_svm::priv
 ::load_models()
 {
   boost::filesystem::path p( model_dir );
@@ -175,7 +175,7 @@ refine_detections_with_svm::priv
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink
 kv::config_block_sptr
-refine_detections_with_svm
+refine_detections_svm
 ::get_configuration() const
 {
   kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
@@ -191,7 +191,7 @@ refine_detections_with_svm
 
 /// Set this algorithm's properties via a config block
 void
-refine_detections_with_svm
+refine_detections_svm
 ::set_configuration( kv::config_block_sptr in_config )
 {
   kv::config_block_sptr config = this->get_configuration();
@@ -206,7 +206,7 @@ refine_detections_with_svm
 
 /// Check that the algorithm's currently configuration is valid
 bool
-refine_detections_with_svm
+refine_detections_svm
 ::check_configuration(kv::config_block_sptr config) const
 {
   return true;
@@ -214,7 +214,7 @@ refine_detections_with_svm
 
 
 std::map<std::string, double>
-refine_detections_with_svm::priv::apply_svms( svm_node *x ) const
+refine_detections_svm::priv::apply_svms( svm_node *x ) const
 {
   std::map< std::string, double > result;
 
@@ -231,7 +231,7 @@ refine_detections_with_svm::priv::apply_svms( svm_node *x ) const
 
 
 kv::detected_object_set_sptr
-refine_detections_with_svm
+refine_detections_svm
 ::refine( kv::image_container_sptr image_data,
           kv::detected_object_set_sptr detections ) const
 {

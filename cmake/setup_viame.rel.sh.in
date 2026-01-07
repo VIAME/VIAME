@@ -44,7 +44,6 @@ export SPROKIT_PYTHON_MODULES=kwiver.sprokit.processes.pytorch:$SPROKIT_PYTHON_M
 export SPROKIT_PYTHON_MODULES=viame.arrows.core:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=viame.arrows.pytorch:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=viame.arrows.tensorflow:$SPROKIT_PYTHON_MODULES
-export SPROKIT_PYTHON_MODULES=viame.arrows.smqtk:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=viame.processes:$SPROKIT_PYTHON_MODULES
 
 # Set default log level

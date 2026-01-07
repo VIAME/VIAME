@@ -62,8 +62,8 @@ include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
-  :refiner:type                                svm_refine
-  relativepath refiner:svm_refine:model_dir =  .
+  :refiner:type                                svm
+  relativepath refiner:svm:model_dir =         .
 
 process nms_refiner
   :: refine_detections
