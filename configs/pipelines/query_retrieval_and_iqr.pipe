@@ -32,6 +32,33 @@ connect from descriptor_generator.track_descriptor_set
         to   out_adapt.track_descriptor_set
 
 # ==================================================================================
+# Conditionally create a database query based on whether boxes were provided in
+# the descriptor_request. When boxes ARE provided, automatically start a query
+# from the descriptors. When no boxes, output null.
+process create_query
+  :: create_database_query
+  :query_type                                   similarity
+  :threshold                                    0.0
+
+connect from descriptor_generator.track_descriptor_set
+        to   create_query.track_descriptor_set
+connect from descriptor_generator.boxes_provided
+        to   create_query.boxes_provided
+
+# ==================================================================================
+# Select between auto-generated query (when boxes provided) and external query
+# (when user manually starts a query). Uses auto-generated if non-null.
+process query_selector
+  :: select_database_query
+
+connect from create_query.database_query
+        to   query_selector.primary_query
+connect from in_adapt.database_query
+        to   query_selector.fallback_query
+connect from descriptor_generator.boxes_provided
+        to   query_selector.use_primary
+
+# ==================================================================================
 process database_query_handler
   :: perform_query
   :external_handler                             true
@@ -45,7 +72,7 @@ process database_query_handler
   :descriptor_query:type                        db
   :descriptor_query:db:conn_str                 postgresql:host=localhost;user=postgres
 
-connect from in_adapt.database_query
+connect from query_selector.database_query
         to   database_query_handler.database_query
 connect from in_adapt.iqr_feedback
         to   database_query_handler.iqr_feedback
