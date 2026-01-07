@@ -46,9 +46,11 @@ process query_handler
   # use_platt_scaling=false uses libsvm's built-in probability
   # force_exemplar_scores=true forces positives to 1.0, negatives to 0.0
   # scoring_norm=true enforces L2 norm for Euclidean dist
+  # score_distance_multiplier=0.85 tunes scores to match Baseline (~0.55 range)
   :use_platt_scaling                           false
   :force_exemplar_scores                       true
   :scoring_norm                                true
+  :score_multiplier                            0.85
 
 connect from in_adapt.positive_descriptor_set
         to   query_handler.positive_descriptor_set
