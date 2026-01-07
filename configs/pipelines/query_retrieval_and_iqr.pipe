@@ -55,6 +55,8 @@ connect from create_query.database_query
         to   query_selector.primary_query
 connect from in_adapt.database_query
         to   query_selector.fallback_query
+connect from descriptor_generator.boxes_provided
+        to   query_selector.use_primary
 
 # ==================================================================================
 process database_query_handler
