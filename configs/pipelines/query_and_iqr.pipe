@@ -42,7 +42,11 @@ process query_handler
   :lsh_bit_length                              256
   :lsh_neighbor_multiplier                     10
   :nn_distance_method                          euclidean
-  :use_platt_scaling                           true
+
+  # use_platt_scaling=false uses libsvm's built-in probability
+  # force_exemplar_scores=true forces positives to 1.0, negatives to 0.0
+  :use_platt_scaling                           false
+  :force_exemplar_scores                       true
 
 connect from in_adapt.positive_descriptor_set
         to   query_handler.positive_descriptor_set

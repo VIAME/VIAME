@@ -167,7 +167,17 @@ object_track_descriptors_db_process
         std::string vector_str;
         if( desc_row.fetch( 0, vector_str ) )
         {
-          // Parse comma-separated values
+          // Parse PostgreSQL array format: {val1,val2,val3,...}
+          // Remove curly braces if present
+          if( !vector_str.empty() && vector_str.front() == '{' )
+          {
+            vector_str = vector_str.substr( 1 );
+          }
+          if( !vector_str.empty() && vector_str.back() == '}' )
+          {
+            vector_str.pop_back();
+          }
+
           std::vector< double > values;
           std::istringstream ss( vector_str );
           std::string value_str;

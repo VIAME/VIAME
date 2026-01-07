@@ -14,6 +14,7 @@
 
 #include <cppdb/frontend.h>
 
+#include <iomanip>
 #include <sstream>
 #include <vector>
 
@@ -33,6 +34,8 @@ create_config_trait( max_descriptor_buffer, unsigned, "10000",
   "Maximum number of descriptors to buffer before writing to database" );
 create_config_trait( commit_interval, unsigned, "1",
   "Number of frames between database commits (0 = commit at end only)" );
+create_config_trait( precision, unsigned, "9",
+  "Number of significant digits for descriptor values. Use 9 for float, 17 for double." );
 
 //--------------------------------------------------------------------------------
 // Private implementation class
@@ -45,6 +48,7 @@ public:
     , m_max_frame_buffer( 0 )
     , m_max_descriptor_buffer( 10000 )
     , m_commit_interval( 1 )
+    , m_precision( 9 )
     , m_frame_counter( 0 )
     , m_commit_counter( 0 )
     , m_in_transaction( false ) {}
@@ -66,6 +70,7 @@ public:
   unsigned m_max_frame_buffer;
   unsigned m_max_descriptor_buffer;
   unsigned m_commit_interval;
+  unsigned m_precision;
 
   unsigned m_frame_counter;
   unsigned m_commit_counter;
@@ -106,6 +111,7 @@ ingest_descriptors_db_process
   d->m_max_frame_buffer = config_value_using_trait( max_frame_buffer );
   d->m_max_descriptor_buffer = config_value_using_trait( max_descriptor_buffer );
   d->m_commit_interval = config_value_using_trait( commit_interval );
+  d->m_precision = config_value_using_trait( precision );
 
   if( d->m_conn_str.empty() )
   {
@@ -232,17 +238,20 @@ ingest_descriptors_db_process
     const std::string& uid = entry.first;
     const std::vector< double >& desc = entry.second;
 
-    // Serialize descriptor values to comma-separated string
+    // Format as PostgreSQL array literal: {val1,val2,val3,...}
     std::ostringstream ss;
+    ss << std::setprecision( d->m_precision ) << "{";
     for( size_t i = 0; i < desc.size(); ++i )
     {
       if( i > 0 ) ss << ",";
       ss << desc[i];
     }
+    ss << "}";
+    std::string desc_str = ss.str();
 
     stmt.bind( 1, uid );
     stmt.bind( 2, d->m_video_name );
-    stmt.bind( 3, ss.str() );
+    stmt.bind( 3, desc_str );
     stmt.bind( 4, static_cast< int >( desc.size() ) );
     stmt.exec();
     stmt.reset();
@@ -283,6 +292,7 @@ ingest_descriptors_db_process
   declare_config_using_trait( max_frame_buffer );
   declare_config_using_trait( max_descriptor_buffer );
   declare_config_using_trait( commit_interval );
+  declare_config_using_trait( precision );
 }
 
 } // end namespace cppdb

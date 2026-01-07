@@ -597,11 +597,18 @@ class PostgresDescriptorSource(DescriptorSource):
                 except:
                     continue
             elif isinstance(element, str):
-                # CSV format
+                # CSV or PostgreSQL array format
                 try:
-                    values = [float(x) for x in element.split(',')]
+                    # Remove curly braces if present (PostgreSQL array format)
+                    element = element.strip()
+                    if element.startswith('{') and element.endswith('}'):
+                        element = element[1:-1]
+                    values = [float(x) for x in element.split(',') if x.strip()]
                 except ValueError:
                     continue
+            elif isinstance(element, (list, tuple)):
+                # PostgreSQL array already parsed by psycopg2
+                values = list(element)
             else:
                 values = element
 
