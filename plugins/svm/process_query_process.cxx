@@ -486,11 +486,25 @@ public:
       return {};
     }
 
+    // Normalize descriptor (L2)
+    // We enforce this to match the Python index generation change
+    std::vector< double > normalized( m_feature_dim );
+    double norm_sq = 0.0;
+    for( double v : descriptor )
+    {
+      norm_sq += v * v;
+    }
+    double norm = ( norm_sq > 0 ) ? std::sqrt( norm_sq ) : 1.0;
+    for( size_t i = 0; i < m_feature_dim; ++i )
+    {
+      normalized[i] = descriptor[i] / norm;
+    }
+
     // Center the descriptor
     std::vector< double > centered( m_feature_dim );
     for( size_t i = 0; i < m_feature_dim; ++i )
     {
-      centered[i] = descriptor[i] - m_mean_vec[i];
+      centered[i] = normalized[i] - m_mean_vec[i];
     }
 
     // Project using rotation matrix: z = centered @ rotation
@@ -1380,6 +1394,20 @@ private:
       return {};
     }
 
+    // Verify descriptor norm
+    auto logger = kwiver::vital::get_logger( "viame.svm.process_query" );
+    for( const auto& p : m_positive_descriptors )
+    {
+      double norm_sq = 0.0;
+      for( double v : p.second.vector )
+      {
+        norm_sq += v * v;
+      }
+      double norm = std::sqrt( norm_sq );
+      LOG_INFO( logger, "Positive Exemplar (Query) Norm: " << norm );
+      LOG_INFO( logger, "Exemplar UID: " << p.first );
+    }
+    
     // Choose which index to select auto-negatives from
     bool use_full_index = m_autoneg_from_full_index && m_full_index_ref &&
                           !m_full_index_ref->empty();
@@ -1577,7 +1605,22 @@ private:
   {
     if( m_nn_distance_method == "euclidean" )
     {
-      return euclidean_distance( a, b );
+      // Enforce normalization to match Baseline/Cosine behavior
+      // This is required because input descriptors are unnormalized (ReLU outputs)
+      // and Euclidean search on unnormalized data yields poor ranking.
+      std::vector< double > a_norm( a.size() );
+      double norm_a_sq = 0.0;
+      for( double val : a ) norm_a_sq += val * val;
+      double norm_a = ( norm_a_sq > 0 ) ? std::sqrt( norm_a_sq ) : 1.0;
+      for( size_t i = 0; i < a.size(); ++i ) a_norm[i] = a[i] / norm_a;
+
+      std::vector< double > b_norm( b.size() );
+      double norm_b_sq = 0.0;
+      for( double val : b ) norm_b_sq += val * val;
+      double norm_b = ( norm_b_sq > 0 ) ? std::sqrt( norm_b_sq ) : 1.0;
+      for( size_t i = 0; i < b.size(); ++i ) b_norm[i] = b[i] / norm_b;
+
+      return euclidean_distance( a_norm, b_norm );
     }
     else if( m_nn_distance_method == "cosine" )
     {

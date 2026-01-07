@@ -58,7 +58,7 @@ class ITQModel:
     INIT_QR = 'qr'      # QR decomposition
 
     def __init__(self, bit_length=256, itq_iterations=100, random_seed=0,
-                 normalize=None, pca_method='cov_eig', init_method='svd'):
+                 normalize=2, pca_method='cov_eig', init_method='svd'):
         """
         Initialize ITQ model parameters.
 
