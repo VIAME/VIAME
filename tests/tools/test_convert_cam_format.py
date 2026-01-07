@@ -4,11 +4,17 @@
 
 import configparser
 import os.path
+import sys
 import pytest
 
 from pathlib import Path
 
-from ..convert_cam_format import (
+# Add tools directory to path for imports
+_this_dir = os.path.dirname(os.path.abspath(__file__))
+_viame_src_dir = os.path.abspath(os.path.join(_this_dir, "..", ".."))
+sys.path.insert(0, os.path.join(_viame_src_dir, "tools"))
+
+from convert_cam_format import (
     read_zed, read_opencv, read_npz, read_json,
     write_zed, write_opencv, write_npz, write_json,
     StereoCalibration, convert
@@ -20,7 +26,7 @@ import numpy as np
 @pytest.fixture
 def a_test_data_folder():
     file_folder = os.path.dirname(__file__)
-    return os.path.join(file_folder, "..", "..", "plugins", "core", "tests", "data")
+    return os.path.join(file_folder, "..", "plugins", "core", "data")
 
 
 @pytest.fixture

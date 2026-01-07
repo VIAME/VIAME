@@ -254,6 +254,3 @@ if( VIAME_ENABLE_PYTHON )
 
 endif()
 
-if (VIAME_BUILD_TESTS)
-  add_subdirectory(tests)
-endif()

@@ -60,6 +60,3 @@ if( VIAME_ENABLE_PYTHON )
            DESTINATION configs )
 endif()
 
-if( VIAME_BUILD_TESTS )
-  add_subdirectory( tests )
-endif()
