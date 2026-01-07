@@ -114,9 +114,11 @@ refine_detections_add_fixed
 ::refine( kv::image_container_sptr image_data,
           kv::detected_object_set_sptr detections ) const
 {
-  kv::detected_object_set_sptr output = detections->clone();
+  kv::detected_object_set_sptr output = detections
+    ? detections->clone()
+    : std::make_shared< kv::detected_object_set >();
 
-  if( d_->add_full_image_detection &&
+  if( d_->add_full_image_detection && image_data &&
       image_data->height() > 0 && image_data->width() > 0 )
   {
     kv::bounding_box_d det_box( 0, 0,
