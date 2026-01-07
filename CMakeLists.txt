@@ -336,8 +336,8 @@ endif()
 option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libpng"     ON )
 mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
-option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled"     OFF )
-mark_as_advanced( VIAME_BUILD_TESTS )
+option( VIAME_ENABLE_TESTS "Build VIAME tests"                                      OFF )
+mark_as_advanced( VIAME_ENABLE_TESTS )
 
 option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python"              ON )
 mark_as_advanced( VIAME_BUILD_CHECKS )
@@ -1022,6 +1022,10 @@ else()
   add_subdirectory( examples )
   add_subdirectory( configs )
   add_subdirectory( tools )
+
+  if( VIAME_ENABLE_TESTS )
+    add_subdirectory( tests )
+  endif()
 
   ###
   # Configure setup scripts
