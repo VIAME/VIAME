@@ -134,51 +134,44 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/pytorch-libs/${LIB} )
   endif()
 
-  set( LIBRARY_LOCATION_URL file://${LIBRARY_LOCATION} )
-
-  set( LIBRARY_PIP_CACHE_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-cache )
   set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-build )
-  set( LIBRARY_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-tmp )
-
-  CreateDirectory( ${LIBRARY_PIP_CACHE_DIR} )
   CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
-  CreateDirectory( ${LIBRARY_PIP_TMP_DIR} )
-
-  set( LIBRARY_PIP_BUILD_DIR_CMD -b ${LIBRARY_PIP_BUILD_DIR} )
-  set( LIBRARY_PIP_CACHE_DIR_CMD --cache-dir ${LIBRARY_PIP_CACHE_DIR} )
-
-  # For each python library split the build and install into two steps.
 
   if( VIAME_PYTHON_SYMLINK )
-    # In development mode, install with the -e flag for editable.
-    set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} setup.py build )
-    set( LIBRARY_PIP_INSTALL_CMD
-      ${Python_EXECUTABLE} -m pip install --user -e . )
-  else()
-    # TODO:
-    # replace direct calls to setup.py with `python -m build`
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" )
-      # Use -m build for pyproject.toml-based packages
-      # FIXME:
-      # If we remove no-isolation then it will complain that pip cannot be found.
-      # I don't know exactly why, but for now it works.
+      set( LIBRARY_PIP_BUILD_CMD "" )
+      set( LIBRARY_PIP_INSTALL_CMD
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user -e . )
+    else()
       set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} -m build
-          --wheel
-          --no-isolation
-          --outdir ${LIBRARY_PIP_BUILD_DIR}
+        ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
+      set( LIBRARY_PIP_INSTALL_CMD
+        ${Python_EXECUTABLE} -m pip install --user -e . )
+    endif()
+  else()
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" )
+      # Use pip wheel for pyproject.toml-based packages
+      # This avoids creating build directories in source tree
+      set( LIBRARY_PIP_BUILD_CMD
+        ${Python_EXECUTABLE} -m pip wheel
+          --no-build-isolation
+          --no-deps
+          --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
+          ${LIBRARY_LOCATION}
       )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py
+          build --build-base=${LIBRARY_PIP_BUILD_DIR}
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     else()
       set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} setup.py build_ext
-          --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-          --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-          --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+        ${Python_EXECUTABLE} setup.py
+          build --build-base=${LIBRARY_PIP_BUILD_DIR}
+          build_ext
+            --include-dirs="${VIAME_INSTALL_PREFIX}/include"
+            --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
+          bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     endif()
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
@@ -188,14 +181,17 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
   endif()
 
-  set( LIBRARY_PYTHON_BUILD
-    ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
-    "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
-    ${LIBRARY_PIP_BUILD_CMD} )
+  # Convert install command and env vars to ----separated strings for the wrapper script
+  set( PYTORCH_INSTALL_ENV_VARS ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
+  string( REPLACE ";" "----" PYTORCH_INSTALL_CMD_STR "${LIBRARY_PIP_INSTALL_CMD}" )
+  string( REPLACE ";" "----" PYTORCH_INSTALL_ENV_STR "${PYTORCH_INSTALL_ENV_VARS}" )
+
   set( LIBRARY_PYTHON_INSTALL
-    ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
-    "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
-    ${LIBRARY_PIP_INSTALL_CMD} )
+    ${CMAKE_COMMAND}
+      -DCOMMAND_TO_RUN=${PYTORCH_INSTALL_CMD_STR}
+      -DENV_VARS=${PYTORCH_INSTALL_ENV_STR}
+      -DWORKING_DIR=${LIBRARY_LOCATION}
+      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 
   set( LIBRARY_PATCH_COMMAND "" )
   set( PROJECT_DEPS fletch python-deps )
@@ -208,7 +204,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     endif()
   endif()
 
-  if( "${LIB}" STREQUAL "bioharn" )
+  if( "${LIB}" STREQUAL "pytorch" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/pytorch
+      ${VIAME_PACKAGES_DIR}/pytorch )
+  elseif( "${LIB}" STREQUAL "bioharn" )
     set( PROJECT_DEPS netharn )
   elseif( "${LIB}" STREQUAL "netharn" )
     set( PROJECT_DEPS mmdetection )
@@ -247,102 +247,78 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
   endif()
 
-  # For slow-to-build packages, use conditional build that checks source hash
+  # Use conditional build that checks source hash
   # This prevents unnecessary recompilation when source hasn't changed
-  set( SLOW_BUILD_PACKAGE FALSE )
-  if( "${LIB}" STREQUAL "detectron2" OR "${LIB}" STREQUAL "sam2" OR "${LIB}" STREQUAL "mmdeploy" )
-    set( SLOW_BUILD_PACKAGE TRUE )
-    set( LIB_HASH_FILE ${VIAME_BUILD_PREFIX}/src/${LIB}-source-hash.txt )
+  set( LIB_HASH_FILE ${VIAME_BUILD_PREFIX}/src/${LIB}-source-hash.txt )
 
-    # Convert environment variables list to semicolon-separated string for passing to cmake script
-    string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS}" )
-  endif()
+  # Convert lists to ----separated strings for passing through ExternalProject_Add
+  set( PYTORCH_ENV_VARS_WITH_BUILD_DIR ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
+  string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS_WITH_BUILD_DIR}" )
+  string( REPLACE ";" "----" LIBRARY_PIP_BUILD_CMD_STR "${LIBRARY_PIP_BUILD_CMD}" )
 
-  if( SLOW_BUILD_PACKAGE )
-    # Use conditional build for slow packages (detectron2, sam2, mmdeploy)
-    # This checks source hash and skips rebuild if unchanged
+  set( CONDITIONAL_BUILD_CMD
+    ${CMAKE_COMMAND}
+      -DLIB_NAME=${LIB}
+      -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
+      -DHASH_FILE=${LIB_HASH_FILE}
+      -DPYTHON_BUILD_CMD=${LIBRARY_PIP_BUILD_CMD_STR}
+      -DENV_VARS=${PYTORCH_ENV_VARS_STR}
+      -DWORKING_DIR=${LIBRARY_LOCATION} )
 
-    # Base conditional build command
-    set( CONDITIONAL_BUILD_CMD
+  # mmdeploy has additional C++ build steps
+  set( LIBRARY_CONFIGURE_CMD "" )
+  if( "${LIB}" STREQUAL "mmdeploy" )
+    set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
+    set( LIBRARY_CPP_BUILD_DIR ${LIBRARY_PIP_BUILD_DIR} )
+    file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
+
+    set( LIBRARY_CPP_CONFIG
       ${CMAKE_COMMAND}
-        -DLIB_NAME=${LIB}
-        -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
-        -DHASH_FILE=${LIB_HASH_FILE}
-        -DPYTHON_BUILD_CMD="${LIBRARY_PIP_BUILD_CMD}"
-        -DENV_VARS="${PYTORCH_ENV_VARS_STR}"
-        -DTMPDIR="${LIBRARY_PIP_TMP_DIR}"
-        -DWORKING_DIR=${LIBRARY_LOCATION} )
+      -DMMDEPLOY_TARGET_BACKENDS=ort
+      -DONNXRUNTIME_DIR=${ONNXRUNTIME_DIR}
+      -S "${LIBRARY_LOCATION}"
+      -B "${LIBRARY_CPP_BUILD_DIR}" )
 
-    # mmdeploy has additional C++ build steps
-    if( "${LIB}" STREQUAL "mmdeploy" )
-      set( ONNXRUNTIME_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs )
-      set( LIBRARY_CPP_BUILD_DIR ${VIAME_SOURCE_DIR}/packages/pytorch-libs/mmdeploy/build )
-      file( MAKE_DIRECTORY ${LIBRARY_CPP_BUILD_DIR} )
-
-      set( LIBRARY_CPP_CONFIG
-        ${CMAKE_COMMAND}
-        -DMMDEPLOY_TARGET_BACKENDS=ort
-        -DONNXRUNTIME_DIR=${ONNXRUNTIME_DIR}
-        -S "${LIBRARY_LOCATION}"
-        -B "${LIBRARY_CPP_BUILD_DIR}" )
-
-      set( LIBRARY_CPP_BUILD ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}" )
-      set( LIBRARY_CPP_INSTALL ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}" )
-      if( (CMAKE_CONFIGURATION_TYPES STREQUAL "Release") OR (CMAKE_BUILD_TYPE STREQUAL "Release") )
-        list( APPEND LIBRARY_CPP_BUILD --config Release )
-        list( APPEND LIBRARY_CPP_INSTALL --config Release )
-      endif()
-      if( VIAME_BUILD_MAX_THREADS )
-        list( APPEND LIBRARY_CPP_BUILD -j ${VIAME_BUILD_MAX_THREADS} )
-      endif()
-
-      list( APPEND CONDITIONAL_BUILD_CMD
-        -DCPP_BUILD_CMD="${LIBRARY_CPP_BUILD}"
-        -DCPP_INSTALL_CMD="${LIBRARY_CPP_INSTALL}" )
-
-      set( LIBRARY_CONFIGURE_CMD ${LIBRARY_CPP_CONFIG} )
-    else()
-      set( LIBRARY_CONFIGURE_CMD "" )
+    set( LIBRARY_CPP_BUILD ${CMAKE_COMMAND} --build "${LIBRARY_CPP_BUILD_DIR}" )
+    set( LIBRARY_CPP_INSTALL ${CMAKE_COMMAND} --install "${LIBRARY_CPP_BUILD_DIR}" )
+    if( (CMAKE_CONFIGURATION_TYPES STREQUAL "Release") OR (CMAKE_BUILD_TYPE STREQUAL "Release") )
+      list( APPEND LIBRARY_CPP_BUILD --config Release )
+      list( APPEND LIBRARY_CPP_INSTALL --config Release )
+    endif()
+    if( VIAME_BUILD_MAX_THREADS )
+      list( APPEND LIBRARY_CPP_BUILD -j ${VIAME_BUILD_MAX_THREADS} )
     endif()
 
-    list( APPEND CONDITIONAL_BUILD_CMD -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+    # Convert C++ build/install commands to ----separated strings (like PYTHON_BUILD_CMD)
+    string( REPLACE ";" "----" LIBRARY_CPP_BUILD_STR "${LIBRARY_CPP_BUILD}" )
+    string( REPLACE ";" "----" LIBRARY_CPP_INSTALL_STR "${LIBRARY_CPP_INSTALL}" )
 
-    ExternalProject_Add( ${LIB}
-      DEPENDS ${PROJECT_DEPS}
-      PREFIX ${VIAME_BUILD_PREFIX}
-      SOURCE_DIR ${LIBRARY_LOCATION}
-      BUILD_IN_SOURCE 1
-      PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
-      CONFIGURE_COMMAND "${LIBRARY_CONFIGURE_CMD}"
-      BUILD_COMMAND ${CONDITIONAL_BUILD_CMD}
-      INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-      LIST_SEPARATOR "----" )
+    list( APPEND CONDITIONAL_BUILD_CMD
+      -DCPP_BUILD_CMD=${LIBRARY_CPP_BUILD_STR}
+      -DCPP_INSTALL_CMD=${LIBRARY_CPP_INSTALL_STR} )
 
-    if( "${LIB}" STREQUAL "mmdeploy" )
-      set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy )
-      ExternalProject_Add_Step(${LIB}
-        postinstall
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBRARY_LOCATION}/configs ${MMDEPLOY_INSTALL_DIR}/configs
-        DEPENDEES install )
-    endif()
-
-  else()
-    ExternalProject_Add( ${LIB}
-      DEPENDS ${PROJECT_DEPS}
-      PREFIX ${VIAME_BUILD_PREFIX}
-      SOURCE_DIR ${LIBRARY_LOCATION}
-      BUILD_IN_SOURCE 1
-      PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
-      INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-      LIST_SEPARATOR "----"
-      )
+    set( LIBRARY_CONFIGURE_CMD ${LIBRARY_CPP_CONFIG} )
   endif()
 
-  # For non-slow packages, use traditional forcebuild method if VIAME_FORCEBUILD is on
-  if( NOT SLOW_BUILD_PACKAGE AND VIAME_FORCEBUILD )
-    RemoveProjectCMakeStamp( ${LIB} )
+  list( APPEND CONDITIONAL_BUILD_CMD -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+
+  ExternalProject_Add( ${LIB}
+    DEPENDS ${PROJECT_DEPS}
+    PREFIX ${VIAME_BUILD_PREFIX}
+    SOURCE_DIR ${LIBRARY_LOCATION}
+    BUILD_IN_SOURCE 1
+    PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
+    CONFIGURE_COMMAND "${LIBRARY_CONFIGURE_CMD}"
+    BUILD_COMMAND ${CONDITIONAL_BUILD_CMD}
+    INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
+    LIST_SEPARATOR "----" )
+
+  if( "${LIB}" STREQUAL "mmdeploy" )
+    set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy )
+    ExternalProject_Add_Step(${LIB}
+      postinstall
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBRARY_LOCATION}/configs ${MMDEPLOY_INSTALL_DIR}/configs
+      DEPENDEES install )
   endif()
 endforeach()
 

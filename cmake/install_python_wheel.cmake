@@ -1,4 +1,4 @@
-file( GLOB _wheels LIST_DIRECTORIES FALSE ${WHEEL_DIR}/* )
+file( GLOB _wheels LIST_DIRECTORIES FALSE ${WHEEL_DIR}/*.whl )
 execute_process(
   COMMAND ${Python_EXECUTABLE} -m pip install --user ${_wheels}
   RESULT_VARIABLE _result

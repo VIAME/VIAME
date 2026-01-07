@@ -110,30 +110,20 @@ if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-build" "async_generator" )
 endif()
 
-if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_PYTORCH-MIT-YOLO )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" "ndsampler" "pygments" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "kwutil" )
+if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
+    VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" "ndsampler" "pygments" "kwutil" )
 
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx>=3.4" "pandas>=2.2.0" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.36.0" "kwcoco>=0.8.5" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "colormath" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.36.0" "kwcoco>=0.8.5" "colormath" )
   else()
     list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx>=3.2,<=3.4" "pandas>=2.1.0,<=2.2.3" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.34.0" "kwcoco>=0.8.0" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "colormath" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.34.0" "kwcoco>=0.8.0" "colormath" )
   endif()
-endif()
 
-if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  # Ultralytics will be installed as an advanced package. Here we need to
-  # explicitly install the dependencies of the package and our wrapper.
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn>=0.13.2" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" )
-  if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco>=0.8.5" )
-  else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco>=0.8.0" )
+  if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn>=0.13.2" )
   endif()
 endif()
 
@@ -250,9 +240,16 @@ foreach( ID RANGE ${DEP_COUNT} )
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
+  # Build the full command list and convert to ----separated string
+  set( PYTHON_DEP_FULL_CMD ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD} )
+  string( REPLACE ";" "----" PYTHON_DEP_CMD_STR "${PYTHON_DEP_FULL_CMD}" )
+  string( REPLACE ";" "----" PYTHON_DEP_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
   set( PYTHON_DEP_BUILD
-    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-      ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD}
+    ${CMAKE_COMMAND}
+      -DCOMMAND_TO_RUN=${PYTHON_DEP_CMD_STR}
+      -DENV_VARS=${PYTHON_DEP_ENV_STR}
+      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake
     )
 
   if( "${DEP}" STREQUAL "pytorch" )
@@ -280,26 +277,23 @@ endforeach()
 
 # ------------------------------------- PYMOTMETRICS -----------------------------------------
 
-# TODO: refactor this and make more generic for any python-utils requiring custom whl builds
-
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pymotmetrics )
 
 set( PROJECT_DEPS fletch python-deps )
+set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics )
+set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
+CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
 
 if( VIAME_PYTHON_SYMLINK )
   set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build )
+    ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${Python_EXECUTABLE} -m pip install --user -e . )
 else()
-  set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
-  CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
-
   set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build_ext
-      --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-      --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-      --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+    ${Python_EXECUTABLE} setup.py
+      build --build-base=${LIBRARY_PIP_BUILD_DIR}
+      bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${CMAKE_COMMAND}
       -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
@@ -308,21 +302,32 @@ else()
       -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
+# Convert commands and env vars to ----separated strings for the wrapper script
+string( REPLACE ";" "----" LIBRARY_BUILD_CMD_STR "${LIBRARY_PIP_BUILD_CMD}" )
+string( REPLACE ";" "----" LIBRARY_INSTALL_CMD_STR "${LIBRARY_PIP_INSTALL_CMD}" )
+string( REPLACE ";" "----" PYMOT_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
 set( LIBRARY_PYTHON_BUILD
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  ${LIBRARY_PIP_BUILD_CMD} )
+  ${CMAKE_COMMAND}
+    -DCOMMAND_TO_RUN=${LIBRARY_BUILD_CMD_STR}
+    -DENV_VARS=${PYMOT_ENV_STR}
+    -DWORKING_DIR=${LIBRARY_LOCATION}
+    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 set( LIBRARY_PYTHON_INSTALL
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  ${LIBRARY_PIP_INSTALL_CMD} )
+  ${CMAKE_COMMAND}
+    -DCOMMAND_TO_RUN=${LIBRARY_INSTALL_CMD_STR}
+    -DENV_VARS=${PYMOT_ENV_STR}
+    -DWORKING_DIR=${LIBRARY_LOCATION}
+    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 
 ExternalProject_Add( pymotmetrics
   DEPENDS ${PROJECT_DEPS}
   PREFIX ${VIAME_BUILD_PREFIX}
-  SOURCE_DIR ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics
+  SOURCE_DIR ${LIBRARY_LOCATION}
   BUILD_IN_SOURCE 1
+  USES_TERMINAL_BUILD 1
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
   INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-  LIST_SEPARATOR "----"
-  )
+  LIST_SEPARATOR "----" )
 

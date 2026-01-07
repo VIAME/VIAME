@@ -7,8 +7,6 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-CreateDirectory( ${VIAME_BUILD_PREFIX}/src/tensorflow-build )
-
 set( TENSORFLOW_ENV_VARS )
 
 if( NOT VIAME_ENABLE_PYTORCH )
@@ -47,33 +45,36 @@ list( APPEND TENSORFLOW_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
 list( APPEND TENSORFLOW_ENV_VARS "PYTHONUSERBASE=${VIAME_INSTALL_PREFIX}" )
 
 if( VIAME_ENABLE_TENSORFLOW-MODELS )
+  set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/tensorflow-libs/models )
+  set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/tensorflow-models-build )
+  CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
+
   if( VIAME_PYTHON_SYMLINK )
     set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} setup.py build )
+      ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${Python_EXECUTABLE} -m pip install --user -e . )
   else()
     set( LIBRARY_PIP_BUILD_CMD
-      ${Python_EXECUTABLE} setup.py build_ext
-        --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-        --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-        --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+      ${Python_EXECUTABLE} setup.py
+        build --build-base=${LIBRARY_PIP_BUILD_DIR}
+        build_ext
+          --include-dirs="${VIAME_INSTALL_PREFIX}/include"
+          --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
+        bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
         -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
         -DPython_EXECUTABLE=${Python_EXECUTABLE}
-        -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
         -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
         -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
   endif()
 
   set( LIBRARY_PYTHON_BUILD
     ${CMAKE_COMMAND} -E env "${TENSORFLOW_ENV_VARS}"
-    "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
     ${LIBRARY_PIP_BUILD_CMD} )
   set( LIBRARY_PYTHON_INSTALL
     ${CMAKE_COMMAND} -E env "${TENSORFLOW_ENV_VARS}"
-    "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
     ${LIBRARY_PIP_INSTALL_CMD} )
 
   set( PROJECT_DEPS fletch python-deps )

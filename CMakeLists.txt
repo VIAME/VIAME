@@ -681,10 +681,12 @@ if( VIAME_ENABLE_PYTHON )
       endif()
     endif()
 
-    string( REPLACE ";" "----" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
-    string( REPLACE ";" "----" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
-    string( REPLACE ";" "----" ADJ_INCLUDE_PATH "${ADJ_INCLUDE_PATH}" )
-    string( REPLACE ";" "----" ADJ_LIBRARY_PATH "${ADJ_LIBRARY_PATH}" )
+    # Use <PS> as path separator instead of ---- to avoid conflict with LIST_SEPARATOR
+    # <PS> will be converted back to ; (Windows) or : (Unix) by build scripts
+    string( REPLACE ";" "<PS>" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
+    string( REPLACE ";" "<PS>" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
+    string( REPLACE ";" "<PS>" ADJ_INCLUDE_PATH "${ADJ_INCLUDE_PATH}" )
+    string( REPLACE ";" "<PS>" ADJ_LIBRARY_PATH "${ADJ_LIBRARY_PATH}" )
 
     list( APPEND PYTHON_DEP_ENV_VARS "INCLUDE=${ADJ_INCLUDE_PATH}" )
     list( APPEND PYTHON_DEP_ENV_VARS "LIB=${ADJ_LIBRARY_PATH}" )

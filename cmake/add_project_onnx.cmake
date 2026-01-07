@@ -1,30 +1,27 @@
 # Install onnx python
 set( ONNXRUNTIME_PYTHON onnxruntime )
+set( ONNXRUNTIME_VERSION 1.12.1 )
+set( ONNXRUNTIME_DOWNLOAD_DIR ${VIAME_PACKAGES_DIR}/downloads )
 
-set( ONNXRUNTIME_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/${ONNXRUNTIME_PYTHON}-build )
-CreateDirectory( ${ONNXRUNTIME_PIP_BUILD_DIR} )
+set( ONNXRUNTIME_PIP_INSTALL_CMD
+  ${CMAKE_COMMAND}
+    -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
+    -DPython_EXECUTABLE=${Python_EXECUTABLE}
+    -DWHEEL_DIR=${ONNXRUNTIME_DOWNLOAD_DIR}
+    -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 
-set( ONNXRUNTIME_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/${ONNXRUNTIME_PYTHON}-tmp )
-CreateDirectory( ${ONNXRUNTIME_PIP_TMP_DIR} )
-
-set( ONNXRUNTIME_PIP_INSTALL_CMD "" )
-if( VIAME_SYMLINK_PYTHON )
-  set( ONNXRUNTIME_PIP_INSTALL_CMD
-    ${Python_EXECUTABLE} -m pip install --user -e . )
-else()
-  set( ONNXRUNTIME_PIP_INSTALL_CMD
-    ${CMAKE_COMMAND}
-      -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
-      -DPython_EXECUTABLE=${Python_EXECUTABLE}
-      -DWHEEL_DIR=${ONNXRUNTIME_PIP_BUILD_DIR}
-      -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
-endif()
-
-# Instead of building the wheel, we download it directly in the build folder
 set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download
-  --no-deps onnxruntime==1.12.1 -d "${ONNXRUNTIME_PIP_BUILD_DIR}" )
-set( ONNXRUNTIME_PYTHON_INSTALL ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  "TMPDIR=${ONNXRUNTIME_PIP_TMP_DIR}" ${ONNXRUNTIME_PIP_INSTALL_CMD} )
+  --no-deps onnxruntime==${ONNXRUNTIME_VERSION} -d "${ONNXRUNTIME_DOWNLOAD_DIR}" )
+
+# Convert install command and env vars to ----separated strings for the wrapper script
+string( REPLACE ";" "----" ONNX_INSTALL_CMD_STR "${ONNXRUNTIME_PIP_INSTALL_CMD}" )
+string( REPLACE ";" "----" ONNX_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
+set( ONNXRUNTIME_PYTHON_INSTALL
+  ${CMAKE_COMMAND}
+    -DCOMMAND_TO_RUN=${ONNX_INSTALL_CMD_STR}
+    -DENV_VARS=${ONNX_ENV_STR}
+    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 
 ExternalProject_Add( ${ONNXRUNTIME_PYTHON}
   DEPENDS fletch python-deps
@@ -32,7 +29,6 @@ ExternalProject_Add( ${ONNXRUNTIME_PYTHON}
   DOWNLOAD_COMMAND ${ONNXRUNTIME_PYTHON_DOWNLOAD}
   SOURCE_DIR ""
   BUILD_IN_SOURCE 1
-  PATCH_COMMAND ""
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND ${ONNXRUNTIME_PYTHON_INSTALL}
