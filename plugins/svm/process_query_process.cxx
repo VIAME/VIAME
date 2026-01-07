@@ -121,14 +121,16 @@ create_config_trait( nn_distance_method, std::string, "euclidean",
   "Distance method for nearest neighbor re-ranking after LSH candidate retrieval. "
   "Options: 'euclidean', 'cosine', 'hik' (histogram intersection). "
   "Default is 'euclidean'." );
-create_config_trait( use_platt_scaling, bool, "true",
+create_config_trait( use_platt_scaling, bool, "false",
   "Use custom Platt scaling with HIK distance for probability estimation. "
-  "When true (default), uses custom Platt scaling with explicit HIK distance computation. "
-  "When false, uses libsvm's built-in probability prediction." );
-create_config_trait( force_exemplar_scores, bool, "false",
+  "When true, uses custom Platt scaling with explicit HIK distance computation. "
+  "When false (default), uses libsvm's built-in probability prediction. "
+  "The default matches SMQTK's behavior which uses libsvm probability." );
+create_config_trait( force_exemplar_scores, bool, "true",
   "Force positive exemplars to score 1.0 and negative exemplars to score 0.0. "
-  "When true, exemplar scores are overwritten after prediction. "
-  "When false (default), exemplars receive their predicted scores." );
+  "When true (default), exemplar scores are overwritten after prediction. "
+  "This matches SMQTK's behavior. "
+  "When false, exemplars receive their predicted scores." );
 
 //--------------------------------------------------------------------------------
 // Descriptor element for IQR
@@ -1603,8 +1605,8 @@ private:
   double m_nn_sample_fraction = 0.1;
   unsigned m_autoneg_select_ratio = 0;
   std::string m_nn_distance_method = "euclidean";
-  bool m_use_platt_scaling = true;
-  bool m_force_exemplar_scores = false;
+  bool m_use_platt_scaling = false;
+  bool m_force_exemplar_scores = true;
 
   std::unordered_map< std::string, descriptor_element > m_positive_descriptors;
   std::unordered_map< std::string, descriptor_element > m_negative_descriptors;
@@ -1642,8 +1644,8 @@ public:
     , m_use_lsh_index( true )
     , m_lsh_bit_length( 256 )
     , m_lsh_neighbor_multiplier( 10 )
-    , m_use_platt_scaling( true )
-    , m_force_exemplar_scores( false )
+    , m_use_platt_scaling( false )
+    , m_force_exemplar_scores( true )
     , m_index_loaded( false )
     , m_lsh_loaded( false )
     , m_iqr_session( nullptr )
