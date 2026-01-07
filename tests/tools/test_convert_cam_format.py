@@ -26,7 +26,7 @@ import numpy as np
 @pytest.fixture
 def a_test_data_folder():
     file_folder = os.path.dirname(__file__)
-    return os.path.join(file_folder, "..", "plugins", "core", "data")
+    return os.path.join(file_folder, "..", "data")
 
 
 @pytest.fixture
