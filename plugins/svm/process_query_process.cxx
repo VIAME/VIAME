@@ -96,6 +96,12 @@ create_config_trait( autoneg_select_ratio, unsigned, "0",
   "for each positive example when no negative examples are provided. "
   "Set to 0 (default) to disable auto-negatives. "
   "Set to 1+ to enable SVM training on the first query iteration." );
+create_config_trait( autoneg_from_full_index, bool, "true",
+  "When auto-selecting negatives, choose from the full descriptor index "
+  "instead of just the working index (neighbors of positives). "
+  "When true (default), negatives are selected from all indexed descriptors, "
+  "which may provide more diverse negative examples. "
+  "When false, negatives are selected from the working index only." );
 
 // LSH (Locality Sensitive Hashing) config traits for fast approximate NN search
 create_config_trait( use_lsh_index, bool, "true",
@@ -1110,6 +1116,7 @@ public:
   void set_nn_max_linear_search( unsigned max ) { m_nn_max_linear_search = max; }
   void set_nn_sample_fraction( double fraction ) { m_nn_sample_fraction = fraction; }
   void set_autoneg_select_ratio( unsigned ratio ) { m_autoneg_select_ratio = ratio; }
+  void set_autoneg_from_full_index( bool from_full ) { m_autoneg_from_full_index = from_full; }
 
   void set_full_index_ref(
     const std::unordered_map< std::string, std::vector< double > >* index )
@@ -1320,14 +1327,20 @@ private:
 
   // Auto-select negative examples by finding the most distant descriptors
   // from each positive example using histogram intersection distance.
-  // Auto-negatives are selected from the WORKING index (neighbors of positives),
-  // not from the full descriptor index.
+  // Auto-negatives can be selected from either the working index (neighbors of
+  // positives) or the full descriptor index, depending on configuration.
   std::vector< descriptor_element > select_auto_negatives() const
   {
-    // Select auto-negatives from the working index (neighbors of positives),
-    // not from the full descriptor index.
-    if( m_working_index.empty() ||
-        m_positive_descriptors.empty() || m_autoneg_select_ratio == 0 )
+    if( m_positive_descriptors.empty() || m_autoneg_select_ratio == 0 )
+    {
+      return {};
+    }
+
+    // Choose which index to select auto-negatives from
+    bool use_full_index = m_autoneg_from_full_index && m_full_index_ref &&
+                          !m_full_index_ref->empty();
+
+    if( !use_full_index && m_working_index.empty() )
     {
       return {};
     }
@@ -1335,8 +1348,7 @@ private:
     std::unordered_set< std::string > selected_uids;
     std::vector< descriptor_element > auto_negatives;
 
-    // For each positive, find the most distant descriptors in the WORKING index
-    // This ensures auto-negatives come from the same pool as the working index
+    // For each positive, find the most distant descriptors
     for( const auto& pos : m_positive_descriptors )
     {
       // Priority queue to track most distant descriptors (min-heap by distance)
@@ -1345,49 +1357,102 @@ private:
       std::priority_queue< pair_type, std::vector< pair_type >,
         std::greater< pair_type > > pq;
 
-      for( const auto& entry : m_working_index )
+      if( use_full_index )
       {
-        // Skip if already a positive or negative or already selected
-        if( m_positive_descriptors.find( entry.first ) !=
-            m_positive_descriptors.end() )
+        // Select from full descriptor index
+        for( const auto& entry : *m_full_index_ref )
         {
-          continue;
-        }
-        if( m_negative_descriptors.find( entry.first ) !=
-            m_negative_descriptors.end() )
-        {
-          continue;
-        }
-        if( selected_uids.find( entry.first ) != selected_uids.end() )
-        {
-          continue;
+          // Skip if already a positive or negative or already selected
+          if( m_positive_descriptors.find( entry.first ) !=
+              m_positive_descriptors.end() )
+          {
+            continue;
+          }
+          if( m_negative_descriptors.find( entry.first ) !=
+              m_negative_descriptors.end() )
+          {
+            continue;
+          }
+          if( selected_uids.find( entry.first ) != selected_uids.end() )
+          {
+            continue;
+          }
+
+          // Use histogram intersection distance
+          double dist = histogram_intersection_distance(
+            pos.second.vector, entry.second );
+
+          if( pq.size() < m_autoneg_select_ratio )
+          {
+            pq.push( { dist, entry.first } );
+          }
+          else if( dist > pq.top().first )
+          {
+            pq.pop();
+            pq.push( { dist, entry.first } );
+          }
         }
 
-        // Use histogram intersection distance
-        double dist = histogram_intersection_distance(
-          pos.second.vector, entry.second.vector );
-
-        if( pq.size() < m_autoneg_select_ratio )
+        // Add most distant descriptors as auto-negatives
+        while( !pq.empty() )
         {
-          pq.push( { dist, entry.first } );
-        }
-        else if( dist > pq.top().first )
-        {
+          const auto& uid = pq.top().second;
+          if( selected_uids.find( uid ) == selected_uids.end() )
+          {
+            selected_uids.insert( uid );
+            auto_negatives.emplace_back(
+              descriptor_element( uid, m_full_index_ref->at( uid ) ) );
+          }
           pq.pop();
-          pq.push( { dist, entry.first } );
         }
       }
-
-      // Add most distant descriptors as auto-negatives
-      while( !pq.empty() )
+      else
       {
-        const auto& uid = pq.top().second;
-        if( selected_uids.find( uid ) == selected_uids.end() )
+        // Select from working index (default, matches SMQTK behavior)
+        for( const auto& entry : m_working_index )
         {
-          selected_uids.insert( uid );
-          auto_negatives.emplace_back( m_working_index.at( uid ) );
+          // Skip if already a positive or negative or already selected
+          if( m_positive_descriptors.find( entry.first ) !=
+              m_positive_descriptors.end() )
+          {
+            continue;
+          }
+          if( m_negative_descriptors.find( entry.first ) !=
+              m_negative_descriptors.end() )
+          {
+            continue;
+          }
+          if( selected_uids.find( entry.first ) != selected_uids.end() )
+          {
+            continue;
+          }
+
+          // Use histogram intersection distance
+          double dist = histogram_intersection_distance(
+            pos.second.vector, entry.second.vector );
+
+          if( pq.size() < m_autoneg_select_ratio )
+          {
+            pq.push( { dist, entry.first } );
+          }
+          else if( dist > pq.top().first )
+          {
+            pq.pop();
+            pq.push( { dist, entry.first } );
+          }
         }
-        pq.pop();
+
+        // Add most distant descriptors as auto-negatives
+        while( !pq.empty() )
+        {
+          const auto& uid = pq.top().second;
+          if( selected_uids.find( uid ) == selected_uids.end() )
+          {
+            selected_uids.insert( uid );
+            auto_negatives.emplace_back( m_working_index.at( uid ) );
+          }
+          pq.pop();
+        }
       }
     }
 
@@ -1604,6 +1669,7 @@ private:
   unsigned m_nn_max_linear_search = 50000;
   double m_nn_sample_fraction = 0.1;
   unsigned m_autoneg_select_ratio = 0;
+  bool m_autoneg_from_full_index = true;
   std::string m_nn_distance_method = "euclidean";
   bool m_use_platt_scaling = false;
   bool m_force_exemplar_scores = true;
@@ -1641,6 +1707,7 @@ public:
     , m_nn_max_linear_search( 50000 )
     , m_nn_sample_fraction( 0.1 )
     , m_autoneg_select_ratio( 0 )
+    , m_autoneg_from_full_index( true )
     , m_use_lsh_index( true )
     , m_lsh_bit_length( 256 )
     , m_lsh_neighbor_multiplier( 10 )
@@ -1663,6 +1730,7 @@ public:
   unsigned m_nn_max_linear_search;
   double m_nn_sample_fraction;
   unsigned m_autoneg_select_ratio;
+  bool m_autoneg_from_full_index;
 
   // LSH configuration
   bool m_use_lsh_index;
@@ -1818,6 +1886,7 @@ process_query_process
   d->m_nn_max_linear_search = config_value_using_trait( nn_max_linear_search );
   d->m_nn_sample_fraction = config_value_using_trait( nn_sample_fraction );
   d->m_autoneg_select_ratio = config_value_using_trait( autoneg_select_ratio );
+  d->m_autoneg_from_full_index = config_value_using_trait( autoneg_from_full_index );
 
   // LSH configuration
   d->m_use_lsh_index = config_value_using_trait( use_lsh_index );
@@ -1872,6 +1941,7 @@ process_query_process
   d->m_iqr_session->set_nn_max_linear_search( d->m_nn_max_linear_search );
   d->m_iqr_session->set_nn_sample_fraction( d->m_nn_sample_fraction );
   d->m_iqr_session->set_autoneg_select_ratio( d->m_autoneg_select_ratio );
+  d->m_iqr_session->set_autoneg_from_full_index( d->m_autoneg_from_full_index );
   d->m_iqr_session->set_full_index_ref( &d->m_descriptor_index );
 
   // Set LSH index reference if loaded
@@ -2074,6 +2144,7 @@ process_query_process
   declare_config_using_trait( nn_max_linear_search );
   declare_config_using_trait( nn_sample_fraction );
   declare_config_using_trait( autoneg_select_ratio );
+  declare_config_using_trait( autoneg_from_full_index );
 
   // LSH configuration
   declare_config_using_trait( use_lsh_index );
