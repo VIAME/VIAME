@@ -58,7 +58,7 @@ class ITQModel:
     INIT_QR = 'qr'      # QR decomposition
 
     def __init__(self, bit_length=256, itq_iterations=100, random_seed=0,
-                 normalize=2, pca_method='cov_eig', init_method='svd'):
+                 normalize=None, pca_method='cov_eig', init_method='svd'):
         """
         Initialize ITQ model parameters.
 
@@ -1445,23 +1445,47 @@ def main():
                 verbose=verbose
             )
         else:
-            # Full train + hash mode
-            model, hash2uuid, linear_index = generate_nn_index(
-                descriptor_source=source,
-                output_dir=args.output_dir,
-                bit_length=bit_length,
-                itq_iterations=itq_iterations,
-                random_seed=random_seed,
-                normalize=normalize,
-                pca_method=args.pca_method,
-                init_method=args.init_method,
-                max_train_descriptors=max_train,
-                random_sample=not args.no_random_sample,
-                train_uids=train_uids,
-                report_interval=args.report_interval,
-                incremental=args.incremental,
-                verbose=verbose
-            )
+            # Check if model exists to avoid overwriting Baseline copy
+            # Use standard naming convention
+            r_str = random_seed if random_seed is not None else 0
+            suffix = f"b{bit_length}_i{itq_iterations}_r{r_str}"
+            model_path = os.path.join(args.output_dir, f"itq.model.{suffix}.rotation.npy")
+            
+            if os.path.exists(model_path):
+                if verbose:
+                    print(f"  Found existing ITQ model at {model_path}. Skipping training and using existing model.")
+                # Reuse existing model by calling compute_hashes_only
+                hash2uuid, linear_index = compute_hashes_only(
+                    descriptor_source=source,
+                    model_dir=args.output_dir, # Use output_dir as model_dir
+                    output_dir=args.output_dir,
+                    bit_length=bit_length,
+                    itq_iterations=itq_iterations,
+                    random_seed=random_seed,
+                    normalize=normalize,
+                    incremental=args.incremental,
+                    verbose=verbose
+                )
+                model = ITQModel(bit_length, itq_iterations, random_seed, normalize)
+                model.load(args.output_dir)
+            else:
+                # Full train + hash mode
+                model, hash2uuid, linear_index = generate_nn_index(
+                    descriptor_source=source,
+                    output_dir=args.output_dir,
+                    bit_length=bit_length,
+                    itq_iterations=itq_iterations,
+                    random_seed=random_seed,
+                    normalize=normalize,
+                    pca_method=args.pca_method,
+                    init_method=args.init_method,
+                    max_train_descriptors=max_train,
+                    random_sample=not args.no_random_sample,
+                    train_uids=train_uids,
+                    report_interval=args.report_interval,
+                    incremental=args.incremental,
+                    verbose=verbose
+                )
 
         if verbose:
             print("\nITQ index build complete!")
