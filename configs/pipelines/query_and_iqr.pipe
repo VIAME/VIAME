@@ -45,8 +45,10 @@ process query_handler
 
   # use_platt_scaling=false uses libsvm's built-in probability
   # force_exemplar_scores=true forces positives to 1.0, negatives to 0.0
+  # scoring_norm=true enforces L2 norm for Euclidean dist
   :use_platt_scaling                           false
   :force_exemplar_scores                       true
+  :scoring_norm                                true
 
 connect from in_adapt.positive_descriptor_set
         to   query_handler.positive_descriptor_set

@@ -138,6 +138,10 @@ create_config_trait( force_exemplar_scores, bool, "true",
   "When true (default), exemplar scores are overwritten after prediction. "
   "This matches SMQTK's behavior. "
   "When false, exemplars receive their predicted scores." );
+create_config_trait( scoring_norm, bool, "true",
+  "Enforce L2 normalization of descriptors before computing Euclidean distance or hash codes. "
+  "When true (default), descriptors are normalized. "
+  "This is critical for Euclidean distance to rank similarly to Cosine similarity." );
 
 //--------------------------------------------------------------------------------
 // Descriptor element for IQR
@@ -715,6 +719,11 @@ public:
     m_negative_descriptors.clear();
     m_working_index.clear();
     free_model();
+  }
+
+  void set_scoring_norm( bool val )
+  {
+    m_scoring_norm = val;
   }
 
   void adjudicate( const std::vector< descriptor_element >& positives,
@@ -1589,7 +1598,7 @@ private:
   double compute_distance( const std::vector< double >& a,
                            const std::vector< double >& b ) const
   {
-    if( m_nn_distance_method == "euclidean" )
+    if( m_nn_distance_method == "euclidean" && m_scoring_norm )
     {
       // Enforce normalization to match Baseline/Cosine behavior
       // This is required because input descriptors are unnormalized (ReLU outputs)
@@ -1746,6 +1755,7 @@ private:
   std::string m_nn_distance_method = "euclidean";
   bool m_use_platt_scaling = false;
   bool m_force_exemplar_scores = true;
+  bool m_scoring_norm = true;
 
   std::unordered_map< std::string, descriptor_element > m_positive_descriptors;
   std::unordered_map< std::string, descriptor_element > m_negative_descriptors;
@@ -1786,6 +1796,7 @@ public:
     , m_lsh_neighbor_multiplier( 10 )
     , m_use_platt_scaling( false )
     , m_force_exemplar_scores( true )
+    , m_scoring_norm( true )
     , m_index_loaded( false )
     , m_lsh_loaded( false )
     , m_iqr_session( nullptr )
@@ -1816,6 +1827,7 @@ public:
   std::string m_nn_distance_method;
   bool m_use_platt_scaling;
   bool m_force_exemplar_scores;
+  bool m_scoring_norm;
 
   bool m_index_loaded;
   bool m_lsh_loaded;
@@ -1982,6 +1994,7 @@ process_query_process
   d->m_nn_distance_method = config_value_using_trait( nn_distance_method );
   d->m_use_platt_scaling = config_value_using_trait( use_platt_scaling );
   d->m_force_exemplar_scores = config_value_using_trait( force_exemplar_scores );
+  d->m_scoring_norm = config_value_using_trait( scoring_norm );
 
   d->load_descriptor_index();
 
@@ -2036,6 +2049,7 @@ process_query_process
   d->m_iqr_session->set_nn_distance_method( d->m_nn_distance_method );
   d->m_iqr_session->set_use_platt_scaling( d->m_use_platt_scaling );
   d->m_iqr_session->set_force_exemplar_scores( d->m_force_exemplar_scores );
+  d->m_iqr_session->set_scoring_norm( d->m_scoring_norm );
 }
 
 
@@ -2240,6 +2254,7 @@ process_query_process
   declare_config_using_trait( nn_distance_method );
   declare_config_using_trait( use_platt_scaling );
   declare_config_using_trait( force_exemplar_scores );
+  declare_config_using_trait( scoring_norm );
 }
 
 } // end namespace svm
