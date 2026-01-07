@@ -387,7 +387,17 @@ train_svm_models_process::priv
     res.fetch( 0, uid );
     res.fetch( 1, vector_data );
 
-    // Parse comma-separated vector data
+    // Parse PostgreSQL array format: {val1,val2,val3,...}
+    // Remove curly braces if present
+    if( !vector_data.empty() && vector_data.front() == '{' )
+    {
+      vector_data = vector_data.substr( 1 );
+    }
+    if( !vector_data.empty() && vector_data.back() == '}' )
+    {
+      vector_data.pop_back();
+    }
+
     std::vector< double > values;
     std::istringstream ss( vector_data );
     std::string value_str;
