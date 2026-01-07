@@ -13,6 +13,7 @@
 #include <vital/types/descriptor_set.h>
 
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -39,6 +40,8 @@ create_config_trait( max_descriptor_buffer, unsigned, "10000",
   "Maximum number of descriptors to buffer before writing to file" );
 create_config_trait( append_mode, bool, "false",
   "If true, append to existing file. If false, overwrite." );
+create_config_trait( precision, unsigned, "9",
+  "Number of significant digits for descriptor values. Use 9 for float, 17 for double." );
 
 //--------------------------------------------------------------------------------
 // Private implementation class
@@ -50,6 +53,7 @@ public:
     , m_max_frame_buffer( 0 )
     , m_max_descriptor_buffer( 10000 )
     , m_append_mode( false )
+    , m_precision( 9 )
     , m_frame_counter( 0 )
     , m_file_opened( false ) {}
 
@@ -65,6 +69,7 @@ public:
   unsigned m_max_frame_buffer;
   unsigned m_max_descriptor_buffer;
   bool m_append_mode;
+  unsigned m_precision;
 
   unsigned m_frame_counter;
   bool m_file_opened;
@@ -102,6 +107,7 @@ ingest_descriptors_process
   d->m_max_frame_buffer = config_value_using_trait( max_frame_buffer );
   d->m_max_descriptor_buffer = config_value_using_trait( max_descriptor_buffer );
   d->m_append_mode = config_value_using_trait( append_mode );
+  d->m_precision = config_value_using_trait( precision );
 
   // Create output directory if it doesn't exist
   filesystem::path output_path( d->m_output_file );
@@ -208,6 +214,7 @@ ingest_descriptors_process
   }
 
   // Write each buffered descriptor as a CSV line: uid,val1,val2,...,valN
+  // Use maximum precision to avoid truncation that would affect hash code computation
   for( const auto& entry : d->m_descriptor_buffer )
   {
     const std::string& uid = entry.first;
@@ -217,7 +224,7 @@ ingest_descriptors_process
 
     for( double val : desc )
     {
-      d->m_writer << "," << val;
+      d->m_writer << "," << std::fixed << std::setprecision( d->m_precision ) << val;
     }
 
     d->m_writer << "\n";
@@ -259,6 +266,7 @@ ingest_descriptors_process
   declare_config_using_trait( max_frame_buffer );
   declare_config_using_trait( max_descriptor_buffer );
   declare_config_using_trait( append_mode );
+  declare_config_using_trait( precision );
 }
 
 } // end namespace core

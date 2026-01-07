@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -96,12 +97,12 @@ create_config_trait( autoneg_select_ratio, unsigned, "0",
   "for each positive example when no negative examples are provided. "
   "Set to 0 (default) to disable auto-negatives. "
   "Set to 1+ to enable SVM training on the first query iteration." );
-create_config_trait( autoneg_from_full_index, bool, "true",
+create_config_trait( autoneg_from_full_index, bool, "false",
   "When auto-selecting negatives, choose from the full descriptor index "
   "instead of just the working index (neighbors of positives). "
-  "When true (default), negatives are selected from all indexed descriptors, "
-  "which may provide more diverse negative examples. "
-  "When false, negatives are selected from the working index only." );
+  "When false (default), negatives are selected from the working index only. "
+  "This matches SMQTK's behavior. "
+  "When true, negatives are selected from all indexed descriptors." );
 
 // LSH (Locality Sensitive Hashing) config traits for fast approximate NN search
 create_config_trait( use_lsh_index, bool, "true",
@@ -865,6 +866,8 @@ public:
     }
 
     // Train model
+    // Set random seed for deterministic libsvm behavior (libsvm uses rand() for shuffling)
+    std::srand( 0 );
     m_svm_model = svm_train( &prob, &param );
 
     // Clean up training data
@@ -1669,7 +1672,7 @@ private:
   unsigned m_nn_max_linear_search = 50000;
   double m_nn_sample_fraction = 0.1;
   unsigned m_autoneg_select_ratio = 0;
-  bool m_autoneg_from_full_index = true;
+  bool m_autoneg_from_full_index = false;
   std::string m_nn_distance_method = "euclidean";
   bool m_use_platt_scaling = false;
   bool m_force_exemplar_scores = true;
@@ -1707,7 +1710,7 @@ public:
     , m_nn_max_linear_search( 50000 )
     , m_nn_sample_fraction( 0.1 )
     , m_autoneg_select_ratio( 0 )
-    , m_autoneg_from_full_index( true )
+    , m_autoneg_from_full_index( false )
     , m_use_lsh_index( true )
     , m_lsh_bit_length( 256 )
     , m_lsh_neighbor_multiplier( 10 )
@@ -1831,7 +1834,17 @@ public:
       res.fetch( 0, uid );
       res.fetch( 1, vector_data );
 
-      // Parse comma-separated vector data
+      // Parse PostgreSQL array format: {val1,val2,val3,...}
+      // Remove curly braces if present
+      if( !vector_data.empty() && vector_data.front() == '{' )
+      {
+        vector_data = vector_data.substr( 1 );
+      }
+      if( !vector_data.empty() && vector_data.back() == '}' )
+      {
+        vector_data.pop_back();
+      }
+
       std::vector< double > values;
       std::istringstream ss( vector_data );
       std::string value_str;

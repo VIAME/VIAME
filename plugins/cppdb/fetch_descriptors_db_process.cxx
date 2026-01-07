@@ -122,8 +122,19 @@ fetch_descriptors_db_process
       std::string vector_str;
       if( row.fetch( 0, vector_str ) )
       {
-        // Parse comma-separated values
+        // Parse PostgreSQL array format: {val1,val2,val3,...}
         std::vector< double > values;
+
+        // Remove curly braces if present
+        if( !vector_str.empty() && vector_str.front() == '{' )
+        {
+          vector_str = vector_str.substr( 1 );
+        }
+        if( !vector_str.empty() && vector_str.back() == '}' )
+        {
+          vector_str.pop_back();
+        }
+
         std::istringstream ss( vector_str );
         std::string value_str;
 
