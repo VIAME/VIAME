@@ -135,9 +135,18 @@ def init(log_file="", prompt=True):
         return [False, False]
 
 
-def status():
-    """Check database status."""
-    _execute_cmd("pg_ctl", ["-D", SQL_DIR, "status"])
+def status(quiet=False):
+    """Check database status. Returns True if running, False otherwise."""
+    global _log_file
+    original = _log_file
+    _log_file = "NULL" if quiet else _log_file
+    try:
+        _execute_cmd("pg_ctl", ["-D", SQL_DIR, "status"])
+        _log_file = original
+        return True
+    except subprocess.CalledProcessError:
+        _log_file = original
+        return False
 
 
 def start(quiet=False):
@@ -161,7 +170,7 @@ def stop(quiet=False):
     _log_file = "NULL" if quiet else _log_file
 
     try:
-        _execute_cmd("pg_ctl", ["-D", SQL_DIR, "stop"])
+        _execute_cmd("pg_ctl", ["-D", SQL_DIR, "-m", "fast", "stop"])
     except subprocess.CalledProcessError:
         pass
 
@@ -169,11 +178,30 @@ def stop(quiet=False):
         if _is_windows():
             _execute_cmd("net", ["stop", "postgresql-x64-9.5 (64-bit windows)"])
         else:
-            _execute_cmd("pkill", ["postgres"])
-    except subprocess.CalledProcessError:
+            # Kill any postgres processes more aggressively
+            subprocess.call(["pkill", "-9", "postgres"],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
         pass
 
     _log_file = original
+
+
+def _wait_for_port_available(port=5432, timeout=10):
+    """Wait for a port to become available."""
+    import socket
+    import time
+    start = time.time()
+    while time.time() - start < timeout:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            sock.bind(('127.0.0.1', port))
+            sock.close()
+            return True
+        except OSError:
+            sock.close()
+            time.sleep(0.5)
+    return False
 
 
 def build_index(log_file=""):
@@ -269,7 +297,10 @@ if __name__ == "__main__":
     if command in ("init", "initialize"):
         init()
     elif command == "status":
-        status()
+        if status():
+            print("Database server is running")
+        else:
+            print("Database server is not running")
     elif command == "start":
         start()
     elif command == "stop":
