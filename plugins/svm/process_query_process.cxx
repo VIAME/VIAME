@@ -142,6 +142,9 @@ create_config_trait( scoring_norm, bool, "true",
   "Enforce L2 normalization of descriptors before computing Euclidean distance or hash codes. "
   "When true (default), descriptors are normalized. "
   "This is critical for Euclidean distance to rank similarly to Cosine similarity." );
+create_config_trait( score_multiplier, double, "1.0",
+  "Multiplier applied to the distance before converting to a similarity score. "
+  "Used to tune the score distribution to match external baselines. Default 1.0." );
 
 //--------------------------------------------------------------------------------
 // Descriptor element for IQR
@@ -724,6 +727,11 @@ public:
   void set_scoring_norm( bool val )
   {
     m_scoring_norm = val;
+  }
+
+  void set_score_multiplier( double val )
+  {
+    m_score_multiplier = val;
   }
 
   void adjudicate( const std::vector< descriptor_element >& positives,
@@ -1357,7 +1365,7 @@ private:
       {
         // Convert Euclidean distance to similarity in [0, 1]
         // arithmetic_mean ( 1 / (1 + d ) )
-        sim = 1.0 / ( 1.0 + dist );
+        sim = 1.0 / ( 1.0 + ( dist * m_score_multiplier ) );
       }
       else if( m_nn_distance_method == "cosine" )
       {
@@ -1756,6 +1764,7 @@ private:
   bool m_use_platt_scaling = false;
   bool m_force_exemplar_scores = true;
   bool m_scoring_norm = true;
+  double m_score_multiplier = 1.0;
 
   std::unordered_map< std::string, descriptor_element > m_positive_descriptors;
   std::unordered_map< std::string, descriptor_element > m_negative_descriptors;
@@ -1797,6 +1806,7 @@ public:
     , m_use_platt_scaling( false )
     , m_force_exemplar_scores( true )
     , m_scoring_norm( true )
+    , m_score_multiplier( 1.0 )
     , m_index_loaded( false )
     , m_lsh_loaded( false )
     , m_iqr_session( nullptr )
@@ -1828,6 +1838,7 @@ public:
   bool m_use_platt_scaling;
   bool m_force_exemplar_scores;
   bool m_scoring_norm;
+  double m_score_multiplier;
 
   bool m_index_loaded;
   bool m_lsh_loaded;
@@ -1995,6 +2006,7 @@ process_query_process
   d->m_use_platt_scaling = config_value_using_trait( use_platt_scaling );
   d->m_force_exemplar_scores = config_value_using_trait( force_exemplar_scores );
   d->m_scoring_norm = config_value_using_trait( scoring_norm );
+  d->m_score_multiplier = config_value_using_trait( score_multiplier );
 
   d->load_descriptor_index();
 
@@ -2050,6 +2062,7 @@ process_query_process
   d->m_iqr_session->set_use_platt_scaling( d->m_use_platt_scaling );
   d->m_iqr_session->set_force_exemplar_scores( d->m_force_exemplar_scores );
   d->m_iqr_session->set_scoring_norm( d->m_scoring_norm );
+  d->m_iqr_session->set_score_multiplier( d->m_score_multiplier );
 }
 
 
@@ -2255,6 +2268,7 @@ process_query_process
   declare_config_using_trait( use_platt_scaling );
   declare_config_using_trait( force_exemplar_scores );
   declare_config_using_trait( scoring_norm );
+  declare_config_using_trait( score_multiplier );
 }
 
 } // end namespace svm
