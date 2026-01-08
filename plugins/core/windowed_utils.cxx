@@ -339,20 +339,14 @@ crop_image(
   const kv::image& src,
   const image_rect& roi )
 {
-  // Use vital::image::crop which returns a view
-  kv::image cropped_view = src.crop(
+  // Return a view into the source image (shallow copy)
+  // This is efficient when the crop will be immediately resized,
+  // as the resize operation creates its own deep copy
+  return src.crop(
     static_cast< size_t >( roi.x ),
     static_cast< size_t >( roi.y ),
     static_cast< size_t >( roi.width ),
     static_cast< size_t >( roi.height ) );
-
-  // Make a deep copy
-  kv::image cropped_copy( cropped_view.width(), cropped_view.height(),
-    cropped_view.depth(), cropped_view.pixel_traits().type == kv::image_pixel_traits::FLOAT,
-    cropped_view.pixel_traits() );
-  cropped_copy.copy_from( cropped_view );
-
-  return cropped_copy;
 }
 
 // -----------------------------------------------------------------------------

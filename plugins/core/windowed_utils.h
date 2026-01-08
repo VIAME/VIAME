@@ -242,9 +242,14 @@ separate_boundary_detections(
 
 /// Crop a region from an image
 ///
+/// Returns a view into the source image (shallow copy). This is efficient
+/// when the crop will be immediately resized, as the resize operation
+/// creates its own deep copy. If you need a standalone copy, resize to
+/// the same dimensions or copy manually.
+///
 /// \param src Source image
 /// \param roi Region of interest to crop
-/// \returns Cropped image (copy of the data)
+/// \returns Cropped image view (shares memory with source)
 VIAME_CORE_EXPORT
 kv::image
 crop_image(
