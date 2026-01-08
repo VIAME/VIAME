@@ -947,6 +947,20 @@ if( VIAME_BUILD_DEPENDENCIES )
   if( VIAME_FIXUP_BUNDLE )
     include( build_package )
   endif()
+
+  # Register tests at super-build level
+  if( VIAME_ENABLE_TESTS )
+    enable_testing()
+
+    # Include tests from viame-build subdirectory at the root level
+    # This allows running `ctest` from the main build directory
+    set( VIAME_TEST_DIR "${VIAME_BUILD_PLUGINS_DIR}" )
+    configure_file(
+      ${VIAME_CMAKE_DIR}/CTestTestfile.cmake.in
+      ${CMAKE_BINARY_DIR}/CTestTestfile.cmake
+      @ONLY
+    )
+  endif()
 else()
 
   include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
@@ -1032,6 +1046,8 @@ else()
   add_subdirectory( tools )
 
   if( VIAME_ENABLE_TESTS )
+    enable_testing()
+    include( CTest )
     add_subdirectory( tests )
   endif()
 
