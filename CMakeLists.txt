@@ -949,18 +949,11 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 
   # Register tests at super-build level
+  # Note: The actual CTestTestfile.cmake is created by the setup_ctest step
+  # in add_project_viame.cmake after viame-build completes
   if( VIAME_ENABLE_TESTS )
     enable_testing()
     include( CTest )
-
-    # Include tests from viame-build subdirectory at the root level
-    # This allows running `ctest` from the main build directory
-    set( VIAME_TEST_DIR "${VIAME_BUILD_PLUGINS_DIR}" )
-    configure_file(
-      ${VIAME_CMAKE_DIR}/CTestTestfile.cmake.in
-      ${CMAKE_BINARY_DIR}/CTestTestfile.cmake
-      @ONLY
-    )
   endif()
 else()
 

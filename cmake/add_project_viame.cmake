@@ -85,6 +85,18 @@ ExternalProject_Add_Step(viame restructuring_tests
   DEPENDEES install
   )
 
+# Update top-level CTestTestfile.cmake to include viame-build tests
+if( VIAME_ENABLE_TESTS )
+  ExternalProject_Add_Step(viame setup_ctest
+    COMMAND ${CMAKE_COMMAND}
+      -DVIAME_BUILD_DIR:PATH=${CMAKE_BINARY_DIR}
+      -DVIAME_TEST_DIR:PATH=${VIAME_BUILD_PLUGINS_DIR}
+      -P ${VIAME_CMAKE_DIR}/setup_ctest.cmake
+    COMMENT "Configuring CTest to include viame-build tests"
+    DEPENDEES build
+    )
+endif()
+
 if( VIAME_FORCEBUILD )
   RemoveProjectCMakeStamp( viame )
 endif()

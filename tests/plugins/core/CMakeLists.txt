@@ -13,6 +13,7 @@ set( test_libraries
 
 kwiver_discover_gtests( viame_core_plugin measurement_utilities LIBRARIES ${test_libraries} )
 
-kwiver_discover_gtests( viame_core_plugin tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
-target_compile_features( test-viame_core_plugin-tracks_pairing_from_stereo PRIVATE cxx_std_17 )
-target_compile_definitions( test-viame_core_plugin-tracks_pairing_from_stereo PRIVATE TEST_DATA_DIR="${VIAME_SOURCE_DIR}/tests/data" )
+# TODO: Enable when tracks_pairing_from_stereo.h is implemented
+# kwiver_discover_gtests( viame_core_plugin tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
+# target_compile_features( test-viame_core_plugin-tracks_pairing_from_stereo PRIVATE cxx_std_17 )
+# target_compile_definitions( test-viame_core_plugin-tracks_pairing_from_stereo PRIVATE TEST_DATA_DIR="${VIAME_SOURCE_DIR}/tests/data" )

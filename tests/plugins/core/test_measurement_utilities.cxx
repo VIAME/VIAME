@@ -57,14 +57,14 @@ protected:
 
 TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsSingle )
 {
-  auto methods = map_keypoints_to_camera::parse_matching_methods( "template_matching" );
+  auto methods = parse_matching_methods( "template_matching" );
   ASSERT_EQ( methods.size(), 1 );
   EXPECT_EQ( methods[0], "template_matching" );
 }
 
 TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsMultiple )
 {
-  auto methods = map_keypoints_to_camera::parse_matching_methods(
+  auto methods = parse_matching_methods(
     "input_pairs_only,template_matching,depth_projection" );
   ASSERT_EQ( methods.size(), 3 );
   EXPECT_EQ( methods[0], "input_pairs_only" );
@@ -74,7 +74,7 @@ TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsMultiple )
 
 TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsWithWhitespace )
 {
-  auto methods = map_keypoints_to_camera::parse_matching_methods(
+  auto methods = parse_matching_methods(
     " input_pairs_only , template_matching , depth_projection " );
   ASSERT_EQ( methods.size(), 3 );
   EXPECT_EQ( methods[0], "input_pairs_only" );
@@ -84,23 +84,23 @@ TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsWithWhitespace )
 
 TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsEmpty )
 {
-  auto methods = map_keypoints_to_camera::parse_matching_methods( "" );
+  auto methods = parse_matching_methods( "" );
   EXPECT_TRUE( methods.empty() );
 }
 
 TEST( MeasurementUtilitiesStatic, MethodRequiresImages )
 {
-  EXPECT_FALSE( map_keypoints_to_camera::method_requires_images( "input_pairs_only" ) );
-  EXPECT_FALSE( map_keypoints_to_camera::method_requires_images( "depth_projection" ) );
-  EXPECT_TRUE( map_keypoints_to_camera::method_requires_images( "template_matching" ) );
-  EXPECT_TRUE( map_keypoints_to_camera::method_requires_images( "compute_disparity" ) );
-  EXPECT_TRUE( map_keypoints_to_camera::method_requires_images( "feature_descriptor" ) );
-  EXPECT_TRUE( map_keypoints_to_camera::method_requires_images( "ransac_feature" ) );
+  EXPECT_FALSE( method_requires_images( "input_pairs_only" ) );
+  EXPECT_FALSE( method_requires_images( "depth_projection" ) );
+  EXPECT_TRUE( method_requires_images( "template_matching" ) );
+  EXPECT_TRUE( method_requires_images( "compute_disparity" ) );
+  EXPECT_TRUE( method_requires_images( "feature_descriptor" ) );
+  EXPECT_TRUE( method_requires_images( "ransac_feature" ) );
 }
 
 TEST( MeasurementUtilitiesStatic, GetValidMethods )
 {
-  auto methods = map_keypoints_to_camera::get_valid_methods();
+  auto methods = get_valid_methods();
   EXPECT_EQ( methods.size(), 7 );
 
   // Check all expected methods are present
