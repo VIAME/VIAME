@@ -55,6 +55,20 @@ target_link_libraries( viame_train_detector
                kwiver::kwiver_adapter
   )
 
+kwiver_add_executable( viame_get_configs
+  get_configs.cxx
+  )
+
+target_link_libraries( viame_get_configs
+  PRIVATE      kwiver::vital
+               kwiver::vital_vpm
+               kwiver::vital_config
+               kwiver::vital_logger
+               kwiver::vital_algo
+               kwiver::kwiversys
+               kwiver::sprokit_pipeline
+  )
+
 if( VIAME_ENABLE_PYTHON )
   install( FILES       ${PYTHON_SCRIPTS}
            DESTINATION configs )

@@ -16,9 +16,6 @@
 
 #include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline_util/pipeline_builder.h>
-#include <sprokit/pipeline_util/pipe_bakery.h>
-#include <sprokit/pipeline_util/pipe_declaration_types.h>
 
 #include <vector>
 #include <string>
@@ -29,7 +26,7 @@
 #include <sstream>
 #include <memory>
 #include <algorithm>
-#include <variant>
+#include <regex>
 
 // =======================================================================================
 // JSON output helpers (simple implementation without external dependency)
@@ -172,12 +169,79 @@ struct component_config
 };
 
 // =======================================================================================
-// Extract process configuration from pipeline
+// Parse a .pipe file to extract process definitions
+// =======================================================================================
+struct pipe_process_info
+{
+  std::string name;
+  std::string type;
+};
+
+std::vector< pipe_process_info >
+parse_pipe_file_for_processes( const std::string& pipe_file )
+{
+  std::vector< pipe_process_info > processes;
+
+  std::ifstream file( pipe_file );
+  if( !file.is_open() )
+  {
+    LOG_ERROR( g_logger, "Could not open file: " << pipe_file );
+    return processes;
+  }
+
+  std::regex process_regex( R"(^\s*process\s+(\S+)\s*$)" );
+  std::regex type_regex( R"(^\s*::\s*(\S+)\s*$)" );
+
+  std::string line;
+  std::string current_process;
+
+  while( std::getline( file, line ) )
+  {
+    // Remove comments
+    size_t comment_pos = line.find( '#' );
+    if( comment_pos != std::string::npos )
+    {
+      line = line.substr( 0, comment_pos );
+    }
+
+    std::smatch match;
+
+    // Check for process declaration
+    if( std::regex_match( line, match, process_regex ) )
+    {
+      current_process = match[1].str();
+    }
+    // Check for type declaration (must follow process)
+    else if( !current_process.empty() && std::regex_match( line, match, type_regex ) )
+    {
+      pipe_process_info info;
+      info.name = current_process;
+      info.type = match[1].str();
+      processes.push_back( info );
+      current_process.clear();
+    }
+    // Reset if we hit a non-empty, non-whitespace line that's not type
+    else if( !current_process.empty() )
+    {
+      std::string trimmed = line;
+      trimmed.erase( 0, trimmed.find_first_not_of( " \t" ) );
+      if( !trimmed.empty() && trimmed[0] != ':' )
+      {
+        current_process.clear();
+      }
+    }
+  }
+
+  return processes;
+}
+
+// =======================================================================================
+// Extract process configuration
 // =======================================================================================
 void extract_process_config(
-  const sprokit::process::name_t& proc_name,
-  const sprokit::process::type_t& proc_type,
-  kwiver::vital::config_block_sptr proc_config,
+  const std::string& proc_name,
+  const std::string& proc_type,
+  kwiver::vital::config_block_sptr file_config,
   component_config& output,
   bool all_impls )
 {
@@ -186,6 +250,9 @@ void extract_process_config(
 
   try
   {
+    // Create empty config for process creation
+    auto proc_config = kwiver::vital::config_block::empty_config();
+
     // Create process instance to get available config
     auto proc = sprokit::create_process( proc_type, proc_name, proc_config );
 
@@ -217,10 +284,11 @@ void extract_process_config(
       {
         param.description = info->description;
 
-        // Check if we have an override value from the config
-        if( proc_config && proc_config->has_value( key ) )
+        // Check if we have an override value from the file config
+        std::string full_key = proc_name + kwiver::vital::config_block::block_sep() + key;
+        if( file_config && file_config->has_value( full_key ) )
         {
-          param.value = proc_config->get_value< std::string >( key );
+          param.value = file_config->get_value< std::string >( full_key );
           param.is_default = ( param.value == info->def );
         }
         else
@@ -231,6 +299,7 @@ void extract_process_config(
       }
       else
       {
+        param.value = "";
         param.is_default = true;
       }
 
@@ -240,25 +309,13 @@ void extract_process_config(
       if( key.length() > 5 && key.substr( key.length() - 5 ) == ":type" )
       {
         std::string algo_prefix = key.substr( 0, key.length() - 5 );
-        std::string algo_type;
         std::string selected_impl;
 
-        // Get the algorithm type from description or infer from key
-        // Common patterns: detector:type, filter:type, etc.
-        auto colon_pos = algo_prefix.rfind( ':' );
-        if( colon_pos != std::string::npos )
+        // Get selected implementation from file or default
+        std::string full_key = proc_name + kwiver::vital::config_block::block_sep() + key;
+        if( file_config && file_config->has_value( full_key ) )
         {
-          algo_type = algo_prefix.substr( colon_pos + 1 );
-        }
-        else
-        {
-          algo_type = algo_prefix;
-        }
-
-        // Get selected implementation
-        if( proc_config && proc_config->has_value( key ) )
-        {
-          selected_impl = proc_config->get_value< std::string >( key );
+          selected_impl = file_config->get_value< std::string >( full_key );
         }
         else if( info )
         {
@@ -267,10 +324,59 @@ void extract_process_config(
 
         if( !selected_impl.empty() && selected_impl != "none" )
         {
+          // Try to determine the algorithm type from the prefix
+          // Common patterns in KWIVER: detector, filter, reader, writer, etc.
+          std::string algo_type;
+
+          // Extract the last part of the prefix as potential algo type
+          size_t last_colon = algo_prefix.rfind( ':' );
+          if( last_colon != std::string::npos )
+          {
+            algo_type = algo_prefix.substr( last_colon + 1 );
+          }
+          else
+          {
+            algo_type = algo_prefix;
+          }
+
           component_config algo_config;
           algo_config.name = algo_prefix;
           algo_config.type = algo_type;
           algo_config.impl_name = selected_impl;
+
+          // Try to get algorithm config
+          auto impl_config = get_algorithm_config( algo_type, selected_impl );
+
+          if( impl_config )
+          {
+            auto impl_keys = impl_config->available_values();
+            for( const auto& impl_key : impl_keys )
+            {
+              config_param_info algo_param;
+              algo_param.key = impl_key;
+
+              // Check for override in file config
+              std::string override_key = proc_name + kwiver::vital::config_block::block_sep()
+                                       + algo_prefix + kwiver::vital::config_block::block_sep()
+                                       + selected_impl + kwiver::vital::config_block::block_sep()
+                                       + impl_key;
+              if( file_config && file_config->has_value( override_key ) )
+              {
+                algo_param.value = file_config->get_value< std::string >( override_key );
+                algo_param.is_default = false;
+              }
+              else
+              {
+                algo_param.value = impl_config->get_value< std::string >( impl_key, "" );
+                algo_param.is_default = true;
+              }
+
+              algo_param.description = impl_config->get_description( impl_key );
+              algo_param.read_only = impl_config->is_read_only( impl_key );
+
+              algo_config.params.push_back( algo_param );
+            }
+          }
 
           // Get all implementations if requested
           if( all_impls )
@@ -278,60 +384,32 @@ void extract_process_config(
             auto impls = get_algorithm_implementations( algo_type );
             for( const auto& impl : impls )
             {
-              auto impl_config = get_algorithm_config( algo_type, impl );
-              if( impl_config )
+              if( impl == selected_impl )
+              {
+                continue;  // Skip the selected one, already handled above
+              }
+
+              auto other_impl_config = get_algorithm_config( algo_type, impl );
+              if( other_impl_config )
               {
                 component_config impl_info;
                 impl_info.name = impl;
                 impl_info.type = algo_type;
                 impl_info.impl_name = impl;
 
-                auto impl_keys = impl_config->available_values();
-                for( const auto& impl_key : impl_keys )
+                auto other_impl_keys = other_impl_config->available_values();
+                for( const auto& other_key : other_impl_keys )
                 {
                   config_param_info impl_param;
-                  impl_param.key = impl_key;
-                  impl_param.value = impl_config->get_value< std::string >( impl_key, "" );
-                  impl_param.description = impl_config->get_description( impl_key );
+                  impl_param.key = other_key;
+                  impl_param.value = other_impl_config->get_value< std::string >( other_key, "" );
+                  impl_param.description = other_impl_config->get_description( other_key );
                   impl_param.is_default = true;
-                  impl_param.read_only = impl_config->is_read_only( impl_key );
 
                   impl_info.params.push_back( impl_param );
                 }
 
                 algo_config.nested_algos.push_back( impl_info );
-              }
-            }
-          }
-          else
-          {
-            // Only get config for selected implementation
-            auto impl_config = get_algorithm_config( algo_type, selected_impl );
-            if( impl_config )
-            {
-              auto impl_keys = impl_config->available_values();
-              for( const auto& impl_key : impl_keys )
-              {
-                config_param_info algo_param;
-                algo_param.key = impl_key;
-
-                // Check for override in process config
-                std::string full_key = algo_prefix + ":" + selected_impl + ":" + impl_key;
-                if( proc_config && proc_config->has_value( full_key ) )
-                {
-                  algo_param.value = proc_config->get_value< std::string >( full_key );
-                  algo_param.is_default = false;
-                }
-                else
-                {
-                  algo_param.value = impl_config->get_value< std::string >( impl_key, "" );
-                  algo_param.is_default = true;
-                }
-
-                algo_param.description = impl_config->get_description( impl_key );
-                algo_param.read_only = impl_config->is_read_only( impl_key );
-
-                algo_config.params.push_back( algo_param );
               }
             }
           }
@@ -426,32 +504,31 @@ bool extract_pipe_config( const std::string& pipe_file,
 {
   try
   {
-    sprokit::pipeline_builder builder;
-    builder.load_pipeline( pipe_file );
+    // Parse pipe file to find process definitions
+    auto processes = parse_pipe_file_for_processes( pipe_file );
 
-    auto blocks = builder.pipeline_blocks();
-    auto pipe_config = builder.config();
-
-    // Find all process blocks
-    for( const auto& block : blocks )
+    if( processes.empty() )
     {
-      if( std::holds_alternative< sprokit::process_pipe_block >( block ) )
-      {
-        auto& proc_block = std::get< sprokit::process_pipe_block >( block );
-        std::string proc_name = proc_block.name;
-        std::string proc_type = proc_block.type;
+      LOG_WARN( g_logger, "No processes found in pipe file" );
+    }
 
-        // Get process-specific config
-        kwiver::vital::config_block_sptr proc_config_block;
-        if( pipe_config )
-        {
-          proc_config_block = pipe_config->subblock( proc_name );
-        }
+    // Read the config file to get values
+    kwiver::vital::config_block_sptr file_config;
+    try
+    {
+      file_config = kwiver::vital::read_config_file( pipe_file );
+    }
+    catch( const std::exception& e )
+    {
+      LOG_DEBUG( g_logger, "Could not read as config file: " << e.what() );
+    }
 
-        component_config comp;
-        extract_process_config( proc_name, proc_type, proc_config_block, comp, all_impls );
-        configs.push_back( comp );
-      }
+    // Extract config for each process
+    for( const auto& proc_info : processes )
+    {
+      component_config comp;
+      extract_process_config( proc_info.name, proc_info.type, file_config, comp, all_impls );
+      configs.push_back( comp );
     }
 
     return true;
@@ -500,42 +577,43 @@ bool extract_conf_config( const std::string& conf_file,
         }
         processed_prefixes.insert( algo_prefix );
 
-        std::string algo_type = config->get_value< std::string >( key );
+        std::string impl_type = config->get_value< std::string >( key );
 
-        if( algo_type.empty() || algo_type == "none" )
+        if( impl_type.empty() || impl_type == "none" )
         {
           continue;
         }
 
         component_config comp;
         comp.name = algo_prefix;
-        comp.type = algo_prefix;  // For conf files, use prefix as type indicator
-        comp.impl_name = algo_type;
+        comp.impl_name = impl_type;
 
-        // Get algorithm configuration
-        auto algo_config = get_algorithm_config( algo_prefix, algo_type );
-        if( !algo_config )
+        // Try to find the actual algorithm type
+        // Common mappings for training configs
+        static const std::map< std::string, std::string > type_mapping = {
+          { "groundtruth_reader", "detected_object_set_input" },
+          { "detector_trainer", "train_detector" },
+          { "image_reader", "image_io" },
+        };
+
+        std::string algo_type;
+        auto it = type_mapping.find( algo_prefix );
+        if( it != type_mapping.end() )
         {
-          // Try finding actual algorithm type from the prefix
-          // Common patterns: groundtruth_reader -> detected_object_set_input
-          //                  detector_trainer -> train_detector
-          static const std::map< std::string, std::string > type_mapping = {
-            { "groundtruth_reader", "detected_object_set_input" },
-            { "detector_trainer", "train_detector" },
-            { "image_reader", "image_io" },
-            { "descriptor_extractor", "compute_descriptor" },
-          };
-
-          auto it = type_mapping.find( algo_prefix );
-          if( it != type_mapping.end() )
-          {
-            algo_config = get_algorithm_config( it->second, algo_type );
-            comp.type = it->second;
-          }
+          algo_type = it->second;
+        }
+        else
+        {
+          algo_type = algo_prefix;
         }
 
+        comp.type = algo_type;
+
+        // Get algorithm configuration
+        auto algo_config = get_algorithm_config( algo_type, impl_type );
+
         // Add parameters from config file for this algorithm
-        std::string algo_block_prefix = algo_prefix + ":" + algo_type + ":";
+        std::string algo_block_prefix = algo_prefix + ":" + impl_type + ":";
         for( const auto& cfg_key : all_keys )
         {
           if( cfg_key.find( algo_block_prefix ) == 0 )
@@ -582,22 +660,22 @@ bool extract_conf_config( const std::string& conf_file,
         }
 
         // Get all implementations if requested
-        if( all_impls && !comp.type.empty() )
+        if( all_impls && !algo_type.empty() )
         {
-          auto impls = get_algorithm_implementations( comp.type );
+          auto impls = get_algorithm_implementations( algo_type );
           for( const auto& impl : impls )
           {
-            if( impl == algo_type )
+            if( impl == impl_type )
             {
               continue;  // Skip the selected one
             }
 
-            auto impl_config = get_algorithm_config( comp.type, impl );
+            auto impl_config = get_algorithm_config( algo_type, impl );
             if( impl_config )
             {
               component_config impl_info;
               impl_info.name = impl;
-              impl_info.type = comp.type;
+              impl_info.type = algo_type;
               impl_info.impl_name = impl;
 
               auto impl_keys = impl_config->available_values();
@@ -708,7 +786,6 @@ int main( int argc, char* argv[] )
   }
 
   // Handle special case for --no-descriptions (it's inverted)
-  // Re-read to check if flag was set
   for( int i = 1; i < argc; ++i )
   {
     if( std::string( argv[i] ) == "--no-descriptions" )
