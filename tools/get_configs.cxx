@@ -4,6 +4,7 @@
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/CommandLineArguments.hxx>
+#include <kwiversys/Directory.hxx>
 
 #include <vital/kwiver-include-paths.h>
 
@@ -27,9 +28,11 @@
 #include <memory>
 #include <algorithm>
 #include <regex>
+#include <cctype>
+#include <cmath>
 
 // =======================================================================================
-// JSON output helpers (simple implementation without external dependency)
+// JSON output helpers
 // =======================================================================================
 
 std::string escape_json_string( const std::string& input )
@@ -77,7 +80,7 @@ public:
   bool opt_help;
   bool opt_all_impls;
   bool opt_include_descriptions;
-  std::string opt_input_file;
+  std::string opt_input_path;
   std::string opt_output_file;
 
   config_extractor_vars()
@@ -97,6 +100,345 @@ public:
 // =======================================================================================
 static config_extractor_vars g_params;
 static kwiver::vital::logger_handle_t g_logger;
+
+// =======================================================================================
+// Parameter type inference
+// =======================================================================================
+enum class param_type
+{
+  UNKNOWN,
+  BOOL,
+  INT,
+  FLOAT,
+  DOUBLE,
+  STRING,
+  PATH,
+  ENUM
+};
+
+std::string param_type_to_string( param_type t )
+{
+  switch( t )
+  {
+    case param_type::BOOL:   return "bool";
+    case param_type::INT:    return "int";
+    case param_type::FLOAT:  return "float";
+    case param_type::DOUBLE: return "double";
+    case param_type::STRING: return "string";
+    case param_type::PATH:   return "path";
+    case param_type::ENUM:   return "enum";
+    default:                 return "string";
+  }
+}
+
+bool is_integer( const std::string& s )
+{
+  if( s.empty() ) return false;
+  size_t start = 0;
+  if( s[0] == '-' || s[0] == '+' ) start = 1;
+  if( start >= s.length() ) return false;
+  for( size_t i = start; i < s.length(); ++i )
+  {
+    if( !std::isdigit( s[i] ) ) return false;
+  }
+  return true;
+}
+
+bool is_float( const std::string& s )
+{
+  if( s.empty() ) return false;
+  bool has_dot = false;
+  bool has_e = false;
+  size_t start = 0;
+  if( s[0] == '-' || s[0] == '+' ) start = 1;
+  if( start >= s.length() ) return false;
+
+  for( size_t i = start; i < s.length(); ++i )
+  {
+    char c = s[i];
+    if( c == '.' )
+    {
+      if( has_dot || has_e ) return false;
+      has_dot = true;
+    }
+    else if( c == 'e' || c == 'E' )
+    {
+      if( has_e ) return false;
+      has_e = true;
+      if( i + 1 < s.length() && ( s[i+1] == '+' || s[i+1] == '-' ) )
+      {
+        ++i;
+      }
+    }
+    else if( !std::isdigit( c ) )
+    {
+      return false;
+    }
+  }
+  return has_dot || has_e;
+}
+
+bool is_bool( const std::string& s )
+{
+  std::string lower = s;
+  std::transform( lower.begin(), lower.end(), lower.begin(), ::tolower );
+  return lower == "true" || lower == "false" || lower == "yes" || lower == "no" ||
+         lower == "on" || lower == "off" || lower == "1" || lower == "0";
+}
+
+bool is_path( const std::string& s )
+{
+  // Check if value looks like a file path
+  if( s.find( '/' ) != std::string::npos || s.find( '\\' ) != std::string::npos )
+  {
+    return true;
+  }
+  // Check common file extensions
+  static const std::vector< std::string > extensions = {
+    ".pipe", ".conf", ".cfg", ".txt", ".csv", ".json", ".xml", ".yaml", ".yml",
+    ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".pgm",
+    ".mp4", ".avi", ".mov", ".mpg", ".mpeg",
+    ".pth", ".pt", ".weights", ".caffemodel", ".pb", ".onnx",
+    ".lbl", ".names"
+  };
+  for( const auto& ext : extensions )
+  {
+    if( s.length() > ext.length() &&
+        s.substr( s.length() - ext.length() ) == ext )
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+param_type infer_type_from_value( const std::string& value )
+{
+  if( value.empty() ) return param_type::STRING;
+  if( is_bool( value ) ) return param_type::BOOL;
+  if( is_integer( value ) ) return param_type::INT;
+  if( is_float( value ) ) return param_type::DOUBLE;
+  if( is_path( value ) ) return param_type::PATH;
+  return param_type::STRING;
+}
+
+param_type infer_type_from_description( const std::string& desc )
+{
+  std::string lower = desc;
+  std::transform( lower.begin(), lower.end(), lower.begin(), ::tolower );
+
+  // Check for boolean indicators
+  if( lower.find( "true/false" ) != std::string::npos ||
+      lower.find( "true or false" ) != std::string::npos ||
+      lower.find( "enable" ) != std::string::npos ||
+      lower.find( "disable" ) != std::string::npos ||
+      lower.find( "whether to" ) != std::string::npos ||
+      lower.find( "if true" ) != std::string::npos ||
+      lower.find( "if false" ) != std::string::npos ||
+      lower.find( "boolean" ) != std::string::npos )
+  {
+    return param_type::BOOL;
+  }
+
+  // Check for integer indicators
+  if( lower.find( "integer" ) != std::string::npos ||
+      lower.find( "number of" ) != std::string::npos ||
+      lower.find( "count" ) != std::string::npos ||
+      lower.find( "index" ) != std::string::npos ||
+      lower.find( "pixel" ) != std::string::npos )
+  {
+    return param_type::INT;
+  }
+
+  // Check for float/double indicators
+  if( lower.find( "float" ) != std::string::npos ||
+      lower.find( "double" ) != std::string::npos ||
+      lower.find( "ratio" ) != std::string::npos ||
+      lower.find( "threshold" ) != std::string::npos ||
+      lower.find( "probability" ) != std::string::npos ||
+      lower.find( "confidence" ) != std::string::npos ||
+      lower.find( "percent" ) != std::string::npos ||
+      lower.find( "scale" ) != std::string::npos ||
+      lower.find( "factor" ) != std::string::npos )
+  {
+    return param_type::DOUBLE;
+  }
+
+  // Check for path indicators
+  if( lower.find( "path" ) != std::string::npos ||
+      lower.find( "file" ) != std::string::npos ||
+      lower.find( "directory" ) != std::string::npos ||
+      lower.find( "folder" ) != std::string::npos )
+  {
+    return param_type::PATH;
+  }
+
+  // Check for enum indicators
+  if( lower.find( "must be one of" ) != std::string::npos ||
+      lower.find( "options:" ) != std::string::npos ||
+      lower.find( "valid values" ) != std::string::npos )
+  {
+    return param_type::ENUM;
+  }
+
+  return param_type::UNKNOWN;
+}
+
+param_type infer_param_type( const std::string& value, const std::string& description )
+{
+  // First try to infer from description as it's more reliable
+  param_type desc_type = infer_type_from_description( description );
+  if( desc_type != param_type::UNKNOWN )
+  {
+    return desc_type;
+  }
+
+  // Fall back to inferring from value
+  return infer_type_from_value( value );
+}
+
+// =======================================================================================
+// Range extraction from description
+// =======================================================================================
+struct param_range
+{
+  bool has_min;
+  bool has_max;
+  double min_val;
+  double max_val;
+  std::vector< std::string > enum_values;
+
+  param_range() : has_min( false ), has_max( false ), min_val( 0 ), max_val( 0 ) {}
+};
+
+param_range extract_range( const std::string& description, param_type type )
+{
+  param_range range;
+
+  // Look for range patterns like [0, 1], (0-100), 0 to 255, etc.
+  std::regex range_bracket( R"(\[(\-?[\d.]+)\s*[,\-]\s*(\-?[\d.]+)\])" );
+  std::regex range_paren( R"(\((\-?[\d.]+)\s*[,\-]\s*(\-?[\d.]+)\))" );
+  std::regex range_to( R"((\-?[\d.]+)\s+to\s+(\-?[\d.]+))" );
+  std::regex range_between( R"(between\s+(\-?[\d.]+)\s+and\s+(\-?[\d.]+))" );
+  std::regex greater_than( R"(greater than\s+(\-?[\d.]+)|>\s*(\-?[\d.]+)|>=\s*(\-?[\d.]+))" );
+  std::regex less_than( R"(less than\s+(\-?[\d.]+)|<\s*(\-?[\d.]+)|<=\s*(\-?[\d.]+))" );
+
+  std::smatch match;
+  std::string lower = description;
+  std::transform( lower.begin(), lower.end(), lower.begin(), ::tolower );
+
+  // Try bracket range [min, max]
+  if( std::regex_search( description, match, range_bracket ) )
+  {
+    try
+    {
+      range.min_val = std::stod( match[1].str() );
+      range.max_val = std::stod( match[2].str() );
+      range.has_min = true;
+      range.has_max = true;
+    }
+    catch( ... ) {}
+  }
+  // Try parenthesis range (min, max)
+  else if( std::regex_search( description, match, range_paren ) )
+  {
+    try
+    {
+      range.min_val = std::stod( match[1].str() );
+      range.max_val = std::stod( match[2].str() );
+      range.has_min = true;
+      range.has_max = true;
+    }
+    catch( ... ) {}
+  }
+  // Try "X to Y" pattern
+  else if( std::regex_search( lower, match, range_to ) )
+  {
+    try
+    {
+      range.min_val = std::stod( match[1].str() );
+      range.max_val = std::stod( match[2].str() );
+      range.has_min = true;
+      range.has_max = true;
+    }
+    catch( ... ) {}
+  }
+  // Try "between X and Y" pattern
+  else if( std::regex_search( lower, match, range_between ) )
+  {
+    try
+    {
+      range.min_val = std::stod( match[1].str() );
+      range.max_val = std::stod( match[2].str() );
+      range.has_min = true;
+      range.has_max = true;
+    }
+    catch( ... ) {}
+  }
+
+  // Extract enum values if type is ENUM or description contains options
+  if( type == param_type::ENUM || lower.find( "must be one of" ) != std::string::npos )
+  {
+    // Look for patterns like: "Must be one of: opt1, opt2, opt3"
+    // Or bullet lists with "-" or "*"
+    std::regex enum_pattern( R"(must be one of[:\s]+(.+?)(?:\.|$))" );
+    std::regex option_line( R"(^\s*[\-\*]\s*(\w+))" );
+
+    if( std::regex_search( lower, match, enum_pattern ) )
+    {
+      std::string options_str = match[1].str();
+      std::regex word( R"(\w+)" );
+      auto words_begin = std::sregex_iterator( options_str.begin(), options_str.end(), word );
+      auto words_end = std::sregex_iterator();
+
+      for( std::sregex_iterator i = words_begin; i != words_end; ++i )
+      {
+        std::string val = (*i).str();
+        // Skip common filler words
+        if( val != "or" && val != "and" && val != "the" && val != "following" )
+        {
+          range.enum_values.push_back( val );
+        }
+      }
+    }
+
+    // Also look for newline-separated options
+    std::istringstream iss( description );
+    std::string line;
+    while( std::getline( iss, line ) )
+    {
+      if( std::regex_search( line, match, option_line ) )
+      {
+        range.enum_values.push_back( match[1].str() );
+      }
+    }
+  }
+
+  return range;
+}
+
+// =======================================================================================
+// Structure to hold config parameter information
+// =======================================================================================
+struct config_param_info
+{
+  std::string name;
+  std::string value;
+  std::string description;
+  param_type type;
+  param_range range;
+  bool is_default;
+};
+
+// =======================================================================================
+// Structure to hold pipeline config information
+// =======================================================================================
+struct pipeline_config
+{
+  std::string name;
+  std::string file_path;
+  std::vector< config_param_info > params;
+};
 
 // =======================================================================================
 // Get all registered implementation names for an algorithm type
@@ -143,30 +485,6 @@ get_algorithm_config( const std::string& algo_type, const std::string& impl_name
 
   return nullptr;
 }
-
-// =======================================================================================
-// Structure to hold config parameter information
-// =======================================================================================
-struct config_param_info
-{
-  std::string key;
-  std::string value;
-  std::string description;
-  bool is_default;
-  bool read_only;
-};
-
-// =======================================================================================
-// Structure to hold process/algorithm config information
-// =======================================================================================
-struct component_config
-{
-  std::string name;
-  std::string type;
-  std::string impl_name;  // For algorithms, the selected implementation
-  std::vector< config_param_info > params;
-  std::vector< component_config > nested_algos;
-};
 
 // =======================================================================================
 // Parse a .pipe file to extract process definitions
@@ -236,18 +554,15 @@ parse_pipe_file_for_processes( const std::string& pipe_file )
 }
 
 // =======================================================================================
-// Extract process configuration
+// Extract process parameters and add to flat list
 // =======================================================================================
-void extract_process_config(
+void extract_process_params(
   const std::string& proc_name,
   const std::string& proc_type,
   kwiver::vital::config_block_sptr file_config,
-  component_config& output,
+  std::vector< config_param_info >& params,
   bool all_impls )
 {
-  output.name = proc_name;
-  output.type = proc_type;
-
   try
   {
     // Create empty config for process creation
@@ -275,8 +590,7 @@ void extract_process_config(
       }
 
       config_param_info param;
-      param.key = key;
-      param.read_only = false;
+      param.name = proc_name + ":" + key;
 
       // Get config info (default value and description)
       auto info = proc->config_info( key );
@@ -303,7 +617,11 @@ void extract_process_config(
         param.is_default = true;
       }
 
-      output.params.push_back( param );
+      // Infer type and extract range
+      param.type = infer_param_type( param.value, param.description );
+      param.range = extract_range( param.description, param.type );
+
+      params.push_back( param );
 
       // Check if this is an algorithm type selector (key ends with ":type")
       if( key.length() > 5 && key.substr( key.length() - 5 ) == ":type" )
@@ -325,10 +643,7 @@ void extract_process_config(
         if( !selected_impl.empty() && selected_impl != "none" )
         {
           // Try to determine the algorithm type from the prefix
-          // Common patterns in KWIVER: detector, filter, reader, writer, etc.
           std::string algo_type;
-
-          // Extract the last part of the prefix as potential algo type
           size_t last_colon = algo_prefix.rfind( ':' );
           if( last_colon != std::string::npos )
           {
@@ -339,82 +654,58 @@ void extract_process_config(
             algo_type = algo_prefix;
           }
 
-          component_config algo_config;
-          algo_config.name = algo_prefix;
-          algo_config.type = algo_type;
-          algo_config.impl_name = selected_impl;
+          // Get algorithm implementations to process
+          std::vector< std::string > impls_to_process;
+          impls_to_process.push_back( selected_impl );
 
-          // Try to get algorithm config
-          auto impl_config = get_algorithm_config( algo_type, selected_impl );
-
-          if( impl_config )
-          {
-            auto impl_keys = impl_config->available_values();
-            for( const auto& impl_key : impl_keys )
-            {
-              config_param_info algo_param;
-              algo_param.key = impl_key;
-
-              // Check for override in file config
-              std::string override_key = proc_name + kwiver::vital::config_block::block_sep()
-                                       + algo_prefix + kwiver::vital::config_block::block_sep()
-                                       + selected_impl + kwiver::vital::config_block::block_sep()
-                                       + impl_key;
-              if( file_config && file_config->has_value( override_key ) )
-              {
-                algo_param.value = file_config->get_value< std::string >( override_key );
-                algo_param.is_default = false;
-              }
-              else
-              {
-                algo_param.value = impl_config->get_value< std::string >( impl_key, "" );
-                algo_param.is_default = true;
-              }
-
-              algo_param.description = impl_config->get_description( impl_key );
-              algo_param.read_only = impl_config->is_read_only( impl_key );
-
-              algo_config.params.push_back( algo_param );
-            }
-          }
-
-          // Get all implementations if requested
           if( all_impls )
           {
-            auto impls = get_algorithm_implementations( algo_type );
-            for( const auto& impl : impls )
+            auto all_impl_names = get_algorithm_implementations( algo_type );
+            for( const auto& impl : all_impl_names )
             {
-              if( impl == selected_impl )
+              if( impl != selected_impl )
               {
-                continue;  // Skip the selected one, already handled above
-              }
-
-              auto other_impl_config = get_algorithm_config( algo_type, impl );
-              if( other_impl_config )
-              {
-                component_config impl_info;
-                impl_info.name = impl;
-                impl_info.type = algo_type;
-                impl_info.impl_name = impl;
-
-                auto other_impl_keys = other_impl_config->available_values();
-                for( const auto& other_key : other_impl_keys )
-                {
-                  config_param_info impl_param;
-                  impl_param.key = other_key;
-                  impl_param.value = other_impl_config->get_value< std::string >( other_key, "" );
-                  impl_param.description = other_impl_config->get_description( other_key );
-                  impl_param.is_default = true;
-
-                  impl_info.params.push_back( impl_param );
-                }
-
-                algo_config.nested_algos.push_back( impl_info );
+                impls_to_process.push_back( impl );
               }
             }
           }
 
-          output.nested_algos.push_back( algo_config );
+          // Process each implementation
+          for( const auto& impl : impls_to_process )
+          {
+            auto impl_config = get_algorithm_config( algo_type, impl );
+            if( impl_config )
+            {
+              auto impl_keys = impl_config->available_values();
+              for( const auto& impl_key : impl_keys )
+              {
+                config_param_info algo_param;
+                algo_param.name = proc_name + ":" + algo_prefix + ":" + impl + ":" + impl_key;
+
+                // Check for override in file config
+                std::string override_key = proc_name + kwiver::vital::config_block::block_sep()
+                                         + algo_prefix + kwiver::vital::config_block::block_sep()
+                                         + impl + kwiver::vital::config_block::block_sep()
+                                         + impl_key;
+                if( file_config && file_config->has_value( override_key ) )
+                {
+                  algo_param.value = file_config->get_value< std::string >( override_key );
+                  algo_param.is_default = false;
+                }
+                else
+                {
+                  algo_param.value = impl_config->get_value< std::string >( impl_key, "" );
+                  algo_param.is_default = true;
+                }
+
+                algo_param.description = impl_config->get_description( impl_key );
+                algo_param.type = infer_param_type( algo_param.value, algo_param.description );
+                algo_param.range = extract_range( algo_param.description, algo_param.type );
+
+                params.push_back( algo_param );
+              }
+            }
+          }
         }
       }
     }
@@ -427,89 +718,25 @@ void extract_process_config(
 }
 
 // =======================================================================================
-// Write config as JSON
-// =======================================================================================
-void write_json_param( std::ostream& os, const config_param_info& param,
-                       bool include_desc, const std::string& indent )
-{
-  os << indent << "{\n";
-  os << indent << "  \"key\": \"" << escape_json_string( param.key ) << "\",\n";
-  os << indent << "  \"value\": \"" << escape_json_string( param.value ) << "\",\n";
-  os << indent << "  \"is_default\": " << ( param.is_default ? "true" : "false" );
-
-  if( include_desc && !param.description.empty() )
-  {
-    os << ",\n" << indent << "  \"description\": \"" << escape_json_string( param.description ) << "\"";
-  }
-
-  if( param.read_only )
-  {
-    os << ",\n" << indent << "  \"read_only\": true";
-  }
-
-  os << "\n" << indent << "}";
-}
-
-void write_json_component( std::ostream& os, const component_config& comp,
-                           bool include_desc, const std::string& indent )
-{
-  os << indent << "{\n";
-  os << indent << "  \"name\": \"" << escape_json_string( comp.name ) << "\",\n";
-  os << indent << "  \"type\": \"" << escape_json_string( comp.type ) << "\"";
-
-  if( !comp.impl_name.empty() )
-  {
-    os << ",\n" << indent << "  \"implementation\": \"" << escape_json_string( comp.impl_name ) << "\"";
-  }
-
-  if( !comp.params.empty() )
-  {
-    os << ",\n" << indent << "  \"parameters\": [\n";
-    for( size_t i = 0; i < comp.params.size(); ++i )
-    {
-      write_json_param( os, comp.params[i], include_desc, indent + "    " );
-      if( i < comp.params.size() - 1 )
-      {
-        os << ",";
-      }
-      os << "\n";
-    }
-    os << indent << "  ]";
-  }
-
-  if( !comp.nested_algos.empty() )
-  {
-    os << ",\n" << indent << "  \"nested_algorithms\": [\n";
-    for( size_t i = 0; i < comp.nested_algos.size(); ++i )
-    {
-      write_json_component( os, comp.nested_algos[i], include_desc, indent + "    " );
-      if( i < comp.nested_algos.size() - 1 )
-      {
-        os << ",";
-      }
-      os << "\n";
-    }
-    os << indent << "  ]";
-  }
-
-  os << "\n" << indent << "}";
-}
-
-// =======================================================================================
 // Extract configuration from a .pipe file
 // =======================================================================================
 bool extract_pipe_config( const std::string& pipe_file,
-                          std::vector< component_config >& configs,
+                          pipeline_config& config,
                           bool all_impls )
 {
   try
   {
+    // Set pipeline name from filename
+    config.file_path = pipe_file;
+    config.name = kwiversys::SystemTools::GetFilenameWithoutLastExtension( pipe_file );
+
     // Parse pipe file to find process definitions
     auto processes = parse_pipe_file_for_processes( pipe_file );
 
     if( processes.empty() )
     {
-      LOG_WARN( g_logger, "No processes found in pipe file" );
+      LOG_WARN( g_logger, "No processes found in pipe file: " << pipe_file );
+      return false;
     }
 
     // Read the config file to get values
@@ -526,9 +753,8 @@ bool extract_pipe_config( const std::string& pipe_file,
     // Extract config for each process
     for( const auto& proc_info : processes )
     {
-      component_config comp;
-      extract_process_config( proc_info.name, proc_info.type, file_config, comp, all_impls );
-      configs.push_back( comp );
+      extract_process_params( proc_info.name, proc_info.type, file_config,
+                              config.params, all_impls );
     }
 
     return true;
@@ -544,24 +770,28 @@ bool extract_pipe_config( const std::string& pipe_file,
 // Extract configuration from a .conf file
 // =======================================================================================
 bool extract_conf_config( const std::string& conf_file,
-                          std::vector< component_config >& configs,
+                          pipeline_config& config,
                           bool all_impls )
 {
   try
   {
-    // Read config file
-    auto config = kwiver::vital::read_config_file( conf_file );
+    // Set config name from filename
+    config.file_path = conf_file;
+    config.name = kwiversys::SystemTools::GetFilenameWithoutLastExtension( conf_file );
 
-    if( !config )
+    // Read config file
+    auto file_config = kwiver::vital::read_config_file( conf_file );
+
+    if( !file_config )
     {
       LOG_ERROR( g_logger, "Could not read config file: " << conf_file );
       return false;
     }
 
-    // Find top-level algorithm/trainer types
-    auto all_keys = config->available_values();
+    // Get all keys
+    auto all_keys = file_config->available_values();
 
-    // Look for pattern like "detector_trainer:type" or "groundtruth_reader:type"
+    // Find algorithm type selectors and process them
     std::set< std::string > processed_prefixes;
 
     for( const auto& key : all_keys )
@@ -570,26 +800,29 @@ bool extract_conf_config( const std::string& conf_file,
       {
         std::string algo_prefix = key.substr( 0, key.length() - 5 );
 
-        // Skip if already processed
         if( processed_prefixes.count( algo_prefix ) > 0 )
         {
           continue;
         }
         processed_prefixes.insert( algo_prefix );
 
-        std::string impl_type = config->get_value< std::string >( key );
+        std::string impl_type = file_config->get_value< std::string >( key );
 
         if( impl_type.empty() || impl_type == "none" )
         {
           continue;
         }
 
-        component_config comp;
-        comp.name = algo_prefix;
-        comp.impl_name = impl_type;
+        // Add the type selector itself
+        config_param_info type_param;
+        type_param.name = key;
+        type_param.value = impl_type;
+        type_param.description = file_config->get_description( key );
+        type_param.type = param_type::ENUM;
+        type_param.is_default = false;
+        config.params.push_back( type_param );
 
-        // Try to find the actual algorithm type
-        // Common mappings for training configs
+        // Map common prefixes to algorithm types
         static const std::map< std::string, std::string > type_mapping = {
           { "groundtruth_reader", "detected_object_set_input" },
           { "detector_trainer", "train_detector" },
@@ -604,57 +837,66 @@ bool extract_conf_config( const std::string& conf_file,
         }
         else
         {
-          algo_type = algo_prefix;
+          // Try to extract from the prefix itself
+          size_t last_colon = algo_prefix.rfind( ':' );
+          if( last_colon != std::string::npos )
+          {
+            algo_type = algo_prefix.substr( last_colon + 1 );
+          }
+          else
+          {
+            algo_type = algo_prefix;
+          }
         }
-
-        comp.type = algo_type;
 
         // Get algorithm configuration
         auto algo_config = get_algorithm_config( algo_type, impl_type );
 
         // Add parameters from config file for this algorithm
         std::string algo_block_prefix = algo_prefix + ":" + impl_type + ":";
+        std::set< std::string > file_keys;
+
         for( const auto& cfg_key : all_keys )
         {
           if( cfg_key.find( algo_block_prefix ) == 0 )
           {
+            std::string param_key = cfg_key.substr( algo_block_prefix.length() );
+            file_keys.insert( param_key );
+
             config_param_info param;
-            param.key = cfg_key.substr( algo_block_prefix.length() );
-            param.value = config->get_value< std::string >( cfg_key );
+            param.name = cfg_key;
+            param.value = file_config->get_value< std::string >( cfg_key );
             param.is_default = false;
 
-            // Try to get description from algorithm config
-            if( algo_config && algo_config->has_value( param.key ) )
+            if( algo_config && algo_config->has_value( param_key ) )
             {
-              param.description = algo_config->get_description( param.key );
+              param.description = algo_config->get_description( param_key );
             }
 
-            comp.params.push_back( param );
+            param.type = infer_param_type( param.value, param.description );
+            param.range = extract_range( param.description, param.type );
+
+            config.params.push_back( param );
           }
         }
 
-        // If we have algorithm config, add default params not in file
+        // Add default params not in file (from algorithm config)
         if( algo_config )
         {
           auto algo_keys = algo_config->available_values();
-          std::set< std::string > existing_keys;
-          for( const auto& p : comp.params )
-          {
-            existing_keys.insert( p.key );
-          }
-
           for( const auto& algo_key : algo_keys )
           {
-            if( existing_keys.count( algo_key ) == 0 )
+            if( file_keys.count( algo_key ) == 0 )
             {
               config_param_info param;
-              param.key = algo_key;
+              param.name = algo_block_prefix + algo_key;
               param.value = algo_config->get_value< std::string >( algo_key, "" );
               param.description = algo_config->get_description( algo_key );
               param.is_default = true;
-              param.read_only = algo_config->is_read_only( algo_key );
+              param.type = infer_param_type( param.value, param.description );
+              param.range = extract_range( param.description, param.type );
 
-              comp.params.push_back( param );
+              config.params.push_back( param );
             }
           }
         }
@@ -667,46 +909,36 @@ bool extract_conf_config( const std::string& conf_file,
           {
             if( impl == impl_type )
             {
-              continue;  // Skip the selected one
+              continue;
             }
 
             auto impl_config = get_algorithm_config( algo_type, impl );
             if( impl_config )
             {
-              component_config impl_info;
-              impl_info.name = impl;
-              impl_info.type = algo_type;
-              impl_info.impl_name = impl;
-
+              std::string impl_prefix = algo_prefix + ":" + impl + ":";
               auto impl_keys = impl_config->available_values();
+
               for( const auto& impl_key : impl_keys )
               {
-                config_param_info impl_param;
-                impl_param.key = impl_key;
-                impl_param.value = impl_config->get_value< std::string >( impl_key, "" );
-                impl_param.description = impl_config->get_description( impl_key );
-                impl_param.is_default = true;
+                config_param_info param;
+                param.name = impl_prefix + impl_key;
+                param.value = impl_config->get_value< std::string >( impl_key, "" );
+                param.description = impl_config->get_description( impl_key );
+                param.is_default = true;
+                param.type = infer_param_type( param.value, param.description );
+                param.range = extract_range( param.description, param.type );
 
-                impl_info.params.push_back( impl_param );
+                config.params.push_back( param );
               }
-
-              comp.nested_algos.push_back( impl_info );
             }
           }
         }
-
-        configs.push_back( comp );
       }
     }
 
-    // Also extract simple key-value parameters that aren't algorithm selectors
-    component_config global_config;
-    global_config.name = "global";
-    global_config.type = "config";
-
+    // Add global parameters (not part of algorithm blocks)
     for( const auto& key : all_keys )
     {
-      // Skip algorithm blocks
       bool skip = false;
       for( const auto& prefix : processed_prefixes )
       {
@@ -720,18 +952,15 @@ bool extract_conf_config( const std::string& conf_file,
       if( !skip )
       {
         config_param_info param;
-        param.key = key;
-        param.value = config->get_value< std::string >( key );
-        param.description = config->get_description( key );
+        param.name = key;
+        param.value = file_config->get_value< std::string >( key );
+        param.description = file_config->get_description( key );
         param.is_default = false;
+        param.type = infer_param_type( param.value, param.description );
+        param.range = extract_range( param.description, param.type );
 
-        global_config.params.push_back( param );
+        config.params.push_back( param );
       }
-    }
-
-    if( !global_config.params.empty() )
-    {
-      configs.insert( configs.begin(), global_config );
     }
 
     return true;
@@ -741,6 +970,101 @@ bool extract_conf_config( const std::string& conf_file,
     LOG_ERROR( g_logger, "Error parsing config file: " << e.what() );
     return false;
   }
+}
+
+// =======================================================================================
+// Check if file is a training conf (vs a pipeline support conf)
+// =======================================================================================
+bool is_training_conf( const std::string& filename )
+{
+  std::string lower = filename;
+  std::transform( lower.begin(), lower.end(), lower.begin(), ::tolower );
+  return lower.find( "train" ) != std::string::npos;
+}
+
+// =======================================================================================
+// Write JSON output for all pipelines
+// =======================================================================================
+void write_json_output( std::ostream& os,
+                        const std::vector< pipeline_config >& pipelines,
+                        bool include_desc )
+{
+  os << "{\n";
+
+  for( size_t p = 0; p < pipelines.size(); ++p )
+  {
+    const auto& pipeline = pipelines[p];
+
+    os << "  \"" << escape_json_string( pipeline.name ) << "\": {\n";
+    os << "    \"file\": \"" << escape_json_string( pipeline.file_path ) << "\",\n";
+    os << "    \"parameters\": [\n";
+
+    for( size_t i = 0; i < pipeline.params.size(); ++i )
+    {
+      const auto& param = pipeline.params[i];
+
+      os << "      {\n";
+      os << "        \"name\": \"" << escape_json_string( param.name ) << "\",\n";
+      os << "        \"type\": \"" << param_type_to_string( param.type ) << "\",\n";
+      os << "        \"default\": \"" << escape_json_string( param.value ) << "\"";
+
+      if( include_desc && !param.description.empty() )
+      {
+        os << ",\n        \"description\": \"" << escape_json_string( param.description ) << "\"";
+      }
+
+      // Add range if available
+      if( param.range.has_min || param.range.has_max || !param.range.enum_values.empty() )
+      {
+        os << ",\n        \"range\": {";
+
+        bool first = true;
+        if( param.range.has_min )
+        {
+          os << "\n          \"min\": " << param.range.min_val;
+          first = false;
+        }
+        if( param.range.has_max )
+        {
+          if( !first ) os << ",";
+          os << "\n          \"max\": " << param.range.max_val;
+          first = false;
+        }
+        if( !param.range.enum_values.empty() )
+        {
+          if( !first ) os << ",";
+          os << "\n          \"values\": [";
+          for( size_t e = 0; e < param.range.enum_values.size(); ++e )
+          {
+            if( e > 0 ) os << ", ";
+            os << "\"" << escape_json_string( param.range.enum_values[e] ) << "\"";
+          }
+          os << "]";
+        }
+
+        os << "\n        }";
+      }
+
+      os << "\n      }";
+
+      if( i < pipeline.params.size() - 1 )
+      {
+        os << ",";
+      }
+      os << "\n";
+    }
+
+    os << "    ]\n";
+    os << "  }";
+
+    if( p < pipelines.size() - 1 )
+    {
+      os << ",";
+    }
+    os << "\n";
+  }
+
+  os << "}\n";
 }
 
 // =======================================================================================
@@ -761,9 +1085,9 @@ int main( int argc, char* argv[] )
   g_params.m_args.AddArgument( "-h",              argT::NO_ARGUMENT,
     &g_params.opt_help, "Display usage information" );
   g_params.m_args.AddArgument( "--input",         argT::SPACE_ARGUMENT,
-    &g_params.opt_input_file, "Input .pipe or .conf file" );
+    &g_params.opt_input_path, "Input .pipe/.conf file or directory" );
   g_params.m_args.AddArgument( "-i",              argT::SPACE_ARGUMENT,
-    &g_params.opt_input_file, "Input .pipe or .conf file" );
+    &g_params.opt_input_path, "Input .pipe/.conf file or directory" );
   g_params.m_args.AddArgument( "--output",        argT::SPACE_ARGUMENT,
     &g_params.opt_output_file, "Output .json file (default: stdout)" );
   g_params.m_args.AddArgument( "-o",              argT::SPACE_ARGUMENT,
@@ -801,58 +1125,120 @@ int main( int argc, char* argv[] )
     std::cout << "Usage: " << argv[0] << " [options]\n\n"
               << "Extract configuration parameters from KWIVER pipeline (.pipe) or\n"
               << "training configuration (.conf) files and output them as JSON.\n\n"
+              << "The input can be a single file or a directory. When given a directory,\n"
+              << "all .pipe files and training .conf files are processed into a single\n"
+              << "JSON output.\n\n"
               << "Options:\n"
               << g_params.m_args.GetHelp()
               << "\nExamples:\n"
               << "  " << argv[0] << " -i detector.pipe -o detector_config.json\n"
               << "  " << argv[0] << " -i train_detector.conf -o train_config.json\n"
+              << "  " << argv[0] << " -i configs/pipelines/ -o all_configs.json\n"
               << "  " << argv[0] << " -i detector.pipe -a  # Include all implementations\n"
               << std::endl;
     return EXIT_SUCCESS;
   }
 
-  // Validate input file
-  if( g_params.opt_input_file.empty() )
+  // Validate input
+  if( g_params.opt_input_path.empty() )
   {
-    LOG_ERROR( g_logger, "No input file specified. Use --input or -i option." );
+    LOG_ERROR( g_logger, "No input specified. Use --input or -i option." );
     return EXIT_FAILURE;
   }
 
-  // Check file exists
-  if( !kwiversys::SystemTools::FileExists( g_params.opt_input_file ) )
+  // Check path exists
+  if( !kwiversys::SystemTools::FileExists( g_params.opt_input_path ) )
   {
-    LOG_ERROR( g_logger, "Input file does not exist: " << g_params.opt_input_file );
+    LOG_ERROR( g_logger, "Input path does not exist: " << g_params.opt_input_path );
     return EXIT_FAILURE;
   }
 
   // Load plugins
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  // Extract configurations
-  std::vector< component_config > configs;
-  bool success = false;
+  // Collect files to process
+  std::vector< std::string > files_to_process;
 
-  // Determine file type by extension
-  std::string ext = kwiversys::SystemTools::GetFilenameLastExtension( g_params.opt_input_file );
-  std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
+  if( kwiversys::SystemTools::FileIsDirectory( g_params.opt_input_path ) )
+  {
+    // Process directory
+    kwiversys::Directory dir;
+    if( !dir.Load( g_params.opt_input_path ) )
+    {
+      LOG_ERROR( g_logger, "Could not read directory: " << g_params.opt_input_path );
+      return EXIT_FAILURE;
+    }
 
-  if( ext == ".pipe" )
-  {
-    success = extract_pipe_config( g_params.opt_input_file, configs, g_params.opt_all_impls );
-  }
-  else if( ext == ".conf" )
-  {
-    success = extract_conf_config( g_params.opt_input_file, configs, g_params.opt_all_impls );
+    for( unsigned long i = 0; i < dir.GetNumberOfFiles(); ++i )
+    {
+      std::string filename = dir.GetFile( i );
+      if( filename == "." || filename == ".." )
+      {
+        continue;
+      }
+
+      std::string filepath = g_params.opt_input_path + "/" + filename;
+      std::string ext = kwiversys::SystemTools::GetFilenameLastExtension( filename );
+      std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
+
+      if( ext == ".pipe" )
+      {
+        files_to_process.push_back( filepath );
+      }
+      else if( ext == ".conf" && is_training_conf( filename ) )
+      {
+        files_to_process.push_back( filepath );
+      }
+    }
+
+    // Sort files for consistent output
+    std::sort( files_to_process.begin(), files_to_process.end() );
   }
   else
   {
-    LOG_ERROR( g_logger, "Unknown file extension: " << ext
-               << ". Expected .pipe or .conf" );
+    // Single file
+    files_to_process.push_back( g_params.opt_input_path );
+  }
+
+  if( files_to_process.empty() )
+  {
+    LOG_ERROR( g_logger, "No .pipe or training .conf files found" );
     return EXIT_FAILURE;
   }
 
-  if( !success )
+  // Process all files
+  std::vector< pipeline_config > pipelines;
+
+  for( const auto& file : files_to_process )
   {
+    std::string ext = kwiversys::SystemTools::GetFilenameLastExtension( file );
+    std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
+
+    pipeline_config config;
+    bool success = false;
+
+    if( ext == ".pipe" )
+    {
+      success = extract_pipe_config( file, config, g_params.opt_all_impls );
+    }
+    else if( ext == ".conf" )
+    {
+      success = extract_conf_config( file, config, g_params.opt_all_impls );
+    }
+
+    if( success && !config.params.empty() )
+    {
+      pipelines.push_back( config );
+    }
+    else
+    {
+      LOG_WARN( g_logger, "Skipping file (no params extracted): " << file );
+    }
+  }
+
+  if( pipelines.empty() )
+  {
+    LOG_ERROR( g_logger, "No configurations extracted from any files" );
     return EXIT_FAILURE;
   }
 
@@ -872,22 +1258,7 @@ int main( int argc, char* argv[] )
   }
 
   // Write JSON
-  *output << "{\n";
-  *output << "  \"source_file\": \"" << escape_json_string( g_params.opt_input_file ) << "\",\n";
-  *output << "  \"components\": [\n";
-
-  for( size_t i = 0; i < configs.size(); ++i )
-  {
-    write_json_component( *output, configs[i], g_params.opt_include_descriptions, "    " );
-    if( i < configs.size() - 1 )
-    {
-      *output << ",";
-    }
-    *output << "\n";
-  }
-
-  *output << "  ]\n";
-  *output << "}\n";
+  write_json_output( *output, pipelines, g_params.opt_include_descriptions );
 
   if( file_output.is_open() )
   {
