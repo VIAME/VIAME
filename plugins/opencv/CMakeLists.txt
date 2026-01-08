@@ -100,6 +100,7 @@ target_link_libraries( viame_opencv
                        kwiver::kwiversys
                        kwiver::kwiver_algo_ocv
                        ${OpenCV_LIBRARIES}
+                       viame_core
   )
 
 target_include_directories( viame_opencv PUBLIC

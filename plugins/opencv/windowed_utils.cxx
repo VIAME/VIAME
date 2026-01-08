@@ -37,103 +37,10 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
-
 // =============================================================================
-window_settings
-::window_settings()
-  : mode( DISABLED )
-  , scale( 1.0 )
-  , chip_width( 1000 )
-  , chip_height( 1000 )
-  , chip_step_width( 500 )
-  , chip_step_height( 500 )
-  , chip_edge_filter( -1 )
-  , chip_edge_max_prob( -1.0 )
-  , chip_adaptive_thresh( 2000000 )
-  , batch_size( 1 )
-  , min_detection_dim( 1 )
-  , original_to_chip_size( false )
-  , black_pad( false )
-{}
-
-// -----------------------------------------------------------------------------
-kv::config_block_sptr
-window_settings
-::config() const
-{
-  kv::config_block_sptr config = kv::config_block::empty_config();
-
-  rescale_option_converter conv;
-  config->set_value( "mode", conv.to_string( mode ),
-    "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
-    "chip, chip_and_original, original_and_resized, or adaptive." );
-  config->set_value( "scale", scale,
-    "Image scaling factor used when mode is scale or chip." );
-  config->set_value( "chip_height", chip_height,
-    "When in chip mode, the chip height." );
-  config->set_value( "chip_width", chip_width,
-    "When in chip mode, the chip width." );
-  config->set_value( "chip_step_height", chip_step_height,
-    "When in chip mode, the chip step size between chips." );
-  config->set_value( "chip_step_width", chip_step_width,
-    "When in chip mode, the chip step size between chips." );
-  config->set_value( "chip_edge_filter", chip_edge_filter,
-    "If using chipping, filter out detections this pixel count near borders." );
-  config->set_value( "chip_edge_max_prob", chip_edge_max_prob,
-    "If using chipping, maximum type probability for edge detections" );
-  config->set_value( "chip_adaptive_thresh", chip_adaptive_thresh,
-    "If using adaptive selection, total pixel count at which we start to chip." );
-  config->set_value( "batch_size", batch_size,
-    "Optional processing batch size to send to the detector." );
-  config->set_value( "min_detection_dim", min_detection_dim,
-    "Minimum detection dimension in original image space." );
-  config->set_value( "original_to_chip_size", original_to_chip_size,
-    "Optionally enforce the input image is the specified chip size" );
-  config->set_value( "black_pad", black_pad,
-    "Black pad the edges of resized chips to ensure consistent dimensions" );
-
-  return config;
-}
-
-// -----------------------------------------------------------------------------
-void
-window_settings
-::set_config( kv::config_block_sptr config )
-{
-  rescale_option_converter conv;
-  mode = conv.from_string( config->get_value< std::string >( "mode" ) );
-  scale = config->get_value< double >( "scale" );
-  chip_width = config->get_value< int >( "chip_width" );
-  chip_height = config->get_value< int >( "chip_height" );
-  chip_step_width = config->get_value< int >( "chip_step_width" );
-  chip_step_height = config->get_value< int >( "chip_step_height" );
-  chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
-  chip_edge_max_prob = config->get_value< double >( "chip_edge_max_prob" );
-  chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
-  batch_size = config->get_value< int >( "batch_size" );
-  min_detection_dim = config->get_value< int >( "min_detection_dim" );
-  original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
-  black_pad = config->get_value< bool >( "black_pad" );
-}
-
-// =============================================================================
-
-windowed_region_prop
-::windowed_region_prop( cv::Rect r, double s1 )
- : original_roi( r ), edge_filter( -1 ),
-   right_border( false ), bottom_border( false ),
-   scale1( s1 ), shiftx( 0 ), shifty( 0 ), scale2( 1.0 )
-{}
-
-windowed_region_prop
-::windowed_region_prop( cv::Rect r, int ef, bool rb, bool bb,
-  double s1, int sx, int sy, double s2 )
- : original_roi( r ), edge_filter( ef ),
-   right_border( rb ), bottom_border( bb ),
-   scale1( s1 ), shiftx( sx ), shifty( sy ), scale2( s2 )
-{}
-
+// OpenCV-specific image processing functions
+// Note: window_settings, windowed_region_prop constructors, and all detection
+// manipulation functions are now in core/windowed_utils.cxx
 // =============================================================================
 
 double
@@ -214,95 +121,6 @@ format_image( const cv::Mat& src, cv::Mat& dst, rescale_option option,
 }
 
 // -----------------------------------------------------------------------------
-kv::detected_object_set_sptr
-rescale_detections(
-  const kv::detected_object_set_sptr detections,
-  const windowed_region_prop& region_info,
-  double chip_edge_max_prob )
-{
-  // Apply first scale transformation
-  if( region_info.scale1 != 1.0 )
-  {
-    detections->scale( region_info.scale1 );
-  }
-
-  // Apply shift transformation
-  if( region_info.shiftx != 0 || region_info.shifty != 0 )
-  {
-    detections->shift( region_info.shiftx, region_info.shifty );
-  }
-
-  // Apply second scale transformation
-  if( region_info.scale2 != 1.0 )
-  {
-    detections->scale( region_info.scale2 );
-  }
-
-  const int dist = region_info.edge_filter;
-
-  // If no edge filtering, return detections as-is
-  if( dist < 0 )
-  {
-    return detections;
-  }
-
-  // Filter detections near edges
-  const cv::Rect& roi = region_info.original_roi;
-  std::vector< kv::detected_object_sptr > filtered_dets;
-
-  for( auto det : *detections )
-  {
-    if( !det )
-    {
-      continue;
-    }
-
-    // Check if detection is near an edge
-    if( ( roi.x > 0 && det->bounding_box().min_x() < roi.x + dist ) ||
-        ( roi.y > 0 && det->bounding_box().min_y() < roi.y + dist ) ||
-        ( !region_info.right_border && det->bounding_box().max_x() > roi.x + roi.width - dist ) ||
-        ( !region_info.bottom_border && det->bounding_box().max_y() > roi.y + roi.height - dist ) )
-    {
-      // If chip_edge_max_prob is disabled (<=0), skip edge detections
-      if( chip_edge_max_prob <= 0.0 )
-      {
-        continue;
-      }
-
-      // Clamp detection confidence to chip_edge_max_prob
-      if( det->confidence() > chip_edge_max_prob )
-      {
-        det->set_confidence( chip_edge_max_prob );
-      }
-
-      // Clamp detection type scores to chip_edge_max_prob
-      if( det->type() )
-      {
-        auto dot = det->type();
-        std::string top_class;
-        dot->get_most_likely( top_class );
-        double score = dot->score( top_class );
-
-        if( score > chip_edge_max_prob )
-        {
-          double scale = chip_edge_max_prob / score;
-
-          for( auto name : dot->class_names() )
-          {
-            dot->set_score( name, dot->score( name ) * scale );
-          }
-        }
-      }
-    }
-
-    filtered_dets.push_back( det );
-  }
-
-  return kv::detected_object_set_sptr(
-    new kv::detected_object_set( filtered_dets ) );
-}
-
-// -----------------------------------------------------------------------------
 void
 prepare_image_regions(
   const cv::Mat& image,
@@ -348,7 +166,7 @@ prepare_image_regions(
     resized_image = image;
   }
 
-  cv::Rect original_dims( 0, 0, image.cols, image.rows );
+  image_rect original_dims( 0, 0, image.cols, image.rows );
 
   // Create regions based on mode
   if( mode == ORIGINAL_AND_RESIZED )
@@ -401,10 +219,11 @@ prepare_image_regions(
         }
 
         cv::Rect resized_roi( li, lj, ti-li, tj-lj );
-        cv::Rect original_roi( li / scale_factor,
-                               lj / scale_factor,
-                               (ti-li) / scale_factor,
-                               (tj-lj) / scale_factor );
+        image_rect original_roi(
+          static_cast< int >( li / scale_factor ),
+          static_cast< int >( lj / scale_factor ),
+          static_cast< int >( (ti-li) / scale_factor ),
+          static_cast< int >( (tj-lj) / scale_factor ) );
 
         cv::Mat cropped_chip = resized_image( resized_roi );
         cv::Mat scaled_crop;
@@ -446,174 +265,6 @@ prepare_image_regions(
         regions_to_process.push_back( image );
         region_properties.push_back( windowed_region_prop( original_dims, 1.0 ) );
       }
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-void scale_detections(
-  kv::detected_object_set_sptr& detections,
-  const windowed_region_prop& region_info )
-{
-  // Apply inverse scale2 transformation (divide by scale2)
-  if( region_info.scale2 != 1.0 )
-  {
-    detections->scale( 1.0 / region_info.scale2 );
-  }
-
-  // Apply inverse shift transformation (subtract shift)
-  if( region_info.shiftx != 0 || region_info.shifty != 0 )
-  {
-    detections->shift( -region_info.shiftx, -region_info.shifty );
-  }
-
-  // Apply inverse scale1 transformation (divide by scale1)
-  if( region_info.scale1 != 1.0 )
-  {
-    detections->scale( 1.0 / region_info.scale1 );
-  }
-}
-
-// -----------------------------------------------------------------------------
-kv::detected_object_set_sptr
-scale_detections_to_region(
-  const kv::detected_object_set_sptr detections,
-  const windowed_region_prop& region_info )
-{
-  if( !detections || detections->empty() )
-  {
-    return std::make_shared< kv::detected_object_set >();
-  }
-
-  const kv::bounding_box_d roi_box(
-    region_info.original_roi.x,
-    region_info.original_roi.y,
-    region_info.original_roi.x + region_info.original_roi.width,
-    region_info.original_roi.y + region_info.original_roi.height );
-
-  std::vector< kv::detected_object_sptr > region_dets;
-
-  // Filter and transform detections that overlap with this region
-  for( auto det : *detections )
-  {
-    if( !det )
-    {
-      continue;
-    }
-
-    // Check if detection overlaps with this region
-    kv::bounding_box_d det_box = det->bounding_box();
-    kv::bounding_box_d overlap = kv::intersection( roi_box, det_box );
-
-    if( overlap.area() <= 0 )
-    {
-      continue;
-    }
-
-    // Clone the detection so we don't modify the original
-    region_dets.push_back( det->clone() );
-  }
-
-  kv::detected_object_set_sptr output =
-    std::make_shared< kv::detected_object_set >( region_dets );
-
-  scale_detections( output, region_info );
-  
-  return output;
-}
-
-// -----------------------------------------------------------------------------
-void
-scale_detections_to_region_with_mapping(
-  const kv::detected_object_set_sptr detections,
-  const windowed_region_prop& region_info,
-  std::vector< kv::detected_object_sptr >& original_detections,
-  std::vector< kv::detected_object_sptr >& scaled_detections )
-{
-  original_detections.clear();
-  scaled_detections.clear();
-
-  if( !detections || detections->empty() )
-  {
-    return;
-  }
-
-  const kv::bounding_box_d roi_box(
-    region_info.original_roi.x,
-    region_info.original_roi.y,
-    region_info.original_roi.x + region_info.original_roi.width,
-    region_info.original_roi.y + region_info.original_roi.height );
-
-  std::vector< kv::detected_object_sptr > region_dets;
-
-  // Filter and transform detections that overlap with this region
-  for( auto det : *detections )
-  {
-    if( !det )
-    {
-      continue;
-    }
-
-    // Check if detection overlaps with this region
-    kv::bounding_box_d det_box = det->bounding_box();
-    kv::bounding_box_d overlap = kv::intersection( roi_box, det_box );
-
-    if( overlap.area() <= 0 )
-    {
-      continue;
-    }
-
-    // Clone the detection so we don't modify the original
-    scaled_detections.push_back( det->clone() );
-    original_detections.push_back( det );
-  }
-
-  auto scaled_set =
-    std::make_shared< kv::detected_object_set >( scaled_detections );
-
-  scale_detections( scaled_set, region_info );
-}
-
-// -----------------------------------------------------------------------------
-void
-separate_boundary_detections(
-  const kv::detected_object_set_sptr detections,
-  int region_width,
-  int region_height,
-  kv::detected_object_set_sptr& boundary_detections,
-  kv::detected_object_set_sptr& interior_detections )
-{
-  boundary_detections = std::make_shared< kv::detected_object_set >();
-  interior_detections = std::make_shared< kv::detected_object_set >();
-
-  if( !detections )
-  {
-    return;
-  }
-
-  for( auto det : *detections )
-  {
-    if( !det )
-    {
-      continue;
-    }
-
-    kv::bounding_box_d bbox = det->bounding_box();
-
-    // Check if detection touches any boundary
-    bool touches_boundary =
-      ( bbox.min_x() <= 0.0 ) ||
-      ( bbox.min_y() <= 0.0 ) ||
-      ( bbox.max_x() >= region_width - 1 ) ||
-      ( bbox.max_y() >= region_height - 1 );
-
-    if( touches_boundary )
-    {
-      boundary_detections->add( det );
-    }
-    else
-    {
-      interior_detections->add( det );
     }
   }
 }

@@ -31,77 +31,47 @@
 #ifndef VIAME_OPENCV_WINDOWED_UTILS_H
 #define VIAME_OPENCV_WINDOWED_UTILS_H
 
+// Include core windowed utilities for shared types and functions
+// This provides: rescale_option, window_settings, image_rect, windowed_region_prop,
+// and all detection manipulation functions (rescale_detections, scale_detections, etc.)
+#include "../core/windowed_utils.h"
 
 #include "viame_opencv_export.h"
 
 #include <opencv2/core/core.hpp>
 
-#include <vital/algo/image_object_detector.h>
-#include <vital/util/enum_converter.h>
-
 namespace viame {
 
-namespace kv = kwiver::vital;
+// =============================================================================
+// Conversion utilities between image_rect and cv::Rect
+// =============================================================================
 
-enum rescale_option {
-  DISABLED = 0,
-  MAINTAIN_AR,
-  SCALE,
-  CHIP,
-  CHIP_AND_ORIGINAL,
-  ORIGINAL_AND_RESIZED,
-  ADAPTIVE
-};
-
-ENUM_CONVERTER( rescale_option_converter, rescale_option,
-    { "disabled",             DISABLED },
-    { "maintain_ar",          MAINTAIN_AR },
-    { "scale",                SCALE },
-    { "chip",                 CHIP },
-    { "chip_and_original",    CHIP_AND_ORIGINAL },
-    { "original_and_resized", ORIGINAL_AND_RESIZED },
-    { "adaptive",             ADAPTIVE }
-  )
-
-struct window_settings
+/// Convert image_rect to cv::Rect
+inline cv::Rect to_cv_rect( const image_rect& r )
 {
-  window_settings();
-  ~window_settings() {}
+  return cv::Rect( r.x, r.y, r.width, r.height );
+}
 
-  kv::config_block_sptr config() const;
-  void set_config( kv::config_block_sptr cfg );
-
-  rescale_option mode;
-  double scale;
-  int chip_width;
-  int chip_height;
-  int chip_step_width;
-  int chip_step_height;
-  int chip_edge_filter;
-  double chip_edge_max_prob;
-  int chip_adaptive_thresh;
-  int batch_size;
-  int min_detection_dim;
-  bool original_to_chip_size;
-  bool black_pad;
-};
-
-struct windowed_region_prop
+/// Convert cv::Rect to image_rect
+inline image_rect from_cv_rect( const cv::Rect& r )
 {
-  explicit windowed_region_prop( cv::Rect r, double s1 );
+  return image_rect( r.x, r.y, r.width, r.height );
+}
 
-  explicit windowed_region_prop( cv::Rect r, int ef, bool rb,
-    bool bb, double s1, int sx, int sy, double s2 );
+// =============================================================================
+// OpenCV-specific image processing functions
+// These use cv::resize which is faster than the core bilinear implementation
+// =============================================================================
 
-  cv::Rect original_roi;
-  int edge_filter;
-  bool right_border;
-  bool bottom_border;
-  double scale1;
-  int shiftx, shifty;
-  double scale2;
-};
-
+/// Scale image maintaining aspect ratio using OpenCV
+///
+/// \param src Source cv::Mat image
+/// \param dst Destination cv::Mat image (output)
+/// \param width Maximum width
+/// \param height Maximum height
+/// \param pad If true, pad the result to exactly width x height
+/// \returns Scale factor applied
+VIAME_OPENCV_EXPORT
 double
 scale_image_maintaining_ar(
   const cv::Mat& src,
@@ -110,6 +80,17 @@ scale_image_maintaining_ar(
   int height,
   bool pad = false );
 
+/// Format image according to rescale option using OpenCV
+///
+/// \param src Source cv::Mat image
+/// \param dst Destination cv::Mat image (output)
+/// \param option Rescale option
+/// \param scale_factor Scale factor for SCALE/CHIP modes
+/// \param width Target width
+/// \param height Target height
+/// \param pad Whether to pad the result
+/// \returns Scale factor applied
+VIAME_OPENCV_EXPORT
 double
 format_image(
   const cv::Mat& src,
@@ -120,42 +101,23 @@ format_image(
   int height,
   bool pad = false );
 
-kv::detected_object_set_sptr
-rescale_detections(
-  const kv::detected_object_set_sptr detections,
-  const windowed_region_prop& region_info,
-  double chip_edge_max_prob );
-
+/// Prepare image regions for windowed processing using OpenCV
+///
+/// This function breaks up an image into regions based on window settings
+/// and returns both the image regions and their properties for detection
+/// coordinate transformation.
+///
+/// \param image Input cv::Mat image
+/// \param settings Window settings configuration
+/// \param regions_to_process Output vector of cv::Mat image regions
+/// \param region_properties Output vector of region properties for coordinate transforms
+VIAME_OPENCV_EXPORT
 void
 prepare_image_regions(
   const cv::Mat& image,
   const window_settings& settings,
   std::vector< cv::Mat >& regions_to_process,
   std::vector< windowed_region_prop >& region_properties );
-
-void scale_detections(
-  kv::detected_object_set_sptr& detections,
-  const windowed_region_prop& region_info );
-
-kv::detected_object_set_sptr
-scale_detections_to_region(
-  const kv::detected_object_set_sptr detections,
-  const windowed_region_prop& region_info );
-
-void
-scale_detections_to_region_with_mapping(
-  const kv::detected_object_set_sptr detections,
-  const windowed_region_prop& region_info,
-  std::vector< kv::detected_object_sptr >& original_detections,
-  std::vector< kv::detected_object_sptr >& scaled_detections );
-
-void
-separate_boundary_detections(
-  const kv::detected_object_set_sptr detections,
-  int region_width,
-  int region_height,
-  kv::detected_object_set_sptr& boundary_detections,
-  kv::detected_object_set_sptr& interior_detections );
 
 } // end namespace viame
 
