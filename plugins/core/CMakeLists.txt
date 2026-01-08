@@ -21,6 +21,10 @@ set( plugin_headers
   read_object_track_set_viame_csv.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
+  windowed_detector.h
+  windowed_refiner.h
+  windowed_trainer.h
+  windowed_utils.h
   write_detected_object_set_viame_csv.h
   write_disparity_maps.h
   write_object_track_set_viame_csv.h
@@ -47,6 +51,10 @@ set( plugin_sources
   read_object_track_set_viame_csv.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
+  windowed_detector.cxx
+  windowed_refiner.cxx
+  windowed_trainer.cxx
+  windowed_utils.cxx
   write_detected_object_set_viame_csv.cxx
   write_disparity_maps.cxx
   write_object_track_set_viame_csv.cxx

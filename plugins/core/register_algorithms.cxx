@@ -24,6 +24,9 @@
 #include "read_object_track_set_viame_csv.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
+#include "windowed_detector.h"
+#include "windowed_refiner.h"
+#include "windowed_trainer.h"
 #include "write_detected_object_set_viame_csv.h"
 #include "write_disparity_maps.h"
 #include "write_object_track_set_viame_csv.h"
@@ -82,6 +85,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< ::viame::merge_detections_suppress_in_regions >();
   reg.register_algorithm< ::viame::refine_detections_add_fixed >();
   reg.register_algorithm< ::viame::refine_detections_nms >();
+  reg.register_algorithm< ::viame::windowed_detector >();
+  reg.register_algorithm< ::viame::windowed_refiner >();
+  reg.register_algorithm< ::viame::windowed_trainer >();
 
   vpm.mark_module_as_loaded( module_name );
 }
