@@ -62,16 +62,7 @@ public:
     , m_chip_subdirectory( "cached_chips" )
     , m_chip_format( "png" )
     , m_skip_format( false )
-    , m_mode( DISABLED )
-    , m_scale( 1.0 )
-    , m_chip_width( 1000 )
-    , m_chip_height( 1000 )
-    , m_chip_step_width( 500 )
-    , m_chip_step_height( 500 )
-    , m_chip_adaptive_thresh( 2000000 )
     , m_chip_random_factor( -1.0 )
-    , m_original_to_chip_size( true )
-    , m_black_pad( false )
     , m_always_write_image( false )
     , m_ensure_standard( false )
     , m_overlap_required( 0.05 )
@@ -85,26 +76,23 @@ public:
     , m_small_action( "" )
     , m_synthetic_labels( true )
     , m_detect_small( false )
-  {}
+  {
+    // Set trainer-specific defaults (different from detector/refiner)
+    m_settings.original_to_chip_size = true;
+  }
 
   ~priv()
   {}
 
-  // Items from the config
+  // Common chip settings (shared with detector/refiner)
+  window_settings m_settings;
+
+  // Trainer-specific settings
   std::string m_train_directory;
   std::string m_chip_subdirectory;
   std::string m_chip_format;
   bool m_skip_format;
-  rescale_option m_mode;
-  double m_scale;
-  int m_chip_width;
-  int m_chip_height;
-  int m_chip_step_width;
-  int m_chip_step_height;
-  int m_chip_adaptive_thresh;
   double m_chip_random_factor;
-  bool m_original_to_chip_size;
-  bool m_black_pad;
   bool m_always_write_image;
   bool m_ensure_standard;
   double m_overlap_required;
@@ -174,6 +162,7 @@ windowed_trainer
   // Get base config from base class
   kv::config_block_sptr config = kv::algorithm::get_configuration();
 
+  // Trainer-specific settings
   config->set_value( "train_directory", d->m_train_directory,
     "Directory for all files used in training." );
   config->set_value( "chip_format", d->m_chip_format,
@@ -181,28 +170,13 @@ windowed_trainer
   config->set_value( "skip_format", d->m_skip_format,
     "Skip file formatting, assume that the train_directory is pre-populated "
     "with all files required for model training." );
-  rescale_option_converter conv;
-  config->set_value( "mode", conv.to_string( d->m_mode ),
-    "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
-    "chip, chip_and_original, original_and_resized, or adaptive." );
-  config->set_value( "scale", d->m_scale,
-    "Image scaling factor used when mode is scale or chip." );
-  config->set_value( "chip_height", d->m_chip_height,
-    "When in chip mode, the chip height." );
-  config->set_value( "chip_width", d->m_chip_width,
-    "When in chip mode, the chip width." );
-  config->set_value( "chip_step_height", d->m_chip_step_height,
-    "When in chip mode, the chip step size between chips." );
-  config->set_value( "chip_step_width", d->m_chip_step_width,
-    "When in chip mode, the chip step size between chips." );
-  config->set_value( "chip_adaptive_thresh", d->m_chip_adaptive_thresh,
-    "If using adaptive selection, total pixel count at which we start to chip." );
+
+  // Common chip settings (shared with detector/refiner)
+  config->merge_config( d->m_settings.chip_config() );
+
+  // Additional trainer-specific settings
   config->set_value( "chip_random_factor", d->m_chip_random_factor,
     "A percentage [0.0, 1.0] of chips to randomly use in training" );
-  config->set_value( "original_to_chip_size", d->m_original_to_chip_size,
-    "Optionally enforce the input image is not larger than the chip size" );
-  config->set_value( "black_pad", d->m_black_pad,
-    "Black pad the edges of resized chips to ensure consistent dimensions" );
   config->set_value( "always_write_image", d->m_always_write_image,
     "Always re-write images to training directory even if they already exist "
     "elsewhere on disk." );
@@ -256,31 +230,27 @@ windowed_trainer
 
   config->merge_config( config_in );
 
-  this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
-  this->d->m_chip_format = config->get_value< std::string >( "chip_format" );
-  this->d->m_skip_format = config->get_value< bool >( "skip_format" );
-  rescale_option_converter conv;
-  this->d->m_mode = conv.from_string( config->get_value< std::string >( "mode" ) );
-  this->d->m_scale = config->get_value< double >( "scale" );
-  this->d->m_chip_width = config->get_value< int >( "chip_width" );
-  this->d->m_chip_height = config->get_value< int >( "chip_height" );
-  this->d->m_chip_step_width = config->get_value< int >( "chip_step_width" );
-  this->d->m_chip_step_height = config->get_value< int >( "chip_step_height" );
-  this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
-  this->d->m_chip_random_factor = config->get_value< double >( "chip_random_factor" );
-  this->d->m_original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
-  this->d->m_black_pad = config->get_value< bool >( "black_pad" );
-  this->d->m_always_write_image = config->get_value< bool >( "always_write_image" );
-  this->d->m_ensure_standard = config->get_value< bool >( "ensure_standard" );
-  this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
-  this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
-  this->d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
-  this->d->m_random_validation = config->get_value< double >( "random_validation" );
-  this->d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
-  this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
-  this->d->m_min_train_box_edge_dist = config->get_value< double >( "min_train_box_edge_dist" );
-  this->d->m_small_box_area = config->get_value< int >( "small_box_area" );
-  this->d->m_small_action = config->get_value< std::string >( "small_action" );
+  // Trainer-specific settings
+  d->m_train_directory = config->get_value< std::string >( "train_directory" );
+  d->m_chip_format = config->get_value< std::string >( "chip_format" );
+  d->m_skip_format = config->get_value< bool >( "skip_format" );
+
+  // Common chip settings (shared with detector/refiner)
+  d->m_settings.set_chip_config( config );
+
+  // Additional trainer-specific settings
+  d->m_chip_random_factor = config->get_value< double >( "chip_random_factor" );
+  d->m_always_write_image = config->get_value< bool >( "always_write_image" );
+  d->m_ensure_standard = config->get_value< bool >( "ensure_standard" );
+  d->m_overlap_required = config->get_value< double >( "overlap_required" );
+  d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
+  d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
+  d->m_random_validation = config->get_value< double >( "random_validation" );
+  d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
+  d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
+  d->m_min_train_box_edge_dist = config->get_value< double >( "min_train_box_edge_dist" );
+  d->m_small_box_area = config->get_value< int >( "small_box_area" );
+  d->m_small_action = config->get_value< std::string >( "small_action" );
 
   if( !d->m_skip_format )
   {
@@ -418,13 +388,13 @@ windowed_trainer
           static_cast< double >( rand() ) / RAND_MAX <= d->m_random_validation )
       {
         d->format_image_from_memory(
-          image, train_groundtruth[i], d->m_mode,
+          image, train_groundtruth[i], d->m_settings.mode,
           filtered_test_names, filtered_test_truth );
       }
       else
       {
         d->format_image_from_memory(
-          image, train_groundtruth[i], d->m_mode,
+          image, train_groundtruth[i], d->m_settings.mode,
           filtered_train_names, filtered_train_truth );
       }
     }
@@ -433,7 +403,7 @@ windowed_trainer
       kv::image image = test_images[i]->get_image();
 
       d->format_image_from_memory(
-        image, test_groundtruth[i], d->m_mode,
+        image, test_groundtruth[i], d->m_settings.mode,
         filtered_test_names, filtered_test_truth );
     }
   }
@@ -500,7 +470,7 @@ windowed_trainer::priv
 
     const std::string image_fn = image_names[fid];
 
-    if( m_mode == DISABLED && !m_always_write_image && !m_ensure_standard )
+    if( m_settings.mode == DISABLED && !m_always_write_image && !m_ensure_standard )
     {
       formatted_names.push_back( image_fn );
       formatted_truth.push_back( groundtruth[fid] );
@@ -513,7 +483,7 @@ windowed_trainer::priv
     kv::image original_image;
     kv::detected_object_set_sptr filtered_truth;
 
-    rescale_option format_mode = m_mode;
+    rescale_option format_mode = m_settings.mode;
     std::string ext = image_fn.substr( image_fn.find_last_of( "." ) + 1 );
 
     try
@@ -538,12 +508,12 @@ windowed_trainer::priv
     // Early exit don't need to read all images every iteration
     if( format_mode == ADAPTIVE )
     {
-      if( ( img_height * img_width ) < m_chip_adaptive_thresh )
+      if( ( img_height * img_width ) < m_settings.chip_adaptive_thresh )
       {
         if( m_always_write_image ||
-            ( m_original_to_chip_size &&
-              ( img_width > m_chip_width ||
-                img_height > m_chip_height ) ) ||
+            ( m_settings.original_to_chip_size &&
+              ( img_width > m_settings.chip_width ||
+                img_height > m_settings.chip_height ) ) ||
             ( m_ensure_standard &&
               ( original_image.depth() != 3 ||
                !( ext == "jpg" || ext == "png" || ext == "jpeg" ) ) ) )
@@ -567,7 +537,7 @@ windowed_trainer::priv
     }
     else if( format_mode == ORIGINAL_AND_RESIZED )
     {
-      if( img_height <= m_chip_height && img_width <= m_chip_width )
+      if( img_height <= m_settings.chip_height && img_width <= m_settings.chip_width )
       {
         if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
         {
@@ -579,7 +549,7 @@ windowed_trainer::priv
 
       format_mode = MAINTAIN_AR;
 
-      if( ( img_height * img_width ) >= m_chip_adaptive_thresh )
+      if( ( img_height * img_width ) >= m_settings.chip_adaptive_thresh )
       {
         if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
         {
@@ -614,7 +584,8 @@ windowed_trainer::priv
   if( format_method != DISABLED )
   {
     resized_image = format_image( image, format_method,
-      m_scale, m_chip_width, m_chip_height, m_black_pad, resized_scale );
+      m_settings.scale, m_settings.chip_width, m_settings.chip_height,
+      m_settings.black_pad, resized_scale );
 
     scaled_groundtruth->scale( resized_scale );
   }
@@ -644,10 +615,10 @@ windowed_trainer::priv
   {
     // Chip up and process scaled image
     for( int i = 0;
-         i < resized_width - m_chip_width + m_chip_step_width;
-         i += m_chip_step_width )
+         i < resized_width - m_settings.chip_width + m_settings.chip_step_width;
+         i += m_settings.chip_step_width )
     {
-      int cw = i + m_chip_width;
+      int cw = i + m_settings.chip_width;
 
       if( cw > resized_width )
       {
@@ -655,12 +626,12 @@ windowed_trainer::priv
       }
       else
       {
-        cw = m_chip_width;
+        cw = m_settings.chip_width;
       }
 
       for( int j = 0;
-           j < resized_height - m_chip_height + m_chip_step_height;
-           j += m_chip_step_height )
+           j < resized_height - m_settings.chip_height + m_settings.chip_step_height;
+           j += m_settings.chip_step_height )
       {
         // random downsampling
         if( m_chip_random_factor > 0.0 &&
@@ -670,7 +641,7 @@ windowed_trainer::priv
           continue;
         }
 
-        int ch = j + m_chip_height;
+        int ch = j + m_settings.chip_height;
 
         if( ch > resized_height )
         {
@@ -678,7 +649,7 @@ windowed_trainer::priv
         }
         else
         {
-          ch = m_chip_height;
+          ch = m_settings.chip_height;
         }
 
         // Only necessary in a few circumstances when chip_step exceeds image size.
@@ -692,10 +663,11 @@ windowed_trainer::priv
 
         double scaled_crop_scale;
         kv::image resized_crop = scale_image_maintaining_ar(
-          cropped_image, m_chip_width, m_chip_height, m_black_pad,
-          scaled_crop_scale );
+          cropped_image, m_settings.chip_width, m_settings.chip_height,
+          m_settings.black_pad, scaled_crop_scale );
 
-        kv::bounding_box_d roi_box( i, j, i + m_chip_width, j + m_chip_height );
+        kv::bounding_box_d roi_box( i, j, i + m_settings.chip_width,
+          j + m_settings.chip_height );
 
         if( filter_detections_in_roi( scaled_groundtruth, roi_box, filtered_truth ) )
         {
@@ -713,7 +685,8 @@ windowed_trainer::priv
     {
       double scaled_original_scale;
       kv::image scaled_original = scale_image_maintaining_ar( image,
-        m_chip_width, m_chip_height, m_black_pad, scaled_original_scale );
+        m_settings.chip_width, m_settings.chip_height, m_settings.black_pad,
+        scaled_original_scale );
 
       kv::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
       scaled_original_dets_ptr->scale( scaled_original_scale );

@@ -84,8 +84,15 @@ struct VIAME_CORE_EXPORT window_settings
   window_settings();
   ~window_settings() {}
 
+  /// Get full configuration (for detector/refiner)
   kv::config_block_sptr config() const;
   void set_config( kv::config_block_sptr cfg );
+
+  /// Get chip-only configuration (for trainer - excludes detector-specific settings)
+  /// This includes: mode, scale, chip_width, chip_height, chip_step_width,
+  /// chip_step_height, chip_adaptive_thresh, original_to_chip_size, black_pad
+  kv::config_block_sptr chip_config() const;
+  void set_chip_config( kv::config_block_sptr cfg );
 
   rescale_option mode;
   double scale;

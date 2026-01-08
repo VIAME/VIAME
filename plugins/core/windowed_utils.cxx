@@ -118,6 +118,54 @@ window_settings
   black_pad = config->get_value< bool >( "black_pad" );
 }
 
+// -----------------------------------------------------------------------------
+kv::config_block_sptr
+window_settings
+::chip_config() const
+{
+  kv::config_block_sptr config = kv::config_block::empty_config();
+
+  rescale_option_converter conv;
+  config->set_value( "mode", conv.to_string( mode ),
+    "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
+    "chip, chip_and_original, original_and_resized, or adaptive." );
+  config->set_value( "scale", scale,
+    "Image scaling factor used when mode is scale or chip." );
+  config->set_value( "chip_height", chip_height,
+    "When in chip mode, the chip height." );
+  config->set_value( "chip_width", chip_width,
+    "When in chip mode, the chip width." );
+  config->set_value( "chip_step_height", chip_step_height,
+    "When in chip mode, the chip step size between chips." );
+  config->set_value( "chip_step_width", chip_step_width,
+    "When in chip mode, the chip step size between chips." );
+  config->set_value( "chip_adaptive_thresh", chip_adaptive_thresh,
+    "If using adaptive selection, total pixel count at which we start to chip." );
+  config->set_value( "original_to_chip_size", original_to_chip_size,
+    "Optionally enforce the input image is not larger than the chip size" );
+  config->set_value( "black_pad", black_pad,
+    "Black pad the edges of resized chips to ensure consistent dimensions" );
+
+  return config;
+}
+
+// -----------------------------------------------------------------------------
+void
+window_settings
+::set_chip_config( kv::config_block_sptr config )
+{
+  rescale_option_converter conv;
+  mode = conv.from_string( config->get_value< std::string >( "mode" ) );
+  scale = config->get_value< double >( "scale" );
+  chip_width = config->get_value< int >( "chip_width" );
+  chip_height = config->get_value< int >( "chip_height" );
+  chip_step_width = config->get_value< int >( "chip_step_width" );
+  chip_step_height = config->get_value< int >( "chip_step_height" );
+  chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
+  original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
+  black_pad = config->get_value< bool >( "black_pad" );
+}
+
 // =============================================================================
 
 windowed_region_prop
