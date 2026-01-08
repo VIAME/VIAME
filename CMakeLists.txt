@@ -951,6 +951,7 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Register tests at super-build level
   if( VIAME_ENABLE_TESTS )
     enable_testing()
+    include( CTest )
 
     # Include tests from viame-build subdirectory at the root level
     # This allows running `ctest` from the main build directory
