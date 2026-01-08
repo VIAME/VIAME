@@ -24,6 +24,7 @@ include_cmake_preset(build_cmake_desktop.cmake)
 include_cmake_preset(build_cmake_cpu.cmake)
 
 # Windows-specific build paths
+add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl2")
 add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv2")
 add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm2")
 
