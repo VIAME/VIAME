@@ -1,5 +1,5 @@
-v0.22.0 - 12/12/2025
-====================
+v0.22.0 - 1/15/2025
+===================
 
 
 -Added additional stereo measurement pipelines
@@ -9,6 +9,9 @@ v0.22.0 - 12/12/2025
 
 
 -Fix to IQR and VIEW interfaces to re-allow embedded pipeline running
+
+
+-Multiple dependency and testing infastructure updates, drop old packages
 
 
 
