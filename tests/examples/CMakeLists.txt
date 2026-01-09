@@ -44,7 +44,7 @@ if( VIAME_ENABLE_PYTHON )
         -v
         --tb=short
         -k "${TEST_CLASS}"
-      WORKING_DIRECTORY "${VIAME_SOURCE_DIR}/examples/${WORKING_DIR}"
+      WORKING_DIRECTORY "${VIAME_INSTALL_DIR}/examples/${WORKING_DIR}"
     )
     set_tests_properties( ${TEST_NAME}
       PROPERTIES
@@ -63,7 +63,7 @@ if( VIAME_ENABLE_PYTHON )
         -v
         --tb=short
         -k "${TEST_CLASS}"
-      WORKING_DIRECTORY "${VIAME_SOURCE_DIR}/examples/${WORKING_DIR}"
+      WORKING_DIRECTORY "${VIAME_INSTALL_DIR}/examples/${WORKING_DIR}"
     )
     set_tests_properties( ${TEST_NAME}
       PROPERTIES

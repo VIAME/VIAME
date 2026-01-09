@@ -114,14 +114,12 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
-option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_LEARN )
-mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
 mark_as_advanced( VIAME_ENABLE_SVM )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
@@ -359,7 +357,7 @@ include( old_version_checks )
 ###
 # Add logic and error checking relating to enable flags
 ##
-if( VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_DARKNET )
+if( VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
@@ -890,10 +888,6 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 
   # Add other optional libraries
-  if( VIAME_ENABLE_SCALLOP_TK )
-    include( add_project_scallop_tk )
-  endif()
-
   if( VIAME_ENABLE_VIVIA )
     include( add_project_vivia )
   endif()

@@ -21,10 +21,6 @@ if( VIAME_ENABLE_ITK )
   add_subdirectory( itk )
 endif()
 
-if( VIAME_ENABLE_SCALLOP_TK )
-  add_subdirectory( scallop_tk )
-endif()
-
 if( VIAME_ENABLE_SEAGIS )
   add_subdirectory( seagis )
 endif()

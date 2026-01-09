@@ -136,7 +136,7 @@ def get_viame_install():
 
 def get_examples_dir(category):
     """Get the examples directory for a specific category."""
-    return get_viame_source() / "examples" / category
+    return get_viame_install() / "examples" / category
 
 
 def get_script_path(category, script_name):
@@ -311,9 +311,9 @@ def viame_install():
 
 
 @pytest.fixture(scope="session")
-def example_imagery(viame_source):
+def example_imagery(viame_install):
     """Fixture ensuring example imagery exists."""
-    imagery_dir = viame_source / "examples" / "example_imagery"
+    imagery_dir = viame_install / "examples" / "example_imagery"
     if not imagery_dir.exists():
         pytest.skip(f"Example imagery not found at {imagery_dir}")
     return imagery_dir
