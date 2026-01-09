@@ -109,6 +109,76 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
 
   set( DIVE_CLIENT_DIR "${VIAME_PACKAGES_DIR}/dive/client" )
 
+  # Detect if we switched from downloading binaries to building from source
+  set( DIVE_BUILD_MODE_FILE "${VIAME_BUILD_PREFIX}/src/dive-build-mode.txt" )
+  set( DIVE_PREVIOUS_BUILD_MODE "" )
+  if( EXISTS "${DIVE_BUILD_MODE_FILE}" )
+    file( READ "${DIVE_BUILD_MODE_FILE}" DIVE_PREVIOUS_BUILD_MODE )
+    string( STRIP "${DIVE_PREVIOUS_BUILD_MODE}" DIVE_PREVIOUS_BUILD_MODE )
+  endif()
+
+  if( NOT "${DIVE_PREVIOUS_BUILD_MODE}" STREQUAL "SOURCE" )
+    message( STATUS "DIVE build mode changed to building from source" )
+    message( STATUS "Cleaning previous DIVE install directory..." )
+
+    if( EXISTS "${VIAME_DIVE_INSTALL_DIR}" )
+      file( REMOVE_RECURSE "${VIAME_DIVE_INSTALL_DIR}" )
+    endif()
+
+    file( WRITE "${DIVE_BUILD_MODE_FILE}" "SOURCE" )
+  endif()
+
+  # Detect if DIVE submodule hash has changed and clean old build if so
+  set( DIVE_HASH_FILE "${VIAME_BUILD_PREFIX}/src/dive-hash.txt" )
+  set( DIVE_CURRENT_HASH "" )
+
+  if( EXISTS "${VIAME_PACKAGES_DIR}/dive/.git" )
+    execute_process(
+      COMMAND git rev-parse HEAD
+      WORKING_DIRECTORY "${VIAME_PACKAGES_DIR}/dive"
+      OUTPUT_VARIABLE DIVE_CURRENT_HASH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      RESULT_VARIABLE DIVE_HASH_RESULT
+    )
+  endif()
+
+  if( DIVE_CURRENT_HASH )
+    set( DIVE_PREVIOUS_HASH "" )
+    if( EXISTS "${DIVE_HASH_FILE}" )
+      file( READ "${DIVE_HASH_FILE}" DIVE_PREVIOUS_HASH )
+      string( STRIP "${DIVE_PREVIOUS_HASH}" DIVE_PREVIOUS_HASH )
+    endif()
+
+    if( NOT "${DIVE_CURRENT_HASH}" STREQUAL "${DIVE_PREVIOUS_HASH}" )
+      message( STATUS "DIVE hash changed from ${DIVE_PREVIOUS_HASH} to ${DIVE_CURRENT_HASH}" )
+      message( STATUS "Cleaning previous DIVE build and install directories..." )
+
+      # Clean the electron build output
+      if( EXISTS "${DIVE_CLIENT_DIR}/dist_electron" )
+        file( REMOVE_RECURSE "${DIVE_CLIENT_DIR}/dist_electron" )
+      endif()
+
+      # Clean node_modules to force fresh install
+      if( EXISTS "${DIVE_CLIENT_DIR}/node_modules" )
+        file( REMOVE_RECURSE "${DIVE_CLIENT_DIR}/node_modules" )
+      endif()
+
+      # Clean the install directory
+      if( EXISTS "${VIAME_DIVE_INSTALL_DIR}" )
+        file( REMOVE_RECURSE "${VIAME_DIVE_INSTALL_DIR}" )
+      endif()
+
+      # Clean ExternalProject stamps to force rebuild
+      file( GLOB DIVE_STAMP_FILES "${VIAME_BUILD_PREFIX}/src/dive-stamp/*" )
+      if( DIVE_STAMP_FILES )
+        file( REMOVE ${DIVE_STAMP_FILES} )
+      endif()
+
+      # Write new hash
+      file( WRITE "${DIVE_HASH_FILE}" "${DIVE_CURRENT_HASH}" )
+    endif()
+  endif()
+
   if( WIN32 )
     set( DIVE_ELECTRON_OUTPUT_DIR ${DIVE_CLIENT_DIR}/dist_electron/win-unpacked )
   else()
@@ -136,6 +206,25 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   )
 
 else()
+
+  # Detect if we switched from building from source to downloading binaries
+  set( DIVE_BUILD_MODE_FILE "${VIAME_BUILD_PREFIX}/src/dive-build-mode.txt" )
+  set( DIVE_PREVIOUS_BUILD_MODE "" )
+  if( EXISTS "${DIVE_BUILD_MODE_FILE}" )
+    file( READ "${DIVE_BUILD_MODE_FILE}" DIVE_PREVIOUS_BUILD_MODE )
+    string( STRIP "${DIVE_PREVIOUS_BUILD_MODE}" DIVE_PREVIOUS_BUILD_MODE )
+  endif()
+
+  if( NOT "${DIVE_PREVIOUS_BUILD_MODE}" STREQUAL "BINARY" )
+    message( STATUS "DIVE build mode changed to downloading binaries" )
+    message( STATUS "Cleaning previous DIVE install directory..." )
+
+    if( EXISTS "${VIAME_DIVE_INSTALL_DIR}" )
+      file( REMOVE_RECURSE "${VIAME_DIVE_INSTALL_DIR}" )
+    endif()
+
+    file( WRITE "${DIVE_BUILD_MODE_FILE}" "BINARY" )
+  endif()
 
   if( WIN32 )
     DownloadAndExtract(
