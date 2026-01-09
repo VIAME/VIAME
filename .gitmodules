@@ -4,6 +4,9 @@
 [submodule "packages/kwiver"]
 	path = packages/kwiver
 	url = https://github.com/Kitware/kwiver.git
+[submodule "packages/dive"]
+	path = packages/dive
+	url = https://github.com/Kitware/dive.git
 [submodule "packages/vivia"]
 	path = packages/vivia
 	url = https://github.com/Kitware/vivia.git
@@ -91,6 +94,3 @@
 [submodule "packages/pytorch-libs/rf-detr"]
 	path = packages/pytorch-libs/rf-detr
 	url = https://github.com/roboflow/rf-detr.git
-[submodule "packages/dive"]
-	path = packages/dive
-	url = https://github.com/Kitware/dive.git
