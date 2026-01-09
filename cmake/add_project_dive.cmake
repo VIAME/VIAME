@@ -107,7 +107,7 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} dive )
 
-  set( DIVE_CLIENT_DIR "${VIAME_PACKAGES_DIR}/packages/dive/client" )
+  set( DIVE_CLIENT_DIR "${VIAME_PACKAGES_DIR}/dive/client" )
 
   if( WIN32 )
     set( DIVE_ELECTRON_OUTPUT_DIR ${DIVE_CLIENT_DIR}/dist_electron/win-unpacked )
