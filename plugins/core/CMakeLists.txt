@@ -247,6 +247,11 @@ if( VIAME_ENABLE_PYTHON )
     utils )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/types.py
+    .
+    types )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_npy.py
     arrows/core
     normalize_image_npy )
