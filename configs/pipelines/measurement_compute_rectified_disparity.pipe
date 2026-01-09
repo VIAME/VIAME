@@ -1,0 +1,53 @@
+# Rectified stereo disparity
+#
+# Runs images retification (using intrinsics.yml / extrinsics.yml files) and generates disparity maps
+# The depth directory needs to be created prior to the pipeline execution
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               5
+
+config global
+   :input_cameras_directory                    /home/<user>/Desktop/viame_tests/camera_calibrations
+   :output_depths_directory                    /home/<user>/Desktop/viame_tests/depthMap
+
+# ================================== VIDEO INPUT ==================================
+
+include common_stereo_input_with_downsampler.pipe
+
+# =================================== DEPTH MAP ====================================
+
+process depth_map
+  :: compute_stereo_depth_map
+  :computer:type                              ocv_stereo_disparity
+
+block computer:ocv_stereo_disparity
+  :algorithm                                 	SGBM
+  :min_disparity                             	0
+  :num_disparities                           	240
+  :sad_window_size                           	11
+  :block_size                                	11
+  :speckle_window_size			                0
+  :speckle_range				                0
+  :calibration_file                             $CONFIG{global:input_cameras_directory}
+  :use_wls_filter                               true
+endblock
+
+connect from downsampler.output_1
+        to   depth_map.left_image
+connect from downsampler.output_3
+        to   depth_map.right_image
+
+# ==================================== OUTPUT ======================================
+
+process output
+  :: image_writer
+  :file_name_template                          $CONFIG{global:output_depths_directory}/depth_map%06d.png
+  :image_writer:type                           ocv
+
+connect from depth_map.depth_map
+        to   output.image
+
+# -- end of file --

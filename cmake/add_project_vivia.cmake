@@ -25,7 +25,6 @@ ExternalProject_Add(vivia
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_Boost}
     ${VIAME_ARGS_fletch}
-    ${VIAME_ARGS_burnout}
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_libkml}
     ${VIAME_ARGS_PROJ4}
@@ -37,7 +36,7 @@ ExternalProject_Add(vivia
     -DBUILD_SHARED_LIBS:BOOL=ON
     -DVISGUI_ENABLE_VIDTK:BOOL=OFF
 
-    -DVISGUI_ENABLE_VIQUI:BOOL=${VIAME_ENABLE_SMQTK}
+    -DVISGUI_ENABLE_VIQUI:BOOL=${VIAME_ENABLE_SVM}
     -DVISGUI_ENABLE_VSPLAY:BOOL=ON
     -DVISGUI_ENABLE_VPVIEW:BOOL=ON
     -DVISGUI_ENABLE_GDAL:BOOL=${VIAME_ENABLE_GDAL}
@@ -60,14 +59,7 @@ ExternalProject_Add(vivia
   )
 
 if( VIAME_FORCEBUILD )
-  ExternalProject_Add_Step(vivia forcebuild
-    COMMAND ${CMAKE_COMMAND}
-      -E remove ${VIAME_BUILD_PREFIX}/src/vivia-stamp/vivia-build
-    COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
-    )
+  RemoveProjectCMakeStamp( vivia )
 endif()
 
 set(VIAME_ARGS_vivia

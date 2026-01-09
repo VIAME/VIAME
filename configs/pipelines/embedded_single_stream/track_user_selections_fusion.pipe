@@ -11,10 +11,10 @@ config _scheduler
 # ================================= IO NODES =======================================
 
 process in_adapt
- :: input_adapter
+  :: input_adapter
 
 process out_adapt
- :: output_adapter
+  :: output_adapter
 
 # ================================= CONDUCTOR ======================================
 
@@ -50,7 +50,7 @@ connect from short_term_tracker.object_track_set
 # ================================ MID-TERM TRACKER ================================
 
 process mid_term_tracker
- :: mdnet_tracker
+  :: mdnet_tracker
 
   relativepath weights_file =                  ../models/mdnet_seed.pth
 
@@ -76,4 +76,3 @@ connect from track_conductor.object_track_set
         to   out_adapt.object_track_set
 
 # -- end of file --
-

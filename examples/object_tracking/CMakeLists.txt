@@ -29,7 +29,7 @@ else()
        run_track_viewer.sh )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-PYSOT )
+if( VIAME_ENABLE_PYTORCH-SIAMMASK )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}

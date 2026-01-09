@@ -1,0 +1,7 @@
+# CMake generated Testfile for VIAME
+# This file includes tests from the viame-build subdirectory
+
+# Include tests from viame-build if the test file exists
+if(EXISTS "@VIAME_TEST_DIR@/CTestTestfile.cmake")
+  subdirs("@VIAME_TEST_DIR@")
+endif()

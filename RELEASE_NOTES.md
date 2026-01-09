@@ -1,4 +1,4 @@
-v0.21.4 - 12/9/2025
+v0.22.0 - 1/15/2025
 ===================
 
 
@@ -9,6 +9,9 @@ v0.21.4 - 12/9/2025
 
 
 -Fix to IQR and VIEW interfaces to re-allow embedded pipeline running
+
+
+-Multiple dependency and testing infastructure updates, drop old packages
 
 
 

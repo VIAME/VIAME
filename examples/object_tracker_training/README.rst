@@ -44,7 +44,7 @@ In the pre-built binaries they are all enabled by default.
 | VIAME_ENABLE_OPENCV set to ON
 | VIAME_ENABLE_PYTHON set to ON
 | VIAME_ENABLE_PYTORCH set to ON
-| VIAME_ENABLE_PYTORCH-PYSOT set to ON
+| VIAME_ENABLE_PYTORCH-SIAMMASK set to ON
 
 
 ********************

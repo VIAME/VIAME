@@ -11,10 +11,10 @@ config _scheduler
 # ==================================================================================
 
 process in_adapt
- :: input_adapter
+  :: input_adapter
 
 process out_adapt
- :: output_adapter
+  :: output_adapter
 
 # ==================================================================================
 
@@ -49,4 +49,3 @@ connect from short_term_tracker.object_track_set
         to   out_adapt.object_track_set
 
 # -- end of file --
-

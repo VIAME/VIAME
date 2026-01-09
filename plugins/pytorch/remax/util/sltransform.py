@@ -1,3 +1,7 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 # modified from https://github.com/anhtuan85/Data-Augmentation-for-Object-Detection/blob/master/augmentation.ipynb
 
 import PIL #version 1.2.0

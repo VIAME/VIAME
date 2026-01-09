@@ -1,51 +1,34 @@
-/*ckwg +29
- * Copyright 2018-2021 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 /**
  * \file
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/core/viame_core_plugin_export.h>
+#include "viame_core_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "add_timestamp_from_filename.h"
 #include "auto_detect_transform.h"
+#include "average_track_descriptors.h"
 #include "convert_head_tail_points.h"
 #include "empty_detector.h"
+#include "full_frame_detector.h"
+#include "merge_detections_suppress_in_regions.h"
 #include "read_detected_object_set_fishnet.h"
 #include "read_detected_object_set_habcam.h"
 #include "read_detected_object_set_oceaneyes.h"
 #include "read_detected_object_set_viame_csv.h"
-#include "write_detected_object_set_viame_csv.h"
 #include "read_object_track_set_viame_csv.h"
+#include "refine_detections_add_fixed.h"
+#include "refine_detections_nms.h"
+#include "windowed_detector.h"
+#include "windowed_refiner.h"
+#include "windowed_trainer.h"
+#include "write_detected_object_set_viame_csv.h"
+#include "write_disparity_maps.h"
 #include "write_object_track_set_viame_csv.h"
 
 namespace viame {
@@ -90,9 +73,21 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< read_detected_object_set_habcam >( vpm );
   register_algorithm< read_detected_object_set_oceaneyes >( vpm );
   register_algorithm< read_detected_object_set_viame_csv >( vpm );
-  register_algorithm< write_detected_object_set_viame_csv >( vpm );
   register_algorithm< read_object_track_set_viame_csv >( vpm );
+  register_algorithm< write_detected_object_set_viame_csv >( vpm );
+  register_algorithm< write_disparity_maps >( vpm );
   register_algorithm< write_object_track_set_viame_csv >( vpm );
+
+  // Algorithms using PLUGIN_INFO macro
+  ::kwiver::vital::algorithm_registrar reg( vpm, module_name );
+  reg.register_algorithm< ::viame::average_track_descriptors >();
+  reg.register_algorithm< ::viame::full_frame_detector >();
+  reg.register_algorithm< ::viame::merge_detections_suppress_in_regions >();
+  reg.register_algorithm< ::viame::refine_detections_add_fixed >();
+  reg.register_algorithm< ::viame::refine_detections_nms >();
+  reg.register_algorithm< ::viame::windowed_detector >();
+  reg.register_algorithm< ::viame::windowed_refiner >();
+  reg.register_algorithm< ::viame::windowed_trainer >();
 
   vpm.mark_module_as_loaded( module_name );
 }

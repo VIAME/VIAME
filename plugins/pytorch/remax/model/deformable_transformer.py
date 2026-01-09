@@ -1,3 +1,7 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 # ------------------------------------------------------------------------
 # DINO
 # Copyright (c) 2022 IDEA. All Rights Reserved.
@@ -1048,8 +1052,8 @@ def build_deformable_transformer(args):
     use_detached_boxes_dec_out = False
     try:
         use_detached_boxes_dec_out = args.use_detached_boxes_dec_out
-    except:
-        use_detached_boxes_dec_out =False
+    except AttributeError:
+        use_detached_boxes_dec_out = False
 
     return DeformableTransformer(
         d_model=args.hidden_dim,

@@ -1,10 +1,13 @@
-# =======================================================================================
-# This is a version of SiamRPN++ implemented in pytorch with the pysot library.
+# ==================================================================================
+# This is a version of SiamRPN++ implemented in pytorch with the siammask library.
+# ==================================================================================
 
 process short_term_tracker
-  :: pysot_tracker
+  :: siammask_tracker
 
   relativepath config_file =                   models/pysot_fish_siamrpn.yaml
   relativepath model_file =                    models/pysot_fish_siamrpn.pth
 
   :threshold                                   0.90
+
+# -- end of file --

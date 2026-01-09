@@ -1,0 +1,135 @@
+# Estimate calibration from left and right camera videos
+#
+# Runs OCV corner detection on each camera feed and combine tracks to generate camera calibration
+#
+# Features:
+#   - Auto-detects chessboard grid size from first frame
+#   - Image dimensions derived automatically from input images
+#   - Frame count accumulated from all input frames
+#   - Outputs both OpenCV YAML format and JSON format (camera_rig_io compatible)
+
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+config global
+   :output_directory                           ./
+   :output_json_file                           calibration_matrices.json
+   :square_size                                80
+
+# ============================== INPUT FRAME LIST ==================================
+
+include common_stereo_input_with_downsampler.pipe
+
+# =================================== OCV DETECTOR =====================================
+# LEFT
+# --------------------------------------------------------------------------------------
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_detect_calibration_targets
+
+  block detector:ocv_detect_calibration_targets
+    :auto_detect_grid                          true
+    :square_size                               $CONFIG{global:square_size}
+    :object_type                               "corner"
+  endblock
+
+process append_detections1
+  ::accumulate_object_tracks
+  :single_final_output                         true
+
+process detector_writer1
+  :: detected_object_output
+  :file_name                                   tracks_left.csv
+  :writer:type                                 viame_csv
+
+
+# RIGHT
+# --------------------------------------------------------------------------------------
+process detector2
+  :: image_object_detector
+  :detector:type                               ocv_detect_calibration_targets
+
+  block detector:ocv_detect_calibration_targets
+    :auto_detect_grid                          true
+    :square_size                               $CONFIG{global:square_size}
+    :object_type                               "corner"
+  endblock
+
+process append_detections2
+  ::accumulate_object_tracks
+  :single_final_output                         true
+
+process detector_writer2
+  :: detected_object_output
+  :file_name                                   tracks_right.csv
+  :writer:type                                 viame_csv
+
+# =============================== IMAGE STATISTICS =====================================
+
+process image_statistics
+  :: accumulate_image_statistics
+
+# =============================== CAMERA CALIBRATION ===================================
+
+process cameras_calibration
+  :: calibrate_cameras_from_tracks
+  :output_cameras_directory                    $CONFIG{global:output_directory}
+  :output_json_file                            $CONFIG{global:output_json_file}
+  :square_size                                 $CONFIG{global:square_size}
+
+# =============================== PROCESS CONNECTION ===================================
+# Detect tracks left camera
+# --------------------------------------------------------------------------------------
+connect from downsampler.output_1
+        to   detector1.image
+
+connect from downsampler.timestamp
+        to   append_detections1.timestamp
+
+connect from detector1.detected_object_set
+        to   append_detections1.detected_object_set
+
+connect from detector1.detected_object_set
+        to   detector_writer1.detected_object_set
+
+
+# Detect tracks right camera
+# --------------------------------------------------------------------------------------
+connect from downsampler.output_3
+        to   detector2.image
+
+connect from downsampler.timestamp
+        to   append_detections2.timestamp
+
+connect from detector2.detected_object_set
+        to   append_detections2.detected_object_set
+
+connect from detector2.detected_object_set
+        to   detector_writer2.detected_object_set
+
+
+# Image statistics accumulation
+# --------------------------------------------------------------------------------------
+connect from downsampler.output_1
+        to   image_statistics.image
+
+
+# Camera calibration
+# --------------------------------------------------------------------------------------
+connect from append_detections1.object_track_set
+        to   cameras_calibration.tracks_left
+
+connect from append_detections2.object_track_set
+        to   cameras_calibration.tracks_right
+
+connect from image_statistics.image_width
+        to   cameras_calibration.image_width
+
+connect from image_statistics.image_height
+        to   cameras_calibration.image_height
+
+# -- end of file --

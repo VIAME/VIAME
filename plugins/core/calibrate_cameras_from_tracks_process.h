@@ -1,14 +1,18 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
 /**
  * \file
  * \brief Calibrate two cameras from two objects track set
  */
 
-#ifndef VIAME_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
-#define VIAME_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
+#ifndef VIAME_CORE_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
+#define VIAME_CORE_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/core/viame_processes_core_export.h>
+#include "viame_processes_core_export.h"
 
 #include <memory>
 
@@ -46,4 +50,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H
+#endif // VIAME_CORE_CALIBRATE_CAMERAS_FROM_TRACKS_PROCESS_H

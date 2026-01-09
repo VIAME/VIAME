@@ -1,53 +1,35 @@
-/*ckwg +29
- * Copyright 2023 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include <plugins/core/viame_processes_core_export.h>
+#include "viame_processes_core_export.h"
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
 
+#include "accumulate_image_statistics_process.h"
 #include "align_multimodal_imagery_process.h"
 #include "extract_desc_ids_for_training_process.h"
+#include "fetch_descriptors_process.h"
 #include "filter_frame_process.h"
+#include "ingest_descriptors_process.h"
 #include "filter_object_tracks_process.h"
-#include "frame_stacker_process.h"
-#include "full_frame_tracker_process.h"
+#include "object_track_descriptors_process.h"
+#include "stack_frames_process.h"
+#include "detect_shot_breaks_process.h"
+#include "measure_objects_process.h"
 #include "read_habcam_metadata_process.h"
 #include "refine_measurements_process.h"
 #include "track_conductor_process.h"
 #include "write_homography_list_process.h"
-#include "append_detections_to_tracks_process.h"
+#include "accumulate_object_tracks_process.h"
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
-#include "split_object_track_to_feature_landmark_process.h"
-#include "tracks_pairing_from_stereo_process.h"
-#include "detections_pairing_from_stereo_process.h"
+#include "split_tracks_to_feature_landmarks_process.h"
+#include "pair_stereo_detections_process.h"
+#include "write_query_results_as_tracks_process.h"
+#include "create_database_query_process.h"
+#include "select_database_query_process.h"
+#include "image_to_image_set_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -67,7 +49,17 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // ---------------------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( viame::core::align_multimodal_imagery_process );
+  auto fact = vpm.ADD_PROCESS( viame::core::accumulate_image_statistics_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "accumulate_image_statistics" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Accumulate image statistics (frame count, dimensions) over a stream" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::align_multimodal_imagery_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "align_multimodal_imagery" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
@@ -84,6 +76,36 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Extract descriptor IDs overlapping with groundtruth" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::ingest_descriptors_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "ingest_descriptors" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Ingest descriptors with UIDs and write to file" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::fetch_descriptors_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "fetch_descriptors" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Fetch descriptors from file given UIDs" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::object_track_descriptors_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "object_track_descriptors" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Attach descriptors to object track states from file" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
@@ -107,9 +129,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::frame_stacker_process );
+  fact = vpm.ADD_PROCESS( viame::core::stack_frames_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "frame_stacker_process" )
+                        "stack_frames" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
@@ -117,13 +139,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::full_frame_tracker_process );
+  fact = vpm.ADD_PROCESS( viame::core::detect_shot_breaks_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "full_frame_tracker" )
+                        "detect_shot_breaks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Generate tracks covering entire input frames" )
+                    "Detect shot breaks and create tracks for each shot" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
   
@@ -137,19 +159,29 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
   
-  fact = vpm.ADD_PROCESS( viame::core::append_detections_to_tracks_process );
+  fact = vpm.ADD_PROCESS( viame::core::accumulate_object_tracks_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "append_detections_to_tracks" )
+                        "accumulate_object_tracks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Append consistent detected object set to an object track set" )
+                    "Accumulate detected objects into an object track set" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::split_object_track_to_feature_landmark_process );
+  fact = vpm.ADD_PROCESS( viame::core::measure_objects_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "split_object_track_to_feature_landmark" )
+                        "compute_measurements" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Compute stereo measurements from track data" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::split_tracks_to_feature_landmarks_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "split_tracks_to_feature_landmarks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
@@ -163,30 +195,20 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Calibrate cameras from object track sets" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-  
-  fact = vpm.ADD_PROCESS( viame::core::tracks_pairing_from_stereo_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "tracks_pairing_from_stereo" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Compute object tracks pair from stereo depth map information" )
+                    "Calibrate stereo cameras from object track sets" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::core::detections_pairing_from_stereo_process );
+  fact = vpm.ADD_PROCESS( viame::core::pair_stereo_detections_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "detections_pairing_from_stereo" )
+                        "pair_stereo_detections" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Compute object detections pair from stereo depth map information" )
+                    "Match detections across stereo views using IOU and class labels, output tracks with aligned IDs" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
-  
+
   fact = vpm.ADD_PROCESS( viame::core::read_habcam_metadata_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "read_habcam_metadata" )
@@ -224,6 +246,46 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Write a homography list out to some file" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::write_query_results_as_tracks_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "write_query_results_as_tracks" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Write query results as object track CSV with NN scores as confidence" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::create_database_query_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "create_database_query" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Create database query from track descriptors for use with perform_query" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::select_database_query_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "select_database_query" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Select between two database query inputs (primary if non-null, otherwise fallback)" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::image_to_image_set_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "image_to_image_set" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Convert single image to image_set" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

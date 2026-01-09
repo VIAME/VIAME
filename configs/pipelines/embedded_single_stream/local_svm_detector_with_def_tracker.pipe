@@ -9,10 +9,10 @@ config _scheduler
 
 # ==================================================================================
 process in_adapt
- :: input_adapter
+  :: input_adapter
 
 process out_adapt
- :: output_adapter
+  :: output_adapter
 
 # ==================================================================================
 
@@ -21,13 +21,13 @@ include ../common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
-  :refiner:type                                svm_refine
-  :refiner:svm_refine:model_dir                category_models
+  :refiner:type                                svm
+  :refiner:svm:model_dir                       category_models
 
 process nms_refiner
   :: refine_detections
   :refiner:type                                nms
-  
+
   block refiner:nms
     :max_overlap                               0.50
     :nms_scale_factor                          1.5

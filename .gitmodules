@@ -4,27 +4,22 @@
 [submodule "packages/kwiver"]
 	path = packages/kwiver
 	url = https://github.com/Kitware/kwiver.git
-[submodule "packages/scallop-tk"]
-	path = packages/scallop-tk
-	url = https://github.com/VIAME/scallop-tk.git
+[submodule "packages/dive"]
+	path = packages/dive
+	url = https://github.com/Kitware/dive.git
 [submodule "packages/vivia"]
 	path = packages/vivia
 	url = https://github.com/Kitware/vivia.git
 [submodule "packages/kwant"]
 	path = packages/kwant
 	url = https://github.com/Kitware/kwant.git
-[submodule "packages/burn-out"]
-	path = packages/burn-out
-	url = https://github.com/Kitware/burn-out.git
 [submodule "packages/darknet"]
 	path = packages/darknet
 	url = https://github.com/VIAME/darknet.git
-[submodule "packages/smqtk"]
-	path = packages/smqtk
-	url = https://github.com/Kitware/SMQTK.git
 [submodule "packages/pytorch"]
 	path = packages/pytorch
 	url = https://github.com/pytorch/pytorch.git
+	ignore = dirty
 [submodule "packages/pytorch-libs/torchvision"]
 	path = packages/pytorch-libs/torchvision
 	url = https://github.com/pytorch/vision.git
@@ -93,3 +88,9 @@
 [submodule "packages/pytorch-libs/mit-yolo"]
 	path = packages/pytorch-libs/mit-yolo
 	url = https://github.com/VIAME/YOLO.git
+[submodule "packages/pytorch-libs/foundation-stereo"]
+	path = packages/pytorch-libs/foundation-stereo
+	url = https://github.com/VIAME/foundation-stereo.git
+[submodule "packages/pytorch-libs/rf-detr"]
+	path = packages/pytorch-libs/rf-detr
+	url = https://github.com/roboflow/rf-detr.git

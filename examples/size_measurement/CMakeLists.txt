@@ -7,13 +7,19 @@ set( EXAMPLE_INSTALL_FILES
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_measurer.bat
+       calibrate_cameras.bat
+       measure_via_gmm_oriented_boxes.bat
+       measure_via_default_fish.bat
+       measure_over_manual_annotations.bat
        compute_depth_maps.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_measurer.sh
-       standalone_with_disp.sh
+       calibrate_cameras.sh
+       measure_via_gmm_oriented_boxes.sh
+       measure_via_default_fish.sh
+       measure_over_manual_annotations.sh
+       gmm_standalone_tool.sh
        compute_depth_maps.sh )
 endif()
 

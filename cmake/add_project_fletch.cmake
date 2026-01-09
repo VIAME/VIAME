@@ -21,60 +21,47 @@ if( VIAME_ENABLE_CUDNN )
   FormatPassdowns( "CUDNN" VIAME_CUDNN_FLAGS )
 endif()
 
-if( VIAME_PACKAGING_CONT_BUILD )
-  set( DEP_COND_ENABLE ON )
-  set( IMAGE_DEP_COND_ENABLE ${VIAME_BUILD_CORE_IMAGE_LIBS} )
+set( FLETCH_BUILD_IMG_LIB ${VIAME_BUILD_CORE_IMAGE_LIBS} )
+
+if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL )
+  set( FLETCH_ANY_QT_GUI_ENABLED ON )
 else()
-  set( DEP_COND_ENABLE ON )
-  set( IMAGE_DEP_COND_ENABLE ${VIAME_BUILD_CORE_IMAGE_LIBS} )
+  set( FLETCH_ANY_QT_GUI_ENABLED OFF )
+endif()
+
+if( FLETCH_ANY_QT_GUI_ENABLED OR VIAME_ENABLE_KWANT )
+  set( FLETCH_ENABLE_XML ON )
+else()
+  set( FLETCH_ENABLE_XML OFF )
 endif()
 
 set( FLETCH_DEP_FLAGS
   ${FLETCH_DEP_FLAGS}
-  -Dfletch_ENABLE_Boost:BOOL=${DEP_COND_ENABLE}
-  -Dfletch_ENABLE_Eigen:BOOL=${DEP_COND_ENABLE}
+  -Dfletch_BUILD_WITH_CUDA:BOOL=${VIAME_ENABLE_CUDA}
+  -Dfletch_BUILD_WITH_CUDNN:BOOL=${VIAME_ENABLE_CUDNN}
+  -Dfletch_BUILD_WITH_PYTHON:BOOL=${VIAME_ENABLE_PYTHON}
+  -Dfletch_ENABLE_Boost:BOOL=ON
+  -Dfletch_ENABLE_Eigen:BOOL=ON
+  -Dfletch_ENABLE_pybind11:BOOL=${VIAME_ENABLE_PYTHON}
+  -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
+  -Dfletch_ENABLE_OpenBLAS:BOOL=${VIAME_PYTORCH_BUILD_FROM_SOURCE}
+  -Dfletch_ENABLE_CPython:BOOL=${VIAME_PYTHON_BUILD_FROM_SOURCE}
+  -Dfletch_ENABLE_GTest:BOOL=${VIAME_BUILD_TESTS}
+  -Dfletch_ENABLE_PostgreSQL:BOOL=${VIAME_ENABLE_POSTGRESQL}
+  -Dfletch_ENABLE_CppDB:BOOL=${VIAME_ENABLE_POSTGRESQL}
+  -Dfletch_ENABLE_TinyXML1:BOOL=${FLETCH_ENABLE_XML}
+  -Dfletch_ENABLE_libjson:BOOL=${FLETCH_ENABLE_XML}
+  -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
+  -Dfletch_ENABLE_YAMLcpp:BOOL=${VIAME_ENABLE_KWANT}
+  -Dfletch_ENABLE_GeographicLib:BOOL=${FLETCH_ANY_QT_GUI_ENABLED}
+  -Dfletch_PYTHON_MAJOR_VERSION:STRING=${Python_VERSION_MAJOR}
+  -Dpybind11_SELECT_VERSION:STRING=2.10.3
 )
-
-if( VIAME_ENABLE_PYTHON )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_BUILD_WITH_PYTHON:BOOL=ON
-    -Dfletch_PYTHON_MAJOR_VERSION:STRING=${Python_VERSION_MAJOR}
-    -Dfletch_ENABLE_pybind11:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_PyBind11:BOOL=${DEP_COND_ENABLE}
-    -Dpybind11_SELECT_VERSION:STRING=2.8.1
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_BUILD_WITH_PYTHON:BOOL=OFF
-    -Dfletch_ENABLE_pybind11:BOOL=OFF
-    -Dfletch_ENABLE_PyBind11:BOOL=OFF
-  )
-endif()
 
 if( VIAME_PYTHON_BUILD_FROM_SOURCE )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_CPython:BOOL=${DEP_COND_ENABLE}
     -DCPython_SELECT_VERSION:STRING=${VIAME_PYTHON_VERSION}
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_CPython:BOOL=OFF
-  )
-endif()
-
-if( VIAME_PYTORCH_BUILD_FROM_SOURCE )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_OpenBLAS:BOOL=${DEP_COND_ENABLE}
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_OpenBLAS:BOOL=OFF
   )
 endif()
 
@@ -82,25 +69,25 @@ if( VIAME_ENABLE_VXL OR VIAME_ENABLE_OPENCV OR
     VIAME_ENABLE_SEAL OR VIAME_ENABLE_VIVIA )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_ZLib:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_libjpeg-turbo:BOOL=${IMAGE_DEP_COND_ENABLE}
-    -Dfletch_ENABLE_libtiff:BOOL=${IMAGE_DEP_COND_ENABLE}
-    -Dfletch_ENABLE_PNG:BOOL=${IMAGE_DEP_COND_ENABLE}
+    -Dfletch_ENABLE_ZLib:BOOL=ON
+    -Dfletch_ENABLE_libjpeg-turbo:BOOL=${FLETCH_BUILD_IMG_LIB}
+    -Dfletch_ENABLE_libtiff:BOOL=${FLETCH_BUILD_IMG_LIB}
+    -Dfletch_ENABLE_PNG:BOOL=${FLETCH_BUILD_IMG_LIB}
   )
 endif()
 
 if( VIAME_ENABLE_GDAL )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_libgeotiff:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_openjpeg:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_GDAL:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_libgeotiff:BOOL=ON
+    -Dfletch_ENABLE_openjpeg:BOOL=ON
+    -Dfletch_ENABLE_GDAL:BOOL=ON
   )
 else()
   if( VIAME_ENABLE_VXL )
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
-      -Dfletch_ENABLE_libgeotiff:BOOL=${IMAGE_DEP_COND_ENABLE}
+      -Dfletch_ENABLE_libgeotiff:BOOL=${FLETCH_BUILD_IMG_LIB}
     )
   else()
     set( FLETCH_DEP_FLAGS
@@ -118,14 +105,14 @@ endif()
 if( VIAME_ENABLE_GDAL OR VIAME_ENABLE_VIVIA )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_PROJ:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_SQLite3:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_PROJ:BOOL=ON
+    -Dfletch_ENABLE_SQLite3:BOOL=ON
   )
 elseif( VIAME_ENABLE_VXL )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_PROJ:BOOL=${IMAGE_DEP_COND_ENABLE}
-    -Dfletch_ENABLE_SQLite3:BOOL=${IMAGE_DEP_COND_ENABLE}
+    -Dfletch_ENABLE_PROJ:BOOL=${FLETCH_BUILD_IMG_LIB}
+    -Dfletch_ENABLE_SQLite3:BOOL=${FLETCH_BUILD_IMG_LIB}
   )
 else()
   set( FLETCH_DEP_FLAGS
@@ -138,56 +125,14 @@ endif()
 if( VIAME_ENABLE_POSTGRESQL )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_PostgreSQL:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_CppDB:BOOL=${DEP_COND_ENABLE}
     -DPostgreSQL_SELECT_VERSION:STRING=10.23
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_PostgreSQL:BOOL=OFF
-    -Dfletch_ENABLE_CppDB:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR
-    VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_TinyXML1:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_libjson:BOOL=${DEP_COND_ENABLE}
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_TinyXML1:BOOL=OFF
-    -Dfletch_ENABLE_libjson:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_VXL )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_VXL:BOOL=${DEP_COND_ENABLE}
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_VXL:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_KWANT )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_YAMLcpp:BOOL=${DEP_COND_ENABLE}
   )
 endif()
 
 if( VIAME_ENABLE_FFMPEG )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_FFmpeg:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_FFmpeg:BOOL=ON
     -Dfletch_ENABLE_x264:BOOL=${VIAME_ENABLE_FFMPEG-X264}
     -Dfletch_ENABLE_x265:BOOL=${VIAME_ENABLE_FFMPEG-X265}
     -Dfletch_ENABLE_ffnvcodec:BOOL=${VIAME_ENABLE_FFMPEG-FFNV}
@@ -200,75 +145,6 @@ else()
     -Dfletch_ENABLE_x264:BOOL=OFF
     -Dfletch_ENABLE_x265:BOOL=OFF
     -Dfletch_ENABLE_ffnvcodec:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_CUDA )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_BUILD_WITH_CUDA:BOOL=ON
-  )
-  if( VIAME_ENABLE_CUDNN )
-    set( FLETCH_DEP_FLAGS
-      ${FLETCH_DEP_FLAGS}
-      -Dfletch_BUILD_WITH_CUDNN:BOOL=ON
-    )
-  else()
-    set( FLETCH_DEP_FLAGS
-      ${FLETCH_DEP_FLAGS}
-      -Dfletch_BUILD_WITH_CUDNN:BOOL=OFF
-    )
-  endif()
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_BUILD_WITH_CUDA:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_GeographicLib:BOOL=ON
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_GeographicLib:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_VIVIA )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_shapelib:BOOL=OFF
-    -Dfletch_ENABLE_VTK:BOOL=ON
-    -Dfletch_ENABLE_VTK_PYTHON:BOOL=OFF
-    -Dfletch_ENABLE_qtExtensions:BOOL=ON
-    -DVTK_SELECT_VERSION:STRING=8.0
-    -DQt_SELECT_VERSION:STRING=4.8.6
-    -DqtExtensions_SELECT_VERSION:STRING=20190905
-    -Dfletch_ENABLE_libkml:BOOL=ON
-  )
-  if( NOT WIN32 )
-    set( FLETCH_DEP_FLAGS
-      ${FLETCH_DEP_FLAGS}
-      -Dfletch_ENABLE_libxml2:BOOL=ON
-    )
-  endif()
-elseif( VIAME_ENABLE_SEAL)
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_qtExtensions:BOOL=ON
-    -Dfletch_ENABLE_VTK:BOOL=OFF
-    -DQt_SELECT_VERSION:STRING=5.11.2
-    -DqtExtensions_SELECT_VERSION:STRING=20200330
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_qtExtensions:BOOL=OFF
-    -Dfletch_ENABLE_VTK:BOOL=OFF
   )
 endif()
 
@@ -292,6 +168,7 @@ elseif( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
     -Dfletch_ENABLE_Qt:BOOL=ON
+    -DQt_SELECT_VERSION:STRING=5.11.2
   )
 else()
   set( FLETCH_DEP_FLAGS
@@ -300,15 +177,46 @@ else()
   )
 endif()
 
-if( VIAME_BUILD_TESTS )
+if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_GTest:BOOL=ON
+    -Dfletch_ENABLE_qtExtensions:BOOL=ON
+    -DqtExtensions_SELECT_VERSION:STRING=20200330
+    -Dfletch_ENABLE_libkml:BOOL=ON
+    -Dfletch_ENABLE_shapelib:BOOL=OFF
   )
 else()
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_GTest:BOOL=OFF
+    -Dfletch_ENABLE_qtExtensions:BOOL=OFF
+  )
+endif()
+
+if( VIAME_ENABLE_VIVIA )
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_VTK:BOOL=ON
+    -Dfletch_ENABLE_VTK_PYTHON:BOOL=OFF
+    -DVTK_SELECT_VERSION:STRING=8.0
+  )
+  if( NOT WIN32 )
+    set( FLETCH_DEP_FLAGS
+      ${FLETCH_DEP_FLAGS}
+      -Dfletch_ENABLE_libxml2:BOOL=ON
+    )
+  endif()
+else()
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_VTK:BOOL=OFF
+  )
+endif()
+
+if( VIAME_ENABLE_SVM )
+  set( FLETCH_DEP_FLAGS
+    ${FLETCH_DEP_FLAGS}
+    -Dfletch_ENABLE_libsvm:BOOL=ON
+    -Dlibsvm_SELECT_VERSION:STRING=3.11
   )
 endif()
 
@@ -326,18 +234,6 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS AND NOT VIAME_ENABLE_PYTORCH )
   )
 endif()
 
-if( VIAME_ENABLE_VXL )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_VXL:BOOL=${DEP_COND_ENABLE}
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_VXL:BOOL=OFF
-  )
-endif()
-
 if( EXTERNAL_OpenCV OR NOT VIAME_ENABLE_OPENCV )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
@@ -346,8 +242,8 @@ if( EXTERNAL_OpenCV OR NOT VIAME_ENABLE_OPENCV )
 else()
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_OpenCV:BOOL=${DEP_COND_ENABLE}
-    -Dfletch_ENABLE_OpenCV_contrib:BOOL=${DEP_COND_ENABLE}
+    -Dfletch_ENABLE_OpenCV:BOOL=ON
+    -Dfletch_ENABLE_OpenCV_contrib:BOOL=ON
     -Dfletch_ENABLE_OpenCV_Qt:BOOL=OFF
     -Dfletch_ENABLE_OpenCV_CUDA:BOOL=OFF
     -Dfletch_ENABLE_OpenCV_FFmpeg:BOOL=OFF
@@ -368,7 +264,7 @@ else()
   else()
     set( FLETCH_DEP_FLAGS
       ${FLETCH_DEP_FLAGS}
-      -Dfletch_ENABLE_OpenCV_TIFF:BOOL=${IMAGE_DEP_COND_ENABLE}
+      -Dfletch_ENABLE_OpenCV_TIFF:BOOL=${FLETCH_BUILD_IMG_LIB}
     )
   endif()
 endif()
@@ -413,7 +309,6 @@ ExternalProject_Add(fletch
     -DMSVC_VERSION=${MSVC_VERSION}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DVIAME_PYTHON_BUILD_FROM_SOURCE=${VIAME_PYTHON_BUILD_FROM_SOURCE}
-    -DVIAME_ENABLE_SMQTK=${VIAME_ENABLE_SMQTK}
     -DPYTHON_VERSION_STRING=${VIAME_PYTHON_STRING}
     -DPYTHON_MAJOR_VERSION=${Python_VERSION_MAJOR}
     -DPYTHON_MINOR_VERSION=${Python_VERSION_MINOR}
@@ -421,14 +316,7 @@ ExternalProject_Add(fletch
   )
 
 if( VIAME_FORCEBUILD )
-  ExternalProject_Add_Step(fletch forcebuild
-    COMMAND ${CMAKE_COMMAND}
-      -E remove ${VIAME_BUILD_PREFIX}/src/fletch-stamp/fletch-build
-    COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
-    )
+  RemoveProjectCMakeStamp( fletch )
 endif()
 
 if( WIN32 )

@@ -12,7 +12,7 @@ config _scheduler
   :type                                       pythread_per_process
 
 process onnx_convert
-  :: OnnxConverter
+  :: convert_to_onnx
 
   # Path to the trained model:
   # .zip if mmdet, .weights if darknet

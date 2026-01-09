@@ -1,13 +1,13 @@
-/*
- * INSERT COPYRIGHT STATEMENT OR DELETE THIS
- */
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 /**
  * \file
  * \brief Default plugin algorithm registration interface impl
  */
 
-#include <plugins/@template_dir@/viame_@template_lib@_plugin_export.h>
+#include "viame_@template_lib@_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
 #include "@template@_detector.h"

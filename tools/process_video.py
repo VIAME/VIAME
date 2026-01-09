@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
+
 import sys
 import os
 import shutil
@@ -1238,15 +1243,14 @@ if __name__ == "__main__" :
     log_info( lb1 + "Building searchable index" + lb2 )
 
     if len( args.log_directory ) > 0 and args.log_directory != "PIPE":
-      index_log_file = args.output_directory + div + args.log_directory + div + "smqtk_indexer.txt"
+      index_log_file = args.output_directory + div + args.log_directory + div + "itq_indexer.txt"
     else:
       index_log_file = ""
 
     if args.ball_tree:
       print( "Warning: building a ball tree is deprecated" )
 
-    if not database_tool.build_standard_index( remove_quotes( args.install_dir ),
-                                               log_file = index_log_file ):
+    if not database_tool.build_index( log_file=index_log_file ):
       exit_with_error( "Unable to build index" )
 
   # Output complete message

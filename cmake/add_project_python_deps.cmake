@@ -12,48 +12,45 @@
 # Basic dependencies are installed jointly in one local pip installation call
 
 # Core requirements used for building certain libraries
-set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "build" "cython<3.0.0" )
+set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "build" "cython" )
 
-if( VIAME_FIXUP_BUNDLE AND Python_VERSION VERSION_LESS "3.8" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy==1.19.3" )
+if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=2.1.0,<=2.2.6" )
 else()
-  list( APPEND  VIAME_PYTHON_BASIC_DEPS "numpy<=1.25.2" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=1.26.0,<=2.0.2" )
 endif()
 
 if( VIAME_BUILD_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
 endif()
 
-# Setuptools < 58.0 required for current version of gdal on windows or earlier python
-if( ( WIN32 OR Python_VERSION VERSION_LESS "3.8" )
-    AND VIAME_ENABLE_PYTORCH-NETHARN
-    AND VIAME_ENABLE_GDAL )
+# Setuptools version constraint
+if( WIN32 AND VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
 else()
-  # 75.3.0 is the last version to support Python 3.8
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==75.3.0" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools>=75.3.0" )
 endif()
 
 # For scoring and plotting
-list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver<=1.4.7" )
-list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib<=3.6.2" )
+list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver" )
+if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib>=3.9.0,<=3.10.0" )
+else()
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib>=3.7.0,<=3.8.5" )
+endif()
 
-# For netharn and mmdet de-pickle on older versions
-if( Python_VERSION VERSION_LESS "3.8" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "pickle5" )
-
-  if( VIAME_ENABLE_PYTORCH-PYSOT )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf==3.19.4" )
-  endif()
+# Protobuf for siammask (if enabled)
+if( VIAME_ENABLE_PYTORCH-SIAMMASK )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf" )
 endif()
 
 # For fusion classifier
 list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
 
-if( Python_VERSION VERSION_LESS "3.9" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.31.0" "numba==0.47" )
+if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite>=0.44.0" "numba>=0.61.0" )
 else()
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite==0.43.0" "numba==0.60" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite>=0.43.0" "numba>=0.60.0" )
 endif()
 
 # For pytorch building
@@ -63,16 +60,17 @@ endif()
 
 # For mmdetection
 if( VIAME_ENABLE_PYTORCH-MMDET )
-  if( Python_VERSION VERSION_LESS "3.8" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf<=0.32.0" )
-  else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf" )
-  endif()
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf" )
 endif()
 
 # For measurement scripts
 if( VIAME_ENABLE_OPENCV )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tqdm" "scipy" )
+endif()
+
+# For PostgreSQL database support (used by native ITQ indexer, etc.)
+if( VIAME_ENABLE_POSTGRESQL )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
 endif()
 
 # For ONNX
@@ -81,14 +79,8 @@ if( VIAME_ENABLE_ONNX )
 endif()
 
 # For LEARN models
-if( VIAME_ENABLE_LEARN AND Python_VERSION VERSION_LESS "3.7" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.15.7" "fsspec<=2022.1.0" )
-  if( WIN32 )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "pyarrow==4.0.0" )
-  else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "pyarrow==2.0.0" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "filelock==3.4.1" )
-  endif()
+if( VIAME_ENABLE_LEARN )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "pyarrow" "filelock" )
 endif()
 
 if( ( WIN32 OR NOT VIAME_ENABLE_OPENCV ) AND
@@ -96,17 +88,9 @@ if( ( WIN32 OR NOT VIAME_ENABLE_OPENCV ) AND
         VIAME_ENABLE_PYTORCH-MMDET OR
         VIAME_ENABLE_PYTORCH-NETHARN ) )
   if( WIN32 AND NOT VIAME_ENABLE_WIN32GUI )
-    if( Python_VERSION VERSION_LESS "3.7" )
-      list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python-headless<=4.6.0.66" )
-    else()
-      list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python-headless" )
-    endif()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python-headless" )
   else()
-    if( Python_VERSION VERSION_LESS "3.7" )
-      list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python<=4.6.0.66" )
-    else()
-      list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python" )
-    endif()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python" )
   endif()
 endif()
 
@@ -115,10 +99,10 @@ if( VIAME_ENABLE_KEYPOINT )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  if( Python_VERSION VERSION_LESS "3.10" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.16.2" )
+  if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image>=0.24.0" )
   else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.24.0" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image>=0.22.0,<=0.24.0" )
   endif()
 endif()
 
@@ -126,35 +110,21 @@ if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-build" "async_generator" )
 endif()
 
-if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_PYTORCH-MIT-YOLO )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" "ndsampler<=0.8.0" "pygments" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx<=2.8.8" "pandas<=1.5.3" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "kwutil<=0.3.3" )
+if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
+    VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" "ndsampler" "pygments" "kwutil" )
 
-  if( Python_VERSION VERSION_LESS "3.10" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.15.0" "kwcoco==0.2.31" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "bezier==2020.1.14" )
+  if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx>=3.4" "pandas>=2.2.0" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.36.0" "kwcoco>=0.8.5" "colormath" )
   else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio==2.36.0" "kwcoco==0.8.5" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "colormath" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx>=3.2,<=3.4" "pandas>=2.1.0,<=2.2.3" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.34.0" "kwcoco>=0.8.0" "colormath" )
   endif()
-endif()
 
-if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  # Ultralytics will be installed as an advanced package. Here we need to
-  # explicitly install the dependencies of the package and our wrapper.
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn==0.13.2" )  # can likely keep this version loose
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt<=1.3.7" )
-  if( Python_VERSION VERSION_LESS "3.10" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco==0.2.31" )
-  else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco==0.8.5" )
+  if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn>=0.13.2" )
   endif()
-endif()
-
-if( Python_VERSION VERSION_LESS "3.7" AND
-    ( VIAME_ENABLE_PYTORCH-PYSOT OR VIAME_ENABLE_SMQTK ) )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorboardX<=2.6.0" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_PYTORCH_BUILD_FROM_SOURCE )
@@ -162,15 +132,7 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_PYTORCH_BUILD_FROM_SOURCE )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
-  if( WIN32 AND Python_VERSION VERSION_LESS "3.7" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools-windows" )
-  else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
-  endif()
-endif()
-
-if( VIAME_PYTHON_BUILD_FROM_SOURCE AND UNIX )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "backports.lzma" "backports.weakref" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
 endif()
 
 if( VIAME_ENABLE_TENSORFLOW )
@@ -200,31 +162,16 @@ list( APPEND VIAME_PYTHON_ADV_DEPS python-deps )
 set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
 
 if( VIAME_ENABLE_KEYPOINT )
-  set( WX_VERSION "4.0.7" )
-
   list( APPEND VIAME_PYTHON_ADV_DEPS wxPython )
 
-  if( UNIX )
-    if( EXISTS "/etc/os-release" )
-      ParseLinuxOSField( "ID" OS_ID )
-    endif()
-
-    execute_process( COMMAND lsb_release -cs
-      OUTPUT_VARIABLE RELEASE_CODENAME
-      OUTPUT_STRIP_TRAILING_WHITESPACE )
-
-    if( "${OS_ID}" MATCHES "centos" )
-      set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/centos-7 )
-      list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython==${WX_VERSION}" )
-    elseif( "${RELEASE_CODENAME}" MATCHES "xenial" )
-      set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 )
-      list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython==${WX_VERSION}" )
-    else()
-      list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "wxPython==${WX_VERSION}" )
-    endif()
+  # wxPython 4.2.2+ required for Python 3.12/3.13 support
+  if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
+    set( WX_VERSION "4.2.2" )
   else()
-    list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "wxPython==${WX_VERSION}" )
+    set( WX_VERSION "4.2.1" )
   endif()
+
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "wxPython>=${WX_VERSION}" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND
@@ -293,9 +240,16 @@ foreach( ID RANGE ${DEP_COUNT} )
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
+  # Build the full command list and convert to ----separated string
+  set( PYTHON_DEP_FULL_CMD ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD} )
+  string( REPLACE ";" "----" PYTHON_DEP_CMD_STR "${PYTHON_DEP_FULL_CMD}" )
+  string( REPLACE ";" "----" PYTHON_DEP_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
   set( PYTHON_DEP_BUILD
-    ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-      ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD}
+    ${CMAKE_COMMAND}
+      -DCOMMAND_TO_RUN:STRING=${PYTHON_DEP_CMD_STR}
+      -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}
+      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake
     )
 
   if( "${DEP}" STREQUAL "pytorch" )
@@ -304,12 +258,6 @@ foreach( ID RANGE ${DEP_COUNT} )
       -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
       -DVIAME_PYTORCH_VERSION:STRING=${VIAME_PYTORCH_VERSION}
       -P ${VIAME_SOURCE_DIR}/cmake/custom_install_pytorch.cmake )
-  elseif( "${DEP}" STREQUAL "python-deps" )
-    set( PYTHON_DEP_INSTALL ${CMAKE_COMMAND}
-      -DVIAME_PYTHON_BASE:PATH=${VIAME_PYTHON_INSTALL}
-      -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
-      -DVIAME_PYTHON_VERSION:STRING=${Python_VERSION}
-      -P ${VIAME_SOURCE_DIR}/cmake/custom_install_python_deps.cmake )
   else()
     set( PYTHON_DEP_INSTALL "" )
   endif()
@@ -329,26 +277,23 @@ endforeach()
 
 # ------------------------------------- PYMOTMETRICS -----------------------------------------
 
-# TODO: refactor this and make more generic for any python-utils requiring custom whl builds
-
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pymotmetrics )
 
 set( PROJECT_DEPS fletch python-deps )
+set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics )
+set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
+CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
 
 if( VIAME_PYTHON_SYMLINK )
   set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build )
+    ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${Python_EXECUTABLE} -m pip install --user -e . )
 else()
-  set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
-  CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
-
   set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build_ext
-      --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-      --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
-      --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+    ${Python_EXECUTABLE} setup.py
+      build --build-base=${LIBRARY_PIP_BUILD_DIR}
+      bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
   set( LIBRARY_PIP_INSTALL_CMD
     ${CMAKE_COMMAND}
       -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
@@ -357,21 +302,32 @@ else()
       -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
+# Convert commands and env vars to ----separated strings for the wrapper script
+string( REPLACE ";" "----" LIBRARY_BUILD_CMD_STR "${LIBRARY_PIP_BUILD_CMD}" )
+string( REPLACE ";" "----" LIBRARY_INSTALL_CMD_STR "${LIBRARY_PIP_INSTALL_CMD}" )
+string( REPLACE ";" "----" PYMOT_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
 set( LIBRARY_PYTHON_BUILD
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  ${LIBRARY_PIP_BUILD_CMD} )
+  ${CMAKE_COMMAND}
+    -DCOMMAND_TO_RUN:STRING=${LIBRARY_BUILD_CMD_STR}
+    -DENV_VARS:STRING=${PYMOT_ENV_STR}
+    -DWORKING_DIR:PATH=${LIBRARY_LOCATION}
+    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 set( LIBRARY_PYTHON_INSTALL
-  ${CMAKE_COMMAND} -E env "${PYTHON_DEP_ENV_VARS}"
-  ${LIBRARY_PIP_INSTALL_CMD} )
+  ${CMAKE_COMMAND}
+    -DCOMMAND_TO_RUN:STRING=${LIBRARY_INSTALL_CMD_STR}
+    -DENV_VARS:STRING=${PYMOT_ENV_STR}
+    -DWORKING_DIR:PATH=${LIBRARY_LOCATION}
+    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 
 ExternalProject_Add( pymotmetrics
   DEPENDS ${PROJECT_DEPS}
   PREFIX ${VIAME_BUILD_PREFIX}
-  SOURCE_DIR ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics
+  SOURCE_DIR ${LIBRARY_LOCATION}
   BUILD_IN_SOURCE 1
+  USES_TERMINAL_BUILD 1
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
   INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-  LIST_SEPARATOR "----"
-  )
+  LIST_SEPARATOR "----" )
 

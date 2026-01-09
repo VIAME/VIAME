@@ -1,8 +1,8 @@
-
 # ==================================================================================
 # Commonly used default descriptor when the user hasn't specified one.
 #
 # Current incumbent is the last layer of the EfficientNet_V2_S.
+# ==================================================================================
 
 process descriptor
   :: pytorch_descriptors
@@ -12,3 +12,4 @@ process descriptor
   :gpu_list                                    None
   relativepath model_path =                    models/pytorch_efficientnet_v2_s.pth
 
+# -- end of file --

@@ -16,29 +16,66 @@ include_directories( "${OpenCV_INCLUDE_DIRS}" )
 link_directories( "${OpenCV_LIBRARY_DIR}" )
 
 set( plugin_headers
-  ocv_image_enhancement.h
-  ocv_debayer_filter.h
-  ocv_random_hue_shift.h
-  ocv_stereo_depth_map.h
-  ocv_rectified_stereo_disparity_map.h
-  ocv_target_detector.h
-  ocv_optimize_stereo_cameras.h
-  ocv_stereo_feature_track_filter.h
-  ocv_kmedians.h
-  split_image_habcam.h  
+  apply_color_correction.h
+  enhance_images.h
+  debayer_filter.h
+  random_hue_shift.h
+  calibrate_single_camera.h
+  calibrate_stereo_cameras.h
+  compute_stereo_disparity.h
+  detect_calibration_targets.h
+  optimize_stereo_cameras.h
+  filter_stereo_feature_tracks.h
+  kmedians.h
+  add_keypoints_from_mask.h
+  split_image_habcam.h
+  split_image_horizontally.h
+  pair_stereo_detections.h
+  pair_stereo_tracks.h
+  refine_detections_grabcut.h
+  refine_detections_util.h
+  refine_detections_watershed.h
+  windowed_detector.h
+  windowed_refiner.h
+  windowed_trainer.h
+  windowed_utils.h
+  ellipse_proposal.h
+  diff_of_gauss_detector.h
+  gabor_features.h
+  hog_features.h
+  canny_edge_detector.h
+  adaboost_classifier.h
   )
 
 set( plugin_sources
-  ocv_image_enhancement.cxx
-  ocv_debayer_filter.cxx
-  ocv_random_hue_shift.cxx
-  ocv_stereo_depth_map.cxx
-  ocv_rectified_stereo_disparity_map.cxx
-  ocv_target_detector.cxx
-  ocv_optimize_stereo_cameras.cxx
-  ocv_stereo_feature_track_filter.cxx
-  ocv_kmedians.cxx
+  apply_color_correction.cxx
+  enhance_images.cxx
+  debayer_filter.cxx
+  random_hue_shift.cxx
+  calibrate_single_camera.cxx
+  calibrate_stereo_cameras.cxx
+  compute_stereo_disparity.cxx
+  detect_calibration_targets.cxx
+  optimize_stereo_cameras.cxx
+  filter_stereo_feature_tracks.cxx
+  kmedians.cxx
+  add_keypoints_from_mask.cxx
   split_image_habcam.cxx
+  split_image_horizontally.cxx
+  pair_stereo_detections.cxx
+  pair_stereo_tracks.cxx
+  refine_detections_grabcut.cxx
+  refine_detections_util.cxx
+  refine_detections_watershed.cxx
+  windowed_detector.cxx
+  windowed_refiner.cxx
+  windowed_trainer.cxx
+  windowed_utils.cxx
+  diff_of_gauss_detector.cxx
+  gabor_features.cxx
+  hog_features.cxx
+  canny_edge_detector.cxx
+  adaboost_classifier.cxx
   )
 
 kwiver_install_headers(
@@ -74,11 +111,13 @@ target_link_libraries( viame_opencv
                        kwiver::kwiversys
                        kwiver::kwiver_algo_ocv
                        ${OpenCV_LIBRARIES}
+                       viame_core
   )
 
-target_include_directories(viame_opencv PUBLIC
+target_include_directories( viame_opencv PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR})
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
 
 set_target_properties( viame_opencv PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
@@ -92,17 +131,58 @@ target_link_libraries( viame_opencv_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
+# Eigen is required for MVG triangulation
+find_package( Eigen3 REQUIRED NO_MODULE )
+
+# Add process library
+set( process_headers
+  measure_objects_process.h
+  calibrate_single_camera_process.h
+  pair_stereo_detections_process.h
+  pair_stereo_tracks_process.h
+)
+
+set( process_sources
+  register_processes.cxx
+  measure_objects_process.cxx
+  calibrate_single_camera_process.cxx
+  pair_stereo_detections_process.cxx
+  pair_stereo_tracks_process.cxx
+)
+
+kwiver_add_plugin( viame_processes_opencv
+  SUBDIR           ${viame_plugin_process_subdir}
+  SOURCES          ${process_sources}
+  PRIVATE          kwiver::vital
+                   kwiver::vital_algo
+                   kwiver::vital_config
+                   kwiver::vital_logger
+                   kwiver::vital_util
+                   kwiver::vital_vpm
+                   kwiver::sprokit_pipeline
+                   kwiver::kwiver_algo_ocv
+                   kwiver::kwiver_algo_mvg
+                   Eigen3::Eigen
+                   ${OpenCV_LIBRARIES}
+                   viame_opencv
+)
+
+target_include_directories( viame_processes_opencv PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
 if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames
     __init__
-    ocv_multimodal_registration
-    ocv_fft_filter_based_on_ref
-    ocv_stereo_algos
-    ocv_stereo_demo
-    ocv_stereo_expt
-    ocv_stereo_pipeline
-    ocv_stereo_processes
-    ocv_stereo_utils
+    multimodal_registration
+    fft_filter_based_on_ref
+    stereo_algos
+    stereo_demo
+    stereo_expt
+    stereo_pipeline
+    stereo_processes
+    stereo_utils
     )
 
   foreach( rel_modname IN ITEMS ${_rel_modnames} )
@@ -114,6 +194,3 @@ if( VIAME_ENABLE_PYTHON )
   endforeach()
 endif()
 
-if (VIAME_BUILD_TESTS)
-  add_subdirectory(tests)
-endif()

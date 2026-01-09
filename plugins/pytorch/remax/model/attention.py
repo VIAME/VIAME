@@ -1,3 +1,7 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 # ------------------------------------------------------------------------
 # DINO
 # Copyright (c) 2022 IDEA. All Rights Reserved.
@@ -50,7 +54,7 @@ from torch import _VF
 from torch._jit_internal import boolean_dispatch, List, Optional, _overload, Tuple
 try:
     from torch.overrides import has_torch_function, handle_torch_function
-except:
+except ImportError:
     from torch._overrides import has_torch_function, handle_torch_function
 Tensor = torch.Tensor
 

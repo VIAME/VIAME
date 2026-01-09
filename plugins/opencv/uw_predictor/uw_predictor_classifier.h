@@ -31,7 +31,7 @@
 #ifndef VIAME_UW_PREDICTOR_CLASSIFIER_H
 #define VIAME_UW_PREDICTOR_CLASSIFIER_H
 
-#include <plugins/uw_predictor/viame_uw_predictor_export.h>
+#include "viame_uw_predictor_export.h"
 
 #include <vital/algo/refine_detections.h>
 

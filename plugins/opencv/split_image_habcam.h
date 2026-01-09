@@ -8,7 +8,7 @@
 #ifndef VIAME_OPENCV_SPLIT_IMAGE_HABCAM_H
 #define VIAME_OPENCV_SPLIT_IMAGE_HABCAM_H
 
-#include <plugins/opencv/viame_opencv_export.h>
+#include "viame_opencv_export.h"
 
 #include <vital/algo/split_image.h>
 

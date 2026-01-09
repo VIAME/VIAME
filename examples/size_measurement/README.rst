@@ -36,6 +36,44 @@ Additionally this example requires an extra python dependency to be installed.
 On Linux or Windows, 'pip install ubelt'.
 
 
+Available Scripts
+-----------------
+
+This example folder contains several scripts for different measurement workflows.
+Each script is available in both Linux (.sh) and Windows (.bat) versions.
+
+**calibrate_cameras**
+  Runs the camera calibration tool to compute stereo camera calibration parameters
+  from a video or set of images containing a chessboard calibration pattern. Outputs
+  a JSON file (calibration_matrices.json) compatible with the VIAME measurement pipelines.
+  Usage: ``./calibrate_cameras.sh <video_file_or_image_glob>``
+
+**measure_via_gmm_oriented_boxes**
+  Runs the automatic GMM (Gaussian Mixture Model) motion-based measurement pipeline.
+  This pipeline uses background subtraction to detect moving objects and computes
+  oriented bounding boxes for measurement. Best suited for scenarios with stationary
+  cameras and moving fish.
+
+**measure_via_default_fish**
+  Runs the default automatic fish measurement pipeline using a neural network-based
+  fish detector. This pipeline detects fish using a trained model and performs
+  stereo measurement on the detected objects.
+
+**measure_over_manual_annotations**
+  Runs measurement on user-provided annotations. Use this when you have manually
+  annotated fish locations and want to compute measurements from those annotations
+  rather than using automatic detection.
+
+**gmm_standalone_tool**
+  A standalone tool for GMM-based measurement that includes disparity computation.
+  This script provides more control over the measurement process and can be used
+  for debugging or custom workflows.
+
+**compute_depth_maps**
+  Computes stereo disparity/depth maps from the calibrated stereo camera imagery.
+  Useful for visualizing the depth information or for custom processing workflows.
+
+
 Running via the pipeline runner
 -------------------------------
 
@@ -47,8 +85,8 @@ runner:
     # First move to the example directory
     cd [viame-build]/install/examples/size_measurement
 
-    # The below script runs pipeline runner on the measurement_example.pipe
-    bash run_measurer.sh
+    # The below script runs pipeline runner on the GMM motion-based measurement
+    bash measure_via_gmm_oriented_boxes.sh
 
 
 This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017

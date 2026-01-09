@@ -1,3 +1,7 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
 /**
  * \file
  * \brief Pass frame with step index and in min max limits
@@ -145,12 +149,12 @@ filter_frame_index_process
 
   timestamp = grab_from_port_using_trait( timestamp );
   
-  if(!d->m_max_frame_count && !d->m_frame_step ||
-     timestamp.get_frame() >= d->m_min_frame_count && 
-     timestamp.get_frame() <= d->m_max_frame_count)
+  if( ( !d->m_max_frame_count && !d->m_frame_step ) ||
+      ( timestamp.get_frame() >= d->m_min_frame_count &&
+        timestamp.get_frame() <= d->m_max_frame_count ) )
   {
-    if(d->m_first_frame ||
-       (timestamp.get_frame() - d->m_last_frame_id) >= d->m_frame_step)
+    if( d->m_first_frame ||
+        ( timestamp.get_frame() - d->m_last_frame_id ) >= d->m_frame_step )
     {
       push_to_port_using_trait( timestamp, timestamp );
       image_name = grab_from_port_using_trait( image_file_name );

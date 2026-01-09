@@ -2,6 +2,7 @@
 # Commonly used generic detector when the user hasn't specified one.
 #
 # Generates generic object proposals as opposed to any specific class labels
+# ==================================================================================
 
 include common_generic_detector.pipe
 
@@ -29,3 +30,5 @@ connect from detector_output.detected_object_set
         to   nms_refiner.detected_object_set
 connect from nms_refiner.detected_object_set
         to   detector_filter.detected_object_set
+
+# -- end of file --

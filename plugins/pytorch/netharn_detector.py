@@ -1,42 +1,20 @@
-# ckwg +29
-# Copyright 2019 by Kitware, Inc.
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-#  * Redistributions of source code must retain the above copyright notice,
-#  this list of conditions and the following disclaimer.
-#
-#  * Redistributions in binary form must reproduce the above copyright notice,
-#  this list of conditions and the following disclaimer in the documentation
-#  and/or other materials provided with the distribution.
-#
-#  * Neither name of Kitware, Inc. nor the names of any contributors may be used
-#  to endorse or promote products derived from this software without specific
-#  prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
-# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 from __future__ import print_function
 
+import logging
+
 from kwiver.vital.algo import ImageObjectDetector
 
-from kwiver.vital.types import BoundingBoxD
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import DetectedObjectType
+logger = logging.getLogger(__name__)
 
-import numpy as np
+from .utilities import (
+    vital_config_update,
+    kwimage_to_kwiver_detections,
+    register_vital_algorithm,
+)
 
 
 class NetharnDetector(ImageObjectDetector):
@@ -123,8 +101,7 @@ class NetharnDetector(ImageObjectDetector):
         import torch
         from bioharn import detect_predict
 
-        # HACK: merge config doesn't support dictionary input
-        _vital_config_update(cfg, cfg_in)
+        vital_config_update(cfg, cfg_in)
 
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
@@ -171,7 +148,7 @@ class NetharnDetector(ImageObjectDetector):
 
     def check_configuration(self, cfg):
         if not cfg.has_value("deployed"):
-            print("A network deploy file must be specified!")
+            logger.error("A network deploy file must be specified!")
             return False
         return True
 
@@ -191,132 +168,11 @@ class NetharnDetector(ImageObjectDetector):
         detections = detections.compress(flags)
 
         # convert to kwiver format
-        output = _kwimage_to_kwiver_detections(detections)
+        output = kwimage_to_kwiver_detections(detections)
         return output
 
 
-def _vital_config_update(cfg, cfg_in):
-    """
-    Treat a vital Config object like a python dictionary
-
-    Args:
-        cfg (kwiver.vital.config.config.Config): config to update
-        cfg_in (dict | kwiver.vital.config.config.Config): new values
-    """
-    # vital cfg.merge_config doesnt support dictionary input
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError('cfg has no key={}'.format(key))
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
-
-
-def _kwiver_to_kwimage_detections(detected_objects):
-    """
-    Convert vital detected object sets to kwimage.Detections
-
-    Args:
-        detected_objects (kwiver.vital.types.DetectedObjectSet)
-
-    Returns:
-        kwimage.Detections
-    """
-    import ubelt as ub
-    import kwimage
-    boxes = []
-    scores = []
-    class_idxs = []
-
-    classes = []
-    if len(detected_objects) > 0:
-        obj = ub.peek(detected_objects)
-        classes = obj.type.all_class_names()
-
-    for obj in detected_objects:
-        box = obj.bounding_box
-        tlbr = [box.min_x(), box.min_y(), box.max_x(), box.max_y()]
-        score = obj.confidence
-        cname = obj.type.get_most_likely_class()
-        cidx = classes.index(cname)
-        boxes.append(tlbr)
-        scores.append(score)
-        class_idxs.append(cidx)
-
-    dets = kwimage.Detections(
-        boxes=kwimage.Boxes(np.array(boxes), 'tlbr'),
-        scores=np.array(scores),
-        class_idxs=np.array(class_idxs),
-        classes=classes,
-    )
-    return dets
-
-
-def _kwimage_to_kwiver_detections(detections):
-    """
-    Convert kwimage detections to kwiver deteted object sets
-
-    Args:
-        detected_objects (kwimage.Detections)
-
-    Returns:
-        kwiver.vital.types.DetectedObjectSet
-    """
-    from kwiver.vital.types.types import ImageContainer, Image
-
-    segmentations = None
-    # convert segmentation masks
-    if 'segmentations' in detections.data:
-        segmentations = detections.data['segmentations']
-
-    try:
-        boxes = detections.boxes.to_ltrb()
-    except Exception:
-        boxes = detections.boxes.to_tlbr()
-
-    scores = detections.scores
-    class_idxs = detections.class_idxs
-
-    if not segmentations:
-        # Placeholders
-        segmentations = (None,) * len(boxes)
-
-    # convert to kwiver format, apply threshold
-    detected_objects = DetectedObjectSet()
-
-    for tlbr, score, cidx, seg in zip(boxes.data, scores, class_idxs, segmentations):
-        class_name = detections.classes[cidx]
-
-        bbox_int = np.round(tlbr).astype(np.int32)
-        bounding_box = BoundingBoxD(
-            bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3])
-
-        detected_object_type = DetectedObjectType(class_name, score)
-        detected_object = DetectedObject(
-            bounding_box, score, detected_object_type)
-        if seg:
-            mask = seg.to_relative_mask().numpy().data
-            detected_object.mask = ImageContainer(Image(mask))
-
-        detected_objects.add(detected_object)
-    return detected_objects
-
-
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
-
-    # Register Algorithm
-    implementation_name = "netharn"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            NetharnDetector.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name, "PyTorch Netharn detection routine",
-        NetharnDetector)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(
+        NetharnDetector, "netharn", "PyTorch Netharn detection routine"
+    )

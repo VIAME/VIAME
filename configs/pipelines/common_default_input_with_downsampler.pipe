@@ -1,9 +1,9 @@
-
 # ==================================================================================
 # Commonly used default input file source with included downsampler process.
 #
 # By default, this is an image list reader, but this can be over-riden by changing
 # :video_reader:type to be vidl_ffmpeg for videos
+# ==================================================================================
 
 include common_default_input.pipe
 
@@ -22,3 +22,5 @@ connect from input.frame_rate
         to   downsampler.frame_rate
 connect from input.timestamp
         to   downsampler.timestamp
+
+# -- end of file --

@@ -2,8 +2,9 @@
 # Top-level CMakeLists.txt build file for the VIAME super-build and project
 ##  ) (V)    <><     (V) (°,,,°) (V)     <><     (V) (°,,,°) (V)    <><
 
-cmake_minimum_required( VERSION 3.13.0 )
+cmake_minimum_required( VERSION 3.16.0 )
 set( CMAKE_CXX_STANDARD 17 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 project( VIAME )
 
@@ -28,6 +29,14 @@ endif()
 
 if( POLICY CMP0074 )
   cmake_policy( SET CMP0074 NEW )
+endif()
+
+if( POLICY CMP0144 )
+  cmake_policy( SET CMP0144 NEW )
+endif()
+
+if( POLICY CMP0146 )
+  cmake_policy( SET CMP0146 OLD )
 endif()
 
 ###
@@ -89,6 +98,7 @@ option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
+option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
 
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
@@ -101,20 +111,17 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 ###
 # Add tertiary plugin enable flags (advanced)
 ##
-option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
-option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
-option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
+option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
-mark_as_advanced( VIAME_ENABLE_BURNOUT )
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_LEARN )
-mark_as_advanced( VIAME_ENABLE_SCALLOP_TK )
-mark_as_advanced( VIAME_ENABLE_SMQTK )
+mark_as_advanced( VIAME_ENABLE_SEAGIS )
+mark_as_advanced( VIAME_ENABLE_SVM )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
 ###
@@ -191,22 +198,26 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-NETHARN     "Enable netharn algorithms"      ON )
   option( VIAME_ENABLE_PYTORCH-MIT-YOLO    "Enable mit-yolo PyTorch code"   ON )
   option( VIAME_ENABLE_PYTORCH-VIDEO       "Enable video algorithms"        OFF )
-  option( VIAME_ENABLE_PYTORCH-PYSOT       "Enable pysot algorithms"        OFF )
+  option( VIAME_ENABLE_PYTORCH-SIAMMASK    "Enable siammask algorithms"     OFF )
   option( VIAME_ENABLE_PYTORCH-DETECTRON   "Enable detectron2 algorithms"   OFF )
   option( VIAME_ENABLE_PYTORCH-MDNET       "Enable mdnet algorithms"        OFF )
   option( VIAME_ENABLE_PYTORCH-SAM         "Enable SAM2 algorithms"         OFF )
+  option( VIAME_ENABLE_PYTORCH-STEREO      "Enable stereo algorithms"       OFF )
   option( VIAME_ENABLE_PYTORCH-ULTRALYTICS "Enable ultralytics algorithms"  OFF )
+  option( VIAME_ENABLE_PYTORCH-RF-DETR     "Enable RF-DETR algorithms"      OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VIDEO )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MIT-YOLO )
-  mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-SIAMMASK )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-DETECTRON )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MDNET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-SAM )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-STEREO )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-RF-DETR )
 
   option( VIAME_PYTORCH_BUILD_FROM_SOURCE  "Build PyTorch from source"      OFF )
   option( VIAME_PYTORCH_BUILD_TORCHVISION  "Build TorchVision from source"  ON )
@@ -271,8 +282,13 @@ mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 # If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
 # other superbuild projects (except for viame). This makes development builds
 # much quicker if just doing development only in VIAME plugins if OFF.
-option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
+option( VIAME_FORCEBUILD "Enable force-building of all subpackages" OFF )
 mark_as_advanced( VIAME_FORCEBUILD )
+
+# Control the number of parallel build threads for subprojects like PyTorch.
+# Set this to limit the number of concurrent compilation jobs (e.g., 4 or 8).
+set( VIAME_BUILD_MAX_THREADS "" CACHE STRING "Parallel threads for subprojects (empty = auto)" )
+mark_as_advanced( VIAME_BUILD_MAX_THREADS )
 
 ###
 # Other advanced hidden flags used for disabling core features
@@ -326,8 +342,8 @@ endif()
 option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libpng"     ON )
 mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
-option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled"     OFF )
-mark_as_advanced( VIAME_BUILD_TESTS )
+option( VIAME_ENABLE_TESTS "Build VIAME tests"                                      OFF )
+mark_as_advanced( VIAME_ENABLE_TESTS )
 
 option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python"              ON )
 mark_as_advanced( VIAME_BUILD_CHECKS )
@@ -341,27 +357,21 @@ include( old_version_checks )
 ###
 # Add logic and error checking relating to enable flags
 ##
-if( VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_DARKNET )
+if( VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
-if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA OR
-    VIAME_ENABLE_ITK )
+if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA OR VIAME_ENABLE_ITK )
   set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"     FORCE )
 endif()
 
-if( VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR
-    VIAME_ENABLE_SEAL )
+if( VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR VIAME_ENABLE_SEAL )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"  FORCE )
 endif()
 
 if( VIAME_ENABLE_LEARN )
   set( VIAME_ENABLE_PYTORCH-DETECTRON  ON CACHE BOOL "Detectron required for project" FORCE )
   set( VIAME_ENABLE_PYTORCH-VIDEO      ON CACHE BOOL "Torch Video required for project" FORCE )
-endif()
-
-if( VIAME_ENABLE_SMQTK )
-  set( VIAME_ENABLE_POSTGRESQL  ON CACHE BOOL "PostgreSQL required for project" FORCE )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-VIDEO )
@@ -374,10 +384,6 @@ endif()
 
 if( VIAME_ENABLE_DOCS )
   find_package( Doxygen REQUIRED )
-endif()
-
-if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL )
-  message( FATAL_ERROR "Cannot enable both VIVIA and Seal-TK GUIs" )
 endif()
 
 if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
@@ -415,6 +421,14 @@ endif()
 # Check CUDA related paths
 if( VIAME_ENABLE_CUDA )
   find_package( CUDA QUIET REQUIRED )
+
+  # Resolve symlinks in CUDA_NVCC_EXECUTABLE to avoid CMake 3.31+ detection issues
+  # When nvcc is invoked via a symlink (e.g., /usr/bin/nvcc -> /usr/local/cuda/bin/nvcc),
+  # it reports incorrect paths that break CMake's CUDA toolkit detection
+  if( CUDA_NVCC_EXECUTABLE AND IS_SYMLINK "${CUDA_NVCC_EXECUTABLE}" )
+    get_filename_component( CUDA_NVCC_EXECUTABLE "${CUDA_NVCC_EXECUTABLE}" REALPATH )
+    set( CUDA_NVCC_EXECUTABLE "${CUDA_NVCC_EXECUTABLE}" CACHE FILEPATH "CUDA nvcc executable" FORCE )
+  endif()
 
   if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND NOT CUDA_cublas_device_LIBRARY )
     set( CUDA_cublas_device_LIBRARY CACHE INTERNAL "${CUDA_cublas_LIBRARY}" )
@@ -673,10 +687,12 @@ if( VIAME_ENABLE_PYTHON )
       endif()
     endif()
 
-    string( REPLACE ";" "----" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
-    string( REPLACE ";" "----" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
-    string( REPLACE ";" "----" ADJ_INCLUDE_PATH "${ADJ_INCLUDE_PATH}" )
-    string( REPLACE ";" "----" ADJ_LIBRARY_PATH "${ADJ_LIBRARY_PATH}" )
+    # Use <PS> as path separator instead of ---- to avoid conflict with LIST_SEPARATOR
+    # <PS> will be converted back to ; (Windows) or : (Unix) by build scripts
+    string( REPLACE ";" "<PS>" VIAME_PYTHON_PATH "${VIAME_PYTHON_PATH}" )
+    string( REPLACE ";" "<PS>" VIAME_EXECUTABLES_PATH "${VIAME_EXECUTABLES_PATH}" )
+    string( REPLACE ";" "<PS>" ADJ_INCLUDE_PATH "${ADJ_INCLUDE_PATH}" )
+    string( REPLACE ";" "<PS>" ADJ_LIBRARY_PATH "${ADJ_LIBRARY_PATH}" )
 
     list( APPEND PYTHON_DEP_ENV_VARS "INCLUDE=${ADJ_INCLUDE_PATH}" )
     list( APPEND PYTHON_DEP_ENV_VARS "LIB=${ADJ_LIBRARY_PATH}" )
@@ -695,6 +711,10 @@ if( VIAME_ENABLE_PYTHON )
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}" )
   list( APPEND PYTHON_DEP_ENV_VARS "PKG_CONFIG_PATH=${VIAME_INSTALL_PREFIX}/lib/pkgconfig" )
+
+  if( VIAME_BUILD_MAX_THREADS )
+    list( APPEND PYTHON_DEP_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
+  endif()
 endif()
 
 if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
@@ -786,6 +806,27 @@ if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
   message( FATAL_ERROR "VIAME_ENABLE_DIVE requires VIAME_ENABLE_FFMPEG-X264 flag" )
 endif()
 
+if( VIAME_ENABLE_SEAGIS )
+  set( SEAGIS_ROOT_DIR ""
+       CACHE PATH "Path to SEAGIS StereoLibLX library" )
+
+  mark_as_advanced( SEAGIS_ROOT_DIR )
+
+  set( SEAGIS_INCLUDE_DIR "${SEAGIS_ROOT_DIR}"
+       CACHE INTERNAL "Path to SEAGIS include directory" )
+  set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX.lib"
+       CACHE INTERNAL "Path to SEAGIS library file" )
+
+  if( NOT EXISTS "${SEAGIS_INCLUDE_DIR}/LX_StereoInterface.h" )
+    message( FATAL_ERROR "SEAGIS include directory does not contain LX_StereoInterface.h. "
+      "Please set SEAGIS_ROOT_DIR to the correct location." )
+  endif()
+  if( NOT EXISTS "${SEAGIS_LIBRARY}" )
+    message( FATAL_ERROR "SEAGIS library not found at ${SEAGIS_LIBRARY}. "
+      "Please set SEAGIS_LIBRARY to the correct path." )
+  endif()
+endif()
+
 # Set default windows configuration mode to be 'Release'
 set( VIAME_FIRST_CONFIGURATION TRUE CACHE BOOL "Has this project been configured." )
 mark_as_advanced( VIAME_FIRST_CONFIGURATION )
@@ -841,24 +882,12 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_darknet )
   endif()
 
-  if( VIAME_ENABLE_BURNOUT )
-    include( add_project_burnout )
-  endif()
-
-  if( VIAME_ENABLE_SMQTK )
-    include( add_project_smqtk )
-  endif()
-
   # Add (usually required) kwiver requirement
   if( VIAME_ENABLE_KWIVER )
     include( add_project_kwiver )
   endif()
 
   # Add other optional libraries
-  if( VIAME_ENABLE_SCALLOP_TK )
-    include( add_project_scallop_tk )
-  endif()
-
   if( VIAME_ENABLE_VIVIA )
     include( add_project_vivia )
   endif()
@@ -911,6 +940,14 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Fixup installer package
   if( VIAME_FIXUP_BUNDLE )
     include( build_package )
+  endif()
+
+  # Register tests at super-build level
+  # Note: The actual CTestTestfile.cmake is created by the setup_ctest step
+  # in add_project_viame.cmake after viame-build completes
+  if( VIAME_ENABLE_TESTS )
+    enable_testing()
+    include( CTest )
   endif()
 else()
 
@@ -995,6 +1032,12 @@ else()
   add_subdirectory( examples )
   add_subdirectory( configs )
   add_subdirectory( tools )
+
+  if( VIAME_ENABLE_TESTS )
+    enable_testing()
+    include( CTest )
+    add_subdirectory( tests )
+  endif()
 
   ###
   # Configure setup scripts

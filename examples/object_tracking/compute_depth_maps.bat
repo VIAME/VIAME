@@ -10,7 +10,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\measurement_gmm_stereo_depth_map.pipe" ^
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\filter_stereo_depth_map.pipe" ^
                   -s input1:video_filename=left_images.txt ^
                   -s input2:video_filename=right_images.txt ^
                   -o %OUTPUT_DIRECTORY% --no-reset-prompt

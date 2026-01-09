@@ -33,5 +33,3 @@ Code Used in Example
 | plugins/opencv/ocv_debayer_filter.h
 | plugins/opencv/ocv_image_enhancement.cxx
 | plugins/opencv/ocv_image_enhancement.h
-| packages/kwiver/arrows/burnout/burnout_image_enhancement.h
-| packages/kwiver/arrows/burnout/burnout_image_enhancement.cxx

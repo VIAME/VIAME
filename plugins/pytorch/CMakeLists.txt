@@ -1,5 +1,6 @@
 
 kwiver_create_python_init( arrows/pytorch )
+kwiver_create_python_init( pytorch )
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
   kwiver_add_python_module(
@@ -26,9 +27,9 @@ endif()
 
 # Common Utilities
 kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/_utils.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/utilities.py
   arrows/pytorch
-  _utils )
+  utilities )
 
 kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_train_detector.py
@@ -76,6 +77,11 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
     ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_detector.py
     arrows/pytorch
     ultralytics_detector )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_trainer.py
+    arrows/pytorch
+    ultralytics_trainer )
 endif()
 
 if( VIAME_ENABLE_ONNX AND ( VIAME_ENABLE_DARKNET OR VIAME_ENABLE_PYTORCH-MMDET ) )
@@ -113,6 +119,19 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
 
 endif()
 
+if( VIAME_ENABLE_PYTORCH-SIAMMASK )
+
+  add_subdirectory( siammask )
+
+  kwiver_create_python_init( processes/pytorch )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/siammask_tracker.py
+    processes/pytorch
+    siammask_tracker )
+
+endif()
+
 if( VIAME_ENABLE_LEARN )
 
   add_subdirectory( cutler )
@@ -146,5 +165,28 @@ if( VIAME_ENABLE_PYTORCH-SAM )
       ${CMAKE_CURRENT_SOURCE_DIR}/sam2_refiner.py
       arrows/pytorch
       sam2_refiner )
+
+endif()
+
+if( VIAME_ENABLE_PYTORCH-STEREO )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/foundation_stereo.py
+      arrows/pytorch
+      foundation_stereo )
+
+endif()
+
+if( VIAME_ENABLE_PYTORCH-RF-DETR )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_detector.py
+      arrows/pytorch
+      rf_detr_detector )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_trainer.py
+      arrows/pytorch
+      rf_detr_trainer )
 
 endif()

@@ -6,10 +6,10 @@ config _pipeline:_edge
 
 # ==================================================================================
 process in_adapt
- :: input_adapter
+  :: input_adapter
 
 process out_adapt
- :: output_adapter
+  :: output_adapter
 
 # ==================================================================================
 
@@ -39,7 +39,7 @@ process random_hue
 connect from random_grey.image
         to   random_hue.image
 
-# ==============================================================================
+# ==================================================================================
 
 process detector_trainer
   :: train_detector
@@ -76,7 +76,7 @@ connect from in_adapt.image
         to   detector_trainer.image
 connect from in_adapt.detected_object_set
         to   detector_trainer.detected_object_set
-        
+
 connect from in_adapt.timestamp
         to   out_adapt.timestamp
 

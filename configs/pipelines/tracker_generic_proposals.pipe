@@ -1,6 +1,8 @@
+# ==================================================================================
 # Example simple tracker pipeline
 #
 # Runs a standalone TUT object tracking pipeline
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -11,7 +13,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ============================== INPUT FRAME LIST ==================================
+# =============================== INPUT FRAME LIST =================================
 
 include common_default_input_with_downsampler.pipe
 

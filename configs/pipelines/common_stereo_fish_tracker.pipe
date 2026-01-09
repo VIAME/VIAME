@@ -1,0 +1,103 @@
+# ==================================================================================
+# Common fish detection and tracking util include file
+# ==================================================================================
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+config srnn
+  :siamese_model_input_size                    224
+  :detection_select_threshold                  0.001
+  :similarity_threshold                        0.300
+  :terminate_track_threshold                   10
+  :add_features_to_detections                  True
+  :IOU_tracker_flag                            True
+  :IOU_accept_threshold                        0.600
+  :IOU_reject_threshold                        0.100
+  :track_search_threshold                      2
+  :gpu_list                                    0
+  :siamese_model_path                          models/siamese_model.pt
+  :targetRNN_AIM_model_path                    models/rnn_f_aim.pt
+  :targetRNN_AIM_V_model_path                  models/rnn_ml_aim.pt
+
+# ============================== INPUT FRAME LIST ==================================
+
+include common_stereo_input_with_downsampler.pipe
+
+# ================================== DETECTOR ======================================
+
+include common_stereo_fish_detector_with_filter.pipe
+
+connect from downsampler.output_1
+        to   detector_input1.image
+
+connect from downsampler.output_3
+        to   detector_input2.image
+
+# ================================ CORE TRACKER ====================================
+
+process tracker1
+  :: srnn_tracker
+  :siamese_model_input_size                    $CONFIG{srnn:siamese_model_input_size}
+  :detection_select_threshold                  $CONFIG{srnn:detection_select_threshold}
+  :similarity_threshold                        $CONFIG{srnn:similarity_threshold}
+  :terminate_track_threshold                   $CONFIG{srnn:terminate_track_threshold}
+  :add_features_to_detections                  $CONFIG{srnn:add_features_to_detections}
+  :IOU_tracker_flag                            $CONFIG{srnn:IOU_tracker_flag}
+  :IOU_accept_threshold                        $CONFIG{srnn:IOU_accept_threshold}
+  :IOU_reject_threshold                        $CONFIG{srnn:IOU_reject_threshold}
+  :track_search_threshold                      $CONFIG{srnn:track_search_threshold}
+  :gpu_list                                    $CONFIG{srnn:gpu_list}
+
+  relativepath siamese_model_path =            $CONFIG{srnn:siamese_model_path}
+  :siamese_batch_size                          64
+
+  relativepath targetRNN_AIM_model_path =      $CONFIG{srnn:targetRNN_AIM_model_path}
+  relativepath targetRNN_AIM_V_model_path =    $CONFIG{srnn:targetRNN_AIM_V_model_path}
+  :targetRNN_normalized_models                 True
+  :targetRNN_batch_size                        128
+
+# Connect inputs to tracker
+connect from downsampler.output_1
+        to   tracker1.image
+connect from downsampler.timestamp
+        to   tracker1.timestamp
+connect from detector_filter1.detected_object_set
+        to   tracker1.detected_object_set
+
+process tracker2
+  :: srnn_tracker
+  :siamese_model_input_size                    $CONFIG{srnn:siamese_model_input_size}
+  :detection_select_threshold                  $CONFIG{srnn:detection_select_threshold}
+  :similarity_threshold                        $CONFIG{srnn:similarity_threshold}
+  :terminate_track_threshold                   $CONFIG{srnn:terminate_track_threshold}
+  :add_features_to_detections                  $CONFIG{srnn:add_features_to_detections}
+  :IOU_tracker_flag                            $CONFIG{srnn:IOU_tracker_flag}
+  :IOU_accept_threshold                        $CONFIG{srnn:IOU_accept_threshold}
+  :IOU_reject_threshold                        $CONFIG{srnn:IOU_reject_threshold}
+  :track_search_threshold                      $CONFIG{srnn:track_search_threshold}
+  :gpu_list                                    $CONFIG{srnn:gpu_list}
+
+  relativepath siamese_model_path =            $CONFIG{srnn:siamese_model_path}
+  :siamese_batch_size                          64
+
+  relativepath targetRNN_AIM_model_path =      $CONFIG{srnn:targetRNN_AIM_model_path}
+  relativepath targetRNN_AIM_V_model_path =    $CONFIG{srnn:targetRNN_AIM_V_model_path}
+  :targetRNN_normalized_models                 True
+  :targetRNN_batch_size                        128
+
+# Connect inputs to tracker
+connect from downsampler.output_3
+        to   tracker2.image
+connect from downsampler.timestamp
+        to   tracker2.timestamp
+connect from detector_filter2.detected_object_set
+        to   tracker2.detected_object_set
+
+# -- end of file --

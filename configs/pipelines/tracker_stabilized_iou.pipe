@@ -1,5 +1,13 @@
+# ==================================================================================
+# Stabilized IOU tracker pipeline
+# ==================================================================================
+
+# ============================== GLOBAL PROPERTIES =================================
+
 config _scheduler
   type = pythread_per_process
+
+# =============================== INPUT FRAME LIST =================================
 
 include common_default_input_with_downsampler.pipe
 include common_fish_detector_with_filter.pipe
@@ -30,3 +38,5 @@ connect from tracker.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp
+
+# -- end of file --

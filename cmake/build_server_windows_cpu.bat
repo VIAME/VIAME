@@ -3,7 +3,15 @@ REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
 
 SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\CPU"
-SET "OUTPUT_FILE=VIAME-CPU-v1.0.0-Windows-64Bit.zip"
+
+REM Extract version from RELEASE_NOTES.md (first token of first line)
+FOR /f "tokens=1 delims= " %%a IN (%VIAME_SOURCE_DIR%\RELEASE_NOTES.md) DO (
+    SET "VIAME_VERSION=%%a"
+    GOTO :LOOPEXIT
+)
+:LOOPEXIT
+
+SET "OUTPUT_FILE=VIAME-CPU-%VIAME_VERSION%-Windows-64Bit.zip"
 
 REM Make sure to have all of these things installed
 
@@ -43,31 +51,26 @@ IF NOT EXIST C:\tmp mkdir C:\tmp
 IF EXIST C:\tmp\kv2 rmdir /s /q C:\tmp\kv2
 IF EXIST C:\tmp\vm2 rmdir /s /q C:\tmp\vm2
 
+git config --system core.longpaths true
 git submodule update --init --recursive
 
-REM If running locally instead of on Jenkins server, file jenkins_dashboard.cmake should be a renamed
-REM version of the file located at jenkins/CTestBuildOnlyPipeline, with 'platform.cmake' in the
-REM file pointed to build_server_windows_cpu.cmake (or alternatively the latter renamed to platform.cmake).
+REM Generate CTest dashboard file
+CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_cpu.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO CTest build failed with error code %ERRORLEVEL%
+    EXIT /B %ERRORLEVEL%
+)
 
 REM -------------------------------------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
 REM -------------------------------------------------------------------------------------------------------
 
-COPY "%WIN32_ROOT%\msvcr100.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN32_ROOT%\vcruntime140_1.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%VDIST_ROOT%\vcomp140.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%WIN64_ROOT%\msvcr120.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_ROOT%\dll_x64\zlibwapi.dll" %VIAME_INSTALL_DIR%\bin
-COPY "%ZLIB_BUILD_DIR%\Release\zlib1.dll" %VIAME_INSTALL_DIR%\bin
+CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
 
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
-MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME"
-
-"%ZIP_ROOT%\7z.exe" a "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME
-
-MOVE "%VIAME_BUILD_DIR%\VIAME" "%VIAME_INSTALL_DIR%"
+CALL %~dp0build_common_functions.bat :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"

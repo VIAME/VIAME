@@ -1,32 +1,6 @@
-/*ckwg +29
- * Copyright 2019 by Kitware, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 /**
  * \file
@@ -60,6 +34,10 @@ namespace core
 create_config_trait( detection_threshold, double, "0.0",
   "Require having a detection with at least this confidence to pass frame" );
 
+create_config_trait( invert, bool, "false",
+  "Invert the filter logic: when true, suppress the image if detections "
+  "meet the threshold (instead of passing it through)" );
+
 //------------------------------------------------------------------------------
 // Private implementation class
 class filter_frame_process::priv
@@ -70,6 +48,7 @@ public:
 
   // Configuration values
   double m_detection_threshold;
+  bool m_invert;
 };
 
 // =============================================================================
@@ -96,6 +75,7 @@ filter_frame_process
 ::_configure()
 {
   d->m_detection_threshold = config_value_using_trait( detection_threshold );
+  d->m_invert = config_value_using_trait( invert );
 }
 
 
@@ -148,7 +128,11 @@ filter_frame_process
     }
   }
 
-  if( criteria_met )
+  // When invert is true, pass through image when criteria NOT met (suppress when met)
+  // When invert is false (default), pass through image when criteria ARE met
+  bool pass_through = d->m_invert ? !criteria_met : criteria_met;
+
+  if( pass_through )
   {
     push_to_port_using_trait( image, image );
   }
@@ -185,6 +169,7 @@ filter_frame_process
 ::make_config()
 {
   declare_config_using_trait( detection_threshold );
+  declare_config_using_trait( invert );
 }
 
 
@@ -192,6 +177,7 @@ filter_frame_process
 filter_frame_process::priv
 ::priv()
   : m_detection_threshold( 0.0 )
+  , m_invert( false )
 {
 }
 

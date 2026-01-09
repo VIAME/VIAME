@@ -1,8 +1,16 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 #
 # INSERT COPYRIGHT STATEMENT OR DELETE THIS
 #
 
+import logging
+
 from vital.algo import ImageObjectDetector
+
+logger = logging.getLogger(__name__)
 
 from vital.types import Image
 from vital.types import ImageContainer
@@ -45,13 +53,13 @@ class @template@Detector( ImageObjectDetector ):
 
         # TODO: Keep these config variables or make new ones
         if not cfg.has_value( "net_config" ):
-            print( "A network config file must be specified!" )
+            logger.error( "A network config file must be specified!" )
             return False
         if not cfg.has_value( "class_names" ):
-            print( "A class file must be specified!" )
+            logger.error( "A class file must be specified!" )
             return False
         if not cfg.has_value( "weight_file" ):
-            print( "No weight file specified" )
+            logger.error( "No weight file specified" )
             return False
         return True
 

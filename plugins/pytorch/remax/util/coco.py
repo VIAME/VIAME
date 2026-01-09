@@ -1,3 +1,7 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 """
 COCO dataset which returns image_id for evaluation.
@@ -381,8 +385,9 @@ class CocoDetection(cd):
         """
         try:
             img, target = super(CocoDetection, self).__getitem__(idx)
-        except:
-            print("Error idx: {}".format(idx))
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("Error loading idx %d: %s, trying idx+1", idx, e)
             idx += 1
             img, target = super(CocoDetection, self).__getitem__(idx)
         image_id = self.ids[idx]
@@ -708,7 +713,7 @@ def build(image_set, args):
 
     try:
         strong_aug = args.strong_aug
-    except:
+    except AttributeError:
         strong_aug = False
     dataset = CocoDetection(args.image_root, args.coco_path, 
             transforms=make_coco_transforms(image_set, fix_size=args.fix_size, strong_aug=strong_aug, args=args), 

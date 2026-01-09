@@ -6,7 +6,8 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
-  convert_cam_zed_to_npz.py
+  generate_nn_index.py
+  convert_cam_format.py
   database_tool.py
   extract_video_frames.py
   process_video.py
@@ -21,7 +22,6 @@ if( VIAME_ENABLE_OPENCV )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
     calibrate_cameras.py
-    convert_cam_ocv_to_npz.py
     create_mosaic.py
     compute_depth.py
     compute_disparity.py
@@ -55,11 +55,22 @@ target_link_libraries( viame_train_detector
                kwiver::kwiver_adapter
   )
 
+kwiver_add_executable( viame_get_configs
+  get_configs.cxx
+  )
+
+target_link_libraries( viame_get_configs
+  PRIVATE      kwiver::vital
+               kwiver::vital_vpm
+               kwiver::vital_config
+               kwiver::vital_logger
+               kwiver::vital_algo
+               kwiver::kwiversys
+               kwiver::sprokit_pipeline
+  )
+
 if( VIAME_ENABLE_PYTHON )
   install( FILES       ${PYTHON_SCRIPTS}
            DESTINATION configs )
 endif()
 
-if( VIAME_BUILD_TESTS )
-  add_subdirectory( tests )
-endif()

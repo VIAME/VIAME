@@ -1,225 +1,181 @@
-#!python
+#!/usr/bin/env python
 
-import sys
-import os
-import glob
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
+"""Launch the VIAME timeline/track viewer GUI interface."""
+
 import argparse
 import atexit
+import glob
+import os
 import shutil
-import tempfile
 import subprocess
+import sys
+import tempfile
 
-if os.name == 'nt':
-  div = '\\'
-else:
-  div = '/'
+DIV = '\\' if os.name == 'nt' else '/'
 
 temp_dir = tempfile.mkdtemp(prefix='viqui-tmp')
 atexit.register(lambda: shutil.rmtree(temp_dir))
 
-# Helper class to list files with a given extension in a directory
-def list_files_in_dir( folder ):
-  return glob.glob( folder + '/*' )
 
-def list_files_in_dir( folder, extension ):
-  return glob.glob( folder + '/*' + extension )
+def _list_files(folder, extension):
+    return glob.glob(os.path.join(folder, f'*{extension}'))
 
-def get_script_path():
-  return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
-def get_gui_cmd():
-  if os.name == 'nt':
-    return ['vsPlay.exe']
-  else:
+def _get_script_path():
+    return os.path.dirname(os.path.realpath(sys.argv[0]))
+
+
+def _get_gui_cmd():
+    if os.name == 'nt':
+        return ['vsPlay.exe']
     return ['vsPlay']
 
-def get_script_path():
-  return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
-def find_file( filename ):
-  if( os.path.exists( filename ) ):
-    return os.path.abspath( filename )
-  elif os.path.exists( get_script_path() + div + filename ):
-    return get_script_path() + div + filename
-  else:
-    print( "Unable to find " + filename )
-    sys.exit( 0 )
+def _find_file(filename):
+    if os.path.exists(filename):
+        return os.path.abspath(filename)
+    alt_path = os.path.join(_get_script_path(), filename)
+    if os.path.exists(alt_path):
+        return alt_path
+    print(f"Unable to find {filename}")
+    sys.exit(1)
 
-def select_option( option_list, display_str="Select File:" ):
-  sys.stdout.write( "\n" )
 
-  counter = 1
-  for option in option_list:
-    print( "(" + str(counter) + ") " + option )
-    counter = counter + 1
+def _select_option(option_list, display_str="Select File:"):
+    print()
+    for i, option in enumerate(option_list, 1):
+        print(f"({i}) {option}")
 
-  sys.stdout.write( "\n" + display_str + " " )
-  sys.stdout.flush()
-
-  if sys.version_info[0] < 3:
-    choice = raw_input().lower()
-  else:
+    sys.stdout.write(f"\n{display_str} ")
+    sys.stdout.flush()
     choice = input().lower()
 
-  if int( choice ) < 1 or int( choice ) > len( option_list ):
-    print( "Invalid selection, must be a valid number" )
-    sys.exit(0)
+    if not choice.isdigit() or int(choice) < 1 or int(choice) > len(option_list):
+        print("Invalid selection, must be a valid number")
+        sys.exit(1)
 
-  return option_list[ int(choice)-1 ]
+    return option_list[int(choice) - 1]
 
-# Main Function
-if __name__ == "__main__" :
 
-  parser = argparse.ArgumentParser(description="Launch track viewer GUI",
-                       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Launch track viewer GUI",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-  parser.add_argument("-d", dest="input_dir", default="database",
-                      help="Input directory containing results")
+    parser.add_argument("-d", dest="input_dir", default="database",
+                        help="Input directory containing results")
+    parser.add_argument("-t", dest="threshold", default="0.0",
+                        help="Optional detection threshold to apply")
+    parser.add_argument("-theme", dest="gui_theme_file",
+                        default=f"gui-params{DIV}view_color_settings.ini",
+                        help="GUI default theme settings")
+    parser.add_argument("-filter", dest="filter_file",
+                        default=f"gui-params{DIV}default_timeline_filter.vpefs",
+                        help="GUI default filter settings")
 
-  parser.add_argument("-t", dest="threshold",
-                      default="0.0",
-                      help="Optional detection threshold to apply")
+    args = parser.parse_args()
 
-  parser.add_argument("-theme", dest="gui_theme_file",
-                      default="gui-params" + div + "view_color_settings.ini",
-                      help="GUI default theme settings")
+    files = _list_files(args.input_dir, ".index")
+    if not files:
+        print("Error: No computed results in input directory")
+        sys.exit(1)
 
-  parser.add_argument("-filter", dest="filter_file",
-                      default="gui-params" + div + "default_timeline_filter.vpefs",
-                      help="GUI default filter settings")
+    files.sort()
+    filename = _select_option(files, "Select File:")
+    base = os.path.splitext(filename)[0]
 
-  args = parser.parse_args()
+    # Find detection file
+    detection_file = f"{base}_tracks.csv"
+    if not os.path.isfile(detection_file):
+        detection_file = f"{base}_detections.csv"
+        if not os.path.isfile(detection_file):
+            print("Error: Detection file does not exist")
+            sys.exit(1)
 
-  files = list_files_in_dir( args.input_dir, "index" )
+    # Look for object category instances in file
+    unique_ids = set()
+    with open(detection_file) as f:
+        for line in f:
+            parts = line.strip().split(',')
+            if len(parts) < 10 or (parts[0] and parts[0][0] == '#'):
+                continue
+            for i in range(9, len(parts), 2):
+                unique_ids.add(parts[i])
 
-  if len( files ) == 0:
-    print( "Error: No computed results in input directory" )
-    sys.exit(0)
+    if not unique_ids:
+        print("Error: Detection file contains no categories")
+        sys.exit(1)
 
-  files.sort()
-  filename = select_option( files, "Select File:" )
+    sample = next(iter(unique_ids))
+    all_category = "all_categories" if sample[0].islower() else "All Categories"
+    category_list = [all_category] + list(unique_ids)
+    category = _select_option(category_list, "Select Category:")
 
-  base, ext = os.path.splitext( filename )
+    # Open index file and get timestamp vector
+    ts_vec = []
+    with open(filename) as f:
+        for i, line in enumerate(f):
+            if i < 5:
+                continue
+            parts = line.strip().split()
+            if len(parts) == 2:
+                ts_vec.append(str(float(parts[0]) / 1e6))
 
-  # Find detection file and confirm it exits
-  detection_file = os.path.join( base + "_tracks.csv" )
-  if not os.path.isfile( detection_file ):
-    detection_file = os.path.join( base + "_detections.csv" )
-    if not os.path.isfile( detection_file ):
-      print( "Error: Detection file does not exist" )
-      sys.exit(0)
+    if not ts_vec:
+        print("Error: Selected video file is empty")
+        sys.exit(1)
 
-  # Look for object category instances in file
-  unique_ids = set()
-  with open( detection_file ) as f:
-    for line in f:
-      lis = line.strip().split(',')
-      if len( lis ) < 10:
-        continue
-      if len( lis[0] ) > 0 and lis[0][0] == '#':
-        continue
-      idx = 9
-      while idx < len( lis ):
-        unique_ids.add( lis[idx] )
-        idx = idx + 2
+    # Perform conversion and thresholding
+    fd1, track_file = tempfile.mkstemp(prefix='vsplay-tmp-tracks-',
+                                       suffix='.kw18', text=True, dir=temp_dir)
+    fd2, class_file = tempfile.mkstemp(prefix='vsplay-tmp-tracks-',
+                                       suffix='.fso.txt', text=True, dir=temp_dir)
 
-  if len( unique_ids ) == 0:
-    print( "Error: Detection file contains no categories" )
-    sys.exit(0)
+    threshold = float(args.threshold)
 
-  all_category = "all_categories" if list(unique_ids)[0][0].islower() else "All Categories"
+    with os.fdopen(fd1, 'w') as ftrk, os.fdopen(fd2, 'w') as fcls:
+        with open(detection_file) as f:
+            for line in f:
+                parts = line.strip().split(',')
+                if len(parts) < 10 or (parts[0] and parts[0][0] == '#'):
+                    continue
 
-  category_list = [all_category] + list(unique_ids)
-  category = select_option( category_list, "Select Category:" )
+                # Find matching category and confidence
+                confidence = 0.0
+                use_detection = False
+                for i in range(9, len(parts), 2):
+                    if (category == all_category or parts[i] == category) and \
+                            float(parts[i + 1]) >= threshold:
+                        use_detection = True
+                        confidence = float(parts[i + 1])
+                        break
 
-  # Open index file and get timestamp vector
-  ts_vec = []
-  counter = 0
-  with open( filename ) as f:
-    for line in f:
-      counter = counter + 1
-      if counter < 6:
-        continue
-      lis = line.strip().split()
-      if len( lis ) != 2:
-        continue
-      ts_vec.append( str( float( lis[0] ) / 1e6 ) )
+                if not use_detection:
+                    continue
 
-  if len( ts_vec ) == 0:
-    print( "Error: Selected video file is empty" )
-    sys.exit(0)
+                # Calculate center point
+                c_x = int((float(parts[3]) + float(parts[5])) / 2)
+                c_y = int((float(parts[4]) + float(parts[6])) / 2)
 
-  # Perform conversion and thresholding
-  (fd1, track_file) = tempfile.mkstemp( prefix='vsplay-tmp-tracks-',
-                                        suffix='.kw18',
-                                        text=True, dir=temp_dir )
-  (fd2, class_file) = tempfile.mkstemp( prefix='vsplay-tmp-tracks-',
-                                        suffix='.fso.txt',
-                                        text=True, dir=temp_dir )
+                # Write track file (kw18 format)
+                ftrk.write(f"{parts[0]} 1 {parts[2]} 0 0 0 0 {c_x} {c_y} ")
+                ftrk.write(f"{parts[3]} {parts[4]} {parts[5]} {parts[6]} 0 0 0 0 ")
+                ftrk.write(f"{ts_vec[int(parts[2])]} {confidence}\n")
 
-  ftrk = os.fdopen( fd1, 'w' )
-  fcls = os.fdopen( fd2, 'w' )
+                # Write class file
+                fcls.write(f"{parts[0]} {confidence} 0 {1.0 - confidence}\n")
 
-  with open( detection_file ) as f:
-    for line in f:
-      lis = line.strip().split(',')
-      if len( lis ) < 10:
-        continue
-      if len( lis[0] ) > 0 and lis[0][0] == '#':
-        continue
-      idx = 9
-      use_detection = False
-      confidence = 0.0
-      while idx < len( lis ):
-        if ( category == all_category or lis[idx] == category ) and \
-             float( lis[idx+1] ) >= float( args.threshold ):
-          use_detection = True
-          confidence = float( lis[idx+1] )
-          break
-        idx = idx + 2
+    print()
 
-      # Column(s) 1: Track-id
-      # Column(s) 2: Track-length (# of detections)
-      # Column(s) 3: Frame-number (-1 if not available)
-      # Column(s) 4-5: Tracking-plane-loc(x,y) (Could be same as World-loc)
-      # Column(s) 6-7: Velocity(x,y)
-      # Column(s) 8-9: Image-loc(x,y)
-      # Column(s) 10-13: Img-bbox(TL_x,TL_y,BR_x,BR_y) (location of top-left & bottom-right vertices)
-      # Column(s) 14: Area
-      # Column(s) 15-17: World-loc(x,y,z) (longitude, latitude, 0 - when available)
-      # Column(s) 18: Timesetamp(-1 if not available)
-      # Column(s) 19: Track-confidence(-1_when_not_available)
-      #    TO
-      # 0: Detection or Track Unique ID
-      # 1: Video or Image String Identifier
-      # 2: Unique Frame Integer Identifier
-      # 3: TL-x (top left of the image is the origin: 0,0)
-      # 4: TL-y
-      # 5: BR-x
-      # 6: BR-y
-      # 7: Detection Confidence (how likely is this actually an object)
-      # 8: Target Length
-      # 9,10+ : class-name score (this pair may be omitted or repeated)
+    cmd = _get_gui_cmd() + ["-tf", track_file, "-vf", filename, "-df", class_file]
 
-      c_x = int( ( float( lis[3] ) + float( lis[5] ) ) / 2 )
-      c_y = int( ( float( lis[4] ) + float( lis[6] ) ) / 2 )
+    if args.gui_theme_file:
+        cmd += ["--theme", _find_file(args.gui_theme_file)]
+    if args.filter_file:
+        cmd += ["-ff", _find_file(args.filter_file)]
 
-      ftrk.write( lis[0] + ' 1 ' + lis[2] + ' 0 0 0 0 ' + str( c_x ) + ' ' + str( c_y ) )
-      ftrk.write( ' ' + lis[3] + ' ' + lis[4] + ' ' + lis[5] + ' ' + lis[6] + ' 0 0 0 0 ' )
-      ftrk.write( ts_vec[ int( lis[2] ) ]  + ' ' + str( confidence ) + '\n' )
-
-      fcls.write( lis[0] + ' ' + str( confidence ) + ' 0 ' + str( 1.0 - confidence ) + '\n')
-
-  ftrk.close()
-  fcls.close()
-
-  sys.stdout.write( "\n" )
-
-  cmd = get_gui_cmd() + [ "-tf", track_file, "-vf", filename, "-df", class_file ]
-
-  if len( args.gui_theme_file ) > 0:
-    cmd = cmd + [ "--theme", find_file( args.gui_theme_file ) ]
-  if len( args.filter_file ) > 0:
-    cmd = cmd + [ "-ff", find_file( args.filter_file ) ]
-
-  subprocess.call( cmd )
+    subprocess.call(cmd)

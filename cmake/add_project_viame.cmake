@@ -42,7 +42,7 @@ ExternalProject_Add(viame
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
-    ${VIAME_ARGS_scallop_tk}
+    ${VIAME_ARGS_darknet}
     ${VIAME_ARGS_ITK}
     ${VIAME_BUILD_FLAGS}
     ${VIAME_DISABLE_FLAGS}
@@ -84,13 +84,18 @@ ExternalProject_Add_Step(viame restructuring_tests
   DEPENDEES install
   )
 
-#if ( VIAME_FORCEBUILD )
-ExternalProject_Add_Step(viame forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/viame-stamp/viame-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
-#endif()
+# Update top-level CTestTestfile.cmake to include viame-build tests
+if( VIAME_ENABLE_TESTS )
+  ExternalProject_Add_Step(viame setup_ctest
+    COMMAND ${CMAKE_COMMAND}
+      -DVIAME_BUILD_DIR:PATH=${CMAKE_BINARY_DIR}
+      -DVIAME_TEST_DIR:PATH=${VIAME_BUILD_PLUGINS_DIR}
+      -P ${VIAME_CMAKE_DIR}/setup_ctest.cmake
+    COMMENT "Configuring CTest to include viame-build tests"
+    DEPENDEES build
+    )
+endif()
+
+if( VIAME_FORCEBUILD )
+  RemoveProjectCMakeStamp( viame )
+endif()

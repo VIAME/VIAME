@@ -4,7 +4,9 @@
 
 set( EXAMPLE_INSTALL_FILES
      README.rst
-     input_list.txt )
+     query_box.csv
+     ingest_list.txt
+     query_list.txt )
 
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
@@ -17,7 +19,8 @@ if( WIN32 )
        process_full_frames_using_svm_model.bat
        generate_detections_using_svm_model.bat
        launch_search_interface.bat
-       launch_view_interface.bat )
+       launch_view_interface.bat
+       perform_cli_query.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
@@ -29,7 +32,8 @@ else()
        process_full_frames_using_svm_model.sh
        generate_detections_using_svm_model.sh
        launch_search_interface.sh
-       launch_view_interface.sh )
+       launch_view_interface.sh
+       perform_cli_query.sh )
 endif()
 
 ###

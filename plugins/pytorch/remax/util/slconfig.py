@@ -1,3 +1,7 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 # ==========================================================
 # Modified from mmcv
 # ==========================================================
@@ -172,7 +176,7 @@ class SLConfig(object):
             elif isinstance(b, list):
                 try:
                     _ = int(k)
-                except:
+                except ValueError:
                     raise TypeError(
                         f'b is a list, '
                         f'index {k} should be an int when input but {type(k)}'

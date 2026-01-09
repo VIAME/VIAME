@@ -1,6 +1,6 @@
 # Example simple tracker pipeline
 #
-# Runs a standalone pysot object tracking pipeline
+# Runs a standalone siammask object tracking pipeline
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -39,7 +39,7 @@ connect from downsampler.output_2
 
 # Tracker algorithm
 process short_term_tracker
-  :: pysot_tracker
+  :: siammask_tracker
 
   relativepath config_file =                   models/pysot_default_siammask.yaml
   relativepath model_file =                    models/pysot_default_siammask.pth

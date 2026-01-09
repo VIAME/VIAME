@@ -1,3 +1,7 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 """
 COCO evaluator that works in distributed mode.
@@ -109,8 +113,10 @@ class CocoEvaluator(object):
                         for k, box in enumerate(boxes)
                     ]
                 )
-            except:
-                import ipdb; ipdb.set_trace()
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error("Error preparing COCO detection result for image %s: %s", original_id, e)
+                raise
         return coco_results
 
     def prepare_for_coco_segmentation(self, predictions):

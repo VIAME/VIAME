@@ -6,10 +6,10 @@ config _pipeline:_edge
 
 # ==================================================================================
 process in_adapt
- :: input_adapter
+  :: input_adapter
 
 process out_adapt
- :: output_adapter
+  :: output_adapter
 
 # =================================== DETECTOR =====================================
 
@@ -24,7 +24,7 @@ connect from in_adapt.image
 # ==================================================================================
 
 process full_frame_tracker
-  :: full_frame_tracker
+  :: detect_shot_breaks
   :fixed_frame_count                           10
 
 connect from in_adapt.timestamp

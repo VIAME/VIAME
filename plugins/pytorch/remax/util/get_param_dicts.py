@@ -1,3 +1,7 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
 import json
 import torch
 import torch.nn as nn
@@ -15,7 +19,7 @@ def match_name_keywords(n: str, name_keywords: list):
 def get_param_dict(args, model_without_ddp: nn.Module):
     try:
         param_dict_type = args.param_dict_type
-    except:
+    except AttributeError:
         param_dict_type = 'default'
     assert param_dict_type in ['default', 'ddetr_in_mmdet', 'large_wd']
 

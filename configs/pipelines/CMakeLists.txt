@@ -80,7 +80,7 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
 
     # Default annotation assist tracking models
-    if( VIAME_ENABLE_PYTORCH-PYSOT )
+    if( VIAME_ENABLE_PYTORCH-SIAMMASK )
       DownloadAndExtract(
         https://viame.kitware.com/api/v1/item/61e4e0ebe90592181da06a79/download
         39c2a4de745edbed0452f8e951c57537
@@ -134,12 +134,13 @@ set( CORE_PIPELINE_FILES
   common_generic_detector.pipe
   common_generic_detector_with_filter.pipe
   common_image_stabilizer.pipe
-  common_measurement_gmm_stereo_track_fish.pipe
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
   common_stabilized_iou_tracker.pipe
   common_stereo_input.pipe
   common_stereo_input_with_downsampler.pipe
+  common_stereo_input_with_tracks.pipe
+  common_stereo_fish_tracker.pipe
   convert_add_filename_to_det_csv.pipe
   convert_add_filename_to_trk_csv.pipe
   convert_coco_json_to_viame_csv.pipe
@@ -181,12 +182,11 @@ set( CORE_PIPELINE_FILES
   index_frame.pipe
   index_frame.svm.pipe
   index_frame.svm.annot_only.pipe
-  measurement_gmm_fish_default.pipe
-  measurement_default.trk.pipe
-  measurement_gmm_only.pipe
-  query_image_exemplar.cfe.pipe
+  measurement_fully_auto_fish_default.pipe
+  measurement_fully_auto_gmm_motion.pipe
+  measurement_from_annotations.pipe
+  query_from_track.pipe
   query_image_exemplar.pipe
-  query_retrieval_and_iqr.cfe.pipe
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
   sql_init_table.sql
@@ -220,6 +220,7 @@ set( CORE_PIPELINE_FILES
   utility_empty_frame_lbls_10fr.pipe
   utility_empty_frame_lbls_100fr.pipe
   utility_empty_frame_lbls_1000fr.pipe
+  utility_empty_frame_lbls_auto.pipe
   utility_enhance.pipe
   utility_extract_chips.pipe
   utility_link_detections_default.pipe
@@ -239,8 +240,8 @@ if( VIAME_ENABLE_CUDA )
     common_stereo_fish_detector_with_filter.pipe
     common_stereo_fish_detector.pipe
     common_generic_detector.pipe
-    measurement_gmm_stereo_detect_fish.pipe
-    measurement_gmm_stereo_track_fish.pipe
+    measurement_detect_fish_only.pipe
+    measurement_track_fish_only.pipe
     query_augment_image.pipe
     tracker_fish.sfd.pipe )
 else()
@@ -290,6 +291,7 @@ if( VIAME_ENABLE_VIVIA )
     embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_1000fr.pipe
+    embedded_single_stream/generate_empty_frame_lbls_auto.pipe
     embedded_single_stream/generic_proposal_detector.pipe
     embedded_single_stream/generic_proposal_tracker.pipe
     embedded_single_stream/local_deep_detector.pipe
@@ -309,7 +311,7 @@ if( VIAME_ENABLE_VIVIA )
       embedded_single_stream/train_deep_detector_cfrnn.pipe )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
+  if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       embedded_single_stream/track_user_selections_fast.pipe )
 
@@ -323,29 +325,9 @@ if( VIAME_ENABLE_VIVIA )
            DESTINATION configs/pipelines/embedded_single_stream )
 endif()
 
-if( VIAME_ENABLE_BURNOUT )
+if( VIAME_ENABLE_SVM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    burnout_det_descriptor.cfe.conf
-    burnout_det_descriptors.conf
-    burnout_enhancement.conf
-    burnout_trk_descriptor.cfe.conf
-    burnout_trk_descriptors.conf
-    burnout_pixel_classification.conf
-    burnout_pixel_detection.conf
-    burnout_train_classifier.conf
-    detector_burnout.pipe
-    filter_burnout.pipe )
-endif()
-
-if( VIAME_ENABLE_SMQTK )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    smqtk_compute_hashes.json
-    smqtk_desc_index.json
-    smqtk_make_balltree.json
-    smqtk_nn_index.json
-    smqtk_postgres_ingest.json
-    smqtk_query.pipe
-    smqtk_train_itq.json
+    query_and_iqr.pipe
     train_detector_svm_over_fish_detections.conf
     train_detector_svm_over_generic_detections.conf
     train_frame_classifier_libsvm_svm.conf )
@@ -355,13 +337,12 @@ if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     register_using_homographies.pipe
     register_multimodal_unsync_ocv.pipe
-    detector_ocv_target.pipe
-    tracker_ocv_target.pipe
-    measurement_gmm_stereo_track_ocv_target.pipe
-    measurement_gmm_stereo_rectified_disparity.pipe
-    measurement_gmm_stereo_track_fish_3d_from_detections_and_rectified_disparity.pipe
-    measurement_gmm_stereo_calibrate_cameras.pipe
-    measurement_gmm_calibrate_cameras.pipe
+    detector_calibration_target.pipe
+    tracker_calibration_target.pipe
+    measurement_calibrate_cameras.pipe
+    measurement_compute_rectified_disparity.pipe
+    measurement_detect_calibration_target.pipe
+    measurement_track_fish_in_3d_from_rect_disp.pipe
     )
 endif()
 
@@ -407,7 +388,7 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
     train_detector_mit_yolo_640.conf)
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_short_term_tracker.pipe
     utility_track_selections_default_mask.pipe
@@ -425,11 +406,6 @@ if( VIAME_ENABLE_MATLAB )
     detector_matlab_camtrawl.pipe )
 endif()
 
-if( VIAME_ENABLE_CAFFE )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    tracker_fish.sfd.cfe.pipe
-    index_default.sfd.cfe.pipe )
-endif()
 
 if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( DUAL_EMBEDDED_FILES
@@ -448,7 +424,7 @@ if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       embedded_dual_stream/train_yolo_ir.pipe )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH-PYSOT )
+  if( VIAME_ENABLE_PYTORCH-SIAMMASK )
     set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
       embedded_dual_stream/track_user_selections_fast.pipe )
   endif()

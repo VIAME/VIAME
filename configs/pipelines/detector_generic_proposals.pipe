@@ -1,6 +1,8 @@
+# ==================================================================================
 # Default Generic Detector Pipeline
 #
 # Runs pre-trained object detector aimed at generating generic object proposals
+# ==================================================================================
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
