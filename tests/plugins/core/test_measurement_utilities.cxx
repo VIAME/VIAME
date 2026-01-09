@@ -18,7 +18,7 @@ using namespace viame::core;
 // Test Fixtures and Helpers
 // =============================================================================
 
-class MeasurementUtilitiesTest : public ::testing::Test
+class measurement_utilities_test : public ::testing::Test
 {
 protected:
   void SetUp() override
@@ -55,14 +55,14 @@ protected:
 // Method Parsing Tests
 // =============================================================================
 
-TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsSingle )
+TEST( measurement_utilities_static, parse_matching_methods_single )
 {
   auto methods = parse_matching_methods( "template_matching" );
   ASSERT_EQ( methods.size(), 1 );
   EXPECT_EQ( methods[0], "template_matching" );
 }
 
-TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsMultiple )
+TEST( measurement_utilities_static, parse_matching_methods_multiple )
 {
   auto methods = parse_matching_methods(
     "input_pairs_only,template_matching,depth_projection" );
@@ -72,7 +72,7 @@ TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsMultiple )
   EXPECT_EQ( methods[2], "depth_projection" );
 }
 
-TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsWithWhitespace )
+TEST( measurement_utilities_static, parse_matching_methods_with_whitespace )
 {
   auto methods = parse_matching_methods(
     " input_pairs_only , template_matching , depth_projection " );
@@ -82,13 +82,13 @@ TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsWithWhitespace )
   EXPECT_EQ( methods[2], "depth_projection" );
 }
 
-TEST( MeasurementUtilitiesStatic, ParseMatchingMethodsEmpty )
+TEST( measurement_utilities_static, parse_matching_methods_empty )
 {
   auto methods = parse_matching_methods( "" );
   EXPECT_TRUE( methods.empty() );
 }
 
-TEST( MeasurementUtilitiesStatic, MethodRequiresImages )
+TEST( measurement_utilities_static, method_requires_images )
 {
   EXPECT_FALSE( method_requires_images( "input_pairs_only" ) );
   EXPECT_FALSE( method_requires_images( "depth_projection" ) );
@@ -98,7 +98,7 @@ TEST( MeasurementUtilitiesStatic, MethodRequiresImages )
   EXPECT_TRUE( method_requires_images( "ransac_feature" ) );
 }
 
-TEST( MeasurementUtilitiesStatic, GetValidMethods )
+TEST( measurement_utilities_static, get_valid_methods )
 {
   auto methods = get_valid_methods();
   EXPECT_EQ( methods.size(), 7 );
@@ -118,7 +118,7 @@ TEST( MeasurementUtilitiesStatic, GetValidMethods )
 // Settings Tests
 // =============================================================================
 
-TEST( MeasurementSettings, DefaultValues )
+TEST( measurement_settings, default_values )
 {
   map_keypoints_to_camera_settings settings;
 
@@ -133,7 +133,7 @@ TEST( MeasurementSettings, DefaultValues )
   EXPECT_TRUE( settings.record_stereo_method );
 }
 
-TEST( MeasurementSettings, ValidateMatchingMethodsValid )
+TEST( measurement_settings, validate_matching_methods_valid )
 {
   map_keypoints_to_camera_settings settings;
   settings.matching_methods = "input_pairs_only,template_matching";
@@ -142,7 +142,7 @@ TEST( MeasurementSettings, ValidateMatchingMethodsValid )
   EXPECT_TRUE( error.empty() );
 }
 
-TEST( MeasurementSettings, ValidateMatchingMethodsInvalid )
+TEST( measurement_settings, validate_matching_methods_invalid )
 {
   map_keypoints_to_camera_settings settings;
   settings.matching_methods = "input_pairs_only,invalid_method";
@@ -152,7 +152,7 @@ TEST( MeasurementSettings, ValidateMatchingMethodsInvalid )
   EXPECT_TRUE( error.find( "invalid_method" ) != std::string::npos );
 }
 
-TEST( MeasurementSettings, ValidateMatchingMethodsEmpty )
+TEST( measurement_settings, validate_matching_methods_empty )
 {
   map_keypoints_to_camera_settings settings;
   settings.matching_methods = "";
@@ -161,7 +161,7 @@ TEST( MeasurementSettings, ValidateMatchingMethodsEmpty )
   EXPECT_FALSE( error.empty() );
 }
 
-TEST( MeasurementSettings, AnyMethodRequiresImages )
+TEST( measurement_settings, any_method_requires_images )
 {
   map_keypoints_to_camera_settings settings;
 
@@ -176,7 +176,7 @@ TEST( MeasurementSettings, AnyMethodRequiresImages )
 // Projection Tests
 // =============================================================================
 
-TEST_F( MeasurementUtilitiesTest, ProjectLeftToRightCenterPoint )
+TEST_F( measurement_utilities_test, project_left_to_right_center_point )
 {
   // A point at the center of the left image should project slightly
   // to the left in the right image due to the baseline offset
@@ -193,7 +193,7 @@ TEST_F( MeasurementUtilitiesTest, ProjectLeftToRightCenterPoint )
   EXPECT_NEAR( right_point.y(), 360.0, 1.0 );
 }
 
-TEST_F( MeasurementUtilitiesTest, ProjectLeftToRightVaryingDepth )
+TEST_F( measurement_utilities_test, project_left_to_right_varying_depth )
 {
   kv::vector_2d left_point( 640, 360 );
 
@@ -218,7 +218,7 @@ TEST_F( MeasurementUtilitiesTest, ProjectLeftToRightVaryingDepth )
 // Triangulation Tests
 // =============================================================================
 
-TEST_F( MeasurementUtilitiesTest, TriangulatePointAtKnownDepth )
+TEST_F( measurement_utilities_test, triangulate_point_at_known_depth )
 {
   // Create corresponding points that should triangulate to a known 3D point
   // Point at (0, 0, 1) in world coordinates
@@ -236,7 +236,7 @@ TEST_F( MeasurementUtilitiesTest, TriangulatePointAtKnownDepth )
   EXPECT_NEAR( point_3d.z(), 1.0, 0.01 );
 }
 
-TEST_F( MeasurementUtilitiesTest, TriangulatePointOffCenter )
+TEST_F( measurement_utilities_test, triangulate_point_off_center )
 {
   // Point at (0.1, 0.1, 1) in world coordinates
   // Left camera at origin: normalized coords (0.1, 0.1), pixel (640+100, 360+100) = (740, 460)
@@ -256,7 +256,7 @@ TEST_F( MeasurementUtilitiesTest, TriangulatePointOffCenter )
 // Stereo Length Tests
 // =============================================================================
 
-TEST_F( MeasurementUtilitiesTest, ComputeStereoLengthHorizontal )
+TEST_F( measurement_utilities_test, compute_stereo_length_horizontal )
 {
   // Two points 0.1m apart horizontally at 1m depth
   // Point 1: (0, 0, 1)
@@ -273,7 +273,7 @@ TEST_F( MeasurementUtilitiesTest, ComputeStereoLengthHorizontal )
   EXPECT_NEAR( length, 0.1, 0.01 );
 }
 
-TEST_F( MeasurementUtilitiesTest, ComputeStereoLengthVertical )
+TEST_F( measurement_utilities_test, compute_stereo_length_vertical )
 {
   // Two points 0.1m apart vertically at 1m depth
   // Point 1: (0, 0, 1)
@@ -289,7 +289,7 @@ TEST_F( MeasurementUtilitiesTest, ComputeStereoLengthVertical )
   EXPECT_NEAR( length, 0.1, 0.01 );
 }
 
-TEST_F( MeasurementUtilitiesTest, ComputeStereoLengthDiagonal )
+TEST_F( measurement_utilities_test, compute_stereo_length_diagonal )
 {
   // Two points 0.1m apart horizontally and 0.1m vertically = sqrt(2)*0.1 diagonal
   kv::vector_2d left_head( 640, 360 );
@@ -308,7 +308,7 @@ TEST_F( MeasurementUtilitiesTest, ComputeStereoLengthDiagonal )
 // Bounding Box Tests
 // =============================================================================
 
-TEST_F( MeasurementUtilitiesTest, ComputeBboxFromKeypointsDefault )
+TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_default )
 {
   utilities.set_box_scale_factor( 1.0 );  // No scaling
 
@@ -323,7 +323,7 @@ TEST_F( MeasurementUtilitiesTest, ComputeBboxFromKeypointsDefault )
   EXPECT_NEAR( bbox.max_y(), 300.0, 0.001 );
 }
 
-TEST_F( MeasurementUtilitiesTest, ComputeBboxFromKeypointsWithScale )
+TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_with_scale )
 {
   utilities.set_box_scale_factor( 1.2 );  // 20% expansion
 
@@ -341,7 +341,7 @@ TEST_F( MeasurementUtilitiesTest, ComputeBboxFromKeypointsWithScale )
   EXPECT_NEAR( bbox.max_y(), 310.0, 0.001 );
 }
 
-TEST_F( MeasurementUtilitiesTest, ComputeBboxFromKeypointsReversedOrder )
+TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_reversed_order )
 {
   utilities.set_box_scale_factor( 1.0 );
 
@@ -361,7 +361,7 @@ TEST_F( MeasurementUtilitiesTest, ComputeBboxFromKeypointsReversedOrder )
 // Stereo Correspondence Tests
 // =============================================================================
 
-TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceInputPairsOnly )
+TEST_F( measurement_utilities_test, find_stereo_correspondence_input_pairs_only )
 {
   std::vector< std::string > methods = { "input_pairs_only" };
 
@@ -383,7 +383,7 @@ TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceInputPairsOnly )
   EXPECT_NEAR( result.right_tail.y(), 200.0, 0.001 );
 }
 
-TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceInputPairsOnlyNoInput )
+TEST_F( measurement_utilities_test, find_stereo_correspondence_input_pairs_only_no_input )
 {
   std::vector< std::string > methods = { "input_pairs_only" };
 
@@ -399,7 +399,7 @@ TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceInputPairsOnlyNoInput 
   EXPECT_FALSE( result.success );
 }
 
-TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceDepthProjection )
+TEST_F( measurement_utilities_test, find_stereo_correspondence_depth_projection )
 {
   std::vector< std::string > methods = { "depth_projection" };
   utilities.set_default_depth( 1.0 );
@@ -421,7 +421,7 @@ TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceDepthProjection )
   EXPECT_NEAR( result.right_tail.x(), 640.0, 1.0 );
 }
 
-TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceFallback )
+TEST_F( measurement_utilities_test, find_stereo_correspondence_fallback )
 {
   // Test that methods are tried in order and fallback works
   std::vector< std::string > methods = { "input_pairs_only", "depth_projection" };
@@ -445,7 +445,7 @@ TEST_F( MeasurementUtilitiesTest, FindStereoCorrespondenceFallback )
 // Configuration Tests
 // =============================================================================
 
-TEST_F( MeasurementUtilitiesTest, ConfigureFromSettings )
+TEST_F( measurement_utilities_test, configure_from_settings )
 {
   map_keypoints_to_camera_settings settings;
   settings.default_depth = 3.0;
@@ -465,7 +465,7 @@ TEST_F( MeasurementUtilitiesTest, ConfigureFromSettings )
   EXPECT_NEAR( right_point.x(), 640.0 - 33.33, 1.0 );
 }
 
-TEST_F( MeasurementUtilitiesTest, SetTemplateParamsEnsuresOdd )
+TEST_F( measurement_utilities_test, set_template_params_ensures_odd )
 {
   // Template size should be odd
   utilities.set_template_params( 30, 100 );  // Even number
@@ -484,7 +484,7 @@ TEST_F( MeasurementUtilitiesTest, SetTemplateParamsEnsuresOdd )
 // Frame ID and Cache Tests
 // =============================================================================
 
-TEST_F( MeasurementUtilitiesTest, SetFrameIdClearsCache )
+TEST_F( measurement_utilities_test, set_frame_id_clears_cache )
 {
   // Set a frame ID
   utilities.set_frame_id( 1 );
@@ -503,7 +503,7 @@ TEST_F( MeasurementUtilitiesTest, SetFrameIdClearsCache )
 // IOU Tests
 // =============================================================================
 
-TEST( MeasurementUtilitiesIOU, ComputeIOUPerfectOverlap )
+TEST( measurement_utilities_iou, compute_iou_perfect_overlap )
 {
   kv::bounding_box_d box1( 0, 0, 100, 100 );
   kv::bounding_box_d box2( 0, 0, 100, 100 );
@@ -512,7 +512,7 @@ TEST( MeasurementUtilitiesIOU, ComputeIOUPerfectOverlap )
   EXPECT_NEAR( iou, 1.0, 0.001 );
 }
 
-TEST( MeasurementUtilitiesIOU, ComputeIOUNoOverlap )
+TEST( measurement_utilities_iou, compute_iou_no_overlap )
 {
   kv::bounding_box_d box1( 0, 0, 100, 100 );
   kv::bounding_box_d box2( 200, 200, 300, 300 );
@@ -521,7 +521,7 @@ TEST( MeasurementUtilitiesIOU, ComputeIOUNoOverlap )
   EXPECT_NEAR( iou, 0.0, 0.001 );
 }
 
-TEST( MeasurementUtilitiesIOU, ComputeIOUPartialOverlap )
+TEST( measurement_utilities_iou, compute_iou_partial_overlap )
 {
   kv::bounding_box_d box1( 0, 0, 100, 100 );
   kv::bounding_box_d box2( 50, 50, 150, 150 );
@@ -533,7 +533,7 @@ TEST( MeasurementUtilitiesIOU, ComputeIOUPartialOverlap )
   EXPECT_NEAR( iou, 2500.0 / 17500.0, 0.01 );
 }
 
-TEST( MeasurementUtilitiesIOU, ComputeIOUInvalidBox )
+TEST( measurement_utilities_iou, compute_iou_invalid_box )
 {
   kv::bounding_box_d box1;  // Invalid (default constructed)
   kv::bounding_box_d box2( 0, 0, 100, 100 );
@@ -546,7 +546,7 @@ TEST( MeasurementUtilitiesIOU, ComputeIOUInvalidBox )
 // Class Label Tests
 // =============================================================================
 
-TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelValid )
+TEST( measurement_utilities_class_label, get_detection_class_label_valid )
 {
   auto det = std::make_shared< kv::detected_object >( kv::bounding_box_d( 0, 0, 100, 100 ) );
   auto dot = std::make_shared< kv::detected_object_type >();
@@ -558,13 +558,13 @@ TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelValid )
   EXPECT_EQ( label, "fish" );
 }
 
-TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelNullDetection )
+TEST( measurement_utilities_class_label, get_detection_class_label_null_detection )
 {
   std::string label = viame::core::get_detection_class_label( nullptr );
   EXPECT_EQ( label, "" );
 }
 
-TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelNullType )
+TEST( measurement_utilities_class_label, get_detection_class_label_null_type )
 {
   auto det = std::make_shared< kv::detected_object >( kv::bounding_box_d( 0, 0, 100, 100 ) );
   // No type set
@@ -577,7 +577,7 @@ TEST( MeasurementUtilitiesClassLabel, GetDetectionClassLabelNullType )
 // Greedy Assignment Tests
 // =============================================================================
 
-TEST( MeasurementUtilitiesAssignment, GreedyAssignmentSimple )
+TEST( measurement_utilities_assignment, greedy_assignment_simple )
 {
   // Simple 2x2 cost matrix
   std::vector< std::vector< double > > cost_matrix = {
@@ -595,7 +595,7 @@ TEST( MeasurementUtilitiesAssignment, GreedyAssignmentSimple )
   EXPECT_TRUE( result_set.count( std::make_pair( 1, 1 ) ) > 0 );
 }
 
-TEST( MeasurementUtilitiesAssignment, GreedyAssignmentWithInfinity )
+TEST( measurement_utilities_assignment, greedy_assignment_with_infinity )
 {
   std::vector< std::vector< double > > cost_matrix = {
     { 1.0, 1e10 },
@@ -610,7 +610,7 @@ TEST( MeasurementUtilitiesAssignment, GreedyAssignmentWithInfinity )
   EXPECT_TRUE( result_set.count( std::make_pair( 1, 1 ) ) > 0 );
 }
 
-TEST( MeasurementUtilitiesAssignment, GreedyAssignmentRectangular )
+TEST( measurement_utilities_assignment, greedy_assignment_rectangular )
 {
   // 3x2 cost matrix (more rows than columns)
   std::vector< std::vector< double > > cost_matrix = {
@@ -633,7 +633,7 @@ TEST( MeasurementUtilitiesAssignment, GreedyAssignmentRectangular )
 // Furthest Apart Points Tests
 // =============================================================================
 
-TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsBasic )
+TEST( measurement_utilities_furthest, find_furthest_apart_points_basic )
 {
   std::vector< stereo_feature_correspondence > correspondences = {
     { kv::vector_2d( 10, 50 ), kv::vector_2d( 5, 50 ) },
@@ -654,7 +654,7 @@ TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsBasic )
   EXPECT_NEAR( right_tail.x(), 95.0, 0.001 );
 }
 
-TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsNotEnough )
+TEST( measurement_utilities_furthest, find_furthest_apart_points_not_enough )
 {
   std::vector< stereo_feature_correspondence > correspondences = {
     { kv::vector_2d( 10, 50 ), kv::vector_2d( 5, 50 ) }
@@ -667,7 +667,7 @@ TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsNotEnough )
   EXPECT_FALSE( found );  // Need at least 2 points
 }
 
-TEST( MeasurementUtilitiesFurthest, FindFurthestApartPointsDiagonal )
+TEST( measurement_utilities_furthest, find_furthest_apart_points_diagonal )
 {
   std::vector< stereo_feature_correspondence > correspondences = {
     { kv::vector_2d( 0, 0 ), kv::vector_2d( 0, 0 ) },
