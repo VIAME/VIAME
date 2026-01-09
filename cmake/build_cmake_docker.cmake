@@ -8,10 +8,10 @@ set(VIAME_FIXUP_BUNDLE OFF CACHE BOOL "Fixup bundle for distribution")
 set(VIAME_VERSION_RELEASE ON CACHE BOOL "Version release build")
 
 # Use system Python in Docker
-set(VIAME_PYTHON_BUILD_FROM_SOURCE OFF CACHE BOOL "Build Python from source")
+set(VIAME_BUILD_PYTHON_FROM_SOURCE OFF CACHE BOOL "Build Python from source")
 
 # PyTorch settings for Docker
-set(VIAME_PYTORCH_DISABLE_NINJA ON CACHE BOOL "Disable Ninja for PyTorch")
+set(VIAME_BUILD_LIMIT_NINJA ON CACHE BOOL "Disable Ninja for PyTorch")
 
 # Typically disabled in Docker builds
 set(VIAME_ENABLE_DIVE OFF CACHE BOOL "Enable DIVE")

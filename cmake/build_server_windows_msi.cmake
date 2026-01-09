@@ -35,7 +35,7 @@ add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm5")
 
 # Base settings - everything off initially
 add_option("VIAME_FIXUP_BUNDLE" "ON")
-add_option("VIAME_PYTHON_BUILD_FROM_SOURCE" "ON")
+add_option("VIAME_BUILD_PYTHON_FROM_SOURCE" "ON")
 
 # Default all features to OFF
 set(ENABLE_CUDA OFF)
@@ -92,8 +92,8 @@ endif()
 if(ENABLE_PYTORCH)
   add_option("VIAME_ENABLE_LEARN" "ON")
   add_option("VIAME_ENABLE_PYTORCH" "ON")
-  add_option("VIAME_PYTORCH_BUILD_FROM_SOURCE" "OFF")
-  add_option("VIAME_PYTORCH_BUILD_TORCHVISION" "OFF")
+  add_option("VIAME_BUILD_PYTORCH_FROM_SOURCE" "OFF")
+  add_option("VIAME_BUILD_TORCHVISION_FROM_SOURCE" "OFF")
   add_option("VIAME_ENABLE_PYTORCH-MMDET" "ON")
   add_option("VIAME_ENABLE_PYTORCH-NETHARN" "ON")
   add_option("VIAME_ENABLE_PYTORCH-SIAMMASK" "ON")

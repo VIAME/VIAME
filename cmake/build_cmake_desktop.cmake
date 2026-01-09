@@ -7,11 +7,11 @@
 set(VIAME_FIXUP_BUNDLE ON CACHE BOOL "Fixup bundle for distribution")
 
 # Build Python from source for portability
-set(VIAME_PYTHON_BUILD_FROM_SOURCE ON CACHE BOOL "Build Python from source")
+set(VIAME_BUILD_PYTHON_FROM_SOURCE ON CACHE BOOL "Build Python from source")
 set(VIAME_PYTHON_VERSION "3.10.4" CACHE STRING "Python version")
 
 # PyTorch settings
-set(VIAME_PYTORCH_DISABLE_NINJA OFF CACHE BOOL "Disable Ninja for PyTorch")
+set(VIAME_BUILD_LIMIT_NINJA OFF CACHE BOOL "Disable Ninja for PyTorch")
 
 # Desktop applications
 set(VIAME_ENABLE_DIVE ON CACHE BOOL "Enable DIVE")
