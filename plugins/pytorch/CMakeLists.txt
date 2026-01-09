@@ -123,6 +123,8 @@ if( VIAME_ENABLE_PYTORCH-SIAMMASK )
 
   add_subdirectory( siammask )
 
+  kwiver_create_python_init( processes/pytorch )
+
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/siammask_tracker.py
     processes/pytorch

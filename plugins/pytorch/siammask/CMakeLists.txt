@@ -1,15 +1,3 @@
-
-# Create python init for siammask package
-kwiver_create_python_init( pytorch/siammask )
-kwiver_create_python_init( pytorch/siammask/core )
-kwiver_create_python_init( pytorch/siammask/models )
-kwiver_create_python_init( pytorch/siammask/models/backbone )
-kwiver_create_python_init( pytorch/siammask/models/head )
-kwiver_create_python_init( pytorch/siammask/models/neck )
-kwiver_create_python_init( pytorch/siammask/tracker )
-kwiver_create_python_init( pytorch/siammask/utils )
-kwiver_create_python_init( pytorch/siammask/datasets )
-
 # Root package
 kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
