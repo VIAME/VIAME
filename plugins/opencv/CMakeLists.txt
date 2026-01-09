@@ -39,6 +39,12 @@ set( plugin_headers
   windowed_refiner.h
   windowed_trainer.h
   windowed_utils.h
+  ellipse_proposal.h
+  diff_of_gauss_detector.h
+  gabor_features.h
+  hog_features.h
+  canny_edge_detector.h
+  adaboost_classifier.h
   )
 
 set( plugin_sources
@@ -65,6 +71,11 @@ set( plugin_sources
   windowed_refiner.cxx
   windowed_trainer.cxx
   windowed_utils.cxx
+  diff_of_gauss_detector.cxx
+  gabor_features.cxx
+  hog_features.cxx
+  canny_edge_detector.cxx
+  adaboost_classifier.cxx
   )
 
 kwiver_install_headers(
