@@ -54,7 +54,7 @@ if( PYTHON_VERSION_STRING )
   # OpenCV often installs just a .so without proper python headers or an absolute path in file
   if( NOT WIN32 AND VIAME_ENABLE_OPENCV )
     set( PATCH_DIR ${VIAME_CMAKE_DIR}/../packages/patches/fletch )
-    file( COPY ${PATCH_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( COPY ${PATCH_DIR}/opencv_python-4.9.0.80.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
   endif()
 
   set( PYTHON_ID "${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}" )
