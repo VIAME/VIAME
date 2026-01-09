@@ -12,6 +12,8 @@ set(VIAME_PYTHON_VERSION "3.10.4" CACHE STRING "Python version")
 
 # PyTorch settings
 set(VIAME_BUILD_LIMIT_NINJA OFF CACHE BOOL "Disable Ninja for PyTorch")
+set(VIAME_ENABLE_PYTORCH-ULTRALYTICS ON CACHE BOOL "Enable PyTorch Ultralytics")
+set(VIAME_ENABLE_PYTORCH-SIAMMASK ON CACHE BOOL "Enable PyTorch SiamMask")
 
 # Desktop applications
 set(VIAME_ENABLE_DIVE ON CACHE BOOL "Enable DIVE")

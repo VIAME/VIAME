@@ -320,6 +320,50 @@ upgrade_pip_setuptools() {
 }
 
 # ==============================================================================
+# NODE.JS AND YARN INSTALLATION (for DIVE desktop builds)
+# ==============================================================================
+
+# Install Node.js 18+ and yarn for building DIVE from source
+# Arguments:
+#   $1 = Node.js major version (default: 18)
+install_nodejs_and_yarn() {
+  local node_version="${1:-18}"
+
+  echo "Installing Node.js ${node_version}.x and yarn..."
+
+  local pkg_manager=$(detect_package_manager)
+
+  case "$pkg_manager" in
+    apt)
+      # Install Node.js via NodeSource repository
+      curl -fsSL "https://deb.nodesource.com/setup_${node_version}.x" | bash -
+      apt-get install -y nodejs
+
+      # Install yarn via npm
+      npm install -g yarn
+      ;;
+    yum)
+      # Install Node.js via NodeSource repository
+      curl -fsSL "https://rpm.nodesource.com/setup_${node_version}.x" | bash -
+      yum install -y nodejs
+
+      # Install yarn via npm
+      npm install -g yarn
+      ;;
+    *)
+      echo "Error: Unsupported package manager for Node.js installation: $pkg_manager"
+      return 1
+      ;;
+  esac
+
+  # Verify installation
+  echo "Node.js version: $(node --version)"
+  echo "yarn version: $(yarn --version)"
+
+  echo "Node.js and yarn installation complete"
+}
+
+# ==============================================================================
 # CMAKE INSTALLATION
 # ==============================================================================
 

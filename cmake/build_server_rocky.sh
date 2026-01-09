@@ -26,6 +26,9 @@ install_system_deps yum
 install_openssl
 install_cmake
 
+# Install Node.js and yarn for DIVE desktop build
+install_nodejs_and_yarn 18
+
 # Patch CUDNN when required
 patch_cudnn_headers
 
@@ -50,9 +53,9 @@ echo "Beginning VIAME CMake configuration"
 cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_desktop.cmake \
+  -C ../cmake/build_cmake_linux.cmake \
   -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
-  -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
-  -DVIAME_ENABLE_PYTORCH-ULTRALYTICS:BOOL=OFF
+  -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc
 
 # Build VIAME and setup libraries, pipe output to file
 echo "Beginning core build, routing build info to build_log.txt"

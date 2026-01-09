@@ -52,9 +52,9 @@ echo "Beginning VIAME CMake configuration for Stage 1"
 cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_desktop.cmake \
+  -C ../cmake/build_cmake_linux.cmake \
   -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
-  -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
-  -DVIAME_ENABLE_PYTORCH-ULTRALYTICS:BOOL=OFF
+  -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc
 
 # Build Stage 1 target: fletch
 echo "Beginning Stage 1 build (fletch), routing build info to build_log_stage1.txt"

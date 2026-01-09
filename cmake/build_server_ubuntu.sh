@@ -18,6 +18,9 @@ install_system_deps apt
 # Install CMAKE
 install_cmake
 
+# Install Node.js and yarn for DIVE desktop build
+install_nodejs_and_yarn 18
+
 # Update VIAME sub git deps
 update_git_submodules /viame
 setup_build_directory /viame
@@ -31,7 +34,7 @@ source ./viame/cmake/linux_add_internal_py36_paths.sh
 cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_desktop.cmake \
-  -DVIAME_ENABLE_PYTORCH-SIAMMASK:BOOL=ON
+  -C ../cmake/build_cmake_linux.cmake
 
 # Build VIAME, pipe output to file
 run_build build_log.txt
