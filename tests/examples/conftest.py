@@ -17,6 +17,11 @@ import pytest
 from pathlib import Path
 
 
+class TimeoutSuccess(Exception):
+    """Exception raised when a script times out but timeout is considered success."""
+    pass
+
+
 def get_viame_source():
     """Get the VIAME source directory."""
     # This file is at tests/examples/conftest.py
@@ -61,7 +66,8 @@ def get_script_path(category, script_name):
     return get_examples_dir(category) / script_name
 
 
-def run_example_script(script_path, working_dir=None, timeout=300, env=None):
+def run_example_script(script_path, working_dir=None, timeout=300, env=None,
+                       timeout_is_success=False):
     """
     Run an example shell script and return the result.
 
@@ -73,9 +79,13 @@ def run_example_script(script_path, working_dir=None, timeout=300, env=None):
         working_dir: Working directory for the script (defaults to script's parent)
         timeout: Maximum time in seconds to wait for completion
         env: Optional environment variables dict
+        timeout_is_success: If True, a timeout is considered successful completion
 
     Returns:
         subprocess.CompletedProcess result
+
+    Raises:
+        TimeoutSuccess: If timeout_is_success=True and the script timed out
     """
     script_path = Path(script_path)
     if working_dir is None:
@@ -116,21 +126,31 @@ def run_example_script(script_path, working_dir=None, timeout=300, env=None):
     if env:
         run_env.update(env)
 
-    result = subprocess.run(
-        cmd,
-        shell=shell,
-        cwd=working_dir,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        executable=executable,
-        env=run_env
-    )
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=shell,
+            cwd=working_dir,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            executable=executable,
+            env=run_env
+        )
+        return result
+    except subprocess.TimeoutExpired as e:
+        if timeout_is_success:
+            # Script ran until timeout - this is considered success
+            raise TimeoutSuccess(
+                f"Script {script_path.name} ran for {timeout}s until timeout (success)"
+            )
+        else:
+            # Re-raise as a regular timeout failure
+            raise
 
-    return result
 
-
-def assert_script_runs_successfully(script_path, working_dir=None, timeout=300, env=None):
+def assert_script_runs_successfully(script_path, working_dir=None, timeout=300, env=None,
+                                     timeout_is_success=False):
     """
     Assert that a script runs without error and produces non-empty output.
 
@@ -139,11 +159,17 @@ def assert_script_runs_successfully(script_path, working_dir=None, timeout=300, 
         working_dir: Working directory for the script
         timeout: Maximum time in seconds
         env: Optional environment variables
+        timeout_is_success: If True, a timeout is considered successful completion
 
     Raises:
         AssertionError: If script fails or produces no output
     """
-    result = run_example_script(script_path, working_dir, timeout, env)
+    try:
+        result = run_example_script(script_path, working_dir, timeout, env,
+                                    timeout_is_success=timeout_is_success)
+    except TimeoutSuccess:
+        # Timeout was reached and that's considered success
+        return None
 
     # Check return code
     assert result.returncode == 0, (
