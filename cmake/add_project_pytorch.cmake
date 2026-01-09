@@ -43,8 +43,8 @@ if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTORCH-MMDET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} mmdeploy )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-PYSOT )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pysot )
+if( VIAME_ENABLE_PYTORCH-SIAMMASK )
+  # siammask is now built-in to plugins/pytorch/siammask, no external lib needed
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MDNET )

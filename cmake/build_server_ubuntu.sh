@@ -31,7 +31,7 @@ source ./viame/cmake/linux_add_internal_py36_paths.sh
 cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_desktop.cmake \
-  -DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=ON
+  -DVIAME_ENABLE_PYTORCH-SIAMMASK:BOOL=ON
 
 # Build VIAME, pipe output to file
 run_build build_log.txt

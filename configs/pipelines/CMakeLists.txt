@@ -80,7 +80,7 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
 
     # Default annotation assist tracking models
-    if( VIAME_ENABLE_PYTORCH-PYSOT )
+    if( VIAME_ENABLE_PYTORCH-SIAMMASK )
       DownloadAndExtract(
         https://viame.kitware.com/api/v1/item/61e4e0ebe90592181da06a79/download
         39c2a4de745edbed0452f8e951c57537
@@ -311,7 +311,7 @@ if( VIAME_ENABLE_VIVIA )
       embedded_single_stream/train_deep_detector_cfrnn.pipe )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
+  if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       embedded_single_stream/track_user_selections_fast.pipe )
 
@@ -388,7 +388,7 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
     train_detector_mit_yolo_640.conf)
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_short_term_tracker.pipe
     utility_track_selections_default_mask.pipe
@@ -424,7 +424,7 @@ if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       embedded_dual_stream/train_yolo_ir.pipe )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH-PYSOT )
+  if( VIAME_ENABLE_PYTORCH-SIAMMASK )
     set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
       embedded_dual_stream/track_user_selections_fast.pipe )
   endif()

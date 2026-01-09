@@ -119,7 +119,7 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
 
 endif()
 
-if( VIAME_ENABLE_PYTORCH-PYSOT )
+if( VIAME_ENABLE_PYTORCH-SIAMMASK )
 
   add_subdirectory( siammask )
 

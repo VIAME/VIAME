@@ -92,7 +92,7 @@ The current default model for performing user-initialized tracking in VIAME is a
 of the [SiamMask]_ and [SiamRPN]_ algorithms. Re-training of these classifiers is 
 currently available in the `object tracker training`_ example folder. These trackers are
 automatically enabled in binary installations, but when building from source
-the VIAME_ENABLE_PYTORCH and VIAME_ENABLE_PYTORCH-PYSOT enable flags are required.
+the VIAME_ENABLE_PYTORCH and VIAME_ENABLE_PYTORCH-SIAMMASK enable flags are required.
 There are a number of pieces of code used in the system, including:
 
 .. _object tracker training: https://github.com/VIAME/VIAME/blob/master/examples/object_tracker_training

@@ -39,8 +39,8 @@ else()
   list( APPEND VIAME_PYTHON_BASIC_DEPS "matplotlib>=3.7.0,<=3.8.5" )
 endif()
 
-# Protobuf for pysot (if enabled)
-if( VIAME_ENABLE_PYTORCH-PYSOT )
+# Protobuf for siammask (if enabled)
+if( VIAME_ENABLE_PYTORCH-SIAMMASK )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf" )
 endif()
 
