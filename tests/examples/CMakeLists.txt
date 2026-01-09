@@ -77,31 +77,31 @@ if( VIAME_ENABLE_PYTHON )
   # Annotation and Visualization Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_draw_detections_on_frames
+    viame_examples:draw_detections_on_frames
     test_annotation_and_visualization.py
     TestDrawDetectionsOnFrames
     annotation_and_visualization
   )
   add_example_script_test(
-    viame_example_extract_chips_from_detections
+    viame_examples:extract_chips_from_detections
     test_annotation_and_visualization.py
     TestExtractChipsFromDetections
     annotation_and_visualization
   )
   add_example_script_test(
-    viame_example_extract_frames
+    viame_examples:extract_frames
     test_annotation_and_visualization.py
     TestExtractFrames
     annotation_and_visualization
   )
   add_example_script_test(
-    viame_example_extract_frames_with_dets_only
+    viame_examples:extract_frames_with_dets_only
     test_annotation_and_visualization.py
     TestExtractFramesWithDetsOnly
     annotation_and_visualization
   )
   add_example_script_test(
-    viame_example_simple_pipeline_display
+    viame_examples:simple_pipeline_display
     test_annotation_and_visualization.py
     TestSimplePipelineDisplay
     annotation_and_visualization
@@ -111,13 +111,13 @@ if( VIAME_ENABLE_PYTHON )
   # Archive Summarization Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_summarize_and_index_videos
+    viame_examples:summarize_and_index_videos
     test_archive_summarization.py
     TestSummarizeAndIndexVideos
     archive_summarization
   )
   add_example_script_test(
-    viame_example_summarize_videos
+    viame_examples:summarize_videos
     test_archive_summarization.py
     TestSummarizeVideos
     archive_summarization
@@ -127,7 +127,7 @@ if( VIAME_ENABLE_PYTHON )
   # Building From Source Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_building_example
+    viame_examples:building_example
     test_building_from_source.py
     TestExample
     building_from_source
@@ -137,7 +137,7 @@ if( VIAME_ENABLE_PYTHON )
   # Detection File Conversions Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_bulk_convert_using_pipe
+    viame_examples:bulk_convert_using_pipe
     test_detection_file_conversions.py
     TestBulkConvertUsingPipe
     detection_file_conversions
@@ -147,25 +147,25 @@ if( VIAME_ENABLE_PYTHON )
   # Frame Level Classification Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_continue_training_deep_classifier
+    viame_examples:continue_training_deep_classifier
     test_frame_level_classification.py
     TestContinueTrainingDeepClassifier
     frame_level_classification
   )
   add_example_script_test(
-    viame_example_run_trained_model_classification
+    viame_examples:run_trained_model_classification
     test_frame_level_classification.py
     TestRunTrainedModel
     frame_level_classification
   )
   add_example_script_test(
-    viame_example_train_deep_frame_classifier
+    viame_examples:train_deep_frame_classifier
     test_frame_level_classification.py
     TestTrainDeepFrameClassifier
     frame_level_classification
   )
   add_example_script_test(
-    viame_example_train_svm_frame_classifier
+    viame_examples:train_svm_frame_classifier
     test_frame_level_classification.py
     TestTrainSvmFrameClassifier
     frame_level_classification
@@ -175,13 +175,13 @@ if( VIAME_ENABLE_PYTHON )
   # Hello World Pipeline Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_run_example
+    viame_examples:run_example
     test_hello_world_pipeline.py
     TestRunExample
     hello_world_pipeline
   )
   add_example_script_test(
-    viame_example_run_python_example
+    viame_examples:run_python_example
     test_hello_world_pipeline.py
     TestRunPythonExample
     hello_world_pipeline
@@ -191,14 +191,14 @@ if( VIAME_ENABLE_PYTHON )
   # Image Enhancement Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_debayer_and_enhance
+    viame_examples:debayer_and_enhance
     test_image_enhancement.py
     TestDebayerAndEnhance
     image_enhancement
   )
-  # CRITICAL: viame_example_enhance
+  # CRITICAL: viame_examples:enhance
   add_critical_example_test(
-    viame_example_enhance
+    viame_examples:enhance
     test_image_enhancement.py
     TestEnhance
     image_enhancement
@@ -207,16 +207,16 @@ if( VIAME_ENABLE_PYTHON )
   # ============================================================================
   # Object Detection Tests - CRITICAL
   # ============================================================================
-  # CRITICAL: viame_example_run_generic_proposals
+  # CRITICAL: viame_examples:run_generic_proposals
   add_critical_example_test(
-    viame_example_run_generic_proposals
+    viame_examples:run_generic_proposals
     test_object_detection.py
     TestGenericProposalsExample
     object_detection
   )
-  # CRITICAL: viame_example_run_fish_without_motion
+  # CRITICAL: viame_examples:run_fish_without_motion
   add_critical_example_test(
-    viame_example_run_fish_without_motion
+    viame_examples:run_fish_without_motion
     test_object_detection.py
     TestFishDetectorExample
     object_detection
@@ -226,68 +226,68 @@ if( VIAME_ENABLE_PYTHON )
   # Object Detector Training Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_continue_training_cfrnn
+    viame_examples:continue_training_cfrnn
     test_object_detector_training.py
     TestContinueTrainingCfrnn
     object_detector_training
   )
   add_example_script_test(
-    viame_example_run_trained_model_detection
+    viame_examples:run_trained_model_detection
     test_object_detector_training.py
     TestRunTrainedModel
     object_detector_training
   )
   add_example_script_test(
-    viame_example_train_cfrnn_from_habcam_csv
+    viame_examples:train_cfrnn_from_habcam_csv
     test_object_detector_training.py
     TestTrainCfrnnFromHabcamCsv
     object_detector_training
   )
-  # CRITICAL: viame_example_train_cfrnn_from_viame_csv
+  # CRITICAL: viame_examples:train_cfrnn_from_viame_csv
   add_critical_example_test(
-    viame_example_train_cfrnn_from_viame_csv
+    viame_examples:train_cfrnn_from_viame_csv
     test_object_detector_training.py
     TestTrainCfrnnFromViameCsv
     object_detector_training
   )
   add_example_script_test(
-    viame_example_train_mask_rcnn_from_viame_csv
+    viame_examples:train_mask_rcnn_from_viame_csv
     test_object_detector_training.py
     TestTrainMaskRcnnFromViameCsv
     object_detector_training
   )
   add_example_script_test(
-    viame_example_train_motion_cfrnn_from_viame_csv
+    viame_examples:train_motion_cfrnn_from_viame_csv
     test_object_detector_training.py
     TestTrainMotionCfrnnFromViameCsv
     object_detector_training
   )
   add_example_script_test(
-    viame_example_train_svm_over_fish_dets_from_viame_csv
+    viame_examples:train_svm_over_fish_dets_from_viame_csv
     test_object_detector_training.py
     TestTrainSvmOverFishDetsFromViameCsv
     object_detector_training
   )
   add_example_script_test(
-    viame_example_train_svm_over_generic_dets_from_viame_csv
+    viame_examples:train_svm_over_generic_dets_from_viame_csv
     test_object_detector_training.py
     TestTrainSvmOverGenericDetsFromViameCsv
     object_detector_training
   )
   add_example_script_test(
-    viame_example_train_yolo_from_habcam_csv
+    viame_examples:train_yolo_from_habcam_csv
     test_object_detector_training.py
     TestTrainYoloFromHabcamCsv
     object_detector_training
   )
   add_example_script_test(
-    viame_example_train_yolo_from_kw18
+    viame_examples:train_yolo_from_kw18
     test_object_detector_training.py
     TestTrainYoloFromKw18
     object_detector_training
   )
   add_example_script_test(
-    viame_example_train_yolo_from_viame_csv
+    viame_examples:train_yolo_from_viame_csv
     test_object_detector_training.py
     TestTrainYoloFromViameCsv
     object_detector_training
@@ -297,7 +297,7 @@ if( VIAME_ENABLE_PYTHON )
   # Object Tracker Training Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_train_st_tracker_viame_csv
+    viame_examples:train_st_tracker_viame_csv
     test_object_tracker_training.py
     TestTrainStTrackerViameCsv
     object_tracker_training
@@ -307,45 +307,45 @@ if( VIAME_ENABLE_PYTHON )
   # Object Tracking Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_bulk_run_user_init_tracking
+    viame_examples:bulk_run_user_init_tracking
     test_object_tracking.py
     TestBulkRunUserInitTracking
     object_tracking
   )
   add_example_script_test(
-    viame_example_compute_depth_maps_tracking
+    viame_examples:compute_depth_maps_tracking
     test_object_tracking.py
     TestComputeDepthMaps
     object_tracking
   )
-  # CRITICAL: viame_example_run_fish_tracker
+  # CRITICAL: viame_examples:run_fish_tracker
   add_critical_example_test(
-    viame_example_run_fish_tracker
+    viame_examples:run_fish_tracker
     test_object_tracking.py
     TestRunFishTracker
     object_tracking
   )
-  # CRITICAL: viame_example_run_generic_tracker
+  # CRITICAL: viame_examples:run_generic_tracker
   add_critical_example_test(
-    viame_example_run_generic_tracker
+    viame_examples:run_generic_tracker
     test_object_tracking.py
     TestRunGenericTracker
     object_tracking
   )
   add_example_script_test(
-    viame_example_run_simple_tracker
+    viame_examples:run_simple_tracker
     test_object_tracking.py
     TestRunSimpleTracker
     object_tracking
   )
   add_example_script_test(
-    viame_example_run_track_viewer
+    viame_examples:run_track_viewer
     test_object_tracking.py
     TestRunTrackViewer
     object_tracking
   )
   add_example_script_test(
-    viame_example_run_user_init_tracker
+    viame_examples:run_user_init_tracker
     test_object_tracking.py
     TestRunUserInitTracker
     object_tracking
@@ -355,37 +355,37 @@ if( VIAME_ENABLE_PYTHON )
   # Registration and Mosaicing Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_generate_mosaic_for_list
+    viame_examples:generate_mosaic_for_list
     test_registration_and_mosaicing.py
     TestGenerateMosaicForList
     registration_and_mosaicing
   )
   add_example_script_test(
-    viame_example_generate_mosaics_for_folder
+    viame_examples:generate_mosaics_for_folder
     test_registration_and_mosaicing.py
     TestGenerateMosaicsForFolder
     registration_and_mosaicing
   )
   add_example_script_test(
-    viame_example_generate_mosaics_xcamera_only
+    viame_examples:generate_mosaics_xcamera_only
     test_registration_and_mosaicing.py
     TestGenerateMosaicsXcameraOnly
     registration_and_mosaicing
   )
   add_example_script_test(
-    viame_example_generate_transform_from_points
+    viame_examples:generate_transform_from_points
     test_registration_and_mosaicing.py
     TestGenerateTransformFromPoints
     registration_and_mosaicing
   )
   add_example_script_test(
-    viame_example_register_eo_ir_per_frame_itk
+    viame_examples:register_eo_ir_per_frame_itk
     test_registration_and_mosaicing.py
     TestRegisterEoIrPerFrameItk
     registration_and_mosaicing
   )
   add_example_script_test(
-    viame_example_register_eo_ir_per_frame_ocv
+    viame_examples:register_eo_ir_per_frame_ocv
     test_registration_and_mosaicing.py
     TestRegisterEoIrPerFrameOcv
     registration_and_mosaicing
@@ -395,49 +395,49 @@ if( VIAME_ENABLE_PYTHON )
   # Scoring and Evaluation Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_detection_prcs_and_conf_mat_across_all
+    viame_examples:detection_prcs_and_conf_mat_across_all
     test_scoring_and_evaluation.py
     TestDetectionPrcsAndConfMatAcrossAll
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_example_detection_prcs_and_conf_mat_per_category
+    viame_examples:detection_prcs_and_conf_mat_per_category
     test_scoring_and_evaluation.py
     TestDetectionPrcsAndConfMatPerCategory
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_example_detection_rocs_across_all
+    viame_examples:detection_rocs_across_all
     test_scoring_and_evaluation.py
     TestDetectionRocsAcrossAll
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_example_detection_rocs_per_category
+    viame_examples:detection_rocs_per_category
     test_scoring_and_evaluation.py
     TestDetectionRocsPerCategory
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_example_track_kwant_stats_across_all
+    viame_examples:track_kwant_stats_across_all
     test_scoring_and_evaluation.py
     TestTrackKwantStatsAcrossAll
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_example_track_kwant_stats_per_category
+    viame_examples:track_kwant_stats_per_category
     test_scoring_and_evaluation.py
     TestTrackKwantStatsPerCategory
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_example_track_mot_stats_across_all
+    viame_examples:track_mot_stats_across_all
     test_scoring_and_evaluation.py
     TestTrackMotStatsAcrossAll
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_example_track_mot_stats_per_category
+    viame_examples:track_mot_stats_per_category
     test_scoring_and_evaluation.py
     TestTrackMotStatsPerCategory
     scoring_and_evaluation
@@ -447,49 +447,49 @@ if( VIAME_ENABLE_PYTHON )
   # Search and Rapid Model Generation Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_create_index_around_detections
+    viame_examples:create_index_around_detections
     test_search_and_rapid_model_generation.py
     TestCreateIndexAroundDetections
     search_and_rapid_model_generation
   )
   add_example_script_test(
-    viame_example_create_index_around_existing_detections
+    viame_examples:create_index_around_existing_detections
     test_search_and_rapid_model_generation.py
     TestCreateIndexAroundExistingDetections
     search_and_rapid_model_generation
   )
   add_example_script_test(
-    viame_example_create_index_detection_and_tracking
+    viame_examples:create_index_detection_and_tracking
     test_search_and_rapid_model_generation.py
     TestCreateIndexDetectionAndTracking
     search_and_rapid_model_generation
   )
   add_example_script_test(
-    viame_example_create_index_full_frame_only
+    viame_examples:create_index_full_frame_only
     test_search_and_rapid_model_generation.py
     TestCreateIndexFullFrameOnly
     search_and_rapid_model_generation
   )
   add_example_script_test(
-    viame_example_generate_detections_using_svm_model
+    viame_examples:generate_detections_using_svm_model
     test_search_and_rapid_model_generation.py
     TestGenerateDetectionsUsingSvmModel
     search_and_rapid_model_generation
   )
   add_example_script_test(
-    viame_example_perform_cli_query
+    viame_examples:perform_cli_query
     test_search_and_rapid_model_generation.py
     TestPerformCliQuery
     search_and_rapid_model_generation
   )
   add_example_script_test(
-    viame_example_process_database_using_svm_model
+    viame_examples:process_database_using_svm_model
     test_search_and_rapid_model_generation.py
     TestProcessDatabaseUsingSvmModel
     search_and_rapid_model_generation
   )
   add_example_script_test(
-    viame_example_process_full_frames_using_svm_model
+    viame_examples:process_full_frames_using_svm_model
     test_search_and_rapid_model_generation.py
     TestProcessFullFramesUsingSvmModel
     search_and_rapid_model_generation
@@ -499,38 +499,38 @@ if( VIAME_ENABLE_PYTHON )
   # Size Measurement Tests
   # ============================================================================
   add_example_script_test(
-    viame_example_calibrate_cameras
+    viame_examples:calibrate_cameras
     test_size_measurement.py
     TestCalibrateCameras
     size_measurement
   )
   add_example_script_test(
-    viame_example_compute_depth_maps_measurement
+    viame_examples:compute_depth_maps_measurement
     test_size_measurement.py
     TestComputeDepthMaps
     size_measurement
   )
   add_example_script_test(
-    viame_example_gmm_standalone_tool
+    viame_examples:gmm_standalone_tool
     test_size_measurement.py
     TestGmmStandaloneTool
     size_measurement
   )
   add_example_script_test(
-    viame_example_measure_over_manual_annotations
+    viame_examples:measure_over_manual_annotations
     test_size_measurement.py
     TestMeasureOverManualAnnotations
     size_measurement
   )
-  # CRITICAL: viame_example_measure_via_default_fish
+  # CRITICAL: viame_examples:measure_via_default_fish
   add_critical_example_test(
-    viame_example_measure_via_default_fish
+    viame_examples:measure_via_default_fish
     test_size_measurement.py
     TestMeasureViaDefaultFish
     size_measurement
   )
   add_example_script_test(
-    viame_example_measure_via_gmm_oriented_boxes
+    viame_examples:measure_via_gmm_oriented_boxes
     test_size_measurement.py
     TestMeasureViaGmmOrientedBoxes
     size_measurement
