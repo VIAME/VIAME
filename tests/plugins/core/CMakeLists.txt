@@ -13,7 +13,7 @@ set( test_libraries
 
 kwiver_discover_gtests( viame_core measurement_utilities
   LIBRARIES ${test_libraries}
-  PROPERTIES LABELS "VIAME;UNIT" )
+  PROPERTIES LABELS "UNIT;CORE" )
 
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
 # kwiver_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )

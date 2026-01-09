@@ -14,6 +14,6 @@ set( test_libraries viame_opencv GTest::gtest_main )
 
 kwiver_discover_gtests( viame_opencv filter_stereo_feature_tracks
   LIBRARIES ${test_libraries}
-  PROPERTIES LABELS "VIAME;UNIT" )
+  PROPERTIES LABELS "UNIT;OPENCV" )
 # TODO: Enable when ocv_kmedians.h is implemented
 # kwiver_discover_gtests( viame_opencv kmedians LIBRARIES ${test_libraries} )
