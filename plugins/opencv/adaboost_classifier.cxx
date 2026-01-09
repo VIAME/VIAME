@@ -308,7 +308,7 @@ bool AdaBoostClassifier::load( const std::string& filename )
 {
   try
   {
-    m_classifier = cv::ml::Boost::load< cv::ml::Boost >( filename );
+    m_classifier = cv::ml::Boost::load( filename );
 
     // Load additional metadata
     std::string metaFile = filename + ".meta";
@@ -646,7 +646,7 @@ bool MultiClassAdaBoost::load( const std::string& directory, int numClasses )
     for( int c = 0; c < m_numClasses; c++ )
     {
       std::string filename = directory + "/classifier_" + std::to_string( c ) + ".xml";
-      m_classifiers[c] = cv::ml::Boost::load< cv::ml::Boost >( filename );
+      m_classifiers[c] = cv::ml::Boost::load( filename );
 
       if( !m_classifiers[c] || m_classifiers[c]->empty() )
       {
