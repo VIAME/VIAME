@@ -2,6 +2,20 @@
 #
 # Integration tests for VIAME example scripts.
 # These tests run the actual example scripts and verify they produce output.
+#
+# Test Categories:
+#   CRITICAL - Essential tests that must pass for a valid build
+#   EXAMPLES - Standard example script tests
+#   UNIT     - Unit tests (outside examples tree)
+#
+# To run only critical tests:
+#   ctest -L CRITICAL
+#
+# To run only example tests:
+#   ctest -L EXAMPLES
+#
+# To check if critical tests pass (for CI/CD):
+#   ctest -L CRITICAL --output-on-failure
 
 if( VIAME_ENABLE_PYTHON )
   # Use Python interpreter with -m pytest for reliable execution
@@ -10,15 +24,18 @@ if( VIAME_ENABLE_PYTHON )
   endif()
 
   # Common test properties
-  set( EXAMPLE_TEST_LABELS "VIAME;EXAMPLES;INTEGRATION" )
   set( EXAMPLE_TEST_TIMEOUT 600 )
+
+  # Labels for test categories
+  set( CRITICAL_TEST_LABELS "VIAME;CRITICAL;INTEGRATION" )
+  set( EXAMPLE_TEST_LABELS "VIAME;EXAMPLES;INTEGRATION" )
 
   # Set up Python path for tests - use the actual install prefix
   set( VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}" )
   set( VIAME_PYTHON_PATH "${VIAME_INSTALL_DIR}/python" )
   set( VIAME_PYTHON_SITE_PACKAGES "${VIAME_INSTALL_DIR}/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
 
-  # Helper function to add a single example script test
+  # Helper function to add a standard example script test
   function( add_example_script_test TEST_NAME TEST_FILE TEST_CLASS WORKING_DIR )
     add_test(
       NAME ${TEST_NAME}
@@ -32,6 +49,25 @@ if( VIAME_ENABLE_PYTHON )
     set_tests_properties( ${TEST_NAME}
       PROPERTIES
         LABELS "${EXAMPLE_TEST_LABELS}"
+        TIMEOUT ${EXAMPLE_TEST_TIMEOUT}
+        ENVIRONMENT "PYTHONPATH=${VIAME_PYTHON_PATH}:${VIAME_PYTHON_SITE_PACKAGES}:${CMAKE_CURRENT_SOURCE_DIR}:$ENV{PYTHONPATH};VIAME_INSTALL=${VIAME_INSTALL_DIR}"
+    )
+  endfunction()
+
+  # Helper function to add a CRITICAL example script test
+  function( add_critical_example_test TEST_NAME TEST_FILE TEST_CLASS WORKING_DIR )
+    add_test(
+      NAME ${TEST_NAME}
+      COMMAND ${Python3_EXECUTABLE} -m pytest
+        "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}"
+        -v
+        --tb=short
+        -k "${TEST_CLASS}"
+      WORKING_DIRECTORY "${VIAME_SOURCE_DIR}/examples/${WORKING_DIR}"
+    )
+    set_tests_properties( ${TEST_NAME}
+      PROPERTIES
+        LABELS "${CRITICAL_TEST_LABELS}"
         TIMEOUT ${EXAMPLE_TEST_TIMEOUT}
         ENVIRONMENT "PYTHONPATH=${VIAME_PYTHON_PATH}:${VIAME_PYTHON_SITE_PACKAGES}:${CMAKE_CURRENT_SOURCE_DIR}:$ENV{PYTHONPATH};VIAME_INSTALL=${VIAME_INSTALL_DIR}"
     )
@@ -160,7 +196,8 @@ if( VIAME_ENABLE_PYTHON )
     TestDebayerAndEnhance
     image_enhancement
   )
-  add_example_script_test(
+  # CRITICAL: viame_example_enhance
+  add_critical_example_test(
     viame_example_enhance
     test_image_enhancement.py
     TestEnhance
@@ -168,15 +205,17 @@ if( VIAME_ENABLE_PYTHON )
   )
 
   # ============================================================================
-  # Object Detection Tests (existing tests)
+  # Object Detection Tests - CRITICAL
   # ============================================================================
-  add_example_script_test(
+  # CRITICAL: viame_example_run_generic_proposals
+  add_critical_example_test(
     viame_example_run_generic_proposals
     test_object_detection.py
     TestGenericProposalsExample
     object_detection
   )
-  add_example_script_test(
+  # CRITICAL: viame_example_run_fish_without_motion
+  add_critical_example_test(
     viame_example_run_fish_without_motion
     test_object_detection.py
     TestFishDetectorExample
@@ -204,7 +243,8 @@ if( VIAME_ENABLE_PYTHON )
     TestTrainCfrnnFromHabcamCsv
     object_detector_training
   )
-  add_example_script_test(
+  # CRITICAL: viame_example_train_cfrnn_from_viame_csv
+  add_critical_example_test(
     viame_example_train_cfrnn_from_viame_csv
     test_object_detector_training.py
     TestTrainCfrnnFromViameCsv
@@ -278,13 +318,15 @@ if( VIAME_ENABLE_PYTHON )
     TestComputeDepthMaps
     object_tracking
   )
-  add_example_script_test(
+  # CRITICAL: viame_example_run_fish_tracker
+  add_critical_example_test(
     viame_example_run_fish_tracker
     test_object_tracking.py
     TestRunFishTracker
     object_tracking
   )
-  add_example_script_test(
+  # CRITICAL: viame_example_run_generic_tracker
+  add_critical_example_test(
     viame_example_run_generic_tracker
     test_object_tracking.py
     TestRunGenericTracker
@@ -480,7 +522,8 @@ if( VIAME_ENABLE_PYTHON )
     TestMeasureOverManualAnnotations
     size_measurement
   )
-  add_example_script_test(
+  # CRITICAL: viame_example_measure_via_default_fish
+  add_critical_example_test(
     viame_example_measure_via_default_fish
     test_size_measurement.py
     TestMeasureViaDefaultFish
