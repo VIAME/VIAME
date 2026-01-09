@@ -34,21 +34,23 @@ protected:
       focal_length, kv::vector_2d( principal_x, principal_y ) );
 
     // Left camera at origin looking down +Z
-    left_cam = kv::simple_camera_perspective();
-    left_cam.set_intrinsics( intrinsics );
-    left_cam.set_center( kv::vector_3d( 0, 0, 0 ) );
-    left_cam.set_rotation( kv::rotation_d() );  // Identity rotation
+    left_cam = std::make_shared< kv::simple_camera_perspective >();
+    left_cam->set_intrinsics( intrinsics );
+    left_cam->set_center( kv::vector_3d( 0, 0, 0 ) );
+    left_cam->set_rotation( kv::rotation_d() );  // Identity rotation
 
     // Right camera offset by baseline in X
-    right_cam = kv::simple_camera_perspective();
-    right_cam.set_intrinsics( intrinsics );
-    right_cam.set_center( kv::vector_3d( baseline, 0, 0 ) );
-    right_cam.set_rotation( kv::rotation_d() );  // Identity rotation
+    right_cam = std::make_shared< kv::simple_camera_perspective >();
+    right_cam->set_intrinsics( intrinsics );
+    right_cam->set_center( kv::vector_3d( baseline, 0, 0 ) );
+    right_cam->set_rotation( kv::rotation_d() );  // Identity rotation
+
+    utilities = std::make_shared< map_keypoints_to_camera >();
   }
 
-  kv::simple_camera_perspective left_cam;
-  kv::simple_camera_perspective right_cam;
-  map_keypoints_to_camera utilities;
+  kv::simple_camera_perspective_sptr left_cam;
+  kv::simple_camera_perspective_sptr right_cam;
+  std::shared_ptr< map_keypoints_to_camera > utilities;
 };
 
 // =============================================================================
@@ -180,11 +182,11 @@ TEST_F( measurement_utilities_test, project_left_to_right_center_point )
 {
   // A point at the center of the left image should project slightly
   // to the left in the right image due to the baseline offset
-  utilities.set_default_depth( 1.0 );  // 1 meter depth
+  utilities->set_default_depth( 1.0 );  // 1 meter depth
 
   kv::vector_2d left_point( 640, 360 );  // Center of image
-  kv::vector_2d right_point = utilities.project_left_to_right(
-    left_cam, right_cam, left_point );
+  kv::vector_2d right_point = utilities->project_left_to_right(
+    *left_cam, *right_cam, left_point );
 
   // With a 10cm baseline and 1m depth, the disparity should be:
   // disparity = focal_length * baseline / depth = 1000 * 0.1 / 1.0 = 100 pixels
@@ -198,17 +200,17 @@ TEST_F( measurement_utilities_test, project_left_to_right_varying_depth )
   kv::vector_2d left_point( 640, 360 );
 
   // At 2m depth, disparity should be half
-  utilities.set_default_depth( 2.0 );
-  kv::vector_2d right_at_2m = utilities.project_left_to_right(
-    left_cam, right_cam, left_point );
+  utilities->set_default_depth( 2.0 );
+  kv::vector_2d right_at_2m = utilities->project_left_to_right(
+    *left_cam, *right_cam, left_point );
 
   // disparity = 1000 * 0.1 / 2.0 = 50 pixels
   EXPECT_NEAR( right_at_2m.x(), 590.0, 1.0 );
 
   // At 0.5m depth, disparity should be double
-  utilities.set_default_depth( 0.5 );
-  kv::vector_2d right_at_half_m = utilities.project_left_to_right(
-    left_cam, right_cam, left_point );
+  utilities->set_default_depth( 0.5 );
+  kv::vector_2d right_at_half_m = utilities->project_left_to_right(
+    *left_cam, *right_cam, left_point );
 
   // disparity = 1000 * 0.1 / 0.5 = 200 pixels
   EXPECT_NEAR( right_at_half_m.x(), 440.0, 1.0 );
@@ -228,7 +230,7 @@ TEST_F( measurement_utilities_test, triangulate_point_at_known_depth )
   kv::vector_2d right_point( 540, 360 );
 
   kv::vector_3d point_3d = viame::core::triangulate_point(
-    left_cam, right_cam, left_point, right_point );
+    *left_cam, *right_cam, left_point, right_point );
 
   // Should be at approximately (0, 0, 1)
   EXPECT_NEAR( point_3d.x(), 0.0, 0.01 );
@@ -245,7 +247,7 @@ TEST_F( measurement_utilities_test, triangulate_point_off_center )
   kv::vector_2d right_point( 640, 460 );
 
   kv::vector_3d point_3d = viame::core::triangulate_point(
-    left_cam, right_cam, left_point, right_point );
+    *left_cam, *right_cam, left_point, right_point );
 
   EXPECT_NEAR( point_3d.x(), 0.1, 0.02 );
   EXPECT_NEAR( point_3d.y(), 0.1, 0.02 );
@@ -267,7 +269,7 @@ TEST_F( measurement_utilities_test, compute_stereo_length_horizontal )
   kv::vector_2d right_tail( 640, 360 );
 
   double length = viame::core::compute_stereo_length(
-    left_cam, right_cam, left_head, right_head, left_tail, right_tail );
+    *left_cam, *right_cam, left_head, right_head, left_tail, right_tail );
 
   // Should be approximately 0.1m
   EXPECT_NEAR( length, 0.1, 0.01 );
@@ -284,7 +286,7 @@ TEST_F( measurement_utilities_test, compute_stereo_length_vertical )
   kv::vector_2d right_tail( 540, 460 );
 
   double length = viame::core::compute_stereo_length(
-    left_cam, right_cam, left_head, right_head, left_tail, right_tail );
+    *left_cam, *right_cam, left_head, right_head, left_tail, right_tail );
 
   EXPECT_NEAR( length, 0.1, 0.01 );
 }
@@ -298,7 +300,7 @@ TEST_F( measurement_utilities_test, compute_stereo_length_diagonal )
   kv::vector_2d right_tail( 640, 460 );
 
   double length = viame::core::compute_stereo_length(
-    left_cam, right_cam, left_head, right_head, left_tail, right_tail );
+    *left_cam, *right_cam, left_head, right_head, left_tail, right_tail );
 
   double expected = std::sqrt( 0.1 * 0.1 + 0.1 * 0.1 );
   EXPECT_NEAR( length, expected, 0.02 );
@@ -310,12 +312,12 @@ TEST_F( measurement_utilities_test, compute_stereo_length_diagonal )
 
 TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_default )
 {
-  utilities.set_box_scale_factor( 1.0 );  // No scaling
+  utilities->set_box_scale_factor( 1.0 );  // No scaling
 
   kv::vector_2d head( 100, 200 );
   kv::vector_2d tail( 200, 300 );
 
-  kv::bounding_box_d bbox = utilities.compute_bbox_from_keypoints( head, tail );
+  kv::bounding_box_d bbox = utilities->compute_bbox_from_keypoints( head, tail );
 
   EXPECT_NEAR( bbox.min_x(), 100.0, 0.001 );
   EXPECT_NEAR( bbox.min_y(), 200.0, 0.001 );
@@ -325,7 +327,7 @@ TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_default )
 
 TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_with_scale )
 {
-  utilities.set_box_scale_factor( 1.2 );  // 20% expansion
+  utilities->set_box_scale_factor( 1.2 );  // 20% expansion
 
   kv::vector_2d head( 100, 200 );
   kv::vector_2d tail( 200, 300 );
@@ -333,7 +335,7 @@ TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_with_scale )
   // Original box: min(100,200) max(200,300), center(150, 250), size(100, 100)
   // Scaled: size(120, 120), center(150, 250)
   // New box: min(90, 190) max(210, 310)
-  kv::bounding_box_d bbox = utilities.compute_bbox_from_keypoints( head, tail );
+  kv::bounding_box_d bbox = utilities->compute_bbox_from_keypoints( head, tail );
 
   EXPECT_NEAR( bbox.min_x(), 90.0, 0.001 );
   EXPECT_NEAR( bbox.min_y(), 190.0, 0.001 );
@@ -343,13 +345,13 @@ TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_with_scale )
 
 TEST_F( measurement_utilities_test, compute_bbox_from_keypoints_reversed_order )
 {
-  utilities.set_box_scale_factor( 1.0 );
+  utilities->set_box_scale_factor( 1.0 );
 
   // Head and tail can be in any order
   kv::vector_2d head( 200, 300 );
   kv::vector_2d tail( 100, 200 );
 
-  kv::bounding_box_d bbox = utilities.compute_bbox_from_keypoints( head, tail );
+  kv::bounding_box_d bbox = utilities->compute_bbox_from_keypoints( head, tail );
 
   EXPECT_NEAR( bbox.min_x(), 100.0, 0.001 );
   EXPECT_NEAR( bbox.min_y(), 200.0, 0.001 );
@@ -370,8 +372,8 @@ TEST_F( measurement_utilities_test, find_stereo_correspondence_input_pairs_only 
   kv::vector_2d right_head( 80, 100 );
   kv::vector_2d right_tail( 180, 200 );
 
-  auto result = utilities.find_stereo_correspondence(
-    methods, left_cam, right_cam,
+  auto result = utilities->find_stereo_correspondence(
+    methods, *left_cam, *right_cam,
     left_head, left_tail, &right_head, &right_tail,
     nullptr, nullptr );
 
@@ -390,8 +392,8 @@ TEST_F( measurement_utilities_test, find_stereo_correspondence_input_pairs_only_
   kv::vector_2d left_head( 100, 100 );
   kv::vector_2d left_tail( 200, 200 );
 
-  auto result = utilities.find_stereo_correspondence(
-    methods, left_cam, right_cam,
+  auto result = utilities->find_stereo_correspondence(
+    methods, *left_cam, *right_cam,
     left_head, left_tail, nullptr, nullptr,
     nullptr, nullptr );
 
@@ -402,13 +404,13 @@ TEST_F( measurement_utilities_test, find_stereo_correspondence_input_pairs_only_
 TEST_F( measurement_utilities_test, find_stereo_correspondence_depth_projection )
 {
   std::vector< std::string > methods = { "depth_projection" };
-  utilities.set_default_depth( 1.0 );
+  utilities->set_default_depth( 1.0 );
 
   kv::vector_2d left_head( 640, 360 );
   kv::vector_2d left_tail( 740, 360 );
 
-  auto result = utilities.find_stereo_correspondence(
-    methods, left_cam, right_cam,
+  auto result = utilities->find_stereo_correspondence(
+    methods, *left_cam, *right_cam,
     left_head, left_tail, nullptr, nullptr,
     nullptr, nullptr );
 
@@ -425,15 +427,15 @@ TEST_F( measurement_utilities_test, find_stereo_correspondence_fallback )
 {
   // Test that methods are tried in order and fallback works
   std::vector< std::string > methods = { "input_pairs_only", "depth_projection" };
-  utilities.set_default_depth( 1.0 );
+  utilities->set_default_depth( 1.0 );
 
   kv::vector_2d left_head( 640, 360 );
   kv::vector_2d left_tail( 740, 360 );
 
   // No input pairs provided, so input_pairs_only fails
   // Should fall back to depth_projection
-  auto result = utilities.find_stereo_correspondence(
-    methods, left_cam, right_cam,
+  auto result = utilities->find_stereo_correspondence(
+    methods, *left_cam, *right_cam,
     left_head, left_tail, nullptr, nullptr,
     nullptr, nullptr );
 
@@ -454,12 +456,12 @@ TEST_F( measurement_utilities_test, configure_from_settings )
   settings.use_distortion = false;
   settings.box_scale_factor = 1.5;
 
-  utilities.configure( settings );
+  utilities->configure( settings );
 
   // Test that depth projection uses the configured depth
   kv::vector_2d left_point( 640, 360 );
-  kv::vector_2d right_point = utilities.project_left_to_right(
-    left_cam, right_cam, left_point );
+  kv::vector_2d right_point = utilities->project_left_to_right(
+    *left_cam, *right_cam, left_point );
 
   // disparity = 1000 * 0.1 / 3.0 = 33.33 pixels
   EXPECT_NEAR( right_point.x(), 640.0 - 33.33, 1.0 );
@@ -468,13 +470,13 @@ TEST_F( measurement_utilities_test, configure_from_settings )
 TEST_F( measurement_utilities_test, set_template_params_ensures_odd )
 {
   // Template size should be odd
-  utilities.set_template_params( 30, 100 );  // Even number
+  utilities->set_template_params( 30, 100 );  // Even number
 
   // Can't directly access private member, but we can test the effect
   // through configuration
   map_keypoints_to_camera_settings settings;
   settings.template_size = 30;
-  utilities.configure( settings );
+  utilities->configure( settings );
 
   // Template size internally should be 31 (odd)
   // This is tested implicitly through the template matching behavior
@@ -487,16 +489,16 @@ TEST_F( measurement_utilities_test, set_template_params_ensures_odd )
 TEST_F( measurement_utilities_test, set_frame_id_clears_cache )
 {
   // Set a frame ID
-  utilities.set_frame_id( 1 );
+  utilities->set_frame_id( 1 );
 
   // Setting a different frame ID should clear the cache
-  utilities.set_frame_id( 2 );
+  utilities->set_frame_id( 2 );
 
   // Setting the same frame ID should not clear the cache
-  utilities.set_frame_id( 2 );
+  utilities->set_frame_id( 2 );
 
   // Clear cache explicitly
-  utilities.clear_feature_cache();
+  utilities->clear_feature_cache();
 }
 
 // =============================================================================
