@@ -7,7 +7,7 @@ Tests for search_and_rapid_model_generation example scripts.
 """
 
 import pytest
-from conftest import get_script_path, assert_script_runs_successfully
+from test_utilities import get_script_path, assert_script_runs_successfully
 
 CATEGORY = "search_and_rapid_model_generation"
 

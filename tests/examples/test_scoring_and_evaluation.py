@@ -7,7 +7,7 @@ Tests for scoring_and_evaluation example scripts.
 """
 
 import pytest
-from conftest import get_script_path, assert_script_runs_successfully
+from test_utilities import get_script_path, assert_script_runs_successfully
 
 CATEGORY = "scoring_and_evaluation"
 
