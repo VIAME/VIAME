@@ -238,7 +238,13 @@ target_include_directories( viame_processes_core PRIVATE
 
 if( VIAME_ENABLE_PYTHON )
 
+  kwiver_create_python_init( core )
   kwiver_create_python_init( arrows/core )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils.py
+    core
+    utils )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_npy.py

@@ -23,7 +23,7 @@ import scriptconfig as scfg
 from kwiver.vital.algo import ComputeStereoDepthMap
 from kwiver.vital.types import Image, ImageContainer
 
-from str2bool import str2bool
+from viame.core.utils import str2bool
 
 from .utilities import vital_config_update
 
