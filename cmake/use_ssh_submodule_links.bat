@@ -45,9 +45,20 @@ for /d %%D in ("%PACKAGES_DIR%\*") do (
     if /i not "!DIRNAME!"=="downloads" if /i not "!DIRNAME!"=="patches" (
         call :process_repo "%%D"
 
-        REM Also check subdirectories for nested submodules
-        for /d %%S in ("%%D\*") do (
-            call :process_repo "%%S"
+        REM Skip subprojects within pytorch directory
+        if /i "!DIRNAME!"=="pytorch" (
+            REM pytorch itself is processed above, skip its children
+            echo   ^(Skipping pytorch subprojects^)
+        ) else (
+            REM Check subdirectories for nested submodules
+            for /d %%S in ("%%D\*") do (
+                call :process_repo "%%S"
+
+                REM Check one more level deep for nested submodules (e.g., pytorch-libs/*)
+                for /d %%T in ("%%S\*") do (
+                    call :process_repo "%%T"
+                )
+            )
         )
     )
 )

@@ -84,6 +84,7 @@ process_repo() {
 process_directory() {
     local dir="$1"
     local indent="$2"
+    local skip_children="$3"
 
     for item in "$dir"/*; do
         if [ -d "$item" ]; then
@@ -99,8 +100,18 @@ process_directory() {
                 process_repo "$item"
             fi
 
-            # Recurse into subdirectories to find nested submodules
-            process_directory "$item" "  $indent"
+            # Skip recursing into children if requested (e.g., pytorch subprojects)
+            if [ "$skip_children" == "true" ]; then
+                continue
+            fi
+
+            # Check if this is the pytorch directory - process it but skip its children
+            if [ "$name" == "pytorch" ]; then
+                process_directory "$item" "  $indent" "true"
+            else
+                # Recurse into subdirectories to find nested submodules
+                process_directory "$item" "  $indent" "false"
+            fi
         fi
     done
 }
@@ -114,7 +125,7 @@ if [ ! -d "$PACKAGES_DIR" ]; then
     exit 1
 fi
 
-process_directory "$PACKAGES_DIR" ""
+process_directory "$PACKAGES_DIR" "" "false"
 
 echo ""
 echo "Done!"
