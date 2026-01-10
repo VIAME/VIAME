@@ -369,8 +369,15 @@ def get_extensions():
         # MSVC internal compiler errors with complex variadic templates in
         # tensorview.h. These sparse ops use spconv's tensorview which triggers
         # ICE in MSVC when compiling template-heavy code.
+        # Must also exclude files that depend on these templates:
+        # - fused_spconv_ops uses sparse_reordering functors
+        # - spconv_ops uses sparse_indice functors
+        # - sparse_pool_ops uses sparse_maxpool functors
         if platform.system() == 'Windows':
-            sparse_patterns = ['sparse_maxpool', 'sparse_indice', 'sparse_reordering']
+            sparse_patterns = [
+                'sparse_maxpool', 'sparse_indice', 'sparse_reordering',
+                'fused_spconv_ops', 'spconv_ops', 'sparse_pool_ops'
+            ]
             original_count = len(op_files)
             op_files = [f for f in op_files if not any(p in f for p in sparse_patterns)]
             excluded_count = original_count - len(op_files)
