@@ -6,20 +6,17 @@ from __future__ import print_function
 
 from kwiver.vital.algo import RefineDetections
 
-from kwiver.vital.types import BoundingBoxD
 from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObject
 from kwiver.vital.types import DetectedObjectType
 
 from distutils.util import strtobool
 
-import numpy as np  # NOQA
-import ubelt as ub
+import numpy as np
 
 import math
 import cv2
 
-from .utilities import safe_crop
+from .utilities import safe_crop, vital_config_update
 
 
 class NetharnRefiner(RefineDetections):
@@ -77,7 +74,7 @@ class NetharnRefiner(RefineDetections):
         import torch
         from bioharn import clf_predict
         cfg = self.get_configuration()
-        _vital_config_update(cfg, cfg_in)
+        vital_config_update(cfg, cfg_in)
 
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
@@ -107,7 +104,7 @@ class NetharnRefiner(RefineDetections):
         pred_config['batch_size'] = self._kwiver_config['batch_size']
         pred_config['deployed'] = self._kwiver_config['deployed']
         pred_config['xpu'] = self._kwiver_config['xpu']
-        pred_config['input_dims'] = 'native' # (256, 256)
+        pred_config['input_dims'] = 'native'  # (256, 256)
 
         self.predictor = clf_predict.ClfPredictor(pred_config)
         self.predictor._ensure_model()
@@ -151,7 +148,7 @@ class NetharnRefiner(RefineDetections):
             if item.type is None:
                 continue
             class_lbl = item.type.get_most_likely_class()
-            if not class_lbl in self._target_type_scales:
+            if class_lbl not in self._target_type_scales:
                 continue
             box_width = item.bounding_box.width()
             box_height = item.bounding_box.height()
@@ -298,25 +295,6 @@ class NetharnRefiner(RefineDetections):
 
         return output
 
-
-def _vital_config_update(cfg, cfg_in):
-    """
-    Treat a vital Config object like a python dictionary
-
-    Args:
-        cfg (kwiver.vital.config.config.Config): config to update
-        cfg_in (dict | kwiver.vital.config.config.Config): new values
-    """
-    # vital cfg.merge_config doesnt support dictionary input
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError('cfg has no key={}'.format(key))
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
 
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory

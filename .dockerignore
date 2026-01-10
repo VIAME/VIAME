@@ -1,0 +1,2 @@
+# Ignore these files and directories from the docker build context
+docker

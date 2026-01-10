@@ -14,6 +14,8 @@ from PIL import Image as PILImage
 import numpy as np
 import math
 import delayed_image
+from ._utils import vital_config_update
+from ._util_kwimage import vital_to_kwimage_box
 
 from distutils.util import strtobool
 
@@ -100,7 +102,7 @@ class Sam2Refiner(RefineDetections):
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
-        _vital_config_update(cfg, cfg_in)
+        vital_config_update(cfg, cfg_in)
 
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
@@ -199,7 +201,7 @@ class Sam2Refiner(RefineDetections):
         for vital_det, binmask in zip(detections, masks[:, 0, :, :]):
 
             # Extract the new mask info relative to the vital box
-            box = vital_box_to_kwiamge(vital_det.bounding_box)
+            box = vital_to_kwimage_box(vital_det.bounding_box)
             sl = box.quantize().to_slice()
 
             delayed = delayed_image.DelayedIdentity(binmask)
@@ -273,26 +275,6 @@ class Sam2Refiner(RefineDetections):
             output.add(vital_det)
 
         return output
-
-
-def _vital_config_update(cfg, cfg_in):
-    """
-    Treat a vital Config object like a python dictionary
-
-    Args:
-        cfg (kwiver.vital.config.config.Config): config to update
-        cfg_in (dict | kwiver.vital.config.config.Config): new values
-    """
-    # vital cfg.merge_config doesnt support dictionary input
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError('cfg has no key={}'.format(key))
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
 
 
 def kwimage_boxes_to_vital(boxes):
@@ -555,14 +537,6 @@ def vital_detections_to_kwimage(vital_dets):
 
     dets = kwimage.Detections(**detkw)
     return dets
-
-
-def vital_box_to_kwiamge(vital_bbox):
-    import kwimage
-    bbox = vital_bbox
-    xyxy = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
-    kw_bbox = kwimage.Box.coerce(xyxy, format='ltrb')
-    return kw_bbox
 
 
 def vital_image_container_from_ndarray(ndarray_img):

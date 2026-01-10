@@ -14,6 +14,9 @@ from kwiver.vital.types import DetectedObjectType
 import numpy as np  # NOQA
 import ubelt as ub
 
+from ._utils import vital_config_update
+
+
 class NetharnClassifier(ImageObjectDetector):
     """
     Full-Frame Classifier
@@ -111,7 +114,7 @@ class NetharnClassifier(ImageObjectDetector):
         cfg = self.get_configuration()
 
         # HACK: merge config doesn't support dictionary input
-        _vital_config_update(cfg, cfg_in)
+        vital_config_update(cfg, cfg_in)
 
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
@@ -189,12 +192,12 @@ class NetharnClassifier(ImageObjectDetector):
     def netharn_to_kwiver(self, classification, w, h):
         """
         Convert kwarray classifications to kwiver deteted object sets
-    
+
         Args:
             classification (bioharn.clf_predict.Classification)
             w (int): width of image
             h (int): height of image
-    
+
         Returns:
             kwiver.vital.types.DetectedObjectSet
         """
@@ -216,26 +219,6 @@ class NetharnClassifier(ImageObjectDetector):
             bounding_box, classification.conf, detected_object_type)
         detected_objects.add(detected_object)
         return detected_objects
-
-
-def _vital_config_update(cfg, cfg_in):
-    """
-    Treat a vital Config object like a python dictionary
-
-    Args:
-        cfg (kwiver.vital.config.config.Config): config to update
-        cfg_in (dict | kwiver.vital.config.config.Config): new values
-    """
-    # vital cfg.merge_config doesnt support dictionary input
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError('cfg has no key={}'.format(key))
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
 
 
 def __vital_algorithm_register__():

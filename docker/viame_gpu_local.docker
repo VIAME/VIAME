@@ -1,4 +1,12 @@
 # syntax=docker/dockerfile:1.5.0
+##############################################################################
+# This Dockerfile defines an image suitable for development. It will build a
+# baseline VIAME system, but it will not clean up source and build artifacts.
+# This allows the developer to mount a local copy of the repo from their
+# hostmachine onto this image, and then point the internal repo at the mounted
+# directory containing the local host machine repo. This allows the developer
+# to quickly pull changes into a running and rebuild from a warm start.
+##############################################################################
 FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu22.04
 
 USER root
@@ -10,11 +18,12 @@ export DEBIAN_FRONTEND=noninteractive
 export TZ=Etc/UTC 
 apt-get update 
 apt-get install -y git 
-git clone --single-branch /host-viame /viame 
-cd /viame/cmake 
 
-#chmod +x build_server_docker_sam.sh 
-#./build_server_docker_sam.sh
+# Clone from the host machine to the new docker repo.
+git clone --single-branch --dissociate /host-viame /viame 
+
+
+cd /viame/cmake 
 
 # Fletch, VIAME, CMAKE system deps
 /viame/cmake/build_server_deps_apt.sh
@@ -25,6 +34,7 @@ cd /viame/cmake
 # Update VIAME sub git deps
 cd /viame/
 git submodule update --init --recursive
+
 mkdir -p /viame/build
 cd /viame/build
 
@@ -103,10 +113,8 @@ cp install/lib/libsvm.so.2 install/lib/libsvm.so
 # For local development keep the build directory for easier updates
 mkdir -p /opt/noaa
 ln -sf /viame/build/install /opt/noaa/viame
-#mv install viame
-#mv viame /opt/noaa
+
 cd /
-#rm -rf /viame
 chown -R 1099:1099 /opt/noaa/viame
 
 
@@ -117,14 +125,16 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
 RUN <<EOF
 # https://www.docker.com/blog/introduction-to-heredocs-in-dockerfiles/
-__doc__="
+__doc__='
 
 This is a variant of ``viame_gpu_sam.docker`` that builds using the local checkout
 
 Build Instructions
 ------------------
 
-This must be run from the VIAME REPO root, e.g.
+The build instructions are meant to be run from the root of the VIAME repo on
+your host machine. We will assume this is at ``$HOME/code/VIAME``. If this is
+not the case modify the instructions to use the correct location.
 
 .. code:: bash
 
@@ -138,7 +148,10 @@ Then run the docker build
         -t "viame:viame-gpu-local" \
         -f docker/viame_gpu_local.docker .
 
-Develop inside the new image with the local repo mounted as follows
+
+Now that the image has been built, we run it as a container, and mount the
+local copy of the repo on ``/host-viame`` in the new container. In order to run
+GPU algorithms it is important to increase the shared memory size.
 
 .. code:: bash
 
@@ -149,11 +162,39 @@ Develop inside the new image with the local repo mounted as follows
         bash
 
 
-Setup the enviornment:
+Now that we are in a bash shell running inside the container, we update the
+container's setup the container's copy of the repo to update itself to the
+state on the host repo. To do this we first need to mark the host repo as safe:
 
 .. code:: bash
 
-	git config --global --add safe.directory /host-viame/.git
+    git config --global --add safe.directory /host-viame
+    git config --global --add safe.directory /host-viame/.git
+
+Now, you can navigate to the container repo and fetch the state of the host:
+
+.. code:: bash
+
+    cd /viame
+    git fetch
+
+Make sure you checkout the branch you are intersted in. The following code will
+checkout whichever branch is current on the host.
+
+.. code:: bash
+
+    # hack, not sure why this step has errors, but removing and re-adding
+    # origin seems to fix it. todo: clean this up
+    git remote rm origin
+    git remote add origin /host-viame/.git
+    git fetch origin
+
+    BRANCH_NAME=$(bash -c "cd /host-viame/ && git branch --show-current")
+    echo "checking out BRANCH_NAME=$BRANCH_NAME"
+    git fetch origin "$BRANCH_NAME"
+    git checkout "$BRANCH_NAME" 
+
+    git submodule update --init --recursive
 
 This allows the developer to pull the local repo state into the container and
 build it for faster iteration time. For example.
@@ -170,7 +211,33 @@ In the installed directory test the algorithms using the KWIVER and VIAME CLI:
 .. code:: bash
 
     cd /opt/noaa/viame/
+    export PYTHONIOENCODING=utf-8
     source setup_viame.sh
+
+    # Test a Huggingface detector
+    cd /opt/noaa/viame/examples/object_detection
+    cp /opt/noaa/viame/configs/pipelines/detector_huggingface_zeroshot.pipe detector_huggingface_zeroshot.pipe
+
+    # Run the generic detector
+    kwiver runner detector_huggingface_zeroshot.pipe \
+                  -s input:video_filename=input_image_list_small_set.txt \
+                  -s detector_writer:file_name=generic_detections.json \
+                  -s detector_writer:writer:type=coco
+
+
+    # Use a specific prompt
+    kwiver runner detector_huggingface_zeroshot.pipe \
+                  -s input:video_filename=input_image_list_small_set.txt \
+                  -s detector1:detector:ocv_windowed:detector:huggingface_zeroshot_detector:classes="[fish,starfish,coral]" \
+                  -s detector_writer:file_name=prompted_detections.json \
+                  -s detector_writer:writer:type=coco  
+
+    # Copy data out of container for visualization
+    cp -r ../example_imagery/small_example_image_set1/ /host-viame/example-images
+    cp -r generic_detections.json /host-viame/example-images/generic_detections.json
+    cp -r prompted_detections.json /host-viame/example-images/prompted_detections.json
+
+    # ---
 
     # Train a MIT YOLO detector
     cd /opt/noaa/viame/examples/object_detector_training
@@ -212,5 +279,40 @@ develop on the mit_yolo_trainer run
 
     ln -sf /host-viame/plugins/pytorch/mit_yolo_trainer.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/mit_yolo_trainer.py
 
-"
+    # Or more generally, just symlink files you are working on
+    ln -sf /host-viame/plugins/pytorch/huggingface_zeroshot_detector.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/huggingface_zeroshot_detector.py
+    ln -sf /host-viame/plugins/pytorch/_util_kwimage.py /opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch/_util_kwimage.py
+
+    ln -sf /host-viame/configs/pipelines/detector_huggingface_zeroshot.pipe detector_huggingface_zeroshot.pipe
+
+
+Manual Build Instructions
+-------------------------
+
+Sometimes building the image does not go smoothly, and the build itself needs
+to be debugged. In this case, we can mount the base image and perform the build
+steps manually.
+
+
+.. code:: bash
+
+    docker run --gpus=all \
+        --shm-size=8g \
+        --volume "$HOME/code/VIAME:/host-viame" \
+        --name viame_gpu_local_manual_build_container \
+        -it nvidia/cuda:12.4.1-cudnn-devel-ubuntu20.04 \
+        bash
+
+In the new container, we need to run a few extra commands to set things up
+first
+
+.. code:: bash
+
+    apt-get update 
+    apt-get install -y git 
+    git config --global --add safe.directory /host-viame/.git
+
+Now, run through the commands in the dockerfile manually.
+
+'
 EOF

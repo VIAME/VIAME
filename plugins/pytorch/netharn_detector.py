@@ -156,7 +156,7 @@ class NetharnDetector(ImageObjectDetector):
         full_rgb = image_data.asarray().astype('uint8')
 
         if len(self._kwiver_config['input_string']) > 0:
-            dict_or_image = {self._kwiver_config['input_string']:full_rgb}
+            dict_or_image = {self._kwiver_config['input_string']: full_rgb}
         else:
             dict_or_image = full_rgb
 

@@ -32,6 +32,11 @@ kwiver_add_python_module(
   utilities )
 
 kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/_util_kwimage.py
+  arrows/pytorch
+  _util_kwimage )
+
+kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_train_detector.py
   arrows/pytorch
   kwcoco_train_detector )
@@ -58,6 +63,13 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     arrows/pytorch
     netharn_refiner )
 
+endif()
+
+if( VIAME_ENABLE_PYTORCH-HUGGINGFACE )
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/huggingface_zeroshot_detector.py
+    arrows/pytorch
+    huggingface_zeroshot_detector )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
