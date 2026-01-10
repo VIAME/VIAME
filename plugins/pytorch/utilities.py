@@ -420,6 +420,22 @@ def supervision_to_kwiver_detections(detections, class_names):
     return output
 
 
+def vital_to_kwimage_box(vital_bbox):
+    """
+    Convert a vital BoundingBox to a kwimage Box.
+
+    Args:
+        vital_bbox (kwiver.vital.types.BoundingBox): Vital bounding box
+
+    Returns:
+        kwimage.Box: Converted bounding box
+    """
+    import kwimage
+    xyxy = [vital_bbox.min_x(), vital_bbox.min_y(),
+            vital_bbox.max_x(), vital_bbox.max_y()]
+    return kwimage.Box.coerce(xyxy, format='ltrb')
+
+
 # =============================================================================
 # Base Classes for Detectors
 # =============================================================================
