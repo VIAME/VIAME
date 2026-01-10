@@ -15,7 +15,7 @@ import numpy as np
 import math
 import delayed_image
 from ._utils import vital_config_update
-from ._util_kwimage import vital_to_kwimage_box
+from .utilities import vital_to_kwimage_box
 
 from distutils.util import strtobool
 

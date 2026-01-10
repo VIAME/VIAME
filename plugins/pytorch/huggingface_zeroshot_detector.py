@@ -2,7 +2,7 @@ import scriptconfig as scfg
 import numpy as np
 
 from kwiver.vital.algo import ImageObjectDetector
-from ._util_kwimage import kwimage_to_kwiver_detections
+from .utilities import kwimage_to_kwiver_detections
 from ._utils import vital_config_update
 
 
@@ -36,8 +36,8 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
         >>> detected_objects = self.detect(image_data)
         >>> print(f'detected_objects = {ub.urepr(detected_objects, nl=1)}')
         >>> # Draw
-        >>> from viame.arrows.pytorch import _util_kwimage
-        >>> dets = _util_kwimage.kwiver_to_kwimage_detections(detected_objects)
+        >>> from viame.arrows.pytorch import utilities
+        >>> dets = utilities.kwiver_to_kwimage_detections(detected_objects)
         >>> canvas = dets.draw_on(image_data.asarray())
         >>> # xdoctest: +SKIP("only for interaction")
         >>> kwimage.imwrite('canvas.png', canvas)

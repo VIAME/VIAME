@@ -8,7 +8,7 @@ from kwiver.vital.algo import ImageObjectDetector
 import scriptconfig as scfg
 import ubelt as ub
 
-from ._util_kwimage import kwimage_to_kwiver_detections
+from .utilities import kwimage_to_kwiver_detections
 from ._utils import vital_config_update
 
 

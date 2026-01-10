@@ -60,7 +60,7 @@ class UltralyticsDetector(ImageObjectDetector):
         >>> import sys, ubelt
         >>> sys.path.append(ubelt.expandpath('~/code/VIAME/plugins/pytorch/'))
         >>> from ultralytics_detector import *  # NOQA
-        >>> from _util_kwimage import kwiver_to_kwimage_detections
+        >>> from .utilities import kwiver_to_kwimage_detections
         >>> import kwimage
         >>> #
         >>> weight = UltralyticsDetector.demo_weights()
