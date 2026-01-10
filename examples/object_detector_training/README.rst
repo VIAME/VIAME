@@ -95,7 +95,6 @@ the source. In the pre-built binaries they are all enabled by default.
 | VIAME_ENABLE_OPENCV set to ON
 | VIAME_ENABLE_PYTHON set to ON
 | VIAME_ENABLE_DARKNET set to ON (for yolo_v2 training)
-| VIAME_ENABLE_SCALLOP_TK set to ON (for scallop_tk training)
 
 
 ********************

@@ -159,8 +159,6 @@ And lastly, a number of flags which build algorithms with more specialized funct
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                                |
 +------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                              |
-+------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_SEAL            | Builds Seal Multi-Modality GUI                                                              |
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                                |
