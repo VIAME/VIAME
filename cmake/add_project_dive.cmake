@@ -133,6 +133,12 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   set( DIVE_CURRENT_HASH "" )
 
   if( EXISTS "${VIAME_PACKAGES_DIR}/dive/.git" )
+    # Add safe.directory to avoid "dubious ownership" errors in Docker/CI
+    execute_process(
+      COMMAND git config --global --add safe.directory "${VIAME_PACKAGES_DIR}/dive"
+      WORKING_DIRECTORY "${VIAME_PACKAGES_DIR}/dive"
+      ERROR_QUIET
+    )
     execute_process(
       COMMAND git rev-parse HEAD
       WORKING_DIRECTORY "${VIAME_PACKAGES_DIR}/dive"
