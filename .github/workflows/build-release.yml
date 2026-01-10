@@ -468,18 +468,32 @@ jobs:
           $cudnnArchive = "C:\temp\cudnn.zip"
           $cudnnUrl = "https://data.kitware.com/api/v1/file/694b27c937f3e31fb199e235/download"
           $expectedMD5 = "b448b131951f661e470e649c96a93ca1"
-          $maxRetries = 3
+          $maxRetries = 10
+          $retryWaitSeconds = 120  # 2 minutes between retries
+          $maxTotalMinutes = 60    # Stop after 1 hour total
 
           # Create temp directory
           New-Item -ItemType Directory -Force -Path "C:\temp"
 
           # Download cuDNN with retry logic and MD5 verification
           $downloadSuccess = $false
+          $startTime = Get-Date
           for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
-            Write-Host "Downloading cuDNN (attempt $attempt of $maxRetries)..."
+            # Check if we've exceeded the total time limit
+            $elapsed = (Get-Date) - $startTime
+            if ($elapsed.TotalMinutes -ge $maxTotalMinutes) {
+              Write-Host "Exceeded maximum total time of $maxTotalMinutes minutes"
+              break
+            }
+
+            $remainingMinutes = [math]::Round($maxTotalMinutes - $elapsed.TotalMinutes, 1)
+            Write-Host "Downloading cuDNN (attempt $attempt of $maxRetries, $remainingMinutes minutes remaining)..."
             try {
               if (Test-Path $cudnnArchive) { Remove-Item $cudnnArchive -Force }
-              Invoke-WebRequest -Uri $cudnnUrl -OutFile $cudnnArchive -TimeoutSec 1200
+
+              # Use WebClient for more reliable large file downloads with progress
+              $webClient = New-Object System.Net.WebClient
+              $webClient.DownloadFile($cudnnUrl, $cudnnArchive)
 
               # Check file size
               $fileInfo = Get-Item $cudnnArchive
@@ -495,20 +509,20 @@ jobs:
                 $downloadSuccess = $true
                 break
               } else {
-                Write-Host "MD5 hash mismatch, will retry..."
+                Write-Host "MD5 hash mismatch (likely incomplete download), will retry..."
               }
             } catch {
               Write-Host "Download failed: $_"
             }
 
             if ($attempt -lt $maxRetries) {
-              Write-Host "Waiting 10 seconds before retry..."
-              Start-Sleep -Seconds 10
+              Write-Host "Waiting $retryWaitSeconds seconds (2 minutes) before retry..."
+              Start-Sleep -Seconds $retryWaitSeconds
             }
           }
 
           if (-not $downloadSuccess) {
-            Write-Error "Failed to download cuDNN after $maxRetries attempts"
+            Write-Error "Failed to download cuDNN after $maxRetries attempts over $([math]::Round($elapsed.TotalMinutes, 1)) minutes"
             exit 1
           }
 
