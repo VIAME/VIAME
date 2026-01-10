@@ -49,8 +49,6 @@ endif()
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/frame_level_classification )
-install( DIRECTORY   training_data
-         DESTINATION examples/frame_level_classification )
 
 ###
 # Custom install of file to example images folder
