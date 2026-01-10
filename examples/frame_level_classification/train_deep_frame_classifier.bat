@@ -4,7 +4,7 @@ REM Path to VIAME installation
 SET VIAME_INSTALL=.\..\..
 
 REM Processing options
-SET INPUT_DIRECTORY=training_data
+SET INPUT_DIRECTORY=../examples/example_imagery/small_example_image_set1
 
 REM Disable warnings
 SET KWIMAGE_DISABLE_C_EXTENSIONS=1

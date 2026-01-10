@@ -4,7 +4,7 @@ REM Path to VIAME installation
 SET VIAME_INSTALL=.\..\..
 
 REM Processing options
-SET INPUT_DIRECTORY=training_data
+SET INPUT_DIRECTORY=../examples/example_imagery/small_example_image_set1
 
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"

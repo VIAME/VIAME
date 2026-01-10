@@ -4,7 +4,7 @@
 export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 # Core processing options
-export INPUT_DIRECTORY=training_data
+export INPUT_DIRECTORY=../examples/example_imagery/small_example_image_set1
 
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
