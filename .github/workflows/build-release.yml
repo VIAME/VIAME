@@ -51,6 +51,11 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/julia*
+          sudo rm -rf /opt/microsoft
+          sudo rm -rf /opt/az
           sudo docker image prune --all --force
           df -h
 
@@ -190,6 +195,11 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/julia*
+          sudo rm -rf /opt/microsoft
+          sudo rm -rf /opt/az
           sudo docker image prune --all --force
           df -h
 
@@ -221,6 +231,7 @@ jobs:
           # Copy and extract Stage 1 artifact
           echo "Extracting Stage 1 build artifact..."
           docker cp stage1-artifacts/stage1-build.tar.zst viame_build:/viame/
+          rm -rf stage1-artifacts  # Free host disk space
           docker exec viame_build yum install -y zstd
           docker exec viame_build bash -c "cd /viame && zstd -d stage1-build.tar.zst -c | tar -xf - && rm stage1-build.tar.zst"
 
@@ -317,6 +328,11 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/julia*
+          sudo rm -rf /opt/microsoft
+          sudo rm -rf /opt/az
           sudo docker image prune --all --force
           df -h
 
@@ -345,6 +361,7 @@ jobs:
           # Copy and extract Stage 2 artifact
           echo "Extracting Stage 2 build artifact..."
           docker cp stage2-artifacts/stage2-build.tar.zst viame_build:/viame/
+          rm -rf stage2-artifacts  # Free host disk space
           docker exec viame_build yum install -y zstd
           docker exec viame_build bash -c "cd /viame && zstd -d stage2-build.tar.zst -c | tar -xf - && rm stage2-build.tar.zst"
 
