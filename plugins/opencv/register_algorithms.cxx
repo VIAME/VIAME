@@ -26,6 +26,10 @@
 #include "windowed_refiner.h"
 #include "windowed_trainer.h"
 
+#ifdef VIAME_ENABLE_UW_PREDICTOR
+#include "classify_fish_hierarchical_svm.h"
+#endif
+
 namespace viame {
 
 extern "C"
@@ -55,6 +59,10 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< windowed_detector >();
   reg.register_algorithm< windowed_refiner >();
   reg.register_algorithm< windowed_trainer >();
+
+#ifdef VIAME_ENABLE_UW_PREDICTOR
+  reg.register_algorithm< classify_fish_hierarchical_svm >();
+#endif
 
   reg.mark_module_as_loaded();
 }

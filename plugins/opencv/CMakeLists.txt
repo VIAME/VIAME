@@ -1,12 +1,5 @@
 
 ###
-# Sub folder options
-##
-if( VIAME_ENABLE_UW_PREDICTOR )
-  add_subdirectory( uw_predictor )
-endif()
-
-###
 # Loadable algorithms
 ##
 
@@ -47,6 +40,12 @@ set( plugin_headers
   adaboost_classifier.h
   )
 
+if( VIAME_ENABLE_UW_PREDICTOR )
+  set( plugin_headers ${plugin_headers}
+    classify_fish_hierarchical_svm.h
+  )
+endif()
+
 set( plugin_sources
   apply_color_correction.cxx
   enhance_images.cxx
@@ -78,6 +77,12 @@ set( plugin_sources
   adaboost_classifier.cxx
   )
 
+if( VIAME_ENABLE_UW_PREDICTOR )
+  set( plugin_sources ${plugin_sources}
+    classify_fish_hierarchical_svm.cxx
+  )
+endif()
+
 kwiver_install_headers(
   SUBDIR     viame
   ${plugin_headers}
@@ -97,6 +102,11 @@ get_target_property( results viame_opencv COMPILE_DEFINITIONS )
 
 if( "${OpenCV_VERSION}" VERSION_LESS "3.0.0" )
   target_compile_definitions( viame_opencv PRIVATE -DVIAME_OPENCV_VER_2 )
+endif()
+
+if( VIAME_ENABLE_UW_PREDICTOR )
+  target_compile_definitions( viame_opencv PRIVATE -DVIAME_ENABLE_UW_PREDICTOR )
+  target_link_libraries( viame_opencv PUBLIC opencv_ml )
 endif()
 
 get_target_property( results viame_opencv COMPILE_DEFINITIONS )
