@@ -99,7 +99,7 @@ class NetharnDetector(ImageObjectDetector):
         # Imports used across this func
         import os
         import torch
-        from bioharn import detect_predict
+        from viame.arrows.pytorch.netharn.bio import detect_predict
 
         vital_config_update(cfg, cfg_in)
 

@@ -682,7 +682,7 @@ class NetHarnTrainer( TrainDetector ):
         cmd = [ "python.exe" if os.name == 'nt' else "python", "-m" ]
 
         if self._mode == "frame_classifier" or self._mode == "detection_refiner":
-            cmd += [ "bioharn.clf_fit",
+            cmd += [ "viame.arrows.pytorch.netharn.bio.clf_fit",
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
                      "--input_dims=" + self._chip_height + "," + self._chip_width,
@@ -690,7 +690,7 @@ class NetHarnTrainer( TrainDetector ):
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=16" )
         else:
-            cmd += [ "bioharn.detect_fit",
+            cmd += [ "viame.arrows.pytorch.netharn.bio.detect_fit",
                      "--nice=" + self._identifier,
                      "--arch=" + self._arch,
                      "--input_dims=window",

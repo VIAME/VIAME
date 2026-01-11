@@ -38,6 +38,8 @@ kwiver_add_python_module(
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
 
+  add_subdirectory( netharn )
+
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_classifier.py
     arrows/pytorch
