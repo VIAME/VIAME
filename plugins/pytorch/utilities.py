@@ -720,3 +720,192 @@ def register_vital_algorithm(algorithm_class, implementation_name, description):
         implementation_name, description, algorithm_class)
 
     algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+
+
+# =============================================================================
+# GPU List Utilities
+# =============================================================================
+
+def gpu_list_desc(use_for=None):
+    """
+    Generate a description for a GPU list config trait.
+
+    The optional use_for argument, if passed, causes text to be included
+    that says what task the GPU list will be used for.
+
+    Args:
+        use_for: Optional description of what the GPU list is used for
+
+    Returns:
+        str: Description string for the GPU list config trait
+    """
+    return ('define which GPUs to use{}: "all", "None", or a comma-separated list, e.g. "1,2"'
+            .format('' if use_for is None else ' for ' + use_for))
+
+
+def parse_gpu_list(gpu_list_str):
+    """
+    Parse a string representing a list of GPU indices.
+
+    The indices should be separated by commas. Two special values are understood:
+    - "None": produces an empty list
+    - "all": produces the value None (which has special meaning when picking a device)
+
+    Note that "None" is the only way to produce an empty list; an empty string won't work.
+
+    Args:
+        gpu_list_str: String like "all", "None", or "0,1,2"
+
+    Returns:
+        list or None: List of GPU indices, empty list for CPU, or None for all GPUs
+    """
+    return ([] if gpu_list_str == 'None' else
+            None if gpu_list_str == 'all' else
+            list(map(int, gpu_list_str.split(','))))
+
+
+def get_gpu_device(gpu_list=None):
+    """
+    Get a PyTorch device corresponding to one of the GPU indices listed.
+
+    If gpu_list is empty, get the device corresponding to the CPU instead.
+    If gpu_list is None (the default), enumerate the available GPU indices
+    and pick one as though the list had been passed directly, except that
+    in the case of there being no GPUs, an IndexError will be thrown.
+
+    Args:
+        gpu_list: List of GPU indices, empty for CPU, or None for all available GPUs
+
+    Returns:
+        tuple: (torch.device, bool) - The device and whether it's a GPU device
+
+    Note:
+        Currently returns the first listed device.
+    """
+    import torch
+
+    if gpu_list is None:
+        gpu_list = list(range(torch.cuda.device_count()))
+    elif not gpu_list:
+        return torch.device('cpu'), False
+    return torch.device('cuda:{}'.format(gpu_list[0])), True
+
+
+# =============================================================================
+# Grid Feature Utilities
+# =============================================================================
+
+class Grid(object):
+    """
+    Compute grid-based spatial features for bounding boxes.
+
+    A grid feature records which cells in the configured neighborhood
+    have at least one bounding box in them. This is useful for spatial
+    reasoning in tracking and detection tasks.
+    """
+
+    def __init__(self, grid_row=15, grid_cols=15, target_neighborhood_w=7):
+        """
+        Initialize the Grid.
+
+        Args:
+            grid_row: Number of rows in the grid
+            grid_cols: Number of columns in the grid
+            target_neighborhood_w: Width of the neighborhood window (should be odd)
+        """
+        self._grid_rows = grid_row
+        self._grid_cols = grid_cols
+        self._target_neighborhood_w = target_neighborhood_w
+        self._half_cell_w = int(self._target_neighborhood_w // 2)
+
+    def __call__(self, im_size, bbox_list, extra_bbox_list=None):
+        """
+        Compute grid features for all bounding boxes.
+
+        Args:
+            im_size: Tuple of (width, height) of the image
+            bbox_list: List of bounding boxes to compute features for
+            extra_bbox_list: Optional list of additional bboxes that fill grid
+                             cells but don't get features returned
+
+        Returns:
+            list: Grid feature tensors for each bbox in bbox_list
+        """
+        return self.obtain_grid_feature_list(im_size, bbox_list, extra_bbox_list)
+
+    def obtain_grid_feature_list(self, im_size, bbox_list, extra_bbox_list=None):
+        """
+        Compute grid features for all bounding boxes.
+
+        The output is a grid feature list for each corresponding bbox.
+        A grid feature records which cells in the configured neighborhood
+        have at least one bounding box in them.
+
+        extra_bbox_list, if provided, fills in grid cells but doesn't have
+        features returned for it in the output.
+
+        Args:
+            im_size: Tuple of (width, height) of the image
+            bbox_list: List of bounding boxes to compute features for
+            extra_bbox_list: Optional list of additional bboxes
+
+        Returns:
+            list: Grid feature tensors for each bbox in bbox_list
+        """
+        import itertools
+        import torch
+
+        img_w, img_h = im_size
+
+        # calculate grid cell height and width
+        cell_h = img_h / self._grid_rows
+        cell_w = img_w / self._grid_cols
+
+        # initial all gridcell to 0
+        grid = torch.FloatTensor(self._grid_rows, self._grid_cols).zero_()
+
+        bbox_id_centerIDX = []
+        all_bboxes = itertools.chain(bbox_list, extra_bbox_list or ())
+        # build the grid for current image
+        for i, bb in enumerate(all_bboxes):
+            x = int(bb.min_x())
+            y = int(bb.min_y())
+            w = int(bb.width())
+            h = int(bb.height())
+
+            # bbox center
+            c_w = min(x + w / 2, img_w - 1)
+            c_h = min(y + h / 2, img_h - 1)
+
+            # cell idxs
+            row_idx = int(c_h // cell_h)
+            col_idx = int(c_w // cell_w)
+
+            if i < len(bbox_list):
+                bbox_id_centerIDX.append((row_idx, col_idx))
+
+            # Assertion for corner cases
+            assert row_idx < grid.shape[0]
+            assert col_idx < grid.shape[1]
+            grid[row_idx, col_idx] = 1
+
+        grid_feature_list = []
+        # obtain grid feature for each bbox
+        for row_idx, col_idx in bbox_id_centerIDX:
+            # top left corner's the neighborhood grid
+            neighborhood_grid_top = row_idx - self._half_cell_w
+            neighborhood_grid_left = col_idx - self._half_cell_w
+
+            neighborhood_grid = torch.FloatTensor(self._target_neighborhood_w,
+                                            self._target_neighborhood_w).zero_()
+
+            for r in range(self._target_neighborhood_w):
+                for c in range(self._target_neighborhood_w):
+                    if (0 <= neighborhood_grid_top + r < grid.size(0)
+                        and 0 <= neighborhood_grid_left + c < grid.size(1)):
+                        neighborhood_grid[r, c] = grid[neighborhood_grid_top + r,
+                                                    neighborhood_grid_left + c]
+
+            grid_feature_list.append(neighborhood_grid.view(neighborhood_grid.numel()))
+
+        return grid_feature_list

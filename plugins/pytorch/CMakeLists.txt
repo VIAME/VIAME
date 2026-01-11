@@ -197,3 +197,31 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
       rf_detr_trainer )
 
 endif()
+
+# SRNN Tracker
+add_subdirectory( srnn )
+
+# Install utilities to sprokit/processes/pytorch for SRNN and descriptor processes
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/utilities.py
+  sprokit/processes/pytorch
+  utilities )
+
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/srnn_tracker.py
+  sprokit/processes/pytorch
+  srnn_tracker )
+
+if( VIAME_ENABLE_PYTORCH-VISION )
+  add_subdirectory( torchvision )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/torchvision_descriptors.py
+    sprokit/processes/pytorch
+    torchvision_descriptors )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/desc_augmentation_process.py
+    sprokit/processes/pytorch
+    desc_augmentation_process )
+endif()
