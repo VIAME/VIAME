@@ -26,13 +26,13 @@ from kwiver.vital.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType
 )
 
-from learn.algorithms.CutLER.CutLER_main.maskcut.crf import densecrf
-from learn.algorithms.CutLER.CutLER_main.maskcut.dino import ViTFeat
-from learn.algorithms.CutLER.CutLER_main.maskcut.maskcut import maskcut_forward, create_annotation_info, category_info, resize_binary_mask
+from viame.pytorch.learn.cutler.crf import densecrf
+from viame.pytorch.learn.cutler.dino import ViTFeat
+from viame.pytorch.learn.cutler.maskcut import maskcut_forward, create_annotation_info, category_info, resize_binary_mask
 
 # modfied by Xudong Wang based on third_party/TokenCut
-from learn.algorithms.CutLER.CutLER_main.third_party.TokenCut.unsupervised_saliency_detection import utils, metric
-from learn.algorithms.CutLER.CutLER_main.third_party.TokenCut.unsupervised_saliency_detection.object_discovery import detect_box
+from viame.pytorch.learn.tokencut.unsupervised_saliency_detection import utils, metric
+from viame.pytorch.learn.tokencut.unsupervised_saliency_detection.object_discovery import detect_box
 
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
