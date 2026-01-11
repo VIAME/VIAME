@@ -304,5 +304,10 @@ if( VIAME_ENABLE_PYTHON )
     processes/core
     bytetrack_tracker )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_trainer.py
+    arrows/core
+    bytetrack_trainer )
+
 endif()
 
