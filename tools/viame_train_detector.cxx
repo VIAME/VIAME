@@ -22,8 +22,8 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-#include <viame/utilities_file.h>
-#include <viame/utilities_training.h>
+#include "utilities_file.h"
+#include "utilities_training.h"
 
 #include <vector>
 #include <unordered_set>

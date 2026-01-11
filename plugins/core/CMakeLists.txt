@@ -114,6 +114,8 @@ set( CORE_LINK_LIBRARIES
   kwiver::vital_util
   kwiver::kwiversys
   kwiver::kwiver_algo_mvg
+  kwiver::sprokit_pipeline
+  kwiver::kwiver_adapter
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   )
