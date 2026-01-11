@@ -109,7 +109,7 @@ def upgrade_deployed_mmdet_model(config):
     import ndsampler
     from viame.pytorch import netharn as nh
     from ..detect_predict import setup_module_aliases
-    from .models import mm_models
+    from ..detection_models import mm_models
 
     # Set up module aliases for backwards compatibility with old models
     setup_module_aliases()

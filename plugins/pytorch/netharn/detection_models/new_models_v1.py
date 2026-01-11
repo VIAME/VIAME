@@ -53,12 +53,12 @@ else:
 import torch.nn as nn
 import torch
 
-from viame.pytorch.netharn.models.new_backbone import HRNet_V2
-from viame.pytorch.netharn.models.new_neck import HRFPN_V2
-from viame.pytorch.netharn.models.new_head import Shared2FCBBoxHead_V2
-from viame.pytorch.netharn.models.new_head import StandardRoIHead_V2
-from viame.pytorch.netharn.models.new_head import FCNMaskHead_V2
-from viame.pytorch.netharn.models.new_detector import MaskRCNN_V2
+from .new_backbone import HRNet_V2
+from .new_neck import HRFPN_V2
+from .new_head import Shared2FCBBoxHead_V2
+from .new_head import StandardRoIHead_V2
+from .new_head import FCNMaskHead_V2
+from .new_detector import MaskRCNN_V2
 
 import kwcoco
 from viame.pytorch import netharn as nh
@@ -66,13 +66,13 @@ from collections import OrderedDict
 import warnings  # NOQA
 from viame.pytorch.netharn.data import data_containers
 
-# from viame.pytorch.netharn.models.mm_models import MM_Detector
-from viame.pytorch.netharn.models.mm_models import MM_Coder
-from viame.pytorch.netharn.models.mm_models import _demo_batch
-from viame.pytorch.netharn.models.mm_models import _batch_to_mm_inputs
-from viame.pytorch.netharn.models.mm_models import _load_mmcv_weights
-from viame.pytorch.netharn.models.mm_models import _hack_numpy_gt_masks
-from viame.pytorch.netharn.models.mm_models import _ensure_unwrapped_and_mounted
+# from .mm_models import MM_Detector
+from .mm_models import MM_Coder
+from .mm_models import _demo_batch
+from .mm_models import _batch_to_mm_inputs
+from .mm_models import _load_mmcv_weights
+from .mm_models import _hack_numpy_gt_masks
+from .mm_models import _ensure_unwrapped_and_mounted
 
 
 def monkeypatch_build_norm_layer():
