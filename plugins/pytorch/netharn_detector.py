@@ -10,7 +10,7 @@ from kwiver.vital.algo import ImageObjectDetector
 
 logger = logging.getLogger(__name__)
 
-from .utilities import (
+from viame.pytorch.utilities import (
     vital_config_update,
     kwimage_to_kwiver_detections,
     register_vital_algorithm,

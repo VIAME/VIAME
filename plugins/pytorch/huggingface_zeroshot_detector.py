@@ -35,7 +35,7 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
         >>> detected_objects = self.detect(image_data)
         >>> print(f'detected_objects = {ub.urepr(detected_objects, nl=1)}')
         >>> # Draw
-        >>> from viame.arrows.pytorch import utilities
+        >>> from viame.pytorch import utilities
         >>> dets = utilities.kwiver_to_kwimage_detections(detected_objects)
         >>> canvas = dets.draw_on(image_data.asarray())
         >>> # xdoctest: +SKIP("only for interaction")
