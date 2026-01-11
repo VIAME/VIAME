@@ -8,14 +8,14 @@ from __future__ import absolute_import
 
 import itertools
 import sys
-from timeit import default_timer as timer
-
 import numpy as np
 import scipy as sp
 import scipy.optimize
-import torch
-from torchvision import models, transforms
 
+import torch
+
+from timeit import default_timer as timer
+from torchvision import models, transforms
 from PIL import Image as pilImage
 
 from kwiver.sprokit.pipeline import process
@@ -25,7 +25,6 @@ from kwiver.vital.types import Image
 from kwiver.vital.types import DetectedObject, DetectedObjectSet
 from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
 from kwiver.vital.types import new_descriptor
-
 from kwiver.vital.util.VitalPIL import get_pil_image
 
 from .utilities import Grid, gpu_list_desc, parse_gpu_list
