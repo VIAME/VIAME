@@ -309,5 +309,15 @@ if( VIAME_ENABLE_PYTHON )
     arrows/core
     bytetrack_trainer )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
+    processes/core
+    ocsort_tracker )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_trainer.py
+    arrows/core
+    ocsort_trainer )
+
 endif()
 

@@ -24,4 +24,16 @@ def __sprokit_register__():
         utility_processes.percentile_norm_npy_16_to_8bit
     )
 
+    try:
+        from viame.processes.core import bytetrack_tracker
+        bytetrack_tracker.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.processes.core import ocsort_tracker
+        ocsort_tracker.__sprokit_register__()
+    except ImportError:
+        pass
+
     process_factory.mark_process_module_as_loaded( module_name )

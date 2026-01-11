@@ -14,6 +14,18 @@ def __sprokit_register__():
     srnn_tracker.__sprokit_register__()
 
     try:
+        from viame.processes.pytorch import deepsort_tracker
+        deepsort_tracker.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.processes.pytorch import botsort_tracker
+        botsort_tracker.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
         from viame.processes.pytorch import siammask_tracker
         siammask_tracker.__sprokit_register__()
     except ImportError:

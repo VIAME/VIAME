@@ -64,6 +64,12 @@ class SiameseFeatureExtractor(object):
         print('Model loaded from {}'.format(siamese_model_path))
         self._siamese_model.train(False)
 
+        # Warmup pass to initialize cuDNN sublibrary
+        # (prevents CUDNN_STATUS_SUBLIBRARY_LOADING_FAILED in multi-threaded context)
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, 3, img_size, img_size).to(self._device)
+            self._siamese_model(dummy_input)
+
         self._transform = transforms.Compose([
             transforms.Resize(img_size),
             transforms.ToTensor(),
