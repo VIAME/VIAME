@@ -20,8 +20,8 @@ import ubelt as ub
 from collections import namedtuple
 
 
-from .remax.util.slconfig import SLConfig
-from .remax.model.dino import build_dino
+from viame.pytorch.remax.util.slconfig import SLConfig
+from viame.pytorch.remax.model.dino import build_dino
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
 

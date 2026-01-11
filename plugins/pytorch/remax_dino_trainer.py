@@ -22,13 +22,13 @@ from collections import namedtuple
 
 from kwiver.vital.algo import TrainDetector
 
-from .remax.util.slconfig import SLConfig
-from .remax.model.dino import build_dino
-from .remax.util.coco import build as build_dataset
+from viame.pytorch.remax.util.slconfig import SLConfig
+from viame.pytorch.remax.model.dino import build_dino
+from viame.pytorch.remax.util.coco import build as build_dataset
 
-from .remax.util.box_ops import box_xyxy_to_cxcywh
+from viame.pytorch.remax.util.box_ops import box_xyxy_to_cxcywh
 
-from .remax.ReMax import ReMax
+from viame.pytorch.remax.ReMax import ReMax
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
 

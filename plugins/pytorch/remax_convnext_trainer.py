@@ -21,9 +21,9 @@ from collections import namedtuple
 from distutils.util import strtobool
 from kwiver.vital.algo import TrainDetector
 
-from .remax.util.coco import CocoDetection
+from viame.pytorch.remax.util.coco import CocoDetection
 
-from .remax.ReMax import ReMax
+from viame.pytorch.remax.ReMax import ReMax
 
 try:
     import viame.pytorch.learn.mmdet.register_modules
