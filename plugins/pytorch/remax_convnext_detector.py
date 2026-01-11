@@ -22,7 +22,7 @@ import sys
 from collections import namedtuple
 
 try:
-    import learn.algorithms.MMDET.register_modules
+    import viame.pytorch.learn.mmdet.register_modules
     import torch
     import torch.nn.functional as F
     from mmdet.models.builder import LOSSES

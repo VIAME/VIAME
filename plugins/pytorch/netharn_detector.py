@@ -10,7 +10,7 @@ from kwiver.vital.algo import ImageObjectDetector
 
 logger = logging.getLogger(__name__)
 
-from .utilities import (
+from viame.pytorch.utilities import (
     vital_config_update,
     kwimage_to_kwiver_detections,
     register_vital_algorithm,
@@ -99,7 +99,7 @@ class NetharnDetector(ImageObjectDetector):
         # Imports used across this func
         import os
         import torch
-        from bioharn import detect_predict
+        from viame.pytorch.netharn import detect_predict
 
         vital_config_update(cfg, cfg_in)
 
@@ -156,7 +156,7 @@ class NetharnDetector(ImageObjectDetector):
         full_rgb = image_data.asarray().astype('uint8')
 
         if len(self._kwiver_config['input_string']) > 0:
-            dict_or_image = {self._kwiver_config['input_string']:full_rgb}
+            dict_or_image = {self._kwiver_config['input_string']: full_rgb}
         else:
             dict_or_image = full_rgb
 

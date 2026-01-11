@@ -4,6 +4,8 @@ set( plugin_headers
   add_timestamp_from_filename.h
   auto_detect_transform.h
   average_track_descriptors.h
+  camera_io.h
+  camera_rig_io.h
   convert_head_tail_points.h
   convert_notes_to_attributes.h
   convert_polygons_to_mask.h
@@ -34,6 +36,8 @@ set( plugin_sources
   add_timestamp_from_filename.cxx
   auto_detect_transform.cxx
   average_track_descriptors.cxx
+  camera_io.cxx
+  camera_rig_io.cxx
   convert_head_tail_points.cxx
   convert_notes_to_attributes.cxx
   convert_polygons_to_mask.cxx
@@ -78,6 +82,14 @@ kwiver_add_library( viame_core
 target_include_directories( viame_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
+# Add KWIVER internal include path for cereal headers used by camera_rig_io
+if( NOT KWIVER_SOURCE_DIR )
+  set( KWIVER_SOURCE_DIR "${VIAME_PACKAGES_DIR}/kwiver" )
+endif()
+target_include_directories( viame_core PRIVATE
+  ${KWIVER_SOURCE_DIR}/vital/internal
   )
 
 find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
@@ -126,6 +138,16 @@ if( VIAME_ENABLE_OPENCV )
        ${OpenCV_LIBRARIES}
        kwiver::kwiver_algo_ocv
        ${AUX_LINK_LIBRARIES} )
+endif()
+
+# ZLIB is used for reading NPZ files in camera_rig_io
+find_package( ZLIB )
+if( ZLIB_FOUND )
+  add_definitions( -DVIAME_ENABLE_ZLIB )
+  set( AUX_LINK_LIBRARIES
+       ${ZLIB_LIBRARIES}
+       ${AUX_LINK_LIBRARIES} )
+  include_directories( ${ZLIB_INCLUDE_DIRS} )
 endif()
 
 target_link_libraries( viame_core

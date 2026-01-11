@@ -6,7 +6,7 @@ import numpy as np
 
 from PIL import Image
 
-from viame.arrows.pytorch.mdnet.utils import *
+from viame.pytorch.mdnet.utils import *
 
 def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
 

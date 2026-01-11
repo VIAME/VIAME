@@ -7,9 +7,11 @@
  * \brief Stereo detection pairing process implementation
  */
 
-#include "pair_stereo_detections_process.h"
-#include "pair_stereo_detections.h"
-#include "measurement_utilities.h"
+#include <algorithm>
+#include <limits>
+#include <cmath>
+#include <map>
+#include <set>
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -24,7 +26,6 @@
 #include <vital/types/feature_set.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/match_set.h>
-#include <vital/io/camera_rig_io.h>
 
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
@@ -33,11 +34,10 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <algorithm>
-#include <limits>
-#include <cmath>
-#include <map>
-#include <set>
+#include "pair_stereo_detections_process.h"
+#include "pair_stereo_detections.h"
+#include "measurement_utilities.h"
+#include "camera_rig_io.h"
 
 namespace kv = kwiver::vital;
 
@@ -383,7 +383,7 @@ pair_stereo_detections_process
       throw std::runtime_error( "calibration_file is required when matching_method is 'calibration'" );
     }
 
-    d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
+    d->m_calibration = viame::read_stereo_rig( d->m_calibration_file );
 
     if( !d->m_calibration || !d->m_calibration->left() || !d->m_calibration->right() )
     {

@@ -339,7 +339,8 @@ if( VIAME_ENABLE_OPENCV )
     register_multimodal_unsync_ocv.pipe
     detector_calibration_target.pipe
     tracker_calibration_target.pipe
-    measurement_calibrate_cameras.pipe
+    measurement_calibrate_cameras_default.pipe
+    measurement_calibrate_cameras_fast.pipe
     measurement_compute_rectified_disparity.pipe
     measurement_detect_calibration_target.pipe
     measurement_track_fish_in_3d_from_rect_disp.pipe
@@ -381,6 +382,11 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_frame_classifier_netharn_resnet.continue.conf
     train_reclassifier_netharn_efficientnet.conf
     train_reclassifier_netharn_resnet.conf )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-HUGGINGFACE )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    detector_huggingface_zeroshot.pipe)
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )

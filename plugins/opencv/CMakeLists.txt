@@ -1,12 +1,5 @@
 
 ###
-# Sub folder options
-##
-if( VIAME_ENABLE_UW_PREDICTOR )
-  add_subdirectory( uw_predictor )
-endif()
-
-###
 # Loadable algorithms
 ##
 
@@ -45,6 +38,7 @@ set( plugin_headers
   hog_features.h
   canny_edge_detector.h
   adaboost_classifier.h
+  classify_fish_hierarchical_svm.h
   )
 
 set( plugin_sources
@@ -76,6 +70,7 @@ set( plugin_sources
   hog_features.cxx
   canny_edge_detector.cxx
   adaboost_classifier.cxx
+  classify_fish_hierarchical_svm.cxx
   )
 
 kwiver_install_headers(
@@ -111,6 +106,7 @@ target_link_libraries( viame_opencv
                        kwiver::kwiversys
                        kwiver::kwiver_algo_ocv
                        ${OpenCV_LIBRARIES}
+                       opencv_ml
                        viame_core
   )
 

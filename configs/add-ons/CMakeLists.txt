@@ -72,7 +72,7 @@ if( VIAME_DOWNLOAD_MODELS-IFREMER )
 
 endif()
 
-if( VIAME_ENABLE_LEARN )
+if( VIAME_ENABLE_PYTORCH-LEARN )
   if( NOT VIAME_ENABLE_PYTORCH )
     message( FATAL_ERROR "Learn models require pytorch" )
   endif()
@@ -139,6 +139,35 @@ if( VIAME_DOWNLOAD_MODELS-SEA-LION )
     https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download
     384158dba64b53bed5c6f800b3c6d869
     ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v2.11.zip )
+endif()
+
+if( VIAME_DOWNLOAD_MODELS-UW-CLFR )
+  # Install UW Fish Hierarchical SVM classifier models
+  set( UW_FISH_MODEL_FILES
+    uw-fish-classifier/Model_SVM.xml
+    uw-fish-classifier/speciesSVM_1.xml
+    uw-fish-classifier/speciesSVM_2.xml
+    uw-fish-classifier/speciesSVM_3.xml
+    uw-fish-classifier/speciesSVM_4.xml
+    uw-fish-classifier/speciesSVM_5.xml
+    uw-fish-classifier/speciesSVM_6.xml
+    uw-fish-classifier/speciesSVM_7.xml
+    uw-fish-classifier/speciesSVM_8.xml
+    uw-fish-classifier/speciesSVM_9.xml
+    uw-fish-classifier/speciesSVM_10.xml
+    uw-fish-classifier/speciesSVM_11.xml
+    uw-fish-classifier/speciesSVM_12.xml
+    uw-fish-classifier/speciesSVM_13.xml
+    uw-fish-classifier/speciesSVM_14.xml
+    uw-fish-classifier/speciesSVM_15.xml )
+
+  foreach( MODEL_FILE ${UW_FISH_MODEL_FILES} )
+    install( FILES ${MODEL_FILE}
+             DESTINATION configs/models/uw-fish-classifier )
+  endforeach()
+
+  set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
+    uw-fish-classifier/detector_matlab_camtrawl.pipe )
 endif()
 
 if( ADD_ON_PIPELINE_FILES )

@@ -79,19 +79,10 @@ if( VIAME_ENABLE_ONNX )
 endif()
 
 # For LEARN models
-if( VIAME_ENABLE_LEARN )
+if( VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "pyarrow" "filelock" )
-endif()
-
-if( ( WIN32 OR NOT VIAME_ENABLE_OPENCV ) AND
-      ( VIAME_ENABLE_OPENCV OR
-        VIAME_ENABLE_PYTORCH-MMDET OR
-        VIAME_ENABLE_PYTORCH-NETHARN ) )
-  if( WIN32 AND NOT VIAME_ENABLE_WIN32GUI )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python-headless" )
-  else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python" )
-  endif()
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "timm" "submitit" "scikit-learn" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "scipy" "termcolor" "addict" "yapf" )
 endif()
 
 if( VIAME_ENABLE_KEYPOINT )
@@ -110,6 +101,12 @@ if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-build" "async_generator" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "six" "scriptconfig" "parse" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "kwarray" "kwimage" "kwplot" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "torch_liberator" "liberator" )
+endif()
+
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
     VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" "ndsampler" "pygments" "kwutil" )
@@ -125,6 +122,10 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
   if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn>=0.13.2" )
   endif()
+endif()
+
+if( VIAME_ENABLE_PYTORCH-HUGGINGFACE )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "transformers>=4.49.0" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_PYTORCH_FROM_SOURCE )

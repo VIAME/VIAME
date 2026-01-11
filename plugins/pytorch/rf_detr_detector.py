@@ -9,7 +9,7 @@ from kwiver.vital.algo import ImageObjectDetector
 import scriptconfig as scfg
 import ubelt as ub
 
-from .utilities import (
+from viame.pytorch.utilities import (
     resolve_device_str,
     vital_config_update,
     supervision_to_kwiver_detections,

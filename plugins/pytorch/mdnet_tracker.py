@@ -12,12 +12,12 @@ import torch.optim as optim
 from torch.autograd import Variable
 from random import randint
 
-from viame.arrows.pytorch.mdnet.sample_generator import *
-from viame.arrows.pytorch.mdnet.data_prov import *
-from viame.arrows.pytorch.mdnet.model import *
-from viame.arrows.pytorch.mdnet.bbreg import *
-from viame.arrows.pytorch.mdnet.options import *
-from viame.arrows.pytorch.mdnet.img_cropper import *
+from viame.pytorch.mdnet.sample_generator import *
+from viame.pytorch.mdnet.data_prov import *
+from viame.pytorch.mdnet.model import *
+from viame.pytorch.mdnet.bbreg import *
+from viame.pytorch.mdnet.options import *
+from viame.pytorch.mdnet.img_cropper import *
 
 from roi_align import RoIAlignAvg
 from roi_align import RoIAlignMax

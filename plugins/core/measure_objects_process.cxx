@@ -7,8 +7,10 @@
  * \brief Stereo measurement process implementation
  */
 
-#include "measure_objects_process.h"
-#include "measurement_utilities.h"
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -20,14 +22,12 @@
 #include <vital/types/bounding_box.h>
 #include <vital/types/track.h>
 #include <vital/util/string.h>
-#include <vital/io/camera_rig_io.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <string>
-#include <vector>
-#include <map>
-#include <set>
+#include "measure_objects_process.h"
+#include "measurement_utilities.h"
+#include "camera_rig_io.h"
 
 namespace kv = kwiver::vital;
 
@@ -172,7 +172,7 @@ measure_objects_process
     throw std::runtime_error( "Calibration file not specified" );
   }
 
-  d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
+  d->m_calibration = viame::read_stereo_rig( d->m_calibration_file );
 
   if( !d->m_calibration || !d->m_calibration->left() || !d->m_calibration->right() )
   {

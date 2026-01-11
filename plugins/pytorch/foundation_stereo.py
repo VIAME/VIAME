@@ -25,7 +25,7 @@ from kwiver.vital.types import Image, ImageContainer
 
 from viame.core.utils import str2bool
 
-from .utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update
 
 
 class FoundationStereoConfig(scfg.DataConfig):

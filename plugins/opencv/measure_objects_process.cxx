@@ -7,8 +7,10 @@
  * \brief Stereo measurement process implementation
  */
 
-#include "measure_objects_process.h"
-#include "add_keypoints_from_mask.h"
+#include <fstream>
+#include <algorithm>
+#include <limits>
+#include <cmath>
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -17,7 +19,6 @@
 #include <vital/types/object_track_set.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/camera_perspective.h>
-#include <vital/io/camera_rig_io.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
@@ -34,10 +35,10 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <fstream>
-#include <algorithm>
-#include <limits>
-#include <cmath>
+#include "camera_rig_io.h"
+
+#include "measure_objects_process.h"
+#include "add_keypoints_from_mask.h"
 
 namespace kv = kwiver::vital;
 
@@ -464,7 +465,7 @@ measure_objects_process
     throw std::runtime_error( "Must specify a valid camera calibration file" );
   }
 
-  d->m_calibration = kv::read_stereo_rig( d->m_calibration_file );
+  d->m_calibration = viame::read_stereo_rig( d->m_calibration_file );
 
   if( !d->m_calibration )
   {

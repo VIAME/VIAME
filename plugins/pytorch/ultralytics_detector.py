@@ -8,7 +8,7 @@ from kwiver.vital.algo import ImageObjectDetector
 
 import scriptconfig as scfg
 
-from .utilities import (
+from viame.pytorch.utilities import (
     resolve_device,
     vital_config_update,
     kwimage_to_kwiver_detections,
@@ -60,7 +60,7 @@ class UltralyticsDetector(ImageObjectDetector):
         >>> import sys, ubelt
         >>> sys.path.append(ubelt.expandpath('~/code/VIAME/plugins/pytorch/'))
         >>> from ultralytics_detector import *  # NOQA
-        >>> from ultralytics_detector import _kwiver_to_kwimage_detections
+        >>> from viame.pytorch.utilities import kwiver_to_kwimage_detections
         >>> import kwimage
         >>> #
         >>> weight = UltralyticsDetector.demo_weights()
@@ -73,7 +73,7 @@ class UltralyticsDetector(ImageObjectDetector):
         >>> )
         >>> self.set_configuration(cfg_in)
         >>> detected_objects = self.detect(image_data)
-        >>> dets = _kwiver_to_kwimage_detections(detected_objects)
+        >>> dets = kwiver_to_kwimage_detections(detected_objects)
         >>> print(f'dets = {ub.urepr(dets, nl=1)}')
         >>> # xdoctest: +REQUIRES(--show)
         >>> import kwplot

@@ -11,10 +11,10 @@ from PIL import Image
 import torch
 import torch.utils.data as data
 
-from viame.arrows.pytorch.mdnet.utils import *
-from viame.arrows.pytorch.mdnet.sample_generator import *
-from viame.arrows.pytorch.mdnet.pretrain_options import *
-from viame.arrows.pytorch.mdnet.img_cropper import *
+from viame.pytorch.mdnet.utils import *
+from viame.pytorch.mdnet.sample_generator import *
+from viame.pytorch.mdnet.pretrain_options import *
+from viame.pytorch.mdnet.img_cropper import *
 
 class RegionDataset(data.Dataset):
     def __init__(self, img_dir, img_list, gt, receptive_field, opts):

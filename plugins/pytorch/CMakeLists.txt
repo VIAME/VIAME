@@ -2,7 +2,29 @@
 kwiver_create_python_init( arrows/pytorch )
 kwiver_create_python_init( pytorch )
 
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/utilities.py
+  pytorch
+  utilities )
+
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_train_detector.py
+  arrows/pytorch
+  kwcoco_train_detector )
+
+if( VIAME_ENABLE_PYTORCH-LEARN )
+  add_subdirectory( learn )
+endif()
+
+add_subdirectory( srnn )
+
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/srnn_tracker.py
+  processes/pytorch
+  srnn_tracker )
+
 if( VIAME_ENABLE_PYTORCH-MMDET )
+
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_compatibility.py
     arrows/pytorch
@@ -25,18 +47,9 @@ if( VIAME_ENABLE_PYTORCH-MMDET )
 
 endif()
 
-# Common Utilities
-kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/utilities.py
-  arrows/pytorch
-  utilities )
-
-kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_train_detector.py
-  arrows/pytorch
-  kwcoco_train_detector )
-
 if( VIAME_ENABLE_PYTORCH-NETHARN )
+
+  add_subdirectory( netharn )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_classifier.py
@@ -60,7 +73,17 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 
 endif()
 
+if( VIAME_ENABLE_PYTORCH-HUGGINGFACE )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/huggingface_zeroshot_detector.py
+    arrows/pytorch
+    huggingface_zeroshot_detector )
+
+endif()
+
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
+
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/mit_yolo_trainer.py
     arrows/pytorch
@@ -70,9 +93,11 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
     ${CMAKE_CURRENT_SOURCE_DIR}/mit_yolo_detector.py
     arrows/pytorch
     mit_yolo_detector )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_detector.py
     arrows/pytorch
@@ -82,6 +107,7 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
     ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_trainer.py
     arrows/pytorch
     ultralytics_trainer )
+
 endif()
 
 if( VIAME_ENABLE_ONNX AND ( VIAME_ENABLE_DARKNET OR VIAME_ENABLE_PYTORCH-MMDET ) )
@@ -132,10 +158,19 @@ if( VIAME_ENABLE_PYTORCH-SIAMMASK )
 
 endif()
 
-if( VIAME_ENABLE_LEARN )
+if( VIAME_ENABLE_PYTORCH-LEARN )
 
-  add_subdirectory( cutler )
   add_subdirectory( remax )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/maskcut_detector.py
+    arrows/pytorch
+    maskcut_detector )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cutler_trainer.py
+    arrows/pytorch
+    cutler_trainer )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/remax_convnext_detector.py
@@ -148,14 +183,14 @@ if( VIAME_ENABLE_LEARN )
     remax_convnext_trainer )
 
   kwiver_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_detector.py
-      arrows/pytorch
-      remax_dino_detector )
+    ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_detector.py
+    arrows/pytorch
+    remax_dino_detector )
 
   kwiver_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_trainer.py
-      arrows/pytorch
-      remax_dino_trainer )
+    ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_trainer.py
+    arrows/pytorch
+    remax_dino_trainer )
 
 endif()
 
@@ -189,4 +224,18 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
       arrows/pytorch
       rf_detr_trainer )
 
+endif()
+
+if( VIAME_ENABLE_PYTORCH-VISION )
+  add_subdirectory( torchvision )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/torchvision_descriptors.py
+    arrows/pytorch
+    torchvision_descriptors )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/desc_augmentation_process.py
+    processes/pytorch
+    desc_augmentation_process )
 endif()

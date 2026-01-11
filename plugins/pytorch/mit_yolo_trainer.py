@@ -22,7 +22,7 @@ import time
 
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
-from .utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update
 
 import scriptconfig as scfg
 import ubelt as ub

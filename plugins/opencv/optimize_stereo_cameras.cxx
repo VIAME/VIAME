@@ -7,22 +7,19 @@
 * \brief Header defining Opencv algorithm implementation of camera optimization to optimize stereo setup.
 */
 
-#include "optimize_stereo_cameras.h"
-#include "calibrate_stereo_cameras.h"
-#include "filter_stereo_feature_tracks.h"
+#include <cmath>
+#include <numeric>
 
 #include <vital/types/object_track_set.h>
 #include <vital/types/camera_perspective_map.h>
 #include <vital/types/camera_intrinsics.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/types/landmark_map.h>
-#include <vital/io/camera_io.h>
-#include <arrows/ocv/camera_intrinsics.h>
-
 #include <vital/range/iota.h>
-
 #include <vital/exceptions.h>
 #include <vital/vital_config.h>
+
+#include <arrows/ocv/camera_intrinsics.h>
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
@@ -30,8 +27,11 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include <cmath>
-#include <numeric>
+#include "camera_io.h"
+
+#include "optimize_stereo_cameras.h"
+#include "calibrate_stereo_cameras.h"
+#include "filter_stereo_feature_tracks.h"
 
 namespace kv = kwiver::vital;
 

@@ -16,7 +16,7 @@ from .kwcoco_train_detector import KWCocoTrainDetectorConfig
 import scriptconfig as scfg
 import ubelt as ub
 
-from .utilities import (
+from viame.pytorch.utilities import (
     vital_config_update,
     resolve_device_str,
     parse_bool,

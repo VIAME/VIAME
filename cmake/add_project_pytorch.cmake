@@ -51,10 +51,6 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} roi-align )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-NETHARN )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} netharn bioharn )
-endif()
-
 if( VIAME_ENABLE_PYTORCH-DETECTRON )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} detectron2 )
 endif()
@@ -119,7 +115,7 @@ if( VIAME_BUILD_TORCHVISION_FROM_SOURCE AND NOT WIN32 )
   list( APPEND PYTORCH_ENV_VARS "TORCHVISION_USE_PNG=0" )
 endif()
 
-if( WIN32 AND VIAME_ENABLE_LEARN AND Python_VERSION VERSION_GREATER "3.7" )
+if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN AND Python_VERSION VERSION_GREATER "3.7" )
   list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
 endif()
 
@@ -208,10 +204,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/pytorch
       ${VIAME_PACKAGES_DIR}/pytorch )
-  elseif( "${LIB}" STREQUAL "bioharn" )
-    set( PROJECT_DEPS netharn )
-  elseif( "${LIB}" STREQUAL "netharn" )
-    set( PROJECT_DEPS mmdetection )
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
   elseif( "${LIB}" STREQUAL "torchvision" )
@@ -221,9 +213,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
     endif()
   elseif( "${LIB}" STREQUAL "detectron2" )
-    if( VIAME_ENABLE_PYTORCH-NETHARN )
-      set( PROJECT_DEPS ${PROJECT_DEPS} bioharn )
-    endif()
     if( WIN32 )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/detectron2
