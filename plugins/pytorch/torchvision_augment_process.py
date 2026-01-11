@@ -266,7 +266,7 @@ class DataAugmentation(KwiverProcess):
 def __sprokit_register__():
     from kwiver.sprokit.pipeline import process_factory
 
-    module_name = 'python:kwiver.pytorch.desc_augmentation_process'
+    module_name = 'python:kwiver.pytorch.torchvision_augment_process'
 
     if process_factory.is_process_module_loaded(module_name):
         return

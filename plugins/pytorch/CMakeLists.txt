@@ -263,7 +263,7 @@ if( VIAME_ENABLE_PYTORCH-VISION )
     torchvision_descriptors )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/desc_augmentation_process.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/torchvision_augment_process.py
     processes/pytorch
-    desc_augmentation_process )
+    torchvision_augment_process )
 endif()
