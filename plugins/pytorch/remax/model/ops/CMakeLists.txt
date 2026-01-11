@@ -19,4 +19,3 @@ kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/functions/ms_deform_attn_func.py
     pytorch/remax/model/ops/functions
     ms_deform_attn_func)
-                  
