@@ -2,10 +2,6 @@
 #
 # This directory contains the merged netharn and bioharn packages for
 # VIAME's PyTorch-based training and detection functionality.
-#
-# Structure:
-#   core/ - netharn core training framework
-#   bio/  - bioharn detection/classification modules
 
 # Helper function to recursively add all Python modules in a directory
 function(add_python_modules_recursive base_path install_prefix)
@@ -32,13 +28,8 @@ function(add_python_modules_recursive base_path install_prefix)
   endforeach()
 endfunction()
 
-# Create init files for package structure
+# Create init file for netharn package
 kwiver_create_python_init( arrows/pytorch/netharn )
-kwiver_create_python_init( arrows/pytorch/netharn/core )
-kwiver_create_python_init( arrows/pytorch/netharn/bio )
 
-# Add all Python modules from core/ (netharn)
-add_python_modules_recursive( "core" "arrows/pytorch/netharn/core" )
-
-# Add all Python modules from bio/ (bioharn)
-add_python_modules_recursive( "bio" "arrows/pytorch/netharn/bio" )
+# Add all Python modules from netharn directory
+add_python_modules_recursive( "." "arrows/pytorch/netharn" )
