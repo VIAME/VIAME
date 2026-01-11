@@ -82,6 +82,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "pyarrow" "filelock" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "timm" "submitit" "scikit-learn" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "scipy" "termcolor" "addict" "yapf" )
 endif()
 
 if( VIAME_ENABLE_KEYPOINT )
