@@ -72,7 +72,7 @@ if( VIAME_DOWNLOAD_MODELS-IFREMER )
 
 endif()
 
-if( VIAME_ENABLE_LEARN )
+if( VIAME_ENABLE_PYTORCH-LEARN )
   if( NOT VIAME_ENABLE_PYTORCH )
     message( FATAL_ERROR "Learn models require pytorch" )
   endif()

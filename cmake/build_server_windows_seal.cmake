@@ -33,7 +33,7 @@ add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm1")
 
 # Seal-specific overrides
 add_option("VIAME_ENABLE_DARKNET" "OFF")
-add_option("VIAME_ENABLE_LEARN" "OFF")
+add_option("VIAME_ENABLE_PYTORCH-LEARN" "OFF")
 add_option("VIAME_ENABLE_ONNX" "OFF")
 add_option("VIAME_ENABLE_PYTORCH-SIAMMASK" "OFF")
 add_option("VIAME_ENABLE_PYTORCH-ULTRALYTICS:BOOL" "ON")

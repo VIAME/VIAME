@@ -207,7 +207,7 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                   |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                         |
 | VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                    |
-| VIAME_ENABLE_LEARN           | Builds additional methods for low-shot learning                                |
+| VIAME_ENABLE_PYTORCH-LEARN           | Builds additional methods for low-shot learning                                |
 | VIAME_ENABLE_SEAL            | Builds Seal multi-modality GUI                                                 |
 | VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                   |
 

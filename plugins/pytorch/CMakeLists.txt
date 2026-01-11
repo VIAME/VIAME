@@ -12,6 +12,10 @@ kwiver_add_python_module(
   arrows/pytorch
   kwcoco_train_detector )
 
+if( VIAME_ENABLE_PYTORCH-LEARN )
+  add_subdirectory( learn )
+endif()
+
 add_subdirectory( srnn )
 
 kwiver_add_python_module(
@@ -154,7 +158,7 @@ if( VIAME_ENABLE_PYTORCH-SIAMMASK )
 
 endif()
 
-if( VIAME_ENABLE_LEARN )
+if( VIAME_ENABLE_PYTORCH-LEARN )
 
   add_subdirectory( remax )
 

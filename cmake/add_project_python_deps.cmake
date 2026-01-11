@@ -79,7 +79,7 @@ if( VIAME_ENABLE_ONNX )
 endif()
 
 # For LEARN models
-if( VIAME_ENABLE_LEARN )
+if( VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "pyarrow" "filelock" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "timm" "submitit" "scikit-learn" )
 endif()

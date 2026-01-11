@@ -5,7 +5,7 @@
 
 # Web-specific settings
 set(VIAME_ENABLE_WEB_EXCLUDES ON CACHE BOOL "Exclude desktop-only components")
-set(VIAME_ENABLE_LEARN ON CACHE BOOL "Enable learning/training")
+set(VIAME_ENABLE_PYTORCH-LEARN ON CACHE BOOL "Enable learning/training")
 set(VIAME_ENABLE_KWANT ON CACHE BOOL "Enable KWANT")
 set(VIAME_ENABLE_ONNX ON CACHE BOOL "Enable ONNX")
 

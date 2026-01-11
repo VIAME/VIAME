@@ -113,12 +113,12 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 ##
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
-option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
+option( VIAME_ENABLE_PYTORCH-LEARN          "Enable LEARN plugins"          OFF )
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
-mark_as_advanced( VIAME_ENABLE_LEARN )
+mark_as_advanced( VIAME_ENABLE_PYTORCH-LEARN )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
 mark_as_advanced( VIAME_ENABLE_SVM )
 
@@ -372,7 +372,7 @@ if( VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR VIAME_ENABLE_SEAL )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"  FORCE )
 endif()
 
-if( VIAME_ENABLE_LEARN )
+if( VIAME_ENABLE_PYTORCH-LEARN )
   set( VIAME_ENABLE_PYTORCH-DETECTRON  ON CACHE BOOL "Detectron required for project" FORCE )
   set( VIAME_ENABLE_PYTORCH-VIDEO      ON CACHE BOOL "Torch Video required for project" FORCE )
 endif()
@@ -393,7 +393,7 @@ if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
   message( FATAL_ERROR "Building core VIAME plugins require KWIVER" )
 endif()
 
-if( VIAME_ENABLE_LEARN AND NOT VIAME_ENABLE_CUDA )
+if( VIAME_ENABLE_PYTORCH-LEARN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "CUDA required for LEARN project currently" )
 endif()
 
@@ -919,9 +919,7 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_pytorch )
   endif()
 
-  if( VIAME_ENABLE_LEARN )
-    include( add_project_learn )
-  endif()
+
 
   if( VIAME_ENABLE_TENSORFLOW )
     include( add_project_tensorflow )
