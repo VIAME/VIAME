@@ -167,8 +167,6 @@ And lastly, a number of flags which build algorithms with more specialized funct
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                      |
 +------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_LANL            | Builds an additional (Matlab) scallop detector                                              |
-+------------------------------+---------------------------------------------------------------------------------------------+
 
 VIAME can be built either in the source directory tree or in a seperate build
 directory (recommended). Replace "[build-directory]" with your location of choice,
