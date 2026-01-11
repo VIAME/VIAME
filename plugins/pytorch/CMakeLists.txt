@@ -23,6 +23,11 @@ kwiver_add_python_module(
   processes/pytorch
   srnn_tracker )
 
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+  processes/pytorch
+  __init__ )
+
 if( VIAME_ENABLE_PYTORCH-MMDET )
 
   kwiver_add_python_module(
@@ -113,11 +118,6 @@ endif()
 if( VIAME_ENABLE_ONNX AND ( VIAME_ENABLE_DARKNET OR VIAME_ENABLE_PYTORCH-MMDET ) )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    processes/pytorch
-    __init__ )
-
-  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_onnx_process.py
     processes/pytorch
     convert_to_onnx_process )
@@ -148,8 +148,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-SIAMMASK )
 
   add_subdirectory( siammask )
-
-  kwiver_create_python_init( processes/pytorch )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/siammask_tracker.py

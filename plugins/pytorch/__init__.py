@@ -10,19 +10,35 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded( module_name ):
         return
 
-    from viame.processes.pytorch import convert_to_onnx_process
-    from viame.processes.pytorch import foundation_stereo_process
+    from viame.processes.pytorch import srnn_tracker
+    srnn_tracker.__sprokit_register__()
 
-    process_factory.add_process(
-        'convert_to_onnx',
-        'Convert a yolo/cfrcnn model to onnx',
-        convert_to_onnx_process.OnnxConverter
-    )
+    try:
+        from viame.processes.pytorch import siammask_tracker
+        siammask_tracker.__sprokit_register__()
+    except ImportError:
+        pass
 
-    process_factory.add_process(
-        'foundation_stereo',
-        'Stereo disparity estimation using NVIDIA Foundation-Stereo model',
-        foundation_stereo_process.FoundationStereoProcess
-    )
+    try:
+        from viame.processes.pytorch import mdnet_tracker_process
+        mdnet_tracker_process.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.processes.pytorch import desc_augmentation_process
+        desc_augmentation_process.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.processes.pytorch import convert_to_onnx_process
+        process_factory.add_process(
+            'convert_to_onnx',
+            'Convert a yolo/cfrcnn model to onnx',
+            convert_to_onnx_process.OnnxConverter
+        )
+    except ImportError:
+        pass
 
     process_factory.mark_process_module_as_loaded( module_name )
