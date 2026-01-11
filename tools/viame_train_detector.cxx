@@ -15,9 +15,12 @@
 #include <vital/util/wrap_text_block.h>
 #include <vital/algo/algorithm_factory.h>
 #include <vital/algo/train_detector.h>
+#include <vital/algo/train_tracker.h>
 #include <vital/algo/detected_object_set_input.h>
+#include <vital/algo/read_object_track_set.h>
 #include <vital/algo/image_io.h>
 #include <vital/types/image_container.h>
+#include <vital/types/object_track_set.h>
 #include <vital/logger/logger.h>
 
 #include <sprokit/pipeline/process_exception.h>
@@ -71,6 +74,7 @@ public:
   std::string opt_label_file;
   std::string opt_validation_dir;
   std::string opt_detector;
+  std::string opt_tracker;
   std::string opt_out_config;
   std::string opt_threshold;
   std::string opt_settings;
@@ -175,6 +179,10 @@ static kwiver::vital::config_block_sptr default_config()
     ( "image_reader", config, kwiver::vital::algo::image_io_sptr() );
   kwiver::vital::algo::train_detector::get_nested_algo_configuration
     ( "detector_trainer", config, kwiver::vital::algo::train_detector_sptr() );
+  kwiver::vital::algo::train_tracker::get_nested_algo_configuration
+    ( "tracker_trainer", config, kwiver::vital::algo::train_tracker_sptr() );
+  kwiver::vital::algo::read_object_track_set::get_nested_algo_configuration
+    ( "track_reader", config, kwiver::vital::algo::read_object_track_set_sptr() );
 
   return config;
 }
@@ -250,6 +258,10 @@ main( int argc, char* argv[] )
     &g_params.opt_detector, "Type of detector(s) to train if no config" );
   g_params.m_args.AddArgument( "-d",              argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector(s) to train if no config" );
+  g_params.m_args.AddArgument( "--tracker",       argT::SPACE_ARGUMENT,
+    &g_params.opt_tracker, "Type of tracker(s) to train (optional)" );
+  g_params.m_args.AddArgument( "-tt",             argT::SPACE_ARGUMENT,
+    &g_params.opt_tracker, "Type of tracker(s) to train (optional)" );
   g_params.m_args.AddArgument( "--output-config", argT::SPACE_ARGUMENT,
     &g_params.opt_out_config, "Output a sample configuration to file" );
   g_params.m_args.AddArgument( "-o",              argT::SPACE_ARGUMENT,
@@ -338,23 +350,25 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
-  // Test for presence of two configs
+  // Test for presence of conflicting options
   if( !g_params.opt_config.empty() && !g_params.opt_detector.empty() )
   {
     std::cerr << "Only one of --config and --detector allowed." << std::endl;
     return EXIT_FAILURE;
   }
 
-  // Test for presence of two configs
-  if( g_params.opt_config.empty() && g_params.opt_detector.empty() )
+  // Test for presence of required options (either detector or tracker training)
+  if( g_params.opt_config.empty() && g_params.opt_detector.empty() &&
+      g_params.opt_tracker.empty() )
   {
-    std::cerr << "One of --config and --detector must be set." << std::endl;
+    std::cerr << "One of --config, --detector, or --tracker must be set." << std::endl;
     return EXIT_FAILURE;
   }
 
-  // Parse comma-separated configs or detectors for multi-model training
+  // Parse comma-separated configs or detectors/trackers for multi-model training
   std::vector< std::string > training_configs;
   std::vector< std::string > training_detectors;
+  std::vector< std::string > training_trackers;
 
   if( !g_params.opt_config.empty() )
   {
@@ -364,11 +378,16 @@ main( int argc, char* argv[] )
   {
     string_to_vector( g_params.opt_detector, training_detectors, "," );
   }
+  if( !g_params.opt_tracker.empty() )
+  {
+    string_to_vector( g_params.opt_tracker, training_trackers, "," );
+  }
 
   const bool multi_model_training =
     ( training_configs.size() > 1 || training_detectors.size() > 1 );
   const unsigned model_count =
     std::max( training_configs.size(), training_detectors.size() );
+  const bool train_trackers = !training_trackers.empty();
 
   if( multi_model_training )
   {
@@ -382,6 +401,8 @@ main( int argc, char* argv[] )
   kwiver::vital::algo::detected_object_set_input_sptr groundtruth_reader;
   kwiver::vital::algo::image_io_sptr image_reader;
   kwiver::vital::algo::train_detector_sptr detector_trainer;
+  kwiver::vital::algo::train_tracker_sptr tracker_trainer;
+  kwiver::vital::algo::read_object_track_set_sptr track_reader;
 
   // Read all configuration options and check settings (use first config/detector for data loading)
   std::string first_config = training_configs.empty() ? "" : training_configs[0];
@@ -1780,6 +1801,196 @@ main( int argc, char* argv[] )
   {
     std::cout << std::endl << "========================================" << std::endl;
     std::cout << "Multi-model training complete" << std::endl;
+    std::cout << "========================================" << std::endl;
+  }
+
+  // Tracker training section (optional, runs after detector training if enabled)
+  if( train_trackers )
+  {
+    std::cout << std::endl << "========================================" << std::endl;
+    std::cout << "Beginning Tracker Training" << std::endl;
+    std::cout << "========================================" << std::endl;
+
+    // Read track groundtruth directly using track_reader
+    // Note: Tracker training uses the same groundtruth files but reads them as tracks
+    // (with track IDs preserved) rather than as per-frame detections
+    std::vector< kwiver::vital::object_track_set_sptr > train_tracks;
+    std::vector< kwiver::vital::object_track_set_sptr > validation_tracks;
+
+    // Configure track reader
+    kwiver::vital::algo::read_object_track_set::set_nested_algo_configuration
+      ( "track_reader", config, track_reader );
+
+    if( track_reader )
+    {
+      // Re-read groundtruth files as tracks for training data
+      std::cout << "Reading track groundtruth for training..." << std::endl;
+
+      for( unsigned i = 0; i < all_data.size(); i++ )
+      {
+        std::string data_item = all_data[i];
+        bool is_validation = ( validation_pivot >= 0 &&
+                               static_cast< int >( i ) >= validation_pivot );
+
+        // Find groundtruth file for this data entry
+        std::vector< std::string > gt_files;
+        bool is_video = ends_with_extension( data_item, video_exts );
+
+        if( is_video && auto_detect_truth )
+        {
+          std::string video_truth = replace_ext_with( data_item, groundtruth_exts[0] );
+          if( !does_file_exist( video_truth ) )
+          {
+            video_truth = add_ext_unto( data_item, groundtruth_exts[0] );
+          }
+          if( does_file_exist( video_truth ) )
+          {
+            gt_files.push_back( video_truth );
+          }
+        }
+        else if( !is_video && auto_detect_truth )
+        {
+          list_files_in_folder( data_item, gt_files, false, groundtruth_exts );
+          std::sort( gt_files.begin(), gt_files.end() );
+
+          if( gt_files.empty() )
+          {
+            std::string truth = add_ext_unto( data_item, groundtruth_exts[0] );
+            if( does_file_exist( truth ) )
+            {
+              gt_files.push_back( truth );
+            }
+          }
+        }
+        else if( i < all_truth.size() )
+        {
+          gt_files.push_back( all_truth[i] );
+        }
+
+        // Read tracks from each groundtruth file
+        for( const auto& gt_file : gt_files )
+        {
+          try
+          {
+            track_reader->open( gt_file );
+
+            kwiver::vital::object_track_set_sptr tracks;
+            if( track_reader->read_set( tracks ) && tracks )
+            {
+              std::cout << "Read " << tracks->size() << " tracks from "
+                        << gt_file << std::endl;
+
+              if( is_validation )
+              {
+                validation_tracks.push_back( tracks );
+              }
+              else
+              {
+                train_tracks.push_back( tracks );
+              }
+            }
+
+            track_reader->close();
+          }
+          catch( const std::exception& e )
+          {
+            std::cerr << "Warning: Could not read tracks from " << gt_file
+                      << ": " << e.what() << std::endl;
+          }
+        }
+      }
+
+      std::cout << "Loaded " << train_tracks.size() << " training track sets, "
+                << validation_tracks.size() << " validation track sets" << std::endl;
+    }
+    else
+    {
+      std::cout << "Warning: No track reader configured, tracker training may fail"
+                << std::endl;
+    }
+
+    // Train each specified tracker
+    for( unsigned tracker_idx = 0; tracker_idx < training_trackers.size(); ++tracker_idx )
+    {
+      std::string current_tracker = training_trackers[ tracker_idx ];
+      std::cout << std::endl << "Training tracker: " << current_tracker << std::endl;
+
+      // Configure tracker trainer
+      kwiver::vital::config_block_sptr tracker_config = default_config();
+      tracker_config->set_value( "tracker_trainer:type", current_tracker );
+
+      // Apply command line settings override
+      if( !g_params.opt_settings.empty() )
+      {
+        const std::string& setting = g_params.opt_settings;
+        size_t const split_pos = setting.find( "=" );
+
+        if( split_pos != std::string::npos )
+        {
+          kwiver::vital::config_block_key_t setting_key =
+            setting.substr( 0, split_pos );
+          kwiver::vital::config_block_value_t setting_value =
+            setting.substr( split_pos + 1 );
+          tracker_config->set_value( setting_key, setting_value );
+        }
+      }
+
+      kwiver::vital::algo::train_tracker::set_nested_algo_configuration
+        ( "tracker_trainer", tracker_config, tracker_trainer );
+      kwiver::vital::algo::train_tracker::get_nested_algo_configuration
+        ( "tracker_trainer", tracker_config, tracker_trainer );
+
+      if( !kwiver::vital::algo::train_tracker::
+            check_nested_algo_configuration( "tracker_trainer", tracker_config ) )
+      {
+        std::cout << "Configuration not valid for tracker: " << current_tracker << std::endl;
+        continue;
+      }
+
+      std::string error;
+
+      try
+      {
+        tracker_trainer->add_data_from_disk( model_labels,
+          train_image_fn, train_tracks, validation_image_fn, validation_tracks );
+
+        tracker_trainer->update_model();
+      }
+      catch( const std::exception& e )
+      {
+        error = e.what();
+      }
+      catch( const std::string& str )
+      {
+        error = str;
+      }
+      catch( ... )
+      {
+        error = "unknown fault";
+      }
+
+      if( !error.empty() )
+      {
+        if( error.find( "interupt_handler" ) != std::string::npos ||
+            error.find( "KeyboardInterrupt" ) != std::string::npos )
+        {
+          std::cout << "Finished spooling down run after interrupt" << std::endl << std::endl;
+          break;
+        }
+        else
+        {
+          std::cout << "Received exception: " << error << std::endl;
+          std::cout << std::endl;
+        }
+      }
+      else
+      {
+        std::cout << "Tracker training completed successfully" << std::endl;
+      }
+    }
+
+    std::cout << std::endl << "========================================" << std::endl;
+    std::cout << "Tracker training complete" << std::endl;
     std::cout << "========================================" << std::endl;
   }
 
