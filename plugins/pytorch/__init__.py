@@ -38,8 +38,8 @@ def __sprokit_register__():
         pass
 
     try:
-        from viame.processes.pytorch import desc_augmentation_process
-        desc_augmentation_process.__sprokit_register__()
+        from viame.processes.pytorch import torchvision_augment_process
+        torchvision_augment_process.__sprokit_register__()
     except ImportError:
         pass
 
