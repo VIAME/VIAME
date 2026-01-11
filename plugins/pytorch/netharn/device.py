@@ -10,7 +10,7 @@ import warnings
 import torch
 import six
 import os
-from netharn import util
+from viame.pytorch.netharn import util
 try:
     import collections.abc as container_abcs
 except Exception:
@@ -37,7 +37,7 @@ class MountedModel(torch.nn.Module, util.ModuleMixin):
     """
 
     def receptive_field_for(self, input_field=None):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         return nh.ReceptiveFieldFor(self.module)(input_field)
 
 

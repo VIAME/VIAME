@@ -9,11 +9,11 @@ import sys
 import torch
 import ubelt as ub
 
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 import kwarray
 import scriptconfig as scfg
-from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec
-from bioharn import clf_dataset
+from viame.pytorch.netharn.data.channel_spec import ChannelSpec
+from viame.pytorch.netharn import clf_dataset
 
 
 class ClfConfig(scfg.Config):
@@ -217,7 +217,7 @@ class ClfModel(nh.layers.Module):
                 from torch.hub import load_state_dict_from_url  # noqa: 401
             except ImportError:
                 from torch.utils.model_zoo import load_url as load_state_dict_from_url  # noqa: 401
-        from viame.arrows.pytorch.netharn.core.initializers.functional import load_partial_state
+        from viame.pytorch.netharn.initializers.functional import load_partial_state
         if key == 'url':
             state_dict = load_state_dict_from_url(self.backbone_url)
         else:
@@ -453,7 +453,7 @@ class ClfHarn(nh.FitHarn):
         # _pred = probs.argmax(axis=1)
         # assert np.all(_pred == y_pred)
 
-        # from viame.arrows.pytorch.netharn.core.metrics import confusion_vectors
+        # from viame.pytorch.netharn.metrics import confusion_vectors
         # cfsn_vecs = confusion_vectors.ConfusionVectors.from_arrays(
         #     true=y_true, pred=y_pred, probs=probs, classes=dset.classes)
         # report = cfsn_vecs.classification_report()
@@ -632,7 +632,7 @@ def setup_harn(cmdline=True, **kw):
 
         if input_stats is None:
             # Use parallel workers to load data faster
-            from viame.arrows.pytorch.netharn.core.data.data_containers import container_collate
+            from viame.pytorch.netharn.data.data_containers import container_collate
             from functools import partial
             collate_fn = partial(container_collate, num_devices=1)
 
@@ -773,7 +773,7 @@ def main():
         # Undocumented hidden feature,
         # Perform an LR-test, then resetup the harness. Optionally draw the
         # results using matplotlib.
-        from viame.arrows.pytorch.netharn.core.prefit.lr_tests import lr_range_test
+        from viame.pytorch.netharn.prefit.lr_tests import lr_range_test
         result = lr_range_test(
             harn, init_value=1e-4, final_value=0.5, beta=0.3,
             explode_factor=10, num_iters=200)

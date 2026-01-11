@@ -42,7 +42,7 @@ CommandLine:
     xdoctest netharn.fit_harn __doc__:0 --profile --xpu=cpu
 
 Example:
-    >>> from viame.arrows.pytorch.netharn import core as nh
+    >>> from viame.pytorch import netharn as nh
     >>> hyper = nh.HyperParams(**{
     >>>     # ================
     >>>     # Environment Components
@@ -162,12 +162,12 @@ import ubelt as ub
 import scriptconfig as scfg
 import torch_liberator
 
-from netharn import hyperparams
-from netharn import util
-from .util import profiler
-from .util import strip_ansi
-from .exceptions import (CannotResume, SkipBatch, StopTraining,
-                                TrainingDiverged)
+from viame.pytorch.netharn import hyperparams
+from viame.pytorch.netharn import util
+from viame.pytorch.netharn.util import profiler
+from viame.pytorch.netharn.util import strip_ansi
+from viame.pytorch.netharn.exceptions import (CannotResume, SkipBatch, StopTraining,
+                                              TrainingDiverged)
 
 try:  # nocover
     from packaging.version import parse as LooseVersion
@@ -176,7 +176,7 @@ except ImportError:
 
 
 # Hack: patch collections so tensorboard_logger doesnt die
-from netharn import monkey  # NOQA
+from viame.pytorch.netharn import monkey  # NOQA
 try:
     import tensorboard_logger
 except ImportError:
@@ -232,7 +232,7 @@ class ExtraMixins(object):
         """
         Creates a dummy FitHarn object for testing and demonstration purposes
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         hyper = nh.HyperParams(**{
             # ================
             # Environment Components
@@ -1075,7 +1075,7 @@ class SnapshotMixin(object):
             set: epoch numbers to remove
 
         Doctest:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> harn = FitHarn({})
             >>> rng = np.random.RandomState(0)
             >>> harn.monitor = nh.Monitor(minimize=['loss'], maximize=['miou'])
@@ -1187,7 +1187,7 @@ class SnapshotMixin(object):
             PathLike: save_fpath: the path to the saved snapshot
 
         Example:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> harn = nh.FitHarn.demo()
             >>> # The "save_snapshot" method is called in initialize
             >>> harn.initialize()
@@ -1391,7 +1391,7 @@ class ScheduleMixin(object):
     def _step_scheduler_batch(harn):
         """
         Ignore:
-            from viame.arrows.pytorch.netharn import core as nh
+            from viame.pytorch import netharn as nh
             harn = nh.FitHarn(nh.HyperParams.demo()).initialize()
         """
         # TODO: proper warmup iters

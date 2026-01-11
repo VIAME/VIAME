@@ -227,7 +227,7 @@ def load_partial_state(model, model_state_dict, leftover=None,
 
 
     Example:
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> # ---
         >>> model_other = nh.models.ToyNet2d(input_channels=1, num_classes=10)
         >>> model_other.hack_param1 = torch.nn.Parameter(torch.rand(1))
@@ -246,7 +246,7 @@ def load_partial_state(model, model_state_dict, leftover=None,
 
     Example:
         >>> from .initializers.functional import *  # NOQA
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> xpu = nh.XPU(None)
         >>> self1 = nh.models.ToyNet2d()
         >>> self2 = xpu.mount(self1)

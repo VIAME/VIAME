@@ -5,8 +5,8 @@ from os.path import dirname
 from os.path import exists
 from os.path import join
 from os.path import normpath
-from netharn import api
-from .initializers.functional import load_partial_state
+from viame.pytorch.netharn import api
+from .functional import load_partial_state
 
 
 class Pretrained(api.Initializer, ub.NiceRepr):
@@ -155,8 +155,8 @@ class Pretrained(api.Initializer, ub.NiceRepr):
         """
         Load the model state from a path or from within a zipfile
         """
-        from viame.arrows.pytorch.netharn import core as nh
-        from netharn import XPU
+        from viame.pytorch import netharn as nh
+        from viame.pytorch.netharn import XPU
 
         fpath = self._rectify_fpath()
         xpu = XPU.coerce('cpu')
@@ -173,7 +173,7 @@ class Pretrained(api.Initializer, ub.NiceRepr):
         """
         Apply the pretrained weights to the model
         """
-        from netharn import XPU
+        from viame.pytorch.netharn import XPU
         xpu = XPU.from_data(model)
 
         model_state_dict = self._load_model_state(xpu=xpu)
@@ -207,7 +207,7 @@ class Pretrained(api.Initializer, ub.NiceRepr):
         """
         if available return the history of the model as well
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         if self.info is None:
             # TODO: check for train_info.json in a few different places
             fpath = self._rectify_fpath()

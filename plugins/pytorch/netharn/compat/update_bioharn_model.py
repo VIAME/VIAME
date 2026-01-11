@@ -75,7 +75,7 @@ def update_deployed_bioharn_model(config):
 
     """
     from torch_liberator import deployer
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     from .models import mm_models
 
     config = UpdateBioharnConfig(config)
@@ -115,7 +115,7 @@ def update_deployed_bioharn_model(config):
     # print(model_state_2['bbox_head.0.fc_cls.weight'].shape)
     # print(new_model_state['state_dict']['roi_head.bbox_head.0.fc_cls.weight'].shape)
 
-    # from viame.arrows.pytorch.netharn.core.initializers.functional import load_partial_state
+    # from viame.pytorch.netharn.initializers.functional import load_partial_state
     from torch_liberator.initializer import load_partial_state
     load_info = load_partial_state(new_model, new_model_state['model_state_dict'], verbose=3)
     del load_info

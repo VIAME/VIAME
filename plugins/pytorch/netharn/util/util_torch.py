@@ -44,7 +44,7 @@ class ModuleMixin(object):
             Set[torch.device]: set of devices used by this model
 
         Example:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = nh.models.toynet.ToyNet2d()
             >>> ub.peek(self.devices())
             device(type='cpu')
@@ -83,7 +83,7 @@ def number_of_parameters(model, trainable=True):
     Returns number of trainable parameters in a torch module
 
     Example:
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> model = nh.models.ToyNet2d()
         >>> number_of_parameters(model)
         824
@@ -180,7 +180,7 @@ class IgnoreLayerContext(object):
         >>> # Test issue with data parallel
         >>> from .util.util_torch import *
         >>> import torch
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> layer = raw_model = torch.nn.BatchNorm2d(1)
         >>> raw_inputs = torch.rand(8, 1, 10, 10)
         >>> xpu = nh.XPU.coerce([0,1])
@@ -605,7 +605,7 @@ class freeze_params(object):
 
     @classmethod
     def demodata(cls):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         inputs = torch.rand(2, 1, 1, 1)
         net = nh.layers.Sequential(
             nh.layers.ConvNorm2d(1, 1, 1),

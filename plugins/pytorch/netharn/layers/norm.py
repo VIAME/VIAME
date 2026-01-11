@@ -2,9 +2,9 @@ import torch.nn.functional as F
 import torch
 from torch import nn
 import ubelt as ub
-from .layers import common
-from .analytic import output_shape_for
-from .analytic import receptive_field_for
+from viame.pytorch.netharn.layers import common
+from viame.pytorch.netharn.analytic import output_shape_for
+from viame.pytorch.netharn.analytic import receptive_field_for
 
 
 class L2Norm(common.Module):

@@ -9,7 +9,7 @@ Ignore:
     >>> batch = harn._demo_batch(1, 'vali')
     >>> #del batch['label']['has_mask']
     >>> #del batch['label']['class_masks']
-    >>> from .models.mm_models import _batch_to_mm_inputs
+    >>> from viame.pytorch.netharn.models.mm_models import _batch_to_mm_inputs
     >>> mm_batch = _batch_to_mm_inputs(batch)
     >>> outputs, loss = harn.run_batch(batch)
 
@@ -35,7 +35,7 @@ Ignore:
 
 import ubelt as ub
 import warnings  # NOQA
-from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec
+from viame.pytorch.netharn.data.channel_spec import ChannelSpec
 
 try:
     import mmdet
@@ -53,26 +53,26 @@ else:
 import torch.nn as nn
 import torch
 
-from .models.new_backbone import HRNet_V2
-from .models.new_neck import HRFPN_V2
-from .models.new_head import Shared2FCBBoxHead_V2
-from .models.new_head import StandardRoIHead_V2
-from .models.new_head import FCNMaskHead_V2
-from .models.new_detector import MaskRCNN_V2
+from viame.pytorch.netharn.models.new_backbone import HRNet_V2
+from viame.pytorch.netharn.models.new_neck import HRFPN_V2
+from viame.pytorch.netharn.models.new_head import Shared2FCBBoxHead_V2
+from viame.pytorch.netharn.models.new_head import StandardRoIHead_V2
+from viame.pytorch.netharn.models.new_head import FCNMaskHead_V2
+from viame.pytorch.netharn.models.new_detector import MaskRCNN_V2
 
 import kwcoco
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 from collections import OrderedDict
 import warnings  # NOQA
-from viame.arrows.pytorch.netharn.core.data import data_containers
+from viame.pytorch.netharn.data import data_containers
 
-# from .models.mm_models import MM_Detector
-from .models.mm_models import MM_Coder
-from .models.mm_models import _demo_batch
-from .models.mm_models import _batch_to_mm_inputs
-from .models.mm_models import _load_mmcv_weights
-from .models.mm_models import _hack_numpy_gt_masks
-from .models.mm_models import _ensure_unwrapped_and_mounted
+# from viame.pytorch.netharn.models.mm_models import MM_Detector
+from viame.pytorch.netharn.models.mm_models import MM_Coder
+from viame.pytorch.netharn.models.mm_models import _demo_batch
+from viame.pytorch.netharn.models.mm_models import _batch_to_mm_inputs
+from viame.pytorch.netharn.models.mm_models import _load_mmcv_weights
+from viame.pytorch.netharn.models.mm_models import _hack_numpy_gt_masks
+from viame.pytorch.netharn.models.mm_models import _ensure_unwrapped_and_mounted
 
 
 def monkeypatch_build_norm_layer():
@@ -256,7 +256,7 @@ class MM_Detector_V3(nh.layers.Module):
         mm_inputs = orig_mm_inputs.copy()
 
         # Hack: remove data containers if it hasn't been done already
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         xpu = nh.XPU.from_data(self)
         mm_inputs = _ensure_unwrapped_and_mounted(mm_inputs, xpu)
 
@@ -338,7 +338,7 @@ class MM_Detector_V3(nh.layers.Module):
         """
         Loads pretrained backbone weights
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         model_state = _load_mmcv_weights(filename)
 
         # HACK TO ONLY INIT THE RGB PART
@@ -366,7 +366,7 @@ class LateFusionPyramidBackbone(nn.Module):
         >>> from .models.new_models_v1 import *  # NOQA
         >>> monkeypatch_build_norm_layer()
         >>> from .models.new_models_v1 import *  # NOQA
-        >>> from .models.mm_models import _demo_batch  # NOQA
+        >>> from viame.pytorch.netharn.models.mm_models import _demo_batch  # NOQA
         >>> channels = ChannelSpec.coerce('rgb,mx|my,disparity')
         >>> out_channels = [18, 36, 72, 144]
         >>> self = LateFusionPyramidBackbone(
@@ -582,7 +582,7 @@ class MM_HRNetV2_w18_MaskRCNN(MM_Detector_V3):
         >>> batch = self.demo_batch()
         >>> import xdev
         >>> xdev.make_warnings_print_tracebacks()
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> print(nh.util.number_of_parameters(self))
         >>> self.to(0)
         >>> batch = self.demo_batch()
@@ -601,7 +601,7 @@ class MM_HRNetV2_w18_MaskRCNN(MM_Detector_V3):
         >>> batch = self.demo_batch()
         >>> import xdev
         >>> xdev.make_warnings_print_tracebacks()
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> print(nh.util.number_of_parameters(self))
         >>> self.to(0)
         >>> batch = self.demo_batch()

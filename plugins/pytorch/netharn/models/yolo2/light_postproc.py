@@ -63,7 +63,7 @@ class GetBoundingBoxes(object):
             >>> anchors = np.array([(1.3221, 1.73145), (3.19275, 4.00944), (5.05587, 8.09892), (9.47112, 4.84053), (11.2364, 10.0071)])
             >>> self = GetBoundingBoxes(anchors=anchors, num_classes=20, conf_thresh=.14, nms_thresh=0.5)
             >>> output = torch.randn(16, 5, 5 + 20, 9, 9)
-            >>> from netharn import XPU
+            >>> from ... import XPU
             >>> output = XPU.coerce('auto').move(output)
             >>> batch_dets = self._decode(output.data)
             >>> assert len(batch_dets) == 16

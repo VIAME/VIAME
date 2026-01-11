@@ -11,10 +11,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 import ubelt as ub
-from netharn import layers
+from viame.pytorch.netharn import layers
 from distutils.version import LooseVersion
 import torch.nn.functional as F
-from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec  # NOQA
+from viame.pytorch.netharn.data.channel_spec import ChannelSpec  # NOQA
 
 
 _TORCH_HAS_BOOL_COMP = LooseVersion(torch.__version__) >= LooseVersion('1.2.0')
@@ -346,7 +346,7 @@ class Yolo2(layers.AnalyticModule):
 
     @classmethod
     def demo(cls, key='lightnet'):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         classes = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
                    'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
                    'motorbike', 'person', 'pottedplant', 'sheep', 'sofa',
@@ -1168,7 +1168,7 @@ def dev_demodata():
         'class_idxs': torch.LongTensor([14]),
         'weight': torch.FloatTensor([1.0]),
     }
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     target = nh.data.collate.padded_collate([label, label])
 
     orig_sizes = torch.LongTensor([rgb255.shape[0:2][::-1]] * len(inputs))

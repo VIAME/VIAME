@@ -12,7 +12,7 @@ Ignore:
 
 from torch.nn.modules.batchnorm import _BatchNorm
 import torch.nn as nn
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 
 try:
     from mmdet.models.backbones.resnet import BasicBlock

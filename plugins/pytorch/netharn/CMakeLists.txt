@@ -29,7 +29,7 @@ function(add_python_modules_recursive base_path install_prefix)
 endfunction()
 
 # Create init file for netharn package
-kwiver_create_python_init( arrows/pytorch/netharn )
+kwiver_create_python_init( pytorch/netharn )
 
 # Add all Python modules from netharn directory
-add_python_modules_recursive( "." "arrows/pytorch/netharn" )
+add_python_modules_recursive( "." "pytorch/netharn" )

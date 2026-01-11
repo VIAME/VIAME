@@ -307,7 +307,7 @@ def demo_calibrate():
 
 
 
-# from viame.arrows.pytorch.netharn.core.metrics.confusion_vectors import DictProxy  # NOQA
+# from viame.pytorch.netharn.metrics.confusion_vectors import DictProxy  # NOQA
 try:
     from kwcoco.metrics.util import DictProxy  # NOQA
 except ImportError:

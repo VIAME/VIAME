@@ -16,7 +16,7 @@ def __getattr__(key):
 
     Our deprecation errors will only work in Python 3.7+
     """
-    from netharn.util._deprecation_helpers import _lookup_deprecated_attribute
+    from ._deprecation_helpers import _lookup_deprecated_attribute
     return _lookup_deprecated_attribute(key)
 
 

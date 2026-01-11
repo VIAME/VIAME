@@ -55,7 +55,7 @@ class ContrastiveLoss(nn.Module):
     Example:
         >>> # DISABLE_DOCTEST
         >>> import torch
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> xpu = nh.XPU(None)
         >>> imgs1 = xpu.move(torch.rand(1, 3, 224, 244))
         >>> imgs2 = xpu.move(torch.rand(1, 3, 224, 244))

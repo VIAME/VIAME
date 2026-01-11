@@ -139,7 +139,7 @@ def imgaug_json_id(aug):
         >>> # xdoctest: +REQUIRES(module:imgaug)
         >>> import imgaug.augmenters as iaa
         >>> import imgaug
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> augment = imgaug.augmenters.Affine()
         >>> info = nh.data.transforms.imgaug_json_id(augment)
         >>> import ubelt as ub

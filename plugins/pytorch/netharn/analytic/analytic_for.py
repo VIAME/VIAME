@@ -12,7 +12,7 @@ are defined the computation will be fully symbolic. SeeAlso
 
 Example:
     >>> import torch
-    >>> from viame.arrows.pytorch.netharn import core as nh
+    >>> from viame.pytorch import netharn as nh
     >>> # Inheriting from nh.layers.AnalyticModule lets us define _analytic_forward
     >>> class MyNetwork(nh.layers.AnalyticModule):
     >>>     def __init__(self, classes):

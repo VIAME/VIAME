@@ -24,7 +24,7 @@ class UNetConvNd(nn.Module):
         >>> self.forward(inputs)
     """
     def __init__(self, in_size, out_size, is_batchnorm, nonlinearity='relu', dim=2):
-        # from viame.arrows.pytorch.netharn import core as nh
+        # from viame.pytorch import netharn as nh
         from .layers import rectify
         super(UNetConvNd, self).__init__()
 
@@ -261,7 +261,7 @@ class UNetUp(nn.Module):
         out = self.conv(outputs_cat)
         return out
 
-from viame.arrows.pytorch.netharn import core as nh  # NOQA
+from viame.pytorch import netharn as nh  # NOQA
 
 
 class UNet(nh.layers.Module):
@@ -367,7 +367,7 @@ class UNet(nh.layers.Module):
         self._cache = {}
 
     def output_shape_for(self, input_shape):
-        from netharn import OutputShapeFor
+        from .. import OutputShapeFor
         # N1, C1, W1, H1 = input_shape
         # output_shape = (N1, self.n_classes, W1, H1)
         shape = input_shape
@@ -395,7 +395,7 @@ class UNet(nh.layers.Module):
         return output_shape
 
     def raw_output_shape_for(self, input_shape):
-        from netharn import OutputShapeFor
+        from .. import OutputShapeFor
         # output shape without fancy prepad mirrors and post crops
         shape = conv1 = OutputShapeFor(self.conv1)(input_shape)
         shape = OutputShapeFor(self.maxpool1)(shape)
@@ -441,7 +441,7 @@ class UNet(nh.layers.Module):
             return self._cache[input_shape]
 
         import sympy as sym
-        from netharn import OutputShapeFor
+        from .. import OutputShapeFor
         shape = input_shape
 
         raw_output = self.raw_output_shape_for(input_shape)

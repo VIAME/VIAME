@@ -87,7 +87,7 @@ def rectify_normalizer(in_channels, key=ub.NoParam, dim=2, **kwargs):
         >>> rectify_normalizer(8, None)
         None
         >>> rectify_normalizer(8, key={'type': 'syncbatch'})
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> nh.layers.rectify_normalizer(8, {'type': 'group', 'num_groups': 'auto'})
         >>> nh.layers.rectify_normalizer(1, {'type': 'group', 'num_groups': 'auto'})
         >>> nh.layers.rectify_normalizer(16, {'type': 'group', 'num_groups': 'auto'})
@@ -134,7 +134,7 @@ def rectify_normalizer(in_channels, key=ub.NoParam, dim=2, **kwargs):
         if key.get('num_groups') == 'auto':
             if in_channels == 1:
                 # Warning: cant group norm this
-                from viame.arrows.pytorch.netharn import core as nh
+                from viame.pytorch import netharn as nh
                 return nh.layers.Identity()
             else:
                 valid_num_groups = [

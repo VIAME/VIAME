@@ -14,7 +14,7 @@ import torch
 import math
 import torch.utils.model_zoo as model_zoo
 import numpy as np
-from netharn import layers
+from viame.pytorch.netharn import layers
 
 
 # __all__ = ['PSPNet_Resnet50_8s']
@@ -79,7 +79,7 @@ class ResidualJoin(layers.Module):
         """
         note: two inputs is not a standard yet
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         # Handle skip connection
         # Unsure if it is ok for these values to not agree
         assert np.all(skip_field['crop'] == main_field['crop']), 'main_field={}, skip_field={}'.format(main_field, skip_field)
@@ -170,7 +170,7 @@ class Bottleneck(layers.AnalyticModule):
         >>> inputs = torch.rand(2, 8, 7, 7)
         >>> out = self(inputs)
         >>> self.output_shape_for((2, 8, 7, 7))
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> self.receptive_field_for()
     """
     expansion = 4
@@ -583,7 +583,7 @@ class PSP_head(layers.AnalyticModule):
 
         Ignore:
             >>> from .models.psp import *  # NOQA
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = PSP_head(8).eval()
             >>> inputs = (1, 128, 64, 64)
             >>> _OutputFor = nh.OutputShapeFor
@@ -729,7 +729,7 @@ class PSPNet_Resnet50_8s(layers.AnalyticModule):
         """
         Ignore:
             >>> from .models.psp import *  # NOQA
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = PSPNet_Resnet50_8s(classes=211).eval()
             >>> kwargs = self._analytic_shape_kw()
             >>> globals().update(kwargs)

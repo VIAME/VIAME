@@ -63,7 +63,7 @@ class ListedScheduler(_Scheduler):
     Example:
         >>> from .schedulers.scheduler_redesign import *
         >>> import ubelt as ub
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> import torch
         >>> import copy
         >>> model = nh.models.ToyNet2d()

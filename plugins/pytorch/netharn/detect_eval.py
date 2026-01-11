@@ -15,13 +15,13 @@ import six
 import kwcoco
 import ndsampler
 import kwimage
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 import numpy as np
 import ubelt as ub
 import scriptconfig as scfg
-from bioharn import detect_predict
-from viame.arrows.pytorch.netharn.core.data import data_containers  # NOQA
-from viame.arrows.pytorch.netharn.core.data import channel_spec  # NOQA
+from viame.pytorch.netharn import detect_predict
+from viame.pytorch.netharn.data import data_containers  # NOQA
+from viame.pytorch.netharn.data import channel_spec  # NOQA
 
 
 class DetectEvaluateConfig(scfg.Config):
@@ -342,7 +342,7 @@ class DetectEvaluator(object):
             >>> config = DetectEvaluator.demo_config()
             >>> print('config = {}'.format(ub.repr2(config, nl=1)))
         """
-        from bioharn import detect_fit
+        from viame.pytorch.netharn import detect_fit
         aux = False
 
         train_dset = kwcoco.CocoDataset.demo('shapes8', aux=aux)

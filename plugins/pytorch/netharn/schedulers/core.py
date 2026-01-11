@@ -158,7 +158,7 @@ class YOLOScheduler(NetharnScheduler):
         >>> # Assuming optimizer has two groups.
         >>> from .schedulers.core import *
         >>> import ubelt as ub
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> points = {0: .01, 2: .02, 3: .1, 6: .05, 9: .025}
         >>> self = YOLOScheduler(dset_size=103, batch_size=10, burn_in=1.2,
         >>>                      points=points)

@@ -10,16 +10,16 @@ __extra_all__ = [
 ]
 
 # <AUTOGEN_INIT>
-from netharn.criterions import contrastive_loss
-from netharn.criterions import focal
-from netharn.criterions import triplet
+from . import contrastive_loss
+from . import focal
+from . import triplet
 
-from netharn.criterions.contrastive_loss import (ContrastiveLoss,)
-from netharn.criterions.focal import (ELEMENTWISE_MEAN, FocalLoss, focal_loss,
-                                      nll_focal_loss,)
-from netharn.criterions.triplet import (TripletLoss, all_pairwise_distances,
-                                        approx_pdist, exact_pdist,
-                                        labels_to_adjacency_matrix,)
+from .contrastive_loss import (ContrastiveLoss,)
+from .focal import (ELEMENTWISE_MEAN, FocalLoss, focal_loss,
+                    nll_focal_loss,)
+from .triplet import (TripletLoss, all_pairwise_distances,
+                      approx_pdist, exact_pdist,
+                      labels_to_adjacency_matrix,)
 
 __all__ = ['ContrastiveLoss', 'CrossEntropyLoss', 'ELEMENTWISE_MEAN',
            'FocalLoss', 'MSELoss', 'TripletLoss', 'all_pairwise_distances',

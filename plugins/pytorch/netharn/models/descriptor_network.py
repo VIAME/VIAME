@@ -1,5 +1,5 @@
 import numpy as np
-from netharn import layers
+from viame.pytorch.netharn import layers
 import torch
 import torchvision
 import ubelt as ub  # NOQA
@@ -66,13 +66,13 @@ class DescriptorNetwork(layers.Module):
 
         Example:
             >>> from .models.descriptor_network import *
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> input_shape = (4, 3, 32, 32)
             >>> self = DescriptorNetwork(input_shape=input_shape)
             >>> nh.OutputShapeFor(self)._check_consistency(input_shape)
             {'dvecs': (4, 1024)}
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         super(DescriptorNetwork, self).__init__()
 
         pretrained = True
@@ -160,7 +160,7 @@ class DescriptorNetwork(layers.Module):
         """
         Print internal shape and field info
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         shape = nh.OutputShapeFor(self.branch)(input_shape=input_shape)
         print(ub.repr2(shape.hidden.shallow(n), nl=-1, dtype=False, si=True))
         field = nh.ReceptiveFieldFor(self.branch)(input_shape=input_shape)
@@ -173,13 +173,13 @@ class DescriptorNetwork(layers.Module):
 
         Example:
             >>> # xdoctest: +REQUIRES(--slow)
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> inputs = nh.XPU(None).move(torch.rand(4, 21, 224, 224))
             >>> self = DescriptorNetwork(input_shape=inputs.shape)
             >>> output = self(inputs)
 
         Ignore:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> input1 = nh.XPU(None).move(torch.rand(1, 3, 416, 416))
             >>> input2 = nh.XPU(None).move(torch.rand(1, 3, 416, 416))
             >>> input_shape1 = input1.shape
@@ -214,12 +214,12 @@ class DescriptorNetwork(layers.Module):
         return _Output.coerce(output, hidden)
 
     def output_shape_for(self, input_shape):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         return self._analytic_forward(input_shape, nh.OutputShapeFor,
                                       nh.OutputShape, nh.HiddenShapes)
 
     def receptive_field_for(self, input_field=None):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         return self._analytic_forward(input_field, nh.ReceptiveFieldFor,
                                       nh.ReceptiveField, nh.HiddenFields,
                                       input_shape=self.input_shape)
@@ -228,7 +228,7 @@ class DescriptorNetwork(layers.Module):
         """ Reinitialized with pretrained imagenet weights """
         import torch.utils.model_zoo as model_zoo
         from torchvision.models.resnet import model_urls
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
 
         pretrained_state = model_zoo.load_url(model_urls['resnet50'])
 

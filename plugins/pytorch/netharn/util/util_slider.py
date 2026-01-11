@@ -374,7 +374,7 @@ class Stitcher(ub.NiceRepr):
         Example:
             >>> import sys
             >>> from .util.util_slider import *  # NOQA
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> # Build a high resolution image and slice it into chips
             >>> frames = np.random.rand(1, 200, 100, 100).astype(np.float32)
             >>> window = (frames.shape[0], 15, 15, 15)
@@ -417,7 +417,7 @@ class Stitcher(ub.NiceRepr):
 
         Benchmark:
             >>> import sys
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> # setup benchmark
             >>> frames = np.random.rand(1, 50, 100, 100).astype(np.float32)
             >>> window = (frames.shape[0], 20, 20, 20)

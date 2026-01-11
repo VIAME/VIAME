@@ -12,7 +12,7 @@ CommandLine:
     python ~/code/netharn/netharn/hyperparams.py __doc__
 
 Example:
-    >>> from viame.arrows.pytorch.netharn import core as nh
+    >>> from viame.pytorch import netharn as nh
     >>> datasets = {
     >>>     'train': nh.data.ToyData2d(size=3, border=1, n=256, rng=0),
     >>>     'vali': nh.data.ToyData2d(size=3, border=1, n=128, rng=1),
@@ -55,15 +55,15 @@ import numpy as np
 import ubelt as ub
 import torch
 import six
-from netharn import util
-from netharn import initializers
-from netharn import device
+from viame.pytorch.netharn import util
+from viame.pytorch.netharn import initializers
+from viame.pytorch.netharn import device
 from collections import OrderedDict
 # from netharn import criterions
 from torch.optim.optimizer import required
 import torch.utils.data as torch_data
-from .util import util_json
-from .util import util_inspect
+from viame.pytorch.netharn.util import util_json
+from viame.pytorch.netharn.util import util_inspect
 
 
 # backwards compatibility
@@ -107,7 +107,7 @@ def _rectify_class(arg, kw, lookup=None):
 
     Example:
         >>> # The ideal case is that we have a cls, initkw tuple
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> kw = {'lr': 0.1}
         >>> cls = torch.optim.SGD
         >>> rectified1 = _rectify_class(cls, kw.copy())
@@ -214,7 +214,7 @@ def _rectify_optimizer(arg, kw):
 
     Example:
         >>> # Test using a (cls, kw) tuple and an instance object.
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> optim_ = nh.api.Optimizer.coerce({
         >>>     'optim': 'adam', 'lr': 0.1, 'weight_decay': 1e-4})
         >>> cls, kw = optim_
@@ -530,7 +530,7 @@ class HyperParams(object):
         Contains special logic to create param groups
 
         Example:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> config = {'optimizer': 'sgd', 'params': [
             >>>     {'lr': 3e-3, 'params': '.*\\.bias'},
             >>>     {'lr': 1e-3, 'params': '.*\\.weight'},
@@ -852,7 +852,7 @@ class HyperParams(object):
         be possible for a human to reproduce the experiment.
 
         Example:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> datasets = {
             >>>     'train': nh.data.ToyData2d(size=3, border=1, n=256, rng=0),
             >>>     'vali': nh.data.ToyData2d(size=3, border=1, n=128, rng=1),
@@ -1052,7 +1052,7 @@ class HyperParams(object):
 
     @classmethod
     def demo(HyperParams):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         hyper = HyperParams(**{
             # ================
             # Environment Components

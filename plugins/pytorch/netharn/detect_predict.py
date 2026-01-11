@@ -25,7 +25,7 @@ Notes:
 from os.path import join, dirname, basename, isfile, exists
 import ubelt as ub
 import torch.utils.data as torch_data
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 import numpy as np
 import torch
 import scriptconfig as scfg
@@ -34,8 +34,8 @@ import kwarray
 import warnings
 import kwcoco
 import torch_liberator
-from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec
-from viame.arrows.pytorch.netharn.core.data.data_containers import ContainerXPU
+from viame.pytorch.netharn.data.channel_spec import ChannelSpec
+from viame.pytorch.netharn.data.data_containers import ContainerXPU
 import os
 
 
@@ -660,7 +660,7 @@ class DetectPredictor(object):
                 except Exception:
                     try:
                         # Hack for old efficientdet models with bad input checking
-                        from viame.arrows.pytorch.netharn.core.data.data_containers import BatchContainer
+                        from viame.pytorch.netharn.data.data_containers import BatchContainer
                         if isinstance(batch['inputs']['rgb'], torch.Tensor):
                             batch['inputs']['rgb'] = BatchContainer([batch['inputs']['rgb']])
                         outputs = predictor.model.forward(batch)
@@ -679,7 +679,7 @@ class DetectPredictor(object):
                 mm_inputs = _batch_to_mm_inputs(batch)
                 outputs = predictor.model.forward(mm_inputs, return_loss=False)
             if predictor._compat_hack == 'efficientdet_hack':
-                from viame.arrows.pytorch.netharn.core.data.data_containers import BatchContainer
+                from viame.pytorch.netharn.data.data_containers import BatchContainer
                 batch['inputs']['rgb'] = BatchContainer([batch['inputs']['rgb']])
                 outputs = predictor.model.forward(batch)
 
@@ -930,7 +930,7 @@ class WindowedSamplerDataset(torch_data.Dataset, ub.NiceRepr):
             input_dims = 'window'
             window_overlap = 0
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         window_overlap = self.window_overlap
         window_dims = self.window_dims
         sampler = self.sampler
@@ -1102,7 +1102,7 @@ class WindowedSamplerDataset(torch_data.Dataset, ub.NiceRepr):
 
 
 def _coerce_sampler(config):
-    from bioharn import util
+    from viame.pytorch.netharn import bio_util as util
     from os.path import isdir
     import ndsampler
 
@@ -1175,7 +1175,7 @@ def _cached_predict(predictor, sampler, out_dpath='./cached_out', gids=None,
         >>> sampler = ndsampler.CocoSampler(coco_dset, workdir=None,
         >>>                                 backend=None)
     """
-    from bioharn import util
+    from viame.pytorch.netharn import bio_util as util
     import tempfile
     coco_dset = sampler.dset
     # predictor.config['verbose'] = 1

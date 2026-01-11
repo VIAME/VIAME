@@ -7,9 +7,9 @@ import torch
 import torch.nn.init
 import torch.nn as nn
 import ubelt as ub
-from netharn import util
-from netharn import api
-from .initializers.functional import trainable_layers
+from viame.pytorch.netharn import util
+from viame.pytorch.netharn import api
+from .functional import trainable_layers
 
 
 def svd_orthonormal(shape, rng=None, cache_key=None):

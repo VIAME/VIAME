@@ -2,7 +2,7 @@ from os.path import join
 import warnings
 import ubelt as ub
 import torch.utils.data as torch_data
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 import numpy as np
 import torch
 import scriptconfig as scfg
@@ -43,7 +43,7 @@ class ClfPredictor(object):
     dataset or list of images.
 
     Ignore:
-        >>> from bioharn import clf_fit
+        >>> from viame.pytorch.netharn import clf_fit
         >>> harn = clf_fit.setup_harn(cmdline=False, dataset='special:shapes128',
         >>>                           max_epoch=1, timeout=60)
         >>> deployed = harn.run()
@@ -70,7 +70,7 @@ class ClfPredictor(object):
 
     @classmethod
     def demo(ClfPredictor):
-        from bioharn import clf_fit
+        from viame.pytorch.netharn import clf_fit
         harn = clf_fit.setup_harn(cmdline=False, dataset='special:shapes128',
                                   max_epoch=1, timeout=60)
         harn.initialize()
@@ -640,7 +640,7 @@ def _cached_clf_predict(predictor, sampler, out_dpath='./cached_clf_out',
 
     have_aids = list(map(int, shelf.keys()))
 
-    from bioharn import util
+    from viame.pytorch.netharn import bio_util as util
     coco_dset = sampler.dset
 
     aids = list(coco_dset.anns.keys())

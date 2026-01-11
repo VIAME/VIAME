@@ -6,7 +6,7 @@ References:
     [2] https://arxiv.org/abs/1511.00561
 """
 import torch.nn as nn
-from netharn import layers
+from viame.pytorch.netharn import layers
 
 __all__ = ['Segnet']
 
@@ -204,7 +204,7 @@ class Segnet(layers.Module):
         an initializer class that simply calls the model's initializer
         function. In the future we may come up with a better way of doing this.
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         class InitVgg16Features(nh.initializers.Initializer):
             def forward(self, model):
                 basic = nh.initializers.KaimingNormal()

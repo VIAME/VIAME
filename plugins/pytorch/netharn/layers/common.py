@@ -1,4 +1,4 @@
-from netharn import util
+from viame.pytorch.netharn import util
 from torch import nn
 import torch
 
@@ -25,7 +25,7 @@ class Sequential(nn.Sequential, util.ModuleMixin):
 
     Example:
         >>> import torch
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> import ubelt as ub
         >>> self = nh.layers.Sequential(
         >>>     torch.nn.Conv2d(2, 3, kernel_size=3),
@@ -102,7 +102,7 @@ class AnalyticModule(Module):
             return out
 
         Example:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> globals().update(nh.layers.AnalyticModule._analytic_shape_kw())
         """
         # _Output.coerce(output, hidden)
@@ -120,7 +120,7 @@ class AnalyticModule(Module):
     @classmethod
     def _analytic_field_kw(self):
         from .analytic import receptive_field_for
-        # from viame.arrows.pytorch.netharn import core as nh
+        # from viame.pytorch import netharn as nh
         return {
             '_OutputFor': receptive_field_for.ReceptiveFieldFor,
             '_Output': receptive_field_for.ReceptiveField,
@@ -129,7 +129,7 @@ class AnalyticModule(Module):
 
     @classmethod
     def _analytic_forward_kw(self):
-        # from viame.arrows.pytorch.netharn import core as nh
+        # from viame.pytorch import netharn as nh
         from .analytic import analytic_for
         return {
             '_OutputFor': analytic_for.ForwardFor,
@@ -151,7 +151,7 @@ class AnalyticModule(Module):
         """
         Uses custom _analytic_forward to compute receptive field
         """
-        # from viame.arrows.pytorch.netharn import core as nh
+        # from viame.pytorch import netharn as nh
         from .analytic import receptive_field_for
         if input_field is None:
             input_field = receptive_field_for.ReceptiveFieldFor.input()

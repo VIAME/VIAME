@@ -205,7 +205,7 @@ def nll_focal_loss(log_probs, targets, focus, dim=1, weight=None,
 def _benchmark_focal_loss():
     import ubelt as ub
     import torch.nn.functional as F
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     B, C = 16, 37
     DIMS = (128, 128)
     dim = 1

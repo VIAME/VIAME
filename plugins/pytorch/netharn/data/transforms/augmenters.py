@@ -1,6 +1,6 @@
 import numpy as np
 import six
-from .data.transforms import augmenter_base
+from viame.pytorch.netharn.data.transforms import augmenter_base
 
 try:
     import imgaug

@@ -150,11 +150,11 @@ Example:
     >>> outputs = None
     >>> images = None
 """
-from netharn.export import deployer
-from netharn.export import exporter
+from . import deployer
+from . import exporter
 
-from netharn.export.deployer import (DeployedModel,)
-from netharn.export.exporter import (export_model_code,)
+from .deployer import (DeployedModel,)
+from .exporter import (export_model_code,)
 import warnings
 warnings.warn('netharn.export is deprecated, use torch_liberator intead', DeprecationWarning)
 

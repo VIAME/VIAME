@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import ubelt as ub
-from netharn import layers
+from viame.pytorch.netharn import layers
 try:  # nocover
     from packaging.version import parse as LooseVersion
 except ImportError:
@@ -297,7 +297,7 @@ class Yolo2(layers.AnalyticModule):
         field can be analytically computed.
 
         Ignore:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> globals().update(nh.layers.AnalyticModule._analytic_shape_kw())
             >>> inputs = [2, 3, 288, 288]
             >>> self = Yolo2.demo()
@@ -350,7 +350,7 @@ class Yolo2(layers.AnalyticModule):
                    'train', 'tvmonitor']
         self = Yolo2(classes=classes, conf_thresh=0.01, nms_thresh=0.4)
 
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         weights_fpath = demo_voc_weights(key)
         initializer = nh.initializers.Pretrained(weights_fpath)
         init_info = initializer(self, verbose=0)  # NOQA
@@ -1189,7 +1189,7 @@ def dev_demodata():
         'class_idxs': torch.LongTensor([14]),
         'weight': torch.FloatTensor([1.0]),
     }
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     target = nh.data.collate.padded_collate([label, label])
 
     orig_sizes = torch.LongTensor([rgb255.shape[0:2][::-1]] * len(inputs))

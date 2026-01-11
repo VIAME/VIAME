@@ -1,4 +1,4 @@
-from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec  # NOQA
+from viame.pytorch.netharn.data.channel_spec import ChannelSpec  # NOQA
 # import ubelt as ub
 # class ChannelSpec(ub.NiceRepr):
 #     """

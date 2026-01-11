@@ -10,4 +10,4 @@ References:
 
 FIXME 0 dimension tensors
 """
-from viame.arrows.pytorch.netharn.core.data.data_containers import *  # NOQA
+from viame.pytorch.netharn.data.data_containers import *  # NOQA

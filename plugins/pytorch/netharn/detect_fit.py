@@ -8,7 +8,7 @@ from os.path import join
 import matplotlib
 matplotlib.use('Agg')
 
-from viame.arrows.pytorch.netharn import core as nh  # NOQA
+from viame.pytorch import netharn as nh  # NOQA
 import numpy as np  # NOQA
 import os  # NOQA
 import torch  # NOQA
@@ -182,7 +182,7 @@ class DetectFitConfig(scfg.Config):
             self['pretrained'] = None
 
         if self['datasets'] == 'special:voc':
-            from viame.arrows.pytorch.netharn.core.data.grab_voc import ensure_voc_coco
+            from viame.pytorch.netharn.data.grab_voc import ensure_voc_coco
             paths = ensure_voc_coco()
             self['train_dataset'] = paths['trainval']
             self['vali_dataset'] = paths['test']
@@ -305,7 +305,7 @@ class DetectHarn(nh.FitHarn):
 
             batch = batch.copy()
             batch.pop('tr', None)
-            from viame.arrows.pytorch.netharn.core.data.data_containers import BatchContainer
+            from viame.pytorch.netharn.data.data_containers import BatchContainer
 
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', 'indexing with dtype')
@@ -701,7 +701,7 @@ class DetectHarn(nh.FitHarn):
                 --timeout=1
 
         """
-        from bioharn import detect_eval
+        from viame.pytorch.netharn import detect_eval
         # TODO: FIX
         # AttributeError: 'CocoSqlDatabase' object has no attribute 'fpath'
         # In SQL MODE
@@ -909,7 +909,7 @@ def setup_harn(cmdline=True, **kw):
         for tag, sampler in samplers.items()
     }
 
-    from viame.arrows.pytorch.netharn.core.data.data_containers import ContainerXPU
+    from viame.pytorch.netharn.data.data_containers import ContainerXPU
     xpu = ContainerXPU.coerce(config['xpu'])
     print('xpu = {!r}'.format(xpu))
 
@@ -929,7 +929,7 @@ def setup_harn(cmdline=True, **kw):
         for tag, dset in torch_datasets.items()
     }
 
-    from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec
+    from viame.pytorch.netharn.data.channel_spec import ChannelSpec
     channels = ChannelSpec.coerce(config['channels'])
     print('channels = {!r}'.format(channels))
 
@@ -962,7 +962,7 @@ def setup_harn(cmdline=True, **kw):
         input_stats = cacher.tryload()
         if input_stats is None:
             # Use parallel workers to load data faster
-            from viame.arrows.pytorch.netharn.core.data.data_containers import container_collate
+            from viame.pytorch.netharn.data.data_containers import container_collate
             from functools import partial
             collate_fn = partial(container_collate, num_devices=1)
 
@@ -1220,7 +1220,7 @@ def fit(**kw):
         # Undocumented hidden feature,
         # Perform an LR-test, then resetup the harness. Optionally draw the
         # results using matplotlib.
-        from viame.arrows.pytorch.netharn.core.prefit.lr_tests import lr_range_test
+        from viame.pytorch.netharn.prefit.lr_tests import lr_range_test
 
         result = lr_range_test(
             harn, init_value=1e-4, final_value=0.5, beta=0.3,

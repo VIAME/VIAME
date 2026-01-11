@@ -10,14 +10,14 @@ SeeAlso:
 """
 import numpy as np
 import ubelt as ub
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 import torch
 import kwimage
 import kwarray
 from collections import OrderedDict
 import warnings  # NOQA
-from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec  # TODO: kwcoco.ChannelSpec
-from viame.arrows.pytorch.netharn.core.data import data_containers
+from viame.pytorch.netharn.data.channel_spec import ChannelSpec  # TODO: kwcoco.ChannelSpec
+from viame.pytorch.netharn.data import data_containers
 from distutils.version import LooseVersion
 
 
@@ -295,7 +295,7 @@ def _demo_batch(bsize=1, channels='rgb', h=256, w=256, classes=3,
         }
         batch_items.append(item)
 
-    # from viame.arrows.pytorch.netharn import core as nh
+    # from viame.pytorch import netharn as nh
     # from .data_containers import container_collate
     batch = data_containers.container_collate(batch_items, num_devices=1)
     # batch = nh.data.collate.padded_collate(batch_items)
@@ -372,7 +372,7 @@ def _batch_to_mm_inputs(batch, ignore_thresh=0.1):
         for path, val in walker:
             if isinstance(val, np.ndarray):
                 walker[path] = torch.from_numpy(val)
-        from viame.arrows.pytorch.netharn.core.data.collate import padded_collate
+        from viame.pytorch.netharn.data.collate import padded_collate
         packed = padded_collate(inbatch, fill_value=self.padding_value)
     """
     if isinstance(batch, torch.Tensor):
@@ -856,7 +856,7 @@ class MM_Detector(nh.layers.Module):
         # print('--------------')
 
         # Hack: remove data containers if it hasn't been done already
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         xpu = nh.XPU.from_data(self)
         mm_inputs = _ensure_unwrapped_and_mounted(mm_inputs, xpu)
 

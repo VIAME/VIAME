@@ -8,7 +8,7 @@ def plot_weight_scatter(harn):
     network.
 
     Example:
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> harn = nh.FitHarn.demo()
         >>> harn.run()
 
@@ -23,7 +23,7 @@ def plot_weight_scatter(harn):
         >>> kwplot.autompl(force='auto')
         >>> plot_weight_scatter(harn)
     """
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     cpu = nh.XPU.coerce('cpu')
 
     path1 = join(harn.train_dpath, 'initial_state', 'initial_state.pt')

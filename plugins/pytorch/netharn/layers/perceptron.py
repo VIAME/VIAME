@@ -1,6 +1,6 @@
-from .layers import common
-from .layers import rectify
-from .layers import conv_norm
+from viame.pytorch.netharn.layers import common
+from viame.pytorch.netharn.layers import rectify
+from viame.pytorch.netharn.layers import conv_norm
 import numpy as np
 
 
@@ -82,7 +82,7 @@ class MultiLayerPerceptronNd(common.AnalyticModule):
                 'output': (1, 2, 7),
             },
         }
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> nh.OutputShapeFor(self)._check_consistency([1, 128, 7])
         (1, 2, 7)
         >>> print('self._hidden_channels = {!r}'.format(self._hidden_channels))

@@ -202,7 +202,7 @@ class RegionLoss(BaseLossWithCudaState):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> nC = 2
             >>> self = RegionLoss(num_classes=nC, anchors=np.array([[1, 1]]))
             >>> nA = len(self.anchors)

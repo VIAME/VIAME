@@ -37,7 +37,7 @@ def lr_range_test(harn, init_value=1e-8, final_value=10., beta=0.98,
 
     Example:
         >>> from .prefit.lr_tests import *
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> harn = nh.FitHarn.demo().initialize()
         >>> result = lr_range_test(harn)
         >>> print('result = {!r}'.format(result))
@@ -70,7 +70,7 @@ def lr_range_test(harn, init_value=1e-8, final_value=10., beta=0.98,
         init_value = 1e-5
         final_value = 0.1
     """
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
 
     # Save the original state
     orig_model_state = copy.deepcopy(harn.model.state_dict())
@@ -247,7 +247,7 @@ def lr_range_scan(harn, low=1e-6, high=10.0, num=8, niter_train=1,
 
     Example:
         >>> from .prefit.lr_tests import *
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> harn = nh.FitHarn.demo().initialize()
         >>> result = lr_range_scan(harn)
         >>> print('result = {!r}'.format(result))
@@ -282,7 +282,7 @@ def lr_range_scan(harn, low=1e-6, high=10.0, num=8, niter_train=1,
         - [ ] cache the dataset if it fits into memory after we run the first
         epoch.
     """
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     use_vali = bool(niter_vali)
 
     # These are the learning rates we will scan through

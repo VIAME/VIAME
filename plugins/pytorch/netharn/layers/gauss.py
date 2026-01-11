@@ -2,7 +2,7 @@
 import math
 import numpy as np
 import torch
-from .layers import common
+from viame.pytorch.netharn.layers import common
 import torch.nn.functional as F
 
 
@@ -72,7 +72,7 @@ class GaussianBlurNd(common.Module):
     Example:
         >>> # xdoc: +REQUIRES(module:kwimage)
         >>> from .layers.gauss import *  # NOQA
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> from torchvision.transforms.functional import to_tensor
         >>> import kwimage
         >>> input = to_tensor(kwimage.grab_test_image())[None, :]
@@ -90,7 +90,7 @@ class GaussianBlurNd(common.Module):
         https://discuss.pytorch.org/t/is-there-anyway-to-do-gaussian-filtering-for-an-image-2d-3d-in-pytorch/12351
 
     Benchmark:
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         import kwimage
         import cv2
         import ubelt as ub

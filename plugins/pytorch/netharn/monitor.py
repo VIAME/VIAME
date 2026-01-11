@@ -5,7 +5,7 @@ TODO:
     - [ ] Implement algorithm from dlib
     http://blog.dlib.net/2018/02/automatic-learning-rate-scheduling-that.html
 """
-from netharn import util
+from viame.pytorch.netharn import util
 import itertools as it
 import numpy as np
 import ubelt as ub
@@ -231,7 +231,7 @@ class Monitor(ub.NiceRepr):
 
         Example:
             >>> from .monitor import *  # NOQA
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> rng = np.random.RandomState(0)
             >>> monitor = Monitor(minimize=['loss'], min_lr=1e-5)
             >>> for epoch in range(200):

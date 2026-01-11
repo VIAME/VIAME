@@ -8,8 +8,8 @@ import torch.nn as nn
 import torchvision
 from collections import OrderedDict
 from six.moves import builtins
-from .analytic import analytic_for
-from .device import DataSerial
+from viame.pytorch.netharn.analytic import analytic_for
+from viame.pytorch.netharn.device import DataSerial
 
 REGISTERED_TYPES = []
 
@@ -1109,7 +1109,7 @@ class OutputShapeFor(analytic_for.OutputFor):
             >>> result = OutputShapeFor.view(arr, -1)
             >>> assert result == (5184,)
         """
-        from netharn import layers
+        from .. import layers
         reshape = layers.Reshape(*args)
         return reshape.output_shape_for(arr)
 

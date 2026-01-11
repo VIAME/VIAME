@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 # from .analytic.output_shape_for import OutputShapeFor
-from .layers import ConvNorm2d
+from viame.pytorch.netharn.layers import ConvNorm2d
 
 # __all__ = ['DPN']
 

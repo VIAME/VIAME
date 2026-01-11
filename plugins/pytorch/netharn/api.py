@@ -33,7 +33,7 @@ class Datasets(object):
 
         Examples:
             >>> # xdoctest: +REQUIRES(module:ndsampler)
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> config = kw = {'datasets': 'special:shapes'}
             >>> print(ub.repr2(nh.api.Datasets.coerce(config, **kw)))
 
@@ -64,7 +64,7 @@ class DatasetInfo(object):
 
 
 def _coerce_datasets(config):
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     import ndsampler
     import numpy as np
     from torchvision import transforms
@@ -297,7 +297,7 @@ class Initializer(object):
             Tuple[nh.Initializer, dict]: initializer_ = initializer_cls, kw
 
         Examples:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> print(ub.repr2(nh.Initializer.coerce({'init': 'noop'})))
             (
                 <class 'netharn.initializers.core.NoOp'>,
@@ -318,7 +318,7 @@ class Initializer(object):
                 {'param': 0},
             )
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         import six
         if isinstance(config, six.string_types):
             config = {
@@ -468,7 +468,7 @@ class Optimizer(object):
         TODO:
             - [ ] https://pytorch.org/blog/stochastic-weight-averaging-in-pytorch/
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         config = _update_defaults(config, kw)
         key = config.get('optimizer', config.get('optim', 'sgd')).lower()
         lr = config.get('learning_rate', config.get('lr', 3e-3))
@@ -652,7 +652,7 @@ class Scheduler(object):
                 Exponential-g0.98-s1 - exponential decay of 0.98 every 1-th
                     epoch
         """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         import parse
         config = _update_defaults(config, kw)
         key = config.get('scheduler', config.get('schedule', 'step90'))

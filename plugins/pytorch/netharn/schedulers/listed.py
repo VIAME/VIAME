@@ -71,7 +71,7 @@ class ListedLR(_LRScheduler2):
     Example:
         >>> # Assuming optimizer has two groups.
         >>> import ubelt as ub
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> model = nh.models.ToyNet2d()
         >>> optimizer = torch.optim.SGD(model.parameters(), lr=0)
         >>> points = {0: .01, 2: .02, 3: .1, 6: .05, 9: .025}
@@ -88,7 +88,7 @@ class ListedLR(_LRScheduler2):
     Example:
         >>> # Assuming optimizer has two groups.
         >>> import ubelt as ub
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> model = nh.models.ToyNet2d()
         >>> optimizer = torch.optim.SGD(model.parameters(), lr=0)
         >>> points = {0: 1, 2: 2}
@@ -168,7 +168,7 @@ class Exponential(_LRScheduler2):
 
     Example:
         >>> import ubelt as ub
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> model = nh.models.ToyNet2d()
         >>> optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
         >>> self = Exponential(optimizer, gamma=0.01, stepsize=2)

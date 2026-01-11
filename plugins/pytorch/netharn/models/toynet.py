@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from netharn import layers
+from viame.pytorch.netharn import layers
 
 
 class ToyNet1d(layers.Module):
@@ -11,7 +11,7 @@ class ToyNet1d(layers.Module):
         >>> self = ToyNet1d()
         >>> loader = self.demodata().make_loader(batch_size=16, shuffle=True)
         >>> inputs, labels = next(iter(loader))
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> prob = self(nh.XPU().move(inputs))
         >>> conf, pred = prob.max(dim=1)
     """
@@ -51,7 +51,7 @@ class ToyNet2d(layers.Module):
         >>> self = ToyNet2d()
         >>> loader = self.demodata().make_loader(batch_size=16, shuffle=True)
         >>> inputs, labels = next(iter(loader))
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> prob = self(nh.XPU().move(inputs))
         >>> conf, pred = prob.max(dim=1)
     """

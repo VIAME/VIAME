@@ -8,8 +8,8 @@ import torchvision
 import ubelt as ub
 import numpy as np
 from collections import OrderedDict
-from .analytic.output_shape_for import OutputShapeFor
-from .analytic import analytic_for
+from viame.pytorch.netharn.analytic.output_shape_for import OutputShapeFor
+from viame.pytorch.netharn.analytic import analytic_for
 # try:
 # from .device import MountedModel
 # except ImportError:
@@ -307,7 +307,7 @@ class _TorchMixin(object):
 
         Example:
             >>> from .analytic.receptive_field_for import *
-            >>> from .analytic.output_shape_for import *
+            >>> from viame.pytorch.netharn.analytic.output_shape_for import *
             >>> module = nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2, padding=2)
             >>> ReceptiveFieldFor(module)()
 
@@ -573,7 +573,7 @@ class _TorchMixin(object):
     def sequential(module, input_field=None):
         """
         Example:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = nn.Sequential(
             >>>     nn.Conv2d(2, 3, kernel_size=3),
             >>>     nn.Conv2d(3, 5, kernel_size=3),
@@ -992,7 +992,7 @@ def effective_receptive_feild(module, inputs, output_key=None, sigma=0,
         >>> assert np.all(emperical_field['shape'] <= theoretic_field['shape'])
 
         >>> # xdoctest: +REQUIRES(--slow)
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> xpu = nh.XPU.coerce('auto')
         >>> module = xpu.move(torchvision.models.vgg11_bn().features)
         >>> inputs = xpu.move(torch.rand(1, 3, 224, 224))
@@ -1044,7 +1044,7 @@ def effective_receptive_feild(module, inputs, output_key=None, sigma=0,
         >>> kwplot.imshow(emperical_field1['impact'], fnum=1, pnum=(1, 3, 2), title='pretrained=False')
         >>> kwplot.imshow(emperical_field2['impact'], doclf=0, fnum=1, pnum=(1, 3, 3), title='pretrained=True')
     """
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
 
     # zero gradients
     for p in module.parameters():

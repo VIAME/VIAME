@@ -8,7 +8,7 @@ def compact_idstr(dict_):
     """
     A short unique id string for a dict param config that is semi-interpretable
     """
-    from netharn import util
+    from . import util_misc as util
     import ubelt as ub
     short_keys = util.shortest_unique_prefixes(dict_.keys())
     short_dict = ub.odict(sorted(zip(short_keys, dict_.values())))
@@ -60,7 +60,7 @@ def make_short_idstr(params, precision=None):
         return ''
     elif len(params) == 0:
         return ''
-    from netharn import util
+    from . import util_misc as util
     short_keys = util.shortest_unique_prefixes(list(params.keys()),
                                                allow_simple=False,
                                                allow_end=True,

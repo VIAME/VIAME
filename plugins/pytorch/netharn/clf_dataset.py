@@ -57,7 +57,7 @@ class ClfDataset(torch_data.Dataset):
     @ub.memoize_property
     def input_id(self):
         # TODO: reset memoize dict if augment / other param is changed
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         depends = [
             self.sampler._depends(),
             self.min_dim,
@@ -168,7 +168,7 @@ class ClfDataset(torch_data.Dataset):
             balance = 'sequential'
 
         if balance == 'sequential':
-            from viame.arrows.pytorch.netharn.core.data.batch_samplers import (
+            from viame.pytorch.netharn.data.batch_samplers import (
                 SubsetSampler, PatchedBatchSampler, PatchedRandomSampler)
             if shuffle:
                 # Handle the case where num batches is specified
@@ -194,7 +194,7 @@ class ClfDataset(torch_data.Dataset):
 
                 loaderkw['batch_sampler'] = batch_sampler
         elif balance == 'classes':
-            from viame.arrows.pytorch.netharn.core.data.batch_samplers import BalancedBatchSampler
+            from viame.pytorch.netharn.data.batch_samplers import BalancedBatchSampler
             index_to_cid = [
                 cid for cid in self.sampler.regions.targets['category_id']
             ]
@@ -285,7 +285,7 @@ class ClfAugmentor(object):
         >>> kwplot.show_if_requested()
     """
     def __init__(self, mode='simple', gravity=0, rng=None):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         import imgaug.augmenters as iaa
         import imgaug as ia
         self.rng = kwarray.ensure_rng(rng)
@@ -394,7 +394,7 @@ class ClfAugmentor(object):
         self.augmenter = augmenter
 
     def json_id(self):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         if self.augmenter:
             return nh.data.transforms.imgaug_json_id(self.augmenter)
 

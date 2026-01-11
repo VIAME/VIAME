@@ -22,7 +22,7 @@ def read_arr(fpath):
     """
     Example:
         >>> import ubelt as ub
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> from os.path import join
         >>> dpath = ub.ensure_app_cache_dir('netharn', 'tests')
         >>> arr = np.random.rand(10)

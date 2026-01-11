@@ -10,7 +10,7 @@ def default_kwargs(cls):
 
     Example:
         >>> from .util.util_inspect import *  # NOQA
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> import torch
         >>> import ubelt as ub
         >>> cls = torch.optim.Adam

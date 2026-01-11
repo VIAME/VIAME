@@ -9,7 +9,7 @@ from collections import OrderedDict  # NOQA
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from netharn import layers
+from viame.pytorch.netharn import layers
 # from .resnet import _ConvBnReLU, _ResLayer, _Stem
 
 # from encoding.nn import SyncBatchNorm
@@ -81,7 +81,7 @@ class _Bottleneck(layers.AnalyticModule):
             >>> # xdoctest: +REQUIRES(--slow)
             >>> from .models.deeplab_v3 import *  # NOQA
             >>> from .models.deeplab_v3 import _Bottleneck
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = _Bottleneck(3, 16, 1, 1, 1)
             >>> kwargs = self._analytic_shape_kw()
             >>> globals().update(kwargs)
@@ -197,7 +197,7 @@ class _Flatten(layers.AnalyticModule):
             >>> # xdoctest: +REQUIRES(--slow)
             >>> from .models.deeplab_v3 import *  # NOQA
             >>> from .models.deeplab_v3 import _Flatten
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = _Flatten().eval()
             >>> # ---
             >>> kwargs = self._analytic_shape_kw()
@@ -286,7 +286,7 @@ class _ImagePool(layers.AnalyticModule):
             >>> # xdoctest: +REQUIRES(--slow)
             >>> from .models.deeplab_v3 import *  # NOQA
             >>> from .models.deeplab_v3 import _ImagePool
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = _ImagePool(3, 5).eval()
             >>> # ---
             >>> kwargs = self._analytic_shape_kw()
@@ -354,7 +354,7 @@ class _ASPP(layers.AnalyticModule):
             >>> # xdoctest: +REQUIRES(--slow)
             >>> from .models.deeplab_v3 import *  # NOQA
             >>> from .models.deeplab_v3 import _ASPP
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = _ASPP(3, 5, rates=[1, 2]).eval()
             >>> # ---
             >>> kwargs = self._analytic_shape_kw()

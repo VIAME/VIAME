@@ -3,7 +3,7 @@
 def prototype_eval_clf():
     # hard coded prototype for classification evaluation
     import ubelt as ub
-    from bioharn import clf_predict
+    from viame.pytorch.netharn import clf_predict
 
     config = {
         'dataset': ub.expandpath('$HOME/remote/namek/data/noaa_habcam/combos/habcam_cfarm_v8_test.mscoco.json'),
@@ -53,7 +53,7 @@ def prototype_eval_clf():
         'score': confs,
     })
 
-    from viame.arrows.pytorch.netharn.core.metrics import ConfusionVectors
+    from viame.pytorch.netharn.metrics import ConfusionVectors
     cfsn_vecs = ConfusionVectors(data, probs=probs, classes=classes)
 
     bin_vecs = cfsn_vecs.binarize_ovr()

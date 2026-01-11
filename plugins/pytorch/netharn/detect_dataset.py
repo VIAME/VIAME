@@ -1,13 +1,13 @@
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 import numpy as np
 import torch
 import ubelt as ub
 import kwarray
 import kwimage
 import torch.utils.data.sampler
-from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec
-from viame.arrows.pytorch.netharn.core.data.data_containers import ItemContainer
-from viame.arrows.pytorch.netharn.core.data.data_containers import container_collate
+from viame.pytorch.netharn.data.channel_spec import ChannelSpec
+from viame.pytorch.netharn.data.data_containers import ItemContainer
+from viame.pytorch.netharn.data.data_containers import container_collate
 from functools import partial
 import numbers
 
@@ -687,10 +687,10 @@ class DetectFitDataset(torch.utils.data.Dataset):
                 num_samples = num_batches * batch_size
 
             if shuffle:
-                from viame.arrows.pytorch.netharn.core.data.batch_samplers import PatchedRandomSampler
+                from viame.pytorch.netharn.data.batch_samplers import PatchedRandomSampler
                 item_sampler = PatchedRandomSampler(self, num_samples=num_samples)
             else:
-                from viame.arrows.pytorch.netharn.core.data.batch_samplers import SubsetSampler
+                from viame.pytorch.netharn.data.batch_samplers import SubsetSampler
                 import itertools as it
                 REBALANCE_DETERMINISTIC_SHUFFLE = True
                 if REBALANCE_DETERMINISTIC_SHUFFLE:
@@ -784,7 +784,7 @@ class DetectFitDataset(torch.utils.data.Dataset):
         else:
             # batch_sampler = torch.utils.data.BatchSampler(
             #     item_sampler, batch_size=batch_size, drop_last=drop_last)
-            from viame.arrows.pytorch.netharn.core.data.batch_samplers import PatchedBatchSampler
+            from viame.pytorch.netharn.data.batch_samplers import PatchedBatchSampler
             batch_sampler = PatchedBatchSampler(
                 item_sampler, batch_size=batch_size, drop_last=drop_last,
                 num_batches=num_batches)
@@ -843,7 +843,7 @@ def load_sample_auxiliary(sampler, tr, want_aux, pad=0):
         >>> # xdoctest: +REQUIRES(module:gdal)
         >>> from .detect_dataset import *  # NOQA
         >>> import ndsampler
-        >>> from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec
+        >>> from viame.pytorch.netharn.data.channel_spec import ChannelSpec
         >>> want_aux = ChannelSpec.coerce('disparity,flowx|flowy').unique()
         >>> sampler = ndsampler.CocoSampler.demo('vidshapes8-aux')
         >>> pad = 0
@@ -1145,7 +1145,7 @@ def preselect_regions(sampler, window_overlap, window_dims,
         negative_classes={'ignore', 'background'}
 
     """
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
 
     keepbound = True
 
@@ -1566,7 +1566,7 @@ class DetectionAugmentor(object):
         self.seed_(self.rng)
 
     def json_id(self):
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         params = ub.map_vals(nh.data.transforms.imgaug_json_id, self._augers)
         return params
 

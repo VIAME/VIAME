@@ -8,7 +8,7 @@ References:
 import torch
 from torch import nn
 from torch.nn import functional as F
-from netharn import layers
+from viame.pytorch.netharn import layers
 
 import re
 import math
@@ -53,7 +53,7 @@ class Conv2dDynamicSamePadding(nn.Conv2d, layers.AnalyticModule):
         Example:
             >>> # xdoctest: +REQUIRES(module:ndsampler)
             >>> from .models.efficientnet import *  # NOQA
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> kwargs = layers.AnalyticModule._analytic_shape_kw()
             >>> globals().update(kwargs)
             >>> inputs = (1, 3, 224, 224)
@@ -123,7 +123,7 @@ class Conv2dStaticSamePadding(nn.Conv2d, layers.AnalyticModule):
         Example:
             >>> # xdoctest: +REQUIRES(module:ndsampler)
             >>> from .models.efficientnet import *  # NOQA
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> kwargs = layers.AnalyticModule._analytic_shape_kw()
             >>> globals().update(kwargs)
             >>> inputs = (1, 3, 224, 224)
@@ -244,7 +244,7 @@ class MBConvBlock(layers.AnalyticModule):
         Example:
             >>> # xdoctest: +REQUIRES(module:ndsampler)
             >>> from .models.efficientnet import *  # NOQA
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = MBConvBlock.demo()
             >>> kwargs = self._analytic_shape_kw()
             >>> globals().update(kwargs)
@@ -466,7 +466,7 @@ class EfficientNet(layers.AnalyticModule):
         """
         Example:
             >>> # xdoctest: +REQUIRES(module:ndsampler)
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> from .models.efficientnet import *  # NOQA
             >>> self = EfficientNet.from_name('efficientnet-b0')
             >>> kwargs = self._analytic_shape_kw()

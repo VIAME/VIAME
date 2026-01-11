@@ -3,8 +3,8 @@ References:
     https://github.com/alykhantejani/initializers
 """
 import torch
-from netharn import api
-from .initializers.functional import apply_initializer
+from viame.pytorch.netharn import api
+from .functional import apply_initializer
 
 
 class NoOp(api.Initializer):

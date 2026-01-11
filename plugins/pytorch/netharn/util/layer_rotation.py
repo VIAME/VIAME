@@ -15,7 +15,7 @@ import torch
 def _get_named_params(model, copy=False):
     """
     Example:
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> model = nh.models.ToyNet2d()
         >>> dict(_get_named_params(model)).keys()
     """
@@ -34,7 +34,7 @@ def _get_named_params(model, copy=False):
 def layer_rotation(current_params, init_params):
     """
     Example:
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> model = nh.models.ToyNet2d()
         >>> model2 = nh.models.ToyNet2d()
         >>> init_params = _get_named_params(model)
@@ -54,7 +54,7 @@ def layer_rotation(current_params, init_params):
 class LayerRotation(ub.NiceRepr):
     """
     Example:
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> model = nh.models.ToyNet2d()
         >>> self = LayerRotation(model)
         >>> self.measure()

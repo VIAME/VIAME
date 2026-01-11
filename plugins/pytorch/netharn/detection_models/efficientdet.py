@@ -10,9 +10,9 @@ print(closer.current_sourcecode())
 """
 import kwimage
 import ndsampler
-from viame.arrows.pytorch.netharn import core as nh
+from viame.pytorch import netharn as nh
 import ubelt as ub
-from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec
+from viame.pytorch.netharn.data.channel_spec import ChannelSpec
 
 # from models.module import Anchors
 # from models.module import BBoxTransform

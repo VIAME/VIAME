@@ -1,6 +1,6 @@
 import torch
-from netharn import util
-from .analytic import output_shape_for
+from viame.pytorch.netharn import util
+from viame.pytorch.netharn.analytic import output_shape_for
 
 
 class Reshape(torch.nn.Module, util.ModuleMixin):
@@ -16,7 +16,7 @@ class Reshape(torch.nn.Module, util.ModuleMixin):
             shape should keep the input shape value in that dimension
 
     Example:
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> nh.OutputShapeFor(Reshape(-1, 3))._check_consistency((20, 6, 20))
         (800, 3)
         >>> nh.OutputShapeFor(Reshape(100, -1, 5))._check_consistency((10, 10, 15))
@@ -27,7 +27,7 @@ class Reshape(torch.nn.Module, util.ModuleMixin):
         (10, 4096, 4)
         >>> Reshape(None, -1, 4).output_shape_for((None, 32, 32, 16))
         (None, 4096, 4)
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> nh.OutputShapeFor(Reshape(-1, 3))._check_consistency((20, 6, 20))
 
     Ignore:
@@ -55,7 +55,7 @@ class Reshape(torch.nn.Module, util.ModuleMixin):
     def forward(self, input):
         """
         Example:
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> self = Reshape(None, -1, 4)
             >>> input_shape = (10, 32, 32, 16)
             >>> input = torch.rand(input_shape)

@@ -107,7 +107,7 @@ def upgrade_deployed_mmdet_model(config):
     """
     from torch_liberator import deployer
     import ndsampler
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     from .models import mm_models
 
     config = UpgradeMMDetConfig(config)
@@ -165,7 +165,7 @@ def upgrade_deployed_mmdet_model(config):
 
     # Add major hacks to the config string to attempt to re-create what mmdet can handle
     config_strings = model_src.replace('mm_config', 'model')
-    config_strings = 'from viame.arrows.pytorch.netharn.core.data.channel_spec import ChannelSpec\n' + config_strings
+    config_strings = 'from viame.pytorch.netharn.data.channel_spec import ChannelSpec\n' + config_strings
     config_strings = 'import ubelt as ub\n' + config_strings
     config_strings = 'classes = {!r}\n'.format(list(old_classes)) + config_strings
     if 'in_channels' in model_initkw:

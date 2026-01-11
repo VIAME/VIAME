@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import ubelt as ub
-from .models.yolo2 import light_postproc
+from viame.pytorch.netharn.models.yolo2 import light_postproc
 
 __all__ = ['Yolo']
 
@@ -252,7 +252,7 @@ class Yolo(nn.Module):
             >>> batch_dets = self.postprocess(output)
             >>> dets = batch_dets[0]
             >>> # xdoc: +REQUIRES(--show)
-            >>> from viame.arrows.pytorch.netharn import core as nh
+            >>> from viame.pytorch import netharn as nh
             >>> import kwplot
             >>> kwplot.autompl()  # xdoc: +SKIP
             >>> dets.meta['classes'] = ('aeroplane', 'bicycle', 'bird', 'boat', 'bottle',
@@ -379,7 +379,7 @@ def initial_imagenet_weights():
 
 
 def demo_image(inp_size):
-    from netharn import util
+    from ... import util
     import numpy as np
     import cv2
     rgb255 = util.grab_test_image('astro', 'rgb')

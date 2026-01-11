@@ -13,7 +13,7 @@ import torch
 import glob
 import ubelt as ub
 import numpy as np
-from .data import collate
+from viame.pytorch.netharn.data import collate
 import torch.utils.data as torch_data
 
 
@@ -49,7 +49,7 @@ class VOCDataset(torch_data.Dataset, ub.NiceRepr):
         >>> self2 = VOCDataset(split='trainval', years=[2007])
 
 
-        from netharn import util
+        from .. import util
         util.qtensure()
         self1.show_image(198)
         self2.show_image(300)
@@ -290,7 +290,7 @@ class VOCDataset(torch_data.Dataset, ub.NiceRepr):
         return annots
 
     def show_image(self, index, fnum=None):
-        from netharn import util
+        from .. import util
         hwc, boxes, gt_classes = self._load_item(index, inp_size=None)
 
         labels = list(ub.take(self.label_names, gt_classes))
@@ -352,7 +352,7 @@ class VOCDataset(torch_data.Dataset, ub.NiceRepr):
 
     def to_coco(self):
         """ Transform VOC to coco-style dataset """
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         voc_dset = self
         coco_dset = nh.data.coco_api.CocoDataset()
         coco_dset._build_index()

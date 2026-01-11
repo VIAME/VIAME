@@ -9,7 +9,7 @@ def explicit_output_shape_for(model, inputs):
         https://discuss.pytorch.org/t/how-to-register-forward-hooks-for-each-module/43347
 
     Example:
-        from viame.arrows.pytorch.netharn import core as nh
+        from viame.pytorch import netharn as nh
         model = nh.models.ToyNet2d()
         inputs = torch.rand(1, 1, 256, 256)
 
@@ -27,7 +27,7 @@ def explicit_output_shape_for(model, inputs):
         explicit_output_shape_for(model, inputs)
 
     """
-    from viame.arrows.pytorch.netharn.core.analytic.output_shape_for import OutputShape, HiddenShapes
+    from viame.pytorch.netharn.analytic.output_shape_for import OutputShape, HiddenShapes
     import torch
     import ubelt as ub
 
@@ -80,7 +80,7 @@ def explicit_output_shape_for(model, inputs):
                 shape = OutputShape.coerce(outputs.shape, hidden=hidden)
             else:
                 print(type(outputs))
-                from viame.arrows.pytorch.netharn.core.data.data_containers import nestshape
+                from viame.pytorch.netharn.data.data_containers import nestshape
                 if isinstance(outputs, dict):
                     shape = nestshape(list(outputs.values()))
                 else:

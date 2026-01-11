@@ -37,7 +37,7 @@ def _dump_monitor_tensorboard(harn, mode='epoch', special_groupers=['loss'],
         xdoctest -m netharn.mixins _dump_monitor_tensorboard --profile
 
     Example:
-        >>> from viame.arrows.pytorch.netharn import core as nh
+        >>> from viame.pytorch import netharn as nh
         >>> from .mixins import _dump_monitor_tensorboard
         >>> harn = nh.FitHarn.demo()
         >>> harn.run()
@@ -47,7 +47,7 @@ def _dump_monitor_tensorboard(harn, mode='epoch', special_groupers=['loss'],
         >>>     pass
     """
     import ubelt as ub
-    from viame.arrows.pytorch.netharn import core as nh
+    from viame.pytorch import netharn as nh
     from os.path import join
     import json
     import six

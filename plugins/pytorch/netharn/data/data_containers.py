@@ -18,7 +18,7 @@ import re
 import torch.nn.functional as F
 # from torch.nn.parallel import DataParallel
 from itertools import chain
-from .device import DataParallel, DataSerial, XPU
+from viame.pytorch.netharn.device import DataParallel, DataSerial, XPU
 from torch.nn.parallel._functions import _get_stream
 from torch.nn.parallel._functions import Scatter as OrigScatter
 from torch.nn.parallel._functions import Gather as OrigGather
@@ -863,7 +863,7 @@ def container_gather(outputs, target_device, dim=0):
         if isinstance(out, BatchContainer):
             newdata = [d for dc in outputs_ for d in dc.data]
             if not out.cpu_only:
-                from viame.arrows.pytorch.netharn import core as nh
+                from viame.pytorch import netharn as nh
                 target_xpu = nh.XPU(target_device)
                 newdata = target_xpu.move(newdata)
             return newdata

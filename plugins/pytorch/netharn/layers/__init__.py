@@ -9,25 +9,25 @@ if __DYNAMIC__:
     exec(dynamic_init(__name__))
 else:
     # <AUTOGEN_INIT>
-    from netharn.layers import common
-    from netharn.layers import conv_norm
-    from netharn.layers import gauss
-    from netharn.layers import norm
-    from netharn.layers import perceptron
-    from netharn.layers import rectify
-    from netharn.layers import reshape
+    from . import common
+    from . import conv_norm
+    from . import gauss
+    from . import norm
+    from . import perceptron
+    from . import rectify
+    from . import reshape
 
-    from netharn.layers.common import (AnalyticModule, Identity, Module,
-                                       ModuleMixin, Sequential,)
-    from netharn.layers.conv_norm import (ConvNorm1d, ConvNorm2d, ConvNorm3d,
-                                          ConvNormNd,)
-    from netharn.layers.gauss import (Conv1d_pad, Conv2d_pad, GaussianBlurNd,)
-    from netharn.layers.norm import (InputNorm, L2Norm,)
-    from netharn.layers.perceptron import (MultiLayerPerceptronNd,)
-    from netharn.layers.rectify import (rectify_conv, rectify_dropout,
-                                        rectify_maxpool, rectify_nonlinearity,
-                                        rectify_normalizer,)
-    from netharn.layers.reshape import (Permute, Reshape,)
+    from .common import (AnalyticModule, Identity, Module,
+                         ModuleMixin, Sequential,)
+    from .conv_norm import (ConvNorm1d, ConvNorm2d, ConvNorm3d,
+                            ConvNormNd,)
+    from .gauss import (Conv1d_pad, Conv2d_pad, GaussianBlurNd,)
+    from .norm import (InputNorm, L2Norm,)
+    from .perceptron import (MultiLayerPerceptronNd,)
+    from .rectify import (rectify_conv, rectify_dropout,
+                          rectify_maxpool, rectify_nonlinearity,
+                          rectify_normalizer,)
+    from .reshape import (Permute, Reshape,)
 
     __all__ = ['AnalyticModule', 'Conv1d_pad', 'Conv2d_pad', 'ConvNorm1d',
                'ConvNorm2d', 'ConvNorm3d', 'ConvNormNd', 'GaussianBlurNd',

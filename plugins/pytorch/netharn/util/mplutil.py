@@ -348,7 +348,7 @@ def _save_requested(fpath_, save_parts):
 
     fpath_strict = ub.expandpath(fpath)
     CLIP_WHITE = ub.argflag('--clipwhite')
-    from netharn import util
+    from . import util_io as util
 
     if save_parts:
         # TODO: call save_parts instead, but we still need to do the
