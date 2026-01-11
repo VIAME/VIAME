@@ -113,14 +113,11 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 ##
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
-
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
-
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
-mark_as_advanced( VIAME_ENABLE_SVM )
 
 ###
 # Add core utilities enable flags
