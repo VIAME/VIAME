@@ -7,7 +7,7 @@
  * \brief Calibrate two cameras from two objects track set
  */
 
-#include "calibrate_cameras_from_tracks_process.h"
+#include <memory>
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -21,16 +21,15 @@
 #include <vital/algo/optimize_cameras.h>
 #include <vital/range/transform.h>
 #include <vital/range/iota.h>
-#include <vital/io/camera_io.h>
 #include <vital/exceptions.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <memory>
 #include <arrows/ocv/camera_intrinsics.h>
 
-
+#include "calibrate_cameras_from_tracks_process.h"
 #include "read_object_track_set_viame_csv.h"
+#include "camera_io.h"
 
 namespace kv = kwiver::vital;
 
@@ -440,7 +439,7 @@ calibrate_cameras_from_tracks_process
 
     std::string out_fname1 =
       output_dir + "/camera" + std::to_string( cam_id ) + ".krtd";
-    kv::write_krtd_file( *camera, out_fname1 );
+    viame::write_krtd_file( *camera, out_fname1 );
     cam_id++;
   }
 
