@@ -11,11 +11,11 @@ from torchvision import transforms
 from tqdm import tqdm
 tqdm.monitor_interval = 0
 
-from ...models import Siamese
+from .models import Siamese
 
-from ..siamese_dataset import SiameseEXFDataLoader
-from ..storage import DataStorage
-from ..utilities import load_track_feature_file
+from .siamese_dataset import SiameseEXFDataLoader
+from .storage import DataStorage
+from .utilities import load_track_feature_file
 
 
 def extract_siamese_features(model_path, data_storage, track_feature_file):

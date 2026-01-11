@@ -8,7 +8,7 @@ import numpy as np
 import torch.utils.data as data
 import torch
 
-from ..models import RnnType
+from .models import RnnType
 
 from .g_config import get_config
 from .storage import DataStorage

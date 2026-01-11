@@ -9,7 +9,7 @@ from PIL import Image
 import torch
 import torch.utils.data as data
 
-from ..models import RnnType
+from .models import RnnType
 
 from .g_config import get_config
 from .rnn_dataset import compute_list_and_target

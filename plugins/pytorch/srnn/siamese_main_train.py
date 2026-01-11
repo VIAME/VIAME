@@ -8,13 +8,13 @@ import os
 import torch
 from torchvision import transforms
 
-from ...models import Siamese
+from .models import Siamese
 
-from ..siamese_training import train_model
-from ..g_config import get_config
-from ..siamese_dataset import SiameseDataLoader
-from ..utilities import setupLogger, logging, exp_lr_scheduler
-from ..ContrastiveLoss import ContrastiveLoss
+from .siamese_training import train_model
+from .g_config import get_config
+from .siamese_dataset import SiameseDataLoader
+from .utilities import setupLogger, logging, exp_lr_scheduler
+from .ContrastiveLoss import ContrastiveLoss
 
 if __name__ != '__main__':
     raise ImportError

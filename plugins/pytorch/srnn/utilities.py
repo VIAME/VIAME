@@ -10,7 +10,7 @@ from PIL import Image
 import numpy as np
 import torch
 
-from ..models import RnnType
+from .models import RnnType
 
 
 def load_track_feature_file(tff):

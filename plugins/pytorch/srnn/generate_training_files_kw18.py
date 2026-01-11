@@ -20,8 +20,8 @@ tqdm.monitor_interval = 0
 
 from viame.pytorch.utilities import Grid
 
-from ..storage import DataStorage, SequenceList
-from ..utilities import load_track_feature_file
+from .storage import DataStorage, SequenceList
+from .utilities import load_track_feature_file
 
 
 # Homography state

@@ -4,7 +4,7 @@
 
 from torch import optim
 
-from ..models import get_config as _get_model_config
+from .models import get_config as _get_model_config
 
 
 class Config(_get_model_config().__class__):

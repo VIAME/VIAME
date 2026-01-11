@@ -9,17 +9,17 @@ import os
 import torch
 from torch import nn
 
-from ...models import (
+from .models import (
     AppearanceLSTM, MotionLSTM,
     InteractionLSTM, BBoxLSTM,
     RnnType,
 )
 
-from ..rnn_training import train_model
-from ..g_config import get_config
+from .rnn_training import train_model
+from .g_config import get_config
 
-from ..rnn_dataset import RNNDataLoader
-from ..utilities import setupLogger, logging, exp_lr_scheduler
+from .rnn_dataset import RNNDataLoader
+from .utilities import setupLogger, logging, exp_lr_scheduler
 
 if __name__ != '__main__':
     raise ImportError

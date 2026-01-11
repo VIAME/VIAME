@@ -14,10 +14,10 @@ This script runs the complete 6-step training pipeline:
 6. Combined SRNN training - Train final TargetLSTM model
 
 Usage:
-    python -m viame.pytorch.srnn.training.train_everything data_root output_dir [options]
+    python -m viame.pytorch.srnn.train_everything data_root output_dir [options]
 
 Example:
-    python -m viame.pytorch.srnn.training.train_everything \\
+    python -m viame.pytorch.srnn.train_everything \\
         /path/to/training_data \\
         /path/to/output \\
         --stabilized
@@ -38,8 +38,8 @@ def run(*args, **kwargs):
 
 
 def run_mod_raw(args, *more_args, **kwargs):
-    """run, but with the name of a module in bin as the first argument"""
-    args = ['python', '-m', 'viame.pytorch.srnn.training.bin.' + args[0], *args[1:]]
+    """run, but with the name of a module as the first argument"""
+    args = ['python', '-m', 'viame.pytorch.srnn.' + args[0], *args[1:]]
     return run(args, *more_args, **kwargs)
 
 
