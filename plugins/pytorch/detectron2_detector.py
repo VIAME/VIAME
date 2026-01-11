@@ -34,7 +34,7 @@ import ubelt as ub
 
 from kwiver.vital.algo import ImageObjectDetector
 
-from .utilities import (
+from viame.pytorch.utilities import (
     vital_config_update,
     kwimage_to_kwiver_detections,
     resolve_device_str,

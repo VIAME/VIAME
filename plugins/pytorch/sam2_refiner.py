@@ -14,7 +14,7 @@ from PIL import Image as PILImage
 import numpy as np
 import math
 import delayed_image
-from .utilities import vital_config_update, vital_to_kwimage_box
+from viame.pytorch.utilities import vital_config_update, vital_to_kwimage_box
 
 from distutils.util import strtobool
 

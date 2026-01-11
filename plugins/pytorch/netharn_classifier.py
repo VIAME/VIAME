@@ -14,7 +14,7 @@ from kwiver.vital.types import DetectedObjectType
 import numpy as np  # NOQA
 import ubelt as ub
 
-from .utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update
 
 
 class NetharnClassifier(ImageObjectDetector):

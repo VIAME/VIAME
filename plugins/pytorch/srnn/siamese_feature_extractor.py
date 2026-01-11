@@ -15,7 +15,7 @@ from PIL import Image as pilImage
 
 from kwiver.vital.types import BoundingBoxD
 from .models import Siamese
-from ..utilities import get_gpu_device
+from viame.pytorch.utilities import get_gpu_device
 
 
 class SiameseDataLoader(data.Dataset):

@@ -48,7 +48,7 @@ from kwiver.vital.algo import (
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
 
-from .utilities import (
+from viame.pytorch.utilities import (
     vital_config_update,
     resolve_device_str,
     parse_bool,

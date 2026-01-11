@@ -27,7 +27,7 @@ from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
 from kwiver.vital.types import new_descriptor
 from kwiver.vital.util.VitalPIL import get_pil_image
 
-from .utilities import Grid, gpu_list_desc, parse_gpu_list
+from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
 
 from .srnn.track import track_state, track, track_set
 from .srnn.models import Siamese

@@ -2,7 +2,7 @@ import scriptconfig as scfg
 import numpy as np
 
 from kwiver.vital.algo import ImageObjectDetector
-from .utilities import kwimage_to_kwiver_detections, vital_config_update
+from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update
 
 
 class HuggingFaceZeroShotDetectorConfig(scfg.DataConfig):

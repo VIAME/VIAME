@@ -16,7 +16,7 @@ import numpy as np
 import math
 import cv2
 
-from .utilities import safe_crop, vital_config_update
+from viame.pytorch.utilities import safe_crop, vital_config_update
 
 
 class NetharnRefiner(RefineDetections):

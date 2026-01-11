@@ -21,7 +21,7 @@ import random
 import numpy as np
 import cv2
 
-from ..utilities import get_gpu_device
+from viame.pytorch.utilities import get_gpu_device
 
 
 def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3, iflux=0.2 ):

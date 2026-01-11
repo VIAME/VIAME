@@ -9,7 +9,7 @@ from torch import nn
 import numpy as np
 
 from .models import TargetLSTM, get_config, RnnType
-from ..utilities import get_gpu_device
+from viame.pytorch.utilities import get_gpu_device
 
 g_config = get_config()
 

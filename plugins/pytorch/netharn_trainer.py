@@ -34,7 +34,7 @@ import time
 import random
 import math
 
-from .utilities import safe_crop, recurse_copy
+from viame.pytorch.utilities import safe_crop, recurse_copy
 
 
 class NetHarnTrainer( TrainDetector ):

@@ -14,7 +14,7 @@ from torchvision import models, transforms, datasets
 
 from PIL import Image as pilImage
 
-from ..utilities import get_gpu_device
+from viame.pytorch.utilities import get_gpu_device
 
 class AlexNetDataLoader( data.Dataset ):
     def __init__( self, bbox_list, transform, frame_img, in_size ):

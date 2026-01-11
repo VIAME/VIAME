@@ -10,7 +10,7 @@ import scriptconfig as scfg
 import ubelt as ub
 import yaml
 
-from .utilities import (
+from viame.pytorch.utilities import (
     vital_config_update,
     resolve_device,
     parse_bool,

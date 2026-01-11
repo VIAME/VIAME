@@ -8,7 +8,7 @@ from kwiver.vital.algo import ImageObjectDetector
 
 import scriptconfig as scfg
 
-from .utilities import (
+from viame.pytorch.utilities import (
     resolve_device,
     vital_config_update,
     kwimage_to_kwiver_detections,

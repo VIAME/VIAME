@@ -21,7 +21,7 @@ from kwiver.vital.types import DetectedObjectType
 from kwiver.vital.types import BoundingBoxD
 
 from kwiver.vital.algo import TrainDetector
-from .utilities import safe_crop
+from viame.pytorch.utilities import safe_crop
 
 
 class KWCocoTrainDetectorConfig(scfg.DataConfig):

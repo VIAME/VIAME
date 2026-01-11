@@ -18,7 +18,7 @@ from timeit import default_timer as timer
 
 from kwiver.vital.util.VitalPIL import get_pil_image
 
-from .utilities import Grid, gpu_list_desc, parse_gpu_list
+from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
 
 class ResnetDescriptors(KwiverProcess):
 
