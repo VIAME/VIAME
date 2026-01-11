@@ -339,7 +339,8 @@ if( VIAME_ENABLE_OPENCV )
     register_multimodal_unsync_ocv.pipe
     detector_calibration_target.pipe
     tracker_calibration_target.pipe
-    measurement_calibrate_cameras.pipe
+    measurement_calibrate_cameras_default.pipe
+    measurement_calibrate_cameras_fast.pipe
     measurement_compute_rectified_disparity.pipe
     measurement_detect_calibration_target.pipe
     measurement_track_fish_in_3d_from_rect_disp.pipe
