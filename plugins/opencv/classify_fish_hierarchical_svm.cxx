@@ -143,7 +143,7 @@ cv::Rect outputTargetImage(const FGObject& obj, cv::InputArray src, cv::InputArr
                            cv::OutputArray dst, cv::OutputArray dstFg,
                            cv::Mat& R, cv::Point& shift)
 {
-  if (!src.obj || !fgSrc.obj) return cv::Rect();
+  if (src.empty() || fgSrc.empty()) return cv::Rect();
   cv::Mat inImg = src.getMat();
   cv::Mat fgImg = fgSrc.getMat();
 
@@ -927,7 +927,7 @@ void FeatureExtraction::findEndPts(cv::Mat& fgMask)
   cv::Point pt1, pt2;
 
   for (size_t i = 0; i < _contour.size(); ++i) {
-    double dist = cv::norm(_contour[i] - center);
+    double dist = cv::norm(cv::Point2f(_contour[i]) - center);
     if (dist > maxDist1) {
       maxDist2 = maxDist1;
       pt2 = pt1;
@@ -1431,9 +1431,12 @@ classify_fish_hierarchical_svm::refine(
   kwiver::vital::image_container_sptr image_data,
   kwiver::vital::detected_object_set_sptr input_dets) const
 {
+  using ocv_container = kwiver::arrows::ocv::image_container;
+
   auto output_detections = std::make_shared<kwiver::vital::detected_object_set>();
 
-  cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv(image_data->get_image());
+  cv::Mat src = ocv_container::vital_to_ocv( image_data->get_image(),
+                                             ocv_container::BGR_COLOR );
 
   if (src.channels() == 3) {
     cv::cvtColor(src, src, cv::COLOR_RGB2GRAY);
@@ -1449,8 +1452,8 @@ classify_fish_hierarchical_svm::refine(
     std::vector<int> predictions;
     std::vector<double> probabilities;
 
-    cv::Mat segment_chip = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      det->mask()->get_image());
+    cv::Mat segment_chip = ocv_container::vital_to_ocv(
+      det->mask()->get_image(), ocv_container::OTHER_COLOR );
 
     if (segment_chip.channels() == 3) {
       cv::cvtColor(segment_chip, segment_chip, cv::COLOR_RGB2GRAY);
