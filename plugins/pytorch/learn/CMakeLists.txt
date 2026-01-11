@@ -1,18 +1,44 @@
+# Learn package for VIAME PyTorch
 
-kwiver_create_python_init( pytorch/learn )
+# Helper function to recursively add all Python modules in a directory
+function(add_python_modules_recursive base_path install_prefix)
+  file(GLOB_RECURSE _python_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+       "${base_path}/*.py")
 
-# -----------------------------------------------------------------------------
-# Install pure python modules
-# -----------------------------------------------------------------------------
+  foreach(_py_file ${_python_files})
+    # Get the directory and filename
+    get_filename_component(_py_dir ${_py_file} DIRECTORY)
+    get_filename_component(_py_name ${_py_file} NAME_WE)
 
-install( DIRECTORY cutler tokencut mmdet
-  DESTINATION ${VIAME_PYTHON_INSTALL}/viame/pytorch/learn
-  PATTERN "__pycache__" EXCLUDE
-  PATTERN "*.pyc" EXCLUDE
-)
+    # Build the module path
+    if(_py_dir)
+      set(_mod_path "${install_prefix}/${_py_dir}")
+    else()
+      set(_mod_path "${install_prefix}")
+    endif()
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/${_py_file}
+      ${_mod_path}
+      ${_py_name}
+    )
+  endforeach()
+endfunction()
+
+# Add all Python modules from learn directory (cutler, tokencut, mmdet)
+add_python_modules_recursive( "cutler" "pytorch/learn/cutler" )
+add_python_modules_recursive( "tokencut" "pytorch/learn/tokencut" )
+add_python_modules_recursive( "mmdet" "pytorch/learn/mmdet" )
+
+# Also add the root __init__.py if it's not empty
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+  pytorch/learn
+  __init__ )
 
 # -----------------------------------------------------------------------------
 # Build and install vendored dependencies (pydensecrf, panopticapi)
+# These have C++ extensions and need to be built via pip
 # -----------------------------------------------------------------------------
 
 set( LEARN_DEPS_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -38,22 +64,21 @@ if( Eigen3_INCLUDE_DIR )
   list( APPEND LEARN_ENV_VARS "EIGEN_INCLUDE_DIR=${Eigen3_INCLUDE_DIR}" )
 endif()
 
-# We use a custom target to ensure these are built during the build phase
-# We use 'pip install --user' or 'pip install -e' depending on configuration,
-# effectively mirroring what add_project_learn.cmake did.
+# Install vendored dependencies to VIAME's Python install location
+set( LEARN_INSTALL_TARGET "${VIAME_PYTHON_INSTALL}/site-packages" )
 
 if( VIAME_PYTHON_SYMLINK )
   set( LEARN_PIP_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} -m pip install --user -e . )
+    ${Python_EXECUTABLE} -m pip install --no-deps --target "${LEARN_INSTALL_TARGET}" -e . )
 else()
   set( LEARN_PIP_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} -m pip install --user . )
+    ${Python_EXECUTABLE} -m pip install --no-deps --target "${LEARN_INSTALL_TARGET}" . )
 endif()
 
 add_custom_target( build_learn_deps ALL
   COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_PIP_CMD}
   COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_PIP_CMD}
-  COMMENT "Building and installing vendored learn dependencies"
+  COMMENT "Building and installing vendored learn dependencies (pydensecrf, panopticapi)"
 )
