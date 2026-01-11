@@ -7,6 +7,11 @@
  * \brief Process query descriptors using IQR and SVM ranking
  */
 
+// Define _USE_MATH_DEFINES before cmath to get M_PI on Windows
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
+
 #include "process_query_process.h"
 
 #include <vital/vital_types.h>
@@ -35,6 +40,11 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+// Fallback definition of M_PI for platforms where _USE_MATH_DEFINES doesn't work
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace viame
 {
