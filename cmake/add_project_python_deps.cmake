@@ -83,17 +83,6 @@ if( VIAME_ENABLE_LEARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "pyarrow" "filelock" )
 endif()
 
-if( ( WIN32 OR NOT VIAME_ENABLE_OPENCV ) AND
-      ( VIAME_ENABLE_OPENCV OR
-        VIAME_ENABLE_PYTORCH-MMDET OR
-        VIAME_ENABLE_PYTORCH-NETHARN ) )
-  if( WIN32 AND NOT VIAME_ENABLE_WIN32GUI )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python-headless" )
-  else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python" )
-  endif()
-endif()
-
 if( VIAME_ENABLE_KEYPOINT )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "msgpack" )
 endif()
