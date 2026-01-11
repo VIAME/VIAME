@@ -1,8 +1,12 @@
 
-set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn )
+# This file handles pydensecrf and panopticapi dependencies
+# now vendored in plugins/pytorch/learn
 
-set( LEARN_DIR ${VIAME_SOURCE_DIR}/packages/learn )
-set( LEARN_DEPS_DIR ${LEARN_DIR}-deps )
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} learn_deps )
+
+# Use local vendored directories
+# Use local vendored directories
+set( LEARN_DEPS_DIR ${VIAME_SOURCE_DIR}/plugins/pytorch/learn )
 
 set( PYDENSECRF_DIR ${LEARN_DEPS_DIR}/pydensecrf )
 set( PANOPTICAPI_DIR ${LEARN_DEPS_DIR}/panopticapi )
@@ -23,17 +27,9 @@ else()
   list( APPEND LEARN_ENV_VARS "USE_CUDA=0" )
 endif()
 
-if( NOT EXISTS "${LEARN_DEPS_DIR}" )
-  file( MAKE_DIRECTORY "${LEARN_DEPS_DIR}" )
+if( Eigen3_INCLUDE_DIR )
+  list( APPEND LEARN_ENV_VARS "EIGEN_INCLUDE_DIR=${Eigen3_INCLUDE_DIR}" )
 endif()
-
-# Generate git clone/pull commands (uses runtime checks for rebuild safety)
-GitCloneOrPullCmd( PYDENSECRF_CLONE_CMD
-  https://github.com/lucasb-eyer/pydensecrf.git ${PYDENSECRF_DIR} )
-GitCloneOrPullCmd( PANOPTICAPI_CLONE_CMD
-  https://github.com/cocodataset/panopticapi.git ${PANOPTICAPI_DIR} )
-GitCloneOrPullCmd( LEARN_CLONE_CMD
-  https://gitlab.kitware.com/darpa_learn/learn.git ${LEARN_DIR} viame/master )
 
 # Setup python env vars and commands
 set( LEARN_REQ_PIP_CMD
@@ -58,20 +54,16 @@ else()
     -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
 endif()
 
-# Install required dependencies and learn repository
-ExternalProject_Add( learn
+# Install required dependencies
+ExternalProject_Add( learn_deps
     DEPENDS python-deps detectron2 torchvideo
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${VIAME_PACKAGES_DIR}
-    CONFIGURE_COMMAND ${PYDENSECRF_CLONE_CMD}
-      COMMAND ${PANOPTICAPI_CLONE_CMD}
-      COMMAND ${LEARN_CLONE_CMD}
-    BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${LEARN_DIR}/requirements.txt
-      COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${LEARN_REQ_PIP_CMD} -r ${REMAX_DIR}/requirements.txt
       COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_BUILD_CMD}
       COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_BUILD_CMD}
       COMMAND cd ${REMAX_OPS_DIR} && ${LEARN_BUILD_CMD}
-      COMMAND cd ${LEARN_DIR} && ${LEARN_BUILD_CMD}
     INSTALL_COMMAND ${LEARN_INSTALL_CMD}
     LIST_SEPARATOR "----"
     )
