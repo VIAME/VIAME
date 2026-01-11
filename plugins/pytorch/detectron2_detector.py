@@ -1,37 +1,111 @@
-"""
-
-Key Issues / Questions:
-
-    * Detectron2 itself needs to be installed. I am using a fork in geowatch,
-      but I don't think it matters unless you are doing training.
-
-    * kwiver on pypi only goes up to Python 3.8, what version of Python is
-      VIAME primarily targeting?
-
-    * Base detectron2 models dont have any indication of what the classes are,
-      only the number. This is a common problem, we need to enrich the
-      checkpoint and model configuration with class name information.
-
-Dependency issues:
-
-    # Workaround
-    python -m pip install --verbose https://github.com/facebookresearch/fairscale/files/5783203/fairscale-0.1.4.tar.gz
-    pip install fvcore --no-cache
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
+Detectron2 object detector implementation for VIAME.
+
+This module provides a KWIVER ImageObjectDetector implementation using
+Facebook's Detectron2 framework. It supports various architectures including
+Faster R-CNN, Mask R-CNN, and other detection models.
+
+Dependencies:
+    - detectron2: Can be installed via geowatch_tpl or directly from Facebook
+    - torch, numpy, einops
+
+Example usage:
+    >>> from pytorch.detectron2_detector import Detectron2Detector
+    >>> detector = Detectron2Detector()
+    >>> cfg_in = dict(
+    ...     checkpoint_fpath='COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml',
+    ...     base='COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml',
+    ... )
+    >>> detector.set_configuration(cfg_in)
+    >>> detected_objects = detector.detect(image_data)
+"""
+
+from __future__ import print_function
+
+import os
+
+import numpy as np
+import scriptconfig as scfg
+import ubelt as ub
 
 from kwiver.vital.algo import ImageObjectDetector
-from kwiver.vital.types import (
-    BoundingBox, DetectedObject, DetectedObjectSet, DetectedObjectType
+
+from .utilities import (
+    vital_config_update,
+    kwimage_to_kwiver_detections,
+    resolve_device_str,
+    register_vital_algorithm,
+    parse_bool,
 )
-import os
-import numpy as np
-import ubelt as ub
+
+
+class Detectron2DetectorConfig(scfg.DataConfig):
+    """
+    Configuration for :class:`Detectron2Detector`.
+
+    Attributes:
+        checkpoint_fpath: Path to Detectron2 checkpoint file or model zoo name
+        base: Base model configuration (e.g., 'COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml')
+        cfg: Optional custom configuration overrides (YAML string or path)
+        score_thresh: Minimum confidence score for detections (default 0.0)
+        nms_thresh: Non-maximum suppression threshold (default 0.0, meaning no NMS)
+        device: Device to run inference on ('auto', 'cpu', 'cuda', 'cuda:N')
+        class_names: Comma-separated list of class names (optional, for enriching model)
+    """
+    checkpoint_fpath = scfg.Value(
+        'noop',
+        help='Path to Detectron2 checkpoint (.pth/.pkl) or model zoo identifier'
+    )
+    base = scfg.Value(
+        'auto',
+        help='Base config from model zoo (e.g., COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml)'
+    )
+    cfg = scfg.Value(
+        '',
+        help='Custom config overrides as YAML string or path to config file'
+    )
+    score_thresh = scfg.Value(
+        0.0,
+        help='Minimum detection confidence threshold'
+    )
+    nms_thresh = scfg.Value(
+        0.0,
+        help='NMS threshold (0.0 means no NMS)'
+    )
+    device = scfg.Value(
+        'auto',
+        help='Device to run on: auto, cpu, cuda, or cuda:N'
+    )
+    class_names = scfg.Value(
+        '',
+        help='Comma-separated class names to enrich checkpoint metadata'
+    )
+
+    def __post_init__(self):
+        super().__post_init__()
+        # Parse score_thresh and nms_thresh as floats
+        import kwutil
+        self.score_thresh = kwutil.Yaml.coerce(self.score_thresh)
+        self.nms_thresh = kwutil.Yaml.coerce(self.nms_thresh)
 
 
 class Detectron2Detector(ImageObjectDetector):
     """
-    Implementation of ImageObjectDetector class
+    Implementation of ImageObjectDetector using Detectron2.
+
+    Detectron2 is Facebook AI Research's next generation library for
+    object detection and segmentation. This wrapper enables using
+    Detectron2 models within the KWIVER pipeline framework.
+
+    Supported architectures:
+        - Faster R-CNN
+        - Mask R-CNN
+        - RetinaNet
+        - And other models from the Detectron2 model zoo
 
     CommandLine:
         xdoctest -m plugins/pytorch/detectron2_detector.py Detectron2Detector --show
@@ -47,27 +121,20 @@ class Detectron2Detector(ImageObjectDetector):
         >>>     base='COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml',
         >>> )
         >>> self.set_configuration(cfg_in)
-        >>> self._kwiver_config.update(cfg_in)  # HACK
         >>> detected_objects = self.detect(image_data)
     """
 
     def __init__(self):
         ImageObjectDetector.__init__(self)
-
-        # kwiver configuration variables
-        self._kwiver_config = {
-            'checkpoint_fpath': "noop",
-            'nms_thresh': 0.00,
-            'base': 'auto',
-            'cfg': '',
-            'score_thresh': 0.0,
-        }
-
-        self.predictor = None
+        self._config = Detectron2DetectorConfig()
+        self._predictor = None
+        self._classes = None
 
     def demo_image(self):
         """
-        Returns an image which can be run through the detector
+        Returns an image which can be run through the detector.
+
+        Downloads and returns a sample image of sea lions for testing.
 
         Returns:
             ImageContainer: an image of sea lions
@@ -75,6 +142,7 @@ class Detectron2Detector(ImageObjectDetector):
         from PIL import Image as PILImage
         from kwiver.vital.util import VitalPIL
         from kwiver.vital.types import ImageContainer
+
         url = 'https://data.kitware.com/api/v1/file/6011a5ae2fa25629b919fe6c/download'
         image_fpath = ub.grabdata(
             url, fname='sealion2010.jpg', appname='viame',
@@ -84,180 +152,254 @@ class Detectron2Detector(ImageObjectDetector):
         return image_data
 
     def get_configuration(self):
-        # Inherit from the base class
+        """
+        Get the algorithm configuration.
+
+        Returns:
+            kwiver.vital.config.config.Config: Configuration object
+        """
         cfg = super(ImageObjectDetector, self).get_configuration()
-        for key, value in self._kwiver_config.items():
+        for key, value in self._config.items():
             cfg.set_value(key, str(value))
         return cfg
 
     def set_configuration(self, cfg_in):
+        """
+        Set the algorithm configuration.
+
+        Args:
+            cfg_in: Configuration dictionary or Config object
+
+        Returns:
+            bool: True on success
+        """
         cfg = self.get_configuration()
+        vital_config_update(cfg, cfg_in)
 
-        # HACK: merge config doesn't support dictionary input
-        _vital_config_update(cfg, cfg_in)
+        for key in self._config.keys():
+            self._config[key] = str(cfg.get_value(key))
 
-        for key in self._kwiver_config.keys():
-            self._kwiver_config[key] = str(cfg.get_value(key))
+        self._config.__post_init__()
 
+        # Set underscore-prefixed attributes for convenient access
+        for key, value in self._config.items():
+            setattr(self, "_" + key, value)
+
+        self._build_model()
+        return True
+
+    def _build_model(self):
+        """
+        Build and initialize the Detectron2 predictor.
+
+        This method handles:
+        - Setting up the correct device
+        - Importing Detectron2 (via geowatch_tpl or direct import)
+        - Configuring the model from checkpoint and base config
+        - Setting up class names if provided
+        """
+        # Windows-specific workaround
         if os.name == 'nt':
             os.environ["KWIMAGE_DISABLE_TORCHVISION_NMS"] = "1"
 
-        import geowatch_tpl
-        detectron2 = geowatch_tpl.import_submodule('detectron2')  # NOQA
+        device = resolve_device_str(self._device)
+        print(f"[Detectron2Detector] Loading model on {device}")
 
-        # Hack for development: TODO: fixme
-        from geowatch.tasks.detectron2 import predict as d2pred
-        # import .detectron2.predict as d2pred
-        config = d2pred.DetectronPredictCLI()
-        config['checkpoint_fpath'] = self._kwiver_config['checkpoint_fpath']
-        config['base'] = self._kwiver_config['base']
-        self.predictor = d2pred.Detectron2Predictor(config)
-        self.predictor.prepare_config_backend()
+        # Try to import detectron2, first via geowatch_tpl, then directly
+        try:
+            import geowatch_tpl
+            detectron2 = geowatch_tpl.import_submodule('detectron2')  # NOQA
+            from geowatch.tasks.detectron2 import predict as d2pred
+            use_geowatch = True
+        except ImportError:
+            # Fall back to direct detectron2 import
+            import detectron2  # NOQA
+            use_geowatch = False
 
-        return True
+        if use_geowatch:
+            # Use geowatch's Detectron2 predictor interface
+            config = d2pred.DetectronPredictCLI()
+            config['checkpoint_fpath'] = self._checkpoint_fpath
+            config['base'] = self._base
+            self._predictor = d2pred.Detectron2Predictor(config)
+            self._predictor.prepare_config_backend()
+        else:
+            # Use direct Detectron2 API
+            from detectron2.config import get_cfg
+            from detectron2.engine import DefaultPredictor
+            from detectron2 import model_zoo
+
+            cfg = get_cfg()
+
+            # Load base configuration
+            if self._base and self._base != 'auto':
+                try:
+                    cfg.merge_from_file(model_zoo.get_config_file(self._base))
+                except Exception:
+                    # Try as direct path
+                    if ub.Path(self._base).exists():
+                        cfg.merge_from_file(self._base)
+
+            # Load checkpoint
+            if self._checkpoint_fpath and self._checkpoint_fpath != 'noop':
+                checkpoint_path = self._checkpoint_fpath
+                try:
+                    # Try model zoo first
+                    checkpoint_path = model_zoo.get_checkpoint_url(self._checkpoint_fpath)
+                except Exception:
+                    # Use as direct path
+                    pass
+                cfg.MODEL.WEIGHTS = checkpoint_path
+
+            # Apply custom config if provided
+            if self._cfg:
+                if ub.Path(self._cfg).exists():
+                    cfg.merge_from_file(self._cfg)
+                else:
+                    # Parse as YAML string
+                    import yaml
+                    custom_cfg = yaml.safe_load(self._cfg)
+                    if custom_cfg:
+                        cfg.merge_from_list(
+                            [item for pair in custom_cfg.items() for item in pair]
+                        )
+
+            # Set device
+            cfg.MODEL.DEVICE = device
+
+            # Set thresholds
+            cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = float(self._score_thresh)
+            if float(self._nms_thresh) > 0:
+                cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST = float(self._nms_thresh)
+
+            self._predictor = DefaultPredictor(cfg)
+
+        # Set up class names
+        if self._class_names:
+            self._classes = [c.strip() for c in self._class_names.split(',')]
+        else:
+            # Try to get class names from model metadata
+            self._classes = self._get_class_names()
+
+        if self._classes:
+            print(f"[Detectron2Detector] Model loaded with {len(self._classes)} classes")
+        else:
+            print("[Detectron2Detector] Model loaded (class names not available)")
+
+    def _get_class_names(self):
+        """
+        Attempt to retrieve class names from the model.
+
+        Returns:
+            list or None: List of class names if available
+        """
+        try:
+            # Try to get from detectron2's MetadataCatalog
+            from detectron2.data import MetadataCatalog
+            # Common COCO metadata
+            metadata = MetadataCatalog.get("coco_2017_val")
+            return list(metadata.thing_classes)
+        except Exception:
+            pass
+
+        return None
 
     def check_configuration(self, cfg):
-        if not cfg.has_value("deployed"):
-            print("A network deploy file must be specified!")
+        """
+        Check if the configuration is valid.
+
+        Args:
+            cfg: Configuration object
+
+        Returns:
+            bool: True if configuration is valid
+        """
+        if not cfg.has_value("checkpoint_fpath"):
+            print("[Detectron2Detector] A checkpoint path must be specified!")
             return False
+
+        checkpoint = cfg.get_value("checkpoint_fpath")
+        if checkpoint == 'noop' or not checkpoint:
+            print("[Detectron2Detector] A valid checkpoint path must be specified!")
+            return False
+
         return True
 
     def detect(self, image_data):
-        import einops
+        """
+        Perform object detection on an image.
+
+        Args:
+            image_data (kwiver.vital.types.ImageContainer): Input image
+
+        Returns:
+            kwiver.vital.types.DetectedObjectSet: Detected objects
+        """
+        import kwimage
         import torch
+
+        # Convert kwiver image to numpy array
         full_rgb = image_data.asarray().astype('uint8')
-        im_chw = torch.Tensor(einops.rearrange(full_rgb, 'h w c -> c h w'))
 
-        predictor = self.predictor
-        detections = predictor.predict_image(im_chw)
+        # Check if using geowatch predictor or direct detectron2
+        if hasattr(self._predictor, 'predict_image'):
+            # Geowatch interface expects CHW tensor
+            import einops
+            im_chw = torch.Tensor(einops.rearrange(full_rgb, 'h w c -> c h w'))
+            detections = self._predictor.predict_image(im_chw)
+        else:
+            # Direct detectron2 interface expects BGR numpy array
+            import cv2
+            im_bgr = cv2.cvtColor(full_rgb, cv2.COLOR_RGB2BGR)
 
-        # apply threshold
-        flags = detections.scores >= self._kwiver_config['score_thresh']
-        detections = detections.compress(flags)
+            with torch.no_grad():
+                outputs = self._predictor(im_bgr)
 
-        # convert to kwiver format
-        output = _kwimage_to_kwiver_detections(detections)
+            # Convert detectron2 outputs to kwimage.Detections
+            instances = outputs["instances"].to("cpu")
+
+            boxes = instances.pred_boxes.tensor.numpy()
+            scores = instances.scores.numpy()
+            class_idxs = instances.pred_classes.numpy()
+
+            # Get class names
+            if self._classes:
+                classes = self._classes
+            else:
+                # Use integer class IDs as strings
+                unique_classes = np.unique(class_idxs)
+                classes = [str(i) for i in range(max(unique_classes) + 1)]
+
+            detections = kwimage.Detections(
+                boxes=kwimage.Boxes(boxes, 'ltrb'),
+                scores=scores,
+                class_idxs=class_idxs,
+                classes=classes,
+            )
+
+            # Handle segmentation masks if available
+            if instances.has("pred_masks"):
+                masks = instances.pred_masks.numpy()
+                segmentations = []
+                for mask in masks:
+                    seg = kwimage.Mask(mask, format='c_mask')
+                    segmentations.append(seg)
+                detections.data['segmentations'] = segmentations
+
+        # Apply score threshold
+        score_thresh = float(self._score_thresh)
+        if score_thresh > 0:
+            flags = detections.scores >= score_thresh
+            detections = detections.compress(flags)
+
+        # Convert to kwiver format
+        output = kwimage_to_kwiver_detections(detections)
         return output
 
 
-def _vital_config_update(cfg, cfg_in):
-    """
-    Treat a vital Config object like a python dictionary
-
-    Args:
-        cfg (kwiver.vital.config.config.Config): config to update
-        cfg_in (dict | kwiver.vital.config.config.Config): new values
-
-    Returns:
-        kwiver.vital.config.config.Config
-    """
-    # vital cfg.merge_config doesnt support dictionary input
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError('cfg has no key={}'.format(key))
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
-
-
-def _kwiver_to_kwimage_detections(detected_objects):
-    """
-    Convert vital detected object sets to kwimage.Detections
-
-    Args:
-        detected_objects (kwiver.vital.types.DetectedObjectSet)
-
-    Returns:
-        kwimage.Detections
-    """
-    import ubelt as ub
-    import kwimage
-    boxes = []
-    scores = []
-    class_idxs = []
-
-    classes = []
-    if len(detected_objects) > 0:
-        obj = ub.peek(detected_objects)
-        classes = obj.type.all_class_names()
-
-    for obj in detected_objects:
-        box = obj.bounding_box
-        tlbr = [box.min_x(), box.min_y(), box.max_x(), box.max_y()]
-        score = obj.confidence
-        cname = obj.type.get_most_likely_class()
-        cidx = classes.index(cname)
-        boxes.append(tlbr)
-        scores.append(score)
-        class_idxs.append(cidx)
-
-    dets = kwimage.Detections(
-        boxes=kwimage.Boxes(np.array(boxes), 'tlbr'),
-        scores=np.array(scores),
-        class_idxs=np.array(class_idxs),
-        classes=classes,
-    )
-    return dets
-
-
-def _kwimage_to_kwiver_detections(detections):
-    """
-    Convert kwimage detections to kwiver deteted object sets
-
-    Args:
-        detected_objects (kwimage.Detections)
-
-    Returns:
-        kwiver.vital.types.DetectedObjectSet
-    """
-    from kwiver.vital.types.types import ImageContainer, Image
-
-    segmentations = None
-    # convert segmentation masks
-    if 'segmentations' in detections.data:
-        segmentations = detections.data['segmentations']
-
-    boxes = detections.boxes.to_tlbr()
-    scores = detections.scores
-    class_idxs = detections.class_idxs
-
-    if not segmentations:
-        # Placeholders
-        segmentations = (None,) * len(boxes)
-
-    # convert to kwiver format, apply threshold
-    detected_objects = DetectedObjectSet()
-
-    for tlbr, score, cidx, seg in zip(boxes.data, scores, class_idxs, segmentations):
-        class_name = detections.classes[cidx]
-
-        bbox_int = np.round(tlbr).astype(np.int32)
-        bounding_box = BoundingBox(
-            bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3])
-
-        detected_object_type = DetectedObjectType(class_name, score)
-        detected_object = DetectedObject(
-            bounding_box, score, detected_object_type)
-        if seg:
-            mask = seg.to_relative_mask().numpy().data
-            detected_object.mask = ImageContainer(Image(mask))
-
-        detected_objects.add(detected_object)
-    return detected_objects
-
-
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
-
-    # Register Algorithm
-    implementation_name = "detector_detectron2"
-
-    if algorithm_factory.has_algorithm_impl_name(Detectron2Detector.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(implementation_name, "Detectron2 detection routine", Detectron2Detector)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(
+        Detectron2Detector,
+        "detector_detectron2",
+        "Detectron2 object detection routine"
+    )
