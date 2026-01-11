@@ -35,9 +35,13 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <direct.h>
 #define MKDIR(x) _mkdir(x)
+#define POPEN(cmd, mode) _popen(cmd, mode)
+#define PCLOSE(fp) _pclose(fp)
 #else
 #include <sys/stat.h>
 #define MKDIR(x) mkdir(x, 0755)
+#define POPEN(cmd, mode) popen(cmd, mode)
+#define PCLOSE(fp) pclose(fp)
 #endif
 
 namespace viame
@@ -492,7 +496,7 @@ train_svm_models_process::priv
   std::string cmd = "ls \"" + folder + "\"/*." + extension + " 2>/dev/null";
 #endif
 
-  FILE* pipe = popen( cmd.c_str(), "r" );
+  FILE* pipe = POPEN( cmd.c_str(), "r" );
   if( pipe )
   {
     char buffer[1024];
@@ -519,7 +523,7 @@ train_svm_models_process::priv
 #endif
       }
     }
-    pclose( pipe );
+    PCLOSE( pipe );
   }
 
   return files;
