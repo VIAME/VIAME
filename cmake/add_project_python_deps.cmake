@@ -110,6 +110,12 @@ if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-build" "async_generator" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "six" "scriptconfig" "parse" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "kwarray" "kwimage" "kwplot" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "torch_liberator" "liberator" )
+endif()
+
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
     VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" "ndsampler" "pygments" "kwutil" )
