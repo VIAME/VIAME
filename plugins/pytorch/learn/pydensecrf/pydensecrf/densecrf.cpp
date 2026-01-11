@@ -4,7 +4,6 @@
 {
     "distutils": {
         "depends": [
-            "pydensecrf/densecrf/include/Eigen/Dense",
             "pydensecrf/densecrf/include/densecrf.h",
             "pydensecrf/densecrf/include/labelcompatibility.h",
             "pydensecrf/densecrf/include/pairwise.h",

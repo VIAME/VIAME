@@ -15,15 +15,40 @@ if eigen_include:
 else:
     include_dirs = ["pydensecrf/densecrf/include"]
 
+from setuptools.extension import Extension
+
+# Define extensions with proper include directories
+eigen_ext = Extension(
+    "pydensecrf.eigen",
+    ["pydensecrf/eigen.pyx", "pydensecrf/eigen_impl.cpp"],
+    language="c++",
+    include_dirs=include_dirs
+)
+
+densecrf_ext = Extension(
+    "pydensecrf.densecrf",
+    ["pydensecrf/densecrf.pyx",
+     "pydensecrf/densecrf/src/densecrf.cpp",
+     "pydensecrf/densecrf/src/unary.cpp",
+     "pydensecrf/densecrf/src/pairwise.cpp",
+     "pydensecrf/densecrf/src/permutohedral.cpp",
+     "pydensecrf/densecrf/src/optimization.cpp",
+     "pydensecrf/densecrf/src/objective.cpp",
+     "pydensecrf/densecrf/src/labelcompatibility.cpp",
+     "pydensecrf/densecrf/src/util.cpp",
+     "pydensecrf/densecrf/external/liblbfgs/lib/lbfgs.c"],
+    language="c++",
+    include_dirs=include_dirs + ["pydensecrf/densecrf/external/liblbfgs/include"]
+)
+
 try:
     from Cython.Build import cythonize
-    ext_modules = cythonize(['pydensecrf/eigen.pyx', 'pydensecrf/densecrf.pyx'])
+    ext_modules = cythonize([eigen_ext, densecrf_ext])
 except ImportError:
-    from setuptools.extension import Extension
-    ext_modules = [
-        Extension("pydensecrf/eigen", ["pydensecrf/eigen.cpp", "pydensecrf/eigen_impl.cpp"], language="c++", include_dirs=include_dirs),
-        Extension("pydensecrf/densecrf", ["pydensecrf/densecrf.cpp", "pydensecrf/densecrf/src/densecrf.cpp", "pydensecrf/densecrf/src/unary.cpp", "pydensecrf/densecrf/src/pairwise.cpp", "pydensecrf/densecrf/src/permutohedral.cpp", "pydensecrf/densecrf/src/optimization.cpp", "pydensecrf/densecrf/src/objective.cpp", "pydensecrf/densecrf/src/labelcompatibility.cpp", "pydensecrf/densecrf/src/util.cpp", "pydensecrf/densecrf/external/liblbfgs/lib/lbfgs.c"], language="c++", include_dirs=include_dirs + ["pydensecrf/densecrf/external/liblbfgs/include"]),
-    ]
+    # Fallback to pre-built .cpp files if Cython not available
+    eigen_ext.sources = ["pydensecrf/eigen.cpp", "pydensecrf/eigen_impl.cpp"]
+    densecrf_ext.sources[0] = "pydensecrf/densecrf.cpp"
+    ext_modules = [eigen_ext, densecrf_ext]
 
 setup(
     name="pydensecrf",

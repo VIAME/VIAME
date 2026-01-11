@@ -26,9 +26,11 @@ function(add_python_modules_recursive base_path install_prefix)
 endfunction()
 
 # Add all Python modules from learn directory (cutler, tokencut, mmdet)
-add_python_modules_recursive( "cutler" "pytorch/learn/cutler" )
-add_python_modules_recursive( "tokencut" "pytorch/learn/tokencut" )
-add_python_modules_recursive( "mmdet" "pytorch/learn/mmdet" )
+# The base_path is used for GLOB_RECURSE which returns paths like "cutler/__init__.py",
+# so we use "pytorch/learn" as install_prefix (not "pytorch/learn/cutler")
+add_python_modules_recursive( "cutler" "pytorch/learn" )
+add_python_modules_recursive( "tokencut" "pytorch/learn" )
+add_python_modules_recursive( "mmdet" "pytorch/learn" )
 
 # Also add the root __init__.py if it's not empty
 kwiver_add_python_module(
@@ -60,8 +62,20 @@ else()
   list( APPEND LEARN_ENV_VARS "USE_CUDA=0" )
 endif()
 
-if( Eigen3_INCLUDE_DIR )
-  list( APPEND LEARN_ENV_VARS "EIGEN_INCLUDE_DIR=${Eigen3_INCLUDE_DIR}" )
+# Find Eigen include directory - try multiple approaches
+if( NOT EIGEN3_INCLUDE_DIR )
+  # Try to find via find_package
+  find_package( Eigen3 QUIET )
+  if( EIGEN3_FOUND )
+    set( EIGEN3_INCLUDE_DIR "${EIGEN3_INCLUDE_DIR}" )
+  elseif( EXISTS "${VIAME_BUILD_INSTALL_PREFIX}/include/eigen3" )
+    # Fall back to VIAME install location
+    set( EIGEN3_INCLUDE_DIR "${VIAME_BUILD_INSTALL_PREFIX}/include/eigen3" )
+  endif()
+endif()
+
+if( EIGEN3_INCLUDE_DIR )
+  list( APPEND LEARN_ENV_VARS "EIGEN_INCLUDE_DIR=${EIGEN3_INCLUDE_DIR}" )
 endif()
 
 # Install vendored dependencies to VIAME's Python install location
@@ -70,11 +84,11 @@ set( LEARN_INSTALL_TARGET "${VIAME_PYTHON_INSTALL}/site-packages" )
 if( VIAME_PYTHON_SYMLINK )
   set( LEARN_PIP_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} -m pip install --no-deps --target "${LEARN_INSTALL_TARGET}" -e . )
+    ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-deps --target "${LEARN_INSTALL_TARGET}" -e . )
 else()
   set( LEARN_PIP_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} -m pip install --no-deps --target "${LEARN_INSTALL_TARGET}" . )
+    ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-deps --target "${LEARN_INSTALL_TARGET}" . )
 endif()
 
 add_custom_target( build_learn_deps ALL
