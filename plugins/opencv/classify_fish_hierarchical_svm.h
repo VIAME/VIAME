@@ -433,7 +433,7 @@ class VIAME_OPENCV_EXPORT classify_fish_hierarchical_svm :
     classify_fish_hierarchical_svm, kwiver::vital::algo::refine_detections>
 {
 public:
-  PLUGIN_INFO( "classify_fish_hierarchical_svm",
+  PLUGIN_INFO( "hierarchical_svm",
                "Hierarchical SVM fish species classifier" )
 
   classify_fish_hierarchical_svm();
