@@ -48,27 +48,22 @@ class SiameseFeatureExtractor(object):
 
     def __init__(self, siamese_model_path, img_size, batch_size, gpu_list=None):
         self._device, use_gpu_flag = get_gpu_device(gpu_list)
-        # load Siamese model
-        self._siamese_model = Siamese().to(self._device)
-        if use_gpu_flag:
-            self._siamese_model = torch.nn.DataParallel(self._siamese_model,
-                                                        device_ids=gpu_list)
-            snapshot = torch.load(siamese_model_path)
-            self._siamese_model.load_state_dict(snapshot['state_dict'])
-        else:
-            snapshot = torch.load(siamese_model_path, map_location='cpu')
-            tmp = {self._strip_prefix(k, 'module.'): v
-                   for k, v in snapshot['state_dict'].items()}
-            self._siamese_model.load_state_dict(tmp)
+
+        # load Siamese model (matching enet_feature_extractor pattern)
+        self._siamese_model = Siamese()
+        snapshot = torch.load(siamese_model_path)
+
+        # Strip 'module.' prefix from state dict keys (from DataParallel training)
+        state_dict = snapshot['state_dict']
+        if any(k.startswith('module.') for k in state_dict.keys()):
+            state_dict = {self._strip_prefix(k, 'module.'): v
+                          for k, v in state_dict.items()}
+
+        self._siamese_model.load_state_dict(state_dict)
+        self._siamese_model.train(False)
+        self._siamese_model.to(self._device)
 
         print('Model loaded from {}'.format(siamese_model_path))
-        self._siamese_model.train(False)
-
-        # Warmup pass to initialize cuDNN sublibrary
-        # (prevents CUDNN_STATUS_SUBLIBRARY_LOADING_FAILED in multi-threaded context)
-        with torch.no_grad():
-            dummy_input = torch.zeros(1, 3, img_size, img_size).to(self._device)
-            self._siamese_model(dummy_input)
 
         self._transform = transforms.Compose([
             transforms.Resize(img_size),
@@ -77,6 +72,13 @@ class SiameseFeatureExtractor(object):
         ])
         self._img_size = img_size
         self._b_size = batch_size
+
+        # Warmup pass to initialize cuDNN in this thread context
+        with torch.no_grad():
+            dummy_input = torch.randn(1, 3, img_size, img_size).to(self._device)
+            _ = self._siamese_model(dummy_input)
+            del dummy_input
+            torch.cuda.synchronize()
 
     @classmethod
     def _strip_prefix(_cls, string, prefix):
