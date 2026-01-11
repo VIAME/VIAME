@@ -26,11 +26,12 @@ from kwiver.vital.types import DetectedObject, DetectedObjectSet
 from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
 from kwiver.vital.types import new_descriptor
 
-from .srnn.track import track_state, track, track_set
 from kwiver.vital.util.VitalPIL import get_pil_image
 
-from .srnn.models import Siamese
 from .utilities import Grid, gpu_list_desc, parse_gpu_list
+
+from .srnn.track import track_state, track, track_set
+from .srnn.models import Siamese
 from .srnn.srnn_matching import SRNNMatching, RnnType
 from .srnn.siamese_feature_extractor import SiameseFeatureExtractor
 from .srnn.iou_tracker import IOUTracker
