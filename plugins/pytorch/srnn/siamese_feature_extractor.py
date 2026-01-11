@@ -15,7 +15,7 @@ from PIL import Image as pilImage
 
 from kwiver.vital.types import BoundingBoxD
 from .models import Siamese
-from viame.pytorch.utilities import get_gpu_device
+from viame.pytorch.utilities import get_gpu_device, init_cudnn
 
 
 class SiameseDataLoader(data.Dataset):
@@ -74,11 +74,7 @@ class SiameseFeatureExtractor(object):
         self._b_size = batch_size
 
         # Warmup pass to initialize cuDNN in this thread context
-        with torch.no_grad():
-            dummy_input = torch.randn(1, 3, img_size, img_size).to(self._device)
-            _ = self._siamese_model(dummy_input)
-            del dummy_input
-            torch.cuda.synchronize()
+        init_cudnn(self._device)
 
     @classmethod
     def _strip_prefix(_cls, string, prefix):

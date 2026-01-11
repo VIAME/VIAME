@@ -13,7 +13,7 @@ from torchvision import models, transforms, datasets
 
 from PIL import Image as pilImage
 
-from viame.pytorch.utilities import get_gpu_device
+from viame.pytorch.utilities import get_gpu_device, init_cudnn
 
 class ResnetDataLoader(data.Dataset):# This is the same as the siamese one it was based on
     def __init__(self, bbox_list, transform, frame_img, in_size):
@@ -89,11 +89,7 @@ class ResnetFeatureExtractor(object):
         self.frame = None
 
         # Warmup pass to initialize cuDNN in this thread context
-        with torch.no_grad():
-            dummy_input = torch.randn(1, 3, img_size, img_size).to(self._device)
-            _ = self._resnet_model(dummy_input)
-            del dummy_input
-            torch.cuda.synchronize()
+        init_cudnn(self._device)
 
     def __call__(self, bbox_list, MOT_flag):
         return self._obtain_feature(bbox_list, MOT_flag)

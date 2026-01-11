@@ -111,6 +111,45 @@ def recurse_copy(src, dst, max_depth=10, ignore=".json"):
 # Device Utilities
 # =============================================================================
 
+def init_cudnn(device=None):
+    """
+    Initialize cuDNN by running a dummy convolution operation.
+
+    This forces cuDNN to load all its sublibraries early, preventing
+    CUDNN_STATUS_SUBLIBRARY_LOADING_FAILED errors when running in
+    multi-threaded/multi-process pipelines with other CUDA code (e.g., darknet).
+
+    Should be called early, ideally at module import time or before any other
+    CUDA operations in the pipeline.
+
+    Args:
+        device: Optional torch device. If None, uses 'cuda:0' if available.
+
+    Returns:
+        bool: True if initialization succeeded, False otherwise.
+    """
+    import torch
+
+    if not torch.cuda.is_available():
+        return False
+
+    try:
+        if device is None:
+            device = torch.device('cuda:0')
+        elif isinstance(device, str):
+            device = torch.device(device)
+
+        with torch.no_grad():
+            dummy_conv = torch.nn.Conv2d(3, 3, 3, padding=1).to(device)
+            dummy_input = torch.randn(1, 3, 8, 8, device=device)
+            _ = dummy_conv(dummy_input)
+            del dummy_conv, dummy_input
+            torch.cuda.synchronize()
+        return True
+    except Exception:
+        return False
+
+
 def resolve_device(device_spec):
     """
     Resolve a device specification to an actual device.

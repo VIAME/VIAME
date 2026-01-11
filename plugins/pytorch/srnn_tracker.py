@@ -16,16 +16,8 @@ import torch
 
 # Initialize cuDNN early at module import time to prevent
 # CUDNN_STATUS_SUBLIBRARY_LOADING_FAILED when running with other CUDA processes
-if torch.cuda.is_available():
-    try:
-        with torch.no_grad():
-            _dummy_conv = torch.nn.Conv2d(3, 3, 3, padding=1).cuda()
-            _dummy_input = torch.randn(1, 3, 8, 8, device='cuda')
-            _ = _dummy_conv(_dummy_input)
-            del _dummy_conv, _dummy_input
-            torch.cuda.synchronize()
-    except Exception:
-        pass  # If this fails, we'll handle it later during _configure
+from viame.pytorch.utilities import init_cudnn
+init_cudnn()
 
 from timeit import default_timer as timer
 from torchvision import models, transforms

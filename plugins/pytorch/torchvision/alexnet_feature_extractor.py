@@ -14,7 +14,7 @@ from torchvision import models, transforms, datasets
 
 from PIL import Image as pilImage
 
-from viame.pytorch.utilities import get_gpu_device
+from viame.pytorch.utilities import get_gpu_device, init_cudnn
 
 class AlexNetDataLoader( data.Dataset ):
     def __init__( self, bbox_list, transform, frame_img, in_size ):
@@ -88,6 +88,10 @@ class AlexNetFeatureExtractor(object):
         ])
         self._img_size = img_size
         self._b_size = batch_size
+        self.frame = None
+
+        # Warmup pass to initialize cuDNN in this thread context
+        init_cudnn(self._device)
 
     def __call__(self, bbox_list, mot_flag):
         return self._obtain_feature(bbox_list, mot_flag)
