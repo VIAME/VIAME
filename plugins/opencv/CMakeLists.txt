@@ -38,13 +38,8 @@ set( plugin_headers
   hog_features.h
   canny_edge_detector.h
   adaboost_classifier.h
+  classify_fish_hierarchical_svm.h
   )
-
-if( VIAME_ENABLE_UW_PREDICTOR )
-  set( plugin_headers ${plugin_headers}
-    classify_fish_hierarchical_svm.h
-  )
-endif()
 
 set( plugin_sources
   apply_color_correction.cxx
@@ -75,13 +70,8 @@ set( plugin_sources
   hog_features.cxx
   canny_edge_detector.cxx
   adaboost_classifier.cxx
+  classify_fish_hierarchical_svm.cxx
   )
-
-if( VIAME_ENABLE_UW_PREDICTOR )
-  set( plugin_sources ${plugin_sources}
-    classify_fish_hierarchical_svm.cxx
-  )
-endif()
 
 kwiver_install_headers(
   SUBDIR     viame
@@ -104,11 +94,6 @@ if( "${OpenCV_VERSION}" VERSION_LESS "3.0.0" )
   target_compile_definitions( viame_opencv PRIVATE -DVIAME_OPENCV_VER_2 )
 endif()
 
-if( VIAME_ENABLE_UW_PREDICTOR )
-  target_compile_definitions( viame_opencv PRIVATE -DVIAME_ENABLE_UW_PREDICTOR )
-  target_link_libraries( viame_opencv PUBLIC opencv_ml )
-endif()
-
 get_target_property( results viame_opencv COMPILE_DEFINITIONS )
 
 target_link_libraries( viame_opencv
@@ -121,6 +106,7 @@ target_link_libraries( viame_opencv
                        kwiver::kwiversys
                        kwiver::kwiver_algo_ocv
                        ${OpenCV_LIBRARIES}
+                       opencv_ml
                        viame_core
   )
 

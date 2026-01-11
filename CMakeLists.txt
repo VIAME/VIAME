@@ -115,14 +115,12 @@ option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_LEARN          "Enable LEARN plugins"          OFF )
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
-option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_LEARN )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
 mark_as_advanced( VIAME_ENABLE_SVM )
-mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
 ###
 # Add core utilities enable flags
@@ -154,6 +152,7 @@ if( VIAME_DOWNLOAD_MODELS )
   option( VIAME_DOWNLOAD_MODELS-SEA-LION    "Download sea lion detection models" OFF )
   option( VIAME_DOWNLOAD_MODELS-CONVNEXT    "Download convnext low-shot models"  OFF )
   option( VIAME_DOWNLOAD_MODELS-POOLCAR     "Download poolcar low-shot models"   OFF )
+  option( VIAME_DOWNLOAD_MODELS-UW-CLFR     "Download UW fish classifier models" OFF )
 
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-GENERIC )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-FISH )
@@ -165,6 +164,7 @@ if( VIAME_DOWNLOAD_MODELS )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-SEA-LION )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-CONVNEXT )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-POOLCAR )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-UW-CLFR )
 else()
   set( VIAME_DOWNLOAD_MODELS-GENERIC     OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-FISH        OFF CACHE BOOL "Forced off" FORCE )
@@ -176,6 +176,7 @@ else()
   set( VIAME_DOWNLOAD_MODELS-SEA-LION    OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-CONVNEXT    OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-POOLCAR     OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-UW-CLFR     OFF CACHE BOOL "Forced off" FORCE )
 endif()
 
 ###
