@@ -23,6 +23,8 @@ set( plugin_headers
   read_object_track_set_viame_csv.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
+  utilities_file.h
+  utilities_training.h
   windowed_detector.h
   windowed_refiner.h
   windowed_trainer.h
@@ -55,6 +57,8 @@ set( plugin_sources
   read_object_track_set_viame_csv.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
+  utilities_file.cxx
+  utilities_training.cxx
   windowed_detector.cxx
   windowed_refiner.cxx
   windowed_trainer.cxx
@@ -292,6 +296,11 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
     processes/core
     utility_processes )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py
+    processes/core
+    bytetrack_tracker )
 
 endif()
 

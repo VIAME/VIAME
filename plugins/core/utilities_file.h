@@ -1,0 +1,236 @@
+/*ckwg +29
+ * Copyright 2025 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#ifndef VIAME_CORE_UTILITIES_FILE_H
+#define VIAME_CORE_UTILITIES_FILE_H
+
+#include "viame_core_export.h"
+
+#include <string>
+#include <vector>
+#include <unordered_set>
+
+namespace viame {
+
+// =============================================================================
+// Filesystem utilities
+// =============================================================================
+
+/// Check if a file exists at the given location
+///
+/// \param location Path to check
+/// \returns true if path exists and is a regular file
+VIAME_CORE_EXPORT
+bool does_file_exist( const std::string& location );
+
+/// Check if a folder exists at the given location
+///
+/// \param location Path to check
+/// \returns true if path exists and is a directory
+VIAME_CORE_EXPORT
+bool does_folder_exist( const std::string& location );
+
+/// List all immediate subdirectories in a folder
+///
+/// \param location Directory to search
+/// \param subfolders Output vector of subdirectory paths
+/// \returns true if location exists and is a directory
+VIAME_CORE_EXPORT
+bool list_all_subfolders( const std::string& location,
+                          std::vector< std::string >& subfolders );
+
+/// List files in a folder, optionally filtering by extension
+///
+/// \param location Directory to search
+/// \param filepaths Output vector of file paths
+/// \param search_subfolders If true, recurse into subdirectories
+/// \param extensions Optional list of extensions to filter (e.g., ".jpg", ".png")
+/// \returns true if location exists and is a directory
+VIAME_CORE_EXPORT
+bool list_files_in_folder( std::string location,
+                           std::vector< std::string >& filepaths,
+                           bool search_subfolders = false,
+                           std::vector< std::string > extensions = std::vector< std::string >() );
+
+/// Create a folder and any necessary parent directories
+///
+/// \param location Path to create
+/// \returns true if folder was created, false if it already exists or on error
+VIAME_CORE_EXPORT
+bool create_folder( const std::string& location );
+
+/// Check if a folder contains fewer than n files
+///
+/// \param folder Directory to check
+/// \param n Threshold count
+/// \returns true if folder contains fewer than n files
+VIAME_CORE_EXPORT
+bool folder_contains_less_than_n_files( const std::string& folder, unsigned n );
+
+// =============================================================================
+// Path manipulation utilities
+// =============================================================================
+
+/// Join two path components with a forward slash
+///
+/// \param p1 First path component
+/// \param p2 Second path component
+/// \returns Combined path
+VIAME_CORE_EXPORT
+std::string append_path( const std::string& p1, const std::string& p2 );
+
+/// Get the filename from a path (without directory)
+///
+/// \param path Full path
+/// \returns Filename component only
+VIAME_CORE_EXPORT
+std::string get_filename_no_path( const std::string& path );
+
+/// Get the filename with its immediate parent directory
+///
+/// \param path Full path
+/// \returns "parent/filename" string
+VIAME_CORE_EXPORT
+std::string get_filename_with_last_path( const std::string& path );
+
+/// Replace the extension of a filename
+///
+/// \param file_name Original filename
+/// \param ext New extension (including dot, e.g., ".png")
+/// \returns Filename with new extension
+VIAME_CORE_EXPORT
+std::string replace_ext_with( const std::string& file_name, const std::string& ext );
+
+/// Add an extension to a path, handling trailing slashes
+///
+/// \param path Original path
+/// \param ext Extension to add (including dot)
+/// \returns Path with extension added
+VIAME_CORE_EXPORT
+std::string add_ext_unto( const std::string& path, const std::string& ext );
+
+/// Add an auxiliary suffix to a filename before the extension
+///
+/// \param file_name Original filename
+/// \param id Auxiliary ID (0 or 1 adds "_aux", >1 adds "_auxN")
+/// \returns Filename with auxiliary suffix
+VIAME_CORE_EXPORT
+std::string add_aux_ext( const std::string& file_name, unsigned id );
+
+/// Check if a string ends with a given extension
+///
+/// \param str String to check
+/// \param ext Extension to look for
+/// \returns true if str ends with ext
+VIAME_CORE_EXPORT
+bool ends_with_extension( const std::string& str, const std::string& ext );
+
+/// Check if a string ends with any of the given extensions
+///
+/// \param str String to check
+/// \param exts List of extensions to check
+/// \returns true if str ends with any extension in exts
+VIAME_CORE_EXPORT
+bool ends_with_extension( const std::string& str,
+                          const std::vector< std::string >& exts );
+
+/// Wrap a string in double quotes
+///
+/// \param str String to quote
+/// \returns Quoted string
+VIAME_CORE_EXPORT
+std::string add_quotes( const std::string& str );
+
+// =============================================================================
+// String parsing utilities
+// =============================================================================
+
+/// Split a string into a vector using delimiters
+///
+/// \param str Input string
+/// \param out Output vector of tokens
+/// \param delims Delimiter characters (default: whitespace and comma)
+VIAME_CORE_EXPORT
+void string_to_vector( const std::string& str,
+                       std::vector< std::string >& out,
+                       const std::string delims = "\n\t\v ," );
+
+/// Split a string into a set using delimiters
+///
+/// \param str Input string
+/// \param out Output set of tokens
+/// \param delims Delimiter characters (default: whitespace and comma)
+VIAME_CORE_EXPORT
+void string_to_set( const std::string& str,
+                    std::unordered_set< std::string >& out,
+                    const std::string delims = "\n\t\v ," );
+
+// =============================================================================
+// File reading utilities
+// =============================================================================
+
+/// Read non-empty lines from a file into a vector
+///
+/// \param fn Filename to read
+/// \param out Output vector of lines
+/// \param reset If true, clear output vector first (default: true)
+/// \returns true on success, false if file cannot be opened
+VIAME_CORE_EXPORT
+bool file_to_vector( const std::string& fn,
+                     std::vector< std::string >& out,
+                     bool reset = true );
+
+/// Load all lines from a file into a vector (including empty lines)
+///
+/// \param file Filename to read
+/// \param output Output vector of lines
+/// \returns true on success, false if file cannot be opened
+VIAME_CORE_EXPORT
+bool load_file_list( const std::string& file,
+                     std::vector< std::string >& output );
+
+/// Check if a file contains a specific string
+///
+/// \param file Filename to search
+/// \param key String to search for
+/// \returns true if key is found in the file
+VIAME_CORE_EXPORT
+bool file_contains_string( const std::string& file, const std::string& key );
+
+/// Parse frame rate from a file header (looks for "fps:" or "fps=" in first 4 lines)
+///
+/// \param file Filename to parse
+/// \returns Frame rate if found, -1.0 otherwise
+VIAME_CORE_EXPORT
+double get_file_frame_rate( const std::string& file );
+
+} // end namespace viame
+
+#endif /* VIAME_CORE_UTILITIES_FILE_H */

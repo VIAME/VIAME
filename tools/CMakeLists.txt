@@ -53,6 +53,7 @@ target_link_libraries( viame_train_detector
                kwiver::kwiversys
                kwiver::sprokit_pipeline
                kwiver::kwiver_adapter
+               viame_core
   )
 
 kwiver_add_executable( viame_get_configs
