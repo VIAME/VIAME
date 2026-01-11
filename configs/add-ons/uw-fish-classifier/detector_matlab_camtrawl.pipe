@@ -30,8 +30,8 @@ process detector
 # ==================================================================================
 #process classifier
 #  :: refine_detections
-#   :refiner:type                               uw_predictor_classifier
-#   :refiner:uw_predictor_classifier:model_file Model_SVM.xml
+#   :refiner:type                               classify_fish_hierarchical_svm
+#   :refiner:classify_fish_hierarchical_svm:model_file Model_SVM.xml
 
 # ==================================================================================
 #process draw

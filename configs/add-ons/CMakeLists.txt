@@ -141,6 +141,35 @@ if( VIAME_DOWNLOAD_MODELS-SEA-LION )
     ${VIAME_DOWNLOAD_DIR}/VIAME-Sea-Lion-Models-v2.11.zip )
 endif()
 
+if( VIAME_DOWNLOAD_MODELS-UW-CLFR )
+  # Install UW Fish Hierarchical SVM classifier models
+  set( UW_FISH_MODEL_FILES
+    uw-fish-classifier/Model_SVM.xml
+    uw-fish-classifier/speciesSVM_1.xml
+    uw-fish-classifier/speciesSVM_2.xml
+    uw-fish-classifier/speciesSVM_3.xml
+    uw-fish-classifier/speciesSVM_4.xml
+    uw-fish-classifier/speciesSVM_5.xml
+    uw-fish-classifier/speciesSVM_6.xml
+    uw-fish-classifier/speciesSVM_7.xml
+    uw-fish-classifier/speciesSVM_8.xml
+    uw-fish-classifier/speciesSVM_9.xml
+    uw-fish-classifier/speciesSVM_10.xml
+    uw-fish-classifier/speciesSVM_11.xml
+    uw-fish-classifier/speciesSVM_12.xml
+    uw-fish-classifier/speciesSVM_13.xml
+    uw-fish-classifier/speciesSVM_14.xml
+    uw-fish-classifier/speciesSVM_15.xml )
+
+  foreach( MODEL_FILE ${UW_FISH_MODEL_FILES} )
+    install( FILES ${MODEL_FILE}
+             DESTINATION configs/models/uw-fish-classifier )
+  endforeach()
+
+  set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
+    uw-fish-classifier/detector_matlab_camtrawl.pipe )
+endif()
+
 if( ADD_ON_PIPELINE_FILES )
   foreach( ITEM ${ADD_ON_PIPELINE_FILES} )
     string( REGEX REPLACE "^[^/]+/" "" ITEM_NFF "${ITEM}" )
