@@ -23,7 +23,7 @@ import logging
 from random import shuffle
 logger = logging.getLogger(__name__)
 
-import dino
+from . import dino
 # modfied by Xudong Wang based on third_party/TokenCut
 from viame.pytorch.learn.tokencut.unsupervised_saliency_detection import utils, metric
 from viame.pytorch.learn.tokencut.unsupervised_saliency_detection.object_discovery import detect_box
