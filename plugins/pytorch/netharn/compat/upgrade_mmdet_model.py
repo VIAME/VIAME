@@ -108,7 +108,11 @@ def upgrade_deployed_mmdet_model(config):
     from torch_liberator import deployer
     import ndsampler
     from viame.pytorch import netharn as nh
+    from ..detect_predict import setup_module_aliases
     from .models import mm_models
+
+    # Set up module aliases for backwards compatibility with old models
+    setup_module_aliases()
 
     config = UpgradeMMDetConfig(config)
 

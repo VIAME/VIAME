@@ -91,6 +91,56 @@ def patch_numpy():
         np.Inf = np.inf
 
 
+def setup_module_aliases():
+    """
+    Set up module aliases for backwards compatibility with old models.
+
+    Old models may have been trained with the standalone 'netharn' or 'bioharn'
+    packages, which have now been merged into 'viame.pytorch.netharn'. This
+    function creates aliases in sys.modules so that imports like:
+        - import netharn
+        - from netharn.data import data_containers
+        - import bioharn
+        - from bioharn.models import mm_models
+
+    Will resolve to the corresponding modules under viame.pytorch.netharn.
+
+    This function is idempotent and safe to call multiple times.
+    """
+    import sys
+    from viame.pytorch import netharn as nh
+
+    # Define the mapping of old module names to new modules
+    # netharn -> viame.pytorch.netharn
+    # bioharn -> viame.pytorch.netharn (bioharn was merged into netharn)
+    alias_mappings = {
+        # Top-level aliases
+        'netharn': nh,
+        'bioharn': nh,
+        # netharn submodules
+        'netharn.data': nh.data,
+        'netharn.data.channel_spec': nh.data.channel_spec,
+        'netharn.data.data_containers': nh.data.data_containers,
+        'netharn.util': nh.util,
+        'netharn.models': nh.models,
+        'netharn.layers': nh.layers,
+        'netharn.initializers': nh.initializers,
+        'netharn.criterions': nh.criterions,
+        'netharn.schedulers': nh.schedulers,
+        'netharn.optimizers': nh.optimizers,
+        # bioharn submodules (map to netharn equivalents)
+        'bioharn.models': nh.detection_models,
+        'bioharn.models.mm_models': nh.detection_models.mm_models,
+        'bioharn.detect_predict': nh.detect_predict,
+        'bioharn.detect_fit': nh.detect_fit,
+        'bioharn.detect_dataset': nh.detect_dataset,
+    }
+
+    for old_name, new_module in alias_mappings.items():
+        if old_name not in sys.modules:
+            sys.modules[old_name] = new_module
+
+
 def _ensure_upgraded_model(deployed_fpath):
     """
     Example:
@@ -111,6 +161,10 @@ def _ensure_upgraded_model(deployed_fpath):
         >>> ensured_fpath2 = _ensure_upgraded_model(deployed_fpath2)
 
     """
+    # Set up module aliases for backwards compatibility with old models
+    # that use 'import netharn' or 'import bioharn' instead of 'viame.pytorch.netharn'
+    setup_module_aliases()
+
     print('Ensure upgraded model: deployed_fpath = {!r}'.format(deployed_fpath))
 
     if not exists(deployed_fpath):
@@ -301,6 +355,10 @@ class DetectPredictor(object):
     def _ensure_model(predictor):
         # Just make sure the model is in memory (it might not be on the XPU yet)
         if predictor.model is None:
+            # Set up module aliases for backwards compatibility with old models
+            # that use 'import netharn' or 'import bioharn' instead of 'viame.pytorch.netharn'
+            setup_module_aliases()
+
             # TODO: we want to use ContainerXPU when dealing with an mmdet
             # model but we probably want regular XPU otherwise. Not sure what
             # the best way to do this is yet.
