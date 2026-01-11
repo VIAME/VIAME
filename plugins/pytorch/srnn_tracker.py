@@ -29,13 +29,13 @@ from kwiver.vital.util.VitalPIL import get_pil_image
 
 from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
 
-from .srnn.track import track_state, track, track_set
-from .srnn.models import Siamese
-from .srnn.srnn_matching import SRNNMatching, RnnType
-from .srnn.siamese_feature_extractor import SiameseFeatureExtractor
-from .srnn.iou_tracker import IOUTracker
-from .srnn.gt_bbox import GTBBox, GTFileType
-from .srnn.models import get_config
+from viame.pytorch.srnn.track import track_state, track, track_set
+from viame.pytorch.srnn.models import Siamese
+from viame.pytorch.srnn.srnn_matching import SRNNMatching, RnnType
+from viame.pytorch.srnn.siamese_feature_extractor import SiameseFeatureExtractor
+from viame.pytorch.srnn.iou_tracker import IOUTracker
+from viame.pytorch.srnn.gt_bbox import GTBBox, GTFileType
+from viame.pytorch.srnn.models import get_config
 
 g_config = get_config()
 
