@@ -97,13 +97,13 @@ There are a number of pieces of code used in the system, including:
 
 .. _object tracker training: https://github.com/VIAME/VIAME/blob/master/examples/object_tracker_training
 
-* packages/kwiver/python/kwiver/sprokit/processes/pytorch/pysot_tracker.py
+* plugins/pytorch/siammask_tracker.py
 * configs/pipelines/utility_track_selections_default_mask.pipe
 * configs/pipelines/utility_track_selections_fish_box_only.pipe
 * packages/kwiver/vital/types/object_track_set.h
 * packages/kwiver/python/kwiver/vital/types/object_track_set.h
 * packages/kwiver/python/kwiver/vital/types/object_track_set.cxx
-* packages/pytorch-libs/pysot
+* plugins/pytorch/siammask
 * packages/pytorch
 
 .. [SiamMask] Hu et al. "SiamMask: A framework for fast online object tracking and segmentation." IEEE PAMI 2023.

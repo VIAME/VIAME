@@ -1,6 +1,6 @@
 # Example simple tracker pipeline
 #
-# Runs a standalone pysot object tracking pipeline
+# Runs a standalone siammask object tracking pipeline
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
