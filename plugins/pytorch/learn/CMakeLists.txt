@@ -81,18 +81,43 @@ endif()
 # Install vendored dependencies to VIAME's Python install location
 set( LEARN_INSTALL_TARGET "${VIAME_PYTHON_INSTALL}/site-packages" )
 
+# Build wheels in the build directory, then install them
+# This avoids creating build artifacts in the source tree
+set( PYDENSECRF_BUILD_DIR ${LEARN_BUILD_DIR}/pydensecrf )
+set( PANOPTICAPI_BUILD_DIR ${LEARN_BUILD_DIR}/panopticapi )
+file( MAKE_DIRECTORY ${PYDENSECRF_BUILD_DIR} )
+file( MAKE_DIRECTORY ${PANOPTICAPI_BUILD_DIR} )
+
 if( VIAME_PYTHON_SYMLINK )
-  set( LEARN_PIP_CMD
+  # For symlink mode, we still need editable installs but can redirect egg-info
+  set( PYDENSECRF_PIP_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-deps --target "${LEARN_INSTALL_TARGET}" -e . )
-else()
-  set( LEARN_PIP_CMD
+  set( PANOPTICAPI_PIP_CMD
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
-    ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-deps --target "${LEARN_INSTALL_TARGET}" . )
+    ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-deps --target "${LEARN_INSTALL_TARGET}" -e . )
+  add_custom_target( build_learn_deps ALL
+    COMMAND cd ${PYDENSECRF_DIR} && ${PYDENSECRF_PIP_CMD}
+    COMMAND cd ${PANOPTICAPI_DIR} && ${PANOPTICAPI_PIP_CMD}
+    COMMENT "Building and installing vendored learn dependencies (pydensecrf, panopticapi)"
+  )
+else()
+  # Build wheels in the build directory, then install from there
+  set( PYDENSECRF_WHEEL_CMD
+    ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
+    ${Python_EXECUTABLE} -m pip wheel --no-build-isolation --no-deps -w ${PYDENSECRF_BUILD_DIR} ${PYDENSECRF_DIR} )
+  set( PANOPTICAPI_WHEEL_CMD
+    ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
+    ${Python_EXECUTABLE} -m pip wheel --no-build-isolation --no-deps -w ${PANOPTICAPI_BUILD_DIR} ${PANOPTICAPI_DIR} )
+  set( PYDENSECRF_INSTALL_CMD
+    ${Python_EXECUTABLE} -m pip install --no-deps --target "${LEARN_INSTALL_TARGET}" --find-links ${PYDENSECRF_BUILD_DIR} pydensecrf )
+  set( PANOPTICAPI_INSTALL_CMD
+    ${Python_EXECUTABLE} -m pip install --no-deps --target "${LEARN_INSTALL_TARGET}" --find-links ${PANOPTICAPI_BUILD_DIR} panopticapi )
+  add_custom_target( build_learn_deps ALL
+    COMMAND ${PYDENSECRF_WHEEL_CMD}
+    COMMAND ${PYDENSECRF_INSTALL_CMD}
+    COMMAND ${PANOPTICAPI_WHEEL_CMD}
+    COMMAND ${PANOPTICAPI_INSTALL_CMD}
+    COMMENT "Building and installing vendored learn dependencies (pydensecrf, panopticapi)"
+  )
 endif()
-
-add_custom_target( build_learn_deps ALL
-  COMMAND cd ${PYDENSECRF_DIR} && ${LEARN_PIP_CMD}
-  COMMAND cd ${PANOPTICAPI_DIR} && ${LEARN_PIP_CMD}
-  COMMENT "Building and installing vendored learn dependencies (pydensecrf, panopticapi)"
-)
