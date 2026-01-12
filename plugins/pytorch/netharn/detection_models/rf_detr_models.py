@@ -104,6 +104,11 @@ class RFDETR_Coder:
                 labels = labels[keep]
                 boxes = boxes[keep]
 
+                # Clamp class indices to valid range to avoid IndexError during visualization
+                num_classes = len(self.classes)
+                if len(labels) > 0 and num_classes > 0:
+                    labels = np.clip(labels, 0, num_classes - 1)
+
                 det = kwimage.Detections(
                     boxes=kwimage.Boxes(boxes, 'ltrb'),  # xyxy = ltrb format
                     scores=scores,
