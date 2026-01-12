@@ -692,6 +692,6 @@ class Detectron2Trainer(KWCocoTrainDetector):
 def __vital_algorithm_register__():
     register_vital_algorithm(
         Detectron2Trainer,
-        "trainer_detectron2",
+        "detectron2",
         "Detectron2 detection training routine"
     )

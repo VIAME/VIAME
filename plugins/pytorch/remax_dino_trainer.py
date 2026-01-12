@@ -382,7 +382,7 @@ def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "dino_remax_trainer"
+    implementation_name = "dino_remax"
 
     if algorithm_factory.has_algorithm_impl_name(
       ReMaxDINOTrainer.static_type_name(), implementation_name):

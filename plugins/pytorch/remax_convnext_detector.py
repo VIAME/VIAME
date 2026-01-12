@@ -319,7 +319,7 @@ def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "detector_remax_convnext"
+    implementation_name = "remax_convnext"
 
     if algorithm_factory.has_algorithm_impl_name(
       ReMaxConvNextDetector.static_type_name(), implementation_name):

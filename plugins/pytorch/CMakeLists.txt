@@ -254,6 +254,15 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
 
 endif()
 
+if( VIAME_ENABLE_PYTORCH-DETECTRON )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/detectron2_trainer.py
+      arrows/pytorch
+      detectron2_trainer )
+
+endif()
+
 if( VIAME_ENABLE_PYTORCH-VISION )
   add_subdirectory( torchvision )
 

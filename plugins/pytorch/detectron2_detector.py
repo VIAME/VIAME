@@ -400,6 +400,6 @@ class Detectron2Detector(ImageObjectDetector):
 def __vital_algorithm_register__():
     register_vital_algorithm(
         Detectron2Detector,
-        "detector_detectron2",
+        "detectron2",
         "Detectron2 object detection routine"
     )

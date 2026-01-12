@@ -76,7 +76,7 @@ process detector1
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             detector_remax_convnext
+    :detector:type                             remax_convnext
 
     :mode                                      adaptive
     :chip_adaptive_thresh                      2000000
@@ -88,7 +88,7 @@ process detector1
     :chip_edge_filter                          -10
     :batch_size                                1
 
-    block detector:detector_remax_convnext
+    block detector:remax_convnext
       # Network config, weights, and names
       relativepath net_config  =               models/convnext_extra_large_config.py
       relativepath weight_file =               models/convnext_xview_base.pth

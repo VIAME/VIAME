@@ -76,7 +76,7 @@ process detector1
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             detector_remax_dino
+    :detector:type                             remax_dino
 
     :mode                                      adaptive
     :chip_adaptive_thresh                      2000000
@@ -88,7 +88,7 @@ process detector1
     :chip_edge_filter                          -10
     :batch_size                                1
 
-    block detector:detector_remax_dino
+    block detector:remax_dino
       # Network config, weights, and names
       relativepath net_config  =               models/DINO_4scale_swin.py
       relativepath weight_file =               models/pytorch_dino.pth
