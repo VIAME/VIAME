@@ -16,11 +16,13 @@ set( EXAMPLE_INSTALL_FILES
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_trained_model.bat )
+       run_trained_model.bat
+       train_default.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_trained_model.sh )
+       run_trained_model.sh
+       train_default.sh )
 endif()
 
 if( VIAME_ENABLE_DARKNET )
@@ -44,8 +46,8 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.bat
-         train_cfrnn.bat
-         train_cfrnn_habcam_csv.bat
+         train_netharn_cfrnn.bat
+         train_netharn_cfrnn_habcam_csv.bat
          train_mask_rcnn.bat
          train_motion_cfrnn.bat
          train_netharn_rf_detr.bat
@@ -54,8 +56,8 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.sh
-         train_cfrnn.sh
-         train_cfrnn_habcam_csv.sh
+         train_netharn_cfrnn.sh
+         train_netharn_cfrnn_habcam_csv.sh
          train_mask_rcnn.sh
          train_motion_cfrnn.sh
          train_netharn_rf_detr.sh
