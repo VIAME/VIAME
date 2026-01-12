@@ -348,9 +348,23 @@ if( VIAME_ENABLE_OPENCV )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
-#  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-#    train_detector_mmdet_cfrnn.habcam.conf
-#    train_detector_mmdet_cfrnn.conf)
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_mmdet_cfrnn.habcam.conf
+    train_detector_mmdet_cfrnn.conf)
+endif()
+
+if( VIAME_ENABLE_PYTORCH-RF-DETR )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_rf_detr_560.conf)
+endif()
+
+if( VIAME_ENABLE_PYTORCH-DETECTRON )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_detectron2_faster_rcnn.conf
+    train_detector_dino_remax.conf
+    train_detector_convnext_remax.conf
+    detector_remax_convnext_novelty_detection.pipe
+    detector_remax_dino_novelty_detection.pipe)
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM )
@@ -398,7 +412,21 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_short_term_tracker.pipe
     utility_track_selections_default_mask.pipe
-    utility_track_selections_fish_box_only.pipe )
+    utility_track_selections_fish_box_only.pipe
+    train_tracker_siammask.conf )
+endif()
+
+if( VIAME_ENABLE_PYTORCH )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_tracker_srnn.conf
+    train_tracker_deepsort.conf
+    train_tracker_botsort.conf )
+endif()
+
+if( VIAME_ENABLE_PYTHON )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_tracker_bytetrack.conf
+    train_tracker_ocsort.conf )
 endif()
 
 if( VIAME_ENABLE_ITK )
