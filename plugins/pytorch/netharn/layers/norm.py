@@ -123,9 +123,21 @@ class InputNorm(common.Module):
     def forward(self, inputs):
         outputs = inputs
         if self.mean is not None:
-            outputs = outputs - self.mean
+            mean = self.mean
+            # Reshape for broadcasting with (B, C, H, W) inputs if needed
+            if mean.dim() == 1:
+                mean = mean.view(1, -1, 1, 1)
+            elif mean.dim() == 4 and mean.shape[0] == 1:
+                pass  # Already in correct shape (1, C, 1, 1)
+            outputs = outputs - mean
         if self.std is not None:
-            outputs = outputs / self.std
+            std = self.std
+            # Reshape for broadcasting with (B, C, H, W) inputs if needed
+            if std.dim() == 1:
+                std = std.view(1, -1, 1, 1)
+            elif std.dim() == 4 and std.shape[0] == 1:
+                pass  # Already in correct shape (1, C, 1, 1)
+            outputs = outputs / std
         return outputs
 
     def output_shape_for(self, input_shape):
