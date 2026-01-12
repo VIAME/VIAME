@@ -471,6 +471,7 @@ class MitYOLO_Detector(nh.layers.Module):
     """
 
     __BUILTIN_CRITERION__ = True
+    __DEPLOY_SUPPORTED__ = False  # torch_liberator deployment not supported
 
     def __init__(self, classes, channels='rgb', input_stats=None,
                  model_variant='v9-c', weight_path=None, weight_dir=None,

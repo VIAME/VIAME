@@ -1708,11 +1708,16 @@ class CoreMixin(object):
         Returns:
             str: path to the exported model topology
         """
+        # Check if model explicitly declares it doesn't support deployment
+        model_class = harn.hyper.model_cls
+        if getattr(model_class, '__DEPLOY_SUPPORTED__', True) is False:
+            harn.debug('Model does not support torch_liberator deployment, skipping export')
+            return None
+
         # TODO: might be good to check for multiple model exports at this time
         harn.debug('exporting model topology')
         static_modpath = None
         try:
-            model_class = harn.hyper.model_cls
             model_params = harn.hyper.model_params
             export_modules = harn.preferences['export_modules']
             static_modpath = torch_liberator.export_model_code(
@@ -1732,6 +1737,13 @@ class CoreMixin(object):
         Returns:
             str: path to the deploy zipfile.
         """
+        # Check if model explicitly declares it doesn't support deployment
+        model_class = harn.hyper.model_cls
+        if getattr(model_class, '__DEPLOY_SUPPORTED__', True) is False:
+            harn.debug('Model does not support torch_liberator deployment, skipping deploy')
+            harn.deploy_fpath = None
+            return None
+
         static_modpath = harn._export()
         harn.debug('packaging deploying model')
 
