@@ -473,8 +473,8 @@ class MitYOLO_Detector(nh.layers.Module):
     __BUILTIN_CRITERION__ = True
 
     def __init__(self, classes, channels='rgb', input_stats=None,
-                 model_variant='v9-c', weight_path=None, nms_cfg=None,
-                 loss_cfg=None):
+                 model_variant='v9-c', weight_path=None, weight_dir=None,
+                 nms_cfg=None, loss_cfg=None):
         """
         Args:
             classes: List of class names or kwcoco.CategoryTree
@@ -482,11 +482,15 @@ class MitYOLO_Detector(nh.layers.Module):
             input_stats: Dict with 'mean' and 'std' for input normalization
             model_variant: MIT-YOLO variant name (v9-c, v9-s, v9-m, v7, etc.)
             weight_path: Path to pretrained weights, True to auto-download, False for none
+            weight_dir: Directory to store downloaded weights (default: current directory)
             nms_cfg: NMS configuration dict with min_confidence, min_iou, max_bbox
             loss_cfg: Loss configuration dict (uses defaults if None)
         """
         super().__init__()
         import kwcoco
+
+        # Store weight_dir for model creation
+        self._weight_dir = weight_dir
 
         # Store initialization kwargs for serialization
         self._initkw = {
@@ -495,6 +499,7 @@ class MitYOLO_Detector(nh.layers.Module):
             'input_stats': input_stats,
             'model_variant': model_variant,
             'weight_path': weight_path,
+            'weight_dir': weight_dir,
             'nms_cfg': nms_cfg,
             'loss_cfg': loss_cfg,
         }
@@ -572,7 +577,8 @@ class MitYOLO_Detector(nh.layers.Module):
         model = create_model(
             self.model_cfg,
             weight_path=actual_weight_path,
-            class_num=num_classes
+            class_num=num_classes,
+            weight_dir=self._weight_dir
         )
         return model
 

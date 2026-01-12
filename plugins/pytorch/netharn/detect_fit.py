@@ -740,6 +740,11 @@ class DetectHarn(nh.FitHarn):
                 if getattr(harn, 'deploy_fpath', None) is None:
                     harn.deploy_fpath = harn._deploy()
 
+                # Skip evaluation if deployment failed (e.g., for MIT-YOLO models)
+                if harn.deploy_fpath is None:
+                    harn.info('Skipping evaluation: model deployment not available')
+                    return
+
                 import torch_liberator
                 deployed = torch_liberator.DeployedModel.coerce(harn.deploy_fpath)
                 deployed._model = harn.model
@@ -1188,12 +1193,15 @@ def setup_harn(cmdline=True, **kw):
         backbone_init = config.get('backbone_init', True)
         if backbone_init == 'url':
             backbone_init = True
+        # Use workdir for weight storage so weights go in training directory
+        weight_dir = os.path.join(config['workdir'], 'weights')
         initkw = dict(
             classes=classes,
             channels=config['channels'],
             input_stats=input_stats,
             model_variant=variant,
             weight_path=backbone_init,
+            weight_dir=weight_dir,
         )
         model = mit_yolo_models.MitYOLO_Detector(**initkw)
         model._initkw = initkw

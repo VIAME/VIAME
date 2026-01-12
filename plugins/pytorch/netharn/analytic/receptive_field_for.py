@@ -59,7 +59,6 @@ class ReceptiveField(OrderedDict, analytic_for.Output):
         >>> self_copy = copy.deepcopy(self)
     """
     def __init__(self, data, hidden=None):
-        # Inheriting from an odict consistently between python 2/3 is weird
         data2 = OrderedDict(sorted(OrderedDict(data).items()))
         OrderedDict.__init__(self, data2)
         self.data = data2
@@ -79,7 +78,6 @@ class ReceptiveField(OrderedDict, analytic_for.Output):
     def coerce(cls, data, hidden=None):
         """
         Example:
-            >>> # test weird python2 failure case
             >>> from .analytic.receptive_field_for import *
             >>> cls = ReceptiveField
             >>> data = [(0, ReceptiveFieldFor.input())]

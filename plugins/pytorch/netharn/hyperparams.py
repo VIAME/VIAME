@@ -578,7 +578,6 @@ class HyperParams(object):
                     else:
                         real_params = []
 
-                # Python 3.6 doesn't have re.Pattern
                 elif isinstance(spec, str) or hasattr(spec, 'match'):
                     if hasattr(spec, 'match'):
                         pat = spec
@@ -591,7 +590,6 @@ class HyperParams(object):
 
                 if PREVENT_DUPLICATES:
                     # give priority to earlier params
-                    # This is Python 3.6+ only
                     real_params = list(ub.oset(real_params) - seen_)
                     seen_.update(real_params)
 

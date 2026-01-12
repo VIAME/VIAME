@@ -768,8 +768,24 @@ class NetHarnTrainer( TrainDetector ):
         else:
             output_model_name = "trained_detector.zip"
 
+        # Try to find the deployed model (standard netharn output)
         final_model = os.path.join( self._train_directory,
           "fit", "nice", self._identifier, "deploy.zip" )
+
+        # If deploy.zip doesn't exist, look for checkpoint files (e.g., for MIT-YOLO)
+        if not os.path.exists( final_model ):
+            # Search for best_snapshot.pt in runs directory
+            import glob
+            runs_pattern = os.path.join( self._train_directory,
+              "fit", "runs", self._identifier, "*", "best_snapshot.pt" )
+            candidates = glob.glob( runs_pattern )
+            if candidates:
+                final_model = candidates[0]
+                # Use .pt extension for checkpoint files
+                if self._mode == "frame_classifier" or self._mode == "detection_refiner":
+                    output_model_name = "trained_classifier.pt"
+                else:
+                    output_model_name = "trained_detector.pt"
 
         if not os.path.exists( final_model ):
             print( "\nNo model found, training may have failed\n" )
