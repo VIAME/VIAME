@@ -218,6 +218,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PATCHES_DIR}/detectron2
         ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
     endif()
+  elseif( "${LIB}" STREQUAL "pyav" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/pyav
+      ${VIAME_PACKAGES_DIR}/python-utils/pyav )
   elseif( "${LIB}" STREQUAL "torchvideo" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pyav )
   elseif( "${LIB}" STREQUAL "mmcv" )
