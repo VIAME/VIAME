@@ -415,6 +415,7 @@ class RFDETR_Detector(nh.layers.Module):
     """
 
     __BUILTIN_CRITERION__ = True
+    __DEPLOY_SUPPORTED__ = False  # RF-DETR doesn't support torch_liberator deployment
 
     # ImageNet normalization stats used by RF-DETR
     IMAGENET_MEAN = [0.485, 0.456, 0.406]
