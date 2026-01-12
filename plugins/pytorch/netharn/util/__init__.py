@@ -6,7 +6,6 @@ mkinit ~/code/kwimage/kwimage/__init__.py --relative --nomods -w
 mkinit ~/code/kwplot/kwplot/__init__.py --relative --nomods -w
 mkinit netharn.util --relative --nomods
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 def __getattr__(key):

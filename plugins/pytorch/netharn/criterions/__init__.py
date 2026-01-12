@@ -2,7 +2,6 @@
 """
 mkinit netharn.criterions -w
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from torch.nn.modules.loss import CrossEntropyLoss, MSELoss
 
 __extra_all__ = [

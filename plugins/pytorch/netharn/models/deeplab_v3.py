@@ -3,7 +3,6 @@ https://github.com/kazuto1011/deeplab-pytorch/blob/master/libs/models/deeplabv3.
 
 pip install torch-encoding
 """
-from __future__ import absolute_import, print_function
 import ubelt as ub  # NOQA
 from collections import OrderedDict  # NOQA
 import torch

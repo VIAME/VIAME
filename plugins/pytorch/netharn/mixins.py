@@ -9,10 +9,7 @@ The purpose of this file is to contain functions that might not general-purpose
 enough to add to FitHarn itself, but they are also common enough, where it
 makes no sense to write them from scratch for each new project.
 """
-try:  # nocover
-    from packaging.version import parse as LooseVersion
-except ImportError:
-    from distutils.version import LooseVersion
+from packaging.version import parse as Version
 
 
 def _dump_monitor_tensorboard(harn, mode='epoch', special_groupers=['loss'],
@@ -50,8 +47,7 @@ def _dump_monitor_tensorboard(harn, mode='epoch', special_groupers=['loss'],
     from viame.pytorch import netharn as nh
     from os.path import join
     import json
-    import six
-    from six.moves import cPickle as pickle
+    import pickle
 
     # harn.debug('Plotting tensorboard data. serial={}, mode={}'.format(serial, mode))
 
@@ -98,10 +94,7 @@ def _dump_monitor_tensorboard(harn, mode='epoch', special_groupers=['loss'],
 
     tb_data_json_fpath = join(out_dpath, 'tb_data.json')
     with open(tb_data_json_fpath, 'w') as file:
-        if six.PY2:
-            jsonkw = dict(indent=1)
-        else:
-            jsonkw = dict(indent=' ')
+        jsonkw = dict(indent=' ')
         try:
             json.dump(tb_data, file, **jsonkw)
         except Exception as ex:
@@ -380,7 +373,7 @@ def _dump_measures(tb_data, out_dpath, mode=None, smoothing=0.0,
                                       yscale=yscale, title=title, fnum=1, ax=ax,
                                       **kw)
                     if yscale == 'symlog':
-                        if LooseVersion(mpl.__version__) >= LooseVersion('3.3'):
+                        if Version(mpl.__version__) >= Version('3.3'):
                             ax.set_yscale('symlog', linthresh=min_abs_y)
                         else:
                             ax.set_yscale('symlog', linthreshy=min_abs_y)

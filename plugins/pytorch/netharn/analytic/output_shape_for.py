@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import ubelt as ub
 import math
 import torch
@@ -7,7 +6,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 import torchvision
 from collections import OrderedDict
-from six.moves import builtins
+import builtins
 from viame.pytorch.netharn.analytic import analytic_for
 from viame.pytorch.netharn.device import DataSerial
 

@@ -2,10 +2,8 @@
 """
 Mostly deprecated in favor of kwplot
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
 import numpy as np
-import six
 import ubelt as ub
 from os.path import join, dirname
 
@@ -992,7 +990,7 @@ def reverse_colormap(cmap):
     else:
         reverse = []
         k = []
-        for key, channel in six.iteritems(cmap._segmentdata):
+        for key, channel in cmap._segmentdata.items():
             data = []
             for t in channel:
                 data.append((1 - t[0], t[1], t[2]))

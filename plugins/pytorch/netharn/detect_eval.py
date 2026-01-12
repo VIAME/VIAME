@@ -11,7 +11,6 @@ from os.path import exists
 from os.path import join
 from os.path import dirname
 import os
-import six
 import kwcoco
 import ndsampler
 import kwimage
@@ -483,7 +482,7 @@ class DetectEvaluator(object):
         require_train_dpath = evaluator.config['eval_in_train_dpath']
         out_dpath = evaluator.config['out_dpath']
         out_dpath = None
-        if isinstance(out_dpath, six.string_types):
+        if isinstance(out_dpath, str):
             if out_dpath == 'special:train_dpath':
                 out_dpath = None
                 require_train_dpath = True

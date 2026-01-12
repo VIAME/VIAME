@@ -2,8 +2,6 @@
 """
 mkinit netharn.initializers
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from ..api import Initializer  # NOQA
 
 # backwards compatibility patch to support older deployed models

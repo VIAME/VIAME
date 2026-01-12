@@ -2,7 +2,6 @@
 """
 MOSTLY DEPRECATE FOR KWIMAGE
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import glob
 from os.path import expanduser, exists, join, basename
 import numpy as np

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
-import six
 import ubelt as ub
 
 
@@ -23,7 +21,7 @@ def make_idstr(d):
     """
     if d is None:
         return ''
-    elif isinstance(d, six.string_types):
+    elif isinstance(d, str):
         return d
     elif len(d) == 0:
         return ''

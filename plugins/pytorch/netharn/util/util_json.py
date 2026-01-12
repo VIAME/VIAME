@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import copy
 import json
-import six
 import torch
 import numpy as np
 import ubelt as ub
@@ -122,7 +120,7 @@ def read_json(fpath):
     """
     Write human readable json files
     """
-    if isinstance(fpath, six.string_types):
+    if isinstance(fpath, str):
         return json.load(open(fpath, 'r'))
     else:
         return json.load(fpath)

@@ -139,7 +139,6 @@ TODO:
           [ ] - Stochastic Weight Averaging - https://pytorch.org/docs/stable/optim.html#putting-it-all-together
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import glob
 import itertools as it
 import logging
@@ -147,7 +146,6 @@ import parse
 import shutil
 import time
 import sys
-import six
 import warnings
 import functools
 import traceback
@@ -169,10 +167,7 @@ from viame.pytorch.netharn.util import strip_ansi
 from viame.pytorch.netharn.exceptions import (CannotResume, SkipBatch, StopTraining,
                                               TrainingDiverged)
 
-try:  # nocover
-    from packaging.version import parse as LooseVersion
-except ImportError:
-    from distutils.version import LooseVersion
+from packaging.version import parse as Version
 
 
 # Hack: patch collections so tensorboard_logger doesnt die
@@ -545,7 +540,7 @@ class InitializeMixin(object):
         use_py_logger = True
         if use_py_logger and harn._log is None:
 
-            _log = logging.getLogger(harn.__class__.__name__ + ':' + six.text_type(id(harn)))
+            _log = logging.getLogger(harn.__class__.__name__ + ':' + str(id(harn)))
             _log.propagate = False
             _log.setLevel(logging.DEBUG)
 
@@ -791,7 +786,7 @@ class ProgMixin(object):
             import tqdm  # NOQA
             Prog = tqdm.tqdm
         elif harn.preferences['prog_backend'] == 'progiter':
-            if LooseVersion(ub.__version__) >= LooseVersion('0.9.3'):
+            if Version(ub.__version__) >= Version('0.9.3'):
                 Prog = functools.partial(
                     ub.ProgIter, chunksize=chunksize, verbose=1,
                     time_thresh=2.0, show_wall=show_wall)
@@ -834,8 +829,7 @@ class ProgMixin(object):
             else:
                 bs = 'x{}'.format(batch_size)
             parts = [bs] + parts
-        if not harn.preferences['allow_unicode'] or six.PY2:
-            # work around a unicode issue with tqdm in python2
+        if not harn.preferences['allow_unicode']:
             msg = ' | ' .join(parts) + ' |'
         else:
             msg = ' │ ' .join(parts) + ' │'
@@ -856,7 +850,7 @@ class ProgMixin(object):
     def _update_main_prog_desc(harn):
         lrs = set(harn._current_lrs())
         lr_str = ','.join(['{:.4g}'.format(lr) for lr in lrs])
-        if not harn.preferences['allow_unicode'] or six.PY2:
+        if not harn.preferences['allow_unicode']:
             desc = 'epoch lr:{} | {}'.format(lr_str, harn.monitor.message())
         else:
             desc = 'epoch lr:{} │ {}'.format(lr_str, harn.monitor.message())
@@ -977,7 +971,7 @@ class LogMixin(object):
                 # writting debug info to stdout
                 harn._ensure_prog_newline()
 
-            msg = strip_ansi(six.text_type(msg))
+            msg = strip_ansi(str(msg))
             # Encode to prevent errors on windows terminals
             # On windows there is a sometimes a UnicodeEncodeError:
             # For more details see: https://wiki.python.org/moin/PrintFails
@@ -1627,7 +1621,6 @@ class CoreMixin(object):
                     harn.info('Attempting to deploy before crashing')
                     harn._deploy()
                 raise
-            from six.moves import input
             harn.warn('\n\n\n')
             harn.info('harn.train_dpath = {!r}'.format(harn.train_dpath))
             harn.warn('got keyboard interrupt')

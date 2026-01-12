@@ -840,8 +840,7 @@ def setup_harn(cmdline=True, **kw):
         # DEPRECATE.
         # USE KWCOCO PREPROCESSING INSTEAD
         print('Collapsing all category labels')
-        import six
-        if isinstance(config['collapse_classes'], six.string_types):
+        if isinstance(config['collapse_classes'], str):
             hacklbl = config['collapse_classes']
         else:
             hacklbl = 'object'

@@ -2,13 +2,10 @@
 import torch  # NOQA
 import torch.nn.functional as F
 import torch.nn.modules
-try:  # nocover
-    from packaging.version import parse as LooseVersion
-except ImportError:
-    from distutils.version import LooseVersion
+from packaging.version import parse as Version
 
 
-if LooseVersion(torch.__version__) < LooseVersion('1.0.0'):
+if Version(torch.__version__) < Version('1.0.0'):
     ELEMENTWISE_MEAN = 'elementwise_mean'
 else:
     ELEMENTWISE_MEAN = 'mean'

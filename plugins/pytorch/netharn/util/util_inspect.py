@@ -1,4 +1,4 @@
-import six
+import inspect
 
 
 def default_kwargs(cls):
@@ -25,17 +25,7 @@ def default_kwargs(cls):
     SeeAlso:
         xinspect.get_func_kwargs(cls)
     """
-    if six.PY2:
-        if cls.__init__ is object.__init__:
-            # hack for python2 classes without __init__
-            return {}
-        else:
-            import funcsigs
-            sig = funcsigs.signature(cls)
-    else:
-        import inspect
-        sig = inspect.signature(cls)
-
+    sig = inspect.signature(cls)
     default_kwargs = {
         k: p.default
         for k, p in sig.parameters.items()

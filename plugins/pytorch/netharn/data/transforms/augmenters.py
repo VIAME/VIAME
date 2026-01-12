@@ -1,5 +1,4 @@
 import numpy as np
-import six
 from viame.pytorch.netharn.data.transforms import augmenter_base
 
 try:
@@ -306,10 +305,10 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
             cv2.BORDER_REFLECT_101: cv2.BORDER_REFLECT_101,
             cv2.BORDER_REFLECT: cv2.BORDER_REFLECT
         }
-        if isinstance(border, six.string_types):
+        if isinstance(border, str):
             if border == imgaug.ALL:
                 border = [k for k, v in self._cv2_border_type_map.items()
-                          if v is not None and isinstance(k, six.string_types)]
+                          if v is not None and isinstance(k, str)]
             else:
                 border = [border]
         if isinstance(border, (list, tuple)):

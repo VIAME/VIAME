@@ -53,11 +53,10 @@ def coerce_datasets(config, build_hashid=False, verbose=1):
     def _ensure_coco(coco):
         # Map a file path or an in-memory dataset to a CocoDataset
         import kwcoco
-        import six
         from os.path import exists
         if coco is None:
             return None
-        elif isinstance(coco, six.string_types):
+        elif isinstance(coco, str):
             fpath = _rectify_fpath(coco)
             if exists(fpath):
                 with ub.Timer('read kwcoco dataset: fpath = {!r}'.format(fpath)):

@@ -12,12 +12,12 @@ import torch
 import torch.nn as nn
 import ubelt as ub
 from viame.pytorch.netharn import layers
-from distutils.version import LooseVersion
+from packaging.version import parse as Version
 import torch.nn.functional as F
 from viame.pytorch.netharn.data.channel_spec import ChannelSpec  # NOQA
 
 
-_TORCH_HAS_BOOL_COMP = LooseVersion(torch.__version__) >= LooseVersion('1.2.0')
+_TORCH_HAS_BOOL_COMP = Version(torch.__version__) >= Version('1.2.0')
 
 
 class Conv2dBatchLeaky(layers.Module):

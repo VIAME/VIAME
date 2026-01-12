@@ -18,7 +18,7 @@ from collections import OrderedDict
 import warnings  # NOQA
 from viame.pytorch.netharn.data.channel_spec import ChannelSpec  # TODO: kwcoco.ChannelSpec
 from viame.pytorch.netharn.data import data_containers
-from distutils.version import LooseVersion
+from packaging.version import parse as Version
 
 
 def _hack_mm_backbone_in_channels(backbone_cfg):
@@ -313,7 +313,7 @@ def _demo_batch(bsize=1, channels='rgb', h=256, w=256, classes=3,
 
 def _dummy_img_metas(B, H, W, C):
     import mmdet
-    MMDET_GE_2_12 = LooseVersion(mmdet.__version__) >= LooseVersion('2.12.0')
+    MMDET_GE_2_12 = Version(mmdet.__version__) >= Version('2.12.0')
     if MMDET_GE_2_12:
         scale_factor = np.array([1., 1.0])
     else:
@@ -643,7 +643,7 @@ class MM_Coder(object):
                 # Hack for mmdet 2.4+ (not sure exactly what format change is
                 # so this may need to be reworked)
                 import mmdet
-                if LooseVersion(mmdet.__version__) >= LooseVersion('2.4.0'):
+                if Version(mmdet.__version__) >= Version('2.4.0'):
 
                     mm_sseg_results = None
                     if len(result) == 1:
@@ -715,7 +715,7 @@ class MM_Detector(nh.layers.Module):
         import mmdet
         from mmdet.models import build_detector
         import kwcoco
-        from distutils.version import LooseVersion
+        from packaging.version import parse as Version
 
         if input_stats is None:
             input_stats = {}
@@ -746,7 +746,7 @@ class MM_Detector(nh.layers.Module):
             main_input_stats = {}
         self.input_norm = nh.layers.InputNorm(**main_input_stats)
 
-        MMDET_GE_2_20 = LooseVersion(mmdet.__version__) >= LooseVersion('2.20.0')
+        MMDET_GE_2_20 = Version(mmdet.__version__) >= Version('2.20.0')
         if MMDET_GE_2_20:
             # Not sure what the exact version break is here
             mm_model['backbone']['pretrained'] = mm_model.pop('pretrained')
@@ -763,7 +763,7 @@ class MM_Detector(nh.layers.Module):
         if test_cfg is not None:
             test_cfg = mmcv.utils.config.ConfigDict(test_cfg)
 
-        MMDET_GE_2_12 = LooseVersion(mmdet.__version__) >= LooseVersion('2.12.0')
+        MMDET_GE_2_12 = Version(mmdet.__version__) >= Version('2.12.0')
 
         if MMDET_GE_2_12:
             # mmdet v2.12.0 introduced new registry stuff that forces use of

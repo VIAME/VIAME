@@ -1,10 +1,6 @@
-import six
 import torch
 import ubelt as ub
-if six.PY2:
-    from fractions import gcd
-else:
-    from math import gcd
+from math import gcd
 
 
 def rectify_nonlinearity(key=ub.NoParam, dim=2):
@@ -26,7 +22,7 @@ def rectify_nonlinearity(key=ub.NoParam, dim=2):
     if key is ub.NoParam:
         key = 'relu'
 
-    if isinstance(key, six.string_types):
+    if isinstance(key, str):
         key = {'type': key}
     elif isinstance(key, dict):
         key = key.copy()
@@ -101,7 +97,7 @@ def rectify_normalizer(in_channels, key=ub.NoParam, dim=2, **kwargs):
     if key is ub.NoParam:
         key = 'batch'
 
-    if isinstance(key, six.string_types):
+    if isinstance(key, str):
         key = {'type': key}
     elif isinstance(key, dict):
         key = key.copy()

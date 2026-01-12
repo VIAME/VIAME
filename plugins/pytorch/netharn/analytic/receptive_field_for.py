@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import torch
 import copy
-import six  # NOQA
 import torch.nn as nn
 import torchvision
 import ubelt as ub
@@ -16,16 +14,13 @@ from viame.pytorch.netharn.analytic import analytic_for
 #     MountedModel = None
 
 
-try:  # nocover
-    from packaging.version import parse as LooseVersion
-except ImportError:
-    from distutils.version import LooseVersion
+from packaging.version import parse as Version
 
 
 REGISTERED_TYPES = []
 
 
-if LooseVersion(torch.__version__) >= LooseVersion('1.5.0'):
+if Version(torch.__version__) >= Version('1.5.0'):
     CONV_TRANSPOSE_TYPES = (nn.modules.conv._ConvTransposeNd,)
 else:
     CONV_TRANSPOSE_TYPES = (nn.modules.conv._ConvTransposeMixin,)

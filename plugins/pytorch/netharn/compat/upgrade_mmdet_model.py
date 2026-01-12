@@ -9,7 +9,6 @@ import ubelt as ub
 import copy
 import json
 import inspect
-import six
 import textwrap
 
 
@@ -40,7 +39,7 @@ def get_func_sourcecode(func, strip_def=False):
         for num_tries in range(try_limit):
             try:
                 sourcecode = inspect.getsource(func)
-                if not isinstance(sourcecode, six.text_type):
+                if not isinstance(sourcecode, str):
                     sourcecode = sourcecode.decode('utf-8')
             except (IndexError, OSError, SyntaxError):
                 print('WARNING: Error getting source')

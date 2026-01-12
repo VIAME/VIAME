@@ -8,7 +8,6 @@ References:
     https://paperswithcode.com/sota/semantic-segmentation-on-camvid
     https://github.com/warmspringwinds/pytorch-segmentation-detection/tree/master/pytorch_segmentation_detection/models
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import torch.nn as nn
 import torch
 import math

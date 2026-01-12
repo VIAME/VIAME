@@ -2,7 +2,6 @@
 Deprecated. Ported to kwcoco
 """
 import ubelt as ub
-import six
 import functools
 
 
@@ -137,7 +136,7 @@ class ChannelSpec(ub.NiceRepr):
             if isinstance(data, int):
                 # we know the number of channels, but not their names
                 spec = '|'.join(['u{}'.format(i) for i in range(data)])
-            elif isinstance(data, six.string_types):
+            elif isinstance(data, str):
                 spec = data
             else:
                 raise TypeError(type(data))

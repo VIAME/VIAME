@@ -2,7 +2,6 @@
 """
 This is a simple generalized harness for training a classifier on a coco dataset.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join
 import numpy as np
 import sys

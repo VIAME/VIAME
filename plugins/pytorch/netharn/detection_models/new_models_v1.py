@@ -846,10 +846,10 @@ class MM_HRNetV2_w18_MaskRCNN(MM_Detector_V3):
             },
         })
 
-        from distutils.version import LooseVersion
+        from packaging.version import parse as Version
         import mmdet
 
-        MMDET_GT_2_12 = LooseVersion(mmdet.__version__) >= LooseVersion('2.12.0')
+        MMDET_GT_2_12 = Version(mmdet.__version__) >= Version('2.12.0')
 
         if MMDET_GT_2_12:
             # mmdet v2.12.0 introduced new registry stuff that forces use of

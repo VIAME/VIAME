@@ -12,13 +12,10 @@ Speedups
 import torch
 import torch.nn as nn
 import numpy as np  # NOQA
-try:  # nocover
-    from packaging.version import parse as LooseVersion
-except ImportError:
-    from distutils.version import LooseVersion
+from packaging.version import parse as Version
 
 
-_TORCH_HAS_BOOL_COMP = LooseVersion(torch.__version__) >= LooseVersion('1.2.0')
+_TORCH_HAS_BOOL_COMP = Version(torch.__version__) >= Version('1.2.0')
 
 __all__ = ['RegionLoss']
 

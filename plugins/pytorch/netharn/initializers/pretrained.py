@@ -1,4 +1,3 @@
-import six
 import torch
 import ubelt as ub
 from os.path import dirname
@@ -94,7 +93,7 @@ class Pretrained(api.Initializer, ub.NiceRepr):
             leftover = initializer
 
         self.fpath = fpath
-        if isinstance(leftover, six.string_types):
+        if isinstance(leftover, str):
             initializer_ = api.Initializer.coerce(initializer=leftover)
             leftover = initializer_[0](**initializer_[1])
 

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 from viame.pytorch.netharn.analytic.output_shape_for import OutputShapeFor
 from viame.pytorch.netharn.layers import rectify
 from viame.pytorch.netharn.layers import common

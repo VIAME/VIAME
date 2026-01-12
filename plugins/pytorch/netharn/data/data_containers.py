@@ -23,13 +23,9 @@ from torch.nn.parallel._functions import _get_stream
 from torch.nn.parallel._functions import Scatter as OrigScatter
 from torch.nn.parallel._functions import Gather as OrigGather
 
-try:
-    import collections.abc as container_abcs
-    from six import string_types as string_classes
-    from six import integer_types as int_classes
-except Exception:
-    from torch._six import container_abcs
-    from torch._six import string_classes, int_classes
+import collections.abc as container_abcs
+string_classes = str
+int_classes = int
 default_collate = torch_data.dataloader.default_collate
 
 

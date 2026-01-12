@@ -6,7 +6,6 @@ Processing for filenames. The logic is relatively hacky.
 
 pip install pygtrie
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import commonprefix, isdir, dirname
 import numpy as np  # NOQA
 

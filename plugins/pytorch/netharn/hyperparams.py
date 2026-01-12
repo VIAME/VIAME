@@ -45,7 +45,6 @@ Example:
 
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import platform
 import warnings
 from os.path import join
@@ -54,7 +53,6 @@ import sys
 import numpy as np
 import ubelt as ub
 import torch
-import six
 from viame.pytorch.netharn import util
 from viame.pytorch.netharn import initializers
 from viame.pytorch.netharn import device
@@ -194,7 +192,7 @@ def _rectify_criterion(arg, kw):
         return _rectify_class(None, kw)
 
     def _lookup(arg):
-        if isinstance(arg, six.string_types):
+        if isinstance(arg, str):
             options = [
                 # criterions.ContrastiveLoss,
                 torch.nn.CrossEntropyLoss,
@@ -245,7 +243,7 @@ def _rectify_optimizer(arg, kw):
             kw['lr'] = .001
 
     def _lookup(arg):
-        if isinstance(arg, six.string_types):
+        if isinstance(arg, str):
             options = [
                 torch.optim.Adam,
                 torch.optim.SGD,
@@ -270,7 +268,7 @@ def _rectify_lr_scheduler(arg, kw):
         return _rectify_class(None, kw)
 
     def _lookup(arg):
-        if isinstance(arg, six.string_types):
+        if isinstance(arg, str):
             options = [
                 torch.optim.lr_scheduler.LambdaLR,
                 torch.optim.lr_scheduler.StepLR,
@@ -294,7 +292,7 @@ def _rectify_initializer(arg, kw):
         # return None, None
 
     def _lookup(arg):
-        if isinstance(arg, six.string_types):
+        if isinstance(arg, str):
             options = [
                 initializers.KaimingNormal,
                 initializers.NoOp,
@@ -310,7 +308,7 @@ def _rectify_initializer(arg, kw):
 
 def _rectify_monitor(arg, kw):
     def _lookup(arg):
-        if isinstance(arg, six.string_types):
+        if isinstance(arg, str):
             options = []
             cls = {c.__name__: c for c in options}[arg]
         else:
@@ -351,7 +349,7 @@ def _rectify_model(arg, kw):
 
     def _lookup_model(arg):
         import torchvision
-        if isinstance(arg, six.string_types):
+        if isinstance(arg, str):
             options = [
                 torchvision.models.AlexNet,
                 torchvision.models.DenseNet,
@@ -724,7 +722,7 @@ class HyperParams(object):
                             raise NotImplementedError()
                     d[k] = v
                     # total[k] = v
-                if isinstance(cls, six.string_types):
+                if isinstance(cls, str):
                     type_str = cls
                 else:
                     modname = cls.__module__
@@ -767,7 +765,7 @@ class HyperParams(object):
         elif imgaug is not None and isinstance(hyper.augment, imgaug.augmenters.Augmenter):
             from .data.transforms.augmenter_base import ParamatarizedAugmenter
             augment_json = ParamatarizedAugmenter._json_id(hyper.augment)
-        elif isinstance(hyper.augment, six.string_types):
+        elif isinstance(hyper.augment, str):
             return hyper.augment
         # Some classes in imgaug (e.g. Sequence) inherit from list,
         # so we have to check for Augmenter before we check for list type

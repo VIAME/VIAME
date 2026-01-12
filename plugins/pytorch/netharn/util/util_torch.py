@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-import six
 import ubelt as ub
 
 
@@ -124,7 +123,7 @@ class grad_context(object):
 
 
 def _get_method_func(method):
-    func = method.im_func if six.PY2 else method.__func__
+    func = method.__func__
     return func
 
 
@@ -141,11 +140,7 @@ def _get_method_base_class(method):
         <class 'torch.nn.modules.batchnorm._BatchNorm'>
     """
     import sys
-    if six.PY2:
-        from qualname import qualname as find_qualname
-        qualname = find_qualname(method)
-    else:
-        qualname = method.__qualname__
+    qualname = method.__qualname__
     module = sys.modules[method.__module__]
     base_name = qualname.split('.')[0]
     base_cls = getattr(module, base_name)

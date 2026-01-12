@@ -4,17 +4,12 @@ The X Processing Unit --- an agnostic torch device.
 An XPU is an abstracted (X) procesesing unit (PU) with a common API for running
 torch operations on a CPU, GPU, or many GPUs.
 """
-from __future__ import absolute_import, division, print_function
 import ubelt as ub
 import warnings
 import torch
-import six
 import os
 from viame.pytorch.netharn import util
-try:
-    import collections.abc as container_abcs
-except Exception:
-    from torch._six import container_abcs
+import collections.abc as container_abcs
 
 __all__ = ['XPU']
 
@@ -99,7 +94,7 @@ class XPU(ub.NiceRepr):
                 item = item.index or 0
             else:
                 raise KeyError(item.type)
-        elif isinstance(item, six.string_types):
+        elif isinstance(item, str):
             item = item.lower()
             if item in ['cpu', 'none']:
                 item = None
@@ -126,7 +121,7 @@ class XPU(ub.NiceRepr):
         if item is None:
             xpu._main_device_id = None
             xpu._device_ids = None
-        elif isinstance(item, six.integer_types):
+        elif isinstance(item, int):
             item = int(item)
             xpu._main_device_id = item
             xpu._device_ids = [item]
@@ -196,7 +191,7 @@ class XPU(ub.NiceRepr):
             else:
                 if gpu_num.lower() == 'none':
                     xpu = XPU(None)
-                if isinstance(gpu_num, six.string_types) and ',' in gpu_num:
+                if isinstance(gpu_num, str) and ',' in gpu_num:
                     _device_ids = list(map(int, gpu_num.split(',')))
                     xpu = XPU(_device_ids, check=check)
                 else:
@@ -275,11 +270,11 @@ class XPU(ub.NiceRepr):
                 return XPU.from_data(item, check=check)
             elif isinstance(item, torch.nn.Module):
                 return XPU.from_data(item, check=check)
-            elif isinstance(item, six.integer_types):
+            elif isinstance(item, int):
                 return XPU(int(item), check=check)
             elif isinstance(item, (list, tuple)):
                 return XPU(item, check=check)
-            elif isinstance(item, six.string_types):
+            elif isinstance(item, str):
                 if item == 'auto':
                     return XPU.from_auto(**kwargs)
                 elif item == 'argv':
@@ -380,7 +375,7 @@ class XPU(ub.NiceRepr):
         """
         if item is None:
             return True
-        elif isinstance(item, six.integer_types):
+        elif isinstance(item, int):
             if item < 0:
                 raise ValueError('gpu num must be positive not {}'.format(item))
             return (torch.cuda.is_available() and

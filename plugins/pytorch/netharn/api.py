@@ -10,12 +10,9 @@ Concepts:
 import ubelt as ub
 import torch
 
-try:  # nocover
-    from packaging.version import parse as LooseVersion
-except ImportError:
-    from distutils.version import LooseVersion
+from packaging.version import parse as Version
 
-_TORCH_IS_GE_1_2_0 = LooseVersion(torch.__version__) >= LooseVersion('1.2.0')
+_TORCH_IS_GE_1_2_0 = Version(torch.__version__) >= Version('1.2.0')
 
 
 class Datasets(object):
@@ -319,8 +316,7 @@ class Initializer(object):
             )
         """
         from viame.pytorch import netharn as nh
-        import six
-        if isinstance(config, six.string_types):
+        if isinstance(config, str):
             config = {
                 'init': config,
             }
@@ -331,7 +327,7 @@ class Initializer(object):
         init = config.get('initializer', config.get('init', None))
 
         # Allow init to specify a pretrained fpath
-        if isinstance(init, six.string_types) and pretrained_fpath is None:
+        if isinstance(init, str) and pretrained_fpath is None:
             from os.path import exists
             pretrained_cand = ub.expandpath(init)
             if exists(pretrained_cand):
