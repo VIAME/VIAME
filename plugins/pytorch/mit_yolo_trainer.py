@@ -279,30 +279,36 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         sys.exit( 0 )
 
     def save_final_model( self ):
+        # Copy model file to final directory
+        output_model_name = "trained_mit_yolo_checkpoint.ckpt"
+
+        train_dpath = ub.Path(self._train_directory)
+        output_dpath = ub.Path(self._output_directory)
+        checkpoint_dpath = train_dpath / 'train' / self._identifier / 'checkpoints'
+        candiate_checkpoints = sorted(checkpoint_dpath.glob('*'))
+        if len(candiate_checkpoints) == 0:
+            print( "\nNo checkpoints found, model may have failed to train\n" )
+            return
+
+        final_ckpt_fpath = candiate_checkpoints[-1]
+
+        if not final_ckpt_fpath.exists():
+            print( "\nModel failed to finish training\n" )
+            return
+
+        # Ensure output directory exists
+        output_dpath.ensuredir()
+
+        output_model = output_dpath / output_model_name
+        final_ckpt_fpath.copy( output_model )
+
+        # Output completion text
+        print( "\nWrote finalized model to " + str(output_model) )
+
+        # Copy pipeline file if template is specified
         if len( self._pipeline_template ) > 0:
-
-            # Copy model file to final directory
-            output_model_name = "trained_mit_yolo_checkpoint.ckpt"
-
-            train_dpath = ub.Path(self._train_directory)
-            output_dpath = ub.Path(self._output_directory)
-            checkpoint_dpath = train_dpath / 'train' / self._identifier / 'checkpoints'
-            candiate_checkpoints = sorted(checkpoint_dpath.glob('*'))
-            if len(candiate_checkpoints) == 0:
-                raise Exception('no checkpoints found')
-            final_ckpt_fpath = candiate_checkpoints[-1]
-
-            output_model = output_dpath / output_model_name
-
-            if not final_ckpt_fpath.exists():
-                print( "\nModel failed to finsh training\n" )
-                sys.exit( 0 )
-
-            final_ckpt_fpath.copy( output_model )
-
-            # Copy pipeline file
             fin = open( self._pipeline_template )
-            fout = open( self._output_directory / "detector.pipe", 'w' )
+            fout = open( output_dpath / "detector.pipe", 'w' )
             all_lines = []
             for s in list( fin ):
                 all_lines.append( s )
@@ -314,12 +320,9 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             fout.close()
             fin.close()
 
-            # Output additional completion text
-            print( "\nWrote finalized model to " + output_model )
-
-            print( "\nThe " + self._train_directory + " directory can now be deleted, "
-                   "unless you want to review training metrics or generated plots in "
-                   "there first." )
+        print( "\nThe " + self._train_directory + " directory can now be deleted, "
+               "unless you want to review training metrics or generated plots in "
+               "there first." )
 
 
 def __vital_algorithm_register__():
