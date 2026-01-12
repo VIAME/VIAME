@@ -37,13 +37,18 @@ process detector1
     :object_type                               "corner"
   endblock
 
-process append_detections1
-  ::accumulate_object_tracks
+# Accumulator for display (sends every frame for linked track visualization)
+process append_detections1_display
+  :: accumulate_object_tracks
+
+# Accumulator for calibration (waits until end)
+process append_detections1_calib
+  :: accumulate_object_tracks
   :single_final_output                         true
 
-process detector_writer1
-  :: detected_object_output
-  :file_name                                   tracks_left.csv
+process track_writer1
+  :: write_object_track
+  :file_name                                   $CONFIG{global:output_directory}tracks_left.csv
   :writer:type                                 viame_csv
 
 
@@ -59,13 +64,18 @@ process detector2
     :object_type                               "corner"
   endblock
 
-process append_detections2
-  ::accumulate_object_tracks
+# Accumulator for display (sends every frame for linked track visualization)
+process append_detections2_display
+  :: accumulate_object_tracks
+
+# Accumulator for calibration (waits until end)
+process append_detections2_calib
+  :: accumulate_object_tracks
   :single_final_output                         true
 
-process detector_writer2
-  :: detected_object_output
-  :file_name                                   tracks_right.csv
+process track_writer2
+  :: write_object_track
+  :file_name                                   $CONFIG{global:output_directory}tracks_right.csv
   :writer:type                                 viame_csv
 
 # =============================== IMAGE STATISTICS =====================================
@@ -87,14 +97,24 @@ process cameras_calibration
 connect from downsampler.output_1
         to   detector1.image
 
+# Display accumulator connections
 connect from downsampler.timestamp
-        to   append_detections1.timestamp
-
+        to   append_detections1_display.timestamp
 connect from detector1.detected_object_set
-        to   append_detections1.detected_object_set
+        to   append_detections1_display.detected_object_set
 
+connect from append_detections1_display.object_track_set
+        to   track_writer1.object_track_set
+connect from append_detections1_display.timestamp
+        to   track_writer1.timestamp
+connect from downsampler.output_2
+        to   track_writer1.image_file_name
+
+# Calibration accumulator connections
+connect from downsampler.timestamp
+        to   append_detections1_calib.timestamp
 connect from detector1.detected_object_set
-        to   detector_writer1.detected_object_set
+        to   append_detections1_calib.detected_object_set
 
 
 # Detect tracks right camera
@@ -102,14 +122,24 @@ connect from detector1.detected_object_set
 connect from downsampler.output_3
         to   detector2.image
 
+# Display accumulator connections
 connect from downsampler.timestamp
-        to   append_detections2.timestamp
-
+        to   append_detections2_display.timestamp
 connect from detector2.detected_object_set
-        to   append_detections2.detected_object_set
+        to   append_detections2_display.detected_object_set
 
+connect from append_detections2_display.object_track_set
+        to   track_writer2.object_track_set
+connect from append_detections2_display.timestamp
+        to   track_writer2.timestamp
+connect from downsampler.output_4
+        to   track_writer2.image_file_name
+
+# Calibration accumulator connections
+connect from downsampler.timestamp
+        to   append_detections2_calib.timestamp
 connect from detector2.detected_object_set
-        to   detector_writer2.detected_object_set
+        to   append_detections2_calib.detected_object_set
 
 
 # Image statistics accumulation
@@ -120,10 +150,10 @@ connect from downsampler.output_1
 
 # Camera calibration
 # --------------------------------------------------------------------------------------
-connect from append_detections1.object_track_set
+connect from append_detections1_calib.object_track_set
         to   cameras_calibration.tracks_left
 
-connect from append_detections2.object_track_set
+connect from append_detections2_calib.object_track_set
         to   cameras_calibration.tracks_right
 
 connect from image_statistics.image_width
