@@ -220,6 +220,9 @@ accumulate_object_tracks_process
 
   if( is_input_complete )
   {
+    const auto complete_dat = sprokit::datum::complete_datum();
+    push_datum_to_port_using_trait( timestamp, complete_dat );
+    push_datum_to_port_using_trait( object_track_set, complete_dat );
     mark_process_as_complete();
   }
 }
