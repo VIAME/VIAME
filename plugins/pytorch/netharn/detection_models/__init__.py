@@ -46,3 +46,24 @@ except ImportError:
     new_head = None
     new_detector = None
     new_models_v1 = None
+
+# MIT-YOLO models (requires mit-yolo package)
+try:
+    from . import mit_yolo_models
+    __all__.append('mit_yolo_models')
+except ImportError:
+    mit_yolo_models = None
+
+# RF-DETR models (requires rf-detr package)
+try:
+    from . import rf_detr_models
+    __all__.append('rf_detr_models')
+except ImportError:
+    rf_detr_models = None
+
+# Detectron2 models (requires detectron2 package)
+try:
+    from . import detectron2_models
+    __all__.append('detectron2_models')
+except ImportError:
+    detectron2_models = None
