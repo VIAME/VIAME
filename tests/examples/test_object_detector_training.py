@@ -33,21 +33,21 @@ class TestRunTrainedModel:
         assert_script_runs_successfully(script)
 
 
-class TestTrainCfrnnFromHabcamCsv:
-    """Tests for train_cfrnn_from_habcam_csv script."""
+class TestTrainNetharnCfrnnFromHabcamCsv:
+    """Tests for train_netharn_cfrnn_habcam_csv script."""
 
-    def test_train_cfrnn_from_habcam_csv(self):
-        """Test that train_cfrnn_from_habcam_csv runs without error and produces output."""
-        script = get_script_path(CATEGORY, "train_cfrnn_from_habcam_csv.sh")
+    def test_train_netharn_cfrnn_from_habcam_csv(self):
+        """Test that train_netharn_cfrnn_habcam_csv runs without error and produces output."""
+        script = get_script_path(CATEGORY, "train_netharn_cfrnn_habcam_csv.sh")
         assert_script_runs_successfully(script)
 
 
-class TestTrainCfrnnFromViameCsv:
-    """Tests for train_cfrnn_from_viame_csv script."""
+class TestTrainNetharnCfrnnFromViameCsv:
+    """Tests for train_netharn_cfrnn script."""
 
-    def test_train_cfrnn_from_viame_csv(self):
-        """Test that train_cfrnn_from_viame_csv runs without error and produces output."""
-        script = get_script_path(CATEGORY, "train_cfrnn_from_viame_csv.sh")
+    def test_train_netharn_cfrnn_from_viame_csv(self):
+        """Test that train_netharn_cfrnn runs without error and produces output."""
+        script = get_script_path(CATEGORY, "train_netharn_cfrnn.sh")
         assert_script_runs_successfully(script)
 
 

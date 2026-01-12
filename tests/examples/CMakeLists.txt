@@ -238,16 +238,16 @@ if( VIAME_ENABLE_PYTHON )
     object_detector_training
   )
   add_example_script_test(
-    viame_examples:train_cfrnn_from_habcam_csv
+    viame_examples:train_netharn_cfrnn_from_habcam_csv
     test_object_detector_training.py
-    TestTrainCfrnnFromHabcamCsv
+    TestTrainNetharnCfrnnFromHabcamCsv
     object_detector_training
   )
-  # CRITICAL: viame_examples:train_cfrnn_from_viame_csv
+  # CRITICAL: viame_examples:train_netharn_cfrnn_from_viame_csv
   add_critical_example_test(
-    viame_examples:train_cfrnn_from_viame_csv
+    viame_examples:train_netharn_cfrnn_from_viame_csv
     test_object_detector_training.py
-    TestTrainCfrnnFromViameCsv
+    TestTrainNetharnCfrnnFromViameCsv
     object_detector_training
   )
   add_example_script_test(
