@@ -1,0 +1,12 @@
+hydra:
+  run:
+    dir: ${out_path}
+
+name: v9-dev
+
+defaults:
+  - _self_
+  - task: inference
+  - dataset: coco
+  - model: v9-c
+  - general

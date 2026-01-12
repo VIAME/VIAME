@@ -1,0 +1,15 @@
+device: 0
+cpu_num: 16
+
+image_size: [640, 640]
+
+out_path: runs
+exist_ok: True
+
+lucky_number: 10
+use_wandb: True
+use_tensorboard: False
+
+weight: True # Path to weight or True for auto, False for no pretrained weight
+weight_dir: null # Directory for weights, defaults to out_path/weights if null
+accelerator: 'auto'
