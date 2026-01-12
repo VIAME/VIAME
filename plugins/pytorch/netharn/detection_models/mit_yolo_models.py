@@ -639,8 +639,13 @@ class MitYOLO_Detector(nh.layers.Module):
         images = mityolo_inputs['images']
         targets = mityolo_inputs['targets']
 
-        # Get device and image size
-        device = images.device
+        # Get model device and move inputs if necessary
+        model_device = next(self.model.parameters()).device
+        if images.device != model_device:
+            images = images.to(model_device)
+        if targets.device != model_device:
+            targets = targets.to(model_device)
+        device = model_device
         B, C, H, W = images.shape
         image_size = [W, H]  # MIT-YOLO uses [W, H] convention
 

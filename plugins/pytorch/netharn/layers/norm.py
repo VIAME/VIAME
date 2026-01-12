@@ -127,16 +127,18 @@ class InputNorm(common.Module):
             # Reshape for broadcasting with (B, C, H, W) inputs if needed
             if mean.dim() == 1:
                 mean = mean.view(1, -1, 1, 1)
-            elif mean.dim() == 4 and mean.shape[0] == 1:
-                pass  # Already in correct shape (1, C, 1, 1)
+            # Ensure mean is on the same device as inputs
+            if mean.device != inputs.device:
+                mean = mean.to(inputs.device)
             outputs = outputs - mean
         if self.std is not None:
             std = self.std
             # Reshape for broadcasting with (B, C, H, W) inputs if needed
             if std.dim() == 1:
                 std = std.view(1, -1, 1, 1)
-            elif std.dim() == 4 and std.shape[0] == 1:
-                pass  # Already in correct shape (1, C, 1, 1)
+            # Ensure std is on the same device as inputs
+            if std.device != inputs.device:
+                std = std.to(inputs.device)
             outputs = outputs / std
         return outputs
 
