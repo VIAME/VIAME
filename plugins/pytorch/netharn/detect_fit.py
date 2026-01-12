@@ -115,6 +115,7 @@ class DetectFitConfig(scfg.Config):
         'pretrained': scfg.Path(None, help='path to a netharn deploy file'),
 
         'backbone_init': scfg.Value('url', help='path to backbone weights for mmdetection initialization'),
+        'segmentation_head': scfg.Value(False, help='enable segmentation head for models that support it (e.g. rf_detr)'),
         'anchors': scfg.Value('auto', help='how to choose anchor boxes'),
 
         # Loss Terms
@@ -583,15 +584,35 @@ class DetectHarn(nh.FitHarn):
             chw01 = rgb_batch[idx]
 
             class_idxs = list(ub.flatten(labels['class_idxs']))
-            cxywh = list(ub.flatten(labels['cxywh']))
             weights = list(ub.flatten(labels['weight']))
-            # Convert true batch item to detections object
-            true_dets = kwimage.Detections(
-                boxes=kwimage.Boxes(cxywh[idx], 'cxywh'),
-                class_idxs=class_idxs[idx],
-                weights=weights[idx],
-                classes=classes,
-            )
+
+            # Handle both cxywh and tlbr box formats
+            if 'cxywh' in labels:
+                boxes_flat = list(ub.flatten(labels['cxywh']))
+                box_format = 'cxywh'
+            elif 'tlbr' in labels:
+                boxes_flat = list(ub.flatten(labels['tlbr']))
+                box_format = 'ltrb'
+            else:
+                boxes_flat = []
+                box_format = 'cxywh'
+
+            # Check bounds before indexing
+            if idx >= len(boxes_flat) or idx >= len(class_idxs) or idx >= len(weights):
+                # Create empty detections if index is out of bounds
+                true_dets = kwimage.Detections(
+                    boxes=kwimage.Boxes(np.empty((0, 4)), 'cxywh'),
+                    class_idxs=np.array([], dtype=int),
+                    classes=classes,
+                )
+            else:
+                # Convert true batch item to detections object
+                true_dets = kwimage.Detections(
+                    boxes=kwimage.Boxes(boxes_flat[idx], box_format),
+                    class_idxs=class_idxs[idx],
+                    weights=weights[idx],
+                    classes=classes,
+                )
             if 'class_masks' in labels:
                 # Add in truth segmentation masks
                 try:
@@ -1133,12 +1154,19 @@ def setup_harn(cmdline=True, **kw):
             parts = arch.lower().split('_')
             if len(parts) > 1 and parts[-1] in ['base', 'large', 'small', 'medium', 'nano']:
                 variant = parts[-1]
+        # Handle backbone_init: 'url' means auto-download (True), other strings are paths
+        backbone_init = config.get('backbone_init', True)
+        if backbone_init == 'url':
+            backbone_init = True
+        # Get segmentation_head setting
+        segmentation_head = config.get('segmentation_head', False)
         initkw = dict(
             classes=classes,
             channels=config['channels'],
             input_stats=input_stats,
             model_variant=variant,
-            weight_path=config.get('backbone_init', True),
+            weight_path=backbone_init,
+            segmentation_head=segmentation_head,
         )
         model = rf_detr_models.RFDETR_Detector(**initkw)
         model._initkw = initkw
@@ -1157,12 +1185,16 @@ def setup_harn(cmdline=True, **kw):
                         variant = v[:2] + '-' + v[2:]
                     else:
                         variant = v
+        # Handle backbone_init: 'url' means auto-download (True), other strings are paths
+        backbone_init = config.get('backbone_init', True)
+        if backbone_init == 'url':
+            backbone_init = True
         initkw = dict(
             classes=classes,
             channels=config['channels'],
             input_stats=input_stats,
             model_variant=variant,
-            weight_path=config.get('backbone_init', True),
+            weight_path=backbone_init,
         )
         model = mit_yolo_models.MitYOLO_Detector(**initkw)
         model._initkw = initkw

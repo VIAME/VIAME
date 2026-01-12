@@ -8,9 +8,9 @@ def compact_idstr(dict_):
     """
     A short unique id string for a dict param config that is semi-interpretable
     """
-    from . import util_misc as util
+    from .util_fname import shortest_unique_prefixes
     import ubelt as ub
-    short_keys = util.shortest_unique_prefixes(dict_.keys())
+    short_keys = shortest_unique_prefixes(dict_.keys())
     short_dict = ub.odict(sorted(zip(short_keys, dict_.values())))
     idstr = ub.repr2(short_dict, nobr=1, itemsep='', si=1, nl=0,
                      explicit=1)
@@ -60,11 +60,11 @@ def make_short_idstr(params, precision=None):
         return ''
     elif len(params) == 0:
         return ''
-    from . import util_misc as util
-    short_keys = util.shortest_unique_prefixes(list(params.keys()),
-                                               allow_simple=False,
-                                               allow_end=True,
-                                               min_length=1)
+    from .util_fname import shortest_unique_prefixes
+    short_keys = shortest_unique_prefixes(list(params.keys()),
+                                          allow_simple=False,
+                                          allow_end=True,
+                                          min_length=1)
     def shortval(v):
         if isinstance(v, bool):
             return int(v)

@@ -417,7 +417,7 @@ class RFDETR_Detector(nh.layers.Module):
 
     def __init__(self, classes, channels='rgb', input_stats=None,
                  model_variant='base', weight_path=None, score_thresh=0.0,
-                 num_queries=300, resolution=None):
+                 num_queries=300, resolution=None, segmentation_head=False):
         """
         Args:
             classes: List of class names or kwcoco.CategoryTree
@@ -429,9 +429,13 @@ class RFDETR_Detector(nh.layers.Module):
             score_thresh: Score threshold for detections (default 0.0)
             num_queries: Number of detection queries (default 300)
             resolution: Input resolution (uses variant default if None)
+            segmentation_head: Enable segmentation head for instance masks (default False)
         """
         super().__init__()
         import kwcoco
+
+        # Store segmentation head setting
+        self.segmentation_head = segmentation_head
 
         # Store initialization kwargs for serialization
         self._initkw = {
@@ -443,6 +447,7 @@ class RFDETR_Detector(nh.layers.Module):
             'score_thresh': score_thresh,
             'num_queries': num_queries,
             'resolution': resolution,
+            'segmentation_head': segmentation_head,
         }
 
         # Setup classes
@@ -638,6 +643,8 @@ class RFDETR_Detector(nh.layers.Module):
             aux_loss=True,
             group_detr=1,  # Use 1 for inference, higher for training
             ia_bce_loss=True,
+            segmentation_head=self.segmentation_head,
+            mask_downsample_ratio=8,  # Default value, unused when segmentation_head=False
             device='cuda' if torch.cuda.is_available() else 'cpu',
         )
 
@@ -654,11 +661,23 @@ class RFDETR_Detector(nh.layers.Module):
                 checkpoint = torch.load(actual_weight_path, map_location='cpu', weights_only=False)
 
             if 'model' in checkpoint:
-                # Handle class mismatch
-                checkpoint_num_classes = checkpoint['model']['class_embed.bias'].shape[0]
-                if checkpoint_num_classes != self.num_classes + 1:
-                    model.reinitialize_detection_head(self.num_classes + 1)
-                model.load_state_dict(checkpoint['model'], strict=False)
+                state_dict = checkpoint['model']
+                model_state = model.state_dict()
+
+                # Filter out keys with shape mismatches (class-specific and query-specific layers)
+                filtered_state_dict = {}
+                for k, v in state_dict.items():
+                    if k in model_state:
+                        if v.shape == model_state[k].shape:
+                            filtered_state_dict[k] = v
+                        else:
+                            print(f"Skipping {k} due to shape mismatch: checkpoint {v.shape} vs model {model_state[k].shape}")
+                    else:
+                        print(f"Skipping {k}: not in model")
+
+                # Load compatible weights
+                model.load_state_dict(filtered_state_dict, strict=False)
+                print(f"Loaded {len(filtered_state_dict)}/{len(state_dict)} pretrained weights")
 
         # Build criterion and postprocessor
         criterion, postprocess = build_criterion_and_postprocessors(args)
@@ -717,6 +736,11 @@ class RFDETR_Detector(nh.layers.Module):
         if next(self.model.parameters()).device != device:
             self.model = self.model.to(device)
             self.criterion = self.criterion.to(device)
+            self.input_norm = self.input_norm.to(device)
+
+        # Ensure input_norm is on same device as images
+        if hasattr(self.input_norm, 'mean') and self.input_norm.mean.device != device:
+            self.input_norm = self.input_norm.to(device)
 
         # Apply input normalization
         images_norm = self.input_norm(images)
