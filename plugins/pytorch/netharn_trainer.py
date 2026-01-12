@@ -91,6 +91,7 @@ class NetHarnTrainer( TrainDetector ):
         self._reduce_category = ""
         self._scale_type_file = ""
         self._multi_output = False
+        self._segmentation_head = False
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -137,6 +138,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "reduce_category", self._reduce_category )
         cfg.set_value( "scale_type_file", self._scale_type_file )
         cfg.set_value( "multi_output", str( self._multi_output ) )
+        cfg.set_value( "segmentation_head", str( self._segmentation_head ) )
 
         return cfg
 
@@ -185,6 +187,7 @@ class NetHarnTrainer( TrainDetector ):
         self._reduce_category = str( cfg.get_value( "reduce_category" ) )
         self._scale_type_file = str( cfg.get_value( "scale_type_file" ) )
         self._multi_output = strtobool( cfg.get_value( "multi_output" ) )
+        self._segmentation_head = strtobool( cfg.get_value( "segmentation_head" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -725,6 +728,9 @@ class NetHarnTrainer( TrainDetector ):
 
         if len( self._backbone ) > 0:
             cmd.append( "--backbone_init=" + self._backbone )
+
+        if self._segmentation_head:
+            cmd.append( "--segmentation_head=True" )
 
         if self._allow_unicode != "auto":
             cmd.append( "--allow_unicode=" + self._allow_unicode  )
