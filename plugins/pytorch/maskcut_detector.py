@@ -5,8 +5,6 @@
 #
 # INSERT COPYRIGHT STATEMENT OR DELETE THIS
 #
-from __future__ import print_function
-
 
 import torch
 import PIL

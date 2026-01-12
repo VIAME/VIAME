@@ -18,9 +18,6 @@ Reference: Aharon et al., "BoT-SORT: Robust Associations Multi-Pedestrian
 Tracking" (arXiv 2022)
 """
 
-from __future__ import division
-from __future__ import print_function
-
 import functools
 import logging
 

@@ -1,8 +1,7 @@
 # This file is part of VIAME, and is distributed under the
 # OSI-approved BSD 3-Clause License. See top-level LICENSE.txt file or
 # https://github.com/VIAME/VIAME/blob/master/LICENSE.txt for details.
-from __future__ import print_function
-from __future__ import division
+
 from collections import namedtuple
 import json
 import cv2

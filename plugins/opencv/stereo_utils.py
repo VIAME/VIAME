@@ -3,7 +3,6 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function
 
 import itertools as it
 import numpy as np

@@ -64,7 +64,6 @@ CommandLine:
 SeeAlso
     ~/code/VIAME/packages/kwiver/vital/bindings/python/vital/types
 """
-from __future__ import absolute_import, print_function, division
 
 import numpy as np
 

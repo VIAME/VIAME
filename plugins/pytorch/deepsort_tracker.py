@@ -18,9 +18,6 @@ Reference: Wojke et al., "Simple Online and Realtime Tracking with
 a Deep Association Metric" (ICIP 2017)
 """
 
-from __future__ import division
-from __future__ import print_function
-
 import functools
 import logging
 

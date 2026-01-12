@@ -19,9 +19,6 @@ The estimated parameters include:
 - track_buffer: Number of frames to keep lost tracks
 """
 
-from __future__ import print_function
-from __future__ import division
-
 from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (

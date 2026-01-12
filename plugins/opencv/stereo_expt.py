@@ -7,7 +7,6 @@
 """
 Experimental scripts
 """
-from __future__ import division, print_function, unicode_literals
 
 import cv2
 import numpy as np

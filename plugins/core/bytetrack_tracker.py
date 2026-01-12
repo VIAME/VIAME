@@ -16,9 +16,6 @@ Reference: Zhang et al., "ByteTrack: Multi-Object Tracking by Associating
 Every Detection Box" (ECCV 2022)
 """
 
-from __future__ import division
-from __future__ import print_function
-
 import functools
 import logging
 

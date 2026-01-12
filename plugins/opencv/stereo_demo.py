@@ -7,7 +7,6 @@
 """
 Runs opencv algos with no dependency on kwiver
 """
-from __future__ import division, print_function, unicode_literals
 
 from os.path import expanduser, basename, join
 from os.path import exists
@@ -23,15 +22,9 @@ import logging
 
 from .stereo_utils import (imscale, overlay_heatmask, putMultiLineText)
 from . import stereo_algos as ctalgo
-from six.moves import zip, range
+import queue
 
 logger = logging.getLogger(__name__)
-
-try:
-    import queue
-except ImportError:
-    # python 2 support
-    import Queue as queue
 
 class DrawHelper(object):
     """

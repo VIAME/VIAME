@@ -31,8 +31,6 @@ Example usage:
     >>> trainer.update_model()
 """
 
-from __future__ import print_function
-
 import os
 import json
 

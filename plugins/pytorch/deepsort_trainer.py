@@ -15,9 +15,6 @@ The Re-ID network learns to produce similar embeddings for the same
 object across different frames and dissimilar embeddings for different objects.
 """
 
-from __future__ import print_function
-from __future__ import division
-
 from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (

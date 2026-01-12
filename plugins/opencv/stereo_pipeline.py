@@ -8,7 +8,6 @@ Module for programatic Sprokit pipeline definitions
 
 Outline / Proof-of-concept
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 from os.path import normpath, expanduser, join, exists
 from collections import OrderedDict as odict

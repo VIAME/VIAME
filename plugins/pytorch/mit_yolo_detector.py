@@ -2,8 +2,6 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from __future__ import print_function
-
 from kwiver.vital.algo import ImageObjectDetector
 import scriptconfig as scfg
 import ubelt as ub

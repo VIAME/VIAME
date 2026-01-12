@@ -2,10 +2,6 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 import itertools
 import sys
 import numpy as np

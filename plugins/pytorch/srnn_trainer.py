@@ -15,9 +15,6 @@ This trainer wraps the existing SRNN training pipeline which consists of:
 The existing training scripts in srnn/ folder are orchestrated by this trainer.
 """
 
-from __future__ import print_function
-from __future__ import division
-
 from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (

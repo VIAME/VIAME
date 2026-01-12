@@ -14,9 +14,6 @@ The trainer produces a Re-ID model and configuration file with
 optimized parameters for the target domain.
 """
 
-from __future__ import print_function
-from __future__ import division
-
 from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (

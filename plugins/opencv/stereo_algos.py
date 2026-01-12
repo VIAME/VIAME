@@ -10,7 +10,6 @@ The next step is to move them into kwiver.
 TODO:
     fix hard coded paths for doctests
 """
-from __future__ import division, print_function
 from collections import namedtuple, OrderedDict
 
 import cv2
@@ -21,7 +20,6 @@ import logging
 import warnings
 
 from os.path import splitext
-from six.moves import zip
 
 from .stereo_utils import (imscale, ensure_grayscale, from_homog, to_homog)
 from .stereo_utils import minimum_weight_assignment

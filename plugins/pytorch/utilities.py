@@ -14,8 +14,6 @@ This module provides:
 - File utilities
 """
 
-from __future__ import print_function
-
 import os
 import shutil
 

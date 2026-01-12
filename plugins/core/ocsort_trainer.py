@@ -14,9 +14,6 @@ The estimated parameters include all ByteTrack parameters plus:
 - Tuned Kalman filter weights based on observed motion patterns
 """
 
-from __future__ import print_function
-from __future__ import division
-
 from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (

@@ -17,9 +17,6 @@ Reference: Cao et al., "Observation-Centric SORT: Rethinking SORT for
 Robust Multi-Object Tracking" (CVPR 2023)
 """
 
-from __future__ import division
-from __future__ import print_function
-
 import functools
 import logging
 
