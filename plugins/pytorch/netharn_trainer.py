@@ -765,36 +765,44 @@ class NetHarnTrainer( TrainDetector ):
         sys.exit( 0 )
 
     def save_final_model( self ):
+        # Copy model file to final directory
+        if self._mode == "frame_classifier" or self._mode == "detection_refiner":
+            output_model_name = "trained_classifier.zip"
+        else:
+            output_model_name = "trained_detector.zip"
+
+        final_model = os.path.join( self._train_directory,
+          "fit", "nice", self._identifier, "deploy.zip" )
+
+        if not os.path.exists( final_model ):
+            print( "\nNo model found, training may have failed\n" )
+            return
+
+        # Ensure output directory exists
+        if not os.path.exists( self._output_directory ):
+            os.mkdir( self._output_directory )
+
+        output_model = os.path.join( self._output_directory,
+          output_model_name )
+
+        copyfile( final_model, output_model )
+
+        # Output completion text
+        print( "\nWrote finalized model to " + output_model )
+
+        if self._output_plots:
+            eval_folder = os.path.join( self._train_directory,
+               "fit", "nice", self._identifier, "eval" )
+            eval_output = os.path.join( self._output_directory,
+               "model_evaluation" )
+            if os.path.exists( eval_output ):
+                shutil.rmtree( eval_output )
+            os.mkdir( eval_output )
+            if os.path.exists( eval_folder ):
+                recurse_copy( eval_folder, eval_output )
+
+        # Copy pipeline file if template is specified
         if len( self._pipeline_template ) > 0:
-            # Copy model file to final directory
-            if self._mode == "frame_classifier" or self._mode == "detection_refiner":
-                output_model_name = "trained_classifier.zip"
-            else:
-                output_model_name = "trained_detector.zip"
-
-            final_model = os.path.join( self._train_directory,
-              "fit", "nice", self._identifier, "deploy.zip" )
-            output_model = os.path.join( self._output_directory,
-              output_model_name )
-
-            if not os.path.exists( final_model ):
-                print( "\nModel failed to finsh training\n" )
-                sys.exit( 0 )
-
-            copyfile( final_model, output_model )
-
-            if self._output_plots:
-                eval_folder = os.path.join( self._train_directory,
-                   "fit", "nice", self._identifier, "eval" )
-                eval_output = os.path.join( self._output_directory,
-                   "model_evaluation" )
-                if os.path.exists( eval_output ):
-                    shutil.rmtree( eval_output )
-                os.mkdir( eval_output )
-                if os.path.exists( eval_folder ):
-                    recurse_copy( eval_folder, eval_output )
-
-            # Copy pipeline file
             fin = open( self._pipeline_template )
             fout = open( os.path.join( self._output_directory, "detector.pipe" ), 'w' )
             all_lines = []
@@ -808,12 +816,9 @@ class NetHarnTrainer( TrainDetector ):
             fout.close()
             fin.close()
 
-            # Output additional completion text
-            print( "\nWrote finalized model to " + output_model )
-
-            print( "\nThe " + self._train_directory + " directory can now be deleted, " \
-                   "unless you want to review training metrics or generated plots in " \
-                   "there first." )
+        print( "\nThe " + self._train_directory + " directory can now be deleted, " \
+               "unless you want to review training metrics or generated plots in " \
+               "there first." )
 
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
