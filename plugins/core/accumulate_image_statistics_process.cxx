@@ -157,6 +157,11 @@ accumulate_image_statistics_process
     push_to_port_using_trait( image_width, static_cast<int64_t>( d->m_image_width ) );
     push_to_port_using_trait( image_height, static_cast<int64_t>( d->m_image_height ) );
 
+    // Push complete datums to signal downstream processes
+    const auto complete_dat = sprokit::datum::complete_datum();
+    push_datum_to_port_using_trait( image_width, complete_dat );
+    push_datum_to_port_using_trait( image_height, complete_dat );
+
     mark_process_as_complete();
   }
   else

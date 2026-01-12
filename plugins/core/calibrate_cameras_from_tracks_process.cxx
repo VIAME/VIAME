@@ -84,6 +84,9 @@ public:
   kv::object_track_set_sptr m_tracks_right;
   int64_t m_image_width{ 0 };
   int64_t m_image_height{ 0 };
+  bool m_tracks_left_complete{ false };
+  bool m_tracks_right_complete{ false };
+  bool m_image_complete{ false };
 
   // Other variables
   calibrate_cameras_from_tracks_process* parent;
@@ -376,30 +379,83 @@ calibrate_cameras_from_tracks_process
   if( d->m_wait_for_completion )
   {
     // New behavior: store progressive inputs and wait for complete signal
-    auto port_info = peek_at_port_using_trait( tracks_left );
-    bool is_complete = ( port_info.datum->type() == sprokit::datum::complete );
+    // We must consume from all ports on each _step() call to keep the pipeline moving
 
-    if( is_complete )
+    // Consume from tracks_left port
+    if( !d->m_tracks_left_complete )
     {
-      // Consume the complete datums
-      grab_edge_datum_using_trait( tracks_left );
-      grab_edge_datum_using_trait( tracks_right );
-      grab_edge_datum_using_trait( image_width );
-      grab_edge_datum_using_trait( image_height );
+      auto port_info = peek_at_port_using_trait( tracks_left );
+      if( port_info.datum->type() == sprokit::datum::complete )
+      {
+        grab_edge_datum_using_trait( tracks_left );
+        d->m_tracks_left_complete = true;
+      }
+      else if( port_info.datum->type() == sprokit::datum::data )
+      {
+        d->m_tracks_left = grab_from_port_using_trait( tracks_left );
+      }
+      else
+      {
+        // Empty datum - just consume it
+        grab_edge_datum_using_trait( tracks_left );
+      }
     }
-    else
-    {
-      // Store the latest track sets and image dimensions
-      d->m_tracks_left = grab_from_port_using_trait( tracks_left );
-      d->m_tracks_right = grab_from_port_using_trait( tracks_right );
-      d->m_image_width = grab_from_port_using_trait( image_width );
-      d->m_image_height = grab_from_port_using_trait( image_height );
 
+    // Consume from tracks_right port
+    if( !d->m_tracks_right_complete )
+    {
+      auto port_info = peek_at_port_using_trait( tracks_right );
+      if( port_info.datum->type() == sprokit::datum::complete )
+      {
+        grab_edge_datum_using_trait( tracks_right );
+        d->m_tracks_right_complete = true;
+      }
+      else if( port_info.datum->type() == sprokit::datum::data )
+      {
+        d->m_tracks_right = grab_from_port_using_trait( tracks_right );
+      }
+      else
+      {
+        // Empty datum - just consume it
+        grab_edge_datum_using_trait( tracks_right );
+      }
+    }
+
+    // Consume from image dimension ports
+    if( !d->m_image_complete )
+    {
+      auto port_info = peek_at_port_using_trait( image_width );
+      if( port_info.datum->type() == sprokit::datum::complete )
+      {
+        grab_edge_datum_using_trait( image_width );
+        grab_edge_datum_using_trait( image_height );
+        d->m_image_complete = true;
+      }
+      else if( port_info.datum->type() == sprokit::datum::data )
+      {
+        d->m_image_width = grab_from_port_using_trait( image_width );
+        d->m_image_height = grab_from_port_using_trait( image_height );
+      }
+      else
+      {
+        // Empty datum - just consume it
+        grab_edge_datum_using_trait( image_width );
+        grab_edge_datum_using_trait( image_height );
+      }
+    }
+
+    // Check if all inputs are complete
+    bool all_complete = d->m_tracks_left_complete &&
+                        d->m_tracks_right_complete &&
+                        d->m_image_complete;
+
+    if( !all_complete )
+    {
       LOG_DEBUG( d->m_logger, "Received tracks, waiting for more frames..." );
       return;
     }
 
-    // Input is complete - run calibration with accumulated tracks
+    // All inputs are complete - run calibration with accumulated tracks
     if( !d->m_tracks_left || !d->m_tracks_right )
     {
       LOG_WARN( d->m_logger, "No tracks received before completion" );
