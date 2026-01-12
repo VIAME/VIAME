@@ -197,9 +197,10 @@ class RFDETRTrainer(KWCocoTrainDetector):
               _annotations.coco.json
             test/
               _annotations.coco.json
+
+        Uses absolute paths in the COCO JSON to avoid copying images.
         """
         import json
-        import shutil
 
         output_dir = ub.Path(output_dir)
         train_dir = output_dir / "train"
@@ -220,7 +221,7 @@ class RFDETRTrainer(KWCocoTrainDetector):
             with open(coco_path, 'r') as f:
                 coco_data = json.load(f)
 
-            # Copy images and update paths
+            # Convert to absolute paths without copying
             new_images = []
             for img in coco_data.get('images', []):
                 old_path = ub.Path(img['file_name'])
@@ -228,15 +229,8 @@ class RFDETRTrainer(KWCocoTrainDetector):
                     old_path = coco_path.parent / old_path
 
                 if old_path.exists():
-                    # For RF-DETR, keep images in the same directory
-                    new_filename = old_path.name
-                    new_path = split_dir / new_filename
-
-                    # Only copy if not already there
-                    if not new_path.exists():
-                        shutil.copy2(old_path, new_path)
-
-                    img['file_name'] = new_filename
+                    # Use absolute path directly
+                    img['file_name'] = str(old_path.resolve())
                     new_images.append(img)
 
             coco_data['images'] = new_images
@@ -260,7 +254,7 @@ class RFDETRTrainer(KWCocoTrainDetector):
             with open(annotations_path, 'w') as f:
                 json.dump(coco_data, f)
 
-            print(f"[RFDETRTrainer] Converted {len(new_images)} images to {split_dir}")
+            print(f"[RFDETRTrainer] Prepared {len(new_images)} images for {split_dir}")
 
         process_split(train_coco_path, train_dir)
         process_split(val_coco_path, valid_dir)
