@@ -48,7 +48,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          continue_training_cfrnn.bat
          train_netharn_cfrnn.bat
          train_netharn_cfrnn_habcam_csv.bat
-         train_mask_rcnn.bat
+         train_netharn_mask_rcnn.bat
          train_motion_cfrnn.bat
          train_netharn_rf_detr.bat
          train_netharn_mit_yolo.bat )
@@ -58,7 +58,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          continue_training_cfrnn.sh
          train_netharn_cfrnn.sh
          train_netharn_cfrnn_habcam_csv.sh
-         train_mask_rcnn.sh
+         train_netharn_mask_rcnn.sh
          train_motion_cfrnn.sh
          train_netharn_rf_detr.sh
          train_netharn_mit_yolo.sh )
