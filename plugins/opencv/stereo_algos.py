@@ -1237,14 +1237,6 @@ if __name__ == '__main__':
         python -m viame.processes.opencv.algos
 
         xdoctest ~/code/VIAME/plugins/opencv/python/viame/processes/opencv/algos.py
-
-    Ignore:
-        workon_py2
-        source ~/code/VIAME/build/install/setup_viame.sh
-        export SPROKIT_PYTHON_MODULES=opencv_processes:kwiver.processes:viame.processes
-        export PYTHONPATH=$(pwd):$PYTHONPATH
-        python ~/code/VIAME/plugins/opencv/python/opencv_demo.py
-        ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

@@ -807,31 +807,14 @@ def setup_demo_logger():
 if __name__ == '__main__':
     r"""
     Developer:
-        workon_py2
-        source ~/code/VIAME/build-py2.7/install/setup_viame.sh
-
+        source ~/code/VIAME/build/install/setup_viame.sh
         cd ~/code/VIAME/plugins/opencv/python/opencv
 
         python -m viame.processes.opencv.demo --dataset=haul83-small
         python -m viame.processes.opencv.demo --level=DEBUG
 
-        # Create a movie rom the frames
+        # Create a movie from the frames
         ffmpeg -y -f image2 -i out/visual/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
-
-    Python2:
-        # Runs in about 2-3 it/s
-        workon_py2
-        source ~/code/VIAME/build-py2.7/install/setup_viame.sh
-        python -m viame.processes.opencv.demo --dataset=demo --out=out-py2 -f
-        python -m viame.processes.opencv.demo --dataset=demo --draw --out=out-py2
-
-    Python3:
-        # Runs in about 3-4 it/s
-        workon_py3
-        cd ~/code/VIAME/plugins/opencv/python
-        python -m viame.processes.opencv.demo --dataset=demo --out=out-py3 -f
-        python -m viame.processes.opencv.demo --dataset=demo --draw --out=out-py3
-
 
     CommandLine:
         python -m viame.processes.opencv.demo --help

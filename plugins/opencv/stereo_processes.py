@@ -4,59 +4,23 @@
 
 # -*- coding: utf-8 -*-
 """
-Ignore:
-    workon_py2
-    source ~/code/VIAME/build/install/setup_viame.sh
-    cd ~/code/VIAME/plugins/opencv
-
-    feat1 = vital.types.Feature(loc=(10, 1))
-    feat2 = vital.types.Feature(loc=(2, 3))
-
-    np.sum((feat1.location - feat2.location) ** 2)
-
 CommandLine:
-    # OPENCV 3.X VERSION
     cd ~/code/VIAME/plugins/opencv/python
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
-    workon_py2
-    cd ~/code/VIAME/build-cv3-py2
-
+    cd ~/code/VIAME/build
     export KWIVER_PLUGIN_PATH=""
     export SPROKIT_MODULE_PATH=""
     source install/setup_viame.sh
 
-    export KWIVER_DEFAULT_LOG_LEVEL=debug
     export KWIVER_DEFAULT_LOG_LEVEL=info
     export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=info
     export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
     python ~/code/VIAME/plugins/opencv/python/run_opencv.py
-    python run_opencv.py
 
     ~/code/VIAME/build/install/bin/kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
     ~/code/VIAME/build/install/bin/kwiver runner opencv.pipe -S pythread_per_process
-
-CommandLine:
-    # OPENCV 2.4 VERSION
-    cd ~/code/VIAME/plugins/opencv/python
-    export PYTHONPATH=$(pwd):$PYTHONPATH
-
-    workon_py2
-    cd ~/code/VIAME/build
-
-    export KWIVER_PLUGIN_PATH=""
-    export SPROKIT_MODULE_PATH=""
-    source ~/code/VIAME/build/install/setup_viame.sh
-    export KWIVER_DEFAULT_LOG_LEVEL=debug
-    export KWIVER_DEFAULT_LOG_LEVEL=info
-    export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=info
-    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
-
-    # export KWIVER_PYTHON_COLOREDLOGS=1
-
-    python ~/code/VIAME/plugins/opencv/python/run_opencv.py
-    python run_opencv.py
 
     ~/code/VIAME/build/install/bin/kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe  -S pythread_per_process
     ~/code/VIAME/build/install/bin/kwiver runner opencv.pipe -S pythread_per_process
