@@ -47,7 +47,9 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_cfrnn_from_viame_csv.bat
          train_cfrnn_from_habcam_csv.bat
          train_mask_rcnn_from_viame_csv.bat
-         train_motion_cfrnn_from_viame_csv.bat )
+         train_motion_cfrnn_from_viame_csv.bat
+         train_netharn_rf_detr_from_viame_csv.bat
+         train_netharn_mit_yolo_from_viame_csv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
@@ -55,7 +57,9 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_cfrnn_from_viame_csv.sh
          train_cfrnn_from_habcam_csv.sh
          train_mask_rcnn_from_viame_csv.sh
-         train_motion_cfrnn_from_viame_csv.sh )
+         train_motion_cfrnn_from_viame_csv.sh
+         train_netharn_rf_detr_from_viame_csv.sh
+         train_netharn_mit_yolo_from_viame_csv.sh )
   endif()
 endif()
 
