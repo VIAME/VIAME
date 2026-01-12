@@ -360,7 +360,7 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-DETECTRON )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_detectron2_faster_rcnn.conf
+    train_detector_detectron2_frcnn.conf
     train_detector_dino_remax.conf
     train_detector_convnext_remax.conf
     detector_remax_convnext_novelty_detection.pipe
