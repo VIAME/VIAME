@@ -380,37 +380,47 @@ class RFDETRTrainer(KWCocoTrainDetector):
         print("\n[RFDETRTrainer] Model training complete!\n")
 
     def save_final_model(self, model=None, output_dir=None):
-        import torch
+        import shutil
 
-        if len(self._pipeline_template) == 0:
-            return
-
-        output_model_name = "trained_rf_detr_checkpoint.pt"
+        output_model_name = "trained_rf_detr_checkpoint.pth"
         output_dpath = ub.Path(self._output_directory)
         output_model = output_dpath / output_model_name
 
         # Find the best checkpoint
         if output_dir is not None:
             output_dir = ub.Path(output_dir)
-            checkpoint_candidates = sorted(output_dir.glob("*.pt"))
+            checkpoint_candidates = sorted(output_dir.glob("*.pth"))
 
-            # Prefer checkpoint_best.pt if it exists
-            best_ckpt = output_dir / "checkpoint_best.pt"
-            if best_ckpt.exists():
-                final_ckpt = best_ckpt
-            elif checkpoint_candidates:
+            # Prefer best checkpoints in order of preference
+            best_candidates = [
+                output_dir / "checkpoint_best_total.pth",
+                output_dir / "checkpoint_best_ema.pth",
+                output_dir / "checkpoint_best_regular.pth",
+                output_dir / "checkpoint_best.pth",
+            ]
+
+            final_ckpt = None
+            for candidate in best_candidates:
+                if candidate.exists():
+                    final_ckpt = candidate
+                    break
+
+            if final_ckpt is None and checkpoint_candidates:
                 final_ckpt = checkpoint_candidates[-1]
-            else:
+
+            if final_ckpt is None:
                 print("[RFDETRTrainer] No checkpoint found")
                 return
 
             # Copy checkpoint to output directory
-            import shutil
             shutil.copy2(final_ckpt, output_model)
-            print(f"[RFDETRTrainer] Copied checkpoint to {output_model}")
+            print(f"[RFDETRTrainer] Copied {final_ckpt} to {output_model}")
+        else:
+            print("[RFDETRTrainer] No output directory specified")
+            return
 
-        # Generate pipeline file
-        if ub.Path(self._pipeline_template).exists():
+        # Generate pipeline file if template exists
+        if len(self._pipeline_template) > 0 and ub.Path(self._pipeline_template).exists():
             with open(self._pipeline_template, 'r') as fin:
                 all_lines = fin.readlines()
 
@@ -420,8 +430,8 @@ class RFDETRTrainer(KWCocoTrainDetector):
                     line = line.replace("[-WINDOW-OPTION-]", self._resize_option)
                     fout.write(line)
 
-        print(f"\n[RFDETRTrainer] Wrote finalized model to {output_model}")
-        print(f"\n[RFDETRTrainer] The {self._train_directory} directory can now be deleted, "
+        print(f"[RFDETRTrainer] Wrote finalized model to {output_model}")
+        print(f"[RFDETRTrainer] The {self._train_directory} directory can now be deleted, "
               "unless you want to review training metrics first.")
 
 
