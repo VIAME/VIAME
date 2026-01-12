@@ -1125,6 +1125,47 @@ def setup_harn(cmdline=True, **kw):
             'thresh'         : 0.6,  # iou_thresh
             'seen_thresh': config['seen_thresh'],
         })
+    elif arch == 'rf_detr' or arch.startswith('rfdetr'):
+        from .detection_models import rf_detr_models
+        # Parse variant from arch name (e.g., 'rfdetr_base', 'rf_detr_large')
+        variant = 'base'
+        if '_' in arch:
+            parts = arch.lower().split('_')
+            if len(parts) > 1 and parts[-1] in ['base', 'large', 'small', 'medium', 'nano']:
+                variant = parts[-1]
+        initkw = dict(
+            classes=classes,
+            channels=config['channels'],
+            input_stats=input_stats,
+            model_variant=variant,
+            weight_path=config.get('backbone_init', True),
+        )
+        model = rf_detr_models.RFDETR_Detector(**initkw)
+        model._initkw = initkw
+    elif arch == 'mit_yolo' or arch.startswith('mityolo'):
+        from .detection_models import mit_yolo_models
+        # Parse variant from arch name (e.g., 'mityolo_v9c', 'mit_yolo_v9s')
+        variant = 'v9-c'
+        if '_' in arch:
+            parts = arch.lower().split('_')
+            if len(parts) > 1:
+                # Handle formats like 'v9c', 'v9-c', 'v9s', 'v9-s'
+                v = parts[-1]
+                if v.startswith('v'):
+                    if '-' not in v and len(v) > 2:
+                        # 'v9c' -> 'v9-c'
+                        variant = v[:2] + '-' + v[2:]
+                    else:
+                        variant = v
+        initkw = dict(
+            classes=classes,
+            channels=config['channels'],
+            input_stats=input_stats,
+            model_variant=variant,
+            weight_path=config.get('backbone_init', True),
+        )
+        model = mit_yolo_models.MitYOLO_Detector(**initkw)
+        model._initkw = initkw
     else:
         raise KeyError(arch)
 
