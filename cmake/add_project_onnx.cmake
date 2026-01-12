@@ -8,7 +8,7 @@ set( ONNXRUNTIME_PIP_INSTALL_CMD
     -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
     -DPython_EXECUTABLE=${Python_EXECUTABLE}
     -DWHEEL_DIR=${ONNXRUNTIME_DOWNLOAD_DIR}
-    -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
+    -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
 
 set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download
   --no-deps onnxruntime==${ONNXRUNTIME_VERSION} -d "${ONNXRUNTIME_DOWNLOAD_DIR}" )

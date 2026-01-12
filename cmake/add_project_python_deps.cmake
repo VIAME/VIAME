@@ -304,7 +304,7 @@ else()
       -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
       -DPython_EXECUTABLE=${Python_EXECUTABLE}
       -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
-      -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
+      -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
 endif()
 
 # Convert commands and env vars to ----separated strings for the wrapper script
