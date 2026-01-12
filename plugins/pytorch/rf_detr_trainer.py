@@ -192,10 +192,10 @@ class RFDETRTrainer(KWCocoTrainDetector):
         Roboflow format expects:
           output_dir/
             train/
-              images/
               _annotations.coco.json
             valid/
-              images/
+              _annotations.coco.json
+            test/
               _annotations.coco.json
         """
         import json
@@ -204,10 +204,12 @@ class RFDETRTrainer(KWCocoTrainDetector):
         output_dir = ub.Path(output_dir)
         train_dir = output_dir / "train"
         valid_dir = output_dir / "valid"
+        test_dir = output_dir / "test"
 
         # Create directory structure
         (train_dir).ensuredir()
         (valid_dir).ensuredir()
+        (test_dir).ensuredir()
 
         def process_split(coco_path, split_dir):
             coco_path = ub.Path(coco_path)
@@ -239,6 +241,20 @@ class RFDETRTrainer(KWCocoTrainDetector):
 
             coco_data['images'] = new_images
 
+            # Ensure categories have supercategory field (required by RF-DETR)
+            # Also remap category IDs to be 0-indexed (RF-DETR expects 0-indexed)
+            old_id_to_new = {}
+            for new_id, cat in enumerate(coco_data.get('categories', [])):
+                old_id_to_new[cat['id']] = new_id
+                cat['id'] = new_id
+                if 'supercategory' not in cat:
+                    cat['supercategory'] = cat.get('name', 'object')
+
+            # Update annotation category IDs
+            for ann in coco_data.get('annotations', []):
+                if ann['category_id'] in old_id_to_new:
+                    ann['category_id'] = old_id_to_new[ann['category_id']]
+
             # Write the annotations file
             annotations_path = split_dir / "_annotations.coco.json"
             with open(annotations_path, 'w') as f:
@@ -248,6 +264,8 @@ class RFDETRTrainer(KWCocoTrainDetector):
 
         process_split(train_coco_path, train_dir)
         process_split(val_coco_path, valid_dir)
+        # RF-DETR requires a test split; use validation data for test
+        process_split(val_coco_path, test_dir)
 
         return output_dir
 
