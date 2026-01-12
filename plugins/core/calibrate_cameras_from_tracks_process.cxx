@@ -24,6 +24,7 @@
 #include <vital/exceptions.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
+#include <sprokit/pipeline/process_exception.h>
 
 #include <arrows/ocv/camera_intrinsics.h>
 
@@ -47,6 +48,11 @@ create_config_trait( frame_count_threshold, unsigned, "0",
   "Maximum number of frames to use during calibration. 0 to use all available frames." );
 create_config_trait( square_size, double, "1.0",
   "Calibration pattern square size in world units (e.g., mm)" );
+create_config_trait( wait_for_completion, bool, "true",
+  "If true, stores progressive track inputs and waits for the complete signal before "
+  "calibrating. This allows using a single accumulator that outputs every frame for "
+  "display while still calibrating with all tracks at the end. If false, expects a "
+  "single pre-accumulated track set (use with accumulator's single_final_output=true)." );
 
 create_type_trait( integer, "kwiver:integer", int64_t );
 create_port_trait( tracks_left, object_track_set, "Object track set of camera1." );
@@ -71,6 +77,13 @@ public:
   std::string m_output_json_file;
   unsigned m_frame_count_threshold;
   double m_square_size;
+  bool m_wait_for_completion;
+
+  // Accumulated data (stores latest received, waits for complete)
+  kv::object_track_set_sptr m_tracks_left;
+  kv::object_track_set_sptr m_tracks_right;
+  int64_t m_image_width{ 0 };
+  int64_t m_image_height{ 0 };
 
   // Other variables
   calibrate_cameras_from_tracks_process* parent;
@@ -339,6 +352,7 @@ calibrate_cameras_from_tracks_process
   declare_config_using_trait( output_json_file );
   declare_config_using_trait( frame_count_threshold );
   declare_config_using_trait( square_size );
+  declare_config_using_trait( wait_for_completion );
 }
 
 
@@ -351,6 +365,7 @@ calibrate_cameras_from_tracks_process
   d->m_output_json_file = config_value_using_trait( output_json_file );
   d->m_frame_count_threshold = config_value_using_trait( frame_count_threshold );
   d->m_square_size = config_value_using_trait( square_size );
+  d->m_wait_for_completion = config_value_using_trait( wait_for_completion );
 }
 
 // -----------------------------------------------------------------------------
@@ -358,26 +373,65 @@ void
 calibrate_cameras_from_tracks_process
 ::_step()
 {
-  kv::object_track_set_sptr object_track_set1, object_track_set2;
-
-  object_track_set1 = grab_from_port_using_trait( tracks_left );
-  object_track_set2 = grab_from_port_using_trait( tracks_right );
-  int64_t input_image_width = grab_from_port_using_trait( image_width );
-  int64_t input_image_height = grab_from_port_using_trait( image_height );
-
-  if( !object_track_set1 || !object_track_set2 )
+  if( d->m_wait_for_completion )
   {
-    return;
-  }
+    // New behavior: store progressive inputs and wait for complete signal
+    auto port_info = peek_at_port_using_trait( tracks_left );
+    bool is_complete = ( port_info.datum->type() == sprokit::datum::complete );
 
-  LOG_DEBUG( d->m_logger,
-    "Received image size: " << input_image_width << "x" << input_image_height );
+    if( is_complete )
+    {
+      // Consume the complete datums
+      grab_edge_datum_using_trait( tracks_left );
+      grab_edge_datum_using_trait( tracks_right );
+      grab_edge_datum_using_trait( image_width );
+      grab_edge_datum_using_trait( image_height );
+    }
+    else
+    {
+      // Store the latest track sets and image dimensions
+      d->m_tracks_left = grab_from_port_using_trait( tracks_left );
+      d->m_tracks_right = grab_from_port_using_trait( tracks_right );
+      d->m_image_width = grab_from_port_using_trait( image_width );
+      d->m_image_height = grab_from_port_using_trait( image_height );
+
+      LOG_DEBUG( d->m_logger, "Received tracks, waiting for more frames..." );
+      return;
+    }
+
+    // Input is complete - run calibration with accumulated tracks
+    if( !d->m_tracks_left || !d->m_tracks_right )
+    {
+      LOG_WARN( d->m_logger, "No tracks received before completion" );
+      mark_process_as_complete();
+      return;
+    }
+
+    LOG_DEBUG( d->m_logger,
+      "Running calibration with image size: " << d->m_image_width << "x" << d->m_image_height );
+  }
+  else
+  {
+    // Original behavior: expect single pre-accumulated input
+    d->m_tracks_left = grab_from_port_using_trait( tracks_left );
+    d->m_tracks_right = grab_from_port_using_trait( tracks_right );
+    d->m_image_width = grab_from_port_using_trait( image_width );
+    d->m_image_height = grab_from_port_using_trait( image_height );
+
+    if( !d->m_tracks_left || !d->m_tracks_right )
+    {
+      return;
+    }
+
+    LOG_DEBUG( d->m_logger,
+      "Received image size: " << d->m_image_width << "x" << d->m_image_height );
+  }
 
   auto config_optimizer = kv::config_block::empty_config();
   config_optimizer->set_value( "image_width",
-    static_cast< unsigned >( input_image_width ) );
+    static_cast< unsigned >( d->m_image_width ) );
   config_optimizer->set_value( "image_height",
-    static_cast< unsigned >( input_image_height ) );
+    static_cast< unsigned >( d->m_image_height ) );
   config_optimizer->set_value( "frame_count_threshold", d->m_frame_count_threshold );
   config_optimizer->set_value( "output_calibration_directory",
     d->m_output_cameras_directory );
@@ -392,8 +446,8 @@ calibrate_cameras_from_tracks_process
 
   // split object track set then merge features and landmarks
   std::pair< kv::feature_track_set_sptr, kv::landmark_map_sptr > split1, split2;
-  split1 = d->split_object_track( object_track_set1 );
-  split2 = d->split_object_track( object_track_set2 );
+  split1 = d->split_object_track( d->m_tracks_left );
+  split2 = d->split_object_track( d->m_tracks_right );
 
   // Sanity check on left and right tracks number after feature / landmark split
   auto t1_size = split1.first->tracks().size();
