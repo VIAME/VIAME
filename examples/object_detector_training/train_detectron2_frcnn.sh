@@ -11,5 +11,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 # Run pipeline
 viame_train_detector \
   -i training_data_mouss \
-  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_detectron2_faster_rcnn.conf \
+  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_detectron2_frcnn.conf \
   --threshold 0.0

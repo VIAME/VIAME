@@ -27,15 +27,15 @@ if( VIAME_ENABLE_DARKNET )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_yolo_from_habcam_csv.bat
-         train_yolo_from_viame_csv.bat
-         train_yolo_from_kw18.bat )
+         train_darknet_yolo.bat
+         train_darknet_yolo_habcam_csv.bat
+         train_darknet_yolo_kw18.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_yolo_from_habcam_csv.sh
-         train_yolo_from_viame_csv.sh
-         train_yolo_from_kw18.sh )
+         train_darknet_yolo.sh
+         train_darknet_yolo_habcam_csv.sh
+         train_darknet_yolo_kw18.sh )
   endif()
 endif()
 
@@ -44,22 +44,46 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.bat
-         train_cfrnn_from_viame_csv.bat
-         train_cfrnn_from_habcam_csv.bat
-         train_mask_rcnn_from_viame_csv.bat
-         train_motion_cfrnn_from_viame_csv.bat
-         train_netharn_rf_detr_from_viame_csv.bat
-         train_netharn_mit_yolo_from_viame_csv.bat )
+         train_cfrnn.bat
+         train_cfrnn_habcam_csv.bat
+         train_mask_rcnn.bat
+         train_motion_cfrnn.bat
+         train_netharn_rf_detr.bat
+         train_netharn_mit_yolo.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.sh
-         train_cfrnn_from_viame_csv.sh
-         train_cfrnn_from_habcam_csv.sh
-         train_mask_rcnn_from_viame_csv.sh
-         train_motion_cfrnn_from_viame_csv.sh
-         train_netharn_rf_detr_from_viame_csv.sh
-         train_netharn_mit_yolo_from_viame_csv.sh )
+         train_cfrnn.sh
+         train_cfrnn_habcam_csv.sh
+         train_mask_rcnn.sh
+         train_motion_cfrnn.sh
+         train_netharn_rf_detr.sh
+         train_netharn_mit_yolo.sh )
+  endif()
+endif()
+
+if( VIAME_ENABLE_PYTORCH-RF-DETR )
+  if( NOT WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_rf_detr.sh )
+  endif()
+endif()
+
+if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
+  if( NOT WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_mit_yolo.sh )
+  endif()
+endif()
+
+if( VIAME_ENABLE_PYTORCH-DETECTRON )
+  if( NOT WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_detectron2_frcnn.sh )
   endif()
 endif()
 
@@ -67,13 +91,13 @@ if( VIAME_ENABLE_SVM )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_svm_over_fish_dets_from_viame_csv.bat
-         train_svm_over_generic_dets_from_viame_csv.bat )
+         train_svm_over_fish_dets.bat
+         train_svm_over_generic_dets.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_svm_over_fish_dets_from_viame_csv.sh
-         train_svm_over_generic_dets_from_viame_csv.sh )
+         train_svm_over_fish_dets.sh
+         train_svm_over_generic_dets.sh )
   endif()
 endif()
 
