@@ -78,6 +78,7 @@ process cameras_calibration
   :output_cameras_directory                    $CONFIG{global:output_directory}
   :output_json_file                            $CONFIG{global:output_json_file}
   :square_size                                 $CONFIG{global:square_size}
+  :wait_for_completion                         true
 
 # =============================== PROCESS CONNECTION ===================================
 # Detect tracks left camera

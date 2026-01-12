@@ -381,8 +381,8 @@ calibrate_cameras_from_tracks_process
     // New behavior: store progressive inputs and wait for complete signal
     // We must consume from all ports on each _step() call to keep the pipeline moving
 
-    // Consume from tracks_left port
-    if( !d->m_tracks_left_complete )
+    // Consume from tracks_left port - drain all available datums
+    while( !d->m_tracks_left_complete )
     {
       auto port_info = peek_at_port_using_trait( tracks_left );
       if( port_info.datum->type() == sprokit::datum::complete )
@@ -396,13 +396,12 @@ calibrate_cameras_from_tracks_process
       }
       else
       {
-        // Empty datum - just consume it
         grab_edge_datum_using_trait( tracks_left );
       }
     }
 
-    // Consume from tracks_right port
-    if( !d->m_tracks_right_complete )
+    // Consume from tracks_right port - drain all available datums
+    while( !d->m_tracks_right_complete )
     {
       auto port_info = peek_at_port_using_trait( tracks_right );
       if( port_info.datum->type() == sprokit::datum::complete )
@@ -416,13 +415,12 @@ calibrate_cameras_from_tracks_process
       }
       else
       {
-        // Empty datum - just consume it
         grab_edge_datum_using_trait( tracks_right );
       }
     }
 
-    // Consume from image dimension ports
-    if( !d->m_image_complete )
+    // Consume from image dimension ports - drain all available datums
+    while( !d->m_image_complete )
     {
       auto port_info = peek_at_port_using_trait( image_width );
       if( port_info.datum->type() == sprokit::datum::complete )
@@ -438,24 +436,12 @@ calibrate_cameras_from_tracks_process
       }
       else
       {
-        // Empty datum - just consume it
         grab_edge_datum_using_trait( image_width );
         grab_edge_datum_using_trait( image_height );
       }
     }
 
-    // Check if all inputs are complete
-    bool all_complete = d->m_tracks_left_complete &&
-                        d->m_tracks_right_complete &&
-                        d->m_image_complete;
-
-    if( !all_complete )
-    {
-      LOG_DEBUG( d->m_logger, "Received tracks, waiting for more frames..." );
-      return;
-    }
-
-    // All inputs are complete - run calibration with accumulated tracks
+    // Check if all inputs are complete - should always be true after while loops
     if( !d->m_tracks_left || !d->m_tracks_right )
     {
       LOG_WARN( d->m_logger, "No tracks received before completion" );
@@ -463,8 +449,10 @@ calibrate_cameras_from_tracks_process
       return;
     }
 
-    LOG_DEBUG( d->m_logger,
-      "Running calibration with image size: " << d->m_image_width << "x" << d->m_image_height );
+    LOG_INFO( d->m_logger, "Running calibration with "
+      << d->m_tracks_left->size() << " left tracks, "
+      << d->m_tracks_right->size() << " right tracks, "
+      << "image size " << d->m_image_width << "x" << d->m_image_height );
   }
   else
   {
@@ -479,8 +467,6 @@ calibrate_cameras_from_tracks_process
       return;
     }
 
-    LOG_DEBUG( d->m_logger,
-      "Received image size: " << d->m_image_width << "x" << d->m_image_height );
   }
 
   auto config_optimizer = kv::config_block::empty_config();
