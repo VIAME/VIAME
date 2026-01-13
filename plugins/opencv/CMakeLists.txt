@@ -136,6 +136,7 @@ set( process_headers
   calibrate_single_camera_process.h
   pair_stereo_detections_process.h
   pair_stereo_tracks_process.h
+  detect_in_subregions_process.h
 )
 
 set( process_sources
@@ -144,6 +145,7 @@ set( process_sources
   calibrate_single_camera_process.cxx
   pair_stereo_detections_process.cxx
   pair_stereo_tracks_process.cxx
+  detect_in_subregions_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_opencv

@@ -10,6 +10,7 @@
 #include "calibrate_single_camera_process.h"
 #include "pair_stereo_detections_process.h"
 #include "pair_stereo_tracks_process.h"
+#include "detect_in_subregions_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -68,6 +69,17 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Compute object tracks pair from stereo depth map information" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::detect_in_subregions_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
+                       "detect_in_subregions" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Run a detection algorithm on all of the chips represented "
+                    "by an incoming detected_object_set" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
