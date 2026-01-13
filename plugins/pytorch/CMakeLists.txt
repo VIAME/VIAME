@@ -222,12 +222,26 @@ if( VIAME_ENABLE_PYTORCH-LEARN )
 
 endif()
 
-if( VIAME_ENABLE_PYTORCH-SAM )
+if( VIAME_ENABLE_PYTORCH-SAM2 )
 
     kwiver_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/sam2_refiner.py
       arrows/pytorch
       sam2_refiner )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam2_interactive.py
+      pytorch
+      sam2_interactive )
+
+endif()
+
+if( VIAME_ENABLE_PYTORCH-SAM3 )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_interactive.py
+      pytorch
+      sam3_interactive )
 
 endif()
 
@@ -268,7 +282,7 @@ if( VIAME_ENABLE_PYTORCH-LITDET )
 
 endif()
 
-if( VIAME_ENABLE_PYTORCH-DETECTRON )
+if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
 
     kwiver_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/detectron2_trainer.py
