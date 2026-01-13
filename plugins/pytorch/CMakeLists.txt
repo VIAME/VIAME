@@ -254,6 +254,20 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
 
 endif()
 
+if( VIAME_ENABLE_PYTORCH-LITDET )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/litdet_detector.py
+      arrows/pytorch
+      litdet_detector )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/litdet_trainer.py
+      arrows/pytorch
+      litdet_trainer )
+
+endif()
+
 if( VIAME_ENABLE_PYTORCH-DETECTRON )
 
     kwiver_add_python_module(
