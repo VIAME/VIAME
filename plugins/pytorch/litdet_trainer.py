@@ -613,9 +613,11 @@ class LitDetTrainer(KWCocoTrainDetector):
 
     def update_model(self):
         import torch
+        from hydra import compose, initialize_config_dir
         from hydra.core.global_hydra import GlobalHydra
         from hydra.core.hydra_config import HydraConfig
-        from omegaconf import OmegaConf
+        from omegaconf import OmegaConf, open_dict
+        from importlib.resources import files
 
         self._ensure_format_writers()
 
@@ -636,39 +638,95 @@ class LitDetTrainer(KWCocoTrainDetector):
 
         print(f"[LitDetTrainer] Prepared data with {num_classes} classes")
 
-        # Build Hydra config
-        cfg = self._build_hydra_config(data_dir, num_classes, output_dir)
-
         # Clear any existing Hydra instance
         GlobalHydra.instance().clear()
 
-        # Set up minimal HydraConfig for the train function
-        # Note: The train function uses HydraConfig internally
-        hydra_cfg = OmegaConf.create({
-            'run': {'dir': str(output_dir)},
-            'sweep': {'dir': str(output_dir), 'subdir': ''},
-            'runtime': {'output_dir': str(output_dir), 'choices': {}},
-            'verbose': False,
-        })
+        # Get the litdet config directory
+        from lightning_hydra_detection import configs as litdet_configs
+        config_dir = str(files(litdet_configs))
 
-        # Import and call the train function
-        from lightning_hydra_detection.train import train
+        # Parse training parameters for overrides
+        max_epochs = int(self._max_epochs)
+        batch_size = int(self._batch_size)
+        lr = float(self._learning_rate)
+        num_workers = int(self._num_workers)
+        trainable_backbone_layers = int(self._trainable_backbone_layers)
+        fine_tune = parse_bool(self._fine_tune)
+        use_tensorboard = parse_bool(self._use_tensorboard)
+        run_test = parse_bool(self._run_test)
 
-        # Signal handler for graceful interruption
-        with TrainingInterruptHandler("LitDetTrainer") as handler:
-            try:
-                # Initialize HydraConfig with our config
-                HydraConfig().set_config(cfg)
+        # Resolve device
+        device_str = resolve_device_str(self._device)
+        if device_str.startswith('cuda'):
+            trainer_override = "trainer=gpu"
+        else:
+            trainer_override = "trainer=cpu"
 
-                # Run training
-                metric_dict, object_dict = train(cfg)
+        # Build overrides list
+        overrides = [
+            trainer_override,
+            f"trainer.max_epochs={max_epochs}",
+            f"data.batch_size={batch_size}",
+            f"data.num_workers={num_workers}",
+            f"task.optimizer.lr={lr}",
+            f"task.model.num_classes={num_classes + 1}",
+            f"task.model.trainable_backbone_layers={trainable_backbone_layers}",
+        ]
 
-                print(f"[LitDetTrainer] Training metrics: {metric_dict}")
+        # Use Hydra's initialize_config_dir and compose
+        with initialize_config_dir(version_base="1.3", config_dir=config_dir):
+            cfg = compose(
+                config_name="train.yaml",
+                return_hydra_config=True,
+                overrides=overrides
+            )
 
-            except KeyboardInterrupt:
-                print("[LitDetTrainer] Training interrupted by user")
+            with open_dict(cfg):
+                # Update paths
+                cfg.paths.data_dir = str(data_dir)
+                cfg.paths.output_dir = str(output_dir)
+                cfg.paths.log_dir = str(output_dir / 'logs')
 
-            self._interrupted = handler.interrupted
+                # Update training flags
+                cfg.train = True
+                cfg.test = run_test
+
+                # Handle pretrained weights based on fine_tune setting
+                if not fine_tune or self._pretrained_weights.lower() == 'none':
+                    cfg.task.model.weights = None
+                elif self._pretrained_weights.lower() == 'imagenet':
+                    cfg.task.model.weights = None
+                    # Keep backbone weights
+
+                # Disable logger if tensorboard not enabled
+                if not use_tensorboard:
+                    cfg.logger = None
+
+                # Configure callbacks
+                if cfg.get('callbacks') and cfg.callbacks.get('model_checkpoint'):
+                    cfg.callbacks.model_checkpoint.dirpath = str(output_dir / 'checkpoints')
+
+            # Import and call the train function
+            from lightning_hydra_detection.train import train
+
+            # Signal handler for graceful interruption
+            with TrainingInterruptHandler("LitDetTrainer") as handler:
+                try:
+                    # Initialize HydraConfig with our composed config
+                    HydraConfig().set_config(cfg)
+
+                    # Run training
+                    metric_dict, object_dict = train(cfg)
+
+                    print(f"[LitDetTrainer] Training metrics: {metric_dict}")
+
+                except KeyboardInterrupt:
+                    print("[LitDetTrainer] Training interrupted by user")
+
+                self._interrupted = handler.interrupted
+
+        # Clear Hydra after training
+        GlobalHydra.instance().clear()
 
         self.save_final_model(output_dir)
 
