@@ -86,3 +86,6 @@
 [submodule "packages/pytorch-libs/rf-detr"]
 	path = packages/pytorch-libs/rf-detr
 	url = https://github.com/roboflow/rf-detr.git
+[submodule "packages/pytorch-libs/litdet"]
+	path = packages/pytorch-libs/litdet
+	url = https://gitlab.kitware.com/keu-computervision/ml/lightning-hydra-detection.git
