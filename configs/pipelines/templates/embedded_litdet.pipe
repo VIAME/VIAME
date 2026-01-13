@@ -1,0 +1,56 @@
+# ==============================================================================
+# LitDet Detector Pipeline Template
+# ==============================================================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+# ==============================================================================
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             litdet
+
+    :mode                                      [-WINDOW-OPTION-]
+    :chip_width                                640
+    :chip_height                               640
+    :chip_adaptive_thresh                      1600000
+
+    block detector:litdet
+      relativepath checkpoint =                [-MODEL-FILE-]
+      :threshold                               0.25
+    endblock
+  endblock
+
+connect from detector_input.image
+        to   detector1.image
+
+# ==============================================================================
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+
+process detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   detector_output.detected_object_set
