@@ -339,5 +339,10 @@ if( VIAME_ENABLE_PYTHON )
     processes/core
     multicam_homog_det_suppressor )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py
+    core
+    segmentation_utils )
+
 endif()
 

@@ -11,7 +11,8 @@ via stdin/stdout JSON protocol. Designed to be spawned by both Desktop (Electron
 and Web (Girder) platforms for fast interactive segmentation.
 
 SAM3 (Segment Anything Model 3) is the next generation of Meta's SAM model,
-offering improved segmentation quality and additional capabilities.
+offering improved segmentation quality and additional capabilities including
+text-based queries for open-vocabulary detection and segmentation.
 
 Usage:
     python sam3_interactive.py [--checkpoint CHECKPOINT] [--device DEVICE]
@@ -28,6 +29,21 @@ Protocol:
         "mask_input": null  // optional low-res mask for refinement
     }
 
+    Text Query Input:
+    {
+        "id": "unique-request-id",
+        "command": "text_query",
+        "image_path": "/path/to/frame.png",
+        "text": "fish swimming near coral",
+        "box_threshold": 0.3,  // confidence threshold for detections
+        "max_detections": 10,  // maximum number of detections to return
+        // Optional refinement inputs:
+        "boxes": [[x1, y1, x2, y2], ...],  // boxes to refine
+        "points": [[x, y], ...],  // keypoints
+        "point_labels": [1, 0, ...],  // point labels
+        "masks": [...]  // masks to refine
+    }
+
     Output (JSON per line on stdout):
     {
         "id": "unique-request-id",
@@ -38,8 +54,25 @@ Protocol:
         "low_res_mask": [...]  // for subsequent refinement
     }
 
+    Text Query Output:
+    {
+        "id": "unique-request-id",
+        "success": true,
+        "detections": [
+            {
+                "box": [x1, y1, x2, y2],
+                "polygon": [[x1, y1], ...],
+                "score": 0.95,
+                "label": "fish"
+            },
+            ...
+        ]
+    }
+
     Commands:
     - "predict": Run point-based segmentation on an image
+    - "text_query": Run text-based detection/segmentation on an image
+    - "refine": Refine existing detections with additional prompts
     - "set_image": Pre-load an image for multiple predictions
     - "clear_image": Clear the cached image
     - "shutdown": Gracefully terminate the service
@@ -55,68 +88,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-
-def simplify_polygon_to_max_points(
-    polygon: List[List[float]],
-    max_points: int = 25,
-    min_tolerance: float = 0.1,
-    max_tolerance: float = 100.0,
-) -> List[List[float]]:
-    """
-    Simplify a polygon to have at most max_points vertices using Douglas-Peucker algorithm.
-
-    Uses binary search to find the optimal tolerance value that results in
-    a polygon with at most max_points vertices while preserving as much detail as possible.
-
-    Args:
-        polygon: List of [x, y] coordinate pairs
-        max_points: Maximum number of points allowed in output polygon
-        min_tolerance: Minimum tolerance for simplification
-        max_tolerance: Maximum tolerance for simplification
-
-    Returns:
-        Simplified polygon as list of [x, y] coordinate pairs
-    """
-    from shapely.geometry import Polygon as ShapelyPolygon
-
-    if len(polygon) <= max_points:
-        return polygon
-
-    # Create shapely polygon
-    try:
-        shape = ShapelyPolygon(polygon)
-        if not shape.is_valid:
-            shape = shape.buffer(0)  # Fix invalid geometries
-    except Exception:
-        return polygon
-
-    # Binary search to find optimal tolerance
-    low = min_tolerance
-    high = max_tolerance
-    best_result = polygon
-
-    for _ in range(20):  # Max iterations for binary search
-        mid = (low + high) / 2
-        simplified = shape.simplify(mid, preserve_topology=True)
-
-        if simplified.is_empty:
-            high = mid
-            continue
-
-        coords = list(simplified.exterior.coords)
-        num_points = len(coords)
-
-        if num_points <= max_points:
-            best_result = [[float(x), float(y)] for x, y in coords]
-            high = mid  # Try to find a smaller tolerance (more detail)
-        else:
-            low = mid  # Need more simplification
-
-        # Close enough
-        if abs(num_points - max_points) <= 2 and num_points <= max_points:
-            break
-
-    return best_result
+from core.segmentation_utils import (
+    load_image,
+    mask_to_polygon,
+    simplify_polygon_to_max_points,
+)
 
 
 class SAM3InteractiveService:
@@ -185,111 +161,6 @@ class SAM3InteractiveService:
             "error": error,
         })
 
-    def _load_image(self, image_path: str) -> np.ndarray:
-        """Load image from path and return as numpy array."""
-        from PIL import Image
-
-        img = Image.open(image_path).convert("RGB")
-        return np.array(img)
-
-    def _mask_to_polygon(
-        self, mask: np.ndarray
-    ) -> Tuple[List[List[float]], List[float]]:
-        """
-        Convert binary mask to polygon coordinates.
-
-        Returns:
-            polygon: List of [x, y] coordinate pairs
-            bounds: [x_min, y_min, x_max, y_max]
-        """
-        import kwimage
-        from shapely.geometry import MultiPolygon, Polygon, GeometryCollection
-
-        # Convert to kwimage mask and then to polygon
-        kw_mask = kwimage.Mask.coerce(mask.astype(np.uint8))
-
-        # Convert mask to multi-polygon
-        kw_mpoly = kw_mask.to_multi_polygon(
-            pixels_are='points',
-            origin_convention='center',
-        )
-
-        try:
-            shape = kw_mpoly.to_shapely()
-        except ValueError:
-            # Workaround for issues with not enough coordinates
-            new_parts = []
-            for kw_poly in kw_mpoly.data:
-                try:
-                    new_part = kw_poly.to_shapely()
-                    new_parts.append(new_part)
-                except ValueError:
-                    pass
-            if not new_parts:
-                return [], [0, 0, 0, 0]
-            shape = MultiPolygon(new_parts)
-
-        # Handle empty or invalid shapes
-        if shape.is_empty:
-            return [], [0, 0, 0, 0]
-
-        # Helper function to extract a single polygon from any geometry type
-        def extract_polygon(geom):
-            """Extract a single Polygon from various geometry types."""
-            if geom.is_empty:
-                return None
-            if geom.type == 'Polygon':
-                return geom
-            elif geom.type == 'MultiPolygon':
-                if geom.geoms:
-                    # Return the largest polygon
-                    valid_polys = [g for g in geom.geoms if g.type == 'Polygon' and not g.is_empty]
-                    if valid_polys:
-                        return max(valid_polys, key=lambda p: p.area)
-                return None
-            elif geom.type == 'GeometryCollection':
-                # Extract polygons from geometry collection
-                polys = [g for g in geom.geoms if g.type == 'Polygon' and not g.is_empty]
-                if polys:
-                    return max(polys, key=lambda p: p.area)
-                return None
-            else:
-                # For other types (Point, LineString, etc.), return None
-                return None
-
-        # Apply multipolygon policy
-        if shape.type == 'MultiPolygon' and len(shape.geoms) > 1:
-            if self.multipolygon_policy == 'convex_hull':
-                shape = shape.convex_hull
-            elif self.multipolygon_policy == 'largest':
-                valid_polys = [g for g in shape.geoms if g.type == 'Polygon' and not g.is_empty]
-                if valid_polys:
-                    shape = max(valid_polys, key=lambda p: p.area)
-                else:
-                    return [], [0, 0, 0, 0]
-            # 'allow' keeps as-is
-
-        # Extract a single polygon from whatever shape we have
-        poly = extract_polygon(shape)
-        if poly is None:
-            return [], [0, 0, 0, 0]
-
-        # Apply hole policy - remove interior rings
-        if self.hole_policy == 'remove':
-            poly = Polygon(poly.exterior)
-
-        # Get the exterior coordinates
-        if poly.is_empty or poly.exterior is None:
-            return [], [0, 0, 0, 0]
-
-        coords = list(poly.exterior.coords)
-        polygon = [[float(x), float(y)] for x, y in coords]
-
-        # Calculate bounds
-        bounds = list(poly.bounds)  # (minx, miny, maxx, maxy)
-
-        return polygon, bounds
-
     def handle_predict(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle a predict command.
@@ -322,7 +193,7 @@ class SAM3InteractiveService:
         # Load image if different from cached
         if self._current_image_path != image_path:
             self._log(f"Loading image: {image_path}")
-            imdata = self._load_image(image_path)
+            imdata = load_image(image_path)
             self.predictor.set_image(imdata)
             self._current_image_path = image_path
 
@@ -363,7 +234,7 @@ class SAM3InteractiveService:
             low_res_mask = low_res_masks[0]
 
         # Convert mask to polygon
-        polygon, bounds = self._mask_to_polygon(mask)
+        polygon, bounds = mask_to_polygon(mask, self.hole_policy, self.multipolygon_policy)
 
         # Simplify polygon to maximum number of points
         if polygon and len(polygon) > self.max_polygon_points:
@@ -386,7 +257,7 @@ class SAM3InteractiveService:
             raise ValueError("image_path is required")
 
         self._log(f"Pre-loading image: {image_path}")
-        imdata = self._load_image(image_path)
+        imdata = load_image(image_path)
         self.predictor.set_image(imdata)
         self._current_image_path = image_path
 
@@ -404,12 +275,334 @@ class SAM3InteractiveService:
             "message": "Image cache cleared",
         }
 
+    def handle_text_query(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle a text-based query command for open-vocabulary detection/segmentation.
+
+        Args:
+            request: Dict containing:
+                - image_path: Path to the image file
+                - text: Text query describing what to find (e.g., "fish", "person swimming")
+                - box_threshold: Confidence threshold for detections (default: 0.3)
+                - max_detections: Maximum number of detections to return (default: 10)
+                - boxes: Optional list of [x1, y1, x2, y2] boxes to refine
+                - points: Optional list of [x, y] keypoints for refinement
+                - point_labels: Optional list of labels for points (1=foreground, 0=background)
+                - masks: Optional masks for refinement
+
+        Returns:
+            Dict with detections, each containing box, polygon, score, and label
+        """
+        import torch
+
+        image_path = request.get("image_path")
+        text = request.get("text", "")
+        box_threshold = request.get("box_threshold", 0.3)
+        max_detections = request.get("max_detections", 10)
+
+        # Optional refinement inputs
+        boxes = request.get("boxes")
+        points = request.get("points")
+        point_labels = request.get("point_labels")
+        masks = request.get("masks")
+
+        if not image_path:
+            raise ValueError("image_path is required")
+
+        if not text:
+            raise ValueError("text query is required")
+
+        # Load image if different from cached
+        if self._current_image_path != image_path:
+            self._log(f"Loading image: {image_path}")
+            imdata = load_image(image_path)
+            self._current_image_path = image_path
+        else:
+            imdata = load_image(image_path)
+
+        self._log(f"Text query: '{text}' (threshold={box_threshold}, max={max_detections})")
+
+        # Check if model has text query capability
+        if not hasattr(self.model, 'predict_with_text') and not hasattr(self.model, 'text_predictor'):
+            # Fallback: use automatic mask generation and return top results
+            self._log("Model does not have native text query support, using auto-mask generation")
+            return self._handle_text_query_fallback(imdata, text, box_threshold, max_detections)
+
+        # Use native text query if available
+        if self.predictor.device.type == 'cuda':
+            autocast_context = torch.autocast(self.predictor.device.type, dtype=torch.bfloat16)
+        else:
+            autocast_context = contextlib.nullcontext()
+
+        detections = []
+        with torch.inference_mode(), autocast_context:
+            # Try different API patterns that SAM3 might support
+            if hasattr(self.model, 'predict_with_text'):
+                # Direct text prediction API
+                results = self.model.predict_with_text(
+                    image=imdata,
+                    text=text,
+                    box_threshold=box_threshold,
+                )
+                detections = self._process_text_results(results, text, max_detections)
+
+            elif hasattr(self.model, 'text_predictor'):
+                # Separate text predictor
+                text_pred = self.model.text_predictor
+                text_pred.set_image(imdata)
+                results = text_pred.predict(text=text, threshold=box_threshold)
+                detections = self._process_text_results(results, text, max_detections)
+
+        return {
+            "success": True,
+            "detections": detections,
+            "query": text,
+        }
+
+    def _handle_text_query_fallback(
+        self,
+        imdata: np.ndarray,
+        text: str,
+        box_threshold: float,
+        max_detections: int,
+    ) -> Dict[str, Any]:
+        """
+        Fallback for models without native text query support.
+        Uses automatic mask generation and returns results labeled with the query text.
+        """
+        import torch
+
+        # Set image for prediction
+        self.predictor.set_image(imdata)
+
+        if self.predictor.device.type == 'cuda':
+            autocast_context = torch.autocast(self.predictor.device.type, dtype=torch.bfloat16)
+        else:
+            autocast_context = contextlib.nullcontext()
+
+        detections = []
+
+        # Try to use automatic mask generator if available
+        if hasattr(self.model, 'mask_generator') or hasattr(self.model, 'generate_masks'):
+            with torch.inference_mode(), autocast_context:
+                if hasattr(self.model, 'mask_generator'):
+                    masks_data = self.model.mask_generator.generate(imdata)
+                else:
+                    masks_data = self.model.generate_masks(imdata)
+
+                # Process each mask
+                for i, mask_info in enumerate(masks_data[:max_detections]):
+                    if isinstance(mask_info, dict):
+                        mask = mask_info.get('segmentation', mask_info.get('mask'))
+                        score = mask_info.get('predicted_iou', mask_info.get('score', 0.5))
+                        bbox = mask_info.get('bbox')  # [x, y, w, h] format typically
+                    else:
+                        mask = mask_info
+                        score = 0.5
+                        bbox = None
+
+                    if mask is None:
+                        continue
+
+                    # Convert mask to polygon
+                    polygon, bounds = mask_to_polygon(mask, self.hole_policy, self.multipolygon_policy)
+
+                    if not polygon:
+                        continue
+
+                    # Simplify polygon
+                    if len(polygon) > self.max_polygon_points:
+                        polygon = simplify_polygon_to_max_points(polygon, self.max_polygon_points)
+
+                    # Convert bbox from [x, y, w, h] to [x1, y1, x2, y2] if needed
+                    if bbox is not None:
+                        if len(bbox) == 4:
+                            x, y, w, h = bbox
+                            box = [float(x), float(y), float(x + w), float(y + h)]
+                        else:
+                            box = [float(b) for b in bbox]
+                    else:
+                        box = bounds
+
+                    detections.append({
+                        "box": box,
+                        "polygon": polygon,
+                        "score": float(score),
+                        "label": text,  # Label with the query text
+                    })
+
+        return {
+            "success": True,
+            "detections": detections,
+            "query": text,
+            "fallback": True,  # Indicate this used fallback method
+        }
+
+    def _process_text_results(
+        self,
+        results: Any,
+        text: str,
+        max_detections: int,
+    ) -> List[Dict[str, Any]]:
+        """Process results from text-based prediction into standardized format."""
+        detections = []
+
+        # Handle different result formats
+        if isinstance(results, dict):
+            boxes = results.get('boxes', results.get('bboxes', []))
+            masks = results.get('masks', results.get('segmentations', []))
+            scores = results.get('scores', results.get('confidences', []))
+            labels = results.get('labels', results.get('classes', [text] * len(boxes)))
+        elif isinstance(results, (list, tuple)) and len(results) >= 2:
+            boxes, masks = results[0], results[1]
+            scores = results[2] if len(results) > 2 else [0.5] * len(boxes)
+            labels = results[3] if len(results) > 3 else [text] * len(boxes)
+        else:
+            return detections
+
+        for i in range(min(len(boxes), max_detections)):
+            box = boxes[i] if i < len(boxes) else None
+            mask = masks[i] if i < len(masks) else None
+            score = scores[i] if i < len(scores) else 0.5
+            label = labels[i] if i < len(labels) else text
+
+            # Convert box to list format
+            if box is not None:
+                if hasattr(box, 'tolist'):
+                    box = box.tolist()
+                box = [float(b) for b in box]
+
+            # Convert mask to polygon
+            polygon = []
+            bounds = box or [0, 0, 0, 0]
+            if mask is not None:
+                if hasattr(mask, 'numpy'):
+                    mask = mask.numpy()
+                polygon, bounds = mask_to_polygon(mask, self.hole_policy, self.multipolygon_policy)
+                if polygon and len(polygon) > self.max_polygon_points:
+                    polygon = simplify_polygon_to_max_points(polygon, self.max_polygon_points)
+
+            # Convert score
+            if hasattr(score, 'item'):
+                score = score.item()
+
+            # Convert label
+            if hasattr(label, 'item'):
+                label = str(label.item())
+            elif not isinstance(label, str):
+                label = str(label)
+
+            detections.append({
+                "box": box or bounds,
+                "polygon": polygon,
+                "score": float(score),
+                "label": label,
+            })
+
+        return detections
+
+    def handle_refine(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Refine existing detections with additional prompts (boxes, points, masks, labels).
+
+        Args:
+            request: Dict containing:
+                - image_path: Path to the image file
+                - detections: List of detections to refine, each with box/polygon/label
+                - points: Optional additional keypoints for refinement
+                - point_labels: Labels for additional points
+                - refine_masks: Whether to refine masks (default: True)
+        """
+        import torch
+
+        image_path = request.get("image_path")
+        input_detections = request.get("detections", [])
+        points = request.get("points", [])
+        point_labels = request.get("point_labels", [])
+        refine_masks = request.get("refine_masks", True)
+
+        if not image_path:
+            raise ValueError("image_path is required")
+
+        if not input_detections:
+            raise ValueError("At least one detection is required for refinement")
+
+        # Load image if different from cached
+        if self._current_image_path != image_path:
+            self._log(f"Loading image: {image_path}")
+            imdata = load_image(image_path)
+            self.predictor.set_image(imdata)
+            self._current_image_path = image_path
+
+        if self.predictor.device.type == 'cuda':
+            autocast_context = torch.autocast(self.predictor.device.type, dtype=torch.bfloat16)
+        else:
+            autocast_context = contextlib.nullcontext()
+
+        refined_detections = []
+
+        with torch.inference_mode(), autocast_context:
+            for det in input_detections:
+                box = det.get("box")
+                label = det.get("label", "object")
+                existing_score = det.get("score", 0.5)
+
+                # Prepare prompts for this detection
+                prompt_kwargs = {}
+
+                if box:
+                    prompt_kwargs["box"] = np.array(box, dtype=np.float32)
+
+                # Add any additional points
+                if points and point_labels:
+                    prompt_kwargs["point_coords"] = np.array(points, dtype=np.float32)
+                    prompt_kwargs["point_labels"] = np.array(point_labels, dtype=np.int32)
+
+                # Run prediction with box prompt
+                if prompt_kwargs:
+                    try:
+                        masks, scores, low_res_masks = self.predictor.predict(
+                            **prompt_kwargs,
+                            multimask_output=False,
+                        )
+
+                        mask = masks[0]
+                        score = float(scores[0])
+
+                        # Convert mask to polygon
+                        polygon, bounds = mask_to_polygon(mask, self.hole_policy, self.multipolygon_policy)
+
+                        if polygon and len(polygon) > self.max_polygon_points:
+                            polygon = simplify_polygon_to_max_points(polygon, self.max_polygon_points)
+
+                        refined_detections.append({
+                            "box": bounds if not box else box,
+                            "polygon": polygon,
+                            "score": score,
+                            "label": label,
+                            "low_res_mask": low_res_masks[0].tolist() if refine_masks else None,
+                        })
+                    except Exception as e:
+                        self._log(f"Error refining detection: {e}")
+                        # Keep original detection if refinement fails
+                        refined_detections.append(det)
+                else:
+                    # No prompts, keep original
+                    refined_detections.append(det)
+
+        return {
+            "success": True,
+            "detections": refined_detections,
+        }
+
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Route request to appropriate handler."""
         command = request.get("command")
 
         handlers = {
             "predict": self.handle_predict,
+            "text_query": self.handle_text_query,
+            "refine": self.handle_refine,
             "set_image": self.handle_set_image,
             "clear_image": self.handle_clear_image,
         }

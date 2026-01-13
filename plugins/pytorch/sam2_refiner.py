@@ -15,6 +15,11 @@ import numpy as np
 import math
 import delayed_image
 from viame.pytorch.utilities import vital_config_update, vital_to_kwimage_box
+from viame.core.segmentation_utils import (
+    kwimage_mask_to_shapely,
+    apply_polygon_policies,
+    shapely_to_mask,
+)
 
 from distutils.util import strtobool
 
@@ -143,8 +148,6 @@ class Sam2Refiner(RefineDetections):
         import torch
         import kwimage
         import numpy as np
-        from shapely.geometry import Polygon
-        from shapely.geometry import MultiPolygon
 
         if len(detections) == 0:
             return DetectedObjectSet()
@@ -210,63 +213,24 @@ class Sam2Refiner(RefineDetections):
             relative_submask = relative_submask.reshape(submask_dims)
 
             if needs_polygon_postprocess:
-                # Depending on the configuration we convert the mask to a
-                # multipolygon postprocess it, and then convert back.
-                kw_mask = kwimage.Mask.coerce(relative_submask)
-                kw_mpoly = kw_mask.to_multi_polygon(
+                # Use shared utilities to convert mask -> shapely -> apply policies -> mask
+                shape = kwimage_mask_to_shapely(
+                    relative_submask,
                     pixels_are=pixels_are,
                     origin_convention=origin_convention,
                 )
-                # print(f'kw_mpoly.data={kw_mpoly.data}')
-                # print(f'kw_mpoly={kw_mpoly}')
-                # kw_mpoly = kw_mpoly.fix()
 
-                try:
-                    shape = kw_mpoly.to_shapely()
-                except ValueError:
-                    # Workaround issue that can happen with not enough
-                    # coordinates for a linearring
-                    new_parts = []
-                    for kw_poly in kw_mpoly.data:
-                        try:
-                            new_part = kw_poly.to_shapely()
-                        except ValueError:
-                            ...
-                        else:
-                            new_parts.append(new_part)
-                    shape = MultiPolygon(new_parts)
+                if shape is not None:
+                    shape = apply_polygon_policies(shape, hole_policy, mpoly_policy)
 
-                assert shape.type == 'MultiPolygon'
-                if len(shape.geoms) > 1:
-                    if mpoly_policy == 'convex_hull':
-                        shape = shape.convex_hull
-                    elif mpoly_policy == 'largest':
-                        shape = max(shape.geoms, key=lambda p: p.area)
-                    elif mpoly_policy == 'allow':
-                        ...
-                    else:
-                        raise KeyError(mpoly_policy)
-                    if shape.type == 'Polygon':
-                        shape = MultiPolygon([shape])
-
-                assert shape.type == 'MultiPolygon'
-                if hole_policy == 'remove':
-                    shape = MultiPolygon([Polygon(p.exterior) for p in shape.geoms])
-                elif hole_policy == 'allow':
-                    ...
-                else:
-                    raise KeyError(hole_policy)
-
-                # Convert the polygon back to a mask
-                new_mpoly = kwimage.MultiPolygon.from_shapely(shape)
-                # import ubelt as ub
-                # print(f'new_mpoly = {ub.urepr(new_mpoly, nl=1)}')
-                new_mask = new_mpoly.to_mask(
-                    dims=submask_dims,
-                    pixels_are=pixels_are,
-                    origin_convention=origin_convention,
-                )
-                relative_submask = new_mask.data
+                    if shape is not None:
+                        # Convert the polygon back to a mask
+                        relative_submask = shapely_to_mask(
+                            shape,
+                            dims=submask_dims,
+                            pixels_are=pixels_are,
+                            origin_convention=origin_convention,
+                        )
 
             # Modify detection and add to output list
             if vital_det.mask is None or self.overwrite_existing:
