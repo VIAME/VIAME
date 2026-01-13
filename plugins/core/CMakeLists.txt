@@ -319,5 +319,25 @@ if( VIAME_ENABLE_PYTHON )
     arrows/core
     ocsort_trainer )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/simple_homog_tracker.py
+    processes/core
+    simple_homog_tracker )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
+    processes/core
+    multicam_homog_tracker )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/stabilize_many_images.py
+    processes/core
+    stabilize_many_images )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
+    processes/core
+    multicam_homog_det_suppressor )
+
 endif()
 

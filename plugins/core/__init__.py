@@ -36,4 +36,28 @@ def __sprokit_register__():
     except ImportError:
         pass
 
+    try:
+        from viame.processes.core import simple_homog_tracker
+        simple_homog_tracker.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.processes.core import multicam_homog_tracker
+        multicam_homog_tracker.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.processes.core import stabilize_many_images
+        stabilize_many_images.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.processes.core import multicam_homog_det_suppressor
+        multicam_homog_det_suppressor.__sprokit_register__()
+    except ImportError:
+        pass
+
     process_factory.mark_process_module_as_loaded( module_name )
