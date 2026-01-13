@@ -45,11 +45,75 @@ Protocol:
 import argparse
 import contextlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+
+
+def simplify_polygon_to_max_points(
+    polygon: List[List[float]],
+    max_points: int = 25,
+    min_tolerance: float = 0.1,
+    max_tolerance: float = 100.0,
+) -> List[List[float]]:
+    """
+    Simplify a polygon to have at most max_points vertices using Douglas-Peucker algorithm.
+
+    Uses binary search to find the optimal tolerance value that results in
+    a polygon with at most max_points vertices while preserving as much detail as possible.
+
+    Args:
+        polygon: List of [x, y] coordinate pairs
+        max_points: Maximum number of points allowed in output polygon
+        min_tolerance: Minimum tolerance for simplification
+        max_tolerance: Maximum tolerance for simplification
+
+    Returns:
+        Simplified polygon as list of [x, y] coordinate pairs
+    """
+    from shapely.geometry import Polygon as ShapelyPolygon
+
+    if len(polygon) <= max_points:
+        return polygon
+
+    # Create shapely polygon
+    try:
+        shape = ShapelyPolygon(polygon)
+        if not shape.is_valid:
+            shape = shape.buffer(0)  # Fix invalid geometries
+    except Exception:
+        return polygon
+
+    # Binary search to find optimal tolerance
+    low = min_tolerance
+    high = max_tolerance
+    best_result = polygon
+
+    for _ in range(20):  # Max iterations for binary search
+        mid = (low + high) / 2
+        simplified = shape.simplify(mid, preserve_topology=True)
+
+        if simplified.is_empty:
+            high = mid
+            continue
+
+        coords = list(simplified.exterior.coords)
+        num_points = len(coords)
+
+        if num_points <= max_points:
+            best_result = [[float(x), float(y)] for x, y in coords]
+            high = mid  # Try to find a smaller tolerance (more detail)
+        else:
+            low = mid  # Need more simplification
+
+        # Close enough
+        if abs(num_points - max_points) <= 2 and num_points <= max_points:
+            break
+
+    return best_result
 
 
 class SAM2InteractiveService:
@@ -62,12 +126,14 @@ class SAM2InteractiveService:
         device: str = "cuda",
         hole_policy: str = "remove",
         multipolygon_policy: str = "largest",
+        max_polygon_points: int = 25,
     ):
         self.cfg = cfg
         self.checkpoint = checkpoint
         self.device = device
         self.hole_policy = hole_policy
         self.multipolygon_policy = multipolygon_policy
+        self.max_polygon_points = max_polygon_points
 
         self.predictor = None
         self.model = None
@@ -128,7 +194,7 @@ class SAM2InteractiveService:
             bounds: [x_min, y_min, x_max, y_max]
         """
         import kwimage
-        from shapely.geometry import MultiPolygon, Polygon
+        from shapely.geometry import MultiPolygon, Polygon, GeometryCollection
 
         # Convert to kwimage mask and then to polygon
         kw_mask = kwimage.Mask.coerce(mask.astype(np.uint8))
@@ -154,34 +220,64 @@ class SAM2InteractiveService:
                 return [], [0, 0, 0, 0]
             shape = MultiPolygon(new_parts)
 
+        # Handle empty or invalid shapes
+        if shape.is_empty:
+            return [], [0, 0, 0, 0]
+
+        # Helper function to extract a single polygon from any geometry type
+        def extract_polygon(geom):
+            """Extract a single Polygon from various geometry types."""
+            if geom.is_empty:
+                return None
+            if geom.type == 'Polygon':
+                return geom
+            elif geom.type == 'MultiPolygon':
+                if geom.geoms:
+                    # Return the largest polygon
+                    valid_polys = [g for g in geom.geoms if g.type == 'Polygon' and not g.is_empty]
+                    if valid_polys:
+                        return max(valid_polys, key=lambda p: p.area)
+                return None
+            elif geom.type == 'GeometryCollection':
+                # Extract polygons from geometry collection
+                polys = [g for g in geom.geoms if g.type == 'Polygon' and not g.is_empty]
+                if polys:
+                    return max(polys, key=lambda p: p.area)
+                return None
+            else:
+                # For other types (Point, LineString, etc.), return None
+                return None
+
         # Apply multipolygon policy
         if shape.type == 'MultiPolygon' and len(shape.geoms) > 1:
             if self.multipolygon_policy == 'convex_hull':
                 shape = shape.convex_hull
             elif self.multipolygon_policy == 'largest':
-                shape = max(shape.geoms, key=lambda p: p.area)
+                valid_polys = [g for g in shape.geoms if g.type == 'Polygon' and not g.is_empty]
+                if valid_polys:
+                    shape = max(valid_polys, key=lambda p: p.area)
+                else:
+                    return [], [0, 0, 0, 0]
             # 'allow' keeps as-is
 
-        if shape.type == 'MultiPolygon':
-            shape = MultiPolygon([shape.geoms[0]] if shape.geoms else [])
-        elif shape.type == 'Polygon':
-            shape = MultiPolygon([shape])
-
-        # Apply hole policy
-        if self.hole_policy == 'remove' and shape.type == 'MultiPolygon':
-            shape = MultiPolygon([Polygon(p.exterior) for p in shape.geoms])
-
-        # Extract polygon coordinates
-        if shape.is_empty or not shape.geoms:
+        # Extract a single polygon from whatever shape we have
+        poly = extract_polygon(shape)
+        if poly is None:
             return [], [0, 0, 0, 0]
 
-        # Get the exterior coordinates of the first polygon
-        poly = shape.geoms[0]
+        # Apply hole policy - remove interior rings
+        if self.hole_policy == 'remove':
+            poly = Polygon(poly.exterior)
+
+        # Get the exterior coordinates
+        if poly.is_empty or poly.exterior is None:
+            return [], [0, 0, 0, 0]
+
         coords = list(poly.exterior.coords)
         polygon = [[float(x), float(y)] for x, y in coords]
 
         # Calculate bounds
-        bounds = list(shape.bounds)  # (minx, miny, maxx, maxy)
+        bounds = list(poly.bounds)  # (minx, miny, maxx, maxy)
 
         return polygon, bounds
 
@@ -259,6 +355,11 @@ class SAM2InteractiveService:
 
         # Convert mask to polygon
         polygon, bounds = self._mask_to_polygon(mask)
+
+        # Simplify polygon to maximum number of points
+        if polygon and len(polygon) > self.max_polygon_points:
+            polygon = simplify_polygon_to_max_points(polygon, self.max_polygon_points)
+            self._log(f"Simplified polygon to {len(polygon)} points")
 
         return {
             "success": True,
@@ -351,14 +452,19 @@ class SAM2InteractiveService:
 def main():
     parser = argparse.ArgumentParser(description="SAM2 Interactive Inference Service")
     parser.add_argument(
+        "--viame-path",
+        default=None,
+        help="Path to VIAME installation directory (used to find model checkpoint)",
+    )
+    parser.add_argument(
         "--cfg",
         default="configs/sam2.1/sam2.1_hiera_b+.yaml",
         help="Path to SAM2 config file (relative to sam2 package)",
     )
     parser.add_argument(
         "--checkpoint",
-        default="https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt",
-        help="Path or URL to SAM2 checkpoint",
+        default=None,
+        help="Path to SAM2 checkpoint (defaults to VIAME_PATH/configs/pipelines/models/sam2_hbp.pt)",
     )
     parser.add_argument(
         "--device",
@@ -378,14 +484,42 @@ def main():
         choices=["allow", "convex_hull", "largest"],
         help="How to handle multiple polygons",
     )
+    parser.add_argument(
+        "--max-polygon-points",
+        type=int,
+        default=25,
+        help="Maximum number of points in output polygons (uses Douglas-Peucker simplification)",
+    )
     args = parser.parse_args()
+
+    # Determine checkpoint path
+    checkpoint = args.checkpoint
+    if checkpoint is None:
+        # Try to find checkpoint in VIAME installation
+        if args.viame_path:
+            checkpoint = str(Path(args.viame_path) / "configs" / "pipelines" / "models" / "sam2_hbp.pt")
+        else:
+            # Try VIAME_INSTALL environment variable
+            viame_install = os.environ.get("VIAME_INSTALL")
+            if viame_install:
+                checkpoint = str(Path(viame_install) / "configs" / "pipelines" / "models" / "sam2_hbp.pt")
+            else:
+                print("[SAM2] Error: No checkpoint specified and VIAME_INSTALL not set", file=sys.stderr)
+                print("[SAM2] Use --checkpoint or --viame-path to specify model location", file=sys.stderr)
+                sys.exit(1)
+
+    # Verify checkpoint exists
+    if not Path(checkpoint).exists():
+        print(f"[SAM2] Error: Checkpoint not found: {checkpoint}", file=sys.stderr)
+        sys.exit(1)
 
     service = SAM2InteractiveService(
         cfg=args.cfg,
-        checkpoint=args.checkpoint,
+        checkpoint=checkpoint,
         device=args.device,
         hole_policy=args.hole_policy,
         multipolygon_policy=args.multipolygon_policy,
+        max_polygon_points=args.max_polygon_points,
     )
 
     try:
