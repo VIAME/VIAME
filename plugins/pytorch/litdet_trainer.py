@@ -38,9 +38,13 @@ class LitDetTrainerConfig(KWCocoTrainDetectorConfig):
     tmp_validation_file = "validation_truth.json"
 
     # LitDet model configuration
-    model_type = scfg.Value('faster_rcnn', help='Model type: faster_rcnn or fcnn')
+    model_type = scfg.Value('faster_rcnn', help='Model type: faster_rcnn, ssd, or retinanet')
     backbone = scfg.Value('resnet50_fpn', help='Backbone architecture')
     device = scfg.Value('auto', help='Device to train on: auto, cpu, cuda, or cuda:N')
+
+    # Fine-tuning configuration
+    fine_tune = scfg.Value(True, help='Use pretrained weights for fine-tuning')
+    pretrained_weights = scfg.Value('coco', help='Pretrained weights: coco, imagenet, none, or path to weights file')
 
     # Training hyperparameters
     max_epochs = scfg.Value(100, help='Maximum number of epochs to train for')
@@ -292,6 +296,153 @@ class LitDetTrainer(KWCocoTrainDetector):
 
         return output_dir, len(categories)
 
+    def _build_model_config(self, model_type, num_classes, trainable_backbone_layers,
+                            fine_tune, pretrained_weights):
+        """
+        Build model configuration based on model type and fine-tuning settings.
+
+        Args:
+            model_type: Type of model (faster_rcnn, ssd, retinanet)
+            num_classes: Number of classes (excluding background)
+            trainable_backbone_layers: Number of trainable backbone layers
+            fine_tune: Whether to use pretrained weights
+            pretrained_weights: Weight source (coco, imagenet, none, or path)
+
+        Returns:
+            dict: Model configuration dictionary for Hydra
+        """
+        # Determine weights configuration
+        if not fine_tune or pretrained_weights.lower() == 'none':
+            weights_config = None
+            backbone_weights_config = None
+        elif pretrained_weights.lower() == 'coco':
+            # Use COCO pretrained weights (full model)
+            weights_config = 'DEFAULT'
+            backbone_weights_config = None
+        elif pretrained_weights.lower() == 'imagenet':
+            # Use ImageNet pretrained backbone only
+            weights_config = None
+            backbone_weights_config = 'DEFAULT'
+        elif ub.Path(pretrained_weights).exists():
+            # Custom weights file - will be loaded separately
+            weights_config = None
+            backbone_weights_config = None
+        else:
+            # Default to COCO pretrained
+            weights_config = 'DEFAULT'
+            backbone_weights_config = None
+
+        # Build model config based on type
+        if model_type == 'faster_rcnn' or model_type == 'frcnn':
+            model_config = {
+                '_target_': 'lightning_hydra_detection.tasks.components.faster_rcnn.build_faster_rcnn_resnet50_fpn',
+                'num_classes': num_classes + 1,  # +1 for background
+                'trainable_backbone_layers': trainable_backbone_layers,
+            }
+            if weights_config:
+                model_config['weights'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.detection.FasterRCNN_ResNet50_FPN_V2_Weights.DEFAULT',
+                }
+            else:
+                model_config['weights'] = None
+
+            if backbone_weights_config:
+                model_config['weights_backbone'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.ResNet50_Weights.IMAGENET1K_V2',
+                }
+
+        elif model_type == 'ssd' or model_type == 'ssd300':
+            # SSD300 with VGG16 backbone
+            model_config = {
+                '_target_': 'torchvision.models.detection.ssd300_vgg16',
+                'num_classes': num_classes + 1,  # +1 for background
+                'trainable_backbone_layers': trainable_backbone_layers,
+            }
+            if weights_config:
+                model_config['weights'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.detection.SSD300_VGG16_Weights.DEFAULT',
+                }
+            else:
+                model_config['weights'] = None
+
+            if backbone_weights_config:
+                model_config['weights_backbone'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.VGG16_Weights.IMAGENET1K_V1',
+                }
+
+        elif model_type == 'ssdlite' or model_type == 'ssdlite320':
+            # SSDLite320 with MobileNetV3 backbone
+            model_config = {
+                '_target_': 'torchvision.models.detection.ssdlite320_mobilenet_v3_large',
+                'num_classes': num_classes + 1,  # +1 for background
+                'trainable_backbone_layers': trainable_backbone_layers,
+            }
+            if weights_config:
+                model_config['weights'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.detection.SSDLite320_MobileNet_V3_Large_Weights.DEFAULT',
+                }
+            else:
+                model_config['weights'] = None
+
+            if backbone_weights_config:
+                model_config['weights_backbone'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.MobileNet_V3_Large_Weights.IMAGENET1K_V1',
+                }
+
+        elif model_type == 'retinanet':
+            # RetinaNet with ResNet50 FPN backbone
+            model_config = {
+                '_target_': 'torchvision.models.detection.retinanet_resnet50_fpn_v2',
+                'num_classes': num_classes + 1,  # +1 for background
+                'trainable_backbone_layers': trainable_backbone_layers,
+            }
+            if weights_config:
+                model_config['weights'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.detection.RetinaNet_ResNet50_FPN_V2_Weights.DEFAULT',
+                }
+            else:
+                model_config['weights'] = None
+
+            if backbone_weights_config:
+                model_config['weights_backbone'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.ResNet50_Weights.IMAGENET1K_V2',
+                }
+
+        elif model_type == 'fcos':
+            # FCOS with ResNet50 FPN backbone
+            model_config = {
+                '_target_': 'torchvision.models.detection.fcos_resnet50_fpn',
+                'num_classes': num_classes + 1,  # +1 for background
+                'trainable_backbone_layers': trainable_backbone_layers,
+            }
+            if weights_config:
+                model_config['weights'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.detection.FCOS_ResNet50_FPN_Weights.DEFAULT',
+                }
+            else:
+                model_config['weights'] = None
+
+            if backbone_weights_config:
+                model_config['weights_backbone'] = {
+                    '_target_': 'hydra.utils.get_object',
+                    'path': 'torchvision.models.ResNet50_Weights.IMAGENET1K_V2',
+                }
+
+        else:
+            raise ValueError(f"Unknown model type: {model_type}. "
+                           f"Supported types: faster_rcnn, ssd, ssdlite, retinanet, fcos")
+
+        return model_config
+
     def _build_hydra_config(self, data_dir, num_classes, output_dir):
         """
         Build a Hydra DictConfig programmatically for LitDet training.
@@ -313,6 +464,11 @@ class LitDetTrainer(KWCocoTrainDetector):
         if seed is not None:
             seed = int(seed)
 
+        # Parse fine-tuning parameters
+        fine_tune = parse_bool(self._fine_tune)
+        pretrained_weights = self._pretrained_weights
+        model_type = self._model_type.lower()
+
         # Resolve device
         device_str = resolve_device_str(self._device)
         if device_str.startswith('cuda'):
@@ -324,6 +480,12 @@ class LitDetTrainer(KWCocoTrainDetector):
         else:
             accelerator = 'cpu'
             devices = 1
+
+        # Build model configuration based on model_type
+        model_config = self._build_model_config(
+            model_type, num_classes, trainable_backbone_layers,
+            fine_tune, pretrained_weights
+        )
 
         # Build the config dictionary
         cfg_dict = {
@@ -353,15 +515,7 @@ class LitDetTrainer(KWCocoTrainDetector):
             # Task configuration
             'task': {
                 '_target_': 'lightning_hydra_detection.tasks.detect_module.DetectLitModule',
-                'model': {
-                    '_target_': 'lightning_hydra_detection.tasks.components.faster_rcnn.build_faster_rcnn_resnet50_fpn',
-                    'weights': {
-                        '_target_': 'hydra.utils.get_object',
-                        'path': 'torchvision.models.detection.FasterRCNN_ResNet50_FPN_V2_Weights.DEFAULT',
-                    },
-                    'num_classes': num_classes + 1,  # +1 for background
-                    'trainable_backbone_layers': trainable_backbone_layers,
-                },
+                'model': model_config,
                 'optimizer': {
                     '_target_': 'torch.optim.Adam',
                     '_partial_': True,

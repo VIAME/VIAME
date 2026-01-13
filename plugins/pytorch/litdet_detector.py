@@ -20,11 +20,13 @@ class LitDetDetectorConfig(scfg.DataConfig):
     The configuration for :class:`LitDetDetector`.
     """
     checkpoint = scfg.Value(None, help='Path to a trained LitDet checkpoint (.ckpt file)')
+    model_type = scfg.Value('faster_rcnn', help='Model type: faster_rcnn, ssd, ssdlite, retinanet, fcos')
     config_path = scfg.Value(None, help='Path to the Hydra config directory (optional)')
     config_name = scfg.Value('train.yaml', help='Name of the config file to use')
     device = scfg.Value('auto', help='Device to run on: auto, cpu, cuda, or cuda:N')
     threshold = scfg.Value(0.5, help='Detection confidence threshold')
     batch_size = scfg.Value(1, help='Batch size for inference')
+    num_classes = scfg.Value(None, help='Number of classes (auto-detected from checkpoint if not set)')
 
     def __post_init__(self):
         super().__post_init__()
