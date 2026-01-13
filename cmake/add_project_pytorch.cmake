@@ -51,12 +51,16 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} roi-align )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-DETECTRON )
+if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} detectron2 )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-SAM )
+if( VIAME_ENABLE_PYTORCH-SAM2 )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} sam2 )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-SAM3 )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} sam3 )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-STEREO )
@@ -138,7 +142,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
 
   if( VIAME_PYTHON_SYMLINK )
-    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" )
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
       set( LIBRARY_PIP_BUILD_CMD "" )
       set( LIBRARY_PIP_INSTALL_CMD
         ${Python_EXECUTABLE} -m pip install --no-build-isolation --user -e . )
@@ -149,7 +153,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${Python_EXECUTABLE} -m pip install --user -e . )
     endif()
   else()
-    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" )
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
       # Use pip wheel for pyproject.toml-based packages
       # This avoids creating build directories in source tree
       set( LIBRARY_PIP_BUILD_CMD

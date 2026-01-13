@@ -49,7 +49,7 @@ if( VIAME_DOWNLOAD_MODELS )
   endif()
 
   # SAM2 generic segmentation model
-  if( VIAME_ENABLE_PYTORCH-SAM )
+  if( VIAME_ENABLE_PYTORCH-SAM2 )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/6757401e9ccf870f61ceacb9/download
       54958fe7a3a0fdb8f831d89cc5bc0a69
@@ -364,7 +364,7 @@ if( VIAME_ENABLE_PYTORCH-LITDET )
     train_detector_litdet_ssd.conf)
 endif()
 
-if( VIAME_ENABLE_PYTORCH-DETECTRON )
+if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_detectron2_frcnn.conf
     train_detector_dino_remax.conf
@@ -373,7 +373,7 @@ if( VIAME_ENABLE_PYTORCH-DETECTRON )
     detector_remax_dino_novelty_detection.pipe)
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM )
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     utility_add_segmentations_default.pipe
     utility_add_segmentations_sam2.pipe
