@@ -89,6 +89,20 @@ if( VIAME_ENABLE_PYTORCH-DETECTRON )
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH-LITDET )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_litdet_frcnn.bat
+         train_litdet_ssd.bat )
+  else()
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_litdet_frcnn.sh
+         train_litdet_ssd.sh )
+  endif()
+endif()
+
 if( VIAME_ENABLE_SVM )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
