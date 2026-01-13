@@ -358,6 +358,12 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
     train_detector_rf_detr_560.conf)
 endif()
 
+if( VIAME_ENABLE_PYTORCH-LITDET )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_litdet_frcnn.conf
+    train_detector_litdet_ssd.conf)
+endif()
+
 if( VIAME_ENABLE_PYTORCH-DETECTRON )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_detectron2_frcnn.conf
