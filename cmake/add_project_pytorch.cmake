@@ -138,7 +138,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
 
   if( VIAME_PYTHON_SYMLINK )
-    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" )
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" )
       set( LIBRARY_PIP_BUILD_CMD "" )
       set( LIBRARY_PIP_INSTALL_CMD
         ${Python_EXECUTABLE} -m pip install --no-build-isolation --user -e . )
@@ -149,7 +149,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${Python_EXECUTABLE} -m pip install --user -e . )
     endif()
   else()
-    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" )
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" )
       # Use pip wheel for pyproject.toml-based packages
       # This avoids creating build directories in source tree
       set( LIBRARY_PIP_BUILD_CMD
