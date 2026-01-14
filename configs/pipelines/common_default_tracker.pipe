@@ -7,20 +7,20 @@
 
 process tracker
   :: track_objects
-  :track_objects:type                            srnn
+  :track_objects:type                  srnn
 
 block track_objects:srnn
-  :siamese_model_path         siamese/snapshot_epoch_6.pt
-  :siamese_model_input_size   224
-  :siamese_batch_size         128
-  :targetRNN_AIM_model_path   targetRNN_snapshot/App_LSTM_epoch_51.pt
-  :targetRNN_AIM_V_model_path targetRNN_AI/App_LSTM_epoch_51.pt
-  :targetRNN_batch_size       256
-  :similarity_threshold       0.5
-  :IOU_tracker_flag           true
-  :IOU_accept_threshold       0.5
-  :IOU_reject_threshold       0.1
-  :terminate_track_threshold  15
+  :siamese_model_path                  siamese/snapshot_epoch_6.pt
+  :siamese_model_input_size            224
+  :siamese_batch_size                  128
+  :targetRNN_AIM_model_path            targetRNN_snapshot/App_LSTM_epoch_51.pt
+  :targetRNN_AIM_V_model_path          targetRNN_AI/App_LSTM_epoch_51.pt
+  :targetRNN_batch_size                256
+  :similarity_threshold                0.5
+  :IOU_tracker_flag                    true
+  :IOU_accept_threshold                0.5
+  :IOU_reject_threshold                0.1
+  :terminate_track_threshold           15
 endblock
 
 # -- end of file --

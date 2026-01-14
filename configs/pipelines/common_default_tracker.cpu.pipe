@@ -7,14 +7,14 @@
 
 process tracker
   :: track_objects
-  :track_objects:type                            bytetrack
+  :track_objects:type                  bytetrack
 
 block track_objects:bytetrack
-  :high_thresh                                   0.6
-  :low_thresh                                    0.1
-  :match_thresh                                  0.8
-  :track_buffer                                  30
-  :new_track_thresh                              0.6
+  :high_thresh                         0.6
+  :low_thresh                          0.1
+  :match_thresh                        0.8
+  :track_buffer                        30
+  :new_track_thresh                    0.6
 endblock
 
 # -- end of file --
