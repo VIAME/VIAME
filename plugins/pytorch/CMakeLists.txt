@@ -243,6 +243,11 @@ if( VIAME_ENABLE_PYTORCH-SAM3 )
       pytorch
       sam3_interactive )
 
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_tracker.py
+      arrows/pytorch
+      sam3_tracker )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-STEREO )
