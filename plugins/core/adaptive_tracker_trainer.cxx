@@ -518,15 +518,14 @@ adaptive_tracker_trainer::priv::compute_statistics_from_groundtruth(
 
       m_stats.total_tracks++;
 
-      // Get track states
-      auto states = track->history();
-      size_t track_length = states.size();
+      // Get track length
+      size_t track_length = track->size();
       m_stats.track_lengths.push_back( track_length );
       m_stats.total_detections += track_length;
 
       // Get class label from first detection with a type
       std::string track_class;
-      for( const auto& state : states )
+      for( const auto& state : *track )
       {
         auto obj_state = std::dynamic_pointer_cast< kv::object_track_state >( state );
         if( obj_state && obj_state->detection() && obj_state->detection()->type() )
@@ -555,7 +554,7 @@ adaptive_tracker_trainer::priv::compute_statistics_from_groundtruth(
       double prev_dx = 0, prev_dy = 0;
       bool has_prev_vel = false;
 
-      for( const auto& state : states )
+      for( const auto& state : *track )
       {
         auto obj_state = std::dynamic_pointer_cast< kv::object_track_state >( state );
         if( !obj_state )
@@ -684,7 +683,7 @@ adaptive_tracker_trainer::priv::compute_statistics_from_groundtruth(
       if( !track )
         continue;
 
-      for( const auto& state : track->history() )
+      for( const auto& state : *track )
       {
         auto obj_state = std::dynamic_pointer_cast< kv::object_track_state >( state );
         if( !obj_state || !obj_state->detection() )

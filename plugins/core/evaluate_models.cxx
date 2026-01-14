@@ -132,6 +132,11 @@ public:
     double iou_threshold,
     frame_matches& matches );
 
+  void match_frame(
+    const std::vector< detection >& computed,
+    const std::vector< detection >& groundtruth,
+    frame_matches& matches );
+
   void build_caches();
   void perform_matching();
   void clear_caches();
@@ -393,6 +398,38 @@ model_evaluator::priv::match_frame_with_matrix(
       matches.false_negatives.push_back( static_cast< int >( j ) );
     }
   }
+}
+
+// =============================================================================
+// Match detections for a single frame (computes IoU on the fly)
+// Used for per-class metrics where we don't have pre-computed IoU matrices
+
+void
+model_evaluator::priv::match_frame(
+  const std::vector< detection >& computed,
+  const std::vector< detection >& groundtruth,
+  frame_matches& matches )
+{
+  size_t num_comp = computed.size();
+  size_t num_gt = groundtruth.size();
+
+  // Compute IoU matrix for this frame
+  std::vector< std::vector< double > > iou_matrix;
+  if( num_comp > 0 && num_gt > 0 )
+  {
+    iou_matrix.resize( num_comp, std::vector< double >( num_gt, 0.0 ) );
+    for( size_t ci = 0; ci < num_comp; ci++ )
+    {
+      for( size_t gi = 0; gi < num_gt; gi++ )
+      {
+        iou_matrix[ci][gi] = compute_iou( computed[ci], groundtruth[gi] );
+      }
+    }
+  }
+
+  // Delegate to matrix-based matching
+  match_frame_with_matrix( iou_matrix, num_comp, num_gt,
+                           m_config.iou_threshold, matches );
 }
 
 // =============================================================================
@@ -1316,11 +1353,11 @@ model_evaluator::priv::compute_hota_metrics( evaluation_results& results )
       }
 
       // FNA = GT appearances - TPA (GT frames not matched by this comp track)
-      int gt_total = gt_track_appearances[gt_track];
+      int gt_total = gt_track_appearances.at(gt_track);
       int fna = gt_total - tpa;
 
       // FPA = Comp appearances - TPA (Comp frames not matched to this GT)
-      int comp_total = comp_track_appearances[comp_track];
+      int comp_total = comp_track_appearances.at(comp_track);
       int fpa = comp_total - tpa;
 
       double a_score = 0.0;
