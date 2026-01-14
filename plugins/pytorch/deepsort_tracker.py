@@ -18,34 +18,26 @@ Reference: Wojke et al., "Simple Online and Realtime Tracking with
 a Deep Association Metric" (ICIP 2017)
 """
 
-import functools
 import logging
 
 import numpy as np
 import scipy.optimize
 import scipy.linalg
+import scipy.stats
+import scriptconfig as scfg
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
+from kwiver.vital.algo import TrackObjects
 from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
 
 logger = logging.getLogger(__name__)
 
 
 # =============================================================================
-# Kalman Filter for motion prediction (same as ByteTrack)
+# Kalman Filter for motion prediction
 # =============================================================================
 
 class KalmanFilter:
-    """
-    A simple Kalman filter for tracking bounding boxes in image space.
-
-    The 8-dimensional state space:
-        x, y, a, h, vx, vy, va, vh
-
-    where (x, y) is the center of the bounding box, a is the aspect ratio,
-    h is the height, and v* are the respective velocities.
-    """
+    """Kalman filter for tracking bounding boxes in image space."""
 
     def __init__(self, std_weight_position=1.0/20, std_weight_velocity=1.0/160):
         ndim = 4
@@ -134,9 +126,7 @@ class KalmanFilter:
         return new_mean, new_covariance
 
     def gating_distance(self, mean, covariance, measurements, only_position=False):
-        """
-        Compute gating distance (Mahalanobis) between state and measurements.
-        """
+        """Compute gating distance (Mahalanobis) between state and measurements."""
         projected_mean, projected_cov = self.project(mean, covariance)
 
         if only_position:
@@ -167,11 +157,7 @@ class TrackState:
 # =============================================================================
 
 class FeatureExtractor:
-    """
-    Deep appearance feature extractor for Re-ID.
-
-    Uses a CNN to extract appearance embeddings from detection crops.
-    """
+    """Deep appearance feature extractor for Re-ID."""
 
     def __init__(self, model_path=None, device='cuda'):
         self.model = None
@@ -190,18 +176,13 @@ class FeatureExtractor:
 
             self.torch = torch
 
-            # Use GPU if available
             if self.device == 'cuda' and not torch.cuda.is_available():
                 self.device = 'cpu'
 
-            # Load model
             if self.model_path and self.model_path.strip():
-                # Load custom Re-ID model
                 self.model = torch.load(self.model_path, map_location=self.device)
             else:
-                # Use pretrained ResNet18 as feature extractor
                 self.model = resnet18(weights=ResNet18_Weights.DEFAULT)
-                # Remove classification layer, keep features
                 self.model = torch.nn.Sequential(*list(self.model.children())[:-1])
 
             self.model = self.model.to(self.device)
@@ -224,25 +205,10 @@ class FeatureExtractor:
             self._initialized = True
 
     def extract(self, image, boxes):
-        """
-        Extract appearance features for detections.
-
-        Parameters
-        ----------
-        image : ndarray
-            Full frame image (H, W, C).
-        boxes : list
-            List of bounding boxes in (x1, y1, x2, y2) format.
-
-        Returns
-        -------
-        ndarray
-            Feature matrix (N, feature_dim).
-        """
+        """Extract appearance features for detections."""
         self._initialize()
 
         if self.model is None:
-            # Return random features if no model
             return np.random.randn(len(boxes), 512).astype(np.float32)
 
         if len(boxes) == 0:
@@ -279,9 +245,7 @@ class FeatureExtractor:
 # =============================================================================
 
 class STrack:
-    """
-    Represents a single tracked object with Kalman filter state and appearance.
-    """
+    """Represents a single tracked object with Kalman filter state and appearance."""
     _count = 0
 
     def __init__(self, tlwh, score, feature=None, detected_object=None):
@@ -299,13 +263,12 @@ class STrack:
         self.hits = 1
         self.time_since_update = 0
 
-        # Appearance features
         self.features = []
         if feature is not None:
             self.features.append(feature)
 
-        self._n_init = 3  # Frames to confirm track
-        self._max_age = 30  # Max frames to keep lost track
+        self._n_init = 3
+        self._max_age = 30
 
     @staticmethod
     def next_id():
@@ -344,7 +307,6 @@ class STrack:
         self.score = detection.score
         self.detected_object = detection.detected_object
 
-        # Update appearance features (keep recent ones)
         if detection.features:
             self.features.append(detection.features[0])
             if len(self.features) > 100:
@@ -409,9 +371,7 @@ class STrack:
 # =============================================================================
 
 def cosine_distance(a, b, data_is_normalized=True):
-    """
-    Compute cosine distance between feature vectors.
-    """
+    """Compute cosine distance between feature vectors."""
     if not data_is_normalized:
         a = np.asarray(a) / np.linalg.norm(a, axis=1, keepdims=True)
         b = np.asarray(b) / np.linalg.norm(b, axis=1, keepdims=True)
@@ -419,9 +379,7 @@ def cosine_distance(a, b, data_is_normalized=True):
 
 
 def nn_cosine_distance(tracks, detections):
-    """
-    Compute nearest neighbor cosine distance for each track-detection pair.
-    """
+    """Compute nearest neighbor cosine distance for each track-detection pair."""
     cost_matrix = np.zeros((len(tracks), len(detections)))
 
     for i, track in enumerate(tracks):
@@ -481,24 +439,6 @@ def iou_distance(tracks, detections):
 
 INFTY_COST = 1e5
 
-def gate_cost_matrix(kf, cost_matrix, tracks, detections, gated_cost=INFTY_COST,
-                     only_position=False):
-    """
-    Apply gating based on Mahalanobis distance.
-    """
-    gating_dim = 2 if only_position else 4
-    gating_threshold = scipy.stats.chi2.ppf(0.95, df=gating_dim)
-
-    measurements = np.array([d.tlwh_to_xyah(d._tlwh) for d in detections])
-
-    for row, track in enumerate(tracks):
-        gating_distance = kf.gating_distance(
-            track.mean, track.covariance, measurements, only_position
-        )
-        cost_matrix[row, gating_distance > gating_threshold] = gated_cost
-
-    return cost_matrix
-
 
 def linear_assignment(cost_matrix, thresh):
     """Perform linear assignment with threshold."""
@@ -524,9 +464,7 @@ def linear_assignment(cost_matrix, thresh):
 
 def matching_cascade(distance_metric, max_distance, cascade_depth, tracks,
                      detections, track_indices=None, detection_indices=None):
-    """
-    Run matching cascade: match by age (recently seen first).
-    """
+    """Run matching cascade: match by age (recently seen first)."""
     if track_indices is None:
         track_indices = list(range(len(tracks)))
     if detection_indices is None:
@@ -547,7 +485,6 @@ def matching_cascade(distance_metric, max_distance, cascade_depth, tracks,
         if len(track_indices_l) == 0:
             continue
 
-        # Compute cost matrix for this level
         cost_matrix = distance_metric(
             [tracks[i] for i in track_indices_l],
             [detections[i] for i in unmatched_detections]
@@ -565,28 +502,6 @@ def matching_cascade(distance_metric, max_distance, cascade_depth, tracks,
     unmatched_tracks = [k for k in track_indices if k not in [m[0] for m in matches]]
 
     return matches, unmatched_tracks, unmatched_detections
-
-
-# =============================================================================
-# Transformer pattern
-# =============================================================================
-
-class Transformer:
-    __slots__ = '_gen',
-
-    def __init__(self, gen):
-        gen.send(None)
-        self._gen = gen
-
-    def step(self, *args):
-        return self._gen.send(args)
-
-    @classmethod
-    def decorate(cls, f):
-        @functools.wraps(f)
-        def wrapper(*args, **kwargs):
-            return cls(f(*args, **kwargs))
-        return wrapper
 
 
 # =============================================================================
@@ -630,79 +545,147 @@ def to_ObjectTrackSet(tracks):
 
 
 # =============================================================================
-# DeepSORT core algorithm
+# DeepSORT Configuration
 # =============================================================================
 
-@Transformer.decorate
-def deepsort_core(
-    max_dist=0.2,
-    min_confidence=0.3,
-    max_iou_distance=0.7,
-    max_age=30,
-    n_init=3,
-    model_path=None,
-):
-    """
-    DeepSORT algorithm as a generator-based Transformer.
+class DeepSORTTrackerConfig(scfg.DataConfig):
+    """Configuration for DeepSORT tracker."""
+    max_dist = scfg.Value(0.2, help='Maximum cosine distance for appearance matching')
+    min_confidence = scfg.Value(0.3, help='Minimum detection confidence threshold')
+    max_iou_distance = scfg.Value(0.7, help='Maximum IOU distance for fallback matching')
+    max_age = scfg.Value(30, help='Maximum frames to keep lost tracks')
+    n_init = scfg.Value(3, help='Consecutive detections before track is confirmed')
+    model_path = scfg.Value('', help='Path to Re-ID model weights (optional)')
+    device = scfg.Value('cuda', help='Device for feature extraction (cuda or cpu)')
 
-    Parameters
-    ----------
-    max_dist : float
-        Maximum cosine distance for appearance matching.
-    min_confidence : float
-        Minimum detection confidence.
-    max_iou_distance : float
-        Maximum IOU distance for IOU matching stage.
-    max_age : int
-        Maximum frames to keep lost tracks.
-    n_init : int
-        Number of consecutive detections before track is confirmed.
-    model_path : str
-        Path to Re-ID model weights (optional).
-    """
-    kalman_filter = KalmanFilter()
-    feature_extractor = FeatureExtractor(model_path=model_path)
-    tracks = []
-    frame_id = 0
 
-    output = None
-    while True:
-        dos, ts, image = yield output
-        frame_id += 1
+# =============================================================================
+# DeepSORT Algorithm (TrackObjects implementation)
+# =============================================================================
+
+class DeepSORTTracker(TrackObjects):
+    """
+    DeepSORT multi-object tracker.
+
+    Uses cascade matching with deep appearance features for robust
+    re-identification after occlusions.
+
+    Reference: Wojke et al., "Simple Online and Realtime Tracking with
+    a Deep Association Metric" (ICIP 2017)
+    """
+
+    def __init__(self):
+        TrackObjects.__init__(self)
+        self._config = DeepSORTTrackerConfig()
+
+        # Internal state
+        self._kalman_filter = None
+        self._feature_extractor = None
+        self._tracks = []
+        self._frame_id = 0
+
+    def get_configuration(self):
+        """Get the algorithm configuration."""
+        cfg = super(TrackObjects, self).get_configuration()
+        for key, value in self._config.items():
+            cfg.set_value(key, str(value))
+        return cfg
+
+    def set_configuration(self, cfg_in):
+        """Set the algorithm configuration."""
+        from viame.pytorch.utilities import vital_config_update
+
+        cfg = self.get_configuration()
+        vital_config_update(cfg, cfg_in)
+
+        for key in self._config.keys():
+            self._config[key] = str(cfg.get_value(key))
+
+        # Convert types
+        self._max_dist = float(self._config.max_dist)
+        self._min_confidence = float(self._config.min_confidence)
+        self._max_iou_distance = float(self._config.max_iou_distance)
+        self._max_age = int(self._config.max_age)
+        self._n_init = int(self._config.n_init)
+        self._model_path = self._config.model_path
+        self._device = self._config.device
+
+        # Initialize tracker state
+        self._kalman_filter = KalmanFilter()
+        self._feature_extractor = FeatureExtractor(
+            model_path=self._model_path if self._model_path else None,
+            device=self._device
+        )
+        self._tracks = []
+        self._frame_id = 0
+        STrack.reset_id()
+
+        return True
+
+    def check_configuration(self, cfg):
+        """Check if the configuration is valid."""
+        return True
+
+    def track(self, ts, image, detections):
+        """
+        Track objects in a new frame.
+
+        Parameters
+        ----------
+        ts : Timestamp
+            Timestamp for the current frame.
+        image : ImageContainer
+            The input image for the current frame.
+        detections : DetectedObjectSet
+            Detected objects from the current frame.
+
+        Returns
+        -------
+        ObjectTrackSet
+            Updated object track set containing all active tracks.
+        """
+        self._frame_id += 1
+
+        # Get image as numpy array for feature extraction
+        img_np = None
+        if image is not None:
+            try:
+                img_np = image.image().asarray().astype('uint8')
+            except:
+                img_np = None
 
         # Convert detections
-        det_list = to_DetectedObject_list(dos)
-        detections = []
+        det_list = to_DetectedObject_list(detections) if detections else []
+        all_detections = []
 
-        # Extract bounding boxes for feature extraction
         boxes = []
         for do in det_list:
             score = get_DetectedObject_score(do)
-            if score < min_confidence:
+            if score < self._min_confidence:
                 continue
             tlwh = get_DetectedObject_bbox_tlwh(do)
             tlbr = get_DetectedObject_bbox_tlbr(do)
             boxes.append(tlbr)
-            detections.append(STrack(tlwh, score, detected_object=do))
+            all_detections.append(STrack(tlwh, score, detected_object=do))
 
         # Extract appearance features
-        if image is not None and len(boxes) > 0:
-            features = feature_extractor.extract(image, boxes)
-            for det, feat in zip(detections, features):
+        if img_np is not None and len(boxes) > 0:
+            features = self._feature_extractor.extract(img_np, boxes)
+            for det, feat in zip(all_detections, features):
                 det.features = [feat]
 
         # Predict existing tracks
-        for track in tracks:
+        for track in self._tracks:
             track.predict()
 
         # Split tracks by state
-        confirmed_tracks = [t for t in tracks if t.is_confirmed()]
-        unconfirmed_tracks = [t for t in tracks if t.is_tentative()]
+        confirmed_tracks = [t for t in self._tracks if t.is_confirmed()]
+        unconfirmed_tracks = [t for t in self._tracks if t.is_tentative()]
 
         # === Cascade matching for confirmed tracks ===
         matches_a, unmatched_tracks_a, unmatched_detections = matching_cascade(
-            nn_cosine_distance, max_dist, max_age,
-            confirmed_tracks, detections
+            nn_cosine_distance, self._max_dist, self._max_age,
+            confirmed_tracks, all_detections
         )
 
         # === IOU matching for remaining ===
@@ -717,137 +700,89 @@ def deepsort_core(
             if confirmed_tracks[i].time_since_update != 1
         ]
 
+        matches_b = []
         if len(iou_track_candidates) > 0 and len(unmatched_detections) > 0:
             cost_matrix = iou_distance(
                 iou_track_candidates,
-                [detections[i] for i in unmatched_detections]
+                [all_detections[i] for i in unmatched_detections]
             )
             matches_b, unmatched_tracks_b, unmatched_detections_b = linear_assignment(
-                cost_matrix, max_iou_distance
+                cost_matrix, self._max_iou_distance
             )
 
             for row, col in matches_b:
                 track = iou_track_candidates[row]
-                det = detections[unmatched_detections[col]]
-                track.update(det, frame_id, ts)
+                det = all_detections[unmatched_detections[col]]
+                track.update(det, self._frame_id, ts)
 
             unmatched_detections = [unmatched_detections[i] for i in unmatched_detections_b]
-        else:
-            unmatched_tracks_b = list(range(len(iou_track_candidates)))
 
         # Update matched tracks from cascade
         for track_idx, det_idx in matches_a:
-            confirmed_tracks[track_idx].update(detections[det_idx], frame_id, ts)
+            confirmed_tracks[track_idx].update(all_detections[det_idx], self._frame_id, ts)
 
         # Mark missed tracks
         for i in unmatched_tracks_a:
             confirmed_tracks[i].mark_missed()
 
+        matched_iou_indices = set(row for row, _ in matches_b)
         for i, track in enumerate(iou_track_candidates):
-            if i in [row for row, _ in matches_b if 'matches_b' in dir()]:
-                continue
-            track.mark_missed()
+            if i not in matched_iou_indices:
+                track.mark_missed()
 
         # Initialize new tracks
         for det_idx in unmatched_detections:
-            det = detections[det_idx]
-            det._n_init = n_init
-            det._max_age = max_age
-            det.activate(kalman_filter, frame_id, ts)
-            tracks.append(det)
+            det = all_detections[det_idx]
+            det._n_init = self._n_init
+            det._max_age = self._max_age
+            det.activate(self._kalman_filter, self._frame_id, ts)
+            self._tracks.append(det)
 
         # Remove deleted tracks
-        tracks = [t for t in tracks if not t.is_deleted()]
+        self._tracks = [t for t in self._tracks if not t.is_deleted()]
 
         # Output confirmed tracks
-        output_tracks = [t for t in tracks if t.is_confirmed() and len(t.history) > 0]
-        output = to_ObjectTrackSet(output_tracks)
+        output_tracks = [t for t in self._tracks if t.is_confirmed() and len(t.history) > 0]
+        return to_ObjectTrackSet(output_tracks)
+
+    def initialize(self, ts, image, seed_detections):
+        """Initialize the tracker for a new sequence."""
+        self.reset()
+        if seed_detections is not None and len(seed_detections) > 0:
+            return self.track(ts, image, seed_detections)
+        return ObjectTrackSet([])
+
+    def finalize(self):
+        """Finalize tracking and return all tracks."""
+        output_tracks = [t for t in self._tracks if len(t.history) > 0]
+        return to_ObjectTrackSet(output_tracks)
+
+    def reset(self):
+        """Reset the tracker state."""
+        self._kalman_filter = KalmanFilter()
+        self._tracks = []
+        self._frame_id = 0
+        STrack.reset_id()
 
 
 # =============================================================================
-# Sprokit process
+# Algorithm Registration
 # =============================================================================
 
-def add_declare_config(proc, name_key, default, description):
-    proc.add_config_trait(name_key, name_key, default, description)
-    proc.declare_config_using_trait(name_key)
+def __vital_algorithm_register__():
+    """Register the DeepSORT algorithm with KWIVER."""
+    from kwiver.vital.algo import algorithm_factory
 
+    implementation_name = "deepsort"
 
-class deepsort_tracker(KwiverProcess):
-    """
-    DeepSORT multi-object tracker sprokit process.
-
-    Uses cascade matching with deep appearance features for robust
-    re-identification after occlusions.
-    """
-
-    def __init__(self, config):
-        KwiverProcess.__init__(self, config)
-
-        add_declare_config(self, "max_dist", "0.2",
-            "Maximum cosine distance for appearance matching")
-        add_declare_config(self, "min_confidence", "0.3",
-            "Minimum detection confidence threshold")
-        add_declare_config(self, "max_iou_distance", "0.7",
-            "Maximum IOU distance for fallback matching")
-        add_declare_config(self, "max_age", "30",
-            "Maximum frames to keep lost tracks")
-        add_declare_config(self, "n_init", "3",
-            "Consecutive detections before track is confirmed")
-        add_declare_config(self, "model_path", "",
-            "Path to Re-ID model weights (optional)")
-
-        optional = process.PortFlags()
-        required = process.PortFlags()
-        required.add(self.flag_required)
-
-        self.declare_input_port_using_trait('detected_object_set', required)
-        self.declare_input_port_using_trait('timestamp', required)
-        self.declare_input_port_using_trait('image', optional)
-
-        self.declare_output_port_using_trait('object_track_set', optional)
-
-    def _configure(self):
-        self._tracker = deepsort_core(
-            max_dist=float(self.config_value('max_dist')),
-            min_confidence=float(self.config_value('min_confidence')),
-            max_iou_distance=float(self.config_value('max_iou_distance')),
-            max_age=int(self.config_value('max_age')),
-            n_init=int(self.config_value('n_init')),
-            model_path=self.config_value('model_path'),
-        )
-        self._base_configure()
-
-    def _step(self):
-        dos = self.grab_input_using_trait('detected_object_set')
-        ts = self.grab_input_using_trait('timestamp')
-
-        # Image is optional for appearance features
-        try:
-            image = self.grab_input_using_trait('image')
-            if image is not None:
-                image = image.asarray()
-        except:
-            image = None
-
-        ots = self._tracker.step(dos, ts, image)
-
-        self.push_to_port_using_trait('object_track_set', ots)
-        self._base_step()
-
-
-def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
-
-    module_name = 'python:viame.processes.pytorch.deepsort_tracker'
-
-    if process_factory.is_process_module_loaded(module_name):
+    if algorithm_factory.has_algorithm_impl_name(
+            DeepSORTTracker.static_type_name(), implementation_name):
         return
 
-    process_factory.add_process(
-        'deepsort_tracker',
-        'DeepSORT multi-object tracker with deep appearance features',
-        deepsort_tracker,
+    algorithm_factory.add_algorithm(
+        implementation_name,
+        "DeepSORT multi-object tracker with deep appearance features",
+        DeepSORTTracker
     )
 
-    process_factory.mark_process_module_as_loaded(module_name)
+    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

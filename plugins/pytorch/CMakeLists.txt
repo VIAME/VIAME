@@ -20,7 +20,7 @@ add_subdirectory( srnn )
 
 kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/srnn_tracker.py
-  processes/pytorch
+  arrows/pytorch
   srnn_tracker )
 
 kwiver_add_python_module(
@@ -30,7 +30,7 @@ kwiver_add_python_module(
 
 kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/deepsort_tracker.py
-  processes/pytorch
+  arrows/pytorch
   deepsort_tracker )
 
 kwiver_add_python_module(
@@ -40,7 +40,7 @@ kwiver_add_python_module(
 
 kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/botsort_tracker.py
-  processes/pytorch
+  arrows/pytorch
   botsort_tracker )
 
 kwiver_add_python_module(
@@ -176,7 +176,7 @@ if( VIAME_ENABLE_PYTORCH-SIAMMASK )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/siammask_tracker.py
-    processes/pytorch
+    arrows/pytorch
     siammask_tracker )
 
   kwiver_add_python_module(

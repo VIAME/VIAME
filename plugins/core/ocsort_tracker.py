@@ -17,15 +17,14 @@ Reference: Cao et al., "Observation-Centric SORT: Rethinking SORT for
 Robust Multi-Object Tracking" (CVPR 2023)
 """
 
-import functools
 import logging
 
 import numpy as np
 import scipy.optimize
 import scipy.linalg
+import scriptconfig as scfg
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
+from kwiver.vital.algo import TrackObjects
 from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
 
 logger = logging.getLogger(__name__)
@@ -36,12 +35,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 class KalmanFilter:
-    """
-    Kalman filter with OC-SORT's Observation-Centric Momentum (OCM).
-
-    Key difference from standard Kalman: stores last observed state
-    to use observed velocity during occlusion instead of predicted.
-    """
+    """Kalman filter with OC-SORT's Observation-Centric Momentum (OCM)."""
 
     def __init__(self, std_weight_position=1.0/20, std_weight_velocity=1.0/160):
         ndim = 4
@@ -129,16 +123,6 @@ class KalmanFilter:
         ])
         return new_mean, new_covariance
 
-    def multi_predict(self, mean, covariance, delta_t):
-        """
-        Predict state delta_t frames forward.
-
-        Used for Observation-Centric Re-Update (ORU).
-        """
-        for _ in range(delta_t):
-            mean, covariance = self.predict(mean, covariance)
-        return mean, covariance
-
 
 # =============================================================================
 # Track state
@@ -156,11 +140,7 @@ class TrackState:
 # =============================================================================
 
 class STrack:
-    """
-    Single tracked object with OC-SORT's Observation-Centric Momentum.
-
-    Stores observation history for OCM and ORU.
-    """
+    """Single tracked object with OC-SORT's Observation-Centric Momentum."""
     shared_kalman = KalmanFilter()
     _count = 0
 
@@ -180,9 +160,9 @@ class STrack:
         self.history = []
 
         # OC-SORT: Store observation history for OCM and ORU
-        self.observations = {}  # frame_id -> xyah measurement
+        self.observations = {}
         self.last_observation = None
-        self.velocity = None  # Observed velocity (OCM)
+        self.velocity = None
 
     @staticmethod
     def next_id():
@@ -200,7 +180,6 @@ class STrack:
         measurement = self.tlwh_to_xyah(self._tlwh)
         self.mean, self.covariance = self.kalman_filter.initiate(measurement)
 
-        # Store observation
         self.observations[frame_id] = measurement
         self.last_observation = measurement
 
@@ -215,20 +194,13 @@ class STrack:
             self.history.append((timestamp, self.detected_object))
 
     def re_activate(self, new_track, frame_id, timestamp, new_id=False):
-        """
-        Reactivate with Observation-Centric Re-Update (ORU).
-
-        When re-found after occlusion, we re-update the Kalman filter
-        with a virtual trajectory based on the new observation.
-        """
+        """Reactivate with Observation-Centric Re-Update (ORU)."""
         new_measurement = self.tlwh_to_xyah(new_track.tlwh)
 
         # ORU: Re-update with virtual trajectory
         if self.last_observation is not None:
-            # Interpolate missing observations
             delta_t = frame_id - self.frame_id
             if delta_t > 1:
-                # Linear interpolation of position
                 for i in range(1, delta_t):
                     alpha = i / delta_t
                     virtual_obs = (1 - alpha) * self.last_observation + alpha * new_measurement
@@ -243,7 +215,6 @@ class STrack:
             self.mean, self.covariance, new_measurement
         )
 
-        # Update observed velocity
         if self.last_observation is not None:
             delta_t = max(1, frame_id - self.frame_id)
             self.velocity = (new_measurement[:2] - self.last_observation[:2]) / delta_t
@@ -271,7 +242,6 @@ class STrack:
 
         new_measurement = self.tlwh_to_xyah(new_track.tlwh)
 
-        # Update observed velocity (OCM)
         if self.last_observation is not None:
             self.velocity = new_measurement[:2] - self.last_observation[:2]
 
@@ -292,17 +262,12 @@ class STrack:
             self.history.append((timestamp, self.detected_object))
 
     def predict(self):
-        """
-        Predict with Observation-Centric Momentum (OCM).
-
-        Use observed velocity instead of predicted velocity during occlusion.
-        """
+        """Predict with Observation-Centric Momentum (OCM)."""
         mean_state = self.mean.copy()
 
-        # OCM: Use observed velocity if available and track is lost
         if self.state != TrackState.TRACKED and self.velocity is not None:
             mean_state[4:6] = self.velocity[:2]
-            mean_state[7] = 0  # No height velocity
+            mean_state[7] = 0
 
         self.mean, self.covariance = self.kalman_filter.predict(
             mean_state, self.covariance
@@ -386,12 +351,7 @@ def iou_distance(atracks, btracks):
 
 
 def velocity_direction_consistency(tracks, detections, vdc_weight=0.2):
-    """
-    Compute velocity direction consistency penalty.
-
-    Penalizes associations where the required velocity direction
-    is inconsistent with the track's historical velocity direction.
-    """
+    """Compute velocity direction consistency penalty."""
     if len(tracks) == 0 or len(detections) == 0:
         return np.zeros((len(tracks), len(detections)))
 
@@ -414,11 +374,8 @@ def velocity_direction_consistency(tracks, detections, vdc_weight=0.2):
                 continue
 
             required_vel_norm = required_vel / np.linalg.norm(required_vel)
-
-            # Cosine similarity (1 = same direction, -1 = opposite)
             cos_sim = np.dot(track_vel_norm, required_vel_norm)
 
-            # Penalize if direction is inconsistent (negative cosine = opposite direction)
             if cos_sim < 0:
                 cost_matrix[i, j] = vdc_weight * (1 - cos_sim)
 
@@ -444,28 +401,6 @@ def linear_assignment(cost_matrix, thresh):
                 unmatched_b.remove(col)
 
     return matches, unmatched_a, unmatched_b
-
-
-# =============================================================================
-# Transformer pattern
-# =============================================================================
-
-class Transformer:
-    __slots__ = '_gen',
-
-    def __init__(self, gen):
-        gen.send(None)
-        self._gen = gen
-
-    def step(self, *args):
-        return self._gen.send(args)
-
-    @classmethod
-    def decorate(cls, f):
-        @functools.wraps(f)
-        def wrapper(*args, **kwargs):
-            return cls(f(*args, **kwargs))
-        return wrapper
 
 
 # =============================================================================
@@ -504,99 +439,137 @@ def to_ObjectTrackSet(tracks):
 
 
 # =============================================================================
-# OC-SORT core algorithm
+# OC-SORT Configuration
 # =============================================================================
 
-@Transformer.decorate
-def ocsort_core(
-    high_thresh=0.6,
-    low_thresh=0.1,
-    match_thresh=0.8,
-    track_buffer=30,
-    new_track_thresh=0.6,
-    use_vdc=True,
-    vdc_weight=0.2,
-    use_oru=True,
-):
+class OCSORTTrackerConfig(scfg.DataConfig):
+    """Configuration for OC-SORT tracker."""
+    high_thresh = scfg.Value(0.6, help='Confidence threshold for high-confidence detections')
+    low_thresh = scfg.Value(0.1, help='Confidence threshold for low-confidence detections')
+    match_thresh = scfg.Value(0.8, help='IOU threshold for matching')
+    track_buffer = scfg.Value(30, help='Number of frames to keep lost tracks')
+    new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track')
+    use_vdc = scfg.Value(True, help='Enable velocity direction consistency')
+    vdc_weight = scfg.Value(0.2, help='Weight for velocity direction consistency penalty')
+    use_oru = scfg.Value(True, help='Enable observation-centric re-update')
+
+
+# =============================================================================
+# OC-SORT Algorithm (TrackObjects implementation)
+# =============================================================================
+
+class OCSORTTracker(TrackObjects):
     """
-    OC-SORT algorithm as a generator-based Transformer.
+    OC-SORT multi-object tracker.
 
-    Parameters
-    ----------
-    high_thresh : float
-        Confidence threshold for high-confidence detections.
-    low_thresh : float
-        Confidence threshold for low-confidence detections.
-    match_thresh : float
-        IOU threshold for matching.
-    track_buffer : int
-        Number of frames to keep lost tracks.
-    new_track_thresh : float
-        Minimum confidence to create new track.
-    use_vdc : bool
-        Enable velocity direction consistency.
-    vdc_weight : float
-        Weight for velocity direction consistency penalty.
-    use_oru : bool
-        Enable observation-centric re-update.
+    Uses observation-centric momentum and re-update for robust
+    tracking through occlusions with improved motion estimation.
+
+    Reference: Cao et al., "Observation-Centric SORT: Rethinking SORT for
+    Robust Multi-Object Tracking" (CVPR 2023)
     """
-    kalman_filter = KalmanFilter()
-    tracked_stracks = []
-    lost_stracks = []
-    removed_stracks = []
-    frame_id = 0
 
-    output = None
-    while True:
-        dos, ts = yield output
-        frame_id += 1
+    def __init__(self):
+        TrackObjects.__init__(self)
+        self._config = OCSORTTrackerConfig()
 
-        det_list = to_DetectedObject_list(dos)
+        # Internal state
+        self._kalman_filter = None
+        self._tracked_stracks = []
+        self._lost_stracks = []
+        self._removed_stracks = []
+        self._frame_id = 0
 
-        detections = []
+    def get_configuration(self):
+        """Get the algorithm configuration."""
+        cfg = super(TrackObjects, self).get_configuration()
+        for key, value in self._config.items():
+            cfg.set_value(key, str(value))
+        return cfg
+
+    def set_configuration(self, cfg_in):
+        """Set the algorithm configuration."""
+        from viame.pytorch.utilities import vital_config_update
+
+        cfg = self.get_configuration()
+        vital_config_update(cfg, cfg_in)
+
+        for key in self._config.keys():
+            self._config[key] = str(cfg.get_value(key))
+
+        # Convert types
+        self._high_thresh = float(self._config.high_thresh)
+        self._low_thresh = float(self._config.low_thresh)
+        self._match_thresh = float(self._config.match_thresh)
+        self._track_buffer = int(self._config.track_buffer)
+        self._new_track_thresh = float(self._config.new_track_thresh)
+        self._use_vdc = str(self._config.use_vdc).lower() in ('true', '1', 'yes')
+        self._vdc_weight = float(self._config.vdc_weight)
+        self._use_oru = str(self._config.use_oru).lower() in ('true', '1', 'yes')
+
+        # Initialize tracker state
+        self._kalman_filter = KalmanFilter()
+        self._tracked_stracks = []
+        self._lost_stracks = []
+        self._removed_stracks = []
+        self._frame_id = 0
+        STrack.reset_id()
+
+        return True
+
+    def check_configuration(self, cfg):
+        """Check if the configuration is valid."""
+        return True
+
+    def track(self, ts, image, detections):
+        """Track objects in a new frame."""
+        self._frame_id += 1
+
+        det_list = to_DetectedObject_list(detections) if detections else []
+
+        all_detections = []
         for do in det_list:
             tlwh = get_DetectedObject_bbox_tlwh(do)
             score = get_DetectedObject_score(do)
-            detections.append(STrack(tlwh, score, detected_object=do))
+            all_detections.append(STrack(tlwh, score, detected_object=do))
 
-        high_dets = [d for d in detections if d.score >= high_thresh]
-        low_dets = [d for d in detections if low_thresh <= d.score < high_thresh]
+        high_dets = [d for d in all_detections if d.score >= self._high_thresh]
+        low_dets = [d for d in all_detections if self._low_thresh <= d.score < self._high_thresh]
 
         activated_stracks = []
         refind_stracks = []
 
         unconfirmed = []
         tracked = []
-        for track in tracked_stracks:
+        for track in self._tracked_stracks:
             if not track.is_activated:
                 unconfirmed.append(track)
             else:
                 tracked.append(track)
 
-        strack_pool = tracked + lost_stracks
+        strack_pool = tracked + self._lost_stracks
         STrack.multi_predict(strack_pool)
 
         # === FIRST STAGE: High-confidence matching with VDC ===
         dists = iou_distance(strack_pool, high_dets)
 
-        if use_vdc:
-            vdc_cost = velocity_direction_consistency(strack_pool, high_dets, vdc_weight)
+        if self._use_vdc:
+            vdc_cost = velocity_direction_consistency(strack_pool, high_dets, self._vdc_weight)
             dists = dists + vdc_cost
 
-        matches, u_track, u_detection = linear_assignment(dists, thresh=match_thresh)
+        matches, u_track, u_detection = linear_assignment(dists, thresh=self._match_thresh)
 
         for itracked, idet in matches:
             track = strack_pool[itracked]
             det = high_dets[idet]
             if track.state == TrackState.TRACKED:
-                track.update(det, frame_id, ts)
+                track.update(det, self._frame_id, ts)
                 activated_stracks.append(track)
             else:
-                # ORU: Re-activate with virtual trajectory update
-                if use_oru:
-                    track.re_activate(det, frame_id, ts, new_id=False)
+                if self._use_oru:
+                    track.re_activate(det, self._frame_id, ts, new_id=False)
                 else:
-                    track.update(det, frame_id, ts)
+                    track.update(det, self._frame_id, ts)
                 refind_stracks.append(track)
 
         # === SECOND STAGE: Low-confidence matching ===
@@ -608,133 +581,93 @@ def ocsort_core(
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
             det = low_dets[idet]
-            track.update(det, frame_id, ts)
+            track.update(det, self._frame_id, ts)
             activated_stracks.append(track)
 
         for it in u_track_second:
             track = r_tracked_stracks[it]
             if track.state != TrackState.LOST:
                 track.mark_lost()
-                lost_stracks.append(track)
+                self._lost_stracks.append(track)
 
         # === Handle unconfirmed tracks ===
         dists = iou_distance(unconfirmed, [high_dets[i] for i in u_detection])
         matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=0.7)
 
         for itracked, idet in matches:
-            unconfirmed[itracked].update(high_dets[u_detection[idet]], frame_id, ts)
+            unconfirmed[itracked].update(high_dets[u_detection[idet]], self._frame_id, ts)
             activated_stracks.append(unconfirmed[itracked])
 
         for it in u_unconfirmed:
             track = unconfirmed[it]
             track.mark_removed()
-            removed_stracks.append(track)
+            self._removed_stracks.append(track)
 
         # === Create new tracks ===
         for inew in u_detection_final:
             det = high_dets[u_detection[inew]]
-            if det.score >= new_track_thresh:
-                det.activate(kalman_filter, frame_id, ts)
+            if det.score >= self._new_track_thresh:
+                det.activate(self._kalman_filter, self._frame_id, ts)
                 activated_stracks.append(det)
 
         # === Update lost tracks ===
-        for track in lost_stracks:
-            if frame_id - track.frame_id > track_buffer:
+        for track in self._lost_stracks:
+            if self._frame_id - track.frame_id > self._track_buffer:
                 track.mark_removed()
-                removed_stracks.append(track)
+                self._removed_stracks.append(track)
 
         # === Merge track lists ===
-        tracked_stracks = [t for t in tracked_stracks if t.state == TrackState.TRACKED]
-        tracked_stracks = list(set(tracked_stracks + activated_stracks))
-        tracked_stracks = list(set(tracked_stracks + refind_stracks))
+        self._tracked_stracks = [t for t in self._tracked_stracks if t.state == TrackState.TRACKED]
+        self._tracked_stracks = list(set(self._tracked_stracks + activated_stracks))
+        self._tracked_stracks = list(set(self._tracked_stracks + refind_stracks))
 
-        lost_stracks = [t for t in lost_stracks if t.state == TrackState.LOST]
-        lost_stracks = [t for t in lost_stracks if t not in tracked_stracks]
+        self._lost_stracks = [t for t in self._lost_stracks if t.state == TrackState.LOST]
+        self._lost_stracks = [t for t in self._lost_stracks if t not in self._tracked_stracks]
 
-        output_tracks = [t for t in tracked_stracks if t.is_activated and len(t.history) > 0]
-        output = to_ObjectTrackSet(output_tracks)
+        output_tracks = [t for t in self._tracked_stracks if t.is_activated and len(t.history) > 0]
+        return to_ObjectTrackSet(output_tracks)
+
+    def initialize(self, ts, image, seed_detections):
+        """Initialize the tracker for a new sequence."""
+        self.reset()
+        if seed_detections is not None and len(seed_detections) > 0:
+            return self.track(ts, image, seed_detections)
+        return ObjectTrackSet([])
+
+    def finalize(self):
+        """Finalize tracking and return all tracks."""
+        output_tracks = [t for t in self._tracked_stracks if len(t.history) > 0]
+        output_tracks += [t for t in self._lost_stracks if len(t.history) > 0]
+        return to_ObjectTrackSet(output_tracks)
+
+    def reset(self):
+        """Reset the tracker state."""
+        self._kalman_filter = KalmanFilter()
+        self._tracked_stracks = []
+        self._lost_stracks = []
+        self._removed_stracks = []
+        self._frame_id = 0
+        STrack.reset_id()
 
 
 # =============================================================================
-# Sprokit process
+# Algorithm Registration
 # =============================================================================
 
-def add_declare_config(proc, name_key, default, description):
-    proc.add_config_trait(name_key, name_key, default, description)
-    proc.declare_config_using_trait(name_key)
+def __vital_algorithm_register__():
+    """Register the OC-SORT algorithm with KWIVER."""
+    from kwiver.vital.algo import algorithm_factory
 
+    implementation_name = "ocsort"
 
-class ocsort_tracker(KwiverProcess):
-    """
-    OC-SORT multi-object tracker sprokit process.
-
-    Uses observation-centric momentum and re-update for robust
-    tracking through occlusions with improved motion estimation.
-    """
-
-    def __init__(self, config):
-        KwiverProcess.__init__(self, config)
-
-        add_declare_config(self, "high_thresh", "0.6",
-            "Detection confidence threshold for first-stage matching")
-        add_declare_config(self, "low_thresh", "0.1",
-            "Detection confidence threshold for second-stage matching")
-        add_declare_config(self, "match_thresh", "0.8",
-            "IOU threshold for matching")
-        add_declare_config(self, "track_buffer", "30",
-            "Number of frames to keep lost tracks")
-        add_declare_config(self, "new_track_thresh", "0.6",
-            "Minimum confidence to create new track")
-        add_declare_config(self, "use_vdc", "true",
-            "Enable velocity direction consistency")
-        add_declare_config(self, "vdc_weight", "0.2",
-            "Weight for velocity direction consistency penalty")
-        add_declare_config(self, "use_oru", "true",
-            "Enable observation-centric re-update")
-
-        optional = process.PortFlags()
-        required = process.PortFlags()
-        required.add(self.flag_required)
-
-        self.declare_input_port_using_trait('detected_object_set', required)
-        self.declare_input_port_using_trait('timestamp', required)
-        self.declare_output_port_using_trait('object_track_set', optional)
-
-    def _configure(self):
-        self._tracker = ocsort_core(
-            high_thresh=float(self.config_value('high_thresh')),
-            low_thresh=float(self.config_value('low_thresh')),
-            match_thresh=float(self.config_value('match_thresh')),
-            track_buffer=int(self.config_value('track_buffer')),
-            new_track_thresh=float(self.config_value('new_track_thresh')),
-            use_vdc=self.config_value('use_vdc').lower() == 'true',
-            vdc_weight=float(self.config_value('vdc_weight')),
-            use_oru=self.config_value('use_oru').lower() == 'true',
-        )
-        self._base_configure()
-
-    def _step(self):
-        dos = self.grab_input_using_trait('detected_object_set')
-        ts = self.grab_input_using_trait('timestamp')
-
-        ots = self._tracker.step(dos, ts)
-
-        self.push_to_port_using_trait('object_track_set', ots)
-        self._base_step()
-
-
-def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
-
-    module_name = 'python:viame.processes.core.ocsort_tracker'
-
-    if process_factory.is_process_module_loaded(module_name):
+    if algorithm_factory.has_algorithm_impl_name(
+            OCSORTTracker.static_type_name(), implementation_name):
         return
 
-    process_factory.add_process(
-        'ocsort_tracker',
-        'OC-SORT tracker with observation-centric momentum and re-update',
-        ocsort_tracker,
+    algorithm_factory.add_algorithm(
+        implementation_name,
+        "OC-SORT tracker with observation-centric momentum and re-update",
+        OCSORTTracker
     )
 
-    process_factory.mark_process_module_as_loaded(module_name)
+    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

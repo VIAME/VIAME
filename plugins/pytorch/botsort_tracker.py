@@ -16,17 +16,18 @@ Particularly useful for underwater footage from moving platforms/ROVs.
 
 Reference: Aharon et al., "BoT-SORT: Robust Associations Multi-Pedestrian
 Tracking" (arXiv 2022)
+
+This implementation uses the vital track_objects algorithm interface.
 """
 
-import functools
 import logging
 
 import numpy as np
 import scipy.optimize
 import scipy.linalg
+import scriptconfig as scfg
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
+from kwiver.vital.algo import TrackObjects
 from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
 
 logger = logging.getLogger(__name__)
@@ -137,6 +138,11 @@ class CameraMotionCompensation:
 
             track.mean[0] = transformed[0]
             track.mean[1] = transformed[1]
+
+    def reset(self):
+        """Reset CMC state."""
+        self.prev_frame = None
+        self.prev_keypoints = None
 
 
 # =============================================================================
@@ -578,28 +584,6 @@ def linear_assignment(cost_matrix, thresh):
 
 
 # =============================================================================
-# Transformer pattern
-# =============================================================================
-
-class Transformer:
-    __slots__ = '_gen',
-
-    def __init__(self, gen):
-        gen.send(None)
-        self._gen = gen
-
-    def step(self, *args):
-        return self._gen.send(args)
-
-    @classmethod
-    def decorate(cls, f):
-        @functools.wraps(f)
-        def wrapper(*args, **kwargs):
-            return cls(f(*args, **kwargs))
-        return wrapper
-
-
-# =============================================================================
 # Converters
 # =============================================================================
 
@@ -640,128 +624,186 @@ def to_ObjectTrackSet(tracks):
 
 
 # =============================================================================
-# BoT-SORT core algorithm
+# Configuration
 # =============================================================================
 
-@Transformer.decorate
-def botsort_core(
-    high_thresh=0.6,
-    low_thresh=0.1,
-    match_thresh=0.8,
-    track_buffer=30,
-    new_track_thresh=0.6,
-    use_cmc=True,
-    use_reid=True,
-    iou_weight=0.5,
-    model_path=None,
-    feat_ema_alpha=0.9,
-):
+class BoTSORTTrackerConfig(scfg.DataConfig):
+    """Configuration for BoT-SORT tracker algorithm."""
+    high_thresh = scfg.Value(0.6, help='Detection confidence threshold for first-stage matching')
+    low_thresh = scfg.Value(0.1, help='Detection confidence threshold for second-stage matching')
+    match_thresh = scfg.Value(0.8, help='Distance threshold for matching')
+    track_buffer = scfg.Value(30, help='Number of frames to keep lost tracks')
+    new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track')
+    use_cmc = scfg.Value(True, help='Enable camera motion compensation')
+    use_reid = scfg.Value(True, help='Enable Re-ID features for matching')
+    iou_weight = scfg.Value(0.5, help='Weight for IOU in IoU-ReID fusion (0=only ReID, 1=only IOU)')
+    model_path = scfg.Value('', help='Path to Re-ID model weights')
+    feat_ema_alpha = scfg.Value(0.9, help='EMA momentum for feature smoothing')
+
+
+# =============================================================================
+# BoT-SORT TrackObjects Algorithm
+# =============================================================================
+
+class BoTSORTTracker(TrackObjects):
     """
-    BoT-SORT algorithm as a generator-based Transformer.
+    BoT-SORT multi-object tracker algorithm.
 
-    Parameters
-    ----------
-    high_thresh : float
-        Confidence threshold for high-confidence detections.
-    low_thresh : float
-        Confidence threshold for low-confidence detections.
-    match_thresh : float
-        Distance threshold for matching.
-    track_buffer : int
-        Number of frames to keep lost tracks.
-    new_track_thresh : float
-        Minimum confidence to create new track.
-    use_cmc : bool
-        Enable camera motion compensation.
-    use_reid : bool
-        Enable Re-ID features for matching.
-    iou_weight : float
-        Weight for IOU in IoU-ReID fusion (0=only ReID, 1=only IOU).
-    model_path : str
-        Path to Re-ID model weights.
-    feat_ema_alpha : float
-        EMA momentum for feature smoothing.
+    Uses camera motion compensation and IoU-ReID fusion for robust
+    tracking from moving platforms.
     """
-    kalman_filter = KalmanFilter()
-    cmc = CameraMotionCompensation() if use_cmc else None
-    feature_extractor = FeatureExtractor(model_path=model_path) if use_reid else None
 
-    tracked_stracks = []
-    lost_stracks = []
-    removed_stracks = []
-    frame_id = 0
+    def __init__(self):
+        TrackObjects.__init__(self)
 
-    output = None
-    while True:
-        dos, ts, image = yield output
-        frame_id += 1
+        self._config = BoTSORTTrackerConfig()
+
+        # Internal state
+        self._kalman_filter = None
+        self._cmc = None
+        self._feature_extractor = None
+        self._tracked_stracks = []
+        self._lost_stracks = []
+        self._removed_stracks = []
+        self._frame_id = 0
+
+    def get_configuration(self):
+        cfg = super(TrackObjects, self).get_configuration()
+        for key, value in self._config.items():
+            cfg.set_value(key, str(value))
+        return cfg
+
+    def set_configuration(self, cfg_in):
+        from viame.pytorch.utilities import vital_config_update
+        cfg = self.get_configuration()
+        vital_config_update(cfg, cfg_in)
+
+        self._config.high_thresh = float(cfg.get_value('high_thresh'))
+        self._config.low_thresh = float(cfg.get_value('low_thresh'))
+        self._config.match_thresh = float(cfg.get_value('match_thresh'))
+        self._config.track_buffer = int(cfg.get_value('track_buffer'))
+        self._config.new_track_thresh = float(cfg.get_value('new_track_thresh'))
+
+        use_cmc_str = cfg.get_value('use_cmc').lower()
+        self._config.use_cmc = use_cmc_str in ('true', '1', 'yes')
+
+        use_reid_str = cfg.get_value('use_reid').lower()
+        self._config.use_reid = use_reid_str in ('true', '1', 'yes')
+
+        self._config.iou_weight = float(cfg.get_value('iou_weight'))
+        self._config.model_path = cfg.get_value('model_path')
+        self._config.feat_ema_alpha = float(cfg.get_value('feat_ema_alpha'))
+
+        # Initialize components
+        self._kalman_filter = KalmanFilter()
+
+        if self._config.use_cmc:
+            self._cmc = CameraMotionCompensation()
+        else:
+            self._cmc = None
+
+        if self._config.use_reid:
+            self._feature_extractor = FeatureExtractor(model_path=self._config.model_path)
+        else:
+            self._feature_extractor = None
+
+        return True
+
+    def check_configuration(self, cfg):
+        return True
+
+    def track(self, ts, image, detections):
+        """
+        Track objects in the current frame.
+
+        Parameters
+        ----------
+        ts : vital.types.Timestamp
+            Timestamp for the frame
+        image : vital.types.ImageContainer
+            Current frame image
+        detections : vital.types.DetectedObjectSet
+            Detections in the current frame
+
+        Returns
+        -------
+        vital.types.ObjectTrackSet
+            Current track set
+        """
+        self._frame_id += 1
+
+        # Get image as numpy array
+        np_image = None
+        if image is not None:
+            np_image = image.asarray()
 
         # Camera motion compensation
         homography = np.eye(3)
-        if cmc is not None and image is not None:
-            homography = cmc.compute_homography(image)
+        if self._cmc is not None and np_image is not None:
+            homography = self._cmc.compute_homography(np_image)
 
-        det_list = to_DetectedObject_list(dos)
+        det_list = to_DetectedObject_list(detections)
 
         # Create detections and extract features
-        detections = []
+        det_tracks = []
         boxes = []
 
         for do in det_list:
             tlwh = get_DetectedObject_bbox_tlwh(do)
             score = get_DetectedObject_score(do)
-            if score < low_thresh:
+            if score < self._config.low_thresh:
                 continue
-            detections.append(STrack(tlwh, score, detected_object=do))
-            detections[-1].alpha = feat_ema_alpha
+            det_tracks.append(STrack(tlwh, score, detected_object=do))
+            det_tracks[-1].alpha = self._config.feat_ema_alpha
             boxes.append(get_DetectedObject_bbox_tlbr(do))
 
         # Extract appearance features
-        if use_reid and feature_extractor is not None and image is not None and len(boxes) > 0:
-            features = feature_extractor.extract(image, boxes)
-            for det, feat in zip(detections, features):
+        if (self._config.use_reid and self._feature_extractor is not None
+                and np_image is not None and len(boxes) > 0):
+            features = self._feature_extractor.extract(np_image, boxes)
+            for det, feat in zip(det_tracks, features):
                 det.curr_feat = feat
 
-        high_dets = [d for d in detections if d.score >= high_thresh]
-        low_dets = [d for d in detections if low_thresh <= d.score < high_thresh]
+        high_dets = [d for d in det_tracks if d.score >= self._config.high_thresh]
+        low_dets = [d for d in det_tracks if self._config.low_thresh <= d.score < self._config.high_thresh]
 
         activated_stracks = []
         refind_stracks = []
 
         unconfirmed = []
         tracked = []
-        for track in tracked_stracks:
+        for track in self._tracked_stracks:
             if not track.is_activated:
                 unconfirmed.append(track)
             else:
                 tracked.append(track)
 
-        strack_pool = tracked + lost_stracks
+        strack_pool = tracked + self._lost_stracks
         STrack.multi_predict(strack_pool)
 
         # Apply CMC to track predictions
-        if cmc is not None:
-            cmc.apply_cmc(strack_pool, homography)
+        if self._cmc is not None:
+            self._cmc.apply_cmc(strack_pool, homography)
 
         # === FIRST STAGE: High-confidence matching ===
         iou_cost = iou_distance(strack_pool, high_dets)
 
-        if use_reid:
+        if self._config.use_reid:
             reid_cost = embedding_distance(strack_pool, high_dets)
-            dists = fuse_iou_reid(iou_cost, reid_cost, iou_weight)
+            dists = fuse_iou_reid(iou_cost, reid_cost, self._config.iou_weight)
         else:
             dists = iou_cost
 
-        matches, u_track, u_detection = linear_assignment(dists, thresh=match_thresh)
+        matches, u_track, u_detection = linear_assignment(dists, thresh=self._config.match_thresh)
 
         for itracked, idet in matches:
             track = strack_pool[itracked]
             det = high_dets[idet]
             if track.state == TrackState.TRACKED:
-                track.update(det, frame_id, ts)
+                track.update(det, self._frame_id, ts)
                 activated_stracks.append(track)
             else:
-                track.re_activate(det, frame_id, ts, new_id=False)
+                track.re_activate(det, self._frame_id, ts, new_id=False)
                 refind_stracks.append(track)
 
         # === SECOND STAGE: Low-confidence matching (IOU only) ===
@@ -773,148 +815,99 @@ def botsort_core(
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
             det = low_dets[idet]
-            track.update(det, frame_id, ts)
+            track.update(det, self._frame_id, ts)
             activated_stracks.append(track)
 
         for it in u_track_second:
             track = r_tracked_stracks[it]
             if track.state != TrackState.LOST:
                 track.mark_lost()
-                lost_stracks.append(track)
+                self._lost_stracks.append(track)
 
         # === Handle unconfirmed tracks ===
         dists = iou_distance(unconfirmed, [high_dets[i] for i in u_detection])
         matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=0.7)
 
         for itracked, idet in matches:
-            unconfirmed[itracked].update(high_dets[u_detection[idet]], frame_id, ts)
+            unconfirmed[itracked].update(high_dets[u_detection[idet]], self._frame_id, ts)
             activated_stracks.append(unconfirmed[itracked])
 
         for it in u_unconfirmed:
             track = unconfirmed[it]
             track.mark_removed()
-            removed_stracks.append(track)
+            self._removed_stracks.append(track)
 
         # === Create new tracks ===
         for inew in u_detection_final:
             det = high_dets[u_detection[inew]]
-            if det.score >= new_track_thresh:
-                det.activate(kalman_filter, frame_id, ts)
+            if det.score >= self._config.new_track_thresh:
+                det.activate(self._kalman_filter, self._frame_id, ts)
                 activated_stracks.append(det)
 
         # === Update lost tracks ===
-        for track in lost_stracks:
-            if frame_id - track.frame_id > track_buffer:
+        for track in self._lost_stracks:
+            if self._frame_id - track.frame_id > self._config.track_buffer:
                 track.mark_removed()
-                removed_stracks.append(track)
+                self._removed_stracks.append(track)
 
         # === Merge track lists ===
-        tracked_stracks = [t for t in tracked_stracks if t.state == TrackState.TRACKED]
-        tracked_stracks = list(set(tracked_stracks + activated_stracks))
-        tracked_stracks = list(set(tracked_stracks + refind_stracks))
+        self._tracked_stracks = [t for t in self._tracked_stracks if t.state == TrackState.TRACKED]
+        self._tracked_stracks = list(set(self._tracked_stracks + activated_stracks))
+        self._tracked_stracks = list(set(self._tracked_stracks + refind_stracks))
 
-        lost_stracks = [t for t in lost_stracks if t.state == TrackState.LOST]
-        lost_stracks = [t for t in lost_stracks if t not in tracked_stracks]
+        self._lost_stracks = [t for t in self._lost_stracks if t.state == TrackState.LOST]
+        self._lost_stracks = [t for t in self._lost_stracks if t not in self._tracked_stracks]
 
-        output_tracks = [t for t in tracked_stracks if t.is_activated and len(t.history) > 0]
-        output = to_ObjectTrackSet(output_tracks)
+        output_tracks = [t for t in self._tracked_stracks if t.is_activated and len(t.history) > 0]
+        return to_ObjectTrackSet(output_tracks)
 
+    def initialize(self, ts, image, seed_detections):
+        """Initialize tracking with optional seed detections."""
+        self.reset()
 
-# =============================================================================
-# Sprokit process
-# =============================================================================
+        if seed_detections is not None and len(seed_detections) > 0:
+            return self.track(ts, image, seed_detections)
 
-def add_declare_config(proc, name_key, default, description):
-    proc.add_config_trait(name_key, name_key, default, description)
-    proc.declare_config_using_trait(name_key)
+        return ObjectTrackSet([])
 
+    def finalize(self):
+        """
+        Finalize tracking and return all tracks.
 
-class botsort_tracker(KwiverProcess):
-    """
-    BoT-SORT multi-object tracker sprokit process.
+        Returns
+        -------
+        vital.types.ObjectTrackSet
+            Final set of all tracks
+        """
+        all_tracks = self._tracked_stracks + self._lost_stracks
+        output_tracks = [t for t in all_tracks if len(t.history) > 0]
+        return to_ObjectTrackSet(output_tracks)
 
-    Uses camera motion compensation and IoU-ReID fusion for robust
-    tracking from moving platforms.
-    """
+    def reset(self):
+        """Reset tracker state for new sequence."""
+        STrack.reset_id()
+        self._tracked_stracks = []
+        self._lost_stracks = []
+        self._removed_stracks = []
+        self._frame_id = 0
 
-    def __init__(self, config):
-        KwiverProcess.__init__(self, config)
-
-        add_declare_config(self, "high_thresh", "0.6",
-            "Detection confidence threshold for first-stage matching")
-        add_declare_config(self, "low_thresh", "0.1",
-            "Detection confidence threshold for second-stage matching")
-        add_declare_config(self, "match_thresh", "0.8",
-            "Distance threshold for matching")
-        add_declare_config(self, "track_buffer", "30",
-            "Number of frames to keep lost tracks")
-        add_declare_config(self, "new_track_thresh", "0.6",
-            "Minimum confidence to create new track")
-        add_declare_config(self, "use_cmc", "true",
-            "Enable camera motion compensation")
-        add_declare_config(self, "use_reid", "true",
-            "Enable Re-ID features for matching")
-        add_declare_config(self, "iou_weight", "0.5",
-            "Weight for IOU in IoU-ReID fusion (0=only ReID, 1=only IOU)")
-        add_declare_config(self, "model_path", "",
-            "Path to Re-ID model weights")
-        add_declare_config(self, "feat_ema_alpha", "0.9",
-            "EMA momentum for feature smoothing")
-
-        optional = process.PortFlags()
-        required = process.PortFlags()
-        required.add(self.flag_required)
-
-        self.declare_input_port_using_trait('detected_object_set', required)
-        self.declare_input_port_using_trait('timestamp', required)
-        self.declare_input_port_using_trait('image', optional)
-
-        self.declare_output_port_using_trait('object_track_set', optional)
-
-    def _configure(self):
-        self._tracker = botsort_core(
-            high_thresh=float(self.config_value('high_thresh')),
-            low_thresh=float(self.config_value('low_thresh')),
-            match_thresh=float(self.config_value('match_thresh')),
-            track_buffer=int(self.config_value('track_buffer')),
-            new_track_thresh=float(self.config_value('new_track_thresh')),
-            use_cmc=self.config_value('use_cmc').lower() == 'true',
-            use_reid=self.config_value('use_reid').lower() == 'true',
-            iou_weight=float(self.config_value('iou_weight')),
-            model_path=self.config_value('model_path'),
-            feat_ema_alpha=float(self.config_value('feat_ema_alpha')),
-        )
-        self._base_configure()
-
-    def _step(self):
-        dos = self.grab_input_using_trait('detected_object_set')
-        ts = self.grab_input_using_trait('timestamp')
-
-        try:
-            image = self.grab_input_using_trait('image')
-            if image is not None:
-                image = image.asarray()
-        except:
-            image = None
-
-        ots = self._tracker.step(dos, ts, image)
-
-        self.push_to_port_using_trait('object_track_set', ots)
-        self._base_step()
+        if self._cmc is not None:
+            self._cmc.reset()
 
 
-def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+def __vital_algorithm_register__():
+    from kwiver.vital.algo import algorithm_factory
 
-    module_name = 'python:viame.processes.pytorch.botsort_tracker'
+    implementation_name = "botsort"
 
-    if process_factory.is_process_module_loaded(module_name):
+    if algorithm_factory.has_algorithm_impl_name(
+            BoTSORTTracker.static_type_name(), implementation_name):
         return
 
-    process_factory.add_process(
-        'botsort_tracker',
-        'BoT-SORT tracker with CMC and IoU-ReID fusion',
-        botsort_tracker,
+    algorithm_factory.add_algorithm(
+        implementation_name,
+        "BoT-SORT multi-object tracker with CMC and IoU-ReID fusion",
+        BoTSORTTracker
     )
 
-    process_factory.mark_process_module_as_loaded(module_name)
+    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

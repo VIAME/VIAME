@@ -2,17 +2,26 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
+"""
+SiamMask visual object tracker implementation.
+
+Uses Siamese networks with mask prediction for robust single-object tracking.
+Supports multiple concurrent track instances with detection-based initialization.
+
+This implementation uses the vital track_objects algorithm interface.
+"""
+
 import sys
 import ast
-import torch
+import logging
 
+import torch
 import numpy as np
+import scriptconfig as scfg
 
 from timeit import default_timer as timer
 
-from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-
+from kwiver.vital.algo import TrackObjects
 from kwiver.vital.types import Image
 from kwiver.vital.types import BoundingBoxD
 from kwiver.vital.types import DetectedObject, DetectedObjectSet
@@ -23,6 +32,8 @@ from viame.pytorch.siammask.models.model_builder import ModelBuilder
 from viame.pytorch.siammask.tracker.tracker_builder import build_tracker
 from viame.pytorch.siammask.utils.bbox import get_axis_aligned_bbox
 from viame.pytorch.siammask.utils.model_load import load_pretrain
+
+logger = logging.getLogger(__name__)
 
 
 def gpu_list_desc(use_for=None):
@@ -38,179 +49,157 @@ def parse_gpu_list(gpu_list_str):
             list(map(int, gpu_list_str.split(','))))
 
 
-# ------------------------------------------------------------------------------
-class SiamMaskTracker(KwiverProcess):
-    def __init__(self, conf):
-        KwiverProcess.__init__(self, conf)
+# =============================================================================
+# Configuration
+# =============================================================================
 
-        # GPU list
-        self.add_config_trait("gpu_list", "gpu_list", 'all',
-          gpu_list_desc(use_for='Siamese short-term trackers'))
-        self.declare_config_using_trait('gpu_list')
+class SiamMaskTrackerConfig(scfg.DataConfig):
+    """Configuration for SiamMask tracker algorithm."""
+    gpu_list = scfg.Value('all', help=gpu_list_desc(use_for='Siamese short-term trackers'))
+    config_file = scfg.Value('models/siammask_config.yaml', help='Path to configuration file.')
+    model_file = scfg.Value('models/siammask_model.pth', help='Path to trained model file.')
+    seed_bbox = scfg.Value('[100, 100, 100, 100]', help='Start bounding box for debug mode only')
+    threshold = scfg.Value(0.0, help='Minimum confidence to keep track.')
+    init_threshold = scfg.Value(0.10, help='Minimum detection confidence to initialize tracks.')
+    init_intersect = scfg.Value(0.10,
+                                help='Do not initialize on detections with this percent overlap with existing tracks')
+    terminate_after_n = scfg.Value(50, help='Terminate trackers after no hits for N frames')
 
-        # Config file
-        self.add_config_trait("config_file", "config_file",
-          'models/siammask_config.yaml', 'Path to configuration file.')
-        self.declare_config_using_trait("config_file")
 
-        # Model file
-        self.add_config_trait("model_file", "model_file",
-          'models/siammask_model.pth', 'Path to trained model file.')
-        self.declare_config_using_trait("model_file")
+# =============================================================================
+# SiamMask TrackObjects Algorithm
+# =============================================================================
 
-        # General parameters
-        self.add_config_trait("seed_bbox", "seed_bbox",
-          '[100, 100, 100, 100]', 'Start bounding box for debug mode only')
-        self.declare_config_using_trait("seed_bbox")
+class SiamMaskTracker(TrackObjects):
+    """
+    SiamMask visual object tracker algorithm.
 
-        self.add_config_trait("threshold", "threshold",
-          '0.00', 'Minimum confidence to keep track.')
-        self.declare_config_using_trait("threshold")
+    Uses Siamese networks with mask prediction for robust single-object
+    tracking. Supports multiple concurrent track instances with
+    detection-based initialization.
+    """
 
-        self.add_config_trait("init_threshold", "init_threshold",
-          '0.10', 'Minimum detection confidence to initialize tracks.')
-        self.declare_config_using_trait("init_threshold")
+    def __init__(self):
+        TrackObjects.__init__(self)
 
-        self.add_config_trait("init_intersect", "init_intersect",
-          '0.10', 'Do not initialize on any detections with this percent '
-          'overlap with any existing other tracks or detection')
-        self.declare_config_using_trait("init_intersect")
+        self._config = SiamMaskTrackerConfig()
 
-        self.add_config_trait("terminate_after_n", "terminate_after_n",
-          '50', 'Terminate trackers after no hits for N frames')
-        self.declare_config_using_trait("terminate_after_n")
+        # Model
+        self._model = None
 
-        # Port Flags
-        optional = process.PortFlags()
-        required = process.PortFlags()
-        required.add(self.flag_required)
-
-        self.add_port_trait("initializations", "object_track_set",
-          "Input external object track initializations")
-
-        # Input Ports (Port Name, Flag)
-        self.declare_input_port_using_trait('image', required)
-        self.declare_input_port_using_trait('timestamp', required)
-        self.declare_input_port_using_trait('initializations', optional)
-        self.declare_input_port_using_trait('detected_object_set', optional)
-
-        # Output Ports (Port Name, Flag)
-        self.declare_output_port_using_trait('timestamp', optional)
-        self.declare_output_port_using_trait('object_track_set', optional)
-
-        # Class persistent state variables
+        # State
         self._trackers = dict()
         self._tracks = dict()
         self._track_init_frames = dict()
         self._track_last_frames = dict()
-
-    # --------------------------------------------------------------------------
-    def _configure(self):
-        self._gpu_list = parse_gpu_list(self.config_value('gpu_list'))
-
-        self._model_path = self.config_value('model_file')
-        self._config_file = self.config_value('config_file')
-        self._threshold = float(self.config_value('threshold'))
-        self._seed_bbox = ast.literal_eval(self.config_value("seed_bbox"))
-        self._init_threshold = float(self.config_value("init_threshold"))
-        self._init_intersect = float(self.config_value("init_intersect"))
-        self._terminate_after_n = int(self.config_value("terminate_after_n"))
-
-        cfg.merge_from_file(self._config_file)
-
-        self._model = ModelBuilder()
-        self._model = load_pretrain(self._model, self._model_path).cuda().eval()
-        self._is_first = True
         self._track_counter = 0
+        self._is_first = True
+        self._last_ts = None
+        self._last_img = None
 
-        self._base_configure()
+    def get_configuration(self):
+        cfg = super(TrackObjects, self).get_configuration()
+        for key, value in self._config.items():
+            cfg.set_value(key, str(value))
+        return cfg
 
-    # --------------------------------------------------------------------------
-    def _step(self):
+    def set_configuration(self, cfg_in):
+        from viame.pytorch.utilities import vital_config_update
+        config = self.get_configuration()
+        vital_config_update(config, cfg_in)
 
-        # Retrieval all inputs for this step
-        in_img_c = self.grab_input_using_trait('image')
-        ts = self.grab_input_using_trait('timestamp')
+        self._config.gpu_list = config.get_value('gpu_list')
+        self._config.config_file = config.get_value('config_file')
+        self._config.model_file = config.get_value('model_file')
+        self._config.seed_bbox = config.get_value('seed_bbox')
+        self._config.threshold = float(config.get_value('threshold'))
+        self._config.init_threshold = float(config.get_value('init_threshold'))
+        self._config.init_intersect = float(config.get_value('init_intersect'))
+        self._config.terminate_after_n = int(config.get_value('terminate_after_n'))
 
+        # Parse GPU list
+        self._gpu_list = parse_gpu_list(self._config.gpu_list)
+
+        # Load model configuration
+        cfg.merge_from_file(self._config.config_file)
+
+        # Initialize model
+        self._model = ModelBuilder()
+        self._model = load_pretrain(self._model, self._config.model_file).cuda().eval()
+
+        return True
+
+    def check_configuration(self, cfg):
+        return True
+
+    def track(self, ts, image, detections):
+        """
+        Track objects in the current frame.
+
+        Parameters
+        ----------
+        ts : vital.types.Timestamp
+            Timestamp for the frame
+        image : vital.types.ImageContainer
+            Current frame image
+        detections : vital.types.DetectedObjectSet
+            Detections in the current frame (used for initialization)
+
+        Returns
+        -------
+        vital.types.ObjectTrackSet
+            Current track set
+        """
         if not ts.has_valid_frame():
             raise RuntimeError("Frame timestamps must contain frame IDs")
 
-        print('SiamMask tracker stepping, timestamp = {!r}'.format(ts))
+        logger.debug('SiamMask tracker stepping, timestamp = %r', ts)
 
         frame_id = ts.get_frame()
-        img = in_img_c.image().asarray().astype('uint8')
+        img = image.image().asarray().astype('uint8')
 
+        # Handle image format
         if len(np.shape(img)) > 2 and np.shape(img)[2] == 1:
-            img = img[:,:,0]
+            img = img[:, :, 0]
         if len(np.shape(img)) == 2:
-            img = np.stack((img,)*3, axis=-1)
+            img = np.stack((img,) * 3, axis=-1)
         else:
-            img = img[:, :, ::-1].copy() # RGB vs BGR
-
-        # Handle track initialization
-        def initialize_track(tid, cbox, ts, image, dot=None):
-            bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
-            cx, cy, w, h = get_axis_aligned_bbox(np.array(bbox))
-            start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
-            self._trackers[tid] = build_tracker(self._model)
-            self._trackers[tid].init(image, start_box)
-            if dot is None:
-                self._tracks[tid] = [ObjectTrackState(ts, cbox, 1.0)]
-            else:
-                self._tracks[tid] = [ObjectTrackState(ts, cbox, 1.0, dot)]
-            self._track_init_frames[tid] = ts.get_frame()
-            self._track_last_frames[tid] = ts.get_frame()
+            img = img[:, :, ::-1].copy()  # RGB vs BGR
 
         frame_boxes = []
 
-        if self.has_input_port_edge_using_trait('initializations'):
-            inits = self.grab_input_using_trait('initializations')
-            self._has_init_signals = True
-            init_track_pool = [] if inits is None else inits.tracks()
-            init_track_ids = []
-        elif self.has_input_port_edge_using_trait('detected_object_set'):
-            init_track_pool = []
-            init_track_ids = []
-        elif self._is_first:
-            init_track_pool = []
-            cbox = BoundingBoxD(self._seed_bbox[0],
-              self._seed_bbox[1], self._seed_bbox[2], self._seed_bbox[3])
-            initialize_track(0, cbox, frame_id, img)
-            init_track_ids = [0]
-
-        for trk in init_track_pool:
-            # Special case, initialize a track on a previous frame
-            if not self._is_first and \
-              trk[trk.last_frame].frame_id == self._last_ts.get_frame() and \
-              ( not trk.id in self._track_init_frames or \
-              self._track_init_frames[ trk.id ] < self._last_ts.get_frame() ):
-                init_detection = trk[trk.last_frame].detection()
-                initialize_track(trk.id, init_detection.bounding_box,
-                  self._last_ts, self._last_img, init_detection.type)
-            # This track has an initialization signal for the current frame
-            elif trk[trk.last_frame].frame_id == frame_id:
-                init_detection = trk[trk.last_frame].detection()
-                initialize_track(trk.id, init_detection.bounding_box,
-                  ts, img, init_detection.type)
-                frame_boxes.append(init_detection.bounding_box)
+        # Track initialization helper
+        def initialize_track(tid, cbox, timestamp, image_arr, dot=None):
+            bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+            cx, cy, w, h = get_axis_aligned_bbox(np.array(bbox))
+            start_box = [cx - (w - 1) / 2, cy - (h - 1) / 2, w, h]
+            self._trackers[tid] = build_tracker(self._model)
+            self._trackers[tid].init(image_arr, start_box)
+            if dot is None:
+                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
+            else:
+                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0, dot)]
+            self._track_init_frames[tid] = timestamp.get_frame()
+            self._track_last_frames[tid] = timestamp.get_frame()
 
         # Update existing tracks
         tids_to_delete = []
+        init_track_ids = []
 
         for tid in self._trackers.keys():
             if tid in init_track_ids:
-                continue # Already processed (initialized) on frame
+                continue  # Already processed (initialized) on frame
             tracker_output = self._trackers[tid].track(img)
             bbox = tracker_output['bbox']
             score = tracker_output['best_score']
-            if score > self._threshold:
+            if score > self._config.threshold:
                 cbox = BoundingBoxD(
-                  bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
+                    bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3])
                 new_state = ObjectTrackState(ts, cbox, score)
                 self._tracks[tid].append(new_state)
                 self._track_last_frames[tid] = frame_id
                 frame_boxes.append(cbox)
-            if frame_id > self._track_last_frames[tid] + self._terminate_after_n:
+            if frame_id > self._track_last_frames[tid] + self._config.terminate_after_n:
                 tids_to_delete.append(tid)
 
         for tid in tids_to_delete:
@@ -225,18 +214,17 @@ class SiamMaskTracker(KwiverProcess):
             x2 = min(cbox1.max_x(), cbox2.max_x())
             y1 = max(cbox1.min_y(), cbox2.min_y())
             y2 = min(cbox1.max_y(), cbox2.max_y())
-            intsct_area = max(0, x2-x1) * max(0, y2-y1)
-            return intsct_area/(max(cbox1.area(), cbox2.area()))
+            intsct_area = max(0, x2 - x1) * max(0, y2 - y1)
+            return intsct_area / (max(cbox1.area(), cbox2.area()))
 
-        if self.has_input_port_edge_using_trait('detected_object_set'):
-            detections = self.grab_input_using_trait('detected_object_set')
-            detections = detections.select(self._init_threshold)
-            for det in detections:
+        if detections is not None:
+            filtered_dets = detections.select(self._config.init_threshold)
+            for det in filtered_dets:
                 # Check for overlap
                 cbox = det.bounding_box
                 overlaps = False
                 for obox in frame_boxes:
-                    if box_intersect(cbox, obox) > self._init_intersect:
+                    if box_intersect(cbox, obox) > self._config.init_intersect:
                         overlaps = True
                         break
                 if overlaps:
@@ -244,29 +232,95 @@ class SiamMaskTracker(KwiverProcess):
                 # Initialize new track if necessary
                 self._track_counter = self._track_counter + 1
                 initialize_track(self._track_counter, cbox, ts, img, det.type)
+                frame_boxes.append(cbox)
 
         # Output tracks
         output_tracks = ObjectTrackSet(
-          [Track(tid, trk) for tid, trk in self._tracks.items()])
-
-        self.push_to_port_using_trait('timestamp', ts)
-        self.push_to_port_using_trait('object_track_set', output_tracks)
+            [Track(tid, trk) for tid, trk in self._tracks.items()])
 
         self._last_ts = ts
         self._last_img = img
         self._is_first = False
-        self._base_step()
 
-# ==============================================================================
-def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+        return output_tracks
 
-    module_name = 'python:viame.pytorch.SiamMaskTracker'
+    def initialize(self, ts, image, seed_detections):
+        """Initialize tracking with seed detections."""
+        self.reset()
 
-    if process_factory.is_process_module_loaded(module_name):
+        if seed_detections is not None and len(seed_detections) > 0:
+            return self.track(ts, image, seed_detections)
+        elif self._config.seed_bbox:
+            # Use configured seed bbox for initialization
+            seed_bbox = ast.literal_eval(self._config.seed_bbox)
+            if not ts.has_valid_frame():
+                raise RuntimeError("Frame timestamps must contain frame IDs")
+
+            img = image.image().asarray().astype('uint8')
+            if len(np.shape(img)) > 2 and np.shape(img)[2] == 1:
+                img = img[:, :, 0]
+            if len(np.shape(img)) == 2:
+                img = np.stack((img,) * 3, axis=-1)
+            else:
+                img = img[:, :, ::-1].copy()
+
+            cbox = BoundingBoxD(seed_bbox[0], seed_bbox[1],
+                                seed_bbox[0] + seed_bbox[2],
+                                seed_bbox[1] + seed_bbox[3])
+            cx, cy, w, h = get_axis_aligned_bbox(np.array(seed_bbox))
+            start_box = [cx - (w - 1) / 2, cy - (h - 1) / 2, w, h]
+
+            self._trackers[0] = build_tracker(self._model)
+            self._trackers[0].init(img, start_box)
+            self._tracks[0] = [ObjectTrackState(ts, cbox, 1.0)]
+            self._track_init_frames[0] = ts.get_frame()
+            self._track_last_frames[0] = ts.get_frame()
+
+            self._last_ts = ts
+            self._last_img = img
+            self._is_first = False
+
+            return ObjectTrackSet([Track(0, self._tracks[0])])
+
+        return ObjectTrackSet([])
+
+    def finalize(self):
+        """
+        Finalize tracking and return all tracks.
+
+        Returns
+        -------
+        vital.types.ObjectTrackSet
+            Final set of all tracks
+        """
+        return ObjectTrackSet(
+            [Track(tid, trk) for tid, trk in self._tracks.items()])
+
+    def reset(self):
+        """Reset tracker state for new sequence."""
+        self._trackers = dict()
+        self._tracks = dict()
+        self._track_init_frames = dict()
+        self._track_last_frames = dict()
+        self._track_counter = 0
+        self._is_first = True
+        self._last_ts = None
+        self._last_img = None
+
+
+def __vital_algorithm_register__():
+    from kwiver.vital.algo import algorithm_factory
+
+    implementation_name = "siammask"
+
+    if algorithm_factory.has_algorithm_impl_name(
+            SiamMaskTracker.static_type_name(), implementation_name):
         return
 
-    process_factory.add_process('siammask_tracker',
-      'Siamese tracking using the siammask library', SiamMaskTracker)
+    algorithm_factory.add_algorithm(
+        implementation_name,
+        "SiamMask visual object tracker",
+        SiamMaskTracker
+    )
 
-    process_factory.mark_process_module_as_loaded(module_name)
+    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

@@ -301,7 +301,7 @@ if( VIAME_ENABLE_PYTHON )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py
-    processes/core
+    arrows/core
     bytetrack_tracker )
 
   kwiver_add_python_module(
@@ -311,7 +311,7 @@ if( VIAME_ENABLE_PYTHON )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
-    processes/core
+    arrows/core
     ocsort_tracker )
 
   kwiver_add_python_module(
