@@ -52,7 +52,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from core.segmentation_utils import (
+from viame.core.segmentation_utils import (
     load_image,
     mask_to_polygon,
     simplify_polygon_to_max_points,
