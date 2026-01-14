@@ -10,8 +10,8 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded( module_name ):
         return
 
-    from viame.processes.opencv import multimodal_registration
-    from viame.processes.opencv import fft_filter_based_on_ref
+    from viame.opencv import multimodal_registration
+    from viame.opencv import fft_filter_based_on_ref
 
     process_factory.add_process(
         'ocv_multimodal_registration',

@@ -118,7 +118,7 @@ class SAM3Tracker(TrackObjects):
     - Automatic re-detection to capture new objects entering the scene
 
     Example:
-        >>> from viame.arrows.pytorch.sam3_tracker import SAM3Tracker
+        >>> from viame.pytorch.sam3_tracker import SAM3Tracker
         >>> tracker = SAM3Tracker()
         >>> tracker.set_configuration({'text_query': 'fish, crab'})
         >>> tracks = tracker.track(timestamp, image, detections)

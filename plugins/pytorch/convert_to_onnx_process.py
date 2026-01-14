@@ -60,7 +60,7 @@ class OnnxConverter(KwiverProcess):
                     config = ast.literal_eval(json_content["extra"]["config"])
                     net_shape = (config['window_dims'][0], config['window_dims'][1], 3)
 
-            from viame.arrows.pytorch.crcnn2onnx import crcnn2onnx
+            from viame.pytorch.crcnn2onnx import crcnn2onnx
             crcnn2onnx(model_path, net_shape, batch_size, onnx_model_prefix)
             print(f'The generated onnx model was written to: {onnx_model_prefix}.onnx')
 

@@ -267,7 +267,6 @@ target_include_directories( viame_processes_core PRIVATE
 if( VIAME_ENABLE_PYTHON )
 
   kwiver_create_python_init( core )
-  kwiver_create_python_init( arrows/core )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.py
@@ -281,62 +280,62 @@ if( VIAME_ENABLE_PYTHON )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_npy.py
-    arrows/core
+    core
     normalize_image_npy )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
-    arrows/core
+    core
     merge_detections_nms_fusion )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    processes/core
+    core
     __init__ )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
-    processes/core
+    core
     utility_processes )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py
-    arrows/core
+    core
     bytetrack_tracker )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_trainer.py
-    arrows/core
+    core
     bytetrack_trainer )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
-    arrows/core
+    core
     ocsort_tracker )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_trainer.py
-    arrows/core
+    core
     ocsort_trainer )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/simple_homog_tracker.py
-    processes/core
+    core
     simple_homog_tracker )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
-    processes/core
+    core
     multicam_homog_tracker )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/stabilize_many_images.py
-    processes/core
+    core
     stabilize_many_images )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
-    processes/core
+    core
     multicam_homog_det_suppressor )
 
   kwiver_add_python_module(

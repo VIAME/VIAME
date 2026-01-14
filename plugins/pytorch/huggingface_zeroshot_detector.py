@@ -26,7 +26,7 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
         https://huggingface.co/docs/transformers/model_doc/grounding-dino
 
     Example:
-        >>> from viame.arrows.pytorch.huggingface_zeroshot_detector import *
+        >>> from viame.pytorch.huggingface_zeroshot_detector import *
         >>> import kwimage
         >>> import ubelt as ub
         >>> self = HuggingFaceZeroShotDetector()

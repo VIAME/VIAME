@@ -55,14 +55,14 @@ target_link_libraries( viame_examples_plugin
 
 if( VIAME_ENABLE_PYTHON )
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    processes/examples
+    examples
     __init__)
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_detector.py
-    processes/examples
+    examples
     hello_world_detector)
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_filter.py
-    processes/examples
+    examples
     hello_world_filter)
 endif()

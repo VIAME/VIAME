@@ -187,7 +187,7 @@ if( VIAME_ENABLE_PYTHON )
     string( REPLACE "." "/" rel_modpath_noext ${rel_modname} )
     kwiver_add_python_module(
       "${CMAKE_CURRENT_SOURCE_DIR}/${rel_modpath_noext}.py"
-      "processes/opencv"
+      "opencv"
       "${rel_modname}" )
   endforeach()
 endif()

@@ -16,8 +16,8 @@ To add your own process:
 The registration function is automatically called by the KWIVER module loader.
 """
 
-from viame.processes.examples import hello_world_detector
-from viame.processes.examples import hello_world_filter
+from viame.examples import hello_world_detector
+from viame.examples import hello_world_filter
 
 
 def __sprokit_register__():

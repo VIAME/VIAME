@@ -184,7 +184,7 @@ class MMDetDetector(ImageObjectDetector):
             self.register_new_losses()
 
         if self._auto_update_model:
-            from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
+            from viame.pytorch.mmdet_compatibility import check_config_compatibility
             check_config_compatibility(self._net_config, self._weight_file, self._template)
 
         import matplotlib
