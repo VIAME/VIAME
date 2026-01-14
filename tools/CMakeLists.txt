@@ -70,6 +70,21 @@ target_link_libraries( viame_get_configs
                kwiver::sprokit_pipeline
   )
 
+if( VIAME_ENABLE_OPENCV )
+  kwiver_add_executable( viame_score_results
+    score_results.cxx
+    )
+
+  target_link_libraries( viame_score_results
+    PRIVATE      kwiver::vital
+                 kwiver::vital_vpm
+                 kwiver::vital_logger
+                 kwiver::kwiversys
+                 viame_core
+                 viame_opencv
+    )
+endif()
+
 if( VIAME_ENABLE_PYTHON )
   install( FILES       ${PYTHON_SCRIPTS}
            DESTINATION configs )

@@ -25,6 +25,7 @@ set( plugin_headers
   split_image_horizontally.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
+  plot_metrics.h
   refine_detections_grabcut.h
   refine_detections_util.h
   refine_detections_watershed.h
@@ -58,6 +59,7 @@ set( plugin_sources
   split_image_horizontally.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
+  plot_metrics.cxx
   refine_detections_grabcut.cxx
   refine_detections_util.cxx
   refine_detections_watershed.cxx
