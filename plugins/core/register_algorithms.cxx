@@ -10,6 +10,7 @@
 #include "viame_core_plugin_export.h"
 #include <vital/algo/algorithm_factory.h>
 
+#include "adaptive_trainer.h"
 #include "add_timestamp_from_filename.h"
 #include "auto_detect_transform.h"
 #include "average_track_descriptors.h"
@@ -80,6 +81,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   // Algorithms using PLUGIN_INFO macro
   ::kwiver::vital::algorithm_registrar reg( vpm, module_name );
+  reg.register_algorithm< ::viame::adaptive_trainer >();
   reg.register_algorithm< ::viame::average_track_descriptors >();
   reg.register_algorithm< ::viame::full_frame_detector >();
   reg.register_algorithm< ::viame::merge_detections_suppress_in_regions >();
