@@ -55,6 +55,7 @@ import numpy as np
 from viame.core.segmentation_utils import (
     load_image,
     mask_to_polygon,
+    simplify_polygon_to_max_points,
     adaptive_simplify_polygon,
 )
 
@@ -70,6 +71,7 @@ class SAM2InteractiveService:
         hole_policy: str = "remove",
         multipolygon_policy: str = "largest",
         max_polygon_points: int = 25,
+        adaptive_simplify: bool = False,
     ):
         self.cfg = cfg
         self.checkpoint = checkpoint
@@ -77,6 +79,7 @@ class SAM2InteractiveService:
         self.hole_policy = hole_policy
         self.multipolygon_policy = multipolygon_policy
         self.max_polygon_points = max_polygon_points
+        self.adaptive_simplify = adaptive_simplify
 
         self.predictor = None
         self.model = None
@@ -194,13 +197,35 @@ class SAM2InteractiveService:
         # Convert mask to polygon
         polygon, bounds = mask_to_polygon(mask, self.hole_policy, self.multipolygon_policy)
 
-        # Adaptively simplify polygon based on shape complexity
-        # Simple shapes will use fewer points, complex shapes will use more (up to max)
+        # Simplify polygon - either adaptively based on shape complexity, or to fixed point count
         original_points = len(polygon) if polygon else 0
-        if polygon and original_points > 4:
-            polygon = adaptive_simplify_polygon(polygon, self.max_polygon_points, min_points=4)
-            if len(polygon) != original_points:
-                self._log(f"Adaptively simplified polygon: {original_points} -> {len(polygon)} points")
+        if polygon and original_points > self.max_polygon_points:
+            if self.adaptive_simplify:
+                # Adaptive: simple shapes use fewer points, complex shapes use more (up to max)
+                polygon = adaptive_simplify_polygon(polygon, self.max_polygon_points, min_points=4)
+                if len(polygon) != original_points:
+                    self._log(f"Adaptively simplified polygon: {original_points} -> {len(polygon)} points")
+            else:
+                # Fixed: always simplify to max_polygon_points
+                polygon = simplify_polygon_to_max_points(polygon, self.max_polygon_points)
+                if len(polygon) != original_points:
+                    self._log(f"Simplified polygon: {original_points} -> {len(polygon)} points")
+
+        # Encode full mask as RLE for efficient transfer (for frontend mask display)
+        # RLE format: list of [value, count] pairs
+        flat_mask = mask.flatten().astype(np.uint8)
+        rle_mask = []
+        if len(flat_mask) > 0:
+            current_val = flat_mask[0]
+            count = 1
+            for val in flat_mask[1:]:
+                if val == current_val:
+                    count += 1
+                else:
+                    rle_mask.append([int(current_val), count])
+                    current_val = val
+                    count = 1
+            rle_mask.append([int(current_val), count])
 
         return {
             "success": True,
@@ -209,6 +234,7 @@ class SAM2InteractiveService:
             "score": score,
             "low_res_mask": low_res_mask.tolist(),
             "mask_shape": list(mask.shape),
+            "rle_mask": rle_mask,
         }
 
     def handle_set_image(self, request: Dict[str, Any]) -> Dict[str, Any]:
@@ -331,6 +357,12 @@ def main():
         default=25,
         help="Maximum number of points in output polygons (uses Douglas-Peucker simplification)",
     )
+    parser.add_argument(
+        "--adaptive-simplify",
+        action="store_true",
+        default=False,
+        help="Use adaptive polygon simplification based on shape complexity (default: fixed simplification)",
+    )
     args = parser.parse_args()
 
     # Determine checkpoint path
@@ -361,6 +393,7 @@ def main():
         hole_policy=args.hole_policy,
         multipolygon_policy=args.multipolygon_policy,
         max_polygon_points=args.max_polygon_points,
+        adaptive_simplify=args.adaptive_simplify,
     )
 
     try:
