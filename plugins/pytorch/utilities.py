@@ -791,11 +791,12 @@ def parse_gpu_list(gpu_list_str):
     Note that "None" is the only way to produce an empty list; an empty string won't work.
 
     Args:
-        gpu_list_str: String like "all", "None", or "0,1,2"
+        gpu_list_str: String like "all", "None", or "0,1,2" (also accepts int)
 
     Returns:
         list or None: List of GPU indices, empty list for CPU, or None for all GPUs
     """
+    gpu_list_str = str(gpu_list_str)
     return ([] if gpu_list_str == 'None' else
             None if gpu_list_str == 'all' else
             list(map(int, gpu_list_str.split(','))))

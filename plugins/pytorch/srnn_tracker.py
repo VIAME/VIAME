@@ -281,7 +281,7 @@ class SRNNTracker(TrackObjects):
     def _initialize_components(self):
         """Initialize tracking components based on configuration."""
         # GPU list
-        gpu_list = parse_gpu_list(str(self._config.gpu_list))
+        gpu_list = parse_gpu_list(self._config.gpu_list)
 
         # Siamese feature extractor
         self._app_feature_extractor = SiameseFeatureExtractor(
