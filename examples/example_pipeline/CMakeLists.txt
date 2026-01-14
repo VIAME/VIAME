@@ -36,4 +36,4 @@ endif()
 # Install pipelines to example directory
 ##
 install( FILES       ${HELLO_WORLD_EX_SOURCE}
-         DESTINATION examples/hello_world_pipeline )
+         DESTINATION examples/example_pipeline )

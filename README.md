@@ -40,7 +40,7 @@ but select entries are also listed below broken down by individual functionality
 [Stereo Measurement and Depth Maps](examples/size_measurement) <>
 [Pipelining Overview](https://github.com/Kitware/kwiver) <>
 [Core Class and Pipeline Info](https://kwiver.readthedocs.io/en/latest) <>
-[Plugin Integration](examples/hello_world_pipeline) <>
+[Plugin Integration](examples/example_pipeline) <>
 [Example Plugin Templates](plugins/templates) <>
 [Embedding Algorithms in C++](examples/using_algorithms_in_code)
 

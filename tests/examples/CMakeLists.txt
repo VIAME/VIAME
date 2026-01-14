@@ -176,15 +176,15 @@ if( VIAME_ENABLE_PYTHON )
   # ============================================================================
   add_example_script_test(
     viame_examples:run_example
-    test_hello_world_pipeline.py
+    test_example_pipeline.py
     TestRunExample
-    hello_world_pipeline
+    example_pipeline
   )
   add_example_script_test(
     viame_examples:run_python_example
-    test_hello_world_pipeline.py
+    test_example_pipeline.py
     TestRunPythonExample
-    hello_world_pipeline
+    example_pipeline
   )
 
   # ============================================================================

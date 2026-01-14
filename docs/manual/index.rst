@@ -66,7 +66,7 @@ Contents
    Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
    Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
    Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
-   sections/hello_world_pipeline
+   sections/example_pipeline
    sections/plugin_creation
    sections/using_algorithms_in_code
    KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>

@@ -3,13 +3,13 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Tests for hello_world_pipeline example scripts.
+Tests for example_pipeline example scripts.
 """
 
 import pytest
 from test_utilities import get_script_path, assert_script_runs_successfully
 
-CATEGORY = "hello_world_pipeline"
+CATEGORY = "example_pipeline"
 
 
 class TestRunExample:
