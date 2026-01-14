@@ -46,7 +46,7 @@ process detection_refiner
     :chip_step_height                          1000
 
     :refiner:type                              sam3
-    :refiner:sam3:sam_model_id                 facebook/sam2.1-hiera-large
+    :refiner:sam3:sam_model_id                 facebook/sam2.1-hiera-base-plus
     :refiner:sam3:overwrite_existing           true
     :refiner:sam3:output_type                  polygon
     :refiner:sam3:polygon_simplification       0.01
