@@ -842,10 +842,17 @@ model_evaluator::priv::compute_mot_metrics( evaluation_results& results )
 
   // Track assignment history: gt_track_id -> last computed_track_id
   std::map< int, int > gt_to_computed_assignment;
+  // Reverse mapping: computed_track_id -> last gt_track_id
+  std::map< int, int > computed_to_gt_assignment;
 
   // ID switches and fragmentations
   double id_switches = 0;
   double fragmentations = 0;
+
+  // pymotmetrics extended ID switch decomposition
+  double num_transfer = 0;  // Computed track transfers to different GT
+  double num_ascend = 0;    // Computed track ascends to take over tracking of a GT
+  double num_migrate = 0;   // GT migrates to a different computed track
 
   // Build frame-indexed lookup for original detections
   // Use cached frame groupings
@@ -900,14 +907,33 @@ model_evaluator::priv::compute_mot_metrics( evaluation_results& results )
         continue;
       }
 
-      // Check for ID switch
-      auto prev_it = gt_to_computed_assignment.find( gt_track );
-      if( prev_it != gt_to_computed_assignment.end() )
+      // Get previous assignments if they exist
+      auto prev_comp_it = gt_to_computed_assignment.find( gt_track );
+      auto prev_gt_it = computed_to_gt_assignment.find( comp_track );
+
+      int prev_comp = ( prev_comp_it != gt_to_computed_assignment.end() ) ?
+                      prev_comp_it->second : -1;
+      int prev_gt = ( prev_gt_it != computed_to_gt_assignment.end() ) ?
+                    prev_gt_it->second : -1;
+
+      // Check for ID switch (from GT perspective - migrate)
+      if( prev_comp >= 0 && prev_comp != comp_track )
       {
-        if( prev_it->second != comp_track )
+        id_switches++;
+        num_migrate++;  // GT migrated to a different computed track
+
+        // Ascend: computed track takes over from another on the same GT
+        // This happens when the computed track already existed (was tracking something else)
+        if( prev_gt >= 0 )
         {
-          id_switches++;
+          num_ascend++;
         }
+      }
+
+      // Transfer: computed track switches from one GT to another
+      if( prev_gt >= 0 && prev_gt != gt_track )
+      {
+        num_transfer++;
       }
 
       // Check for fragmentation (was matched, then not matched, now matched again)
@@ -917,7 +943,9 @@ model_evaluator::priv::compute_mot_metrics( evaluation_results& results )
         fragmentations++;
       }
 
+      // Update both assignment maps
       gt_to_computed_assignment[gt_track] = comp_track;
+      computed_to_gt_assignment[comp_track] = gt_track;
       gt_track_was_matched[gt_track] = true;
     }
 
@@ -937,6 +965,9 @@ model_evaluator::priv::compute_mot_metrics( evaluation_results& results )
 
   results.id_switches = id_switches;
   results.fragmentations = fragmentations;
+  results.num_transfer = num_transfer;
+  results.num_ascend = num_ascend;
+  results.num_migrate = num_migrate;
 
   // MOTA = 1 - (FN + FP + ID_switches) / total_gt_objects
   double total_gt = tp + fn;  // Total ground truth detections
@@ -2498,6 +2529,9 @@ evaluation_results::populate_all_metrics()
   all_metrics["mostly_tracked"] = mostly_tracked;
   all_metrics["partially_tracked"] = partially_tracked;
   all_metrics["mostly_lost"] = mostly_lost;
+  all_metrics["num_transfer"] = num_transfer;
+  all_metrics["num_ascend"] = num_ascend;
+  all_metrics["num_migrate"] = num_migrate;
 
   // HOTA metrics
   all_metrics["hota"] = hota;

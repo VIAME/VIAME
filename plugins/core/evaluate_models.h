@@ -110,6 +110,12 @@ struct VIAME_CORE_EXPORT evaluation_results
   double partially_tracked = 0.0;
   /// Mostly lost objects (tracked < 20% of lifespan)
   double mostly_lost = 0.0;
+  /// Number of track transfers (predicted track switches to different GT)
+  double num_transfer = 0.0;
+  /// Number of track ascends (predicted track takes over from another on same GT)
+  double num_ascend = 0.0;
+  /// Number of track migrations (GT handed off between predicted tracks)
+  double num_migrate = 0.0;
 
   // -- HOTA metrics (Higher Order Tracking Accuracy) --
 
