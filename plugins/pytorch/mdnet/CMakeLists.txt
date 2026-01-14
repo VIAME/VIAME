@@ -49,3 +49,7 @@ kwiver_add_python_module(
   pytorch/mdnet
   utils )
 
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/tracker.py
+  pytorch/mdnet
+  tracker )
