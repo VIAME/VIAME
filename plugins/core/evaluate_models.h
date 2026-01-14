@@ -189,6 +189,102 @@ struct VIAME_CORE_EXPORT evaluation_results
 };
 
 // ----------------------------------------------------------------------------
+/// \brief A single point on a precision-recall curve
+struct VIAME_CORE_EXPORT pr_curve_point
+{
+  double recall = 0.0;
+  double precision = 0.0;
+  double confidence = 0.0;  ///< Confidence threshold at this point
+  double f1 = 0.0;          ///< F1 score at this point
+  int tp = 0;               ///< True positives at this threshold
+  int fp = 0;               ///< False positives at this threshold
+  int fn = 0;               ///< False negatives at this threshold
+};
+
+// ----------------------------------------------------------------------------
+/// \brief Precision-recall curve data for a single class or overall
+struct VIAME_CORE_EXPORT pr_curve_data
+{
+  std::string class_name;   ///< Class name (empty for overall curve)
+  std::vector< pr_curve_point > points;
+  double average_precision = 0.0;  ///< Area under the PR curve
+  double max_f1 = 0.0;             ///< Maximum F1 score on the curve
+  double best_threshold = 0.0;     ///< Confidence threshold at max F1
+};
+
+// ----------------------------------------------------------------------------
+/// \brief Confusion matrix data
+struct VIAME_CORE_EXPORT confusion_matrix_data
+{
+  /// Ordered list of class names (row/column labels)
+  std::vector< std::string > class_names;
+
+  /// Matrix[i][j] = count of GT class i predicted as class j
+  /// Last row/column is "background" (false negatives / false positives)
+  std::vector< std::vector< int > > matrix;
+
+  /// Normalized matrix (each row sums to 1.0)
+  std::vector< std::vector< double > > normalized_matrix;
+
+  /// Per-class accuracy (diagonal / row sum)
+  std::map< std::string, double > per_class_accuracy;
+
+  /// Overall accuracy (sum of diagonal / total)
+  double overall_accuracy = 0.0;
+};
+
+// ----------------------------------------------------------------------------
+/// \brief ROC curve point (for detection operating characteristic)
+struct VIAME_CORE_EXPORT roc_curve_point
+{
+  double false_positive_rate = 0.0;  ///< FP / (FP + TN) or FP per image
+  double true_positive_rate = 0.0;   ///< TP / (TP + FN) = recall
+  double confidence = 0.0;
+};
+
+// ----------------------------------------------------------------------------
+/// \brief ROC curve data
+struct VIAME_CORE_EXPORT roc_curve_data
+{
+  std::string class_name;
+  std::vector< roc_curve_point > points;
+  double auc = 0.0;  ///< Area under the ROC curve
+};
+
+// ----------------------------------------------------------------------------
+/// \brief Container for all plot data from an evaluation
+struct VIAME_CORE_EXPORT evaluation_plot_data
+{
+  /// Overall precision-recall curve
+  pr_curve_data overall_pr_curve;
+
+  /// Per-class precision-recall curves
+  std::map< std::string, pr_curve_data > per_class_pr_curves;
+
+  /// Confusion matrix
+  confusion_matrix_data confusion_matrix;
+
+  /// Overall ROC curve (detection operating characteristic)
+  roc_curve_data overall_roc_curve;
+
+  /// Per-class ROC curves
+  std::map< std::string, roc_curve_data > per_class_roc_curves;
+
+  /// KWANT-style track purity histogram data
+  /// Bins: [0-10%, 10-20%, ..., 90-100%] -> count of tracks
+  std::vector< int > track_purity_histogram;
+
+  /// KWANT-style track continuity histogram
+  std::vector< int > track_continuity_histogram;
+
+  /// Track length distribution histogram
+  std::map< int, int > track_length_histogram;  ///< length -> count
+
+  /// IoU distribution histogram for true positives
+  std::vector< int > iou_histogram;  ///< Bins of 0.05 from 0 to 1
+};
+
+// ----------------------------------------------------------------------------
 /// \brief Main evaluation class for computing detection and tracking metrics
 ///
 /// This class evaluates computed detections/tracks against ground truth files
@@ -271,6 +367,78 @@ public:
   std::map< std::string, double > evaluate_to_map(
     const std::vector< std::string >& computed_files,
     const std::vector< std::string >& groundtruth_files );
+
+  // -------------------------------------------------------------------------
+  // Plotting data generation
+  // -------------------------------------------------------------------------
+
+  /// \brief Generate all plot data from the current evaluation
+  ///
+  /// Must be called after evaluate(). Generates PR curves, confusion matrix,
+  /// ROC curves, and histogram data.
+  ///
+  /// \returns Container with all plot data
+  evaluation_plot_data generate_plot_data();
+
+  /// \brief Generate precision-recall curve for overall detections
+  /// \param num_points Number of points on the curve (default 101 for 0-100%)
+  /// \returns PR curve data with points sorted by recall
+  pr_curve_data generate_pr_curve( int num_points = 101 );
+
+  /// \brief Generate per-class precision-recall curves
+  /// \param num_points Number of points per curve
+  /// \returns Map of class name to PR curve data
+  std::map< std::string, pr_curve_data > generate_per_class_pr_curves(
+    int num_points = 101 );
+
+  /// \brief Generate confusion matrix from matched detections
+  /// \returns Confusion matrix with class labels and counts
+  confusion_matrix_data generate_confusion_matrix();
+
+  /// \brief Generate ROC curve (detection operating characteristic)
+  /// \param num_points Number of points on the curve
+  /// \returns ROC curve data
+  roc_curve_data generate_roc_curve( int num_points = 101 );
+
+  // -------------------------------------------------------------------------
+  // Plot data export functions
+  // -------------------------------------------------------------------------
+
+  /// \brief Export PR curve data to CSV file
+  /// \param curve The PR curve data to export
+  /// \param filepath Output file path
+  /// \returns true on success
+  static bool export_pr_curve_csv( const pr_curve_data& curve,
+                                   const std::string& filepath );
+
+  /// \brief Export confusion matrix to CSV file
+  /// \param matrix The confusion matrix to export
+  /// \param filepath Output file path
+  /// \returns true on success
+  static bool export_confusion_matrix_csv( const confusion_matrix_data& matrix,
+                                           const std::string& filepath );
+
+  /// \brief Export all plot data to a directory
+  ///
+  /// Creates multiple files:
+  /// - pr_curve_overall.csv
+  /// - pr_curve_<class>.csv for each class
+  /// - confusion_matrix.csv
+  /// - roc_curve_overall.csv
+  /// - histograms.csv
+  ///
+  /// \param plot_data The plot data to export
+  /// \param output_dir Directory to write files to
+  /// \returns true on success
+  static bool export_plot_data( const evaluation_plot_data& plot_data,
+                                const std::string& output_dir );
+
+  /// \brief Export plot data to JSON format
+  /// \param plot_data The plot data to export
+  /// \param filepath Output JSON file path
+  /// \returns true on success
+  static bool export_plot_data_json( const evaluation_plot_data& plot_data,
+                                     const std::string& filepath );
 
 private:
   class priv;

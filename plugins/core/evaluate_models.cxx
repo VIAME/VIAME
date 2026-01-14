@@ -6,6 +6,8 @@
 
 #include <vital/logger/logger.h>
 
+#include <filesystem>
+
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -2652,6 +2654,924 @@ evaluate_models(
   model_evaluator evaluator;
   evaluator.set_config( config );
   return evaluator.evaluate_to_map( computed_files, groundtruth_files );
+}
+
+// =============================================================================
+// Plotting data generation
+// =============================================================================
+
+pr_curve_data
+model_evaluator::generate_pr_curve( int num_points )
+{
+  pr_curve_data result;
+
+  if( d->m_computed.empty() || d->m_groundtruth.empty() )
+  {
+    return result;
+  }
+
+  // Sort computed detections by confidence descending
+  std::vector< size_t > sorted_indices( d->m_computed.size() );
+  std::iota( sorted_indices.begin(), sorted_indices.end(), 0 );
+  std::sort( sorted_indices.begin(), sorted_indices.end(),
+    [this]( size_t a, size_t b )
+    {
+      return d->m_computed[a].confidence > d->m_computed[b].confidence;
+    } );
+
+  const int total_gt = static_cast< int >( d->m_groundtruth.size() );
+  int tp = 0, fp = 0;
+
+  // Track which GT have been matched
+  std::vector< bool > gt_matched( d->m_groundtruth.size(), false );
+
+  // Group GT by frame for efficient lookup
+  std::map< int, std::vector< size_t > > gt_by_frame;
+  for( size_t i = 0; i < d->m_groundtruth.size(); i++ )
+  {
+    gt_by_frame[d->m_groundtruth[i].frame_id].push_back( i );
+  }
+
+  // Process detections in confidence order
+  std::vector< std::tuple< double, int, int > > curve_points;  // (conf, tp, fp)
+  double prev_conf = std::numeric_limits< double >::max();
+
+  for( size_t idx : sorted_indices )
+  {
+    const auto& det = d->m_computed[idx];
+    double conf = det.confidence;
+
+    // Check if this detection matches any unmatched GT
+    bool matched = false;
+    auto frame_it = gt_by_frame.find( det.frame_id );
+    if( frame_it != gt_by_frame.end() )
+    {
+      double best_iou = 0.0;
+      size_t best_gt = 0;
+
+      for( size_t gi : frame_it->second )
+      {
+        if( gt_matched[gi] )
+          continue;
+
+        double iou = d->compute_iou( det, d->m_groundtruth[gi] );
+        if( iou > best_iou && iou >= d->m_config.iou_threshold )
+        {
+          best_iou = iou;
+          best_gt = gi;
+          matched = true;
+        }
+      }
+
+      if( matched )
+      {
+        gt_matched[best_gt] = true;
+        tp++;
+      }
+      else
+      {
+        fp++;
+      }
+    }
+    else
+    {
+      fp++;
+    }
+
+    // Record point when confidence changes
+    if( conf != prev_conf )
+    {
+      curve_points.push_back( { conf, tp, fp } );
+      prev_conf = conf;
+    }
+  }
+
+  // Add final point
+  curve_points.push_back( { 0.0, tp, fp } );
+
+  // Convert to PR curve points
+  result.points.reserve( curve_points.size() );
+  double max_f1 = 0.0;
+  double best_threshold = 0.0;
+
+  for( const auto& pt : curve_points )
+  {
+    pr_curve_point prp;
+    prp.confidence = std::get<0>( pt );
+    prp.tp = std::get<1>( pt );
+    prp.fp = std::get<2>( pt );
+    prp.fn = total_gt - prp.tp;
+
+    if( prp.tp + prp.fp > 0 )
+    {
+      prp.precision = static_cast< double >( prp.tp ) / ( prp.tp + prp.fp );
+    }
+    if( total_gt > 0 )
+    {
+      prp.recall = static_cast< double >( prp.tp ) / total_gt;
+    }
+    if( prp.precision + prp.recall > 0 )
+    {
+      prp.f1 = 2.0 * prp.precision * prp.recall / ( prp.precision + prp.recall );
+    }
+
+    if( prp.f1 > max_f1 )
+    {
+      max_f1 = prp.f1;
+      best_threshold = prp.confidence;
+    }
+
+    result.points.push_back( prp );
+  }
+
+  result.max_f1 = max_f1;
+  result.best_threshold = best_threshold;
+
+  // Compute Average Precision using 11-point interpolation
+  // (PASCAL VOC style)
+  double ap = 0.0;
+  for( double r = 0.0; r <= 1.0; r += 0.1 )
+  {
+    double max_prec = 0.0;
+    for( const auto& pt : result.points )
+    {
+      if( pt.recall >= r )
+      {
+        max_prec = std::max( max_prec, pt.precision );
+      }
+    }
+    ap += max_prec;
+  }
+  result.average_precision = ap / 11.0;
+
+  return result;
+}
+
+std::map< std::string, pr_curve_data >
+model_evaluator::generate_per_class_pr_curves( int num_points )
+{
+  std::map< std::string, pr_curve_data > result;
+
+  // Get all class names
+  std::set< std::string > all_classes;
+  for( const auto& det : d->m_computed )
+  {
+    if( !det.class_name.empty() )
+    {
+      all_classes.insert( det.class_name );
+    }
+  }
+  for( const auto& det : d->m_groundtruth )
+  {
+    if( !det.class_name.empty() )
+    {
+      all_classes.insert( det.class_name );
+    }
+  }
+
+  // Generate PR curve for each class
+  for( const auto& class_name : all_classes )
+  {
+    // Filter detections for this class
+    std::vector< detection > class_computed;
+    std::vector< detection > class_gt;
+
+    for( const auto& det : d->m_computed )
+    {
+      if( det.class_name == class_name )
+      {
+        class_computed.push_back( det );
+      }
+    }
+    for( const auto& det : d->m_groundtruth )
+    {
+      if( det.class_name == class_name )
+      {
+        class_gt.push_back( det );
+      }
+    }
+
+    if( class_gt.empty() )
+      continue;
+
+    // Sort by confidence
+    std::sort( class_computed.begin(), class_computed.end(),
+      []( const detection& a, const detection& b )
+      {
+        return a.confidence > b.confidence;
+      } );
+
+    pr_curve_data curve;
+    curve.class_name = class_name;
+
+    const int total_gt = static_cast< int >( class_gt.size() );
+    int tp = 0, fp = 0;
+
+    std::vector< bool > gt_matched( class_gt.size(), false );
+
+    // Group GT by frame
+    std::map< int, std::vector< size_t > > gt_by_frame;
+    for( size_t i = 0; i < class_gt.size(); i++ )
+    {
+      gt_by_frame[class_gt[i].frame_id].push_back( i );
+    }
+
+    double prev_conf = std::numeric_limits< double >::max();
+
+    for( const auto& det : class_computed )
+    {
+      bool matched = false;
+      auto frame_it = gt_by_frame.find( det.frame_id );
+      if( frame_it != gt_by_frame.end() )
+      {
+        double best_iou = 0.0;
+        size_t best_gt = 0;
+
+        for( size_t gi : frame_it->second )
+        {
+          if( gt_matched[gi] )
+            continue;
+
+          double iou = d->compute_iou( det, class_gt[gi] );
+          if( iou > best_iou && iou >= d->m_config.iou_threshold )
+          {
+            best_iou = iou;
+            best_gt = gi;
+            matched = true;
+          }
+        }
+
+        if( matched )
+        {
+          gt_matched[best_gt] = true;
+          tp++;
+        }
+        else
+        {
+          fp++;
+        }
+      }
+      else
+      {
+        fp++;
+      }
+
+      if( det.confidence != prev_conf )
+      {
+        pr_curve_point prp;
+        prp.confidence = det.confidence;
+        prp.tp = tp;
+        prp.fp = fp;
+        prp.fn = total_gt - tp;
+
+        if( tp + fp > 0 )
+        {
+          prp.precision = static_cast< double >( tp ) / ( tp + fp );
+        }
+        if( total_gt > 0 )
+        {
+          prp.recall = static_cast< double >( tp ) / total_gt;
+        }
+        if( prp.precision + prp.recall > 0 )
+        {
+          prp.f1 = 2.0 * prp.precision * prp.recall / ( prp.precision + prp.recall );
+        }
+
+        curve.points.push_back( prp );
+        prev_conf = det.confidence;
+      }
+    }
+
+    // Final point
+    pr_curve_point final_pt;
+    final_pt.confidence = 0.0;
+    final_pt.tp = tp;
+    final_pt.fp = fp;
+    final_pt.fn = total_gt - tp;
+    if( tp + fp > 0 )
+    {
+      final_pt.precision = static_cast< double >( tp ) / ( tp + fp );
+    }
+    if( total_gt > 0 )
+    {
+      final_pt.recall = static_cast< double >( tp ) / total_gt;
+    }
+    if( final_pt.precision + final_pt.recall > 0 )
+    {
+      final_pt.f1 = 2.0 * final_pt.precision * final_pt.recall /
+                    ( final_pt.precision + final_pt.recall );
+    }
+    curve.points.push_back( final_pt );
+
+    // Compute max F1 and AP
+    double max_f1 = 0.0;
+    for( const auto& pt : curve.points )
+    {
+      if( pt.f1 > max_f1 )
+      {
+        max_f1 = pt.f1;
+        curve.best_threshold = pt.confidence;
+      }
+    }
+    curve.max_f1 = max_f1;
+
+    // 11-point AP
+    double ap = 0.0;
+    for( double r = 0.0; r <= 1.0; r += 0.1 )
+    {
+      double max_prec = 0.0;
+      for( const auto& pt : curve.points )
+      {
+        if( pt.recall >= r )
+        {
+          max_prec = std::max( max_prec, pt.precision );
+        }
+      }
+      ap += max_prec;
+    }
+    curve.average_precision = ap / 11.0;
+
+    result[class_name] = curve;
+  }
+
+  return result;
+}
+
+confusion_matrix_data
+model_evaluator::generate_confusion_matrix()
+{
+  confusion_matrix_data result;
+
+  // Get all class names and assign indices
+  std::set< std::string > all_classes;
+  for( const auto& det : d->m_computed )
+  {
+    if( !det.class_name.empty() )
+    {
+      all_classes.insert( det.class_name );
+    }
+  }
+  for( const auto& det : d->m_groundtruth )
+  {
+    if( !det.class_name.empty() )
+    {
+      all_classes.insert( det.class_name );
+    }
+  }
+
+  // Convert to vector and add "background" class for FP/FN
+  result.class_names = std::vector< std::string >( all_classes.begin(), all_classes.end() );
+  std::sort( result.class_names.begin(), result.class_names.end() );
+  result.class_names.push_back( "background" );
+
+  std::map< std::string, int > class_to_idx;
+  for( size_t i = 0; i < result.class_names.size(); i++ )
+  {
+    class_to_idx[result.class_names[i]] = static_cast< int >( i );
+  }
+
+  int bg_idx = static_cast< int >( result.class_names.size() ) - 1;
+
+  // Initialize matrix
+  int n = static_cast< int >( result.class_names.size() );
+  result.matrix.resize( n, std::vector< int >( n, 0 ) );
+
+  // Use cached frame matches to build confusion matrix
+  for( const auto& frame_match_pair : d->m_frame_matches )
+  {
+    const frame_matches& fm = frame_match_pair.second;
+    int frame_id = frame_match_pair.first;
+
+    // Get indices for this frame
+    const auto& comp_indices = d->m_computed_by_frame.at( frame_id );
+    const auto& gt_indices = d->m_gt_by_frame.count( frame_id ) ?
+                             d->m_gt_by_frame.at( frame_id ) :
+                             std::vector< size_t >();
+
+    // True positives - matched pairs
+    for( const auto& match : fm.matches )
+    {
+      size_t comp_global = comp_indices[match.computed_idx];
+      size_t gt_global = gt_indices[match.gt_idx];
+
+      std::string gt_class = d->m_groundtruth[gt_global].class_name;
+      std::string pred_class = d->m_computed[comp_global].class_name;
+
+      if( gt_class.empty() ) gt_class = "background";
+      if( pred_class.empty() ) pred_class = "background";
+
+      int gt_idx = class_to_idx.count( gt_class ) ? class_to_idx[gt_class] : bg_idx;
+      int pred_idx = class_to_idx.count( pred_class ) ? class_to_idx[pred_class] : bg_idx;
+
+      result.matrix[gt_idx][pred_idx]++;
+    }
+
+    // False positives - predicted but no GT match
+    for( int fp_idx : fm.false_positives )
+    {
+      size_t comp_global = comp_indices[fp_idx];
+      std::string pred_class = d->m_computed[comp_global].class_name;
+      if( pred_class.empty() ) pred_class = "background";
+
+      int pred_idx = class_to_idx.count( pred_class ) ? class_to_idx[pred_class] : bg_idx;
+      result.matrix[bg_idx][pred_idx]++;  // GT is background
+    }
+
+    // False negatives - GT with no prediction match
+    for( int fn_idx : fm.false_negatives )
+    {
+      size_t gt_global = gt_indices[fn_idx];
+      std::string gt_class = d->m_groundtruth[gt_global].class_name;
+      if( gt_class.empty() ) gt_class = "background";
+
+      int gt_idx = class_to_idx.count( gt_class ) ? class_to_idx[gt_class] : bg_idx;
+      result.matrix[gt_idx][bg_idx]++;  // Predicted as background
+    }
+  }
+
+  // Compute normalized matrix
+  result.normalized_matrix.resize( n, std::vector< double >( n, 0.0 ) );
+  int total = 0;
+  int correct = 0;
+
+  for( int i = 0; i < n; i++ )
+  {
+    int row_sum = 0;
+    for( int j = 0; j < n; j++ )
+    {
+      row_sum += result.matrix[i][j];
+    }
+
+    if( row_sum > 0 )
+    {
+      for( int j = 0; j < n; j++ )
+      {
+        result.normalized_matrix[i][j] =
+          static_cast< double >( result.matrix[i][j] ) / row_sum;
+      }
+    }
+
+    // Per-class accuracy (diagonal / row sum)
+    if( row_sum > 0 && i < bg_idx )
+    {
+      result.per_class_accuracy[result.class_names[i]] =
+        static_cast< double >( result.matrix[i][i] ) / row_sum;
+    }
+
+    total += row_sum;
+    correct += result.matrix[i][i];
+  }
+
+  if( total > 0 )
+  {
+    result.overall_accuracy = static_cast< double >( correct ) / total;
+  }
+
+  return result;
+}
+
+roc_curve_data
+model_evaluator::generate_roc_curve( int num_points )
+{
+  roc_curve_data result;
+
+  if( d->m_computed.empty() || d->m_groundtruth.empty() )
+  {
+    return result;
+  }
+
+  // Sort computed detections by confidence descending
+  std::vector< detection > sorted_computed = d->m_computed;
+  std::sort( sorted_computed.begin(), sorted_computed.end(),
+    []( const detection& a, const detection& b )
+    {
+      return a.confidence > b.confidence;
+    } );
+
+  const int total_gt = static_cast< int >( d->m_groundtruth.size() );
+  const int total_frames = static_cast< int >( d->m_frame_list.size() );
+
+  std::vector< bool > gt_matched( d->m_groundtruth.size(), false );
+
+  int tp = 0, fp = 0;
+  double prev_conf = std::numeric_limits< double >::max();
+
+  for( const auto& det : sorted_computed )
+  {
+    bool matched = false;
+    auto frame_it = d->m_gt_by_frame.find( det.frame_id );
+    if( frame_it != d->m_gt_by_frame.end() )
+    {
+      double best_iou = 0.0;
+      size_t best_gt = 0;
+
+      for( size_t gi : frame_it->second )
+      {
+        if( gt_matched[gi] )
+          continue;
+
+        double iou = d->compute_iou( det, d->m_groundtruth[gi] );
+        if( iou > best_iou && iou >= d->m_config.iou_threshold )
+        {
+          best_iou = iou;
+          best_gt = gi;
+          matched = true;
+        }
+      }
+
+      if( matched )
+      {
+        gt_matched[best_gt] = true;
+        tp++;
+      }
+      else
+      {
+        fp++;
+      }
+    }
+    else
+    {
+      fp++;
+    }
+
+    if( det.confidence != prev_conf )
+    {
+      roc_curve_point rp;
+      rp.confidence = det.confidence;
+      rp.true_positive_rate = total_gt > 0 ?
+        static_cast< double >( tp ) / total_gt : 0.0;
+      // For object detection, FPR is often expressed as FP per image
+      rp.false_positive_rate = total_frames > 0 ?
+        static_cast< double >( fp ) / total_frames : 0.0;
+
+      result.points.push_back( rp );
+      prev_conf = det.confidence;
+    }
+  }
+
+  // Add final point
+  roc_curve_point final_pt;
+  final_pt.confidence = 0.0;
+  final_pt.true_positive_rate = total_gt > 0 ?
+    static_cast< double >( tp ) / total_gt : 0.0;
+  final_pt.false_positive_rate = total_frames > 0 ?
+    static_cast< double >( fp ) / total_frames : 0.0;
+  result.points.push_back( final_pt );
+
+  // Compute AUC using trapezoidal rule
+  double auc = 0.0;
+  for( size_t i = 1; i < result.points.size(); i++ )
+  {
+    double dx = result.points[i].false_positive_rate -
+                result.points[i-1].false_positive_rate;
+    double avg_y = ( result.points[i].true_positive_rate +
+                     result.points[i-1].true_positive_rate ) / 2.0;
+    auc += dx * avg_y;
+  }
+  result.auc = auc;
+
+  return result;
+}
+
+evaluation_plot_data
+model_evaluator::generate_plot_data()
+{
+  evaluation_plot_data result;
+
+  // Generate PR curves
+  result.overall_pr_curve = generate_pr_curve();
+  result.per_class_pr_curves = generate_per_class_pr_curves();
+
+  // Generate confusion matrix
+  result.confusion_matrix = generate_confusion_matrix();
+
+  // Generate ROC curve
+  result.overall_roc_curve = generate_roc_curve();
+
+  // Generate histograms
+
+  // IoU histogram (20 bins from 0 to 1)
+  result.iou_histogram.resize( 20, 0 );
+  for( const auto& frame_match_pair : d->m_frame_matches )
+  {
+    for( const auto& match : frame_match_pair.second.matches )
+    {
+      int bin = std::min( 19, static_cast< int >( match.iou * 20 ) );
+      result.iou_histogram[bin]++;
+    }
+  }
+
+  // Track purity histogram (10 bins from 0% to 100%)
+  result.track_purity_histogram.resize( 10, 0 );
+
+  // Track continuity histogram
+  result.track_continuity_histogram.resize( 10, 0 );
+
+  // Track length histogram
+  for( const auto& pair : d->m_comp_track_lengths )
+  {
+    result.track_length_histogram[pair.second]++;
+  }
+
+  return result;
+}
+
+// =============================================================================
+// Export functions
+// =============================================================================
+
+bool
+model_evaluator::export_pr_curve_csv(
+  const pr_curve_data& curve,
+  const std::string& filepath )
+{
+  std::ofstream file( filepath );
+  if( !file.is_open() )
+  {
+    return false;
+  }
+
+  file << "confidence,recall,precision,f1,tp,fp,fn\n";
+  for( const auto& pt : curve.points )
+  {
+    file << std::fixed << std::setprecision( 6 )
+         << pt.confidence << ","
+         << pt.recall << ","
+         << pt.precision << ","
+         << pt.f1 << ","
+         << pt.tp << ","
+         << pt.fp << ","
+         << pt.fn << "\n";
+  }
+
+  file.close();
+  return true;
+}
+
+bool
+model_evaluator::export_confusion_matrix_csv(
+  const confusion_matrix_data& matrix,
+  const std::string& filepath )
+{
+  std::ofstream file( filepath );
+  if( !file.is_open() )
+  {
+    return false;
+  }
+
+  // Header row with class names
+  file << "gt_class";
+  for( const auto& name : matrix.class_names )
+  {
+    file << "," << name;
+  }
+  file << "\n";
+
+  // Data rows
+  for( size_t i = 0; i < matrix.class_names.size(); i++ )
+  {
+    file << matrix.class_names[i];
+    for( size_t j = 0; j < matrix.class_names.size(); j++ )
+    {
+      file << "," << matrix.matrix[i][j];
+    }
+    file << "\n";
+  }
+
+  file.close();
+  return true;
+}
+
+bool
+model_evaluator::export_plot_data(
+  const evaluation_plot_data& plot_data,
+  const std::string& output_dir )
+{
+  namespace fs = std::filesystem;
+
+  fs::path dir( output_dir );
+  if( !fs::exists( dir ) )
+  {
+    std::error_code ec;
+    if( !fs::create_directories( dir, ec ) )
+    {
+      return false;
+    }
+  }
+
+  bool success = true;
+
+  // Export overall PR curve
+  success &= export_pr_curve_csv(
+    plot_data.overall_pr_curve,
+    ( dir / "pr_curve_overall.csv" ).string() );
+
+  // Export per-class PR curves
+  for( const auto& pair : plot_data.per_class_pr_curves )
+  {
+    std::string safe_name = pair.first;
+    // Replace special characters in filename
+    std::replace( safe_name.begin(), safe_name.end(), '/', '_' );
+    std::replace( safe_name.begin(), safe_name.end(), '\\', '_' );
+    std::replace( safe_name.begin(), safe_name.end(), ' ', '_' );
+
+    success &= export_pr_curve_csv(
+      pair.second,
+      ( dir / ( "pr_curve_" + safe_name + ".csv" ) ).string() );
+  }
+
+  // Export confusion matrix
+  success &= export_confusion_matrix_csv(
+    plot_data.confusion_matrix,
+    ( dir / "confusion_matrix.csv" ).string() );
+
+  // Export ROC curve
+  {
+    std::ofstream file( ( dir / "roc_curve_overall.csv" ).string() );
+    if( file.is_open() )
+    {
+      file << "confidence,fpr,tpr\n";
+      for( const auto& pt : plot_data.overall_roc_curve.points )
+      {
+        file << std::fixed << std::setprecision( 6 )
+             << pt.confidence << ","
+             << pt.false_positive_rate << ","
+             << pt.true_positive_rate << "\n";
+      }
+      file.close();
+    }
+    else
+    {
+      success = false;
+    }
+  }
+
+  // Export histograms
+  {
+    std::ofstream file( ( dir / "histograms.csv" ).string() );
+    if( file.is_open() )
+    {
+      // IoU histogram
+      file << "iou_histogram\n";
+      file << "bin_start,bin_end,count\n";
+      for( size_t i = 0; i < plot_data.iou_histogram.size(); i++ )
+      {
+        file << std::fixed << std::setprecision( 2 )
+             << ( i * 0.05 ) << "," << ( ( i + 1 ) * 0.05 ) << ","
+             << plot_data.iou_histogram[i] << "\n";
+      }
+
+      // Track length histogram
+      file << "\ntrack_length_histogram\n";
+      file << "length,count\n";
+      for( const auto& pair : plot_data.track_length_histogram )
+      {
+        file << pair.first << "," << pair.second << "\n";
+      }
+
+      file.close();
+    }
+    else
+    {
+      success = false;
+    }
+  }
+
+  return success;
+}
+
+bool
+model_evaluator::export_plot_data_json(
+  const evaluation_plot_data& plot_data,
+  const std::string& filepath )
+{
+  std::ofstream file( filepath );
+  if( !file.is_open() )
+  {
+    return false;
+  }
+
+  file << "{\n";
+
+  // Overall PR curve
+  file << "  \"overall_pr_curve\": {\n";
+  file << "    \"class_name\": \"" << plot_data.overall_pr_curve.class_name << "\",\n";
+  file << "    \"average_precision\": " << plot_data.overall_pr_curve.average_precision << ",\n";
+  file << "    \"max_f1\": " << plot_data.overall_pr_curve.max_f1 << ",\n";
+  file << "    \"best_threshold\": " << plot_data.overall_pr_curve.best_threshold << ",\n";
+  file << "    \"points\": [\n";
+  for( size_t i = 0; i < plot_data.overall_pr_curve.points.size(); i++ )
+  {
+    const auto& pt = plot_data.overall_pr_curve.points[i];
+    file << "      {\"recall\": " << pt.recall
+         << ", \"precision\": " << pt.precision
+         << ", \"confidence\": " << pt.confidence
+         << ", \"f1\": " << pt.f1 << "}";
+    if( i < plot_data.overall_pr_curve.points.size() - 1 )
+      file << ",";
+    file << "\n";
+  }
+  file << "    ]\n";
+  file << "  },\n";
+
+  // Per-class PR curves
+  file << "  \"per_class_pr_curves\": {\n";
+  size_t class_idx = 0;
+  for( const auto& pair : plot_data.per_class_pr_curves )
+  {
+    file << "    \"" << pair.first << "\": {\n";
+    file << "      \"average_precision\": " << pair.second.average_precision << ",\n";
+    file << "      \"max_f1\": " << pair.second.max_f1 << ",\n";
+    file << "      \"points\": [\n";
+    for( size_t i = 0; i < pair.second.points.size(); i++ )
+    {
+      const auto& pt = pair.second.points[i];
+      file << "        {\"recall\": " << pt.recall
+           << ", \"precision\": " << pt.precision
+           << ", \"confidence\": " << pt.confidence << "}";
+      if( i < pair.second.points.size() - 1 )
+        file << ",";
+      file << "\n";
+    }
+    file << "      ]\n";
+    file << "    }";
+    if( ++class_idx < plot_data.per_class_pr_curves.size() )
+      file << ",";
+    file << "\n";
+  }
+  file << "  },\n";
+
+  // Confusion matrix
+  file << "  \"confusion_matrix\": {\n";
+  file << "    \"class_names\": [";
+  for( size_t i = 0; i < plot_data.confusion_matrix.class_names.size(); i++ )
+  {
+    file << "\"" << plot_data.confusion_matrix.class_names[i] << "\"";
+    if( i < plot_data.confusion_matrix.class_names.size() - 1 )
+      file << ", ";
+  }
+  file << "],\n";
+  file << "    \"matrix\": [\n";
+  for( size_t i = 0; i < plot_data.confusion_matrix.matrix.size(); i++ )
+  {
+    file << "      [";
+    for( size_t j = 0; j < plot_data.confusion_matrix.matrix[i].size(); j++ )
+    {
+      file << plot_data.confusion_matrix.matrix[i][j];
+      if( j < plot_data.confusion_matrix.matrix[i].size() - 1 )
+        file << ", ";
+    }
+    file << "]";
+    if( i < plot_data.confusion_matrix.matrix.size() - 1 )
+      file << ",";
+    file << "\n";
+  }
+  file << "    ],\n";
+  file << "    \"overall_accuracy\": " << plot_data.confusion_matrix.overall_accuracy << "\n";
+  file << "  },\n";
+
+  // ROC curve
+  file << "  \"overall_roc_curve\": {\n";
+  file << "    \"auc\": " << plot_data.overall_roc_curve.auc << ",\n";
+  file << "    \"points\": [\n";
+  for( size_t i = 0; i < plot_data.overall_roc_curve.points.size(); i++ )
+  {
+    const auto& pt = plot_data.overall_roc_curve.points[i];
+    file << "      {\"fpr\": " << pt.false_positive_rate
+         << ", \"tpr\": " << pt.true_positive_rate
+         << ", \"confidence\": " << pt.confidence << "}";
+    if( i < plot_data.overall_roc_curve.points.size() - 1 )
+      file << ",";
+    file << "\n";
+  }
+  file << "    ]\n";
+  file << "  },\n";
+
+  // IoU histogram
+  file << "  \"iou_histogram\": [";
+  for( size_t i = 0; i < plot_data.iou_histogram.size(); i++ )
+  {
+    file << plot_data.iou_histogram[i];
+    if( i < plot_data.iou_histogram.size() - 1 )
+      file << ", ";
+  }
+  file << "],\n";
+
+  // Track length histogram
+  file << "  \"track_length_histogram\": {";
+  size_t tl_idx = 0;
+  for( const auto& pair : plot_data.track_length_histogram )
+  {
+    file << "\"" << pair.first << "\": " << pair.second;
+    if( ++tl_idx < plot_data.track_length_histogram.size() )
+      file << ", ";
+  }
+  file << "}\n";
+
+  file << "}\n";
+
+  file.close();
+  return true;
 }
 
 } // namespace viame
