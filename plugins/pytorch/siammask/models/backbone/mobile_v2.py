@@ -61,20 +61,8 @@ class MobileNetV2(nn.Sequential):
     def __init__(self, width_mult=1.0, used_layers=[3, 5, 7]):
         super(MobileNetV2, self).__init__()
 
+        # t=expansion, c=channels, n=num_blocks, s=stride, d=dilation
         self.interverted_residual_setting = [
-            # t, c, n, s
-            [1, 16, 1, 1, 1],
-            [6, 24, 2, 2, 1],
-            [6, 32, 3, 2, 1],
-            [6, 64, 4, 2, 1],
-            [6, 96, 3, 1, 1],
-            [6, 160, 3, 2, 1],
-            [6, 320, 1, 1, 1],
-        ]
-        # 0,2,3,4,6
-
-        self.interverted_residual_setting = [
-            # t, c, n, s
             [1, 16, 1, 1, 1],
             [6, 24, 2, 2, 1],
             [6, 32, 3, 2, 1],

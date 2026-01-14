@@ -10,6 +10,7 @@ import numpy as np
 
 from viame.pytorch.siammask.core.config import cfg
 from viame.pytorch.siammask.utils.bbox import cxy_wh_2_rect
+from viame.pytorch.siammask.tracker.base_tracker import change, sz
 from viame.pytorch.siammask.tracker.siamrpn_tracker import SiamRPNTracker
 
 
@@ -35,7 +36,7 @@ class SiamMaskTracker(SiamRPNTracker):
         return crop
 
     def _mask_post_processing(self, mask):
-        target_mask = (mask > cfg.TRACK.MASK_THERSHOLD)
+        target_mask = (mask > cfg.TRACK.MASK_THRESHOLD)
         target_mask = target_mask.astype(np.uint8)
         if cv2.__version__[0] == '4':
             contours, _ = cv2.findContours(target_mask,
@@ -83,16 +84,13 @@ class SiamMaskTracker(SiamRPNTracker):
                     s_x,
                     s_x]
 
-        outputs = self.model.track(x_crop)
+        # Pass tracker's template features to shared model
+        outputs = self.model.track(x_crop, self.zf)
+        # Store intermediate features on tracker instance for mask refinement
+        self.xf = outputs['xf']
+        self.mask_corr_feature = outputs['mask_corr_feature']
         score = self._convert_score(outputs['cls'])
         pred_bbox = self._convert_bbox(outputs['loc'], self.anchors)
-
-        def change(r):
-            return np.maximum(r, 1. / r)
-
-        def sz(w, h):
-            pad = (w + h) * 0.5
-            return np.sqrt((w + pad) * (h + pad))
 
         # scale penalty
         s_c = change(sz(pred_bbox[2, :], pred_bbox[3, :]) /
@@ -136,7 +134,8 @@ class SiamMaskTracker(SiamRPNTracker):
         pos = np.unravel_index(best_idx, (5, self.score_size, self.score_size))
         delta_x, delta_y = pos[2], pos[1]
 
-        mask = self.model.mask_refine((delta_y, delta_x)).sigmoid().squeeze()
+        # Pass tracker's stored features to mask refinement
+        mask = self.model.mask_refine((delta_y, delta_x), self.xf, self.mask_corr_feature).sigmoid().squeeze()
         out_size = cfg.TRACK.MASK_OUTPUT_SIZE
         mask = mask.view(out_size, out_size).cpu().data.numpy()
 

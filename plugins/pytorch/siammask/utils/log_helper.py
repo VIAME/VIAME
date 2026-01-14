@@ -109,7 +109,7 @@ def find_caller():
     def current_frame():
         try:
             raise Exception
-        except:
+        except Exception:
             return sys.exc_info()[2].tb_frame.f_back
 
     f = current_frame()

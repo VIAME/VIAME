@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 from viame.pytorch.siammask.core.config import cfg
 from viame.pytorch.siammask.utils.anchor import Anchors
-from viame.pytorch.siammask.tracker.base_tracker import SiameseTracker
+from viame.pytorch.siammask.tracker.base_tracker import SiameseTracker, change, sz
 
 
 class SiamRPNTracker(SiameseTracker):
@@ -88,7 +88,8 @@ class SiamRPNTracker(SiameseTracker):
         z_crop = self.get_subwindow(img, self.center_pos,
                                     cfg.TRACK.EXEMPLAR_SIZE,
                                     s_z, self.channel_average)
-        self.model.template(z_crop)
+        # Store template features on tracker instance (not on shared model)
+        self.zf = self.model.template(z_crop)
 
     def track(self, img):
         """
@@ -106,17 +107,11 @@ class SiamRPNTracker(SiameseTracker):
                                     cfg.TRACK.INSTANCE_SIZE,
                                     round(s_x), self.channel_average)
 
-        outputs = self.model.track(x_crop)
+        # Pass tracker's template features to shared model
+        outputs = self.model.track(x_crop, self.zf)
 
         score = self._convert_score(outputs['cls'])
         pred_bbox = self._convert_bbox(outputs['loc'], self.anchors)
-
-        def change(r):
-            return np.maximum(r, 1. / r)
-
-        def sz(w, h):
-            pad = (w + h) * 0.5
-            return np.sqrt((w + pad) * (h + pad))
 
         # scale penalty
         s_c = change(sz(pred_bbox[2, :], pred_bbox[3, :]) /

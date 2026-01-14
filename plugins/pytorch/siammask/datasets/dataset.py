@@ -247,7 +247,11 @@ class TrkDataset(Dataset):
 
         # get image
         template_image = cv2.imread(template[0])
+        if template_image is None:
+            raise IOError(f"Failed to load template image: {template[0]}")
         search_image = cv2.imread(search[0])
+        if search_image is None:
+            raise IOError(f"Failed to load search image: {search[0]}")
 
         # get bounding box
         template_box = self._get_bbox(template_image, template[1])

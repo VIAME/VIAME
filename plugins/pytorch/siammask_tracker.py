@@ -22,7 +22,7 @@ import scriptconfig as scfg
 from timeit import default_timer as timer
 
 from kwiver.vital.algo import TrackObjects
-from kwiver.vital.types import Image
+from kwiver.vital.types import Image, ImageContainer
 from kwiver.vital.types import BoundingBoxD
 from kwiver.vital.types import DetectedObject, DetectedObjectSet
 from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
@@ -195,7 +195,27 @@ class SiamMaskTracker(TrackObjects):
             if score > self._config.threshold:
                 cbox = BoundingBoxD(
                     bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3])
-                new_state = ObjectTrackState(ts, cbox, score)
+
+                # Create DetectedObject with mask if available
+                if 'mask' in tracker_output and tracker_output['mask'] is not None:
+                    det = DetectedObject(cbox, score)
+
+                    # Crop mask to bounding box region (mask is relative to bbox)
+                    full_mask = tracker_output['mask']
+                    x1 = max(0, int(bbox[0]))
+                    y1 = max(0, int(bbox[1]))
+                    x2 = min(full_mask.shape[1], int(bbox[0] + bbox[2]))
+                    y2 = min(full_mask.shape[0], int(bbox[1] + bbox[3]))
+
+                    if x2 > x1 and y2 > y1:
+                        # Extract and convert mask to uint8 (threshold at 0.5)
+                        relative_mask = (full_mask[y1:y2, x1:x2] > 0.5).astype(np.uint8) * 255
+                        det.mask = ImageContainer(Image(relative_mask))
+
+                    new_state = ObjectTrackState(ts, cbox, score, det)
+                else:
+                    new_state = ObjectTrackState(ts, cbox, score)
+
                 self._tracks[tid].append(new_state)
                 self._track_last_frames[tid] = frame_id
                 frame_boxes.append(cbox)

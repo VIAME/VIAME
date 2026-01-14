@@ -9,7 +9,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from viame.pytorch.siammask.core.config import cfg
-from viame.pytorch.siammask.models.loss import select_cross_entropy_loss, weight_l1_loss
+from viame.pytorch.siammask.models.loss import (
+    select_cross_entropy_loss, weight_l1_loss, select_mask_logistic_loss
+)
 from viame.pytorch.siammask.models.backbone import get_backbone
 from viame.pytorch.siammask.models.head import get_rpn_head, get_mask_head, get_refine_head
 from viame.pytorch.siammask.models.neck import get_neck
@@ -41,31 +43,57 @@ class ModelBuilder(nn.Module):
                 self.refine_head = get_refine_head(cfg.REFINE.TYPE)
 
     def template(self, z):
+        """Extract template features from exemplar image.
+
+        Returns the template features instead of storing them, to support
+        multiple concurrent tracker instances sharing this model.
+        """
         zf = self.backbone(z)
         if cfg.MASK.MASK:
             zf = zf[-1]
         if cfg.ADJUST.ADJUST:
             zf = self.neck(zf)
-        self.zf = zf
+        return zf
 
-    def track(self, x):
+    def track(self, x, zf):
+        """Track object in search image using template features.
+
+        Args:
+            x: Search image crop tensor
+            zf: Template features (from template() call)
+
+        Returns dict with 'cls', 'loc', 'mask', and for mask models also
+        'xf' and 'mask_corr_feature' for use with mask_refine().
+        """
         xf = self.backbone(x)
+        xf_refine = None
         if cfg.MASK.MASK:
-            self.xf = xf[:-1]
+            xf_refine = xf[:-1]
             xf = xf[-1]
         if cfg.ADJUST.ADJUST:
             xf = self.neck(xf)
-        cls, loc = self.rpn_head(self.zf, xf)
+        cls, loc = self.rpn_head(zf, xf)
+        mask = None
+        mask_corr_feature = None
         if cfg.MASK.MASK:
-            mask, self.mask_corr_feature = self.mask_head(self.zf, xf)
+            mask, mask_corr_feature = self.mask_head(zf, xf)
         return {
                 'cls': cls,
                 'loc': loc,
-                'mask': mask if cfg.MASK.MASK else None
+                'mask': mask,
+                'xf': xf_refine,
+                'mask_corr_feature': mask_corr_feature,
                }
 
-    def mask_refine(self, pos):
-        return self.refine_head(self.xf, self.mask_corr_feature, pos)
+    def mask_refine(self, pos, xf, mask_corr_feature):
+        """Refine mask prediction at given position.
+
+        Args:
+            pos: Position tuple (y, x) for refinement
+            xf: Backbone features from track() call
+            mask_corr_feature: Mask correlation features from track() call
+        """
+        return self.refine_head(xf, mask_corr_feature, pos)
 
     def log_softmax(self, cls):
         b, a2, h, w = cls.size()
@@ -107,9 +135,17 @@ class ModelBuilder(nn.Module):
         outputs['loc_loss'] = loc_loss
 
         if cfg.MASK.MASK:
-            # TODO
             mask, self.mask_corr_feature = self.mask_head(zf, xf)
-            mask_loss = None
-            outputs['total_loss'] += cfg.TRAIN.MASK_WEIGHT * mask_loss
-            outputs['mask_loss'] = mask_loss
+            # Compute mask loss if label_mask is provided in training data
+            if 'label_mask' in data and 'label_mask_weight' in data:
+                label_mask = data['label_mask'].cuda()
+                label_mask_weight = data['label_mask_weight'].cuda()
+                mask_loss = select_mask_logistic_loss(
+                    mask, label_mask, label_mask_weight,
+                    mask_output_size=cfg.TRACK.MASK_OUTPUT_SIZE
+                )
+                outputs['total_loss'] += cfg.TRAIN.MASK_WEIGHT * mask_loss
+                outputs['mask_loss'] = mask_loss
+            else:
+                outputs['mask_loss'] = None
         return outputs

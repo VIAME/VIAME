@@ -12,6 +12,17 @@ import torch
 from viame.pytorch.siammask.core.config import cfg
 
 
+def change(r):
+    """Compute max ratio penalty for scale/aspect changes."""
+    return np.maximum(r, 1. / r)
+
+
+def sz(w, h):
+    """Compute padded size for bounding box."""
+    pad = (w + h) * 0.5
+    return np.sqrt((w + pad) * (h + pad))
+
+
 class BaseTracker(object):
     """ Base tracker of single objec tracking
     """

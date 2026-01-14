@@ -57,9 +57,9 @@ def load_pretrain(model, pretrained_path):
 
     try:
         check_keys(model, pretrained_dict)
-    except:
-        logger.info('[Warning]: using pretrain as features.\
-                Adding "features." as prefix')
+    except (AssertionError, KeyError):
+        logger.info('[Warning]: using pretrain as features. '
+                    'Adding "features." as prefix')
         new_dict = {}
         for k, v in pretrained_dict.items():
             k = 'features.' + k
