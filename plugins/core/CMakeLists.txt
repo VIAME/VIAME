@@ -2,7 +2,7 @@
 
 set( plugin_headers
   adaptive_tracker_trainer.h
-  adaptive_trainer.h
+  adaptive_detector_trainer.h
   add_timestamp_from_filename.h
   auto_detect_transform.h
   average_track_descriptors.h
@@ -38,7 +38,7 @@ set( plugin_headers
 
 set( plugin_sources
   adaptive_tracker_trainer.cxx
-  adaptive_trainer.cxx
+  adaptive_detector_trainer.cxx
   add_timestamp_from_filename.cxx
   auto_detect_transform.cxx
   average_track_descriptors.cxx
