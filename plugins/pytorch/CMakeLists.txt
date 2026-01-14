@@ -233,6 +233,11 @@ endif()
 if( VIAME_ENABLE_PYTORCH-SAM3 )
 
     kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_utilities.py
+      pytorch
+      sam3_utilities )
+
+    kwiver_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/sam3_interactive.py
       pytorch
       sam3_interactive )
@@ -241,6 +246,11 @@ if( VIAME_ENABLE_PYTORCH-SAM3 )
       ${CMAKE_CURRENT_SOURCE_DIR}/sam3_tracker.py
       pytorch
       sam3_tracker )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_refiner.py
+      pytorch
+      sam3_refiner )
 
 endif()
 

@@ -79,7 +79,6 @@ Protocol:
 """
 
 import argparse
-import contextlib
 import json
 import os
 import sys
@@ -93,6 +92,8 @@ from viame.core.segmentation_utils import (
     mask_to_polygon,
     simplify_polygon_to_max_points,
 )
+from viame.pytorch.sam3_utilities import get_autocast_context
+from viame.pytorch.utilities import resolve_device
 
 
 class SAM3InteractiveService:
@@ -209,10 +210,7 @@ class SAM3InteractiveService:
                 mask_input_arr = mask_input_arr[None, :, :]  # Add channel dim
 
         # Run inference
-        if self.predictor.device.type == 'cuda':
-            autocast_context = torch.autocast(self.predictor.device.type, dtype=torch.bfloat16)
-        else:
-            autocast_context = contextlib.nullcontext()
+        autocast_context = get_autocast_context(self.predictor.device)
 
         with torch.inference_mode(), autocast_context:
             masks, scores, low_res_masks = self.predictor.predict(
@@ -329,10 +327,7 @@ class SAM3InteractiveService:
             return self._handle_text_query_fallback(imdata, text, box_threshold, max_detections)
 
         # Use native text query if available
-        if self.predictor.device.type == 'cuda':
-            autocast_context = torch.autocast(self.predictor.device.type, dtype=torch.bfloat16)
-        else:
-            autocast_context = contextlib.nullcontext()
+        autocast_context = get_autocast_context(self.predictor.device)
 
         detections = []
         with torch.inference_mode(), autocast_context:
@@ -375,10 +370,7 @@ class SAM3InteractiveService:
         # Set image for prediction
         self.predictor.set_image(imdata)
 
-        if self.predictor.device.type == 'cuda':
-            autocast_context = torch.autocast(self.predictor.device.type, dtype=torch.bfloat16)
-        else:
-            autocast_context = contextlib.nullcontext()
+        autocast_context = get_autocast_context(self.predictor.device)
 
         detections = []
 
@@ -534,10 +526,7 @@ class SAM3InteractiveService:
             self.predictor.set_image(imdata)
             self._current_image_path = image_path
 
-        if self.predictor.device.type == 'cuda':
-            autocast_context = torch.autocast(self.predictor.device.type, dtype=torch.bfloat16)
-        else:
-            autocast_context = contextlib.nullcontext()
+        autocast_context = get_autocast_context(self.predictor.device)
 
         refined_detections = []
 
@@ -665,9 +654,9 @@ def main():
     )
     parser.add_argument(
         "--device",
-        default="cuda",
-        choices=["cuda", "cpu"],
-        help="Device to run inference on",
+        default="auto",
+        choices=["auto", "cuda", "cpu"],
+        help="Device to run inference on (auto selects best available)",
     )
     parser.add_argument(
         "--hole-policy",
@@ -715,9 +704,12 @@ def main():
         print(f"[SAM3] Error: Checkpoint not found: {checkpoint}", file=sys.stderr)
         sys.exit(1)
 
+    # Resolve device (handles "auto" and returns actual device string)
+    device = str(resolve_device(args.device))
+
     service = SAM3InteractiveService(
         checkpoint=checkpoint,
-        device=args.device,
+        device=device,
         hole_policy=args.hole_policy,
         multipolygon_policy=args.multipolygon_policy,
         max_polygon_points=args.max_polygon_points,
