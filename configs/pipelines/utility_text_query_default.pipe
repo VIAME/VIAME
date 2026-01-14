@@ -1,0 +1,3 @@
+# Default text query pipeline - uses SAM3 for track refinement with text queries
+
+include utility_text_query_sam3.pipe

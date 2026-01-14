@@ -379,7 +379,17 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM2 )
     utility_add_segmentations_sam2.pipe
     utility_add_segmentations_sam2_no_replace.pipe
     utility_add_head_tail_keypoints_default.pipe
-    utility_add_head_tail_keypoints_sam2.pipe )
+    utility_add_head_tail_keypoints_sam2.pipe
+    utility_track_selections_sam2.pipe )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-SAM3 )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    utility_add_segmentations_sam3.pipe
+    utility_add_segmentations_sam3_no_replace.pipe
+    utility_text_query_default.pipe
+    utility_text_query_sam3.pipe
+    utility_track_selections_sam3.pipe )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )

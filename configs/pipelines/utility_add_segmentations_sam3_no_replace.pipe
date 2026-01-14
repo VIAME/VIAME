@@ -1,0 +1,72 @@
+# Add automatically generated segmentations via SAM3 (SAM 2.1)
+# Does not overwrite existing segmentations
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                                      5
+
+config _scheduler
+  :type                                       pythread_per_process
+
+# ====================== INPUT FRAME LIST ========================
+include common_default_input_with_downsampler.pipe
+
+process track_reader
+  :: read_object_track
+  :file_name                                        detections.csv
+  :reader:type                                           viame_csv
+  :reader:viame_csv:poly_to_mask                              true
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
+process ensure_rgb
+  :: image_filter
+  :filter:type                                   vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                                   byte
+    :force_three_channel                                      true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_rgb.image
+
+process detection_refiner
+  :: refine_detections
+  :refiner:type                                       ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                                 adaptive
+    :chip_adaptive_thresh                                 25000000
+    :chip_width                                               2000
+    :chip_height                                              2000
+    :chip_step_width                                          1000
+    :chip_step_height                                         1000
+
+    :refiner:type                                             sam3
+    :refiner:sam3:sam_model_id        facebook/sam2.1-hiera-large
+    :refiner:sam3:overwrite_existing                         false
+    :refiner:sam3:output_type                              polygon
+    :refiner:sam3:polygon_simplification                      0.01
+  endblock
+
+connect from ensure_rgb.image
+        to   detection_refiner.image
+connect from track_reader.object_track_set
+        to   detection_refiner.object_track_set
+
+process track_writer
+  :: write_object_track
+  :file_name                               computed_detections.csv
+  :writer:type                                           viame_csv
+  :writer:viame_csv:mask_to_poly_points                         30
+
+connect from downsampler.output_2
+        to   track_writer.image_file_name
+connect from detection_refiner.object_track_set
+        to   track_writer.object_track_set
+
+# -- end of file --

@@ -1,0 +1,105 @@
+# Track user selections and generate segmentation masks using SAM2
+#
+# This pipeline:
+# - Reads single-state tracks (user selections/detections) and adds segmentation masks
+# - Reads existing multi-state tracks and preserves them
+# - Uses SAM2 to generate high-quality segmentation masks for detections
+# - Merges refined single-state tracks with existing multi-state tracks
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================== INPUT FRAME LIST ==================================
+
+include common_default_input_with_downsampler.pipe
+
+# ================================= CORE REFINER ===================================
+
+# Input detections for user initializations (single-state tracks)
+process detection_reader
+  :: read_object_track
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+  :reader:viame_csv:single_state_only          true
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
+# Input tracks to merge into set and keep as-is (multi-state tracks)
+process track_reader
+  :: read_object_track
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+  :reader:viame_csv:multi_state_only           true
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
+# Ensure RGB format for SAM2
+process ensure_rgb
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_rgb.image
+
+# SAM2 track refiner - adds segmentation masks to single-state detections
+process track_refiner
+  :: refine_tracks
+  :refiner:type                                sam2
+
+  block refiner:sam2
+    :cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
+    :device                                                     cuda
+    :overwrite_existing                                         true
+    :hole_policy                                               allow
+    :multipolygon_policy                                     largest
+    :min_mask_area                                                10
+    :filter_by_quality                                          true
+    :adjust_boxes                                              false
+    :output_type                                             polygon
+    :polygon_simplification                                     0.01
+    relativepath checkpoint =                     models/sam2_hbp.pt
+  endblock
+
+connect from ensure_rgb.image
+        to   track_refiner.image
+connect from downsampler.timestamp
+        to   track_refiner.timestamp
+connect from detection_reader.object_track_set
+        to   track_refiner.object_track_set
+
+# ================================= OUTPUT TRK DATA ================================
+
+process track_merger
+  :: merge_track_sets
+
+connect from track_refiner.object_track_set
+        to   track_merger.object_track_set1
+connect from track_reader.object_track_set
+        to   track_merger.object_track_set2
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+
+# Connect inputs to track writer
+connect from track_merger.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+
+# -- end of file --

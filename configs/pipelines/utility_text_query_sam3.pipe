@@ -1,0 +1,95 @@
+# Refine tracks using SAM3 with text query support
+#
+# This pipeline uses SAM3 (SAM 2.1) to:
+# - Re-segment existing track bounding boxes for improved masks
+# - Detect and add new objects matching a text query
+# - Filter low-quality tracks based on mask quality
+# - Adjust bounding boxes to fit refined masks
+# - Add polygon segmentation to detections
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                                      5
+
+config _scheduler
+  :type                                       pythread_per_process
+
+# ====================== INPUT FRAME LIST ========================
+include common_default_input_with_downsampler.pipe
+
+process track_reader
+  :: read_object_track
+  :file_name                                        detections.csv
+  :reader:type                                           viame_csv
+  :reader:viame_csv:poly_to_mask                             false
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
+process ensure_rgb
+  :: image_filter
+  :filter:type                                   vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                                   byte
+    :force_three_channel                                      true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_rgb.image
+
+# ====================== TRACK REFINER ===========================
+process track_refiner
+  :: refine_tracks
+  :refiner:type                                              sam3
+
+  block refiner:sam3
+    # Model configuration
+    :sam_model_id               facebook/sam2.1-hiera-large
+    :grounding_model_id         IDEA-Research/grounding-dino-tiny
+    :device                                                   cuda
+
+    # Text query for detecting new objects
+    :text_query                                             object
+
+    # Detection thresholds
+    :detection_threshold                                       0.3
+    :text_threshold                                           0.25
+
+    # Track refinement parameters
+    :iou_threshold                                             0.5
+    :min_mask_area                                              10
+    :resegment_existing                                       true
+    :add_new_objects                                          true
+    :filter_by_quality                                        true
+    :adjust_boxes                                             true
+    :max_new_objects                                            50
+
+    # Output configuration
+    :output_type                                           polygon
+    :polygon_simplification                                   0.01
+    :num_points                                                  5
+  endblock
+
+connect from ensure_rgb.image
+        to   track_refiner.image
+connect from downsampler.timestamp
+        to   track_refiner.timestamp
+connect from track_reader.object_track_set
+        to   track_refiner.object_track_set
+
+# ====================== OUTPUT WRITER ===========================
+process track_writer
+  :: write_object_track
+  :file_name                               computed_detections.csv
+  :writer:type                                           viame_csv
+  :writer:viame_csv:mask_to_poly_points                         30
+
+connect from downsampler.output_2
+        to   track_writer.image_file_name
+connect from track_refiner.object_track_set
+        to   track_writer.object_track_set
+
+# -- end of file --
