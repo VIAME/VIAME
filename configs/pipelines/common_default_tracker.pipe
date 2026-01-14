@@ -1,29 +1,26 @@
 # ==================================================================================
 # Commonly used default tracker when the user hasn't specified one.
 #
-# Current incumbent is a modified version of "Tracking the Untrackable" implemented
-# in pytorch, trained on assorted fish data.
+# Uses the track_objects process with a configurable algorithm implementation.
+# Current incumbent is the SRNN (Structural RNN) tracker.
 # ==================================================================================
 
 process tracker
-  :: srnn_tracker
-  :siamese_model_input_size                    224
-  :detection_select_threshold                  0.001
-  :similarity_threshold                        0.200
-  :terminate_track_threshold                   10
-  :add_features_to_detections                  False
-  :IOU_tracker_flag                            True
-  :IOU_accept_threshold                        0.500
-  :IOU_reject_threshold                        0.100
-  :track_search_threshold                      2
-  :gpu_list                                    0
+  :: track_objects
+  :track_objects:type                            srnn
 
-  relativepath siamese_model_path =            models/siamese_model.pt
-  :siamese_batch_size                          64
-
-  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
-  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
-  :targetRNN_normalized_models                 True
-  :targetRNN_batch_size                        128
+block track_objects:srnn
+  :siamese_model_path         siamese/snapshot_epoch_6.pt
+  :siamese_model_input_size   224
+  :siamese_batch_size         128
+  :targetRNN_AIM_model_path   targetRNN_snapshot/App_LSTM_epoch_51.pt
+  :targetRNN_AIM_V_model_path targetRNN_AI/App_LSTM_epoch_51.pt
+  :targetRNN_batch_size       256
+  :similarity_threshold       0.5
+  :IOU_tracker_flag           true
+  :IOU_accept_threshold       0.5
+  :IOU_reject_threshold       0.1
+  :terminate_track_threshold  15
+endblock
 
 # -- end of file --
