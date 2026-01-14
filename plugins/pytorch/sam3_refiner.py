@@ -18,16 +18,18 @@ It operates on a per-frame basis to:
 import scriptconfig as scfg
 import numpy as np
 
-from kwiver.vital.algo import RefineTracks
+from kwiver.vital.algo import RefineTracks, RefineDetections
 from kwiver.vital.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
-    ObjectTrackState, Track, ObjectTrackSet, Polygon
+    ObjectTrackState, Track, ObjectTrackSet, Polygon, ImageContainer
 )
+from kwiver.vital.util import VitalPIL
+from PIL import Image as PILImage
 
 from viame.pytorch.sam3_utilities import (
     SAM3BaseConfig, SAM3ModelManager,
     mask_to_polygon, mask_to_points, box_from_mask, compute_iou,
-    image_to_rgb_numpy
+    image_to_rgb_numpy, get_autocast_context
 )
 from viame.pytorch.utilities import vital_config_update
 
@@ -353,20 +355,163 @@ class SAM3Refiner(RefineTracks):
         return new_det
 
 
+class Sam3DetectionRefiner(RefineDetections):
+    """
+    SAM3-based Detection Refiner
+
+    This refiner uses SAM3 (SAM 2.1) to add segmentation masks to detections.
+    It operates on DetectedObjectSet and adds polygon masks to each detection.
+
+    Key features:
+    - Re-segments detection bounding boxes with SAM 2.1 for high-quality masks
+    - Generates polygon outputs from masks
+    - Can optionally overwrite existing masks
+
+    Example:
+        >>> from viame.pytorch.sam3_refiner import Sam3DetectionRefiner
+        >>> refiner = Sam3DetectionRefiner()
+        >>> refiner.set_configuration({})
+        >>> refined_dets = refiner.refine(image, detections)
+    """
+
+    def __init__(self):
+        RefineDetections.__init__(self)
+
+        self._kwiver_config = {
+            'sam_model_id': 'facebook/sam2.1-hiera-large',
+            'device': 'cuda',
+            'overwrite_existing': 'True',
+            'output_type': 'polygon',
+            'polygon_simplification': '0.01',
+        }
+
+        self._model_manager = SAM3ModelManager()
+
+    def get_configuration(self):
+        """Get the algorithm configuration."""
+        cfg = super(RefineDetections, self).get_configuration()
+        for key, value in self._kwiver_config.items():
+            cfg.set_value(key, str(value))
+        return cfg
+
+    def set_configuration(self, cfg_in):
+        """Set the algorithm configuration and initialize models."""
+        cfg = self.get_configuration()
+        vital_config_update(cfg, cfg_in)
+
+        for key in self._kwiver_config.keys():
+            self._kwiver_config[key] = str(cfg.get_value(key))
+
+        # Create a minimal config object for model initialization
+        class MinimalConfig:
+            pass
+
+        model_config = MinimalConfig()
+        model_config.sam_model_id = self._kwiver_config['sam_model_id']
+        model_config.grounding_model_id = None  # Not needed for detection refinement
+        model_config.device = self._kwiver_config['device']
+
+        # Initialize SAM model only (no Grounding DINO needed)
+        self._model_manager.init_models(model_config, use_video_predictor=False)
+
+        # Parse config values
+        self._overwrite_existing = self._kwiver_config['overwrite_existing'] in ('True', 'true', '1', True)
+        self._output_type = self._kwiver_config['output_type']
+        self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
+
+        return True
+
+    def check_configuration(self, cfg):
+        """Check if the configuration is valid."""
+        return True
+
+    def refine(self, image_data, detections):
+        """
+        Refine detections by adding segmentation masks.
+
+        Args:
+            image_data: Image container
+            detections: DetectedObjectSet to refine
+
+        Returns:
+            DetectedObjectSet: Refined detections with masks
+        """
+        import torch
+
+        if len(detections) == 0:
+            return DetectedObjectSet()
+
+        # Convert image to numpy RGB
+        img_np = image_to_rgb_numpy(image_data)
+
+        # Collect boxes for segmentation
+        boxes = []
+        for det in detections:
+            bbox = det.bounding_box
+            boxes.append([bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()])
+
+        # Segment all boxes with SAM
+        masks = self._model_manager.segment_with_sam(img_np, boxes)
+
+        # Create output detection set
+        output = DetectedObjectSet()
+
+        for det, mask in zip(detections, masks):
+            # Add polygon if requested
+            if self._output_type in ('polygon', 'both'):
+                if det.polygon is None or self._overwrite_existing:
+                    polygon = mask_to_polygon(mask, self._polygon_simplification)
+                    if polygon is not None:
+                        det.set_polygon(polygon)
+
+            # Add mask (relative to bounding box)
+            if det.mask is None or self._overwrite_existing:
+                bbox = det.bounding_box
+                x1, y1 = int(bbox.min_x()), int(bbox.min_y())
+                x2, y2 = int(bbox.max_x()), int(bbox.max_y())
+
+                # Ensure bounds are within mask dimensions
+                h, w = mask.shape
+                x1 = max(0, min(x1, w - 1))
+                x2 = max(x1 + 1, min(x2, w))
+                y1 = max(0, min(y1, h - 1))
+                y2 = max(y1 + 1, min(y2, h))
+
+                relative_mask = mask[y1:y2, x1:x2].astype(np.uint8)
+                if relative_mask.size > 0:
+                    pil_img = PILImage.fromarray(relative_mask)
+                    vital_img = ImageContainer(VitalPIL.from_pil(pil_img))
+                    det.mask = vital_img
+
+            output.add(det)
+
+        return output
+
+
 def __vital_algorithm_register__():
-    """Register the SAM3Refiner algorithm with KWIVER."""
+    """Register SAM3 refiner algorithms with KWIVER."""
     from kwiver.vital.algo import algorithm_factory
 
-    implementation_name = "sam3_refiner"
+    # Register SAM3Refiner (RefineTracks)
+    track_impl_name = "sam3"
 
-    if algorithm_factory.has_algorithm_impl_name(
-            SAM3Refiner.static_type_name(), implementation_name):
-        return
+    if not algorithm_factory.has_algorithm_impl_name(
+            SAM3Refiner.static_type_name(), track_impl_name):
+        algorithm_factory.add_algorithm(
+            track_impl_name,
+            "SAM3 (Segment Anything Model 3) based track refiner with text queries",
+            SAM3Refiner
+        )
+        algorithm_factory.mark_algorithm_as_loaded(track_impl_name)
 
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "SAM3 (Segment Anything Model 3) based track refiner with text queries",
-        SAM3Refiner
-    )
+    # Register Sam3DetectionRefiner (RefineDetections)
+    det_impl_name = "sam3"
 
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    if not algorithm_factory.has_algorithm_impl_name(
+            Sam3DetectionRefiner.static_type_name(), det_impl_name):
+        algorithm_factory.add_algorithm(
+            det_impl_name,
+            "SAM3 (SAM 2.1) based detection refiner for adding segmentation masks",
+            Sam3DetectionRefiner
+        )
+        algorithm_factory.mark_algorithm_as_loaded(det_impl_name)
