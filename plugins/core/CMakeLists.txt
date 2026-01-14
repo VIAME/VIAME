@@ -1,6 +1,7 @@
 # Build / Install Plugin containing core algorithm implementations
 
 set( plugin_headers
+  adaptive_tracker_trainer.h
   adaptive_trainer.h
   add_timestamp_from_filename.h
   auto_detect_transform.h
@@ -36,6 +37,7 @@ set( plugin_headers
   )
 
 set( plugin_sources
+  adaptive_tracker_trainer.cxx
   adaptive_trainer.cxx
   add_timestamp_from_filename.cxx
   auto_detect_transform.cxx
