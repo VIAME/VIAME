@@ -2,12 +2,13 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import RefineDetections
+from kwiver.vital.algo import RefineDetections, RefineTracks
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObjectType
 from kwiver.vital.util import VitalPIL
 from kwiver.vital.types import ImageContainer
 from kwiver.vital.types import DetectedObject
+from kwiver.vital.types import BoundingBoxD, ObjectTrackState, Track, ObjectTrackSet
 
 from PIL import Image as PILImage
 
@@ -15,6 +16,9 @@ import numpy as np
 import math
 import delayed_image
 from viame.pytorch.utilities import vital_config_update, vital_to_kwimage_box
+from viame.pytorch.sam3_utilities import (
+    mask_to_polygon, box_from_mask, image_to_rgb_numpy, get_autocast_context
+)
 from viame.core.segmentation_utils import (
     kwimage_mask_to_shapely,
     apply_polygon_policies,
@@ -155,11 +159,7 @@ class Sam2Refiner(RefineDetections):
         imdata = image_data.asarray().astype('uint8')
         predictor = self.predictor
 
-        if predictor.device.type == 'cuda':
-            autocast_context = torch.autocast(predictor.device.type, dtype=torch.bfloat16)
-        else:
-            import contextlib
-            autocast_context = contextlib.nullcontext()
+        autocast_context = get_autocast_context(predictor.device)
 
         # Convert input vital types into kwimage
         kw_dets: kwimage.Detections = vital_detections_to_kwimage(detections)
@@ -238,6 +238,279 @@ class Sam2Refiner(RefineDetections):
             output.add(vital_det)
 
         return output
+
+
+class Sam2TrackRefiner(RefineTracks):
+    """
+    SAM2-based Track Refiner
+
+    This refiner uses SAM2 for per-frame track refinement operations.
+    It can improve mask quality and create new tracks from detections.
+
+    Key features:
+    - Re-segments existing track bounding boxes with SAM2 for better masks
+    - Creates new tracks from single-state detections
+    - Filters out tracks with low-quality masks
+    - Adjusts bounding boxes to fit refined masks
+    - Generates polygon outputs from masks
+
+    Example:
+        >>> from viame.pytorch.sam2_refiner import Sam2TrackRefiner
+        >>> refiner = Sam2TrackRefiner()
+        >>> refiner.set_configuration({'cfg': 'configs/sam2.1/sam2.1_hiera_b+.yaml'})
+        >>> refined_tracks = refiner.refine(timestamp, image, tracks)
+    """
+
+    def __init__(self):
+        RefineTracks.__init__(self)
+
+        self._kwiver_config = {
+            'cfg': "configs/sam2.1/sam2.1_hiera_b+.yaml",
+            'checkpoint': 'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
+            'device': "cuda",
+            'overwrite_existing': 'True',
+            'hole_policy': 'allow',
+            'multipolygon_policy': 'allow',
+            'min_mask_area': '10',
+            'filter_by_quality': 'True',
+            'adjust_boxes': 'True',
+            'output_type': 'polygon',
+            'polygon_simplification': '0.01',
+        }
+
+        self.predictor = None
+        self._next_track_id = 1
+
+    def get_configuration(self):
+        """Get the algorithm configuration."""
+        cfg = super(RefineTracks, self).get_configuration()
+        for key, value in self._kwiver_config.items():
+            cfg.set_value(key, str(value))
+        return cfg
+
+    def set_configuration(self, cfg_in):
+        """Set the algorithm configuration and initialize models."""
+        cfg = self.get_configuration()
+        vital_config_update(cfg, cfg_in)
+
+        for key in self._kwiver_config.keys():
+            self._kwiver_config[key] = str(cfg.get_value(key))
+
+        from sam2.build_sam import build_sam2
+        from sam2.sam2_image_predictor import SAM2ImagePredictor
+
+        hydra_overrides_extra = []
+        model = build_sam2(
+            config_file=self._kwiver_config['cfg'],
+            ckpt_path=self._kwiver_config['checkpoint'],
+            device=self._kwiver_config['device'],
+            mode='eval',
+            hydra_overrides_extra=hydra_overrides_extra,
+            apply_postprocessing=True,
+        )
+        self.predictor = SAM2ImagePredictor(model)
+
+        # Parse config values
+        self.overwrite_existing = strtobool(self._kwiver_config['overwrite_existing'])
+        self._min_mask_area = int(self._kwiver_config['min_mask_area'])
+        self._filter_by_quality = strtobool(self._kwiver_config['filter_by_quality'])
+        self._adjust_boxes = strtobool(self._kwiver_config['adjust_boxes'])
+        self._output_type = self._kwiver_config['output_type']
+        self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
+        self._hole_policy = self._kwiver_config['hole_policy']
+        self._mpoly_policy = self._kwiver_config['multipolygon_policy']
+
+        return True
+
+    def check_configuration(self, cfg):
+        """Check if the configuration is valid."""
+        if not cfg.has_value("cfg"):
+            print("Requires a path to a config file (relative to the repo)")
+            return False
+        if not cfg.has_value("checkpoint"):
+            print("A checkpoint path to the weights needs to be specified!")
+            return False
+        return True
+
+    def refine(self, ts, image_data, tracks):
+        """
+        Refine tracks for the current frame.
+
+        Args:
+            ts: Timestamp for the current frame
+            image_data: Image container for the current frame
+            tracks: ObjectTrackSet containing tracks to refine
+
+        Returns:
+            ObjectTrackSet: Refined tracks
+        """
+        import torch
+
+        if not ts.has_valid_frame():
+            raise RuntimeError("Frame timestamps must contain frame IDs")
+
+        frame_id = ts.get_frame()
+
+        # Convert image to numpy RGB
+        img_np = image_to_rgb_numpy(image_data)
+
+        # Extract current frame's track states
+        track_states = {}  # track_id -> (track, state, detection)
+        max_track_id = 0
+
+        for track in tracks.tracks():
+            track_id = track.id()
+            max_track_id = max(max_track_id, track_id)
+
+            for state in track:
+                if state.frame() == frame_id:
+                    detection = state.detection()
+                    track_states[track_id] = (track, state, detection)
+                    break
+
+        # Update next track ID to be higher than any existing
+        self._next_track_id = max(self._next_track_id, max_track_id + 1)
+
+        # Collect boxes for segmentation
+        boxes_to_segment = []
+        box_sources = []  # track_id
+
+        for tid, (track, state, det) in track_states.items():
+            bbox = det.bounding_box
+            box = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
+            boxes_to_segment.append(box)
+            box_sources.append(tid)
+
+        # Segment all boxes with SAM2
+        if len(boxes_to_segment) > 0:
+            masks = self._segment_with_sam2(img_np, boxes_to_segment)
+        else:
+            masks = []
+
+        # Process results and build output tracks
+        output_tracks = []
+        processed_track_ids = set()
+
+        for i, (mask, tid) in enumerate(zip(masks, box_sources)):
+            mask_area = np.sum(mask)
+
+            # Filter by minimum mask area
+            if self._filter_by_quality and mask_area < self._min_mask_area:
+                processed_track_ids.add(tid)
+                continue
+
+            track, old_state, old_det = track_states[tid]
+            processed_track_ids.add(tid)
+
+            # Create refined detection
+            new_det = self._create_refined_detection(old_det, mask)
+
+            # Create new track state
+            new_state = ObjectTrackState(ts, new_det.bounding_box,
+                                        new_det.confidence, new_det)
+
+            # Rebuild track with new state for this frame
+            new_history = []
+            for state in track:
+                if state.frame() == frame_id:
+                    new_history.append(new_state)
+                else:
+                    new_history.append(state)
+
+            new_track = Track(tid, new_history)
+            output_tracks.append(new_track)
+
+        # Include tracks that have no state for current frame (preserve history)
+        for track in tracks.tracks():
+            tid = track.id()
+            if tid not in processed_track_ids and tid not in track_states:
+                output_tracks.append(track)
+
+        return ObjectTrackSet(output_tracks)
+
+    def _segment_with_sam2(self, image_np, boxes):
+        """
+        Segment objects in image using SAM2 with box prompts.
+
+        Args:
+            image_np: RGB image as numpy array
+            boxes: List of [x1, y1, x2, y2] bounding boxes
+
+        Returns:
+            List of binary masks (numpy arrays)
+        """
+        import torch
+
+        if len(boxes) == 0:
+            return []
+
+        autocast_context = get_autocast_context(self.predictor.device)
+
+        prompts = {
+            'box': np.array(boxes),
+            'multimask_output': False
+        }
+
+        with torch.inference_mode(), autocast_context:
+            self.predictor.set_image(image_np)
+            masks, scores, _ = self.predictor.predict(**prompts)
+
+        # Handle shape - ensure we have [N, 1, H, W] or similar
+        if len(masks.shape) == 3:
+            masks = masks[None, :, :, :]
+
+        return [masks[i, 0] for i in range(len(boxes))]
+
+    def _create_refined_detection(self, old_det, mask):
+        """
+        Create a refined detection from an existing detection and new mask.
+
+        Args:
+            old_det: Original DetectedObject
+            mask: New binary mask from SAM2
+
+        Returns:
+            DetectedObject: Refined detection
+        """
+        # Get bounding box
+        if self._adjust_boxes:
+            bbox = box_from_mask(mask)
+            if bbox is None:
+                bbox = old_det.bounding_box
+        else:
+            bbox = old_det.bounding_box
+
+        # Copy classification
+        det_type = old_det.type
+        confidence = old_det.confidence
+
+        # Create new detection
+        new_det = DetectedObject(bbox, confidence, det_type)
+
+        # Add polygon
+        if self._output_type in ('polygon', 'both'):
+            polygon = mask_to_polygon(mask, self._polygon_simplification)
+            if polygon is not None:
+                new_det.set_polygon(polygon)
+
+        # Add mask (relative to bounding box)
+        if self.overwrite_existing or old_det.mask is None:
+            # Create relative mask within bounding box
+            x1, y1 = int(bbox.min_x()), int(bbox.min_y())
+            x2, y2 = int(bbox.max_x()), int(bbox.max_y())
+
+            # Ensure bounds are within mask dimensions
+            h, w = mask.shape
+            x1 = max(0, min(x1, w - 1))
+            x2 = max(x1 + 1, min(x2, w))
+            y1 = max(0, min(y1, h - 1))
+            y2 = max(y1 + 1, min(y2, h))
+
+            relative_mask = mask[y1:y2, x1:x2].astype(np.uint8)
+            if relative_mask.size > 0:
+                new_det.mask = vital_image_container_from_ndarray(relative_mask)
+
+        return new_det
 
 
 def kwimage_boxes_to_vital(boxes):
@@ -518,13 +791,24 @@ def vital_image_container_from_ndarray(ndarray_img):
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
 
-    # Register Algorithm
+    # Register Sam2Refiner (RefineDetections)
     implementation_name = "sam2"
 
     if not algorithm_factory.has_algorithm_impl_name(
             Sam2Refiner.static_type_name(), implementation_name):
         algorithm_factory.add_algorithm(
-            implementation_name, "PyTorch Netharn refiner routine",
+            implementation_name, "SAM2-based detection refiner",
             Sam2Refiner)
 
         algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+
+    # Register Sam2TrackRefiner (RefineTracks)
+    track_impl_name = "sam2"
+
+    if not algorithm_factory.has_algorithm_impl_name(
+            Sam2TrackRefiner.static_type_name(), track_impl_name):
+        algorithm_factory.add_algorithm(
+            track_impl_name, "SAM2-based track refiner for adding segmentation masks to tracks",
+            Sam2TrackRefiner)
+
+        algorithm_factory.mark_algorithm_as_loaded(track_impl_name)
