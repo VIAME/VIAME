@@ -89,8 +89,31 @@ public:
   std::vector< detection > m_computed;
   std::vector< detection > m_groundtruth;
 
-  // Intermediate results
+  // -------------------------------------------------------------------------
+  // Cached data for performance optimization
+
+  /// Frame indices for computed detections: frame_id -> [indices into m_computed]
+  std::map< int, std::vector< size_t > > m_computed_by_frame;
+
+  /// Frame indices for ground truth: frame_id -> [indices into m_groundtruth]
+  std::map< int, std::vector< size_t > > m_gt_by_frame;
+
+  /// Sorted list of all frame IDs
+  std::vector< int > m_frame_list;
+
+  /// Per-frame IoU matrices: frame_id -> [computed_idx][gt_idx] -> IoU
+  std::map< int, std::vector< std::vector< double > > > m_iou_matrices;
+
+  /// Per-frame matching results
   std::map< int, frame_matches > m_frame_matches;
+
+  /// Track length caches
+  std::map< int, int > m_gt_track_lengths;
+  std::map< int, int > m_comp_track_lengths;
+
+  /// Unique track IDs
+  std::set< int > m_gt_track_ids;
+  std::set< int > m_comp_track_ids;
 
   // -------------------------------------------------------------------------
   // File parsing
@@ -99,15 +122,19 @@ public:
                         std::vector< detection >& detections );
 
   // -------------------------------------------------------------------------
-  // Matching
+  // Matching and caching
 
-  double compute_iou( const detection& a, const detection& b );
+  double compute_iou( const detection& a, const detection& b ) const;
 
-  void match_frame( const std::vector< detection >& computed,
-                    const std::vector< detection >& groundtruth,
-                    frame_matches& matches );
+  void match_frame_with_matrix(
+    const std::vector< std::vector< double > >& iou_matrix,
+    size_t num_computed, size_t num_gt,
+    double iou_threshold,
+    frame_matches& matches );
 
+  void build_caches();
   void perform_matching();
+  void clear_caches();
 
   // -------------------------------------------------------------------------
   // Metric computation
@@ -122,13 +149,6 @@ public:
   void compute_multi_threshold_ap( evaluation_results& results );
   void compute_classification_metrics( evaluation_results& results );
   void compute_per_class_metrics( evaluation_results& results );
-
-  // -------------------------------------------------------------------------
-  // Utility
-
-  std::set< int > get_unique_frames() const;
-  std::map< int, std::vector< size_t > > group_by_frame(
-    const std::vector< detection >& detections ) const;
 };
 
 // =============================================================================
@@ -248,7 +268,7 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
 // IoU computation
 
 double
-model_evaluator::priv::compute_iou( const detection& a, const detection& b )
+model_evaluator::priv::compute_iou( const detection& a, const detection& b ) const
 {
   // Compute intersection
   double ix1 = std::max( a.x1, b.x1 );
@@ -274,63 +294,57 @@ model_evaluator::priv::compute_iou( const detection& a, const detection& b )
 }
 
 // =============================================================================
-// Frame-level matching using Hungarian algorithm (greedy approximation)
+// Frame-level matching using pre-computed IoU matrix
 
 void
-model_evaluator::priv::match_frame( const std::vector< detection >& computed,
-                                     const std::vector< detection >& groundtruth,
-                                     frame_matches& matches )
+model_evaluator::priv::match_frame_with_matrix(
+  const std::vector< std::vector< double > >& iou_matrix,
+  size_t num_computed, size_t num_gt,
+  double iou_threshold,
+  frame_matches& matches )
 {
   matches.matches.clear();
   matches.false_positives.clear();
   matches.false_negatives.clear();
 
-  if( computed.empty() && groundtruth.empty() )
+  if( num_computed == 0 && num_gt == 0 )
   {
     return;
   }
 
-  if( computed.empty() )
+  if( num_computed == 0 )
   {
-    for( size_t i = 0; i < groundtruth.size(); i++ )
+    matches.false_negatives.reserve( num_gt );
+    for( size_t i = 0; i < num_gt; i++ )
     {
       matches.false_negatives.push_back( static_cast< int >( i ) );
     }
     return;
   }
 
-  if( groundtruth.empty() )
+  if( num_gt == 0 )
   {
-    for( size_t i = 0; i < computed.size(); i++ )
+    matches.false_positives.reserve( num_computed );
+    for( size_t i = 0; i < num_computed; i++ )
     {
       matches.false_positives.push_back( static_cast< int >( i ) );
     }
     return;
   }
 
-  // Compute IoU matrix
-  std::vector< std::vector< double > > iou_matrix(
-    computed.size(), std::vector< double >( groundtruth.size(), 0.0 ) );
-
-  for( size_t i = 0; i < computed.size(); i++ )
-  {
-    for( size_t j = 0; j < groundtruth.size(); j++ )
-    {
-      iou_matrix[i][j] = compute_iou( computed[i], groundtruth[j] );
-    }
-  }
-
-  // Greedy matching (find best matches iteratively)
-  std::vector< bool > computed_matched( computed.size(), false );
-  std::vector< bool > gt_matched( groundtruth.size(), false );
+  // Greedy matching using pre-computed IoU matrix
+  std::vector< bool > computed_matched( num_computed, false );
+  std::vector< bool > gt_matched( num_gt, false );
 
   // Create sorted list of all potential matches
   std::vector< std::tuple< double, int, int > > potential_matches;
-  for( size_t i = 0; i < computed.size(); i++ )
+  potential_matches.reserve( num_computed * num_gt / 4 );  // Estimate
+
+  for( size_t i = 0; i < num_computed; i++ )
   {
-    for( size_t j = 0; j < groundtruth.size(); j++ )
+    for( size_t j = 0; j < num_gt; j++ )
     {
-      if( iou_matrix[i][j] >= m_config.iou_threshold )
+      if( iou_matrix[i][j] >= iou_threshold )
       {
         potential_matches.emplace_back( iou_matrix[i][j], i, j );
       }
@@ -342,6 +356,8 @@ model_evaluator::priv::match_frame( const std::vector< detection >& computed,
     []( const auto& a, const auto& b ) { return std::get<0>( a ) > std::get<0>( b ); } );
 
   // Greedily assign matches
+  matches.matches.reserve( std::min( num_computed, num_gt ) );
+
   for( const auto& pm : potential_matches )
   {
     int ci = std::get<1>( pm );
@@ -361,7 +377,7 @@ model_evaluator::priv::match_frame( const std::vector< detection >& computed,
   }
 
   // Collect false positives (unmatched computed)
-  for( size_t i = 0; i < computed.size(); i++ )
+  for( size_t i = 0; i < num_computed; i++ )
   {
     if( !computed_matched[i] )
     {
@@ -370,7 +386,7 @@ model_evaluator::priv::match_frame( const std::vector< detection >& computed,
   }
 
   // Collect false negatives (unmatched ground truth)
-  for( size_t j = 0; j < groundtruth.size(); j++ )
+  for( size_t j = 0; j < num_gt; j++ )
   {
     if( !gt_matched[j] )
     {
@@ -380,71 +396,188 @@ model_evaluator::priv::match_frame( const std::vector< detection >& computed,
 }
 
 // =============================================================================
-// Perform matching across all frames
+// Build cached data structures for efficient processing
 
-std::set< int >
-model_evaluator::priv::get_unique_frames() const
+void
+model_evaluator::priv::build_caches()
 {
-  std::set< int > frames;
-  for( const auto& d : m_computed )
+  // Clear existing caches
+  clear_caches();
+
+  // Build frame groupings
+  for( size_t i = 0; i < m_computed.size(); i++ )
   {
-    frames.insert( d.frame_id );
+    int frame_id = m_computed[i].frame_id;
+    m_computed_by_frame[frame_id].push_back( i );
+
+    // Cache track info
+    int track_id = m_computed[i].track_id;
+    if( track_id >= 0 )
+    {
+      m_comp_track_lengths[track_id]++;
+      m_comp_track_ids.insert( track_id );
+    }
   }
-  for( const auto& d : m_groundtruth )
+
+  for( size_t i = 0; i < m_groundtruth.size(); i++ )
   {
-    frames.insert( d.frame_id );
+    int frame_id = m_groundtruth[i].frame_id;
+    m_gt_by_frame[frame_id].push_back( i );
+
+    // Cache track info
+    int track_id = m_groundtruth[i].track_id;
+    if( track_id >= 0 )
+    {
+      m_gt_track_lengths[track_id]++;
+      m_gt_track_ids.insert( track_id );
+    }
   }
-  return frames;
+
+  // Build sorted frame list
+  std::set< int > all_frames;
+  for( const auto& p : m_computed_by_frame )
+  {
+    all_frames.insert( p.first );
+  }
+  for( const auto& p : m_gt_by_frame )
+  {
+    all_frames.insert( p.first );
+  }
+  m_frame_list.assign( all_frames.begin(), all_frames.end() );
+
+  // Pre-compute IoU matrices for all frames
+  m_iou_matrices.clear();
+
+  #ifdef _OPENMP
+  #pragma omp parallel for schedule(dynamic)
+  #endif
+  for( size_t fi = 0; fi < m_frame_list.size(); fi++ )
+  {
+    int frame_id = m_frame_list[fi];
+
+    auto comp_it = m_computed_by_frame.find( frame_id );
+    auto gt_it = m_gt_by_frame.find( frame_id );
+
+    size_t num_comp = ( comp_it != m_computed_by_frame.end() ) ?
+                      comp_it->second.size() : 0;
+    size_t num_gt = ( gt_it != m_gt_by_frame.end() ) ?
+                    gt_it->second.size() : 0;
+
+    std::vector< std::vector< double > > iou_matrix(
+      num_comp, std::vector< double >( num_gt, 0.0 ) );
+
+    if( num_comp > 0 && num_gt > 0 )
+    {
+      const auto& comp_indices = comp_it->second;
+      const auto& gt_indices = gt_it->second;
+
+      for( size_t i = 0; i < num_comp; i++ )
+      {
+        for( size_t j = 0; j < num_gt; j++ )
+        {
+          iou_matrix[i][j] = compute_iou(
+            m_computed[comp_indices[i]],
+            m_groundtruth[gt_indices[j]] );
+        }
+      }
+    }
+
+    #ifdef _OPENMP
+    #pragma omp critical
+    #endif
+    {
+      m_iou_matrices[frame_id] = std::move( iou_matrix );
+    }
+  }
+
+  LOG_INFO( m_logger, "Built caches: " << m_frame_list.size() << " frames, "
+            << m_comp_track_ids.size() << " computed tracks, "
+            << m_gt_track_ids.size() << " GT tracks" );
 }
 
-std::map< int, std::vector< size_t > >
-model_evaluator::priv::group_by_frame(
-  const std::vector< detection >& detections ) const
+void
+model_evaluator::priv::clear_caches()
 {
-  std::map< int, std::vector< size_t > > groups;
-  for( size_t i = 0; i < detections.size(); i++ )
-  {
-    groups[detections[i].frame_id].push_back( i );
-  }
-  return groups;
+  m_computed_by_frame.clear();
+  m_gt_by_frame.clear();
+  m_frame_list.clear();
+  m_iou_matrices.clear();
+  m_frame_matches.clear();
+  m_gt_track_lengths.clear();
+  m_comp_track_lengths.clear();
+  m_gt_track_ids.clear();
+  m_comp_track_ids.clear();
 }
+
+// =============================================================================
+// Perform matching using cached IoU matrices
 
 void
 model_evaluator::priv::perform_matching()
 {
   m_frame_matches.clear();
 
-  auto frames = get_unique_frames();
-  auto computed_by_frame = group_by_frame( m_computed );
-  auto gt_by_frame = group_by_frame( m_groundtruth );
+  #ifdef _OPENMP
+  std::vector< std::pair< int, frame_matches > > results( m_frame_list.size() );
 
-  for( int frame_id : frames )
+  #pragma omp parallel for schedule(dynamic)
+  for( size_t fi = 0; fi < m_frame_list.size(); fi++ )
   {
-    std::vector< detection > frame_computed;
-    std::vector< detection > frame_gt;
+    int frame_id = m_frame_list[fi];
 
-    auto comp_it = computed_by_frame.find( frame_id );
-    if( comp_it != computed_by_frame.end() )
-    {
-      for( size_t idx : comp_it->second )
-      {
-        frame_computed.push_back( m_computed[idx] );
-      }
-    }
+    auto comp_it = m_computed_by_frame.find( frame_id );
+    auto gt_it = m_gt_by_frame.find( frame_id );
 
-    auto gt_it = gt_by_frame.find( frame_id );
-    if( gt_it != gt_by_frame.end() )
-    {
-      for( size_t idx : gt_it->second )
-      {
-        frame_gt.push_back( m_groundtruth[idx] );
-      }
-    }
+    size_t num_comp = ( comp_it != m_computed_by_frame.end() ) ?
+                      comp_it->second.size() : 0;
+    size_t num_gt = ( gt_it != m_gt_by_frame.end() ) ?
+                    gt_it->second.size() : 0;
 
     frame_matches fm;
-    match_frame( frame_computed, frame_gt, fm );
-    m_frame_matches[frame_id] = fm;
+    auto iou_it = m_iou_matrices.find( frame_id );
+    if( iou_it != m_iou_matrices.end() )
+    {
+      match_frame_with_matrix( iou_it->second, num_comp, num_gt,
+                               m_config.iou_threshold, fm );
+    }
+    else
+    {
+      match_frame_with_matrix( {}, num_comp, num_gt,
+                               m_config.iou_threshold, fm );
+    }
+
+    results[fi] = { frame_id, std::move( fm ) };
   }
+
+  // Collect results
+  for( auto& r : results )
+  {
+    m_frame_matches[r.first] = std::move( r.second );
+  }
+
+  #else
+  // Non-OpenMP version
+  for( int frame_id : m_frame_list )
+  {
+    auto comp_it = m_computed_by_frame.find( frame_id );
+    auto gt_it = m_gt_by_frame.find( frame_id );
+
+    size_t num_comp = ( comp_it != m_computed_by_frame.end() ) ?
+                      comp_it->second.size() : 0;
+    size_t num_gt = ( gt_it != m_gt_by_frame.end() ) ?
+                    gt_it->second.size() : 0;
+
+    frame_matches fm;
+    auto iou_it = m_iou_matrices.find( frame_id );
+    if( iou_it != m_iou_matrices.end() )
+    {
+      match_frame_with_matrix( iou_it->second, num_comp, num_gt,
+                               m_config.iou_threshold, fm );
+    }
+
+    m_frame_matches[frame_id] = std::move( fm );
+  }
+  #endif
 }
 
 // =============================================================================
@@ -536,29 +669,12 @@ model_evaluator::priv::compute_detection_metrics( evaluation_results& results )
     results.motp = total_iou / tp;
   }
 
-  // Statistics
+  // Statistics (use cached data)
   results.total_gt_objects = m_groundtruth.size();
   results.total_computed = m_computed.size();
-  results.total_frames = m_frame_matches.size();
-
-  // Count unique track IDs
-  std::set< int > gt_tracks, computed_tracks;
-  for( const auto& d : m_groundtruth )
-  {
-    if( d.track_id >= 0 )
-    {
-      gt_tracks.insert( d.track_id );
-    }
-  }
-  for( const auto& d : m_computed )
-  {
-    if( d.track_id >= 0 )
-    {
-      computed_tracks.insert( d.track_id );
-    }
-  }
-  results.total_gt_tracks = gt_tracks.size();
-  results.total_computed_tracks = computed_tracks.size();
+  results.total_frames = m_frame_list.size();
+  results.total_gt_tracks = m_gt_track_ids.size();
+  results.total_computed_tracks = m_comp_track_ids.size();
 }
 
 // =============================================================================
@@ -571,34 +687,27 @@ model_evaluator::priv::compute_localization_metrics( evaluation_results& results
   std::vector< double > center_distances;
   std::vector< double > size_errors;
 
-  auto computed_by_frame = group_by_frame( m_computed );
-  auto gt_by_frame = group_by_frame( m_groundtruth );
+  // Reserve space based on expected number of matches
+  size_t expected_matches = std::min( m_computed.size(), m_groundtruth.size() );
+  ious.reserve( expected_matches );
+  center_distances.reserve( expected_matches );
+  size_errors.reserve( expected_matches );
 
   for( const auto& fm_pair : m_frame_matches )
   {
     int frame_id = fm_pair.first;
     const auto& fm = fm_pair.second;
 
-    auto comp_it = computed_by_frame.find( frame_id );
-    auto gt_it = gt_by_frame.find( frame_id );
+    auto comp_it = m_computed_by_frame.find( frame_id );
+    auto gt_it = m_gt_by_frame.find( frame_id );
 
-    std::vector< detection > frame_computed;
-    std::vector< detection > frame_gt;
+    if( comp_it == m_computed_by_frame.end() || gt_it == m_gt_by_frame.end() )
+    {
+      continue;
+    }
 
-    if( comp_it != computed_by_frame.end() )
-    {
-      for( size_t idx : comp_it->second )
-      {
-        frame_computed.push_back( m_computed[idx] );
-      }
-    }
-    if( gt_it != gt_by_frame.end() )
-    {
-      for( size_t idx : gt_it->second )
-      {
-        frame_gt.push_back( m_groundtruth[idx] );
-      }
-    }
+    const auto& comp_indices = comp_it->second;
+    const auto& gt_indices = gt_it->second;
 
     for( const auto& m : fm.matches )
     {
@@ -606,14 +715,15 @@ model_evaluator::priv::compute_localization_metrics( evaluation_results& results
       {
         continue;
       }
-      if( static_cast< size_t >( m.computed_idx ) >= frame_computed.size() ||
-          static_cast< size_t >( m.gt_idx ) >= frame_gt.size() )
+      if( static_cast< size_t >( m.computed_idx ) >= comp_indices.size() ||
+          static_cast< size_t >( m.gt_idx ) >= gt_indices.size() )
       {
         continue;
       }
 
-      const auto& comp = frame_computed[m.computed_idx];
-      const auto& gt = frame_gt[m.gt_idx];
+      // Direct access to original data using cached indices
+      const auto& comp = m_computed[comp_indices[m.computed_idx]];
+      const auto& gt = m_groundtruth[gt_indices[m.gt_idx]];
 
       // IoU
       ious.push_back( m.iou );
@@ -699,8 +809,9 @@ model_evaluator::priv::compute_mot_metrics( evaluation_results& results )
   double fragmentations = 0;
 
   // Build frame-indexed lookup for original detections
-  auto computed_by_frame = group_by_frame( m_computed );
-  auto gt_by_frame = group_by_frame( m_groundtruth );
+  // Use cached frame groupings
+  const auto& computed_by_frame = m_computed_by_frame;
+  const auto& gt_by_frame = m_gt_by_frame;
 
   // Process frames in order
   std::map< int, bool > gt_track_was_matched;  // For fragmentation detection
@@ -1040,15 +1151,9 @@ model_evaluator::priv::compute_hota_metrics( evaluation_results& results )
     iou_thresholds.push_back( t );
   }
 
-  auto computed_by_frame = group_by_frame( m_computed );
-  auto gt_by_frame = group_by_frame( m_groundtruth );
-
-  std::vector< int > frame_list;
-  for( const auto& fm_pair : m_frame_matches )
-  {
-    frame_list.push_back( fm_pair.first );
-  }
-  std::sort( frame_list.begin(), frame_list.end() );
+  // Use cached track appearances (already computed in build_caches)
+  const auto& gt_track_appearances = m_gt_track_lengths;
+  const auto& comp_track_appearances = m_comp_track_lengths;
 
   double sum_hota = 0.0;
   double sum_deta = 0.0;
@@ -1056,123 +1161,104 @@ model_evaluator::priv::compute_hota_metrics( evaluation_results& results )
   double sum_loca = 0.0;
   int num_thresholds = 0;
 
-  for( double alpha : iou_thresholds )
+  // Process each threshold (can be parallelized)
+  #ifdef _OPENMP
+  #pragma omp parallel for reduction(+:sum_hota,sum_deta,sum_assa,sum_loca,num_thresholds)
+  #endif
+  for( size_t ti = 0; ti < iou_thresholds.size(); ti++ )
   {
-    // Re-match at this IoU threshold
+    double alpha = iou_thresholds[ti];
+
+    // Re-match at this IoU threshold using cached IoU matrices
     double tp_alpha = 0, fp_alpha = 0, fn_alpha = 0;
     double total_iou_alpha = 0;
 
     // For AssA: track which GT and computed tracks are associated at each TP
-    // TPA(c) = matches where computed track c matches its associated GT
-    // We need to track: for each (gt_track, comp_track) pair, how many TPs
     std::map< std::pair< int, int >, int > track_pair_tps;
-    std::map< int, int > gt_track_appearances;
-    std::map< int, int > comp_track_appearances;
 
-    for( int frame_id : frame_list )
+    for( int frame_id : m_frame_list )
     {
-      auto comp_it = computed_by_frame.find( frame_id );
-      auto gt_it = gt_by_frame.find( frame_id );
+      auto comp_it = m_computed_by_frame.find( frame_id );
+      auto gt_it = m_gt_by_frame.find( frame_id );
+      auto iou_it = m_iou_matrices.find( frame_id );
 
-      std::vector< detection > frame_computed;
-      std::vector< detection > frame_gt;
+      size_t num_comp = ( comp_it != m_computed_by_frame.end() ) ?
+                        comp_it->second.size() : 0;
+      size_t num_gt = ( gt_it != m_gt_by_frame.end() ) ?
+                      gt_it->second.size() : 0;
 
-      if( comp_it != computed_by_frame.end() )
+      if( num_comp == 0 && num_gt == 0 )
       {
-        for( size_t idx : comp_it->second )
-        {
-          frame_computed.push_back( m_computed[idx] );
-        }
-      }
-      if( gt_it != gt_by_frame.end() )
-      {
-        for( size_t idx : gt_it->second )
-        {
-          frame_gt.push_back( m_groundtruth[idx] );
-        }
+        continue;
       }
 
-      // Count track appearances
-      for( const auto& d : frame_gt )
+      // Use cached IoU matrix
+      const std::vector< std::vector< double > >* iou_matrix_ptr = nullptr;
+      if( iou_it != m_iou_matrices.end() )
       {
-        if( d.track_id >= 0 )
-        {
-          gt_track_appearances[d.track_id]++;
-        }
-      }
-      for( const auto& d : frame_computed )
-      {
-        if( d.track_id >= 0 )
-        {
-          comp_track_appearances[d.track_id]++;
-        }
-      }
-
-      // Match at this threshold
-      frame_matches fm_alpha;
-
-      // Compute IoU matrix
-      std::vector< std::vector< double > > iou_matrix(
-        frame_computed.size(), std::vector< double >( frame_gt.size(), 0.0 ) );
-
-      for( size_t i = 0; i < frame_computed.size(); i++ )
-      {
-        for( size_t j = 0; j < frame_gt.size(); j++ )
-        {
-          iou_matrix[i][j] = compute_iou( frame_computed[i], frame_gt[j] );
-        }
+        iou_matrix_ptr = &iou_it->second;
       }
 
       // Greedy matching at alpha threshold
-      std::vector< bool > computed_matched( frame_computed.size(), false );
-      std::vector< bool > gt_matched( frame_gt.size(), false );
+      std::vector< bool > computed_matched( num_comp, false );
+      std::vector< bool > gt_matched( num_gt, false );
 
-      std::vector< std::tuple< double, int, int > > potential_matches;
-      for( size_t i = 0; i < frame_computed.size(); i++ )
+      if( iou_matrix_ptr && num_comp > 0 && num_gt > 0 )
       {
-        for( size_t j = 0; j < frame_gt.size(); j++ )
+        const auto& iou_matrix = *iou_matrix_ptr;
+
+        std::vector< std::tuple< double, int, int > > potential_matches;
+        potential_matches.reserve( num_comp );
+
+        for( size_t i = 0; i < num_comp; i++ )
         {
-          if( iou_matrix[i][j] >= alpha )
+          for( size_t j = 0; j < num_gt; j++ )
           {
-            potential_matches.emplace_back( iou_matrix[i][j], i, j );
+            if( iou_matrix[i][j] >= alpha )
+            {
+              potential_matches.emplace_back( iou_matrix[i][j], i, j );
+            }
           }
         }
-      }
 
-      std::sort( potential_matches.begin(), potential_matches.end(),
-        []( const auto& a, const auto& b ) { return std::get<0>( a ) > std::get<0>( b ); } );
+        std::sort( potential_matches.begin(), potential_matches.end(),
+          []( const auto& a, const auto& b ) { return std::get<0>( a ) > std::get<0>( b ); } );
 
-      for( const auto& pm : potential_matches )
-      {
-        int ci = std::get<1>( pm );
-        int gi = std::get<2>( pm );
+        const auto& comp_indices = comp_it->second;
+        const auto& gt_indices = gt_it->second;
 
-        if( !computed_matched[ci] && !gt_matched[gi] )
+        for( const auto& pm : potential_matches )
         {
-          tp_alpha++;
-          total_iou_alpha += std::get<0>( pm );
-          computed_matched[ci] = true;
-          gt_matched[gi] = true;
+          int ci = std::get<1>( pm );
+          int gi = std::get<2>( pm );
 
-          // Record track association
-          int gt_track = frame_gt[gi].track_id;
-          int comp_track = frame_computed[ci].track_id;
-          if( gt_track >= 0 && comp_track >= 0 )
+          if( !computed_matched[ci] && !gt_matched[gi] )
           {
-            track_pair_tps[{ gt_track, comp_track }]++;
+            tp_alpha++;
+            total_iou_alpha += std::get<0>( pm );
+            computed_matched[ci] = true;
+            gt_matched[gi] = true;
+
+            // Record track association using cached indices
+            int gt_track = m_groundtruth[gt_indices[gi]].track_id;
+            int comp_track = m_computed[comp_indices[ci]].track_id;
+            if( gt_track >= 0 && comp_track >= 0 )
+            {
+              track_pair_tps[{ gt_track, comp_track }]++;
+            }
           }
         }
       }
 
       // Count FPs and FNs
-      for( size_t i = 0; i < frame_computed.size(); i++ )
+      for( size_t i = 0; i < num_comp; i++ )
       {
         if( !computed_matched[i] )
         {
           fp_alpha++;
         }
       }
-      for( size_t j = 0; j < frame_gt.size(); j++ )
+      for( size_t j = 0; j < num_gt; j++ )
       {
         if( !gt_matched[j] )
         {
@@ -1300,8 +1386,9 @@ model_evaluator::priv::compute_kwant_metrics( evaluation_results& results )
   }
   std::sort( frame_list.begin(), frame_list.end() );
 
-  auto computed_by_frame = group_by_frame( m_computed );
-  auto gt_by_frame = group_by_frame( m_groundtruth );
+  // Use cached frame groupings
+  const auto& computed_by_frame = m_computed_by_frame;
+  const auto& gt_by_frame = m_gt_by_frame;
 
   // -------------------------------------------------------------------------
   // Track continuity: 1 / number_of_segments
@@ -1657,8 +1744,9 @@ model_evaluator::priv::compute_track_quality_metrics( evaluation_results& result
 
   // Track completeness: for each GT track, what fraction is covered by
   // the best matching computed track
-  auto computed_by_frame = group_by_frame( m_computed );
-  auto gt_by_frame = group_by_frame( m_groundtruth );
+  // Use cached frame groupings
+  const auto& computed_by_frame = m_computed_by_frame;
+  const auto& gt_by_frame = m_gt_by_frame;
 
   std::vector< int > frame_list;
   for( const auto& fm_pair : m_frame_matches )
@@ -1848,7 +1936,8 @@ model_evaluator::priv::compute_average_precision( evaluation_results& results )
 
   std::vector< scored_detection > all_detections;
 
-  auto computed_by_frame = group_by_frame( m_computed );
+  // Use cached frame groupings
+  const auto& computed_by_frame = m_computed_by_frame;
 
   for( const auto& fm_pair : m_frame_matches )
   {
@@ -1954,13 +2043,10 @@ model_evaluator::priv::compute_average_precision( evaluation_results& results )
 void
 model_evaluator::priv::compute_multi_threshold_ap( evaluation_results& results )
 {
-  // Compute AP at specific IoU thresholds
+  // Compute AP at specific IoU thresholds using cached IoU matrices
 
   auto compute_ap_at_threshold = [this]( double iou_thresh ) -> double
   {
-    auto computed_by_frame = group_by_frame( m_computed );
-    auto gt_by_frame = group_by_frame( m_groundtruth );
-
     // Collect all detections with TP/FP status at this threshold
     struct scored_det
     {
@@ -1968,82 +2054,55 @@ model_evaluator::priv::compute_multi_threshold_ap( evaluation_results& results )
       bool is_tp;
     };
     std::vector< scored_det > all_dets;
-    double total_gt = 0;
+    all_dets.reserve( m_computed.size() );
+    double total_gt = m_groundtruth.size();
 
-    std::set< int > all_frames;
-    for( const auto& p : computed_by_frame )
+    for( int frame_id : m_frame_list )
     {
-      all_frames.insert( p.first );
-    }
-    for( const auto& p : gt_by_frame )
-    {
-      all_frames.insert( p.first );
-    }
+      auto comp_it = m_computed_by_frame.find( frame_id );
+      auto gt_it = m_gt_by_frame.find( frame_id );
+      auto iou_it = m_iou_matrices.find( frame_id );
 
-    for( int frame_id : all_frames )
-    {
-      std::vector< detection > frame_computed;
-      std::vector< detection > frame_gt;
-
-      auto comp_it = computed_by_frame.find( frame_id );
-      if( comp_it != computed_by_frame.end() )
+      if( comp_it == m_computed_by_frame.end() )
       {
-        for( size_t idx : comp_it->second )
-        {
-          frame_computed.push_back( m_computed[idx] );
-        }
+        continue;
       }
 
-      auto gt_it = gt_by_frame.find( frame_id );
-      if( gt_it != gt_by_frame.end() )
-      {
-        for( size_t idx : gt_it->second )
-        {
-          frame_gt.push_back( m_groundtruth[idx] );
-        }
-      }
-
-      total_gt += frame_gt.size();
-
-      // Match at this threshold
-      std::vector< std::vector< double > > iou_matrix(
-        frame_computed.size(), std::vector< double >( frame_gt.size(), 0.0 ) );
-
-      for( size_t i = 0; i < frame_computed.size(); i++ )
-      {
-        for( size_t j = 0; j < frame_gt.size(); j++ )
-        {
-          iou_matrix[i][j] = compute_iou( frame_computed[i], frame_gt[j] );
-        }
-      }
+      const auto& comp_indices = comp_it->second;
+      size_t num_gt = ( gt_it != m_gt_by_frame.end() ) ? gt_it->second.size() : 0;
 
       // Sort computed by confidence descending
-      std::vector< size_t > sorted_indices( frame_computed.size() );
-      std::iota( sorted_indices.begin(), sorted_indices.end(), 0 );
-      std::sort( sorted_indices.begin(), sorted_indices.end(),
-        [&frame_computed]( size_t a, size_t b )
+      std::vector< size_t > sorted_local( comp_indices.size() );
+      std::iota( sorted_local.begin(), sorted_local.end(), 0 );
+      std::sort( sorted_local.begin(), sorted_local.end(),
+        [this, &comp_indices]( size_t a, size_t b )
         {
-          return frame_computed[a].confidence > frame_computed[b].confidence;
+          return m_computed[comp_indices[a]].confidence >
+                 m_computed[comp_indices[b]].confidence;
         } );
 
-      std::vector< bool > gt_matched( frame_gt.size(), false );
+      std::vector< bool > gt_matched( num_gt, false );
 
-      for( size_t ci : sorted_indices )
+      for( size_t ci : sorted_local )
       {
         double best_iou = 0;
         int best_gt = -1;
 
-        for( size_t gi = 0; gi < frame_gt.size(); gi++ )
+        if( iou_it != m_iou_matrices.end() && num_gt > 0 )
         {
-          if( !gt_matched[gi] && iou_matrix[ci][gi] > best_iou )
+          const auto& iou_matrix = iou_it->second;
+          for( size_t gi = 0; gi < num_gt; gi++ )
           {
-            best_iou = iou_matrix[ci][gi];
-            best_gt = static_cast< int >( gi );
+            if( !gt_matched[gi] && iou_matrix[ci][gi] > best_iou )
+            {
+              best_iou = iou_matrix[ci][gi];
+              best_gt = static_cast< int >( gi );
+            }
           }
         }
 
         scored_det sd;
-        sd.conf = frame_computed[ci].confidence;
+        sd.conf = m_computed[comp_indices[ci]].confidence;
 
         if( best_gt >= 0 && best_iou >= iou_thresh )
         {
@@ -2073,6 +2132,8 @@ model_evaluator::priv::compute_multi_threshold_ap( evaluation_results& results )
 
     // Compute PR curve
     std::vector< double > precisions, recalls;
+    precisions.reserve( all_dets.size() );
+    recalls.reserve( all_dets.size() );
     double tp = 0, fp = 0;
 
     for( const auto& sd : all_dets )
@@ -2114,16 +2175,26 @@ model_evaluator::priv::compute_multi_threshold_ap( evaluation_results& results )
   results.ap75 = compute_ap_at_threshold( 0.75 );
 
   // AP@0.5:0.95 (average over 10 thresholds)
-  double sum_ap = 0;
-  int num_thresholds = 0;
+  // Use parallel computation for multiple thresholds
+  std::vector< double > thresholds;
   for( double thresh = 0.5; thresh <= 0.95; thresh += 0.05 )
   {
-    sum_ap += compute_ap_at_threshold( thresh );
-    num_thresholds++;
+    thresholds.push_back( thresh );
   }
-  if( num_thresholds > 0 )
+
+  double sum_ap = 0;
+
+  #ifdef _OPENMP
+  #pragma omp parallel for reduction(+:sum_ap)
+  #endif
+  for( size_t i = 0; i < thresholds.size(); i++ )
   {
-    results.ap50_95 = sum_ap / num_thresholds;
+    sum_ap += compute_ap_at_threshold( thresholds[i] );
+  }
+
+  if( !thresholds.empty() )
+  {
+    results.ap50_95 = sum_ap / thresholds.size();
   }
 }
 
@@ -2137,8 +2208,9 @@ model_evaluator::priv::compute_classification_metrics( evaluation_results& resul
   int correct_class = 0;
   int total_matches = 0;
 
-  auto computed_by_frame = group_by_frame( m_computed );
-  auto gt_by_frame = group_by_frame( m_groundtruth );
+  // Use cached frame groupings
+  const auto& computed_by_frame = m_computed_by_frame;
+  const auto& gt_by_frame = m_gt_by_frame;
 
   for( const auto& fm_pair : m_frame_matches )
   {
@@ -2490,7 +2562,10 @@ model_evaluator::evaluate(
             << " computed detections and " << d->m_groundtruth.size()
             << " ground truth annotations" );
 
-  // Perform matching
+  // Build caches for efficient processing
+  d->build_caches();
+
+  // Perform matching using cached IoU matrices
   d->perform_matching();
 
   // Compute all metrics

@@ -4,6 +4,7 @@ set( plugin_headers
   adaptive_tracker_trainer.h
   adaptive_detector_trainer.h
   add_timestamp_from_filename.h
+  evaluate_models.h
   auto_detect_transform.h
   average_track_descriptors.h
   camera_io.h
@@ -40,6 +41,7 @@ set( plugin_sources
   adaptive_tracker_trainer.cxx
   adaptive_detector_trainer.cxx
   add_timestamp_from_filename.cxx
+  evaluate_models.cxx
   auto_detect_transform.cxx
   average_track_descriptors.cxx
   camera_io.cxx
@@ -158,6 +160,14 @@ if( ZLIB_FOUND )
        ${ZLIB_LIBRARIES}
        ${AUX_LINK_LIBRARIES} )
   include_directories( ${ZLIB_INCLUDE_DIRS} )
+endif()
+
+# OpenMP is used for parallel evaluation in evaluate_models
+find_package( OpenMP )
+if( OpenMP_CXX_FOUND )
+  set( AUX_LINK_LIBRARIES
+       OpenMP::OpenMP_CXX
+       ${AUX_LINK_LIBRARIES} )
 endif()
 
 target_link_libraries( viame_core
