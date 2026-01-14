@@ -7,7 +7,7 @@
 # - Can optionally detect new objects via text query
 # - Merges refined single-state tracks with existing multi-state tracks
 
-# ============================== GLOBAL PROPERTIES =================================
+# ===================== GLOBAL PROPERTIES ========================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -16,11 +16,10 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ============================== INPUT FRAME LIST ==================================
-
+# ====================== INPUT FRAME LIST ========================
 include common_default_input_with_downsampler.pipe
 
-# ================================= CORE REFINER ===================================
+# ====================== CORE REFINER ============================
 
 # Input detections for user initializations (single-state tracks)
 process detection_reader
@@ -61,31 +60,22 @@ process track_refiner
   :refiner:type                                sam3
 
   block refiner:sam3
-    # Model configuration
-    :sam_model_id               facebook/sam2.1-hiera-large
-    :grounding_model_id         IDEA-Research/grounding-dino-tiny
-    :device                                                   cuda
-
-    # Text query for detecting new objects (empty to disable)
-    :text_query                                             object
-
-    # Detection thresholds
-    :detection_threshold                                       0.3
-    :text_threshold                                           0.25
-
-    # Track refinement parameters
-    :iou_threshold                                             0.5
-    :min_mask_area                                              10
-    :resegment_existing                                       true
-    :add_new_objects                                         false
-    :filter_by_quality                                        true
-    :adjust_boxes                                            false
-    :max_new_objects                                            50
-
-    # Output configuration
-    :output_type                                           polygon
-    :polygon_simplification                                   0.01
-    :num_points                                                  5
+    :sam_model_id                              facebook/sam2.1-hiera-large
+    :grounding_model_id                        IDEA-Research/grounding-dino-tiny
+    :device                                    cuda
+    :text_query                                object
+    :detection_threshold                       0.3
+    :text_threshold                            0.25
+    :iou_threshold                             0.5
+    :min_mask_area                             10
+    :resegment_existing                        true
+    :add_new_objects                           false
+    :filter_by_quality                         true
+    :adjust_boxes                              false
+    :max_new_objects                           50
+    :output_type                               polygon
+    :polygon_simplification                    0.01
+    :num_points                                5
   endblock
 
 connect from ensure_rgb.image
@@ -95,7 +85,7 @@ connect from downsampler.timestamp
 connect from detection_reader.object_track_set
         to   track_refiner.object_track_set
 
-# ================================= OUTPUT TRK DATA ================================
+# ====================== OUTPUT TRK DATA =========================
 
 process track_merger
   :: merge_track_sets

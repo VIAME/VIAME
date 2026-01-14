@@ -6,7 +6,7 @@
 # - Uses SAM2 to generate high-quality segmentation masks for detections
 # - Merges refined single-state tracks with existing multi-state tracks
 
-# ============================== GLOBAL PROPERTIES =================================
+# ===================== GLOBAL PROPERTIES ========================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -15,11 +15,10 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ============================== INPUT FRAME LIST ==================================
-
+# ====================== INPUT FRAME LIST ========================
 include common_default_input_with_downsampler.pipe
 
-# ================================= CORE REFINER ===================================
+# ====================== CORE REFINER ============================
 
 # Input detections for user initializations (single-state tracks)
 process detection_reader
@@ -60,17 +59,17 @@ process track_refiner
   :refiner:type                                sam2
 
   block refiner:sam2
-    :cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
-    :device                                                     cuda
-    :overwrite_existing                                         true
-    :hole_policy                                               allow
-    :multipolygon_policy                                     largest
-    :min_mask_area                                                10
-    :filter_by_quality                                          true
-    :adjust_boxes                                              false
-    :output_type                                             polygon
-    :polygon_simplification                                     0.01
-    relativepath checkpoint =                     models/sam2_hbp.pt
+    :cfg                                       configs/sam2.1/sam2.1_hiera_b+.yaml
+    :device                                    cuda
+    :overwrite_existing                        true
+    :hole_policy                               allow
+    :multipolygon_policy                       largest
+    :min_mask_area                             10
+    :filter_by_quality                         true
+    :adjust_boxes                              false
+    :output_type                               polygon
+    :polygon_simplification                    0.01
+    relativepath checkpoint =                  models/sam2_hbp.pt
   endblock
 
 connect from ensure_rgb.image
@@ -80,7 +79,7 @@ connect from downsampler.timestamp
 connect from detection_reader.object_track_set
         to   track_refiner.object_track_set
 
-# ================================= OUTPUT TRK DATA ================================
+# ====================== OUTPUT TRK DATA =========================
 
 process track_merger
   :: merge_track_sets
