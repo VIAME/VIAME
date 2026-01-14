@@ -5,8 +5,8 @@
 /// \file
 /// \brief Command-line tool for scoring detection/tracking results using evaluate_models
 
-#include <viame/evaluate_models.h>
-#include <viame/plot_metrics.h>
+#include <evaluate_models.h>
+#include <plot_metrics.h>
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/CommandLineArguments.hxx>
@@ -48,7 +48,7 @@ public:
   double opt_confidence_threshold = 0.0;
   bool opt_per_class = false;
   bool opt_compute_tracking = true;
-  unsigned opt_frame_tolerance = 0;
+  int opt_frame_tolerance = 0;
 
   // Output options
   std::string opt_output_metrics;    // Output metrics to JSON file

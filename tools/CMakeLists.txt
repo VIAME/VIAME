@@ -15,6 +15,7 @@ set( PYTHON_SCRIPTS
   launch_timeline_interface.py
   launch_annotation_interface.py
   generate_detection_plots.py
+  plot_eval_results.py
   score_results.py
   viame_csv_tool.py )
 

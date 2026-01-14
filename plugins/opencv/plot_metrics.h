@@ -10,7 +10,7 @@
 
 #include "viame_opencv_export.h"
 
-#include <viame/evaluate_models.h>
+#include <evaluate_models.h>
 
 #include <opencv2/core/core.hpp>
 
