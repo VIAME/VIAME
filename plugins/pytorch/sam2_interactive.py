@@ -55,7 +55,7 @@ import numpy as np
 from viame.core.segmentation_utils import (
     load_image,
     mask_to_polygon,
-    simplify_polygon_to_max_points,
+    adaptive_simplify_polygon,
 )
 
 
@@ -194,10 +194,13 @@ class SAM2InteractiveService:
         # Convert mask to polygon
         polygon, bounds = mask_to_polygon(mask, self.hole_policy, self.multipolygon_policy)
 
-        # Simplify polygon to maximum number of points
-        if polygon and len(polygon) > self.max_polygon_points:
-            polygon = simplify_polygon_to_max_points(polygon, self.max_polygon_points)
-            self._log(f"Simplified polygon to {len(polygon)} points")
+        # Adaptively simplify polygon based on shape complexity
+        # Simple shapes will use fewer points, complex shapes will use more (up to max)
+        original_points = len(polygon) if polygon else 0
+        if polygon and original_points > 4:
+            polygon = adaptive_simplify_polygon(polygon, self.max_polygon_points, min_points=4)
+            if len(polygon) != original_points:
+                self._log(f"Adaptively simplified polygon: {original_points} -> {len(polygon)} points")
 
         return {
             "success": True,

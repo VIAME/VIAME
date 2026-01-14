@@ -83,6 +83,122 @@ def simplify_polygon_to_max_points(
     return best_result
 
 
+def adaptive_simplify_polygon(
+    polygon: List[List[float]],
+    max_points: int = 25,
+    min_points: int = 4,
+    min_tolerance: float = 0.1,
+    max_tolerance: float = 100.0,
+) -> List[List[float]]:
+    """
+    Adaptively simplify a polygon based on its shape complexity.
+
+    Unlike simplify_polygon_to_max_points which always tries to reach max_points,
+    this function estimates the appropriate number of points based on shape complexity.
+    Simple shapes (like rectangles or circles) will use fewer points, while complex
+    shapes will use more points up to the maximum.
+
+    The complexity is estimated using the "compactness" metric:
+    compactness = 4 * pi * area / perimeter^2
+    - A perfect circle has compactness = 1
+    - A square has compactness ≈ 0.785
+    - Long thin shapes have low compactness
+
+    We also consider the convex hull deviation to detect shapes with concavities.
+
+    Args:
+        polygon: List of [x, y] coordinate pairs
+        max_points: Maximum number of points allowed in output polygon
+        min_points: Minimum number of points (default 4 for basic shapes)
+        min_tolerance: Minimum tolerance for Douglas-Peucker simplification
+        max_tolerance: Maximum tolerance for Douglas-Peucker simplification
+
+    Returns:
+        Simplified polygon as list of [x, y] coordinate pairs
+    """
+    import math
+    from shapely.geometry import Polygon as ShapelyPolygon
+
+    if len(polygon) <= min_points:
+        return polygon
+
+    # Create shapely polygon
+    try:
+        shape = ShapelyPolygon(polygon)
+        if not shape.is_valid:
+            shape = shape.buffer(0)  # Fix invalid geometries
+        if shape.is_empty:
+            return polygon
+    except Exception:
+        return polygon
+
+    # Calculate shape metrics
+    area = shape.area
+    perimeter = shape.length
+
+    if perimeter <= 0 or area <= 0:
+        return polygon
+
+    # Calculate compactness (circularity): 4 * pi * area / perimeter^2
+    # Values close to 1 indicate circular/simple shapes
+    # Values close to 0 indicate complex/elongated shapes
+    compactness = (4 * math.pi * area) / (perimeter * perimeter)
+
+    # Calculate convex hull ratio: shape_area / convex_hull_area
+    # Values close to 1 indicate convex shapes
+    # Lower values indicate shapes with concavities
+    convex_hull = shape.convex_hull
+    hull_area = convex_hull.area if convex_hull.area > 0 else area
+    convexity = area / hull_area
+
+    # Calculate the target number of points based on complexity
+    # Higher compactness = simpler shape = fewer points needed
+    # Lower convexity = more concavities = more points needed
+
+    # Complexity score from 0 (simple) to 1 (complex)
+    # - High compactness and high convexity = simple (score near 0)
+    # - Low compactness or low convexity = complex (score near 1)
+    complexity = 1.0 - (compactness * convexity)
+
+    # Map complexity to target points
+    # Simple shapes (complexity ~0): use min_points
+    # Complex shapes (complexity ~1): use max_points
+    target_points = int(min_points + complexity * (max_points - min_points))
+    target_points = max(min_points, min(max_points, target_points))
+
+    # If original polygon already has fewer points than target, return as-is
+    if len(polygon) <= target_points:
+        return polygon
+
+    # Simplify to target number of points using binary search
+    low = min_tolerance
+    high = max_tolerance
+    best_result = polygon
+
+    for _ in range(20):  # Max iterations for binary search
+        mid = (low + high) / 2
+        simplified = shape.simplify(mid, preserve_topology=True)
+
+        if simplified.is_empty:
+            high = mid
+            continue
+
+        coords = list(simplified.exterior.coords)
+        num_points = len(coords)
+
+        if num_points <= target_points:
+            best_result = [[float(x), float(y)] for x, y in coords]
+            high = mid  # Try to find a smaller tolerance (more detail)
+        else:
+            low = mid  # Need more simplification
+
+        # Close enough
+        if num_points <= target_points and num_points >= min_points:
+            break
+
+    return best_result
+
+
 def load_image(image_path: str) -> np.ndarray:
     """
     Load image from path and return as numpy array (RGB).
