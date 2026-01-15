@@ -11,8 +11,24 @@
 # ------------------------------ ADD ANY BASIC PYTHON DEPS HERE ----------------------------------
 # Basic dependencies are installed jointly in one local pip installation call
 
+# Construct PyTorch archive URL early so we can use it for basic deps
+if( VIAME_ENABLE_PYTORCH )
+  if( VIAME_ENABLE_CUDA )
+    set( TORCH_CUDA_VER_STR "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}" )
+  else()
+    set( TORCH_CUDA_VER_STR "cpu" )
+  endif()
+  set( PYTORCH_ARCHIVE "https://download.pytorch.org/whl/${TORCH_CUDA_VER_STR}" )
+endif()
+
 # Core requirements used for building certain libraries
 set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "build" "cython" )
+
+# Pin torch version early to prevent transitive dependency conflicts
+# Packages like timm depend on torch and would otherwise pull in a different version
+if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "torch==${VIAME_PYTORCH_VERSION}" )
+endif()
 
 if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=2.1.0,<=2.2.6" )
@@ -183,13 +199,7 @@ if( VIAME_ENABLE_PYTORCH AND
     ( NOT VIAME_BUILD_PYTORCH_FROM_SOURCE OR
       ( VIAME_ENABLE_PYTORCH-VISION AND NOT VIAME_BUILD_TORCHVISION_FROM_SOURCE ) ) )
 
-  if( VIAME_ENABLE_CUDA )
-    set( TORCH_CUDA_VER_STR "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}" )
-  else()
-    set( TORCH_CUDA_VER_STR "cpu" )
-  endif()
-
-  set( PYTORCH_ARCHIVE "https://download.pytorch.org/whl/${TORCH_CUDA_VER_STR}" )
+  # PYTORCH_ARCHIVE and TORCH_CUDA_VER_STR are defined earlier in this file
   set( TORCH_URL_CMD "--extra-index-url ${PYTORCH_ARCHIVE}" )
 
   if( NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
@@ -200,7 +210,9 @@ if( VIAME_ENABLE_PYTORCH AND
   endif()
 
   if( VIAME_ENABLE_PYTORCH-VISION AND NOT VIAME_BUILD_TORCHVISION_FROM_SOURCE )
-    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.7.0" )
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.7.1" )
+      set( TORCHVISION_CMD "torchvision==0.22.1" )
+    elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.7.0" )
       set( TORCHVISION_CMD "torchvision==0.22.0" )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" )
       set( TORCHVISION_CMD "torchvision==0.13.0" )
@@ -237,12 +249,19 @@ foreach( ID RANGE ${DEP_COUNT} )
   if( "${DEP}" STREQUAL "python-deps" )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
     set( CMD ${VIAME_PYTHON_BASIC_DEPS} )
+    # Add PyTorch extra index URL for basic deps that include torch
+    if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
+      set( PYTHON_DEP_EXTRA_INDEX "--extra-index-url" "${PYTORCH_ARCHIVE}" )
+    else()
+      set( PYTHON_DEP_EXTRA_INDEX "" )
+    endif()
   else()
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} python-deps )
     list( GET VIAME_PYTHON_ADV_DEP_CMDS ${ID} CMD )
+    set( PYTHON_DEP_EXTRA_INDEX "" )
   endif()
 
-  set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
+  set( PYTHON_DEP_PIP_CMD pip install --user ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
   # Build the full command list and convert to ----separated string
