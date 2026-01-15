@@ -1,14 +1,13 @@
+# =============================================================================
+# Title: Pipe file to write out images with annotations drawn on them
 #
-# Pipe file to write out images with annotations drawn on them
-#
+# Description: Transcodes input data to different formats for input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
@@ -20,7 +19,7 @@ process detection_reader
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
-# =================================== DRAWER =======================================
+# ================================== DRAWER ===================================
 
 process draw_box
 :: draw_detected_object_set

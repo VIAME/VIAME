@@ -1,6 +1,8 @@
-# ==============================================================================
-# Cascade Faster R-CNN Detector with Motion Infusion
-# ==============================================================================
+# =============================================================================
+# Title: Cascade Faster R-CNN Detector with Motion Infusion
+#
+# Description: Runs object detection on input imagery
+# =============================================================================
 
 process input
   :: video_input
@@ -58,7 +60,7 @@ process detector_input
 connect from downsampler.output_1
         to   detector_input.image
 
-# ==============================================================================
+# =============================================================================
 
 process enhancer
   :: image_filter
@@ -91,7 +93,7 @@ process ensure_color
 connect from enhancer.image
         to   ensure_color.image
 
-# ==============================================================================
+# =============================================================================
 
 process ensure_grey
   :: image_filter
@@ -131,7 +133,7 @@ process float_to_byte
 connect from motion_filter.image
         to   float_to_byte.image
 
-# ==============================================================================
+# =============================================================================
 
 process image_merger
   :: merge_images
@@ -142,7 +144,7 @@ connect from ensure_color.image
 connect from float_to_byte.image
         to   image_merger.image2
 
-# ==============================================================================
+# =============================================================================
 
 process detector1
   :: image_object_detector
@@ -165,7 +167,7 @@ process detector1
 connect from image_merger.image
         to   detector1.image
 
-# ==============================================================================
+# =============================================================================
 
 process detector_merger
   :: merge_detection_sets
@@ -186,7 +188,7 @@ process detector_output
 connect from detector_merger.detected_object_set
         to   detector_output.detected_object_set
 
-# ==============================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output

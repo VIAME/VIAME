@@ -1,20 +1,23 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Local SVM Frame Classifier
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   5
 
 config _scheduler
    :type                                       pythread_per_process
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
   :: input_adapter
 
 process out_adapt
   :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 
 process detector
   :: image_object_detector
@@ -33,7 +36,7 @@ connect from in_adapt.timestamp
 connect from detector.detected_object_set
         to   descriptor.detected_object_set
 
-# ================================== CLASSIFIER ====================================
+# ================================ CLASSIFIER =================================
 
 process svm_refiner
   :: refine_detections
@@ -45,7 +48,7 @@ connect from in_adapt.image
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 
 include ../common_default_initializer.pipe
 

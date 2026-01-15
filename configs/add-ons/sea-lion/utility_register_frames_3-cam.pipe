@@ -1,3 +1,9 @@
+# =============================================================================
+# Title: Utility - Register Frames 3-cam
+#
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _scheduler
   type = pythread_per_process
 

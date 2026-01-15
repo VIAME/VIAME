@@ -1,18 +1,10 @@
-# Estimate stereo calibration from stitched stereo images (left and right side-by-side)
+# =============================================================================
+# Title: Takes a single video/image input where images are horizontally concatenated
 #
-# Takes a single video/image input where images are horizontally concatenated
-# (left camera on left half, right camera on right half) and produces stereo
-# camera calibration.
-#
-# Features:
-#   - Auto-detects chessboard grid size from first frame
-#   - Image dimensions derived automatically from input images
-#   - Frame count accumulated from all input frames
-#   - Outputs both OpenCV YAML format and JSON format (camera_rig_io compatible)
+# Description: Estimate stereo calibration from stitched stereo images (left
+# and right side-by-side)
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
@@ -21,11 +13,11 @@ config global
    :output_json_file                           calibration_matrices.json
    :square_size                                80
 
-# ============================== INPUT FRAME LIST ==================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# ================================== SPLIT IMAGE ===================================
+# ================================ SPLIT IMAGE ================================
 
 process split
   :: split_image
@@ -34,7 +26,7 @@ process split
 connect from downsampler.output_1
         to   split.image
 
-# =================================== OCV DETECTOR =================================
+# =============================== OCV DETECTOR ================================
 # LEFT
 # --------------------------------------------------------------------------------------
 process detector1
@@ -78,12 +70,12 @@ process detector_writer2
   :file_name                                   tracks_right.csv
   :writer:type                                 viame_csv
 
-# =============================== IMAGE STATISTICS =================================
+# ============================= IMAGE STATISTICS ==============================
 
 process image_statistics
   :: accumulate_image_statistics
 
-# =============================== CAMERA CALIBRATION ===============================
+# ============================ CAMERA CALIBRATION =============================
 
 process cameras_calibration
   :: calibrate_cameras_from_tracks
@@ -91,7 +83,7 @@ process cameras_calibration
   :output_json_file                            $CONFIG{global:output_json_file}
   :square_size                                 $CONFIG{global:square_size}
 
-# =============================== PROCESS CONNECTION ===============================
+# ============================ PROCESS CONNECTION =============================
 # Detect tracks left camera
 # --------------------------------------------------------------------------------------
 connect from split.left_image

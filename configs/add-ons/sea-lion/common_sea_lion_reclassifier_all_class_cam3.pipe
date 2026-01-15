@@ -1,5 +1,10 @@
+# =============================================================================
+# Title: Common - Sea Lion Reclassifier All Class Cam3
+#
+# Description: Common pipeline configuration for sea lion imagery
+# =============================================================================
 
-# ================================ INPUT FORMATTER =================================
+# ============================== INPUT FORMATTER ==============================
 
 process detector_input_cam3
   :: image_filter
@@ -10,7 +15,7 @@ process detector_input_cam3
     :force_three_channel                       true
   endblock
 
-# =================================== DETECTOR1 ====================================
+# ================================= DETECTOR1 =================================
 
 process detector_cam3_1
   :: image_object_detector
@@ -49,7 +54,7 @@ process nms_refiner_cam3_1
 connect from detector_cam3_1.detected_object_set
         to   nms_refiner_cam3_1.detected_object_set
 
-# ================================= RECLASSIFIER ===================================
+# =============================== RECLASSIFIER ================================
 
 process reclassifier_cam3
   :: refine_detections

@@ -1,21 +1,20 @@
-# Example simple tracker pipeline
+# =============================================================================
+# Title: Example simple tracker pipeline
 #
-# Runs a standalone siammask object tracking pipeline
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
 config _scheduler
   :type                                        pythread_per_process
 
-# ============================== INPUT FRAME LIST ==================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# ================================= CORE TRACKER ===================================
+# =============================== CORE TRACKER ================================
 
 # Input detections for user initializations
 process detection_reader
@@ -54,7 +53,7 @@ connect from downsampler.timestamp
 connect from detection_reader.object_track_set
         to   short_term_tracker.initializations
 
-# ================================= OUTPUT TRK DATA ================================
+# ============================== OUTPUT TRK DATA ==============================
 
 process track_merger
   :: merge_track_sets

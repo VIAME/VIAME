@@ -1,12 +1,13 @@
-# Add automatically generated segmentations via non-DL methods
-
-# ===================== GLOBAL PROPERTIES ========================
-# global pipeline config
+# =============================================================================
+# Title: Add automatically generated segmentations via non-DL methods
 #
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                                      5
 
-# ====================== INPUT FRAME LIST ========================
+# ============================= INPUT FRAME LIST ==============================
 include common_default_input_with_downsampler.pipe
 
 process detection_reader

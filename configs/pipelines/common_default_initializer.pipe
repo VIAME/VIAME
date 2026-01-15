@@ -1,8 +1,9 @@
-# ==================================================================================
-# Commonly used default initializer when the user hasn't specified one.
+# =============================================================================
+# Title: Common - Default Initializer
 #
-# Current incumbent is just a straight-up threshold on detection scores.
-# ==================================================================================
+# Description: Commonly used default initializer when the user hasn't
+# specified one.
+# =============================================================================
 
 process track_initializer
   :: initialize_object_tracks

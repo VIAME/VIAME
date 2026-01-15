@@ -1,6 +1,8 @@
-# ==============================================================================
-# Secondary Classifier After Generic Object Proposals
-# ==============================================================================
+# =============================================================================
+# Title: Secondary Classifier After Generic Object Proposals
+#
+# Description: Runs object detection on input imagery
+# =============================================================================
 
 config _pipeline:_edge
   :capacity                                    5
@@ -8,7 +10,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ==============================================================================
+# =============================================================================
 
 process input
   :: video_input
@@ -55,7 +57,7 @@ connect from input.frame_rate
 connect from input.timestamp
         to   downsampler.timestamp
 
-# ==============================================================================
+# =============================================================================
 
 include $ENV{VIAME_INSTALL}/configs/pipelines/common_generic_detector.pipe
 
@@ -98,7 +100,7 @@ connect from detector_output.detected_object_set
 connect from classifier.detected_object_set
         to   nms_refiner.detected_object_set
 
-# ==============================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output

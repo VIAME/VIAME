@@ -1,13 +1,10 @@
-# ==================================================================================
-# Stereo track OCV targets
-# Runs automated ocv target detection on each of the images of a stereo camera
+# =============================================================================
+# Title: Stereo track OCV targets
 #
-# Features:
-#   - Auto-detects chessboard grid size from first frame
-#   - Outputs detected corners with world coordinates
-# ==================================================================================
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -17,11 +14,11 @@ config global
    :output_directory                           ./
    :square_size                                80
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_stereo_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector1
   :: image_object_detector
@@ -71,7 +68,7 @@ connect from downsampler.output_4
 connect from detector2.detected_object_set
         to   detector_writer2.detected_object_set
 
-# ================================= CORE TRACKER ===================================
+# =============================== CORE TRACKER ================================
 
 process append_detections1
   :: accumulate_object_tracks
@@ -93,7 +90,7 @@ connect from downsampler.timestamp
 connect from detector2.detected_object_set
         to   append_detections2.detected_object_set
 
-# ================================= OUTPUT DATA ====================================
+# ================================ OUTPUT DATA ================================
 
 process track_writer1
   :: write_object_track

@@ -1,18 +1,20 @@
-# ==================================================================================
-# Simple hough transform example detector
-# ==================================================================================
+# =============================================================================
+# Title: Simple hough transform example detector
+#
+# Description: Runs object detection on input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
   :capacity                                    5
 
-# ==================================================================================
+# =============================================================================
 
 include common_default_input_with_downsampler.pipe
 
-# ==================================================================================
+# =============================================================================
 
 process detector_input
   :: image_filter
@@ -39,7 +41,7 @@ process detector
 connect from detector_input.image
         to   detector.image
 
-# ==================================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output
@@ -53,7 +55,7 @@ connect from downsampler.output_2
 connect from detector.detected_object_set
         to   detector_writer.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 
 #process draw
 #  :: draw_detected_object_boxes
@@ -64,7 +66,7 @@ connect from detector.detected_object_set
 #connect from downsampler.output_1
 #        to   draw.image
 
-# ==================================================================================
+# =============================================================================
 
 #process disp
 #  :: image_viewer

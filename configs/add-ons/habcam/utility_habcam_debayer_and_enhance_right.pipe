@@ -1,16 +1,17 @@
-# Debayer and color correct the left image only on a given input or input pair
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Debayer and color correct the left image only on a given input or input pair
 #
+# Description: Utility pipeline for processing HabCam underwater imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_habcam_input.pipe
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process image_writer
   :: image_writer

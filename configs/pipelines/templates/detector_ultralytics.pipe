@@ -1,6 +1,8 @@
-# ==============================================================================
-# NetHarn Detector
-# ==============================================================================
+# =============================================================================
+# Title: NetHarn Detector
+#
+# Description: Runs object detection on input imagery
+# =============================================================================
 
 config _pipeline:_edge
   :capacity                                    5
@@ -8,7 +10,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ==============================================================================
+# =============================================================================
 
 process input
   :: video_input
@@ -67,7 +69,7 @@ process detector_input
 connect from downsampler.output_1
         to   detector_input.image
 
-# ==============================================================================
+# =============================================================================
 
 process detector1
   :: image_object_detector
@@ -89,7 +91,7 @@ process detector1
 connect from detector_input.image
         to   detector1.image
 
-# ==============================================================================
+# =============================================================================
 
 process detector_merger
   :: merge_detection_sets
@@ -110,7 +112,7 @@ process detector_output
 connect from detector_merger.detected_object_set
         to   detector_output.detected_object_set
 
-# ==============================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output

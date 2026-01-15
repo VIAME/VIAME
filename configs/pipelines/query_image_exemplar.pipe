@@ -1,6 +1,9 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Query Image Exemplar
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
@@ -11,14 +14,14 @@ config global
 config _scheduler
   :type                                        pythread_per_process
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
 process out_adapt
  :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 process reader
   :: image_file_reader
   :image_reader:type                           vxl
@@ -47,7 +50,7 @@ connect from in_adapt.stream_id
 connect from kwa_writer.complete_flag
         to   out_adapt.complete_flag
 
-# ==================================================================================
+# =============================================================================
 # Filter the image for detector: when boxes are provided in the request,
 # suppress the image so detector is skipped (invert=true means suppress when
 # detections are present). When no boxes provided, pass through normally.
@@ -62,7 +65,7 @@ connect from reader.image
 connect from in_adapt.detected_object_set
         to   filter_image_for_detector.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 
 include common_generic_detector.pipe
 
@@ -83,7 +86,7 @@ connect from filter_image_for_detector.image
 connect from detector_output.detected_object_set
         to   add_fixed_detection.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 # Merge input bounding boxes (from descriptor request spatial_regions) with
 # detector output. When boxes are provided in the request, detector output
 # will be empty so only the input boxes are used.
@@ -96,7 +99,7 @@ connect from in_adapt.detected_object_set
 connect from add_fixed_detection.detected_object_set
         to   merge_detections.detector_output
 
-# ==================================================================================
+# =============================================================================
 
 include common_default_descriptor.pipe
 

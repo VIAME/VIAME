@@ -1,17 +1,16 @@
-# Detection pipeline with SVM rapid model filters
+# =============================================================================
+# Title: Detection pipeline with SVM rapid model filters
 #
-# Runs SVM class filters on detections contained inside of a database.
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
-# ==================================================================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity 5
 
 config _scheduler
   :type pythread_per_process
 
-# ==================================================================================
+# =============================================================================
 process reader
   :: read_object_track
   :file_name                                 none

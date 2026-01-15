@@ -1,17 +1,20 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Filter - Enhance
 #
+# Description: Applies filtering operations to input data for input imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   5
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
   :: input_adapter
 
 process out_adapt
   :: output_adapter
 
-# =================================== FILTERS ======================================
+# ================================== FILTERS ==================================
 
 process filter
   :: image_filter
@@ -30,7 +33,7 @@ process filter
 connect from in_adapt.image
         to   filter.image
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process image_writer
   :: image_writer

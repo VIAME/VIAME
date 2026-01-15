@@ -1,10 +1,9 @@
-# Atlantic Substrate Classifier from HABCAM Vehicles
+# =============================================================================
+# Title: Atlantic Substrate Classifier from HABCAM Vehicles
 #
-# This pipeline assumes we want to process and classify the full input image.
-#
-# ==============================================================================
-#                               Global Properties
-# ==============================================================================
+# Description: Runs object detection on HabCam underwater imagery
+# =============================================================================
+
 # global pipeline config
 #
 config _pipeline:_edge
@@ -12,9 +11,9 @@ config _pipeline:_edge
 
 include common_habcam_input_left.pipe
 
-# ==============================================================================
+# =============================================================================
 #                              Classifier Subsystem
-# ==============================================================================
+# =============================================================================
 
 process classifier_input
   :: image_filter
@@ -31,7 +30,7 @@ connect from left_image_filter.image
 process merger
   :: merge_detection_sets
 
-# ==============================================================================
+# =============================================================================
 
 process classifier1
   :: image_object_detector
@@ -385,9 +384,9 @@ connect from classifier_input.image
 connect from classifier22.detected_object_set
         to   merger.detected_object_set22
 
-# ==============================================================================
+# =============================================================================
 #                              Output Writers
-# ==============================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output

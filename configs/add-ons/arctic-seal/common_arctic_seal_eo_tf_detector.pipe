@@ -1,5 +1,8 @@
-# ==================================================================================
-# Optical seal detector file
+# =============================================================================
+# Title: Optical seal detector file
+#
+# Description: Common pipeline configuration for arctic seal imagery
+# =============================================================================
 
 process optical_detector
   :: image_object_detector

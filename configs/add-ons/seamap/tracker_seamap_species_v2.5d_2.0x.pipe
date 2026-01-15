@@ -1,16 +1,17 @@
-# SeaMap Detector / Tracker Pipe
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: SeaMap Detector / Tracker Pipe
 #
+# Description: Performs object tracking on input imagery
+# =============================================================================
+
 config _scheduler
    :type                                       pythread_per_process
 
-# ============================= INPUT AND DETECTOR =================================
+# ============================ INPUT AND DETECTOR =============================
 
 include detector_seamap_species_v2.5d_2.0x.pipe
 
-# ================================= CORE TRACKER ===================================
+# =============================== CORE TRACKER ================================
 
 include common_seamap_tracker_v2.5.pipe
 
@@ -29,7 +30,7 @@ process track_filter
 connect from tracker.object_track_set
         to   track_filter.object_track_set
 
-# ================================= OUTPUT DATA ====================================
+# ================================ OUTPUT DATA ================================
 
 process track_writer
   :: write_object_track

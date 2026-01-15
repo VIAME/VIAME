@@ -1,5 +1,8 @@
-
-# Shared tracker configuration used in other seamap configurations
+# =============================================================================
+# Title: Shared tracker configuration used in other seamap configurations
+#
+# Description: Common pipeline configuration for input imagery
+# =============================================================================
 
 process tracker
   :: srnn_tracker

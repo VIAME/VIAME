@@ -1,6 +1,8 @@
-# ==================================================================================
-# Default fish detector.
-# ==================================================================================
+# =============================================================================
+# Title: Common - Stereo Fish Detector With Filter
+#
+# Description: Default fish detector.
+# =============================================================================
 
 include common_stereo_fish_detector.pipe
 
@@ -29,7 +31,7 @@ connect from detector_output1.detected_object_set
 connect from nms_refiner1.detected_object_set
         to   detector_filter1.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 
 process nms_refiner2
   :: refine_detections

@@ -1,15 +1,9 @@
-# Estimate monocular camera calibration from images of a chessboard target
+# =============================================================================
+# Title: Estimate monocular camera calibration from images of a chessboard target
 #
-# Takes a single camera video/image input and produces camera intrinsics.
-#
-# Features:
-#   - Auto-detects chessboard grid size from first frame
-#   - Image dimensions derived automatically from input images
-#   - Outputs OpenCV YAML format and JSON format
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
@@ -19,11 +13,11 @@ config global
    :frame_count_threshold                      50
    :square_size                                80
 
-# ============================== INPUT FRAME LIST ==================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== OCV DETECTOR =================================
+# =============================== OCV DETECTOR ================================
 
 process detector
   :: image_object_detector
@@ -44,7 +38,7 @@ process detector_writer
   :file_name                                   tracks.csv
   :writer:type                                 viame_csv
 
-# =============================== CAMERA CALIBRATION ===============================
+# ============================ CAMERA CALIBRATION =============================
 
 process camera_calibration
   :: ocv_calibrate_single_camera
@@ -53,7 +47,7 @@ process camera_calibration
   :frame_count_threshold                       $CONFIG{global:frame_count_threshold}
   :square_size                                 $CONFIG{global:square_size}
 
-# =============================== PROCESS CONNECTION ===============================
+# ============================ PROCESS CONNECTION =============================
 
 connect from downsampler.output_1
         to   detector.image

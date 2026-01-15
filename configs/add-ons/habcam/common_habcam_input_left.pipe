@@ -1,6 +1,10 @@
-# HabCam Input Configuration
+# =============================================================================
+# Title: HabCam Input Configuration
+#
+# Description: Common pipeline configuration for HabCam underwater imagery
+# =============================================================================
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 process input
   :: video_input
@@ -48,7 +52,7 @@ connect from input.frame_rate
 connect from input.timestamp
         to   downsampler.timestamp
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process split
   :: split_image

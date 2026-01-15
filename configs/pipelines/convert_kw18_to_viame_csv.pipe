@@ -1,17 +1,16 @@
-# Format Converter
+# =============================================================================
+# Title: Format Converter
 #
-# Convert file types in the same order as some input list
+# Description: Converts data between different formats for input imagery
+# =============================================================================
 
-# ===================== GLOBAL PROPERTIES ========================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                                      5
 
 config _scheduler
   :type                                       pythread_per_process
 
-# ======================= CONVERTER FUNC =========================
+# ============================== CONVERTER FUNC ===============================
 
 include common_no_load_input_with_downsampler.pipe
 

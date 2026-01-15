@@ -1,18 +1,17 @@
-# Sea Lion Detection Pipeline
+# =============================================================================
+# Title: Sea Lion Detection Pipeline
 #
-# This pipeline assumes we want to process the full input image.
+# Description: Runs object detection on sea lion imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector
   :: image_object_detector
@@ -51,7 +50,7 @@ process nms_refiner
 connect from detector.detected_object_set
         to   nms_refiner.detected_object_set
 
-# ==================================== WRITER ======================================
+# ================================== WRITER ===================================
 
 process detector_writer
   :: detected_object_output

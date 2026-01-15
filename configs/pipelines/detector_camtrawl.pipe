@@ -1,10 +1,10 @@
-# ==================================================================================
-# Camtrawl detector pipeline
+# =============================================================================
+# Title: Camtrawl detector pipeline
 #
-# Runs camtrawl GMM model on data
-# ==================================================================================
+# Description: Runs object detection on input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -13,11 +13,11 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector
   :: gmm_motion_detector

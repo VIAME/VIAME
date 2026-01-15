@@ -1,14 +1,13 @@
+# =============================================================================
+# Title: Pipe file to display annotations from test data set
 #
-# Pipe file to display annotations from test data set
-#
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
-# ==================================================================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    10
 
-# ==================================================================================
+# =============================================================================
 
 include common_default_input.pipe
 
@@ -26,7 +25,7 @@ process disp
  :annotate_image                               true
  :pause_time                                   4.0
 
-# ==================================================================================
+# =============================================================================
 
 connect from input.image
         to   draw_box.image

@@ -1,19 +1,17 @@
-# Generate empty per-frame labels with automatic shot break detection
+# =============================================================================
+# Title: Generate empty per-frame labels with automatic shot break detection
 #
-# This pipeline uses descriptor-based shot break detection to automatically
-# segment a video into shots based on visual content changes.
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector
   :: image_object_detector
@@ -23,7 +21,7 @@ process detector
 connect from downsampler.output_1
         to   detector.image
 
-# ================================ SHOT BREAK DETECTOR =============================
+# ============================ SHOT BREAK DETECTOR ============================
 
 process shot_break_detector
   :: detect_shot_breaks
@@ -41,7 +39,7 @@ connect from downsampler.timestamp
 connect from detector.detected_object_set
         to   shot_break_detector.detected_object_set
 
-# ================================== TRACK WRITER ==================================
+# =============================== TRACK WRITER ================================
 
 process track_writer
   :: write_object_track

@@ -1,10 +1,14 @@
-# HabCam Input Configuration
+# =============================================================================
+# Title: HabCam Input Configuration
+#
+# Description: Common pipeline configuration for HabCam underwater imagery
+# =============================================================================
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_habcam_input_left.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 include common_color_correction_right.pipe
 

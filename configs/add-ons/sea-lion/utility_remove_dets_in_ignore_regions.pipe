@@ -1,17 +1,16 @@
-# Remove detections in regions indicated by fixed type string(s)
+# =============================================================================
+# Title: Remove detections in regions indicated by fixed type string(s)
 #
-# This pipeline assumes we want to process the full input image.
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                             5
 
 config _scheduler
   :type                                                 pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_no_load_input_with_downsampler.pipe
 
@@ -24,7 +23,7 @@ process detection_reader
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
-# ==================================== FILTER ======================================
+# ================================== FILTER ===================================
 
 process detection_filter
   :: detected_object_filter
@@ -53,7 +52,7 @@ connect from detection_filter.detected_object_set
 connect from detection_reader.detected_object_set
         to   detector_fuser.detected_object_set2
 
-# ==================================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output

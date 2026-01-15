@@ -1,43 +1,24 @@
-# Habcam Pipeline
+# =============================================================================
+# Title: Habcam Pipeline
 #
-# Runs multiple object detectors in a pipeline.
-#
-# Un-comment each detector in order to use it (memory usage / load will increase):
-#
-#    (a) CFRNN - Mid-Res Cascade RNN Scallop Detector (enabled by default)
-#    (b) CFRNN - High-Res Cascade RNN Scallop Detector (disabled by default)
-#    (c) YOLOv2 - Mid Res YOLOv2 HabCam Fish Detector (enabled by default)
-#    (d) YOLOv2 - High Res YOLOv2 Alternative Scallop Detector (disabled by default)
-#    (e) Scallop-TK - Alternative Scallop Detector (disabled by default)
-#    (f) Scallop-Finder - Alternative matlab Scallop Detector (disabled by default)
-#
-# This pipeline assumes stereo imagery together in a composite image as input. The
-# first 'splitting' process selects either the left or right side of the image to
-# perform detection on. Replace 'left_image_filter.image' with 'split.right_image' to
-# perform detection on the other side.
-#
-# Notes: All scallop and fish models are still in being compared with each other,
-# and these are released in a 'beta' state. In the near-future they will be
-# consolidated and only the highest-scoring ones will be kept in this file.
+# Description: Runs object detection on HabCam underwater imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_habcam_input_left.pipe
 
-# ================================ FUSION SCALLOP ==================================
+# ============================== FUSION SCALLOP ===============================
 
 include common_scallop_one_class_detector_left.pipe
 
 connect from left_image_filter.image
         to   detector_input_left.image
 
-# ================================= YOLO V2 FISH ===================================
+# =============================== YOLO V2 FISH ================================
 
 process fish_yolo_v2_detector
   :: image_object_detector
@@ -79,7 +60,7 @@ connect from left_image_filter.image
 connect from fish_yolo_v2_detector.detected_object_set
         to   fish_yolo_v2_filter.detected_object_set
 
-# ============================ MERGED DETECTION WRITER =============================
+# ========================== MERGED DETECTION WRITER ==========================
 
 process final_merger
   :: merge_detection_sets

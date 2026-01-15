@@ -1,21 +1,20 @@
-# Sea Lion Detection Pipeline
+# =============================================================================
+# Title: Sea Lion Detection Pipeline
 #
-# This pipeline assumes we want to process the full input image.
+# Description: Runs object detection on sea lion imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
 config _scheduler
   :type                                        pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector
   :: image_object_detector
@@ -44,7 +43,7 @@ connect from downsampler.output_1
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
 
-# ==============================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output

@@ -1,8 +1,14 @@
+# =============================================================================
+# Title: Utility - Register Frames 2-cam
+#
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _scheduler
   type = pythread_per_process
 
 
-# ==================================================================================
+# =============================================================================
 # Commonly used default input file source.
 #
 # By default, this is an image list reader, but this can be over-riden by changing
@@ -38,7 +44,7 @@ process input1
   endblock
 
 
-# ==================================================================================
+# =============================================================================
 # Commonly used default input file source with included downsampler process.
 #
 # By default, this is an image list reader, but this can be over-riden by changing
@@ -61,7 +67,7 @@ connect from input1.timestamp
         to   downsampler1.timestamp
 
 
-# ==================================================================================
+# =============================================================================
 # Commonly used default input file source.
 #
 # By default, this is an image list reader, but this can be over-riden by changing
@@ -97,7 +103,7 @@ process input2
   endblock
 
 
-# ==================================================================================
+# =============================================================================
 # Commonly used default input file source with included downsampler process.
 #
 # By default, this is an image list reader, but this can be over-riden by changing

@@ -1,17 +1,16 @@
-# Ingest video pipeline using pytorch descriptors
+# =============================================================================
+# Title: Ingest video pipeline using pytorch descriptors
 #
-# Runs a multi-node object tracking, descriptor generation, and indexing pipeline
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    10
 
 config _scheduler
   :type                                        pythread_per_process
 
-# ================================== VIDEO INPUT ===================================
+# ================================ VIDEO INPUT ================================
 
 include common_default_input_with_downsampler.pipe
 
@@ -24,7 +23,7 @@ process detection_reader
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process full_frame_generator
   :: image_object_detector
@@ -77,7 +76,7 @@ process detector_writer
 connect from detector_filter.detected_object_set
         to   detector_writer.detected_object_set
 
-# ================================= CORE TRACKER ===================================
+# =============================== CORE TRACKER ================================
 #
 # In this case no tracking is performed due to having single frame detections, we
 # just link them into short 1-frame tracks for database indexing purposes.
@@ -100,7 +99,7 @@ connect from downsampler.timestamp
 connect from descriptor.detected_object_set
         to   track_initializer.detected_object_set
 
-# ============================ ANALYZE AND INDEX DATA ==============================
+# ========================== ANALYZE AND INDEX DATA ===========================
 
 process track_descriptor
  :: compute_track_descriptors

@@ -1,17 +1,9 @@
-# Estimate calibration from left and right camera videos
+# =============================================================================
+# Title: Estimate calibration from left and right camera videos
 #
-# Runs OCV corner detection on each camera feed and combine tracks to generate camera calibration
-#
-# Features:
-#   - Auto-detects chessboard grid size from first frame
-#   - Image dimensions derived automatically from input images
-#   - Frame count accumulated from all input frames
-#   - Outputs both OpenCV YAML format and JSON format (camera_rig_io compatible)
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
@@ -20,11 +12,11 @@ config global
    :output_json_file                           calibration_matrices.json
    :square_size                                80
 
-# ============================== INPUT FRAME LIST ==================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_stereo_input_with_downsampler.pipe
 
-# =================================== OCV DETECTOR =====================================
+# =============================== OCV DETECTOR ================================
 # LEFT
 # --------------------------------------------------------------------------------------
 process detector1
@@ -66,12 +58,12 @@ process track_writer2
   :file_name                                   $CONFIG{global:output_directory}tracks_right.csv
   :writer:type                                 viame_csv
 
-# =============================== IMAGE STATISTICS =====================================
+# ============================= IMAGE STATISTICS ==============================
 
 process image_statistics
   :: accumulate_image_statistics
 
-# =============================== CAMERA CALIBRATION ===================================
+# ============================ CAMERA CALIBRATION =============================
 
 process cameras_calibration
   :: calibrate_cameras_from_tracks
@@ -80,7 +72,7 @@ process cameras_calibration
   :square_size                                 $CONFIG{global:square_size}
   :wait_for_completion                         true
 
-# =============================== PROCESS CONNECTION ===================================
+# ============================ PROCESS CONNECTION =============================
 # Detect tracks left camera
 # --------------------------------------------------------------------------------------
 connect from downsampler.output_1

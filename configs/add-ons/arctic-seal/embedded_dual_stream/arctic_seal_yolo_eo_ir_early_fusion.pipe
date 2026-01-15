@@ -1,10 +1,13 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Arctic Seal YOLO EO IR Early Fusion
 #
+# Description: Pipeline for processing arctic seal imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   5
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
@@ -26,7 +29,7 @@ connect from in_adapt.image2
 connect from in_adapt.file_name2
         to   downsampler.input_4
 
-# ==================================================================================
+# =============================================================================
 
 process warp_image
   :: itk_warp_image
@@ -59,7 +62,7 @@ connect from downsampler.output_1
 connect from scale_warped.image
         to   fusion_detector_input.image2
 
-# ==================================================================================
+# =============================================================================
 
 process fusion_detector1
   :: image_object_detector
@@ -155,7 +158,7 @@ connect from fusion_detector1_nms.detected_object_set
 connect from fusion_detector2_nms.detected_object_set
         to   fusion_detector_output.detected_object_set2
 
-# ==================================================================================
+# =============================================================================
 
 connect from fusion_detector_output.detected_object_set
         to   out_adapt.detected_object_set
@@ -164,7 +167,7 @@ connect from downsampler.output_2
 connect from downsampler.timestamp
         to   out_adapt.timestamp
 
-# ==================================================================================
+# =============================================================================
 
 process fusion_writer_csv
   :: detected_object_output
@@ -179,7 +182,7 @@ connect from fusion_detector_output.detected_object_set
 connect from downsampler.output_2
         to   fusion_writer_csv.image_file_name
 
-# ==================================================================================
+# =============================================================================
 
 #process fusion_filter_db
 #  :: initialize_object_tracks

@@ -1,16 +1,17 @@
-# Reads image from an arbitrary input source then dumps them out again
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Reads image from an arbitrary input source then dumps them out again
 #
+# Description: Applies filtering operations to input data for input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process video_writer
   :: video_output

@@ -1,16 +1,17 @@
-# SeaMap Detector Pipe
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: SeaMap Detector Pipe
 #
+# Description: Runs object detection on input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector1
   :: image_object_detector
@@ -64,7 +65,7 @@ connect from detector1.detected_object_set
 connect from detector2.detected_object_set
         to   detector_merger.detected_object_set2
 
-# ==================================== REFINER ======================================
+# ================================== REFINER ==================================
 
 include common_seamap_classifier_groups_v2.5.pipe
 
@@ -75,7 +76,7 @@ connect from downsampler.output_1
 connect from detector_merger.detected_object_set
         to   classifier_groups_large.detected_object_set
 
-# ==================================== WRITER ======================================
+# ================================== WRITER ===================================
 process detector_writer
   :: detected_object_output
 

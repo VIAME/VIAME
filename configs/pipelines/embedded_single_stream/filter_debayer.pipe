@@ -1,17 +1,20 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Filter - Debayer
 #
+# Description: Applies filtering operations to input data for input imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   5
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
   :: input_adapter
 
 process out_adapt
   :: output_adapter
 
-# =================================== DEBAYER ======================================
+# ================================== DEBAYER ==================================
 
 process debayer
   :: image_filter
@@ -22,7 +25,7 @@ process debayer
 connect from in_adapt.image
         to   debayer.image
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process image_writer
   :: image_writer

@@ -1,3 +1,9 @@
+# =============================================================================
+# Title: Common - Sea Lion Stabilizer 1cam
+#
+# Description: Common pipeline configuration for sea lion imagery
+# =============================================================================
+
 process stabilizer
   :: many_image_stabilizer
   n_input = 1

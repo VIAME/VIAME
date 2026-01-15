@@ -1,10 +1,13 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Arctic Seal TF IR Only
 #
+# Description: Pipeline for processing arctic seal imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   5
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
@@ -26,14 +29,14 @@ connect from in_adapt.image2
 connect from in_adapt.file_name2
         to   downsampler.input_4
 
-# ==================================================================================
+# =============================================================================
 
 include ../common_arctic_seal_ir_tf_detector.pipe
 
 connect from downsampler.output_3
         to   thermal_detector.image
 
-# ==================================================================================
+# =============================================================================
 
 connect from thermal_detector.detected_object_set
         to   out_adapt.detected_object_set2
@@ -42,7 +45,7 @@ connect from downsampler.output_4
 connect from downsampler.timestamp
         to   out_adapt.timestamp2
 
-# ==================================================================================
+# =============================================================================
 
 process thermal_writer_csv
   :: detected_object_output
@@ -57,7 +60,7 @@ connect from thermal_detector.detected_object_set
 connect from downsampler.output_4
         to   thermal_writer_csv.image_file_name
 
-# ==================================================================================
+# =============================================================================
 
 #process thermal_filter_db
 #  :: initialize_object_tracks

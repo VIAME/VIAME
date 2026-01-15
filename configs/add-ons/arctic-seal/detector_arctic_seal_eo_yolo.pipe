@@ -1,6 +1,9 @@
 # =============================================================================
-# global pipeline config
+# Title: Detector - Arctic Seal EO YOLO
 #
+# Description: Runs object detection on arctic seal imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 

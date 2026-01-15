@@ -1,17 +1,16 @@
-# Remove detections in regions indicated by fixed type string(s)
+# =============================================================================
+# Title: Remove detections in regions indicated by fixed type string(s)
 #
-# This pipeline assumes we want to process the full input image.
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                             5
 
 config _scheduler
   :type                                                 pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include utility_remove_dets_in_ignore_regions_2-cam.pipe
 
@@ -72,7 +71,7 @@ process detection_reader3
 connect from downsampler3.output_2
         to   detection_reader3.image_file_name
 
-# ==================================== FILTER2 =====================================
+# ================================== FILTER2 ==================================
 
 process detection_filter3
   :: detected_object_filter

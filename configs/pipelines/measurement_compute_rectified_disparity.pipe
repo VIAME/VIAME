@@ -1,11 +1,9 @@
-# Rectified stereo disparity
+# =============================================================================
+# Title: Rectified stereo disparity
 #
-# Runs images retification (using intrinsics.yml / extrinsics.yml files) and generates disparity maps
-# The depth directory needs to be created prior to the pipeline execution
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
        :capacity                               5
 
@@ -13,11 +11,11 @@ config global
    :input_cameras_directory                    /home/<user>/Desktop/viame_tests/camera_calibrations
    :output_depths_directory                    /home/<user>/Desktop/viame_tests/depthMap
 
-# ================================== VIDEO INPUT ==================================
+# ================================ VIDEO INPUT ================================
 
 include common_stereo_input_with_downsampler.pipe
 
-# =================================== DEPTH MAP ====================================
+# ================================= DEPTH MAP =================================
 
 process depth_map
   :: compute_stereo_depth_map
@@ -40,7 +38,7 @@ connect from downsampler.output_1
 connect from downsampler.output_3
         to   depth_map.right_image
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process output
   :: image_writer

@@ -1,6 +1,8 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Track User Selections Fusion
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
 config _pipeline:_edge
    :capacity                                   5
@@ -8,7 +10,7 @@ config _pipeline:_edge
 config _scheduler
    :type                                       pythread_per_process
 
-# ================================= IO NODES =======================================
+# ================================= IO NODES ==================================
 
 process in_adapt
   :: input_adapter
@@ -16,7 +18,7 @@ process in_adapt
 process out_adapt
   :: output_adapter
 
-# ================================= CONDUCTOR ======================================
+# ================================= CONDUCTOR =================================
 
 process track_conductor
   :: track_conductor
@@ -29,7 +31,7 @@ connect from in_adapt.timestamp
 connect from in_adapt.object_track_set
         to   track_conductor.initializations
 
-# ============================== SHORT-TERM TRACKER ================================
+# ============================ SHORT-TERM TRACKER =============================
 
 include ../common_short_term_tracker.pipe
 
@@ -47,7 +49,7 @@ connect from short_term_tracker.timestamp
 connect from short_term_tracker.object_track_set
         to   track_conductor.short_term_tracks
 
-# ================================ MID-TERM TRACKER ================================
+# ============================= MID-TERM TRACKER ==============================
 
 process mid_term_tracker
   :: mdnet_tracker
@@ -70,7 +72,7 @@ connect from mid_term_tracker.timestamp
 connect from mid_term_tracker.object_track_set
         to   track_conductor.mid_term_tracks
 
-# ================================= FINAL OUTPUT ===================================
+# =============================== FINAL OUTPUT ================================
 
 connect from track_conductor.object_track_set
         to   out_adapt.object_track_set

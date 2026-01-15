@@ -1,10 +1,13 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Detector - Sea Lion Fusion Two Class
 #
+# Description: Runs object detection on sea lion imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   10
 
-# ==================================================================================
+# =============================================================================
 
 process in_adapt
  :: input_adapter
@@ -12,7 +15,7 @@ process in_adapt
 process out_adapt
  :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 
 process detector
   :: image_object_detector
@@ -25,7 +28,7 @@ process detector
 connect from in_adapt.image
         to   detector.image
 
-# ==================================================================================
+# =============================================================================
 
 process detection_writer_csv
   :: detected_object_output
@@ -40,7 +43,7 @@ connect from detector.detected_object_set
 connect from in_adapt.file_name
         to   detection_writer_csv.image_file_name
 
-# ==================================================================================
+# =============================================================================
 
 connect from in_adapt.timestamp
         to   out_adapt.timestamp

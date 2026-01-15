@@ -1,8 +1,9 @@
-# ==================================================================================
-# Commonly used generic detector when the user hasn't specified one.
+# =============================================================================
+# Title: Generates generic object proposals as opposed to any specific class labels
 #
-# Generates generic object proposals as opposed to any specific class labels
-# ==================================================================================
+# Description: Commonly used generic detector when the user hasn't specified
+# one.
+# =============================================================================
 
 include common_generic_detector.pipe
 

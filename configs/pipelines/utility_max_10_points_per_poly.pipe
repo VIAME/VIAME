@@ -1,12 +1,13 @@
-# Set Input Detections to Contain at Most 25 Output Polygon Points Per Mask
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Set Input Detections to Contain at Most 25 Output Polygon Points Per Mask
 #
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# =================================== READERS ======================================
+# ================================== READERS ==================================
 
 process input
   :: video_input
@@ -63,7 +64,7 @@ process detection_reader
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
-# ==================================== WRITER ======================================
+# ================================== WRITER ===================================
 
 process detector_writer
   :: detected_object_output

@@ -1,12 +1,13 @@
-# Add head tail keypoints to existing detections which lack them
-
-# ===================== GLOBAL PROPERTIES ========================
-# global pipeline config
+# =============================================================================
+# Title: Add head tail keypoints to existing detections which lack them
 #
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                                      5
 
-# ====================== INPUT FRAME LIST ========================
+# ============================= INPUT FRAME LIST ==============================
 process input
   :: video_input
   :video_filename                                   input_list.txt

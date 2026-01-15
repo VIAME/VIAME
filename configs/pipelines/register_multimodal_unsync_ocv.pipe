@@ -1,9 +1,10 @@
-# ==================================================================================
+# =============================================================================
+# Title: Register co-collected optical and thermal imagery
 #
-# Register co-collected optical and thermal imagery
-#
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -12,7 +13,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                                 pythread_per_process
 
-# ================================= INPUT VIDEO ====================================
+# ================================ INPUT VIDEO ================================
 
 process optical_input
   :: video_input
@@ -38,7 +39,7 @@ process thermal_input
     endblock
   endblock
 
-# ================================ REGISTRATION ===================================
+# =============================== REGISTRATION ================================
 
 process align_images
   :: align_multimodal_imagery
@@ -67,7 +68,7 @@ connect from align_images.optical_image
 connect from align_images.thermal_image
         to   register_images.thermal_image
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process scale_warped
   :: percentile_norm_npy_16_to_8bit

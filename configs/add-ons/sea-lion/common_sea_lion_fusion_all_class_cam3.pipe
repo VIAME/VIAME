@@ -1,5 +1,10 @@
+# =============================================================================
+# Title: Common - Sea Lion Fusion All Class Cam3
+#
+# Description: Common pipeline configuration for sea lion imagery
+# =============================================================================
 
-# ================================ INPUT FORMATTER =================================
+# ============================== INPUT FORMATTER ==============================
 
 process detector_input_cam3
   :: image_filter
@@ -10,7 +15,7 @@ process detector_input_cam3
     :force_three_channel                       true
   endblock
 
-# =================================== DETECTOR1 ====================================
+# ================================= DETECTOR1 =================================
 
 process detector_cam3_1
   :: image_object_detector
@@ -49,7 +54,7 @@ process nms_refiner_cam3_1
 connect from detector_cam3_1.detected_object_set
         to   nms_refiner_cam3_1.detected_object_set
 
-# =================================== DETECTOR2 ====================================
+# ================================= DETECTOR2 =================================
 
 process detector_cam3_2
   :: image_object_detector
@@ -88,7 +93,7 @@ process nms_refiner_cam3_2
 connect from detector_cam3_2.detected_object_set
         to   nms_refiner_cam3_2.detected_object_set
 
-# =================================== DETECTOR3 ====================================
+# ================================= DETECTOR3 =================================
 
 process reclassifier_cam3
   :: refine_detections
@@ -111,7 +116,7 @@ connect from detector_input_cam3.image
 connect from nms_refiner_cam3_1.detected_object_set
         to   reclassifier_cam3.detected_object_set
 
-# ================================ DETECTOR FUSER ==================================
+# ============================== DETECTOR FUSER ===============================
 
 process detector_fuser_cam3
   :: merge_detection_sets

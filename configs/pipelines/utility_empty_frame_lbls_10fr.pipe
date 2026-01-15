@@ -1,16 +1,17 @@
-# Generate empty per-frame labels for the entire frame
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Generate empty per-frame labels for the entire frame
 #
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector
   :: image_object_detector

@@ -1,6 +1,9 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Query And Iqr
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
@@ -11,14 +14,14 @@ config global
   :database_folder                             database
   :query_folder                                database/Queries
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
 process out_adapt
  :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 
 process query_handler
   :: process_query

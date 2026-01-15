@@ -1,10 +1,10 @@
-# ==================================================================================
-# Example simple tracker pipeline
+# =============================================================================
+# Title: Example simple tracker pipeline
 #
-# Runs a standalone TUT object tracking pipeline
-# ==================================================================================
+# Description: Performs object tracking on input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -13,11 +13,11 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# ================================== DETECTOR ======================================
+# ================================= DETECTOR ==================================
 
 include common_fish_detector_with_filter.pipe
 
@@ -36,7 +36,7 @@ connect from detector_filter.detected_object_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name
 
-# ================================= CORE TRACKER ===================================
+# =============================== CORE TRACKER ================================
 
 include common_default_tracker.pipe
 
@@ -48,7 +48,7 @@ connect from downsampler.timestamp
 connect from detector_filter.detected_object_set
         to   tracker.detected_object_set
 
-# ================================= OUTPUT DATA ====================================
+# ================================ OUTPUT DATA ================================
 
 process track_writer
   :: write_object_track

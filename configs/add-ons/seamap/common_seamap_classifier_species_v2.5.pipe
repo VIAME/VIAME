@@ -1,6 +1,9 @@
-  
- # Shared classifier at the group level for seamap configs
- 
+# =============================================================================
+# Title: Shared classifier at the group level for seamap configs
+#
+# Description: Common pipeline configuration for input imagery
+# =============================================================================
+
  process classifier_species_large
   :: refine_detections
   :refiner:type                                netharn

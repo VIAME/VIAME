@@ -1,6 +1,8 @@
-# ==================================================================================
-# Based on Kwiver's stabilize_images.pipe
-# ==================================================================================
+# =============================================================================
+# Title: Based on Kwiver's stabilize_images.pipe
+#
+# Description: Common pipeline configuration for input imagery
+# =============================================================================
 
 process stabilizer
   :: stabilize_image

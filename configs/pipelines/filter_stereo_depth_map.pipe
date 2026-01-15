@@ -1,16 +1,17 @@
-# Filters input images via debayering them and running basic image filtering
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Filters input images via debayering them and running basic image filtering
 #
+# Description: Applies filtering operations to input data for stereo imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input.pipe
 
-# ================================== CROP INPUTS ===================================
+# ================================ CROP INPUTS ================================
 process split
   :: split_image
   :split_image:type                            ocv_horizontally
@@ -18,7 +19,7 @@ process split
 connect from input.image
         to   split.image
 
-# =================================== DEPTH MAP ====================================
+# ================================= DEPTH MAP =================================
 
 process depth_map
   :: compute_stereo_depth_map
@@ -48,7 +49,7 @@ process filter
 connect from depth_map.depth_map
         to   filter.image
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process image_writer
   :: image_writer

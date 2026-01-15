@@ -1,8 +1,9 @@
-# ==================================================================================
-# Commonly used default descriptor when the user hasn't specified one.
+# =============================================================================
+# Title: Common - Default Descriptor.cpu
 #
-# Current incumbent is the last layer of the EfficientNet_V2_S.
-# ==================================================================================
+# Description: Commonly used default descriptor when the user hasn't specified
+# one.
+# =============================================================================
 
 process descriptor
   :: pytorch_descriptors

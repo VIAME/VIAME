@@ -1,23 +1,9 @@
-# Estimate calibration from left and right camera videos (Fast Mode)
+# =============================================================================
+# Title: Estimate calibration from left and right camera videos (Fast Mode)
 #
-# Runs OCV corner detection on each camera feed and combine tracks to generate camera calibration.
-# Uses intelligent frame selection to calibrate using only a subset of frames for faster processing.
-#
-# Features:
-#   - Auto-detects chessboard grid size from first frame
-#   - Image dimensions derived automatically from input images
-#   - Uses spatial diversity frame selection to pick optimal frames for calibration
-#   - Outputs both OpenCV YAML format and JSON format (camera_rig_io compatible)
-#
-# Frame Selection:
-#   - The calibration process intelligently selects frames where the calibration target
-#     appears in different regions of the image to maximize calibration quality
-#   - Uses k-medians clustering and variance maximization for optimal frame distribution
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
@@ -27,11 +13,11 @@ config global
    :square_size                                80
    :frame_count_threshold                      25
 
-# ============================== INPUT FRAME LIST ==================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_stereo_input_with_downsampler.pipe
 
-# =================================== OCV DETECTOR =====================================
+# =============================== OCV DETECTOR ================================
 # LEFT
 # --------------------------------------------------------------------------------------
 process detector1
@@ -73,12 +59,12 @@ process track_writer2
   :file_name                                   $CONFIG{global:output_directory}tracks_right.csv
   :writer:type                                 viame_csv
 
-# =============================== IMAGE STATISTICS =====================================
+# ============================= IMAGE STATISTICS ==============================
 
 process image_statistics
   :: accumulate_image_statistics
 
-# =============================== CAMERA CALIBRATION ===================================
+# ============================ CAMERA CALIBRATION =============================
 
 process cameras_calibration
   :: calibrate_cameras_from_tracks
@@ -88,7 +74,7 @@ process cameras_calibration
   :frame_count_threshold                       $CONFIG{global:frame_count_threshold}
   :wait_for_completion                         true
 
-# =============================== PROCESS CONNECTION ===================================
+# ============================ PROCESS CONNECTION =============================
 # Detect tracks left camera
 # --------------------------------------------------------------------------------------
 connect from downsampler.output_1

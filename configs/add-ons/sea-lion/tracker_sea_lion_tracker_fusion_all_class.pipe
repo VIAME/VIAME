@@ -1,3 +1,9 @@
+# =============================================================================
+# Title: Tracker - Sea Lion Tracker Fusion All Class
+#
+# Description: Performs object tracking on sea lion imagery
+# =============================================================================
+
 config _scheduler
   type = pythread_per_process
 

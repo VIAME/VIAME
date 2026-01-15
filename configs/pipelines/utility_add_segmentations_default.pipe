@@ -1,2 +1,7 @@
+# =============================================================================
+# Title: Utility - Add Segmentations Default
+#
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
 
 include utility_add_segmentations_sam2.pipe

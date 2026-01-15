@@ -1,5 +1,10 @@
+# =============================================================================
+# Title: Common - Scallop One Class Detector Right
+#
+# Description: Common pipeline configuration for scallop detection
+# =============================================================================
 
-# ================================ INPUT FORMATTER =================================
+# ============================== INPUT FORMATTER ==============================
 
 process detector_input_right
   :: image_filter
@@ -10,7 +15,7 @@ process detector_input_right
     :force_three_channel                       true
   endblock
 
-# =================================== DETECTOR1 ====================================
+# ================================= DETECTOR1 =================================
 
 process detector_right_1
   :: image_object_detector
@@ -49,7 +54,7 @@ process nms_refiner_right_1
 connect from detector_right_1.detected_object_set
         to   nms_refiner_right_1.detected_object_set
 
-# =================================== DETECTOR2 ====================================
+# ================================= DETECTOR2 =================================
 
 process detector_right_2
   :: image_object_detector
@@ -90,7 +95,7 @@ process nms_refiner_right_2
 connect from detector_right_2.detected_object_set
         to   nms_refiner_right_2.detected_object_set
 
-# =================================== DETECTOR3 ====================================
+# ================================= DETECTOR3 =================================
 
 process detector_right_3
   :: image_object_detector
@@ -103,7 +108,7 @@ process detector_right_3
 connect from detector_input_right.image
         to   detector_right_3.image
 
-# =================================== DETECTOR4 ====================================
+# ================================= DETECTOR4 =================================
 
 process reclassifier_merger_right
   :: merge_detection_sets
@@ -151,7 +156,7 @@ connect from detector_input_right.image
 connect from reclassifier_nms_right.detected_object_set
         to   reclassifier_right.detected_object_set
 
-# ================================ DETECTOR FUSER ==================================
+# ============================== DETECTOR FUSER ===============================
 
 process detector_fuser_right
   :: merge_detection_sets

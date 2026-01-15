@@ -1,3 +1,9 @@
+# =============================================================================
+# Title: Tracker - Sea Lion Fusion All Class 2-cam
+#
+# Description: Performs object tracking on sea lion imagery
+# =============================================================================
+
 config _scheduler
   type = pythread_per_process
 

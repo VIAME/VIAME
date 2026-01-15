@@ -1,10 +1,10 @@
-# ==================================================================================
-# Default local detector pipeline
+# =============================================================================
+# Title: Default local detector pipeline
 #
-# Runs a local detector, as specified in the file 'category_models/detector.pipe'
-# ==================================================================================
+# Description: Runs object detection on input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -13,7 +13,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                                 pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 process input
   :: video_input
@@ -59,7 +59,7 @@ connect from input.frame_rate
 connect from input.timestamp
         to   downsampler.timestamp
 
-# ================================== CROP INPUTS ===================================
+# ================================ CROP INPUTS ================================
 process split
   :: split_image
   :split_image:type                                     ocv_horizontally
@@ -67,7 +67,7 @@ process split
 connect from downsampler.output_1
         to   split.image
 
-# ==================================== DETECTOR ====================================
+# ================================= DETECTOR ==================================
 
 include $ENV{VIAME_PROJECT_DIR}/category_models/detector.pipe
 

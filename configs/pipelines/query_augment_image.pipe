@@ -1,20 +1,23 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Query Augment Image
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
 config _scheduler
   :type                                        pythread_per_process
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
 process out_adapt
  :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 process augmenter
   :: pytorch_augmentation
   :resnet_model_input_size                     224

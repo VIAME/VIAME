@@ -1,27 +1,30 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Generic Proposal Tracker
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   10
 
 config _scheduler
    :type                                       pythread_per_process
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
   :: input_adapter
 
 process out_adapt
   :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 
 include ../common_generic_detector_with_filter.pipe
 
 connect from in_adapt.image
         to   detector_input.image
 
-# ==================================================================================
+# =============================================================================
 
 include ../common_default_tracker.pipe
 

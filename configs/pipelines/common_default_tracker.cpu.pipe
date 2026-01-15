@@ -1,9 +1,9 @@
-# ==================================================================================
-# Commonly used default tracker when the user hasn't specified one (CPU version).
+# =============================================================================
+# Title: Uses the track_objects process with ByteTrack algorithm which works well on CPU
 #
-# Uses the track_objects process with ByteTrack algorithm which works well on CPU
-# as it doesn't require deep feature extraction.
-# ==================================================================================
+# Description: Commonly used default tracker when the user hasn't specified
+# one (CPU version).
+# =============================================================================
 
 process tracker
   :: track_objects

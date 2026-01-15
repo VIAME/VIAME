@@ -1,11 +1,9 @@
-# track fish 3d from detections and stereo rectified disparity
+# =============================================================================
+# Title: track fish 3d from detections and stereo rectified disparity
 #
-# Compute rectified disparity map from stereo images, detect and track fish
-# in each camera, then associate tracks from the 2 cameras to create 3d tracks
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
        :capacity                               5
 
@@ -25,7 +23,7 @@ config global
 
 include common_stereo_fish_tracker.pipe
 
-# =================================== DEPTH MAP ====================================
+# ================================= DEPTH MAP =================================
 
 process depth_map
   :: compute_stereo_depth_map
@@ -70,7 +68,7 @@ connect from tracker1.object_track_set
 connect from tracker2.object_track_set
         to   stereo_pairing.object_track_set2
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process output
   :: image_writer

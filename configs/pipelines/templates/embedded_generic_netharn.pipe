@@ -1,6 +1,8 @@
-# ========================================================================================
-# Secondary Classifier After Generic Object Proposals
-# ========================================================================================
+# =============================================================================
+# Title: Secondary Classifier After Generic Object Proposals
+#
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
 process detector_input
   :: image_filter
@@ -35,7 +37,7 @@ process generic_detector
 connect from detector_input.image
         to   generic_detector.image
 
-# ========================================================================================
+# =============================================================================
 
 process classifier
   :: refine_detections
@@ -73,7 +75,7 @@ connect from detector_input.image
 connect from classifier.detected_object_set
         to   nms_refiner.detected_object_set
 
-# ========================================================================================
+# =============================================================================
 
 process detector_output
   :: merge_detection_sets

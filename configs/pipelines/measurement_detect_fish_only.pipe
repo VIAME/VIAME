@@ -1,10 +1,9 @@
-# Stereo detect fish
+# =============================================================================
+# Title: Stereo detect fish
 #
-# Basic stereo detector for each image of a stereo pair
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
    :capacity                     5
 
@@ -17,15 +16,15 @@ config global
    :pairing_method                              PAIRING_RECTIFIED_IOU
    :iou_pair_threshold                          0.1
 
-# ============================== INPUT FRAME LIST ==================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_stereo_input_with_downsampler.pipe
 
-# ================================== DETECTOR ======================================
+# ================================= DETECTOR ==================================
 
 include common_stereo_fish_detector_with_filter.pipe
 
-# =================================== DEPTH MAP ====================================
+# ================================= DEPTH MAP =================================
 
 process depth_map
   :: compute_stereo_depth_map
@@ -43,7 +42,7 @@ block computer:ocv_stereo_disparity
   :use_wls_filter                               true
 endblock
 
-# =================================== DETECTOR WRITER ==============================
+# ============================== DETECTOR WRITER ==============================
 
 process detector_writer1
   :: detected_object_output
@@ -61,7 +60,7 @@ process detector_writer2
   :writer:type                                 viame_csv
   :writer:viame_csv:mask_to_poly_points        25
 
-# ============================== DETECTIONS PAIRING ==============================
+# ============================ DETECTIONS PAIRING =============================
 
 process stereo_pairing
   ::ocv_pair_stereo_detections
@@ -69,7 +68,7 @@ process stereo_pairing
   :pairing_method                         $CONFIG{global:pairing_method}
   :iou_pair_threshold                     $CONFIG{global:iou_pair_threshold}
 
-# =================================== PROCESS CONNECTIONS ===========================
+# ============================ PROCESS CONNECTIONS ============================
 
 # Connect left / right input images to depth map
 connect from downsampler.output_1

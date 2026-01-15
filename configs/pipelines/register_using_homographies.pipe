@@ -1,21 +1,20 @@
-# Default homography-based registration pipeline
+# =============================================================================
+# Title: Default homography-based registration pipeline
 #
-# Registers a sequence of frames to produce frame to reference homographies
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    10
 
 config _scheduler
   :type                                        pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# ================================== STABILIZER ====================================
+# ================================ STABILIZER =================================
 
 include common_image_stabilizer.pipe
 

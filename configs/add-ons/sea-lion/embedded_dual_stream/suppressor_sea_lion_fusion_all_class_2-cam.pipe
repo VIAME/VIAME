@@ -1,3 +1,9 @@
+# =============================================================================
+# Title: Suppressor - Sea Lion Fusion All Class 2-cam
+#
+# Description: Suppresses false positive detections for sea lion imagery
+# =============================================================================
+
 config _scheduler
   type = pythread_per_process
 
@@ -211,7 +217,7 @@ connect from in_adapt.file_name2
         to detector_writer2.image_file_name
 
 
-# ==================================================================================
+# =============================================================================
 # Commonly used default initializer when the user hasn't specified one.
 #
 # Current incumbent is just a straight-up threshold on detection scores.
@@ -233,7 +239,7 @@ connect from in_adapt.timestamp
         to track_initializer_1.timestamp
 
 
-# ==================================================================================
+# =============================================================================
 # Commonly used default initializer when the user hasn't specified one.
 #
 # Current incumbent is just a straight-up threshold on detection scores.

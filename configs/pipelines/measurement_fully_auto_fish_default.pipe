@@ -1,8 +1,10 @@
-# ==================================================================================
-# Fully automatic fish measurement pipeline
-# ==================================================================================
+# =============================================================================
+# Title: Fully automatic fish measurement pipeline
+#
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -11,11 +13,11 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ============================== INPUT FRAME LISTS =================================
+# ============================= INPUT FRAME LISTS =============================
 
 include common_stereo_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector_input1
   :: image_filter
@@ -113,7 +115,7 @@ connect from detector_input2.image
 connect from detector2.detected_object_set
         to   nms_refiner2.detected_object_set
 
-# ================================ KP ASSIGNMENT ===================================
+# =============================== KP ASSIGNMENT ===============================
 
 process add_segmentations1
   :: refine_detections
@@ -173,7 +175,7 @@ connect from nms_refiner2.detected_object_set
 connect from add_segmentations2.detected_object_set
         to   add_head_tail2.detected_object_set
 
-# =================================== MEASURER =====================================
+# ================================= MEASURER ==================================
 
 process measurer
   :: measure_using_stereo
@@ -186,7 +188,7 @@ connect from add_head_tail2.detected_object_set
 connect from downsampler.timestamp
         to   measurer.timestamp
 
-# ==================================== WRITER ======================================
+# ================================== WRITER ===================================
 
 process track_writer1
   :: write_object_track

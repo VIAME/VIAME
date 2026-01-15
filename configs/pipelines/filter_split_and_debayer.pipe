@@ -1,12 +1,13 @@
-# Filters input images via spltting them, debayering them and lastly enhancement
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Filters input images via spltting them, debayering them and lastly enhancement
 #
+# Description: Applies filtering operations to input data for input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# ================================= INPUT VIDEO ====================================
+# ================================ INPUT VIDEO ================================
 
 process input
   :: video_input
@@ -17,7 +18,7 @@ process input
   :video_reader:image_list:image_reader:vxl:force_byte  false
   :video_reader:vidl_ffmpeg:time_source                 current
 
-# ================================== CROP INPUTS ===================================
+# ================================ CROP INPUTS ================================
 
 process split
   :: split_image
@@ -26,7 +27,7 @@ process split
 connect from input.image
         to   split.image
 
-# =================================== DEBAYER ======================================
+# ================================== DEBAYER ==================================
 
 process debayer
   :: image_filter
@@ -37,7 +38,7 @@ process debayer
 connect from split.left_image
         to   debayer.image
 
-# =================================== FILTERS ======================================
+# ================================== FILTERS ==================================
 
 process filter
   :: image_filter
@@ -56,7 +57,7 @@ process filter
 connect from debayer.image
         to   filter.image
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process image_writer
   :: image_writer

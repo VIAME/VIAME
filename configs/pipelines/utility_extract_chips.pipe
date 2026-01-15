@@ -1,17 +1,17 @@
-# Runs an object detector and dumps chips around detections out of it, for later
-# possible ingest into a database.
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Runs an object detector and dumps chips around detections out of it, for later
 #
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# ================================= INPUT VIDEO ====================================
+# ================================ INPUT VIDEO ================================
 
 include common_default_input_with_downsampler.pipe
 
-# ================================== DETECTOR ======================================
+# ================================= DETECTOR ==================================
 
 process detection_reader
   :: detected_object_input
@@ -22,7 +22,7 @@ process detection_reader
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
-# ================================ IMAGE CHIPPER ===================================
+# =============================== IMAGE CHIPPER ===============================
 
 process chipper
   :: refine_detections

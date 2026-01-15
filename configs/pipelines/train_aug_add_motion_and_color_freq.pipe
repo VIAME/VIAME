@@ -1,10 +1,13 @@
-# ============================ GLOBAL PROPERTIES ===============================
-# global pipeline config
+# =============================================================================
+# Title: Training - Aug Add Motion And Color Freq
 #
+# Description: Training pipeline for model training for input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    10
 
-# ==============================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
@@ -18,7 +21,7 @@ process image_reader
 connect from in_adapt.input_file_name
         to   image_reader.image_file_name
 
-# ==============================================================================
+# =============================================================================
 
 process random_grey
   :: image_filter
@@ -97,7 +100,7 @@ process float_to_byte
 connect from motion_filter.image
         to   float_to_byte.image
 
-# ==============================================================================
+# =============================================================================
 
 process image_merger
   :: merge_images
@@ -110,7 +113,7 @@ connect from color_freq_filter.image
 connect from float_to_byte.image
         to   image_merger.image3
 
-# ==============================================================================
+# =============================================================================
 
 process image_writer
  :: image_writer

@@ -1,16 +1,16 @@
-# ==================================================================================
-# OCV target Tracker Pipeline
+# =============================================================================
+# Title: OCV target Tracker Pipeline
 #
-# Runs automated ocv target detection on image then generate corners tracks
-# ==================================================================================
+# Description: Performs object tracking on input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
@@ -27,7 +27,7 @@ connect from downsampler.output_1
 connect from downsampler.output_2
         to   filter_frame_index.image_file_name
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector1
   :: image_object_detector
@@ -54,7 +54,7 @@ connect from filter_frame_index.image_file_name
 connect from detector1.detected_object_set
         to   detector_writer.detected_object_set
 
-# ================================= CORE TRACKER ===================================
+# =============================== CORE TRACKER ================================
 
 process append_detections
   :: accumulate_object_tracks
@@ -66,7 +66,7 @@ connect from filter_frame_index.timestamp
 connect from detector1.detected_object_set
         to   append_detections.detected_object_set
 
-# ================================= OUTPUT DATA ====================================
+# ================================ OUTPUT DATA ================================
 
 process track_writer
   :: write_object_track

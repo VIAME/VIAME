@@ -1,6 +1,9 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Query Retrieval And Iqr
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    10
 
@@ -8,14 +11,14 @@ config global
   :database_folder                             database
   :query_folder                                database/Queries
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
 process out_adapt
  :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 process descriptor_generator
  :: handle_descriptor_request
   relativepath image_pipeline_file =           query_image_exemplar.pipe
@@ -31,7 +34,7 @@ connect from descriptor_generator.image_set
 connect from descriptor_generator.track_descriptor_set
         to   out_adapt.track_descriptor_set
 
-# ==================================================================================
+# =============================================================================
 # Conditionally create a database query based on whether boxes were provided in
 # the descriptor_request. When boxes ARE provided, automatically start a query
 # from the descriptors. When no boxes, output null.
@@ -45,7 +48,7 @@ connect from descriptor_generator.track_descriptor_set
 connect from descriptor_generator.boxes_provided
         to   create_query.boxes_provided
 
-# ==================================================================================
+# =============================================================================
 # Select between auto-generated query (when boxes provided) and external query
 # (when user manually starts a query). Uses auto-generated if non-null.
 process query_selector
@@ -58,7 +61,7 @@ connect from in_adapt.database_query
 connect from descriptor_generator.boxes_provided
         to   query_selector.use_primary
 
-# ==================================================================================
+# =============================================================================
 process database_query_handler
   :: perform_query
   :external_handler                             true

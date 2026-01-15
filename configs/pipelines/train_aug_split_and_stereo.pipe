@@ -1,10 +1,13 @@
-# ============================ GLOBAL PROPERTIES ===============================
-# global pipeline config
+# =============================================================================
+# Title: Training - Aug Split And Stereo
 #
+# Description: Training pipeline for model training for stereo imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    10
 
-# ==============================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
@@ -18,7 +21,7 @@ process image_reader
 connect from in_adapt.input_file_name
         to   image_reader.image_file_name
 
-# ==============================================================================
+# =============================================================================
 
 process split
   :: split_image
@@ -61,7 +64,7 @@ process filter
 connect from depth_map.depth_map
         to   filter.image
 
-# ==============================================================================
+# =============================================================================
 
 process image_merger
   :: merge_images
@@ -72,7 +75,7 @@ connect from split.left_image
 connect from filter.image
         to   image_merger.image2
 
-# ==============================================================================
+# =============================================================================
 
 process image_writer
  :: image_writer

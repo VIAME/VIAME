@@ -1,6 +1,8 @@
-# ==============================================================================
-# ResNet Classifier
-# ==============================================================================
+# =============================================================================
+# Title: ResNet Classifier
+#
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
 process detector_input
   :: image_filter
@@ -11,7 +13,7 @@ process detector_input
     :force_three_channel                       true
   endblock
 
-# ==============================================================================
+# =============================================================================
 
 process detector
   :: image_object_detector
@@ -38,7 +40,7 @@ connect from detector_input.image
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
 
-# ==============================================================================
+# =============================================================================
 
 process detector_output
   :: merge_detection_sets

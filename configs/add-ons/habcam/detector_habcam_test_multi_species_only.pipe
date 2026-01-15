@@ -1,21 +1,17 @@
-# Detector, scallop-only trained using netharn
+# =============================================================================
+# Title: Detector, scallop-only trained using netharn
 #
-# This pipeline assumes stereo imagery together in a composite image as input. The
-# first 'splitting' process selects either the left or right side of the image to
-# perform detection on. Replace 'left_image_filter.image' with 'split.right_image' to
-# perform detection on the other side.
+# Description: Runs object detection on HabCam underwater imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_habcam_input_left.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 process detector
   :: image_object_detector
   :detector:type                               ocv_windowed
@@ -53,7 +49,7 @@ process detector_nms
 connect from detector.detected_object_set
         to   detector_nms.detected_object_set
 
-# ==================================== WRITER ======================================
+# ================================== WRITER ===================================
 process detector_writer
   :: detected_object_output
 

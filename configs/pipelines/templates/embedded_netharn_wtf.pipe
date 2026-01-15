@@ -1,8 +1,8 @@
-# ==============================================================================
+# =============================================================================
+# Title: Cascade Faster R-CNN Detector with Motion Infusion
 #
-# Cascade Faster R-CNN Detector with Motion Infusion
-#
-# ==============================================================================
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
 process detector_input
   :: image_filter
@@ -12,7 +12,7 @@ process detector_input
     :format                                    byte
   endblock
 
-# ==============================================================================
+# =============================================================================
 
 process enhancer
   :: image_filter
@@ -45,7 +45,7 @@ process ensure_color
 connect from enhancer.image
         to   ensure_color.image
 
-# ==============================================================================
+# =============================================================================
 
 process ensure_grey
   :: image_filter
@@ -85,7 +85,7 @@ process float_to_byte
 connect from motion_filter.image
         to   float_to_byte.image
 
-# ==============================================================================
+# =============================================================================
 
 process image_merger
   :: merge_images
@@ -96,7 +96,7 @@ connect from ensure_color.image
 connect from float_to_byte.image
         to   image_merger.image2
 
-# ==============================================================================
+# =============================================================================
 
 process detector1
   :: image_object_detector
@@ -119,7 +119,7 @@ process detector1
 connect from image_merger.image
         to   detector1.image
 
-# ==============================================================================
+# =============================================================================
 
 process detector_merger
   :: merge_detection_sets

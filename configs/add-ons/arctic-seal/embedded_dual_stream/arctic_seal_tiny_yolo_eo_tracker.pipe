@@ -1,13 +1,16 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Arctic Seal Tiny YOLO EO Tracker
 #
+# Description: Pipeline for processing arctic seal imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   5
 
 config _scheduler
    :type                                       pythread_per_process
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
@@ -29,7 +32,7 @@ connect from in_adapt.image2
 connect from in_adapt.file_name2
         to   downsampler.input_4
 
-# ==================================================================================
+# =============================================================================
 
 process optical_detector_input
   :: image_filter
@@ -184,7 +187,7 @@ process optical_detector_output
 connect from optical_detector_merger.detected_object_set
         to   optical_detector_output.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 
 include ../common_stabilized_iou_tracker.pipe
 
@@ -198,7 +201,7 @@ connect from downsampler.timestamp
 connect from optical_detector_output.detected_object_set
         to   tracker.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 
 connect from tracker.object_track_set
         to   out_adapt.object_track_set
@@ -207,7 +210,7 @@ connect from downsampler.output_2
 connect from downsampler.timestamp
         to   out_adapt.timestamp
 
-# ==================================================================================
+# =============================================================================
 
 process optical_writer_csv
   :: write_object_track
@@ -224,7 +227,7 @@ connect from downsampler.timestamp
 connect from downsampler.output_2
         to   optical_writer_csv.image_file_name
 
-# ==================================================================================
+# =============================================================================
 
 #process optical_writer_db
 #  :: write_object_track

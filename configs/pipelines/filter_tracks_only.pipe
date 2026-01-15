@@ -1,12 +1,13 @@
-# Reads image from an arbitrary input source then dumps them out again
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Reads image from an arbitrary input source then dumps them out again
 #
+# Description: Applies filtering operations to input data for input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input.pipe
 
@@ -75,7 +76,7 @@ connect from track_reader.object_track_set
         to   downsampler2.input_4
 
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process image_writer
   :: image_writer

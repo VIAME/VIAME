@@ -1,15 +1,16 @@
- # CutLer's MaskCut Pipeline
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: CutLer's MaskCut Pipeline
 #
+# Description: Runs object detection on input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
 config _scheduler
   :type                                        pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
@@ -22,7 +23,7 @@ process detector_input
     :force_three_channel                       true
   endblock
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 process detector1
   :: image_object_detector
   :detector:type                               maskcut
@@ -31,7 +32,7 @@ process detector1
   #  #:vit_arch                                base
   #endblock
 
-# ==================================== WRITER ======================================
+# ================================== WRITER ===================================
 process detector_writer
   :: detected_object_output
 
@@ -39,7 +40,7 @@ process detector_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
-# ==================================== CONNECTIONS ======================================
+# ================================ CONNECTIONS ================================
 # input 
 connect from downsampler.output_1
         to   detector_input.image

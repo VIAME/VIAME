@@ -1,22 +1,16 @@
-# Refine tracks using SAM3 with text query support
+# =============================================================================
+# Title: Refine tracks using SAM3 with text query support
 #
-# This pipeline uses SAM3 (SAM 2.1) to:
-# - Re-segment existing track bounding boxes for improved masks
-# - Detect and add new objects matching a text query
-# - Filter low-quality tracks based on mask quality
-# - Adjust bounding boxes to fit refined masks
-# - Add polygon segmentation to detections
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
 
-# ===================== GLOBAL PROPERTIES ========================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    5
 
 config _scheduler
   :type                                        pythread_per_process
 
-# ====================== INPUT FRAME LIST ========================
+# ============================= INPUT FRAME LIST ==============================
 include common_default_input_with_downsampler.pipe
 
 process track_reader
@@ -40,7 +34,7 @@ process ensure_rgb
 connect from downsampler.output_1
         to   ensure_rgb.image
 
-# ====================== TRACK REFINER ===========================
+# =============================== TRACK REFINER ===============================
 process track_refiner
   :: refine_tracks
   :refiner:type                                sam3
@@ -71,7 +65,7 @@ connect from downsampler.timestamp
 connect from track_reader.object_track_set
         to   track_refiner.object_track_set
 
-# ====================== OUTPUT WRITER ===========================
+# =============================== OUTPUT WRITER ===============================
 process track_writer
   :: write_object_track
   :file_name                                   computed_detections.csv

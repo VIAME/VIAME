@@ -1,13 +1,15 @@
-# ==================================================================================
-# Stabilized IOU tracker pipeline
-# ==================================================================================
+# =============================================================================
+# Title: Stabilized IOU tracker pipeline
+#
+# Description: Performs object tracking on input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 
 config _scheduler
   type = pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 include common_fish_detector_with_filter.pipe
@@ -26,7 +28,7 @@ connect from detector_filter.detected_object_set
 connect from downsampler.timestamp
 	      to   tracker.timestamp
 
-# ================================= OUTPUT DATA ====================================
+# ================================ OUTPUT DATA ================================
 process track_writer
   :: write_object_track
   :file_name                                   computed_tracks.csv

@@ -1,15 +1,16 @@
-# Link or re-link detections into tracks using the default tracker
-
-# ===================== GLOBAL PROPERTIES ========================
-# global pipeline config
+# =============================================================================
+# Title: Link or re-link detections into tracks using the default tracker
 #
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                                      5
 
 config _scheduler
   :type                                       pythread_per_process
 
-# ====================== INPUT FRAME LIST ========================
+# ============================= INPUT FRAME LIST ==============================
 include common_default_input_with_downsampler.pipe
 
 process detection_reader
@@ -21,7 +22,7 @@ process detection_reader
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
-# =========================== TRACKER ============================
+# ================================== TRACKER ==================================
 include common_seamap_tracker_v2.5.pipe
 
 connect from downsampler.output_1
@@ -31,7 +32,7 @@ connect from downsampler.timestamp
 connect from detection_reader.detected_object_set
         to   tracker.detected_object_set
 
-# ========================= OUTPUT WRITER ========================
+# =============================== OUTPUT WRITER ===============================
 process track_writer
   :: write_object_track
   :file_name                                   computed_tracks.csv

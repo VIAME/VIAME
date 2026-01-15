@@ -1,17 +1,16 @@
-# Ingest video pipeline using pytorch descriptors
+# =============================================================================
+# Title: Ingest video pipeline using pytorch descriptors
 #
-# Runs a multi-node object tracking, descriptor generation, and indexing pipeline
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
-#
 config _pipeline:_edge
   :capacity                                    10
 
 config _scheduler
   :type                                        pythread_per_process
 
-# ================================== VIDEO INPUT ===================================
+# ================================ VIDEO INPUT ================================
 
 include common_default_input_with_downsampler.pipe
 
@@ -26,7 +25,7 @@ process image_filter
 connect from downsampler.output_1
         to   image_filter.image
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 include common_generic_detector_with_filter.pipe
 
@@ -43,7 +42,7 @@ connect from image_filter.image
 connect from detector_filter.detected_object_set
         to   detector_writer.detected_object_set
 
-# =============================== CORE DESCRIPTOR ==================================
+# ============================== CORE DESCRIPTOR ==============================
 
 include common_default_descriptor.pipe
 
@@ -54,7 +53,7 @@ connect from downsampler.timestamp
 connect from detector_filter.detected_object_set
         to   descriptor.detected_object_set
 
-# ================================= CORE TRACKER ===================================
+# =============================== CORE TRACKER ================================
 
 include common_default_tracker.pipe
 
@@ -65,7 +64,7 @@ connect from downsampler.timestamp
 connect from descriptor.detected_object_set
         to   tracker.detected_object_set
 
-# ============================ ANALYZE AND INDEX DATA ==============================
+# ========================== ANALYZE AND INDEX DATA ===========================
 
 process track_descriptor
  :: compute_track_descriptors

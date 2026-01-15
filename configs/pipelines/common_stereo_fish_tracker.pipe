@@ -1,8 +1,10 @@
-# ==================================================================================
-# Common fish detection and tracking util include file
-# ==================================================================================
+# =============================================================================
+# Title: Common fish detection and tracking util include file
+#
+# Description: Common pipeline configuration for stereo imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -26,11 +28,11 @@ config srnn
   :targetRNN_AIM_model_path                    models/rnn_f_aim.pt
   :targetRNN_AIM_V_model_path                  models/rnn_ml_aim.pt
 
-# ============================== INPUT FRAME LIST ==================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_stereo_input_with_downsampler.pipe
 
-# ================================== DETECTOR ======================================
+# ================================= DETECTOR ==================================
 
 include common_stereo_fish_detector_with_filter.pipe
 
@@ -40,7 +42,7 @@ connect from downsampler.output_1
 connect from downsampler.output_3
         to   detector_input2.image
 
-# ================================ CORE TRACKER ====================================
+# =============================== CORE TRACKER ================================
 
 process tracker1
   :: srnn_tracker

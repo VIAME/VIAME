@@ -1,8 +1,10 @@
-# ==================================================================================
-# Measurement from annotations pipeline
-# ==================================================================================
+# =============================================================================
+# Title: Measurement from annotations pipeline
+#
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
@@ -11,11 +13,11 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ================================= DATA INPUTS ====================================
+# ================================ DATA INPUTS ================================
 
 include common_stereo_input_with_tracks.pipe
 
-# ============================= MEASUREMENT PROCESS ================================
+# ============================ MEASUREMENT PROCESS ============================
 
 process measurer
   :: compute_measurements
@@ -75,7 +77,7 @@ connect from downsampler.output_1
 connect from downsampler.output_3
         to   measurer.image2
 
-# ================================= OUTPUT WRITERS =================================
+# ============================== OUTPUT WRITERS ===============================
 
 process track_writer1
   :: write_object_track

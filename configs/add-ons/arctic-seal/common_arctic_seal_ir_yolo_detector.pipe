@@ -1,5 +1,8 @@
-# ==================================================================================
-# Threaded seal detector file
+# =============================================================================
+# Title: Threaded seal detector file
+#
+# Description: Common pipeline configuration for arctic seal imagery
+# =============================================================================
 
 process thermal_detector_input
   :: image_filter

@@ -1,8 +1,8 @@
-# =================================================================================
+# =============================================================================
+# Title: Run simple head-length fish measurement using stereo cameras
 #
-# Run simple head-length fish measurement using stereo cameras
-#
-# =================================================================================
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
 config _pipeline:_edge
   :capacity                                    5
@@ -10,7 +10,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ================================== VIDEO INPUT ==================================
+# ================================ VIDEO INPUT ================================
 
 process input1
   :: video_input

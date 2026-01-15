@@ -1,10 +1,13 @@
-# ============================ GLOBAL PROPERTIES ===============================
-# global pipeline config
+# =============================================================================
+# Title: Training - Aug Hue Shifting Only
 #
+# Description: Training pipeline for model training for input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    10
 
-# ==============================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
@@ -18,7 +21,7 @@ process image_reader
 connect from in_adapt.input_file_name
         to   image_reader.image_file_name
 
-# ==============================================================================
+# =============================================================================
 
 process random_grey
   :: image_filter
@@ -46,7 +49,7 @@ process random_hue
 connect from random_grey.image
         to   random_hue.image
 
-# ==============================================================================
+# =============================================================================
 
 process image_writer
  :: image_writer

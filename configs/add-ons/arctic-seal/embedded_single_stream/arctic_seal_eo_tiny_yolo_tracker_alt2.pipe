@@ -1,27 +1,30 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Arctic Seal EO Tiny YOLO Tracker Alt2
 #
+# Description: Pipeline for processing arctic seal imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   10
 
 config _scheduler
    :type                                       pythread_per_process
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
 process out_adapt
  :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 
 include ../common_arctic_seal_eo_tiny_yolo_detector.pipe
 
 connect from in_adapt.image
         to   optical_detector_input.image
 
-# ==================================================================================
+# =============================================================================
 
 process detection_descriptor
   :: pytorch_descriptors
@@ -99,7 +102,7 @@ connect from track_associator.object_track_set
 connect from track_associator.unused_detections
         to   track_initializer.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 
 # Connect out output tracks
 connect from track_initializer.object_track_set

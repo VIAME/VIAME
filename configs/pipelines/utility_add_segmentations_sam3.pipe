@@ -1,15 +1,16 @@
-# Add automatically generated segmentations via SAM3 (SAM 2.1)
-
-# ===================== GLOBAL PROPERTIES ========================
-# global pipeline config
+# =============================================================================
+# Title: Add automatically generated segmentations via SAM3 (SAM 2.1)
 #
+# Description: Utility pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
 config _scheduler
   :type                                        pythread_per_process
 
-# ====================== INPUT FRAME LIST ========================
+# ============================= INPUT FRAME LIST ==============================
 include common_default_input_with_downsampler.pipe
 
 process track_reader

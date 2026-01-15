@@ -1,10 +1,13 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Arctic Seal TF IR To EO Frame Trigger
 #
+# Description: Pipeline for processing arctic seal imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   5
 
-# ============================= INPUT / OUTPUT NODES ===============================
+# =========================== INPUT / OUTPUT NODES ============================
 process in_adapt
  :: input_adapter
 
@@ -26,7 +29,7 @@ connect from in_adapt.image2
 connect from in_adapt.file_name2
         to   downsampler.input_4
 
-# ================================= IR DETECTOR ====================================
+# ================================ IR DETECTOR ================================
 
 process thermal_detector
   :: image_object_detector
@@ -44,7 +47,7 @@ process thermal_detector
 connect from downsampler.output_3
         to   thermal_detector.image
 
-# ================================= EO DETECTOR ====================================
+# ================================ EO DETECTOR ================================
 
 process optical_trigger
   :: filter_frames
@@ -69,7 +72,7 @@ connect from thermal_detector.detected_object_set
 connect from optical_trigger.image
         to   optical_detector.image
 
-# =============================== FUSION AND OUTPUT ================================
+# ============================= FUSION AND OUTPUT =============================
 
 connect from optical_detector.detected_object_set
         to   out_adapt.detected_object_set
@@ -85,7 +88,7 @@ connect from downsampler.timestamp
 #connect from downsampler.timestamp
 #        to   out_adapt.timestamp2
 
-# ================================== CSV WRITERS ===================================
+# ================================ CSV WRITERS ================================
 
 process optical_writer_csv
   :: detected_object_output
@@ -113,7 +116,7 @@ connect from thermal_detector.detected_object_set
 connect from downsampler.output_4
         to   thermal_writer_csv.image_file_name
 
-# ================================== DB WRITERS ====================================
+# ================================ DB WRITERS =================================
 
 #process optical_filter_db
 #  :: initialize_object_tracks

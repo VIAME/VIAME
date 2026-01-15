@@ -1,8 +1,8 @@
-# Tracker piepline for fish on stereo cameras
+# =============================================================================
+# Title: Tracker piepline for fish on stereo cameras
 #
-# Runs a tracking ipeline on each of the 2 images of a stereo pair
-
-## ================================= DETECTION AND TRACKING =========================
+# Description: Pipeline for measuring objects in input imagery
+# =============================================================================
 
 include common_stereo_fish_tracker.pipe
 

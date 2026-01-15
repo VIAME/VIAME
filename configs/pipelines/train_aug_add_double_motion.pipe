@@ -1,10 +1,13 @@
-# ============================ GLOBAL PROPERTIES ===============================
-# global pipeline config
+# =============================================================================
+# Title: Training - Aug Add Double Motion
 #
+# Description: Training pipeline for model training for input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    10
 
-# ==============================================================================
+# =============================================================================
 process in_adapt
  :: input_adapter
 
@@ -18,7 +21,7 @@ process image_reader
 connect from in_adapt.input_file_name
         to   image_reader.image_file_name
 
-# ==============================================================================
+# =============================================================================
 
 process rgb_to_grey
   :: image_filter
@@ -84,7 +87,7 @@ process float_to_byte2
 connect from motion_filter2.image
         to   float_to_byte2.image
 
-# ==============================================================================
+# =============================================================================
 
 process image_merger1
   :: merge_images
@@ -104,7 +107,7 @@ connect from image_merger1.image
 connect from float_to_byte2.image
         to   image_merger2.image2
 
-# ==============================================================================
+# =============================================================================
 
 process image_writer
  :: image_writer

@@ -1,16 +1,17 @@
-# Filters input images via debayering them and running basic image filtering
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Filters input images via debayering them and running basic image filtering
 #
+# Description: Applies filtering operations to input data for input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# ================================= INPUT VIDEO ====================================
+# ================================ INPUT VIDEO ================================
 
 include common_default_input.pipe
 
-# =================================== FILTERS ======================================
+# ================================== FILTERS ==================================
 
 process filter
   :: image_filter
@@ -29,7 +30,7 @@ process filter
 connect from input.image
         to   filter.image
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process image_writer
   :: image_writer

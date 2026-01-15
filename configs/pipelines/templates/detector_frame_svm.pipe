@@ -1,6 +1,8 @@
-# ==============================================================================
-# SVM Classifier on Top of Full Frame Descriptor
-# ==============================================================================
+# =============================================================================
+# Title: SVM Classifier on Top of Full Frame Descriptor
+#
+# Description: Runs object detection on input imagery
+# =============================================================================
 
 config _pipeline:_edge
   :capacity                                    5
@@ -8,7 +10,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ==============================================================================
+# =============================================================================
 
 process input
   :: video_input
@@ -55,7 +57,7 @@ connect from input.frame_rate
 connect from input.timestamp
         to   downsampler.timestamp
 
-# ==============================================================================
+# =============================================================================
 
 process detector
   :: image_object_detector
@@ -84,7 +86,7 @@ connect from downsampler.output_1
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
 
-# ==============================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output

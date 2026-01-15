@@ -1,9 +1,9 @@
-# ==================================================================================
-# Commonly used stereo input files source with included downsampler process.
+# =============================================================================
+# Title: :video_reader:type to be vidl_ffmpeg for videos
 #
-# By default, this is an image list reader, but this can be over-riden by changing
-# :video_reader:type to be vidl_ffmpeg for videos
-# ==================================================================================
+# Description: Commonly used stereo input files source with included
+# downsampler process.
+# =============================================================================
 
 include common_stereo_input.pipe
 

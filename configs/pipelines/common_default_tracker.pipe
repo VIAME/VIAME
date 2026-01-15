@@ -1,9 +1,9 @@
-# ==================================================================================
-# Commonly used default tracker when the user hasn't specified one.
+# =============================================================================
+# Title: Common - Default Tracker
 #
-# Current incumbent is a modified version of "Tracking the Untrackable" implemented
-# in pytorch, trained on assorted fish data.
-# ==================================================================================
+# Description: Commonly used default tracker when the user hasn't specified
+# one.
+# =============================================================================
 
 process tracker
   :: track_objects

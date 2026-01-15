@@ -1,20 +1,20 @@
-# ==================================================================================
-# OCV target Detector Pipeline
+# =============================================================================
+# Title: OCV target Detector Pipeline
 #
-# Runs automated ocv target detection on image
-# ==================================================================================
+# Description: Runs object detection on input imagery
+# =============================================================================
 
-# ============================== GLOBAL PROPERTIES =================================
+# ============================= GLOBAL PROPERTIES =============================
 # global pipeline config
 #
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector1
   :: image_object_detector

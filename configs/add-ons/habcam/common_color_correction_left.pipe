@@ -1,6 +1,8 @@
-# Optionally debayers and enhances the image if it isn't already RGB (3-channel)
-
-# =================================== DEBAYER ======================================
+# =============================================================================
+# Title: Optionally debayers and enhances the image if it isn't already RGB (3-channel)
+#
+# Description: Common pipeline configuration for input imagery
+# =============================================================================
 
 process left_image_debayer
   :: image_filter
@@ -8,7 +10,7 @@ process left_image_debayer
   :filter:ocv_debayer:pattern                  BG
   :filter:ocv_debayer:force_8bit               true
 
-# =================================== FILTERS ======================================
+# ================================== FILTERS ==================================
 
 process left_image_filter
   :: image_filter

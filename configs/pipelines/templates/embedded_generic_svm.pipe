@@ -1,6 +1,8 @@
-# ========================================================================================
-# SVM Classifier on Generic Object Proposals
-# ========================================================================================
+# =============================================================================
+# Title: SVM Classifier on Generic Object Proposals
+#
+# Description: Pipeline for processing input imagery
+# =============================================================================
 
 process detector_input
   :: image_filter
@@ -31,7 +33,7 @@ process generic_detector
 connect from detector_input.image
         to   generic_detector.image
 
-# ========================================================================================
+# =============================================================================
 
 include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
 
@@ -64,7 +66,7 @@ connect from descriptor.detected_object_set
 connect from svm_refiner.detected_object_set
         to   nms_refiner.detected_object_set
 
-# ========================================================================================
+# =============================================================================
 
 process detector_output
   :: merge_detection_sets

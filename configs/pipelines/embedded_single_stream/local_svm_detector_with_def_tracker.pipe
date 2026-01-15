@@ -1,20 +1,23 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Local SVM Detector With Def Tracker
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   10
 
 config _scheduler
    :type                                       pythread_per_process
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
   :: input_adapter
 
 process out_adapt
   :: output_adapter
 
-# ==================================================================================
+# =============================================================================
 
 include ../common_generic_detector.pipe
 include ../common_default_descriptor.pipe
@@ -53,7 +56,7 @@ connect from descriptor.detected_object_set
 connect from svm_refiner.detected_object_set
         to   nms_refiner.detected_object_set
 
-# ==================================================================================
+# =============================================================================
 
 include ../common_default_tracker.pipe
 

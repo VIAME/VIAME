@@ -1,19 +1,20 @@
-# Process the left image (or full image if non-stitched pair)
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Process the left image (or full image if non-stitched pair)
 #
+# Description: Runs object detection on HabCam underwater imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    10
 
 config _scheduler
   :type                                        pythread_per_process
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 include common_habcam_input.pipe
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 include common_scallop_one_class_detector_left.pipe
 
@@ -25,7 +26,7 @@ include common_scallop_one_class_detector_right.pipe
 connect from right_image_filter.image
         to   detector_input_right.image
 
-# =================================== MEASURER =====================================
+# ================================= MEASURER ==================================
 
 process measurer_pass1
   :: measure_using_stereo
@@ -70,7 +71,7 @@ connect from measurer_pass1.detected_object_set2
 connect from detector_input_right.image
         to   measurer_pass2_right.image
 
-# ==================================== WRITER ======================================
+# ================================== WRITER ===================================
 process detector_writer
   :: detected_object_output
 

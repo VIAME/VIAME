@@ -1,16 +1,17 @@
-# Process the left image (or full image if non-stitched pair)
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Process the left image (or full image if non-stitched pair)
 #
+# Description: Runs object detection on HabCam underwater imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    10
 
-# ================================ INPUT FORMATTER =================================
+# ============================== INPUT FORMATTER ==============================
 
 include common_habcam_input_left.pipe
 
-# =================================== DETECTOR1 ====================================
+# ================================= DETECTOR1 =================================
 
 process detector_left
   :: image_object_detector
@@ -49,7 +50,7 @@ process nms_refiner_left
 connect from detector_left.detected_object_set
         to   nms_refiner_left.detected_object_set
 
-# ==================================== WRITER ======================================
+# ================================== WRITER ===================================
 process detector_writer
   :: detected_object_output
 

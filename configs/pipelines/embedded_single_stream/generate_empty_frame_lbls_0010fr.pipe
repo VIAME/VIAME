@@ -1,17 +1,20 @@
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Generate Empty Frame Lbls 0010fr
 #
+# Description: Pipeline for processing input imagery
+# =============================================================================
+
 config _pipeline:_edge
    :capacity                                   5
 
-# ==================================================================================
+# =============================================================================
 process in_adapt
   :: input_adapter
 
 process out_adapt
   :: output_adapter
 
-# =================================== DETECTOR =====================================
+# ================================= DETECTOR ==================================
 
 process detector
   :: image_object_detector
@@ -21,7 +24,7 @@ process detector
 connect from in_adapt.image
         to   detector.image
 
-# ==================================================================================
+# =============================================================================
 
 process full_frame_tracker
   :: detect_shot_breaks

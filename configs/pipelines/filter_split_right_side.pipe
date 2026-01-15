@@ -1,12 +1,13 @@
-# Filters input images via debayering them and running basic image filtering
-
-# ============================== GLOBAL PROPERTIES =================================
-# global pipeline config
+# =============================================================================
+# Title: Filters input images via debayering them and running basic image filtering
 #
+# Description: Applies filtering operations to input data for input imagery
+# =============================================================================
+
 config _pipeline:_edge
   :capacity                                    5
 
-# =============================== INPUT FRAME LIST =================================
+# ============================= INPUT FRAME LIST ==============================
 
 process input
   :: video_input
@@ -19,7 +20,7 @@ process input
     :image_reader:type                         vxl
   endblock
 
-# ================================== CROP INPUTS ===================================
+# ================================ CROP INPUTS ================================
 
 process split
   :: split_image
@@ -28,7 +29,7 @@ process split
 connect from input.image
         to   split.image
 
-# ==================================== OUTPUT ======================================
+# ================================== OUTPUT ===================================
 
 process image_writer
   :: image_writer

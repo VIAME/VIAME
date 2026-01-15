@@ -1,6 +1,8 @@
-# ==============================================================================
-# NetHarn Full Frame Classifier
-# ==============================================================================
+# =============================================================================
+# Title: NetHarn Full Frame Classifier
+#
+# Description: Runs object detection on input imagery
+# =============================================================================
 
 config _pipeline:_edge
   :capacity                                    5
@@ -8,7 +10,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# ==============================================================================
+# =============================================================================
 
 process input
   :: video_input
@@ -67,7 +69,7 @@ process detector_input
 connect from downsampler.output_1
         to   detector_input.image
 
-# ==============================================================================
+# =============================================================================
 
 process classifier1
   :: image_object_detector
@@ -81,7 +83,7 @@ process classifier1
 connect from detector_input.image
         to   classifier1.image
 
-# ==============================================================================
+# =============================================================================
 
 process detector_output
   :: merge_detection_sets
@@ -89,7 +91,7 @@ process detector_output
 connect from classifier1.detected_object_set
         to   detector_output.detected_object_set
 
-# ==============================================================================
+# =============================================================================
 
 process detector_writer
   :: detected_object_output
