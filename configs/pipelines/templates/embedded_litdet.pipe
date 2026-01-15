@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: LitDet Detector Pipeline Template
 #
-# Description: Pipeline for processing input imagery
+# Description: LitDet Detector Pipeline Template
 # =============================================================================
 
 process detector_input

@@ -1,7 +1,9 @@
 # =============================================================================
 # Title: Detector - Arctic Seal IR TF
 #
-# Description: Runs object detection on arctic seal imagery
+# Description: Runs object detection pipeline on input imagery. Uses arctic
+# seal ir tf detector configuration. Outputs results to
+# ir_out_images/frame%06d.jpg.
 # =============================================================================
 
 config _pipeline:_edge

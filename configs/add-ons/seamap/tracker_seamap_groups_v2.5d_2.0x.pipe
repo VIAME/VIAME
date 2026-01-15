@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: SeaMap Detector / Tracker Pipe
 #
-# Description: Performs object tracking on input imagery
+# Description: Runs object tracking on detected objects across video frames.
 # =============================================================================
 
 config _scheduler

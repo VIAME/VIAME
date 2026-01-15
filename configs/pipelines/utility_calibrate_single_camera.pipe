@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Estimate monocular camera calibration from images of a chessboard target
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Calibrates camera parameters for measurement.
 # =============================================================================
 
 config _pipeline:_edge

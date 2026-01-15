@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Training - YOLO EO
 #
-# Description: Training pipeline for model training for input imagery
+# Description: Training pipeline for model optimization. Uses YOLO-based
+# detection.
 # =============================================================================
 
 config _pipeline:_edge

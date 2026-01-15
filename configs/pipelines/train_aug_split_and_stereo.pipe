@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Training - Aug Split And Stereo
 #
-# Description: Training pipeline for model training for stereo imagery
+# Description: Training pipeline for model optimization. Processes stereo
+# camera image pairs.
 # =============================================================================
 
 config _pipeline:_edge

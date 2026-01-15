@@ -1,7 +1,9 @@
 # =============================================================================
 # Title: SeaMap Detector Pipe
 #
-# Description: Runs object detection on input imagery
+# Description: Runs object detection pipeline on input imagery. Uses default
+# input with downsampler configuration. Outputs results to
+# computed_detections.csv.
 # =============================================================================
 
 config _pipeline:_edge

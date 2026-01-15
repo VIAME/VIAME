@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Pipe file to display annotations from test data set
 #
-# Description: Pipeline for processing input imagery
+# Description: Pipeline configuration file.
 # =============================================================================
 
 config _pipeline:_edge

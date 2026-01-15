@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Cascade Faster R-CNN Detector with Motion Infusion
 #
-# Description: Pipeline for processing input imagery
+# Description: Cascade Faster R-CNN Detector with Motion Infusion
 # =============================================================================
 
 process detector_input

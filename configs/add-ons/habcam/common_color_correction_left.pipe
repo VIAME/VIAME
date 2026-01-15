@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Optionally debayers and enhances the image if it isn't already RGB (3-channel)
 #
-# Description: Common pipeline configuration for input imagery
+# Description: Shared configuration module that can be included by other
+# pipelines.
 # =============================================================================
 
 process left_image_debayer

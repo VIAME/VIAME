@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Utility - Register Frames 2-cam
 #
-# Description: Utility pipeline for processing input imagery
+# Description: By default, this is an image list reader, but this can be
+# over-riden by changing :video_reader:type to be vidl_ffmpeg for videos
 # =============================================================================
 
 config _scheduler

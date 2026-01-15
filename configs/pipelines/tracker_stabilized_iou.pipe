@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Stabilized IOU tracker pipeline
 #
-# Description: Performs object tracking on input imagery
+# Description: Stabilized IOU tracker pipeline Outputs to computed_tracks.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

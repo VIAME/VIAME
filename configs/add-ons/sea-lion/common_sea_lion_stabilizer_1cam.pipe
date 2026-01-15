@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Common - Sea Lion Stabilizer 1cam
 #
-# Description: Common pipeline configuration for sea lion imagery
+# Description: Shared configuration module that can be included by other
+# pipelines. Configured for sea lion survey imagery.
 # =============================================================================
 
 process stabilizer

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: SVM Classifier on Top of Full Frame Descriptor
 #
-# Description: Runs object detection on input imagery
+# Description: SVM Classifier on Top of Full Frame Descriptor Outputs to
+# computed_detections.csv.
 # =============================================================================
 
 config _pipeline:_edge

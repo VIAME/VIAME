@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Format Converter
 #
-# Description: Converts data between different formats for input imagery
+# Description: Converts annotation data between different file formats.
 # =============================================================================
 
 config _pipeline:_edge

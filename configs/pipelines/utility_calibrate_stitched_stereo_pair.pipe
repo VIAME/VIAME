@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Takes a single video/image input where images are horizontally concatenated
 #
-# Description: Estimate stereo calibration from stitched stereo images (left
-# and right side-by-side)
+# Description: Calibrates camera parameters for measurement. Processes stereo
+# camera image pairs.
 # =============================================================================
 
 config _pipeline:_edge

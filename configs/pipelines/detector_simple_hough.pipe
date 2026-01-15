@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Simple hough transform example detector
 #
-# Description: Runs object detection on input imagery
+# Description: Simple hough transform example detector Outputs to
+# computed_detections.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

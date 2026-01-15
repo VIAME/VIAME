@@ -1,7 +1,9 @@
 # =============================================================================
 # Title: Detector - Arctic Seal EO YOLO
 #
-# Description: Runs object detection on arctic seal imagery
+# Description: Runs object detection pipeline on input imagery. Uses arctic
+# seal eo yolo detector configuration. Outputs results to
+# eo_detections%06d.jpg.
 # =============================================================================
 
 config _pipeline:_edge

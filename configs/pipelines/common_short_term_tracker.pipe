@@ -2,7 +2,7 @@
 # Title: Common - Short Term Tracker
 #
 # Description: This is a version of SiamRPN++ implemented in pytorch with the
-# siammask library.
+# siammask library. Uses model: pysot_fish_siamrpn.pt.
 # =============================================================================
 
 process short_term_tracker

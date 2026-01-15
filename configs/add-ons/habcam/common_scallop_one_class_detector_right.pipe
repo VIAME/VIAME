@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Common - Scallop One Class Detector Right
 #
-# Description: Common pipeline configuration for scallop detection
+# Description: Shared detector configuration that can be included by other
+# pipelines. Uses model: scallop_yolo_v7_one_class.weights.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Cascade Faster R-CNN Detector with Motion Infusion
 #
-# Description: Runs object detection on input imagery
+# Description: Cascade Faster R-CNN Detector with Motion Infusion Outputs to
+# computed_detections.csv.
 # =============================================================================
 
 process input

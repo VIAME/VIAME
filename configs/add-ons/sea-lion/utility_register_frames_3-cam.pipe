@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Utility - Register Frames 3-cam
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Registers frames between multiple camera views.
 # =============================================================================
 
 config _scheduler

@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Cascade Faster R-CNN Detector
 #
-# Description: Pipeline for processing input imagery
+# Description: Cascade Faster R-CNN Detector
 # =============================================================================
 
 process detector_input

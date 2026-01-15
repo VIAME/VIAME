@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: HuggingFace Detector
 #
-# Description: Runs object detection on input imagery
+# Description: HuggingFace Detector Outputs to computed_detections.csv.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Common fish detection and tracking util include file
 #
-# Description: Common pipeline configuration for stereo imagery
+# Description: Common fish detection and tracking util include file Uses
+# model: rnn_ml_aim.pt.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

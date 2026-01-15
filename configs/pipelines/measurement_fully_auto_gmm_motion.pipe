@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Run simple head-length fish measurement using stereo cameras
 #
-# Description: Pipeline for measuring objects in input imagery
+# Description: Run simple head-length fish measurement using stereo cameras
+# Outputs to computed_tracks2.csv.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Estimate calibration from left and right camera videos
 #
-# Description: Pipeline for measuring objects in input imagery
+# Description: Pipeline for measuring object dimensions in imagery.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Default Generic Detector Pipeline
 #
-# Description: Runs object detection on input imagery
+# Description: Runs pre-trained object detector aimed at generating generic
+# object proposals Outputs to computed_detections.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

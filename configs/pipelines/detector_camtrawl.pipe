@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Camtrawl detector pipeline
 #
-# Description: Runs object detection on input imagery
+# Description: Runs camtrawl GMM model on data Outputs to
+# computed_detections.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

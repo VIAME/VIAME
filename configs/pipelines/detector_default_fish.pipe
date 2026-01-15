@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Default Detector Pipeline
 #
-# Description: Runs object detection on input imagery
+# Description: Runs pre-trained default object detector targeting vertebrate
+# and invertebrates Outputs to computed_detections.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

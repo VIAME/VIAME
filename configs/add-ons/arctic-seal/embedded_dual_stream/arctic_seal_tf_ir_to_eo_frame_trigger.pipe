@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal TF IR To EO Frame Trigger
 #
-# Description: Pipeline for processing arctic seal imagery
+# Description: Configured for arctic seal aerial survey imagery. Uses
+# TensorFlow-based models.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Shared classifier at the group level for seamap configs
 #
-# Description: Common pipeline configuration for input imagery
+# Description: Shared configuration module that can be included by other
+# pipelines.
 # =============================================================================
 
  process classifier_species_large

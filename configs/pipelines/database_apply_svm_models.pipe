@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Detection pipeline with SVM rapid model filters
 #
-# Description: Pipeline for processing input imagery
+# Description: Pipeline configuration file.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: NetHarn MIT-YOLO Detector
 #
-# Description: Pipeline for processing input imagery
+# Description: NetHarn MIT-YOLO Detector
 # =============================================================================
 
 process detector_input

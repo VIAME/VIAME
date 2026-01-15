@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Detector, scallop-only trained using netharn
 #
-# Description: Runs object detection on HabCam underwater imagery
+# Description: Runs object detection pipeline on input imagery. Uses habcam
+# input left configuration. Outputs results to computed_detections.csv.
 # =============================================================================
 
 config _pipeline:_edge

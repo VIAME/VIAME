@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: NetHarn Detector
 #
-# Description: Runs object detection on input imagery
+# Description: Runs object detection pipeline on input imagery. Outputs
+# results to computed_detections.csv. Uses YOLO-based detection.
 # =============================================================================
 
 config _pipeline:_edge

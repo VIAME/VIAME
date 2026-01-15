@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Commonly used stereo input files source with included track inputs as well
 #
-# Description: Common pipeline configuration for stereo imagery
+# Description: Commonly used stereo input files source with included track
+# inputs as well Outputs to [INSERT_ME].
 # =============================================================================
 
 include common_stereo_input_with_downsampler.pipe

@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Sea Lion Water Suppression
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Utility pipeline for data processing operations.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Common - Default Initializer
 #
-# Description: Commonly used default initializer when the user hasn't
-# specified one.
+# Description: Current incumbent is just a straight-up threshold on detection
+# scores.
 # =============================================================================
 
 process track_initializer

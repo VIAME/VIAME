@@ -1,7 +1,9 @@
 # =============================================================================
 # Title: Threaded seal detector file
 #
-# Description: Common pipeline configuration for arctic seal imagery
+# Description: Shared detector configuration that can be included by other
+# pipelines. Uses model: arctic_seal_ir_tiny.weights. Uses YOLO-based
+# detection.
 # =============================================================================
 
 process thermal_detector_input

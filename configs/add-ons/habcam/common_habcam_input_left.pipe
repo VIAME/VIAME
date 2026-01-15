@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: HabCam Input Configuration
 #
-# Description: Common pipeline configuration for HabCam underwater imagery
+# Description: Shared input configuration for reading images or video frames.
+# Configured for HabCam underwater survey imagery.
 # =============================================================================
 
 # ============================= INPUT FRAME LIST ==============================

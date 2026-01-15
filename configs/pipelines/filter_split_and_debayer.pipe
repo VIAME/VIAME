@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Filters input images via spltting them, debayering them and lastly enhancement
 #
-# Description: Applies filtering operations to input data for input imagery
+# Description: Applies filtering operations to input data.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Generates generic object proposals as opposed to any specific class labels
 #
-# Description: Commonly used generic detector when the user hasn't specified
-# one.
+# Description: Generates generic object proposals as opposed to any specific
+# class labels Uses model: generic_detector.weights.
 # =============================================================================
 
 process detector_input

@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Add automatically generated segmentations via non-DL methods
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Adds segmentation masks to existing detections.
 # =============================================================================
 
 config _pipeline:_edge

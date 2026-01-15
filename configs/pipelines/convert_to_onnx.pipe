@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: ONNX Converter
 #
-# Description: Converts data between different formats for input imagery
+# Description: Path to the trained model: .zip if mmdet, .weights if darknet
+# Input batch size Output onnx model path prefix
 # =============================================================================
 
 config _pipeline:_edge

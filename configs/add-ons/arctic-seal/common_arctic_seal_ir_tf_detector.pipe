@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Thermal seal detector file
 #
-# Description: Common pipeline configuration for arctic seal imagery
+# Description: Thermal seal detector file
 # =============================================================================
 
 process thermal_detector

@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Generic Proposal Detector
 #
-# Description: Pipeline for processing input imagery
+# Description: Pipeline configuration file.
 # =============================================================================
 
 config _pipeline:_edge

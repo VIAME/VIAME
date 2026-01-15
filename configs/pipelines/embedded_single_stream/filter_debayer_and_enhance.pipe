@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Filter - Debayer And Enhance
 #
-# Description: Applies filtering operations to input data for input imagery
+# Description: Applies filtering operations to input data.
 # =============================================================================
 
 config _pipeline:_edge

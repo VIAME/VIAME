@@ -1,7 +1,9 @@
 # =============================================================================
 # Title: Habcam Pipeline
 #
-# Description: Runs object detection on HabCam underwater imagery
+# Description: Runs object detection pipeline on input imagery. Uses habcam
+# input left configuration. Outputs results to computed_detections.csv.
+# Configured for scallop detection in benthic imagery.
 # =============================================================================
 
 config _pipeline:_edge

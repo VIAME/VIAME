@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Tracker piepline for fish on stereo cameras
 #
-# Description: Pipeline for measuring objects in input imagery
+# Description: Pipeline for measuring object dimensions in imagery.
 # =============================================================================
 
 include common_stereo_fish_tracker.pipe

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Example simple tracker pipeline
 #
-# Description: Performs object tracking on input imagery
+# Description: Runs a standalone TUT object tracking pipeline Outputs to
+# computed_tracks.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

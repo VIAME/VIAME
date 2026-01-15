@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: NetHarn Detector
 #
-# Description: Pipeline for processing input imagery
+# Description: Pipeline configuration file.
 # =============================================================================
 
 process detector_input

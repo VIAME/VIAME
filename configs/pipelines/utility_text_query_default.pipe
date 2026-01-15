@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Default text query pipeline - uses SAM3 for track refinement with text queries
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Utility pipeline for data processing operations.
 # =============================================================================
 
 include utility_text_query_sam3.pipe

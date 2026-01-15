@@ -1,7 +1,10 @@
 # =============================================================================
 # Title: Sea Lion Detection Pipeline
 #
-# Description: Runs object detection on sea lion imagery
+# Description: Runs object detection pipeline on input imagery. Uses default
+# input with downsampler configuration. Outputs results to
+# sea_lion_detections.csv. Configured for sea lion survey imagery. Uses
+# Cascade R-CNN detection.
 # =============================================================================
 
 config _pipeline:_edge

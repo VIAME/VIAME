@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Refine tracks using SAM3 with text query support
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Utility pipeline for data processing operations.
 # =============================================================================
 
 config _pipeline:_edge

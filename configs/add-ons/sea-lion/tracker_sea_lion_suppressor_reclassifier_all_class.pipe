@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Tracker - Sea Lion Suppressor Reclassifier All Class
 #
-# Description: Performs object tracking on sea lion imagery
+# Description: Runs object tracking on detected objects across video frames.
+# Configured for sea lion survey imagery.
 # =============================================================================
 
 config _scheduler

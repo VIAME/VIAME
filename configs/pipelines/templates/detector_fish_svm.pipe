@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: SVM Classifier on Top of Fish Detections
 #
-# Description: Runs object detection on input imagery
+# Description: SVM Classifier on Top of Fish Detections Outputs to
+# computed_detections.csv.
 # =============================================================================
 
 config _pipeline:_edge

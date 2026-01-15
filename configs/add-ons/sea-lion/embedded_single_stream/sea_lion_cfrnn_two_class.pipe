@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Sea Lion CFRNN Two Class
 #
-# Description: Pipeline for processing sea lion imagery
+# Description: Configured for sea lion survey imagery. Uses Cascade R-CNN
+# detection.
 # =============================================================================
 
 config _pipeline:_edge

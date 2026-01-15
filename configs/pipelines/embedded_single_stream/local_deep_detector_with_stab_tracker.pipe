@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Local Deep Detector With Stab Tracker
 #
-# Description: Pipeline for processing input imagery
+# Description: Runs object detection pipeline on input imagery. Uses category
+# models/detector configuration.
 # =============================================================================
 
 config _pipeline:_edge

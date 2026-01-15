@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Training - Deep Detector CFRNN
 #
-# Description: Training pipeline for model training for input imagery
+# Description: Runs object detection pipeline on input imagery. Uses Cascade
+# R-CNN detection.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: OCV target Tracker Pipeline
 #
-# Description: Performs object tracking on input imagery
+# Description: Runs automated ocv target detection on image then generate
+# corners tracks Outputs to computed_tracks.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

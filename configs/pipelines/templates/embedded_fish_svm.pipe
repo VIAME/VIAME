@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: ResNet Classifier on Fish Detections
 #
-# Description: Pipeline for processing input imagery
+# Description: ResNet Classifier on Fish Detections
 # =============================================================================
 
 process detector_input

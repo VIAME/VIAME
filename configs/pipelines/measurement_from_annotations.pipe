@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Measurement from annotations pipeline
 #
-# Description: Pipeline for measuring objects in input imagery
+# Description: Measurement from annotations pipeline Uses model: stereo_s.pt.
+# Outputs to computed_tracks2.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

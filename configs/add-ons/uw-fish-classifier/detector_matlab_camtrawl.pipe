@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Matlab Camtrawl detector pipeline
 #
-# Description: Runs object detection on input imagery
+# Description: Matlab Camtrawl detector pipeline
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

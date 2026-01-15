@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Filters input images via debayering them and running basic image filtering
 #
-# Description: Applies filtering operations to input data for stereo imagery
+# Description: Applies filtering operations to input data. Processes stereo
+# camera image pairs.
 # =============================================================================
 
 config _pipeline:_edge

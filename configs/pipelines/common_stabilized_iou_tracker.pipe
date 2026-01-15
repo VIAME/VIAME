@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Pipeline nodes
 #
-# Description: Common pipeline configuration for input imagery
+# Description: Shared tracker configuration that can be included by other
+# pipelines.
 # =============================================================================
 
 include common_image_stabilizer.pipe

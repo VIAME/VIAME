@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: YOLO Detector
 #
-# Description: Pipeline for processing input imagery
+# Description: Uses YOLO-based detection.
 # =============================================================================
 
 process detector_input

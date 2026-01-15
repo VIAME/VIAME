@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Detection pipeline with SVM rapid model filters
 #
-# Description: Performs object tracking on input imagery
+# Description: Runs pre-trained object detector followed by SVM class filters.
+# Outputs to computed_tracks.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

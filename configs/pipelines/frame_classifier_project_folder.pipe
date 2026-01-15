@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Default local detector pipeline
 #
-# Description: Pipeline for processing input imagery
+# Description: Pipeline configuration file.
 # =============================================================================
 
 config _pipeline:_edge

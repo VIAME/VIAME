@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: MMDet Cascade Faster R-CNN Detector
 #
-# Description: Runs object detection on input imagery
+# Description: MMDet Cascade Faster R-CNN Detector Outputs to
+# computed_detections.csv.
 # =============================================================================
 
 config _pipeline:_edge

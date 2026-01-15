@@ -1,7 +1,9 @@
 # =============================================================================
 # Title: Process the left image (or full image if non-stitched pair)
 #
-# Description: Runs object detection on HabCam underwater imagery
+# Description: Runs object detection pipeline on input imagery. Uses habcam
+# input configuration. Outputs results to computed_detections_right.csv.
+# Configured for scallop detection in benthic imagery.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Suppressor - Sea Lion Fusion All Class 2-cam
 #
-# Description: Suppresses false positive detections for sea lion imagery
+# Description: Current incumbent is just a straight-up threshold on detection
+# scores.
 # =============================================================================
 
 config _scheduler

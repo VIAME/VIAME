@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Utility - Add Head Tail Keypoints Default
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Utility pipeline for data processing operations.
 # =============================================================================
 
 include utility_add_head_tail_keypoints_sam2.pipe

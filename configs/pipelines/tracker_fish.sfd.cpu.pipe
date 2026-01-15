@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Example simple tracker pipeline
 #
-# Description: Performs object tracking on input imagery
+# Description: Runs a 8-node object tracking pipeline Uses model: resnet50.pt.
+# Outputs to computed_tracks.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

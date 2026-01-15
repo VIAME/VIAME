@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: MMDet Cascade Faster R-CNN Detector
 #
-# Description: Runs object detection on input imagery
+# Description: MMDet Cascade Faster R-CNN Detector Uses model:
+# poolcar_10_shot.pt. Outputs to computed_detections.csv.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: YOLO Detector With Temporal Features (WTF)
 #
-# Description: Runs object detection on input imagery
+# Description: YOLO Detector With Temporal Features (WTF) Outputs to
+# computed_detections.csv.
 # =============================================================================
 
 process input

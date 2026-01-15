@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Utility - Enhance
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Applies image enhancement filters to input imagery.
 # =============================================================================
 
 include filter_enhance.pipe

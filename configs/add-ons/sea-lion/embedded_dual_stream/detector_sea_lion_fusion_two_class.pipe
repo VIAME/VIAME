@@ -1,7 +1,9 @@
 # =============================================================================
 # Title: Detector - Sea Lion Fusion Two Class
 #
-# Description: Runs object detection on sea lion imagery
+# Description: Runs object detection pipeline on input imagery. Outputs
+# results to [CURRENT_TIME]_camera1.csv. Configured for sea lion survey
+# imagery.
 # =============================================================================
 
 config _pipeline:_edge

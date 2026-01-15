@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Debayer and color correct the left image only on a given input or input pair
 #
-# Description: Utility pipeline for processing HabCam underwater imagery
+# Description: Applies image enhancement filters to input imagery. Configured
+# for HabCam underwater survey imagery.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Training - Aug Add Color Freq
 #
-# Description: Training pipeline for model training for input imagery
+# Description: Training pipeline for model optimization.
 # =============================================================================
 
 config _pipeline:_edge

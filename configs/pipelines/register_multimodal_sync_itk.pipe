@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Register co-collected optical and thermal imagery
 #
-# Description: Pipeline for processing input imagery
+# Description: Register co-collected optical and thermal imagery Outputs to
+# homographies.txt.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

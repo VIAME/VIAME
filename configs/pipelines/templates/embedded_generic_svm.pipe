@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: SVM Classifier on Generic Object Proposals
 #
-# Description: Pipeline for processing input imagery
+# Description: SVM Classifier on Generic Object Proposals
 # =============================================================================
 
 process detector_input

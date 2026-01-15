@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal YOLO IR Only
 #
-# Description: Pipeline for processing arctic seal imagery
+# Description: Configured for arctic seal aerial survey imagery. Uses
+# YOLO-based detection.
 # =============================================================================
 
 config _pipeline:_edge

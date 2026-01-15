@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Fully automatic fish measurement pipeline
 #
-# Description: Pipeline for measuring objects in input imagery
+# Description: Fully automatic fish measurement pipeline Uses model:
+# sam2_hbp.pt. Outputs to computed_tracks2.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

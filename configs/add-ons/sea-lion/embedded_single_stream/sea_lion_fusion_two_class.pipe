@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Sea Lion Fusion Two Class
 #
-# Description: Pipeline for processing sea lion imagery
+# Description: Configured for sea lion survey imagery.
 # =============================================================================
 
 config _pipeline:_edge

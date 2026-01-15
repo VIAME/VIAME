@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Add head tail keypoints to existing detections which lack them
 #
-# Description: Utility pipeline for processing input imagery
+# Description: Utility pipeline for data processing operations.
 # =============================================================================
 
 config _pipeline:_edge

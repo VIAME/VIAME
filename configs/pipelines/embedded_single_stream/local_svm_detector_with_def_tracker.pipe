@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Local SVM Detector With Def Tracker
 #
-# Description: Pipeline for processing input imagery
+# Description: Runs object detection pipeline on input imagery. Uses
+# ../generic detector configuration.
 # =============================================================================
 
 config _pipeline:_edge

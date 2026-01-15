@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Secondary Classifier After Generic Object Proposals
 #
-# Description: Pipeline for processing input imagery
+# Description: Secondary Classifier After Generic Object Proposals Uses model:
+# generic_detector.weights.
 # =============================================================================
 
 process detector_input

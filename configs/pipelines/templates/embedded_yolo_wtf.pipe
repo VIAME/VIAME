@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: YOLO Detector With Temporal Features (WTF)
 #
-# Description: Pipeline for processing input imagery
+# Description: YOLO Detector With Temporal Features (WTF)
 # =============================================================================
 
 process detector_input

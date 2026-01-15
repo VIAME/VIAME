@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Run detectors on unsynchronous co-collected optical and thermal imagery
 #
-# Description: Runs object detection on arctic seal imagery
+# Description: Run detectors on unsynchronous co-collected optical and thermal
+# imagery Outputs to output_result%06d.jpg.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

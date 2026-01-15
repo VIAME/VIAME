@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: NetHarn Full Frame Classifier
 #
-# Description: Runs object detection on input imagery
+# Description: NetHarn Full Frame Classifier Outputs to
+# computed_detections.csv.
 # =============================================================================
 
 config _pipeline:_edge

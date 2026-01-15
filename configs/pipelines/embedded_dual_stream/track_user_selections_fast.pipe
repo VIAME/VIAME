@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Track User Selections Fast
 #
-# Description: Pipeline for processing input imagery
+# Description: Pipeline configuration file.
 # =============================================================================
 
 config _pipeline:_edge

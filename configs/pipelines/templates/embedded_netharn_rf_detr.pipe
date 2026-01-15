@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: NetHarn RF-DETR Detector
 #
-# Description: Pipeline for processing input imagery
+# Description: NetHarn RF-DETR Detector
 # =============================================================================
 
 process detector_input

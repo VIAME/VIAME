@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Shared tracker configuration used in other seamap configurations
 #
-# Description: Common pipeline configuration for input imagery
+# Description: Shared tracker configuration that can be included by other
+# pipelines. Uses model: seamap_tracker_rnn_v_aim.pt.
 # =============================================================================
 
 process tracker
