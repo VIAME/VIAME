@@ -137,18 +137,18 @@ set( CORE_PIPELINE_FILES
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
   common_stabilized_iou_tracker.pipe
+  common_stereo_fish_tracker.pipe
   common_stereo_input.pipe
   common_stereo_input_with_downsampler.pipe
   common_stereo_input_with_tracks.pipe
-  common_stereo_fish_tracker.pipe
   convert_add_filename_to_det_csv.pipe
   convert_add_filename_to_trk_csv.pipe
   convert_coco_json_to_viame_csv.pipe
   convert_habcam_to_kw18.pipe
   convert_habcam_to_viame_csv.pipe
   convert_kw18_to_viame_csv.pipe
-  convert_to_onnx.pipe
   convert_oceaneyes_to_viame_csv.pipe
+  convert_to_onnx.pipe
   convert_viame_csv_to_coco_json.pipe
   convert_viame_csv_to_kw18.pipe
   database_apply_svm_models.pipe
@@ -197,8 +197,8 @@ set( CORE_PIPELINE_FILES
   tracker_svm_models.pipe
   train_aug_add_color_freq.pipe
   train_aug_add_double_motion.pipe
-  train_aug_add_motion_and_color_freq.pipe
   train_aug_add_motion.pipe
+  train_aug_add_motion_and_color_freq.pipe
   train_aug_enhance_and_add_motion.pipe
   train_aug_hue_shifting_only.pipe
   train_aug_intensity_color_freq_motion.pipe
@@ -207,19 +207,19 @@ set( CORE_PIPELINE_FILES
   train_aug_split_and_stereo.pipe
   train_aug_split.pipe
   train_aug_warp_ir_to_eo.pipe
+  transcode_compress.pipe
   transcode_default.pipe
   transcode_draw_dets.pipe
-  transcode_compress.pipe
   transcode_enhance.pipe
   transcode_tracks_only.pipe
   utility_add_head_tail_keypoints_from_dets.pipe
   utility_add_segmentations_watershed.pipe
   utility_add_segmentations_watershed_2x.pipe
   utility_debayer_and_enhance.pipe
-  utility_empty_frame_lbls_1fr.pipe
-  utility_empty_frame_lbls_10fr.pipe
-  utility_empty_frame_lbls_100fr.pipe
   utility_empty_frame_lbls_1000fr.pipe
+  utility_empty_frame_lbls_100fr.pipe
+  utility_empty_frame_lbls_10fr.pipe
+  utility_empty_frame_lbls_1fr.pipe
   utility_empty_frame_lbls_auto.pipe
   utility_enhance.pipe
   utility_extract_chips.pipe
@@ -237,9 +237,9 @@ if( VIAME_ENABLE_CUDA )
     common_default_descriptor.pipe
     common_default_tracker.pipe
     common_fish_detector.pipe
-    common_stereo_fish_detector_with_filter.pipe
-    common_stereo_fish_detector.pipe
     common_generic_detector.pipe
+    common_stereo_fish_detector.pipe
+    common_stereo_fish_detector_with_filter.pipe
     measurement_detect_fish_only.pipe
     measurement_track_fish_only.pipe
     query_augment_image.pipe
@@ -335,15 +335,15 @@ endif()
 
 if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    register_using_homographies.pipe
-    register_multimodal_unsync_ocv.pipe
     detector_calibration_target.pipe
-    tracker_calibration_target.pipe
     measurement_calibrate_cameras_default.pipe
     measurement_calibrate_cameras_fast.pipe
     measurement_compute_rectified_disparity.pipe
     measurement_detect_calibration_target.pipe
     measurement_track_fish_in_3d_from_rect_disp.pipe
+    register_multimodal_unsync_ocv.pipe
+    register_using_homographies.pipe
+    tracker_calibration_target.pipe
     utility_calibrate_cameras_default_2-cam.pipe
     utility_calibrate_cameras_fast_2-cam.pipe
     )
@@ -351,8 +351,8 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_mmdet_cfrnn.habcam.conf
-    train_detector_mmdet_cfrnn.conf)
+    train_detector_mmdet_cfrnn.conf
+    train_detector_mmdet_cfrnn.habcam.conf)
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
@@ -368,20 +368,20 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_detectron2_frcnn.conf
-    train_detector_dino_remax.conf
-    train_detector_convnext_remax.conf
     detector_remax_convnext_novelty_detection.pipe
-    detector_remax_dino_novelty_detection.pipe)
+    detector_remax_dino_novelty_detection.pipe
+    train_detector_convnext_remax.conf
+    train_detector_detectron2_frcnn.conf
+    train_detector_dino_remax.conf)
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    utility_add_head_tail_keypoints_default.pipe
+    utility_add_head_tail_keypoints_sam2.pipe
     utility_add_segmentations_default.pipe
     utility_add_segmentations_sam2.pipe
     utility_add_segmentations_sam2_no_replace.pipe
-    utility_add_head_tail_keypoints_default.pipe
-    utility_add_head_tail_keypoints_sam2.pipe
     utility_track_selections_sam2.pipe )
 endif()
 
@@ -397,19 +397,19 @@ endif()
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_netharn_cfrnn.conf
-    train_detector_netharn_cfrnn.grid_only.conf
+    train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn.grid_only.20ep.conf
     train_detector_netharn_cfrnn.grid_only.40ep.conf
-    train_detector_netharn_cfrnn.continue.conf
+    train_detector_netharn_cfrnn.grid_only.conf
     train_detector_netharn_cfrnn.habcam.conf
     train_detector_netharn_cfrnn_motion.conf
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
-    train_detector_netharn_mask_rcnn_720.conf
     train_detector_netharn_mask_rcnn_1280.conf
+    train_detector_netharn_mask_rcnn_720.conf
     train_detector_netharn_mask_rcnn_grid.conf
-    train_detector_netharn_rf_detr.conf
     train_detector_netharn_mit_yolo.conf
+    train_detector_netharn_rf_detr.conf
     train_frame_classifier_netharn_efficientnet.conf
     train_frame_classifier_netharn_efficientnet.continue.conf
     train_frame_classifier_netharn_resnet.conf
@@ -431,16 +431,16 @@ endif()
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_short_term_tracker.pipe
+    train_tracker_siammask.conf
     utility_track_selections_default_mask.pipe
-    utility_track_selections_fish_box_only.pipe
-    train_tracker_siammask.conf )
+    utility_track_selections_fish_box_only.pipe )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_tracker_srnn.conf
+    train_tracker_botsort.conf
     train_tracker_deepsort.conf
-    train_tracker_botsort.conf )
+    train_tracker_srnn.conf )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
@@ -502,9 +502,6 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
     tracker_svm_models.pipe
-    utility_add_head_tail_keypoints.pipe
-    utility_enhance.pipe
-    utility_extract_chips.pipe
     train_detector_darknet_yolo_704.habcam.conf
     train_detector_darknet_yolo_704.kw18.conf
     train_detector_darknet_yolo_full_res.no_grid.conf
@@ -513,7 +510,10 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
     train_frame_classifier_netharn_efficientnet.continue.conf
-    train_frame_classifier_netharn_resnet.continue.conf )
+    train_frame_classifier_netharn_resnet.continue.conf
+    utility_add_head_tail_keypoints.pipe
+    utility_enhance.pipe
+    utility_extract_chips.pipe )
 
   foreach( ITEM ${VIAME_WEB_FILES_TO_IGNORE} )
     list( REMOVE_ITEM CORE_PIPELINE_FILES "${ITEM}" )
