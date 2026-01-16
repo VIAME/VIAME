@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Estimate calibration from left and right camera videos (Fast Mode)
+# Title: Stereo Camera Calibration
 #
-# Description: Pipeline for measuring object dimensions in imagery.
+# Description: Estimate calibration matrices from left and right stereo cameras 
 # =============================================================================
 
 config _pipeline:_edge
