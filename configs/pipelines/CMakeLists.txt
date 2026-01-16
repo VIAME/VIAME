@@ -344,6 +344,8 @@ if( VIAME_ENABLE_OPENCV )
     measurement_compute_rectified_disparity.pipe
     measurement_detect_calibration_target.pipe
     measurement_track_fish_in_3d_from_rect_disp.pipe
+    utility_calibrate_cameras_default_2-cam.pipe
+    utility_calibrate_cameras_fast_2-cam.pipe
     )
 endif()
 
