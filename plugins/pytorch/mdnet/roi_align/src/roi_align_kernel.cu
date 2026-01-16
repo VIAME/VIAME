@@ -1,5 +1,6 @@
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
+#include <ATen/cuda/Atomic.cuh>
 #include <c10/cuda/CUDAException.h>
 
 #define CUDA_1D_KERNEL_LOOP(i, n)                            \
@@ -117,7 +118,7 @@ __global__ void ROIAlignForward(const int nthreads, const scalar_t *bottom_data,
 
     if (h < 0 || h >= height || w < 0 || w >= width)
     {
-        top_data[index] = 0.;
+        top_data[index] = scalar_t(0);
     }else{
         scalar_t h_ratio = h - (scalar_t)hstart;
         scalar_t w_ratio = w - (scalar_t)wstart;
@@ -125,9 +126,9 @@ __global__ void ROIAlignForward(const int nthreads, const scalar_t *bottom_data,
         int upright = upleft + 1;
         int downleft = upleft + width;
         int downright = downleft + 1;
-        top_data[index] = bottom_data[upleft] * (1. - h_ratio) * (1. - w_ratio)
-                    + bottom_data[upright] * (1. - h_ratio) * w_ratio
-                    + bottom_data[downleft] * h_ratio * (1. - w_ratio)
+        top_data[index] = bottom_data[upleft] * (scalar_t(1) - h_ratio) * (scalar_t(1) - w_ratio)
+                    + bottom_data[upright] * (scalar_t(1) - h_ratio) * w_ratio
+                    + bottom_data[downleft] * h_ratio * (scalar_t(1) - w_ratio)
                     + bottom_data[downright] * h_ratio * w_ratio;
     }
   }
@@ -261,10 +262,10 @@ __global__ void ROIAlignBackward(
         int downleft = upleft + width;
         int downright = downleft + 1;
 
-        atomicAdd(bottom_diff + upleft, top_diff[index] * (1. - h_ratio) * (1 - w_ratio));
-        atomicAdd(bottom_diff + upright, top_diff[index] * (1. - h_ratio) * w_ratio);
-        atomicAdd(bottom_diff + downleft, top_diff[index] * h_ratio * (1 - w_ratio));
-        atomicAdd(bottom_diff + downright, top_diff[index] * h_ratio * w_ratio);
+        gpuAtomicAdd(bottom_diff + upleft, static_cast<scalar_t>(top_diff[index] * (scalar_t(1) - h_ratio) * (scalar_t(1) - w_ratio)));
+        gpuAtomicAdd(bottom_diff + upright, static_cast<scalar_t>(top_diff[index] * (scalar_t(1) - h_ratio) * w_ratio));
+        gpuAtomicAdd(bottom_diff + downleft, static_cast<scalar_t>(top_diff[index] * h_ratio * (scalar_t(1) - w_ratio)));
+        gpuAtomicAdd(bottom_diff + downright, static_cast<scalar_t>(top_diff[index] * h_ratio * w_ratio));
     }
   }
 }
@@ -354,14 +355,14 @@ __global__ void ROIAlignAdaForward(const int nthreads, const scalar_t *bottom_da
     int img_start = roi_batch_ind * channels * height * width;
 
     if (h < 0 || h >= height || w < 0 || w >= width) {
-        top_data[index] = 0.;
+        top_data[index] = scalar_t(0);
     } else {
         for(int hidx=0; hidx<=stride_h; hidx+=stride_h){
             for(int widx=0; widx<=stride_w; widx+=stride_w){
                 if( ((widx+wstart)>=0) && ((widx+wstart)<width) && ((hidx+hstart)>=0) && ((hidx+hstart)<height) ){
                 int cur_loc = img_start + (c * height + hstart) * width + wstart + hidx*width + widx;
-                scalar_t h_ratio = 1. - (scalar_t)fabsf(h-hstart-hidx)/(scalar_t)stride_h;
-                scalar_t w_ratio = 1. - (scalar_t)fabsf(w-wstart-widx)/(scalar_t)stride_w;
+                scalar_t h_ratio = scalar_t(1) - (scalar_t)fabsf(h-hstart-hidx)/(scalar_t)stride_h;
+                scalar_t w_ratio = scalar_t(1) - (scalar_t)fabsf(w-wstart-widx)/(scalar_t)stride_w;
 
                 top_data[index]+=bottom_data[cur_loc]*h_ratio*w_ratio;
                 }
@@ -453,10 +454,10 @@ __global__ void ROIAlignAdaBackward(
                     for(int widx=0; widx<=stride_w; widx+=stride_w){
                         if( ((hstart+hidx)>=0) && ((hstart+hidx)<height) && ((wstart+widx)>=0) && ((wstart+widx)<width) ){
                         int cur_loc = img_start + (c * height + hstart) * width + wstart + hidx*width + widx;
-                        scalar_t h_ratio = 1. - (scalar_t)fabsf(h-hstart-hidx)/(scalar_t)(stride_h);
-                        scalar_t w_ratio = 1. - (scalar_t)fabsf(w-wstart-widx)/(scalar_t)(stride_w);
+                        scalar_t h_ratio = scalar_t(1) - (scalar_t)fabsf(h-hstart-hidx)/(scalar_t)(stride_h);
+                        scalar_t w_ratio = scalar_t(1) - (scalar_t)fabsf(w-wstart-widx)/(scalar_t)(stride_w);
 
-                        atomicAdd(bottom_diff + cur_loc, top_diff[index]*h_ratio*w_ratio);
+                        gpuAtomicAdd(bottom_diff + cur_loc, static_cast<scalar_t>(top_diff[index]*h_ratio*w_ratio));
                         }
                     }
                 }
