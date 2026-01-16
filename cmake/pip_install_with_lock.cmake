@@ -34,14 +34,14 @@ if( UNIX )
   if( _working_dir )
     execute_process(
       COMMAND flock --timeout 300 ${_lock_file}
-        ${Python_EXECUTABLE} -m pip install --user ${_pip_args}
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_pip_args}
       RESULT_VARIABLE _result
       WORKING_DIRECTORY ${_working_dir}
     )
   else()
     execute_process(
       COMMAND flock --timeout 300 ${_lock_file}
-        ${Python_EXECUTABLE} -m pip install --user ${_pip_args}
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_pip_args}
       RESULT_VARIABLE _result
     )
   endif()
@@ -54,13 +54,13 @@ else()
   while( _result AND _retry_count LESS _max_retries )
     if( _working_dir )
       execute_process(
-        COMMAND ${Python_EXECUTABLE} -m pip install --user ${_pip_args}
+        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_pip_args}
         RESULT_VARIABLE _result
         WORKING_DIRECTORY ${_working_dir}
       )
     else()
       execute_process(
-        COMMAND ${Python_EXECUTABLE} -m pip install --user ${_pip_args}
+        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_pip_args}
         RESULT_VARIABLE _result
       )
     endif()
