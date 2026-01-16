@@ -6,41 +6,44 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
-  generate_nn_index.py
   convert_cam_format.py
   database_tool.py
   extract_video_frames.py
-  process_video.py
+  generate_detection_plots.py
+  generate_nn_index.py
+  launch_annotation_interface.py
   launch_search_interface.py
   launch_timeline_interface.py
-  launch_annotation_interface.py
-  generate_detection_plots.py
   plot_eval_results.py
+  process_video.py
   score_results.py
-  viame_csv_tool.py )
+  viame_csv_tool.py
+)
 
 if( VIAME_ENABLE_OPENCV )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
     calibrate_cameras.py
-    create_mosaic.py
     compute_depth.py
     compute_disparity.py
+    create_mosaic.py
     ply_utilities.py
-    stereo_rectify.py )
+    stereo_rectify.py
+  )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
-    check_gpu_usability.py )
+    check_gpu_usability.py
+  )
 endif()
 
 ###
 # C/C++ compiled standalone tools
 ##
 kwiver_add_executable( viame_train_detector
-  viame_train_detector.cxx
+    viame_train_detector.cxx
   )
 
 target_link_libraries( viame_train_detector
@@ -58,7 +61,7 @@ target_link_libraries( viame_train_detector
   )
 
 kwiver_add_executable( viame_get_configs
-  get_configs.cxx
+    get_configs.cxx
   )
 
 target_link_libraries( viame_get_configs
@@ -74,7 +77,7 @@ target_link_libraries( viame_get_configs
 if( VIAME_ENABLE_OPENCV )
   kwiver_add_executable( viame_score_results
     score_results.cxx
-    )
+  )
 
   target_link_libraries( viame_score_results
     PRIVATE      kwiver::vital

@@ -3,15 +3,15 @@
 ##
 
 set( plugin_matlab_files
-  initialize_gmm.m
-  gmm_background_remove.m
-  extract_targets2.m
-  extract_chip_coords2.m
-  imOrientedBoxx.m
+  camtrawl_detector.m
+  check_configuration.m
   detect.m
   detector_initialize.m
-  check_configuration.m
-  camtrawl_detector.m
-  )
+  extract_chip_coords2.m
+  extract_targets2.m
+  gmm_background_remove.m
+  imOrientedBoxx.m
+  initialize_gmm.m
+)
 
 install( FILES ${plugin_matlab_files} DESTINATION matlab/camtrawl )

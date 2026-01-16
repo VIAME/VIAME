@@ -1,10 +1,9 @@
 # Build / Install Plugin containing core algorithm implementations
 
 set( plugin_headers
-  adaptive_tracker_trainer.h
   adaptive_detector_trainer.h
+  adaptive_tracker_trainer.h
   add_timestamp_from_filename.h
-  evaluate_models.h
   auto_detect_transform.h
   average_track_descriptors.h
   camera_io.h
@@ -14,6 +13,7 @@ set( plugin_headers
   convert_polygons_to_mask.h
   detect_shot_breaks.h
   empty_detector.h
+  evaluate_models.h
   filename_to_timestamp.h
   full_frame_detector.h
   measurement_utilities.h
@@ -35,13 +35,12 @@ set( plugin_headers
   write_detected_object_set_viame_csv.h
   write_disparity_maps.h
   write_object_track_set_viame_csv.h
-  )
+)
 
 set( plugin_sources
-  adaptive_tracker_trainer.cxx
   adaptive_detector_trainer.cxx
+  adaptive_tracker_trainer.cxx
   add_timestamp_from_filename.cxx
-  evaluate_models.cxx
   auto_detect_transform.cxx
   average_track_descriptors.cxx
   camera_io.cxx
@@ -51,6 +50,7 @@ set( plugin_sources
   convert_polygons_to_mask.cxx
   detect_shot_breaks.cxx
   empty_detector.cxx
+  evaluate_models.cxx
   filename_to_timestamp.cxx
   full_frame_detector.cxx
   measurement_utilities.cxx
@@ -72,7 +72,7 @@ set( plugin_sources
   write_detected_object_set_viame_csv.cxx
   write_disparity_maps.cxx
   write_object_track_set_viame_csv.cxx
-  )
+)
 
 kwiver_install_headers(
   SUBDIR     viame
@@ -203,26 +203,26 @@ set( process_headers
   align_multimodal_imagery_process.h
   calibrate_cameras_from_tracks_process.h
   create_database_query_process.h
-  select_database_query_process.h
   detect_shot_breaks_process.h
   extract_desc_ids_for_training_process.h
   fetch_descriptors_process.h
   filter_frame_index_process.h
   filter_frame_process.h
-  image_to_image_set_process.h
   filter_object_tracks_process.h
+  image_to_image_set_process.h
   ingest_descriptors_process.h
   measure_objects_process.h
   object_track_descriptors_process.h
   pair_stereo_detections_process.h
-  write_query_results_as_tracks_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
+  select_database_query_process.h
   split_tracks_to_feature_landmarks_process.h
   stack_frames_process.h
   store_descriptors_csv.h
   track_conductor_process.h
   write_homography_list_process.h
+  write_query_results_as_tracks_process.h
 )
 
 set( process_sources
@@ -232,26 +232,26 @@ set( process_sources
   align_multimodal_imagery_process.cxx
   calibrate_cameras_from_tracks_process.cxx
   create_database_query_process.cxx
-  select_database_query_process.cxx
   detect_shot_breaks_process.cxx
   extract_desc_ids_for_training_process.cxx
   fetch_descriptors_process.cxx
   filter_frame_index_process.cxx
   filter_frame_process.cxx
-  image_to_image_set_process.cxx
   filter_object_tracks_process.cxx
+  image_to_image_set_process.cxx
   ingest_descriptors_process.cxx
   measure_objects_process.cxx
   object_track_descriptors_process.cxx
   pair_stereo_detections_process.cxx
-  write_query_results_as_tracks_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
+  select_database_query_process.cxx
   split_tracks_to_feature_landmarks_process.cxx
   stack_frames_process.cxx
   store_descriptors_csv.cxx
   track_conductor_process.cxx
   write_homography_list_process.cxx
+  write_query_results_as_tracks_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_core
@@ -283,34 +283,14 @@ if( VIAME_ENABLE_PYTHON )
   kwiver_create_python_init( core )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils.py
-    core
-    utils )
-
-  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/types.py
     .
     types )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_npy.py
-    core
-    normalize_image_npy )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
-    core
-    merge_detections_nms_fusion )
-
-  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     core
     __init__ )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
-    core
-    utility_processes )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py
@@ -323,6 +303,26 @@ if( VIAME_ENABLE_PYTHON )
     bytetrack_trainer )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
+    core
+    merge_detections_nms_fusion )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
+    core
+    multicam_homog_det_suppressor )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
+    core
+    multicam_homog_tracker )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_npy.py
+    core
+    normalize_image_npy )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
     core
     ocsort_tracker )
@@ -333,14 +333,14 @@ if( VIAME_ENABLE_PYTHON )
     ocsort_trainer )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py
+    core
+    segmentation_utils )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/simple_homog_tracker.py
     core
     simple_homog_tracker )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
-    core
-    multicam_homog_tracker )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/stabilize_many_images.py
@@ -348,14 +348,14 @@ if( VIAME_ENABLE_PYTHON )
     stabilize_many_images )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
     core
-    multicam_homog_det_suppressor )
+    utility_processes )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils.py
     core
-    segmentation_utils )
+    utils )
 
 endif()
 

@@ -14,15 +14,15 @@ include( ${ITK_USE_FILE} )
 # Add viame ITK library
 set( plugin_headers
   ${plugin_headers}
-  RegisterOpticalAndThermal.h
   ITKTransform.h
-  )
+  RegisterOpticalAndThermal.h
+)
 
 set( plugin_sources
   ${plugin_sources}
-  RegisterOpticalAndThermal.cxx
   ITKTransform.cxx
-  )
+  RegisterOpticalAndThermal.cxx
+)
 
 kwiver_install_headers(
   SUBDIR     viame
@@ -82,7 +82,6 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
 
   set( process_sources
     ../core/align_multimodal_imagery_process.cxx
-
     RegisterProcesses.cxx
     RegistrationProcess.cxx
     WarpDetectionsProcess.cxx
@@ -91,7 +90,6 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
 
   set( process_headers
     ../core/align_multimodal_imagery_process.h
-
     RegistrationProcess.h
     WarpDetectionsProcess.h
     WarpImageProcess.h

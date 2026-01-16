@@ -20,13 +20,11 @@ endif()
 
 set( headers
   refine_detections_svm.h
-  train_detector_svm.h
-  )
+  train_detector_svm.h )
 
 set( sources
   refine_detections_svm.cxx
-  train_detector_svm.cxx
-  )
+  train_detector_svm.cxx )
 
 kwiver_install_headers(
   SUBDIR     viame
@@ -85,8 +83,7 @@ target_link_libraries( viame_svm_plugin
 # Add process library
 set( process_headers
   process_query_process.h
-  train_svm_models_process.h
-)
+  train_svm_models_process.h )
 
 set( process_sources
   register_processes.cxx

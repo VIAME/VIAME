@@ -24,7 +24,8 @@ if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     artic-seal/common_arctic_seal_ir_tiny_yolo_detector.pipe
     artic-seal/detector_arctic_seal_fusion_yolo.pipe
     artic-seal/detector_arctic_seal_eo_yolo.pipe
-    artic-seal/detector_arctic_seal_ir_yolo.pipe )
+    artic-seal/detector_arctic_seal_ir_yolo.pipe
+  )
 
   set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
     artic-seal/embedded_single_stream/arctic_seal_eo_tiny_yolo_detector.pipe
@@ -33,7 +34,8 @@ if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     artic-seal/embedded_single_stream/arctic_seal_eo_tiny_yolo_tracker_alt3.pipe
     artic-seal/embedded_single_stream/arctic_seal_eo_yolo_detector.pipe
     artic-seal/embedded_single_stream/arctic_seal_ir_tiny_yolo_detector.pipe
-    artic-seal/embedded_single_stream/arctic_seal_ir_yolo_detector.pipe )
+    artic-seal/embedded_single_stream/arctic_seal_ir_yolo_detector.pipe
+  )
 
   set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
     artic-seal/embedded_dual_stream/arctic_seal_tf_eo_only.pipe
@@ -47,7 +49,8 @@ if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     artic-seal/embedded_dual_stream/arctic_seal_yolo_ir_only.pipe
     artic-seal/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_frame_trigger.pipe
     artic-seal/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_region_trigger.pipe
-    artic-seal/embedded_dual_stream/arctic_seal_yolo_ir_to_tiny_eo_region_tigger.pipe )
+    artic-seal/embedded_dual_stream/arctic_seal_yolo_ir_to_tiny_eo_region_tigger.pipe
+  )
 
   if( VIAME_ENABLE_TENSORFLOW )
     DownloadAndExtract(
@@ -60,7 +63,8 @@ if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       artic-seal/common_arctic_seal_eo_tf_detector.pipe
       artic-seal/common_arctic_seal_ir_tf_detector.pipe
       artic-seal/detector_arctic_seal_eo_tf.pipe
-      artic-seal/detector_arctic_seal_ir_tf.pipe )
+      artic-seal/detector_arctic_seal_ir_tf.pipe
+    )
 
     set( ADD_ON_PIPELINE_FILES ${ADD_ON_PIPELINE_FILES}
       artic-seal/embedded_single_stream/arctic_seal_eo_tf_detector.pipe
@@ -159,7 +163,8 @@ if( VIAME_DOWNLOAD_MODELS-UW-CLFR )
     uw-fish-classifier/speciesSVM_12.xml
     uw-fish-classifier/speciesSVM_13.xml
     uw-fish-classifier/speciesSVM_14.xml
-    uw-fish-classifier/speciesSVM_15.xml )
+    uw-fish-classifier/speciesSVM_15.xml
+  )
 
   foreach( MODEL_FILE ${UW_FISH_MODEL_FILES} )
     install( FILES ${MODEL_FILE}

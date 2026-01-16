@@ -8,12 +8,14 @@ find_package( Darknet REQUIRED )
 set( headers
   darknet_custom_resize.h
   darknet_detector.h
-  darknet_trainer.h )
+  darknet_trainer.h
+)
 
 set( sources
   darknet_custom_resize.cxx
   darknet_detector.cxx
-  darknet_trainer.cxx )
+  darknet_trainer.cxx
+)
 
 set( darknet_linked_libs
   Darknet::dark
