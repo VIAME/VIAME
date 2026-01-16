@@ -269,12 +269,28 @@ foreach( ID RANGE ${DEP_COUNT} )
   string( REPLACE ";" "----" PYTHON_DEP_CMD_STR "${PYTHON_DEP_FULL_CMD}" )
   string( REPLACE ";" "----" PYTHON_DEP_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
 
-  set( PYTHON_DEP_BUILD
-    ${CMAKE_COMMAND}
-      -DCOMMAND_TO_RUN:STRING=${PYTHON_DEP_CMD_STR}
-      -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}
-      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake
-    )
+  # Use custom pip check script for python-deps to avoid re-checking on every build
+  if( "${DEP}" STREQUAL "python-deps" )
+    # Hash the dependency list to detect changes
+    string( REPLACE ";" "," _DEPS_FOR_HASH "${VIAME_PYTHON_BASIC_DEPS}" )
+    set( _HASH_FILE "${VIAME_BUILD_PREFIX}/src/python-deps-hash.txt" )
+
+    set( PYTHON_DEP_BUILD
+      ${CMAKE_COMMAND}
+        -DDEPS_HASH_INPUT:STRING=${_DEPS_FOR_HASH}
+        -DHASH_FILE:PATH=${_HASH_FILE}
+        -DPIP_INSTALL_CMD:STRING=${PYTHON_DEP_CMD_STR}
+        -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}
+        -P ${VIAME_CMAKE_DIR}/custom_pip_check_install.cmake
+      )
+  else()
+    set( PYTHON_DEP_BUILD
+      ${CMAKE_COMMAND}
+        -DCOMMAND_TO_RUN:STRING=${PYTHON_DEP_CMD_STR}
+        -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}
+        -P ${VIAME_CMAKE_DIR}/run_python_command.cmake
+      )
+  endif()
 
   if( "${DEP}" STREQUAL "pytorch" )
     set( PYTHON_DEP_INSTALL ${CMAKE_COMMAND}
