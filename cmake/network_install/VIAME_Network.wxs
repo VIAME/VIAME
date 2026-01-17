@@ -1,34 +1,133 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VIAME Network Installer Bundle
 
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" 
-	  xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
-    RequiredVersion="3.6.3303.0">
+  This WiX bundle chains together multiple MSI installers:
+  - Core VIAME installation
+  - Optional component packages (CUDA, PyTorch, etc.)
+  - Optional model data packages
+  - Optional GUI installers (DIVE)
+
+  Build with:
+    candle.exe -ext WixBalExtension VIAME_Network.wxs
+    light.exe -ext WixBalExtension VIAME_Network.wixobj
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
+     RequiredVersion="3.6.3303.0">
+
+  <!-- Define version variables - update these for each release -->
+  <?define VIAMEVersion = "1.0.0" ?>
+  <?define VIAMEUpgradeCode = "91A46E15-EE49-4411-9836-583499D9C12F" ?>
+  <?define DiveVersion = "1.3.0" ?>
+
   <Bundle
         Name="VIAME Toolkit"
-        Version="0.12.1"
-        UpgradeCode="91A46E15-EE49-4411-9836-583499D9C12F">
+        Version="$(var.VIAMEVersion)"
+        UpgradeCode="$(var.VIAMEUpgradeCode)"
+        Manufacturer="Kitware Inc."
+        HelpUrl="https://viame.kitware.com/"
+        AboutUrl="https://github.com/VIAME/VIAME">
 
-    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLargeLicense" >
-      <bal:WixStandardBootstrapperApplication LicenseUrl="https://raw.githubusercontent.com/VIAME/VIAME/master/LICENSE.txt"
-                                              ThemeFile="VIAME_options.xml"
-                                              LogoFile="VIAME_32px.png"/>
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLargeLicense">
+      <bal:WixStandardBootstrapperApplication
+        LicenseUrl="https://raw.githubusercontent.com/VIAME/VIAME/master/LICENSE.txt"
+        ThemeFile="VIAME_options.xml"
+        LogoFile="VIAME_32px.png"/>
     </BootstrapperApplicationRef>
 
     <Chain>
+      <!-- Core VIAME Installation (Required) -->
       <MsiPackage
-        SourceFile="VIAME-1.0.0-win64.msi"
-        Name="VIAME-1.0.0-win64.msi"
-        Id="VIAME"
-        DisplayInternalUI="yes">
+        Id="VIAME_Core"
+        SourceFile="VIAME-Core-$(var.VIAMEVersion)-win64.msi"
+        Name="VIAME-Core-$(var.VIAMEVersion)-win64.msi"
+        DisplayInternalUI="yes"
+        Vital="yes">
       </MsiPackage>
-      <MsiPackage Id="VIAME_Dive"
-            Name="VIAME-Dive-1.3.0.msi"
-            Compressed="yes"
-            DisplayInternalUI="yes"
-            DownloadUrl="https://github.com/VIAME/VIAME-Web/releases/download/1.3.0/VIAME-Dive-1.3.0.msi"
-            DisplayName="Downloading VIAME-Dive Installer"
-            InstallCondition="VIAME_DiveCheckbox=1">
+
+      <!-- CUDA Support (Optional) -->
+      <MsiPackage
+        Id="VIAME_CUDA"
+        SourceFile="VIAME-CUDA-$(var.VIAMEVersion)-win64.msi"
+        Name="VIAME-CUDA-$(var.VIAMEVersion)-win64.msi"
+        DisplayInternalUI="yes"
+        InstallCondition="CUDACheckbox=1"
+        After="VIAME_Core">
       </MsiPackage>
+
+      <!-- PyTorch Support (Optional) -->
+      <MsiPackage
+        Id="VIAME_PyTorch"
+        SourceFile="VIAME-PyTorch-$(var.VIAMEVersion)-win64.msi"
+        Name="VIAME-PyTorch-$(var.VIAMEVersion)-win64.msi"
+        DisplayInternalUI="yes"
+        InstallCondition="PyTorchCheckbox=1"
+        After="VIAME_CUDA">
+      </MsiPackage>
+
+      <!-- Extra C++ Detectors (Optional) -->
+      <MsiPackage
+        Id="VIAME_ExtraCPP"
+        SourceFile="VIAME-Extra-CPP-$(var.VIAMEVersion)-win64.msi"
+        Name="VIAME-Extra-CPP-$(var.VIAMEVersion)-win64.msi"
+        DisplayInternalUI="yes"
+        InstallCondition="ExtraCPPCheckbox=1"
+        After="VIAME_PyTorch">
+      </MsiPackage>
+
+      <!-- DIVE GUI (Optional) -->
+      <MsiPackage
+        Id="VIAME_Dive"
+        Name="VIAME-Dive-$(var.DiveVersion).msi"
+        Compressed="yes"
+        DisplayInternalUI="yes"
+        DownloadUrl="https://github.com/VIAME/VIAME-Web/releases/download/$(var.DiveVersion)/VIAME-Dive-$(var.DiveVersion).msi"
+        DisplayName="Downloading VIAME-Dive Installer"
+        InstallCondition="DIVECheckbox=1">
+      </MsiPackage>
+
+      <!-- VIVIA Interface (Optional) -->
+      <MsiPackage
+        Id="VIAME_VIVIA"
+        SourceFile="VIAME-VIVIA-$(var.VIAMEVersion)-win64.msi"
+        Name="VIAME-VIVIA-$(var.VIAMEVersion)-win64.msi"
+        DisplayInternalUI="yes"
+        InstallCondition="VIVIACheckbox=1"
+        After="VIAME_ExtraCPP">
+      </MsiPackage>
+
+      <!-- SEAL Toolkit (Optional) -->
+      <MsiPackage
+        Id="VIAME_SEAL"
+        SourceFile="VIAME-SEAL-$(var.VIAMEVersion)-win64.msi"
+        Name="VIAME-SEAL-$(var.VIAMEVersion)-win64.msi"
+        DisplayInternalUI="yes"
+        InstallCondition="SEALCheckbox=1"
+        After="VIAME_VIVIA">
+      </MsiPackage>
+
+      <!-- Pre-trained Models (Optional) -->
+      <MsiPackage
+        Id="VIAME_Models"
+        SourceFile="VIAME-Models-$(var.VIAMEVersion)-win64.msi"
+        Name="VIAME-Models-$(var.VIAMEVersion)-win64.msi"
+        DisplayInternalUI="yes"
+        InstallCondition="ModelsCheckbox=1"
+        After="VIAME_SEAL">
+      </MsiPackage>
+
+      <!-- Development Headers (Optional) -->
+      <MsiPackage
+        Id="VIAME_DevHeaders"
+        SourceFile="VIAME-Dev-Headers-$(var.VIAMEVersion)-win64.msi"
+        Name="VIAME-Dev-Headers-$(var.VIAMEVersion)-win64.msi"
+        DisplayInternalUI="yes"
+        InstallCondition="DevHeadersCheckbox=1"
+        After="VIAME_Models">
+      </MsiPackage>
+
+      <!-- Additional Model Data Packages (from chain file) -->
       <?include "VIAME_Chain_File.wxs"?>
     </Chain>
   </Bundle>

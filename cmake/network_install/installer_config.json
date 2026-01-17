@@ -1,0 +1,119 @@
+{
+  "_comment": "VIAME Network Installer Configuration",
+  "_note": "Credentials should be set via environment variables, not in this file",
+
+  "viame_version": {
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+
+  "data_version": {
+    "major": 1,
+    "minor": 0
+  },
+
+  "girder": {
+    "api_url": "https://viame.kitware.com/api/v1",
+    "data_url": "https://data.kitware.com/api/v1",
+    "_credential_note": "Set GIRDER_USER and GIRDER_PASSWORD environment variables"
+  },
+
+  "components": {
+    "_comment": "MSI component packages from staged build",
+    "core": {
+      "description": "Core VIAME (fletch + kwiver + vxl + opencv + python)",
+      "required": true,
+      "filename_pattern": "VIAME-Core.zip"
+    },
+    "cuda": {
+      "description": "CUDA/cuDNN support",
+      "required": false,
+      "filename_pattern": "VIAME-CUDA.zip"
+    },
+    "pytorch": {
+      "description": "PyTorch + all pytorch-libs",
+      "required": false,
+      "filename_pattern": "VIAME-PyTorch.zip"
+    },
+    "extra_cpp": {
+      "description": "Darknet, SVM, PostgreSQL",
+      "required": false,
+      "filename_pattern": "VIAME-Extra-CPP.zip"
+    },
+    "dive": {
+      "description": "DIVE GUI",
+      "required": false,
+      "filename_pattern": "VIAME-DIVE.zip"
+    },
+    "vivia": {
+      "description": "VIVIA interface (Qt, VTK, GDAL)",
+      "required": false,
+      "filename_pattern": "VIAME-VIVIA.zip"
+    },
+    "seal": {
+      "description": "SEAL toolkit",
+      "required": false,
+      "filename_pattern": "VIAME-SEAL.zip"
+    },
+    "models": {
+      "description": "Pre-trained model downloads",
+      "required": false,
+      "filename_pattern": "VIAME-Models.zip"
+    },
+    "dev_headers": {
+      "description": "Development headers (include + share)",
+      "required": false,
+      "filename_pattern": "VIAME-Dev-Headers.zip"
+    }
+  },
+
+  "model_data": {
+    "_comment": "Additional model data packages (Girder ITEM IDs from data.kitware.com)",
+    "SeaLion1_1": {
+      "girder_id": "5f6639dd50a41e3d199a4153",
+      "description": "Sea Lion Detection v1.1"
+    },
+    "SeaLion1_2": {
+      "girder_id": "5fcdb5f150a41e3d198fa856",
+      "description": "Sea Lion Detection v1.2"
+    },
+    "MOUSS": {
+      "girder_id": "5cdec8ac8d777f072bb4457f",
+      "description": "MOUSS Fish Detection"
+    },
+    "MOUSSAlt": {
+      "girder_id": "5ce5af728d777f072bd5836d",
+      "description": "MOUSS Fish Detection (Alternate)"
+    },
+    "SEFSC1_1": {
+      "girder_id": "5fb69a7450a41e3d1960c6a5",
+      "description": "SEFSC Fish Detection v1.1"
+    },
+    "SEFSC1_2": {
+      "girder_id": "5fcdb5f150a41e3d198fa856",
+      "description": "SEFSC Fish Detection v1.2"
+    },
+    "ArcticSeals": {
+      "girder_id": "5e30b8ffaf2e2eed3545bff6",
+      "description": "Arctic Seal Detection"
+    },
+    "HabCam": {
+      "girder_id": "5f6bb7e850a41e3d19a63047",
+      "description": "HabCam Scallop Detection"
+    }
+  },
+
+  "external_installers": {
+    "dive_gui": {
+      "name": "VIAME-Dive",
+      "version": "1.3.0",
+      "download_url": "https://github.com/VIAME/VIAME-Web/releases/download/{version}/VIAME-Dive-{version}.msi"
+    }
+  },
+
+  "build_settings": {
+    "num_processes": 4,
+    "temp_dir": null
+  }
+}

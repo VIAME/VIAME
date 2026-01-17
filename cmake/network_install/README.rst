@@ -1,91 +1,163 @@
 VIAME Network Installer Creation
 ================================
 
+This directory contains the tools and templates for creating the VIAME
+network installer, which allows users to selectively install VIAME components.
 
-Step 1: Generate VIAME Installer
---------------------------------
+Prerequisites
+-------------
 
-Use the ``VIAME_CREATE_INSTALLER`` option in CMake to direct CPack to create an
-MSI for the VIAME code.  On Windows, this will entail the building of the
-``PACKAGE`` target in Visual Studio.
+- WiX Toolset 3.11+ (https://wixtoolset.org/)
+- Python 3.8+ with ``girder-client`` package
+- CMake 3.16+
+- The staged VIAME MSI packages from the build process
 
-Copy the resultant ``.msi`` file to the directory which contains the
-``VIAME_Network.wxs`` file.
+File Overview
+-------------
 
+- ``installer_config.json`` - Configuration for versions, components, and model data
+- ``generate_viame_installers.py`` - Python script to generate supplemental installers
+- ``VIAME_Network.wxs`` - WiX bundle definition for the network installer
+- ``VIAME_options.xml`` - WiX theme file defining the installer UI
+- ``VIAME_32px.png`` - Logo for the installer
 
-Step 2: Generate Supplemental Installers
------------------------------------------
+Step 1: Build VIAME Component Packages
+--------------------------------------
 
-The supplemental installers are generated via the Python script called
-``generate_viame_installers.py``.  This will use multiple processes to
-generate an installer for each archive object in a list that is user-specified.
+Use the MSI build script to generate the 9 component packages::
 
-Prior to running the script
-+++++++++++++++++++++++++++
+    build_server_windows_msi.bat
 
-Fill in user-specific data:
-  * Ensure that the list which describes the archive objects, called
-    ``data_name_dict``, is up to date.
-  * Ensure that the Girder connection information is correct.  This includes:
-    * Username
-    * Password
-    * API root url
-    * Girder parent object Id
+This creates the following ZIP files in the build directory:
 
-All of these objects can be found from line 45 to line 70.
+1. ``VIAME-Core.zip`` - Core (fletch + kwiver + vxl + opencv + python)
+2. ``VIAME-CUDA.zip`` - CUDA/cuDNN support
+3. ``VIAME-PyTorch.zip`` - PyTorch + pytorch-libs
+4. ``VIAME-Extra-CPP.zip`` - Darknet, SVM, PostgreSQL
+5. ``VIAME-DIVE.zip`` - DIVE GUI
+6. ``VIAME-VIVIA.zip`` - VIVIA interface
+7. ``VIAME-SEAL.zip`` - SEAL toolkit
+8. ``VIAME-Models.zip`` - Pre-trained models
+9. ``VIAME-Dev-Headers.zip`` - Development headers
 
-Executing the Python script:
-++++++++++++++++++++++++++++
+Step 2: Convert ZIPs to MSI Packages
+------------------------------------
 
-Execute the ``generate_viame_installers.py`` file.  This long running process
-will create a set of temporary directories and execute a small CMake process to
-generate the installer for each piece of data.  It will then upload the MSI file
-to the Girder instance and copy it to the directory where the
-``generate_viame_installers.py`` file exists.  This file uses the
-multiprocessing library to spawn multiple processes to generate installers in
-parallel.  The default number of processes is 4.
+Each ZIP file needs to be converted to an MSI package using CPack/WiX.
+This is typically done by enabling ``VIAME_CREATE_INSTALLER`` in CMake
+and building the ``PACKAGE`` target.
 
-The ``generate_viame_installers.py`` has two optional arguments.
+Copy the resultant ``.msi`` files to this directory.
 
-``--remake_all`` will create a new installer, whether the target file exists in
-the remote folder or not.
+Step 3: Generate Supplemental Model Installers
+----------------------------------------------
 
-``-j`` will allow the user to set a different number of processes to be used.
+The supplemental installers for model data are generated via the Python script.
 
-This script also creates the file needed for the ``Chain`` capbility of the
-WiX Toolset based upon the amount of data set.
-
-Step 3: Generate Network Installer
------------------------------------
-
-3.1 Selectable Options
+Setting up credentials
 ++++++++++++++++++++++
 
-The VIAME Network system contains a ``VIAME_options.xml`` file.  This file is
-used to alter the windows shown when the end user starts the installer.
-Specifically, we add ``<Checkbox>`` objects to the ``Options`` page to inform
-the installer which other installers to acquire.
+Set the following environment variables::
 
-If necessary, update the available checkboxes to contain the same options as
-those that are found in the ``VIAME_Chain_File.wxs``.  That is, each Checkbox
-``name`` should match one found in an ``InstallCondition`` in the ``.wxs``
-file.
+    SET GIRDER_USER=your_username
+    SET GIRDER_PASSWORD=your_password
+    SET GIRDER_FOLDER_ID=parent_collection_id
 
+Or use an API key::
 
-3.2 Creation of EXE
-++++++++++++++++++++
+    SET GIRDER_API_KEY=your_api_key
+    SET GIRDER_FOLDER_ID=parent_collection_id
 
-The generation of the network installer is performed in two steps.  First, a
-file is passed to the ``candle.exe`` program of the WiX toolset.
+Updating the configuration
+++++++++++++++++++++++++++
 
-.. code-block: sh
+Edit ``installer_config.json`` to:
 
-  $ candle.exe -ext WixBalExtension VIAME_Network.wxs
+- Update version numbers in ``viame_version`` and ``data_version``
+- Add/remove model data entries in ``model_data`` section
+- Update external installer versions in ``external_installers``
 
-The output of that command will have the same name as the input file, but with
-a different extension: ``.wixobj``.  This new file is then passed to the
-``light.exe`` program.
+Running the script
+++++++++++++++++++
 
-.. code-block: sh
+Execute the script::
 
-  $ light.exe -ext WixBalExtension VIAME_Network.wixobj
+    python generate_viame_installers.py
+
+Options:
+
+- ``--remake-all`` - Regenerate all installers even if they exist
+- ``-j N`` - Use N parallel processes (default: 4)
+- ``--config PATH`` - Use alternative config file
+- ``-v`` - Verbose logging
+
+This will:
+
+1. Download external installers (e.g., VIAME-Dive)
+2. Generate MSI packages for each model data entry
+3. Upload installers to Girder
+4. Create ``VIAME_Chain_File.wxs`` for the bundle
+
+Step 4: Update Version Numbers
+------------------------------
+
+Before building the network installer, update the version variables in
+``VIAME_Network.wxs``::
+
+    <?define VIAMEVersion = "1.0.0" ?>
+    <?define DiveVersion = "1.3.0" ?>
+
+Step 5: Build the Network Installer
+-----------------------------------
+
+Build the WiX bundle using the WiX Toolset::
+
+    candle.exe -ext WixBalExtension VIAME_Network.wxs
+    light.exe -ext WixBalExtension VIAME_Network.wixobj
+
+This produces ``VIAME_Network.exe``, the final network installer.
+
+Installer UI Options
+--------------------
+
+The installer presents users with checkboxes to select components:
+
+**Core Components:**
+
+- CUDA/cuDNN Support
+- PyTorch + Deep Learning Libraries
+- Extra C++ Detectors (Darknet, SVM, PostgreSQL)
+
+**GUI Interfaces:**
+
+- DIVE GUI (Web-based annotation)
+- VIVIA Interface (Desktop Qt/VTK application)
+
+**Advanced Options:**
+
+- SEAL Toolkit
+- Pre-trained Models
+- Development Headers
+
+**Model Data Packages:**
+
+- Sea Lion, MOUSS, SEFSC, Arctic Seals, HabCam models
+
+Troubleshooting
+---------------
+
+**Girder authentication fails:**
+  Ensure environment variables are set correctly. Try using an API key
+  instead of username/password.
+
+**MSI generation fails:**
+  Check that WiX Toolset is installed and ``candle.exe``/``light.exe``
+  are in the PATH.
+
+**Download fails:**
+  Check network connectivity and verify Girder item IDs are correct
+  in the configuration file.
+
+**Package exceeds 2GB:**
+  MSI has a 2GB limit. Use the staged build approach to split large
+  components into separate packages.
