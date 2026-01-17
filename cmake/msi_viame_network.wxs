@@ -32,8 +32,8 @@
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLargeLicense">
       <bal:WixStandardBootstrapperApplication
         LicenseUrl="https://raw.githubusercontent.com/VIAME/VIAME/master/LICENSE.txt"
-        ThemeFile="VIAME_options.xml"
-        LogoFile="VIAME_32px.png"/>
+        ThemeFile="msi_viame_options.xml"
+        LogoFile="viame-icon-32px.png"/>
     </BootstrapperApplicationRef>
 
     <Chain>
@@ -128,7 +128,7 @@
       </MsiPackage>
 
       <!-- Additional Model Data Packages (from chain file) -->
-      <?include "VIAME_Chain_File.wxs"?>
+      <?include "msi_viame_chain_file.wxs"?>
     </Chain>
   </Bundle>
 </Wix>

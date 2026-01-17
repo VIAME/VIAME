@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 # Directory containing this script
 SCRIPT_DIR = Path(__file__).parent.resolve()
-CONFIG_FILE = SCRIPT_DIR / "installer_config.json"
+CONFIG_FILE = SCRIPT_DIR / "msi_installer_config.json"
 
 
 @dataclass
@@ -314,7 +314,7 @@ class InstallerGenerator:
 
     def generate_chain_file(self, installer_results: dict) -> Path:
         """Generate the WiX chain file for all installers."""
-        chain_file = SCRIPT_DIR / "VIAME_Chain_File.wxs"
+        chain_file = SCRIPT_DIR / "msi_viame_chain_file.wxs"
 
         logger.info(f"Generating chain file: {chain_file}")
 
