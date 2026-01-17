@@ -67,3 +67,9 @@ def __vital_algorithm_register__():
         ocsort_tracker.__vital_algorithm_register__()
     except ImportError:
         pass
+
+    try:
+        from viame.core import read_detected_object_set_coco
+        read_detected_object_set_coco.__vital_algorithm_register__()
+    except ImportError:
+        pass

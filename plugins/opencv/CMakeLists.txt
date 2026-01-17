@@ -17,6 +17,7 @@ set( plugin_headers
   canny_edge_detector.h
   classify_fish_hierarchical_svm.h
   compute_stereo_disparity.h
+  convert_color_space.h
   debayer_filter.h
   detect_calibration_targets.h
   diff_of_gauss_detector.h
@@ -51,6 +52,7 @@ set( plugin_sources
   canny_edge_detector.cxx
   classify_fish_hierarchical_svm.cxx
   compute_stereo_disparity.cxx
+  convert_color_space.cxx
   debayer_filter.cxx
   detect_calibration_targets.cxx
   diff_of_gauss_detector.cxx

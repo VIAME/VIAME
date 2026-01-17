@@ -333,6 +333,11 @@ if( VIAME_ENABLE_PYTHON )
     ocsort_trainer )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/read_detected_object_set_coco.py
+    core
+    read_detected_object_set_coco )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py
     core
     segmentation_utils )
