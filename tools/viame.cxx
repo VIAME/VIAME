@@ -19,6 +19,11 @@
  *
  *   viame my_pipeline.pipe          # equivalent to: viame runner my_pipeline.pipe
  *
+ * Similarly, if the first argument is a .conf file, the train applet
+ * is automatically invoked:
+ *
+ *   viame my_config.conf            # equivalent to: viame train -c my_config.conf
+ *
  * It loads all VIAME and KWIVER plugins and dispatches to the appropriate
  * applet based on the subcommand name.
  */
@@ -68,6 +73,10 @@ static bool ends_with( const std::string& str, const std::string& suffix )
  * Special case: if the first non-flag argument looks like a pipeline file
  * (ends with .pipe), automatically use the "runner" applet and treat
  * the argument as the pipeline file path.
+ *
+ * Special case: if the first non-flag argument looks like a config file
+ * (ends with .conf), automatically use the "train" applet with the
+ * -c/--config option.
  */
 class command_line_parser
 {
@@ -105,6 +114,14 @@ public:
           {
             // Implicit runner mode: treat as "runner <pipeline.pipe>"
             m_applet_name = "runner";
+            m_applet_args.push_back( arg );
+          }
+          // Check if this looks like a config file
+          else if ( ends_with( arg, ".conf" ) )
+          {
+            // Implicit train mode: treat as "train -c <config.conf>"
+            m_applet_name = "train";
+            m_applet_args.push_back( "-c" );
             m_applet_args.push_back( arg );
           }
           else
@@ -195,11 +212,15 @@ void tool_runner_usage( VITAL_UNUSED applet_context_t ctxt,
             << "Common examples:" << std::endl
             << "  viame my_pipeline.pipe              # Run a pipeline file (shorthand)" << std::endl
             << "  viame runner my_pipeline.pipe       # Run a pipeline file (explicit)" << std::endl
+            << "  viame my_config.conf                # Train with a config file (shorthand)" << std::endl
+            << "  viame train -c my_config.conf       # Train with a config file (explicit)" << std::endl
             << "  viame help runner                   # Get help on the runner applet" << std::endl
             << "  viame explore-config my.conf        # Explore configuration file" << std::endl
             << std::endl
             << "Note: If the first argument ends with .pipe, the runner applet is" << std::endl
             << "automatically invoked. So 'viame x.pipe' is equivalent to 'viame runner x.pipe'." << std::endl
+            << "Similarly, if the first argument ends with .conf, the train applet is" << std::endl
+            << "automatically invoked. So 'viame x.conf' is equivalent to 'viame train -c x.conf'." << std::endl
             << std::endl;
 }
 
