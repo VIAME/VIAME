@@ -42,6 +42,23 @@ endif()
 ###
 # C/C++ compiled standalone tools
 ##
+
+# VIAME tool runner - main entry point similar to kwiver
+kwiver_add_executable( viame
+    viame.cxx
+  )
+
+target_link_libraries( viame
+  PRIVATE      kwiver::vital
+               kwiver::vital_vpm
+               kwiver::vital_config
+               kwiver::vital_exceptions
+               kwiver::vital_logger
+               kwiver::vital_util
+               kwiver::kwiversys
+               kwiver::kwiver_tools_applet
+  )
+
 kwiver_add_executable( viame_train_detector
     viame_train_detector.cxx
   )
