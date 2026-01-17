@@ -73,3 +73,9 @@ def __vital_algorithm_register__():
         read_detected_object_set_coco.__vital_algorithm_register__()
     except ImportError:
         pass
+
+    try:
+        from viame.core import write_detected_object_set_coco
+        write_detected_object_set_coco.__vital_algorithm_register__()
+    except ImportError:
+        pass

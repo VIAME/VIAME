@@ -338,6 +338,11 @@ if( VIAME_ENABLE_PYTHON )
     read_detected_object_set_coco )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/write_detected_object_set_coco.py
+    core
+    write_detected_object_set_coco )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py
     core
     segmentation_utils )
