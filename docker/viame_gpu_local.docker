@@ -205,7 +205,7 @@ build it for faster iteration time. For example.
     make -j$(nproc)
 
 
-In the installed directory test the algorithms using the KWIVER and VIAME CLI:
+In the installed directory test the algorithms using the VIAME CLI:
 
 .. code:: bash
 
@@ -218,18 +218,18 @@ In the installed directory test the algorithms using the KWIVER and VIAME CLI:
     cp /opt/noaa/viame/configs/pipelines/detector_huggingface_zeroshot.pipe detector_huggingface_zeroshot.pipe
 
     # Run the generic detector
-    kwiver runner detector_huggingface_zeroshot.pipe \
-                  -s input:video_filename=input_image_list_small_set.txt \
-                  -s detector_writer:file_name=generic_detections.json \
-                  -s detector_writer:writer:type=coco
+    viame detector_huggingface_zeroshot.pipe \
+          -s input:video_filename=input_image_list_small_set.txt \
+          -s detector_writer:file_name=generic_detections.json \
+          -s detector_writer:writer:type=coco
 
 
     # Use a specific prompt
-    kwiver runner detector_huggingface_zeroshot.pipe \
-                  -s input:video_filename=input_image_list_small_set.txt \
-                  -s detector1:detector:ocv_windowed:detector:huggingface_zeroshot_detector:classes="[fish,starfish,coral]" \
-                  -s detector_writer:file_name=prompted_detections.json \
-                  -s detector_writer:writer:type=coco  
+    viame detector_huggingface_zeroshot.pipe \
+          -s input:video_filename=input_image_list_small_set.txt \
+          -s detector1:detector:ocv_windowed:detector:huggingface_zeroshot_detector:classes="[fish,starfish,coral]" \
+          -s detector_writer:file_name=prompted_detections.json \
+          -s detector_writer:writer:type=coco  
 
     # Copy data out of container for visualization
     cp -r ../example_imagery/small_example_image_set1/ /host-viame/example-images
@@ -240,7 +240,7 @@ In the installed directory test the algorithms using the KWIVER and VIAME CLI:
 
     # Train a MIT YOLO detector
     cd /opt/noaa/viame/examples/object_detector_training
-    viame_train_detector \
+    viame train \
       -i /opt/noaa/viame/examples/object_detector_training/training_data_mouss \
       -c /opt/noaa/viame/configs/pipelines/train_detector_mit_yolo_640.conf \
       --threshold 0.0
@@ -266,8 +266,8 @@ In the installed directory test the algorithms using the KWIVER and VIAME CLI:
 
     # Run the YOLO detector inference
     export PYTHONIOENCODING=utf-8
-    kwiver runner demo_mit_yolo_detector.pipe \
-                  -s input:video_filename=input_image_list_small_set.txt
+    viame demo_mit_yolo_detector.pipe \
+          -s input:video_filename=input_image_list_small_set.txt
 
 
 It is also possible to directly symlink Python files from the host to the
