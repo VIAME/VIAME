@@ -46,6 +46,19 @@ string( REPLACE "----" ";" PIP_INSTALL_CMD_LIST "${PIP_INSTALL_CMD}" )
 # Convert ----separated env vars back to list
 if( ENV_VARS )
   string( REPLACE "----" ";" ENV_VARS_LIST "${ENV_VARS}" )
+  # Convert <PS> path separator to platform-specific separator in each env var
+  set( PROCESSED_ENV_VARS )
+  foreach( ENV_VAR IN LISTS ENV_VARS_LIST )
+    if( WIN32 )
+      # On Windows, <PS> should become ; but we need to escape it with \; for CMake
+      string( REPLACE "<PS>" "\\;" ENV_VAR "${ENV_VAR}" )
+    else()
+      # On Unix, <PS> should become :
+      string( REPLACE "<PS>" ":" ENV_VAR "${ENV_VAR}" )
+    endif()
+    list( APPEND PROCESSED_ENV_VARS "${ENV_VAR}" )
+  endforeach()
+  set( ENV_VARS_LIST "${PROCESSED_ENV_VARS}" )
 else()
   set( ENV_VARS_LIST "" )
 endif()
