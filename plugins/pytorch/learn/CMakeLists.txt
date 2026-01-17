@@ -78,6 +78,15 @@ if( EIGEN3_INCLUDE_DIR )
   list( APPEND LEARN_ENV_VARS "EIGEN_INCLUDE_DIR=${EIGEN3_INCLUDE_DIR}" )
 endif()
 
+# Pass Python include directory for building C extensions
+if( Python_INCLUDE_DIRS )
+  list( APPEND LEARN_ENV_VARS "CFLAGS=-I${Python_INCLUDE_DIRS}" )
+  list( APPEND LEARN_ENV_VARS "CXXFLAGS=-I${Python_INCLUDE_DIRS}" )
+elseif( PYTHON_INCLUDE_DIR )
+  list( APPEND LEARN_ENV_VARS "CFLAGS=-I${PYTHON_INCLUDE_DIR}" )
+  list( APPEND LEARN_ENV_VARS "CXXFLAGS=-I${PYTHON_INCLUDE_DIR}" )
+endif()
+
 # Install vendored dependencies to VIAME's Python install location
 set( LEARN_INSTALL_TARGET "${VIAME_PYTHON_INSTALL}/site-packages" )
 

@@ -490,7 +490,7 @@ model_evaluator::priv::build_caches()
   #ifdef _OPENMP
   #pragma omp parallel for schedule(dynamic)
   #endif
-  for( size_t fi = 0; fi < m_frame_list.size(); fi++ )
+  for( int fi = 0; fi < static_cast<int>( m_frame_list.size() ); fi++ )
   {
     int frame_id = m_frame_list[fi];
 

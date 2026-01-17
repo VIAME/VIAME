@@ -9,11 +9,17 @@ from setuptools import setup
 # If Cython is available, build using Cython.
 # Otherwise, use the pre-built (by someone who has Cython, i.e. me) wrapper `.cpp` files.
 import os
+import sysconfig
+
+# Always include Python's include directory for Python.h
+python_include = sysconfig.get_path('include')
+include_dirs = ["pydensecrf/densecrf/include"]
+if python_include:
+    include_dirs.append(python_include)
+
 eigen_include = os.environ.get('EIGEN_INCLUDE_DIR')
 if eigen_include:
-    include_dirs = ["pydensecrf/densecrf/include", eigen_include]
-else:
-    include_dirs = ["pydensecrf/densecrf/include"]
+    include_dirs.append(eigen_include)
 
 from setuptools.extension import Extension
 
