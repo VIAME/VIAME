@@ -252,6 +252,11 @@ if( VIAME_ENABLE_PYTORCH-SAM3 )
       pytorch
       sam3_refiner )
 
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_trainer.py
+      pytorch
+      sam3_trainer )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-STEREO )
