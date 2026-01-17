@@ -17,7 +17,7 @@
     <Font Id="4" Height="-12" Weight="500" Foreground="ff0000" Background="FFFFFF" Underline="yes">Segoe UI</Font>
     <Font Id="5" Height="-11" Weight="400" Foreground="666666" Background="FFFFFF">Segoe UI</Font>
 
-    <Window Width="520" Height="724" HexStyle="100a0000" FontId="0" Caption="#(loc.Caption)">
+    <Window Width="520" Height="687" HexStyle="100a0000" FontId="0" Caption="#(loc.Caption)">
         <Image X="11" Y="11" Width="64" Height="64" ImageFile="logo.png" Visible="yes"/>
         <Text X="80" Y="11" Width="-11" Height="64" FontId="1" Visible="yes">#(loc.Title)</Text>
 
@@ -62,30 +62,27 @@
             <Checkbox Name="SEALCheckbox" X="20" Y="381" Width="-30" Height="17" TabStop="yes" FontId="3">SEAL Toolkit</Checkbox>
             <Text X="36" Y="398" Width="-40" Height="14" FontId="5">Specialized tools for seal detection and tracking</Text>
 
-            <Checkbox Name="ModelsCheckbox" X="20" Y="418" Width="-30" Height="17" TabStop="yes" FontId="3">Pre-trained Models</Checkbox>
-            <Text X="36" Y="435" Width="-40" Height="14" FontId="5">Download pre-trained detection and classification models</Text>
-
-            <Checkbox Name="DevHeadersCheckbox" X="20" Y="455" Width="-30" Height="17" TabStop="yes" FontId="3">Development Headers</Checkbox>
-            <Text X="36" Y="472" Width="-40" Height="14" FontId="5">Include and share folders for building against VIAME</Text>
+            <Checkbox Name="DevHeadersCheckbox" X="20" Y="418" Width="-30" Height="17" TabStop="yes" FontId="3">Development Headers</Checkbox>
+            <Text X="36" Y="435" Width="-40" Height="14" FontId="5">Include and share folders for building against VIAME</Text>
 
             <!-- Model Addon Selection Section (auto-generated from CSV) -->
-            <Text X="11" Y="498" Width="-11" Height="18" FontId="3">Additional model packages (15 available):</Text>
+            <Text X="11" Y="461" Width="-11" Height="18" FontId="3">Model packages (15 available, downloaded at install):</Text>
 
-            <Checkbox Name="DefaultFishModelCheckbox" X="20" Y="518" Width="200" Height="15" TabStop="yes" FontId="3">Default Fish</Checkbox>
-            <Checkbox Name="GenericProposalsModelCheckbox" X="230" Y="518" Width="200" Height="15" TabStop="yes" FontId="3">Generic Proposals</Checkbox>
-            <Checkbox Name="HabcamModelCheckbox" X="20" Y="535" Width="200" Height="15" TabStop="yes" FontId="3">HabCam</Checkbox>
-            <Checkbox Name="SefscModelCheckbox" X="230" Y="535" Width="200" Height="15" TabStop="yes" FontId="3">SEFSC</Checkbox>
-            <Checkbox Name="SwfscPengheadModelCheckbox" X="20" Y="552" Width="200" Height="15" TabStop="yes" FontId="3">SWFSC-PengHead</Checkbox>
-            <Checkbox Name="ArcticSealModelCheckbox" X="230" Y="552" Width="200" Height="15" TabStop="yes" FontId="3">Arctic-Seal</Checkbox>
-            <Checkbox Name="MotionModelCheckbox" X="20" Y="569" Width="200" Height="15" TabStop="yes" FontId="3">Motion</Checkbox>
-            <Checkbox Name="EmTunaModelCheckbox" X="230" Y="569" Width="200" Height="15" TabStop="yes" FontId="3">EM Tuna</Checkbox>
-            <Checkbox Name="MoussDeep7ModelCheckbox" X="20" Y="586" Width="200" Height="15" TabStop="yes" FontId="3">MOUSS Deep 7</Checkbox>
-            <Checkbox Name="AerialPenguinModelCheckbox" X="230" Y="586" Width="200" Height="15" TabStop="yes" FontId="3">Aerial Penguin</Checkbox>
-            <Checkbox Name="SeaLionModelCheckbox" X="20" Y="603" Width="200" Height="15" TabStop="yes" FontId="3">Sea Lion</Checkbox>
-            <Checkbox Name="ConvnextModelCheckbox" X="230" Y="603" Width="200" Height="15" TabStop="yes" FontId="3">ConvNext</Checkbox>
-            <Checkbox Name="MoreyoloModelCheckbox" X="20" Y="620" Width="200" Height="15" TabStop="yes" FontId="3">MoreYOLO</Checkbox>
-            <Checkbox Name="MorefishModelCheckbox" X="230" Y="620" Width="200" Height="15" TabStop="yes" FontId="3">MoreFish</Checkbox>
-            <Checkbox Name="GrouperMoonModelCheckbox" X="20" Y="637" Width="200" Height="15" TabStop="yes" FontId="3">Grouper Moon</Checkbox>
+            <Checkbox Name="DefaultFishModelCheckbox" X="20" Y="481" Width="200" Height="15" TabStop="yes" FontId="3">Default Fish</Checkbox>
+            <Checkbox Name="GenericProposalsModelCheckbox" X="230" Y="481" Width="200" Height="15" TabStop="yes" FontId="3">Generic Proposals</Checkbox>
+            <Checkbox Name="HabcamModelCheckbox" X="20" Y="498" Width="200" Height="15" TabStop="yes" FontId="3">HabCam</Checkbox>
+            <Checkbox Name="SefscModelCheckbox" X="230" Y="498" Width="200" Height="15" TabStop="yes" FontId="3">SEFSC</Checkbox>
+            <Checkbox Name="SwfscPengheadModelCheckbox" X="20" Y="515" Width="200" Height="15" TabStop="yes" FontId="3">SWFSC-PengHead</Checkbox>
+            <Checkbox Name="ArcticSealModelCheckbox" X="230" Y="515" Width="200" Height="15" TabStop="yes" FontId="3">Arctic-Seal</Checkbox>
+            <Checkbox Name="MotionModelCheckbox" X="20" Y="532" Width="200" Height="15" TabStop="yes" FontId="3">Motion</Checkbox>
+            <Checkbox Name="EmTunaModelCheckbox" X="230" Y="532" Width="200" Height="15" TabStop="yes" FontId="3">EM Tuna</Checkbox>
+            <Checkbox Name="MoussDeep7ModelCheckbox" X="20" Y="549" Width="200" Height="15" TabStop="yes" FontId="3">MOUSS Deep 7</Checkbox>
+            <Checkbox Name="AerialPenguinModelCheckbox" X="230" Y="549" Width="200" Height="15" TabStop="yes" FontId="3">Aerial Penguin</Checkbox>
+            <Checkbox Name="SeaLionModelCheckbox" X="20" Y="566" Width="200" Height="15" TabStop="yes" FontId="3">Sea Lion</Checkbox>
+            <Checkbox Name="ConvnextModelCheckbox" X="230" Y="566" Width="200" Height="15" TabStop="yes" FontId="3">ConvNext</Checkbox>
+            <Checkbox Name="MoreyoloModelCheckbox" X="20" Y="583" Width="200" Height="15" TabStop="yes" FontId="3">MoreYOLO</Checkbox>
+            <Checkbox Name="MorefishModelCheckbox" X="230" Y="583" Width="200" Height="15" TabStop="yes" FontId="3">MoreFish</Checkbox>
+            <Checkbox Name="GrouperMoonModelCheckbox" X="20" Y="600" Width="200" Height="15" TabStop="yes" FontId="3">Grouper Moon</Checkbox>
 
             <Button Name="OptionsOkButton" X="-91" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.OptionsOkButton)</Button>
             <Button Name="OptionsCancelButton" X="-11" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.OptionsCancelButton)</Button>

@@ -17,9 +17,10 @@
 
   Dependencies (enforced via After attribute):
     * Core: none (always installed, Vital=yes)
-    * CUDA, PyTorch, VIVIA, SEAL, Models, Dev-Headers: require Core
+    * CUDA, PyTorch, VIVIA, SEAL, Dev-Headers: require Core
     * Extra-CPP: requires Core and CUDA
     * DIVE: standalone (no dependencies)
+    * Model packages: downloaded at install time (from chain file)
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
@@ -116,16 +117,6 @@
         After="VIAME_VIVIA">
       </MsiPackage>
 
-      <!-- Pre-trained Models (Optional) -->
-      <MsiPackage
-        Id="VIAME_Models"
-        SourceFile="VIAME-Models-$(var.VIAMEVersion)-win64.msi"
-        Name="VIAME-Models-$(var.VIAMEVersion)-win64.msi"
-        DisplayInternalUI="yes"
-        InstallCondition="ModelsCheckbox=1"
-        After="VIAME_SEAL">
-      </MsiPackage>
-
       <!-- Development Headers (Optional) -->
       <MsiPackage
         Id="VIAME_DevHeaders"
@@ -133,7 +124,7 @@
         Name="VIAME-Dev-Headers-$(var.VIAMEVersion)-win64.msi"
         DisplayInternalUI="yes"
         InstallCondition="DevHeadersCheckbox=1"
-        After="VIAME_Models">
+        After="VIAME_SEAL">
       </MsiPackage>
 
       <!-- Additional Model Data Packages (from chain file) -->

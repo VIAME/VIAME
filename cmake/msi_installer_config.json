@@ -63,12 +63,6 @@
       "depends_on": ["core"],
       "filename_pattern": "VIAME-SEAL.zip"
     },
-    "models": {
-      "description": "Pre-trained model downloads",
-      "required": false,
-      "depends_on": ["core"],
-      "filename_pattern": "VIAME-Models.zip"
-    },
     "dev_headers": {
       "description": "Development headers (include + share)",
       "required": false,

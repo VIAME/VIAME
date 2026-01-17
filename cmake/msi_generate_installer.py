@@ -509,7 +509,7 @@ class InstallerGenerator:
 
         # Calculate layout for model checkboxes
         # Two columns, starting after the "Additional model data packages:" text
-        model_start_y = 518
+        model_start_y = 481
         row_height = 17
         col_width = 210
         x_col1 = 20
@@ -607,14 +607,11 @@ class InstallerGenerator:
             <Checkbox Name="SEALCheckbox" X="20" Y="381" Width="-30" Height="17" TabStop="yes" FontId="3">SEAL Toolkit</Checkbox>
             <Text X="36" Y="398" Width="-40" Height="14" FontId="5">Specialized tools for seal detection and tracking</Text>
 
-            <Checkbox Name="ModelsCheckbox" X="20" Y="418" Width="-30" Height="17" TabStop="yes" FontId="3">Pre-trained Models</Checkbox>
-            <Text X="36" Y="435" Width="-40" Height="14" FontId="5">Download pre-trained detection and classification models</Text>
-
-            <Checkbox Name="DevHeadersCheckbox" X="20" Y="455" Width="-30" Height="17" TabStop="yes" FontId="3">Development Headers</Checkbox>
-            <Text X="36" Y="472" Width="-40" Height="14" FontId="5">Include and share folders for building against VIAME</Text>
+            <Checkbox Name="DevHeadersCheckbox" X="20" Y="418" Width="-30" Height="17" TabStop="yes" FontId="3">Development Headers</Checkbox>
+            <Text X="36" Y="435" Width="-40" Height="14" FontId="5">Include and share folders for building against VIAME</Text>
 
             <!-- Model Addon Selection Section (auto-generated from CSV) -->
-            <Text X="11" Y="498" Width="-11" Height="18" FontId="3">Additional model packages ({len(self.config.model_addons)} available):</Text>
+            <Text X="11" Y="461" Width="-11" Height="18" FontId="3">Model packages ({len(self.config.model_addons)} available, downloaded at install):</Text>
 
 {model_checkboxes_xml}
 

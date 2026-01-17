@@ -9,15 +9,15 @@ REM   4. Extra-CPP   - adds Darknet, SVM, PostgreSQL
 REM   5. DIVE        - adds DIVE GUI
 REM   6. VIVIA       - adds VIVIA interface (Qt, VTK, GDAL)
 REM   7. SEAL        - adds SEAL toolkit
-REM   8. Models      - adds model downloads
-REM   9. Dev-Headers - include and share folders (development headers)
-REM  10. WiX Build   - builds the network installer bundle (requires WiX v5)
+REM   8. Dev-Headers - include and share folders (development headers)
+REM   9. WiX Build   - builds the network installer bundle (requires WiX v5)
 REM
-REM Note: Stages 1-8 exclude include/ and share/ folders; Stage 9 contains only those
-REM       Stage 10 builds the WiX installer (runs automatically, requires WiX v5 CLI)
+REM Note: Stages 1-7 exclude include/ and share/ folders; Stage 8 contains only those
+REM       Stage 9 builds the WiX installer (runs automatically, requires WiX v5 CLI)
+REM       Model packages are downloaded at install time from download_viame_addons.csv
 REM
 REM Usage: build_server_windows_msi.bat [start_stage]
-REM   start_stage - Optional stage number (1-9) to resume from. Default is 1.
+REM   start_stage - Optional stage number (1-8) to resume from. Default is 1.
 REM   Example: build_server_windows_msi.bat 3  (resumes from PyTorch stage)
 REM
 REM Uses VIAME_MSI_STAGE environment variable to control cmake configuration
@@ -32,11 +32,11 @@ IF NOT "%~1"=="" SET "START_STAGE=%~1"
 
 REM Validate start stage
 IF %START_STAGE% LSS 1 (
-    ECHO ERROR: Invalid start stage %START_STAGE%. Must be between 1 and 9.
+    ECHO ERROR: Invalid start stage %START_STAGE%. Must be between 1 and 8.
     EXIT /B 1
 )
-IF %START_STAGE% GTR 9 (
-    ECHO ERROR: Invalid start stage %START_STAGE%. Must be between 1 and 9.
+IF %START_STAGE% GTR 8 (
+    ECHO ERROR: Invalid start stage %START_STAGE%. Must be between 1 and 8.
     EXIT /B 1
 )
 
@@ -213,24 +213,10 @@ IF %START_STAGE% LEQ 7 (
 )
 
 REM -------------------------------------------------------------------------------------------------------
-REM Stage 8 - Models (adds model downloads)
+REM Stage 8 - Dev-Headers (include and share folders for development)
 REM -------------------------------------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 8 (
-    CALL :BuildStage models "Model downloads"
-    IF ERRORLEVEL 1 GOTO :BuildFailed
-
-    CALL :DiffFiles files-seal.txt files-models.txt diff-models.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Models.zip" @diff-models.lst
-    IF ERRORLEVEL 1 GOTO :ZipFailed
-    CALL :ReportPackageSize "VIAME-Models.zip"
-)
-
-REM -------------------------------------------------------------------------------------------------------
-REM Stage 9 - Dev-Headers (include and share folders for development)
-REM -------------------------------------------------------------------------------------------------------
-
-IF %START_STAGE% LEQ 9 (
     CALL :SnapshotDevHeaders files-dev-headers.txt
     "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Dev-Headers.zip" @files-dev-headers.txt
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -240,7 +226,7 @@ IF %START_STAGE% LEQ 9 (
 )
 
 REM -------------------------------------------------------------------------------------------------------
-REM Stage 10 - Build WiX Network Installer
+REM Stage 9 - Build WiX Network Installer
 REM -------------------------------------------------------------------------------------------------------
 
 ECHO.
@@ -304,9 +290,10 @@ ECHO   - VIAME-Extra-CPP.zip   (Darknet, SVM, PostgreSQL)
 ECHO   - VIAME-DIVE.zip        (DIVE GUI)
 ECHO   - VIAME-VIVIA.zip       (VIVIA interface with Qt, VTK, GDAL)
 ECHO   - VIAME-SEAL.zip        (SEAL toolkit)
-ECHO   - VIAME-Models.zip      (Model downloads)
 ECHO   - VIAME-Dev-Headers.zip (include + share folders for development)
 ECHO   - viame-installer.exe   (WiX network installer bundle)
+ECHO.
+ECHO Note: Model packages are downloaded at install time from the network installer.
 ECHO.
 ECHO Package sizes:
 FOR %%F IN ("%VIAME_BUILD_DIR%\VIAME-*.zip") DO (
