@@ -28,7 +28,7 @@ Running the Command Line Examples
 
 Each run script contains 2 calls. A first ('source setup_viame.sh') which
 runs a script configuring all paths required to run VIAME calls, and a second
-to 'kwiver runner' running the desired detection pipeline. For more information
+to 'viame' running the desired detection pipeline. For more information
 about pipeline configuration, see the pipeline examples. Each example processes
 a list of images and produces detections in various format as output, as configured
 in the pipeline files.
@@ -506,4 +506,4 @@ and the image. The last process displays the annotated image.
 The connections section specify how the inputs and outputs of these
 processes are connected.
 
-This pipeline can then be run using the 'kwiver runner ' app
+This pipeline can then be run using the 'viame' app

@@ -166,4 +166,4 @@ There are multiple ways to perform format conversions, either using KWIVER pipel
 with reader/writer nodes (e.g. see pipelines directory in this example directory) or
 using quick standalone scripts (see scripts). Conversion pipelines are simple,
 containing a detection input node (reader) and output node (writer) and can be run 
-with the 'kwiver runner' command line tool.
+with the 'viame' command line tool.

@@ -14,13 +14,13 @@ source ${VIAME_INSTALL}/setup_viame.sh
 export KWIVER_DEFAULT_LOG_LEVEL=info
 
 if [ -f ${INITIAL_MODEL} ]; then
-  viame_train_detector \
+  viame train \
     -i ${INPUT_DIRECTORY} \
     -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.conf \
     -s detector_trainer:ocv_windowed:trainer:netharn:seed_model=${INITIAL_MODEL} \
     --threshold 0.0
 elif [ -d deep_training ]; then
-  viame_train_detector \
+  viame train \
     -i ${INPUT_DIRECTORY} \
     -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn_nf.conf \
     -s detector_trainer:ocv_windowed:skip_format=true \

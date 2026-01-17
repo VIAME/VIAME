@@ -8,5 +8,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/detector_generic_proposals.pipe \
-              -s input:video_filename=input_image_list_small_set.txt
+viame ${VIAME_INSTALL}/configs/pipelines/detector_generic_proposals.pipe \
+      -s input:video_filename=input_image_list_small_set.txt

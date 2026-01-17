@@ -9,7 +9,7 @@ export OUTPUT_DIRECTORY=output
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/filter_stereo_depth_map.pipe \
-              -s input1:video_filename=left_images.txt\
-	            -s input2:video_filename=right_images.txt\
-              -o ${OUTPUT_DIRECTORY} --no-reset-prompt
+viame ${VIAME_INSTALL}/configs/pipelines/filter_stereo_depth_map.pipe \
+      -s input1:video_filename=left_images.txt \
+      -s input2:video_filename=right_images.txt \
+      -o ${OUTPUT_DIRECTORY} --no-reset-prompt

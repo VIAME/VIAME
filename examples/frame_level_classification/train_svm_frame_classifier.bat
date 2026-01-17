@@ -12,7 +12,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 REM Adjust log level
 SET KWIVER_DEFAULT_LOG_LEVEL=info
 
-viame_train_detector.exe ^
+viame.exe train ^
   -i "%INPUT_DIRECTORY%" ^
   -c "%VIAME_INSTALL%\configs\pipelines\train_frame_classifier_libsvm_svm.conf" ^
   --threshold 0.0

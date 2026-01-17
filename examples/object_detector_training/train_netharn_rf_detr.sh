@@ -9,7 +9,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 export KWIVER_DEFAULT_LOG_LEVEL=info
 
 # Run pipeline
-viame_train_detector \
+viame train \
   -i training_data_mouss \
   -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_rf_detr.conf \
   --threshold 0.0

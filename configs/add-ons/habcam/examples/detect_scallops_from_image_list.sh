@@ -10,5 +10,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/${PIPELINE} \
-              -s input:video_filename=${INPUT_LIST}
+viame ${VIAME_INSTALL}/configs/pipelines/${PIPELINE} \
+      -s input:video_filename=${INPUT_LIST}

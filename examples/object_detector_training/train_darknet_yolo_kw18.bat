@@ -9,7 +9,7 @@ REM Adjust log level
 SET KWIVER_DEFAULT_LOG_LEVEL=info
 
 REM Run pipeline
-viame_train_detector.exe ^
+viame.exe train ^
   -i training_data_mouss ^
   -c "%VIAME_INSTALL%/configs/pipelines/train_detector_darknet_yolo_704.kw18.conf" ^
   --threshold 0.0

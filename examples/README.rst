@@ -68,7 +68,7 @@ Bulk Processing Scripts
 Each .sh or .bat script in the example folder is designed to run on either a single sequence
 of data (e.g. one video, one image sequence, or one image list) or alternatively a folder
 or folder of folders containing many sequences. Inside each script is either a call to
-"process_video" (the most common default), "viame_train_detector", or the "kwiver" executable.
+"process_video" (the most common default), "viame", or the "kwiver" executable.
 The first two are meant for bulk processing multiple sequences, while the latter only
 processes a single sequence.
 
@@ -170,7 +170,7 @@ any of the python scripts in the configs directory - contain specialized functio
 such as running camera calibration, generating mosaics, or running algorithm evaluation
 code, all in standalone scripts
 
-viame_train_detector - Independent CLI tool for training models
+viame - Command line tool for running pipelines and training models
 
 ===============
 Project Folders

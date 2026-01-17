@@ -9,7 +9,7 @@ REM Adjust log level
 SET KWIVER_DEFAULT_LOG_LEVEL=info
 
 REM Run pipeline
-viame_train_detector.exe ^
+viame.exe train ^
   -i training_data_mouss ^
   -c "%VIAME_INSTALL%\configs\pipelines\train_detector_svm_over_generic_detections.conf" ^
   --threshold 0.0

@@ -12,7 +12,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 export KWIVER_DEFAULT_LOG_LEVEL=info
 
 # Run pipeline
-viame_train_detector \
+viame train \
   -i ${INPUT_DIRECTORY} \
   -c ${VIAME_INSTALL}/configs/pipelines/train_detector_darknet_yolo_640.conf \
   --threshold 0.0

@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-kwiver runner hello_world_python.pipe
+viame hello_world_python.pipe

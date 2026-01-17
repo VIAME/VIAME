@@ -62,10 +62,10 @@ echo ""
 python ${VIAME_INSTALL}/configs/database_tool.py start 2>/dev/null || true
 
 # Run the query pipeline
-if kwiver runner ${VIAME_INSTALL}/configs/pipelines/query_from_track.pipe \
-  -s input:video_filename=${INPUT_LIST} \
-  -s track_reader:file_name=${INPUT_TRACKS} \
-  -s track_writer:file_name=${OUTPUT_FILE}
+if viame ${VIAME_INSTALL}/configs/pipelines/query_from_track.pipe \
+         -s input:video_filename=${INPUT_LIST} \
+         -s track_reader:file_name=${INPUT_TRACKS} \
+         -s track_writer:file_name=${OUTPUT_FILE}
 then
     if [ -f "${OUTPUT_FILE}" ]; then
         echo ""

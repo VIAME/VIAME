@@ -17,14 +17,14 @@ REM Adjust log level
 SET KWIVER_DEFAULT_LOG_LEVEL=info
 
 IF EXIST "%SEED_MODEL%" (
-  viame_train_detector.exe ^
+  viame.exe train ^
     -i "%INPUT_DIRECTORY%" ^
     -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn.conf" ^
     -s "detector_trainer:ocv_windowed:trainer:netharn:seed_model=%SEED_MODEL%" ^
     --threshold 0.0
 ) ELSE (
   IF EXIST "deep_training" (
-    viame_train_detector.exe ^
+    viame.exe train ^
       -i "%INPUT_DIRECTORY%" ^
       -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn.continue.conf" ^
       -s "detector_trainer:ocv_windowed:skip_format=true" ^

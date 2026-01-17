@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/register_multimodal_unsync_ocv.pipe
+viame ${VIAME_INSTALL}/configs/pipelines/register_multimodal_unsync_ocv.pipe

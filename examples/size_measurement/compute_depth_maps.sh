@@ -7,5 +7,5 @@ export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
-kwiver runner ${VIAME_INSTALL}/configs/pipelines/filter_stereo_depth_map.pipe \
-              -s input:video_filename=input_list.txt
+viame ${VIAME_INSTALL}/configs/pipelines/filter_stereo_depth_map.pipe \
+      -s input:video_filename=input_list.txt

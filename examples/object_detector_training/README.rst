@@ -46,9 +46,10 @@ only the categories of interest to train a model for, and any synonyms for the
 same category on the same line.
 
 
-After formatting data, a model can be trained via the 'viame_train_detector'
-tool, the only modification required from the scripts in this folder being
-setting your .conf files to the correct groundtruth file format type.
+After formatting data, a model can be trained via the 'viame' tool with a
+training configuration file, the only modification required from the scripts
+in this folder being setting your .conf files to the correct groundtruth
+file format type.
 
 ************
 Labels Files
@@ -101,7 +102,7 @@ the source. In the pre-built binaries they are all enabled by default.
 Code Used in Example
 ********************
 
-| plugins/core/viame_train_detector.cxx
+| tools/train.cxx
 | packages/kwiver/vital/algo/train_detector.h
 | packages/kwiver/vital/algo/train_detector.cxx
 | packages/kwiver/vital/algo/detected_object_set_input.h
