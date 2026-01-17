@@ -389,7 +389,7 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 
     if( !pipe_stream )
     {
-      throw sprokit::invalid_configuration_exception( "viame_train_detector",
+      throw sprokit::invalid_configuration_exception( "viame",
         "Unable to open pipeline file: " + pipeline_filename );
     }
 
@@ -400,8 +400,7 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
     }
     catch( const std::exception& e )
     {
-      throw sprokit::invalid_configuration_exception( "viame_train_detector",
-                                                      e.what() );
+      throw sprokit::invalid_configuration_exception( "viame", e.what() );
     }
 
     external_pipeline = std::move( new_pipeline );

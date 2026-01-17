@@ -228,7 +228,7 @@ std::string get_augmented_filename( const std::string& name,
 
 /// Extract frames from a video file
 ///
-/// Uses kwiver runner with a pipeline to extract frames at the specified rate.
+/// Uses viame with a pipeline to extract frames at the specified rate.
 ///
 /// \param video_filename Path to video file
 /// \param pipeline_filename Path to extraction pipeline

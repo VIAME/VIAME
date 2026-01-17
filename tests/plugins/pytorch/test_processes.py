@@ -7,8 +7,7 @@
 As a minor issue, all the code to be tested here is in KWIVER
 processes, which would make KWIVER's embedded pipeline functionality
 the preferred way to test them.  However, said functionality isn't yet
-wrapped for Python, so we're left invoking "kwiver runner" as a
-subprocess.
+wrapped for Python, so we're left invoking "viame" as a subprocess.
 
 """
 
@@ -34,7 +33,7 @@ def run_pipeline_in_dir(dir_path, pipeline):
     try:
         with f:
             f.write(pipeline)
-        args = ["kwiver", "runner", f.name]
+        args = ["viame", f.name]
         return subprocess.run(args, cwd=dir_path, check=True)
     finally:
         os.remove(f.name)

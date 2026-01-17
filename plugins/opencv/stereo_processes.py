@@ -19,11 +19,11 @@ CommandLine:
 
     python ~/code/VIAME/plugins/opencv/python/run_opencv.py
 
-    ~/code/VIAME/build/install/bin/kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
-    ~/code/VIAME/build/install/bin/kwiver runner opencv.pipe -S pythread_per_process
+    ~/code/VIAME/build/install/bin/viame ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
+    ~/code/VIAME/build/install/bin/viame opencv.pipe -S pythread_per_process
 
-    ~/code/VIAME/build/install/bin/kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe  -S pythread_per_process
-    ~/code/VIAME/build/install/bin/kwiver runner opencv.pipe -S pythread_per_process
+    ~/code/VIAME/build/install/bin/viame ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe  -S pythread_per_process
+    ~/code/VIAME/build/install/bin/viame opencv.pipe -S pythread_per_process
 
 SeeAlso
     ~/code/VIAME/packages/kwiver/vital/bindings/python/vital/types

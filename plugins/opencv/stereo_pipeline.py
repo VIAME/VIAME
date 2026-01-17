@@ -346,7 +346,7 @@ class Pipeline(object):
         Executes this pipeline.
 
         Writes a temporary pipeline file to your sprokit cache directory and
-        calls the kwiver runner .
+        calls the viame tool.
         """
         cache_dir = ensure_app_cache_dir('sprokit', 'temp_pipelines')
         # TODO make a name based on a hash of the text to avoid race conditions
@@ -429,19 +429,19 @@ class Pipeline(object):
         A.draw(fpath)
 
 
-def find_kwiver_runner():
+def find_viame_runner():
     """
-    Search for the sprokit kwiver runner executable
+    Search for the viame pipeline runner executable
     """
-    # First check if kwiver runner is specified as an environment variable
+    # First check if viame runner is specified as an environment variable
     runner_fpath = os.environ.get('SPROKIT_PIPELINE_RUNNER', None)
     if runner_fpath is not None:
         return runner_fpath
 
     # If not, then search for the binary in the current dir and the PATH
-    fnames = ['kwiver']
+    fnames = ['viame']
     if sys.platform.startswith('win32'):
-        fnames.insert(0, 'kwiver.exe')
+        fnames.insert(0, 'viame.exe')
 
     search_paths = ['.']
     search_paths = os.environ.get('PATH', '').split(os.pathsep)
@@ -455,12 +455,12 @@ def find_kwiver_runner():
 
 def run_pipe_file(pipe_fpath, dry=False):
     """
-    Executes kwiver runner with a specific pipe file.
+    Executes viame with a specific pipe file.
     """
     import os
-    runner_fpath = find_kwiver_runner()
+    runner_fpath = find_viame_runner()
     if runner_fpath is None:
-        raise Exception('Cannot find kwiver runner . Is it in your PATH?')
+        raise Exception('Cannot find viame. Is it in your PATH?')
 
     print('found runner exe = {!r}'.format(runner_fpath))
 
@@ -468,9 +468,9 @@ def run_pipe_file(pipe_fpath, dry=False):
         raise IOError('Pipeline file {} does not exist'.format(pipe_fpath))
 
     if not exists(runner_fpath):
-        raise NotImplementedError('Cannot find kwiver runner')
+        raise NotImplementedError('Cannot find viame')
 
-    command = '{} runner {}'.format(runner_fpath, pipe_fpath)
+    command = '{} {}'.format(runner_fpath, pipe_fpath)
     print('command = "{}"'.format(command))
     if not dry:
         os.system(command)

@@ -51,8 +51,8 @@ class UltralyticsDetector(ImageObjectDetector):
         sed -i 's|\[-WINDOW-OPTION-\]|original_and_resized|g' demo_detector_ultralytics.pipe
 
         export PYTHONIOENCODING=utf-8
-        kwiver runner demo_detector_ultralytics.pipe \
-                      -s input:video_filename=input_image_list_small_set.txt
+        viame demo_detector_ultralytics.pipe \
+              -s input:video_filename=input_image_list_small_set.txt
 
     Example:
         >>> import sys, ubelt
