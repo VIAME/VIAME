@@ -64,10 +64,12 @@ target_link_libraries( viame
 ##
 set( applet_sources
   register_applets.cxx
+  csv.cxx
   train.cxx
 )
 
 set( applet_headers
+  csv.h
   train.h
 )
 

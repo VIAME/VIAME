@@ -12,6 +12,7 @@
 #include <vital/plugin_loader/plugin_loader.h>
 #include <vital/applets/applet_registrar.h>
 
+#include "csv.h"
 #include "train.h"
 
 namespace viame {
@@ -31,6 +32,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // -- register applets --
+  reg.register_tool< csv_applet >();
   reg.register_tool< train_applet >();
 
   reg.mark_module_as_loaded();
