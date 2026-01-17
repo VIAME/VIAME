@@ -43,8 +43,7 @@
 #include <deque>
 #include <vector>
 
-#include <boost/filesystem.hpp>
-#include <boost/regex.hpp>
+#include <filesystem>
 
 #include <vital/vital_config.h>
 #include <vital/logger/logger.h>
@@ -137,12 +136,12 @@ void
 refine_detections_svm::priv
 ::load_models()
 {
-  boost::filesystem::path p( model_dir );
-  boost::filesystem::directory_iterator it{ p };
+  std::filesystem::path p( model_dir );
+  std::filesystem::directory_iterator it{ p };
 
   int *labels = new int[2];
 
-  for (; it != boost::filesystem::directory_iterator {}; ++it)
+  for (; it != std::filesystem::directory_iterator{}; ++it)
   {
     std::string file_name_with_path = it->path().string().c_str();
     std::string file_name = (it->path()).filename().string();

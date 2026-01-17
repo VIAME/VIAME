@@ -13,7 +13,7 @@
 #include <vital/logger/logger.h>
 #include <vital/algo/detected_object_set_output.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <svm.h>
 
@@ -32,7 +32,7 @@
 namespace viame {
 
 namespace kv = kwiver::vital;
-namespace bfs = boost::filesystem;
+namespace fs = std::filesystem;
 
 // =============================================================================
 /// Private implementation class
@@ -618,12 +618,12 @@ train_detector_svm::priv
   std::string rotation_path = lsh_model_dir + "/itq.model." + suffix.str() + ".rotation.npy";
 
   // Check if files exist using boost filesystem
-  if( !bfs::exists( mean_path ) )
+  if( !fs::exists( mean_path ) )
   {
     LOG_ERROR( m_logger, "ITQ mean vector file not found: " << mean_path );
     return false;
   }
-  if( !bfs::exists( rotation_path ) )
+  if( !fs::exists( rotation_path ) )
   {
     LOG_ERROR( m_logger, "ITQ rotation matrix file not found: " << rotation_path );
     return false;
@@ -756,7 +756,7 @@ train_detector_svm::priv
   std::string hash_uids_path = lsh_model_dir + "/lsh_hash_uids.txt";
 
   // Check if files exist
-  if( !bfs::exists( hash_codes_path ) || !bfs::exists( hash_uids_path ) )
+  if( !fs::exists( hash_codes_path ) || !fs::exists( hash_uids_path ) )
   {
     LOG_INFO( m_logger, "Precomputed hash files not found, will compute at runtime" );
     return false;
@@ -1960,23 +1960,23 @@ train_detector_svm
   d_->initialize_lsh_index();
 
   // Create output directory if needed
-  if( !bfs::exists( d_->output_directory ) )
+  if( !fs::exists( d_->output_directory ) )
   {
-    bfs::create_directories( d_->output_directory );
+    fs::create_directories( d_->output_directory );
   }
 
   // Resolve label folder (handle symlinks)
   std::string label_folder = d_->label_folder;
-  if( !bfs::exists( label_folder ) && bfs::exists( label_folder + ".lnk" ) )
+  if( !fs::exists( label_folder ) && fs::exists( label_folder + ".lnk" ) )
   {
     label_folder = label_folder + ".lnk";
   }
-  if( bfs::is_symlink( label_folder ) )
+  if( fs::is_symlink( label_folder ) )
   {
-    label_folder = bfs::read_symlink( label_folder ).string();
+    label_folder = fs::read_symlink( label_folder ).string();
   }
 
-  if( !bfs::is_directory( label_folder ) )
+  if( !fs::is_directory( label_folder ) )
   {
     LOG_ERROR( logger(), "Label folder does not exist: " << label_folder );
     return;
@@ -1986,10 +1986,10 @@ train_detector_svm
   std::vector< std::string > label_files;
   std::vector< std::string > categories;
 
-  bfs::directory_iterator it( label_folder );
-  for( ; it != bfs::directory_iterator(); ++it )
+  fs::directory_iterator it( label_folder );
+  for( ; it != fs::directory_iterator(); ++it )
   {
-    if( bfs::is_regular_file( *it ) )
+    if( fs::is_regular_file( *it ) )
     {
       std::string filename = it->path().filename().string();
       std::string ext = it->path().extension().string();

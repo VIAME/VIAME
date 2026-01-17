@@ -40,7 +40,6 @@ ExternalProject_Add(kwiver
   CMAKE_GENERATOR ${gen}
   CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
-    ${VIAME_ARGS_Boost}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_VXL}
     ${VIAME_ARGS_PROJ4}

@@ -102,15 +102,6 @@ target_include_directories( viame_core PRIVATE
   ${KWIVER_SOURCE_DIR}/vital/internal
   )
 
-find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
-  COMPONENTS
-  chrono
-  filesystem
-  system)
-
-include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-link_directories( ${Boost_LIBRARY_DIRS} )
-
 set( CORE_LINK_LIBRARIES
   kwiver::vital
   kwiver::vital_algo
@@ -122,8 +113,6 @@ set( CORE_LINK_LIBRARIES
   kwiver::kwiver_algo_mvg
   kwiver::sprokit_pipeline
   kwiver::kwiver_adapter
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
   )
 
 # Eigen is used by metadata parsers
@@ -186,15 +175,6 @@ algorithms_create_plugin( viame_core
 target_link_libraries( viame_core_plugin
   PUBLIC               kwiver::vital_vpm
   )
-
-find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
-    COMPONENTS
-      chrono
-      filesystem
-      system)
-
-include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-link_directories( ${Boost_LIBRARY_DIRS} )
 
 # Add process library
 set( process_headers
@@ -267,8 +247,6 @@ kwiver_add_plugin( viame_processes_core
                    Eigen3::Eigen
                    kwiver::kwiver_algo_mvg
                    kwiver::kwiver_algo_ocv
-                   ${Boost_SYSTEM_LIBRARY}
-                   ${Boost_FILESYSTEM_LIBRARY}
                    viame_core
                    viame_opencv
  )
