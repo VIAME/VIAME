@@ -560,7 +560,7 @@ model_evaluator::priv::perform_matching()
   std::vector< std::pair< int, frame_matches > > results( m_frame_list.size() );
 
   #pragma omp parallel for schedule(dynamic)
-  for( size_t fi = 0; fi < m_frame_list.size(); fi++ )
+  for( int fi = 0; fi < static_cast<int>( m_frame_list.size() ); fi++ )
   {
     int frame_id = m_frame_list[fi];
 
@@ -1235,7 +1235,7 @@ model_evaluator::priv::compute_hota_metrics( evaluation_results& results )
   #ifdef _OPENMP
   #pragma omp parallel for reduction(+:sum_hota,sum_deta,sum_assa,sum_loca,num_thresholds)
   #endif
-  for( size_t ti = 0; ti < iou_thresholds.size(); ti++ )
+  for( int ti = 0; ti < static_cast<int>( iou_thresholds.size() ); ti++ )
   {
     double alpha = iou_thresholds[ti];
 
@@ -2257,7 +2257,7 @@ model_evaluator::priv::compute_multi_threshold_ap( evaluation_results& results )
   #ifdef _OPENMP
   #pragma omp parallel for reduction(+:sum_ap)
   #endif
-  for( size_t i = 0; i < thresholds.size(); i++ )
+  for( int i = 0; i < static_cast<int>( thresholds.size() ); i++ )
   {
     sum_ap += compute_ap_at_threshold( thresholds[i] );
   }
