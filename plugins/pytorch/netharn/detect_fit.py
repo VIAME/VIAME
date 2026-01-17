@@ -1045,7 +1045,7 @@ def setup_harn(cmdline=True, **kw):
         model = efficientdet.EfficientDet(**initkw)
         model._initkw = initkw
     elif arch == 'retinanet':
-        from .models import mm_models
+        from .detection_models import mm_models
         initkw = dict(
             classes=classes,
             channels=config['channels'],
@@ -1058,7 +1058,7 @@ def setup_harn(cmdline=True, **kw):
         elif config['backbone_init'] is not None:
             model._init_backbone_from_pretrained(config['backbone_init'])
     elif arch == 'MM_HRNetV2_w18_MaskRCNN':
-        from .models import new_models_v1
+        from .detection_models import new_models_v1
         initkw = dict(
             classes=classes,
             channels=config['channels'],
@@ -1074,7 +1074,7 @@ def setup_harn(cmdline=True, **kw):
         elif config['backbone_init'] is not None:
             model._init_backbone_from_pretrained(config['backbone_init'])
     elif arch == 'maskrcnn':
-        from .models import mm_models
+        from .detection_models import mm_models
         initkw = dict(
             classes=classes,
             channels=config['channels'],
@@ -1087,7 +1087,7 @@ def setup_harn(cmdline=True, **kw):
         elif config['backbone_init'] is not None:
             model._init_backbone_from_pretrained(config['backbone_init'])
     elif arch == 'cascade':
-        from .models import mm_models
+        from .detection_models import mm_models
         initkw = dict(
             classes=classes,
             channels=config['channels'],
