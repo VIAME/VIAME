@@ -77,41 +77,7 @@
     }
   },
 
-  "model_data": {
-    "_comment": "Additional model data packages (Girder ITEM IDs from data.kitware.com)",
-    "SeaLion1_1": {
-      "girder_id": "5f6639dd50a41e3d199a4153",
-      "description": "Sea Lion Detection v1.1"
-    },
-    "SeaLion1_2": {
-      "girder_id": "5fcdb5f150a41e3d198fa856",
-      "description": "Sea Lion Detection v1.2"
-    },
-    "MOUSS": {
-      "girder_id": "5cdec8ac8d777f072bb4457f",
-      "description": "MOUSS Fish Detection"
-    },
-    "MOUSSAlt": {
-      "girder_id": "5ce5af728d777f072bd5836d",
-      "description": "MOUSS Fish Detection (Alternate)"
-    },
-    "SEFSC1_1": {
-      "girder_id": "5fb69a7450a41e3d1960c6a5",
-      "description": "SEFSC Fish Detection v1.1"
-    },
-    "SEFSC1_2": {
-      "girder_id": "5fcdb5f150a41e3d198fa856",
-      "description": "SEFSC Fish Detection v1.2"
-    },
-    "ArcticSeals": {
-      "girder_id": "5e30b8ffaf2e2eed3545bff6",
-      "description": "Arctic Seal Detection"
-    },
-    "HabCam": {
-      "girder_id": "5f6bb7e850a41e3d19a63047",
-      "description": "HabCam Scallop Detection"
-    }
-  },
+  "_model_data_note": "Model data is now loaded from download_viame_addons.csv",
 
   "external_installers": {
     "dive_gui": {

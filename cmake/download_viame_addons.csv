@@ -1,15 +1,15 @@
-Default Fish, https://viame.kitware.com/api/v1/item/680709f60010b9dd2856abdf/download, Default fish detection model (1-class)
-Generic Proposals, https://viame.kitware.com/api/v1/item/680708cbed26029b31953f11/download, Generic object proposal model (1-class)
-HabCam, https://viame.kitware.com/girder/api/v1/file/685eecb7a2df48d3c1ae8bfb/download, Detect and measure scallops and flatfish and other friends
-SEFSC, https://viame.kitware.com/api/v1/item/68118c2394d3f293fb910916/download, 170 species fish detector and trackers for Gulf of Mexico
-SWFSC-PengHead, https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download, Penguin headcam classification
-Arctic-Seal, https://viame.kitware.com/api/v1/file/67a4dd1715780f826149c3ff/download, Arctic seal YOLO models (TF removed)
-Motion, https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download, Generic moving object detectors
-EM Tuna, https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download, On-board deck camera for tuna box and head/tail detection
-MOUSS Deep 7, https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download, MOUSS deep7 fish detection in hawaii
-Aerial Penguin, https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download, Aerial penguin detection from fixed wings/drones
-Sea Lion, https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download, Sea lion aerial detection data
-ConvNext, https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download, DARPA Learn ConvNext low-shot detector
-MoreYOLO, https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download, Additional Darknet YOLO model architectures
-MoreFish, https://data.kitware.com/api/v1/item/6611cf192357cf6b55ca8ad3/download, Additional 1-class fish detection models
-Grouper Moon, https://viame.kitware.com/api/v1/item/68001795334bc54295c78afd/download, Grouper Moon project detection and tracking models
+Default Fish, https://viame.kitware.com/api/v1/item/680709f60010b9dd2856abdf/download, Default fish detection model (1-class), 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+Generic Proposals, https://viame.kitware.com/api/v1/item/680708cbed26029b31953f11/download, Generic object proposal model (1-class), 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+HabCam, https://viame.kitware.com/girder/api/v1/file/685eecb7a2df48d3c1ae8bfb/download, Detect and measure scallops and flatfish and other friends, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+SEFSC, https://viame.kitware.com/api/v1/item/68118c2394d3f293fb910916/download, 170 species fish detector and trackers for Gulf of Mexico, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+SWFSC-PengHead, https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download, Penguin headcam classification, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+Arctic-Seal, https://viame.kitware.com/api/v1/file/67a4dd1715780f826149c3ff/download, Arctic seal YOLO models (TF removed), 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+Motion, https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download, Generic moving object detectors, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+EM Tuna, https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download, On-board deck camera for tuna box and head/tail detection, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+MOUSS Deep 7, https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download, MOUSS deep7 fish detection in hawaii, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+Aerial Penguin, https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download, Aerial penguin detection from fixed wings/drones, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+Sea Lion, https://viame.kitware.com/api/v1/item/64e391660ee78064c384dbb9/download, Sea lion aerial detection data, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+ConvNext, https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download, DARPA Learn ConvNext low-shot detector, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+MoreYOLO, https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download, Additional Darknet YOLO model architectures, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+MoreFish, https://data.kitware.com/api/v1/item/6611cf192357cf6b55ca8ad3/download, Additional 1-class fish detection models, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
+Grouper Moon, https://viame.kitware.com/api/v1/item/68001795334bc54295c78afd/download, Grouper Moon project detection and tracking models, 6575c927fbc2e20585734d16cd7d6efd, {PYTORCH, PYTORCH-NETHARN}
