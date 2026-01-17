@@ -2,10 +2,9 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include <kwiversys/SystemTools.hxx>
-#include <kwiversys/CommandLineArguments.hxx>
+#include "train.h"
 
-#include <vital/kwiver-include-paths.h>
+#include <kwiversys/SystemTools.hxx>
 
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/plugin_loader/plugin_factory.h>
@@ -25,8 +24,8 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-#include "utilities_file.h"
-#include "utilities_training.h"
+#include <plugins/core/utilities_file.h>
+#include <plugins/core/utilities_training.h>
 
 #include <vector>
 #include <unordered_set>
@@ -48,69 +47,17 @@
   namespace filesystem = std::experimental::filesystem;
 #endif
 
-using namespace viame;
+namespace kv = kwiver::vital;
 
-// =======================================================================================
-// Class storing all input parameters and private variables for tool
-class trainer_vars
-{
-public:
-
-  // Collected command line args
-  kwiversys::CommandLineArguments m_args;
-
-  // Config options
-  bool opt_help;
-  bool opt_list;
-  bool opt_no_query;
-  bool opt_no_adv_print;
-  bool opt_no_emb_pipe;
-  bool opt_gt_only;
-
-  std::string opt_config;
-  std::string opt_input_dir;
-  std::string opt_input_list;
-  std::string opt_input_truth;
-  std::string opt_label_file;
-  std::string opt_validation_dir;
-  std::string opt_detector;
-  std::string opt_tracker;
-  std::string opt_out_config;
-  std::string opt_threshold;
-  std::string opt_settings;
-  std::string opt_pipeline_file;
-  std::string opt_frame_rate;
-  std::string opt_max_frame_count;
-  std::string opt_timeout;
-  std::string opt_init_weights;
-
-  trainer_vars()
-  {
-    opt_help = false;
-    opt_list = false;
-    opt_no_query = false;
-    opt_no_adv_print = false;
-    opt_no_emb_pipe = false;
-    opt_gt_only = false;
-  }
-
-  virtual ~trainer_vars()
-  {
-  }
-};
-
-// =======================================================================================
-// Define global variables used across this tool
-static trainer_vars g_params;
-static kwiver::vital::logger_handle_t g_logger;
-
+namespace viame {
+namespace tools {
 
 // =======================================================================================
 // Assorted configuration related helper functions
-static kwiver::vital::config_block_sptr default_config()
+static kv::config_block_sptr default_config()
 {
-  kwiver::vital::config_block_sptr config
-    = kwiver::vital::config_block::empty_config( "detector_trainer_tool" );
+  kv::config_block_sptr config
+    = kv::config_block::empty_config( "detector_trainer_tool" );
 
   config->set_value( "groundtruth_extensions", ".csv",
     "Groundtruth file extensions (csv, kw18, txt, etc...). Note: this is independent of "
@@ -173,160 +120,128 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "data_warning_file", "",
     "Optional file for storing possible data errors and warning." );
 
-  kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
-    ( "groundtruth_reader", config, kwiver::vital::algo::detected_object_set_input_sptr() );
-  kwiver::vital::algo::image_io::get_nested_algo_configuration
-    ( "image_reader", config, kwiver::vital::algo::image_io_sptr() );
-  kwiver::vital::algo::train_detector::get_nested_algo_configuration
-    ( "detector_trainer", config, kwiver::vital::algo::train_detector_sptr() );
-  kwiver::vital::algo::train_tracker::get_nested_algo_configuration
-    ( "tracker_trainer", config, kwiver::vital::algo::train_tracker_sptr() );
-  kwiver::vital::algo::read_object_track_set::get_nested_algo_configuration
-    ( "track_reader", config, kwiver::vital::algo::read_object_track_set_sptr() );
+  kv::algo::detected_object_set_input::get_nested_algo_configuration
+    ( "groundtruth_reader", config, kv::algo::detected_object_set_input_sptr() );
+  kv::algo::image_io::get_nested_algo_configuration
+    ( "image_reader", config, kv::algo::image_io_sptr() );
+  kv::algo::train_detector::get_nested_algo_configuration
+    ( "detector_trainer", config, kv::algo::train_detector_sptr() );
+  kv::algo::train_tracker::get_nested_algo_configuration
+    ( "tracker_trainer", config, kv::algo::train_tracker_sptr() );
+  kv::algo::read_object_track_set::get_nested_algo_configuration
+    ( "track_reader", config, kv::algo::read_object_track_set_sptr() );
 
   return config;
 }
 
 // =======================================================================================
-/*                   _
- *   _ __ ___   __ _(_)_ __
- *  | '_ ` _ \ / _` | | '_ \
- *  | | | | | | (_| | | | | |
- *  |_| |_| |_|\__,_|_|_| |_|
- *
- */
-int
-main( int argc, char* argv[] )
+train_applet
+::train_applet()
 {
-  // Initialize shared storage
-  g_logger = kwiver::vital::get_logger( "viame_train_detector" );
+}
 
-  // Parse options
-  g_params.m_args.Initialize( argc, argv );
-  g_params.m_args.StoreUnusedArguments( true );
-  typedef kwiversys::CommandLineArguments argT;
+// =======================================================================================
+void
+train_applet
+::add_command_options()
+{
+  m_cmd_options->add_options()
+    ( "h,help", "Display usage information",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "l,list", "Display list of all trainable algorithms",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "nq,no-query", "Do not query the user for anything",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "nap,no-adv-prints", "Do not print out any advanced chars",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "nep,no-embedded-pipe", "Do not output embedded pipes",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "gto,gt-frames-only", "Use frames with annotations only",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "c,config", "Input configuration file(s) with parameters",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "i,input", "Input directory containing groundtruth",
+      ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
+    ( "il,input-list", "Input list with data for training",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "it,input-truth", "Input list containing training truth",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "lbl,labels", "Input label file for train categories",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "v,validation", "Optional validation input directory",
+      ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
+    ( "d,detector", "Type of detector(s) to train if no config",
+      ::cxxopts::value< std::string >()->default_value( "" ), "type" )
+    ( "tt,tracker", "Type of tracker(s) to train (optional)",
+      ::cxxopts::value< std::string >()->default_value( "" ), "type" )
+    ( "o,output-config", "Output a sample configuration to file",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "s,setting", "Over-ride some setting in the config",
+      ::cxxopts::value< std::string >()->default_value( "" ), "key=value" )
+    ( "t,threshold", "Threshold override to apply over input",
+      ::cxxopts::value< std::string >()->default_value( "" ), "value" )
+    ( "p,pipeline", "Pipeline file",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "vfr,default-vfr", "Default video frame rate for extraction",
+      ::cxxopts::value< std::string >()->default_value( "" ), "rate" )
+    ( "mfc,max-frame-count", "Maximum frame count to use",
+      ::cxxopts::value< std::string >()->default_value( "" ), "count" )
+    ( "to,timeout", "Maximum time in seconds",
+      ::cxxopts::value< std::string >()->default_value( "" ), "seconds" )
+    ( "iw,init-weights", "Optional input seed weights over-ride",
+      ::cxxopts::value< std::string >()->default_value( "" ), "path" )
+    ;
+}
 
-  g_params.m_args.AddArgument( "--help",          argT::NO_ARGUMENT,
-    &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "-h",              argT::NO_ARGUMENT,
-    &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "--list",          argT::NO_ARGUMENT,
-    &g_params.opt_list, "Display list of all trainable algorithms" );
-  g_params.m_args.AddArgument( "-l",              argT::NO_ARGUMENT,
-    &g_params.opt_list, "Display list of all trainable algorithms" );
-  g_params.m_args.AddArgument( "--no-query",      argT::NO_ARGUMENT,
-    &g_params.opt_no_query, "Do not query the user for anything" );
-  g_params.m_args.AddArgument( "-nq",             argT::NO_ARGUMENT,
-    &g_params.opt_no_query, "Do not query the user for anything" );
-  g_params.m_args.AddArgument( "--no-adv-prints", argT::NO_ARGUMENT,
-    &g_params.opt_no_adv_print, "Do not print out any advanced chars" );
-  g_params.m_args.AddArgument( "-nap",            argT::NO_ARGUMENT,
-    &g_params.opt_no_adv_print, "Do not print out any advanced chars" );
-  g_params.m_args.AddArgument( "--no-embedded-pipe", argT::NO_ARGUMENT,
-    &g_params.opt_no_emb_pipe, "Do not output embedded pipes" );
-  g_params.m_args.AddArgument( "-nep",            argT::NO_ARGUMENT,
-    &g_params.opt_no_emb_pipe, "Do not output embedded pipes" );
-  g_params.m_args.AddArgument( "--gt-frames-only", argT::NO_ARGUMENT,
-    &g_params.opt_gt_only, "Use frames with annotations only" );
-  g_params.m_args.AddArgument( "-gto",            argT::NO_ARGUMENT,
-    &g_params.opt_gt_only, "Use frames with annotations only" );
-  g_params.m_args.AddArgument( "--config",        argT::SPACE_ARGUMENT,
-    &g_params.opt_config, "Input configuration file(s) with parameters" );
-  g_params.m_args.AddArgument( "-c",              argT::SPACE_ARGUMENT,
-    &g_params.opt_config, "Input configuration file(s) with parameters" );
-  g_params.m_args.AddArgument( "--input",         argT::SPACE_ARGUMENT,
-    &g_params.opt_input_dir, "Input directory containing groundtruth" );
-  g_params.m_args.AddArgument( "-i",              argT::SPACE_ARGUMENT,
-    &g_params.opt_input_dir, "Input directory containing groundtruth" );
-  g_params.m_args.AddArgument( "--input-list",    argT::SPACE_ARGUMENT,
-    &g_params.opt_input_list, "Input list with data for training" );
-  g_params.m_args.AddArgument( "-il",             argT::SPACE_ARGUMENT,
-    &g_params.opt_input_list, "Input list with data for training" );
-  g_params.m_args.AddArgument( "--input-truth",   argT::SPACE_ARGUMENT,
-    &g_params.opt_input_truth, "Input list containing training truth" );
-  g_params.m_args.AddArgument( "-it",             argT::SPACE_ARGUMENT,
-    &g_params.opt_input_truth, "Input list containing training truth" );
-  g_params.m_args.AddArgument( "--labels",        argT::SPACE_ARGUMENT,
-    &g_params.opt_label_file, "Input label file for train categories" );
-  g_params.m_args.AddArgument( "-lbl",            argT::SPACE_ARGUMENT,
-    &g_params.opt_label_file, "Input label file for train categories" );
-  g_params.m_args.AddArgument( "--validation",    argT::SPACE_ARGUMENT,
-    &g_params.opt_validation_dir, "Optional validation input directory" );
-  g_params.m_args.AddArgument( "-v",              argT::SPACE_ARGUMENT,
-    &g_params.opt_validation_dir, "Optional validation input directory" );
-  g_params.m_args.AddArgument( "--detector",      argT::SPACE_ARGUMENT,
-    &g_params.opt_detector, "Type of detector(s) to train if no config" );
-  g_params.m_args.AddArgument( "-d",              argT::SPACE_ARGUMENT,
-    &g_params.opt_detector, "Type of detector(s) to train if no config" );
-  g_params.m_args.AddArgument( "--tracker",       argT::SPACE_ARGUMENT,
-    &g_params.opt_tracker, "Type of tracker(s) to train (optional)" );
-  g_params.m_args.AddArgument( "-tt",             argT::SPACE_ARGUMENT,
-    &g_params.opt_tracker, "Type of tracker(s) to train (optional)" );
-  g_params.m_args.AddArgument( "--output-config", argT::SPACE_ARGUMENT,
-    &g_params.opt_out_config, "Output a sample configuration to file" );
-  g_params.m_args.AddArgument( "-o",              argT::SPACE_ARGUMENT,
-    &g_params.opt_out_config, "Output a sample configuration to file" );
-  g_params.m_args.AddArgument( "--setting",       argT::SPACE_ARGUMENT,
-    &g_params.opt_settings, "Over-ride some setting in the config" );
-  g_params.m_args.AddArgument( "-s",              argT::SPACE_ARGUMENT,
-    &g_params.opt_settings, "Over-ride some setting in the config" );
-  g_params.m_args.AddArgument( "--threshold",     argT::SPACE_ARGUMENT,
-    &g_params.opt_threshold, "Threshold override to apply over input" );
-  g_params.m_args.AddArgument( "-t",              argT::SPACE_ARGUMENT,
-    &g_params.opt_threshold, "Threshold override to apply over input" );
-  g_params.m_args.AddArgument( "--pipeline",      argT::SPACE_ARGUMENT,
-    &g_params.opt_pipeline_file, "Pipeline file" );
-  g_params.m_args.AddArgument( "-p",              argT::SPACE_ARGUMENT,
-    &g_params.opt_pipeline_file, "Pipeline file" );
-  g_params.m_args.AddArgument( "--default-vfr",   argT::SPACE_ARGUMENT,
-    &g_params.opt_frame_rate, "Default video frame rate for extraction" );
-  g_params.m_args.AddArgument( "-vfr",            argT::SPACE_ARGUMENT,
-    &g_params.opt_frame_rate, "Default video frame rate for extraction" );
-  g_params.m_args.AddArgument( "--max-frame-count",argT::SPACE_ARGUMENT,
-    &g_params.opt_max_frame_count, "Maximum frame count to use" );
-  g_params.m_args.AddArgument( "-mfc",            argT::SPACE_ARGUMENT,
-    &g_params.opt_max_frame_count, "Maximum frame count to use" );
-  g_params.m_args.AddArgument( "--timeout",       argT::SPACE_ARGUMENT,
-    &g_params.opt_timeout, "Maximum time in seconds" );
-  g_params.m_args.AddArgument( "-to",             argT::SPACE_ARGUMENT,
-    &g_params.opt_timeout, "Maximum time in seconds" );
-  g_params.m_args.AddArgument( "--init-weights",  argT::SPACE_ARGUMENT,
-    &g_params.opt_init_weights, "Optional input seed weights over-ride" );
-  g_params.m_args.AddArgument( "-iw",             argT::SPACE_ARGUMENT,
-    &g_params.opt_init_weights, "Optional input seed weights over-ride" );
+// =======================================================================================
+int
+train_applet
+::run()
+{
+  // Get logger
+  kv::logger_handle_t logger = kv::get_logger( "viame.tools.train" );
 
-  // Parse args
-  if( !g_params.m_args.Parse() )
-  {
-    std::cerr << "Problem parsing arguments" << std::endl;
-    return EXIT_FAILURE;
-  }
+  // Get command line arguments
+  auto& cmd_args = command_args();
 
   // Print help
-  if( argc == 1 || g_params.opt_help )
+  if( cmd_args[ "help" ].as< bool >() )
   {
-    std::cout << "Usage: " << argv[0] << "[options]\n"
+    std::cout << "Usage: viame train [options]\n"
               << "\nTrain one of several object detectors in the system.\n"
-              << g_params.m_args.GetHelp() << std::endl;
+              << m_cmd_options->help() << std::endl;
     return EXIT_FAILURE;
   }
 
+  // Extract options
+  bool opt_list = cmd_args[ "list" ].as< bool >();
+  bool opt_no_query = cmd_args[ "no-query" ].as< bool >();
+  bool opt_no_adv_print = cmd_args[ "no-adv-prints" ].as< bool >();
+  bool opt_no_emb_pipe = cmd_args[ "no-embedded-pipe" ].as< bool >();
+  bool opt_gt_only = cmd_args[ "gt-frames-only" ].as< bool >();
+
+  std::string opt_config = cmd_args[ "config" ].as< std::string >();
+  std::string opt_input_dir = cmd_args[ "input" ].as< std::string >();
+  std::string opt_input_list = cmd_args[ "input-list" ].as< std::string >();
+  std::string opt_input_truth = cmd_args[ "input-truth" ].as< std::string >();
+  std::string opt_label_file = cmd_args[ "labels" ].as< std::string >();
+  std::string opt_validation_dir = cmd_args[ "validation" ].as< std::string >();
+  std::string opt_detector = cmd_args[ "detector" ].as< std::string >();
+  std::string opt_tracker = cmd_args[ "tracker" ].as< std::string >();
+  std::string opt_out_config = cmd_args[ "output-config" ].as< std::string >();
+  std::string opt_settings = cmd_args[ "setting" ].as< std::string >();
+  std::string opt_threshold = cmd_args[ "threshold" ].as< std::string >();
+  std::string opt_pipeline_file = cmd_args[ "pipeline" ].as< std::string >();
+  std::string opt_frame_rate = cmd_args[ "default-vfr" ].as< std::string >();
+  std::string opt_max_frame_count = cmd_args[ "max-frame-count" ].as< std::string >();
+  std::string opt_timeout = cmd_args[ "timeout" ].as< std::string >();
+  std::string opt_init_weights = cmd_args[ "init-weights" ].as< std::string >();
+
   // List option
-  if( g_params.opt_list )
+  if( opt_list )
   {
-    kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-
-    kwiver::vital::path_list_t pathl;
-    const std::string& default_module_paths( DEFAULT_MODULE_PATHS );
-
-    kwiversys::SystemTools::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
-
-    for( auto path : pathl )
-    {
-      vpm.add_search_path( path );
-    }
-
-    vpm.load_plugins( pathl );
+    kv::plugin_manager& vpm = kv::plugin_manager::instance();
+    vpm.load_all_plugins();
 
     auto fact_list = vpm.get_factories( "train_detector" );
 
@@ -342,7 +257,7 @@ main( int argc, char* argv[] )
     for( auto fact : fact_list )
     {
       std::string name;
-      if( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, name ) )
+      if( fact->get_attribute( kv::plugin_factory::PLUGIN_NAME, name ) )
       {
         std::cout << name << std::endl;
       }
@@ -351,15 +266,15 @@ main( int argc, char* argv[] )
   }
 
   // Test for presence of conflicting options
-  if( !g_params.opt_config.empty() && !g_params.opt_detector.empty() )
+  if( !opt_config.empty() && !opt_detector.empty() )
   {
     std::cerr << "Only one of --config and --detector allowed." << std::endl;
     return EXIT_FAILURE;
   }
 
   // Test for presence of required options (either detector or tracker training)
-  if( g_params.opt_config.empty() && g_params.opt_detector.empty() &&
-      g_params.opt_tracker.empty() )
+  if( opt_config.empty() && opt_detector.empty() &&
+      opt_tracker.empty() )
   {
     std::cerr << "One of --config, --detector, or --tracker must be set." << std::endl;
     return EXIT_FAILURE;
@@ -370,17 +285,17 @@ main( int argc, char* argv[] )
   std::vector< std::string > training_detectors;
   std::vector< std::string > training_trackers;
 
-  if( !g_params.opt_config.empty() )
+  if( !opt_config.empty() )
   {
-    string_to_vector( g_params.opt_config, training_configs, "," );
+    string_to_vector( opt_config, training_configs, "," );
   }
-  if( !g_params.opt_detector.empty() )
+  if( !opt_detector.empty() )
   {
-    string_to_vector( g_params.opt_detector, training_detectors, "," );
+    string_to_vector( opt_detector, training_detectors, "," );
   }
-  if( !g_params.opt_tracker.empty() )
+  if( !opt_tracker.empty() )
   {
-    string_to_vector( g_params.opt_tracker, training_trackers, "," );
+    string_to_vector( opt_tracker, training_trackers, "," );
   }
 
   const bool multi_model_training =
@@ -396,13 +311,13 @@ main( int argc, char* argv[] )
   }
 
   // Load KWIVER plugins
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-  kwiver::vital::config_block_sptr config = default_config();
-  kwiver::vital::algo::detected_object_set_input_sptr groundtruth_reader;
-  kwiver::vital::algo::image_io_sptr image_reader;
-  kwiver::vital::algo::train_detector_sptr detector_trainer;
-  kwiver::vital::algo::train_tracker_sptr tracker_trainer;
-  kwiver::vital::algo::read_object_track_set_sptr track_reader;
+  kv::plugin_manager::instance().load_all_plugins();
+  kv::config_block_sptr config = default_config();
+  kv::algo::detected_object_set_input_sptr groundtruth_reader;
+  kv::algo::image_io_sptr image_reader;
+  kv::algo::train_detector_sptr detector_trainer;
+  kv::algo::train_tracker_sptr tracker_trainer;
+  kv::algo::read_object_track_set_sptr track_reader;
 
   // Read all configuration options and check settings (use first config/detector for data loading)
   std::string first_config = training_configs.empty() ? "" : training_configs[0];
@@ -412,7 +327,7 @@ main( int argc, char* argv[] )
   {
     try
     {
-      config->merge_config( kwiver::vital::read_config_file( first_config ) );
+      config->merge_config( kv::read_config_file( first_config ) );
     }
     catch( const std::exception& e )
     {
@@ -428,9 +343,9 @@ main( int argc, char* argv[] )
     config->set_value( "detector_trainer:type", first_detector );
   }
 
-  if( !g_params.opt_settings.empty() )
+  if( !opt_settings.empty() )
   {
-    const std::string& setting = g_params.opt_settings;
+    const std::string& setting = opt_settings;
     size_t const split_pos = setting.find( "=" );
 
     if( split_pos == std::string::npos )
@@ -442,30 +357,30 @@ main( int argc, char* argv[] )
       throw std::runtime_error( reason );
     }
 
-    kwiver::vital::config_block_key_t setting_key =
+    kv::config_block_key_t setting_key =
       setting.substr( 0, split_pos );
-    kwiver::vital::config_block_value_t setting_value =
+    kv::config_block_value_t setting_value =
       setting.substr( split_pos + 1 );
 
-    kwiver::vital::config_block_keys_t keys;
+    kv::config_block_keys_t keys;
 
-    kwiver::vital::tokenize( setting_key, keys,
-      kwiver::vital::config_block::block_sep(),
-      kwiver::vital::TokenizeTrimEmpty );
+    kv::tokenize( setting_key, keys,
+      kv::config_block::block_sep(),
+      kv::TokenizeTrimEmpty );
 
     if( keys.size() < 2 )
     {
       std::string const reason = "Error: The key portion of setting "
         "\'" + setting + "\' does not contain at least two keys in its "
         "keypath which is invalid. (e.g. must be at least a:b)";
-  
+
       throw std::runtime_error( reason );
     }
 
     config->set_value( setting_key, setting_value );
   }
 
-  if( g_params.opt_no_adv_print )
+  if( opt_no_adv_print )
   {
     const std::string prefix1 = "detector_trainer:netharn";
     const std::string prefix2 = "detector_trainer:ocv_windowed:trainer:netharn";
@@ -483,11 +398,11 @@ main( int argc, char* argv[] )
       if( conf.find( "timeout" ) != std::string::npos )
       {
         if( config->get_value< std::string >( conf ) == "default" ||
-            !g_params.opt_timeout.empty() )
+            !opt_timeout.empty() )
         {
-          if( !g_params.opt_timeout.empty() )
+          if( !opt_timeout.empty() )
           {
-            config->set_value( conf, g_params.opt_timeout );
+            config->set_value( conf, opt_timeout );
           }
           else
           {
@@ -497,7 +412,7 @@ main( int argc, char* argv[] )
       }
     }
 
-    if( g_params.opt_no_emb_pipe )
+    if( opt_no_emb_pipe )
     {
       for( auto conf : conf_values )
       {
@@ -514,7 +429,7 @@ main( int argc, char* argv[] )
     }
   }
 
-  if( !g_params.opt_init_weights.empty() )
+  if( !opt_init_weights.empty() )
   {
     bool any_config_found = false;
     auto conf_values = config->available_values();
@@ -531,13 +446,13 @@ main( int argc, char* argv[] )
 
     std::map< std::string, std::string > found_files;
 
-    if( does_folder_exist( g_params.opt_init_weights ) )
+    if( does_folder_exist( opt_init_weights ) )
     {
       for( auto itr : weight_ext )
       {
         std::vector< std::string > files_of_ext;
 
-        list_files_in_folder( g_params.opt_init_weights,
+        list_files_in_folder( opt_init_weights,
                               files_of_ext,
                               false,
                               { itr.first } );
@@ -555,13 +470,13 @@ main( int argc, char* argv[] )
         }
       }
     }
-    else if( does_file_exist( g_params.opt_init_weights ) )
+    else if( does_file_exist( opt_init_weights ) )
     {
       for( auto ext_itr : weight_ext )
       {
-        if( ends_with_extension( g_params.opt_init_weights, ext_itr.first ) )
+        if( ends_with_extension( opt_init_weights, ext_itr.first ) )
         {
-          found_files[ ext_itr.first ] = g_params.opt_init_weights;
+          found_files[ ext_itr.first ] = opt_init_weights;
           break;
         }
       }
@@ -600,33 +515,33 @@ main( int argc, char* argv[] )
     }
   }
 
-  kwiver::vital::algo::train_detector::set_nested_algo_configuration
+  kv::algo::train_detector::set_nested_algo_configuration
     ( "detector_trainer", config, detector_trainer );
-  kwiver::vital::algo::train_detector::get_nested_algo_configuration
+  kv::algo::train_detector::get_nested_algo_configuration
     ( "detector_trainer", config, detector_trainer );
 
-  kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
+  kv::algo::detected_object_set_input::set_nested_algo_configuration
     ( "groundtruth_reader", config, groundtruth_reader );
-  kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+  kv::algo::detected_object_set_input::get_nested_algo_configuration
     ( "groundtruth_reader", config, groundtruth_reader );
 
   bool valid_config = true;
 
-  if( !kwiver::vital::algo::detected_object_set_input::
+  if( !kv::algo::detected_object_set_input::
         check_nested_algo_configuration( "groundtruth_reader", config ) )
   {
     valid_config = false;
   }
 
-  if( !kwiver::vital::algo::train_detector::
+  if( !kv::algo::train_detector::
         check_nested_algo_configuration( "detector_trainer", config ) )
   {
     valid_config = false;
   }
 
-  if( !g_params.opt_out_config.empty() )
+  if( !opt_out_config.empty() )
   {
-    write_config_file( config, g_params.opt_out_config );
+    write_config_file( config, opt_out_config );
 
     if( valid_config )
     {
@@ -696,7 +611,7 @@ main( int argc, char* argv[] )
   std::string data_warning_file =
     config->get_value< std::string >( "data_warning_file" );
 
-  if( convert_to_full_frame && !kwiver::vital::algo::image_io::
+  if( convert_to_full_frame && !kv::algo::image_io::
         check_nested_algo_configuration( "image_reader", config ) )
   {
     std::cout << "Invalid image reader type specified" << std::endl;
@@ -709,15 +624,15 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
-  if( !g_params.opt_threshold.empty() )
+  if( !opt_threshold.empty() )
   {
-    threshold = atof( g_params.opt_threshold.c_str() );
+    threshold = atof( opt_threshold.c_str() );
     std::cout << "Using command line provided threshold: " << threshold << std::endl;
   }
 
-  if( !g_params.opt_pipeline_file.empty() )
+  if( !opt_pipeline_file.empty() )
   {
-    pipeline_file = g_params.opt_pipeline_file;
+    pipeline_file = opt_pipeline_file;
   }
 
   if( !augmented_cache.empty() &&
@@ -735,14 +650,14 @@ main( int argc, char* argv[] )
     data_warning_writer.reset( new std::ofstream( data_warning_file.c_str() ) );
   }
 
-  if( !g_params.opt_frame_rate.empty() )
+  if( !opt_frame_rate.empty() )
   {
-    frame_rate = std::stod( g_params.opt_frame_rate );
+    frame_rate = std::stod( opt_frame_rate );
   }
 
-  if( !g_params.opt_max_frame_count.empty() )
+  if( !opt_max_frame_count.empty() )
   {
-    max_frame_count = std::stoi( g_params.opt_max_frame_count );
+    max_frame_count = std::stoi( opt_max_frame_count );
   }
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
@@ -778,24 +693,24 @@ main( int argc, char* argv[] )
   // Load labels.txt file
   std::string label_fn;
 
-  if( !g_params.opt_label_file.empty() )
+  if( !opt_label_file.empty() )
   {
-    label_fn = g_params.opt_label_file;
+    label_fn = opt_label_file;
   }
-  else if( !g_params.opt_input_dir.empty() )
+  else if( !opt_input_dir.empty() )
   {
-    label_fn = append_path( g_params.opt_input_dir, "labels.txt" );
+    label_fn = append_path( opt_input_dir, "labels.txt" );
   }
 
-  kwiver::vital::category_hierarchy_sptr model_labels;
+  kv::category_hierarchy_sptr model_labels;
   bool detection_without_label = false;
 
-  if( !does_file_exist( label_fn ) && g_params.opt_out_config.empty() )
+  if( !does_file_exist( label_fn ) && opt_out_config.empty() )
   {
     std::cout << "Label file (labels.txt) does not exist in input folder" << std::endl;
     std::cout << std::endl << "Would you like to train over all category labels? (y/n) ";
 
-    if( !g_params.opt_no_query )
+    if( !opt_no_query )
     {
       std::string response;
       std::cin >> response;
@@ -807,11 +722,11 @@ main( int argc, char* argv[] )
       }
     }
   }
-  else if( g_params.opt_out_config.empty() )
+  else if( opt_out_config.empty() )
   {
     try
     {
-      model_labels.reset( new kwiver::vital::category_hierarchy( label_fn ) );
+      model_labels.reset( new kv::category_hierarchy( label_fn ) );
     }
     catch( const std::exception& e )
     {
@@ -823,9 +738,9 @@ main( int argc, char* argv[] )
   // Image reader and width/height only required for certain operations
   if( convert_to_full_frame )
   {
-    kwiver::vital::algo::image_io::set_nested_algo_configuration
+    kv::algo::image_io::set_nested_algo_configuration
       ( "image_reader", config, image_reader );
-    kwiver::vital::algo::image_io::get_nested_algo_configuration
+    kv::algo::image_io::get_nested_algo_configuration
       ( "image_reader", config, image_reader );
   }
 
@@ -839,9 +754,9 @@ main( int argc, char* argv[] )
   bool auto_detect_truth = false;       // Auto-detect truth if not manually specified
 
   // Option 1: a typical training data directory is input
-  if( !g_params.opt_input_dir.empty() )
+  if( !opt_input_dir.empty() )
   {
-    std::string input_dir = g_params.opt_input_dir;
+    std::string input_dir = opt_input_dir;
 
     if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
     {
@@ -849,7 +764,7 @@ main( int argc, char* argv[] )
         filesystem::path( input_dir + ".lnk" ) ).string();
     }
 
-    if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
+    if( !does_folder_exist( input_dir ) && opt_out_config.empty() )
     {
       std::cerr << "Input directory does not exist, exiting." << std::endl;
       return EXIT_FAILURE;
@@ -918,7 +833,7 @@ main( int argc, char* argv[] )
       // Append path to all train and validation files, test to see if they all exist
       bool absolute_paths = false;
       std::string to_test = all_data[0];
-      std::string full_path = append_path( g_params.opt_input_dir, to_test );
+      std::string full_path = append_path( opt_input_dir, to_test );
 
       if( !does_file_exist( full_path ) && does_file_exist( to_test ) )
       {
@@ -930,7 +845,7 @@ main( int argc, char* argv[] )
       {
         if( !absolute_paths )
         {
-          all_data[i] = append_path( g_params.opt_input_dir, all_data[i] );
+          all_data[i] = append_path( opt_input_dir, all_data[i] );
         }
 
         if( !does_file_exist( all_data[i] ) )
@@ -945,8 +860,8 @@ main( int argc, char* argv[] )
 
       // Identify all sub-directories containing data
       std::vector< std::string > subfolders, videos;
-      list_all_subfolders( g_params.opt_input_dir, subfolders );
-      list_files_in_folder( g_params.opt_input_dir, videos, false, video_exts );
+      list_all_subfolders( opt_input_dir, subfolders );
+      list_files_in_folder( opt_input_dir, videos, false, video_exts );
 
       all_data.insert( all_data.end(), subfolders.begin(), subfolders.end() );
       all_data.insert( all_data.end(), videos.begin(), videos.end() );
@@ -960,12 +875,12 @@ main( int argc, char* argv[] )
 
     auto_detect_truth = true;
   }
-  else if( !g_params.opt_input_list.empty() )
+  else if( !opt_input_list.empty() )
   {
-    if( !does_file_exist( g_params.opt_input_list ) ||
-        !load_file_list( g_params.opt_input_list, all_data ) )
+    if( !does_file_exist( opt_input_list ) ||
+        !load_file_list( opt_input_list, all_data ) )
     {
-      std::cout << "Unable to load: " << g_params.opt_input_list << std::endl;
+      std::cout << "Unable to load: " << opt_input_list << std::endl;
       return EXIT_FAILURE;
     }
 
@@ -980,27 +895,27 @@ main( int argc, char* argv[] )
       return EXIT_FAILURE;
     }
 
-    auto_detect_truth = g_params.opt_input_truth.empty();
+    auto_detect_truth = opt_input_truth.empty();
 
     if( !auto_detect_truth )
     {
       // Check if input_truth is a single file (CSV) or a list file
-      if( does_file_exist( g_params.opt_input_truth ) )
+      if( does_file_exist( opt_input_truth ) )
       {
         // Check if it's a groundtruth file directly (e.g., .csv) or a list file
-        bool is_truth_file = ends_with_extension( g_params.opt_input_truth, groundtruth_exts );
+        bool is_truth_file = ends_with_extension( opt_input_truth, groundtruth_exts );
 
         if( is_truth_file )
         {
           // Single truth file for all images - replicate it for each data entry
-          all_truth.resize( all_data.size(), g_params.opt_input_truth );
+          all_truth.resize( all_data.size(), opt_input_truth );
         }
         else
         {
           // It's a list file containing paths to truth files
-          if( !load_file_list( g_params.opt_input_truth, all_truth ) )
+          if( !load_file_list( opt_input_truth, all_truth ) )
           {
-            std::cout << "Unable to load: " << g_params.opt_input_truth << std::endl;
+            std::cout << "Unable to load: " << opt_input_truth << std::endl;
             return EXIT_FAILURE;
           }
 
@@ -1018,14 +933,14 @@ main( int argc, char* argv[] )
       }
       else
       {
-        std::cout << "Unable to find: " << g_params.opt_input_truth << std::endl;
+        std::cout << "Unable to find: " << opt_input_truth << std::endl;
         return EXIT_FAILURE;
       }
     }
   }
 
   // Load optional manual validation folder
-  if( !g_params.opt_validation_dir.empty() )
+  if( !opt_validation_dir.empty() )
   {
     std::vector< std::string > subfolders, videos;
 
@@ -1034,14 +949,14 @@ main( int argc, char* argv[] )
       validation_pivot = all_data.size();
     }
 
-    if( !does_folder_exist( g_params.opt_validation_dir ) )
+    if( !does_folder_exist( opt_validation_dir ) )
     {
-      std::cerr << "Unable to open " << g_params.opt_validation_dir << std::endl;
+      std::cerr << "Unable to open " << opt_validation_dir << std::endl;
       return EXIT_FAILURE;
     }
 
-    list_all_subfolders( g_params.opt_validation_dir, subfolders );
-    list_files_in_folder( g_params.opt_validation_dir, videos, false, video_exts );
+    list_all_subfolders( opt_validation_dir, subfolders );
+    list_files_in_folder( opt_validation_dir, videos, false, video_exts );
 
     all_data.insert( all_data.end(), subfolders.begin(), subfolders.end() );
     all_data.insert( all_data.end(), videos.begin(), videos.end() );
@@ -1049,9 +964,9 @@ main( int argc, char* argv[] )
 
   // Load groundtruth for all image files in all folders using reader class
   std::vector< std::string > train_image_fn;
-  std::vector< kwiver::vital::detected_object_set_sptr > train_gt;
+  std::vector< kv::detected_object_set_sptr > train_gt;
   std::vector< std::string > validation_image_fn;
-  std::vector< kwiver::vital::detected_object_set_sptr > validation_gt;
+  std::vector< kv::detected_object_set_sptr > validation_gt;
 
   // Retain class counts for error checking
   std::map< std::string, int > label_counts;
@@ -1174,7 +1089,7 @@ main( int argc, char* argv[] )
     std::sort( image_files.begin(), image_files.end() );
 
     // Load groundtruth file for this entry
-    kwiver::vital::algo::detected_object_set_input_sptr gt_reader;
+    kv::algo::detected_object_set_input_sptr gt_reader;
 
     if( !one_file_per_image )
     {
@@ -1185,9 +1100,9 @@ main( int argc, char* argv[] )
         return EXIT_FAILURE;
       }
 
-      kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
+      kv::algo::detected_object_set_input::set_nested_algo_configuration
         ( "groundtruth_reader", config, gt_reader );
-      kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+      kv::algo::detected_object_set_input::get_nested_algo_configuration
         ( "groundtruth_reader", config, gt_reader );
 
       std::cout << "Opening groundtruth file " << gt_files[0] << std::endl;
@@ -1218,9 +1133,9 @@ main( int argc, char* argv[] )
       std::cout << "Error: entry " << data_item << " contains no image files." << std::endl;
     }
 
-    for( unsigned i = 0; i < image_files.size(); ++i )
+    for( unsigned j = 0; j < image_files.size(); ++j )
     {
-      const std::string& image_file = image_files[i];
+      const std::string& image_file = image_files[j];
 
       bool use_image = true;
       std::string filtered_image_file;
@@ -1249,19 +1164,19 @@ main( int argc, char* argv[] )
       }
 
       // Read groundtruth for image
-      kwiver::vital::detected_object_set_sptr frame_dets =
-        std::make_shared< kwiver::vital::detected_object_set>();
+      kv::detected_object_set_sptr frame_dets =
+        std::make_shared< kv::detected_object_set>();
 
       if( one_file_per_image )
       {
         gt_reader.reset();
 
-        kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
+        kv::algo::detected_object_set_input::set_nested_algo_configuration
           ( "groundtruth_reader", config, gt_reader );
-        kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+        kv::algo::detected_object_set_input::get_nested_algo_configuration
           ( "groundtruth_reader", config, gt_reader );
 
-        gt_reader->open( gt_files[i] );
+        gt_reader->open( gt_files[j] );
 
         std::string read_fn = get_filename_no_path( image_file );
 
@@ -1288,14 +1203,14 @@ main( int argc, char* argv[] )
 
       if( convert_to_full_frame )
       {
-        if( i < 4 || variable_resolution_sequences )
+        if( j < 4 || variable_resolution_sequences )
         {
           auto image = image_reader->load( image_file );
 
           unsigned new_width = image->width();
           unsigned new_height = image->height();
 
-          if( i > 0 && ( new_width != image_width || new_height != image_height ) )
+          if( j > 0 && ( new_width != image_width || new_height != image_height ) )
           {
             variable_resolution_sequences = true;
           }
@@ -1314,8 +1229,8 @@ main( int argc, char* argv[] )
                   << " detections for "
                   << image_file << std::endl;
 
-        kwiver::vital::detected_object_set_sptr filtered_dets =
-          std::make_shared< kwiver::vital::detected_object_set>();
+        kv::detected_object_set_sptr filtered_dets =
+          std::make_shared< kv::detected_object_set>();
 
         for( auto det : *frame_dets )
         {
@@ -1467,8 +1382,8 @@ main( int argc, char* argv[] )
         for( auto det : *det_set )
         {
           det->set_type(
-            kwiver::vital::detected_object_type_sptr(
-              new kwiver::vital::detected_object_type( label, 1.0 ) ) );
+            kv::detected_object_type_sptr(
+              new kv::detected_object_type( label, 1.0 ) ) );
 
           label_counts[ label ]++;
         }
@@ -1478,8 +1393,8 @@ main( int argc, char* argv[] )
         for( auto det : *det_set )
         {
           det->set_type(
-            kwiver::vital::detected_object_type_sptr(
-              new kwiver::vital::detected_object_type( label, 1.0 ) ) );
+            kv::detected_object_type_sptr(
+              new kv::detected_object_type( label, 1.0 ) ) );
         }
       }
     }
@@ -1518,7 +1433,7 @@ main( int argc, char* argv[] )
 
   if( !model_labels )
   {
-    model_labels.reset( new kwiver::vital::category_hierarchy() );
+    model_labels.reset( new kv::category_hierarchy() );
 
     int id = 0;
 
@@ -1529,10 +1444,10 @@ main( int argc, char* argv[] )
   }
 
   // Use GT frames only if enabled
-  if( g_params.opt_gt_only )
+  if( opt_gt_only )
   {
     std::vector< std::string > adj_train_image_fn;
-    std::vector< kwiver::vital::detected_object_set_sptr > adj_train_gt;
+    std::vector< kv::detected_object_set_sptr > adj_train_gt;
 
     for( unsigned i = 0; i < train_image_fn.size(); ++i )
     {
@@ -1570,7 +1485,7 @@ main( int argc, char* argv[] )
 
     bool found_first = false, found_second = false, initial_override = false;
     std::vector< std::string > adj_train_image_fn;
-    std::vector< kwiver::vital::detected_object_set_sptr > adj_train_gt;
+    std::vector< kv::detected_object_set_sptr > adj_train_gt;
 
     for( unsigned i = 0; i < train_image_fn.size(); ++i )
     {
@@ -1666,7 +1581,7 @@ main( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
-  // Adjust labels 
+  // Adjust labels
   if( use_labels )
   {
     std::vector< bool > fg_mask = adjust_labels( train_gt,
@@ -1688,7 +1603,7 @@ main( int argc, char* argv[] )
       std::cout << "========================================" << std::endl;
 
       // Reconfigure for this model
-      kwiver::vital::config_block_sptr model_config = default_config();
+      kv::config_block_sptr model_config = default_config();
 
       if( !training_configs.empty() )
       {
@@ -1697,7 +1612,7 @@ main( int argc, char* argv[] )
 
         try
         {
-          model_config->merge_config( kwiver::vital::read_config_file( current_config ) );
+          model_config->merge_config( kv::read_config_file( current_config ) );
         }
         catch( const std::exception& e )
         {
@@ -1715,16 +1630,16 @@ main( int argc, char* argv[] )
       }
 
       // Apply command line settings override
-      if( !g_params.opt_settings.empty() )
+      if( !opt_settings.empty() )
       {
-        const std::string& setting = g_params.opt_settings;
+        const std::string& setting = opt_settings;
         size_t const split_pos = setting.find( "=" );
 
         if( split_pos != std::string::npos )
         {
-          kwiver::vital::config_block_key_t setting_key =
+          kv::config_block_key_t setting_key =
             setting.substr( 0, split_pos );
-          kwiver::vital::config_block_value_t setting_value =
+          kv::config_block_value_t setting_value =
             setting.substr( split_pos + 1 );
           model_config->set_value( setting_key, setting_value );
         }
@@ -1732,12 +1647,12 @@ main( int argc, char* argv[] )
 
       // Reinitialize detector trainer for this model
       detector_trainer.reset();
-      kwiver::vital::algo::train_detector::set_nested_algo_configuration
+      kv::algo::train_detector::set_nested_algo_configuration
         ( "detector_trainer", model_config, detector_trainer );
-      kwiver::vital::algo::train_detector::get_nested_algo_configuration
+      kv::algo::train_detector::get_nested_algo_configuration
         ( "detector_trainer", model_config, detector_trainer );
 
-      if( !kwiver::vital::algo::train_detector::
+      if( !kv::algo::train_detector::
             check_nested_algo_configuration( "detector_trainer", model_config ) )
       {
         std::cout << "Configuration not valid for model " << ( model_idx + 1 ) << std::endl;
@@ -1814,11 +1729,11 @@ main( int argc, char* argv[] )
     // Read track groundtruth directly using track_reader
     // Note: Tracker training uses the same groundtruth files but reads them as tracks
     // (with track IDs preserved) rather than as per-frame detections
-    std::vector< kwiver::vital::object_track_set_sptr > train_tracks;
-    std::vector< kwiver::vital::object_track_set_sptr > validation_tracks;
+    std::vector< kv::object_track_set_sptr > train_tracks;
+    std::vector< kv::object_track_set_sptr > validation_tracks;
 
     // Configure track reader
-    kwiver::vital::algo::read_object_track_set::set_nested_algo_configuration
+    kv::algo::read_object_track_set::set_nested_algo_configuration
       ( "track_reader", config, track_reader );
 
     if( track_reader )
@@ -1874,7 +1789,7 @@ main( int argc, char* argv[] )
           {
             track_reader->open( gt_file );
 
-            kwiver::vital::object_track_set_sptr tracks;
+            kv::object_track_set_sptr tracks;
             if( track_reader->read_set( tracks ) && tracks )
             {
               std::cout << "Read " << tracks->size() << " tracks from "
@@ -1916,31 +1831,31 @@ main( int argc, char* argv[] )
       std::cout << std::endl << "Training tracker: " << current_tracker << std::endl;
 
       // Configure tracker trainer
-      kwiver::vital::config_block_sptr tracker_config = default_config();
+      kv::config_block_sptr tracker_config = default_config();
       tracker_config->set_value( "tracker_trainer:type", current_tracker );
 
       // Apply command line settings override
-      if( !g_params.opt_settings.empty() )
+      if( !opt_settings.empty() )
       {
-        const std::string& setting = g_params.opt_settings;
+        const std::string& setting = opt_settings;
         size_t const split_pos = setting.find( "=" );
 
         if( split_pos != std::string::npos )
         {
-          kwiver::vital::config_block_key_t setting_key =
+          kv::config_block_key_t setting_key =
             setting.substr( 0, split_pos );
-          kwiver::vital::config_block_value_t setting_value =
+          kv::config_block_value_t setting_value =
             setting.substr( split_pos + 1 );
           tracker_config->set_value( setting_key, setting_value );
         }
       }
 
-      kwiver::vital::algo::train_tracker::set_nested_algo_configuration
+      kv::algo::train_tracker::set_nested_algo_configuration
         ( "tracker_trainer", tracker_config, tracker_trainer );
-      kwiver::vital::algo::train_tracker::get_nested_algo_configuration
+      kv::algo::train_tracker::get_nested_algo_configuration
         ( "tracker_trainer", tracker_config, tracker_trainer );
 
-      if( !kwiver::vital::algo::train_tracker::
+      if( !kv::algo::train_tracker::
             check_nested_algo_configuration( "tracker_trainer", tracker_config ) )
       {
         std::cout << "Configuration not valid for tracker: " << current_tracker << std::endl;
@@ -1996,3 +1911,6 @@ main( int argc, char* argv[] )
 
   return EXIT_SUCCESS;
 }
+
+} // namespace tools
+} // namespace viame
