@@ -9,8 +9,14 @@
   - Optional GUI installers (DIVE)
 
   Build with:
-    candle.exe -ext WixBalExtension VIAME_Network.wxs
-    light.exe -ext WixBalExtension VIAME_Network.wixobj
+    candle.exe -ext WixBalExtension msi_viame_network.wxs
+    light.exe -ext WixBalExtension msi_viame_network.wixobj
+
+  Dependencies (enforced via After attribute):
+    - Core: none (always installed, Vital=yes)
+    - CUDA, PyTorch, VIVIA, SEAL, Models, Dev-Headers: require Core
+    - Extra-CPP: requires Core and CUDA
+    - DIVE: standalone (no dependencies)
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
