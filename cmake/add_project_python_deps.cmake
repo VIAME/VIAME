@@ -269,15 +269,28 @@ foreach( ID RANGE ${DEP_COUNT} )
   string( REPLACE ";" "----" PYTHON_DEP_CMD_STR "${PYTHON_DEP_FULL_CMD}" )
   string( REPLACE ";" "----" PYTHON_DEP_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
 
-  # Use custom pip check script for python-deps to avoid re-checking on every build
+  # Use custom pip check script to avoid re-running pip on every build
   if( "${DEP}" STREQUAL "python-deps" )
     # Hash the dependency list to detect changes
-    string( REPLACE ";" "," _DEPS_FOR_HASH "${VIAME_PYTHON_BASIC_DEPS}" )
+    string( REPLACE ";" "," _HASH_INPUT "${VIAME_PYTHON_BASIC_DEPS}" )
     set( _HASH_FILE "${VIAME_BUILD_PREFIX}/src/python-deps-hash.txt" )
 
     set( PYTHON_DEP_BUILD
       ${CMAKE_COMMAND}
-        -DDEPS_HASH_INPUT:STRING=${_DEPS_FOR_HASH}
+        -DHASH_INPUT:STRING=${_HASH_INPUT}
+        -DHASH_FILE:PATH=${_HASH_FILE}
+        -DPIP_INSTALL_CMD:STRING=${PYTHON_DEP_CMD_STR}
+        -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}
+        -P ${VIAME_CMAKE_DIR}/custom_pip_check_install.cmake
+      )
+  elseif( "${DEP}" STREQUAL "pytorch" OR "${DEP}" STREQUAL "torchvision" )
+    # Hash the package version to detect changes (includes extra-index-url in CMD)
+    set( _HASH_FILE "${VIAME_BUILD_PREFIX}/src/${DEP}-hash.txt" )
+
+    set( PYTHON_DEP_BUILD
+      ${CMAKE_COMMAND}
+        -DPKG_NAME:STRING=${DEP}
+        -DHASH_INPUT:STRING=${CMD}
         -DHASH_FILE:PATH=${_HASH_FILE}
         -DPIP_INSTALL_CMD:STRING=${PYTHON_DEP_CMD_STR}
         -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}

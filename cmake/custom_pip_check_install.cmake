@@ -1,25 +1,31 @@
 # custom_pip_check_install.cmake
 #
-# This script wraps pip install to skip installation when the dependency list
+# This script wraps pip install to skip installation when the input hash
 # hasn't changed. It uses a hash file to track the installed state.
 #
 # Required variables:
-#   DEPS_HASH_INPUT  - String to hash for comparison (e.g., comma-separated deps list)
+#   HASH_INPUT       - String to hash for comparison (e.g., deps list or package version)
 #   HASH_FILE        - Path to the hash file for comparison
 #   PIP_INSTALL_CMD  - Full pip install command (----separated)
 #
 # Optional variables:
+#   PKG_NAME         - Package/group name for display (default: "python-deps")
 #   ENV_VARS         - Environment variables (----separated KEY=VALUE pairs)
 
 cmake_minimum_required( VERSION 3.16 )
 
 # Validate required variables
-if( NOT DEPS_HASH_INPUT OR NOT HASH_FILE OR NOT PIP_INSTALL_CMD )
-  message( FATAL_ERROR "custom_pip_check_install.cmake requires DEPS_HASH_INPUT, HASH_FILE, and PIP_INSTALL_CMD" )
+if( NOT HASH_INPUT OR NOT HASH_FILE OR NOT PIP_INSTALL_CMD )
+  message( FATAL_ERROR "custom_pip_check_install.cmake requires HASH_INPUT, HASH_FILE, and PIP_INSTALL_CMD" )
 endif()
 
-# Compute hash of the dependency list
-string( MD5 CURRENT_HASH "${DEPS_HASH_INPUT}" )
+# Default package name for display
+if( NOT PKG_NAME )
+  set( PKG_NAME "python-deps" )
+endif()
+
+# Compute hash of the input
+string( MD5 CURRENT_HASH "${HASH_INPUT}" )
 
 # Read stored hash if it exists
 set( STORED_HASH "" )
@@ -30,14 +36,14 @@ endif()
 
 # Compare hashes
 if( CURRENT_HASH STREQUAL STORED_HASH )
-  message( STATUS "python-deps: Dependencies unchanged, skipping pip install" )
+  message( STATUS "${PKG_NAME}: Unchanged (${HASH_INPUT}), skipping pip install" )
   return()
 endif()
 
 if( STORED_HASH )
-  message( STATUS "python-deps: Dependencies changed, running pip install" )
+  message( STATUS "${PKG_NAME}: Changed, running pip install (${HASH_INPUT})" )
 else()
-  message( STATUS "python-deps: First install, running pip install" )
+  message( STATUS "${PKG_NAME}: First install, running pip install (${HASH_INPUT})" )
 endif()
 
 # Convert ----separated pip command back to list
@@ -64,7 +70,7 @@ else()
 endif()
 
 # Run pip install
-message( STATUS "python-deps: Running pip install..." )
+message( STATUS "${PKG_NAME}: Running pip install..." )
 if( ENV_VARS_LIST )
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E env ${ENV_VARS_LIST} ${PIP_INSTALL_CMD_LIST}
@@ -80,9 +86,9 @@ else()
 endif()
 
 if( NOT PIP_RESULT EQUAL 0 )
-  message( FATAL_ERROR "python-deps: pip install failed with exit code ${PIP_RESULT}" )
+  message( FATAL_ERROR "${PKG_NAME}: pip install failed with exit code ${PIP_RESULT}" )
 endif()
 
 # Store the hash only after successful install
 file( WRITE "${HASH_FILE}" "${CURRENT_HASH}" )
-message( STATUS "python-deps: Successfully installed, hash saved" )
+message( STATUS "${PKG_NAME}: Successfully installed, hash saved" )
