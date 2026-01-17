@@ -11,8 +11,10 @@ REM   6. VIVIA       - adds VIVIA interface (Qt, VTK, GDAL)
 REM   7. SEAL        - adds SEAL toolkit
 REM   8. Models      - adds model downloads
 REM   9. Dev-Headers - include and share folders (development headers)
+REM  10. WiX Build   - builds the network installer bundle (requires WiX v5)
 REM
 REM Note: Stages 1-8 exclude include/ and share/ folders; Stage 9 contains only those
+REM       Stage 10 builds the WiX installer (runs automatically, requires WiX v5 CLI)
 REM
 REM Usage: build_server_windows_msi.bat [start_stage]
 REM   start_stage - Optional stage number (1-9) to resume from. Default is 1.
@@ -238,6 +240,54 @@ IF %START_STAGE% LEQ 9 (
 )
 
 REM -------------------------------------------------------------------------------------------------------
+REM Stage 10 - Build WiX Network Installer
+REM -------------------------------------------------------------------------------------------------------
+
+ECHO.
+ECHO ========================================
+ECHO Building WiX Network Installer
+ECHO ========================================
+ECHO.
+
+REM Generate UI theme from CSV (model checkboxes)
+ECHO Generating installer UI from model addons CSV...
+python "%~dp0msi_generate_installer.py" --ui-only
+IF ERRORLEVEL 1 (
+    ECHO WARNING: Failed to generate UI theme. Continuing with existing theme...
+)
+
+REM Check if wix CLI is available
+WHERE wix >NUL 2>&1
+IF ERRORLEVEL 1 (
+    ECHO.
+    ECHO WARNING: WiX CLI tool not found. Install with:
+    ECHO   dotnet tool install --global wix
+    ECHO   wix extension add WixToolset.Bal.wixext
+    ECHO.
+    ECHO Skipping network installer build...
+    GOTO :SkipWixBuild
+)
+
+REM Build the network installer bundle
+ECHO Building network installer with WiX v5...
+pushd "%~dp0"
+wix build -ext WixToolset.Bal.wixext msi_viame_network.wxs -o "%VIAME_BUILD_DIR%\viame-installer.exe"
+IF ERRORLEVEL 1 (
+    ECHO.
+    ECHO WARNING: WiX build failed. Check WiX installation and extension.
+    popd
+    GOTO :SkipWixBuild
+)
+popd
+
+ECHO Network installer created: %VIAME_BUILD_DIR%\viame-installer.exe
+FOR %%F IN ("%VIAME_BUILD_DIR%\viame-installer.exe") DO (
+    CALL :FormatSize "%%~zF" "viame-installer.exe"
+)
+
+:SkipWixBuild
+
+REM -------------------------------------------------------------------------------------------------------
 REM Build Complete
 REM -------------------------------------------------------------------------------------------------------
 
@@ -256,10 +306,16 @@ ECHO   - VIAME-VIVIA.zip       (VIVIA interface with Qt, VTK, GDAL)
 ECHO   - VIAME-SEAL.zip        (SEAL toolkit)
 ECHO   - VIAME-Models.zip      (Model downloads)
 ECHO   - VIAME-Dev-Headers.zip (include + share folders for development)
+ECHO   - viame-installer.exe   (WiX network installer bundle)
 ECHO.
 ECHO Package sizes:
 FOR %%F IN ("%VIAME_BUILD_DIR%\VIAME-*.zip") DO (
     CALL :FormatSize "%%~zF" "%%~nxF"
+)
+IF EXIST "%VIAME_BUILD_DIR%\viame-installer.exe" (
+    FOR %%F IN ("%VIAME_BUILD_DIR%\viame-installer.exe") DO (
+        CALL :FormatSize "%%~zF" "%%~nxF"
+    )
 )
 ECHO.
 
