@@ -79,12 +79,19 @@ if( EIGEN3_INCLUDE_DIR )
 endif()
 
 # Pass Python include directory for building C extensions
-if( Python_INCLUDE_DIRS )
+# On Windows with MSVC, use INCLUDE environment variable
+if( Python_INCLUDE_DIR )
+  list( APPEND LEARN_ENV_VARS "CFLAGS=-I${Python_INCLUDE_DIR}" )
+  list( APPEND LEARN_ENV_VARS "CXXFLAGS=-I${Python_INCLUDE_DIR}" )
+  if( WIN32 )
+    list( APPEND LEARN_ENV_VARS "INCLUDE=${Python_INCLUDE_DIR}" )
+  endif()
+elseif( Python_INCLUDE_DIRS )
   list( APPEND LEARN_ENV_VARS "CFLAGS=-I${Python_INCLUDE_DIRS}" )
   list( APPEND LEARN_ENV_VARS "CXXFLAGS=-I${Python_INCLUDE_DIRS}" )
-elseif( PYTHON_INCLUDE_DIR )
-  list( APPEND LEARN_ENV_VARS "CFLAGS=-I${PYTHON_INCLUDE_DIR}" )
-  list( APPEND LEARN_ENV_VARS "CXXFLAGS=-I${PYTHON_INCLUDE_DIR}" )
+  if( WIN32 )
+    list( APPEND LEARN_ENV_VARS "INCLUDE=${Python_INCLUDE_DIRS}" )
+  endif()
 endif()
 
 # Install vendored dependencies to VIAME's Python install location
@@ -119,9 +126,9 @@ else()
     ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip wheel --no-build-isolation --no-deps -w ${PANOPTICAPI_BUILD_DIR} ${PANOPTICAPI_DIR} )
   set( PYDENSECRF_INSTALL_CMD
-    ${Python_EXECUTABLE} -m pip install --no-deps --target "${LEARN_INSTALL_TARGET}" --find-links ${PYDENSECRF_BUILD_DIR} pydensecrf )
+    ${Python_EXECUTABLE} -m pip install --no-deps --no-index --target "${LEARN_INSTALL_TARGET}" --find-links ${PYDENSECRF_BUILD_DIR} pydensecrf )
   set( PANOPTICAPI_INSTALL_CMD
-    ${Python_EXECUTABLE} -m pip install --no-deps --target "${LEARN_INSTALL_TARGET}" --find-links ${PANOPTICAPI_BUILD_DIR} panopticapi )
+    ${Python_EXECUTABLE} -m pip install --no-deps --no-index --target "${LEARN_INSTALL_TARGET}" --find-links ${PANOPTICAPI_BUILD_DIR} panopticapi )
   add_custom_target( build_learn_deps ALL
     COMMAND ${PYDENSECRF_WHEEL_CMD}
     COMMAND ${PYDENSECRF_INSTALL_CMD}
