@@ -150,29 +150,29 @@ train_applet
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "l,list", "Display list of all trainable algorithms",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "nq,no-query", "Do not query the user for anything",
+    ( "no-query", "Do not query the user for anything",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "nap,no-adv-prints", "Do not print out any advanced chars",
+    ( "no-adv-prints", "Do not print out any advanced chars",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "nep,no-embedded-pipe", "Do not output embedded pipes",
+    ( "no-embedded-pipe", "Do not output embedded pipes",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "gto,gt-frames-only", "Use frames with annotations only",
+    ( "gt-frames-only", "Use frames with annotations only",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "c,config", "Input configuration file(s) with parameters",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "i,input", "Input directory containing groundtruth",
       ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
-    ( "il,input-list", "Input list with data for training",
+    ( "input-list", "Input list with data for training",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
-    ( "it,input-truth", "Input list containing training truth",
+    ( "input-truth", "Input list containing training truth",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
-    ( "lbl,labels", "Input label file for train categories",
+    ( "labels", "Input label file for train categories",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "v,validation", "Optional validation input directory",
       ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
     ( "d,detector", "Type of detector(s) to train if no config",
       ::cxxopts::value< std::string >()->default_value( "" ), "type" )
-    ( "tt,tracker", "Type of tracker(s) to train (optional)",
+    ( "tracker", "Type of tracker(s) to train (optional)",
       ::cxxopts::value< std::string >()->default_value( "" ), "type" )
     ( "o,output-config", "Output a sample configuration to file",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
@@ -182,13 +182,13 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "value" )
     ( "p,pipeline", "Pipeline file",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
-    ( "vfr,default-vfr", "Default video frame rate for extraction",
+    ( "default-vfr", "Default video frame rate for extraction",
       ::cxxopts::value< std::string >()->default_value( "" ), "rate" )
-    ( "mfc,max-frame-count", "Maximum frame count to use",
+    ( "max-frame-count", "Maximum frame count to use",
       ::cxxopts::value< std::string >()->default_value( "" ), "count" )
-    ( "to,timeout", "Maximum time in seconds",
+    ( "timeout", "Maximum time in seconds",
       ::cxxopts::value< std::string >()->default_value( "" ), "seconds" )
-    ( "iw,init-weights", "Optional input seed weights over-ride",
+    ( "init-weights", "Optional input seed weights over-ride",
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
     ;
 }
