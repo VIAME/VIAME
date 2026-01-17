@@ -1,6 +1,13 @@
 # Build/install plugin for CppDB database support
 
-find_package( CppDB REQUIRED )
+find_path( CppDB_INCLUDE_DIR cppdb/driver_manager.h )
+find_library( CppDB_LIBRARY cppdb )
+
+if( NOT CppDB_INCLUDE_DIR OR NOT CppDB_LIBRARY )
+  message( FATAL_ERROR "CppDB not found" )
+endif()
+
+include_directories( SYSTEM ${CppDB_INCLUDE_DIR} )
 
 set( headers
   query_track_descriptor_set_db.h
@@ -36,10 +43,14 @@ target_include_directories( viame_cppdb PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
 
+target_include_directories( viame_cppdb SYSTEM PUBLIC
+  ${CppDB_INCLUDE_DIR}
+  )
+
 target_link_libraries( viame_cppdb
   PUBLIC               kwiver::vital
                        kwiver::vital_algo
-  PRIVATE              ${CppDB_LIBRARY}
+                       ${CppDB_LIBRARY}
   )
 
 set_target_properties( viame_cppdb PROPERTIES

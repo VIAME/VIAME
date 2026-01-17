@@ -13,11 +13,6 @@ if( NOT SVM_LIBRARY )
   message( FATAL_ERROR "Could not find libsvm library in ${VIAME_INSTALL_PREFIX}" )
 endif()
 
-# Optionally find CppDB for database backend support
-if( VIAME_ENABLE_POSTGRESQL )
-  find_package( CppDB REQUIRED )
-endif()
-
 set( headers
   refine_detections_svm.h
   train_detector_svm.h )
@@ -112,5 +107,5 @@ target_include_directories( viame_processes_svm PRIVATE
 # Optionally link CppDB for database backend support in process_query
 if( VIAME_ENABLE_POSTGRESQL )
   target_compile_definitions( viame_processes_svm PRIVATE VIAME_ENABLE_CPPDB )
-  target_link_libraries( viame_processes_svm PRIVATE ${CppDB_LIBRARY} )
+  target_link_libraries( viame_processes_svm PRIVATE viame_cppdb )
 endif()
