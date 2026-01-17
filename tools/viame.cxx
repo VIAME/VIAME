@@ -14,6 +14,11 @@
  *   viame help
  *   viame explore-config my_config.conf
  *
+ * As a convenience, if the first argument is a .pipe file, the runner
+ * applet is automatically invoked:
+ *
+ *   viame my_pipeline.pipe          # equivalent to: viame runner my_pipeline.pipe
+ *
  * It loads all VIAME and KWIVER plugins and dispatches to the appropriate
  * applet based on the subcommand name.
  */
@@ -43,9 +48,26 @@ using applet_context_t = std::shared_ptr< kwiver::tools::applet_context >;
 
 // ============================================================================
 /**
+ * Check if a string ends with a given suffix.
+ */
+static bool ends_with( const std::string& str, const std::string& suffix )
+{
+  if ( suffix.size() > str.size() )
+  {
+    return false;
+  }
+  return str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
+}
+
+// ============================================================================
+/**
  * This class processes the incoming list of command line options.
  * They are separated into options for the tool runner and options
  * for the applet.
+ *
+ * Special case: if the first non-flag argument looks like a pipeline file
+ * (ends with .pipe), automatically use the "runner" applet and treat
+ * the argument as the pipeline file path.
  */
 class command_line_parser
 {
@@ -57,6 +79,8 @@ public:
     // Parse the command line
     // Command line format:
     // arg0 [runner-flags] <applet> [applet-args]
+    // OR
+    // arg0 [runner-flags] <pipeline.pipe> [applet-args]  (implicit runner)
 
     // The first applet args is the program name.
     m_applet_args.push_back( "viame" );
@@ -73,8 +97,21 @@ public:
         }
         else
         {
-          // found applet name
-          m_applet_name = std::string( (*p_argv)[i] );
+          // found applet name (or pipeline file)
+          std::string arg = std::string( (*p_argv)[i] );
+
+          // Check if this looks like a pipeline file
+          if ( ends_with( arg, ".pipe" ) )
+          {
+            // Implicit runner mode: treat as "runner <pipeline.pipe>"
+            m_applet_name = "runner";
+            m_applet_args.push_back( arg );
+          }
+          else
+          {
+            // Normal applet name
+            m_applet_name = arg;
+          }
           state = 1; // advance state
         }
       }
@@ -156,9 +193,13 @@ void tool_runner_usage( VITAL_UNUSED applet_context_t ctxt,
 
   std::cout << std::endl
             << "Common examples:" << std::endl
-            << "  viame runner my_pipeline.pipe       # Run a pipeline file" << std::endl
+            << "  viame my_pipeline.pipe              # Run a pipeline file (shorthand)" << std::endl
+            << "  viame runner my_pipeline.pipe       # Run a pipeline file (explicit)" << std::endl
             << "  viame help runner                   # Get help on the runner applet" << std::endl
             << "  viame explore-config my.conf        # Explore configuration file" << std::endl
+            << std::endl
+            << "Note: If the first argument ends with .pipe, the runner applet is" << std::endl
+            << "automatically invoked. So 'viame x.pipe' is equivalent to 'viame runner x.pipe'." << std::endl
             << std::endl;
 }
 
