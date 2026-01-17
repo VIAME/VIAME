@@ -19,12 +19,16 @@ export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/plugins/modules:$KWIVER_PLUGIN_PA
 export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/plugins/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/plugins/processes:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/plugins/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/plugins/applets:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/plugins/applets:$KWIVER_PLUGIN_PATH
 
 # Paths for loading C++ algorithm plugins built in VIAME
 export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/processes:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/applets:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/applets:$KWIVER_PLUGIN_PATH
 
 # Paths for loading process plugins
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH

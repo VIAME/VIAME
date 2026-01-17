@@ -74,7 +74,7 @@ set( applet_headers
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 kwiver_add_plugin( viame_tools_applets
-  SUBDIR       ${kwiver_plugin_applets_subdir}
+  SUBDIR       viame/applets
   SOURCES      ${applet_sources} ${applet_headers}
   PRIVATE      kwiver::vital
                kwiver::vital_vpm
