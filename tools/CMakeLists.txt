@@ -13,7 +13,6 @@ set( PYTHON_SCRIPTS
   generate_nn_index.py
   launch_annotation_interface.py
   launch_search_interface.py
-  launch_timeline_interface.py
   plot_eval_results.py
   process_video.py
   score_results.py
