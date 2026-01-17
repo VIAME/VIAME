@@ -1,3 +1,6 @@
+@ECHO OFF
+SETLOCAL EnableDelayedExpansion
+
 REM -------------------------------------------------------------------------------------------------------
 REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
@@ -46,6 +49,13 @@ SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_
 
 SET "VDIST_VER_STR=%MSVS_TOOLSET:.=%"
 SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC\%MSVS_REDIST_VER%\%MSVS_ARCH%\Microsoft.VC%MSVS_TOOLSET%.OpenMP"
+
+REM -------------------------------------------------------------------------------------------------------
+REM Check Build Dependencies
+REM -------------------------------------------------------------------------------------------------------
+
+CALL %~dp0build_common_functions.bat :CheckBuildDependencies "%CMAKE_ROOT%" "%GIT_ROOT%" "%ZIP_ROOT%" "%ZLIB_ROOT%" "%CUDA_ROOT%"
+IF ERRORLEVEL 1 EXIT /B 1
 
 REM -------------------------------------------------------------------------------------------------------
 REM Perform Actual Build

@@ -1,3 +1,6 @@
+@ECHO OFF
+SETLOCAL EnableDelayedExpansion
+
 REM -------------------------------------------------------------------------------------------------------
 REM Setup Paths
 REM -------------------------------------------------------------------------------------------------------
@@ -37,6 +40,13 @@ SET "ZLIB_BUILD_DIR=%VIAME_BUILD_DIR%\build\src\fletch-build\build\src\ZLib-buil
 SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
 SET "PATH=%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
+
+REM -------------------------------------------------------------------------------------------------------
+REM Check Build Dependencies
+REM -------------------------------------------------------------------------------------------------------
+
+CALL %~dp0build_common_functions.bat :CheckBuildDependencies "%CMAKE_ROOT%" "%GIT_ROOT%" "%ZIP_ROOT%" "%ZLIB_ROOT%" "SKIP"
+IF ERRORLEVEL 1 EXIT /B 1
 
 REM -------------------------------------------------------------------------------------------------------
 REM Perform Actual Build
