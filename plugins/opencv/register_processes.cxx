@@ -21,26 +21,24 @@ VIAME_PROCESSES_OPENCV_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_opencv" );
-
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  using namespace sprokit;
+    if( sprokit::is_process_module_loaded( vpm, "viame_processes_opencv_export.h" ) )
   {
     return;
   }
 
   // ---------------------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( viame::measure_objects_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
-                       "measure_using_stereo" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Stereo measurement process that matches detections between "
-                    "left and right cameras and computes fish length measurements "
-                    "using triangulation" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
+  using kvpf = kwiver::vital::plugin_factory;
+
+  kwiver::vital::plugin_factory* fact = new sprokit::cpp_process_factory(
+    typeid( viame::measure_objects_process ).name(),
+    sprokit::process::interface_name(),
+    sprokit::create_new_process< viame::measure_objects_process > );
+  
+  // PLUGIN_NAME will be extracted from process or set manually in add_attribute calls below
+  // fact->add_attribute( kvpf::PLUGIN_NAME, "name_here" );  
+  
+  vpm.add_factory( fact );
 
   fact = vpm.ADD_PROCESS( viame::calibrate_single_camera_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
@@ -84,5 +82,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  sprokit::mark_process_module_as_loaded( vpm, "viame_processes_opencv_export.h" );
 }

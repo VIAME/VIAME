@@ -34,11 +34,13 @@ register_factories( kv::plugin_loader& vpm )
 
   auto fact = vpm.add_factory< kv::algo::image_filter, enhance_images >(
     enhance_images::_plugin_name );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kvpf::PLUGIN_NAME, enhance_images::_plugin_name )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_filter, perform_white_balancing >(
     perform_white_balancing::_plugin_name );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kvpf::PLUGIN_NAME, perform_white_balancing::_plugin_name )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );
 }
