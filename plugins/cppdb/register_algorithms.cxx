@@ -34,60 +34,50 @@
  */
 
 #include "viame_cppdb_plugin_export.h"
-#include <vital/algo/algorithm_factory.h>
+#include <vital/plugin_management/plugin_loader.h>
+
+#include <vital/algo/query_track_descriptor_set.h>
+#include <vital/algo/read_object_track_set.h>
+#include <vital/algo/write_object_track_set.h>
+#include <vital/algo/write_track_descriptor_set.h>
 
 #include "write_object_track_set_db.h"
 #include "write_track_descriptor_set_db.h"
 #include "query_track_descriptor_set_db.h"
 #include "read_object_track_set_db.h"
 
-
 namespace viame {
+
+namespace kv = kwiver::vital;
 
 extern "C"
 VIAME_CPPDB_PLUGIN_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kv::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "viame.cppdb" );
-  if (vpm.is_module_loaded( module_name ) )
+  using kvpf = kv::plugin_factory;
+  const std::string module_name = "viame.cppdb";
+
+  if( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
-  // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "db", viame::write_object_track_set_db );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Object track set db writer\n")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  auto fact = vpm.add_factory< kv::algo::write_object_track_set, write_object_track_set_db >(
+    "db" );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.ADD_ALGORITHM( "db", viame::write_track_descriptor_set_db );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Track descriptor set db writer\n")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  fact = vpm.add_factory< kv::algo::write_track_descriptor_set, write_track_descriptor_set_db >(
+    "db" );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.ADD_ALGORITHM( "db", viame::query_track_descriptor_set_db );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Track descriptor set db query\n")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  fact = vpm.add_factory< kv::algo::query_track_descriptor_set, query_track_descriptor_set_db >(
+    "db" );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.ADD_ALGORITHM( "db", viame::read_object_track_set_db );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Object track set set db reader\n")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
+  fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_db >(
+    "db" );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );
 }

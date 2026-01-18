@@ -29,6 +29,9 @@
  */
 
 #include "windowed_detector.h"
+
+#include <vital/algo/algorithm.txx>
+
 #include "windowed_utils.h"
 
 #include <vital/util/wall_timer.h>
@@ -96,7 +99,7 @@ windowed_detector
   // Merge window settings configuration
   config->merge_config( d->m_settings.config() );
 
-  kv::algo::image_object_detector::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::image_object_detector>(
     "detector", config, d->m_detector );
 
   return config;
@@ -118,7 +121,7 @@ windowed_detector
   // Set window settings from configuration
   d->m_settings.set_config( config );
 
-  kv::algo::image_object_detector::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kv::algo::image_object_detector>(
     "detector", config, d->m_detector );
 }
 
@@ -128,7 +131,7 @@ bool
 windowed_detector
 ::check_configuration( kv::config_block_sptr config ) const
 {
-  return kv::algo::image_object_detector::check_nested_algo_configuration(
+  return kv::check_nested_algo_configuration<kv::algo::image_object_detector>(
     "detector", config );
 }
 

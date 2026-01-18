@@ -9,6 +9,7 @@
 
 #include <vital/algo/transform_2d_io.h>
 #include <vital/types/transform_2d.h>
+#include "viame_algorithm_plugin_interface.h"
 
 
 namespace viame
@@ -19,6 +20,7 @@ class VIAME_CORE_EXPORT auto_detect_transform_io
   : public kwiver::vital::algo::transform_2d_io
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( auto_detect_transform_io )
 
   static constexpr char const* name = "auto";
 

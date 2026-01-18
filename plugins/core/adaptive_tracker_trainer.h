@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/train_tracker.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -36,10 +37,10 @@ namespace viame {
  * - Running advanced trackers (SRNN) for complex multi-object scenarios
  */
 class VIAME_CORE_EXPORT adaptive_tracker_trainer
-  : public kwiver::vital::algorithm_impl< adaptive_tracker_trainer,
-      kwiver::vital::algo::train_tracker >
+  : public kwiver::vital::algo::train_tracker
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( adaptive_tracker_trainer )
 
   PLUGIN_INFO( "adaptive",
                "Analyzes tracking data and runs appropriate training pipelines" )

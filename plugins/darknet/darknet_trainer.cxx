@@ -3,6 +3,9 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "darknet_trainer.h"
+
+#include <vital/algo/algorithm.txx>
+
 #include "darknet_custom_resize.h"
 
 #include <vital/algo/image_io.h>
@@ -255,7 +258,7 @@ darknet_trainer
   config->set_value( "batch_subdivisions", d->m_batch_subdivisions,
     "Number of subdivisions to split a batch into (thereby saving memory)" );
 
-  kwiver::vital::algo::image_io::get_nested_algo_configuration( "image_reader",
+  kwiver::vital::get_nested_algo_configuration<kwiver::vital::algo::image_io>( "image_reader",
     config, d->m_image_io );
 
   return config;
@@ -298,7 +301,7 @@ darknet_trainer
   d->m_batch_subdivisions = config->get_value< int >( "batch_subdivisions" );
 
   kwiver::vital::algo::image_io_sptr io;
-  kwiver::vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
+  kwiver::vital::set_nested_algo_configuration<kwiver::vital::algo::image_io>( "image_reader", config, io );
   d->m_image_io = io;
 
   if( !d->m_skip_format )

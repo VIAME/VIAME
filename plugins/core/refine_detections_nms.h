@@ -34,6 +34,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -50,11 +51,11 @@ namespace viame {
  * \oport{pruned_detections}
  */
 class VIAME_CORE_EXPORT refine_detections_nms
-  : public kwiver::vital::algorithm_impl<refine_detections_nms,
-    kwiver::vital::algo::refine_detections>
+  : public kwiver::vital::algo::refine_detections
 {
 
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( refine_detections_nms )
   PLUGIN_INFO( "nms",
     "Refines detections based on overlap.\n\n"
     "This algorithm sorts through detections, pruning detections "

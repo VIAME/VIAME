@@ -8,6 +8,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_filter.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -18,6 +19,7 @@ class VIAME_OPENCV_EXPORT convert_color_space
   : public kwiver::vital::algo::image_filter
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( convert_color_space )
   PLUGIN_INFO( "ocv_convert_color",
                "Convert image between color spaces" )
 

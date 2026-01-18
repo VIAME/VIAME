@@ -13,6 +13,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/image_io.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <memory>
 
@@ -38,6 +39,7 @@ class VIAME_CORE_EXPORT write_disparity_maps :
   public kwiver::vital::algo::image_io
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( write_disparity_maps )
   static constexpr char const* name = "write_disparity_maps";
 
   static constexpr char const* description =

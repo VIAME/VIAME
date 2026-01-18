@@ -3,11 +3,12 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 
-#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/plugin_management/plugin_manager.h>
 #include <vital/config/config_block_io.h>
 #include <vital/algo/image_object_detector.h>
+#include <vital/algo/algorithm.txx>
 #include <arrows/ocv/image_container.h>
-#include <arrows/ocv/image_io.h>
+#include <arrows/ocv/algo/image_io.h>
 
 #include <string>
 
@@ -34,7 +35,7 @@ int main( int argc, char* argv[] )
 
   // (7) Create the detector
   kwiver::vital::algo::image_object_detector_sptr detector;
-  kwiver::vital::algo::image_object_detector::set_nested_algo_configuration( "detector", config, detector );
+  kwiver::vital::set_nested_algo_configuration<kwiver::vital::algo::image_object_detector>( "detector", config, detector );
 
   if ( ! detector )
   {
@@ -42,10 +43,10 @@ int main( int argc, char* argv[] )
     return 1;
   }
 
-  kwiver::vital::algo::image_object_detector::get_nested_algo_configuration( "detector", config, detector );
+  kwiver::vital::get_nested_algo_configuration<kwiver::vital::algo::image_object_detector>( "detector", config, detector );
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! kwiver::vital::algo::image_object_detector::check_nested_algo_configuration( "detector", config ) )
+  if ( ! kwiver::vital::check_nested_algo_configuration<kwiver::vital::algo::image_object_detector>( "detector", config ) )
   {
     LOG_ERROR( logger, "Configuration check failed." );
     return 1;

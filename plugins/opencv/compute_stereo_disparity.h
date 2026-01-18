@@ -20,6 +20,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/compute_stereo_depth_map.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -27,6 +28,7 @@ class VIAME_OPENCV_EXPORT compute_stereo_disparity
   : public kwiver::vital::algo::compute_stereo_depth_map
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( compute_stereo_disparity )
   PLUGIN_INFO( "ocv_stereo_disparity",
                "OpenCV stereo disparity map computation using BM or SGBM" )
 

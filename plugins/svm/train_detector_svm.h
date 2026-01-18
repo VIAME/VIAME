@@ -13,6 +13,7 @@
 #include "viame_svm_export.h"
 
 #include <vital/algo/train_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <memory>
 
@@ -26,9 +27,10 @@ namespace kv = kwiver::vital;
 /// libsvm. It reads descriptor vectors from a CSV index file and trains models
 /// based on positive/negative label files.
 class VIAME_SVM_EXPORT train_detector_svm
-  : public kv::algorithm_impl< train_detector_svm, kv::algo::train_detector >
+  : public kv::algo::train_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( train_detector_svm )
 
   PLUGIN_INFO( "svm",
                "Train SVM models for object detection" )

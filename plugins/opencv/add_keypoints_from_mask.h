@@ -15,6 +15,7 @@
 #include <vital/algo/refine_detections.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/bounding_box.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <opencv2/core/core.hpp>
 
@@ -167,11 +168,11 @@ keypoint_method_description();
  * the end with the larger x coordinate.
  */
 class VIAME_OPENCV_EXPORT add_keypoints_from_mask
-  : public kwiver::vital::algorithm_impl<
-      add_keypoints_from_mask,
-      kwiver::vital::algo::refine_detections >
+  : public kwiver::vital::algo::refine_detections
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( add_keypoints_from_mask )
+
   PLUGIN_INFO( "add_keypoints_from_mask",
     "Adds head and tail keypoints to detections based on their "
     "mask or bounding box using configurable methods." )

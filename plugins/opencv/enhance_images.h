@@ -8,6 +8,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_filter.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -15,6 +16,7 @@ class VIAME_OPENCV_EXPORT enhance_images
   : public kwiver::vital::algo::image_filter
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( enhance_images )
   PLUGIN_INFO( "ocv_enhancer",
                "Simple illumination normalization using Lab space and CLAHE" )
 

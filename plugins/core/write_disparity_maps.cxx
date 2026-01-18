@@ -4,6 +4,8 @@
 
 #include "write_disparity_maps.h"
 
+#include <vital/algo/algorithm.txx>
+
 #include <vital/types/image.h>
 #include <vital/types/image_container.h>
 #include <vital/exceptions/io.h>
@@ -237,7 +239,7 @@ write_disparity_maps
   config->set_value( "invalid_color", "0,0,0",
     "RGB color for invalid disparity values (comma-separated, e.g., '0,0,0' for black)" );
 
-  kv::algo::image_io::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::image_io>(
     "image_writer", config, d->m_image_writer );
 
   return config;
@@ -264,7 +266,7 @@ write_disparity_maps
     d->m_invalid_color_b = static_cast<uint8_t>( std::max( 0, std::min( 255, b ) ) );
   }
 
-  kv::algo::image_io::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kv::algo::image_io>(
     "image_writer", config, d->m_image_writer );
 }
 
@@ -280,7 +282,7 @@ write_disparity_maps
     return false;
   }
 
-  if( !kv::algo::image_io::check_nested_algo_configuration(
+  if( !kv::check_nested_algo_configuration<kv::algo::image_io>(
         "image_writer", config ) )
   {
     return false;

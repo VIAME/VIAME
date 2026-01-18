@@ -42,6 +42,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -428,11 +429,12 @@ std::string numToStr(const T& num)
 // ============================================================================
 // classify_fish_hierarchical_svm - KWIVER algorithm wrapper
 // ============================================================================
-class VIAME_OPENCV_EXPORT classify_fish_hierarchical_svm :
-  public kwiver::vital::algorithm_impl<
-    classify_fish_hierarchical_svm, kwiver::vital::algo::refine_detections>
+class VIAME_OPENCV_EXPORT classify_fish_hierarchical_svm
+  : public kwiver::vital::algo::refine_detections
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( classify_fish_hierarchical_svm )
+
   PLUGIN_INFO( "hierarchical_svm",
                "Hierarchical SVM fish species classifier" )
 

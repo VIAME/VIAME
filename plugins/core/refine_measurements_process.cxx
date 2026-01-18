@@ -453,10 +453,10 @@ refine_measurements_process
 
     for( auto md : metadata )
     {
-      CHECK_FIELD( yaw, kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
-      CHECK_FIELD( pitch, kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
-      CHECK_FIELD( roll, kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
-      CHECK_FIELD( alt, kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+      CHECK_FIELD( yaw, kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( pitch, kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( roll, kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( alt, kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
     }
 
     if( !has_metadata )

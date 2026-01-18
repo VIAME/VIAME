@@ -35,6 +35,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_object_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -45,10 +46,10 @@ namespace viame {
  * This process should be moved to core from ocv when able
  */
 class VIAME_OPENCV_EXPORT windowed_detector
-  : public kwiver::vital::algorithm_impl< windowed_detector,
-      kwiver::vital::algo::image_object_detector >
+  : public kwiver::vital::algo::image_object_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( windowed_detector )
 
   PLUGIN_INFO( "ocv_windowed",
                "Window some other arbitrary detector across the image" )

@@ -34,6 +34,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/train_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -42,10 +43,10 @@ namespace viame {
  * @brief Run training on arbitrary other trainers in a windowed fashion
  */
 class VIAME_OPENCV_EXPORT windowed_trainer
-  : public kwiver::vital::algorithm_impl< windowed_trainer,
-      kwiver::vital::algo::train_detector >
+  : public kwiver::vital::algo::train_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( windowed_trainer )
 
   PLUGIN_INFO( "ocv_windowed",
                "Window some other arbitrary detector trainer across the image" )

@@ -34,16 +34,17 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/compute_track_descriptors.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <memory>
 
 namespace viame {
 
 class VIAME_CORE_EXPORT average_track_descriptors
-  : public kwiver::vital::algorithm_impl< average_track_descriptors,
-      kwiver::vital::algo::compute_track_descriptors >
+  : public kwiver::vital::algo::compute_track_descriptors
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( average_track_descriptors )
   PLUGIN_INFO( "average",
                "Track descriptor consolidation using simple averaging" )
 

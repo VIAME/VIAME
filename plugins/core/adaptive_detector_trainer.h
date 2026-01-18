@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/train_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -26,10 +27,10 @@ namespace viame {
  * - Training multiple models with different characteristics
  */
 class VIAME_CORE_EXPORT adaptive_detector_trainer
-  : public kwiver::vital::algorithm_impl< adaptive_detector_trainer,
-      kwiver::vital::algo::train_detector >
+  : public kwiver::vital::algo::train_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( adaptive_detector_trainer )
 
   PLUGIN_INFO( "adaptive",
                "Analyzes training data and runs appropriate training pipelines" )

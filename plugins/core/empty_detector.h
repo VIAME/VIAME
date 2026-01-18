@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/image_object_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -17,6 +18,7 @@ class VIAME_CORE_EXPORT empty_detector :
   public kwiver::vital::algo::image_object_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( empty_detector )
   static constexpr char const* name = "empty";
 
   static constexpr char const* description = "Produce empty detector output";

@@ -4,6 +4,7 @@
 
 #include "adaptive_detector_trainer.h"
 
+#include <vital/algo/algorithm.txx>
 #include <vital/util/cpu_timer.h>
 #include <vital/types/image_container.h>
 
@@ -1149,7 +1150,7 @@ adaptive_detector_trainer
     config->set_value( prefix + "prefers_masks", tc.prefers_masks,
       "Prefer datasets with masks. Default: false" );
 
-    kv::algo::train_detector::get_nested_algo_configuration(
+    kv::get_nested_algo_configuration<kv::algo::train_detector>(
       prefix + "trainer", config, tc.trainer );
   }
 
@@ -1234,7 +1235,7 @@ adaptive_detector_trainer
 
     // Nested trainer
     kv::algo::train_detector_sptr trainer;
-    kv::algo::train_detector::set_nested_algo_configuration( trainer_key, config, trainer );
+    kv::set_nested_algo_configuration<kv::algo::train_detector>( trainer_key, config, trainer );
     tc.trainer = trainer;
 
     if( tc.trainer )
@@ -1262,7 +1263,7 @@ adaptive_detector_trainer
     std::string trainer_key = "trainer_" + std::to_string( i ) + ":trainer";
     if( config->has_value( trainer_key + ":type" ) )
     {
-      if( kv::algo::train_detector::check_nested_algo_configuration( trainer_key, config ) )
+      if( kv::check_nested_algo_configuration<kv::algo::train_detector>( trainer_key, config ) )
       {
         return true;
       }

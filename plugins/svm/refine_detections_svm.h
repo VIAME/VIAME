@@ -39,6 +39,7 @@
 #include "viame_svm_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -46,10 +47,10 @@ namespace kv = kwiver::vital;
 
 /// A class for drawing various information about feature tracks
 class VIAME_SVM_EXPORT refine_detections_svm
-: public kv::algorithm_impl<refine_detections_svm,
-    kv::algo::refine_detections>
+  : public kv::algo::refine_detections
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( refine_detections_svm )
 
   PLUGIN_INFO( "svm_refiner",
                "Refine detections using SVM." )

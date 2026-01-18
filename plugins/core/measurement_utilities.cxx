@@ -9,6 +9,8 @@
 
 #include "measurement_utilities.h"
 
+#include <vital/algo/algorithm.txx>
+
 #include <vital/util/string.h>
 
 #include <arrows/mvg/triangulate.h>
@@ -179,15 +181,15 @@ map_keypoints_to_camera_settings
     "or compute_disparity." );
 
   // Add nested algorithm configurations
-  kv::algo::detect_features::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::detect_features>(
     "feature_detector", config, feature_detector );
-  kv::algo::extract_descriptors::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::extract_descriptors>(
     "descriptor_extractor", config, descriptor_extractor );
-  kv::algo::match_features::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::match_features>(
     "feature_matcher", config, feature_matcher );
-  kv::algo::estimate_fundamental_matrix::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::estimate_fundamental_matrix>(
     "fundamental_matrix_estimator", config, fundamental_matrix_estimator );
-  kv::algo::compute_stereo_depth_map::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::compute_stereo_depth_map>(
     "stereo_disparity", config, stereo_depth_map_algorithm );
 
   return config;
@@ -220,15 +222,15 @@ map_keypoints_to_camera_settings
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
 
   // Configure nested algorithms
-  kv::algo::detect_features::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kv::algo::detect_features>(
     "feature_detector", config, feature_detector );
-  kv::algo::extract_descriptors::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kv::algo::extract_descriptors>(
     "descriptor_extractor", config, descriptor_extractor );
-  kv::algo::match_features::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kv::algo::match_features>(
     "feature_matcher", config, feature_matcher );
-  kv::algo::estimate_fundamental_matrix::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kv::algo::estimate_fundamental_matrix>(
     "fundamental_matrix_estimator", config, fundamental_matrix_estimator );
-  kv::algo::compute_stereo_depth_map::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kv::algo::compute_stereo_depth_map>(
     "stereo_disparity", config, stereo_depth_map_algorithm );
 }
 
@@ -243,31 +245,31 @@ map_keypoints_to_camera_settings
   if( config->has_value( "feature_detector:type" ) &&
       config->get_value< std::string >( "feature_detector:type" ) != "" )
   {
-    valid = kv::algo::detect_features::check_nested_algo_configuration(
+    valid = kv::check_nested_algo_configuration<kv::algo::detect_features>(
       "feature_detector", config ) && valid;
   }
   if( config->has_value( "descriptor_extractor:type" ) &&
       config->get_value< std::string >( "descriptor_extractor:type" ) != "" )
   {
-    valid = kv::algo::extract_descriptors::check_nested_algo_configuration(
+    valid = kv::check_nested_algo_configuration<kv::algo::extract_descriptors>(
       "descriptor_extractor", config ) && valid;
   }
   if( config->has_value( "feature_matcher:type" ) &&
       config->get_value< std::string >( "feature_matcher:type" ) != "" )
   {
-    valid = kv::algo::match_features::check_nested_algo_configuration(
+    valid = kv::check_nested_algo_configuration<kv::algo::match_features>(
       "feature_matcher", config ) && valid;
   }
   if( config->has_value( "fundamental_matrix_estimator:type" ) &&
       config->get_value< std::string >( "fundamental_matrix_estimator:type" ) != "" )
   {
-    valid = kv::algo::estimate_fundamental_matrix::check_nested_algo_configuration(
+    valid = kv::check_nested_algo_configuration<kv::algo::estimate_fundamental_matrix>(
       "fundamental_matrix_estimator", config ) && valid;
   }
   if( config->has_value( "stereo_disparity:type" ) &&
       config->get_value< std::string >( "stereo_disparity:type" ) != "" )
   {
-    valid = kv::algo::compute_stereo_depth_map::check_nested_algo_configuration(
+    valid = kv::check_nested_algo_configuration<kv::algo::compute_stereo_depth_map>(
       "stereo_disparity", config ) && valid;
   }
 
@@ -547,7 +549,7 @@ add_measurement_attributes(
   kv::detected_object_sptr det,
   const stereo_measurement_result& measurement )
 {
-  det->set_length( measurement.length );
+  det->add_note( ":length=" + std::to_string( measurement.length ) );
   det->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
   det->add_note( ":midpoint_y=" + std::to_string( measurement.y ) );
   det->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );

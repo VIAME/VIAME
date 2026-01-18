@@ -19,6 +19,7 @@
 #include <vital/types/camera_intrinsics.h>
 #include <vital/algo/resection_camera.h>
 #include <vital/algo/optimize_cameras.h>
+#include <vital/algo/algorithm.txx>
 #include <vital/range/transform.h>
 #include <vital/range/iota.h>
 #include <vital/exceptions.h>
@@ -510,7 +511,7 @@ calibrate_cameras_from_tracks_process
 
   // get camera optimizer and compute cameras calibration
   kv::algo::optimize_cameras_sptr camera_optimizer;
-  camera_optimizer = kv::algo::optimize_cameras::create( "ocv_optimize_stereo_cameras" );
+  camera_optimizer = kv::create_algorithm< kv::algo::optimize_cameras >( "ocv_optimize_stereo_cameras" );
   camera_optimizer->set_configuration( config_optimizer );
   camera_optimizer->optimize( cameras_map, features, landmarks );
 

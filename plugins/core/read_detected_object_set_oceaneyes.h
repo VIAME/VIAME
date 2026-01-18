@@ -13,6 +13,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/detected_object_set_input.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <memory>
 
@@ -22,6 +23,7 @@ class VIAME_CORE_EXPORT read_detected_object_set_oceaneyes
   : public kwiver::vital::algo::detected_object_set_input
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( read_detected_object_set_oceaneyes )
   static constexpr char const* name = "oceaneyes";
 
   // NOTE: Keep description in sync with write_detected_object_set_oceaneyes

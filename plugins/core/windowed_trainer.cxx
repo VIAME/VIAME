@@ -29,6 +29,9 @@
  */
 
 #include "windowed_trainer.h"
+
+#include <vital/algo/algorithm.txx>
+
 #include "windowed_utils.h"
 
 #include <vital/util/cpu_timer.h>
@@ -210,9 +213,9 @@ windowed_trainer
     "either be none, remove, or any other string which will over-ride the "
     "detection type to be that string." );
 
-  kv::algo::image_io::get_nested_algo_configuration( "image_reader",
+  kv::get_nested_algo_configuration<kv::algo::image_io>( "image_reader",
     config, d->m_image_io );
-  kv::algo::train_detector::get_nested_algo_configuration( "trainer",
+  kv::get_nested_algo_configuration<kv::algo::train_detector>( "trainer",
     config, d->m_trainer );
 
   return config;
@@ -281,11 +284,11 @@ windowed_trainer
   d->m_detect_small = ( !d->m_small_action.empty() && d->m_small_action != "none" );
 
   kv::algo::image_io_sptr io;
-  kv::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
+  kv::set_nested_algo_configuration<kv::algo::image_io>( "image_reader", config, io );
   d->m_image_io = io;
 
   kv::algo::train_detector_sptr trainer;
-  kv::algo::train_detector::set_nested_algo_configuration( "trainer", config, trainer );
+  kv::set_nested_algo_configuration<kv::algo::train_detector>( "trainer", config, trainer );
   d->m_trainer = trainer;
 }
 
@@ -295,9 +298,9 @@ bool
 windowed_trainer
 ::check_configuration( kv::config_block_sptr config ) const
 {
-  return kv::algo::image_io::check_nested_algo_configuration(
+  return kv::check_nested_algo_configuration<kv::algo::image_io>(
      "image_reader", config )
-   && kv::algo::train_detector::check_nested_algo_configuration(
+   && kv::check_nested_algo_configuration<kv::algo::train_detector>(
      "trainer", config );
 }
 

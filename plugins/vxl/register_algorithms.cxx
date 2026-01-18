@@ -8,29 +8,39 @@
  */
 
 #include "viame_vxl_plugin_export.h"
-#include <vital/algo/algorithm_factory.h>
+#include <vital/plugin_management/plugin_loader.h>
+
+#include <vital/algo/image_filter.h>
 
 #include "enhance_images.h"
 #include "perform_white_balancing.h"
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
 extern "C"
 VIAME_VXL_PLUGIN_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kv::plugin_loader& vpm )
 {
-  kwiver::vital::algorithm_registrar reg( vpm, "viame.vxl" );
+  using kvpf = kv::plugin_factory;
+  const std::string module_name = "viame.vxl";
 
-  if( reg.is_module_loaded() )
+  if( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
-  reg.register_algorithm< enhance_images >();
-  reg.register_algorithm< perform_white_balancing >();
+  auto fact = vpm.add_factory< kv::algo::image_filter, enhance_images >(
+    enhance_images::_plugin_name );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  reg.mark_module_as_loaded();
+  fact = vpm.add_factory< kv::algo::image_filter, perform_white_balancing >(
+    perform_white_balancing::_plugin_name );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  vpm.mark_module_as_loaded( module_name );
 }
 
 } // end namespace viame

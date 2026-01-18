@@ -13,6 +13,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/write_object_track_set.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <memory>
 
@@ -22,6 +23,7 @@ class VIAME_CORE_EXPORT write_object_track_set_viame_csv
   : public kwiver::vital::algo::write_object_track_set
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( write_object_track_set_viame_csv )
 
   static constexpr char const* name = "viame_csv";
 

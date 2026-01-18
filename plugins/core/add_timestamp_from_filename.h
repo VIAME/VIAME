@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/image_io.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame
 {
@@ -16,6 +17,7 @@ class VIAME_CORE_EXPORT add_timestamp_from_filename
   : public kwiver::vital::algo::image_io
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( add_timestamp_from_filename )
   static constexpr char const* name = "add_timestamp_from_filename";
   static constexpr char const* description =
     "Parse timestamps from an image filename when reading an image";

@@ -1,5 +1,6 @@
-
 #include "auto_detect_transform.h"
+
+#include <vital/algo/algorithm.txx>
 
 #include <vital/types/homography.h>
 
@@ -62,7 +63,7 @@ auto_detect_transform_io
 
     kwiver::vital::algo::transform_2d_io_sptr ti;
 
-    kwiver::vital::algo::transform_2d_io::set_nested_algo_configuration(
+    kwiver::vital::set_nested_algo_configuration<kwiver::vital::algo::transform_2d_io>(
       "transform_reader", config, ti );
   
     if( ti )

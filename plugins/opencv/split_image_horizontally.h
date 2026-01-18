@@ -11,6 +11,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/split_image.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -19,6 +20,7 @@ class VIAME_OPENCV_EXPORT split_image_horizontally
   : public kwiver::vital::algo::split_image
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( split_image_horizontally )
   PLUGIN_INFO( "ocv_horizontally",
                "Split an image  into multiple smaller images using opencv functions" )
 

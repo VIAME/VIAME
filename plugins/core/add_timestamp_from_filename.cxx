@@ -3,10 +3,10 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "add_timestamp_from_filename.h"
-#include "filename_to_timestamp.h"
 
-#include <vital/algo/algorithm_factory.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/algo/algorithm.txx>
+
+#include "filename_to_timestamp.h"
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -34,7 +34,7 @@ kwiver::vital::config_block_sptr
 {
   auto config = kwiver::vital::algo::image_io::get_configuration();
 
-  kwiver::vital::algo::image_io::get_nested_algo_configuration(
+  kwiver::vital::get_nested_algo_configuration<kwiver::vital::algo::image_io>(
     "image_reader", config, this->image_reader);
 
   return config;
@@ -47,7 +47,7 @@ void add_timestamp_from_filename::set_configuration(
   auto new_config = this->get_configuration();
   new_config->merge_config( config );
 
-  kwiver::vital::algo::image_io::set_nested_algo_configuration(
+  kwiver::vital::set_nested_algo_configuration<kwiver::vital::algo::image_io>(
     "image_reader", new_config, this->image_reader );
 }
 
@@ -55,7 +55,7 @@ void add_timestamp_from_filename::set_configuration(
 bool add_timestamp_from_filename::check_configuration(
   kwiver::vital::config_block_sptr config ) const
 {
-  return kwiver::vital::algo::image_io::check_nested_algo_configuration(
+  return kwiver::vital::check_nested_algo_configuration<kwiver::vital::algo::image_io>(
     "image_reader", config );
 }
 

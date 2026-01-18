@@ -8,6 +8,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_filter.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -15,6 +16,7 @@ class VIAME_OPENCV_EXPORT apply_color_correction
   : public kwiver::vital::algo::image_filter
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( apply_color_correction )
   PLUGIN_INFO( "ocv_color_correction",
                "Color correction algorithms: gamma, underwater compensation, gray world white balance" )
 

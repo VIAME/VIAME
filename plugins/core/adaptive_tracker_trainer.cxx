@@ -4,6 +4,7 @@
 
 #include "adaptive_tracker_trainer.h"
 
+#include <vital/algo/algorithm.txx>
 #include <vital/util/cpu_timer.h>
 #include <vital/types/image_container.h>
 #include <vital/types/object_track_set.h>
@@ -1202,7 +1203,7 @@ adaptive_tracker_trainer
     config->set_value( prefix + "prefers_reid", tc.prefers_reid,
       "Prefer scenarios where Re-ID/appearance features help. Default: false" );
 
-    kv::algo::train_tracker::get_nested_algo_configuration(
+    kv::get_nested_algo_configuration<kv::algo::train_tracker>(
       prefix + "trainer", config, tc.trainer );
   }
 
@@ -1285,7 +1286,7 @@ adaptive_tracker_trainer
 
     // Nested trainer
     kv::algo::train_tracker_sptr trainer;
-    kv::algo::train_tracker::set_nested_algo_configuration( trainer_key, config, trainer );
+    kv::set_nested_algo_configuration<kv::algo::train_tracker>( trainer_key, config, trainer );
     tc.trainer = trainer;
 
     if( tc.trainer )
@@ -1313,7 +1314,7 @@ adaptive_tracker_trainer
     std::string trainer_key = "trainer_" + std::to_string( i ) + ":trainer";
     if( config->has_value( trainer_key + ":type" ) )
     {
-      if( kv::algo::train_tracker::check_nested_algo_configuration( trainer_key, config ) )
+      if( kv::check_nested_algo_configuration<kv::algo::train_tracker>( trainer_key, config ) )
       {
         return true;
       }

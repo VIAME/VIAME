@@ -34,14 +34,15 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/image_object_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
 class VIAME_CORE_EXPORT full_frame_detector
-  : public kwiver::vital::algorithm_impl< full_frame_detector,
-      kwiver::vital::algo::image_object_detector >
+  : public kwiver::vital::algo::image_object_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( full_frame_detector )
   PLUGIN_INFO( "full_frame",
     "Outputs a single fixed full-frame detection the same size as "
     "the input image size." );

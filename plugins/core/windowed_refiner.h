@@ -34,6 +34,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -47,10 +48,10 @@ namespace viame {
  * This is a pure vital::image implementation with no OpenCV dependency.
  */
 class VIAME_CORE_EXPORT windowed_refiner
-  : public kwiver::vital::algorithm_impl< windowed_refiner,
-      kwiver::vital::algo::refine_detections >
+  : public kwiver::vital::algo::refine_detections
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( windowed_refiner )
 
   PLUGIN_INFO( "core_windowed",
                "Window some other arbitrary refiner across the image (no OpenCV)" )

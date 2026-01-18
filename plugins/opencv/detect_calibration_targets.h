@@ -4,14 +4,15 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_object_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT detect_calibration_targets :
-  public kwiver::vital::algorithm_impl<
-    detect_calibration_targets, kwiver::vital::algo::image_object_detector >
+class VIAME_OPENCV_EXPORT detect_calibration_targets
+  : public kwiver::vital::algo::image_object_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( detect_calibration_targets )
   PLUGIN_INFO( "ocv_detect_calibration_targets",
                "Detects checkerboard corners in input images for camera calibration processes." )
 

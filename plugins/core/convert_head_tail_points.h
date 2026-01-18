@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -15,6 +16,7 @@ class VIAME_CORE_EXPORT convert_head_tail_points :
   public kwiver::vital::algo::refine_detections
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( convert_head_tail_points )
   convert_head_tail_points();
   virtual ~convert_head_tail_points();
 

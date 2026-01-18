@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/merge_detections.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -18,11 +19,11 @@ namespace viame {
  * \brief Prunes detections overlapping with regions identified by class string
  */
 class VIAME_CORE_EXPORT merge_detections_suppress_in_regions
-  : public kwiver::vital::algorithm_impl< merge_detections_suppress_in_regions,
-    kwiver::vital::algo::merge_detections >
+  : public kwiver::vital::algo::merge_detections
 {
 
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( merge_detections_suppress_in_regions )
   PLUGIN_INFO( "suppress_in_regions",
     "Suppresses detections within regions indicated by a certain fixed category "
     "of detections. Can either remove the detections or reduce their probability." )

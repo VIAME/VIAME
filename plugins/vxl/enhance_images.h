@@ -8,6 +8,7 @@
 #include "viame_vxl_export.h"
 
 #include <vital/algo/image_filter.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -19,10 +20,11 @@ namespace kv = kwiver::vital;
 /// images via automatic white balancing, smoothing, and illumination
 /// normalization.
 class VIAME_VXL_EXPORT enhance_images
-  : public kv::algorithm_impl< enhance_images,
-      kv::algo::image_filter >
+  : public kv::algo::image_filter
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( enhance_images )
+
   PLUGIN_INFO( "vxl_enhancer",
                "Image enhancement using VXL (smoothing, white balance, illumination)" )
 

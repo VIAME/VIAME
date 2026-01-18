@@ -13,6 +13,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/detected_object_set_output.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <memory>
 
@@ -23,6 +24,7 @@ class VIAME_CORE_EXPORT write_detected_object_set_viame_csv
   : public kwiver::vital::algo::detected_object_set_output
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( write_detected_object_set_viame_csv )
   static constexpr char const* name = "viame_csv";
 
   // NOTE: Keep description in sync with read_detected_object_set_viame_csv

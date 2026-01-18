@@ -8,6 +8,7 @@
 #include "viame_darknet_export.h"
 
 #include <vital/algo/train_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -15,6 +16,8 @@ class VIAME_DARKNET_EXPORT darknet_trainer :
   public kwiver::vital::algo::train_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( darknet_trainer )
+
   darknet_trainer();
   virtual ~darknet_trainer();
 

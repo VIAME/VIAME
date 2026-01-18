@@ -13,17 +13,18 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/optimize_cameras.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <memory>
 
 namespace viame {
 
 /// A class for optimization of camera paramters using OpenCV
-class VIAME_OPENCV_EXPORT optimize_stereo_cameras :
-  public kwiver::vital::algorithm_impl<
-    optimize_stereo_cameras, kwiver::vital::algo::optimize_cameras >
+class VIAME_OPENCV_EXPORT optimize_stereo_cameras
+  : public kwiver::vital::algo::optimize_cameras
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( optimize_stereo_cameras )
   PLUGIN_INFO( "ocv_optimize_stereo_cameras",
                "Camera optimizer for stereo configurations." )
 

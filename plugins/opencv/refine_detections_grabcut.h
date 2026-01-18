@@ -11,15 +11,16 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
 /// A class for drawing various information about feature tracks
 class VIAME_OPENCV_EXPORT refine_detections_grabcut
-: public kwiver::vital::algorithm_impl<refine_detections_grabcut,
-    kwiver::vital::algo::refine_detections>
+  : public kwiver::vital::algo::refine_detections
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( refine_detections_grabcut )
   PLUGIN_INFO( "ocv_grabcut",
                "Estimate a segmentation using GrabCut" )
 

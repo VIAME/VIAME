@@ -206,7 +206,7 @@ convert_color_space
   if( d->conversion_code == CV_Invalid )
   {
     throw kwiver::vital::algorithm_configuration_exception(
-      type_name(), impl_name(),
+      "convert_color_space", this->impl_name(),
       "No conversion available between specified color spaces" );
   }
 }
@@ -219,7 +219,7 @@ convert_color_space
     config->get_value< std::string >( "input_color_space" ) ) == kwiver::vital::INVALID_CS )
   {
     throw kwiver::vital::algorithm_configuration_exception(
-      type_name(), impl_name(),
+      "convert_color_space", this->impl_name(),
       "Invalid input color space specified: " +
       config->get_value< std::string >( "input_color_space" ) );
   }
@@ -227,7 +227,7 @@ convert_color_space
     config->get_value< std::string >( "output_color_space" ) ) == kwiver::vital::INVALID_CS )
   {
     throw kwiver::vital::algorithm_configuration_exception(
-      type_name(), impl_name(),
+      "convert_color_space", this->impl_name(),
       "Invalid output color space specified: " +
       config->get_value< std::string >( "output_color_space" ) );
   }

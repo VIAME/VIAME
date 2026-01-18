@@ -46,8 +46,7 @@
 namespace viame {
 
 class VIAME_CPPDB_EXPORT write_object_track_set_db
-  : public kwiver::vital::algorithm_impl< write_object_track_set_db,
-      kwiver::vital::algo::write_object_track_set >
+  : public kwiver::vital::algo::write_object_track_set
 {
 public:
   write_object_track_set_db();

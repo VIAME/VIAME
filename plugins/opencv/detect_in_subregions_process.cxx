@@ -7,6 +7,7 @@
 #include <arrows/ocv/image_container.h>
 
 #include <vital/algo/image_object_detector.h>
+#include <vital/algo/algorithm.txx>
 #include <vital/util/wall_timer.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
@@ -243,14 +244,12 @@ detect_in_subregions_process
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !kwiver::vital::algo::image_object_detector::
-       check_nested_algo_configuration( "detector", algo_config ) )
+  if( !kwiver::vital::check_nested_algo_configuration< kwiver::vital::algo::image_object_detector >( "detector", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
-  kwiver::vital::algo::image_object_detector::
-    set_nested_algo_configuration( "detector", algo_config, d->m_detector );
+  kwiver::vital::set_nested_algo_configuration< kwiver::vital::algo::image_object_detector >( "detector", algo_config, d->m_detector );
 
   if( !d->m_detector )
   {

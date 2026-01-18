@@ -29,6 +29,9 @@
  */
 
 #include "windowed_refiner.h"
+
+#include <vital/algo/algorithm.txx>
+
 #include "windowed_utils.h"
 
 #include <vital/util/wall_timer.h>
@@ -100,7 +103,7 @@ windowed_refiner
   config->set_value( "overlapping_proc_once", d->m_overlapping_proc_once,
     "Only refine each detection once if it appears in multiple tiles" );
 
-  kv::algo::refine_detections::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::refine_detections>(
     "refiner", config, d->m_refiner );
 
   return config;
@@ -124,7 +127,7 @@ windowed_refiner
   d->m_process_boundary_dets = config->get_value< bool >( "process_boundary_dets" );
   d->m_overlapping_proc_once = config->get_value< bool >( "overlapping_proc_once" );
 
-  kv::algo::refine_detections::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kv::algo::refine_detections>(
     "refiner", config, d->m_refiner );
 }
 
@@ -134,7 +137,7 @@ bool
 windowed_refiner
 ::check_configuration( kv::config_block_sptr config ) const
 {
-  return kv::algo::refine_detections::check_nested_algo_configuration(
+  return kv::check_nested_algo_configuration<kv::algo::refine_detections>(
     "refiner", config );
 }
 

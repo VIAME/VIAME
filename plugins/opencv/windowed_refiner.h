@@ -35,6 +35,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -46,10 +47,10 @@ namespace viame {
  * windowed regions of an image, scaling input detections to each region.
  */
 class VIAME_OPENCV_EXPORT windowed_refiner
-  : public kwiver::vital::algorithm_impl< windowed_refiner,
-      kwiver::vital::algo::refine_detections >
+  : public kwiver::vital::algo::refine_detections
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( windowed_refiner )
 
   PLUGIN_INFO( "ocv_windowed",
                "Window some other arbitrary refiner across the image" )
