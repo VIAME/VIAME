@@ -43,13 +43,6 @@ public:
   priv( read_object_track_set_viame_csv* parent )
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "read_object_track_set_viame_csv" ) )
-    , m_batch_load( false )
-    , m_delim( "," )
-    , m_confidence_override( -1.0 )
-    , m_poly_to_mask( false )
-    , m_frame_id_adjustment( 0 )
-    , m_single_state_only( false )
-    , m_multi_state_only( false )
     , m_first( true )
     , m_current_idx( 0 )
     , m_last_idx( 1 )
@@ -62,15 +55,6 @@ public:
 
   read_object_track_set_viame_csv* m_parent;
   kwiver::vital::logger_handle_t m_logger;
-
-  // Configuration parameters
-  bool m_batch_load;
-  std::string m_delim;
-  double m_confidence_override;
-  bool m_poly_to_mask;
-  frame_id_t m_frame_id_adjustment;
-  bool m_single_state_only;
-  bool m_multi_state_only;
 
   // Internal counters
   bool m_first;
@@ -96,16 +80,12 @@ public:
 
 
 // ===============================================================================
+void
 read_object_track_set_viame_csv
-::read_object_track_set_viame_csv()
-  : d( new read_object_track_set_viame_csv::priv( this ) )
+::initialize()
 {
-}
-
-
-read_object_track_set_viame_csv
-::~read_object_track_set_viame_csv()
-{
+  d.reset( new read_object_track_set_viame_csv::priv( this ) );
+  d->m_current_idx = c_frame_id_adjustment;
 }
 
 
@@ -125,35 +105,11 @@ read_object_track_set_viame_csv
 
 
 // -------------------------------------------------------------------------------
-void
-read_object_track_set_viame_csv
-::set_configuration( kwiver::vital::config_block_sptr config )
-{
-  d->m_delim =
-    config->get_value< std::string >( "delimiter", d->m_delim );
-  d->m_batch_load =
-    config->get_value< bool >( "batch_load", d->m_batch_load );
-  d->m_confidence_override =
-    config->get_value< double >( "confidence_override", d->m_confidence_override );
-  d->m_poly_to_mask =
-    config->get_value< bool >( "poly_to_mask", d->m_poly_to_mask );
-  d->m_frame_id_adjustment =
-    config->get_value< int >( "frame_id_adjustment", d->m_frame_id_adjustment );
-  d->m_single_state_only =
-    config->get_value< bool >( "single_state_only", d->m_single_state_only );
-  d->m_multi_state_only =
-    config->get_value< bool >( "multi_state_only", d->m_multi_state_only );
-
-  d->m_current_idx = d->m_frame_id_adjustment;
-}
-
-
-// -------------------------------------------------------------------------------
 bool
 read_object_track_set_viame_csv
 ::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
-  if( d->m_multi_state_only && d->m_single_state_only )
+  if( c_multi_state_only && c_single_state_only )
   {
     return false;
   }
@@ -175,7 +131,7 @@ read_object_track_set_viame_csv
     d->m_first = false;
   }
 
-  if( d->m_batch_load )
+  if( c_batch_load )
   {
     if( !was_first )
     {
@@ -185,11 +141,11 @@ read_object_track_set_viame_csv
 
     for( auto it = d->m_all_tracks.begin(); it != d->m_all_tracks.end(); ++it )
     {
-      if( d->m_single_state_only && it->second->size() > 1 )
+      if( c_single_state_only && it->second->size() > 1 )
       {
         continue;
       }
-      if( d->m_multi_state_only && it->second->size() == 1 )
+      if( c_multi_state_only && it->second->size() == 1 )
       {
         continue;
       }
@@ -237,7 +193,7 @@ read_object_track_set_viame_csv::priv
   m_all_tracks.clear();
   m_track_ids.clear();
 
-  if( m_single_state_only || m_multi_state_only )
+  if( m_parent->c_single_state_only || m_parent->c_multi_state_only )
   {
     m_tracks_by_frame_id.clear();
     m_all_tracks.clear();
@@ -253,7 +209,7 @@ read_object_track_set_viame_csv::priv
     }
 
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, m_delim, false );
+    kwiver::vital::tokenize( line, col, m_parent->c_delimiter, false );
 
     if( col.size() < 9 )
     {
@@ -274,7 +230,7 @@ read_object_track_set_viame_csv::priv
      */
     int trk_id = atoi( col[COL_DET_ID].c_str() );
     frame_id_t frame_id = atoi( col[COL_FRAME_ID].c_str() );
-    frame_id = frame_id + m_frame_id_adjustment;
+    frame_id = frame_id + m_parent->c_frame_id_adjustment;
     kwiver::vital::time_usec_t frame_time;
     std::string str_id = col[COL_SOURCE_ID];
 
@@ -286,9 +242,9 @@ read_object_track_set_viame_csv::priv
 
     double conf = atof( col[COL_CONFIDENCE].c_str() );
 
-    if( m_confidence_override > 0.0 )
+    if( m_parent->c_confidence_override > 0.0 )
     {
-      conf = m_confidence_override;
+      conf = m_parent->c_confidence_override;
     }
 
     // Create detection object
@@ -318,9 +274,9 @@ read_object_track_set_viame_csv::priv
       std::string spec_id = col[i];
       double spec_conf = atof( col[i+1].c_str() );
 
-      if( m_confidence_override > 0.0 )
+      if( m_parent->c_confidence_override > 0.0 )
       {
-        spec_conf = m_confidence_override;
+        spec_conf = m_parent->c_confidence_override;
       }
 
       dot->set_score( spec_id, spec_conf );
@@ -373,7 +329,7 @@ read_object_track_set_viame_csv::priv
     }
 
 #ifdef VIAME_ENABLE_VXL
-    if( m_poly_to_mask && found_attribute )
+    if( m_parent->c_poly_to_mask && found_attribute )
     {
       kwiver::vital::image_of< uint8_t > mask_data;
 
@@ -413,7 +369,7 @@ read_object_track_set_viame_csv::priv
     trk->append( ots );
 
     // Add track to indexes
-    if( !m_batch_load )
+    if( !m_parent->c_batch_load )
     {
       m_tracks_by_frame_id[ frame_id ].push_back( trk );
       m_last_idx = std::max( m_last_idx, frame_id );
@@ -425,17 +381,17 @@ read_object_track_set_viame_csv::priv::track_vector
 read_object_track_set_viame_csv::priv
 ::format_tracks( const track_vector& tracks, const frame_id_t frame_id )
 {
-  if( m_single_state_only || m_multi_state_only )
+  if( m_parent->c_single_state_only || m_parent->c_multi_state_only )
   {
     track_vector output;
 
     for( auto trk : tracks )
     {
-      if( m_single_state_only && trk->size() > 1 )
+      if( m_parent->c_single_state_only && trk->size() > 1 )
       {
         continue;
       }
-      if( m_multi_state_only && trk->size() == 1 )
+      if( m_parent->c_multi_state_only && trk->size() == 1 )
       {
         continue;
       }

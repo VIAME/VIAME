@@ -8,7 +8,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_filter.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -16,27 +16,28 @@ class VIAME_OPENCV_EXPORT random_hue_shift
   : public kwiver::vital::algo::image_filter
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( random_hue_shift )
-  PLUGIN_INFO( "ocv_random_hue_shift",
-               "Add in a random hue shift to the imagery" )
+  PLUGGABLE_IMPL( random_hue_shift,
+                  kwiver::vital::algo::image_filter,
+                  "ocv_random_hue_shift",
+                  "Add in a random hue shift to the imagery",
+                  PARAM_DEFAULT( trigger_percent, double,
+                                 "Trigger for other operations", 0.50 ),
+                  PARAM_DEFAULT( hue_range, double,
+                                 "Hue random adjustment range", 0.0 ),
+                  PARAM_DEFAULT( sat_range, double,
+                                 "Saturation random adjustment range", 0.0 ),
+                  PARAM_DEFAULT( int_range, double,
+                                 "Intensity random adjustment range", 0.0 ),
+                  PARAM_DEFAULT( rgb_shift_range, double,
+                                 "Random color shift range", 0.0 ) )
 
-  random_hue_shift();
-  virtual ~random_hue_shift();
+  virtual ~random_hue_shift() = default;
 
-  // Get the current configuration (parameters) for this filter
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-
-  // Set configurations automatically parsed from input pipeline and config files
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   // Main filtering method
   virtual kwiver::vital::image_container_sptr filter(
     kwiver::vital::image_container_sptr image_data );
-
-private:
-  class priv;
-  const std::unique_ptr< priv > d;
 };
 
 } // end namespace

@@ -34,7 +34,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/image_object_detector.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -42,23 +42,22 @@ class VIAME_CORE_EXPORT full_frame_detector
   : public kwiver::vital::algo::image_object_detector
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( full_frame_detector )
-  PLUGIN_INFO( "full_frame",
+  PLUGGABLE_IMPL(
+    full_frame_detector,
     "Outputs a single fixed full-frame detection the same size as "
-    "the input image size." );
+    "the input image size.",
+    PARAM_DEFAULT(
+      detection_type, std::string,
+      "Object type to add to newly created detected objects",
+      "generic_object_proposal" )
+  )
 
-  full_frame_detector();
-  virtual ~full_frame_detector();
+  virtual ~full_frame_detector() = default;
 
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  virtual kwiver::vital::detected_object_set_sptr detect(kwiver::vital::image_container_sptr image_data) const;
-
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
+  virtual kwiver::vital::detected_object_set_sptr detect(
+    kwiver::vital::image_container_sptr image_data ) const;
 };
 
 } // end namespace viame

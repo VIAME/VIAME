@@ -1383,43 +1383,6 @@ bool FishSpeciesID::predict(cv::Mat img, cv::Mat img2, std::vector<int>& predict
 // classify_fish_hierarchical_svm KWIVER Algorithm Wrapper
 // ============================================================================
 
-class classify_fish_hierarchical_svm::priv
-{
-public:
-  priv() {}
-  ~priv() {}
-
-  std::string m_model_file;
-  FishSpeciesID m_fish_model;
-};
-
-classify_fish_hierarchical_svm::classify_fish_hierarchical_svm()
-  : d(new priv)
-{
-}
-
-classify_fish_hierarchical_svm::~classify_fish_hierarchical_svm()
-{
-}
-
-kwiver::vital::config_block_sptr
-classify_fish_hierarchical_svm::get_configuration() const
-{
-  kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
-
-  config->set_value("model_file", d->m_model_file,
-                    "Name of hierarchical SVM model file.");
-
-  return config;
-}
-
-void
-classify_fish_hierarchical_svm::set_configuration(kwiver::vital::config_block_sptr config)
-{
-  d->m_model_file = config->get_value<std::string>("model_file");
-  d->m_fish_model.loadModel(d->m_model_file.c_str());
-}
-
 bool
 classify_fish_hierarchical_svm::check_configuration(kwiver::vital::config_block_sptr config) const
 {
@@ -1432,6 +1395,13 @@ classify_fish_hierarchical_svm::refine(
   kwiver::vital::detected_object_set_sptr input_dets) const
 {
   using ocv_container = kwiver::arrows::ocv::image_container;
+
+  // Lazy-load model on first use
+  if( !m_model_loaded )
+  {
+    m_fish_model.loadModel( c_model_file.c_str() );
+    m_model_loaded = true;
+  }
 
   auto output_detections = std::make_shared<kwiver::vital::detected_object_set>();
 
@@ -1460,8 +1430,8 @@ classify_fish_hierarchical_svm::refine(
     }
 
     cv::Mat fg_rect;
-    bool success = d->m_fish_model.predict(roi_crop, segment_chip, predictions,
-                                           probabilities, fg_rect);
+    bool success = m_fish_model.predict(roi_crop, segment_chip, predictions,
+                                        probabilities, fg_rect);
 
     if (!success) {
       output_detections->add(det);

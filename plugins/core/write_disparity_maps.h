@@ -13,9 +13,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/image_io.h>
-#include "viame_algorithm_plugin_interface.h"
-
-#include <memory>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -39,27 +37,52 @@ class VIAME_CORE_EXPORT write_disparity_maps :
   public kwiver::vital::algo::image_io
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( write_disparity_maps )
-  static constexpr char const* name = "write_disparity_maps";
-
-  static constexpr char const* description =
+  PLUGGABLE_IMPL(
+    write_disparity_maps,
     "Visualize and write disparity maps using colormaps. "
     "Converts disparity data to colorized images for visualization, "
-    "then uses an internal image_io algorithm to write the result.";
+    "then uses an internal image_io algorithm to write the result.",
+    PARAM_DEFAULT(
+      colormap, std::string,
+      "Colormap to use for visualization. Options: jet, inferno, viridis, grayscale",
+      "jet" ),
+    PARAM_DEFAULT(
+      min_disparity, double,
+      "Minimum disparity value for normalization. Used when auto_range is false.",
+      0.0 ),
+    PARAM_DEFAULT(
+      max_disparity, double,
+      "Maximum disparity value for normalization. Used when auto_range is false.",
+      0.0 ),
+    PARAM_DEFAULT(
+      auto_range, bool,
+      "Automatically compute min/max disparity from the image data.",
+      true ),
+    PARAM_DEFAULT(
+      disparity_scale, double,
+      "Scale factor for disparity values. Set to 256.0 for uint16 disparity maps "
+      "from foundation_stereo_process, or 1.0 for raw float disparity.",
+      256.0 ),
+    PARAM_DEFAULT(
+      invalid_color, std::string,
+      "RGB color for invalid disparity values (comma-separated, e.g., '0,0,0' for black)",
+      "0,0,0" ),
+    PARAM(
+      image_writer, kwiver::vital::algo::image_io_sptr,
+      "Algorithm pointer to nested image writer" )
+  )
 
-  write_disparity_maps();
-  virtual ~write_disparity_maps();
-
-  /// Get the current configuration
-  virtual kwiver::vital::config_block_sptr get_configuration() const override;
-
-  /// Set configuration
-  virtual void set_configuration( kwiver::vital::config_block_sptr config ) override;
+  virtual ~write_disparity_maps() = default;
 
   /// Check configuration validity
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
 
 private:
+  void initialize() override;
+
+  void set_configuration_internal(
+    kwiver::vital::config_block_sptr config ) override;
+
   /// Load is not supported - this is a write-only algorithm
   virtual kwiver::vital::image_container_sptr load_(
     std::string const& filename ) const override;
@@ -69,8 +92,10 @@ private:
     std::string const& filename,
     kwiver::vital::image_container_sptr data ) const override;
 
-  class priv;
-  std::unique_ptr< priv > d;
+  // Parsed invalid color components
+  uint8_t m_invalid_color_r;
+  uint8_t m_invalid_color_g;
+  uint8_t m_invalid_color_b;
 };
 
 } // namespace viame

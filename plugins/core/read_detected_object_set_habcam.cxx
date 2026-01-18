@@ -52,9 +52,7 @@ public:
     , m_current_idx( 0 )
     , m_last_idx( 0 )
     , m_delim( "" )
-    , m_point_dilation( 50 )
     , m_use_number_labels( true )
-    , m_use_internal_table( false )
     , m_detected_version( 1 )
   {
     init_species_map();
@@ -78,11 +76,9 @@ public:
   int m_current_idx;
   int m_last_idx;
 
-  // -- config data --
+  // -- runtime data --
   std::string m_delim;
-  double m_point_dilation;      // in pixels
   bool m_use_number_labels;
-  bool m_use_internal_table;
   int m_detected_version;
 
   std::map< int, std::string > m_species_map;
@@ -106,20 +102,6 @@ read_detected_object_set_habcam
 
 
 // -----------------------------------------------------------------------------
-void
-read_detected_object_set_habcam
-::set_configuration( kwiver::vital::config_block_sptr config )
-{
-  d->m_delim =
-    config->get_value<std::string>( "delimiter", d->m_delim );
-  d->m_point_dilation =
-    config->get_value<double>( "point_dilation", d->m_point_dilation );
-  d->m_use_internal_table =
-    config->get_value<bool>( "point_dilation", d->m_use_internal_table );
-}
-
-
-// -----------------------------------------------------------------------------
 bool
 read_detected_object_set_habcam
 ::check_configuration( kwiver::vital::config_block_sptr config ) const
@@ -136,6 +118,7 @@ read_detected_object_set_habcam
   if( d->m_first )
   {
     d->m_first = false;
+    d->m_delim = c_delimiter;
     d->init_species_map();
     d->read_all();
 
@@ -227,7 +210,7 @@ read_detected_object_set_habcam::priv
       std::remove( class_name.begin(), class_name.end(), ')' ),
       class_name.end() );
   }
-  else if( m_use_internal_table )
+  else if( m_parent->c_use_internal_table )
   {
     class_name = decode_species( atoi( parsed_line[1].c_str() ) );
   }
@@ -311,8 +294,8 @@ read_detected_object_set_habcam::priv
       const double cy = atof( parsed_line[ index + 2 ].c_str() );
 
       bbox = kwiver::vital::bounding_box_d(
-        cx - m_point_dilation, cy - m_point_dilation,
-        cx + m_point_dilation, cy + m_point_dilation );
+        cx - m_parent->c_point_dilation, cy - m_parent->c_point_dilation,
+        cx + m_parent->c_point_dilation, cy + m_parent->c_point_dilation );
     }
     else
     {

@@ -75,14 +75,6 @@ read_detected_object_set_fishnet
 
 
 // -----------------------------------------------------------------------------------
-void
-read_detected_object_set_fishnet
-::set_configuration( kwiver::vital::config_block_sptr config )
-{
-}
-
-
-// -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_fishnet
 ::check_configuration( kwiver::vital::config_block_sptr config ) const

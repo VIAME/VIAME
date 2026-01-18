@@ -45,18 +45,6 @@ namespace viame {
 namespace kv = kwiver::vital;
 namespace ocv = kwiver::arrows::ocv;
 
-/// Constructor
-split_image_horizontally
-::split_image_horizontally()
-{
-}
-
-/// Destructor
-split_image_horizontally
-::~split_image_horizontally()
-{
-}
-
 /// Split image
 std::vector< kv::image_container_sptr >
 split_image_horizontally

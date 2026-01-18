@@ -17,73 +17,13 @@ namespace viame {
 using namespace kwiver;
 
 // -----------------------------------------------------------------------------------------------
-/**
- * @brief Storage class for private member variables
- */
-class apply_color_correction::priv
-{
-public:
-
-  priv()
-    : m_apply_gamma( false )
-    , m_gamma( 1.0 )
-    , m_gamma_auto( false )
-    , m_apply_gray_world( false )
-    , m_gray_world_sat_threshold( 0.95 )
-    , m_apply_underwater( false )
-    , m_underwater_method( "simple" )
-    , m_depth_map_path( "" )
-    , m_use_auto_depth( true )
-    , m_water_type( "oceanic" )
-    , m_red_attenuation( 0.5 )
-    , m_green_attenuation( 0.3 )
-    , m_blue_attenuation( 0.1 )
-    , m_backscatter_removal( true )
-  {}
-
-  ~priv() {}
-
-  // Gamma correction parameters
-  bool m_apply_gamma;
-  double m_gamma;
-  bool m_gamma_auto;
-
-  // Gray world white balance parameters
-  bool m_apply_gray_world;
-  double m_gray_world_sat_threshold;
-
-  // Underwater correction parameters
-  bool m_apply_underwater;
-  std::string m_underwater_method;
-  std::string m_depth_map_path;
-  bool m_use_auto_depth;
-  std::string m_water_type;
-  double m_red_attenuation;
-  double m_green_attenuation;
-  double m_blue_attenuation;
-  bool m_backscatter_removal;
-  cv::Mat m_depth_map;
-
-  // Helper methods
-  void apply_gamma_correction( cv::Mat& image );
-  double estimate_auto_gamma( const cv::Mat& image );
-  void apply_gray_world_balance( cv::Mat& image );
-  void apply_underwater_simple( cv::Mat& image );
-  void apply_underwater_fusion( cv::Mat& image );
-  cv::Mat estimate_relative_depth( const cv::Mat& image );
-  void apply_backscatter_removal( cv::Mat& image );
-  void load_depth_map();
-  void set_water_type_presets();
-};
-
-// -----------------------------------------------------------------------------------------------
 void
-apply_color_correction::priv
+apply_color_correction
 ::apply_gamma_correction( cv::Mat& image )
 {
-  double gamma = m_gamma;
+  double gamma = c_gamma;
 
-  if( m_gamma_auto )
+  if( c_gamma_auto )
   {
     gamma = estimate_auto_gamma( image );
   }
@@ -120,7 +60,7 @@ apply_color_correction::priv
 
 // -----------------------------------------------------------------------------------------------
 double
-apply_color_correction::priv
+apply_color_correction
 ::estimate_auto_gamma( const cv::Mat& image )
 {
   cv::Mat gray;
@@ -158,7 +98,7 @@ apply_color_correction::priv
 
 // -----------------------------------------------------------------------------------------------
 void
-apply_color_correction::priv
+apply_color_correction
 ::apply_gray_world_balance( cv::Mat& image )
 {
   if( image.channels() != 3 )
@@ -175,7 +115,7 @@ apply_color_correction::priv
 #endif
 
   double max_val = ( image.depth() == CV_8U ) ? 255.0 : 1.0;
-  cv::Mat mask = gray < ( m_gray_world_sat_threshold * max_val );
+  cv::Mat mask = gray < ( c_gray_world_sat_threshold * max_val );
 
   // Calculate mean of each channel (excluding saturated pixels)
   cv::Scalar channel_means = cv::mean( image, mask );
@@ -206,12 +146,12 @@ apply_color_correction::priv
 
 // -----------------------------------------------------------------------------------------------
 void
-apply_color_correction::priv
+apply_color_correction
 ::load_depth_map()
 {
-  if( !m_depth_map_path.empty() && m_depth_map.empty() )
+  if( !c_depth_map_path.empty() && m_depth_map.empty() )
   {
-    m_depth_map = cv::imread( m_depth_map_path, cv::IMREAD_ANYDEPTH | cv::IMREAD_GRAYSCALE );
+    m_depth_map = cv::imread( c_depth_map_path, cv::IMREAD_ANYDEPTH | cv::IMREAD_GRAYSCALE );
     if( !m_depth_map.empty() )
     {
       // Normalize to 0-1 range
@@ -222,7 +162,7 @@ apply_color_correction::priv
 
 // -----------------------------------------------------------------------------------------------
 cv::Mat
-apply_color_correction::priv
+apply_color_correction
 ::estimate_relative_depth( const cv::Mat& image )
 {
   if( image.channels() != 3 )
@@ -255,32 +195,32 @@ apply_color_correction::priv
 
 // -----------------------------------------------------------------------------------------------
 void
-apply_color_correction::priv
+apply_color_correction
 ::set_water_type_presets()
 {
-  if( m_water_type == "oceanic" )
+  if( c_water_type == "oceanic" )
   {
-    m_red_attenuation = 0.5;
-    m_green_attenuation = 0.3;
-    m_blue_attenuation = 0.1;
+    c_red_attenuation = 0.5;
+    c_green_attenuation = 0.3;
+    c_blue_attenuation = 0.1;
   }
-  else if( m_water_type == "coastal" )
+  else if( c_water_type == "coastal" )
   {
-    m_red_attenuation = 0.6;
-    m_green_attenuation = 0.4;
-    m_blue_attenuation = 0.2;
+    c_red_attenuation = 0.6;
+    c_green_attenuation = 0.4;
+    c_blue_attenuation = 0.2;
   }
-  else if( m_water_type == "turbid" )
+  else if( c_water_type == "turbid" )
   {
-    m_red_attenuation = 0.7;
-    m_green_attenuation = 0.5;
-    m_blue_attenuation = 0.3;
+    c_red_attenuation = 0.7;
+    c_green_attenuation = 0.5;
+    c_blue_attenuation = 0.3;
   }
 }
 
 // -----------------------------------------------------------------------------------------------
 void
-apply_color_correction::priv
+apply_color_correction
 ::apply_backscatter_removal( cv::Mat& image )
 {
   if( image.channels() != 3 )
@@ -312,7 +252,7 @@ apply_color_correction::priv
 
 // -----------------------------------------------------------------------------------------------
 void
-apply_color_correction::priv
+apply_color_correction
 ::apply_underwater_simple( cv::Mat& image )
 {
   if( image.channels() != 3 )
@@ -336,7 +276,7 @@ apply_color_correction::priv
       depth = m_depth_map.clone();
     }
   }
-  else if( m_use_auto_depth )
+  else if( c_use_auto_depth )
   {
     depth = estimate_relative_depth( image );
   }
@@ -347,7 +287,7 @@ apply_color_correction::priv
   }
 
   // Apply backscatter removal first
-  if( m_backscatter_removal )
+  if( c_backscatter_removal )
   {
     apply_backscatter_removal( image );
   }
@@ -358,7 +298,7 @@ apply_color_correction::priv
 
   // Compensate each channel based on depth and attenuation coefficient
   // Formula: corrected = original * exp(attenuation * depth)
-  double attenuations[3] = { m_blue_attenuation, m_green_attenuation, m_red_attenuation };
+  double attenuations[3] = { c_blue_attenuation, c_green_attenuation, c_red_attenuation };
 
   for( int i = 0; i < 3; i++ )
   {
@@ -382,7 +322,7 @@ apply_color_correction::priv
 
 // -----------------------------------------------------------------------------------------------
 void
-apply_color_correction::priv
+apply_color_correction
 ::apply_underwater_fusion( cv::Mat& image )
 {
   if( image.channels() != 3 )
@@ -427,10 +367,10 @@ apply_color_correction::priv
   // Method 3: Gamma corrected version for shadow recovery
   cv::Mat gamma_corrected;
   image.copyTo( gamma_corrected );
-  double saved_gamma = m_gamma;
-  m_gamma = 0.7;
+  double saved_gamma = c_gamma;
+  c_gamma = 0.7;
   apply_gamma_correction( gamma_corrected );
-  m_gamma = saved_gamma;
+  c_gamma = saved_gamma;
 
   // Fuse the results using weighted averaging
   // Weights can be based on local contrast/entropy, but here we use simple averaging
@@ -445,99 +385,6 @@ apply_color_correction::priv
 }
 
 // =================================================================================================
-
-apply_color_correction
-::apply_color_correction()
-  : d( new priv )
-{
-  attach_logger( "viame.opencv.apply_color_correction" );
-}
-
-
-apply_color_correction
-::~apply_color_correction()
-{
-}
-
-
-// -------------------------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-apply_color_correction
-::get_configuration() const
-{
-  // Get base config from base class
-  kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
-
-  // Gamma correction parameters
-  config->set_value( "apply_gamma", d->m_apply_gamma,
-    "Enable gamma correction" );
-  config->set_value( "gamma", d->m_gamma,
-    "Gamma value. Less than 1.0 brightens image, greater than 1.0 darkens" );
-  config->set_value( "gamma_auto", d->m_gamma_auto,
-    "Automatically estimate optimal gamma from image histogram" );
-
-  // Gray world white balance parameters
-  config->set_value( "apply_gray_world", d->m_apply_gray_world,
-    "Enable gray world white balance algorithm" );
-  config->set_value( "gray_world_sat_threshold", d->m_gray_world_sat_threshold,
-    "Exclude pixels above this threshold (0-1) from white balance calculation" );
-
-  // Underwater correction parameters
-  config->set_value( "apply_underwater", d->m_apply_underwater,
-    "Enable underwater color correction" );
-  config->set_value( "underwater_method", d->m_underwater_method,
-    "Underwater correction method: 'simple' or 'fusion'" );
-  config->set_value( "depth_map_path", d->m_depth_map_path,
-    "Path to precomputed depth map image (optional)" );
-  config->set_value( "use_auto_depth", d->m_use_auto_depth,
-    "Automatically estimate relative depth when no depth map provided" );
-  config->set_value( "water_type", d->m_water_type,
-    "Water type preset: 'oceanic', 'coastal', or 'turbid'" );
-  config->set_value( "red_attenuation", d->m_red_attenuation,
-    "Red channel attenuation coefficient (0-1)" );
-  config->set_value( "green_attenuation", d->m_green_attenuation,
-    "Green channel attenuation coefficient (0-1)" );
-  config->set_value( "blue_attenuation", d->m_blue_attenuation,
-    "Blue channel attenuation coefficient (0-1)" );
-  config->set_value( "backscatter_removal", d->m_backscatter_removal,
-    "Apply backscatter (haze) removal in underwater correction" );
-
-  return config;
-}
-
-
-// -------------------------------------------------------------------------------------------------
-void
-apply_color_correction
-::set_configuration( kwiver::vital::config_block_sptr config_in )
-{
-  vital::config_block_sptr config = this->get_configuration();
-  config->merge_config( config_in );
-
-  // Gamma correction
-  d->m_apply_gamma = config->get_value< bool >( "apply_gamma" );
-  d->m_gamma = config->get_value< double >( "gamma" );
-  d->m_gamma_auto = config->get_value< bool >( "gamma_auto" );
-
-  // Gray world white balance
-  d->m_apply_gray_world = config->get_value< bool >( "apply_gray_world" );
-  d->m_gray_world_sat_threshold = config->get_value< double >( "gray_world_sat_threshold" );
-
-  // Underwater correction
-  d->m_apply_underwater = config->get_value< bool >( "apply_underwater" );
-  d->m_underwater_method = config->get_value< std::string >( "underwater_method" );
-  d->m_depth_map_path = config->get_value< std::string >( "depth_map_path" );
-  d->m_use_auto_depth = config->get_value< bool >( "use_auto_depth" );
-  d->m_water_type = config->get_value< std::string >( "water_type" );
-  d->m_red_attenuation = config->get_value< double >( "red_attenuation" );
-  d->m_green_attenuation = config->get_value< double >( "green_attenuation" );
-  d->m_blue_attenuation = config->get_value< double >( "blue_attenuation" );
-  d->m_backscatter_removal = config->get_value< bool >( "backscatter_removal" );
-
-  // Apply water type presets if using a preset type
-  d->set_water_type_presets();
-}
-
 
 // -------------------------------------------------------------------------------------------------
 bool
@@ -593,27 +440,27 @@ apply_color_correction
   }
 
   // Apply gamma correction first (if enabled)
-  if( d->m_apply_gamma )
+  if( c_apply_gamma )
   {
-    d->apply_gamma_correction( output_ocv );
+    apply_gamma_correction( output_ocv );
   }
 
   // Apply gray world white balance (if enabled)
-  if( d->m_apply_gray_world )
+  if( c_apply_gray_world )
   {
-    d->apply_gray_world_balance( output_ocv );
+    apply_gray_world_balance( output_ocv );
   }
 
   // Apply underwater correction (if enabled)
-  if( d->m_apply_underwater )
+  if( c_apply_underwater )
   {
-    if( d->m_underwater_method == "fusion" )
+    if( c_underwater_method == "fusion" )
     {
-      d->apply_underwater_fusion( output_ocv );
+      apply_underwater_fusion( output_ocv );
     }
     else
     {
-      d->apply_underwater_simple( output_ocv );
+      apply_underwater_simple( output_ocv );
     }
   }
 

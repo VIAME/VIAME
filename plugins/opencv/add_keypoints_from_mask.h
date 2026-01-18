@@ -15,7 +15,7 @@
 #include <vital/algo/refine_detections.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/bounding_box.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 #include <opencv2/core/core.hpp>
 
@@ -171,26 +171,24 @@ class VIAME_OPENCV_EXPORT add_keypoints_from_mask
   : public kwiver::vital::algo::refine_detections
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( add_keypoints_from_mask )
+  PLUGGABLE_IMPL( add_keypoints_from_mask,
+                  refine_detections,
+                  "add_keypoints_from_mask",
+                  "Adds head and tail keypoints to detections based on their "
+                  "mask or bounding box using configurable methods.",
+    PARAM_DEFAULT( method, std::string,
+                   "Method for computing keypoints from polygon/mask. Options: "
+                   "oriented_bbox (default), pca, farthest, hull_extremes, skeleton",
+                   "oriented_bbox" )
+  )
 
-  PLUGIN_INFO( "add_keypoints_from_mask",
-    "Adds head and tail keypoints to detections based on their "
-    "mask or bounding box using configurable methods." )
+  virtual ~add_keypoints_from_mask() = default;
 
-  add_keypoints_from_mask();
-  virtual ~add_keypoints_from_mask();
-
-  virtual kwiver::vital::config_block_sptr get_configuration() const override;
-  virtual void set_configuration( kwiver::vital::config_block_sptr config ) override;
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
 
   virtual kwiver::vital::detected_object_set_sptr
   refine( kwiver::vital::image_container_sptr image_data,
           kwiver::vital::detected_object_set_sptr detections ) const override;
-
-private:
-  class priv;
-  const std::unique_ptr< priv > d;
 
 }; // end class add_keypoints_from_mask
 

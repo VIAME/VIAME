@@ -1,7 +1,5 @@
 #include "auto_detect_transform.h"
 
-#include <vital/algo/algorithm.txx>
-
 #include <vital/types/homography.h>
 
 #include <fstream>
@@ -11,38 +9,6 @@ namespace viame
 
 namespace kv = kwiver::vital;
 namespace kva = kv::algo;
-
-auto_detect_transform_io
-::auto_detect_transform_io()
-{
-}
-
-auto_detect_transform_io
-::~auto_detect_transform_io()
-{
-}
-
-
-kv::config_block_sptr
-auto_detect_transform_io
-::get_configuration() const
-{
-  return kva::transform_2d_io::get_configuration();
-}
-
-void
-auto_detect_transform_io
-::set_configuration( kv::config_block_sptr /*config*/ )
-{
-  return;
-}
-
-bool
-auto_detect_transform_io
-::check_configuration( kv::config_block_sptr /*config*/ ) const
-{
-  return true;
-}
 
 kv::transform_2d_sptr
 auto_detect_transform_io

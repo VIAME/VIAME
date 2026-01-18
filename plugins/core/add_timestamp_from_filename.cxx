@@ -4,8 +4,6 @@
 
 #include "add_timestamp_from_filename.h"
 
-#include <vital/algo/algorithm.txx>
-
 #include "filename_to_timestamp.h"
 
 #include <kwiversys/SystemTools.hxx>
@@ -26,7 +24,7 @@ namespace kv = kwiver::vital;
 namespace kva = kv::algo;
 
 // ----------------------------------------------------------------------------
-add_timestamp_from_filename::add_timestamp_from_filename()
+void add_timestamp_from_filename::initialize()
 {
   this->set_capability( kva::image_io::HAS_TIME, true );
 }
@@ -44,7 +42,7 @@ kv::config_block_sptr
 }
 
 // ----------------------------------------------------------------------------
-void add_timestamp_from_filename::set_configuration(
+void add_timestamp_from_filename::set_configuration_internal(
   kv::config_block_sptr config )
 {
   auto new_config = this->get_configuration();

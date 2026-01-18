@@ -34,7 +34,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/refine_detections.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -55,19 +55,33 @@ class VIAME_CORE_EXPORT refine_detections_nms
 {
 
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( refine_detections_nms )
-  PLUGIN_INFO( "nms",
+  PLUGGABLE_IMPL(
+    refine_detections_nms,
     "Refines detections based on overlap.\n\n"
     "This algorithm sorts through detections, pruning detections "
-    "that heavily overlap with higher confidence detections." )
+    "that heavily overlap with higher confidence detections.",
+    PARAM_DEFAULT(
+      nms_scale_factor, double,
+      "The factor by which the detections are scaled during NMS.",
+      1.0 ),
+    PARAM_DEFAULT(
+      output_scale_factor, double,
+      "The factor by which the refined final detections are scaled.",
+      1.0 ),
+    PARAM_DEFAULT(
+      max_scale_difference, double,
+      "If the ratio of the areas of two boxes are different by more "
+      "than this amount [1.0,inf], then don't suppress them.",
+      4.0 ),
+    PARAM_DEFAULT(
+      max_overlap, double,
+      "The maximum percent a detection can overlap with another "
+      "before it's discarded. Range [0.0,1.0].",
+      0.5 )
+  )
 
-  refine_detections_nms();
-  virtual ~refine_detections_nms();
+  virtual ~refine_detections_nms() = default;
 
-  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
 
@@ -85,10 +99,10 @@ public:
           kwiver::vital::detected_object_set_sptr detections ) const;
 
 private:
+  void initialize() override;
 
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
+  /// Computed from max_scale_difference, not a config param
+  double m_min_scale_difference;
 
  }; // end class refine_detections_nms
 

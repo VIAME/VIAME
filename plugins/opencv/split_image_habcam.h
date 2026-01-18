@@ -11,7 +11,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/split_image.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -20,27 +20,18 @@ class VIAME_OPENCV_EXPORT split_image_habcam
   : public kwiver::vital::algo::split_image
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( split_image_habcam )
-  PLUGIN_INFO( "habcam",
-               "Split an image into multiple smaller images" )
-
-  /// Constructor
-  split_image_habcam();
-
-  /// Destructor
-  virtual ~split_image_habcam();
-
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration( kwiver::vital::config_block_sptr );
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  PLUGGABLE_IMPL(
+    split_image_habcam,
+    "Split an image into multiple smaller images",
+    PARAM_DEFAULT( require_stereo, bool,
+      "Fail if the input is not a conjoined stereo image pair", false ),
+    PARAM_DEFAULT( required_width_factor, double,
+      "If the width is this time as many heights, it is a stereo pair.", 2.0 )
+  )
 
   /// Split image
   virtual std::vector< kwiver::vital::image_container_sptr >
   split( kwiver::vital::image_container_sptr img ) const;
-
-private:
-  class priv;
-  const std::unique_ptr< priv > d;
 };
 
 } // end namespace viame

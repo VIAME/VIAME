@@ -4,8 +4,6 @@
 
 #include "write_disparity_maps.h"
 
-#include <vital/algo/algorithm.txx>
-
 #include <vital/types/image.h>
 #include <vital/types/image_container.h>
 #include <vital/exceptions/io.h>
@@ -145,129 +143,58 @@ void apply_grayscale( double normalized, uint8_t& r, uint8_t& g, uint8_t& b )
   r = g = b = v;
 }
 
-} // anonymous namespace
-
-// =============================================================================
-// Private implementation
-// =============================================================================
-
-class write_disparity_maps::priv
+// Apply a colormap by name
+void apply_colormap( const std::string& colormap, double normalized,
+                     uint8_t& r, uint8_t& g, uint8_t& b )
 {
-public:
-  priv()
-    : m_colormap( "jet" )
-    , m_min_disparity( 0.0 )
-    , m_max_disparity( 0.0 )
-    , m_auto_range( true )
-    , m_disparity_scale( 256.0 )
-    , m_invalid_color_r( 0 )
-    , m_invalid_color_g( 0 )
-    , m_invalid_color_b( 0 )
-  {}
-
-  std::string m_colormap;
-  double m_min_disparity;
-  double m_max_disparity;
-  bool m_auto_range;
-  double m_disparity_scale;
-  uint8_t m_invalid_color_r;
-  uint8_t m_invalid_color_g;
-  uint8_t m_invalid_color_b;
-
-  kv::algo::image_io_sptr m_image_writer;
-
-  // Apply the configured colormap
-  void apply_colormap( double normalized, uint8_t& r, uint8_t& g, uint8_t& b ) const
+  if( colormap == "jet" )
   {
-    if( m_colormap == "jet" )
-    {
-      apply_jet_colormap( normalized, r, g, b );
-    }
-    else if( m_colormap == "inferno" )
-    {
-      apply_inferno_colormap( normalized, r, g, b );
-    }
-    else if( m_colormap == "viridis" )
-    {
-      apply_viridis_colormap( normalized, r, g, b );
-    }
-    else // grayscale
-    {
-      apply_grayscale( normalized, r, g, b );
-    }
+    apply_jet_colormap( normalized, r, g, b );
   }
-};
+  else if( colormap == "inferno" )
+  {
+    apply_inferno_colormap( normalized, r, g, b );
+  }
+  else if( colormap == "viridis" )
+  {
+    apply_viridis_colormap( normalized, r, g, b );
+  }
+  else // grayscale
+  {
+    apply_grayscale( normalized, r, g, b );
+  }
+}
+
+} // anonymous namespace
 
 // =============================================================================
 // write_disparity_maps implementation
 // =============================================================================
 
-write_disparity_maps
-::write_disparity_maps()
-  : d( new priv() )
-{
-}
-
-write_disparity_maps
-::~write_disparity_maps()
-{
-}
-
 // -----------------------------------------------------------------------------
-kv::config_block_sptr
+void
 write_disparity_maps
-::get_configuration() const
+::initialize()
 {
-  auto config = kv::algo::image_io::get_configuration();
-
-  config->set_value( "colormap", d->m_colormap,
-    "Colormap to use for visualization. Options: jet, inferno, viridis, grayscale" );
-
-  config->set_value( "min_disparity", d->m_min_disparity,
-    "Minimum disparity value for normalization. Used when auto_range is false." );
-
-  config->set_value( "max_disparity", d->m_max_disparity,
-    "Maximum disparity value for normalization. Used when auto_range is false." );
-
-  config->set_value( "auto_range", d->m_auto_range,
-    "Automatically compute min/max disparity from the image data." );
-
-  config->set_value( "disparity_scale", d->m_disparity_scale,
-    "Scale factor for disparity values. Set to 256.0 for uint16 disparity maps "
-    "from foundation_stereo_process, or 1.0 for raw float disparity." );
-
-  config->set_value( "invalid_color", "0,0,0",
-    "RGB color for invalid disparity values (comma-separated, e.g., '0,0,0' for black)" );
-
-  kv::get_nested_algo_configuration<kv::algo::image_io>(
-    "image_writer", config, d->m_image_writer );
-
-  return config;
+  // Initialize invalid color from defaults
+  m_invalid_color_r = 0;
+  m_invalid_color_g = 0;
+  m_invalid_color_b = 0;
 }
 
 // -----------------------------------------------------------------------------
 void
 write_disparity_maps
-::set_configuration( kv::config_block_sptr config )
+::set_configuration_internal( kv::config_block_sptr config )
 {
-  d->m_colormap = config->get_value< std::string >( "colormap", d->m_colormap );
-  d->m_min_disparity = config->get_value< double >( "min_disparity", d->m_min_disparity );
-  d->m_max_disparity = config->get_value< double >( "max_disparity", d->m_max_disparity );
-  d->m_auto_range = config->get_value< bool >( "auto_range", d->m_auto_range );
-  d->m_disparity_scale = config->get_value< double >( "disparity_scale", d->m_disparity_scale );
-
-  // Parse invalid color
-  std::string invalid_color_str = config->get_value< std::string >( "invalid_color", "0,0,0" );
+  // Parse invalid_color string into RGB components
   int r = 0, g = 0, b = 0;
-  if( sscanf( invalid_color_str.c_str(), "%d,%d,%d", &r, &g, &b ) == 3 )
+  if( sscanf( c_invalid_color.c_str(), "%d,%d,%d", &r, &g, &b ) == 3 )
   {
-    d->m_invalid_color_r = static_cast<uint8_t>( std::max( 0, std::min( 255, r ) ) );
-    d->m_invalid_color_g = static_cast<uint8_t>( std::max( 0, std::min( 255, g ) ) );
-    d->m_invalid_color_b = static_cast<uint8_t>( std::max( 0, std::min( 255, b ) ) );
+    m_invalid_color_r = static_cast<uint8_t>( std::max( 0, std::min( 255, r ) ) );
+    m_invalid_color_g = static_cast<uint8_t>( std::max( 0, std::min( 255, g ) ) );
+    m_invalid_color_b = static_cast<uint8_t>( std::max( 0, std::min( 255, b ) ) );
   }
-
-  kv::set_nested_algo_configuration<kv::algo::image_io>(
-    "image_writer", config, d->m_image_writer );
 }
 
 // -----------------------------------------------------------------------------
@@ -310,7 +237,7 @@ write_disparity_maps
     throw kv::file_write_exception( filename, "Null image container" );
   }
 
-  if( !d->m_image_writer )
+  if( !c_image_writer )
   {
     throw kv::file_write_exception( filename,
       "No image_writer algorithm configured" );
@@ -326,8 +253,8 @@ write_disparity_maps
   }
 
   // Determine disparity range
-  double min_disp = d->m_min_disparity;
-  double max_disp = d->m_max_disparity;
+  double min_disp = c_min_disparity;
+  double max_disp = c_max_disparity;
 
   // Lambda to get disparity value at a pixel
   const char* img_data = reinterpret_cast<const char*>( img.first_pixel() );
@@ -340,7 +267,7 @@ write_disparity_maps
         img.pixel_traits().num_bytes == 2 )
     {
       const uint16_t* ptr = reinterpret_cast<const uint16_t*>( pixel_ptr );
-      return static_cast<double>( *ptr ) / d->m_disparity_scale;
+      return static_cast<double>( *ptr ) / c_disparity_scale;
     }
     else if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
              img.pixel_traits().num_bytes == 4 )
@@ -358,7 +285,7 @@ write_disparity_maps
   };
 
   // Compute auto range if needed
-  if( d->m_auto_range )
+  if( c_auto_range )
   {
     min_disp = std::numeric_limits<double>::max();
     max_disp = std::numeric_limits<double>::lowest();
@@ -407,15 +334,15 @@ write_disparity_maps
       if( disp <= 0 || !std::isfinite( disp ) )
       {
         // Invalid disparity
-        r = d->m_invalid_color_r;
-        g = d->m_invalid_color_g;
-        b = d->m_invalid_color_b;
+        r = m_invalid_color_r;
+        g = m_invalid_color_g;
+        b = m_invalid_color_b;
       }
       else
       {
         // Normalize to [0, 1]
         double normalized = ( disp - min_disp ) / range;
-        d->apply_colormap( normalized, r, g, b );
+        apply_colormap( c_colormap, normalized, r, g, b );
       }
 
       // Write RGB values
@@ -428,7 +355,7 @@ write_disparity_maps
 
   // Create output container and write using internal writer
   auto output_container = std::make_shared< kv::simple_image_container >( output_img );
-  d->m_image_writer->save( filename, output_container );
+  c_image_writer->save( filename, output_container );
 }
 
 } // namespace viame

@@ -30,97 +30,51 @@
 #include "camera_io.h"
 
 #include "optimize_stereo_cameras.h"
-#include "calibrate_stereo_cameras.h"
-#include "filter_stereo_feature_tracks.h"
 
 namespace kv = kwiver::vital;
 
 namespace viame {
 
-// Private implementation class
-class optimize_stereo_cameras::priv
+void
+optimize_stereo_cameras
+::write_stereo_calibration_file( const cv::Mat& M1, const cv::Mat& M2,
+                                 const std::vector< double >& D1,
+                                 const std::vector< double >& D2,
+                                 const cv::Mat& R, const cv::Mat& T,
+                                 const cv::Mat& R1, const cv::Mat& R2,
+                                 const cv::Mat& P1, const cv::Mat& P2,
+                                 const cv::Mat& Q ) const
 {
-public:
-  unsigned m_image_width{};
-  unsigned m_image_height{};
-  unsigned m_frame_count_threshold{};
-  std::string m_output_calibration_directory{};
-  std::string m_output_json_file{};
-  double m_square_size{ 1.0 };
+  // Use current directory if output directory not specified
+  std::string output_dir = c_output_calibration_directory.empty() ? "." : c_output_calibration_directory;
 
-  // Shared calibration utility
-  calibrate_stereo_cameras m_calibrator;
-
-  kv::logger_handle_t m_logger;
-
-  static kv::feature_track_set_sptr
-  merge_features_track( const kv::feature_track_set_sptr& feature_track,
-                        const kv::feature_track_set_sptr& feature_track1,
-                        const kv::feature_track_set_sptr& feature_track2 );
-
-  void calibrate_camera( const kv::camera_sptr& camera,
-                         const kv::feature_track_set_sptr& features,
-                         const kv::landmark_map_sptr& landmarks,
-                         const std::string& suffix );
-
-  void calibrate_stereo_camera( kv::camera_map::map_camera_t cameras,
-                                const kv::feature_track_set_sptr& features1,
-                                const kv::feature_track_set_sptr& features2,
-                                const kv::landmark_map_sptr& landmarks1,
-                                const kv::landmark_map_sptr& landmarks2 );
-
-
-  StereoPointCoordinates
-  convert_features_and_landmarks_to_calib_points( const FeatureTracks& features,
-                                                  const Landmarks& landmarks,
-                                                  bool& success );
-
-  bool try_improve_camera_calibration( const std::vector< std::vector< cv::Point3f > >& world_points,
-                                       const std::vector< std::vector< cv::Point2f > >& image_points,
-                                       const cv::Size& image_size,
-                                       cv::Mat& K1, cv::Mat& D1, cv::Mat& R1, cv::Mat& T1,
-                                       int flags, double max_error, double& error,
-                                       const std::string& context );
-
-  void write_stereo_calibration_file( const cv::Mat& M1, const cv::Mat& M2,
-                                       const std::vector< double >& D1,
-                                       const std::vector< double >& D2,
-                                       const cv::Mat& R, const cv::Mat& T,
-                                       const cv::Mat& R1, const cv::Mat& R2,
-                                       const cv::Mat& P1, const cv::Mat& P2,
-                                       const cv::Mat& Q ) const
+  auto fs = cv::FileStorage( output_dir + "/intrinsics.yml", cv::FileStorage::Mode::WRITE );
+  if( fs.isOpened() )
   {
-    // Use current directory if output directory not specified
-    std::string output_dir = m_output_calibration_directory.empty() ? "." : m_output_calibration_directory;
-
-    auto fs = cv::FileStorage( output_dir + "/intrinsics.yml", cv::FileStorage::Mode::WRITE );
-    if( fs.isOpened() )
-    {
-      fs.write( "M1", M1 );
-      fs.write( "M2", M2 );
-      fs.write( "D1", cv::Mat( D1 ) );
-      fs.write( "D2", cv::Mat( D2 ) );
-    }
-    fs.release();
-
-    // write extrinsic file
-    fs = cv::FileStorage( output_dir + "/extrinsics.yml", cv::FileStorage::Mode::WRITE );
-    if( fs.isOpened() )
-    {
-      fs.write( "R", R );
-      fs.write( "T", T );
-      fs.write( "R1", R1 );
-      fs.write( "R2", R2 );
-      fs.write( "P1", P1 );
-      fs.write( "P2", P2 );
-      fs.write( "Q", Q );
-    }
-    fs.release();
+    fs.write( "M1", M1 );
+    fs.write( "M2", M2 );
+    fs.write( "D1", cv::Mat( D1 ) );
+    fs.write( "D2", cv::Mat( D2 ) );
   }
-}; // end class optimize_stereo_cameras::priv
+  fs.release();
+
+  // write extrinsic file
+  fs = cv::FileStorage( output_dir + "/extrinsics.yml", cv::FileStorage::Mode::WRITE );
+  if( fs.isOpened() )
+  {
+    fs.write( "R", R );
+    fs.write( "T", T );
+    fs.write( "R1", R1 );
+    fs.write( "R2", R2 );
+    fs.write( "P1", P1 );
+    fs.write( "P2", P2 );
+    fs.write( "Q", Q );
+  }
+  fs.release();
+}
 
 kv::feature_track_set_sptr
-optimize_stereo_cameras::priv
+optimize_stereo_cameras
 ::merge_features_track( const kv::feature_track_set_sptr& feature_track,
                         const kv::feature_track_set_sptr& feature_track1,
                         const kv::feature_track_set_sptr& feature_track2 )
@@ -161,13 +115,13 @@ optimize_stereo_cameras::priv
 
 
 bool
-optimize_stereo_cameras::priv
+optimize_stereo_cameras
 ::try_improve_camera_calibration( const std::vector< std::vector< cv::Point3f > >& world_points,
                                   const std::vector< std::vector< cv::Point2f > >& image_points,
                                   const cv::Size& image_size,
                                   cv::Mat& K1, cv::Mat& D1, cv::Mat& R1, cv::Mat& T1,
                                   int flags, double max_error, double& error,
-                                  const std::string& context )
+                                  const std::string& context ) const
 {
   cv::Mat prev_K1, prev_D1, prev_R1, prev_T1;
   prev_K1 = K1.clone();
@@ -175,15 +129,15 @@ optimize_stereo_cameras::priv
   prev_R1 = R1.clone();
   prev_T1 = T1.clone();
 
-  LOG_INFO( m_logger, "  - Running intrinsic calibration: " << context );
+  LOG_INFO( logger(), "  - Running intrinsic calibration: " << context );
   error = cv::calibrateCamera( world_points, image_points, image_size, K1, D1, R1, T1, flags );
-  LOG_INFO( m_logger, "    Calibration error: " << error );
+  LOG_INFO( logger(), "    Calibration error: " << error );
 
   if( error < max_error )
     return true;
 
   // Rollback parameters
-  LOG_INFO( m_logger, "    Error too high, keeping previous parameters" );
+  LOG_INFO( logger(), "    Error too high, keeping previous parameters" );
   K1 = prev_K1.clone();
   D1 = prev_D1.clone();
   R1 = prev_R1.clone();
@@ -194,18 +148,18 @@ optimize_stereo_cameras::priv
 
 
 void
-optimize_stereo_cameras::priv
+optimize_stereo_cameras
 ::calibrate_camera( const kv::camera_sptr& camera,
                     const kv::feature_track_set_sptr& features,
                     const kv::landmark_map_sptr& landmarks,
-                    const std::string& suffix )
+                    const std::string& suffix ) const
 {
   kv::simple_camera_perspective_sptr cam;
   cam = std::dynamic_pointer_cast< kv::simple_camera_perspective >( camera );
 
   if( !cam )
   {
-    LOG_WARN( m_logger, "Unable to get the camera." );
+    LOG_WARN( logger(), "Unable to get the camera." );
     return;
   }
 
@@ -218,7 +172,7 @@ optimize_stereo_cameras::priv
   auto world_points = points.world_pts;
 
   // Init left/right camera matrix
-  cv::Size image_size = cv::Size( m_image_width, m_image_height );
+  cv::Size image_size = cv::Size( c_image_width, c_image_height );
   cv::Mat cv_K1 = cv::Mat( 3, 3, CV_64F );
   auto dist_coeffs = cv::Mat( 1, 7, CV_64F );
   cv_K1 = cv::initCameraMatrix2D( world_points, image_points, image_size, 0 );
@@ -229,7 +183,7 @@ optimize_stereo_cameras::priv
   // Performing camera calibration by passing the value of known 3D world points (objpoints)
   // and corresponding pixel coordinates of the detected corners (imgpoints)
   size_t n_frames = world_points.size();
-  LOG_INFO( m_logger, "Calibrating " << suffix << " camera (" << n_frames << " frames)..." );
+  LOG_INFO( logger(), "Calibrating " << suffix << " camera (" << n_frames << " frames)..." );
 
   int flags{};
   double error{};
@@ -239,7 +193,7 @@ optimize_stereo_cameras::priv
 
   // Fix aspect ratio if necessary
   auto aspect_ratio = cv_K1.at< double >( 0, 0 ) / cv_K1.at< double >( 1, 1 );
-  LOG_INFO( m_logger, "  - Aspect ratio: " << aspect_ratio );
+  LOG_INFO( logger(), "  - Aspect ratio: " << aspect_ratio );
 
   if( 1.0 - std::min( aspect_ratio, 1.0 / aspect_ratio ) < 0.01 )
   {
@@ -251,12 +205,12 @@ optimize_stereo_cameras::priv
   // Fix principal point to center if necessary
   auto pp1 = cv_K1.at< double >( 0, 2 );
   auto pp2 = cv_K1.at< double >( 1, 2 );
-  LOG_INFO( m_logger, "  - Principal point: (" << pp1 << ", " << pp2 << ")" );
+  LOG_INFO( logger(), "  - Principal point: (" << pp1 << ", " << pp2 << ")" );
 
   auto rel_pp_diff_1 = std::abs( pp1 - image_size.width / 2. ) / image_size.width;
   auto rel_pp_diff_2 = std::abs( pp2 - image_size.height / 2. ) / image_size.width;
   auto rel_pp_diff = std::max( rel_pp_diff_1, rel_pp_diff_2 );
-  LOG_DEBUG( m_logger, "Relative principal point diff : " << rel_pp_diff );
+  LOG_DEBUG( logger(), "Relative principal point diff : " << rel_pp_diff );
   if( rel_pp_diff < 0.05 )
   {
     flags |= cv::CALIB_FIX_PRINCIPAL_POINT;
@@ -295,9 +249,9 @@ optimize_stereo_cameras::priv
   // copy camera params
   *cam = *res_cam1;
 
-  LOG_DEBUG( m_logger, "Estimated " << suffix << " camera center :\n" << cam->translation().transpose() );
-  LOG_DEBUG( m_logger, "Estimated " << suffix << " camera rotation :\n" << cam->rotation().matrix() );
-  LOG_DEBUG( m_logger, "Estimated " << suffix << " camera intrinsic matrix :\n" << cam->intrinsics()->as_matrix() );
+  LOG_DEBUG( logger(), "Estimated " << suffix << " camera center :\n" << cam->translation().transpose() );
+  LOG_DEBUG( logger(), "Estimated " << suffix << " camera rotation :\n" << cam->rotation().matrix() );
+  LOG_DEBUG( logger(), "Estimated " << suffix << " camera intrinsic matrix :\n" << cam->intrinsics()->as_matrix() );
 }
 
 StereoPointCoordinates

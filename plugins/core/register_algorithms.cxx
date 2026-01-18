@@ -111,9 +111,9 @@ register_factories( kv::plugin_loader& vpm )
     write_object_track_set_viame_csv::name );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  // Algorithms using PLUGIN_INFO macro
+  // Algorithms using PLUGGABLE_IMPL macro
   fact = vpm.add_factory< kv::algo::train_tracker, adaptive_tracker_trainer >(
-    adaptive_tracker_trainer::_plugin_name );
+    adaptive_tracker_trainer::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::train_detector, adaptive_detector_trainer >(

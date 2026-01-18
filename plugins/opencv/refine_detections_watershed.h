@@ -11,7 +11,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -20,20 +20,24 @@ class VIAME_OPENCV_EXPORT refine_detections_watershed
   : public kwiver::vital::algo::refine_detections
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( refine_detections_watershed )
-  PLUGIN_INFO( "ocv_watershed",
-               "Estimate a segmentation using watershed" )
+  PLUGGABLE_IMPL( refine_detections_watershed,
+                  "ocv_watershed",
+                  "Estimate a segmentation using watershed",
+    PARAM_DEFAULT( seed_with_existing_masks, bool,
+                   "If true, use existing masks as seed regions",
+                   true )
+    PARAM_DEFAULT( seed_scale_factor, double,
+                   "Amount to scale the detection by to produce "
+                   "a high-confidence seed region",
+                   0.2 )
+    PARAM_DEFAULT( uncertain_scale_factor, double,
+                   "Amount to scale the detection by to produce "
+                   "a region that will be marked as uncertain",
+                   1 )
+  )
 
-  /// Constructor
-  refine_detections_watershed();
+  virtual ~refine_detections_watershed() = default;
 
-  /// Destructor
-  virtual ~refine_detections_watershed();
-
-  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
 
@@ -49,12 +53,6 @@ public:
   virtual kwiver::vital::detected_object_set_sptr
   refine( kwiver::vital::image_container_sptr image_data,
           kwiver::vital::detected_object_set_sptr detections ) const;
-
-private:
-
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
 };
 
 } // end namespace viame

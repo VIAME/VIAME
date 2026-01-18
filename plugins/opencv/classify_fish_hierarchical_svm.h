@@ -42,7 +42,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -433,16 +433,15 @@ class VIAME_OPENCV_EXPORT classify_fish_hierarchical_svm
   : public kwiver::vital::algo::refine_detections
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( classify_fish_hierarchical_svm )
+  PLUGGABLE_IMPL(
+    classify_fish_hierarchical_svm,
+    "Hierarchical SVM fish species classifier",
+    PARAM_DEFAULT( model_file, std::string,
+      "Name of hierarchical SVM model file.", "" )
+  )
 
-  PLUGIN_INFO( "hierarchical_svm",
-               "Hierarchical SVM fish species classifier" )
+  virtual ~classify_fish_hierarchical_svm() = default;
 
-  classify_fish_hierarchical_svm();
-  virtual ~classify_fish_hierarchical_svm();
-
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
   virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
 
   virtual kwiver::vital::detected_object_set_sptr refine(
@@ -450,8 +449,8 @@ public:
     kwiver::vital::detected_object_set_sptr input_dets) const;
 
 private:
-  class priv;
-  const std::unique_ptr<priv> d;
+  mutable FishSpeciesID m_fish_model;
+  mutable bool m_model_loaded = false;
 };
 
 } // end namespace viame

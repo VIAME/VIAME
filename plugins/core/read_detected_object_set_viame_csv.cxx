@@ -51,9 +51,6 @@ public:
   priv( read_detected_object_set_viame_csv* parent )
     : m_parent( parent )
     , m_first( true )
-    , m_confidence_override( -1.0 )
-    , m_poly_to_mask( false )
-    , m_warning_file( "" )
     , m_current_idx( 0 )
     , m_last_idx( 0 )
     , m_error_writer()
@@ -65,9 +62,6 @@ public:
 
   read_detected_object_set_viame_csv* m_parent;
   bool m_first;
-  double m_confidence_override;
-  bool m_poly_to_mask;
-  std::string m_warning_file;
 
   int m_current_idx;
   int m_last_idx;
@@ -123,22 +117,15 @@ read_detected_object_set_viame_csv
 // -----------------------------------------------------------------------------------
 void
 read_detected_object_set_viame_csv
-::set_configuration( kwiver::vital::config_block_sptr config )
+::initialize()
 {
-  d->m_confidence_override =
-    config->get_value< double >( "confidence_override", d->m_confidence_override );
-  d->m_poly_to_mask =
-    config->get_value< bool >( "poly_to_mask", d->m_poly_to_mask );
-  d->m_warning_file =
-    config->get_value< std::string >( "warning_file", d->m_warning_file );
-
-  if( !d->m_warning_file.empty() )
+  if( !c_warning_file.empty() )
   {
-    d->m_error_writer.reset( new std::ofstream( d->m_warning_file.c_str(), std::ios::app ) );
+    d->m_error_writer.reset( new std::ofstream( c_warning_file.c_str(), std::ios::app ) );
   }
 
 #ifndef VIAME_ENABLE_VXL
-  if( d->m_poly_to_mask )
+  if( c_poly_to_mask )
   {
     throw std::runtime_error( "Must have VXL turned on to use poly_to_mask" );
   }
@@ -334,9 +321,9 @@ read_detected_object_set_viame_csv::priv
       conf = 1.0;
     }
 
-    if( m_confidence_override > 0.0 )
+    if( m_parent->c_confidence_override > 0.0 )
     {
-      conf = m_confidence_override;
+      conf = m_parent->c_confidence_override;
     }
 
     // Create detection
@@ -367,9 +354,9 @@ read_detected_object_set_viame_csv::priv
 
       double spec_conf = atof( col[i+1].c_str() );
 
-      if( m_confidence_override > 0.0 )
+      if( m_parent->c_confidence_override > 0.0 )
       {
-        spec_conf = m_confidence_override;
+        spec_conf = m_parent->c_confidence_override;
       }
 
       dot->set_score( spec_id, spec_conf );
@@ -413,7 +400,7 @@ read_detected_object_set_viame_csv::priv
     }
 
 #ifdef VIAME_ENABLE_VXL
-    if( m_poly_to_mask && found_optional_field )
+    if( m_parent->c_poly_to_mask && found_optional_field )
     {
       kwiver::vital::image_of< uint8_t > mask_data;
 

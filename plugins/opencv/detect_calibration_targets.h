@@ -4,7 +4,11 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_object_detector.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
+
+#include "calibrate_stereo_cameras.h"
+
+#include <opencv2/core/core.hpp>
 
 namespace viame {
 
@@ -12,18 +16,26 @@ class VIAME_OPENCV_EXPORT detect_calibration_targets
   : public kwiver::vital::algo::image_object_detector
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( detect_calibration_targets )
-  PLUGIN_INFO( "ocv_detect_calibration_targets",
-               "Detects checkerboard corners in input images for camera calibration processes." )
+  PLUGGABLE_IMPL( detect_calibration_targets,
+                  image_object_detector,
+                  "ocv_detect_calibration_targets",
+                  "Detects checkerboard corners in input images for camera calibration processes.",
+    PARAM_DEFAULT( config_file, std::string,
+                   "Name of OCV Target Detector configuration file.", "" )
+    PARAM_DEFAULT( target_width, unsigned,
+                   "Number of width corners of the detected ocv target", 7 )
+    PARAM_DEFAULT( target_height, unsigned,
+                   "Number of height corners of the detected ocv target", 5 )
+    PARAM_DEFAULT( square_size, float,
+                   "Square size of the detected ocv target", 1.0 )
+    PARAM_DEFAULT( object_type, std::string,
+                   "The detected object type", "unknown" )
+    PARAM_DEFAULT( auto_detect_grid, bool,
+                   "Automatically detect grid size from the first image", false )
+  )
 
-  detect_calibration_targets();
-  virtual ~detect_calibration_targets();
+  virtual ~detect_calibration_targets() = default;
 
-  // Get the current configuration (parameters) for this detector
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-
-  // Set configurations automatically parsed from input pipeline and config files
-  virtual void set_configuration( kwiver::vital::config_block_sptr config_in );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   // Main detection method
@@ -31,8 +43,12 @@ public:
     kwiver::vital::image_container_sptr image_data ) const;
 
 private:
-  class priv;
-  const std::unique_ptr< priv > d;
+  // Runtime state for auto-detection
+  mutable bool m_grid_detected = false;
+  mutable cv::Size m_detected_grid_size;
+
+  // Calibration utility
+  calibrate_stereo_cameras m_calibrator;
 };
 
 } // end namespace

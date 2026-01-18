@@ -8,7 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/image_io.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame
 {
@@ -17,21 +17,22 @@ class VIAME_CORE_EXPORT add_timestamp_from_filename
   : public kwiver::vital::algo::image_io
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( add_timestamp_from_filename )
-  static constexpr char const* name = "add_timestamp_from_filename";
-  static constexpr char const* description =
-    "Parse timestamps from an image filename when reading an image";
+  PLUGGABLE_IMPL(
+    add_timestamp_from_filename,
+    "Parse timestamps from an image filename when reading an image" )
 
-  add_timestamp_from_filename();
   ~add_timestamp_from_filename() override = default;
-
-  kwiver::vital::config_block_sptr get_configuration() const override;
-
-  void set_configuration( kwiver::vital::config_block_sptr config ) override;
 
   bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
 
 private:
+  void initialize() override;
+
+  void set_configuration_internal(
+    kwiver::vital::config_block_sptr config ) override;
+
+  kwiver::vital::config_block_sptr get_configuration() const override;
+
   kwiver::vital::algo::image_io_sptr image_reader;
 
   kwiver::vital::image_container_sptr load_(

@@ -385,67 +385,8 @@ struct trainer_config
 class adaptive_detector_trainer::priv
 {
 public:
-  priv()
-    : m_max_trainers_to_run( 3 )
-    // Size thresholds
-    , m_small_object_threshold( 1024.0 )
-    , m_large_object_threshold( 16384.0 )
-    // Aspect ratio thresholds
-    , m_tall_aspect_threshold( 0.5 )
-    , m_wide_aspect_threshold( 2.0 )
-    // Annotation count thresholds
-    , m_low_annotation_threshold( 500 )
-    , m_high_annotation_threshold( 2000 )
-    // Density thresholds
-    , m_sparse_frame_threshold( 5 )
-    , m_crowded_frame_threshold( 20 )
-    // Class thresholds
-    , m_rare_class_threshold( 50 )
-    , m_dominant_class_threshold( 500 )
-    // Edge detection threshold (fraction of image dimension)
-    , m_edge_margin_fraction( 0.05 )
-    // Overlap threshold for "high overlap"
-    , m_overlap_iou_threshold( 0.3 )
-    // Output
-    , m_output_statistics_file( "" )
-    , m_verbose( true )
-  {}
-
+  priv() {}
   ~priv() {}
-
-  // -------------------------------------------------------------------------
-  // Global configuration
-  size_t m_max_trainers_to_run;
-
-  // Size thresholds
-  double m_small_object_threshold;
-  double m_large_object_threshold;
-
-  // Aspect ratio thresholds
-  double m_tall_aspect_threshold;
-  double m_wide_aspect_threshold;
-
-  // Annotation count thresholds
-  size_t m_low_annotation_threshold;
-  size_t m_high_annotation_threshold;
-
-  // Density thresholds
-  size_t m_sparse_frame_threshold;
-  size_t m_crowded_frame_threshold;
-
-  // Class thresholds
-  size_t m_rare_class_threshold;
-  size_t m_dominant_class_threshold;
-
-  // Edge detection
-  double m_edge_margin_fraction;
-
-  // Overlap threshold
-  double m_overlap_iou_threshold;
-
-  // Output
-  std::string m_output_statistics_file;
-  bool m_verbose;
 
   // -------------------------------------------------------------------------
   // Configured trainers
@@ -468,28 +409,14 @@ public:
 
   // Logging
   kv::logger_handle_t m_logger;
-
-  // -------------------------------------------------------------------------
-  // Helper methods
-  void compute_statistics_from_groundtruth(
-    const std::vector< kv::detected_object_set_sptr >& train_gt,
-    const std::vector< kv::detected_object_set_sptr >& test_gt );
-
-  double compute_iou( const kv::bounding_box_d& a, const kv::bounding_box_d& b ) const;
-
-  bool check_hard_requirements( const trainer_config& tc ) const;
-
-  double compute_preference_score( const trainer_config& tc ) const;
-
-  std::vector< trainer_config* > select_trainers();
-
-  void write_statistics_file() const;
 };
 
 
-double
-adaptive_detector_trainer::priv::compute_iou(
-  const kv::bounding_box_d& a, const kv::bounding_box_d& b ) const
+// =============================================================================
+// Helper functions (now take config values as parameters)
+
+static double
+compute_iou( const kv::bounding_box_d& a, const kv::bounding_box_d& b )
 {
   double x1 = std::max( a.min_x(), b.min_x() );
   double y1 = std::max( a.min_y(), b.min_y() );
@@ -515,12 +442,25 @@ adaptive_detector_trainer::priv::compute_iou(
 }
 
 
-void
-adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
+static void
+compute_statistics_from_groundtruth(
+  training_data_statistics& stats,
   const std::vector< kv::detected_object_set_sptr >& train_gt,
-  const std::vector< kv::detected_object_set_sptr >& test_gt )
+  const std::vector< kv::detected_object_set_sptr >& test_gt,
+  double edge_margin_fraction,
+  double overlap_iou_threshold,
+  double small_object_threshold,
+  double large_object_threshold,
+  double tall_aspect_threshold,
+  double wide_aspect_threshold,
+  size_t crowded_frame_threshold,
+  size_t sparse_frame_threshold,
+  size_t rare_class_threshold,
+  size_t dominant_class_threshold,
+  bool verbose,
+  kv::logger_handle_t logger )
 {
-  m_stats = training_data_statistics();  // Reset
+  stats = training_data_statistics();  // Reset
 
   // We'll estimate image dimensions from bounding boxes if not available
   // For edge detection, we'll use a heuristic based on max bbox coordinates
@@ -535,21 +475,21 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
   {
     for( const auto& det_set : gt_list )
     {
-      m_stats.total_frames++;
+      stats.total_frames++;
 
       if( !det_set || det_set->empty() )
       {
-        m_stats.objects_per_frame.push_back( 0 );
+        stats.objects_per_frame.push_back( 0 );
         continue;
       }
 
       if( is_train )
-        m_stats.train_frames_with_annotations++;
+        stats.train_frames_with_annotations++;
       else
-        m_stats.test_frames_with_annotations++;
+        stats.test_frames_with_annotations++;
 
       size_t frame_object_count = det_set->size();
-      m_stats.objects_per_frame.push_back( frame_object_count );
+      stats.objects_per_frame.push_back( frame_object_count );
 
       // Collect all bboxes for this frame for overlap computation
       std::vector< kv::bounding_box_d > frame_boxes;
@@ -562,9 +502,9 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
            ++detection )
       {
         if( is_train )
-          m_stats.total_train_annotations++;
+          stats.total_train_annotations++;
         else
-          m_stats.total_test_annotations++;
+          stats.total_test_annotations++;
 
         const kv::bounding_box_d& bbox = (*detection)->bounding_box();
         double width = bbox.width();
@@ -575,14 +515,14 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
         if( bbox.max_x() > max_x ) max_x = bbox.max_x();
         if( bbox.max_y() > max_y ) max_y = bbox.max_y();
 
-        m_stats.all_widths.push_back( width );
-        m_stats.all_heights.push_back( height );
-        m_stats.all_areas.push_back( area );
+        stats.all_widths.push_back( width );
+        stats.all_heights.push_back( height );
+        stats.all_areas.push_back( area );
 
         // Aspect ratio
         if( height > 0 )
         {
-          m_stats.all_aspect_ratios.push_back( width / height );
+          stats.all_aspect_ratios.push_back( width / height );
         }
 
         // Class label
@@ -592,22 +532,22 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
           (*detection)->type()->get_most_likely( label );
           if( !label.empty() )
           {
-            m_stats.class_counts[ label ]++;
+            stats.class_counts[ label ]++;
           }
         }
 
         // Check for mask
         if( (*detection)->mask() )
         {
-          m_stats.objects_with_masks++;
+          stats.objects_with_masks++;
         }
 
         frame_boxes.push_back( bbox );
       }
 
       // Edge detection using estimated image dimensions
-      double edge_margin_x = max_x * m_edge_margin_fraction;
-      double edge_margin_y = max_y * m_edge_margin_fraction;
+      double edge_margin_x = max_x * edge_margin_fraction;
+      double edge_margin_y = max_y * edge_margin_fraction;
 
       for( const auto& bbox : frame_boxes )
       {
@@ -616,7 +556,7 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
             bbox.max_x() > ( max_x - edge_margin_x ) ||
             bbox.max_y() > ( max_y - edge_margin_y ) )
         {
-          m_stats.edge_object_count++;
+          stats.edge_object_count++;
         }
       }
 
@@ -632,9 +572,9 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
             total_iou_sum += iou;
             total_pairs++;
 
-            if( iou >= m_overlap_iou_threshold )
+            if( iou >= overlap_iou_threshold )
             {
-              m_stats.overlapping_pair_count++;
+              stats.overlapping_pair_count++;
               has_high_overlap = true;
             }
           }
@@ -654,44 +594,48 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
   // Compute mean IoU and overlap fraction
   if( total_pairs > 0 )
   {
-    m_stats.mean_inter_object_iou = total_iou_sum / total_pairs;
+    stats.mean_inter_object_iou = total_iou_sum / total_pairs;
   }
 
-  size_t total_objects = m_stats.all_areas.size();
+  size_t total_objects = stats.all_areas.size();
   if( total_objects > 0 )
   {
-    m_stats.high_overlap_fraction =
+    stats.high_overlap_fraction =
       static_cast< double >( high_overlap_objects ) / total_objects;
   }
 
   // Compute summary statistics
-  m_stats.compute_summary(
-    m_small_object_threshold, m_large_object_threshold,
-    m_tall_aspect_threshold, m_wide_aspect_threshold,
-    m_crowded_frame_threshold, m_sparse_frame_threshold,
-    m_rare_class_threshold, m_dominant_class_threshold,
-    m_edge_margin_fraction, m_overlap_iou_threshold );
+  stats.compute_summary(
+    small_object_threshold, large_object_threshold,
+    tall_aspect_threshold, wide_aspect_threshold,
+    crowded_frame_threshold, sparse_frame_threshold,
+    rare_class_threshold, dominant_class_threshold,
+    edge_margin_fraction, overlap_iou_threshold );
 
-  if( m_verbose )
+  if( verbose )
   {
-    m_stats.log_statistics( m_logger );
+    stats.log_statistics( logger );
   }
 }
 
 
-bool
-adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& tc ) const
+static bool
+check_hard_requirements(
+  const trainer_config& tc,
+  const training_data_statistics& stats,
+  bool verbose,
+  kv::logger_handle_t logger )
 {
   // Check minimum count per class
   if( tc.required_min_count_per_class > 0 )
   {
-    for( const auto& kv : m_stats.class_counts )
+    for( const auto& kv : stats.class_counts )
     {
       if( kv.second < tc.required_min_count_per_class )
       {
-        if( m_verbose )
+        if( verbose )
         {
-          LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: class '"
+          LOG_DEBUG( logger, "Trainer " << tc.name << " failed: class '"
                      << kv.first << "' has " << kv.second
                      << " annotations, requires " << tc.required_min_count_per_class );
         }
@@ -701,10 +645,10 @@ adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& 
   }
 
   // Check object size with percentile
-  if( tc.required_min_object_area > 0 && !m_stats.all_areas.empty() )
+  if( tc.required_min_object_area > 0 && !stats.all_areas.empty() )
   {
     size_t meeting_criteria = 0;
-    for( double area : m_stats.all_areas )
+    for( double area : stats.all_areas )
     {
       if( area >= tc.required_min_object_area )
       {
@@ -712,12 +656,12 @@ adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& 
       }
     }
 
-    double fraction = static_cast< double >( meeting_criteria ) / m_stats.all_areas.size();
+    double fraction = static_cast< double >( meeting_criteria ) / stats.all_areas.size();
     if( fraction < tc.required_percentile )
     {
-      if( m_verbose )
+      if( verbose )
       {
-        LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: only "
+        LOG_DEBUG( logger, "Trainer " << tc.name << " failed: only "
                    << ( fraction * 100 ) << "% of objects meet min area "
                    << tc.required_min_object_area << ", requires "
                    << ( tc.required_percentile * 100 ) << "%" );
@@ -728,12 +672,12 @@ adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& 
 
   // Check aspect ratio variance
   if( tc.required_max_aspect_ratio_std > 0 &&
-      m_stats.aspect_ratio_std > tc.required_max_aspect_ratio_std )
+      stats.aspect_ratio_std > tc.required_max_aspect_ratio_std )
   {
-    if( m_verbose )
+    if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: aspect ratio std "
-                 << m_stats.aspect_ratio_std << " exceeds max "
+      LOG_DEBUG( logger, "Trainer " << tc.name << " failed: aspect ratio std "
+                 << stats.aspect_ratio_std << " exceeds max "
                  << tc.required_max_aspect_ratio_std );
     }
     return false;
@@ -741,12 +685,12 @@ adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& 
 
   // Check max objects per frame
   if( tc.required_max_objects_per_frame > 0 &&
-      m_stats.max_objects_per_frame > tc.required_max_objects_per_frame )
+      stats.max_objects_per_frame > tc.required_max_objects_per_frame )
   {
-    if( m_verbose )
+    if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: max objects/frame "
-                 << m_stats.max_objects_per_frame << " exceeds limit "
+      LOG_DEBUG( logger, "Trainer " << tc.name << " failed: max objects/frame "
+                 << stats.max_objects_per_frame << " exceeds limit "
                  << tc.required_max_objects_per_frame );
     }
     return false;
@@ -754,25 +698,25 @@ adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& 
 
   // Check class imbalance
   if( tc.required_max_class_imbalance > 0 &&
-      m_stats.class_imbalance_ratio > tc.required_max_class_imbalance )
+      stats.class_imbalance_ratio > tc.required_max_class_imbalance )
   {
-    if( m_verbose )
+    if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: class imbalance "
-                 << m_stats.class_imbalance_ratio << " exceeds max "
+      LOG_DEBUG( logger, "Trainer " << tc.name << " failed: class imbalance "
+                 << stats.class_imbalance_ratio << " exceeds max "
                  << tc.required_max_class_imbalance );
     }
     return false;
   }
 
   // Check mask requirement
-  if( tc.required_masks && !m_stats.has_masks )
+  if( tc.required_masks && !stats.has_masks )
   {
-    if( m_verbose )
+    if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name
+      LOG_DEBUG( logger, "Trainer " << tc.name
                  << " failed: requires masks but data has insufficient masks ("
-                 << ( m_stats.mask_fraction * 100 ) << "%)" );
+                 << ( stats.mask_fraction * 100 ) << "%)" );
     }
     return false;
   }
@@ -781,23 +725,29 @@ adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& 
 }
 
 
-double
-adaptive_detector_trainer::priv::compute_preference_score( const trainer_config& tc ) const
+static double
+compute_preference_score(
+  const trainer_config& tc,
+  const training_data_statistics& stats,
+  size_t low_annotation_threshold,
+  size_t high_annotation_threshold,
+  size_t sparse_frame_threshold,
+  size_t crowded_frame_threshold )
 {
   double score = 0.0;
-  size_t total = m_stats.total_train_annotations + m_stats.total_test_annotations;
-  size_t total_objects = m_stats.all_areas.size();
+  size_t total = stats.total_train_annotations + stats.total_test_annotations;
+  size_t total_objects = stats.all_areas.size();
 
   // -------------------------------------------------------------------------
   // Annotation count preference
   if( !tc.annotation_count_preference.empty() )
   {
-    if( tc.annotation_count_preference == "low" && total < m_low_annotation_threshold )
+    if( tc.annotation_count_preference == "low" && total < low_annotation_threshold )
       score += 1.0;
     else if( tc.annotation_count_preference == "medium" &&
-             total >= m_low_annotation_threshold && total < m_high_annotation_threshold )
+             total >= low_annotation_threshold && total < high_annotation_threshold )
       score += 1.0;
-    else if( tc.annotation_count_preference == "high" && total >= m_high_annotation_threshold )
+    else if( tc.annotation_count_preference == "high" && total >= high_annotation_threshold )
       score += 1.0;
   }
 
@@ -805,9 +755,9 @@ adaptive_detector_trainer::priv::compute_preference_score( const trainer_config&
   // Object size preference
   if( !tc.object_size_preference.empty() && total_objects > 0 )
   {
-    double small_frac = static_cast< double >( m_stats.small_object_count ) / total_objects;
-    double medium_frac = static_cast< double >( m_stats.medium_object_count ) / total_objects;
-    double large_frac = static_cast< double >( m_stats.large_object_count ) / total_objects;
+    double small_frac = static_cast< double >( stats.small_object_count ) / total_objects;
+    double medium_frac = static_cast< double >( stats.medium_object_count ) / total_objects;
+    double large_frac = static_cast< double >( stats.large_object_count ) / total_objects;
 
     std::string dominant = "medium";
     double max_frac = medium_frac;
@@ -822,9 +772,9 @@ adaptive_detector_trainer::priv::compute_preference_score( const trainer_config&
   // Aspect ratio preference
   if( !tc.aspect_ratio_preference.empty() && total_objects > 0 )
   {
-    double tall_frac = static_cast< double >( m_stats.tall_object_count ) / total_objects;
-    double square_frac = static_cast< double >( m_stats.square_object_count ) / total_objects;
-    double wide_frac = static_cast< double >( m_stats.wide_object_count ) / total_objects;
+    double tall_frac = static_cast< double >( stats.tall_object_count ) / total_objects;
+    double square_frac = static_cast< double >( stats.square_object_count ) / total_objects;
+    double wide_frac = static_cast< double >( stats.wide_object_count ) / total_objects;
 
     std::string dominant = "square";
     double max_frac = square_frac;
@@ -839,8 +789,8 @@ adaptive_detector_trainer::priv::compute_preference_score( const trainer_config&
   // Density preference
   if( !tc.density_preference.empty() )
   {
-    bool is_sparse = ( m_stats.mean_objects_per_frame <= m_sparse_frame_threshold );
-    bool is_dense = ( m_stats.mean_objects_per_frame >= m_crowded_frame_threshold );
+    bool is_sparse = ( stats.mean_objects_per_frame <= sparse_frame_threshold );
+    bool is_dense = ( stats.mean_objects_per_frame >= crowded_frame_threshold );
 
     if( tc.density_preference == "sparse" && is_sparse )
       score += 1.0;
@@ -854,9 +804,9 @@ adaptive_detector_trainer::priv::compute_preference_score( const trainer_config&
   // Scale preference
   if( !tc.scale_preference.empty() )
   {
-    if( tc.scale_preference == "multi-scale" && m_stats.is_multi_scale )
+    if( tc.scale_preference == "multi-scale" && stats.is_multi_scale )
       score += 1.0;
-    else if( tc.scale_preference == "uniform" && !m_stats.is_multi_scale )
+    else if( tc.scale_preference == "uniform" && !stats.is_multi_scale )
       score += 1.0;
   }
 
@@ -864,8 +814,8 @@ adaptive_detector_trainer::priv::compute_preference_score( const trainer_config&
   // Overlap preference
   if( !tc.overlap_preference.empty() )
   {
-    bool low_overlap = ( m_stats.high_overlap_fraction < 0.1 );
-    bool high_overlap = ( m_stats.high_overlap_fraction > 0.3 );
+    bool low_overlap = ( stats.high_overlap_fraction < 0.1 );
+    bool high_overlap = ( stats.high_overlap_fraction > 0.3 );
 
     if( tc.overlap_preference == "low" && low_overlap )
       score += 1.0;
@@ -877,7 +827,7 @@ adaptive_detector_trainer::priv::compute_preference_score( const trainer_config&
 
   // -------------------------------------------------------------------------
   // Mask preference
-  if( tc.prefers_masks && m_stats.has_masks )
+  if( tc.prefers_masks && stats.has_masks )
   {
     score += 1.0;
   }
@@ -886,34 +836,45 @@ adaptive_detector_trainer::priv::compute_preference_score( const trainer_config&
 }
 
 
-std::vector< trainer_config* >
-adaptive_detector_trainer::priv::select_trainers()
+static std::vector< trainer_config* >
+select_trainers(
+  std::vector< trainer_config >& trainers,
+  const training_data_statistics& stats,
+  size_t max_trainers_to_run,
+  size_t low_annotation_threshold,
+  size_t high_annotation_threshold,
+  size_t sparse_frame_threshold,
+  size_t crowded_frame_threshold,
+  bool verbose,
+  kv::logger_handle_t logger )
 {
   std::vector< trainer_config* > qualifying;
 
-  for( auto& tc : m_trainers )
+  for( auto& tc : trainers )
   {
     if( !tc.trainer )
     {
       continue;
     }
 
-    if( check_hard_requirements( tc ) )
+    if( check_hard_requirements( tc, stats, verbose, logger ) )
     {
-      tc.preference_score = compute_preference_score( tc );
+      tc.preference_score = compute_preference_score(
+        tc, stats, low_annotation_threshold, high_annotation_threshold,
+        sparse_frame_threshold, crowded_frame_threshold );
       qualifying.push_back( &tc );
 
-      if( m_verbose )
+      if( verbose )
       {
-        LOG_INFO( m_logger, "Trainer " << tc.name << " qualifies with preference score "
+        LOG_INFO( logger, "Trainer " << tc.name << " qualifies with preference score "
                   << tc.preference_score );
       }
     }
     else
     {
-      if( m_verbose )
+      if( verbose )
       {
-        LOG_INFO( m_logger, "Trainer " << tc.name << " does not meet hard requirements" );
+        LOG_INFO( logger, "Trainer " << tc.name << " does not meet hard requirements" );
       }
     }
   }
@@ -926,22 +887,25 @@ adaptive_detector_trainer::priv::select_trainers()
     } );
 
   // Limit to max_trainers_to_run
-  if( qualifying.size() > m_max_trainers_to_run )
+  if( qualifying.size() > max_trainers_to_run )
   {
-    qualifying.resize( m_max_trainers_to_run );
+    qualifying.resize( max_trainers_to_run );
   }
 
   return qualifying;
 }
 
 
-void
-adaptive_detector_trainer::priv::write_statistics_file() const
+static void
+write_statistics_file(
+  const training_data_statistics& stats,
+  const std::string& output_file,
+  kv::logger_handle_t logger )
 {
-  std::ofstream out( m_output_statistics_file );
+  std::ofstream out( output_file );
   if( !out.is_open() )
   {
-    LOG_WARN( m_logger, "Could not open statistics file: " << m_output_statistics_file );
+    LOG_WARN( logger, "Could not open statistics file: " << output_file );
     return;
   }
 
@@ -951,17 +915,17 @@ adaptive_detector_trainer::priv::write_statistics_file() const
 
   // Annotation counts
   out << "  \"annotation_counts\": {\n";
-  out << "    \"total_train\": " << m_stats.total_train_annotations << ",\n";
-  out << "    \"total_test\": " << m_stats.total_test_annotations << ",\n";
-  out << "    \"total_frames\": " << m_stats.total_frames << ",\n";
-  out << "    \"train_frames_with_annotations\": " << m_stats.train_frames_with_annotations << ",\n";
-  out << "    \"test_frames_with_annotations\": " << m_stats.test_frames_with_annotations << "\n";
+  out << "    \"total_train\": " << stats.total_train_annotations << ",\n";
+  out << "    \"total_test\": " << stats.total_test_annotations << ",\n";
+  out << "    \"total_frames\": " << stats.total_frames << ",\n";
+  out << "    \"train_frames_with_annotations\": " << stats.train_frames_with_annotations << ",\n";
+  out << "    \"test_frames_with_annotations\": " << stats.test_frames_with_annotations << "\n";
   out << "  },\n";
 
   // Class counts
   out << "  \"class_counts\": {\n";
   bool first = true;
-  for( const auto& kv : m_stats.class_counts )
+  for( const auto& kv : stats.class_counts )
   {
     if( !first ) out << ",\n";
     out << "    \"" << kv.first << "\": " << kv.second;
@@ -971,87 +935,81 @@ adaptive_detector_trainer::priv::write_statistics_file() const
 
   // Object sizes
   out << "  \"object_sizes\": {\n";
-  out << "    \"area\": { \"min\": " << m_stats.min_area << ", \"max\": " << m_stats.max_area
-      << ", \"mean\": " << m_stats.mean_area << ", \"median\": " << m_stats.median_area << " },\n";
-  out << "    \"percentiles\": { \"p10\": " << m_stats.area_10th_percentile
-      << ", \"p50\": " << m_stats.area_50th_percentile
-      << ", \"p90\": " << m_stats.area_90th_percentile << " },\n";
-  out << "    \"distribution\": { \"small\": " << m_stats.small_object_count
-      << ", \"medium\": " << m_stats.medium_object_count
-      << ", \"large\": " << m_stats.large_object_count << " }\n";
+  out << "    \"area\": { \"min\": " << stats.min_area << ", \"max\": " << stats.max_area
+      << ", \"mean\": " << stats.mean_area << ", \"median\": " << stats.median_area << " },\n";
+  out << "    \"percentiles\": { \"p10\": " << stats.area_10th_percentile
+      << ", \"p50\": " << stats.area_50th_percentile
+      << ", \"p90\": " << stats.area_90th_percentile << " },\n";
+  out << "    \"distribution\": { \"small\": " << stats.small_object_count
+      << ", \"medium\": " << stats.medium_object_count
+      << ", \"large\": " << stats.large_object_count << " }\n";
   out << "  },\n";
 
   // Aspect ratios
   out << "  \"aspect_ratios\": {\n";
-  out << "    \"mean\": " << m_stats.mean_aspect_ratio << ",\n";
-  out << "    \"std\": " << m_stats.aspect_ratio_std << ",\n";
-  out << "    \"distribution\": { \"tall\": " << m_stats.tall_object_count
-      << ", \"square\": " << m_stats.square_object_count
-      << ", \"wide\": " << m_stats.wide_object_count << " }\n";
+  out << "    \"mean\": " << stats.mean_aspect_ratio << ",\n";
+  out << "    \"std\": " << stats.aspect_ratio_std << ",\n";
+  out << "    \"distribution\": { \"tall\": " << stats.tall_object_count
+      << ", \"square\": " << stats.square_object_count
+      << ", \"wide\": " << stats.wide_object_count << " }\n";
   out << "  },\n";
 
   // Density
   out << "  \"density\": {\n";
-  out << "    \"mean_objects_per_frame\": " << m_stats.mean_objects_per_frame << ",\n";
-  out << "    \"max_objects_per_frame\": " << m_stats.max_objects_per_frame << ",\n";
-  out << "    \"crowded_frames\": " << m_stats.crowded_frame_count << ",\n";
-  out << "    \"sparse_frames\": " << m_stats.sparse_frame_count << "\n";
+  out << "    \"mean_objects_per_frame\": " << stats.mean_objects_per_frame << ",\n";
+  out << "    \"max_objects_per_frame\": " << stats.max_objects_per_frame << ",\n";
+  out << "    \"crowded_frames\": " << stats.crowded_frame_count << ",\n";
+  out << "    \"sparse_frames\": " << stats.sparse_frame_count << "\n";
   out << "  },\n";
 
   // Scale
   out << "  \"scale\": {\n";
-  out << "    \"variance\": " << m_stats.scale_variance << ",\n";
-  out << "    \"min_max_ratio\": " << m_stats.min_max_area_ratio << ",\n";
-  out << "    \"is_multi_scale\": " << ( m_stats.is_multi_scale ? "true" : "false" ) << "\n";
+  out << "    \"variance\": " << stats.scale_variance << ",\n";
+  out << "    \"min_max_ratio\": " << stats.min_max_area_ratio << ",\n";
+  out << "    \"is_multi_scale\": " << ( stats.is_multi_scale ? "true" : "false" ) << "\n";
   out << "  },\n";
 
   // Class imbalance
   out << "  \"class_imbalance\": {\n";
-  out << "    \"ratio\": " << m_stats.class_imbalance_ratio << ",\n";
-  out << "    \"rare_classes\": " << m_stats.rare_class_count << ",\n";
-  out << "    \"dominant_classes\": " << m_stats.dominant_class_count << "\n";
+  out << "    \"ratio\": " << stats.class_imbalance_ratio << ",\n";
+  out << "    \"rare_classes\": " << stats.rare_class_count << ",\n";
+  out << "    \"dominant_classes\": " << stats.dominant_class_count << "\n";
   out << "  },\n";
 
   // Spatial
   out << "  \"spatial\": {\n";
-  out << "    \"edge_objects\": " << m_stats.edge_object_count << ",\n";
-  out << "    \"edge_fraction\": " << m_stats.edge_object_fraction << "\n";
+  out << "    \"edge_objects\": " << stats.edge_object_count << ",\n";
+  out << "    \"edge_fraction\": " << stats.edge_object_fraction << "\n";
   out << "  },\n";
 
   // Overlap
   out << "  \"overlap\": {\n";
-  out << "    \"mean_iou\": " << m_stats.mean_inter_object_iou << ",\n";
-  out << "    \"overlapping_pairs\": " << m_stats.overlapping_pair_count << ",\n";
-  out << "    \"high_overlap_fraction\": " << m_stats.high_overlap_fraction << "\n";
+  out << "    \"mean_iou\": " << stats.mean_inter_object_iou << ",\n";
+  out << "    \"overlapping_pairs\": " << stats.overlapping_pair_count << ",\n";
+  out << "    \"high_overlap_fraction\": " << stats.high_overlap_fraction << "\n";
   out << "  },\n";
 
   // Masks
   out << "  \"masks\": {\n";
-  out << "    \"objects_with_masks\": " << m_stats.objects_with_masks << ",\n";
-  out << "    \"mask_fraction\": " << m_stats.mask_fraction << ",\n";
-  out << "    \"has_masks\": " << ( m_stats.has_masks ? "true" : "false" ) << "\n";
+  out << "    \"objects_with_masks\": " << stats.objects_with_masks << ",\n";
+  out << "    \"mask_fraction\": " << stats.mask_fraction << ",\n";
+  out << "    \"has_masks\": " << ( stats.has_masks ? "true" : "false" ) << "\n";
   out << "  }\n";
 
   out << "}\n";
 
   out.close();
-  LOG_INFO( m_logger, "Wrote statistics to: " << m_output_statistics_file );
+  LOG_INFO( logger, "Wrote statistics to: " << output_file );
 }
 
 
 // =============================================================================
+void
 adaptive_detector_trainer
-::adaptive_detector_trainer()
-  : d( new priv() )
+::initialize()
 {
-  attach_logger( "viame.core.adaptive_detector_trainer" );
-  d->m_logger = logger();
-}
-
-
-adaptive_detector_trainer
-::~adaptive_detector_trainer()
-{
+  d.reset( new priv() );
+  d->m_logger = kv::get_logger( "viame.core.adaptive_detector_trainer" );
 }
 
 
@@ -1060,56 +1018,8 @@ kv::config_block_sptr
 adaptive_detector_trainer
 ::get_configuration() const
 {
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
-
-  // -------------------------------------------------------------------------
-  // Global settings
-  config->set_value( "max_trainers_to_run", d->m_max_trainers_to_run,
-    "Maximum number of trainers to run sequentially. Default: 3" );
-
-  // Size thresholds
-  config->set_value( "small_object_threshold", d->m_small_object_threshold,
-    "Area threshold (pixels^2) below which objects are 'small'. Default: 1024" );
-  config->set_value( "large_object_threshold", d->m_large_object_threshold,
-    "Area threshold (pixels^2) above which objects are 'large'. Default: 16384" );
-
-  // Aspect ratio thresholds
-  config->set_value( "tall_aspect_threshold", d->m_tall_aspect_threshold,
-    "Aspect ratio (w/h) below which objects are 'tall'. Default: 0.5" );
-  config->set_value( "wide_aspect_threshold", d->m_wide_aspect_threshold,
-    "Aspect ratio (w/h) above which objects are 'wide'. Default: 2.0" );
-
-  // Annotation count thresholds
-  config->set_value( "low_annotation_threshold", d->m_low_annotation_threshold,
-    "Annotation count below which datasets are 'low' data. Default: 500" );
-  config->set_value( "high_annotation_threshold", d->m_high_annotation_threshold,
-    "Annotation count above which datasets are 'high' data. Default: 2000" );
-
-  // Density thresholds
-  config->set_value( "sparse_frame_threshold", d->m_sparse_frame_threshold,
-    "Max objects/frame for 'sparse' classification. Default: 5" );
-  config->set_value( "crowded_frame_threshold", d->m_crowded_frame_threshold,
-    "Min objects/frame for 'crowded' classification. Default: 20" );
-
-  // Class thresholds
-  config->set_value( "rare_class_threshold", d->m_rare_class_threshold,
-    "Count below which a class is 'rare'. Default: 50" );
-  config->set_value( "dominant_class_threshold", d->m_dominant_class_threshold,
-    "Count above which a class is 'dominant'. Default: 500" );
-
-  // Edge detection
-  config->set_value( "edge_margin_fraction", d->m_edge_margin_fraction,
-    "Fraction of image dimension for edge margin. Default: 0.05" );
-
-  // Overlap threshold
-  config->set_value( "overlap_iou_threshold", d->m_overlap_iou_threshold,
-    "IoU threshold for 'high overlap' classification. Default: 0.3" );
-
-  // Output
-  config->set_value( "output_statistics_file", d->m_output_statistics_file,
-    "Optional file path for JSON statistics. Empty = disabled." );
-  config->set_value( "verbose", d->m_verbose,
-    "Enable verbose logging. Default: true" );
+  // Get base config from base class (includes PLUGGABLE_IMPL params)
+  kv::config_block_sptr config = kv::algo::train_detector::get_configuration();
 
   // -------------------------------------------------------------------------
   // Trainer configurations
@@ -1161,28 +1071,11 @@ adaptive_detector_trainer
 // -----------------------------------------------------------------------------
 void
 adaptive_detector_trainer
-::set_configuration( kv::config_block_sptr config_in )
+::set_configuration_internal( kv::config_block_sptr config_in )
 {
+  // Merge with defaults
   kv::config_block_sptr config = this->get_configuration();
   config->merge_config( config_in );
-
-  // -------------------------------------------------------------------------
-  // Global settings
-  d->m_max_trainers_to_run = config->get_value< size_t >( "max_trainers_to_run" );
-  d->m_small_object_threshold = config->get_value< double >( "small_object_threshold" );
-  d->m_large_object_threshold = config->get_value< double >( "large_object_threshold" );
-  d->m_tall_aspect_threshold = config->get_value< double >( "tall_aspect_threshold" );
-  d->m_wide_aspect_threshold = config->get_value< double >( "wide_aspect_threshold" );
-  d->m_low_annotation_threshold = config->get_value< size_t >( "low_annotation_threshold" );
-  d->m_high_annotation_threshold = config->get_value< size_t >( "high_annotation_threshold" );
-  d->m_sparse_frame_threshold = config->get_value< size_t >( "sparse_frame_threshold" );
-  d->m_crowded_frame_threshold = config->get_value< size_t >( "crowded_frame_threshold" );
-  d->m_rare_class_threshold = config->get_value< size_t >( "rare_class_threshold" );
-  d->m_dominant_class_threshold = config->get_value< size_t >( "dominant_class_threshold" );
-  d->m_edge_margin_fraction = config->get_value< double >( "edge_margin_fraction" );
-  d->m_overlap_iou_threshold = config->get_value< double >( "overlap_iou_threshold" );
-  d->m_output_statistics_file = config->get_value< std::string >( "output_statistics_file" );
-  d->m_verbose = config->get_value< bool >( "verbose" );
 
   // -------------------------------------------------------------------------
   // Trainer configurations
@@ -1297,11 +1190,18 @@ adaptive_detector_trainer
   d->m_data_from_memory = false;
 
   LOG_INFO( d->m_logger, "Analyzing training data statistics..." );
-  d->compute_statistics_from_groundtruth( train_groundtruth, test_groundtruth );
+  compute_statistics_from_groundtruth(
+    d->m_stats, train_groundtruth, test_groundtruth,
+    c_edge_margin_fraction, c_overlap_iou_threshold,
+    c_small_object_threshold, c_large_object_threshold,
+    c_tall_aspect_threshold, c_wide_aspect_threshold,
+    c_crowded_frame_threshold, c_sparse_frame_threshold,
+    c_rare_class_threshold, c_dominant_class_threshold,
+    c_verbose, d->m_logger );
 
-  if( !d->m_output_statistics_file.empty() )
+  if( !c_output_statistics_file.empty() )
   {
-    d->write_statistics_file();
+    write_statistics_file( d->m_stats, c_output_statistics_file, d->m_logger );
   }
 }
 
@@ -1324,11 +1224,18 @@ adaptive_detector_trainer
   d->m_data_from_memory = true;
 
   LOG_INFO( d->m_logger, "Analyzing training data statistics..." );
-  d->compute_statistics_from_groundtruth( train_groundtruth, test_groundtruth );
+  compute_statistics_from_groundtruth(
+    d->m_stats, train_groundtruth, test_groundtruth,
+    c_edge_margin_fraction, c_overlap_iou_threshold,
+    c_small_object_threshold, c_large_object_threshold,
+    c_tall_aspect_threshold, c_wide_aspect_threshold,
+    c_crowded_frame_threshold, c_sparse_frame_threshold,
+    c_rare_class_threshold, c_dominant_class_threshold,
+    c_verbose, d->m_logger );
 
-  if( !d->m_output_statistics_file.empty() )
+  if( !c_output_statistics_file.empty() )
   {
-    d->write_statistics_file();
+    write_statistics_file( d->m_stats, c_output_statistics_file, d->m_logger );
   }
 }
 
@@ -1343,7 +1250,12 @@ adaptive_detector_trainer
     throw std::runtime_error( "No trainers configured." );
   }
 
-  std::vector< trainer_config* > selected = d->select_trainers();
+  std::vector< trainer_config* > selected = select_trainers(
+    d->m_trainers, d->m_stats,
+    c_max_trainers_to_run,
+    c_low_annotation_threshold, c_high_annotation_threshold,
+    c_sparse_frame_threshold, c_crowded_frame_threshold,
+    c_verbose, d->m_logger );
 
   if( selected.empty() )
   {
