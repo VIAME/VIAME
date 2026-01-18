@@ -19,6 +19,9 @@
 namespace viame
 {
 
+namespace kv = kwiver::vital;
+namespace kva = kv::algo;
+
 create_config_trait( detector, std::string, "", "Algorithm configuration "
   "subblock.\n\nUse 'detector:type' to select desired detector implementation." );
 
@@ -56,9 +59,9 @@ public:
   int m_fixed_size;
   double m_threshold;
   bool m_include_input_dets;
-  kwiver::vital::logger_handle_t m_logger;
+  kv::logger_handle_t m_logger;
 
-  kwiver::vital::algo::image_object_detector_sptr m_detector;
+  kva::image_object_detector_sptr m_detector;
 
 
   // ---------------------------------------------------------------------------
@@ -75,15 +78,15 @@ public:
   * @param dets_out_sptr Output classifications.
   */
   void
-  classify( const kwiver::vital::image_container_sptr &src_image,
-            const kwiver::vital::detected_object_set_sptr &dets_in,
-            kwiver::vital::detected_object_set_sptr &dets_out_sptr )
+  classify( const kv::image_container_sptr &src_image,
+            const kv::detected_object_set_sptr &dets_in,
+            kv::detected_object_set_sptr &dets_out_sptr )
   {
-    kwiver::vital::wall_timer timer;
+    kv::wall_timer timer;
     cv::Mat cv_src = kwiver::arrows::ocv::image_container::vital_to_ocv(
       src_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-    kwiver::vital::detected_object::vector_t dets_out;
+    kv::detected_object::vector_t dets_out;
 
     if( m_include_input_dets )
     {
@@ -93,10 +96,10 @@ public:
 
     // Define the bound box representing the entire image.
     cv::Size s = cv_src.size();
-    kwiver::vital::bounding_box_d img( kwiver::vital::bounding_box_d::vector_type( 0, 0 ),
-                               kwiver::vital::bounding_box_d::vector_type( s.width, s.height ) );
+    kv::bounding_box_d img( kv::bounding_box_d::vector_type( 0, 0 ),
+                               kv::bounding_box_d::vector_type( s.width, s.height ) );
 
-    kwiver::vital::image_container_sptr windowed_image;
+    kv::image_container_sptr windowed_image;
 
     LOG_DEBUG( m_logger, "Considering " << dets_in->size() << " ROI" );
 
@@ -114,7 +117,7 @@ public:
       }
 
       timer.start();
-      kwiver::vital::bounding_box_d bbox = det->bounding_box();
+      kv::bounding_box_d bbox = det->bounding_box();
 
       // Clip bounding box to the image
       bbox = intersection( img, bbox );
@@ -181,7 +184,7 @@ public:
       cv::Rect roi( x, y, w, h );
 
       // Detect within the region of interest.
-      windowed_image = kwiver::vital::image_container_sptr(
+      windowed_image = kv::image_container_sptr(
         new kwiver::arrows::ocv::image_container(
           cv_src( roi ), kwiver::arrows::ocv::image_container::BGR_COLOR ) );
 
@@ -190,9 +193,9 @@ public:
       for( auto det : *dets )
       {
         auto det_bbox = det->bounding_box();
-        kwiver::vital::bounding_box_d::vector_type offset( 2 );
+        kv::bounding_box_d::vector_type offset( 2 );
         offset[0] = x; offset[1] = y;
-        kwiver::vital::translate( det_bbox, offset );
+        kv::translate( det_bbox, offset );
         det->set_bounding_box( det_bbox );
       }
 
@@ -207,7 +210,7 @@ public:
       LOG_TRACE( m_logger, "Time to classify window: " << timer.elapsed() );
     } // end foreach
 
-    dets_out_sptr = std::make_shared<kwiver::vital::detected_object_set>( dets_out );
+    dets_out_sptr = std::make_shared<kv::detected_object_set>( dets_out );
   }
 
 }; // end priv class
@@ -215,12 +218,12 @@ public:
 
 // =============================================================================
 detect_in_subregions_process
-::detect_in_subregions_process( kwiver::vital::config_block_sptr const& config )
+::detect_in_subregions_process( kv::config_block_sptr const& config )
   : process( config ),
     d( new detect_in_subregions_process::priv )
 {
   // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
+  attach_logger( kv::get_logger( name() ) ); // could use a better approach
   d->m_logger = logger();
 
   make_ports();
@@ -241,15 +244,17 @@ detect_in_subregions_process
 {
   scoped_configure_instrumentation();
 
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  kv::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !kwiver::vital::check_nested_algo_configuration< kwiver::vital::algo::image_object_detector >( "detector", algo_config ) )
+  if( !kv::check_nested_algo_configuration< kva::image_object_detector >(
+        "detector", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
-  kwiver::vital::set_nested_algo_configuration< kwiver::vital::algo::image_object_detector >( "detector", algo_config, d->m_detector );
+  kv::set_nested_algo_configuration< kva::image_object_detector >(
+    "detector", algo_config, d->m_detector );
 
   if( !d->m_detector )
   {
@@ -283,17 +288,17 @@ void
 detect_in_subregions_process
 ::_step()
 {
-  kwiver::vital::detected_object_set_sptr dets_out;
+  kv::detected_object_set_sptr dets_out;
   double elapsed_time(0);;
 
   LOG_TRACE( logger(), "Starting process" );
 
-  kwiver::vital::wall_timer timer;
+  kv::wall_timer timer;
   timer.start();
 
-  kwiver::vital::image_container_sptr src_image =
+  kv::image_container_sptr src_image =
     grab_from_port_using_trait( image );
-  kwiver::vital::detected_object_set_sptr dets_in =
+  kv::detected_object_set_sptr dets_in =
     grab_from_port_using_trait( detected_object_set );
 
   if( src_image )

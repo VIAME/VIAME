@@ -33,6 +33,9 @@
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+namespace kva = kv::algo;
+
 #ifdef WIN32
 const std::string div = "\\";
 #else
@@ -140,21 +143,21 @@ public:
     std::string folder,
     std::string prefix,
     std::vector< std::string > image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
-    kwiver::vital::category_hierarchy_sptr object_labels );
+    std::vector< kv::detected_object_set_sptr > groundtruth,
+    kv::category_hierarchy_sptr object_labels );
 
   void format_mat_image(
     std::string folder,
     std::string prefix,
     const cv::Mat& image,
-    kwiver::vital::detected_object_set_sptr groundtruth,
-    kwiver::vital::category_hierarchy_sptr object_labels );
+    kv::detected_object_set_sptr groundtruth,
+    kv::category_hierarchy_sptr object_labels );
 
   bool print_detections(
     std::string filename,
-    kwiver::vital::detected_object_set_sptr all_detections,
-    kwiver::vital::bounding_box_d region,
-    kwiver::vital::category_hierarchy_sptr object_labels );
+    kv::detected_object_set_sptr all_detections,
+    kv::bounding_box_d region,
+    kv::category_hierarchy_sptr object_labels );
 
   void generate_fn(
     std::string output_folder, std::string& image,
@@ -170,13 +173,13 @@ public:
   void save_model_files(
     bool is_final );
 
-  kwiver::vital::category_hierarchy_sptr m_object_labels;
+  kv::category_hierarchy_sptr m_object_labels;
   bool m_image_loaded_successfully;
   unsigned m_channel_count;
   std::map< std::string, int > m_category_map;
 
-  kwiver::vital::algo::image_io_sptr m_image_io;
-  kwiver::vital::logger_handle_t m_logger;
+  kva::image_io_sptr m_image_io;
+  kv::logger_handle_t m_logger;
 };
 
 
@@ -197,12 +200,12 @@ darknet_trainer
 
 
 // -----------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+kv::config_block_sptr
 darknet_trainer
 ::get_configuration() const
 {
   // Get base config from base class
-  kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
+  kv::config_block_sptr config = kv::algorithm::get_configuration();
 
   config->set_value( "net_config", d->m_net_config,
     "Name of network config file." );
@@ -258,7 +261,7 @@ darknet_trainer
   config->set_value( "batch_subdivisions", d->m_batch_subdivisions,
     "Number of subdivisions to split a batch into (thereby saving memory)" );
 
-  kwiver::vital::get_nested_algo_configuration<kwiver::vital::algo::image_io>( "image_reader",
+  kv::get_nested_algo_configuration<kva::image_io>( "image_reader",
     config, d->m_image_io );
 
   return config;
@@ -268,11 +271,11 @@ darknet_trainer
 // -----------------------------------------------------------------------------
 void
 darknet_trainer
-::set_configuration( kwiver::vital::config_block_sptr config_in )
+::set_configuration( kv::config_block_sptr config_in )
 {
   // Starting with our generated config_block to ensure that assumed values are present
   // An alternative is to check for key presence before performing a get_value() call.
-  kwiver::vital::config_block_sptr config = this->get_configuration();
+  kv::config_block_sptr config = this->get_configuration();
 
   config->merge_config( config_in );
 
@@ -300,8 +303,9 @@ darknet_trainer
   d->m_batch_size  = config->get_value< int >( "batch_size" );
   d->m_batch_subdivisions = config->get_value< int >( "batch_subdivisions" );
 
-  kwiver::vital::algo::image_io_sptr io;
-  kwiver::vital::set_nested_algo_configuration<kwiver::vital::algo::image_io>( "image_reader", config, io );
+  kva::image_io_sptr io;
+  kv::set_nested_algo_configuration< kva::image_io >(
+    "image_reader", config, io );
   d->m_image_io = io;
 
   if( !d->m_skip_format )
@@ -336,7 +340,7 @@ darknet_trainer
 // -----------------------------------------------------------------------------
 bool
 darknet_trainer
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( kv::config_block_sptr config ) const
 {
   std::string net_config = config->get_value< std::string >( "net_config" );
 
@@ -362,11 +366,11 @@ darknet_trainer
 void
 darknet_trainer
 ::add_data_from_disk(
-  kwiver::vital::category_hierarchy_sptr object_labels,
+  kv::category_hierarchy_sptr object_labels,
   std::vector< std::string > train_image_names,
-  std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+  std::vector< kv::detected_object_set_sptr > train_groundtruth,
   std::vector< std::string > test_image_names,
-  std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth )
+  std::vector< kv::detected_object_set_sptr > test_groundtruth )
 {
   if( object_labels )
   {
@@ -388,11 +392,11 @@ darknet_trainer
 void
 darknet_trainer
 ::add_data_from_memory(
-  kwiver::vital::category_hierarchy_sptr object_labels,
-  std::vector< kwiver::vital::image_container_sptr > train_images,
-  std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-  std::vector< kwiver::vital::image_container_sptr > test_images,
-  std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth )
+  kv::category_hierarchy_sptr object_labels,
+  std::vector< kv::image_container_sptr > train_images,
+  std::vector< kv::detected_object_set_sptr > train_groundtruth,
+  std::vector< kv::image_container_sptr > test_images,
+  std::vector< kv::detected_object_set_sptr > test_groundtruth )
 {
   if( object_labels )
   {
@@ -853,15 +857,15 @@ void
 darknet_trainer::priv
 ::format_images( std::string folder, std::string prefix,
   std::vector< std::string > image_names,
-  std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
-  kwiver::vital::category_hierarchy_sptr object_labels )
+  std::vector< kv::detected_object_set_sptr > groundtruth,
+  kv::category_hierarchy_sptr object_labels )
 {
   for( unsigned fid = 0; fid < image_names.size(); ++fid )
   {
     const std::string image_fn = image_names[fid];
 
     // Scale and break up image according to settings
-    kwiver::vital::image_container_sptr vital_image;
+    kv::image_container_sptr vital_image;
     cv::Mat original_image;
 
     try
@@ -871,7 +875,7 @@ darknet_trainer::priv
       original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
         vital_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
     }
-    catch( const kwiver::vital::vital_exception& e )
+    catch( const kv::vital_exception& e )
     {
       LOG_ERROR( m_logger, "Caught exception reading image: " << e.what() );
 
@@ -897,8 +901,8 @@ void
 darknet_trainer::priv
 ::format_mat_image( std::string folder, std::string prefix,
   const cv::Mat& image,
-  kwiver::vital::detected_object_set_sptr groundtruth,
-  kwiver::vital::category_hierarchy_sptr object_labels )
+  kv::detected_object_set_sptr groundtruth,
+  kv::category_hierarchy_sptr object_labels )
 {
   cv::Mat original_image, resized_image;
 
@@ -926,7 +930,7 @@ darknet_trainer::priv
 
   std::string image_folder = folder + div + prefix + "_images";
 
-  kwiver::vital::detected_object_set_sptr scaled_groundtruth = groundtruth->clone();
+  kv::detected_object_set_sptr scaled_groundtruth = groundtruth->clone();
 
   double resized_scale = 1.0;
 
@@ -935,7 +939,7 @@ darknet_trainer::priv
     resized_scale = format_image( original_image, resized_image,
       m_resize_option, m_scale, m_resize_width, m_resize_height );
 
-    kwiver::vital::scale_detections( scaled_groundtruth, resized_scale );
+    kv::scale_detections( scaled_groundtruth, resized_scale );
   }
   else
   {
@@ -948,7 +952,7 @@ darknet_trainer::priv
     std::string img_file, gt_file;
     generate_fn( image_folder, img_file, gt_file );
 
-    kwiver::vital::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
+    kv::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
     if( print_detections( gt_file, scaled_groundtruth, roi_box, object_labels ) )
     {
       save_chip( img_file, resized_image );
@@ -998,7 +1002,7 @@ darknet_trainer::priv
         std::string img_file, gt_file;
         generate_fn( image_folder, img_file, gt_file );
 
-        kwiver::vital::bounding_box_d roi_box( i, j, i + m_resize_width, j + m_resize_height );
+        kv::bounding_box_d roi_box( i, j, i + m_resize_width, j + m_resize_height );
         if( print_detections( gt_file, scaled_groundtruth, roi_box, object_labels ) )
         {
           save_chip( img_file, resized_crop );
@@ -1014,13 +1018,13 @@ darknet_trainer::priv
       double scaled_original_scale = scale_image_maintaining_ar( original_image,
         scaled_original, m_resize_width, m_resize_height );
 
-      kwiver::vital::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
-      kwiver::vital::scale_detections( scaled_original_dets_ptr, scaled_original_scale );
+      kv::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
+      kv::scale_detections( scaled_original_dets_ptr, scaled_original_scale );
 
       std::string img_file, gt_file;
       generate_fn( image_folder, img_file, gt_file );
 
-      kwiver::vital::bounding_box_d roi_box( 0, 0,
+      kv::bounding_box_d roi_box( 0, 0,
         scaled_original.cols, scaled_original.rows );
 
       if( print_detections( gt_file, scaled_original_dets_ptr, roi_box, object_labels ) )
@@ -1037,9 +1041,9 @@ bool
 darknet_trainer::priv
 ::print_detections(
   std::string filename,
-  kwiver::vital::detected_object_set_sptr all_detections,
-  kwiver::vital::bounding_box_d region,
-  kwiver::vital::category_hierarchy_sptr object_labels )
+  kv::detected_object_set_sptr all_detections,
+  kv::bounding_box_d region,
+  kv::category_hierarchy_sptr object_labels )
 {
   std::vector< std::string > to_write;
 
@@ -1049,8 +1053,8 @@ darknet_trainer::priv
   auto ie = all_detections->cend();
   for( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
-    kwiver::vital::bounding_box_d det_box = (*detection)->bounding_box();
-    kwiver::vital::bounding_box_d overlap = kwiver::vital::intersection( region, det_box );
+    kv::bounding_box_d det_box = (*detection)->bounding_box();
+    kv::bounding_box_d overlap = kv::intersection( region, det_box );
 
     if( det_box.width() < m_min_train_box_length || det_box.height() < m_min_train_box_length )
     {
@@ -1180,14 +1184,14 @@ darknet_trainer::priv
     cv::Mat scaled_image = image * sf;
 
     m_image_io->save( filename,
-      kwiver::vital::image_container_sptr(
+      kv::image_container_sptr(
         new kwiver::arrows::ocv::image_container( scaled_image,
           kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
   }
   else
   {
     m_image_io->save( filename,
-      kwiver::vital::image_container_sptr(
+      kv::image_container_sptr(
         new kwiver::arrows::ocv::image_container( image,
           kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
   }
