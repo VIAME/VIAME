@@ -95,12 +95,22 @@ register_factories( kv::plugin_loader& vpm )
     read_detected_object_set_viame_csv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
+  // Add alias "viame_csv" for backward compatibility with existing pipeline configs
+  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_viame_csv >(
+    "viame_csv" );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
   fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_viame_csv >(
     read_object_track_set_viame_csv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::detected_object_set_output, write_detected_object_set_viame_csv >(
     write_detected_object_set_viame_csv::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  // Add alias "viame_csv" for backward compatibility with existing pipeline configs
+  fact = vpm.add_factory< kv::algo::detected_object_set_output, write_detected_object_set_viame_csv >(
+    "viame_csv" );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_io, write_disparity_maps >(
@@ -138,6 +148,11 @@ register_factories( kv::plugin_loader& vpm )
 
   fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_nms >(
     refine_detections_nms::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  // Add alias "nms" for backward compatibility with existing pipeline configs
+  fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_nms >(
+    "nms" );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_object_detector, windowed_detector >(
