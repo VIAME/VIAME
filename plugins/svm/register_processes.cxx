@@ -19,7 +19,9 @@ void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
   using namespace sprokit;
-    if( sprokit::is_process_module_loaded( vpm, "viame_processes_svm_export.h" ) )
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "viame_processes_svm" );
+  kwiver::vital::plugin_factory_handle_t fact_handle;
+    if( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
@@ -31,25 +33,18 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     typeid( viame::svm::process_query_process ).name(),
     sprokit::process::interface_name(),
     sprokit::create_new_process< viame::svm::process_query_process > );
-  
-  // PLUGIN_NAME will be extracted from process or set manually in add_attribute calls below
-  // fact->add_attribute( kvpf::PLUGIN_NAME, "name_here" );  
-  
+  fact->add_attribute( kvpf::PLUGIN_NAME, "svm_process_query" )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
   vpm.add_factory( fact );
 
-  // ---------------------------------------------------------------------------
-  using kvpf = kwiver::vital::plugin_factory;
-
-  kwiver::vital::plugin_factory* fact = new sprokit::cpp_process_factory(
+  fact = new sprokit::cpp_process_factory(
     typeid( viame::svm::train_svm_models_process ).name(),
     sprokit::process::interface_name(),
     sprokit::create_new_process< viame::svm::train_svm_models_process > );
-  
-  // PLUGIN_NAME will be extracted from process or set manually in add_attribute calls below
-  // fact->add_attribute( kvpf::PLUGIN_NAME, "name_here" );  
-  
+  fact->add_attribute( kvpf::PLUGIN_NAME, "svm_train" )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
   vpm.add_factory( fact );
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, "viame_processes_svm_export.h" );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

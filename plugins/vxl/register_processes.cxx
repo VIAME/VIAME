@@ -18,7 +18,9 @@ void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
   using namespace sprokit;
-    if( sprokit::is_process_module_loaded( vpm, "viame_processes_vxl_export.h" ) )
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "viame_processes_vxl" );
+  kwiver::vital::plugin_factory_handle_t fact_handle;
+    if( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
@@ -40,5 +42,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   vpm.add_factory( fact );
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, "viame_processes_vxl_export.h" );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

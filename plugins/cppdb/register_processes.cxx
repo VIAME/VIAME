@@ -20,7 +20,9 @@ void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
   using namespace sprokit;
-    if( sprokit::is_process_module_loaded( vpm, "viame_processes_cppdb_export.h" ) )
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "viame_processes_cppdb" );
+  kwiver::vital::plugin_factory_handle_t fact_handle;
+    if( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
@@ -38,7 +40,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   
   vpm.add_factory( fact );
 
-  fact = vpm.ADD_PROCESS( viame::cppdb::fetch_descriptors_db_process );
+  fact_handle = vpm.ADD_PROCESS( viame::cppdb::fetch_descriptors_db_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "fetch_descriptors_db" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
@@ -48,7 +50,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::cppdb::object_track_descriptors_db_process );
+  fact_handle = vpm.ADD_PROCESS( viame::cppdb::object_track_descriptors_db_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "object_track_descriptors_db" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
@@ -59,5 +61,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, "viame_processes_cppdb_export.h" );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }
