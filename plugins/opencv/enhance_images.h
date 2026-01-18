@@ -17,21 +17,19 @@ class VIAME_OPENCV_EXPORT enhance_images
 {
 public:
   PLUGGABLE_IMPL( enhance_images,
-                  kwiver::vital::algo::image_filter,
-                  "ocv_enhancer",
                   "Simple illumination normalization using Lab space and CLAHE",
-    PARAM_DEFAULT( apply_smoothing, bool, "Apply smoothing to the input", false )
-    PARAM_DEFAULT( smoothing_kernel, unsigned, "Smoothing kernel size", 3 )
-    PARAM_DEFAULT( apply_denoising, bool, "Apply denoising to the input", false )
-    PARAM_DEFAULT( denoise_kernel, unsigned, "Denoising kernel size", 3 )
-    PARAM_DEFAULT( denoise_coeff, unsigned, "Denoising coefficient", 3 )
-    PARAM_DEFAULT( force_8bit, bool, "Force output to be 8 bit", false )
-    PARAM_DEFAULT( auto_balance, bool, "Perform automatic white balancing", false )
-    PARAM_DEFAULT( apply_clahe, bool, "Apply CLAHE illumination normalization", false )
-    PARAM_DEFAULT( clip_limit, unsigned, "Clip limit used during hist normalization", 4 )
-    PARAM_DEFAULT( saturation, float, "Saturation scale factor", 1.0 )
-    PARAM_DEFAULT( apply_sharpening, bool, "Apply sharpening to the input", false )
-    PARAM_DEFAULT( sharpening_kernel, unsigned, "Sharpening kernel size", 3 )
+    PARAM_DEFAULT( apply_smoothing, bool, "Apply smoothing to the input", false ),
+    PARAM_DEFAULT( smoothing_kernel, unsigned, "Smoothing kernel size", 3 ),
+    PARAM_DEFAULT( apply_denoising, bool, "Apply denoising to the input", false ),
+    PARAM_DEFAULT( denoise_kernel, unsigned, "Denoising kernel size", 3 ),
+    PARAM_DEFAULT( denoise_coeff, unsigned, "Denoising coefficient", 3 ),
+    PARAM_DEFAULT( force_8bit, bool, "Force output to be 8 bit", false ),
+    PARAM_DEFAULT( auto_balance, bool, "Perform automatic white balancing", false ),
+    PARAM_DEFAULT( apply_clahe, bool, "Apply CLAHE illumination normalization", false ),
+    PARAM_DEFAULT( clip_limit, unsigned, "Clip limit used during hist normalization", 4 ),
+    PARAM_DEFAULT( saturation, float, "Saturation scale factor", 1.0 ),
+    PARAM_DEFAULT( apply_sharpening, bool, "Apply sharpening to the input", false ),
+    PARAM_DEFAULT( sharpening_kernel, unsigned, "Sharpening kernel size", 3 ),
     PARAM_DEFAULT( sharpening_weight, double, "Sharpening weight [0.0,1.0]", 0.5 )
   )
 

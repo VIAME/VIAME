@@ -64,51 +64,51 @@ register_factories( kv::plugin_loader& vpm )
   }
 
   auto fact = vpm.add_factory< kv::algo::image_io, add_timestamp_from_filename >(
-    add_timestamp_from_filename::name );
+    add_timestamp_from_filename::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::transform_2d_io, auto_detect_transform_io >(
-    auto_detect_transform_io::name );
+    auto_detect_transform_io::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::refine_detections, convert_head_tail_points >(
-    convert_head_tail_points::name );
+    convert_head_tail_points::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_object_detector, empty_detector >(
-    empty_detector::name );
+    empty_detector::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_fishnet >(
-    read_detected_object_set_fishnet::name );
+    read_detected_object_set_fishnet::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_habcam >(
-    read_detected_object_set_habcam::name );
+    read_detected_object_set_habcam::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_oceaneyes >(
-    read_detected_object_set_oceaneyes::name );
+    read_detected_object_set_oceaneyes::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_viame_csv >(
-    read_detected_object_set_viame_csv::name );
+    read_detected_object_set_viame_csv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_viame_csv >(
-    read_object_track_set_viame_csv::name );
+    read_object_track_set_viame_csv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::detected_object_set_output, write_detected_object_set_viame_csv >(
-    write_detected_object_set_viame_csv::name );
+    write_detected_object_set_viame_csv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_io, write_disparity_maps >(
-    write_disparity_maps::name );
+    write_disparity_maps::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::write_object_track_set, write_object_track_set_viame_csv >(
-    write_object_track_set_viame_csv::name );
+    write_object_track_set_viame_csv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   // Algorithms using PLUGGABLE_IMPL macro
@@ -117,39 +117,39 @@ register_factories( kv::plugin_loader& vpm )
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::train_detector, adaptive_detector_trainer >(
-    adaptive_detector_trainer::_plugin_name );
+    adaptive_detector_trainer::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::compute_track_descriptors, average_track_descriptors >(
-    average_track_descriptors::_plugin_name );
+    average_track_descriptors::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_object_detector, full_frame_detector >(
-    full_frame_detector::_plugin_name );
+    full_frame_detector::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::merge_detections, merge_detections_suppress_in_regions >(
-    merge_detections_suppress_in_regions::_plugin_name );
+    merge_detections_suppress_in_regions::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_add_fixed >(
-    refine_detections_add_fixed::_plugin_name );
+    refine_detections_add_fixed::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_nms >(
-    refine_detections_nms::_plugin_name );
+    refine_detections_nms::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_object_detector, windowed_detector >(
-    windowed_detector::_plugin_name );
+    windowed_detector::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::refine_detections, windowed_refiner >(
-    windowed_refiner::_plugin_name );
+    windowed_refiner::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::train_detector, windowed_trainer >(
-    windowed_trainer::_plugin_name );
+    windowed_trainer::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );

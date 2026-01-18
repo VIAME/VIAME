@@ -28,21 +28,22 @@ class VIAME_OPENCV_EXPORT optimize_stereo_cameras
 {
 public:
   PLUGGABLE_IMPL( optimize_stereo_cameras,
-                  kwiver::vital::algo::optimize_cameras,
-                  "ocv_optimize_stereo_cameras",
                   "Camera optimizer for stereo configurations.",
-    PARAM_DEFAULT( image_width, unsigned, "sensor image width (0 to derive from data)", 0 )
-    PARAM_DEFAULT( image_height, unsigned, "sensor image height (0 to derive from data)", 0 )
-    PARAM_DEFAULT( frame_count_threshold, unsigned, "max number of frames to use during optimization", 0 )
-    PARAM_DEFAULT( output_calibration_directory, std::string, "output path for the generated calibration files (OpenCV YAML format)", "" )
-    PARAM_DEFAULT( output_json_file, std::string, "output path for JSON calibration file (compatible with camera_rig_io)", "" )
+    PARAM_DEFAULT( image_width, unsigned, "sensor image width (0 to derive from data)", 0 ),
+    PARAM_DEFAULT( image_height, unsigned, "sensor image height (0 to derive from data)", 0 ),
+    PARAM_DEFAULT( frame_count_threshold, unsigned, "max number of frames to use during optimization", 0 ),
+    PARAM_DEFAULT( output_calibration_directory, std::string, "output path for the generated calibration files (OpenCV YAML format)", "" ),
+    PARAM_DEFAULT( output_json_file, std::string, "output path for JSON calibration file (compatible with camera_rig_io)", "" ),
     PARAM_DEFAULT( square_size, double, "calibration pattern square size in world units (e.g., mm)", 1.0 )
   )
 
   virtual ~optimize_stereo_cameras() = default;
 
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const
+  {
+    return true;
+  }
+
 
   /// Optimize Stereo camera parameters given sets of landmarks and feature tracks
   /**

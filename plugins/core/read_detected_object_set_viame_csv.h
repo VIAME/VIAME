@@ -62,7 +62,7 @@ private:
   virtual void new_stream();
 
   class priv;
-  std::unique_ptr< priv > d;
+  KWIVER_UNIQUE_PTR( priv, d );
 };
 
 } // end namespace

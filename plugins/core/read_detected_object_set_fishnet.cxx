@@ -37,8 +37,8 @@ enum
 class read_detected_object_set_fishnet::priv
 {
 public:
-  priv( read_detected_object_set_fishnet* parent )
-    : m_parent( parent )
+  priv( read_detected_object_set_fishnet& parent )
+    : m_parent( &parent )
     , m_first( true )
   {}
 
@@ -60,14 +60,6 @@ public:
 
 
 // ===================================================================================
-read_detected_object_set_fishnet
-::read_detected_object_set_fishnet()
-  : d( new read_detected_object_set_fishnet::priv( this ) )
-{
-  attach_logger( "viame.core.read_detected_object_set_fishnet" );
-}
-
-
 read_detected_object_set_fishnet
 ::~read_detected_object_set_fishnet()
 {
@@ -208,5 +200,14 @@ read_detected_object_set_fishnet::priv
 
   } // ...while !eof
 } // read_all
+
+// -----------------------------------------------------------------------------
+void
+read_detected_object_set_fishnet
+::initialize()
+{
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_detected_object_set_fishnet" );
+}
 
 } // end namespace

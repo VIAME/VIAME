@@ -5,6 +5,7 @@
 #include "adaptive_detector_trainer.h"
 
 #include <vital/algo/algorithm.txx>
+#include <vital/algo/image_io.h>
 #include <vital/util/cpu_timer.h>
 #include <vital/types/image_container.h>
 
@@ -385,7 +386,7 @@ struct trainer_config
 class adaptive_detector_trainer::priv
 {
 public:
-  priv() {}
+  priv( adaptive_detector_trainer& ) {}
   ~priv() {}
 
   // -------------------------------------------------------------------------
@@ -1008,8 +1009,8 @@ void
 adaptive_detector_trainer
 ::initialize()
 {
-  d.reset( new priv() );
-  d->m_logger = kv::get_logger( "viame.core.adaptive_detector_trainer" );
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  d->m_logger = this->logger();
 }
 
 
@@ -1020,6 +1021,10 @@ adaptive_detector_trainer
 {
   // Get base config from base class (includes PLUGGABLE_IMPL params)
   kv::config_block_sptr config = kv::algo::train_detector::get_configuration();
+
+  // Add static params from this class
+  kv::config_block_sptr cb = config;
+  CPP_MAGIC_MAP( PARAM_CONFIG_GET_FROM_THIS, CPP_MAGIC_EMPTY, VIAME_CORE_ADT_PARAMS )
 
   // -------------------------------------------------------------------------
   // Trainer configurations

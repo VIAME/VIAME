@@ -29,6 +29,11 @@ public:
       "If the width is this time as many heights, it is a stereo pair.", 2.0 )
   )
 
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const
+  {
+    return true;
+  }
+
   /// Split image
   virtual std::vector< kwiver::vital::image_container_sptr >
   split( kwiver::vital::image_container_sptr img ) const;

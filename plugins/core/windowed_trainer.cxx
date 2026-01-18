@@ -31,6 +31,7 @@
 #include "windowed_trainer.h"
 
 #include <vital/util/cpu_timer.h>
+#include <vital/algo/algorithm.txx>
 #include <vital/algo/image_io.h>
 #include <vital/types/image_container.h>
 
@@ -61,6 +62,10 @@ windowed_trainer
 {
   // Get base config from base class (includes PLUGGABLE_IMPL params)
   kv::config_block_sptr config = kv::algo::train_detector::get_configuration();
+
+  // Add static params from this class
+  kv::config_block_sptr cb = config;
+  CPP_MAGIC_MAP( PARAM_CONFIG_GET_FROM_THIS, CPP_MAGIC_EMPTY, VIAME_CORE_WT_PARAMS )
 
   // Common chip settings (shared with detector/refiner)
   config->merge_config( m_settings.chip_config() );

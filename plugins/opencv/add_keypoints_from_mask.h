@@ -172,8 +172,6 @@ class VIAME_OPENCV_EXPORT add_keypoints_from_mask
 {
 public:
   PLUGGABLE_IMPL( add_keypoints_from_mask,
-                  refine_detections,
-                  "add_keypoints_from_mask",
                   "Adds head and tail keypoints to detections based on their "
                   "mask or bounding box using configurable methods.",
     PARAM_DEFAULT( method, std::string,

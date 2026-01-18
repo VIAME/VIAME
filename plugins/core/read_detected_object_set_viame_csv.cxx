@@ -48,8 +48,8 @@ enum
 class read_detected_object_set_viame_csv::priv
 {
 public:
-  priv( read_detected_object_set_viame_csv* parent )
-    : m_parent( parent )
+  priv( read_detected_object_set_viame_csv& parent )
+    : m_parent( &parent )
     , m_first( true )
     , m_current_idx( 0 )
     , m_last_idx( 0 )
@@ -88,8 +88,8 @@ public:
 // ===================================================================================
 read_detected_object_set_viame_csv
 ::read_detected_object_set_viame_csv()
-  : d( new read_detected_object_set_viame_csv::priv( this ) )
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   attach_logger( "viame.core.read_detected_object_set_viame_csv" );
 }
 

@@ -103,7 +103,7 @@ enum cameraSource { STEREO_NONE, STEREO_LEFT, STEREO_RIGHT, STEREO_BOTH };
 // ============================================================================
 // FGObject - Foreground Object class for tracking detected objects
 // ============================================================================
-class FGObject
+class VIAME_OPENCV_EXPORT FGObject
 {
 public:
   double area;
@@ -166,7 +166,7 @@ private:
 // ============================================================================
 // FGExtraction - Foreground Extraction class
 // ============================================================================
-class FGExtraction
+class VIAME_OPENCV_EXPORT FGExtraction
 {
 public:
   FGExtraction();
@@ -239,7 +239,7 @@ public:
 // ============================================================================
 // FeatureExtraction - Feature Extraction class for fish classification
 // ============================================================================
-class FeatureExtraction
+class VIAME_OPENCV_EXPORT FeatureExtraction
 {
 public:
   FeatureExtraction();
@@ -290,7 +290,7 @@ public:
 // ============================================================================
 // ClassHierarchyNode - Node in the classification hierarchy tree
 // ============================================================================
-class ClassHierarchyNode
+class VIAME_OPENCV_EXPORT ClassHierarchyNode
 {
 public:
   ClassHierarchyNode() {
@@ -338,7 +338,7 @@ private:
 // ============================================================================
 // ClassHierarchy - Class Hierarchy for hierarchical classification
 // ============================================================================
-class ClassHierarchy
+class VIAME_OPENCV_EXPORT ClassHierarchy
 {
 public:
   ClassHierarchy();
@@ -371,7 +371,7 @@ private:
 // ============================================================================
 // FishSpeciesID - Hierarchical Partial Classifier for fish species
 // ============================================================================
-class FishSpeciesID
+class VIAME_OPENCV_EXPORT FishSpeciesID
 {
 public:
   FishSpeciesID();
@@ -442,7 +442,10 @@ public:
 
   virtual ~classify_fish_hierarchical_svm() = default;
 
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const
+  {
+    return true;
+  }
 
   virtual kwiver::vital::detected_object_set_sptr refine(
     kwiver::vital::image_container_sptr image_data,

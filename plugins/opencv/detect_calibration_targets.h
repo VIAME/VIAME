@@ -17,26 +17,27 @@ class VIAME_OPENCV_EXPORT detect_calibration_targets
 {
 public:
   PLUGGABLE_IMPL( detect_calibration_targets,
-                  image_object_detector,
-                  "ocv_detect_calibration_targets",
                   "Detects checkerboard corners in input images for camera calibration processes.",
     PARAM_DEFAULT( config_file, std::string,
-                   "Name of OCV Target Detector configuration file.", "" )
+                   "Name of OCV Target Detector configuration file.", "" ),
     PARAM_DEFAULT( target_width, unsigned,
-                   "Number of width corners of the detected ocv target", 7 )
+                   "Number of width corners of the detected ocv target", 7 ),
     PARAM_DEFAULT( target_height, unsigned,
-                   "Number of height corners of the detected ocv target", 5 )
+                   "Number of height corners of the detected ocv target", 5 ),
     PARAM_DEFAULT( square_size, float,
-                   "Square size of the detected ocv target", 1.0 )
+                   "Square size of the detected ocv target", 1.0 ),
     PARAM_DEFAULT( object_type, std::string,
-                   "The detected object type", "unknown" )
+                   "The detected object type", "unknown" ),
     PARAM_DEFAULT( auto_detect_grid, bool,
                    "Automatically detect grid size from the first image", false )
   )
 
   virtual ~detect_calibration_targets() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const
+  {
+    return true;
+  }
 
   // Main detection method
   virtual kwiver::vital::detected_object_set_sptr detect(

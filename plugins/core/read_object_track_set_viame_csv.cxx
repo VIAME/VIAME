@@ -40,8 +40,8 @@ enum
 class read_object_track_set_viame_csv::priv
 {
 public:
-  priv( read_object_track_set_viame_csv* parent )
-    : m_parent( parent )
+  priv( read_object_track_set_viame_csv& parent )
+    : m_parent( &parent )
     , m_logger( kwiver::vital::get_logger( "read_object_track_set_viame_csv" ) )
     , m_first( true )
     , m_current_idx( 0 )
@@ -84,9 +84,13 @@ void
 read_object_track_set_viame_csv
 ::initialize()
 {
-  d.reset( new read_object_track_set_viame_csv::priv( this ) );
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   d->m_current_idx = c_frame_id_adjustment;
 }
+
+
+read_object_track_set_viame_csv
+::~read_object_track_set_viame_csv() = default;
 
 
 // -------------------------------------------------------------------------------

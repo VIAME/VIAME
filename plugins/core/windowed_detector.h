@@ -107,10 +107,7 @@ public:
     PARAM_DEFAULT(
       black_pad, bool,
       "Black pad the edges of resized chips to ensure consistent dimensions",
-      false ),
-    PARAM(
-      detector, kwiver::vital::algo::image_object_detector_sptr,
-      "Algorithm pointer to nested detector" )
+      false )
   )
 
   virtual ~windowed_detector();

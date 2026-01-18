@@ -63,7 +63,7 @@ public:
       false )
   )
 
-  virtual ~read_object_track_set_viame_csv() = default;
+  virtual ~read_object_track_set_viame_csv();
 
   void open( std::string const& filename ) override;
 
@@ -75,7 +75,7 @@ private:
   void initialize() override;
 
   class priv;
-  std::unique_ptr< priv > d;
+  KWIVER_UNIQUE_PTR( priv, d );
 };
 
 } // end namespace

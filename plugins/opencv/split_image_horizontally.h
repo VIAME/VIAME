@@ -20,7 +20,7 @@ class VIAME_OPENCV_EXPORT split_image_horizontally
   : public kwiver::vital::algo::split_image
 {
 public:
-  PLUGGABLE_IMPL( "ocv_horizontally",
+  PLUGGABLE_IMPL( split_image_horizontally,
                   "Split an image  into multiple smaller images using opencv functions" )
 
   virtual ~split_image_horizontally() = default;

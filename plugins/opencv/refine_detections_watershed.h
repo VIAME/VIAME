@@ -21,15 +21,14 @@ class VIAME_OPENCV_EXPORT refine_detections_watershed
 {
 public:
   PLUGGABLE_IMPL( refine_detections_watershed,
-                  "ocv_watershed",
                   "Estimate a segmentation using watershed",
     PARAM_DEFAULT( seed_with_existing_masks, bool,
                    "If true, use existing masks as seed regions",
-                   true )
+                   true ),
     PARAM_DEFAULT( seed_scale_factor, double,
                    "Amount to scale the detection by to produce "
                    "a high-confidence seed region",
-                   0.2 )
+                   0.2 ),
     PARAM_DEFAULT( uncertain_scale_factor, double,
                    "Amount to scale the detection by to produce "
                    "a region that will be marked as uncertain",

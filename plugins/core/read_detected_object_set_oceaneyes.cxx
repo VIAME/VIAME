@@ -48,8 +48,8 @@ double filter_number( std::string str )
 class read_detected_object_set_oceaneyes::priv
 {
 public:
-  priv( read_detected_object_set_oceaneyes* parent )
-    : m_parent( parent )
+  priv( read_detected_object_set_oceaneyes& parent )
+    : m_parent( &parent )
     , m_first( true )
   {}
 
@@ -73,8 +73,8 @@ public:
 // ===================================================================================
 read_detected_object_set_oceaneyes
 ::read_detected_object_set_oceaneyes()
-  : d( new read_detected_object_set_oceaneyes::priv( this ) )
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   attach_logger( "viame.core.read_detected_object_set_oceaneyes" );
 }
 

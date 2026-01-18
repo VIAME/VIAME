@@ -66,8 +66,10 @@ public:
   // Accessor to nested detector
   kv::algo::image_object_detector_sptr detector() const
   {
-    return parent.c_detector;
+    return m_detector;
   }
+
+  kv::algo::image_object_detector_sptr m_detector;
 };
 
 
@@ -116,10 +118,16 @@ windowed_detector
 // -----------------------------------------------------------------------------
 void
 windowed_detector
-::set_configuration_internal( [[maybe_unused]] kv::config_block_sptr config )
+::set_configuration_internal( kv::config_block_sptr config )
 {
-  // Nested algo is already set via c_detector by PLUGGABLE_IMPL
-  // No additional setup required
+  kv::algo::image_object_detector_sptr det;
+  kv::set_nested_algo_configuration<kv::algo::image_object_detector>(
+    "detector", config, det );
+  
+  if( det )
+  {
+    d->m_detector = det;
+  }
 }
 
 

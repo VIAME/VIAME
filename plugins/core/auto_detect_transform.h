@@ -23,7 +23,9 @@ public:
   PLUGGABLE_IMPL( auto_detect_transform_io,
     "Automatically detect a transform type stored in either an ITK (.h5) "
     "or simple homography (.txt) format." )
+  virtual ~auto_detect_transform_io() = default;
 
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
 private:
   /// Implementation specific load functionality.
   /**

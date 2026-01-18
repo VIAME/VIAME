@@ -54,71 +54,71 @@ register_factories( kv::plugin_loader& vpm )
   }
 
   auto fact = vpm.add_factory< kv::algo::refine_detections, add_keypoints_from_mask >(
-    add_keypoints_from_mask::_plugin_name );
+    add_keypoints_from_mask::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_filter, apply_color_correction >(
-    apply_color_correction::_plugin_name );
+    apply_color_correction::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::refine_detections, classify_fish_hierarchical_svm >(
-    classify_fish_hierarchical_svm::_plugin_name );
+    classify_fish_hierarchical_svm::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::compute_stereo_depth_map, compute_stereo_disparity >(
-    compute_stereo_disparity::_plugin_name );
+    compute_stereo_disparity::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_filter, convert_color_space >(
-    convert_color_space::_plugin_name );
+    convert_color_space::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_filter, debayer_filter >(
-    debayer_filter::_plugin_name );
+    debayer_filter::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_object_detector, detect_calibration_targets >(
-    detect_calibration_targets::_plugin_name );
+    detect_calibration_targets::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_filter, enhance_images >(
-    enhance_images::_plugin_name );
+    enhance_images::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::optimize_cameras, optimize_stereo_cameras >(
-    optimize_stereo_cameras::_plugin_name );
+    optimize_stereo_cameras::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_filter, random_hue_shift >(
-    random_hue_shift::_plugin_name );
+    random_hue_shift::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_grabcut >(
-    refine_detections_grabcut::_plugin_name );
+    refine_detections_grabcut::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_watershed >(
-    refine_detections_watershed::_plugin_name );
+    refine_detections_watershed::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::split_image, split_image_habcam >(
-    split_image_habcam::_plugin_name );
+    split_image_habcam::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::split_image, split_image_horizontally >(
-    split_image_horizontally::_plugin_name );
+    split_image_horizontally::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_object_detector, windowed_detector >(
-    windowed_detector::_plugin_name );
+    windowed_detector::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::refine_detections, windowed_refiner >(
-    windowed_refiner::_plugin_name );
+    windowed_refiner::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::train_detector, windowed_trainer >(
-    windowed_trainer::_plugin_name );
+    windowed_trainer::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );

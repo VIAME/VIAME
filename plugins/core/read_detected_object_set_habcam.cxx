@@ -46,8 +46,8 @@ namespace viame {
 class read_detected_object_set_habcam::priv
 {
 public:
-  priv( read_detected_object_set_habcam* parent)
-    : m_parent( parent )
+  priv( read_detected_object_set_habcam& parent)
+    : m_parent( &parent )
     , m_first( true )
     , m_current_idx( 0 )
     , m_last_idx( 0 )
@@ -90,8 +90,8 @@ public:
 // =============================================================================
 read_detected_object_set_habcam
 ::read_detected_object_set_habcam()
-  : d( new read_detected_object_set_habcam::priv( this ) )
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
 }
 
 

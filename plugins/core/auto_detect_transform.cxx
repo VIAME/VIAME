@@ -2,6 +2,8 @@
 
 #include <vital/types/homography.h>
 
+#include <vital/algo/algorithm.txx>
+
 #include <fstream>
 
 namespace viame
@@ -9,6 +11,13 @@ namespace viame
 
 namespace kv = kwiver::vital;
 namespace kva = kv::algo;
+
+bool
+auto_detect_transform_io
+::check_configuration( kv::config_block_sptr /*config*/ ) const
+{
+  return true;
+}
 
 kv::transform_2d_sptr
 auto_detect_transform_io

@@ -4,6 +4,7 @@
 
 #include "write_disparity_maps.h"
 
+#include <vital/algo/algorithm.txx>
 #include <vital/types/image.h>
 #include <vital/types/image_container.h>
 #include <vital/exceptions/io.h>
@@ -195,6 +196,10 @@ write_disparity_maps
     m_invalid_color_g = static_cast<uint8_t>( std::max( 0, std::min( 255, g ) ) );
     m_invalid_color_b = static_cast<uint8_t>( std::max( 0, std::min( 255, b ) ) );
   }
+
+  // Nested algorithm
+  kv::set_nested_algo_configuration<kv::algo::image_io>(
+    "image_writer", config, m_image_writer );
 }
 
 // -----------------------------------------------------------------------------
@@ -237,7 +242,7 @@ write_disparity_maps
     throw kv::file_write_exception( filename, "Null image container" );
   }
 
-  if( !c_image_writer )
+  if( !m_image_writer )
   {
     throw kv::file_write_exception( filename,
       "No image_writer algorithm configured" );
@@ -355,7 +360,7 @@ write_disparity_maps
 
   // Create output container and write using internal writer
   auto output_container = std::make_shared< kv::simple_image_container >( output_img );
-  c_image_writer->save( filename, output_container );
+  m_image_writer->save( filename, output_container );
 }
 
 } // namespace viame

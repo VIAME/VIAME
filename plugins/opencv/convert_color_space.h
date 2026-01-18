@@ -20,11 +20,9 @@ class VIAME_OPENCV_EXPORT convert_color_space
 {
 public:
   PLUGGABLE_IMPL( convert_color_space,
-                  image_filter,
-                  "ocv_convert_color",
                   "Convert image between color spaces",
     PARAM_DEFAULT( input_color_space, std::string,
-                   "Input color space.", "RGB" )
+                   "Input color space.", "RGB" ),
     PARAM_DEFAULT( output_color_space, std::string,
                    "Output color space.", "HLS" )
   )
@@ -36,6 +34,8 @@ public:
   // Main filtering method
   virtual kwiver::vital::image_container_sptr filter(
     kwiver::vital::image_container_sptr image_data );
+
+  virtual void post_set_configuration();
 
 private:
   int m_conversion_code = -1;

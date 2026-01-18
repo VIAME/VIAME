@@ -17,9 +17,12 @@ class VIAME_CORE_EXPORT add_timestamp_from_filename
   : public kwiver::vital::algo::image_io
 {
 public:
-  PLUGGABLE_IMPL(
-    add_timestamp_from_filename,
-    "Parse timestamps from an image filename when reading an image" )
+  PLUGGABLE_VARIABLES()
+  PLUGGABLE_CONSTRUCTOR( add_timestamp_from_filename )
+  PLUGGABLE_IMPL_BASIC( add_timestamp_from_filename, "Parse timestamps from an image filename when reading an image" )
+  PLUGGABLE_STATIC_FROM_CONFIG( add_timestamp_from_filename )
+  PLUGGABLE_STATIC_GET_DEFAULT()
+  PLUGGABLE_SET_CONFIGURATION( add_timestamp_from_filename )
 
   ~add_timestamp_from_filename() override = default;
 

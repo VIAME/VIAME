@@ -142,29 +142,6 @@ compute_stereo_disparity
 
 
 // ---------------------------------------------------------------------------------------
-bool compute_stereo_disparity
-::check_configuration( kv::config_block_sptr config ) const
-{
-  std::string algorithm = config->get_value< std::string >( "algorithm" );
-  if( algorithm != "BM" && algorithm != "SGBM" )
-  {
-    LOG_ERROR( logger(), "Invalid algorithm: " << algorithm << ". Must be 'BM' or 'SGBM'." );
-    return false;
-  }
-
-  std::string output_format = config->get_value< std::string >( "output_format" );
-  if( output_format != "raw" && output_format != "float32" && output_format != "uint16_scaled" )
-  {
-    LOG_ERROR( logger(), "Invalid output_format: " << output_format
-               << ". Must be 'raw', 'float32', or 'uint16_scaled'." );
-    return false;
-  }
-
-  return true;
-}
-
-
-// ---------------------------------------------------------------------------------------
 kv::image_container_sptr compute_stereo_disparity
 ::compute( kv::image_container_sptr left_image,
            kv::image_container_sptr right_image ) const

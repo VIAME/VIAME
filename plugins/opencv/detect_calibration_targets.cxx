@@ -12,14 +12,6 @@ namespace kv = kwiver::vital;
 namespace viame {
 
 // -------------------------------------------------------------------------------------------------
-bool
-detect_calibration_targets::
-check_configuration( kv::config_block_sptr config ) const
-{
-  return true;
-}
-
-
 // -------------------------------------------------------------------------------------------------
 kv::detected_object_set_sptr
 detect_calibration_targets::

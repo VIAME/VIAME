@@ -66,10 +66,7 @@ public:
     PARAM_DEFAULT(
       invalid_color, std::string,
       "RGB color for invalid disparity values (comma-separated, e.g., '0,0,0' for black)",
-      "0,0,0" ),
-    PARAM(
-      image_writer, kwiver::vital::algo::image_io_sptr,
-      "Algorithm pointer to nested image writer" )
+      "0,0,0" )
   )
 
   virtual ~write_disparity_maps() = default;
@@ -96,6 +93,8 @@ private:
   uint8_t m_invalid_color_r;
   uint8_t m_invalid_color_g;
   uint8_t m_invalid_color_b;
+
+  kwiver::vital::algo::image_io_sptr m_image_writer;
 };
 
 } // namespace viame

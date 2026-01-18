@@ -17,8 +17,6 @@ class VIAME_OPENCV_EXPORT random_hue_shift
 {
 public:
   PLUGGABLE_IMPL( random_hue_shift,
-                  kwiver::vital::algo::image_filter,
-                  "ocv_random_hue_shift",
                   "Add in a random hue shift to the imagery",
                   PARAM_DEFAULT( trigger_percent, double,
                                  "Trigger for other operations", 0.50 ),

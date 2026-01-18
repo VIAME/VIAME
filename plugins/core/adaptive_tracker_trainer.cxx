@@ -5,6 +5,7 @@
 #include "adaptive_tracker_trainer.h"
 
 #include <vital/algo/algorithm.txx>
+#include <vital/algo/feature_descriptor_io.h>
 #include <vital/util/cpu_timer.h>
 #include <vital/types/image_container.h>
 #include <vital/types/object_track_set.h>
@@ -390,7 +391,7 @@ struct tracker_trainer_config
 class adaptive_tracker_trainer::priv
 {
 public:
-  priv() {}
+  priv( adaptive_tracker_trainer& ) {}
   ~priv() {}
 
   // -------------------------------------------------------------------------
@@ -1066,8 +1067,8 @@ void
 adaptive_tracker_trainer
 ::initialize()
 {
-  d.reset( new priv() );
-  d->m_logger = kv::get_logger( "viame.core.adaptive_tracker_trainer" );
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  d->m_logger = this->logger();
 }
 
 
@@ -1078,6 +1079,10 @@ adaptive_tracker_trainer
 {
   // Get base config from base class (includes PLUGGABLE_IMPL params)
   kv::config_block_sptr config = kv::algo::train_tracker::get_configuration();
+
+  // Add static params from this class
+  kv::config_block_sptr cb = config;
+  CPP_MAGIC_MAP( PARAM_CONFIG_GET_FROM_THIS, CPP_MAGIC_EMPTY, VIAME_CORE_ATT_PARAMS )
 
   // -------------------------------------------------------------------------
   // Trainer configurations

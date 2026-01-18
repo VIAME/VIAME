@@ -32,7 +32,7 @@ public:
     "  - Column(s) 3-6: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
     "  - Column(s) 7: Label name\n" )
 
-  read_detected_object_set_fishnet();
+
   virtual ~read_detected_object_set_fishnet();
 
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
@@ -44,7 +44,9 @@ private:
   virtual void new_stream();
 
   class priv;
-  std::unique_ptr< priv > d;
+  KWIVER_UNIQUE_PTR( priv, d );
+
+  virtual void initialize();
 };
 
 } // end namespace
