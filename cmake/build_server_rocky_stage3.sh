@@ -28,6 +28,9 @@ install_system_deps yum
 install_openssl
 install_cmake
 
+# Install Node.js and yarn for DIVE builds
+install_nodejs_and_yarn 18
+
 # Patch CUDNN when required
 patch_cudnn_headers
 
