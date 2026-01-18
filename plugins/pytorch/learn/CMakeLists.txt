@@ -104,36 +104,119 @@ set( PANOPTICAPI_BUILD_DIR ${LEARN_BUILD_DIR}/panopticapi )
 file( MAKE_DIRECTORY ${PYDENSECRF_BUILD_DIR} )
 file( MAKE_DIRECTORY ${PANOPTICAPI_BUILD_DIR} )
 
+# Convert env vars to ----separated string for custom_build_python_dep.cmake
+# This ensures <PS> placeholders are properly converted to platform path separators
+string( REPLACE ";" "----" LEARN_ENV_VARS_STR "${LEARN_ENV_VARS}" )
+
 if( VIAME_PYTHON_SYMLINK )
-  # For symlink mode, we still need editable installs but can redirect egg-info
+  # For symlink mode, use editable installs
   set( PYDENSECRF_PIP_CMD
-    ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-deps --target "${LEARN_INSTALL_TARGET}" -e . )
   set( PANOPTICAPI_PIP_CMD
-    ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-deps --target "${LEARN_INSTALL_TARGET}" -e . )
+
+  string( REPLACE ";" "----" PYDENSECRF_PIP_CMD_STR "${PYDENSECRF_PIP_CMD}" )
+  string( REPLACE ";" "----" PANOPTICAPI_PIP_CMD_STR "${PANOPTICAPI_PIP_CMD}" )
+
+  set( PYDENSECRF_HASH_FILE ${LEARN_BUILD_DIR}/pydensecrf-hash.txt )
+  set( PANOPTICAPI_HASH_FILE ${LEARN_BUILD_DIR}/panopticapi-hash.txt )
+
+  set( PYDENSECRF_BUILD_SCRIPT
+    ${CMAKE_COMMAND}
+      -DLIB_NAME=pydensecrf
+      -DLIB_SOURCE_DIR=${PYDENSECRF_DIR}
+      -DHASH_FILE=${PYDENSECRF_HASH_FILE}
+      -DPYTHON_BUILD_CMD=${PYDENSECRF_PIP_CMD_STR}
+      "-DENV_VARS:STRING=${LEARN_ENV_VARS_STR}"
+      -DWORKING_DIR:PATH=${PYDENSECRF_DIR}
+      -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+
+  set( PANOPTICAPI_BUILD_SCRIPT
+    ${CMAKE_COMMAND}
+      -DLIB_NAME=panopticapi
+      -DLIB_SOURCE_DIR=${PANOPTICAPI_DIR}
+      -DHASH_FILE=${PANOPTICAPI_HASH_FILE}
+      -DPYTHON_BUILD_CMD=${PANOPTICAPI_PIP_CMD_STR}
+      "-DENV_VARS:STRING=${LEARN_ENV_VARS_STR}"
+      -DWORKING_DIR:PATH=${PANOPTICAPI_DIR}
+      -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+
   add_custom_target( build_learn_deps ALL
-    COMMAND cd ${PYDENSECRF_DIR} && ${PYDENSECRF_PIP_CMD}
-    COMMAND cd ${PANOPTICAPI_DIR} && ${PANOPTICAPI_PIP_CMD}
+    COMMAND ${PYDENSECRF_BUILD_SCRIPT}
+    COMMAND ${PANOPTICAPI_BUILD_SCRIPT}
     COMMENT "Building and installing vendored learn dependencies (pydensecrf, panopticapi)"
   )
 else()
   # Build wheels in the build directory, then install from there
+  # Build and install combined for each package to handle <PS> properly
   set( PYDENSECRF_WHEEL_CMD
-    ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip wheel --no-build-isolation --no-deps -w ${PYDENSECRF_BUILD_DIR} ${PYDENSECRF_DIR} )
   set( PANOPTICAPI_WHEEL_CMD
-    ${CMAKE_COMMAND} -E env "${LEARN_ENV_VARS}"
     ${Python_EXECUTABLE} -m pip wheel --no-build-isolation --no-deps -w ${PANOPTICAPI_BUILD_DIR} ${PANOPTICAPI_DIR} )
-  set( PYDENSECRF_INSTALL_CMD
+
+  string( REPLACE ";" "----" PYDENSECRF_WHEEL_CMD_STR "${PYDENSECRF_WHEEL_CMD}" )
+  string( REPLACE ";" "----" PANOPTICAPI_WHEEL_CMD_STR "${PANOPTICAPI_WHEEL_CMD}" )
+
+  set( PYDENSECRF_HASH_FILE ${LEARN_BUILD_DIR}/pydensecrf-hash.txt )
+  set( PANOPTICAPI_HASH_FILE ${LEARN_BUILD_DIR}/panopticapi-hash.txt )
+
+  set( PYDENSECRF_BUILD_SCRIPT
+    ${CMAKE_COMMAND}
+      -DLIB_NAME=pydensecrf
+      -DLIB_SOURCE_DIR=${PYDENSECRF_DIR}
+      -DHASH_FILE=${PYDENSECRF_HASH_FILE}
+      -DPYTHON_BUILD_CMD=${PYDENSECRF_WHEEL_CMD_STR}
+      "-DENV_VARS:STRING=${LEARN_ENV_VARS_STR}"
+      -DWORKING_DIR:PATH=${PYDENSECRF_DIR}
+      -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+
+  set( PANOPTICAPI_BUILD_SCRIPT
+    ${CMAKE_COMMAND}
+      -DLIB_NAME=panopticapi
+      -DLIB_SOURCE_DIR=${PANOPTICAPI_DIR}
+      -DHASH_FILE=${PANOPTICAPI_HASH_FILE}
+      -DPYTHON_BUILD_CMD=${PANOPTICAPI_WHEEL_CMD_STR}
+      "-DENV_VARS:STRING=${LEARN_ENV_VARS_STR}"
+      -DWORKING_DIR:PATH=${PANOPTICAPI_DIR}
+      -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+
+  # For install commands, we need to set PYTHONHOME to avoid environment conflicts
+  # We reuse the properly-converted LEARN_ENV_VARS which includes PYTHONHOME
+  # but process them through a cmake script to handle <PS> properly
+  set( PYDENSECRF_INSTALL_PIP_CMD
     ${Python_EXECUTABLE} -m pip install --no-deps --no-index --target "${LEARN_INSTALL_TARGET}" --find-links ${PYDENSECRF_BUILD_DIR} pydensecrf )
-  set( PANOPTICAPI_INSTALL_CMD
+  set( PANOPTICAPI_INSTALL_PIP_CMD
     ${Python_EXECUTABLE} -m pip install --no-deps --no-index --target "${LEARN_INSTALL_TARGET}" --find-links ${PANOPTICAPI_BUILD_DIR} panopticapi )
+
+  string( REPLACE ";" "----" PYDENSECRF_INSTALL_PIP_CMD_STR "${PYDENSECRF_INSTALL_PIP_CMD}" )
+  string( REPLACE ";" "----" PANOPTICAPI_INSTALL_PIP_CMD_STR "${PANOPTICAPI_INSTALL_PIP_CMD}" )
+
+  # Use same hash files (the install doesn't need separate hashing)
+  set( PYDENSECRF_INSTALL_SCRIPT
+    ${CMAKE_COMMAND}
+      -DLIB_NAME=pydensecrf-install
+      -DLIB_SOURCE_DIR=${PYDENSECRF_DIR}
+      -DHASH_FILE=${LEARN_BUILD_DIR}/pydensecrf-install-hash.txt
+      -DPYTHON_BUILD_CMD=${PYDENSECRF_INSTALL_PIP_CMD_STR}
+      "-DENV_VARS:STRING=${LEARN_ENV_VARS_STR}"
+      -DWORKING_DIR:PATH=${PYDENSECRF_BUILD_DIR}
+      -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+
+  set( PANOPTICAPI_INSTALL_SCRIPT
+    ${CMAKE_COMMAND}
+      -DLIB_NAME=panopticapi-install
+      -DLIB_SOURCE_DIR=${PANOPTICAPI_DIR}
+      -DHASH_FILE=${LEARN_BUILD_DIR}/panopticapi-install-hash.txt
+      -DPYTHON_BUILD_CMD=${PANOPTICAPI_INSTALL_PIP_CMD_STR}
+      "-DENV_VARS:STRING=${LEARN_ENV_VARS_STR}"
+      -DWORKING_DIR:PATH=${PANOPTICAPI_BUILD_DIR}
+      -P ${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake )
+
   add_custom_target( build_learn_deps ALL
-    COMMAND ${PYDENSECRF_WHEEL_CMD}
-    COMMAND ${PYDENSECRF_INSTALL_CMD}
-    COMMAND ${PANOPTICAPI_WHEEL_CMD}
-    COMMAND ${PANOPTICAPI_INSTALL_CMD}
+    COMMAND ${PYDENSECRF_BUILD_SCRIPT}
+    COMMAND ${PYDENSECRF_INSTALL_SCRIPT}
+    COMMAND ${PANOPTICAPI_BUILD_SCRIPT}
+    COMMAND ${PANOPTICAPI_INSTALL_SCRIPT}
     COMMENT "Building and installing vendored learn dependencies (pydensecrf, panopticapi)"
   )
 endif()
