@@ -34,23 +34,5 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   endif()
 endif()
 
-if( VIAME_ENABLE_KWANT )
-  if( WIN32 )
-    set( example_files
-         ${example_files}
-         detection_rocs_across_all.bat
-         detection_rocs_per_category.bat
-         track_kwant_stats_across_all.bat
-         track_kwant_stats_per_category.bat )
-  else()
-    set( example_files
-         ${example_files}
-         detection_rocs_across_all.sh
-         detection_rocs_per_category.sh
-         track_kwant_stats_across_all.sh
-         track_kwant_stats_per_category.sh )
-  endif()
-endif()
-
 install( FILES       ${example_files}
          DESTINATION examples/scoring_and_evaluation )
