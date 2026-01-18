@@ -23,9 +23,9 @@ process detection_reader
 
 process detection_filter
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
     # Filter parameters
     :threshold                                 0.005
     :keep_all_classes                          true
