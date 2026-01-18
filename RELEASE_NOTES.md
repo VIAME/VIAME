@@ -1,4 +1,4 @@
-v0.22.0 - 1/15/2025
+v0.22.0 - 1/21/2025
 ===================
 
 
@@ -12,6 +12,9 @@ v0.22.0 - 1/15/2025
 
 
 -Multiple dependency and testing infastructure updates, drop old packages
+
+
+-Add a number of new object detectors (RF-DETR, YOLO variants)
 
 
 
