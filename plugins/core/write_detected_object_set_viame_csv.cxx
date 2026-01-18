@@ -165,8 +165,24 @@ write_detected_object_set_viame_csv
              << bbox.min_y() << ","         // 5: TL-y
              << bbox.max_x() << ","         // 6: BR-x
              << bbox.max_y() << ","         // 7: BR-y
-             << (*det)->confidence() << "," // 8: confidence
-             << "0";                        // 9: length
+             << (*det)->confidence() << ",";// 8: confidence
+
+    // 9: length - read from attributes if available
+    if( (*det)->has_attribute( "length" ) )
+    {
+      try
+      {
+        stream() << (*det)->get_attribute< double >( "length" );
+      }
+      catch( ... )
+      {
+        stream() << "0";
+      }
+    }
+    else
+    {
+      stream() << "0";
+    }
 
     const auto dot = (*det)->type();
 

@@ -295,6 +295,13 @@ read_object_track_set_viame_csv::priv
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
     }
 
+    // Read length from column 9 and store as attribute
+    double length = atof( col[COL_LENGTH].c_str() );
+    if( length != 0.0 && length != -1.0 )
+    {
+      dob->set_attribute( "length", length );
+    }
+
     try
     {
       frame_time = convert_to_timestamp( str_id );
@@ -368,6 +375,12 @@ read_object_track_set_viame_csv::priv
     else
     {
       trk = m_all_tracks[ trk_id ];
+    }
+
+    // Also set length on track if it's not already set
+    if( length != 0.0 && length != -1.0 && !trk->has_attribute( "length" ) )
+    {
+      trk->set_attribute( "length", length );
     }
 
     trk->append( ots );

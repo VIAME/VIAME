@@ -371,6 +371,13 @@ read_detected_object_set_viame_csv::priv
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
     }
 
+    // Read length from column 9 and store as attribute
+    double length = atof( col[COL_LENGTH].c_str() );
+    if( length != 0.0 && length != -1.0 )
+    {
+      dob->set_attribute( "length", length );
+    }
+
     std::vector< std::string > poly_strings;
 
     if( found_optional_field )

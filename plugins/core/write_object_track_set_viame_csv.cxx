@@ -399,8 +399,30 @@ void write_object_track_set_viame_csv
                << bbox.min_y() << c_delimiter             // 5: TL-y
                << bbox.max_x() << c_delimiter             // 6: BR-x
                << bbox.max_y() << c_delimiter             // 7: BR-y
-               << confidence << c_delimiter               // 8: confidence
-               << "0";                                    // 9: length
+               << confidence << c_delimiter;              // 8: confidence
+
+      // 9: length - read from track attributes if available, fallback to detection
+      double length_value = 0.0;
+      bool found_length = false;
+      if( trk_ptr->has_attribute( "length" ) )
+      {
+        try
+        {
+          length_value = trk_ptr->get_attribute< double >( "length" );
+          found_length = true;
+        }
+        catch( ... ) {}
+      }
+      if( !found_length && det && det->has_attribute( "length" ) )
+      {
+        try
+        {
+          length_value = det->get_attribute< double >( "length" );
+          found_length = true;
+        }
+        catch( ... ) {}
+      }
+      stream() << length_value;
 
       if( det )
       {
@@ -517,8 +539,30 @@ write_object_track_set_viame_csv
                << bbox.min_y() << c_delimiter                // 5: TL-y
                << bbox.max_x() << c_delimiter                // 6: BR-x
                << bbox.max_y() << c_delimiter                // 7: BR-y
-               << confidence << c_delimiter                  // 8: confidence
-               << "0";                                       // 9: length
+               << confidence << c_delimiter;                 // 8: confidence
+
+      // 9: length - read from track attributes if available, fallback to detection
+      double length_value = 0.0;
+      bool found_length = false;
+      if( trk_ptr->has_attribute( "length" ) )
+      {
+        try
+        {
+          length_value = trk_ptr->get_attribute< double >( "length" );
+          found_length = true;
+        }
+        catch( ... ) {}
+      }
+      if( !found_length && det && det->has_attribute( "length" ) )
+      {
+        try
+        {
+          length_value = det->get_attribute< double >( "length" );
+          found_length = true;
+        }
+        catch( ... ) {}
+      }
+      stream() << length_value;
 
       if( det )
       {

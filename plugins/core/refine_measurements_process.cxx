@@ -400,7 +400,7 @@ refine_measurements_process
         if( ( d->m_min_valid <= 0.0 || lth >= d->m_min_valid ) &&
             ( d->m_max_valid <= 0.0 || lth <= d->m_max_valid ) )
         {
-          det->set_length( lth );
+          det->set_attribute( "length", lth );
           conf_cat = ( length_conf[ ind ] ? length_conf[ ind ] : 3 );
         }
       }
@@ -506,7 +506,7 @@ refine_measurements_process
         if( ( d->m_min_valid <= 0.0 || lth >= d->m_min_valid ) &&
             ( d->m_max_valid <= 0.0 || lth <= d->m_max_valid ) )
         {
-          det->set_length( lth );
+          det->set_attribute( "length", lth );
         }
       }
     }
