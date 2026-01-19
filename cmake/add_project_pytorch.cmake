@@ -128,18 +128,18 @@ if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN AND Python_VERSION VERSION_GREATER "3.7
 endif()
 
 # Packages that depend on torch - installed after pytorch
-set( PYTHON_TORCH_DEP_PKGS "" )
+set( PYTHON_DEPS_REQ_TORCH "" )
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND PYTHON_TORCH_DEP_PKGS "torch_liberator" "liberator" )
+  list( APPEND PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator" )
 endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
     VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
-    list( APPEND PYTHON_TORCH_DEP_PKGS "kwcoco>=0.8.5" )
+    list( APPEND PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.5" )
   else()
-    list( APPEND PYTHON_TORCH_DEP_PKGS "kwcoco>=0.8.0" )
+    list( APPEND PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.0" )
   endif()
 endif()
 
@@ -147,17 +147,17 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
     VIAME_ENABLE_PYTORCH-DETECTRON2 OR
     VIAME_ENABLE_PYTORCH-SAM3 OR
     VIAME_ENABLE_PYTORCH-STEREO )
-  list( APPEND PYTHON_TORCH_DEP_PKGS "timm" )
+  list( APPEND PYTHON_DEPS_REQ_TORCH "timm" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  list( APPEND PYTHON_TORCH_DEP_PKGS "ultralytics<=8.3.71" "ultralytics_thop==2.0.14" )
+  list( APPEND PYTHON_DEPS_REQ_TORCH "ultralytics<=8.3.71" "ultralytics_thop==2.0.14" )
 endif()
 
-if( PYTHON_TORCH_DEP_PKGS )
+if( PYTHON_DEPS_REQ_TORCH )
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} python-deps-req-torch )
 
-  string( REPLACE ";" " " _torch_deps_str "${PYTHON_TORCH_DEP_PKGS}" )
+  string( REPLACE ";" " " _torch_deps_str "${PYTHON_DEPS_REQ_TORCH}" )
   set( PYTHON_DEP_PIP_CMD pip install --user ${_torch_deps_str} )
   if( VIAME_BUILD_NO_CACHE_DIR )
     set( PYTHON_DEP_PIP_CMD pip install --user --no-cache-dir ${_torch_deps_str} )
