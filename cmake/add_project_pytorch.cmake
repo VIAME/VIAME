@@ -147,14 +147,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     # pytorch-libs-deps is a pip install of torch-dependent packages, not a source build
     set( LIBRARY_PIP_BUILD_CMD "" )
     string( REPLACE ";" " " _torch_deps_str "${PYTHON_DEPS_REQ_TORCH}" )
+    set( _pip_cmd "pip install --user ${_torch_deps_str}" )
     if( VIAME_BUILD_NO_CACHE_DIR )
-      set( LIBRARY_PIP_INSTALL_CMD
-        "${Python_EXECUTABLE} -m pip install --user --no-cache-dir ${_torch_deps_str}" )
-    else()
-      set( LIBRARY_PIP_INSTALL_CMD
-        "${Python_EXECUTABLE} -m pip install --user ${_torch_deps_str}" )
+      set( _pip_cmd "pip install --user --no-cache-dir ${_torch_deps_str}" )
     endif()
-    string( REPLACE " " ";" LIBRARY_PIP_INSTALL_CMD "${LIBRARY_PIP_INSTALL_CMD}" )
+    string( REPLACE " " ";" _pip_cmd "${_pip_cmd}" )
+    set( LIBRARY_PIP_INSTALL_CMD ${Python_EXECUTABLE} -m ${_pip_cmd} )
   elseif( VIAME_PYTHON_SYMLINK )
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
       set( LIBRARY_PIP_BUILD_CMD "" )
