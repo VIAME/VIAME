@@ -55,7 +55,6 @@ cmake ../ \
   -C ../cmake/build_cmake_linux.cmake \
   -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
   -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
-  -DVIAME_BUILD_DIVE_FROM_SOURCE:BOOL=OFF \
   -DVIAME_BUILD_NO_CACHE_DIR:BOOL=ON
 
 # Build Stage 1 target: fletch
