@@ -260,8 +260,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "detectron2" OR
           "${LIB}" STREQUAL "sam3" OR
           "${LIB}" STREQUAL "foundation-stereo" )
-    # These libraries import timm, so they need it installed first
-    set( PROJECT_DEPS ${PROJECT_DEPS} timm )
+    set( PROJECT_DEPS ${PROJECT_DEPS} python-deps-req-torch )
   endif()
 
   # Use conditional build that checks source hash
@@ -338,6 +337,65 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       DEPENDEES install )
   endif()
 endforeach()
+
+# Packages that depend on torch - installed after pytorch
+set( PYTHON_TORCH_DEP_PKGS "" )
+
+if( VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND PYTHON_TORCH_DEP_PKGS "torch_liberator" "liberator" )
+endif()
+
+if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
+    VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
+    list( APPEND PYTHON_TORCH_DEP_PKGS "kwcoco>=0.8.5" )
+  else()
+    list( APPEND PYTHON_TORCH_DEP_PKGS "kwcoco>=0.8.0" )
+  endif()
+endif()
+
+if( VIAME_ENABLE_PYTORCH-LEARN OR
+    VIAME_ENABLE_PYTORCH-DETECTRON2 OR
+    VIAME_ENABLE_PYTORCH-SAM3 OR
+    VIAME_ENABLE_PYTORCH-STEREO )
+  list( APPEND PYTHON_TORCH_DEP_PKGS "timm" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  list( APPEND PYTHON_TORCH_DEP_PKGS "ultralytics<=8.3.71" "ultralytics_thop==2.0.14" )
+endif()
+
+if( PYTHON_TORCH_DEP_PKGS )
+  set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} python-deps-req-torch )
+
+  string( REPLACE ";" " " _torch_deps_str "${PYTHON_TORCH_DEP_PKGS}" )
+  set( PYTHON_DEP_PIP_CMD pip install --user ${_torch_deps_str} )
+  if( VIAME_BUILD_NO_CACHE_DIR )
+    set( PYTHON_DEP_PIP_CMD pip install --user --no-cache-dir ${_torch_deps_str} )
+  endif()
+  string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
+
+  set( PYTHON_DEP_FULL_CMD ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD} )
+  string( REPLACE ";" "----" PYTHON_DEP_CMD_STR "${PYTHON_DEP_FULL_CMD}" )
+  string( REPLACE ";" "----" PYTHON_DEP_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
+  set( PYTHON_DEP_BUILD
+    ${CMAKE_COMMAND}
+      -DCOMMAND_TO_RUN:STRING=${PYTHON_DEP_CMD_STR}
+      -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}
+      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
+
+  ExternalProject_Add( python-deps-req-torch
+    DEPENDS fletch python-deps pytorch
+    PREFIX ${VIAME_BUILD_PREFIX}
+    SOURCE_DIR ${VIAME_CMAKE_DIR}
+    USES_TERMINAL_BUILD 1
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${PYTHON_DEP_BUILD}
+    INSTALL_COMMAND ""
+    INSTALL_DIR ${VIAME_INSTALL_PREFIX}
+    LIST_SEPARATOR "----" )
+endif()
 
 set( VIAME_ARGS_pytorch
   -Dpytorch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/pytorch-build
