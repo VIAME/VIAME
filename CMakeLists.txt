@@ -285,11 +285,11 @@ set( VIAME_BUILD_PLUGINS_DIR "${VIAME_BUILD_PREFIX}/src/viame-build"
      CACHE STRING "VIAME superbuild plugins build location" )
 mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 
-# If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
+# If VIAME_BUILD_FORCE_REBUILD is False, we will assume we dont need to rebuild any
 # other superbuild projects (except for viame). This makes development builds
 # much quicker if just doing development only in VIAME plugins if OFF.
-option( VIAME_FORCEBUILD "Enable force-building of all subpackages" OFF )
-mark_as_advanced( VIAME_FORCEBUILD )
+option( VIAME_BUILD_FORCE_REBUILD "Enable force-building of all subpackages" OFF )
+mark_as_advanced( VIAME_BUILD_FORCE_REBUILD )
 
 # Control the number of parallel build threads for subprojects like PyTorch.
 # Set this to limit the number of concurrent compilation jobs (e.g., 4 or 8).

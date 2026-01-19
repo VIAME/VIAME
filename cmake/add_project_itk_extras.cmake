@@ -23,6 +23,6 @@ ExternalProject_Add( itk_module_tps
   INSTALL_DIR ${VIAME_INSTALL_PREFIX}
 )
 
-if( VIAME_FORCEBUILD )
+if( VIAME_BUILD_FORCE_REBUILD )
   RemoveProjectCMakeStamp( itk_module_tps )
 endif()

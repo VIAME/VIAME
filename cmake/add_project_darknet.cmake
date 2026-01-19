@@ -58,7 +58,7 @@ ExternalProject_Add(darknet
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-if( VIAME_FORCEBUILD )
+if( VIAME_BUILD_FORCE_REBUILD )
   RemoveProjectCMakeStamp( darknet )
 endif()
 
