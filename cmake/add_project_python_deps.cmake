@@ -181,6 +181,35 @@ endif()
 
 list( REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS )
 
+# ------------------------------ TORCH-DEPENDENT PIP PACKAGES -------------------------------------
+# These packages require torch to be installed first (installed in add_project_pytorch.cmake)
+
+set( PYTHON_DEPS_REQ_TORCH "" )
+
+if( VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator" )
+endif()
+
+if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
+    VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
+    list( APPEND PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.5" )
+  else()
+    list( APPEND PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.0" )
+  endif()
+endif()
+
+if( VIAME_ENABLE_PYTORCH-LEARN OR
+    VIAME_ENABLE_PYTORCH-DETECTRON2 OR
+    VIAME_ENABLE_PYTORCH-SAM3 OR
+    VIAME_ENABLE_PYTORCH-STEREO )
+  list( APPEND PYTHON_DEPS_REQ_TORCH "timm" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  list( APPEND PYTHON_DEPS_REQ_TORCH "ultralytics<=8.3.71" "ultralytics_thop==2.0.14" )
+endif()
+
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
 # Advanced python dependencies are installed individually due to special reqs
 

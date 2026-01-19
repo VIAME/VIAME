@@ -15,6 +15,10 @@ if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 endif()
 
+if( PYTHON_DEPS_REQ_TORCH )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch-libs-deps )
+endif()
+
 if( VIAME_BUILD_TORCHVISION_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
@@ -41,10 +45,6 @@ endif()
 
 if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTORCH-MMDET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} mmdeploy )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-SIAMMASK )
-  # siammask is now built-in to plugins/pytorch/siammask, no external lib needed
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MDNET )
@@ -127,73 +127,11 @@ if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN AND Python_VERSION VERSION_GREATER "3.7
   list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
 endif()
 
-# Packages that depend on torch - installed after pytorch
-set( PYTHON_DEPS_REQ_TORCH "" )
-
-if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator" )
-endif()
-
-if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
-    VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
-    list( APPEND PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.5" )
-  else()
-    list( APPEND PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.0" )
-  endif()
-endif()
-
-if( VIAME_ENABLE_PYTORCH-LEARN OR
-    VIAME_ENABLE_PYTORCH-DETECTRON2 OR
-    VIAME_ENABLE_PYTORCH-SAM3 OR
-    VIAME_ENABLE_PYTORCH-STEREO )
-  list( APPEND PYTHON_DEPS_REQ_TORCH "timm" )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  list( APPEND PYTHON_DEPS_REQ_TORCH "ultralytics<=8.3.71" "ultralytics_thop==2.0.14" )
-endif()
-
-if( PYTHON_DEPS_REQ_TORCH )
-  set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} python-deps-req-torch )
-
-  string( REPLACE ";" " " _torch_deps_str "${PYTHON_DEPS_REQ_TORCH}" )
-  set( PYTHON_DEP_PIP_CMD pip install --user ${_torch_deps_str} )
-  if( VIAME_BUILD_NO_CACHE_DIR )
-    set( PYTHON_DEP_PIP_CMD pip install --user --no-cache-dir ${_torch_deps_str} )
-  endif()
-  string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
-
-  set( PYTHON_DEP_FULL_CMD ${Python_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD} )
-  string( REPLACE ";" "----" PYTHON_DEP_CMD_STR "${PYTHON_DEP_FULL_CMD}" )
-  string( REPLACE ";" "----" PYTHON_DEP_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
-
-  set( PYTHON_DEP_BUILD
-    ${CMAKE_COMMAND}
-      -DCOMMAND_TO_RUN:STRING=${PYTHON_DEP_CMD_STR}
-      -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}
-      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
-
-  set( _torch_deps_depends fletch python-deps )
-  if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
-    list( APPEND _torch_deps_depends pytorch )
-  endif()
-
-  ExternalProject_Add( python-deps-req-torch
-    DEPENDS ${_torch_deps_depends}
-    PREFIX ${VIAME_BUILD_PREFIX}
-    SOURCE_DIR ${VIAME_CMAKE_DIR}
-    USES_TERMINAL_BUILD 1
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${PYTHON_DEP_BUILD}
-    INSTALL_COMMAND ""
-    INSTALL_DIR ${VIAME_INSTALL_PREFIX}
-    LIST_SEPARATOR "----" )
-endif()
-
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( "${LIB}" STREQUAL "pytorch" )
     set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/pytorch )
+  elseif( "${LIB}" STREQUAL "pytorch-libs-deps" )
+    set( LIBRARY_LOCATION ${VIAME_CMAKE_DIR} )
   elseif( "${LIB}" STREQUAL "roi-align" )
     set( LIBRARY_LOCATION ${VIAME_SOURCE_DIR}/plugins/pytorch/mdnet )
   elseif( "${LIB}" STREQUAL "pyav" )
@@ -205,7 +143,18 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-build )
   CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
 
-  if( VIAME_PYTHON_SYMLINK )
+  if( "${LIB}" STREQUAL "pytorch-libs-deps" )
+    # pytorch-libs-deps is a pip install of torch-dependent packages, not a source build
+    set( LIBRARY_PIP_BUILD_CMD "" )
+    string( REPLACE ";" " " _torch_deps_str "${PYTHON_DEPS_REQ_TORCH}" )
+    if( VIAME_BUILD_NO_CACHE_DIR )
+      set( LIBRARY_PIP_INSTALL_CMD
+        ${Python_EXECUTABLE} -m pip install --user --no-cache-dir ${_torch_deps_str} )
+    else()
+      set( LIBRARY_PIP_INSTALL_CMD
+        ${Python_EXECUTABLE} -m pip install --user ${_torch_deps_str} )
+    endif()
+  elseif( VIAME_PYTHON_SYMLINK )
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
       set( LIBRARY_PIP_BUILD_CMD "" )
       if( VIAME_BUILD_NO_CACHE_DIR )
@@ -278,7 +227,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( NOT "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch )
     if( VIAME_ENABLE_PYTORCH-VISION AND
-        NOT "${LIB}" STREQUAL "torchvision" )
+        NOT "${LIB}" STREQUAL "torchvision" AND
+        NOT "${LIB}" STREQUAL "pytorch-libs-deps" )
       set( PROJECT_DEPS ${PROJECT_DEPS} torchvision )
     endif()
   endif()
@@ -324,7 +274,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "detectron2" OR
           "${LIB}" STREQUAL "sam3" OR
           "${LIB}" STREQUAL "foundation-stereo" )
-    set( PROJECT_DEPS ${PROJECT_DEPS} python-deps-req-torch )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   endif()
 
   # Use conditional build that checks source hash
