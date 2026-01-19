@@ -22,6 +22,7 @@ SET "CMAKE_ROOT=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
 SET "ZIP_ROOT=C:\Program Files\7-Zip"
 SET "ZLIB_ROOT=C:\Program Files\ZLib"
+SET "NODEJS_ROOT=C:\Program Files\nodejs"
 
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
@@ -38,7 +39,7 @@ SET "PYTHON_SUBDIR=lib\python3.10"
 SET "ZLIB_BUILD_DIR=%VIAME_BUILD_DIR%\build\src\fletch-build\build\src\ZLib-build"
 
 SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
-SET "PATH=%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
+SET "PATH=%NODEJS_ROOT%;%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 REM -------------------------------------------------------------------------------------------------------

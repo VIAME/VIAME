@@ -97,8 +97,17 @@ endif()
 # For LEARN models
 if( VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "pyarrow" "filelock" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "timm" "submitit" "scikit-learn" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "submitit" "scikit-learn" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scipy" "termcolor" "addict" "yapf" )
+endif()
+
+# Dependencies of package timm, which is installed as an advanced no-dep
+# dependency because it pulls in lots of other projects we don't need
+if( VIAME_ENABLE_PYTORCH-LEARN OR
+    VIAME_ENABLE_PYTORCH-DETECTRON2 OR
+    VIAME_ENABLE_PYTORCH-SAM3 OR
+    VIAME_ENABLE_PYTORCH-STEREO )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "huggingface_hub" "safetensors" )
 endif()
 
 if( VIAME_ENABLE_KEYPOINT )
@@ -227,10 +236,20 @@ if( VIAME_ENABLE_PYTORCH AND
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  # Add ultralytics as an advanced dependency to avoid installing its strict
-  # dependencies that are not needed.
+  # Install ultralytics with --no-deps to avoid installing its strict
+  # dependencies that conflict with our versions
   list( APPEND VIAME_PYTHON_ADV_DEPS ultralytics )
   list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "ultralytics<=8.3.71 ultralytics_thop==2.0.14 --no-deps" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-LEARN OR
+    VIAME_ENABLE_PYTORCH-DETECTRON2 OR
+    VIAME_ENABLE_PYTORCH-SAM3 OR
+    VIAME_ENABLE_PYTORCH-STEREO )
+  # Install timm with --no-deps to prevent it from pulling in torch/torchvision
+  # wheels that might conflict slightly with our versions
+  list( APPEND VIAME_PYTHON_ADV_DEPS timm )
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "timm --no-deps" )
 endif()
 
 # ------------------------------------- INSTALL ROUTINES -----------------------------------------

@@ -246,6 +246,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/mit-yolo
       ${VIAME_PACKAGES_DIR}/pytorch-libs/mit-yolo )
+  elseif( "${LIB}" STREQUAL "detectron2" OR
+          "${LIB}" STREQUAL "sam3" OR
+          "${LIB}" STREQUAL "foundation-stereo" )
+    # These libraries import timm, so they need it installed first
+    set( PROJECT_DEPS ${PROJECT_DEPS} timm )
   endif()
 
   # Use conditional build that checks source hash
