@@ -174,8 +174,13 @@ if( PYTHON_DEPS_REQ_TORCH )
       -DENV_VARS:STRING=${PYTHON_DEP_ENV_STR}
       -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
 
+  set( _torch_deps_depends fletch python-deps )
+  if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
+    list( APPEND _torch_deps_depends pytorch )
+  endif()
+
   ExternalProject_Add( python-deps-req-torch
-    DEPENDS fletch python-deps pytorch
+    DEPENDS ${_torch_deps_depends}
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${VIAME_CMAKE_DIR}
     USES_TERMINAL_BUILD 1
