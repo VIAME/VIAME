@@ -281,6 +281,9 @@ foreach( ID RANGE ${DEP_COUNT} )
   endif()
 
   set( PYTHON_DEP_PIP_CMD pip install --user ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
+  if( VIAME_BUILD_NO_CACHE_DIR )
+    set( PYTHON_DEP_PIP_CMD pip install --user --no-cache-dir ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
+  endif()
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
   # Build the full command list and convert to ----separated string
@@ -359,8 +362,13 @@ CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
 if( VIAME_PYTHON_SYMLINK )
   set( LIBRARY_PIP_BUILD_CMD
     ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
-  set( LIBRARY_PIP_INSTALL_CMD
-    ${Python_EXECUTABLE} -m pip install --user -e . )
+  if( VIAME_BUILD_NO_CACHE_DIR )
+    set( LIBRARY_PIP_INSTALL_CMD
+      ${Python_EXECUTABLE} -m pip install --user --no-cache-dir -e . )
+  else()
+    set( LIBRARY_PIP_INSTALL_CMD
+      ${Python_EXECUTABLE} -m pip install --user -e . )
+  endif()
 else()
   set( LIBRARY_PIP_BUILD_CMD
     ${Python_EXECUTABLE} setup.py
@@ -371,6 +379,7 @@ else()
       -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
       -DPython_EXECUTABLE=${Python_EXECUTABLE}
       -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
+      -DNO_CACHE_DIR=${VIAME_BUILD_NO_CACHE_DIR}
       -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
 endif()
 

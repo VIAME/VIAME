@@ -144,13 +144,23 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( VIAME_PYTHON_SYMLINK )
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
       set( LIBRARY_PIP_BUILD_CMD "" )
-      set( LIBRARY_PIP_INSTALL_CMD
-        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user -e . )
+      if( VIAME_BUILD_NO_CACHE_DIR )
+        set( LIBRARY_PIP_INSTALL_CMD
+          ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-cache-dir --user -e . )
+      else()
+        set( LIBRARY_PIP_INSTALL_CMD
+          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user -e . )
+      endif()
     else()
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
-      set( LIBRARY_PIP_INSTALL_CMD
-        ${Python_EXECUTABLE} -m pip install --user -e . )
+      if( VIAME_BUILD_NO_CACHE_DIR )
+        set( LIBRARY_PIP_INSTALL_CMD
+          ${Python_EXECUTABLE} -m pip install --no-cache-dir --user -e . )
+      else()
+        set( LIBRARY_PIP_INSTALL_CMD
+          ${Python_EXECUTABLE} -m pip install --user -e . )
+      endif()
     endif()
   else()
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
@@ -182,6 +192,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
         -DPython_EXECUTABLE=${Python_EXECUTABLE}
         -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
+        -DNO_CACHE_DIR=${VIAME_BUILD_NO_CACHE_DIR}
         -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
   endif()
 

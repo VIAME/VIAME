@@ -106,6 +106,30 @@ jobs:
 
           echo "Stage 1 verification passed!"
 
+      - name: Clean intermediate files before packaging
+        if: steps.cache-stage1.outputs.cache-hit != 'true'
+        run: |
+          echo "Cleaning intermediate build files to reduce artifact size..."
+          # Show disk usage before cleanup
+          docker exec viame_build du -sh /viame/build || true
+
+          # Remove object files (keeping only essential build stamps)
+          docker exec viame_build find /viame/build -name "*.o" -delete 2>/dev/null || true
+          docker exec viame_build find /viame/build -name "*.a" -delete 2>/dev/null || true
+
+          # Remove fletch download cache (sources already extracted/built)
+          docker exec viame_build rm -rf /viame/build/build/src/fletch-build/Downloads 2>/dev/null || true
+
+          # Remove CMakeFiles directories (can be regenerated)
+          docker exec viame_build find /viame/build -type d -name "CMakeFiles" -exec rm -rf {} + 2>/dev/null || true
+
+          # Clean pip cache
+          docker exec viame_build rm -rf /root/.cache/pip 2>/dev/null || true
+
+          # Show disk usage after cleanup
+          echo "Disk usage after cleanup:"
+          docker exec viame_build du -sh /viame/build || true
+
       - name: Package Stage 1 artifact
         if: steps.cache-stage1.outputs.cache-hit != 'true'
         run: |
@@ -190,7 +214,7 @@ jobs:
       - name: Free disk space
         if: steps.cache-stage2.outputs.cache-hit != 'true'
         run: |
-          # Remove unnecessary files to free up disk space
+          # Remove unnecessary files to free up disk space (aggressive cleanup for Stage 2)
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
@@ -200,6 +224,17 @@ jobs:
           sudo rm -rf /usr/local/julia*
           sudo rm -rf /opt/microsoft
           sudo rm -rf /opt/az
+          # Additional aggressive cleanup for Stage 2
+          sudo rm -rf /opt/hostedtoolcache/Python
+          sudo rm -rf /opt/hostedtoolcache/Ruby
+          sudo rm -rf /opt/hostedtoolcache/go
+          sudo rm -rf /opt/hostedtoolcache/node
+          sudo rm -rf /usr/local/graalvm
+          sudo rm -rf /usr/share/miniconda
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /usr/local/go
+          sudo rm -rf /usr/share/rust
+          sudo rm -rf /usr/local/.ghcup
           sudo docker image prune --all --force
           df -h
 
@@ -263,6 +298,27 @@ jobs:
           fi
 
           echo "Stage 2 verification passed!"
+
+      - name: Clean intermediate files before packaging
+        if: steps.cache-stage2.outputs.cache-hit != 'true'
+        run: |
+          echo "Cleaning intermediate build files to reduce artifact size..."
+          # Show disk usage before cleanup
+          docker exec viame_build du -sh /viame/build || true
+
+          # Remove object files (keeping only essential build stamps)
+          docker exec viame_build find /viame/build -name "*.o" -delete 2>/dev/null || true
+          docker exec viame_build find /viame/build -name "*.a" -delete 2>/dev/null || true
+
+          # Remove CMakeFiles directories (can be regenerated)
+          docker exec viame_build find /viame/build -type d -name "CMakeFiles" -exec rm -rf {} + 2>/dev/null || true
+
+          # Clean pip cache
+          docker exec viame_build rm -rf /root/.cache/pip 2>/dev/null || true
+
+          # Show disk usage after cleanup
+          echo "Disk usage after cleanup:"
+          docker exec viame_build du -sh /viame/build || true
 
       - name: Package Stage 2 artifact
         if: steps.cache-stage2.outputs.cache-hit != 'true'

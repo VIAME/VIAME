@@ -296,6 +296,10 @@ mark_as_advanced( VIAME_FORCEBUILD )
 set( VIAME_BUILD_MAX_THREADS "" CACHE STRING "Parallel threads for subprojects (empty = auto)" )
 mark_as_advanced( VIAME_BUILD_MAX_THREADS )
 
+# Disable pip cache to save disk space during builds (useful for CI environments)
+option( VIAME_BUILD_NO_CACHE_DIR "Disable pip cache to save disk space" OFF )
+mark_as_advanced( VIAME_BUILD_NO_CACHE_DIR )
+
 ###
 # Other advanced hidden flags used for disabling core features
 #
