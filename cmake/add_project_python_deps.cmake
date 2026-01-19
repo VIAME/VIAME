@@ -260,6 +260,14 @@ if( VIAME_ENABLE_PYTORCH AND
   endif()
 endif()
 
+# pymotmetrics from source
+list( APPEND VIAME_PYTHON_ADV_DEPS pymotmetrics )
+if( VIAME_PYTHON_SYMLINK )
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "-e ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics" )
+else()
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics" )
+endif()
+
 # ------------------------------------- INSTALL ROUTINES -----------------------------------------
 
 set( VIAME_PYTHON_DEPS_DEPS fletch )
@@ -357,66 +365,4 @@ foreach( ID RANGE ${DEP_COUNT} )
     LIST_SEPARATOR "----"
     )
 endforeach()
-
-# ------------------------------------- PYMOTMETRICS -----------------------------------------
-
-set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pymotmetrics )
-
-set( PROJECT_DEPS fletch python-deps )
-set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics )
-set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pymotmetrics-build )
-CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
-
-if( VIAME_PYTHON_SYMLINK )
-  set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
-  if( VIAME_BUILD_NO_CACHE_DIR )
-    set( LIBRARY_PIP_INSTALL_CMD
-      ${Python_EXECUTABLE} -m pip install --user --no-cache-dir -e . )
-  else()
-    set( LIBRARY_PIP_INSTALL_CMD
-      ${Python_EXECUTABLE} -m pip install --user -e . )
-  endif()
-else()
-  set( LIBRARY_PIP_BUILD_CMD
-    ${Python_EXECUTABLE} setup.py
-      build --build-base=${LIBRARY_PIP_BUILD_DIR}
-      bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
-  set( LIBRARY_PIP_INSTALL_CMD
-    ${CMAKE_COMMAND}
-      -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
-      -DPython_EXECUTABLE=${Python_EXECUTABLE}
-      -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
-      -DNO_CACHE_DIR=${VIAME_BUILD_NO_CACHE_DIR}
-      -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
-endif()
-
-# Convert commands and env vars to ----separated strings for the wrapper script
-string( REPLACE ";" "----" LIBRARY_BUILD_CMD_STR "${LIBRARY_PIP_BUILD_CMD}" )
-string( REPLACE ";" "----" LIBRARY_INSTALL_CMD_STR "${LIBRARY_PIP_INSTALL_CMD}" )
-string( REPLACE ";" "----" PYMOT_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
-
-set( LIBRARY_PYTHON_BUILD
-  ${CMAKE_COMMAND}
-    -DCOMMAND_TO_RUN:STRING=${LIBRARY_BUILD_CMD_STR}
-    -DENV_VARS:STRING=${PYMOT_ENV_STR}
-    -DWORKING_DIR:PATH=${LIBRARY_LOCATION}
-    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
-set( LIBRARY_PYTHON_INSTALL
-  ${CMAKE_COMMAND}
-    -DCOMMAND_TO_RUN:STRING=${LIBRARY_INSTALL_CMD_STR}
-    -DENV_VARS:STRING=${PYMOT_ENV_STR}
-    -DWORKING_DIR:PATH=${LIBRARY_LOCATION}
-    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
-
-ExternalProject_Add( pymotmetrics
-  DEPENDS ${PROJECT_DEPS}
-  PREFIX ${VIAME_BUILD_PREFIX}
-  SOURCE_DIR ${LIBRARY_LOCATION}
-  BUILD_IN_SOURCE 1
-  USES_TERMINAL_BUILD 1
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
-  INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
-  LIST_SEPARATOR "----" )
 
