@@ -96,6 +96,6 @@ if( VIAME_ENABLE_TESTS )
     )
 endif()
 
-if( VIAME_FORCEBUILD )
+if( VIAME_BUILD_FORCE_REBUILD )
   RemoveProjectCMakeStamp( viame )
 endif()

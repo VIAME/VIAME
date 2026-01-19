@@ -15,6 +15,10 @@ if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 endif()
 
+if( PYTHON_DEPS_REQ_TORCH )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch-libs-deps )
+endif()
+
 if( VIAME_BUILD_TORCHVISION_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
@@ -41,10 +45,6 @@ endif()
 
 if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTORCH-MMDET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} mmdeploy )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-SIAMMASK )
-  # siammask is now built-in to plugins/pytorch/siammask, no external lib needed
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MDNET )
@@ -130,6 +130,8 @@ endif()
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( "${LIB}" STREQUAL "pytorch" )
     set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/pytorch )
+  elseif( "${LIB}" STREQUAL "pytorch-libs-deps" )
+    set( LIBRARY_LOCATION ${VIAME_CMAKE_DIR} )
   elseif( "${LIB}" STREQUAL "roi-align" )
     set( LIBRARY_LOCATION ${VIAME_SOURCE_DIR}/plugins/pytorch/mdnet )
   elseif( "${LIB}" STREQUAL "pyav" )
@@ -141,16 +143,36 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-build )
   CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
 
-  if( VIAME_PYTHON_SYMLINK )
+  if( "${LIB}" STREQUAL "pytorch-libs-deps" )
+    # pytorch-libs-deps is a pip install of torch-dependent packages, not a source build
+    set( LIBRARY_PIP_BUILD_CMD "" )
+    string( REPLACE ";" " " TORCH_DEPS_STR "${PYTHON_DEPS_REQ_TORCH}" )
+    set( PIP_CMD "pip install --user ${TORCH_DEPS_STR}" )
+    if( VIAME_BUILD_NO_CACHE_DIR )
+      set( PIP_CMD "pip install --user --no-cache-dir ${TORCH_DEPS_STR}" )
+    endif()
+    string( REPLACE " " ";" PIP_CMD "${PIP_CMD}" )
+    set( LIBRARY_PIP_INSTALL_CMD ${Python_EXECUTABLE} -m ${PIP_CMD} )
+  elseif( VIAME_PYTHON_SYMLINK )
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
       set( LIBRARY_PIP_BUILD_CMD "" )
-      set( LIBRARY_PIP_INSTALL_CMD
-        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user -e . )
+      if( VIAME_BUILD_NO_CACHE_DIR )
+        set( LIBRARY_PIP_INSTALL_CMD
+          ${Python_EXECUTABLE} -m pip install --no-build-isolation --no-cache-dir --user -e . )
+      else()
+        set( LIBRARY_PIP_INSTALL_CMD
+          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user -e . )
+      endif()
     else()
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py build --build-base=${LIBRARY_PIP_BUILD_DIR} )
-      set( LIBRARY_PIP_INSTALL_CMD
-        ${Python_EXECUTABLE} -m pip install --user -e . )
+      if( VIAME_BUILD_NO_CACHE_DIR )
+        set( LIBRARY_PIP_INSTALL_CMD
+          ${Python_EXECUTABLE} -m pip install --no-cache-dir --user -e . )
+      else()
+        set( LIBRARY_PIP_INSTALL_CMD
+          ${Python_EXECUTABLE} -m pip install --user -e . )
+      endif()
     endif()
   else()
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
@@ -182,6 +204,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
         -DPython_EXECUTABLE=${Python_EXECUTABLE}
         -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
+        -DNO_CACHE_DIR=${VIAME_BUILD_NO_CACHE_DIR}
         -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
   endif()
 
@@ -203,7 +226,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( NOT "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch )
     if( VIAME_ENABLE_PYTORCH-VISION AND
-        NOT "${LIB}" STREQUAL "torchvision" )
+        NOT "${LIB}" STREQUAL "torchvision" AND
+        NOT "${LIB}" STREQUAL "pytorch-libs-deps" )
       set( PROJECT_DEPS ${PROJECT_DEPS} torchvision )
     endif()
   endif()
@@ -249,8 +273,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "detectron2" OR
           "${LIB}" STREQUAL "sam3" OR
           "${LIB}" STREQUAL "foundation-stereo" )
-    # These libraries import timm, so they need it installed first
-    set( PROJECT_DEPS ${PROJECT_DEPS} timm )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   endif()
 
   # Use conditional build that checks source hash

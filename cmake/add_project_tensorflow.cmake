@@ -90,7 +90,7 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS )
     LIST_SEPARATOR "----"
     )
 
-  if( VIAME_FORCEBUILD )
+  if( VIAME_BUILD_FORCE_REBUILD )
     RemoveProjectCMakeStamp( tensorflow-models )
   endif()
 endif()

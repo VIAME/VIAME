@@ -88,7 +88,7 @@ ExternalProject_Add(kwiver
   INSTALL_DIR ${VIAME_INSTALL_PREFIX}
   )
 
-if( VIAME_FORCEBUILD )
+if( VIAME_BUILD_FORCE_REBUILD )
   RemoveProjectCMakeStamp( kwiver )
 endif()
 

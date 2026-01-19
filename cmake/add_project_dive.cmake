@@ -192,7 +192,9 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   endif()
 
   # Prepend the node bin dir to PATH for the build commands so yarn uses the correct node
-  if( NODE_BIN_DIR )
+  # On Windows, skip PATH modification as CMake interprets semicolons as list separators
+  # and Node.js is typically already in the system PATH
+  if( NODE_BIN_DIR AND NOT WIN32 )
     set( DIVE_BUILD_ENV ${CMAKE_COMMAND} -E env "PATH=${NODE_BIN_DIR}:$ENV{PATH}" )
   else()
     set( DIVE_BUILD_ENV "" )
@@ -203,7 +205,7 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     SOURCE_DIR ${DIVE_CLIENT_DIR}
     BUILD_IN_SOURCE 1
     USES_TERMINAL_BUILD 1
-    CONFIGURE_COMMAND ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} install
+    CONFIGURE_COMMAND ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} install --ignore-engines
     BUILD_COMMAND ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} build:electron
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${DIVE_ELECTRON_OUTPUT_DIR}

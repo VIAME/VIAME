@@ -10,6 +10,7 @@
 # Common parameters:
 #   Python_EXECUTABLE - Path to python executable
 #   WORKING_DIR - Optional working directory
+#   NO_CACHE_DIR - If set to TRUE, adds --no-cache-dir to pip command
 
 cmake_minimum_required( VERSION 3.16 )
 
@@ -29,19 +30,26 @@ endif()
 # Use /tmp for lock file to ensure all parallel pip installs use the same lock
 set( _lock_file "/tmp/viame_pip_install.lock" )
 
+# Build cache flag
+if( NO_CACHE_DIR )
+  set( _cache_flag "--no-cache-dir" )
+else()
+  set( _cache_flag "" )
+endif()
+
 if( UNIX )
   # Use flock on Unix to serialize pip installs (5 minute timeout)
   if( _working_dir )
     execute_process(
       COMMAND flock --timeout 300 ${_lock_file}
-        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_pip_args}
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_pip_args}
       RESULT_VARIABLE _result
       WORKING_DIRECTORY ${_working_dir}
     )
   else()
     execute_process(
       COMMAND flock --timeout 300 ${_lock_file}
-        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_pip_args}
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_pip_args}
       RESULT_VARIABLE _result
     )
   endif()
@@ -54,13 +62,13 @@ else()
   while( _result AND _retry_count LESS _max_retries )
     if( _working_dir )
       execute_process(
-        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_pip_args}
+        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_pip_args}
         RESULT_VARIABLE _result
         WORKING_DIRECTORY ${_working_dir}
       )
     else()
       execute_process(
-        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_pip_args}
+        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_pip_args}
         RESULT_VARIABLE _result
       )
     endif()

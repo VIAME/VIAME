@@ -195,6 +195,7 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-NETHARN     "Enable netharn algorithms"      ON )
   option( VIAME_ENABLE_PYTORCH-MIT-YOLO    "Enable mit-yolo PyTorch code"   ON )
   option( VIAME_ENABLE_PYTORCH-HUGGINGFACE "Enable HuggingFace algorithm"   ON )
+  option( VIAME_ENABLE_PYTORCH-RF-DETR     "Enable RF-DETR algorithms"      ON )
   option( VIAME_ENABLE_PYTORCH-LEARN       "Enable LEARN plugins"           OFF )
   option( VIAME_ENABLE_PYTORCH-VIDEO       "Enable video algorithms"        OFF )
   option( VIAME_ENABLE_PYTORCH-SIAMMASK    "Enable siammask algorithms"     OFF )
@@ -204,7 +205,6 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-SAM3        "Enable SAM3 algorithms"         OFF )
   option( VIAME_ENABLE_PYTORCH-STEREO      "Enable stereo algorithms"       OFF )
   option( VIAME_ENABLE_PYTORCH-ULTRALYTICS "Enable ultralytics algorithms"  OFF )
-  option( VIAME_ENABLE_PYTORCH-RF-DETR     "Enable RF-DETR algorithms"      OFF )
   option( VIAME_ENABLE_PYTORCH-LITDET      "Enable LitDet algorithms"       OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
@@ -284,16 +284,21 @@ set( VIAME_BUILD_PLUGINS_DIR "${VIAME_BUILD_PREFIX}/src/viame-build"
      CACHE STRING "VIAME superbuild plugins build location" )
 mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 
-# If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
-# other superbuild projects (except for viame). This makes development builds
-# much quicker if just doing development only in VIAME plugins if OFF.
-option( VIAME_FORCEBUILD "Enable force-building of all subpackages" OFF )
-mark_as_advanced( VIAME_FORCEBUILD )
+# If VIAME_BUILD_FORCE_REBUILD is False, we will rely on CMake's default system
+# for testing when projects need to be rebuilt, this can make builds be (slightly)
+# faster. When True, we rely on each individual projects checking for if certain
+# parts of it should be rebuilt, and cmake stamps are ignored.
+option( VIAME_BUILD_FORCE_REBUILD "Enable force-building of all subpackages" OFF )
+mark_as_advanced( VIAME_BUILD_FORCE_REBUILD )
 
 # Control the number of parallel build threads for subprojects like PyTorch.
 # Set this to limit the number of concurrent compilation jobs (e.g., 4 or 8).
 set( VIAME_BUILD_MAX_THREADS "" CACHE STRING "Parallel threads for subprojects (empty = auto)" )
 mark_as_advanced( VIAME_BUILD_MAX_THREADS )
+
+# Disable pip cache to save disk space during builds (useful for CI environments)
+option( VIAME_BUILD_NO_CACHE_DIR "Disable pip cache to save disk space" OFF )
+mark_as_advanced( VIAME_BUILD_NO_CACHE_DIR )
 
 ###
 # Other advanced hidden flags used for disabling core features

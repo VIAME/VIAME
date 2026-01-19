@@ -28,9 +28,6 @@ install_system_deps yum
 install_openssl
 install_cmake
 
-# Install Node.js and yarn for DIVE builds
-install_nodejs_and_yarn 18
-
 # Patch CUDNN when required
 patch_cudnn_headers
 
@@ -51,9 +48,9 @@ cd $VIAME_BUILD_DIR
 # Configure Paths [should be removed when no longer necessary by fletch]
 setup_build_environment $VIAME_INSTALL_DIR "" "3.10"
 
-# Enable DIVE building for Stage 3 (it was disabled in Stage 1 and 2)
-echo "Enabling DIVE building for Stage 3..."
-cmake ../ -DVIAME_ENABLE_DIVE:BOOL=ON -DVIAME_BUILD_DIVE_FROM_SOURCE:BOOL=ON
+# Enable DIVE for Stage 3 (download prebuilt binaries, don't build from source)
+echo "Enabling DIVE for Stage 3..."
+cmake ../ -DVIAME_ENABLE_DIVE:BOOL=ON -DVIAME_BUILD_DIVE_FROM_SOURCE:BOOL=OFF
 
 # Build Stage 3: Everything else (kwiver, pytorch-libs, viame)
 echo "Beginning Stage 3 build (kwiver, pytorch-libs, viame), routing build info to build_log_stage3.txt"

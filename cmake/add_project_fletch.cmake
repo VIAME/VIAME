@@ -313,7 +313,7 @@ ExternalProject_Add(fletch
     -P ${VIAME_SOURCE_DIR}/cmake/custom_install_fletch.cmake
   )
 
-if( VIAME_FORCEBUILD )
+if( VIAME_BUILD_FORCE_REBUILD )
   RemoveProjectCMakeStamp( fletch )
 endif()
 
