@@ -396,6 +396,7 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-SAM3 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    common_sam3_default.conf
     utility_add_segmentations_sam3.pipe
     utility_add_segmentations_sam3_no_replace.pipe
     utility_text_query_default.pipe
