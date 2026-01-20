@@ -67,6 +67,19 @@ def simplify_polygon_to_max_points(
             high = mid
             continue
 
+        # Handle MultiPolygon: extract largest polygon
+        if simplified.geom_type == 'MultiPolygon':
+            valid_polys = [g for g in simplified.geoms if g.geom_type == 'Polygon' and not g.is_empty]
+            if valid_polys:
+                simplified = max(valid_polys, key=lambda p: p.area)
+            else:
+                high = mid
+                continue
+
+        if simplified.geom_type != 'Polygon' or simplified.exterior is None:
+            high = mid
+            continue
+
         coords = list(simplified.exterior.coords)
         num_points = len(coords)
 
@@ -180,6 +193,19 @@ def adaptive_simplify_polygon(
         simplified = shape.simplify(mid, preserve_topology=True)
 
         if simplified.is_empty:
+            high = mid
+            continue
+
+        # Handle MultiPolygon: extract largest polygon
+        if simplified.geom_type == 'MultiPolygon':
+            valid_polys = [g for g in simplified.geoms if g.geom_type == 'Polygon' and not g.is_empty]
+            if valid_polys:
+                simplified = max(valid_polys, key=lambda p: p.area)
+            else:
+                high = mid
+                continue
+
+        if simplified.geom_type != 'Polygon' or simplified.exterior is None:
             high = mid
             continue
 
