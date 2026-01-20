@@ -266,6 +266,11 @@ if( VIAME_ENABLE_PYTORCH-STEREO )
       pytorch
       foundation_stereo )
 
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/foundation_stereo_interactive.py
+      pytorch
+      foundation_stereo_interactive )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
