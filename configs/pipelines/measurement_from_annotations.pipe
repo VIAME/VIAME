@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Measurement from annotations pipeline
 #
-# Description: Measurement from annotations pipeline Uses model: stereo_s.pt.
+# Description: Measurement from annotations pipeline Uses model: foundation_stereo_s.pth.
 # Outputs to computed_tracks2.csv.
 # =============================================================================
 
@@ -32,7 +32,7 @@ process measurer
   block stereo_disparity:foundation_stereo
     # Model variant: base or small (base is more accurate, small is faster)
     vit_size                                   = vits
-    relativepath checkpoint_path               = models/stereo_s.pth
+    relativepath checkpoint_path               = models/foundation_stereo_s.pth
     output_type                                = disparity
   endblock
 
