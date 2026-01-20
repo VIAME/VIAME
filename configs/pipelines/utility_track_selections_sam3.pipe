@@ -15,7 +15,7 @@ config _scheduler
 include common_default_input_with_downsampler.pipe
 
 # ============================= SAM3 CONFIGURATION ============================
-include common_sam3_default.conf
+include common_sam3_segmenter.conf
 
 # =============================== CORE REFINER ================================
 
