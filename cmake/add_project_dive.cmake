@@ -76,7 +76,17 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
 
   # Check for yarn - first in the same bin dir as node, then system-wide
   if( WIN32 )
-    set( YARN_EXECUTABLE yarn.cmd )
+    # On Windows, also check the npm global directory which may not be in PATH
+    set( NPM_GLOBAL_DIR "$ENV{APPDATA}/npm" )
+    if( NODE_BIN_DIR AND EXISTS "${NODE_BIN_DIR}/yarn.cmd" )
+      set( YARN_EXECUTABLE "${NODE_BIN_DIR}/yarn.cmd" )
+    elseif( EXISTS "${NPM_GLOBAL_DIR}/yarn.cmd" )
+      set( YARN_EXECUTABLE "${NPM_GLOBAL_DIR}/yarn.cmd" )
+    else()
+      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn
+        PATHS "${NPM_GLOBAL_DIR}" "$ENV{LOCALAPPDATA}/npm"
+      )
+    endif()
   else()
     if( NODE_BIN_DIR AND EXISTS "${NODE_BIN_DIR}/yarn" )
       set( YARN_EXECUTABLE "${NODE_BIN_DIR}/yarn" )
@@ -86,7 +96,13 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   endif()
 
   if( NOT YARN_EXECUTABLE OR NOT EXISTS ${YARN_EXECUTABLE} )
-    find_program( YARN_EXECUTABLE yarn )
+    if( WIN32 )
+      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn
+        PATHS "$ENV{APPDATA}/npm" "$ENV{LOCALAPPDATA}/npm"
+      )
+    else()
+      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn )
+    endif()
   endif()
 
   if( NOT YARN_EXECUTABLE )
