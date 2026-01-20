@@ -98,7 +98,17 @@ if( EXISTS "${HASH_FILE}" )
 endif()
 
 # Compare hashes
-if( CURRENT_HASH STREQUAL STORED_HASH )
+# Always rebuild if source is dirty (has uncommitted changes) since the dirty hash
+# doesn't capture the actual content of local modifications
+string( FIND "${CURRENT_HASH}" "-dirty" DIRTY_POS )
+if( DIRTY_POS GREATER -1 )
+  message( STATUS "${LIB_NAME}: Source is dirty, forcing rebuild" )
+  set( FORCE_REBUILD TRUE )
+else()
+  set( FORCE_REBUILD FALSE )
+endif()
+
+if( NOT FORCE_REBUILD AND CURRENT_HASH STREQUAL STORED_HASH )
   message( STATUS "${LIB_NAME}: Source unchanged (${CURRENT_HASH}), skipping build" )
 else()
   if( STORED_HASH )

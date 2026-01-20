@@ -16,13 +16,18 @@ cmake_minimum_required( VERSION 3.16 )
 
 # Build the pip install arguments
 if( WHEEL_DIR )
-  # Mode 1: Install wheels from directory
+  # Mode 1: Install wheels from directory (locally built wheels)
   file( GLOB _pip_args LIST_DIRECTORIES FALSE ${WHEEL_DIR}/*.whl )
   set( _working_dir "${WHEEL_DIR}" )
+  # Force reinstall for locally built wheels to ensure rebuilt wheels get installed
+  # even if version unchanged (e.g., when source is dirty)
+  set( _force_flag "--force-reinstall" )
 elseif( PIP_ARGS )
-  # Mode 2: Use provided arguments
+  # Mode 2: Use provided arguments (external packages from PyPI, etc.)
   string( REPLACE "----" ";" _pip_args "${PIP_ARGS}" )
   set( _working_dir "${WORKING_DIR}" )
+  # No force reinstall for external packages
+  set( _force_flag "" )
 else()
   message( FATAL_ERROR "pip_install_with_lock.cmake requires either WHEEL_DIR or PIP_ARGS" )
 endif()
@@ -42,14 +47,14 @@ if( UNIX )
   if( _working_dir )
     execute_process(
       COMMAND flock --timeout 300 ${_lock_file}
-        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_pip_args}
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
       RESULT_VARIABLE _result
       WORKING_DIRECTORY ${_working_dir}
     )
   else()
     execute_process(
       COMMAND flock --timeout 300 ${_lock_file}
-        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_pip_args}
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
       RESULT_VARIABLE _result
     )
   endif()
@@ -62,13 +67,13 @@ else()
   while( _result AND _retry_count LESS _max_retries )
     if( _working_dir )
       execute_process(
-        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_pip_args}
+        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
         RESULT_VARIABLE _result
         WORKING_DIRECTORY ${_working_dir}
       )
     else()
       execute_process(
-        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_pip_args}
+        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
         RESULT_VARIABLE _result
       )
     endif()
