@@ -131,6 +131,7 @@ set( CORE_PIPELINE_FILES
   common_default_input_with_downsampler.pipe
   common_fish_detector.pipe
   common_fish_detector_with_filter.pipe
+  common_foundation_stereo.pipe
   common_generic_detector.pipe
   common_generic_detector_with_filter.pipe
   common_image_stabilizer.pipe

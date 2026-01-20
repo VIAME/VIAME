@@ -1,0 +1,43 @@
+# =============================================================================
+# Title: Common Foundation Stereo Configuration
+#
+# Description: Shared configuration for Foundation Stereo deep learning model.
+# Used for high-quality disparity estimation in stereo pipelines and
+# interactive stereo annotation in DIVE.
+#
+# This file can be included in other pipelines or read directly by Python
+# services for consistent model configuration.
+# =============================================================================
+
+# Foundation-Stereo deep learning model configuration
+# These settings are used by both batch pipelines and interactive services
+
+config foundation_stereo
+  # Model variant: vitl (large), vitb (base), or vits (small)
+  # vits is faster, vitl is more accurate
+  :vit_size                                    vits
+
+  # Path to model checkpoint (relative to pipelines directory)
+  :relativepath:checkpoint_path                models/foundation_stereo_s.pth
+
+  # Path to model config yaml (relative to pipelines directory)
+  :relativepath:model_config_path              models/foundation_stereo_s.yaml
+
+  # Output type: disparity or depth
+  :output_type                                 disparity
+
+  # Scale factor for input images (<=1.0)
+  # Lower values reduce memory usage and increase speed
+  # 0.25 is a good balance for interactive use
+  :scale                                       0.25
+
+  # Use half precision (FP16) for reduced memory usage
+  # Recommended for GPU inference
+  :use_half_precision                          true
+
+  # Number of GRU refinement iterations
+  # More iterations = better quality but slower
+  # 32 is a good default for interactive use
+  :num_iters                                   32
+
+# -- end of file --
