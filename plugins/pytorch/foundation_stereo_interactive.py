@@ -96,6 +96,12 @@ class FoundationStereoInteractiveService:
         self._current_disparity: Optional[np.ndarray] = None
         self._disparity_ready = False
 
+        # Disparity cache - stores last N computed disparities
+        # Key: (left_path, right_path), Value: disparity array
+        self._disparity_cache: Dict[Tuple[str, str], np.ndarray] = {}
+        self._cache_order: List[Tuple[str, str]] = []  # Track insertion order for LRU
+        self._max_cache_size = 4  # Keep last 4 disparity maps
+
         # Background computation
         self._compute_thread: Optional[threading.Thread] = None
         self._cancel_event = threading.Event()
@@ -188,6 +194,39 @@ class FoundationStereoInteractiveService:
     def _send_response(self, response: Dict[str, Any]) -> None:
         """Send JSON response to stdout."""
         print(json.dumps(response), flush=True)
+
+    def _add_to_cache(self, left_path: str, right_path: str, disparity: np.ndarray) -> None:
+        """Add a disparity map to the cache with LRU eviction."""
+        cache_key = (left_path, right_path)
+
+        # If already in cache, move to end of order list
+        if cache_key in self._disparity_cache:
+            self._cache_order.remove(cache_key)
+            self._cache_order.append(cache_key)
+            return
+
+        # Evict oldest if at capacity
+        while len(self._cache_order) >= self._max_cache_size:
+            oldest_key = self._cache_order.pop(0)
+            if oldest_key in self._disparity_cache:
+                del self._disparity_cache[oldest_key]
+                self._log(f"Evicted disparity from cache: {oldest_key[0]}")
+
+        # Add to cache
+        self._disparity_cache[cache_key] = disparity
+        self._cache_order.append(cache_key)
+        self._log(f"Added disparity to cache. Cache size: {len(self._cache_order)}")
+
+    def _get_from_cache(self, left_path: str, right_path: str) -> Optional[np.ndarray]:
+        """Get a disparity map from the cache if available."""
+        cache_key = (left_path, right_path)
+        disparity = self._disparity_cache.get(cache_key)
+        if disparity is not None:
+            # Move to end of order list (most recently used)
+            self._cache_order.remove(cache_key)
+            self._cache_order.append(cache_key)
+            self._log(f"Cache hit for: {left_path}")
+        return disparity
 
     def _send_error(self, request_id: Optional[str], error: str) -> None:
         """Send error response."""
@@ -331,6 +370,9 @@ class FoundationStereoInteractiveService:
 
                 if disparity is not None and not self._cancel_event.is_set():
                     with self._compute_lock:
+                        # Add to cache for future use
+                        self._add_to_cache(left_path, right_path, disparity)
+
                         # Only update if this is still the current frame
                         if (self._current_left_path == left_path and
                                 self._current_right_path == right_path):
@@ -433,7 +475,7 @@ class FoundationStereoInteractiveService:
     def handle_set_frame(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
         Set the current frame and start computing disparity proactively.
-        Cancels any previous computation.
+        Cancels any previous computation. Checks cache first.
         """
         if not self._enabled:
             raise ValueError("Service not enabled. Call enable first.")
@@ -466,6 +508,20 @@ class FoundationStereoInteractiveService:
                         "message": "Disparity computation already in progress",
                         "disparity_ready": False,
                     }
+
+            # Check if we have this disparity cached
+            cached_disparity = self._get_from_cache(left_path, right_path)
+            if cached_disparity is not None:
+                self._log(f"Using cached disparity for: {left_path}")
+                self._current_left_path = left_path
+                self._current_right_path = right_path
+                self._current_disparity = cached_disparity
+                self._disparity_ready = True
+                return {
+                    "success": True,
+                    "message": "Disparity loaded from cache",
+                    "disparity_ready": True,
+                }
 
             # Cancel current computation and start new one
             self._cancel_computation()
