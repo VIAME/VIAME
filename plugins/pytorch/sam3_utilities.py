@@ -5,8 +5,9 @@
 """
 Shared utilities for SAM3 (SAM 2.1) based algorithms.
 
-This module provides common functionality used by both sam3_tracker,
-sam3_refiner, and sam3_interactive, including:
+This module provides common functionality used by sam3_tracker,
+sam3_refiner, sam3_segmenter, and sam3_text_query, including:
+- Shared model cache for memory efficiency
 - Model initialization (SAM2, Grounding DINO)
 - Text-based object detection
 - SAM segmentation with box prompts
@@ -17,8 +18,315 @@ sam3_refiner, and sam3_interactive, including:
 """
 
 import contextlib
+import os
+import sys
+import threading
+from typing import Optional, Tuple, Any
+
 import scriptconfig as scfg
 import numpy as np
+
+
+# =============================================================================
+# Shared Model Cache for SAM3 Algorithms
+# =============================================================================
+
+class SharedSAM3ModelCache:
+    """
+    Thread-safe cache for SAM3 models to avoid loading duplicates.
+
+    When both SAM3Segmenter and SAM3TextQuery are configured with the same
+    checkpoint and device, they will share the same model instance.
+
+    Usage:
+        model, predictor = SharedSAM3ModelCache.get_or_create(
+            checkpoint="/path/to/model.pt",
+            model_config=None,
+            device="cuda",
+            logger=print
+        )
+
+        # Use the model/predictor with the lock:
+        with SharedSAM3ModelCache.get_lock(checkpoint, model_config, device):
+            predictor.set_image(image)
+            masks, scores, _ = predictor.predict(...)
+    """
+
+    _cache = {}  # Key: (checkpoint, model_config, device) -> (model, predictor)
+    _locks = {}  # Key: (checkpoint, model_config, device) -> threading.RLock
+    _global_lock = threading.Lock()
+
+    @classmethod
+    def _make_key(cls, checkpoint: Optional[str], model_config: Optional[str],
+                  device: str) -> Tuple[str, str, str]:
+        """Create a cache key from configuration parameters."""
+        return (checkpoint or "", model_config or "", str(device))
+
+    @classmethod
+    def get_lock(cls, checkpoint: Optional[str] = None,
+                 model_config: Optional[str] = None,
+                 device: str = "cuda") -> threading.RLock:
+        """
+        Get the lock for a specific model configuration.
+
+        Use this lock when performing inference to ensure thread safety.
+
+        Args:
+            checkpoint: Path to model checkpoint
+            model_config: Path to model config JSON
+            device: Device string
+
+        Returns:
+            threading.RLock for the model configuration
+        """
+        key = cls._make_key(checkpoint, model_config, device)
+        with cls._global_lock:
+            if key not in cls._locks:
+                cls._locks[key] = threading.RLock()
+            return cls._locks[key]
+
+    @classmethod
+    def get_or_create(
+        cls,
+        checkpoint: Optional[str] = None,
+        model_config: Optional[str] = None,
+        device: str = "cuda",
+        logger=None,
+    ) -> Tuple[Any, Any]:
+        """
+        Get or create a shared SAM3 model instance.
+
+        If a model with the same configuration already exists in the cache,
+        return it. Otherwise, create a new one and cache it.
+
+        Args:
+            checkpoint: Path to model checkpoint (or HuggingFace model ID)
+            model_config: Path to model config JSON (optional)
+            device: Device to run on ('cuda', 'cpu', 'auto')
+            logger: Optional logging function (e.g., print)
+
+        Returns:
+            Tuple of (model, predictor)
+        """
+        key = cls._make_key(checkpoint, model_config, device)
+
+        with cls._global_lock:
+            if key in cls._cache:
+                if logger:
+                    logger(f"Using cached SAM3 model for {key}")
+                return cls._cache[key]
+
+        # Load model outside global lock (loading can take time)
+        if logger:
+            logger(f"Loading new SAM3 model for {key}")
+
+        model, predictor = cls._load_model(checkpoint, model_config, device, logger)
+
+        with cls._global_lock:
+            # Double-check in case another thread loaded it while we were loading
+            if key not in cls._cache:
+                cls._cache[key] = (model, predictor)
+                if key not in cls._locks:
+                    cls._locks[key] = threading.RLock()
+            return cls._cache[key]
+
+    @classmethod
+    def _load_model(
+        cls,
+        checkpoint: Optional[str],
+        model_config: Optional[str],
+        device: str,
+        logger=None,
+    ) -> Tuple[Any, Any]:
+        """
+        Load the SAM3 model.
+
+        Returns:
+            Tuple of (model, predictor)
+        """
+        def log(msg):
+            if logger:
+                logger(msg)
+
+        # Check if using local model files
+        is_local = (
+            (checkpoint and os.path.exists(checkpoint)) or
+            (model_config and os.path.exists(model_config))
+        )
+
+        if is_local:
+            return cls._load_local_model(checkpoint, model_config, device, log)
+        else:
+            return cls._load_hf_model(checkpoint, device, log)
+
+    @classmethod
+    def _load_local_model(cls, checkpoint, model_config, device, log):
+        """Load model from local files."""
+        # Determine model directory and paths
+        if checkpoint and os.path.isdir(checkpoint):
+            model_dir = checkpoint
+            checkpoint = os.path.join(model_dir, 'model_weights.pt')
+        elif checkpoint:
+            model_dir = os.path.dirname(checkpoint)
+        else:
+            model_dir = os.path.dirname(model_config) if model_config else None
+
+        log(f"  Loading from local: {model_dir or checkpoint}")
+
+        # Try native sam2 module first
+        try:
+            from sam2.build_sam import build_sam2
+            from sam2.sam2_image_predictor import SAM2ImagePredictor
+
+            cfg = "configs/sam2.1/sam2.1_hiera_b+.yaml"
+
+            model = build_sam2(
+                config_file=cfg,
+                ckpt_path=checkpoint,
+                device=device,
+                mode='eval',
+                apply_postprocessing=True,
+            )
+            predictor = SAM2ImagePredictor(model)
+            log("  Loaded via native sam2 module")
+            return model, predictor
+        except Exception as e:
+            log(f"  Native module failed: {e}")
+
+        raise RuntimeError("Failed to load SAM3 model from local files")
+
+    @classmethod
+    def _load_hf_model(cls, checkpoint, device, log):
+        """Load model from HuggingFace."""
+        try:
+            from sam3.model_builder import build_sam3_image_model
+
+            model = build_sam3_image_model(
+                checkpoint_path=checkpoint,
+                device=device,
+                eval_mode=True,
+                load_from_HF=checkpoint is None,
+                enable_segmentation=True,
+                enable_inst_interactivity=True,
+                compile=False,
+            )
+
+            predictor = model.inst_interactive_predictor
+            if predictor is None:
+                raise RuntimeError("Model does not have instance interactive predictor")
+            log("  Loaded via sam3 module")
+            return model, predictor
+        except ImportError:
+            pass
+
+        # Fallback to transformers
+        from transformers import Sam2Model, Sam2Processor
+
+        model_id = checkpoint or "facebook/sam2.1-hiera-large"
+        processor = Sam2Processor.from_pretrained(model_id)
+        model = Sam2Model.from_pretrained(model_id).to(device)
+        model.eval()
+
+        # Create wrapper predictor
+        predictor = _SharedSAM3PredictorWrapper(model, processor, device)
+        log("  Loaded via transformers")
+        return model, predictor
+
+    @classmethod
+    def clear(cls):
+        """Clear all cached models. Useful for testing or memory cleanup."""
+        with cls._global_lock:
+            cls._cache.clear()
+            cls._locks.clear()
+
+
+class _SharedSAM3PredictorWrapper:
+    """
+    Wrapper to provide a SAM2-like predictor interface for HuggingFace SAM models.
+
+    This is the shared version used by SharedSAM3ModelCache.
+    """
+
+    def __init__(self, model, processor, device):
+        self.model = model
+        self.processor = processor
+        self.device = device
+        self._image_embeddings = None
+        self._original_size = None
+        self._inputs = None
+
+    def set_image(self, image):
+        """Set the image for prediction."""
+        import torch
+        from PIL import Image
+
+        if isinstance(image, np.ndarray):
+            pil_image = Image.fromarray(image)
+        else:
+            pil_image = image
+
+        self._original_size = pil_image.size[::-1]  # (H, W)
+
+        self._inputs = self.processor(images=pil_image, return_tensors="pt").to(self.device)
+
+        with torch.no_grad():
+            self._image_embeddings = self.model.get_image_embeddings(self._inputs.pixel_values)
+
+    def predict(self, point_coords=None, point_labels=None, box=None,
+                mask_input=None, multimask_output=True):
+        """Run prediction with the given prompts."""
+        import torch
+
+        if self._image_embeddings is None:
+            raise RuntimeError("Must call set_image before predict")
+
+        # Prepare inputs
+        input_points = None
+        input_labels = None
+
+        if point_coords is not None:
+            input_points = torch.tensor(point_coords, dtype=torch.float32, device=self.device)
+            if input_points.ndim == 2:
+                input_points = input_points.unsqueeze(0)
+        if point_labels is not None:
+            input_labels = torch.tensor(point_labels, dtype=torch.int64, device=self.device)
+            if input_labels.ndim == 1:
+                input_labels = input_labels.unsqueeze(0)
+
+        input_boxes = None
+        if box is not None:
+            input_boxes = torch.tensor(box, dtype=torch.float32, device=self.device)
+            if input_boxes.ndim == 1:
+                input_boxes = input_boxes.unsqueeze(0).unsqueeze(0)
+
+        with torch.no_grad():
+            outputs = self.model(
+                image_embeddings=self._image_embeddings,
+                input_points=input_points,
+                input_labels=input_labels,
+                input_boxes=input_boxes,
+                multimask_output=multimask_output,
+            )
+
+        masks = outputs.pred_masks.squeeze(0).cpu().numpy()
+        scores = outputs.iou_scores.squeeze(0).cpu().numpy()
+
+        # Resize masks to original size if needed
+        if masks.shape[-2:] != self._original_size:
+            import cv2
+            resized_masks = []
+            for m in masks:
+                resized = cv2.resize(
+                    m.astype(np.float32),
+                    (self._original_size[1], self._original_size[0]),
+                    interpolation=cv2.INTER_LINEAR
+                )
+                resized_masks.append(resized > 0.5)
+            masks = np.array(resized_masks)
+
+        low_res_masks = masks
+
+        return masks, scores, low_res_masks
 
 
 class SAM3BaseConfig(scfg.DataConfig):
@@ -205,69 +513,99 @@ class SAM3ModelManager:
             config_data = json.load(f)
 
         model_type = config_data.get('model_type', 'sam3_video')
-        print(f"[SAM3] Model type: {model_type}")
+        print(f"[SAM3] Model type from config: {model_type}")
 
-        # Try loading via transformers AutoModel
+        # Check if model_type is sam3_* which requires custom transformers
+        if model_type.startswith('sam3'):
+            # Try loading via a registered Sam3 model first
+            try:
+                from transformers import AutoModel, AutoConfig
+                model_config = AutoConfig.from_pretrained(
+                    model_dir,
+                    local_files_only=True
+                )
+                self._sam_model = AutoModel.from_pretrained(
+                    model_dir,
+                    config=model_config,
+                    local_files_only=True
+                ).to(self._device)
+                self._sam_model.eval()
+                print(f"[SAM3] Successfully loaded SAM3 via transformers AutoModel")
+                self._setup_predictor_interface(use_video_predictor)
+                return
+            except ValueError as e:
+                if "Unrecognized model" in str(e):
+                    print(f"[SAM3] model_type '{model_type}' not registered in transformers")
+                    print(f"[SAM3] This model requires custom transformers with Sam3 support")
+                else:
+                    raise
+
+        # Fallback: Try loading as Sam2 model (for sam2_* model types or as fallback)
         try:
-            from transformers import AutoModel, AutoProcessor, AutoConfig
+            from transformers import Sam2Model, Sam2Processor
 
             # Check if there's a processor config
             processor_config_path = os.path.join(model_dir, 'sam3_processor_config.json')
             if os.path.exists(processor_config_path):
-                self._sam_processor = AutoProcessor.from_pretrained(
-                    model_dir,
-                    local_files_only=True
-                )
+                try:
+                    self._sam_processor = Sam2Processor.from_pretrained(
+                        model_dir,
+                        local_files_only=True
+                    )
+                except Exception as e:
+                    print(f"[SAM3] Could not load processor: {e}")
 
-            # Load model config and model
-            model_config = AutoConfig.from_pretrained(
-                model_dir,
-                local_files_only=True
-            )
-
-            self._sam_model = AutoModel.from_pretrained(
-                model_dir,
-                config=model_config,
-                local_files_only=True
-            ).to(self._device)
-            self._sam_model.eval()
-
-            print(f"[SAM3] Successfully loaded SAM3 via transformers AutoModel")
-
-            # Set up predictor interface based on model type
-            if hasattr(self._sam_model, 'get_image_predictor'):
-                self._sam_predictor = self._sam_model.get_image_predictor()
-            elif hasattr(self._sam_model, 'image_predictor'):
-                self._sam_predictor = self._sam_model.image_predictor
-
-            if use_video_predictor:
-                if hasattr(self._sam_model, 'get_video_predictor'):
-                    self._video_predictor = self._sam_model.get_video_predictor()
-                elif hasattr(self._sam_model, 'video_predictor'):
-                    self._video_predictor = self._sam_model.video_predictor
-
-            return
-        except Exception as e:
-            print(f"[SAM3] AutoModel loading failed: {e}")
-
-        # Try specific SAM3 model classes
-        try:
-            from transformers import Sam2Model, Sam2Processor
-
-            self._sam_processor = Sam2Processor.from_pretrained(
-                model_dir,
-                local_files_only=True
-            )
             self._sam_model = Sam2Model.from_pretrained(
                 model_dir,
                 local_files_only=True
             ).to(self._device)
             self._sam_model.eval()
-            print(f"[SAM3] Successfully loaded SAM3 via Sam2Model")
+            print(f"[SAM3] Successfully loaded model via Sam2Model")
+            self._setup_predictor_interface(use_video_predictor)
             return
         except Exception as e:
             print(f"[SAM3] Sam2Model loading failed: {e}")
-            raise
+
+        # Try standard SAM2 Video model for video predictor
+        if use_video_predictor:
+            try:
+                from transformers import Sam2VideoModel, Sam2VideoProcessor
+                self._sam_processor = Sam2VideoProcessor.from_pretrained(
+                    model_dir,
+                    local_files_only=True
+                )
+                self._sam_model = Sam2VideoModel.from_pretrained(
+                    model_dir,
+                    local_files_only=True
+                ).to(self._device)
+                self._sam_model.eval()
+                print(f"[SAM3] Successfully loaded model via Sam2VideoModel")
+                self._setup_predictor_interface(use_video_predictor)
+                return
+            except Exception as e:
+                print(f"[SAM3] Sam2VideoModel loading failed: {e}")
+
+        raise RuntimeError(
+            f"Could not load SAM3 model via transformers. "
+            f"Model type '{model_type}' may require custom transformers with Sam3 support."
+        )
+
+    def _setup_predictor_interface(self, use_video_predictor):
+        """Set up the predictor interface from the loaded model."""
+        if self._sam_model is None:
+            return
+
+        # Set up predictor interface based on model capabilities
+        if hasattr(self._sam_model, 'get_image_predictor'):
+            self._sam_predictor = self._sam_model.get_image_predictor()
+        elif hasattr(self._sam_model, 'image_predictor'):
+            self._sam_predictor = self._sam_model.image_predictor
+
+        if use_video_predictor:
+            if hasattr(self._sam_model, 'get_video_predictor'):
+                self._video_predictor = self._sam_model.get_video_predictor()
+            elif hasattr(self._sam_model, 'video_predictor'):
+                self._video_predictor = self._sam_model.video_predictor
 
     def _init_sam3_native(self, weights_path, config_path, use_video_predictor):
         """Load SAM3 using native sam3 module if available."""
