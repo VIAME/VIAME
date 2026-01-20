@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Refine tracks using SAM3 with text query support
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Utility pipeline for refining tracks using SAM3 with text-based
+#              object detection. Supports adding new objects via text queries.
 # =============================================================================
 
 config _pipeline:_edge
@@ -12,6 +13,9 @@ config _scheduler
 
 # ============================= INPUT FRAME LIST ==============================
 include common_default_input_with_downsampler.pipe
+
+# ============================= SAM3 CONFIGURATION ============================
+include common_sam3_default.conf
 
 process track_reader
   :: read_object_track
@@ -40,7 +44,6 @@ process track_refiner
   :refiner:type                                sam3
 
   block refiner:sam3
-    :sam_model_id                              facebook/sam2.1-hiera-base-plus
     :grounding_model_id                        IDEA-Research/grounding-dino-tiny
     :device                                    cuda
     :text_query                                object
@@ -56,6 +59,8 @@ process track_refiner
     :output_type                               polygon
     :polygon_simplification                    0.01
     :num_points                                5
+    relativepath sam_model_id =                models/sam3_weights.pt
+    relativepath model_config =                models/sam3_config.json
   endblock
 
 connect from ensure_rgb.image
