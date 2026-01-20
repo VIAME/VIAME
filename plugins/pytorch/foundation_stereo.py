@@ -30,6 +30,8 @@ class FoundationStereoConfig(scfg.DataConfig):
     """
     checkpoint_path = scfg.Value(
         '', help='Path to the pretrained model checkpoint (.pth file)')
+    model_config_path = scfg.Value(
+        '', help='Path to the model config yaml file (if empty, looks for cfg.yaml in checkpoint directory)')
     vit_size = scfg.Value(
         'vitl', help='Vision Transformer backbone size: vitl (large), vitb (base), or vits (small)')
     device = scfg.Value(
@@ -50,6 +52,10 @@ class FoundationStereoConfig(scfg.DataConfig):
         '', help='Path to KWIVER stereo calibration file (JSON format) - required for depth output')
     remove_invisible = scfg.Value(
         True, help='Set invalid disparity values (negative x in right image) to infinity')
+    scale = scfg.Value(
+        1.0, help='Scale factor for input images (<=1.0). Reduces memory usage by downscaling before inference.')
+    use_half_precision = scfg.Value(
+        False, help='Use half precision (FP16) for model and tensors. Reduces memory usage on CUDA devices.')
 
 
 class FoundationStereo(ComputeStereoDepthMap):
@@ -103,6 +109,10 @@ class FoundationStereo(ComputeStereoDepthMap):
         self._config['mixed_precision'] = str2bool(self._config['mixed_precision'])
         self._config['low_memory'] = str2bool(self._config['low_memory'])
         self._config['remove_invisible'] = str2bool(self._config['remove_invisible'])
+        self._config['scale'] = float(self._config['scale'])
+        if self._config['scale'] > 1.0:
+            raise RuntimeError("scale must be <= 1.0")
+        self._config['use_half_precision'] = str2bool(self._config['use_half_precision'])
 
         # Load calibration if needed for depth output
         calibration_file = self._config['calibration_file']
@@ -137,12 +147,17 @@ class FoundationStereo(ComputeStereoDepthMap):
         self._InputPadder = InputPadder
 
         # Load model configuration
-        ckpt_dir = os.path.dirname(checkpoint_path)
-        cfg_path = os.path.join(ckpt_dir, 'cfg.yaml')
-        if os.path.exists(cfg_path):
-            model_cfg = OmegaConf.load(cfg_path)
+        model_config_path = self._config['model_config_path']
+        if model_config_path and os.path.exists(model_config_path):
+            model_cfg = OmegaConf.load(model_config_path)
         else:
-            model_cfg = OmegaConf.create({})
+            # Fall back to cfg.yaml in checkpoint directory
+            ckpt_dir = os.path.dirname(checkpoint_path)
+            cfg_path = os.path.join(ckpt_dir, 'cfg.yaml')
+            if os.path.exists(cfg_path):
+                model_cfg = OmegaConf.load(cfg_path)
+            else:
+                model_cfg = OmegaConf.create({})
 
         # Set vit_size
         model_cfg['vit_size'] = self._config['vit_size']
@@ -151,7 +166,7 @@ class FoundationStereo(ComputeStereoDepthMap):
         self._model = FoundationStereoModel(model_cfg)
 
         # Load checkpoint
-        ckpt = torch.load(checkpoint_path, map_location='cpu')
+        ckpt = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
         self._model.load_state_dict(ckpt['model'])
 
         # Resolve device (handle 'auto' mode)
@@ -160,6 +175,9 @@ class FoundationStereo(ComputeStereoDepthMap):
             device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
         self._torch_device = torch.device(device)
         self._model.to(self._torch_device)
+        # Convert model to half precision for memory savings
+        if self._config['use_half_precision'] and 'cuda' in device:
+            self._model.half()
         self._model.eval()
 
         # Disable gradients
@@ -249,6 +267,7 @@ class FoundationStereo(ComputeStereoDepthMap):
                 - Depth map (millimeters, uint16) if output_mode='depth'
         """
         import torch
+        import cv2
 
         # Convert to numpy arrays
         left_npy = self._format_image(left_image)
@@ -261,20 +280,37 @@ class FoundationStereo(ComputeStereoDepthMap):
                 f"{left_npy.shape} vs {right_npy.shape}"
             )
 
-        H, W = left_npy.shape[:2]
+        H_orig, W_orig = left_npy.shape[:2]
+        scale = self._config['scale']
+
+        # Scale down images if scale < 1.0
+        if scale < 1.0:
+            H_scaled = int(H_orig * scale)
+            W_scaled = int(W_orig * scale)
+            left_npy = cv2.resize(left_npy, (W_scaled, H_scaled), interpolation=cv2.INTER_AREA)
+            right_npy = cv2.resize(right_npy, (W_scaled, H_scaled), interpolation=cv2.INTER_AREA)
+            H, W = H_scaled, W_scaled
+            # Scale calibration parameters
+            focal_length_scaled = self._focal_length * scale
+        else:
+            H, W = H_orig, W_orig
+            focal_length_scaled = self._focal_length
 
         # Convert to PyTorch tensors (B, C, H, W)
-        left_tensor = torch.as_tensor(left_npy).to(self._torch_device).float()
+        use_half = self._config['use_half_precision'] and 'cuda' in str(self._torch_device)
+        left_tensor = torch.as_tensor(left_npy).to(self._torch_device)
+        left_tensor = left_tensor.half() if use_half else left_tensor.float()
         left_tensor = left_tensor[None].permute(0, 3, 1, 2)
-        right_tensor = torch.as_tensor(right_npy).to(self._torch_device).float()
+        right_tensor = torch.as_tensor(right_npy).to(self._torch_device)
+        right_tensor = right_tensor.half() if use_half else right_tensor.float()
         right_tensor = right_tensor[None].permute(0, 3, 1, 2)
 
         # Pad images to be divisible by 32
         padder = self._InputPadder(left_tensor.shape, divis_by=32, force_square=False)
         left_padded, right_padded = padder.pad(left_tensor, right_tensor)
 
-        # Run inference
-        with torch.cuda.amp.autocast(self._config['mixed_precision']):
+        # Run inference with autocast for additional memory savings
+        with torch.amp.autocast('cuda', enabled=self._config['mixed_precision']):
             if self._config['use_hierarchical']:
                 disp = self._model.run_hierachical(
                     left_padded, right_padded,
@@ -294,9 +330,15 @@ class FoundationStereo(ComputeStereoDepthMap):
         disp = padder.unpad(disp.float())
         disp_npy = disp.data.cpu().numpy().reshape(H, W)
 
-        # Handle invisible regions if requested
+        # Scale disparity back to original resolution if needed
+        if scale < 1.0:
+            # Disparity values scale inversely with image scale
+            disp_npy = cv2.resize(disp_npy, (W_orig, H_orig), interpolation=cv2.INTER_LINEAR)
+            disp_npy = disp_npy / scale  # Scale disparity values back
+
+        # Handle invisible regions if requested (at original resolution)
         if self._config['remove_invisible']:
-            yy, xx = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
+            yy, xx = np.meshgrid(np.arange(H_orig), np.arange(W_orig), indexing='ij')
             us_right = xx - disp_npy
             invalid = us_right < 0
             disp_npy[invalid] = np.inf
@@ -304,6 +346,7 @@ class FoundationStereo(ComputeStereoDepthMap):
         # Output based on mode
         if self._config['output_mode'] == 'depth':
             # Compute depth: depth = focal_length * baseline / disparity
+            # Use original focal length since disparity is now at original scale
             safe_disp = np.where(disp_npy > 0, disp_npy, 1e-6)
             depth_npy = (self._focal_length * self._baseline) / safe_disp
             depth_npy = np.where(disp_npy > 0, depth_npy, 0)
