@@ -270,6 +270,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/mit-yolo
       ${VIAME_PACKAGES_DIR}/pytorch-libs/mit-yolo )
+  elseif( "${LIB}" STREQUAL "rf-detr" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/rf-detr
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/rf-detr )
   elseif( "${LIB}" STREQUAL "detectron2" OR
           "${LIB}" STREQUAL "sam3" OR
           "${LIB}" STREQUAL "foundation-stereo" )
