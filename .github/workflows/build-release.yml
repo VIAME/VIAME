@@ -113,15 +113,13 @@ jobs:
           # Show disk usage before cleanup
           docker exec viame_build du -sh /viame/build || true
 
-          # Remove object files (keeping only essential build stamps)
+          # Remove object files only (NOT .a static libraries - they're needed for linking in later stages)
           docker exec viame_build find /viame/build -name "*.o" -delete 2>/dev/null || true
-          docker exec viame_build find /viame/build -name "*.a" -delete 2>/dev/null || true
 
           # Remove fletch download cache (sources already extracted/built)
           docker exec viame_build rm -rf /viame/build/build/src/fletch-build/Downloads 2>/dev/null || true
 
-          # Remove CMakeFiles directories (can be regenerated)
-          docker exec viame_build find /viame/build -type d -name "CMakeFiles" -exec rm -rf {} + 2>/dev/null || true
+          # NOTE: Do NOT delete CMakeFiles directories - they contain build stamps that prevent rebuilds
 
           # Clean pip cache
           docker exec viame_build rm -rf /root/.cache/pip 2>/dev/null || true
@@ -306,12 +304,10 @@ jobs:
           # Show disk usage before cleanup
           docker exec viame_build du -sh /viame/build || true
 
-          # Remove object files (keeping only essential build stamps)
+          # Remove object files only (NOT .a static libraries - they're needed for linking in later stages)
           docker exec viame_build find /viame/build -name "*.o" -delete 2>/dev/null || true
-          docker exec viame_build find /viame/build -name "*.a" -delete 2>/dev/null || true
 
-          # Remove CMakeFiles directories (can be regenerated)
-          docker exec viame_build find /viame/build -type d -name "CMakeFiles" -exec rm -rf {} + 2>/dev/null || true
+          # NOTE: Do NOT delete CMakeFiles directories - they contain build stamps that prevent rebuilds
 
           # Clean pip cache
           docker exec viame_build rm -rf /root/.cache/pip 2>/dev/null || true
