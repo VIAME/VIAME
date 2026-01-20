@@ -661,6 +661,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install yarn
+        run: npm install -g yarn
+
       - name: Configure build paths
         shell: powershell
         run: |
