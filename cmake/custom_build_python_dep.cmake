@@ -113,11 +113,11 @@ else()
   set( FORCE_REBUILD FALSE )
 endif()
 
-set( DID_BUILD FALSE )
+set( SHOULD_BUILD FALSE )
 if( NOT FORCE_REBUILD AND CURRENT_HASH STREQUAL STORED_HASH )
   message( STATUS "${LIB_NAME}: Source unchanged (${CURRENT_HASH}), skipping build" )
 else()
-  set( DID_BUILD TRUE )
+  set( SHOULD_BUILD TRUE )
   if( STORED_HASH )
     message( STATUS "${LIB_NAME}: Source changed (${STORED_HASH} -> ${CURRENT_HASH}), running build" )
   else()
@@ -198,14 +198,14 @@ else()
 endif()
 
 # Run pip install if wheel dir is provided and build occurred
-if( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE AND DID_BUILD )
+if( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE AND SHOULD_BUILD )
   # Force reinstall without deps only for rebuilds (not first build)
   # First build: STORED_HASH is empty, need deps
   # Rebuild: STORED_HASH exists, skip deps
   if( STORED_HASH )
-    set( _force_reinstall TRUE )
+    set( USE_FORCE_REINSTALL TRUE )
   else()
-    set( _force_reinstall FALSE )
+    set( USE_FORCE_REINSTALL FALSE )
   endif()
 
   execute_process(
@@ -213,7 +213,7 @@ if( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE AND DID_BUILD )
       -DPython_EXECUTABLE=${Python_EXECUTABLE}
       -DWHEEL_DIR=${WHEEL_DIR}
       -DNO_CACHE_DIR=${NO_CACHE_DIR}
-      -DFORCE_REINSTALL=${_force_reinstall}
+      -DFORCE_REINSTALL=${USE_FORCE_REINSTALL}
       -P ${PIP_INSTALL_SCRIPT}
     RESULT_VARIABLE PIP_RESULT
   )
