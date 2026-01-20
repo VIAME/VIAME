@@ -3,6 +3,7 @@
 # This script wraps Python package builds to skip compilation when source hasn't changed.
 # It checks a hash file and only runs the actual build if the hash differs.
 # Optionally supports C++ build/install steps before the Python build.
+# Also handles pip install with force-reinstall logic for rebuilds.
 #
 # Required variables:
 #   LIB_NAME        - Name of the library
@@ -15,6 +16,10 @@
 #   CPP_INSTALL_CMD  - C++ install command (run after C++ build)
 #   PYTHON_BUILD_CMD - Python build command (preferred name)
 #   BUILD_COMMAND    - Python build command (legacy name, same as PYTHON_BUILD_CMD)
+#   WHEEL_DIR        - Directory containing built wheels (for pip install)
+#   PIP_INSTALL_SCRIPT - Path to pip_install_with_lock.cmake
+#   Python_EXECUTABLE - Python executable for pip install
+#   NO_CACHE_DIR     - If TRUE, pass --no-cache-dir to pip
 #   ENV_VARS         - Environment variables (----separated KEY=VALUE pairs)
 #   TMPDIR           - Temporary directory for Python builds
 
@@ -108,9 +113,11 @@ else()
   set( FORCE_REBUILD FALSE )
 endif()
 
+set( DID_BUILD FALSE )
 if( NOT FORCE_REBUILD AND CURRENT_HASH STREQUAL STORED_HASH )
   message( STATUS "${LIB_NAME}: Source unchanged (${CURRENT_HASH}), skipping build" )
 else()
+  set( DID_BUILD TRUE )
   if( STORED_HASH )
     message( STATUS "${LIB_NAME}: Source changed (${STORED_HASH} -> ${CURRENT_HASH}), running build" )
   else()
@@ -188,4 +195,31 @@ else()
 
   # Store the new hash only after successful build
   file( WRITE "${HASH_FILE}" "${CURRENT_HASH}" )
+endif()
+
+# Run pip install if wheel dir is provided and build occurred
+if( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE AND DID_BUILD )
+  # Force reinstall without deps only for rebuilds (not first build)
+  # First build: STORED_HASH is empty, need deps
+  # Rebuild: STORED_HASH exists, skip deps
+  if( STORED_HASH )
+    set( _force_reinstall TRUE )
+  else()
+    set( _force_reinstall FALSE )
+  endif()
+
+  execute_process(
+    COMMAND ${CMAKE_COMMAND}
+      -DPython_EXECUTABLE=${Python_EXECUTABLE}
+      -DWHEEL_DIR=${WHEEL_DIR}
+      -DNO_CACHE_DIR=${NO_CACHE_DIR}
+      -DFORCE_REINSTALL=${_force_reinstall}
+      -P ${PIP_INSTALL_SCRIPT}
+    RESULT_VARIABLE PIP_RESULT
+  )
+  if( NOT PIP_RESULT EQUAL 0 )
+    message( FATAL_ERROR "${LIB_NAME}: pip install failed with exit code ${PIP_RESULT}" )
+  endif()
+elseif( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE )
+  message( STATUS "${LIB_NAME}: Build skipped, skipping pip install" )
 endif()

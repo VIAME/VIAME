@@ -3,6 +3,7 @@
 # Parameters (choose one mode):
 #   Mode 1 - Wheel install:
 #     WHEEL_DIR - Directory containing .whl files to install
+#     FORCE_REINSTALL - If TRUE, uses --force-reinstall --no-deps (for rebuilds)
 #
 #   Mode 2 - Direct args:
 #     PIP_ARGS - Arguments to pass to pip install (separated by ----)
@@ -17,11 +18,34 @@ cmake_minimum_required( VERSION 3.16 )
 # Build the pip install arguments
 if( WHEEL_DIR )
   # Mode 1: Install wheels from directory (locally built wheels)
-  file( GLOB _pip_args LIST_DIRECTORIES FALSE ${WHEEL_DIR}/*.whl )
+  file( GLOB _all_wheels LIST_DIRECTORIES FALSE ${WHEEL_DIR}/*.whl )
+
+  # When multiple wheels exist (e.g., platform-specific and pure-python),
+  # prefer platform-specific wheels (cpXX-cpXX-platform) over py3-none-any
+  set( _platform_wheels )
+  set( _pure_wheels )
+  foreach( _wheel IN LISTS _all_wheels )
+    if( _wheel MATCHES "-cp[0-9]+-cp[0-9]+-" )
+      list( APPEND _platform_wheels "${_wheel}" )
+    else()
+      list( APPEND _pure_wheels "${_wheel}" )
+    endif()
+  endforeach()
+
+  # Use platform-specific wheels if available, otherwise use all wheels
+  if( _platform_wheels )
+    set( _pip_args "${_platform_wheels}" )
+  else()
+    set( _pip_args "${_all_wheels}" )
+  endif()
+
   set( _working_dir "${WHEEL_DIR}" )
-  # Force reinstall for locally built wheels to ensure rebuilt wheels get installed
-  # even if version unchanged (e.g., when source is dirty)
-  set( _force_flag "--force-reinstall" )
+
+  # Use force reinstall without deps for rebuilds (not first builds)
+  set( _force_flag "" )
+  if( FORCE_REINSTALL )
+    set( _force_flag "--force-reinstall" "--no-deps" )
+  endif()
 elseif( PIP_ARGS )
   # Mode 2: Use provided arguments (external packages from PyPI, etc.)
   string( REPLACE "----" ";" _pip_args "${PIP_ARGS}" )
