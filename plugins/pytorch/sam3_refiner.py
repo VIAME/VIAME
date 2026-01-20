@@ -359,11 +359,12 @@ class Sam3DetectionRefiner(RefineDetections):
     """
     SAM3-based Detection Refiner
 
-    This refiner uses SAM3 (SAM 2.1) to add segmentation masks to detections.
+    This refiner uses SAM3 to add segmentation masks to detections.
     It operates on DetectedObjectSet and adds polygon masks to each detection.
 
     Key features:
-    - Re-segments detection bounding boxes with SAM 2.1 for high-quality masks
+    - Re-segments detection bounding boxes with SAM3 for high-quality masks
+    - Supports loading from local model files or HuggingFace
     - Generates polygon outputs from masks
     - Can optionally overwrite existing masks
 
@@ -379,6 +380,7 @@ class Sam3DetectionRefiner(RefineDetections):
 
         self._kwiver_config = {
             'sam_model_id': 'facebook/sam2.1-hiera-large',
+            'model_config': '',
             'device': 'cuda',
             'overwrite_existing': 'True',
             'output_type': 'polygon',
@@ -408,6 +410,9 @@ class Sam3DetectionRefiner(RefineDetections):
 
         model_config = MinimalConfig()
         model_config.sam_model_id = self._kwiver_config['sam_model_id']
+        model_config.model_config = self._kwiver_config.get('model_config', '')
+        if model_config.model_config == '':
+            model_config.model_config = None
         model_config.grounding_model_id = None  # Not needed for detection refinement
         model_config.device = self._kwiver_config['device']
 

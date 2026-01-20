@@ -30,7 +30,11 @@ class SAM3BaseConfig(scfg.DataConfig):
     # Model configuration
     sam_model_id = scfg.Value(
         "facebook/sam2.1-hiera-large",
-        help='SAM 2.1 model ID from HuggingFace or local path'
+        help='SAM model ID from HuggingFace, local path to weights (.pt), or directory'
+    )
+    model_config = scfg.Value(
+        None,
+        help='Path to SAM3 config JSON file (for local model loading)'
     )
     grounding_model_id = scfg.Value(
         "IDEA-Research/grounding-dino-tiny",
@@ -113,14 +117,185 @@ class SAM3ModelManager:
 
         self._device = resolve_device(config.device)
 
-        # Initialize Grounding DINO
-        self._init_grounding_dino(config.grounding_model_id)
+        # Initialize Grounding DINO (if model ID provided)
+        grounding_model_id = getattr(config, 'grounding_model_id', None)
+        if grounding_model_id:
+            self._init_grounding_dino(grounding_model_id)
 
-        # Initialize SAM2
-        if use_video_predictor:
-            self._init_sam2_video(config.sam_model_id)
+        # Check if using local SAM3 model files
+        model_config = getattr(config, 'model_config', None)
+        sam_model_id = config.sam_model_id
+
+        # Determine if this is a local model (path to .pt file or directory with config)
+        is_local = self._is_local_model(sam_model_id, model_config)
+
+        if is_local:
+            self._init_sam3_local(sam_model_id, model_config, use_video_predictor)
+        elif use_video_predictor:
+            self._init_sam2_video(sam_model_id)
         else:
-            self._init_sam2_image(config.sam_model_id)
+            self._init_sam2_image(sam_model_id)
+
+    def _is_local_model(self, model_id, model_config):
+        """Check if the model should be loaded from local files."""
+        import os
+        if model_config and os.path.exists(str(model_config)):
+            return True
+        if model_id and os.path.exists(str(model_id)):
+            return True
+        return False
+
+    def _init_sam3_local(self, weights_path, config_path, use_video_predictor=False):
+        """
+        Initialize SAM3 from local model files.
+
+        Args:
+            weights_path: Path to sam3_weights.pt or model directory
+            config_path: Path to sam3_config.json
+            use_video_predictor: If True, initialize for video prediction
+        """
+        import os
+        import json
+        import torch
+
+        print(f"[SAM3] Loading SAM3 from local files...")
+        print(f"[SAM3]   Weights: {weights_path}")
+        print(f"[SAM3]   Config: {config_path}")
+
+        # Determine model directory
+        if os.path.isdir(weights_path):
+            model_dir = weights_path
+            weights_path = os.path.join(model_dir, 'sam3_weights.pt')
+        else:
+            model_dir = os.path.dirname(weights_path)
+
+        # If config_path not provided, look for it in model directory
+        if not config_path:
+            config_path = os.path.join(model_dir, 'sam3_config.json')
+
+        if not os.path.exists(weights_path):
+            raise FileNotFoundError(f"SAM3 weights not found: {weights_path}")
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"SAM3 config not found: {config_path}")
+
+        # Try to load using transformers library first
+        try:
+            self._init_sam3_transformers(model_dir, weights_path, config_path, use_video_predictor)
+            return
+        except Exception as e:
+            print(f"[SAM3] Could not load via transformers: {e}")
+
+        # Fallback: try to load using sam3 module if available
+        try:
+            self._init_sam3_native(weights_path, config_path, use_video_predictor)
+            return
+        except Exception as e:
+            print(f"[SAM3] Could not load via native sam3: {e}")
+
+        raise RuntimeError("Failed to load SAM3 model from local files")
+
+    def _init_sam3_transformers(self, model_dir, weights_path, config_path, use_video_predictor):
+        """Load SAM3 using HuggingFace transformers library."""
+        import os
+        import json
+        import torch
+
+        # Load config to determine model type
+        with open(config_path, 'r') as f:
+            config_data = json.load(f)
+
+        model_type = config_data.get('model_type', 'sam3_video')
+        print(f"[SAM3] Model type: {model_type}")
+
+        # Try loading via transformers AutoModel
+        try:
+            from transformers import AutoModel, AutoProcessor, AutoConfig
+
+            # Check if there's a processor config
+            processor_config_path = os.path.join(model_dir, 'sam3_processor_config.json')
+            if os.path.exists(processor_config_path):
+                self._sam_processor = AutoProcessor.from_pretrained(
+                    model_dir,
+                    local_files_only=True
+                )
+
+            # Load model config and model
+            model_config = AutoConfig.from_pretrained(
+                model_dir,
+                local_files_only=True
+            )
+
+            self._sam_model = AutoModel.from_pretrained(
+                model_dir,
+                config=model_config,
+                local_files_only=True
+            ).to(self._device)
+            self._sam_model.eval()
+
+            print(f"[SAM3] Successfully loaded SAM3 via transformers AutoModel")
+
+            # Set up predictor interface based on model type
+            if hasattr(self._sam_model, 'get_image_predictor'):
+                self._sam_predictor = self._sam_model.get_image_predictor()
+            elif hasattr(self._sam_model, 'image_predictor'):
+                self._sam_predictor = self._sam_model.image_predictor
+
+            if use_video_predictor:
+                if hasattr(self._sam_model, 'get_video_predictor'):
+                    self._video_predictor = self._sam_model.get_video_predictor()
+                elif hasattr(self._sam_model, 'video_predictor'):
+                    self._video_predictor = self._sam_model.video_predictor
+
+            return
+        except Exception as e:
+            print(f"[SAM3] AutoModel loading failed: {e}")
+
+        # Try specific SAM3 model classes
+        try:
+            from transformers import Sam2Model, Sam2Processor
+
+            self._sam_processor = Sam2Processor.from_pretrained(
+                model_dir,
+                local_files_only=True
+            )
+            self._sam_model = Sam2Model.from_pretrained(
+                model_dir,
+                local_files_only=True
+            ).to(self._device)
+            self._sam_model.eval()
+            print(f"[SAM3] Successfully loaded SAM3 via Sam2Model")
+            return
+        except Exception as e:
+            print(f"[SAM3] Sam2Model loading failed: {e}")
+            raise
+
+    def _init_sam3_native(self, weights_path, config_path, use_video_predictor):
+        """Load SAM3 using native sam3 module if available."""
+        try:
+            from sam3.model_builder import build_sam3_video_model, build_sam3_image_model
+
+            if use_video_predictor:
+                self._video_predictor = build_sam3_video_model(
+                    checkpoint_path=weights_path,
+                    config_path=config_path,
+                    device=str(self._device),
+                    eval_mode=True,
+                )
+            else:
+                model = build_sam3_image_model(
+                    checkpoint_path=weights_path,
+                    config_path=config_path,
+                    device=str(self._device),
+                    eval_mode=True,
+                )
+                if hasattr(model, 'inst_interactive_predictor'):
+                    self._sam_predictor = model.inst_interactive_predictor
+                else:
+                    self._sam_predictor = model
+
+            print(f"[SAM3] Successfully loaded SAM3 via native sam3 module")
+        except ImportError:
+            raise ImportError("sam3 module not available for native loading")
 
     def _init_grounding_dino(self, model_id):
         """Initialize Grounding DINO for text-based detection."""

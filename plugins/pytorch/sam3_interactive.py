@@ -102,6 +102,7 @@ class SAM3InteractiveService:
     def __init__(
         self,
         checkpoint: Optional[str] = None,
+        model_config: Optional[str] = None,
         device: str = "cuda",
         hole_policy: str = "remove",
         multipolygon_policy: str = "largest",
@@ -109,6 +110,7 @@ class SAM3InteractiveService:
         load_from_hf: bool = True,
     ):
         self.checkpoint = checkpoint
+        self.model_config = model_config
         self.device = device
         self.hole_policy = hole_policy
         self.multipolygon_policy = multipolygon_policy
@@ -121,30 +123,233 @@ class SAM3InteractiveService:
 
     def initialize(self) -> None:
         """Load the SAM3 model. Called once on startup."""
+        import os
         import torch
-        from sam3.model_builder import build_sam3_image_model
 
         self._log("Initializing SAM3 model...")
         self._log(f"  Checkpoint: {self.checkpoint or 'HuggingFace default'}")
+        self._log(f"  Model config: {self.model_config or 'auto'}")
         self._log(f"  Device: {self.device}")
 
-        # Build SAM3 model with instance interactivity enabled (for point-based segmentation)
-        self.model = build_sam3_image_model(
-            checkpoint_path=self.checkpoint,
-            device=self.device,
-            eval_mode=True,
-            load_from_HF=self.load_from_hf and self.checkpoint is None,
-            enable_segmentation=True,
-            enable_inst_interactivity=True,
-            compile=False,  # Disable compilation for compatibility
+        # Check if using local model files
+        is_local = (
+            (self.checkpoint and os.path.exists(self.checkpoint)) or
+            (self.model_config and os.path.exists(self.model_config))
         )
 
-        # The instance interactive predictor is the SAM1-task predictor
-        self.predictor = self.model.inst_interactive_predictor
-        if self.predictor is None:
-            raise RuntimeError("SAM3 model does not have instance interactive predictor enabled")
+        if is_local:
+            self._initialize_local_model()
+        else:
+            self._initialize_hf_model()
 
         self._log("SAM3 model initialized successfully")
+
+    def _initialize_local_model(self) -> None:
+        """Initialize SAM3 from local model files."""
+        import os
+        import json
+        import torch
+
+        checkpoint = self.checkpoint
+        config_path = self.model_config
+
+        # Determine model directory and paths
+        if checkpoint and os.path.isdir(checkpoint):
+            model_dir = checkpoint
+            checkpoint = os.path.join(model_dir, 'sam3_weights.pt')
+        elif checkpoint:
+            model_dir = os.path.dirname(checkpoint)
+        else:
+            model_dir = os.path.dirname(config_path) if config_path else None
+
+        if not config_path and model_dir:
+            config_path = os.path.join(model_dir, 'sam3_config.json')
+
+        self._log(f"  Loading from local: {model_dir}")
+
+        # Try transformers AutoModel first
+        try:
+            from transformers import AutoModel, AutoProcessor, AutoConfig
+
+            processor_config = os.path.join(model_dir, 'sam3_processor_config.json')
+            if os.path.exists(processor_config):
+                self._processor = AutoProcessor.from_pretrained(
+                    model_dir, local_files_only=True
+                )
+
+            model_config = AutoConfig.from_pretrained(
+                model_dir, local_files_only=True
+            )
+
+            self.model = AutoModel.from_pretrained(
+                model_dir,
+                config=model_config,
+                local_files_only=True
+            ).to(self.device)
+            self.model.eval()
+
+            # Get the predictor interface
+            if hasattr(self.model, 'get_image_predictor'):
+                self.predictor = self.model.get_image_predictor()
+            elif hasattr(self.model, 'inst_interactive_predictor'):
+                self.predictor = self.model.inst_interactive_predictor
+            elif hasattr(self.model, 'image_predictor'):
+                self.predictor = self.model.image_predictor
+            else:
+                # Use the model directly with a wrapper
+                self.predictor = SAM3ImagePredictorWrapper(self.model, self._processor, self.device)
+
+            self._log("  Loaded via transformers AutoModel")
+            return
+        except Exception as e:
+            self._log(f"  AutoModel failed: {e}")
+
+        # Try native sam3 module
+        try:
+            from sam3.model_builder import build_sam3_image_model
+
+            self.model = build_sam3_image_model(
+                checkpoint_path=checkpoint,
+                config_path=config_path,
+                device=self.device,
+                eval_mode=True,
+                enable_segmentation=True,
+                enable_inst_interactivity=True,
+                compile=False,
+            )
+
+            self.predictor = self.model.inst_interactive_predictor
+            if self.predictor is None:
+                raise RuntimeError("SAM3 model does not have instance interactive predictor")
+
+            self._log("  Loaded via native sam3 module")
+            return
+        except Exception as e:
+            self._log(f"  Native sam3 failed: {e}")
+
+        raise RuntimeError("Failed to load SAM3 model from local files")
+
+    def _initialize_hf_model(self) -> None:
+        """Initialize SAM3 from HuggingFace."""
+        import torch
+
+        try:
+            from sam3.model_builder import build_sam3_image_model
+
+            self.model = build_sam3_image_model(
+                checkpoint_path=self.checkpoint,
+                device=self.device,
+                eval_mode=True,
+                load_from_HF=self.load_from_hf and self.checkpoint is None,
+                enable_segmentation=True,
+                enable_inst_interactivity=True,
+                compile=False,
+            )
+
+            self.predictor = self.model.inst_interactive_predictor
+            if self.predictor is None:
+                raise RuntimeError("SAM3 model does not have instance interactive predictor")
+        except ImportError:
+            # Fallback to transformers
+            from transformers import Sam2Model, Sam2Processor
+
+            model_id = self.checkpoint or "facebook/sam2.1-hiera-large"
+            self._processor = Sam2Processor.from_pretrained(model_id)
+            self.model = Sam2Model.from_pretrained(model_id).to(self.device)
+            self.model.eval()
+            self.predictor = SAM3ImagePredictorWrapper(self.model, self._processor, self.device)
+
+
+class SAM3ImagePredictorWrapper:
+    """
+    Wrapper to provide a SAM2-like predictor interface for HuggingFace SAM3 models.
+    """
+
+    def __init__(self, model, processor, device):
+        self.model = model
+        self.processor = processor
+        self.device = device
+        self._image_embeddings = None
+        self._original_size = None
+
+    def set_image(self, image):
+        """Set the image for prediction."""
+        import torch
+        from PIL import Image
+
+        if isinstance(image, np.ndarray):
+            pil_image = Image.fromarray(image)
+        else:
+            pil_image = image
+
+        self._original_size = pil_image.size[::-1]  # (H, W)
+
+        # Process image
+        inputs = self.processor(images=pil_image, return_tensors="pt").to(self.device)
+
+        with torch.no_grad():
+            self._image_embeddings = self.model.get_image_embeddings(inputs.pixel_values)
+
+        self._inputs = inputs
+
+    def reset_predictor(self):
+        """Reset the predictor state."""
+        self._image_embeddings = None
+        self._original_size = None
+
+    def predict(
+        self,
+        point_coords=None,
+        point_labels=None,
+        box=None,
+        mask_input=None,
+        multimask_output=False,
+    ):
+        """Run prediction with the given prompts."""
+        import torch
+
+        if self._image_embeddings is None:
+            raise RuntimeError("Must call set_image before predict")
+
+        # Prepare inputs
+        input_points = None
+        input_labels = None
+        input_boxes = None
+
+        if point_coords is not None:
+            input_points = torch.tensor(point_coords, dtype=torch.float32).unsqueeze(0).to(self.device)
+            if len(input_points.shape) == 2:
+                input_points = input_points.unsqueeze(0)
+
+        if point_labels is not None:
+            input_labels = torch.tensor(point_labels, dtype=torch.int64).unsqueeze(0).to(self.device)
+            if len(input_labels.shape) == 1:
+                input_labels = input_labels.unsqueeze(0)
+
+        if box is not None:
+            boxes = np.atleast_2d(box)
+            input_boxes = torch.tensor(boxes, dtype=torch.float32).unsqueeze(0).to(self.device)
+
+        with torch.no_grad():
+            outputs = self.model(
+                image_embeddings=self._image_embeddings,
+                input_points=input_points,
+                input_labels=input_labels,
+                input_boxes=input_boxes,
+                multimask_output=multimask_output,
+            )
+
+        # Process outputs
+        masks = outputs.pred_masks.squeeze(0).cpu().numpy()
+        scores = outputs.iou_scores.squeeze(0).cpu().numpy()
+
+        # Ensure masks are binary
+        masks = (masks > 0).astype(np.uint8)
+
+        # Low-res masks for refinement
+        low_res_masks = masks  # Simplified - actual implementation would get low-res
+
+        return masks, scores, low_res_masks
 
     def _log(self, message: str) -> None:
         """Log to stderr (stdout is reserved for JSON responses)."""
@@ -650,7 +855,12 @@ def main():
     parser.add_argument(
         "--checkpoint",
         default=None,
-        help="Path to SAM3 checkpoint (defaults to downloading from HuggingFace)",
+        help="Path to SAM3 checkpoint/weights (defaults to downloading from HuggingFace)",
+    )
+    parser.add_argument(
+        "--model-config",
+        default=None,
+        help="Path to SAM3 config JSON file (for local model loading)",
     )
     parser.add_argument(
         "--device",
@@ -683,16 +893,33 @@ def main():
     )
     args = parser.parse_args()
 
-    # Determine checkpoint path
+    # Determine checkpoint and config paths
     checkpoint = args.checkpoint
+    model_config = args.model_config
     load_from_hf = not args.no_hf_download
 
     if checkpoint is None and args.viame_path:
-        # Try to find checkpoint in VIAME installation
-        viame_checkpoint = Path(args.viame_path) / "configs" / "pipelines" / "models" / "sam3.pt"
-        if viame_checkpoint.exists():
-            checkpoint = str(viame_checkpoint)
+        # Try to find SAM3 model files in VIAME installation
+        viame_models = Path(args.viame_path) / "configs" / "pipelines" / "models"
+
+        # Check for SAM3 weights
+        sam3_weights = viame_models / "sam3_weights.pt"
+        sam3_config = viame_models / "sam3_config.json"
+
+        if sam3_weights.exists():
+            checkpoint = str(sam3_weights)
             load_from_hf = False
+            print(f"[SAM3] Found SAM3 weights: {checkpoint}", file=sys.stderr)
+
+            if sam3_config.exists() and model_config is None:
+                model_config = str(sam3_config)
+                print(f"[SAM3] Found SAM3 config: {model_config}", file=sys.stderr)
+        else:
+            # Fallback to older naming
+            sam3_pt = viame_models / "sam3.pt"
+            if sam3_pt.exists():
+                checkpoint = str(sam3_pt)
+                load_from_hf = False
 
     if checkpoint is None and not load_from_hf:
         print("[SAM3] Error: No checkpoint specified and HuggingFace download disabled", file=sys.stderr)
@@ -709,6 +936,7 @@ def main():
 
     service = SAM3InteractiveService(
         checkpoint=checkpoint,
+        model_config=model_config,
         device=device,
         hole_policy=args.hole_policy,
         multipolygon_policy=args.multipolygon_policy,
