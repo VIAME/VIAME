@@ -657,6 +657,15 @@ jobs:
           choco install nodejs-lts -y
           npm install -g yarn
 
+      - name: Install Visual Studio 2026 Build Tools
+        shell: powershell
+        run: |
+          Write-Host "Installing VS 2026 Build Tools..."
+          choco install visualstudio2026buildtools `
+            --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --includeRecommended --quiet" `
+            -y --ignore-package-exit-codes=3010
+          Write-Host "VS 2026 Build Tools installation completed"
+
       - name: Configure build paths
         shell: powershell
         run: |
