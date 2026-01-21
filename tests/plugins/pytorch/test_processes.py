@@ -21,7 +21,7 @@ from PIL import Image
 import torch
 import torchvision
 
-from kwiver.sprokit.processes.pytorch.srnn import models
+from viame.pytorch.srnn import models
 
 
 def run_pipeline_in_dir(dir_path, pipeline):
