@@ -180,11 +180,11 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 2.9.1 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.9.1" )
+  set( VIAME_PYTORCH_VERSION 2.10.0 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.10.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  set( PYTORCH_INTERNAL_VERSION 2.9.1 CACHE INTERNAL "Internal pytorch version" )
+  set( PYTORCH_INTERNAL_VERSION 2.10.0 CACHE INTERNAL "Internal pytorch version" )
   set( PYTORCH_MIN_GCC          9.3   CACHE INTERNAL "Minimum GCC version for torch" )
   set( PYTORCH_MIN_PYTHON_WHL   3.9   CACHE INTERNAL "Minimum python for torch whl" )
   set( PYTORCH_MIN_PYTHON_BLD   3.8   CACHE INTERNAL "Minimum python for torch build" )
@@ -765,13 +765,13 @@ if( VIAME_ENABLE_PYTORCH )
     endif()
   endif()
   if( VIAME_ENABLE_CUDA )
-    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.9.1" AND
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.10.0" AND
         NOT VIAME_BUILD_PYTORCH_FROM_SOURCE AND
         NOT ( CUDA_VERSION VERSION_EQUAL "12.6" OR
               CUDA_VERSION VERSION_EQUAL "12.8" OR
               CUDA_VERSION VERSION_EQUAL "13.0" ) )
-      message( FATAL_ERROR "CUDA 12.8, 12.6 or 11.8 is required for VIAME_ENABLE_PYTORCH "
-        "with VIAME_BUILD_PYTORCH_FROM_SOURCE off and using PyTorch 2.9.1. Either modify "
+      message( FATAL_ERROR "CUDA 12.6, 12.8 or 13.0 is required for VIAME_ENABLE_PYTORCH "
+        "with VIAME_BUILD_PYTORCH_FROM_SOURCE off and using PyTorch 2.10.0. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
         NOT VIAME_BUILD_PYTORCH_FROM_SOURCE AND
@@ -926,8 +926,6 @@ if( VIAME_BUILD_DEPENDENCIES )
   if( VIAME_ENABLE_PYTORCH )
     include( add_project_pytorch )
   endif()
-
-
 
   if( VIAME_ENABLE_TENSORFLOW )
     include( add_project_tensorflow )
