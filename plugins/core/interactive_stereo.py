@@ -4,18 +4,22 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.
 
 """
-Foundation Stereo Interactive Service
+Interactive Stereo Service
 
-A persistent process that keeps the Foundation Stereo model loaded and handles
+A persistent process that keeps stereo depth algorithms loaded and handles
 disparity computation requests via stdin/stdout JSON protocol. Designed for
 interactive stereo annotation where lines drawn on the left image are automatically
 transferred to the right image using disparity mapping.
+
+This service uses KWIVER vital algorithms configured via config files:
+- ComputeStereoDepthMap: For stereo disparity/depth computation
 
 Unlike SAM, this service proactively computes disparity maps when the user navigates
 to a new frame, so the disparity is ready when they draw annotations.
 
 Usage:
-    python foundation_stereo_interactive.py [--checkpoint CHECKPOINT] [--device DEVICE]
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe --plugin-path /path/to/plugins
 
 Protocol:
     Input (JSON per line on stdin):
@@ -34,17 +38,17 @@ Protocol:
     }
 
     Commands:
-    - "enable": Load the model and enable the service (requires calibration)
-    - "disable": Unload the model and disable the service
+    - "enable": Load the algorithm and enable the service (requires calibration)
+    - "disable": Unload the algorithm and disable the service
     - "set_frame": Start computing disparity for stereo pair (proactive)
     - "cancel": Cancel current disparity computation
     - "get_status": Get current status (enabled, computing, ready)
     - "transfer_line": Transfer a line from left to right image using disparity
+    - "transfer_points": Transfer multiple points from left to right image
     - "shutdown": Gracefully terminate the service
 """
 
 import argparse
-import contextlib
 import json
 import os
 import sys
@@ -56,31 +60,28 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 
-class FoundationStereoInteractiveService:
-    """Persistent Foundation Stereo service with stdin/stdout JSON protocol."""
+class InteractiveStereoService:
+    """
+    Interactive Stereo Service using KWIVER vital algorithms.
+
+    Handles stdin/stdout JSON protocol communication and delegates
+    to configured vital algorithms for disparity computation.
+    """
 
     def __init__(
         self,
-        checkpoint: str,
-        config_path: str = "",
-        vit_size: str = "vits",
-        device: str = "cuda",
-        scale: float = 0.25,
-        use_half_precision: bool = True,
-        num_iters: int = 32,
+        compute_stereo_depth_map_algo,
+        scale: float = 1.0,
     ):
-        self.checkpoint = checkpoint
-        self.config_path = config_path
-        self.vit_size = vit_size
-        self.device = device
-        self.scale = scale
-        self.use_half_precision = use_half_precision
-        self.num_iters = num_iters
+        """
+        Initialize the service with configured algorithms.
 
-        # Model state
-        self._model = None
-        self._InputPadder = None
-        self._torch_device = None
+        Args:
+            compute_stereo_depth_map_algo: Configured ComputeStereoDepthMap algorithm instance
+            scale: Scale factor for input images (<=1.0). Lower = faster but less accurate.
+        """
+        self._stereo_algo = compute_stereo_depth_map_algo
+        self._scale = scale
         self._enabled = False
 
         # Calibration parameters
@@ -108,92 +109,21 @@ class FoundationStereoInteractiveService:
         self._compute_lock = threading.Lock()
         self._compute_queue = queue.Queue()
 
-    def initialize(self) -> None:
-        """Load the Foundation Stereo model. Called when service is enabled."""
-        import torch
-
-        self._log("Initializing Foundation Stereo model...")
-        self._log(f"  Checkpoint: {self.checkpoint}")
-        self._log(f"  ViT Size: {self.vit_size}")
-        self._log(f"  Device: {self.device}")
-        self._log(f"  Scale: {self.scale}")
-        self._log(f"  Half Precision: {self.use_half_precision}")
-
-        # Add foundation-stereo to path
-        foundation_stereo_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            'packages', 'pytorch-libs', 'foundation-stereo'
-        )
-        if foundation_stereo_dir not in sys.path:
-            sys.path.insert(0, foundation_stereo_dir)
-
-        from omegaconf import OmegaConf
-        from core.foundation_stereo import FoundationStereo as FoundationStereoModel
-        from core.utils.utils import InputPadder
-
-        self._InputPadder = InputPadder
-
-        # Load model configuration
-        if self.config_path and os.path.exists(self.config_path):
-            model_cfg = OmegaConf.load(self.config_path)
-        else:
-            ckpt_dir = os.path.dirname(self.checkpoint)
-            cfg_path = os.path.join(ckpt_dir, 'cfg.yaml')
-            if os.path.exists(cfg_path):
-                model_cfg = OmegaConf.load(cfg_path)
-            else:
-                model_cfg = OmegaConf.create({})
-
-        model_cfg['vit_size'] = self.vit_size
-
-        # Create and load model
-        self._model = FoundationStereoModel(model_cfg)
-        ckpt = torch.load(self.checkpoint, map_location='cpu', weights_only=False)
-        self._model.load_state_dict(ckpt['model'])
-
-        # Setup device
-        device_str = self.device
-        if device_str == 'auto':
-            device_str = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        self._torch_device = torch.device(device_str)
-        self._model.to(self._torch_device)
-
-        # Convert to half precision if requested
-        if self.use_half_precision and 'cuda' in device_str:
-            self._model.half()
-        self._model.eval()
-
-        torch.set_grad_enabled(False)
-
-        self._enabled = True
-        self._log("Foundation Stereo model initialized successfully")
-
-    def unload(self) -> None:
-        """Unload the model and free resources."""
-        import torch
-
-        self._cancel_computation()
-        self._model = None
-        self._InputPadder = None
-        self._torch_device = None
-        self._current_disparity = None
-        self._disparity_ready = False
-        self._current_left_path = None
-        self._current_right_path = None
-        self._enabled = False
-
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-
-        self._log("Model unloaded")
-
     def _log(self, message: str) -> None:
         """Log to stderr (stdout is reserved for JSON responses)."""
-        print(f"[FoundationStereo] {message}", file=sys.stderr, flush=True)
+        print(f"[InteractiveStereo] {message}", file=sys.stderr, flush=True)
 
     def _send_response(self, response: Dict[str, Any]) -> None:
         """Send JSON response to stdout."""
         print(json.dumps(response), flush=True)
+
+    def _send_error(self, request_id: Optional[str], error: str) -> None:
+        """Send error response."""
+        self._send_response({
+            "id": request_id,
+            "success": False,
+            "error": error,
+        })
 
     def _add_to_cache(self, left_path: str, right_path: str, disparity: np.ndarray) -> None:
         """Add a disparity map to the cache with LRU eviction."""
@@ -228,14 +158,6 @@ class FoundationStereoInteractiveService:
             self._log(f"Cache hit for: {left_path}")
         return disparity
 
-    def _send_error(self, request_id: Optional[str], error: str) -> None:
-        """Send error response."""
-        self._send_response({
-            "id": request_id,
-            "success": False,
-            "error": error,
-        })
-
     def _load_calibration(self, calibration_data: Dict[str, Any]) -> None:
         """Load stereo calibration from JSON data."""
         self._calibration = calibration_data
@@ -257,12 +179,14 @@ class FoundationStereoInteractiveService:
         self._log(f"Loaded calibration: focal_length={self._focal_length}, "
                   f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})")
 
-    def _load_image(self, image_path: str) -> np.ndarray:
-        """Load image and return as RGB numpy array."""
-        from PIL import Image
+    def _load_image(self, image_path: str):
+        """Load an image and return a vital ImageContainer."""
+        from kwiver.vital.types import ImageContainer, Image
 
-        img = Image.open(image_path).convert("RGB")
-        return np.array(img)
+        from viame.core.segmentation_utils import load_image
+
+        imdata = load_image(image_path)
+        return ImageContainer(Image(imdata))
 
     def _compute_disparity_sync(
         self,
@@ -270,82 +194,33 @@ class FoundationStereoInteractiveService:
         right_path: str,
     ) -> Optional[np.ndarray]:
         """
-        Compute disparity for stereo pair synchronously.
+        Compute disparity for stereo pair synchronously using the configured algorithm.
         Returns disparity map or None if cancelled.
         """
-        import torch
-        import cv2
+        if self._cancel_event.is_set():
+            return None
+
+        # Load images as ImageContainers
+        left_container = self._load_image(left_path)
+        right_container = self._load_image(right_path)
 
         if self._cancel_event.is_set():
             return None
 
-        # Load images
-        left_npy = self._load_image(left_path)
-        right_npy = self._load_image(right_path)
+        # Call the algorithm's compute method
+        result_container = self._stereo_algo.compute(left_container, right_container)
 
         if self._cancel_event.is_set():
             return None
 
-        if left_npy.shape != right_npy.shape:
-            raise RuntimeError(
-                f"Left and right image dimensions must match: "
-                f"{left_npy.shape} vs {right_npy.shape}"
-            )
+        # Convert result to numpy array
+        result_image = result_container.image()
+        disp_npy = result_image.asarray()
 
-        H_orig, W_orig = left_npy.shape[:2]
-
-        # Scale down images for speed
-        if self.scale < 1.0:
-            H_scaled = int(H_orig * self.scale)
-            W_scaled = int(W_orig * self.scale)
-            left_npy = cv2.resize(left_npy, (W_scaled, H_scaled), interpolation=cv2.INTER_AREA)
-            right_npy = cv2.resize(right_npy, (W_scaled, H_scaled), interpolation=cv2.INTER_AREA)
-            H, W = H_scaled, W_scaled
-        else:
-            H, W = H_orig, W_orig
-
-        if self._cancel_event.is_set():
-            return None
-
-        # Convert to PyTorch tensors
-        use_half = self.use_half_precision and 'cuda' in str(self._torch_device)
-        left_tensor = torch.as_tensor(left_npy).to(self._torch_device)
-        left_tensor = left_tensor.half() if use_half else left_tensor.float()
-        left_tensor = left_tensor[None].permute(0, 3, 1, 2)
-        right_tensor = torch.as_tensor(right_npy).to(self._torch_device)
-        right_tensor = right_tensor.half() if use_half else right_tensor.float()
-        right_tensor = right_tensor[None].permute(0, 3, 1, 2)
-
-        if self._cancel_event.is_set():
-            return None
-
-        # Pad images
-        padder = self._InputPadder(left_tensor.shape, divis_by=32, force_square=False)
-        left_padded, right_padded = padder.pad(left_tensor, right_tensor)
-
-        if self._cancel_event.is_set():
-            return None
-
-        # Run inference
-        with torch.amp.autocast('cuda', enabled=True):
-            disp = self._model.forward(
-                left_padded, right_padded,
-                iters=self.num_iters,
-                test_mode=True,
-                low_memory=True
-            )
-
-        if self._cancel_event.is_set():
-            return None
-
-        # Unpad and convert to numpy
-        disp = padder.unpad(disp.float())
-        disp_npy = disp.data.cpu().numpy().reshape(H, W)
-
-        # Scale disparity back to original resolution if needed
-        if self.scale < 1.0:
-            disp_npy = cv2.resize(disp_npy, (W_orig, H_orig), interpolation=cv2.INTER_LINEAR)
-            disp_npy = disp_npy / self.scale
+        # The algorithm returns disparity scaled by 256 as uint16
+        # Convert back to float disparity values
+        if disp_npy.dtype == np.uint16:
+            disp_npy = disp_npy.astype(np.float32) / 256.0
 
         return disp_npy
 
@@ -391,6 +266,8 @@ class FoundationStereoInteractiveService:
 
             except Exception as e:
                 self._log(f"Error computing disparity: {e}")
+                import traceback
+                traceback.print_exc(file=sys.stderr)
                 self._send_response({
                     "id": request_id,
                     "type": "disparity_error",
@@ -421,7 +298,7 @@ class FoundationStereoInteractiveService:
                 break
 
     def handle_enable(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Enable the service by loading the model."""
+        """Enable the service."""
         if self._enabled:
             return {
                 "success": True,
@@ -433,31 +310,34 @@ class FoundationStereoInteractiveService:
         if calibration:
             self._load_calibration(calibration)
 
-        try:
-            self.initialize()
-            self._start_background_worker()
-            return {
-                "success": True,
-                "message": "Foundation Stereo enabled",
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Failed to enable: {e}",
-            }
+        self._enabled = True
+        self._start_background_worker()
+        self._log("Interactive stereo service enabled")
+
+        return {
+            "success": True,
+            "message": "Interactive stereo enabled",
+        }
 
     def handle_disable(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Disable the service and unload the model."""
+        """Disable the service."""
         if not self._enabled:
             return {
                 "success": True,
                 "message": "Already disabled",
             }
 
-        self.unload()
+        self._cancel_computation()
+        self._current_disparity = None
+        self._disparity_ready = False
+        self._current_left_path = None
+        self._current_right_path = None
+        self._enabled = False
+
+        self._log("Interactive stereo service disabled")
         return {
             "success": True,
-            "message": "Foundation Stereo disabled",
+            "message": "Interactive stereo disabled",
         }
 
     def handle_set_calibration(self, request: Dict[str, Any]) -> Dict[str, Any]:
@@ -582,7 +462,7 @@ class FoundationStereoInteractiveService:
             p1 = line[0]
             p2 = line[1]
 
-            H, W = self._current_disparity.shape
+            H, W = self._current_disparity.shape[:2]
 
             # Clamp coordinates to image bounds
             def clamp_point(p):
@@ -643,7 +523,7 @@ class FoundationStereoInteractiveService:
             if not points:
                 raise ValueError("points is required")
 
-            H, W = self._current_disparity.shape
+            H, W = self._current_disparity.shape[:2]
             transferred_points = []
             disparity_values = []
 
@@ -721,166 +601,189 @@ class FoundationStereoInteractiveService:
                 self._send_error(request_id, f"Invalid JSON: {e}")
             except Exception as e:
                 self._log(f"Error processing request: {e}")
+                import traceback
+                traceback.print_exc(file=sys.stderr)
                 self._send_error(request_id, str(e))
 
         self._log("Service shutting down")
 
 
-def parse_pipe_config(config_path: str) -> Dict[str, Any]:
+def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None):
     """
-    Parse a VIAME .pipe config file and extract foundation_stereo settings.
-    Returns a dict with the parsed values.
+    Load and configure the ComputeStereoDepthMap algorithm from a KWIVER config file.
+
+    Args:
+        config_path: Path to the config file
+        plugin_paths: Optional list of additional plugin paths to load
+
+    Returns:
+        Tuple of (compute_stereo_depth_map_algo, service_config)
     """
-    config = {}
-    if not os.path.exists(config_path):
-        return config
+    from kwiver.vital.algo import ComputeStereoDepthMap
+    from kwiver.vital.config import config as vital_config
+    from kwiver.vital.modules import modules as vital_modules
 
-    try:
-        with open(config_path, 'r') as f:
-            in_foundation_stereo_block = False
-            for line in f:
-                line = line.strip()
-                # Skip comments and empty lines
-                if not line or line.startswith('#'):
-                    continue
+    # Load plugin modules
+    vital_modules.load_known_modules()
 
-                # Check for config block start
-                if line.startswith('config foundation_stereo'):
-                    in_foundation_stereo_block = True
-                    continue
+    if plugin_paths:
+        for path in plugin_paths:
+            if os.path.isdir(path):
+                vital_modules.load_module(path)
 
-                # Parse settings within the foundation_stereo block
-                if in_foundation_stereo_block and line.startswith(':'):
-                    # Parse :key value format
-                    parts = line[1:].split(None, 1)
-                    if len(parts) == 2:
-                        key = parts[0].strip()
-                        value = parts[1].strip()
-                        config[key] = value
-    except Exception as e:
-        print(f"[FoundationStereo] Warning: Failed to parse config file: {e}", file=sys.stderr)
+    # Read config file
+    cfg = vital_config.empty_config()
 
-    return config
+    with open(config_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' in line:
+                key, value = line.split('=', 1)
+                cfg.set_value(key.strip(), value.strip())
+
+    # Create compute_stereo_depth_map algorithm
+    stereo_algo = None
+    if cfg.has_value("compute_stereo_depth_map:type"):
+        impl_name = cfg.get_value("compute_stereo_depth_map:type")
+        stereo_algo = ComputeStereoDepthMap.create(impl_name)
+        stereo_algo.set_configuration(cfg.subblock("compute_stereo_depth_map:" + impl_name))
+
+    # Extract service configuration
+    service_config = {
+        "scale": float(cfg.get_value("service:scale")) if cfg.has_value("service:scale") else 1.0,
+    }
+
+    return stereo_algo, service_config
+
+
+def find_viame_config() -> Optional[str]:
+    """
+    Find the default stereo config file in VIAME install.
+
+    Returns:
+        Path to config file if found, None otherwise
+    """
+    viame_install = os.environ.get("VIAME_INSTALL")
+    if not viame_install:
+        return None
+
+    pipelines_dir = Path(viame_install) / "configs" / "pipelines"
+    config_path = pipelines_dir / "common_foundation_stereo.conf"
+    if config_path.exists():
+        return str(config_path)
+
+    return None
+
+
+def create_default_config(output_path: str):
+    """
+    Create a default config file for the interactive stereo service.
+
+    This generates a config file that uses the foundation_stereo algorithm.
+
+    Args:
+        output_path: Path to write the config file
+    """
+    config = """# Interactive Stereo Service Configuration
+# This config file sets up the ComputeStereoDepthMap algorithm for interactive stereo.
+#
+# Include the shared foundation stereo config for model paths and defaults.
+# Uncomment the include line if running from VIAME install:
+# include common_foundation_stereo.pipe
+
+# Stereo depth/disparity algorithm
+compute_stereo_depth_map:type = foundation_stereo
+compute_stereo_depth_map:foundation_stereo:checkpoint_path =
+compute_stereo_depth_map:foundation_stereo:vit_size = vits
+compute_stereo_depth_map:foundation_stereo:device = cuda
+compute_stereo_depth_map:foundation_stereo:scale = 0.25
+compute_stereo_depth_map:foundation_stereo:use_half_precision = true
+compute_stereo_depth_map:foundation_stereo:num_iters = 32
+compute_stereo_depth_map:foundation_stereo:output_mode = disparity
+
+# Service settings
+service:scale = 1.0
+"""
+
+    with open(output_path, 'w') as f:
+        f.write(config)
+
+    print(f"Created default config: {output_path}", file=sys.stderr)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Foundation Stereo Interactive Service")
-    parser.add_argument(
-        "--viame-path",
-        default=None,
-        help="Path to VIAME installation directory (used to find model checkpoint)",
-    )
-    parser.add_argument(
-        "--checkpoint",
-        default=None,
-        help="Path to Foundation Stereo checkpoint (defaults to VIAME_PATH/configs/pipelines/models/foundation_stereo_s.pth)",
+    parser = argparse.ArgumentParser(
+        description="Interactive Stereo Service",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    # Use a config file
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe
+
+    # Generate a default config file
+    python -m viame.core.interactive_stereo --generate-config stereo.conf
+
+    # With additional plugin paths
+    python -m viame.core.interactive_stereo --config config.pipe --plugin-path /path/to/plugins
+        """
     )
     parser.add_argument(
         "--config",
-        default="",
-        help="Path to model config yaml file",
-    )
-    parser.add_argument(
-        "--vit-size",
         default=None,
-        choices=["vitl", "vitb", "vits"],
-        help="Vision Transformer backbone size",
+        help="Path to KWIVER config file",
     )
     parser.add_argument(
-        "--device",
-        default="cuda",
-        choices=["cuda", "cpu", "auto"],
-        help="Device to run inference on",
-    )
-    parser.add_argument(
-        "--scale",
-        type=float,
+        "--generate-config",
         default=None,
-        help="Scale factor for input images (<=1.0). Lower = faster but less accurate.",
+        metavar="OUTPUT_PATH",
+        help="Generate a default config file and exit",
     )
     parser.add_argument(
-        "--half-precision",
-        action="store_true",
-        default=False,
-        help="Use half precision (FP16) for model and tensors",
-    )
-    parser.add_argument(
-        "--num-iters",
-        type=int,
-        default=None,
-        help="Number of GRU refinement iterations",
+        "--plugin-path",
+        action="append",
+        default=[],
+        help="Additional plugin paths to load (can be specified multiple times)",
     )
     args = parser.parse_args()
 
-    # Determine VIAME path
-    viame_path = args.viame_path
-    if viame_path is None:
-        viame_path = os.environ.get("VIAME_INSTALL")
+    # Handle config generation
+    if args.generate_config:
+        create_default_config(args.generate_config)
+        return
 
-    if viame_path is None:
-        print("[FoundationStereo] Error: No VIAME path specified and VIAME_INSTALL not set", file=sys.stderr)
-        print("[FoundationStereo] Use --viame-path to specify VIAME location", file=sys.stderr)
+    # Require config file
+    if not args.config:
+        parser.error("--config is required (or use --generate-config to create one)")
+
+    if not Path(args.config).exists():
+        print(f"Error: Config file not found: {args.config}", file=sys.stderr)
         sys.exit(1)
-
-    pipelines_dir = Path(viame_path) / "configs" / "pipelines"
-
-    # Try to load settings from common_foundation_stereo.pipe config file
-    pipe_config_path = pipelines_dir / "common_foundation_stereo.pipe"
-    pipe_config = parse_pipe_config(str(pipe_config_path))
-
-    if pipe_config:
-        print(f"[FoundationStereo] Loaded config from: {pipe_config_path}", file=sys.stderr)
-
-    # Get values from config file, with command-line args taking precedence
-    vit_size = args.vit_size or pipe_config.get('vit_size', 'vits')
-    scale = args.scale if args.scale is not None else float(pipe_config.get('scale', 0.25))
-    num_iters = args.num_iters if args.num_iters is not None else int(pipe_config.get('num_iters', 32))
-
-    # Half precision: command-line flag or config file
-    use_half_precision = args.half_precision
-    if not use_half_precision and pipe_config.get('use_half_precision', '').lower() == 'true':
-        use_half_precision = True
-
-    # Determine checkpoint path
-    checkpoint = args.checkpoint
-    if checkpoint is None:
-        # Try to get from config file (relativepath format)
-        checkpoint_rel = pipe_config.get('relativepath:checkpoint_path', 'models/foundation_stereo_s.pth')
-        checkpoint = str(pipelines_dir / checkpoint_rel)
-
-    # Determine model config path
-    model_config = args.config
-    if not model_config:
-        model_config_rel = pipe_config.get('relativepath:model_config_path', '')
-        if model_config_rel:
-            model_config = str(pipelines_dir / model_config_rel)
-
-    # Verify checkpoint exists
-    if not Path(checkpoint).exists():
-        print(f"[FoundationStereo] Error: Checkpoint not found: {checkpoint}", file=sys.stderr)
-        print(f"[FoundationStereo] Expected location: {checkpoint}", file=sys.stderr)
-        print("[FoundationStereo] Make sure Foundation Stereo model is installed in VIAME", file=sys.stderr)
-        sys.exit(1)
-
-    print(f"[FoundationStereo] Using checkpoint: {checkpoint}", file=sys.stderr)
-    print(f"[FoundationStereo] Settings: vit_size={vit_size}, scale={scale}, half_precision={use_half_precision}, num_iters={num_iters}", file=sys.stderr)
-
-    service = FoundationStereoInteractiveService(
-        checkpoint=checkpoint,
-        config_path=model_config,
-        vit_size=vit_size,
-        device=args.device,
-        scale=scale,
-        use_half_precision=use_half_precision,
-        num_iters=num_iters,
-    )
 
     try:
+        # Load algorithm from config
+        stereo_algo, service_config = load_algorithm_from_config(
+            args.config, args.plugin_path
+        )
+
+        if stereo_algo is None:
+            print("Error: No compute_stereo_depth_map algorithm configured", file=sys.stderr)
+            sys.exit(1)
+
+        # Create and run service
+        service = InteractiveStereoService(
+            compute_stereo_depth_map_algo=stereo_algo,
+            **service_config
+        )
         service.run()
+
     except KeyboardInterrupt:
-        print("[FoundationStereo] Interrupted", file=sys.stderr)
+        print("[InteractiveStereo] Interrupted", file=sys.stderr)
     except Exception as e:
-        print(f"[FoundationStereo] Fatal error: {e}", file=sys.stderr)
+        print(f"[InteractiveStereo] Fatal error: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
         sys.exit(1)
 
 
