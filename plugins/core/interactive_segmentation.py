@@ -154,9 +154,9 @@ class InteractiveSegmentationService:
         results = []
 
         for det_obj in detected_objects:
-            bbox = det_obj.bounding_box()
+            bbox = det_obj.bounding_box
             bounds = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
-            score = det_obj.confidence()
+            score = det_obj.confidence
 
             # Get polygon from mask if available
             polygon = None
@@ -189,6 +189,11 @@ class InteractiveSegmentationService:
                         if len(polygon) != original_points:
                             self._log(f"Simplified polygon: {original_points} -> {len(polygon)} points")
 
+                    # Offset polygon to original image coordinates (mask is cropped to bbox)
+                    if polygon:
+                        offset_x, offset_y = bbox.min_x(), bbox.min_y()
+                        polygon = [[x + offset_x, y + offset_y] for x, y in polygon]
+
                     # Create RLE mask for efficient transfer
                     flat_mask = mask.flatten().astype(np.uint8)
                     rle_mask = []
@@ -216,8 +221,8 @@ class InteractiveSegmentationService:
                 result["mask_shape"] = mask_shape
 
             # Get class label if available
-            if det_obj.type() is not None:
-                result["label"] = det_obj.type().get_most_likely_class()
+            if det_obj.type is not None:
+                result["label"] = det_obj.type.get_most_likely_class()
 
             results.append(result)
 
@@ -309,9 +314,9 @@ class InteractiveSegmentationService:
             for track in track_set.tracks():
                 for state in track:
                     det_obj = state.detection()
-                    bbox = det_obj.bounding_box()
+                    bbox = det_obj.bounding_box
                     bounds = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
-                    score = det_obj.confidence()
+                    score = det_obj.confidence
 
                     detection = {
                         "bounds": bounds,
@@ -319,8 +324,8 @@ class InteractiveSegmentationService:
                         "track_id": track.id(),
                     }
 
-                    if det_obj.type() is not None:
-                        detection["label"] = det_obj.type().get_most_likely_class()
+                    if det_obj.type is not None:
+                        detection["label"] = det_obj.type.get_most_likely_class()
 
                     # Get polygon from mask if available
                     if det_obj.mask is not None:
