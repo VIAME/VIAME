@@ -399,13 +399,14 @@ class InteractiveSegmentationService:
         self._log("Service shutting down")
 
 
-def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None):
+def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None, device: str = None):
     """
     Load and configure algorithms from a KWIVER config file.
 
     Args:
         config_path: Path to the config file
         plugin_paths: Optional list of additional plugin paths to load
+        device: Optional device override (cuda, cpu, auto)
 
     Returns:
         Tuple of (segment_via_points_algo, perform_text_query_algo, service_config)
@@ -422,17 +423,52 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
             if os.path.isdir(path):
                 vital_modules.load_module(path)
 
-    # Read config file
+    # Read config file with include support
     cfg = vital_config.empty_config()
+    config_dir = Path(config_path).parent
 
-    with open(config_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            if '=' in line:
-                key, value = line.split('=', 1)
-                cfg.set_value(key.strip(), value.strip())
+    def parse_config_file(file_path: str, base_dir: Path):
+        """Parse a config file, handling includes and relativepath directives."""
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+
+                # Handle include directive
+                if line.startswith('include '):
+                    include_path = line[len('include '):].strip()
+                    # Resolve relative to the file containing the include
+                    full_include_path = base_dir / include_path
+                    if full_include_path.exists():
+                        parse_config_file(str(full_include_path), full_include_path.parent)
+                    continue
+
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    key = key.strip()
+                    value = value.strip()
+
+                    # Handle relativepath directive - resolve path relative to config directory
+                    if key.startswith('relativepath '):
+                        key = key[len('relativepath '):]
+                        value = str(base_dir / value)
+
+                    cfg.set_value(key, value)
+
+    parse_config_file(config_path, config_dir)
+
+    # Override device setting if provided
+    if device:
+        # Try common device config keys used by SAM algorithms
+        device_keys = [
+            "segment_via_points:sam2:device",
+            "segment_via_points:sam3:device",
+            "perform_text_query:sam2:device",
+            "perform_text_query:sam3:device",
+        ]
+        for key in device_keys:
+            cfg.set_value(key, device)
 
     # Create segment_via_points algorithm
     segment_algo = None
@@ -475,10 +511,10 @@ def find_viame_config(model_type: str = "sam3") -> Optional[str]:
 
     pipelines_dir = Path(viame_install) / "configs" / "pipelines"
 
-    # Map model type to config file
+    # Map model type to interactive config file
     config_files = {
-        "sam2": "common_sam2_segmenter.conf",
-        "sam3": "common_sam3_segmenter.conf",
+        "sam2": "interactive_sam2_segmenter.conf",
+        "sam3": "interactive_sam3_segmenter.conf",
     }
 
     config_name = config_files.get(model_type)
@@ -596,12 +632,32 @@ Examples:
         default=[],
         help="Additional plugin paths to load (can be specified multiple times)",
     )
+    parser.add_argument(
+        "--viame-path",
+        default=None,
+        help="Path to VIAME install directory (sets VIAME_INSTALL env var)",
+    )
+    parser.add_argument(
+        "--device",
+        default="cuda",
+        help="Device to run on (cuda, cpu, auto)",
+    )
     args = parser.parse_args()
+
+    # Set VIAME_INSTALL from --viame-path if provided
+    if args.viame_path:
+        os.environ["VIAME_INSTALL"] = args.viame_path
 
     # Handle config generation
     if args.generate_config:
         create_default_config(args.generate_config, args.model)
         return
+
+    # Auto-detect config if not provided
+    if not args.config:
+        args.config = find_viame_config(args.model)
+        if args.config:
+            print(f"[SegmentationService] Using auto-detected config: {args.config}", file=sys.stderr)
 
     # Require config file
     if not args.config:
@@ -614,7 +670,7 @@ Examples:
     try:
         # Load algorithms from config
         segment_algo, text_query_algo, service_config = load_algorithms_from_config(
-            args.config, args.plugin_path
+            args.config, args.plugin_path, args.device
         )
 
         if segment_algo is None:

@@ -386,6 +386,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_sam2_segmenter.conf
+    interactive_sam2_segmenter.conf
     utility_add_head_tail_keypoints_default.pipe
     utility_add_head_tail_keypoints_sam2.pipe
     utility_add_segmentations_default.pipe
@@ -398,6 +399,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH-SAM3 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_sam3_segmenter.conf
+    interactive_sam3_segmenter.conf
     utility_add_segmentations_sam3.pipe
     utility_add_segmentations_sam3_no_replace.pipe
     utility_text_query_default.pipe
