@@ -339,12 +339,6 @@ if( VIAME_ENABLE_PYTHON )
     object_tracking
   )
   add_example_script_test(
-    viame_examples:run_track_viewer
-    test_object_tracking.py
-    TestRunTrackViewer
-    object_tracking
-  )
-  add_example_script_test(
     viame_examples:run_user_init_tracker
     test_object_tracking.py
     TestRunUserInitTracker

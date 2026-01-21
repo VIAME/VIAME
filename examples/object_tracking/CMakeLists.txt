@@ -11,22 +11,19 @@ if( WIN32 )
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.bat
        run_generic_tracker.bat
-       run_simple_tracker.bat
-       run_track_viewer.bat )
+       run_simple_tracker.bat )
 elseif( APPLE )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.sh
        run_generic_tracker.sh
-       run_simple_tracker.sh
-       run_track_viewer.mac.sh )
+       run_simple_tracker.sh )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.sh
        run_generic_tracker.sh
-       run_simple_tracker.sh
-       run_track_viewer.sh )
+       run_simple_tracker.sh )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-SIAMMASK )

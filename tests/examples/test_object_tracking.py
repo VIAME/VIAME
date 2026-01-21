@@ -57,15 +57,6 @@ class TestRunSimpleTracker:
         assert_script_runs_successfully(script)
 
 
-class TestRunTrackViewer:
-    """Tests for run_track_viewer script."""
-
-    def test_run_track_viewer(self):
-        """Test that run_track_viewer runs without error and produces output."""
-        script = get_script_path(CATEGORY, "run_track_viewer.sh")
-        assert_script_runs_successfully(script)
-
-
 class TestRunUserInitTracker:
     """Tests for run_user_init_tracker script."""
 
