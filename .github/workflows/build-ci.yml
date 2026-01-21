@@ -212,7 +212,7 @@ jobs:
 
   build-windows:
     name: Windows CI Build
-    runs-on: windows-2019
+    runs-on: windows-2025  # VS 2026
     timeout-minutes: 360  # 6 hours for cached builds
 
     steps:

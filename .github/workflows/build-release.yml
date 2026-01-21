@@ -494,7 +494,7 @@ jobs:
 
   build-windows:
     name: Build Windows Release
-    runs-on: windows-2019  # VS 2019
+    runs-on: windows-2025  # VS 2026
     timeout-minutes: 720  # 12 hours
 
     steps:
