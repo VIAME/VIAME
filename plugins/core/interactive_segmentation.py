@@ -331,13 +331,29 @@ class InteractiveSegmentationService:
                     if det_obj.mask is not None:
                         mask = det_obj.mask.image().asarray()
                         if mask is not None and mask.size > 0:
-                            from viame.core.segmentation_utils import mask_to_polygon
+                            from viame.core.segmentation_utils import (
+                                mask_to_polygon,
+                                simplify_polygon_to_max_points,
+                                adaptive_simplify_polygon,
+                            )
                             if mask.ndim == 3:
                                 mask = mask[:, :, 0]
                             mask = (mask > 0).astype(np.uint8)
                             polygon, _ = mask_to_polygon(
                                 mask, self._hole_policy, self._multipolygon_policy
                             )
+
+                            # Simplify polygon if needed
+                            if polygon and len(polygon) > self._max_polygon_points:
+                                if self._adaptive_simplify:
+                                    polygon = adaptive_simplify_polygon(
+                                        polygon, self._max_polygon_points, min_points=4
+                                    )
+                                else:
+                                    polygon = simplify_polygon_to_max_points(
+                                        polygon, self._max_polygon_points
+                                    )
+
                             detection["polygon"] = polygon
 
                     detections.append(detection)
@@ -387,6 +403,14 @@ class InteractiveSegmentationService:
 
         handler = handlers.get(command)
         if not handler:
+            # Provide helpful error for text_query when not configured
+            if command == "text_query":
+                raise ValueError(
+                    "text_query command requires a perform_text_query algorithm to be "
+                    "configured. SAM2 does not support text queries - use the SAM3 "
+                    "configuration (interactive_sam3_segmenter.conf) for text-based "
+                    "detection and segmentation."
+                )
             raise ValueError(f"Unknown command: {command}")
 
         return handler(request)
@@ -455,74 +479,22 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
             if os.path.isdir(path):
                 vital_modules.load_module(path)
 
-    # Read config file with include and block support
-    cfg = vital_config.empty_config()
+    # Use KWIVER's native config file reader
     config_dir = Path(config_path).parent
+    cfg = vital_config.read_config_file(str(config_path))
 
-    def parse_config_file(file_path: str, base_dir: Path, prefix: str = ""):
-        """Parse a config file, handling includes, blocks, and relativepath directives."""
-        current_prefix = prefix
-
-        with open(file_path, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
-
-                # Handle block directive - push prefix
-                if line.startswith('block '):
-                    block_name = line[len('block '):].strip()
-                    if current_prefix:
-                        current_prefix = current_prefix + block_name + ":"
-                    else:
-                        current_prefix = block_name + ":"
-                    continue
-
-                # Handle endblock directive - pop prefix
-                if line == 'endblock':
-                    # Remove the last block from prefix
-                    if ':' in current_prefix:
-                        current_prefix = current_prefix.rsplit(':', 2)[0]
-                        if current_prefix:
-                            current_prefix += ":"
-                    else:
-                        current_prefix = prefix
-                    continue
-
-                # Handle include directive
-                if line.startswith('include '):
-                    include_path = line[len('include '):].strip()
-                    # Resolve relative to the file containing the include
-                    full_include_path = base_dir / include_path
-                    if full_include_path.exists():
-                        parse_config_file(str(full_include_path), full_include_path.parent, current_prefix)
-                    continue
-
-                if '=' in line:
-                    key, value = line.split('=', 1)
-                    key = key.strip()
-                    value = value.strip()
-
-                    # Handle relativepath directive - resolve path relative to config directory
-                    is_relativepath = False
-                    if key.startswith('relativepath '):
-                        key = key[len('relativepath '):]
-                        is_relativepath = True
-
-                    # Handle keys starting with : (relative to current block)
-                    if key.startswith(':'):
-                        key = key[1:]
-
-                    # Apply current block prefix
-                    if current_prefix and not key.startswith(current_prefix):
-                        key = current_prefix + key
-
-                    if is_relativepath:
-                        value = str(base_dir / value)
-
-                    cfg.set_value(key, value)
-
-    parse_config_file(config_path, config_dir)
+    # Resolve relative paths in config values
+    # Keys that contain path-like values that should be resolved relative to config dir
+    path_keys = ['checkpoint', 'model_config', 'cfg', 'weights']
+    for key in cfg.available_values():
+        for path_key in path_keys:
+            if path_key in key:
+                value = cfg.get_value(key)
+                # If it's a relative path, resolve it relative to config directory
+                if value and not os.path.isabs(value) and not value.startswith('$'):
+                    resolved = config_dir / value
+                    if resolved.exists():
+                        cfg.set_value(key, str(resolved))
 
     # Override device setting if provided
     if device:
