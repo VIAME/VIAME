@@ -116,6 +116,12 @@ class SAM2Segmenter(SegmentViaPoints):
         # Convert image to numpy array
         img_array = image.image().asarray()
 
+        # SAM2 requires RGB input
+        if img_array.ndim == 2 or img_array.shape[2] == 1:
+            img_array = np.repeat(img_array.reshape(img_array.shape[0], img_array.shape[1], 1), 3, axis=2)
+        elif img_array.shape[2] == 4:
+            img_array = img_array[:, :, :3]
+
         # Ensure uint8
         if img_array.dtype != np.uint8:
             if img_array.max() <= 1.0:
@@ -130,7 +136,7 @@ class SAM2Segmenter(SegmentViaPoints):
         self._predictor.set_image(img_array)
 
         # Convert points to numpy arrays
-        point_coords = np.array([[p.value(0), p.value(1)] for p in points], dtype=np.float32)
+        point_coords = np.array([[p.value[0], p.value[1]] for p in points], dtype=np.float32)
         point_labels_arr = np.array(point_labels, dtype=np.int32)
 
         # Run inference with appropriate autocast

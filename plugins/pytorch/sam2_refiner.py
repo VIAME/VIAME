@@ -156,7 +156,15 @@ class Sam2Refiner(RefineDetections):
         if len(detections) == 0:
             return DetectedObjectSet()
 
-        imdata = np.ascontiguousarray(image_data.asarray().astype('uint8'))
+        imdata = image_data.asarray().astype('uint8')
+
+        # SAM2 requires RGB input
+        if imdata.ndim == 2 or imdata.shape[2] == 1:
+            imdata = np.repeat(imdata.reshape(imdata.shape[0], imdata.shape[1], 1), 3, axis=2)
+        elif imdata.shape[2] == 4:
+            imdata = imdata[:, :, :3]
+
+        imdata = np.ascontiguousarray(imdata)
         predictor = self.predictor
 
         autocast_context = get_autocast_context(predictor.device)
