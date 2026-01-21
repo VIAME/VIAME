@@ -652,13 +652,10 @@ jobs:
           # Install Git
           choco install git -y
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install yarn
-        run: npm install -g yarn
+          # Install Node.js and yarn via chocolatey so they're in standard locations
+          # that the build script can find (the script replaces PATH, so we can't use setup-node)
+          choco install nodejs-lts -y
+          npm install -g yarn
 
       - name: Configure build paths
         shell: powershell
