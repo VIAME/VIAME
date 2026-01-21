@@ -218,8 +218,8 @@ class InteractiveSegmentationService:
             self._current_image_container = self._load_image(image_path)
             self._current_image_path = image_path
 
-        # Convert points to vital Point2d objects
-        vital_points = [Point2d(float(p[0]), float(p[1])) for p in points]
+        # Convert points to vital Point2d objects (requires numpy array)
+        vital_points = [Point2d(np.array([float(p[0]), float(p[1])], dtype=np.float64)) for p in points]
         vital_labels = [int(label) for label in point_labels]
 
         # Run segmentation
