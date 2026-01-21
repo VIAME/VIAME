@@ -46,6 +46,7 @@ Protocol:
 """
 
 import argparse
+import contextlib
 import json
 import os
 import sys
@@ -53,6 +54,22 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+
+
+@contextlib.contextmanager
+def suppress_stdout():
+    """
+    Context manager to redirect stdout to stderr.
+
+    This prevents library warnings/prints from corrupting
+    the JSON protocol on stdout.
+    """
+    original_stdout = sys.stdout
+    sys.stdout = sys.stderr
+    try:
+        yield
+    finally:
+        sys.stdout = original_stdout
 
 
 class InteractiveSegmentationService:
@@ -225,15 +242,16 @@ class InteractiveSegmentationService:
         vital_points = [Point2d(np.array([float(p[0]), float(p[1])], dtype=np.float64)) for p in points]
         vital_labels = [int(label) for label in point_labels]
 
-        # Run segmentation
-        detected_objects = self._segment_algo.segment(
-            self._current_image_container,
-            vital_points,
-            vital_labels
-        )
+        # Run segmentation (suppress stdout to prevent library warnings corrupting JSON)
+        with suppress_stdout():
+            detected_objects = self._segment_algo.segment(
+                self._current_image_container,
+                vital_points,
+                vital_labels
+            )
 
-        # Convert results
-        results = self._detections_to_response(detected_objects)
+            # Convert results
+            results = self._detections_to_response(detected_objects)
 
         if results:
             # Return the best result (first one)
@@ -712,10 +730,12 @@ Examples:
         sys.exit(1)
 
     try:
-        # Load algorithms from config
-        segment_algo, text_query_algo, service_config = load_algorithms_from_config(
-            args.config, args.plugin_path, args.device
-        )
+        # Suppress stdout during initialization to prevent library warnings
+        # from corrupting the JSON protocol
+        with suppress_stdout():
+            segment_algo, text_query_algo, service_config = load_algorithms_from_config(
+                args.config, args.plugin_path, args.device
+            )
 
         if segment_algo is None:
             print("Error: No segment_via_points algorithm configured", file=sys.stderr)
