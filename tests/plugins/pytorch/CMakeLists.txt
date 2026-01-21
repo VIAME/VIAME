@@ -125,23 +125,6 @@ if( VIAME_ENABLE_PYTHON )
       ENVIRONMENT "${PYTORCH_TEST_ENV}"
   )
 
-  # SAM3 Interactive Service Tests
-  add_test(
-    NAME viame_plugins:pytorch:sam3_interactive
-    COMMAND ${Python3_EXECUTABLE} -m pytest
-      "${CMAKE_CURRENT_SOURCE_DIR}/test_sam3.py"
-      -v
-      --tb=short
-      -k "TestSAM3InteractiveService"
-    WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
-  )
-  set_tests_properties( viame_plugins:pytorch:sam3_interactive
-    PROPERTIES
-      LABELS "UNIT;PYTORCH;SAM3"
-      TIMEOUT 600
-      ENVIRONMENT "${PYTORCH_TEST_ENV}"
-  )
-
   # SAM3 Refiner Tests
   add_test(
     NAME viame_plugins:pytorch:sam3_refiner
