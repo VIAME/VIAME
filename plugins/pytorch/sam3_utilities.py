@@ -173,27 +173,29 @@ class SharedSAM3ModelCache:
 
         log(f"  Loading from local: {model_dir or checkpoint}")
 
-        # Try native sam2 module first
+        # Load using SAM3 module
         try:
-            from sam2.build_sam import build_sam2
-            from sam2.sam2_image_predictor import SAM2ImagePredictor
+            from sam3.model_builder import build_sam3_image_model
 
-            cfg = "configs/sam2.1/sam2.1_hiera_b+.yaml"
-
-            model = build_sam2(
-                config_file=cfg,
-                ckpt_path=checkpoint,
+            model = build_sam3_image_model(
+                checkpoint_path=checkpoint,
                 device=device,
-                mode='eval',
-                apply_postprocessing=True,
+                eval_mode=True,
+                load_from_HF=False,
+                enable_segmentation=True,
+                enable_inst_interactivity=True,
+                compile=False,
             )
-            predictor = SAM2ImagePredictor(model)
-            log("  Loaded via native sam2 module")
-            return model, predictor
-        except Exception as e:
-            log(f"  Native module failed: {e}")
 
-        raise RuntimeError("Failed to load SAM3 model from local files")
+            predictor = model.inst_interactive_predictor
+            if predictor is None:
+                raise RuntimeError("Model does not have instance interactive predictor")
+            log("  Loaded via sam3 module")
+            return model, predictor
+        except ImportError as e:
+            raise RuntimeError(f"sam3 module not available: {e}. Install sam3 package and its dependencies (including decord).")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load SAM3 model: {e}")
 
     @classmethod
     def _load_hf_model(cls, checkpoint, device, log):
