@@ -655,7 +655,26 @@ jobs:
           # Install Node.js and yarn via chocolatey so they're in standard locations
           # that the build script can find (the script replaces PATH, so we can't use setup-node)
           choco install nodejs-lts -y
-          npm install -g yarn
+          choco install yarn -y
+
+          # Refresh PATH so node/yarn are available
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+          # Verify installations and show locations
+          Write-Host "Node.js location:"
+          Get-Command node -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+          Write-Host "Yarn location:"
+          Get-Command yarn -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+          # Also check common install locations
+          Write-Host "Checking common yarn locations:"
+          @(
+            "C:\Program Files (x86)\Yarn\bin\yarn.cmd",
+            "C:\Program Files\Yarn\bin\yarn.cmd",
+            "$env:APPDATA\npm\yarn.cmd",
+            "C:\ProgramData\chocolatey\bin\yarn.cmd"
+          ) | ForEach-Object {
+            if (Test-Path $_) { Write-Host "Found: $_" }
+          }
 
       - name: Install Visual Studio 2026 Build Tools
         shell: powershell
