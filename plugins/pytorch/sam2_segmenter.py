@@ -116,18 +116,15 @@ class SAM2Segmenter(SegmentViaPoints):
         # Convert image to numpy array
         img_array = image.image().asarray()
 
-        # Ensure RGB format
-        if img_array.ndim == 2:
-            img_array = np.stack([img_array] * 3, axis=-1)
-        elif img_array.shape[2] == 4:
-            img_array = img_array[:, :, :3]
-
         # Ensure uint8
         if img_array.dtype != np.uint8:
             if img_array.max() <= 1.0:
                 img_array = (img_array * 255).astype(np.uint8)
             else:
                 img_array = img_array.astype(np.uint8)
+
+        # Ensure contiguous memory layout for PyTorch
+        img_array = np.ascontiguousarray(img_array)
 
         # Set image on predictor
         self._predictor.set_image(img_array)

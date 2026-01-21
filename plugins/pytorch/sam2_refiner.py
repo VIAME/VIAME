@@ -156,7 +156,7 @@ class Sam2Refiner(RefineDetections):
         if len(detections) == 0:
             return DetectedObjectSet()
 
-        imdata = image_data.asarray().astype('uint8')
+        imdata = np.ascontiguousarray(image_data.asarray().astype('uint8'))
         predictor = self.predictor
 
         autocast_context = get_autocast_context(predictor.device)
