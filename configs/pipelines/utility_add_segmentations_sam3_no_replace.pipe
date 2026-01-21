@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Add automatically generated segmentations via SAM3 (SAM 2.1)
+# Title: Add automatically generated segmentations via SAM3 (no replace)
 #
-# Description: Adds segmentation masks to existing detections.
+# Description: Adds segmentation masks to existing detections using SAM3.
+#              This pipeline preserves existing masks (does not overwrite).
 # =============================================================================
 
 config _pipeline:_edge
@@ -12,6 +13,9 @@ config _scheduler
 
 # ============================= INPUT FRAME LIST ==============================
 include common_default_input_with_downsampler.pipe
+
+# ============================= SAM3 CONFIGURATION ============================
+include common_sam3_segmenter.conf
 
 process track_reader
   :: read_object_track
@@ -47,10 +51,11 @@ process detection_refiner
     :chip_step_height                          1000
 
     :refiner:type                              sam3
-    :refiner:sam3:sam_model_id                 facebook/sam2.1-hiera-base-plus
     :refiner:sam3:overwrite_existing           false
     :refiner:sam3:output_type                  polygon
     :refiner:sam3:polygon_simplification       0.01
+    relativepath refiner:sam3:sam_model_id =   models/sam3_weights.pt
+    relativepath refiner:sam3:model_config =   models/sam3_config.json
   endblock
 
 connect from ensure_rgb.image

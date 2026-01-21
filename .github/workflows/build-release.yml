@@ -113,15 +113,13 @@ jobs:
           # Show disk usage before cleanup
           docker exec viame_build du -sh /viame/build || true
 
-          # Remove object files (keeping only essential build stamps)
+          # Remove object files only (NOT .a static libraries - they're needed for linking in later stages)
           docker exec viame_build find /viame/build -name "*.o" -delete 2>/dev/null || true
-          docker exec viame_build find /viame/build -name "*.a" -delete 2>/dev/null || true
 
           # Remove fletch download cache (sources already extracted/built)
           docker exec viame_build rm -rf /viame/build/build/src/fletch-build/Downloads 2>/dev/null || true
 
-          # Remove CMakeFiles directories (can be regenerated)
-          docker exec viame_build find /viame/build -type d -name "CMakeFiles" -exec rm -rf {} + 2>/dev/null || true
+          # NOTE: Do NOT delete CMakeFiles directories - they contain build stamps that prevent rebuilds
 
           # Clean pip cache
           docker exec viame_build rm -rf /root/.cache/pip 2>/dev/null || true
@@ -306,12 +304,10 @@ jobs:
           # Show disk usage before cleanup
           docker exec viame_build du -sh /viame/build || true
 
-          # Remove object files (keeping only essential build stamps)
+          # Remove object files only (NOT .a static libraries - they're needed for linking in later stages)
           docker exec viame_build find /viame/build -name "*.o" -delete 2>/dev/null || true
-          docker exec viame_build find /viame/build -name "*.a" -delete 2>/dev/null || true
 
-          # Remove CMakeFiles directories (can be regenerated)
-          docker exec viame_build find /viame/build -type d -name "CMakeFiles" -exec rm -rf {} + 2>/dev/null || true
+          # NOTE: Do NOT delete CMakeFiles directories - they contain build stamps that prevent rebuilds
 
           # Clean pip cache
           docker exec viame_build rm -rf /root/.cache/pip 2>/dev/null || true
@@ -498,7 +494,7 @@ jobs:
 
   build-windows:
     name: Build Windows Release
-    runs-on: windows-2019  # VS 2019
+    runs-on: windows-2025  # VS 2026
     timeout-minutes: 720  # 12 hours
 
     steps:
@@ -656,10 +652,19 @@ jobs:
           # Install Git
           choco install git -y
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+          # Install Node.js and yarn via chocolatey so they're in standard locations
+          # that the build script can find (the script replaces PATH, so we can't use setup-node)
+          choco install nodejs-lts -y
+          npm install -g yarn
+
+      - name: Install Visual Studio 2026 Build Tools
+        shell: powershell
+        run: |
+          Write-Host "Installing VS 2026 Build Tools..."
+          choco install visualstudio2026buildtools `
+            --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --includeRecommended --quiet" `
+            -y --ignore-package-exit-codes=3010
+          Write-Host "VS 2026 Build Tools installation completed"
 
       - name: Configure build paths
         shell: powershell

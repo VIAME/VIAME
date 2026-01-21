@@ -1,0 +1,791 @@
+#!/usr/bin/env python
+# This file is part of VIAME, and is distributed under an OSI-approved
+# BSD 3-Clause License. See either the root top-level LICENSE file or
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.
+
+"""
+Interactive Stereo Service
+
+A persistent process that keeps stereo depth algorithms loaded and handles
+disparity computation requests via stdin/stdout JSON protocol. Designed for
+interactive stereo annotation where lines drawn on the left image are automatically
+transferred to the right image using disparity mapping.
+
+This service uses KWIVER vital algorithms configured via config files:
+- ComputeStereoDepthMap: For stereo disparity/depth computation
+
+Unlike SAM, this service proactively computes disparity maps when the user navigates
+to a new frame, so the disparity is ready when they draw annotations.
+
+Usage:
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe --plugin-path /path/to/plugins
+
+Protocol:
+    Input (JSON per line on stdin):
+    {
+        "id": "unique-request-id",
+        "command": "set_frame",
+        "left_image_path": "/path/to/left.png",
+        "right_image_path": "/path/to/right.png"
+    }
+
+    Output (JSON per line on stdout):
+    {
+        "id": "unique-request-id",
+        "success": true,
+        "message": "Disparity computation started"
+    }
+
+    Commands:
+    - "enable": Load the algorithm and enable the service (requires calibration)
+    - "disable": Unload the algorithm and disable the service
+    - "set_frame": Start computing disparity for stereo pair (proactive)
+    - "cancel": Cancel current disparity computation
+    - "get_status": Get current status (enabled, computing, ready)
+    - "transfer_line": Transfer a line from left to right image using disparity
+    - "transfer_points": Transfer multiple points from left to right image
+    - "shutdown": Gracefully terminate the service
+"""
+
+import argparse
+import json
+import os
+import sys
+import threading
+import queue
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+
+
+class InteractiveStereoService:
+    """
+    Interactive Stereo Service using KWIVER vital algorithms.
+
+    Handles stdin/stdout JSON protocol communication and delegates
+    to configured vital algorithms for disparity computation.
+    """
+
+    def __init__(
+        self,
+        compute_stereo_depth_map_algo,
+        scale: float = 1.0,
+    ):
+        """
+        Initialize the service with configured algorithms.
+
+        Args:
+            compute_stereo_depth_map_algo: Configured ComputeStereoDepthMap algorithm instance
+            scale: Scale factor for input images (<=1.0). Lower = faster but less accurate.
+        """
+        self._stereo_algo = compute_stereo_depth_map_algo
+        self._scale = scale
+        self._enabled = False
+
+        # Calibration parameters
+        self._calibration = None
+        self._focal_length = 0.0
+        self._baseline = 0.0
+        self._principal_x = 0.0
+        self._principal_y = 0.0
+
+        # Current frame state
+        self._current_left_path: Optional[str] = None
+        self._current_right_path: Optional[str] = None
+        self._current_disparity: Optional[np.ndarray] = None
+        self._disparity_ready = False
+
+        # Disparity cache - stores last N computed disparities
+        # Key: (left_path, right_path), Value: disparity array
+        self._disparity_cache: Dict[Tuple[str, str], np.ndarray] = {}
+        self._cache_order: List[Tuple[str, str]] = []  # Track insertion order for LRU
+        self._max_cache_size = 4  # Keep last 4 disparity maps
+
+        # Background computation
+        self._compute_thread: Optional[threading.Thread] = None
+        self._cancel_event = threading.Event()
+        self._compute_lock = threading.Lock()
+        self._compute_queue = queue.Queue()
+
+    def _log(self, message: str) -> None:
+        """Log to stderr (stdout is reserved for JSON responses)."""
+        print(f"[InteractiveStereo] {message}", file=sys.stderr, flush=True)
+
+    def _send_response(self, response: Dict[str, Any]) -> None:
+        """Send JSON response to stdout."""
+        print(json.dumps(response), flush=True)
+
+    def _send_error(self, request_id: Optional[str], error: str) -> None:
+        """Send error response."""
+        self._send_response({
+            "id": request_id,
+            "success": False,
+            "error": error,
+        })
+
+    def _add_to_cache(self, left_path: str, right_path: str, disparity: np.ndarray) -> None:
+        """Add a disparity map to the cache with LRU eviction."""
+        cache_key = (left_path, right_path)
+
+        # If already in cache, move to end of order list
+        if cache_key in self._disparity_cache:
+            self._cache_order.remove(cache_key)
+            self._cache_order.append(cache_key)
+            return
+
+        # Evict oldest if at capacity
+        while len(self._cache_order) >= self._max_cache_size:
+            oldest_key = self._cache_order.pop(0)
+            if oldest_key in self._disparity_cache:
+                del self._disparity_cache[oldest_key]
+                self._log(f"Evicted disparity from cache: {oldest_key[0]}")
+
+        # Add to cache
+        self._disparity_cache[cache_key] = disparity
+        self._cache_order.append(cache_key)
+        self._log(f"Added disparity to cache. Cache size: {len(self._cache_order)}")
+
+    def _get_from_cache(self, left_path: str, right_path: str) -> Optional[np.ndarray]:
+        """Get a disparity map from the cache if available."""
+        cache_key = (left_path, right_path)
+        disparity = self._disparity_cache.get(cache_key)
+        if disparity is not None:
+            # Move to end of order list (most recently used)
+            self._cache_order.remove(cache_key)
+            self._cache_order.append(cache_key)
+            self._log(f"Cache hit for: {left_path}")
+        return disparity
+
+    def _load_calibration(self, calibration_data: Dict[str, Any]) -> None:
+        """Load stereo calibration from JSON data."""
+        self._calibration = calibration_data
+
+        # Extract focal length from left camera
+        self._focal_length = float(calibration_data.get('fx_left', 0.0))
+        self._principal_x = float(calibration_data.get('cx_left', 0.0))
+        self._principal_y = float(calibration_data.get('cy_left', 0.0))
+
+        # Compute baseline from translation vector
+        T = calibration_data.get('T', [0.0, 0.0, 0.0])
+        if isinstance(T, list) and len(T) >= 3:
+            self._baseline = abs(T[0])
+            if self._baseline < 1e-6:
+                self._baseline = np.sqrt(T[0]**2 + T[1]**2 + T[2]**2)
+        else:
+            self._baseline = 0.0
+
+        self._log(f"Loaded calibration: focal_length={self._focal_length}, "
+                  f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})")
+
+    def _load_image(self, image_path: str):
+        """Load an image and return a vital ImageContainer."""
+        from kwiver.vital.types import ImageContainer, Image
+
+        from viame.core.segmentation_utils import load_image
+
+        imdata = load_image(image_path)
+        return ImageContainer(Image(imdata))
+
+    def _compute_disparity_sync(
+        self,
+        left_path: str,
+        right_path: str,
+    ) -> Optional[np.ndarray]:
+        """
+        Compute disparity for stereo pair synchronously using the configured algorithm.
+        Returns disparity map or None if cancelled.
+        """
+        if self._cancel_event.is_set():
+            return None
+
+        # Load images as ImageContainers
+        left_container = self._load_image(left_path)
+        right_container = self._load_image(right_path)
+
+        if self._cancel_event.is_set():
+            return None
+
+        # Call the algorithm's compute method
+        result_container = self._stereo_algo.compute(left_container, right_container)
+
+        if self._cancel_event.is_set():
+            return None
+
+        # Convert result to numpy array
+        result_image = result_container.image()
+        disp_npy = result_image.asarray()
+
+        # The algorithm returns disparity scaled by 256 as uint16
+        # Convert back to float disparity values
+        if disp_npy.dtype == np.uint16:
+            disp_npy = disp_npy.astype(np.float32) / 256.0
+
+        return disp_npy
+
+    def _background_compute_worker(self) -> None:
+        """Background thread that processes disparity computation requests."""
+        while True:
+            try:
+                task = self._compute_queue.get(timeout=0.5)
+            except queue.Empty:
+                continue
+
+            if task is None:
+                break
+
+            request_id, left_path, right_path = task
+
+            try:
+                self._cancel_event.clear()
+                self._log(f"Starting disparity computation for {left_path}")
+
+                disparity = self._compute_disparity_sync(left_path, right_path)
+
+                if disparity is not None and not self._cancel_event.is_set():
+                    with self._compute_lock:
+                        # Add to cache for future use
+                        self._add_to_cache(left_path, right_path, disparity)
+
+                        # Only update if this is still the current frame
+                        if (self._current_left_path == left_path and
+                                self._current_right_path == right_path):
+                            self._current_disparity = disparity
+                            self._disparity_ready = True
+                            self._log(f"Disparity ready for {left_path}")
+                            # Send async notification
+                            self._send_response({
+                                "id": request_id,
+                                "type": "disparity_ready",
+                                "success": True,
+                                "left_path": left_path,
+                            })
+                else:
+                    self._log("Disparity computation cancelled")
+
+            except Exception as e:
+                self._log(f"Error computing disparity: {e}")
+                import traceback
+                traceback.print_exc(file=sys.stderr)
+                self._send_response({
+                    "id": request_id,
+                    "type": "disparity_error",
+                    "success": False,
+                    "error": str(e),
+                })
+
+            self._compute_queue.task_done()
+
+    def _start_background_worker(self) -> None:
+        """Start the background computation worker thread."""
+        if self._compute_thread is None or not self._compute_thread.is_alive():
+            self._compute_thread = threading.Thread(
+                target=self._background_compute_worker,
+                daemon=True
+            )
+            self._compute_thread.start()
+
+    def _cancel_computation(self) -> None:
+        """Cancel any ongoing disparity computation."""
+        self._cancel_event.set()
+        # Clear the queue
+        while not self._compute_queue.empty():
+            try:
+                self._compute_queue.get_nowait()
+                self._compute_queue.task_done()
+            except queue.Empty:
+                break
+
+    def handle_enable(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Enable the service."""
+        if self._enabled:
+            return {
+                "success": True,
+                "message": "Already enabled",
+            }
+
+        # Load calibration if provided
+        calibration = request.get("calibration")
+        if calibration:
+            self._load_calibration(calibration)
+
+        self._enabled = True
+        self._start_background_worker()
+        self._log("Interactive stereo service enabled")
+
+        return {
+            "success": True,
+            "message": "Interactive stereo enabled",
+        }
+
+    def handle_disable(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Disable the service."""
+        if not self._enabled:
+            return {
+                "success": True,
+                "message": "Already disabled",
+            }
+
+        self._cancel_computation()
+        self._current_disparity = None
+        self._disparity_ready = False
+        self._current_left_path = None
+        self._current_right_path = None
+        self._enabled = False
+
+        self._log("Interactive stereo service disabled")
+        return {
+            "success": True,
+            "message": "Interactive stereo disabled",
+        }
+
+    def handle_set_calibration(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Update calibration parameters."""
+        calibration = request.get("calibration")
+        if not calibration:
+            raise ValueError("calibration is required")
+
+        self._load_calibration(calibration)
+        return {
+            "success": True,
+            "message": "Calibration updated",
+        }
+
+    def handle_set_frame(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Set the current frame and start computing disparity proactively.
+        Cancels any previous computation. Checks cache first.
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        left_path = request.get("left_image_path")
+        right_path = request.get("right_image_path")
+        request_id = request.get("id")
+
+        if not left_path or not right_path:
+            raise ValueError("left_image_path and right_image_path are required")
+
+        if not os.path.exists(left_path):
+            raise ValueError(f"Left image not found: {left_path}")
+        if not os.path.exists(right_path):
+            raise ValueError(f"Right image not found: {right_path}")
+
+        # Check if already computing this frame
+        with self._compute_lock:
+            if (self._current_left_path == left_path and
+                    self._current_right_path == right_path):
+                if self._disparity_ready:
+                    return {
+                        "success": True,
+                        "message": "Disparity already computed",
+                        "disparity_ready": True,
+                    }
+                else:
+                    return {
+                        "success": True,
+                        "message": "Disparity computation already in progress",
+                        "disparity_ready": False,
+                    }
+
+            # Check if we have this disparity cached
+            cached_disparity = self._get_from_cache(left_path, right_path)
+            if cached_disparity is not None:
+                self._log(f"Using cached disparity for: {left_path}")
+                self._current_left_path = left_path
+                self._current_right_path = right_path
+                self._current_disparity = cached_disparity
+                self._disparity_ready = True
+                return {
+                    "success": True,
+                    "message": "Disparity loaded from cache",
+                    "disparity_ready": True,
+                }
+
+            # Cancel current computation and start new one
+            self._cancel_computation()
+            self._current_left_path = left_path
+            self._current_right_path = right_path
+            self._current_disparity = None
+            self._disparity_ready = False
+
+        # Queue the new computation
+        self._compute_queue.put((request_id, left_path, right_path))
+
+        return {
+            "success": True,
+            "message": "Disparity computation started",
+            "disparity_ready": False,
+        }
+
+    def handle_cancel(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Cancel current disparity computation."""
+        self._cancel_computation()
+        return {
+            "success": True,
+            "message": "Computation cancelled",
+        }
+
+    def handle_get_status(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Get current service status."""
+        with self._compute_lock:
+            return {
+                "success": True,
+                "enabled": self._enabled,
+                "disparity_ready": self._disparity_ready,
+                "current_left_path": self._current_left_path,
+                "current_right_path": self._current_right_path,
+                "has_calibration": self._calibration is not None,
+            }
+
+    def handle_transfer_line(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Transfer a line from left image to right image using disparity.
+
+        Given a line defined by two points on the left image, compute the
+        corresponding points on the right image using the disparity map.
+        For horizontal stereo, x_right = x_left - disparity.
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        with self._compute_lock:
+            if not self._disparity_ready or self._current_disparity is None:
+                raise ValueError("Disparity not ready. Wait for disparity computation.")
+
+            line = request.get("line")
+            if not line or len(line) != 2:
+                raise ValueError("line must be a list of two [x, y] points")
+
+            # Extract points
+            p1 = line[0]
+            p2 = line[1]
+
+            H, W = self._current_disparity.shape[:2]
+
+            # Clamp coordinates to image bounds
+            def clamp_point(p):
+                x = max(0, min(W - 1, int(round(p[0]))))
+                y = max(0, min(H - 1, int(round(p[1]))))
+                return x, y
+
+            x1, y1 = clamp_point(p1)
+            x2, y2 = clamp_point(p2)
+
+            # Get disparity values at the line endpoints
+            disp1 = float(self._current_disparity[y1, x1])
+            disp2 = float(self._current_disparity[y2, x2])
+
+            # For horizontal stereo: x_right = x_left - disparity
+            # y stays the same (rectified stereo)
+            x1_right = p1[0] - disp1
+            x2_right = p2[0] - disp2
+
+            # Return transferred line
+            transferred_line = [
+                [float(x1_right), float(p1[1])],
+                [float(x2_right), float(p2[1])],
+            ]
+
+            # Also compute depth if calibration is available
+            depth_info = None
+            if self._focal_length > 0 and self._baseline > 0:
+                # depth = focal_length * baseline / disparity
+                depth1 = (self._focal_length * self._baseline) / max(disp1, 1e-6) if disp1 > 0 else None
+                depth2 = (self._focal_length * self._baseline) / max(disp2, 1e-6) if disp2 > 0 else None
+                depth_info = {
+                    "depth_point1": depth1,
+                    "depth_point2": depth2,
+                    "disparity_point1": disp1,
+                    "disparity_point2": disp2,
+                }
+
+            return {
+                "success": True,
+                "transferred_line": transferred_line,
+                "original_line": line,
+                "depth_info": depth_info,
+            }
+
+    def handle_transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Transfer multiple points from left image to right image using disparity.
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        with self._compute_lock:
+            if not self._disparity_ready or self._current_disparity is None:
+                raise ValueError("Disparity not ready. Wait for disparity computation.")
+
+            points = request.get("points")
+            if not points:
+                raise ValueError("points is required")
+
+            H, W = self._current_disparity.shape[:2]
+            transferred_points = []
+            disparity_values = []
+
+            for p in points:
+                x = max(0, min(W - 1, int(round(p[0]))))
+                y = max(0, min(H - 1, int(round(p[1]))))
+
+                disp = float(self._current_disparity[y, x])
+                x_right = p[0] - disp
+
+                transferred_points.append([float(x_right), float(p[1])])
+                disparity_values.append(disp)
+
+            return {
+                "success": True,
+                "transferred_points": transferred_points,
+                "original_points": points,
+                "disparity_values": disparity_values,
+            }
+
+    def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Route request to appropriate handler."""
+        command = request.get("command")
+
+        handlers = {
+            "enable": self.handle_enable,
+            "disable": self.handle_disable,
+            "set_calibration": self.handle_set_calibration,
+            "set_frame": self.handle_set_frame,
+            "cancel": self.handle_cancel,
+            "get_status": self.handle_get_status,
+            "transfer_line": self.handle_transfer_line,
+            "transfer_points": self.handle_transfer_points,
+        }
+
+        handler = handlers.get(command)
+        if not handler:
+            raise ValueError(f"Unknown command: {command}")
+
+        return handler(request)
+
+    def run(self) -> None:
+        """Main loop: read JSON requests from stdin, write responses to stdout."""
+        self._log("Service started, waiting for requests...")
+
+        for line in sys.stdin:
+            line = line.strip()
+            if not line:
+                continue
+
+            request_id = None
+            try:
+                request = json.loads(line)
+                request_id = request.get("id")
+
+                # Handle shutdown command
+                if request.get("command") == "shutdown":
+                    self._log("Shutdown requested")
+                    self._cancel_computation()
+                    if self._compute_queue:
+                        self._compute_queue.put(None)  # Signal worker to exit
+                    self._send_response({
+                        "id": request_id,
+                        "success": True,
+                        "message": "Shutting down",
+                    })
+                    break
+
+                # Process request
+                response = self.handle_request(request)
+                response["id"] = request_id
+                self._send_response(response)
+
+            except json.JSONDecodeError as e:
+                self._send_error(request_id, f"Invalid JSON: {e}")
+            except Exception as e:
+                self._log(f"Error processing request: {e}")
+                import traceback
+                traceback.print_exc(file=sys.stderr)
+                self._send_error(request_id, str(e))
+
+        self._log("Service shutting down")
+
+
+def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None):
+    """
+    Load and configure the ComputeStereoDepthMap algorithm from a KWIVER config file.
+
+    Args:
+        config_path: Path to the config file
+        plugin_paths: Optional list of additional plugin paths to load
+
+    Returns:
+        Tuple of (compute_stereo_depth_map_algo, service_config)
+    """
+    from kwiver.vital.algo import ComputeStereoDepthMap
+    from kwiver.vital.config import config as vital_config
+    from kwiver.vital.modules import modules as vital_modules
+
+    # Load plugin modules
+    vital_modules.load_known_modules()
+
+    if plugin_paths:
+        for path in plugin_paths:
+            if os.path.isdir(path):
+                vital_modules.load_module(path)
+
+    # Read config file
+    cfg = vital_config.empty_config()
+
+    with open(config_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' in line:
+                key, value = line.split('=', 1)
+                cfg.set_value(key.strip(), value.strip())
+
+    # Create compute_stereo_depth_map algorithm
+    stereo_algo = None
+    if cfg.has_value("compute_stereo_depth_map:type"):
+        impl_name = cfg.get_value("compute_stereo_depth_map:type")
+        stereo_algo = ComputeStereoDepthMap.create(impl_name)
+        stereo_algo.set_configuration(cfg.subblock("compute_stereo_depth_map:" + impl_name))
+
+    # Extract service configuration
+    service_config = {
+        "scale": float(cfg.get_value("service:scale")) if cfg.has_value("service:scale") else 1.0,
+    }
+
+    return stereo_algo, service_config
+
+
+def find_viame_config() -> Optional[str]:
+    """
+    Find the default stereo config file in VIAME install.
+
+    Returns:
+        Path to config file if found, None otherwise
+    """
+    viame_install = os.environ.get("VIAME_INSTALL")
+    if not viame_install:
+        return None
+
+    pipelines_dir = Path(viame_install) / "configs" / "pipelines"
+    config_path = pipelines_dir / "common_foundation_stereo.conf"
+    if config_path.exists():
+        return str(config_path)
+
+    return None
+
+
+def create_default_config(output_path: str):
+    """
+    Create a default config file for the interactive stereo service.
+
+    This generates a config file that uses the foundation_stereo algorithm.
+
+    Args:
+        output_path: Path to write the config file
+    """
+    config = """# Interactive Stereo Service Configuration
+# This config file sets up the ComputeStereoDepthMap algorithm for interactive stereo.
+#
+# Include the shared foundation stereo config for model paths and defaults.
+# Uncomment the include line if running from VIAME install:
+# include common_foundation_stereo.pipe
+
+# Stereo depth/disparity algorithm
+compute_stereo_depth_map:type = foundation_stereo
+compute_stereo_depth_map:foundation_stereo:checkpoint_path =
+compute_stereo_depth_map:foundation_stereo:vit_size = vits
+compute_stereo_depth_map:foundation_stereo:device = cuda
+compute_stereo_depth_map:foundation_stereo:scale = 0.25
+compute_stereo_depth_map:foundation_stereo:use_half_precision = true
+compute_stereo_depth_map:foundation_stereo:num_iters = 32
+compute_stereo_depth_map:foundation_stereo:output_mode = disparity
+
+# Service settings
+service:scale = 1.0
+"""
+
+    with open(output_path, 'w') as f:
+        f.write(config)
+
+    print(f"Created default config: {output_path}", file=sys.stderr)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Interactive Stereo Service",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    # Use a config file
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe
+
+    # Generate a default config file
+    python -m viame.core.interactive_stereo --generate-config stereo.conf
+
+    # With additional plugin paths
+    python -m viame.core.interactive_stereo --config config.pipe --plugin-path /path/to/plugins
+        """
+    )
+    parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to KWIVER config file",
+    )
+    parser.add_argument(
+        "--generate-config",
+        default=None,
+        metavar="OUTPUT_PATH",
+        help="Generate a default config file and exit",
+    )
+    parser.add_argument(
+        "--plugin-path",
+        action="append",
+        default=[],
+        help="Additional plugin paths to load (can be specified multiple times)",
+    )
+    args = parser.parse_args()
+
+    # Handle config generation
+    if args.generate_config:
+        create_default_config(args.generate_config)
+        return
+
+    # Require config file
+    if not args.config:
+        parser.error("--config is required (or use --generate-config to create one)")
+
+    if not Path(args.config).exists():
+        print(f"Error: Config file not found: {args.config}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        # Load algorithm from config
+        stereo_algo, service_config = load_algorithm_from_config(
+            args.config, args.plugin_path
+        )
+
+        if stereo_algo is None:
+            print("Error: No compute_stereo_depth_map algorithm configured", file=sys.stderr)
+            sys.exit(1)
+
+        # Create and run service
+        service = InteractiveStereoService(
+            compute_stereo_depth_map_algo=stereo_algo,
+            **service_config
+        )
+        service.run()
+
+    except KeyboardInterrupt:
+        print("[InteractiveStereo] Interrupted", file=sys.stderr)
+    except Exception as e:
+        print(f"[InteractiveStereo] Fatal error: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

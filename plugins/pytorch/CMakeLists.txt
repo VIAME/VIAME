@@ -224,9 +224,9 @@ if( VIAME_ENABLE_PYTORCH-SAM2 )
       sam2_refiner )
 
     kwiver_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam2_interactive.py
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam2_segmenter.py
       pytorch
-      sam2_interactive )
+      sam2_segmenter )
 
 endif()
 
@@ -238,9 +238,14 @@ if( VIAME_ENABLE_PYTORCH-SAM3 )
       sam3_utilities )
 
     kwiver_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_interactive.py
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_segmenter.py
       pytorch
-      sam3_interactive )
+      sam3_segmenter )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_text_query.py
+      pytorch
+      sam3_text_query )
 
     kwiver_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/sam3_tracker.py

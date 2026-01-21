@@ -3,6 +3,7 @@
 # This script wraps Python package builds to skip compilation when source hasn't changed.
 # It checks a hash file and only runs the actual build if the hash differs.
 # Optionally supports C++ build/install steps before the Python build.
+# Also handles pip install with force-reinstall logic for rebuilds.
 #
 # Required variables:
 #   LIB_NAME        - Name of the library
@@ -15,6 +16,10 @@
 #   CPP_INSTALL_CMD  - C++ install command (run after C++ build)
 #   PYTHON_BUILD_CMD - Python build command (preferred name)
 #   BUILD_COMMAND    - Python build command (legacy name, same as PYTHON_BUILD_CMD)
+#   WHEEL_DIR        - Directory containing built wheels (for pip install)
+#   PIP_INSTALL_SCRIPT - Path to pip_install_with_lock.cmake
+#   Python_EXECUTABLE - Python executable for pip install
+#   NO_CACHE_DIR     - If TRUE, pass --no-cache-dir to pip
 #   ENV_VARS         - Environment variables (----separated KEY=VALUE pairs)
 #   TMPDIR           - Temporary directory for Python builds
 
@@ -98,9 +103,21 @@ if( EXISTS "${HASH_FILE}" )
 endif()
 
 # Compare hashes
-if( CURRENT_HASH STREQUAL STORED_HASH )
+# Always rebuild if source is dirty (has uncommitted changes) since the dirty hash
+# doesn't capture the actual content of local modifications
+string( FIND "${CURRENT_HASH}" "-dirty" DIRTY_POS )
+if( DIRTY_POS GREATER -1 )
+  message( STATUS "${LIB_NAME}: Source is dirty, forcing rebuild" )
+  set( FORCE_REBUILD TRUE )
+else()
+  set( FORCE_REBUILD FALSE )
+endif()
+
+set( SHOULD_BUILD FALSE )
+if( NOT FORCE_REBUILD AND CURRENT_HASH STREQUAL STORED_HASH )
   message( STATUS "${LIB_NAME}: Source unchanged (${CURRENT_HASH}), skipping build" )
 else()
+  set( SHOULD_BUILD TRUE )
   if( STORED_HASH )
     message( STATUS "${LIB_NAME}: Source changed (${STORED_HASH} -> ${CURRENT_HASH}), running build" )
   else()
@@ -178,4 +195,31 @@ else()
 
   # Store the new hash only after successful build
   file( WRITE "${HASH_FILE}" "${CURRENT_HASH}" )
+endif()
+
+# Run pip install if wheel dir is provided and build occurred
+if( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE AND SHOULD_BUILD )
+  # Force reinstall without deps only for rebuilds (not first build)
+  # First build: STORED_HASH is empty, need deps
+  # Rebuild: STORED_HASH exists, skip deps
+  if( STORED_HASH )
+    set( USE_FORCE_REINSTALL TRUE )
+  else()
+    set( USE_FORCE_REINSTALL FALSE )
+  endif()
+
+  execute_process(
+    COMMAND ${CMAKE_COMMAND}
+      -DPython_EXECUTABLE=${Python_EXECUTABLE}
+      -DWHEEL_DIR=${WHEEL_DIR}
+      -DNO_CACHE_DIR=${NO_CACHE_DIR}
+      -DFORCE_REINSTALL=${USE_FORCE_REINSTALL}
+      -P ${PIP_INSTALL_SCRIPT}
+    RESULT_VARIABLE PIP_RESULT
+  )
+  if( NOT PIP_RESULT EQUAL 0 )
+    message( FATAL_ERROR "${LIB_NAME}: pip install failed with exit code ${PIP_RESULT}" )
+  endif()
+elseif( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE )
+  message( STATUS "${LIB_NAME}: Build skipped, skipping pip install" )
 endif()

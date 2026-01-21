@@ -21,7 +21,7 @@ from PIL import Image
 import torch
 import torchvision
 
-from kwiver.sprokit.processes.pytorch.srnn import models
+from viame.pytorch.srnn import models
 
 
 def run_pipeline_in_dir(dir_path, pipeline):
@@ -54,9 +54,10 @@ DESCRIPTOR_PIPELINE_TEMPLATE = textwrap.dedent("""
             dy = 30
         endblock
 
-    process descriptors :: {process}
+    process descriptors :: pytorch_descriptors
         gpu_list = None
-        {network}_model_path = model.pt
+        model_arch = {network}
+        model_path = model.pt
 
     connect from images.image to detections.image
     connect from images.image to descriptors.image
@@ -65,9 +66,9 @@ DESCRIPTOR_PIPELINE_TEMPLATE = textwrap.dedent("""
 """)
 
 
-def build_descriptor_pipeline(process, network, timestamp=True):
+def build_descriptor_pipeline(network, timestamp=True):
     DPT = DESCRIPTOR_PIPELINE_TEMPLATE
-    return DPT.format(process=process, network=network) + (
+    return DPT.format(network=network) + (
         "connect from images.timestamp to descriptors.timestamp\n"
         if timestamp else ''
     )
@@ -84,7 +85,7 @@ def create_test_image_list(dir_path):
         f.writelines(itertools.repeat('image.png\n', 10))
 
 
-def _test_descriptors(model_func, *args, **kwargs):
+def _test_descriptors(model_func, network, timestamp=True):
     """Run a test pipeline for the given type of feature extractor
 
     See the test_*_descriptors functions for how this is used.
@@ -95,21 +96,49 @@ def _test_descriptors(model_func, *args, **kwargs):
         # Create all files required by the pipeline file
         torch.save(model_func().state_dict(), j('model.pt'))
         create_test_image_list(dir_)
-        pipeline = build_descriptor_pipeline(*args, **kwargs)
+        pipeline = build_descriptor_pipeline(network, timestamp=timestamp)
         run_pipeline_in_dir(dir_, pipeline)
 
 
 def test_alexnet_descriptors():
-    _test_descriptors(torchvision.models.alexnet, 'alexnet_descriptors', 'alexnet')
+    _test_descriptors(torchvision.models.alexnet, 'alexnet')
 
 
 def test_resnet_descriptors():
-    _test_descriptors(torchvision.models.resnet50, 'resnet_descriptors', 'resnet')
+    _test_descriptors(torchvision.models.resnet50, 'resnet')
 
 
 def test_desc_augmentation():
-    # It has the same input interface, so close enough
-    _test_descriptors(torchvision.models.resnet50, 'desc_augmentation', 'resnet', timestamp=False)
+    """Test the desc_augmentation process which uses resnet_model_path config."""
+    with tempfile.TemporaryDirectory() as dir_:
+        def j(*args): return os.path.join(dir_, *args)
+        torch.save(torchvision.models.resnet50().state_dict(), j('model.pt'))
+        create_test_image_list(dir_)
+        pipeline = textwrap.dedent("""
+            config _scheduler
+                type = pythread_per_process
+
+            process images :: frame_list_input
+                image_list_file = image_list.txt
+                image_reader:type = ocv
+
+            process detections :: image_object_detector
+                detector:type = example_detector
+                block detector:example_detector
+                    dx = 50
+                    dy = 30
+                endblock
+
+            process descriptors :: desc_augmentation
+                gpu_list = None
+                resnet_model_path = model.pt
+
+            connect from images.image to detections.image
+            connect from images.image to descriptors.image
+            connect from detections.detected_object_set
+                    to descriptors.detected_object_set
+        """)
+        run_pipeline_in_dir(dir_, pipeline)
 
 
 TUT_PIPELINE_TEMPLATE = textwrap.dedent("""
@@ -127,12 +156,17 @@ TUT_PIPELINE_TEMPLATE = textwrap.dedent("""
             dy = 30
         endblock
 
-    process tracker :: srnn_tracker
-        gpu_list = None
-        siamese_model_path = siamese_model.pt
-        targetRNN_AIM_model_path = lstm_model.pt
-        targetRNN_AIM_V_model_path = lstm_model.pt
-        IOU_tracker_flag = {iou_tracking}
+    process tracker
+        :: track_objects
+        :track_objects:type                       srnn
+
+    block track_objects:srnn
+        :gpu_list                                 None
+        :siamese_model_path                       siamese_model.pt
+        :targetRNN_AIM_model_path                 lstm_model.pt
+        :targetRNN_AIM_V_model_path               lstm_model.pt
+        :IOU_tracker_flag                         {iou_tracking}
+    endblock
 
     connect from images.image to detections.image
     connect from images.image to tracker.image

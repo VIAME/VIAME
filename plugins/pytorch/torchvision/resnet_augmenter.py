@@ -49,7 +49,7 @@ def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3
     return crop
 
 
-class AugmentedResnetDataLoader(data.Dataset):
+class AugmentedResNetDataLoader(data.Dataset):
     def __init__(self, bbox_list, transform, frame_img, in_size, rot_shifts):
         self._frame_img = pilImage.new( "RGB", frame_img.size )
         self._frame_img.paste( frame_img )
@@ -87,7 +87,7 @@ class AugmentedResnetDataLoader(data.Dataset):
         return self._bbox_list.size() * self._rot_shifts
 
 
-class AugmentedResnetFeatureExtractor(object):
+class AugmentedResNetFeatureExtractor(object):
     """
     Obtain the appearance features from a trained pytorch resnet50
     model
@@ -127,10 +127,10 @@ class AugmentedResnetFeatureExtractor(object):
     def _obtain_feature(self, bbox_list):
         kwargs = {'num_workers': 0, 'pin_memory': True}
         if self.frame is not None:
-            bbox_loader_class = AugmentedResnetDataLoader(bbox_list, self._transform,
+            bbox_loader_class = AugmentedResNetDataLoader(bbox_list, self._transform,
                     self.frame, self._img_size, self._rotational_shifts)
         else:
-            raise ValueError("Trying to create AugmentedResnetDataLoader without a frame")
+            raise ValueError("Trying to create AugmentedResNetDataLoader without a frame")
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class,
                                 batch_size=self._b_size, shuffle=False, **kwargs)
 

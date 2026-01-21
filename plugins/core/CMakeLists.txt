@@ -125,8 +125,8 @@ if( VIAME_ENABLE_VXL )
   include_directories( SYSTEM ${VXL_CORE_INCLUDE_DIR} )
   include_directories( SYSTEM ${VXL_VGL_INCLUDE_DIR} )
   link_directories( ${VXL_LIBRARY_DIR} )
-  add_definitions( -DVIAME_ENABLE_VXL )
   set( AUX_LINK_LIBRARIES vgl ${AUX_LINK_LIBRARIES} )
+  set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_VXL ${AUX_COMPILE_DEFINITIONS} )
 endif()
 
 # OpenCV is used in some parsers for aux functionality if enabled
@@ -134,21 +134,21 @@ if( VIAME_ENABLE_OPENCV )
   find_package( OpenCV REQUIRED )
   include_directories( "${OpenCV_INCLUDE_DIRS}" )
   link_directories( "${OpenCV_LIBRARY_DIR}" )
-  add_definitions( -DVIAME_ENABLE_OPENCV )
   set( AUX_LINK_LIBRARIES
        ${OpenCV_LIBRARIES}
        kwiver::kwiver_algo_ocv
        ${AUX_LINK_LIBRARIES} )
+  set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_OPENCV ${AUX_COMPILE_DEFINITIONS} )
 endif()
 
 # ZLIB is used for reading NPZ files in camera_rig_io
 find_package( ZLIB )
 if( ZLIB_FOUND )
-  add_definitions( -DVIAME_ENABLE_ZLIB )
   set( AUX_LINK_LIBRARIES
        ${ZLIB_LIBRARIES}
        ${AUX_LINK_LIBRARIES} )
   include_directories( ${ZLIB_INCLUDE_DIRS} )
+  set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_ZLIB ${AUX_COMPILE_DEFINITIONS} )
 endif()
 
 # OpenMP is used for parallel evaluation in evaluate_models
@@ -163,6 +163,11 @@ target_link_libraries( viame_core
   PUBLIC               ${CORE_LINK_LIBRARIES}
                        ${AUX_LINK_LIBRARIES}
   )
+
+# Propagate compile definitions to dependent targets (important for ABI compatibility)
+if( AUX_COMPILE_DEFINITIONS )
+  target_compile_definitions( viame_core PUBLIC ${AUX_COMPILE_DEFINITIONS} )
+endif()
 
 set_target_properties( viame_core PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
@@ -344,6 +349,16 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.py
     core
     utils )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_segmentation.py
+    core
+    interactive_segmentation )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
+    core
+    interactive_stereo )
 
 endif()
 

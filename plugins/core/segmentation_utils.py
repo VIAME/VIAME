@@ -24,7 +24,7 @@ def simplify_polygon_to_max_points(
     polygon: List[List[float]],
     max_points: int = 25,
     min_tolerance: float = 0.1,
-    max_tolerance: float = 100.0,
+    max_tolerance: Optional[float] = None,
 ) -> List[List[float]]:
     """
     Simplify a polygon to have at most max_points vertices using Douglas-Peucker algorithm.
@@ -36,11 +36,12 @@ def simplify_polygon_to_max_points(
         polygon: List of [x, y] coordinate pairs
         max_points: Maximum number of points allowed in output polygon
         min_tolerance: Minimum tolerance for simplification
-        max_tolerance: Maximum tolerance for simplification
+        max_tolerance: Maximum tolerance for simplification (auto-computed if None)
 
     Returns:
         Simplified polygon as list of [x, y] coordinate pairs
     """
+    import math
     from shapely.geometry import Polygon as ShapelyPolygon
 
     if len(polygon) <= max_points:
@@ -54,16 +55,36 @@ def simplify_polygon_to_max_points(
     except Exception:
         return polygon
 
+    # Compute max_tolerance based on polygon size if not specified
+    # Use 10% of the bounding box diagonal as a reasonable max tolerance
+    if max_tolerance is None:
+        bounds = shape.bounds  # (minx, miny, maxx, maxy)
+        diagonal = math.sqrt((bounds[2] - bounds[0])**2 + (bounds[3] - bounds[1])**2)
+        max_tolerance = max(100.0, diagonal * 0.1)
+
     # Binary search to find optimal tolerance
     low = min_tolerance
     high = max_tolerance
     best_result = polygon
 
-    for _ in range(20):  # Max iterations for binary search
+    for _ in range(25):  # Max iterations for binary search
         mid = (low + high) / 2
         simplified = shape.simplify(mid, preserve_topology=True)
 
         if simplified.is_empty:
+            high = mid
+            continue
+
+        # Handle MultiPolygon: extract largest polygon
+        if simplified.geom_type == 'MultiPolygon':
+            valid_polys = [g for g in simplified.geoms if g.geom_type == 'Polygon' and not g.is_empty]
+            if valid_polys:
+                simplified = max(valid_polys, key=lambda p: p.area)
+            else:
+                high = mid
+                continue
+
+        if simplified.geom_type != 'Polygon' or simplified.exterior is None:
             high = mid
             continue
 
@@ -80,6 +101,14 @@ def simplify_polygon_to_max_points(
         if abs(num_points - max_points) <= 2 and num_points <= max_points:
             break
 
+    # If we still have too many points (rare edge case), try one more aggressive simplification
+    if len(best_result) > max_points:
+        simplified = shape.simplify(high * 2, preserve_topology=True)
+        if not simplified.is_empty and simplified.geom_type == 'Polygon' and simplified.exterior is not None:
+            coords = list(simplified.exterior.coords)
+            if len(coords) <= max_points:
+                best_result = [[float(x), float(y)] for x, y in coords]
+
     return best_result
 
 
@@ -88,7 +117,7 @@ def adaptive_simplify_polygon(
     max_points: int = 25,
     min_points: int = 4,
     min_tolerance: float = 0.1,
-    max_tolerance: float = 100.0,
+    max_tolerance: Optional[float] = None,
 ) -> List[List[float]]:
     """
     Adaptively simplify a polygon based on its shape complexity.
@@ -111,7 +140,7 @@ def adaptive_simplify_polygon(
         max_points: Maximum number of points allowed in output polygon
         min_points: Minimum number of points (default 4 for basic shapes)
         min_tolerance: Minimum tolerance for Douglas-Peucker simplification
-        max_tolerance: Maximum tolerance for Douglas-Peucker simplification
+        max_tolerance: Maximum tolerance for simplification (auto-computed if None)
 
     Returns:
         Simplified polygon as list of [x, y] coordinate pairs
@@ -131,6 +160,12 @@ def adaptive_simplify_polygon(
             return polygon
     except Exception:
         return polygon
+
+    # Compute max_tolerance based on polygon size if not specified
+    if max_tolerance is None:
+        bounds = shape.bounds  # (minx, miny, maxx, maxy)
+        diagonal = math.sqrt((bounds[2] - bounds[0])**2 + (bounds[3] - bounds[1])**2)
+        max_tolerance = max(100.0, diagonal * 0.1)
 
     # Calculate shape metrics
     area = shape.area
@@ -175,11 +210,24 @@ def adaptive_simplify_polygon(
     high = max_tolerance
     best_result = polygon
 
-    for _ in range(20):  # Max iterations for binary search
+    for _ in range(25):  # Max iterations for binary search
         mid = (low + high) / 2
         simplified = shape.simplify(mid, preserve_topology=True)
 
         if simplified.is_empty:
+            high = mid
+            continue
+
+        # Handle MultiPolygon: extract largest polygon
+        if simplified.geom_type == 'MultiPolygon':
+            valid_polys = [g for g in simplified.geoms if g.geom_type == 'Polygon' and not g.is_empty]
+            if valid_polys:
+                simplified = max(valid_polys, key=lambda p: p.area)
+            else:
+                high = mid
+                continue
+
+        if simplified.geom_type != 'Polygon' or simplified.exterior is None:
             high = mid
             continue
 
@@ -195,6 +243,14 @@ def adaptive_simplify_polygon(
         # Close enough
         if num_points <= target_points and num_points >= min_points:
             break
+
+    # If we still have too many points, try one more aggressive simplification
+    if len(best_result) > max_points:
+        simplified = shape.simplify(high * 2, preserve_topology=True)
+        if not simplified.is_empty and simplified.geom_type == 'Polygon' and simplified.exterior is not None:
+            coords = list(simplified.exterior.coords)
+            if len(coords) <= max_points:
+                best_result = [[float(x), float(y)] for x, y in coords]
 
     return best_result
 

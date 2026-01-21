@@ -212,7 +212,7 @@ jobs:
 
   build-windows:
     name: Windows CI Build
-    runs-on: windows-2019
+    runs-on: windows-2025  # VS 2026
     timeout-minutes: 360  # 6 hours for cached builds
 
     steps:
@@ -242,6 +242,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install numpy
+
+      - name: Install Visual Studio 2026 Build Tools
+        shell: powershell
+        run: |
+          Write-Host "Installing VS 2026 Build Tools..."
+          choco install visualstudio2026buildtools `
+            --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --includeRecommended --quiet" `
+            -y --ignore-package-exit-codes=3010
+          Write-Host "VS 2026 Build Tools installation completed"
 
       # Generate cache keys based on package hashes
       - name: Generate cache keys
@@ -348,6 +357,7 @@ jobs:
           mkdir build
           cd build
           cmake ..\src ^
+            -G "Visual Studio 18 2026" ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DVIAME_ENABLE_CUDA:BOOL=OFF ^
             -DVIAME_ENABLE_CUDNN:BOOL=OFF ^

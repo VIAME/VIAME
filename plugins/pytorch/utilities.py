@@ -828,7 +828,6 @@ def get_gpu_device(gpu_list=None):
         return torch.device('cpu'), False
     return torch.device('cuda:{}'.format(gpu_list[0])), True
 
-
 # =============================================================================
 # Grid Feature Utilities
 # =============================================================================

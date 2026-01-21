@@ -369,10 +369,10 @@ install_nodejs_and_yarn() {
 
 # Install CMake from source
 # Arguments:
-#   $1 = CMake version (default: 3.23.1)
+#   $1 = CMake version (default: 4.2.0)
 #   $2 = Install prefix (default: /usr/local)
 install_cmake() {
-  local cmake_version="${1:-3.23.1}"
+  local cmake_version="${1:-4.2.0}"
   local cmake_major_minor=$(echo "$cmake_version" | cut -d. -f1,2)
   local prefix="${2:-/usr/local}"
 

@@ -127,6 +127,16 @@ if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN AND Python_VERSION VERSION_GREATER "3.7
   list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
 endif()
 
+# On Windows, add torch lib directory to PATH so DLLs can be found when importing torch
+# This is required because Python 3.8+ changed DLL search behavior on Windows
+if( WIN32 )
+  set( TORCH_DLL_PATH "${VIAME_PYTHON_PACKAGES}/torch/lib<PS>${VIAME_INSTALL_PREFIX}/bin" )
+  if( VIAME_ENABLE_CUDA AND CUDA_TOOLKIT_ROOT_DIR )
+    set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${CUDA_TOOLKIT_ROOT_DIR}/bin" )
+  endif()
+  list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}" )
+endif()
+
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( "${LIB}" STREQUAL "pytorch" )
     set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/pytorch )
@@ -142,6 +152,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   set( LIBRARY_PIP_BUILD_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${LIB}-build )
   CreateDirectory( ${LIBRARY_PIP_BUILD_DIR} )
+  set( USE_BUILD_SCRIPT_FOR_INSTALL FALSE )
 
   if( "${LIB}" STREQUAL "pytorch-libs-deps" )
     # pytorch-libs-deps is a pip install of torch-dependent packages, not a source build
@@ -199,26 +210,28 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
             --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     endif()
-    set( LIBRARY_PIP_INSTALL_CMD
-      ${CMAKE_COMMAND}
-        -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
-        -DPython_EXECUTABLE=${Python_EXECUTABLE}
-        -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
-        -DNO_CACHE_DIR=${VIAME_BUILD_NO_CACHE_DIR}
-        -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
+    # Wheel install is handled by the build script (custom_build_python_dep.cmake)
+    # so it can pass FORCE_REINSTALL based on whether a rebuild occurred
+    set( LIBRARY_PIP_INSTALL_CMD "" )
+    set( USE_BUILD_SCRIPT_FOR_INSTALL TRUE )
   endif()
 
   # Convert install command and env vars to ----separated strings for the wrapper script
-  set( PYTORCH_INSTALL_ENV_VARS ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
-  string( REPLACE ";" "----" PYTORCH_INSTALL_CMD_STR "${LIBRARY_PIP_INSTALL_CMD}" )
-  string( REPLACE ";" "----" PYTORCH_INSTALL_ENV_STR "${PYTORCH_INSTALL_ENV_VARS}" )
+  if( USE_BUILD_SCRIPT_FOR_INSTALL )
+    # Wheel install is handled by build script, use no-op for install step
+    set( LIBRARY_PYTHON_INSTALL ${CMAKE_COMMAND} -E echo "Install handled by build step" )
+  else()
+    set( PYTORCH_INSTALL_ENV_VARS ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
+    string( REPLACE ";" "----" PYTORCH_INSTALL_CMD_STR "${LIBRARY_PIP_INSTALL_CMD}" )
+    string( REPLACE ";" "----" PYTORCH_INSTALL_ENV_STR "${PYTORCH_INSTALL_ENV_VARS}" )
 
-  set( LIBRARY_PYTHON_INSTALL
-    ${CMAKE_COMMAND}
-      -DCOMMAND_TO_RUN:STRING=${PYTORCH_INSTALL_CMD_STR}
-      -DENV_VARS:STRING=${PYTORCH_INSTALL_ENV_STR}
-      -DWORKING_DIR:PATH=${LIBRARY_LOCATION}
-      -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
+    set( LIBRARY_PYTHON_INSTALL
+      ${CMAKE_COMMAND}
+        -DCOMMAND_TO_RUN:STRING=${PYTORCH_INSTALL_CMD_STR}
+        -DENV_VARS:STRING=${PYTORCH_INSTALL_ENV_STR}
+        -DWORKING_DIR:PATH=${LIBRARY_LOCATION}
+        -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
+  endif()
 
   set( LIBRARY_PATCH_COMMAND "" )
   set( PROJECT_DEPS fletch python-deps )
@@ -238,12 +251,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${VIAME_PACKAGES_DIR}/pytorch )
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
-  elseif( "${LIB}" STREQUAL "torchvision" )
-    if( VIAME_PYTORCH_VERSION VERSION_LESS "1.11" )
-      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${VIAME_PATCHES_DIR}/torchvision
-        ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
-    endif()
   elseif( "${LIB}" STREQUAL "detectron2" )
     if( WIN32 )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -270,9 +277,17 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/mit-yolo
       ${VIAME_PACKAGES_DIR}/pytorch-libs/mit-yolo )
+  elseif( "${LIB}" STREQUAL "rf-detr" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/rf-detr
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/rf-detr )
   elseif( "${LIB}" STREQUAL "detectron2" OR
-          "${LIB}" STREQUAL "sam3" OR
-          "${LIB}" STREQUAL "foundation-stereo" )
+          "${LIB}" STREQUAL "sam3" )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
+  elseif( "${LIB}" STREQUAL "foundation-stereo" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/foundation-stereo
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/foundation-stereo )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   endif()
 
@@ -290,9 +305,18 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       -DLIB_NAME=${LIB}
       -DLIB_SOURCE_DIR=${LIBRARY_LOCATION}
       -DHASH_FILE=${LIB_HASH_FILE}
+      -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
       -DPYTHON_BUILD_CMD=${LIBRARY_PIP_BUILD_CMD_STR}
       -DENV_VARS:STRING=${PYTORCH_ENV_VARS_STR}
       -DWORKING_DIR:PATH=${LIBRARY_LOCATION} )
+
+  # For wheel builds, have the build script also handle pip install
+  if( USE_BUILD_SCRIPT_FOR_INSTALL )
+    list( APPEND CONDITIONAL_BUILD_CMD
+      -DPython_EXECUTABLE=${Python_EXECUTABLE}
+      -DPIP_INSTALL_SCRIPT=${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake
+      -DNO_CACHE_DIR=${VIAME_BUILD_NO_CACHE_DIR} )
+  endif()
 
   # mmdeploy has additional C++ build steps
   set( LIBRARY_CONFIGURE_CMD "" )
