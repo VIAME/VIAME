@@ -367,5 +367,15 @@ if( VIAME_ENABLE_PYTHON )
     core
     utils )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_segmentation.py
+    core
+    interactive_segmentation )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
+    core
+    interactive_stereo )
+
 endif()
 
