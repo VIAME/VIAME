@@ -12,7 +12,6 @@ The model is shared with SAM3Segmenter when using the same checkpoint/device
 to avoid loading duplicates into memory.
 """
 
-import contextlib
 import sys
 
 import numpy as np
@@ -21,7 +20,12 @@ import scriptconfig as scfg
 from kwiver.vital.algo import PerformTextQuery
 
 from viame.pytorch.utilities import vital_config_update, register_vital_algorithm
-from viame.pytorch.sam3_utilities import SharedSAM3ModelCache
+from viame.pytorch.sam3_utilities import (
+    SharedSAM3ModelCache,
+    image_to_rgb_numpy,
+    get_autocast_context,
+    compute_iou,
+)
 
 
 class SAM3TextQueryConfig(scfg.DataConfig):
@@ -108,30 +112,13 @@ class SAM3TextQuery(PerformTextQuery):
 
         self._log("Model initialized successfully")
 
-    def _image_to_rgb_numpy(self, image_container):
-        """Convert a KWIVER image container to RGB numpy array."""
-        img_np = image_container.image().asarray().astype('uint8')
-
-        if len(img_np.shape) == 2:
-            img_np = np.stack((img_np,) * 3, axis=-1)
-        elif img_np.shape[2] == 1:
-            img_np = np.stack((img_np[:, :, 0],) * 3, axis=-1)
-        elif img_np.shape[2] == 4:
-            img_np = img_np[:, :, :3]
-
-        return img_np
-
     def _run_text_query(self, image_np, text, threshold, max_detections):
         """Run text-based detection on an image."""
         import torch
 
         # Check if model supports text query
         if hasattr(self._model, 'predict_with_text'):
-            device = self._config.device
-            if str(device).startswith('cuda'):
-                autocast_context = torch.autocast(str(device).split(':')[0], dtype=torch.bfloat16)
-            else:
-                autocast_context = contextlib.nullcontext()
+            autocast_context = get_autocast_context(self._config.device)
 
             with self._model_lock:
                 with torch.inference_mode(), autocast_context:
@@ -150,12 +137,7 @@ class SAM3TextQuery(PerformTextQuery):
         """Fallback when text query is not supported."""
         import torch
 
-        device = self._config.device
-        if str(device).startswith('cuda'):
-            autocast_context = torch.autocast(str(device).split(':')[0], dtype=torch.bfloat16)
-        else:
-            autocast_context = contextlib.nullcontext()
-
+        autocast_context = get_autocast_context(self._config.device)
         detections = []
 
         # Try to use mask generator if available
@@ -283,7 +265,7 @@ class SAM3TextQuery(PerformTextQuery):
             if input_track_sets and img_idx < len(input_track_sets):
                 existing_tracks = input_track_sets[img_idx]
 
-            image_np = self._image_to_rgb_numpy(image_container)
+            image_np = image_to_rgb_numpy(image_container)
 
             detections = self._run_text_query(
                 image_np,
@@ -388,7 +370,7 @@ class SAM3TextQuery(PerformTextQuery):
                         continue
 
                     det_box = det.get('box', [0, 0, 0, 0])
-                    iou = self._compute_iou(track_boxes[track_idx], det_box)
+                    iou = compute_iou(track_boxes[track_idx], det_box)
 
                     if iou > best_iou:
                         best_iou = iou
@@ -451,25 +433,6 @@ class SAM3TextQuery(PerformTextQuery):
             next_track_id += 1
 
         return ObjectTrackSet(updated_tracks), next_track_id
-
-    def _compute_iou(self, box1, box2):
-        """Compute IoU between two boxes [x1, y1, x2, y2]."""
-        x1 = max(box1[0], box2[0])
-        y1 = max(box1[1], box2[1])
-        x2 = min(box1[2], box2[2])
-        y2 = min(box1[3], box2[3])
-
-        inter_area = max(0, x2 - x1) * max(0, y2 - y1)
-
-        box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
-        box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
-
-        union_area = box1_area + box2_area - inter_area
-
-        if union_area <= 0:
-            return 0.0
-
-        return inter_area / union_area
 
 
 def __vital_algorithm_register__():

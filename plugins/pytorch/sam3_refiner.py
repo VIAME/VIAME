@@ -29,7 +29,7 @@ from PIL import Image as PILImage
 from viame.pytorch.sam3_utilities import (
     SAM3BaseConfig, SAM3ModelManager,
     mask_to_polygon, mask_to_points, box_from_mask, compute_iou,
-    image_to_rgb_numpy, get_autocast_context
+    image_to_rgb_numpy, get_autocast_context, parse_bool
 )
 from viame.pytorch.utilities import vital_config_update
 
@@ -119,10 +119,10 @@ class SAM3Refiner(RefineTracks):
         # Convert types
         self._iou_threshold = float(self._config.iou_threshold)
         self._min_mask_area = int(self._config.min_mask_area)
-        self._resegment_existing = self._config.resegment_existing in ('True', 'true', '1', True)
-        self._add_new_objects = self._config.add_new_objects in ('True', 'true', '1', True)
-        self._filter_by_quality = self._config.filter_by_quality in ('True', 'true', '1', True)
-        self._adjust_boxes = self._config.adjust_boxes in ('True', 'true', '1', True)
+        self._resegment_existing = parse_bool(self._config.resegment_existing)
+        self._add_new_objects = parse_bool(self._config.add_new_objects)
+        self._filter_by_quality = parse_bool(self._config.filter_by_quality)
+        self._adjust_boxes = parse_bool(self._config.adjust_boxes)
         self._max_new_objects = int(self._config.max_new_objects)
         self._detection_threshold = float(self._config.detection_threshold)
         self._text_threshold = float(self._config.text_threshold)
@@ -420,7 +420,7 @@ class Sam3DetectionRefiner(RefineDetections):
         self._model_manager.init_models(model_config, use_video_predictor=False)
 
         # Parse config values
-        self._overwrite_existing = self._kwiver_config['overwrite_existing'] in ('True', 'true', '1', True)
+        self._overwrite_existing = parse_bool(self._kwiver_config['overwrite_existing'])
         self._output_type = self._kwiver_config['output_type']
         self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
 

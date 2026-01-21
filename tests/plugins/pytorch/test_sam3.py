@@ -394,6 +394,28 @@ class TestSAM3Utilities:
         ctx = get_autocast_context('cpu')
         assert isinstance(ctx, contextlib.nullcontext)
 
+    def test_parse_bool(self):
+        """Test boolean parsing utility."""
+        from viame.pytorch.sam3_utilities import parse_bool
+
+        # True values
+        assert parse_bool(True) is True
+        assert parse_bool('True') is True
+        assert parse_bool('true') is True
+        assert parse_bool('1') is True
+        assert parse_bool('yes') is True
+        assert parse_bool('on') is True
+        assert parse_bool(1) is True
+
+        # False values
+        assert parse_bool(False) is False
+        assert parse_bool('False') is False
+        assert parse_bool('false') is False
+        assert parse_bool('0') is False
+        assert parse_bool('no') is False
+        assert parse_bool('off') is False
+        assert parse_bool(0) is False
+
 
 # =============================================================================
 # SAM3 Model Manager Tests
@@ -435,18 +457,21 @@ class TestSAM3VitalAlgorithms:
 
     def test_import_sam3_segmenter(self):
         """Test that sam3_segmenter can be imported."""
+        pytest.importorskip('kwiver', reason="KWIVER not installed")
         from viame.pytorch import sam3_segmenter
         assert hasattr(sam3_segmenter, 'SAM3Segmenter')
         assert hasattr(sam3_segmenter, 'SAM3SegmenterConfig')
 
     def test_import_sam3_text_query(self):
         """Test that sam3_text_query can be imported."""
+        pytest.importorskip('kwiver', reason="KWIVER not installed")
         from viame.pytorch import sam3_text_query
         assert hasattr(sam3_text_query, 'SAM3TextQuery')
         assert hasattr(sam3_text_query, 'SAM3TextQueryConfig')
 
     def test_sam3_segmenter_config(self):
         """Test SAM3SegmenterConfig initialization and defaults."""
+        pytest.importorskip('kwiver', reason="KWIVER not installed")
         from viame.pytorch.sam3_segmenter import SAM3SegmenterConfig
 
         config = SAM3SegmenterConfig()
@@ -456,6 +481,7 @@ class TestSAM3VitalAlgorithms:
 
     def test_sam3_text_query_config(self):
         """Test SAM3TextQueryConfig initialization and defaults."""
+        pytest.importorskip('kwiver', reason="KWIVER not installed")
         from viame.pytorch.sam3_text_query import SAM3TextQueryConfig
 
         config = SAM3TextQueryConfig()

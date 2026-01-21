@@ -12,7 +12,6 @@ The model is shared with SAM3TextQuery when using the same checkpoint/device
 to avoid loading duplicates into memory.
 """
 
-import contextlib
 import sys
 
 import numpy as np
@@ -21,7 +20,11 @@ import scriptconfig as scfg
 from kwiver.vital.algo import SegmentViaPoints
 
 from viame.pytorch.utilities import vital_config_update, register_vital_algorithm
-from viame.pytorch.sam3_utilities import SharedSAM3ModelCache
+from viame.pytorch.sam3_utilities import (
+    SharedSAM3ModelCache,
+    image_to_rgb_numpy,
+    get_autocast_context,
+)
 
 
 class SAM3SegmenterConfig(scfg.DataConfig):
@@ -124,21 +127,8 @@ class SAM3Segmenter(SegmentViaPoints):
             from kwiver.vital.types import BoundingBox as BoundingBoxD
         from kwiver.vital.types.types import ImageContainer, Image
 
-        # Convert image to numpy array
-        img_array = image.image().asarray()
-
-        # Ensure RGB format
-        if img_array.ndim == 2:
-            img_array = np.stack([img_array] * 3, axis=-1)
-        elif img_array.shape[2] == 4:
-            img_array = img_array[:, :, :3]
-
-        # Ensure uint8
-        if img_array.dtype != np.uint8:
-            if img_array.max() <= 1.0:
-                img_array = (img_array * 255).astype(np.uint8)
-            else:
-                img_array = img_array.astype(np.uint8)
+        # Convert image to RGB numpy array
+        img_array = image_to_rgb_numpy(image)
 
         # Convert points to numpy arrays
         point_coords = np.array([[p.value(0), p.value(1)] for p in points], dtype=np.float32)
@@ -149,10 +139,7 @@ class SAM3Segmenter(SegmentViaPoints):
         if device is None and hasattr(self._predictor, 'model'):
             device = next(self._predictor.model.parameters()).device
 
-        if device is not None and str(device).startswith('cuda'):
-            autocast_context = torch.autocast(str(device).split(':')[0], dtype=torch.bfloat16)
-        else:
-            autocast_context = contextlib.nullcontext()
+        autocast_context = get_autocast_context(device)
 
         # Use lock to ensure thread safety when using shared predictor
         with self._model_lock:

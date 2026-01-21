@@ -995,3 +995,33 @@ def get_autocast_context(device):
         return torch.autocast(device_type, dtype=torch.bfloat16)
     else:
         return contextlib.nullcontext()
+
+
+def parse_bool(value):
+    """
+    Parse a value as a boolean.
+
+    Handles string values from KWIVER config files like 'True', 'true', '1',
+    as well as actual boolean and integer values.
+
+    Args:
+        value: Value to parse (str, bool, int)
+
+    Returns:
+        bool: Parsed boolean value
+
+    Example:
+        >>> parse_bool('True')
+        True
+        >>> parse_bool('false')
+        False
+        >>> parse_bool(1)
+        True
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value != 0
+    if isinstance(value, str):
+        return value.lower() in ('true', '1', 'yes', 'on')
+    return bool(value)
