@@ -26,7 +26,7 @@ SET "NODEJS_ROOT=C:\Program Files\nodejs"
 SET "NVIDIA_ROOT=C:\Program Files (x86)\NVIDIA Corporation"
 SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
 
-SET "MSVS_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\2026\Community"
+SET "MSVS_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools"
 SET "MSVS_ARCH=x64"
 SET "MSVS_TOOLSET=14.4"
 SET "MSVS_REDIST_VER=14.40.33807"
