@@ -85,10 +85,23 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
       set( NPM_GLOBAL_DIR "$ENV{USERPROFILE}/AppData/Roaming/npm" )
     endif()
 
+    # Try to get the npm prefix directory (where npm installs global packages)
+    set( NPM_PREFIX_DIR "" )
+    execute_process(
+      COMMAND ${NODE_EXECUTABLE} -e "console.log(require('child_process').execSync('npm config get prefix').toString().trim())"
+      OUTPUT_VARIABLE NPM_PREFIX_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
+      RESULT_VARIABLE NPM_PREFIX_RESULT
+    )
+
     # Build list of search paths for yarn
     set( YARN_SEARCH_PATHS )
     if( NODE_BIN_DIR )
       list( APPEND YARN_SEARCH_PATHS "${NODE_BIN_DIR}" )
+    endif()
+    if( NPM_PREFIX_DIR AND NPM_PREFIX_RESULT EQUAL 0 )
+      list( APPEND YARN_SEARCH_PATHS "${NPM_PREFIX_DIR}" )
     endif()
     if( NPM_GLOBAL_DIR AND NOT "${NPM_GLOBAL_DIR}" STREQUAL "" )
       list( APPEND YARN_SEARCH_PATHS "${NPM_GLOBAL_DIR}" )
@@ -97,27 +110,59 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
       list( APPEND YARN_SEARCH_PATHS "$ENV{LOCALAPPDATA}/npm" )
       list( APPEND YARN_SEARCH_PATHS "$ENV{LOCALAPPDATA}/Yarn/bin" )
     endif()
-    # Also check Program Files locations
+    # Also check Program Files and chocolatey locations
     list( APPEND YARN_SEARCH_PATHS "C:/Program Files/nodejs" )
     list( APPEND YARN_SEARCH_PATHS "C:/Program Files (x86)/Yarn/bin" )
+    list( APPEND YARN_SEARCH_PATHS "C:/Program Files/Yarn/bin" )
+    list( APPEND YARN_SEARCH_PATHS "C:/ProgramData/chocolatey/bin" )
+    # Check hostedtoolcache for GitHub Actions
+    if( DEFINED ENV{RUNNER_TOOL_CACHE} AND NOT "$ENV{RUNNER_TOOL_CACHE}" STREQUAL "" )
+      file( GLOB RUNNER_NODE_DIRS "$ENV{RUNNER_TOOL_CACHE}/node/*/x64" )
+      foreach( RUNNER_NODE_DIR ${RUNNER_NODE_DIRS} )
+        list( APPEND YARN_SEARCH_PATHS "${RUNNER_NODE_DIR}" )
+      endforeach()
+    endif()
 
-    # Check explicit paths first
+    # Check explicit paths first - look for yarn.cmd, yarn.ps1, and yarn.js
     foreach( SEARCH_PATH ${YARN_SEARCH_PATHS} )
       if( EXISTS "${SEARCH_PATH}/yarn.cmd" )
         set( YARN_EXECUTABLE "${SEARCH_PATH}/yarn.cmd" )
+        break()
+      elseif( EXISTS "${SEARCH_PATH}/yarn.ps1" )
+        set( YARN_EXECUTABLE "${SEARCH_PATH}/yarn.ps1" )
         break()
       endif()
     endforeach()
 
     # Fall back to find_program if not found
     if( NOT YARN_EXECUTABLE )
-      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn
+      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn.ps1 yarn
         PATHS ${YARN_SEARCH_PATHS}
         NO_DEFAULT_PATH
       )
     endif()
     if( NOT YARN_EXECUTABLE )
-      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn )
+      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn.ps1 yarn )
+    endif()
+
+    # If still not found, try enabling corepack (Node 16.10+) and using yarn from there
+    if( NOT YARN_EXECUTABLE )
+      message( STATUS "Yarn not found in standard paths, attempting to enable corepack..." )
+      execute_process(
+        COMMAND corepack enable
+        RESULT_VARIABLE COREPACK_ENABLE_RESULT
+        ERROR_QUIET
+      )
+      if( COREPACK_ENABLE_RESULT EQUAL 0 )
+        # After enabling corepack, search for yarn again
+        find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn.ps1 yarn
+          PATHS ${YARN_SEARCH_PATHS}
+          NO_DEFAULT_PATH
+        )
+        if( NOT YARN_EXECUTABLE )
+          find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn.ps1 yarn )
+        endif()
+      endif()
     endif()
   else()
     if( NODE_BIN_DIR AND EXISTS "${NODE_BIN_DIR}/yarn" )
@@ -131,8 +176,10 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     if( WIN32 )
       message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires yarn but it was not found.\n"
         "Searched paths: ${YARN_SEARCH_PATHS}\n"
+        "NPM prefix: ${NPM_PREFIX_DIR}\n"
         "APPDATA=$ENV{APPDATA}, USERPROFILE=$ENV{USERPROFILE}\n"
-        "Please install yarn (npm install -g yarn)." )
+        "RUNNER_TOOL_CACHE=$ENV{RUNNER_TOOL_CACHE}\n"
+        "Please install yarn (npm install -g yarn) or enable corepack (corepack enable)." )
     else()
       message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires yarn but it was not found. "
         "Please install yarn (npm install -g yarn)." )
