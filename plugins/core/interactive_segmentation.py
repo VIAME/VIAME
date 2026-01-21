@@ -84,6 +84,7 @@ class InteractiveSegmentationService:
         self,
         segment_via_points_algo,
         perform_text_query_algo=None,
+        image_io_algo=None,
         hole_policy: str = "remove",
         multipolygon_policy: str = "largest",
         max_polygon_points: int = 25,
@@ -95,6 +96,7 @@ class InteractiveSegmentationService:
         Args:
             segment_via_points_algo: Configured SegmentViaPoints algorithm instance
             perform_text_query_algo: Optional configured PerformTextQuery algorithm
+            image_io_algo: Optional configured ImageIO algorithm for loading images
             hole_policy: How to handle holes in masks ('allow' or 'remove')
             multipolygon_policy: How to handle multiple polygons ('allow', 'convex_hull', 'largest')
             max_polygon_points: Maximum number of points in output polygons
@@ -102,6 +104,7 @@ class InteractiveSegmentationService:
         """
         self._segment_algo = segment_via_points_algo
         self._text_query_algo = perform_text_query_algo
+        self._image_io_algo = image_io_algo
         self._hole_policy = hole_policy
         self._multipolygon_policy = multipolygon_policy
         self._max_polygon_points = max_polygon_points
@@ -127,12 +130,15 @@ class InteractiveSegmentationService:
 
     def _load_image(self, image_path: str):
         """Load an image and return a vital ImageContainer."""
+        # Use KWIVER ImageIO algorithm if available (preferred - handles memory layout properly)
+        if self._image_io_algo is not None:
+            return self._image_io_algo.load(image_path)
+
+        # Fallback to VitalPIL conversion
         from kwiver.vital.types import ImageContainer
         from kwiver.vital.util import VitalPIL
         from PIL import Image as PILImage
 
-        # Load image with PIL and convert to vital ImageContainer
-        # Using VitalPIL avoids memory layout issues with direct numpy conversion
         pil_img = PILImage.open(image_path).convert("RGB")
         vital_img = VitalPIL.from_pil(pil_img)
         return ImageContainer(vital_img)
@@ -238,8 +244,8 @@ class InteractiveSegmentationService:
             self._current_image_container = self._load_image(image_path)
             self._current_image_path = image_path
 
-        # Convert points to vital Point2d objects (requires numpy array)
-        vital_points = [Point2d(np.array([float(p[0]), float(p[1])], dtype=np.float64)) for p in points]
+        # Convert points to vital Point2d objects using x,y constructor
+        vital_points = [Point2d(float(p[0]), float(p[1])) for p in points]
         vital_labels = [int(label) for label in point_labels]
 
         # Run segmentation (suppress stdout to prevent library warnings corrupting JSON)
@@ -430,9 +436,9 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
         device: Optional device override (cuda, cpu, auto)
 
     Returns:
-        Tuple of (segment_via_points_algo, perform_text_query_algo, service_config)
+        Tuple of (segment_via_points_algo, perform_text_query_algo, image_io_algo, service_config)
     """
-    from kwiver.vital.algo import SegmentViaPoints, PerformTextQuery
+    from kwiver.vital.algo import SegmentViaPoints, PerformTextQuery, ImageIO
     from kwiver.vital.config import config as vital_config
     from kwiver.vital.modules import modules as vital_modules
 
@@ -539,6 +545,13 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
         text_query_algo = PerformTextQuery.create(impl_name)
         text_query_algo.set_configuration(cfg.subblock("perform_text_query:" + impl_name))
 
+    # Create image_io algorithm for loading images (optional but recommended)
+    image_io_algo = None
+    if cfg.has_value("image_io:type"):
+        impl_name = cfg.get_value("image_io:type")
+        image_io_algo = ImageIO.create(impl_name)
+        image_io_algo.set_configuration(cfg.subblock("image_io:" + impl_name))
+
     # Extract service configuration
     service_config = {
         "hole_policy": cfg.get_value("service:hole_policy") if cfg.has_value("service:hole_policy") else "remove",
@@ -547,7 +560,7 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
         "adaptive_simplify": cfg.get_value("service:adaptive_simplify").lower() in ('true', '1', 'yes') if cfg.has_value("service:adaptive_simplify") else False,
     }
 
-    return segment_algo, text_query_algo, service_config
+    return segment_algo, text_query_algo, image_io_algo, service_config
 
 
 def find_viame_config(model_type: str = "sam3") -> Optional[str]:
@@ -600,6 +613,9 @@ def create_default_config(output_path: str, model_type: str = "sam2"):
 # Uncomment the include line if running from VIAME install:
 # include common_sam2_segmenter.conf
 
+# Image loader algorithm (uses KWIVER native image loading)
+image_io:type = vxl
+
 # Point-based segmentation algorithm
 segment_via_points:type = sam2
 segment_via_points:sam2:checkpoint =
@@ -620,6 +636,9 @@ service:adaptive_simplify = false
 # Include the shared SAM3 segmenter config for model paths and defaults.
 # Uncomment the include line if running from VIAME install:
 # include common_sam3_segmenter.conf
+
+# Image loader algorithm (uses KWIVER native image loading)
+image_io:type = vxl
 
 # Point-based segmentation algorithm
 segment_via_points:type = sam3
@@ -726,7 +745,7 @@ Examples:
         # Suppress stdout during initialization to prevent library warnings
         # from corrupting the JSON protocol
         with suppress_stdout():
-            segment_algo, text_query_algo, service_config = load_algorithms_from_config(
+            segment_algo, text_query_algo, image_io_algo, service_config = load_algorithms_from_config(
                 args.config, args.plugin_path, args.device
             )
 
@@ -738,6 +757,7 @@ Examples:
         service = InteractiveSegmentationService(
             segment_via_points_algo=segment_algo,
             perform_text_query_algo=text_query_algo,
+            image_io_algo=image_io_algo,
             **service_config
         )
         service.run()
