@@ -459,9 +459,43 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
     return segment_algo, text_query_algo, service_config
 
 
+def find_viame_config(model_type: str = "sam3") -> Optional[str]:
+    """
+    Find the default segmentation config file in VIAME install.
+
+    Args:
+        model_type: Type of model ('sam2' or 'sam3')
+
+    Returns:
+        Path to config file if found, None otherwise
+    """
+    viame_install = os.environ.get("VIAME_INSTALL")
+    if not viame_install:
+        return None
+
+    pipelines_dir = Path(viame_install) / "configs" / "pipelines"
+
+    # Map model type to config file
+    config_files = {
+        "sam2": "common_sam2_segmenter.conf",
+        "sam3": "common_sam3_segmenter.conf",
+    }
+
+    config_name = config_files.get(model_type)
+    if config_name:
+        config_path = pipelines_dir / config_name
+        if config_path.exists():
+            return str(config_path)
+
+    return None
+
+
 def create_default_config(output_path: str, model_type: str = "sam2"):
     """
     Create a default config file for the segmentation service.
+
+    This generates a config file that includes the shared VIAME segmenter
+    config files (common_sam2_segmenter.conf or common_sam3_segmenter.conf).
 
     Args:
         output_path: Path to write the config file
@@ -469,7 +503,11 @@ def create_default_config(output_path: str, model_type: str = "sam2"):
     """
     if model_type == "sam2":
         config = """# Interactive Segmentation Service Configuration
-# This config file sets up the SegmentViaPoints algorithm
+# This config file sets up the SegmentViaPoints algorithm using SAM2.
+#
+# Include the shared SAM2 segmenter config for model paths and defaults.
+# Uncomment the include line if running from VIAME install:
+# include common_sam2_segmenter.conf
 
 # Point-based segmentation algorithm
 segment_via_points:type = sam2
@@ -485,7 +523,12 @@ service:adaptive_simplify = false
 """
     else:
         config = """# Interactive Segmentation Service Configuration
-# This config file sets up both SegmentViaPoints and PerformTextQuery algorithms
+# This config file sets up both SegmentViaPoints and PerformTextQuery
+# algorithms using SAM3.
+#
+# Include the shared SAM3 segmenter config for model paths and defaults.
+# Uncomment the include line if running from VIAME install:
+# include common_sam3_segmenter.conf
 
 # Point-based segmentation algorithm
 segment_via_points:type = sam3
