@@ -127,6 +127,16 @@ if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN AND Python_VERSION VERSION_GREATER "3.7
   list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
 endif()
 
+# On Windows, add torch lib directory to PATH so DLLs can be found when importing torch
+# This is required because Python 3.8+ changed DLL search behavior on Windows
+if( WIN32 )
+  set( TORCH_DLL_PATH "${VIAME_PYTHON_PACKAGES}/torch/lib<PS>${VIAME_INSTALL_PREFIX}/bin" )
+  if( VIAME_ENABLE_CUDA AND CUDA_TOOLKIT_ROOT_DIR )
+    set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${CUDA_TOOLKIT_ROOT_DIR}/bin" )
+  endif()
+  list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}" )
+endif()
+
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( "${LIB}" STREQUAL "pytorch" )
     set( LIBRARY_LOCATION ${VIAME_PACKAGES_DIR}/pytorch )
