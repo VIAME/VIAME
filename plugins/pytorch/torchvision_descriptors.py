@@ -16,7 +16,7 @@ from kwiver.vital.util.VitalPIL import get_pil_image
 
 from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
 
-class ResnetDescriptors(KwiverProcess):
+class ResNetDescriptors(KwiverProcess):
 
     # --------------------------------------------------------------------------
     def __init__(self, conf):
@@ -24,7 +24,7 @@ class ResnetDescriptors(KwiverProcess):
 
         # GPU list
         self.add_config_trait("gpu_list", "gpu_list", 'all',
-                              gpu_list_desc(use_for='Resnet descriptors'))
+                              gpu_list_desc(use_for='ResNet descriptors'))
         self.declare_config_using_trait('gpu_list')
 
         # Resnet
@@ -82,8 +82,8 @@ class ResnetDescriptors(KwiverProcess):
         batch_size = int(self.config_value('batch_size'))
 
         if model_arch == "resnet":
-            from viame.pytorch.torchvision.resnet_feature_extractor import ResnetFeatureExtractor
-            self._app_feature_extractor = ResnetFeatureExtractor(model_path,
+            from viame.pytorch.torchvision.resnet_feature_extractor import ResNetFeatureExtractor
+            self._app_feature_extractor = ResNetFeatureExtractor(model_path,
                 img_size, batch_size, self._gpu_list)
         elif model_arch == "alexnet":
             from viame.pytorch.torchvision.alexnet_feature_extractor import AlexNetFeatureExtractor
@@ -155,7 +155,7 @@ class ResnetDescriptors(KwiverProcess):
             raise
 
     def __del__(self):
-        print('!!!!Resnet tracking Deleting python process!!!!')
+        print('!!!!ResNet tracking Deleting python process!!!!')
 
 # ==============================================================================
 def __sprokit_register__():
@@ -168,6 +168,6 @@ def __sprokit_register__():
 
     process_factory.add_process('pytorch_descriptors',
                                 'pytorch feature extraction',
-                                ResnetDescriptors)
+                                ResNetDescriptors)
 
     process_factory.mark_process_module_as_loaded(module_name)

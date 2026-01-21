@@ -29,7 +29,7 @@ from timeit import default_timer as timer
 from kwiver.vital.util.VitalPIL import get_pil_image
 
 from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
-from viame.pytorch.torchvision.resnet_augmenter import AugmentedResnetFeatureExtractor
+from viame.pytorch.torchvision.resnet_augmenter import AugmentedResNetFeatureExtractor
 
 def to_vital(raw_data):
     if len(raw_data) == 0:
@@ -176,7 +176,7 @@ class DataAugmentation(KwiverProcess):
         resnet_batch_size = int(self.config_value('resnet_batch_size'))
         resnet_model_path = self.config_value('resnet_model_path')
 
-        self._app_feature_extractor = AugmentedResnetFeatureExtractor(resnet_model_path,
+        self._app_feature_extractor = AugmentedResNetFeatureExtractor(resnet_model_path,
           resnet_img_size, resnet_batch_size, self._gpu_list, self._rotational_shifts,
           self._resize_factor,self._int_shift_factor)
 

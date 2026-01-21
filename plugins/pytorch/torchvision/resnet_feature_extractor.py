@@ -11,7 +11,7 @@ from PIL import Image as pilImage
 
 from viame.pytorch.utilities import get_gpu_device, init_cudnn
 
-class ResnetDataLoader(data.Dataset):# This is the same as the siamese one it was based on
+class ResNetDataLoader(data.Dataset):# This is the same as the siamese one it was based on
     def __init__(self, bbox_list, transform, frame_img, in_size):
         self._frame_img = pilImage.new( "RGB", frame_img.size )
         self._frame_img.paste( frame_img )
@@ -54,7 +54,7 @@ class ResnetDataLoader(data.Dataset):# This is the same as the siamese one it wa
         return self._bbox_list.size()
 
 
-class ResnetFeatureExtractor(object):
+class ResNetFeatureExtractor(object):
     """
     Obtain the appearance features from a trained pytorch resnet50
     model
@@ -93,10 +93,10 @@ class ResnetFeatureExtractor(object):
     def _obtain_feature(self, bbox_list, MOT_flag):
         kwargs = {'num_workers': 0, 'pin_memory': True}
         if self.frame is not None:
-            bbox_loader_class = ResnetDataLoader(bbox_list, self._transform,
+            bbox_loader_class = ResNetDataLoader(bbox_list, self._transform,
                                                 self.frame, self._img_size)
         else:
-            raise ValueError("Trying to create ResenetDataLoader without a frame")
+            raise ValueError("Trying to create ResNetDataLoader without a frame")
 
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class,
                                 batch_size=self._b_size, shuffle=False, **kwargs)
