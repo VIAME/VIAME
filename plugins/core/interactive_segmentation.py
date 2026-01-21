@@ -110,12 +110,15 @@ class InteractiveSegmentationService:
 
     def _load_image(self, image_path: str):
         """Load an image and return a vital ImageContainer."""
-        from kwiver.vital.types.types import ImageContainer, Image
+        from kwiver.vital.types import ImageContainer
+        from kwiver.vital.util import VitalPIL
+        from PIL import Image as PILImage
 
-        from viame.core.segmentation_utils import load_image
-
-        imdata = load_image(image_path)
-        return ImageContainer(Image(imdata))
+        # Load image with PIL and convert to vital ImageContainer
+        # Using VitalPIL avoids memory layout issues with direct numpy conversion
+        pil_img = PILImage.open(image_path).convert("RGB")
+        vital_img = VitalPIL.from_pil(pil_img)
+        return ImageContainer(vital_img)
 
     def _detections_to_response(self, detected_objects) -> List[Dict[str, Any]]:
         """Convert DetectedObjectSet to response dictionaries."""
@@ -362,6 +365,13 @@ class InteractiveSegmentationService:
     def run(self) -> None:
         """Main loop: read JSON requests from stdin, write responses to stdout."""
         self._log("Service started, waiting for requests...")
+
+        # Send ready response so client knows we're initialized
+        self._send_response({
+            "status": "ready",
+            "success": True,
+            "message": "Segmentation service ready",
+        })
 
         for line in sys.stdin:
             line = line.strip()
