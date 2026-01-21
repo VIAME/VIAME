@@ -76,16 +76,48 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
 
   # Check for yarn - first in the same bin dir as node, then system-wide
   if( WIN32 )
-    # On Windows, also check the npm global directory which may not be in PATH
-    set( NPM_GLOBAL_DIR "$ENV{APPDATA}/npm" )
-    if( NODE_BIN_DIR AND EXISTS "${NODE_BIN_DIR}/yarn.cmd" )
-      set( YARN_EXECUTABLE "${NODE_BIN_DIR}/yarn.cmd" )
-    elseif( EXISTS "${NPM_GLOBAL_DIR}/yarn.cmd" )
-      set( YARN_EXECUTABLE "${NPM_GLOBAL_DIR}/yarn.cmd" )
-    else()
+    # On Windows, construct paths to npm global directory
+    # Try APPDATA first, fall back to USERPROFILE if not set
+    set( NPM_GLOBAL_DIR "" )
+    if( DEFINED ENV{APPDATA} AND NOT "$ENV{APPDATA}" STREQUAL "" )
+      set( NPM_GLOBAL_DIR "$ENV{APPDATA}/npm" )
+    elseif( DEFINED ENV{USERPROFILE} AND NOT "$ENV{USERPROFILE}" STREQUAL "" )
+      set( NPM_GLOBAL_DIR "$ENV{USERPROFILE}/AppData/Roaming/npm" )
+    endif()
+
+    # Build list of search paths for yarn
+    set( YARN_SEARCH_PATHS )
+    if( NODE_BIN_DIR )
+      list( APPEND YARN_SEARCH_PATHS "${NODE_BIN_DIR}" )
+    endif()
+    if( NPM_GLOBAL_DIR AND NOT "${NPM_GLOBAL_DIR}" STREQUAL "" )
+      list( APPEND YARN_SEARCH_PATHS "${NPM_GLOBAL_DIR}" )
+    endif()
+    if( DEFINED ENV{LOCALAPPDATA} AND NOT "$ENV{LOCALAPPDATA}" STREQUAL "" )
+      list( APPEND YARN_SEARCH_PATHS "$ENV{LOCALAPPDATA}/npm" )
+      list( APPEND YARN_SEARCH_PATHS "$ENV{LOCALAPPDATA}/Yarn/bin" )
+    endif()
+    # Also check Program Files locations
+    list( APPEND YARN_SEARCH_PATHS "C:/Program Files/nodejs" )
+    list( APPEND YARN_SEARCH_PATHS "C:/Program Files (x86)/Yarn/bin" )
+
+    # Check explicit paths first
+    foreach( SEARCH_PATH ${YARN_SEARCH_PATHS} )
+      if( EXISTS "${SEARCH_PATH}/yarn.cmd" )
+        set( YARN_EXECUTABLE "${SEARCH_PATH}/yarn.cmd" )
+        break()
+      endif()
+    endforeach()
+
+    # Fall back to find_program if not found
+    if( NOT YARN_EXECUTABLE )
       find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn
-        PATHS "${NPM_GLOBAL_DIR}" "$ENV{LOCALAPPDATA}/npm"
+        PATHS ${YARN_SEARCH_PATHS}
+        NO_DEFAULT_PATH
       )
+    endif()
+    if( NOT YARN_EXECUTABLE )
+      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn )
     endif()
   else()
     if( NODE_BIN_DIR AND EXISTS "${NODE_BIN_DIR}/yarn" )
@@ -95,19 +127,16 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     endif()
   endif()
 
-  if( NOT YARN_EXECUTABLE OR NOT EXISTS ${YARN_EXECUTABLE} )
-    if( WIN32 )
-      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn
-        PATHS "$ENV{APPDATA}/npm" "$ENV{LOCALAPPDATA}/npm"
-      )
-    else()
-      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn )
-    endif()
-  endif()
-
   if( NOT YARN_EXECUTABLE )
-    message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires yarn but it was not found. "
-      "Please install yarn (npm install -g yarn)." )
+    if( WIN32 )
+      message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires yarn but it was not found.\n"
+        "Searched paths: ${YARN_SEARCH_PATHS}\n"
+        "APPDATA=$ENV{APPDATA}, USERPROFILE=$ENV{USERPROFILE}\n"
+        "Please install yarn (npm install -g yarn)." )
+    else()
+      message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires yarn but it was not found. "
+        "Please install yarn (npm install -g yarn)." )
+    endif()
   endif()
 
   execute_process(
