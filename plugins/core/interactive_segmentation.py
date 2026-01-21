@@ -423,16 +423,38 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
             if os.path.isdir(path):
                 vital_modules.load_module(path)
 
-    # Read config file with include support
+    # Read config file with include and block support
     cfg = vital_config.empty_config()
     config_dir = Path(config_path).parent
 
-    def parse_config_file(file_path: str, base_dir: Path):
-        """Parse a config file, handling includes and relativepath directives."""
+    def parse_config_file(file_path: str, base_dir: Path, prefix: str = ""):
+        """Parse a config file, handling includes, blocks, and relativepath directives."""
+        current_prefix = prefix
+
         with open(file_path, 'r') as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith('#'):
+                    continue
+
+                # Handle block directive - push prefix
+                if line.startswith('block '):
+                    block_name = line[len('block '):].strip()
+                    if current_prefix:
+                        current_prefix = current_prefix + block_name + ":"
+                    else:
+                        current_prefix = block_name + ":"
+                    continue
+
+                # Handle endblock directive - pop prefix
+                if line == 'endblock':
+                    # Remove the last block from prefix
+                    if ':' in current_prefix:
+                        current_prefix = current_prefix.rsplit(':', 2)[0]
+                        if current_prefix:
+                            current_prefix += ":"
+                    else:
+                        current_prefix = prefix
                     continue
 
                 # Handle include directive
@@ -441,7 +463,7 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
                     # Resolve relative to the file containing the include
                     full_include_path = base_dir / include_path
                     if full_include_path.exists():
-                        parse_config_file(str(full_include_path), full_include_path.parent)
+                        parse_config_file(str(full_include_path), full_include_path.parent, current_prefix)
                     continue
 
                 if '=' in line:
@@ -450,8 +472,20 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
                     value = value.strip()
 
                     # Handle relativepath directive - resolve path relative to config directory
+                    is_relativepath = False
                     if key.startswith('relativepath '):
                         key = key[len('relativepath '):]
+                        is_relativepath = True
+
+                    # Handle keys starting with : (relative to current block)
+                    if key.startswith(':'):
+                        key = key[1:]
+
+                    # Apply current block prefix
+                    if current_prefix and not key.startswith(current_prefix):
+                        key = current_prefix + key
+
+                    if is_relativepath:
                         value = str(base_dir / value)
 
                     cfg.set_value(key, value)
