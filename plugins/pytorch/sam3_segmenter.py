@@ -104,7 +104,7 @@ class SAM3Segmenter(SegmentViaPoints):
             device=device,
         )
 
-        self._log("Model initialized successfully")
+        self._log("model initialized successfully")
 
     def segment(self, image, points, point_labels):
         """

@@ -110,7 +110,7 @@ class SAM3TextQuery(PerformTextQuery):
             device=device,
         )
 
-        self._log("Model initialized successfully")
+        self._log("model initialized successfully")
 
     def _run_text_query(self, image_np, text, threshold, max_detections):
         """Run text-based detection on an image."""

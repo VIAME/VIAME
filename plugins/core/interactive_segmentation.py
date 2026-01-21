@@ -384,13 +384,6 @@ class InteractiveSegmentationService:
         """Main loop: read JSON requests from stdin, write responses to stdout."""
         self._log("Service started, waiting for requests...")
 
-        # Send ready response so client knows we're initialized
-        self._send_response({
-            "status": "ready",
-            "success": True,
-            "message": "Segmentation service ready",
-        })
-
         for line in sys.stdin:
             line = line.strip()
             if not line:
