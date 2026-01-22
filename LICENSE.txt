@@ -1,3 +1,12 @@
+Please note: the core VIAME infastructure is covered under the below permissive
+BSD-3 license. That said, the full VIAME build includes over 100 other packages.
+The vast majority of these are covered under similar licenses, listed below.
+A couple of the optional VIAME add-ons are more restrictive as they integrate
+third-party tools, and disabled in the main release. When installing add-ons
+consult the description for additional information on a per-add-on basis.
+
+VIAME BSD-3:
+
 Copyright 2016-2026 Kitware, Inc., NOAA, Univ. of Washington, others.
 All rights reserved.
 
