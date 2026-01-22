@@ -11,16 +11,6 @@
 # ------------------------------ ADD ANY BASIC PYTHON DEPS HERE ----------------------------------
 # Basic dependencies are installed jointly in one local pip installation call
 
-# Construct PyTorch archive URL early so we can use it for basic deps
-if( VIAME_ENABLE_PYTORCH )
-  if( VIAME_ENABLE_CUDA )
-    set( TORCH_CUDA_VER_STR "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}" )
-  else()
-    set( TORCH_CUDA_VER_STR "cpu" )
-  endif()
-  set( PYTORCH_ARCHIVE "https://download.pytorch.org/whl/${TORCH_CUDA_VER_STR}" )
-endif()
-
 # Core requirements used for building certain libraries
 set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "build" "cython" )
 
@@ -229,11 +219,19 @@ if( VIAME_ENABLE_KEYPOINT )
   list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "wxPython>=${WX_VERSION}" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  if( VIAME_ENABLE_CUDA )
+    set( TORCH_CUDA_VER_STR "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}" )
+  else()
+    set( TORCH_CUDA_VER_STR "cpu" )
+  endif()
+  set( PYTORCH_ARCHIVE "https://download.pytorch.org/whl/${TORCH_CUDA_VER_STR}" )
+endif()
+
 if( VIAME_ENABLE_PYTORCH AND
     ( NOT VIAME_BUILD_PYTORCH_FROM_SOURCE OR
       ( VIAME_ENABLE_PYTORCH-VISION AND NOT VIAME_BUILD_TORCHVISION_FROM_SOURCE ) ) )
 
-  # PYTORCH_ARCHIVE and TORCH_CUDA_VER_STR are defined earlier in this file
   set( TORCH_URL_CMD "--extra-index-url ${PYTORCH_ARCHIVE}" )
 
   if( NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
@@ -258,7 +256,7 @@ if( VIAME_ENABLE_PYTORCH AND
   endif()
 endif()
 
-# pymotmetrics from source
+# pymotmetrics from source - currently always enabled
 list( APPEND VIAME_PYTHON_ADV_DEPS pymotmetrics )
 if( VIAME_PYTHON_SYMLINK )
   list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "-e ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics" )

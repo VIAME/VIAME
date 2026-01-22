@@ -621,6 +621,11 @@ jobs:
           Remove-Item -Path $cudnnArchive -Force
           Remove-Item -Path "C:\temp\cudnn_temp" -Recurse -Force
 
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install dependencies
         shell: powershell
         run: |
@@ -652,10 +657,31 @@ jobs:
           # Install Git
           choco install git -y
 
-          # Install Node.js and yarn via chocolatey so they're in standard locations
-          # that the build script can find (the script replaces PATH, so we can't use setup-node)
-          choco install nodejs-lts -y
+          # Copy Node.js 20 (from setup-node) to the location expected by the build script
+          # The build script replaces PATH, so we need Node.js at C:\Program Files\nodejs
+          $setupNodePath = (Get-Command node).Source | Split-Path -Parent
+          Write-Host "setup-node installed Node.js at: $setupNodePath"
+          Write-Host "Node.js version: $(node --version)"
+
+          # Remove any existing nodejs directory and copy the setup-node installation
+          if (Test-Path "C:\Program Files\nodejs") {
+            Remove-Item -Path "C:\Program Files\nodejs" -Recurse -Force
+          }
+          Copy-Item -Path $setupNodePath -Destination "C:\Program Files\nodejs" -Recurse -Force
+
+          # Install yarn globally
           npm install -g yarn
+
+          # Refresh PATH so yarn is available
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+          # Verify installations and show locations
+          Write-Host "Node.js location:"
+          Get-Command node -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+          Write-Host "Node.js version at target location:"
+          & "C:\Program Files\nodejs\node.exe" --version
+          Write-Host "Yarn location:"
+          Get-Command yarn -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
 
       - name: Install Visual Studio 2026 Build Tools
         shell: powershell
