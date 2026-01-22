@@ -135,6 +135,45 @@ if( WIN32 )
     set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${CUDA_TOOLKIT_ROOT_DIR}/bin" )
   endif()
   list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}" )
+
+  # For torchvision and other PyTorch extensions on Windows, we need to provide
+  # MSVC and Windows SDK include/lib paths since newer VS versions (2026+) may not
+  # have them automatically available when Python's setuptools runs the compiler.
+  if( CMAKE_CXX_COMPILER_ID MATCHES MSVC )
+    # Get MSVC include directory from compiler path
+    # Compiler is at: .../VC/Tools/MSVC/version/bin/Hostx64/x64/cl.exe
+    # Includes are at: .../VC/Tools/MSVC/version/include
+    get_filename_component( MSVC_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY )
+    get_filename_component( MSVC_INCLUDE_DIR "${MSVC_BIN_DIR}/../../../include" ABSOLUTE )
+    get_filename_component( MSVC_LIB_DIR "${MSVC_BIN_DIR}/../../../lib/x64" ABSOLUTE )
+
+    # Find Windows SDK path
+    set( WIN_SDK_ROOT "C:/Program Files (x86)/Windows Kits/10" )
+    if( EXISTS "${WIN_SDK_ROOT}/Include" )
+      file( GLOB SDK_VERSIONS "${WIN_SDK_ROOT}/Include/10.*" )
+      if( SDK_VERSIONS )
+        list( SORT SDK_VERSIONS )
+        list( GET SDK_VERSIONS -1 SDK_VERSION_PATH )
+        get_filename_component( SDK_VERSION "${SDK_VERSION_PATH}" NAME )
+
+        set( SDK_UCRT_INCLUDE "${WIN_SDK_ROOT}/Include/${SDK_VERSION}/ucrt" )
+        set( SDK_SHARED_INCLUDE "${WIN_SDK_ROOT}/Include/${SDK_VERSION}/shared" )
+        set( SDK_UM_INCLUDE "${WIN_SDK_ROOT}/Include/${SDK_VERSION}/um" )
+        set( SDK_UCRT_LIB "${WIN_SDK_ROOT}/Lib/${SDK_VERSION}/ucrt/x64" )
+        set( SDK_UM_LIB "${WIN_SDK_ROOT}/Lib/${SDK_VERSION}/um/x64" )
+
+        # Set INCLUDE env var for distutils/setuptools
+        set( MSVC_INCLUDE_PATHS "${MSVC_INCLUDE_DIR}<PS>${SDK_UCRT_INCLUDE}<PS>${SDK_SHARED_INCLUDE}<PS>${SDK_UM_INCLUDE}" )
+        list( APPEND PYTORCH_ENV_VARS "INCLUDE=${MSVC_INCLUDE_PATHS}" )
+
+        # Set LIB env var for linker
+        set( MSVC_LIB_PATHS "${MSVC_LIB_DIR}<PS>${SDK_UCRT_LIB}<PS>${SDK_UM_LIB}" )
+        list( APPEND PYTORCH_ENV_VARS "LIB=${MSVC_LIB_PATHS}" )
+
+        message( STATUS "VIAME: Set INCLUDE/LIB for MSVC ${CMAKE_CXX_COMPILER_VERSION} and Windows SDK ${SDK_VERSION}" )
+      endif()
+    endif()
+  endif()
 endif()
 
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
