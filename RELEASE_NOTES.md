@@ -1,8 +1,8 @@
-v0.22.0 - 1/21/2025
+v0.22.0 - 1/25/2025
 ===================
 
 
--Added additional stereo measurement pipelines
+-Added additional stereo measurement pipelines and calibration straight from UI
 
 
 -DIVE UI updates (e.g. bulk process on desktop, bulk highlight and edit type)
@@ -11,7 +11,7 @@ v0.22.0 - 1/21/2025
 -Fix to IQR and VIEW interfaces to re-allow embedded pipeline running
 
 
--Multiple dependency and testing infastructure updates, drop old packages
+-Multiple dependency and testing infastructure updates (e.g. FFmpeg, postgres), drop old
 
 
 -Add a number of new object detectors (RF-DETR, YOLO variants)
