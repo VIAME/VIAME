@@ -12,28 +12,27 @@
 # Basic dependencies are installed jointly in one local pip installation call
 
 # Core requirements used for building certain libraries
-set( VIAME_PYTHON_BASIC_DEPS "wheel" "ordered_set" "build" "cython" )
+set( VIAME_PYTHON_BASIC_DEPS "ordered_set" "build" "cython" )
 
-# Pin torch version to prevent transitive dependency conflicts
-if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "torch==${VIAME_PYTORCH_VERSION}" )
+# Setuptools and wheel version constraints
+if( WIN32 AND VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
+  # Legacy constraint for GDAL compatibility - use older wheel that works with old setuptools
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" "wheel<0.45.0" )
+else()
+  # Modern versions - wheel 0.45+ works with setuptools 70.1+
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools>=75.3.0" "wheel>=0.45.0" )
 endif()
 
+# Numpy versioning
 if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=2.1.0,<=2.2.6" )
 else()
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=1.26.0,<=2.0.2" )
 endif()
 
+# Testing infastructure
 if( VIAME_BUILD_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
-endif()
-
-# Setuptools version constraint
-if( WIN32 AND VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" )
-else()
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools>=75.3.0" )
 endif()
 
 # For scoring and plotting
@@ -78,23 +77,11 @@ if( VIAME_ENABLE_POSTGRESQL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
 endif()
 
-# For ONNX
-if( VIAME_ENABLE_ONNX )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.16.1" )
-endif()
-
 # For LEARN models
 if( VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "pyarrow" "filelock" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "submitit" "scikit-learn" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scipy" "termcolor" "addict" "yapf" )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-LEARN OR
-    VIAME_ENABLE_PYTORCH-DETECTRON2 OR
-    VIAME_ENABLE_PYTORCH-SAM3 OR
-    VIAME_ENABLE_PYTORCH-STEREO )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "huggingface_hub" "safetensors" )
 endif()
 
 if( VIAME_ENABLE_KEYPOINT )
@@ -139,12 +126,27 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ruamel.yaml" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pyyaml" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "torch==${VIAME_PYTORCH_VERSION}" )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-HUGGINGFACE )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "transformers>=4.49.0" )
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "pyyaml" )
+if( VIAME_ENABLE_PYTORCH-LEARN OR
+    VIAME_ENABLE_PYTORCH-DETECTRON2 OR
+    VIAME_ENABLE_PYTORCH-SAM3 OR
+    VIAME_ENABLE_PYTORCH-STEREO )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "huggingface_hub" "safetensors" )
+endif()
+
+if( VIAME_ENABLE_ONNX )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.16.1" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
@@ -174,18 +176,23 @@ list( REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS )
 # ------------------------------ TORCH-DEPENDENT PIP PACKAGES -------------------------------------
 # These packages require torch to be installed first (installed in add_project_pytorch.cmake)
 
-set( PYTHON_DEPS_REQ_TORCH "" )
+set( VIAME_PYTHON_DEPS_REQ_TORCH "" )
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics<=8.3.71" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics_thop==2.0.14" )
 endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
     VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
-    list( APPEND PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.5" )
+    list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.5" )
   else()
-    list( APPEND PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.0" )
+    list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.0" )
   endif()
 endif()
 
@@ -193,11 +200,7 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
     VIAME_ENABLE_PYTORCH-DETECTRON2 OR
     VIAME_ENABLE_PYTORCH-SAM3 OR
     VIAME_ENABLE_PYTORCH-STEREO )
-  list( APPEND PYTHON_DEPS_REQ_TORCH "timm" )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  list( APPEND PYTHON_DEPS_REQ_TORCH "ultralytics<=8.3.71" "ultralytics_thop==2.0.14" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "timm" )
 endif()
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
