@@ -17,6 +17,9 @@ v0.22.0 - 1/25/2025
 -Add a number of new object detectors (RF-DETR, YOLO variants)
 
 
+-Add CMake 4 and MSVC 2026 build support
+
+
 
 v0.21.3 - 8/26/2025
 ===================

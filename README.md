@@ -244,7 +244,7 @@ Update Instructions
 If you already have a checkout of VIAME and want to switch branches or
 update your code, it is important to re-run:
 
-	git submodule update --init --recursive
+	git submodule update
 
 After switching branches to ensure that you have on the correct hashes
 of sub-packages within the build. Very rarely you may also need to run:
@@ -252,7 +252,11 @@ of sub-packages within the build. Very rarely you may also need to run:
 	git submodule sync
 
 Just in case the address of submodules has changed. You only need to
-run this command if you get a "cannot fetch hash #hashid" error.
+run this command if you get a "cannot fetch hash #hashid" error. Lastly,
+in the advanced case of running extra manual builds for certain dependencies,
+a recursive module update is required:
+
+	git submodule update --init --recursive
 
 
 License, Citations, and Acknowledgements
