@@ -826,6 +826,19 @@ jobs:
           # Copy source to expected location
           Copy-Item -Path ".\*" -Destination "C:\VIAME-Builds\GPU" -Recurse -Force
 
+      - name: Apply GitHub release build settings
+        shell: powershell
+        run: |
+          # Add GitHub-specific cmake preset to the Windows build configuration
+          $cmakeFile = "C:\VIAME-Builds\GPU\cmake\build_server_windows.cmake"
+          $content = Get-Content $cmakeFile -Raw
+
+          # Insert the github preset include after the desktop preset include
+          $content = $content -replace '(include_cmake_preset\(build_cmake_desktop\.cmake\))', "`$1`ninclude_cmake_preset(build_cmake_github.cmake)"
+
+          Set-Content -Path $cmakeFile -Value $content
+          Write-Host "Added build_cmake_github.cmake preset to Windows build configuration"
+
       - name: Run Windows build
         shell: cmd
         working-directory: C:\VIAME-Builds\GPU
