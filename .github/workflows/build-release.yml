@@ -506,6 +506,131 @@ jobs:
       - name: Enable long paths on Windows
         run: git config --system core.longpaths true
 
+      - name: Free disk space
+        shell: powershell
+        run: |
+          Write-Host "Disk space before cleanup:"
+          Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{N='Used(GB)';E={[math]::Round($_.Used/1GB,2)}}, @{N='Free(GB)';E={[math]::Round($_.Free/1GB,2)}}
+
+          # Remove unused components to free disk space
+          Write-Host "Removing unnecessary files..."
+
+          # Remove Android SDK
+          if (Test-Path "C:\Android") {
+            Remove-Item -Path "C:\Android" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed Android SDK"
+          }
+
+          # Remove Haskell/ghcup
+          if (Test-Path "C:\ghcup") {
+            Remove-Item -Path "C:\ghcup" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed ghcup"
+          }
+
+          # Remove .NET SDK older versions (keep latest)
+          $dotnetPath = "C:\Program Files\dotnet\sdk"
+          if (Test-Path $dotnetPath) {
+            Get-ChildItem $dotnetPath -Directory | Sort-Object Name | Select-Object -SkipLast 1 | ForEach-Object {
+              Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+              Write-Host "Removed .NET SDK: $($_.Name)"
+            }
+          }
+
+          # Remove unnecessary hostedtoolcache entries
+          $toolcache = "C:\hostedtoolcache\windows"
+          if (Test-Path $toolcache) {
+            # Remove Python versions we don't need
+            Get-ChildItem "$toolcache\Python" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+              Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+              Write-Host "Removed Python: $($_.Name)"
+            }
+            # Remove Ruby
+            if (Test-Path "$toolcache\Ruby") {
+              Remove-Item "$toolcache\Ruby" -Recurse -Force -ErrorAction SilentlyContinue
+              Write-Host "Removed Ruby"
+            }
+            # Remove Go
+            if (Test-Path "$toolcache\go") {
+              Remove-Item "$toolcache\go" -Recurse -Force -ErrorAction SilentlyContinue
+              Write-Host "Removed Go"
+            }
+            # Remove Java
+            if (Test-Path "$toolcache\Java*") {
+              Get-ChildItem "$toolcache\Java*" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+                Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Host "Removed Java: $($_.Name)"
+              }
+            }
+            # Remove CodeQL
+            if (Test-Path "$toolcache\CodeQL") {
+              Remove-Item "$toolcache\CodeQL" -Recurse -Force -ErrorAction SilentlyContinue
+              Write-Host "Removed CodeQL"
+            }
+          }
+
+          # Remove Strawberry Perl
+          if (Test-Path "C:\Strawberry") {
+            Remove-Item -Path "C:\Strawberry" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed Strawberry Perl"
+          }
+
+          # Remove MySQL
+          if (Test-Path "C:\Program Files\MySQL") {
+            Remove-Item -Path "C:\Program Files\MySQL" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed MySQL"
+          }
+
+          # Remove PostgreSQL
+          if (Test-Path "C:\Program Files\PostgreSQL") {
+            Remove-Item -Path "C:\Program Files\PostgreSQL" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed PostgreSQL"
+          }
+
+          # Remove MongoDB
+          if (Test-Path "C:\Program Files\MongoDB") {
+            Remove-Item -Path "C:\Program Files\MongoDB" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed MongoDB"
+          }
+
+          # Remove LLVM/Clang
+          if (Test-Path "C:\Program Files\LLVM") {
+            Remove-Item -Path "C:\Program Files\LLVM" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed LLVM"
+          }
+
+          # Remove unused browser drivers
+          if (Test-Path "C:\SeleniumWebDrivers") {
+            Remove-Item -Path "C:\SeleniumWebDrivers" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed Selenium WebDrivers"
+          }
+
+          # Remove Microsoft SQL Server
+          Get-ChildItem "C:\Program Files\Microsoft SQL Server" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+            Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Removed SQL Server: $($_.Name)"
+          }
+
+          # Clear temp folders
+          Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+          Write-Host "Cleared temp folders"
+
+          # Clear NuGet cache
+          if (Test-Path "$env:LOCALAPPDATA\NuGet\Cache") {
+            Remove-Item -Path "$env:LOCALAPPDATA\NuGet\Cache\*" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Cleared NuGet cache"
+          }
+
+          # Clear Chocolatey cache
+          if (Test-Path "C:\ProgramData\chocolatey\cache") {
+            Remove-Item -Path "C:\ProgramData\chocolatey\cache\*" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Cleared Chocolatey cache"
+          }
+
+          Write-Host ""
+          Write-Host "Disk space after cleanup:"
+          Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{N='Used(GB)';E={[math]::Round($_.Used/1GB,2)}}, @{N='Free(GB)';E={[math]::Round($_.Free/1GB,2)}}
+
       - name: Set up CUDA
         uses: Jimver/cuda-toolkit@v0.2.21
         id: cuda-toolkit
@@ -700,6 +825,19 @@ jobs:
 
           # Copy source to expected location
           Copy-Item -Path ".\*" -Destination "C:\VIAME-Builds\GPU" -Recurse -Force
+
+      - name: Apply GitHub release build settings
+        shell: powershell
+        run: |
+          # Add GitHub-specific cmake preset to the Windows build configuration
+          $cmakeFile = "C:\VIAME-Builds\GPU\cmake\build_server_windows.cmake"
+          $content = Get-Content $cmakeFile -Raw
+
+          # Insert the github preset include after the desktop preset include
+          $content = $content -replace '(include_cmake_preset\(build_cmake_desktop\.cmake\))', "`$1`ninclude_cmake_preset(build_cmake_github.cmake)"
+
+          Set-Content -Path $cmakeFile -Value $content
+          Write-Host "Added build_cmake_github.cmake preset to Windows build configuration"
 
       - name: Run Windows build
         shell: cmd

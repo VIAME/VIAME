@@ -15,7 +15,7 @@ if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 endif()
 
-if( PYTHON_DEPS_REQ_TORCH )
+if( VIAME_PYTHON_DEPS_REQ_TORCH )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch-libs-deps )
 endif()
 
@@ -123,7 +123,7 @@ if( VIAME_BUILD_TORCHVISION_FROM_SOURCE AND NOT WIN32 )
   list( APPEND PYTORCH_ENV_VARS "TORCHVISION_USE_PNG=0" )
 endif()
 
-if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN AND Python_VERSION VERSION_GREATER "3.7" )
+if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
 endif()
 
@@ -157,7 +157,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( "${LIB}" STREQUAL "pytorch-libs-deps" )
     # pytorch-libs-deps is a pip install of torch-dependent packages, not a source build
     set( LIBRARY_PIP_BUILD_CMD "" )
-    string( REPLACE ";" " " TORCH_DEPS_STR "${PYTHON_DEPS_REQ_TORCH}" )
+    string( REPLACE ";" " " TORCH_DEPS_STR "${VIAME_PYTHON_DEPS_REQ_TORCH}" )
     set( PIP_CMD "pip install --user ${TORCH_DEPS_STR}" )
     if( VIAME_BUILD_NO_CACHE_DIR )
       set( PIP_CMD "pip install --user --no-cache-dir ${TORCH_DEPS_STR}" )

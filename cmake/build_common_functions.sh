@@ -314,7 +314,8 @@ upgrade_pip_setuptools() {
 
   # Upgrade setuptools to a version compatible with Python 3.12+
   # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
-  "$python_exec" -m pip install --upgrade "setuptools>=70.0.0" wheel 2>/dev/null || true
+  # wheel >= 0.45.0 requires setuptools >= 70.1 for bdist_wheel compatibility
+  "$python_exec" -m pip install --upgrade "setuptools>=75.3.0" "wheel>=0.45.0" 2>/dev/null || true
 
   echo "pip and setuptools upgrade complete"
 }

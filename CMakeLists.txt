@@ -185,8 +185,8 @@ if( VIAME_ENABLE_PYTORCH )
 
   set( PYTORCH_INTERNAL_VERSION 2.10.0 CACHE INTERNAL "Internal pytorch version" )
   set( PYTORCH_MIN_GCC          9.3   CACHE INTERNAL "Minimum GCC version for torch" )
-  set( PYTORCH_MIN_PYTHON_WHL   3.9   CACHE INTERNAL "Minimum python for torch whl" )
-  set( PYTORCH_MIN_PYTHON_BLD   3.8   CACHE INTERNAL "Minimum python for torch build" )
+  set( PYTORCH_MIN_PYTHON_WHL   3.10  CACHE INTERNAL "Minimum python for torch whl" )
+  set( PYTORCH_MIN_PYTHON_BLD   3.10  CACHE INTERNAL "Minimum python for torch build" )
   set( PYTORCH_MIN_CUDA_BLD     11.0  CACHE INTERNAL "Minimum cuda for torch build" )
   set( PYTORCH_MIN_CUDNN_BLD    7.0   CACHE INTERNAL "Minimum cudnn for torch build" )
 

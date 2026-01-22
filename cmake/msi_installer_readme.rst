@@ -14,7 +14,7 @@ Prerequisites
       dotnet tool install --global wix
       wix extension add WixToolset.Bal.wixext
 
-- Python 3.8+ with ``girder-client`` package
+- Python 3.10+ with ``girder-client`` package
 - CMake 3.16+
 - The staged VIAME MSI packages from the build process
 

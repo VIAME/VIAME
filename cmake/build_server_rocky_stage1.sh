@@ -53,6 +53,7 @@ cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_desktop.cmake \
   -C ../cmake/build_cmake_linux.cmake \
+  -C ../cmake/build_cmake_github.cmake \
   -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
   -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
   -DVIAME_BUILD_NO_CACHE_DIR:BOOL=ON \
