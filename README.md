@@ -243,14 +243,14 @@ Update Instructions
 -------------------
 
 If you already have a checkout of VIAME and want to switch branches or
-update your code, it is important to re-run:
+update your code, it is important to occasionally re-run:
 
-	git submodule update
+	git submodule update --init
 
 After switching branches to ensure that you have on the correct hashes
 of sub-packages within the build. Very rarely you may also need to run:
 
-	git submodule sync
+	git submodule sync && git submodule update
 
 Just in case the address of submodules has changed. You only need to
 run this command if you get a "cannot fetch hash #hashid" error. Lastly,
@@ -263,7 +263,7 @@ a recursive module update is required:
 License, Citations, and Acknowledgements
 ----------------------------------------
 
-VIAME is released under a BSD-3 license.
+The core of VIAME is released under a BSD-3 license (see LICENSE.txt).
 
 A non-exhaustive list of relevant papers used within the project alongside contributors
 can be found [here](docs/citations.md).
