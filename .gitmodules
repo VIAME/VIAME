@@ -73,6 +73,7 @@
 [submodule "packages/pytorch-libs/darknet-to-pytorch-onnx"]
 	path = packages/pytorch-libs/darknet-to-pytorch-onnx
 	url = https://gitlab.kitware.com/keu-computervision/ml/darknet-to-pytorch-onnx.git
+	ignore = dirty
 [submodule "packages/pytorch-libs/mit-yolo"]
 	path = packages/pytorch-libs/mit-yolo
 	url = https://github.com/VIAME/YOLO.git
