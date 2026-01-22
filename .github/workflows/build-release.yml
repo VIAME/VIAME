@@ -652,10 +652,10 @@ jobs:
           # Install Git
           choco install git -y
 
-          # Install Node.js 22 and yarn via chocolatey so they're in standard locations
+          # Install Node.js 20 and yarn via chocolatey so they're in standard locations
           # that the build script can find (the script replaces PATH, so we can't use setup-node)
-          # Pin to Node.js 22 LTS for compatibility with native modules like deasync
-          choco install nodejs --version=22.13.1 -y
+          # Pin to Node.js 20 LTS for compatibility with native modules like deasync
+          choco install nodejs --version=20.18.1 -y
           choco install yarn -y
 
           # Refresh PATH so node/yarn are available
