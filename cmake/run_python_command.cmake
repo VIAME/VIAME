@@ -12,6 +12,12 @@
 # Convert ----separated command string back to a list
 string( REPLACE "----" ";" _command "${COMMAND_TO_RUN}" )
 
+# Unset PYTHONHOME by default to avoid interference from system environment
+# If the caller wants to set PYTHONHOME, they can include it in ENV_VARS
+# This prevents the "No module named 'encodings'" error that occurs when
+# the system PYTHONHOME points to a different Python installation
+unset( ENV{PYTHONHOME} )
+
 # Set up environment variables if provided
 if( ENV_VARS )
   string( REPLACE "----" ";" _env_list "${ENV_VARS}" )

@@ -149,6 +149,10 @@ else()
     list( APPEND ENV_VARS_LIST "TMPDIR=${TMPDIR}" )
   endif()
 
+  # Unset PYTHONHOME to avoid conflicts with system Python installations
+  # that can cause "No module named 'encodings'" errors
+  unset( ENV{PYTHONHOME} )
+
   # Run C++ build if provided
   if( CPP_BUILD_CMD )
     message( STATUS "${LIB_NAME}: Running C++ build..." )
