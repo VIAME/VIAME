@@ -136,7 +136,7 @@ it's good practice to have a 'src' checkout then a seperate 'build' directory al
 
 	git clone https://github.com/VIAME/VIAME.git [source-directory]
 
-	cd [source-directory] && git submodule update --init --recursive
+	cd [source-directory] && git submodule update --init
 
 Next, create a build directory and run the following `cmake` command (or alternatively
 use the cmake GUI if you are not using the command line interface):
