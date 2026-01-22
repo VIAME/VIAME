@@ -36,6 +36,11 @@ else()
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools>=75.3.0" )
 endif()
 
+# For KWIVER v2.0
+if( VIAME_ENABLE_KWIVER )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pygccxml" )
+endif()
+
 # For scoring and plotting
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver" )
 if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )

@@ -11,11 +11,9 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwiver )
 
 set( VIAME_KWIVER_DEPS fletch )
 
-if( VIAME_ENABLE_MATLAB )
-  FormatPassdowns( "Matlab" VIAME_MATLAB_FLAGS )
-endif()
-
 if( VIAME_ENABLE_PYTHON )
+  set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} python-deps )
+
   FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
 endif()
 
@@ -29,6 +27,10 @@ endif()
 
 if( VIAME_ENABLE_CUDNN )
   FormatPassdowns( "DOXYGEN" VIAME_DOXYGEN_FLAGS )
+endif()
+
+if( VIAME_ENABLE_MATLAB )
+  FormatPassdowns( "Matlab" VIAME_MATLAB_FLAGS )
 endif()
 
 ExternalProject_Add(kwiver
