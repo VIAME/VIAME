@@ -188,6 +188,10 @@ jobs:
         run: |
           cmake --build . --target python-deps -- -j$(nproc)
 
+      - name: Install pygccxml for kwiver
+        run: |
+          python -m pip install pygccxml
+
       - name: Build kwiver (if not cached)
         if: steps.cache-kwiver.outputs.cache-hit != 'true'
         working-directory: build
