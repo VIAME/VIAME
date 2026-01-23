@@ -210,13 +210,20 @@ if( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE AND SHOULD_BUILD )
   endif()
 
   # Build the pip install command, passing all ENV_VARS
+  # Note: ENV_VARS may have ; separators (if passed through ExternalProject_Add
+  # with LIST_SEPARATOR, the ---- separators get converted back to ;)
+  # We need to convert back to ---- for proper passing to pip_install_with_lock.cmake
+  if( ENV_VARS )
+    string( REPLACE ";" "----" ENV_VARS_FOR_PIP "${ENV_VARS}" )
+  endif()
+
   set( PIP_INSTALL_ARGS
     -DPython_EXECUTABLE=${Python_EXECUTABLE}
     -DWHEEL_DIR=${WHEEL_DIR}
     -DNO_CACHE_DIR=${NO_CACHE_DIR}
     -DFORCE_REINSTALL=${USE_FORCE_REINSTALL} )
-  if( ENV_VARS )
-    list( APPEND PIP_INSTALL_ARGS "-DENV_VARS:STRING=${ENV_VARS}" )
+  if( ENV_VARS_FOR_PIP )
+    list( APPEND PIP_INSTALL_ARGS "-DENV_VARS:STRING=${ENV_VARS_FOR_PIP}" )
   endif()
   list( APPEND PIP_INSTALL_ARGS -P ${PIP_INSTALL_SCRIPT} )
 
