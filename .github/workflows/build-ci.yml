@@ -257,6 +257,14 @@ jobs:
             -y --ignore-package-exit-codes=3010
           Write-Host "VS 2026 Build Tools installation completed"
 
+      - name: Install CMake
+        shell: powershell
+        run: |
+          # Install CMake via chocolatey so it can detect VS 2026
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+          # Refresh environment
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
       # Generate cache keys based on package hashes
       - name: Generate cache keys
         id: cache-keys
@@ -355,13 +363,21 @@ jobs:
           robocopy . C:\VIAME-CI\src /E /XD ".git" "docs" "__pycache__" /NFL /NDL /NJH /NJS /R:0 /W:0
           if %ERRORLEVEL% LEQ 7 exit /b 0
 
+      - name: Verify CMake can find VS 2026
+        shell: cmd
+        run: |
+          "C:\Program Files\CMake\bin\cmake.exe" --version
+          echo.
+          echo Available generators:
+          "C:\Program Files\CMake\bin\cmake.exe" --help | findstr /C:"Visual Studio"
+
       - name: Configure CMake
         shell: cmd
         working-directory: C:\VIAME-CI
         run: |
           mkdir build
           cd build
-          cmake ..\src ^
+          "C:\Program Files\CMake\bin\cmake.exe" ..\src ^
             -G "Visual Studio 18 2026" ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DVIAME_ENABLE_CUDA:BOOL=OFF ^
@@ -390,33 +406,33 @@ jobs:
         shell: cmd
         working-directory: C:\VIAME-CI\build
         run: |
-          cmake --build . --target fletch --config Release
+          "C:\Program Files\CMake\bin\cmake.exe" --build . --target fletch --config Release
 
       - name: Build python-deps
         shell: cmd
         working-directory: C:\VIAME-CI\build
         run: |
-          cmake --build . --target python-deps --config Release
+          "C:\Program Files\CMake\bin\cmake.exe" --build . --target python-deps --config Release
 
       - name: Build kwiver (if not cached)
         if: steps.cache-kwiver.outputs.cache-hit != 'true'
         shell: cmd
         working-directory: C:\VIAME-CI\build
         run: |
-          cmake --build . --target kwiver --config Release
+          "C:\Program Files\CMake\bin\cmake.exe" --build . --target kwiver --config Release
 
       - name: Build pytorch-libs (if not cached)
         if: steps.cache-pytorch.outputs.cache-hit != 'true'
         shell: cmd
         working-directory: C:\VIAME-CI\build
         run: |
-          cmake --build . --target pytorch --config Release || exit 0
+          "C:\Program Files\CMake\bin\cmake.exe" --build . --target pytorch --config Release || exit 0
 
       - name: Build VIAME
         shell: cmd
         working-directory: C:\VIAME-CI\build
         run: |
-          cmake --build . --target viame --config Release
+          "C:\Program Files\CMake\bin\cmake.exe" --build . --target viame --config Release
 
       - name: Verify build
         shell: powershell
