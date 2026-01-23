@@ -26,6 +26,8 @@ from viame.pytorch.utilities import vital_config_update
 
 import scriptconfig as scfg
 import ubelt as ub
+from hydra import compose, initialize_config_dir
+from yolo.lazy import main
 
 
 class MITYoloConfig(KWCocoTrainDetectorConfig):
@@ -182,88 +184,43 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             return False
         return True
 
-    def _write_yolo_configuration(self):
-        """
-        The YOLO hydra configuration requires a config file on disk in a
-        specific location.
-        """
-        import yolo.config
-        import json
-
-        # We may be forced to write to the config directory where the code
-        # lives due to hydra. It would be nice to find a way around this.
-        # yolo_modpath = ub.Path(yolo.__file__).parent
-        config_dpath = (ub.Path(yolo.config.__file__).parent / 'dataset')
-
-        # Prepare the dataset config for hydra
-        dataset_config = {}
-        dataset_config['path'] = os.fspath('.')
-        dataset_config['train'] = os.fspath(self._training_file)
-        # FIXME: not sure why validation file not written
-        if self._validation_file:
-            dataset_config['validation'] = os.fspath(self._validation_file)
-        else:
-            dataset_config['validation'] = None
-        dataset_config['class_list'] = self._categories
-        dataset_config['class_num'] = len(self._categories)
-        cfgid = ub.hash_data(dataset_config, base='hex')[0:16]
-        dataset_config_name = f'dataset_config_{cfgid}'
-        dataset_config_fpath = config_dpath / f'{dataset_config_name}.yaml'
-        dataset_config_fpath.write_text(json.dumps(dataset_config))
-        hydra_config_info = {
-            'dataset_config_name': dataset_config_name,
-            'dataset_config_fpath': dataset_config_fpath,
-        }
-        return hydra_config_info
-
     def update_model( self ):
         self._ensure_format_writers()
-
-        hydra_config_info = self._write_yolo_configuration()
-        dataset_config_name = hydra_config_info['dataset_config_name']
-
         self._accelerator = 'auto'
 
-        cmd = [ "python.exe" if os.name == 'nt' else "python", "-m" ]
-        cmd += [
-            "yolo.lazy",
+        # Initialize hydra config
+        import yolo.config
+        config_dir = ub.Path(yolo.config.__file__).parent
+        hydra_overrides = [
             "task=train",
             "use_wandb=False",
             "cpu_num=4",
+            "dataset=dev",
             f"name={self._identifier}",
-            f"dataset={dataset_config_name}",
+            f"dataset.path={os.fspath('.')}",
+            f"dataset.train={os.fspath(self._training_file)}",
+            f"dataset.validation={os.fspath(self._validation_file) if self._validation_file else None}",
+            f"dataset.class_list={self._categories}",
+            f"dataset.class_num={len(self._categories)}",
             f"out_path={self._train_directory}",
             f"accelerator={self._accelerator}",
             f"task.data.batch_size={self._batch_size}",
             f"task.optimizer.args.lr={self._learning_rate}",
-            f"task.epoch={self._max_epochs}",
+            f"task.epoch={self._max_epochs}"
         ]
+        if len(self._seed_model) > 0:
+            hydra_overrides += [f"weight={self._seed_model}"]
+        with initialize_config_dir(version_base=None, config_dir=str(config_dir)):
+            cfg = compose(config_name="config.yaml", overrides=hydra_overrides)
 
-        train_dpath = ub.Path(self._train_directory)
-        yolo_train_dpath = (train_dpath / 'train' / self._identifier)
-
-        if len( self._seed_model ) > 0:
-            cmd.append( 'weight="{self._seed_model}"' )
-
-        # dont need to do this, patched the repo to provide this feature
-        if 0:
-            # Make a call to resolve the hydra configuration so we can package it
-            # with the model.
-            train_config_text = subprocess.check_output( cmd + ['-c', 'job'], universal_newlines=True )
-            yolo_train_dpath.ensuredir()
-            train_config_fpath = (yolo_train_dpath / 'viame_train_config.yaml')
-            train_config_fpath.write_text(train_config_text)
-
+        #TODO is that needed if not using a subproc call ?
         if threading.current_thread().__class__.__name__ == '_MainThread':
             signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
             signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
-        # Execute the training process
-        self.proc = subprocess.Popen( cmd )
-        self.proc.wait()
-
+        # Launch training
+        main(cfg)
         self.save_final_model()
-
         print( "\nModel training complete!\n" )
 
     def interupt_handler( self ):
