@@ -183,6 +183,11 @@ jobs:
             build/install/bin/python -m pip install --upgrade "setuptools>=70.0.0" wheel
           fi
 
+      - name: Build python-deps
+        working-directory: build
+        run: |
+          cmake --build . --target python-deps -- -j$(nproc)
+
       - name: Build kwiver (if not cached)
         if: steps.cache-kwiver.outputs.cache-hit != 'true'
         working-directory: build
@@ -386,6 +391,12 @@ jobs:
         working-directory: C:\VIAME-CI\build
         run: |
           cmake --build . --target fletch --config Release
+
+      - name: Build python-deps
+        shell: cmd
+        working-directory: C:\VIAME-CI\build
+        run: |
+          cmake --build . --target python-deps --config Release
 
       - name: Build kwiver (if not cached)
         if: steps.cache-kwiver.outputs.cache-hit != 'true'
