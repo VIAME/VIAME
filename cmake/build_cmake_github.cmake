@@ -7,7 +7,7 @@
 # Usage: cmake -C build_cmake_base.cmake -C build_cmake_desktop.cmake -C build_cmake_linux.cmake -C build_cmake_github.cmake ...
 
 # Disable model downloads for release builds (models are downloaded separately)
-set(VIAME_DOWNLOAD_MODELS OFF CACHE BOOL "Disable model downloads for GitHub release builds")
+set(VIAME_DOWNLOAD_MODELS OFF CACHE BOOL "Disable model downloads for GitHub release builds" FORCE)
 
 # Disable VIVIA for release builds
-set(VIAME_ENABLE_VIVIA OFF CACHE BOOL "Disable VIVIA for GitHub release builds")
+set(VIAME_ENABLE_VIVIA OFF CACHE BOOL "Disable VIVIA for GitHub release builds" FORCE)
