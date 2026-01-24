@@ -111,10 +111,10 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
 
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx>=3.4" "pandas>=2.2.0" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.36.0" "colormath" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.36.0" "colormath==1.0.0" )
   else()
     list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx>=3.2,<=3.4" "pandas>=2.1.0,<=2.2.3" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.34.0" "colormath" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.34.0" "colormath==1.0.0" )
   endif()
 
   if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
