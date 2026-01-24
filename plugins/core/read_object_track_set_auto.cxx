@@ -11,6 +11,7 @@
 
 #include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
+#include "utilities_file.h"
 
 #include <vital/algo/read_object_track_set.h>
 #include <vital/exceptions.h>
@@ -31,30 +32,6 @@ namespace viame {
 // -----------------------------------------------------------------------------------
 
 namespace {
-
-// Convert string to lowercase
-std::string to_lower_track( std::string const& str )
-{
-  std::string result = str;
-  std::transform( result.begin(), result.end(), result.begin(),
-                  []( unsigned char c ) { return std::tolower( c ); } );
-  return result;
-}
-
-// Check if string ends with suffix (case-insensitive)
-bool ends_with_track( std::string const& str, std::string const& suffix )
-{
-  std::string str_lower = to_lower_track( str );
-  std::string suffix_lower = to_lower_track( suffix );
-
-  if( suffix_lower.size() > str_lower.size() )
-  {
-    return false;
-  }
-
-  return str_lower.compare( str_lower.size() - suffix_lower.size(),
-                            suffix_lower.size(), suffix_lower ) == 0;
-}
 
 // Read first N bytes of a file for content inspection
 std::string read_file_header_track( std::string const& filename, size_t max_bytes = 4096 )
@@ -117,13 +94,13 @@ read_object_track_set_auto::priv
 ::detect_format( std::string const& filename )
 {
   // First, check explicit format extensions
-  if( ends_with_track( filename, ".dive.json" ) )
+  if( ends_with_ci( filename, ".dive.json" ) )
   {
     return "dive";
   }
 
   // Check general extensions
-  std::string ext = to_lower_track(
+  std::string ext = to_lower(
     kwiversys::SystemTools::GetFilenameLastExtension( filename ) );
 
   if( ext == ".csv" )

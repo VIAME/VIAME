@@ -30,18 +30,161 @@
 
 namespace viame {
 
+// =============================================================================
+// Shared VIAME CSV utility implementations
+// =============================================================================
+
+kwiver::vital::bounding_box_d
+create_viame_csv_bbox( std::vector< std::string > const& cols )
+{
+  return kwiver::vital::bounding_box_d(
+    atof( cols[VIAME_CSV_COL_MIN_X].c_str() ),
+    atof( cols[VIAME_CSV_COL_MIN_Y].c_str() ),
+    atof( cols[VIAME_CSV_COL_MAX_X].c_str() ),
+    atof( cols[VIAME_CSV_COL_MAX_Y].c_str() ) );
+}
+
+size_t parse_viame_csv_species(
+  std::vector< std::string > const& cols,
+  double confidence_override,
+  kwiver::vital::detected_object_type_sptr& dot )
+{
+  if( !dot )
+  {
+    dot = std::make_shared< kwiver::vital::detected_object_type >();
+  }
+
+  for( size_t i = VIAME_CSV_COL_TOT; i < cols.size(); i += 2 )
+  {
+    if( cols[i].empty() || cols[i][0] == '(' )
+    {
+      return i;
+    }
+
+    if( cols.size() < i + 2 )
+    {
+      // Incomplete species pair - return current position
+      return i;
+    }
+
+    std::string spec_id = cols[i];
+    double spec_conf = atof( cols[i + 1].c_str() );
+
+    if( confidence_override > 0.0 )
+    {
+      spec_conf = confidence_override;
+    }
+
+    dot->set_score( spec_id, spec_conf );
+  }
+
+  return cols.size();
+}
+
+bool extract_viame_csv_polygon(
+  std::vector< std::string > const& cols,
+  size_t start_col,
+  std::vector< double >& polygon )
+{
+  polygon.clear();
+
+  // Find polygon field
+  std::string poly_string;
+  for( size_t i = start_col; i < cols.size(); ++i )
+  {
+    if( ( cols[i].size() >= 6 && cols[i].substr( 0, 6 ) == "(poly)" ) ||
+        ( cols[i].size() >= 7 && cols[i].substr( 0, 7 ) == "(+poly)" ) )
+    {
+      poly_string = cols[i];
+      break;
+    }
+  }
+
+  if( poly_string.empty() )
+  {
+    return false;
+  }
+
+  // Parse polygon vertices
+  std::vector< std::string > vertices;
+  kwiver::vital::tokenize( poly_string, vertices, " ", true );
+
+  for( size_t i = 1; i < vertices.size(); ++i )
+  {
+    try
+    {
+      polygon.push_back( std::stof( vertices[i] ) );
+    }
+    catch( ... )
+    {
+      // Skip invalid values
+    }
+  }
+
+  return !polygon.empty();
+}
+
+kwiver::vital::detected_object_sptr
+create_viame_csv_detection(
+  std::vector< std::string > const& cols,
+  double confidence_override )
+{
+  if( cols.size() < VIAME_CSV_COL_TOT )
+  {
+    return nullptr;
+  }
+
+  kwiver::vital::bounding_box_d bbox = create_viame_csv_bbox( cols );
+
+  double conf = atof( cols[VIAME_CSV_COL_CONFIDENCE].c_str() );
+  if( conf == -1.0 )
+  {
+    conf = 1.0;
+  }
+  if( confidence_override > 0.0 )
+  {
+    conf = confidence_override;
+  }
+
+  kwiver::vital::detected_object_type_sptr dot;
+  size_t optional_start = parse_viame_csv_species( cols, confidence_override, dot );
+
+  kwiver::vital::detected_object_sptr dob;
+  if( dot && dot->size() > 0 )
+  {
+    dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf, dot );
+  }
+  else
+  {
+    dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf );
+  }
+
+  // Extract polygon if present
+  std::vector< double > polygon;
+  if( extract_viame_csv_polygon( cols, optional_start, polygon ) )
+  {
+    dob->set_flattened_polygon( polygon );
+  }
+
+  return dob;
+}
+
+// =============================================================================
+// Local constants for backward compatibility
+// =============================================================================
+
 enum
 {
-  COL_DET_ID=0,  // 0: Object ID
-  COL_SOURCE_ID, // 1
-  COL_FRAME_ID,  // 2
-  COL_MIN_X,     // 3
-  COL_MIN_Y,     // 4
-  COL_MAX_X,     // 5
-  COL_MAX_Y,     // 6
-  COL_CONFIDENCE,// 7
-  COL_LENGTH,    // 8
-  COL_TOT        // 9
+  COL_DET_ID = VIAME_CSV_COL_DET_ID,
+  COL_SOURCE_ID = VIAME_CSV_COL_SOURCE_ID,
+  COL_FRAME_ID = VIAME_CSV_COL_FRAME_ID,
+  COL_MIN_X = VIAME_CSV_COL_MIN_X,
+  COL_MIN_Y = VIAME_CSV_COL_MIN_Y,
+  COL_MAX_X = VIAME_CSV_COL_MAX_X,
+  COL_MAX_Y = VIAME_CSV_COL_MAX_Y,
+  COL_CONFIDENCE = VIAME_CSV_COL_CONFIDENCE,
+  COL_LENGTH = VIAME_CSV_COL_LENGTH,
+  COL_TOT = VIAME_CSV_COL_TOT
 };
 
 // -----------------------------------------------------------------------------------

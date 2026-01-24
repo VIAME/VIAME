@@ -236,6 +236,61 @@ std::string add_quotes( const std::string& str )
 // String parsing utilities
 // =============================================================================
 
+std::string trim_string( std::string const& str )
+{
+  size_t start = str.find_first_not_of( " \t\r\n" );
+  if( start == std::string::npos )
+  {
+    return "";
+  }
+  size_t end = str.find_last_not_of( " \t\r\n" );
+  return str.substr( start, end - start + 1 );
+}
+
+bool trim_line( std::string const& line, std::string& trimmed, bool skip_comments )
+{
+  size_t start = line.find_first_not_of( " \t\r\n" );
+  if( start == std::string::npos )
+  {
+    trimmed.clear();
+    return false;
+  }
+
+  if( skip_comments && line[start] == '#' )
+  {
+    trimmed.clear();
+    return false;
+  }
+
+  size_t end = line.find_last_not_of( " \t\r\n" );
+  trimmed = line.substr( start, end - start + 1 );
+  return true;
+}
+
+std::string to_lower( std::string const& str )
+{
+  std::string result = str;
+  for( size_t i = 0; i < result.size(); ++i )
+  {
+    result[i] = static_cast< char >( std::tolower( static_cast< unsigned char >( result[i] ) ) );
+  }
+  return result;
+}
+
+bool ends_with_ci( std::string const& str, std::string const& suffix )
+{
+  std::string str_lower = to_lower( str );
+  std::string suffix_lower = to_lower( suffix );
+
+  if( suffix_lower.size() > str_lower.size() )
+  {
+    return false;
+  }
+
+  return str_lower.compare( str_lower.size() - suffix_lower.size(),
+                            suffix_lower.size(), suffix_lower ) == 0;
+}
+
 void string_to_vector( const std::string& str,
                        std::vector< std::string >& out,
                        const std::string delims )
