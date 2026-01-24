@@ -19,14 +19,21 @@ set( plugin_headers
   measurement_utilities.h
   merge_detections_suppress_in_regions.h
   pair_stereo_detections.h
+  read_detected_object_set_auto.h
+  read_detected_object_set_cvat.h
+  read_detected_object_set_dive.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
   read_detected_object_set_oceaneyes.h
   read_detected_object_set_viame_csv.h
+  read_detected_object_set_yolo.h
+  read_object_track_set_auto.h
+  read_object_track_set_dive.h
   read_object_track_set_viame_csv.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
   utilities_file.h
+  utilities_segmentation.h
   utilities_training.h
   windowed_detector.h
   windowed_refiner.h
@@ -56,14 +63,21 @@ set( plugin_sources
   measurement_utilities.cxx
   merge_detections_suppress_in_regions.cxx
   pair_stereo_detections.cxx
+  read_detected_object_set_auto.cxx
+  read_detected_object_set_cvat.cxx
+  read_detected_object_set_dive.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
   read_detected_object_set_oceaneyes.cxx
   read_detected_object_set_viame_csv.cxx
+  read_detected_object_set_yolo.cxx
+  read_object_track_set_auto.cxx
+  read_object_track_set_dive.cxx
   read_object_track_set_viame_csv.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
   utilities_file.cxx
+  utilities_segmentation.cxx
   utilities_training.cxx
   windowed_detector.cxx
   windowed_refiner.cxx
@@ -158,6 +172,13 @@ if( OpenMP_CXX_FOUND )
        OpenMP::OpenMP_CXX
        ${AUX_LINK_LIBRARIES} )
 endif()
+
+# TinyXML is used for CVAT XML parsing
+find_package( TinyXML REQUIRED )
+include_directories( SYSTEM ${TinyXML_INCLUDE_DIR} )
+set( AUX_LINK_LIBRARIES
+     ${TinyXML_LIBRARY}
+     ${AUX_LINK_LIBRARIES} )
 
 target_link_libraries( viame_core
   PUBLIC               ${CORE_LINK_LIBRARIES}

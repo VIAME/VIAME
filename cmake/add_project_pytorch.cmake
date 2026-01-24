@@ -135,7 +135,6 @@ if( WIN32 )
   if( VIAME_ENABLE_CUDA AND CUDA_TOOLKIT_ROOT_DIR )
     set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${CUDA_TOOLKIT_ROOT_DIR}/bin" )
   endif()
-  list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}" )
 
   # For torchvision and other PyTorch extensions on Windows, we need to provide
   # MSVC and Windows SDK include/lib paths since newer VS versions (2026+) may not
@@ -163,6 +162,14 @@ if( WIN32 )
         set( SDK_UCRT_LIB "${WIN_SDK_ROOT}/Lib/${SDK_VERSION}/ucrt/x64" )
         set( SDK_UM_LIB "${WIN_SDK_ROOT}/Lib/${SDK_VERSION}/um/x64" )
 
+        # Add Windows SDK bin directory to PATH for rc.exe (Resource Compiler)
+        # The linker needs rc.exe which is in the SDK bin directory
+        set( SDK_BIN_X64 "${WIN_SDK_ROOT}/bin/${SDK_VERSION}/x64" )
+        if( EXISTS "${SDK_BIN_X64}/rc.exe" )
+          set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${SDK_BIN_X64}" )
+          message( STATUS "VIAME: Added Windows SDK bin to PATH: ${SDK_BIN_X64}" )
+        endif()
+
         # Set INCLUDE env var for distutils/setuptools
         set( MSVC_INCLUDE_PATHS "${MSVC_INCLUDE_DIR}<PS>${SDK_UCRT_INCLUDE}<PS>${SDK_SHARED_INCLUDE}<PS>${SDK_UM_INCLUDE}" )
         list( APPEND PYTORCH_ENV_VARS "INCLUDE=${MSVC_INCLUDE_PATHS}" )
@@ -175,6 +182,13 @@ if( WIN32 )
       endif()
     endif()
   endif()
+
+  # Prepend our paths to existing PATH (use <PS> as placeholder for path separator)
+  # $ENV{PATH} captures the PATH at configure time, which should include essential system paths
+  # Must escape semicolons in $ENV{PATH} by converting them to <PS> placeholders,
+  # otherwise they get treated as CMake list separators and break the command
+  string( REPLACE ";" "<PS>" ESCAPED_ENV_PATH "$ENV{PATH}" )
+  list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}<PS>${ESCAPED_ENV_PATH}" )
 endif()
 
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
@@ -241,10 +255,15 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
           ${LIBRARY_LOCATION}
       )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
+      # Use pip wheel instead of setup.py bdist_wheel to avoid Windows cleanup
+      # errors ("no such file or directory" when removing bdist temp directory)
       set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} setup.py
-          build --build-base=${LIBRARY_PIP_BUILD_DIR}
-          bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+        ${Python_EXECUTABLE} -m pip wheel
+          --no-build-isolation
+          --no-deps
+          --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
+          ${LIBRARY_LOCATION}
+      )
     else()
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py

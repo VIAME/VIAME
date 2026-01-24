@@ -146,6 +146,40 @@ std::string add_quotes( const std::string& str );
 // String parsing utilities
 // =============================================================================
 
+/// Trim leading and trailing whitespace from a string
+///
+/// \param str Input string
+/// \returns String with leading/trailing whitespace removed
+VIAME_CORE_EXPORT
+std::string trim_string( std::string const& str );
+
+/// Trim a line and optionally check if it's a comment
+///
+/// Removes leading/trailing whitespace from the line. If the trimmed line
+/// starts with '#', it is considered a comment.
+///
+/// \param line Input line to trim
+/// \param[out] trimmed Output trimmed string (empty if line is empty or comment)
+/// \param skip_comments If true, treat lines starting with '#' as empty
+/// \returns true if the line has content (non-empty and not a comment if skip_comments)
+VIAME_CORE_EXPORT
+bool trim_line( std::string const& line, std::string& trimmed, bool skip_comments = true );
+
+/// Convert string to lowercase
+///
+/// \param str Input string
+/// \returns Lowercase version of string
+VIAME_CORE_EXPORT
+std::string to_lower( std::string const& str );
+
+/// Check if string ends with suffix (case-insensitive)
+///
+/// \param str String to check
+/// \param suffix Suffix to look for
+/// \returns true if str ends with suffix (ignoring case)
+VIAME_CORE_EXPORT
+bool ends_with_ci( std::string const& str, std::string const& suffix );
+
 /// Split a string into a vector using delimiters
 ///
 /// \param str Input string

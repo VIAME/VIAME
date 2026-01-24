@@ -32,10 +32,16 @@
 #include "empty_detector.h"
 #include "full_frame_detector.h"
 #include "merge_detections_suppress_in_regions.h"
+#include "read_detected_object_set_auto.h"
+#include "read_detected_object_set_cvat.h"
+#include "read_detected_object_set_dive.h"
 #include "read_detected_object_set_fishnet.h"
 #include "read_detected_object_set_habcam.h"
 #include "read_detected_object_set_oceaneyes.h"
 #include "read_detected_object_set_viame_csv.h"
+#include "read_detected_object_set_yolo.h"
+#include "read_object_track_set_auto.h"
+#include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
@@ -79,6 +85,18 @@ register_factories( kv::plugin_loader& vpm )
     empty_detector::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
+  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_auto >(
+    read_detected_object_set_auto::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_cvat >(
+    read_detected_object_set_cvat::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_dive >(
+    read_detected_object_set_dive::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
   fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_fishnet >(
     read_detected_object_set_fishnet::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
@@ -95,9 +113,21 @@ register_factories( kv::plugin_loader& vpm )
     read_detected_object_set_viame_csv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
+  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_yolo >(
+    read_detected_object_set_yolo::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
   // Add alias "viame_csv" for backward compatibility with existing pipeline configs
   fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_viame_csv >(
     "viame_csv" );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_auto >(
+    read_object_track_set_auto::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_dive >(
+    read_object_track_set_dive::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_viame_csv >(

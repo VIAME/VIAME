@@ -38,9 +38,14 @@ endmacro()
 
 # Override the set() command to capture CACHE variables
 # This is called when including build_cmake_*.cmake files
-macro(viame_capture_cache_var VAR_NAME VAR_VALUE)
+macro(viame_capture_cache_var VAR_NAME VAR_VALUE FORCE_FLAG)
   # Add to options list in CMake command-line format
-  add_option_if_not_set("${VAR_NAME}" "${VAR_VALUE}")
+  # If FORCE was specified, always override
+  if("${FORCE_FLAG}" STREQUAL "FORCE")
+    add_option("${VAR_NAME}" "${VAR_VALUE}")
+  else()
+    add_option_if_not_set("${VAR_NAME}" "${VAR_VALUE}")
+  endif()
 endmacro()
 
 # Include a cmake preset file and extract its cache variables
@@ -59,14 +64,20 @@ macro(include_cmake_preset PRESET_FILE)
   foreach(_cmd ${_set_commands})
     # Extract variable name and value
     # Handle both quoted and unquoted values
+    # Also detect if FORCE is specified at the end
+    set(_force_flag "")
+    if("${_cmd}" MATCHES "FORCE\\)")
+      set(_force_flag "FORCE")
+    endif()
+
     if("${_cmd}" MATCHES "set\\(([A-Za-z_][A-Za-z0-9_-]*) \"([^\"]*)\" CACHE")
       set(_var_name "${CMAKE_MATCH_1}")
       set(_var_value "${CMAKE_MATCH_2}")
-      viame_capture_cache_var("${_var_name}" "${_var_value}")
+      viame_capture_cache_var("${_var_name}" "${_var_value}" "${_force_flag}")
     elseif("${_cmd}" MATCHES "set\\(([A-Za-z_][A-Za-z0-9_-]*) ([A-Za-z0-9_./-]+) CACHE")
       set(_var_name "${CMAKE_MATCH_1}")
       set(_var_value "${CMAKE_MATCH_2}")
-      viame_capture_cache_var("${_var_name}" "${_var_value}")
+      viame_capture_cache_var("${_var_name}" "${_var_value}" "${_force_flag}")
     endif()
   endforeach()
 endmacro()

@@ -57,7 +57,8 @@ cmake ../ \
   -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
   -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
   -DVIAME_BUILD_NO_CACHE_DIR:BOOL=ON \
-  -DVIAME_ENABLE_DIVE:BOOL=OFF
+  -DVIAME_ENABLE_DIVE:BOOL=OFF \
+  -DVIAME_ENABLE_VIVIA:BOOL=OFF
 
 # Build Stage 1 target: fletch
 echo "Beginning Stage 1 build (fletch), routing build info to build_log_stage1.txt"

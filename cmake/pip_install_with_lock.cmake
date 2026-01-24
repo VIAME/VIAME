@@ -12,13 +12,20 @@
 #   Python_EXECUTABLE - Path to python executable
 #   WORKING_DIR - Optional working directory
 #   NO_CACHE_DIR - If set to TRUE, adds --no-cache-dir to pip command
+#   ENV_VARS - Environment variables (----separated KEY=VALUE pairs, <PS> for path separator)
 
 cmake_minimum_required( VERSION 3.16 )
 
 # Build the pip install arguments
 if( WHEEL_DIR )
   # Mode 1: Install wheels from directory (locally built wheels)
-  file( GLOB _all_wheels LIST_DIRECTORIES FALSE ${WHEEL_DIR}/*.whl )
+  file( GLOB _all_wheels LIST_DIRECTORIES FALSE "${WHEEL_DIR}/*.whl" )
+
+  # Check if any wheels were found
+  list( LENGTH _all_wheels _wheel_count )
+  if( _wheel_count EQUAL 0 )
+    message( FATAL_ERROR "No wheel files found in WHEEL_DIR: ${WHEEL_DIR}" )
+  endif()
 
   # When multiple wheels exist (e.g., platform-specific and pure-python),
   # prefer platform-specific wheels (cpXX-cpXX-platform) over py3-none-any
@@ -66,21 +73,64 @@ else()
   set( _cache_flag "" )
 endif()
 
+# Build environment variables for pip (used with cmake -E env)
+# For wheel installs, we only need Python-related env vars, not compiler/CUDA paths
+# Skip PATH on Windows as it has many semicolons that can cause issues with cmake -E env
+set( _pip_env_vars )
+if( ENV_VARS )
+  # Convert ----separated env vars back to list
+  string( REPLACE "----" ";" _env_vars_list "${ENV_VARS}" )
+  # Convert <PS> path separator to platform-specific separator
+  foreach( _env_var IN LISTS _env_vars_list )
+    # Skip PATH on Windows for pip install - it's not needed for installing wheels
+    # and the semicolon-separated paths cause issues with cmake -E env argument parsing
+    if( WIN32 AND _env_var MATCHES "^PATH=" )
+      continue()
+    endif()
+    if( WIN32 )
+      string( REPLACE "<PS>" "\\;" _env_var "${_env_var}" )
+    else()
+      string( REPLACE "<PS>" ":" _env_var "${_env_var}" )
+    endif()
+    list( APPEND _pip_env_vars "${_env_var}" )
+  endforeach()
+endif()
+
 if( UNIX )
   # Use flock on Unix to serialize pip installs (5 minute timeout)
-  if( _working_dir )
-    execute_process(
-      COMMAND flock --timeout 300 ${_lock_file}
-        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
-      RESULT_VARIABLE _result
-      WORKING_DIRECTORY ${_working_dir}
-    )
+  if( _pip_env_vars )
+    # Use cmake -E env to set environment variables (e.g., PYTHONUSERBASE)
+    if( _working_dir )
+      execute_process(
+        COMMAND flock --timeout 300 ${_lock_file}
+          ${CMAKE_COMMAND} -E env ${_pip_env_vars}
+          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
+        RESULT_VARIABLE _result
+        WORKING_DIRECTORY ${_working_dir}
+      )
+    else()
+      execute_process(
+        COMMAND flock --timeout 300 ${_lock_file}
+          ${CMAKE_COMMAND} -E env ${_pip_env_vars}
+          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
+        RESULT_VARIABLE _result
+      )
+    endif()
   else()
-    execute_process(
-      COMMAND flock --timeout 300 ${_lock_file}
-        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
-      RESULT_VARIABLE _result
-    )
+    if( _working_dir )
+      execute_process(
+        COMMAND flock --timeout 300 ${_lock_file}
+          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
+        RESULT_VARIABLE _result
+        WORKING_DIRECTORY ${_working_dir}
+      )
+    else()
+      execute_process(
+        COMMAND flock --timeout 300 ${_lock_file}
+          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
+        RESULT_VARIABLE _result
+      )
+    endif()
   endif()
 else()
   # On Windows, add retries for race conditions
@@ -88,16 +138,24 @@ else()
   set( _retry_count 0 )
   set( _result 1 )
 
+  # Build the pip command with optional env vars
+  if( _pip_env_vars )
+    set( _pip_cmd ${CMAKE_COMMAND} -E env ${_pip_env_vars}
+      ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args} )
+  else()
+    set( _pip_cmd ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args} )
+  endif()
+
   while( _result AND _retry_count LESS _max_retries )
     if( _working_dir )
       execute_process(
-        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
+        COMMAND ${_pip_cmd}
         RESULT_VARIABLE _result
         WORKING_DIRECTORY ${_working_dir}
       )
     else()
       execute_process(
-        COMMAND ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
+        COMMAND ${_pip_cmd}
         RESULT_VARIABLE _result
       )
     endif()

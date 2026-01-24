@@ -27,16 +27,12 @@ add_option("CUDA_NVCC_EXECUTABLE:PATH" "C:/Program Files/NVIDIA GPU Computing To
 add_option("CUDNN_ROOT_DIR:PATH" "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8")
 
 # Windows-specific build paths
-add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl1")
-add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv1")
-add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm1")
+add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl4")
+add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv4")
+add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm4")
 
 # Seal-specific overrides
-add_option("VIAME_ENABLE_DARKNET" "OFF")
-add_option("VIAME_ENABLE_PYTORCH-LEARN" "OFF")
-add_option("VIAME_ENABLE_ONNX" "OFF")
-add_option("VIAME_ENABLE_PYTORCH-SIAMMASK" "OFF")
-add_option("VIAME_ENABLE_PYTORCH-ULTRALYTICS:BOOL" "ON")
+add_option("VIAME_ENABLE_PYTORCH-ULTRALYTICS" "ON")
 add_option("VIAME_ENABLE_SEAL" "ON")
 add_option("VIAME_ENABLE_VIVIA" "OFF")
 
