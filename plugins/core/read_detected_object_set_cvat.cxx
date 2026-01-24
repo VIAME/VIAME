@@ -29,10 +29,9 @@ namespace viame {
 class read_detected_object_set_cvat::priv
 {
 public:
-  priv( read_detected_object_set_cvat* parent )
-    : m_parent( parent )
+  priv( read_detected_object_set_cvat& parent )
+    : m_parent( &parent )
     , m_first( true )
-    , m_default_confidence( 1.0 )
     , m_current_idx( 0 )
   { }
 
@@ -46,9 +45,6 @@ public:
   read_detected_object_set_cvat* m_parent;
   bool m_first;
 
-  // Configuration
-  double m_default_confidence;
-
   // List of image names in order
   std::vector< std::string > m_image_list;
   int m_current_idx;
@@ -60,40 +56,18 @@ public:
 
 // ===================================================================================
 read_detected_object_set_cvat
-::read_detected_object_set_cvat()
-  : d( new read_detected_object_set_cvat::priv( this ) )
-{
-  attach_logger( "viame.core.read_detected_object_set_cvat" );
-}
-
-
-read_detected_object_set_cvat
 ::~read_detected_object_set_cvat()
 {
 }
 
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-read_detected_object_set_cvat
-::get_configuration() const
-{
-  auto config = kwiver::vital::algo::detected_object_set_input::get_configuration();
-
-  config->set_value( "default_confidence", d->m_default_confidence,
-    "Default confidence score for detections (CVAT doesn't store confidence)." );
-
-  return config;
-}
-
-
-// -----------------------------------------------------------------------------------
 void
 read_detected_object_set_cvat
-::set_configuration( kwiver::vital::config_block_sptr config )
+::initialize()
 {
-  d->m_default_confidence =
-    config->get_value< double >( "default_confidence", d->m_default_confidence );
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_detected_object_set_cvat" );
 }
 
 
@@ -332,11 +306,11 @@ read_detected_object_set_cvat::priv
 
       // Create detected object type
       auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-      dot->set_score( label, m_default_confidence );
+      dot->set_score( label, m_parent->c_default_confidence );
 
       // Create and add detection
       auto det = std::make_shared< kwiver::vital::detected_object >(
-        bbox, m_default_confidence, dot );
+        bbox, m_parent->c_default_confidence, dot );
       det_set->add( det );
     }
     else if( elem_type == "polygon" )
@@ -376,11 +350,11 @@ read_detected_object_set_cvat::priv
 
       // Create detected object type
       auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-      dot->set_score( label, m_default_confidence );
+      dot->set_score( label, m_parent->c_default_confidence );
 
       // Create detection with polygon
       auto det = std::make_shared< kwiver::vital::detected_object >(
-        bbox, m_default_confidence, dot );
+        bbox, m_parent->c_default_confidence, dot );
       det->set_flattened_polygon( points );
       det_set->add( det );
     }
@@ -420,11 +394,11 @@ read_detected_object_set_cvat::priv
 
       // Create detected object type
       auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-      dot->set_score( label, m_default_confidence );
+      dot->set_score( label, m_parent->c_default_confidence );
 
       // Create detection
       auto det = std::make_shared< kwiver::vital::detected_object >(
-        bbox, m_default_confidence, dot );
+        bbox, m_parent->c_default_confidence, dot );
       det_set->add( det );
     }
   }

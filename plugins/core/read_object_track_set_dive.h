@@ -13,31 +13,18 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/read_object_track_set.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 #include <memory>
 
 namespace viame {
 
-/// \brief Read object track sets from DIVE JSON format.
-///
-/// DIVE JSON format natively stores tracks with temporal features.
-/// This reader properly preserves track identity across frames.
-///
-/// DIVE JSON format contains:
-///   - tracks: object with track ID keys containing track data
-///   - Each track has: id, begin, end, confidencePairs, features
-///   - Each feature has: frame, bounds [x1,y1,x2,y2], attributes
-///   - Optional geometry field with GeoJSON polygons
-///
-/// See: https://kitware.github.io/dive/DataFormats/
-///
 class VIAME_CORE_EXPORT read_object_track_set_dive
   : public kwiver::vital::algo::read_object_track_set
 {
 public:
-  static constexpr char const* name = "dive";
-
-  static constexpr char const* description =
+  PLUGGABLE_IMPL(
+    read_object_track_set_dive,
     "Object track set reader using DIVE JSON format.\n\n"
     "DIVE JSON natively stores tracks with temporal features.\n"
     "Format contains:\n"
@@ -45,12 +32,10 @@ public:
     "  - Each track: id, begin, end, confidencePairs, features\n"
     "  - Each feature: frame, bounds [x1,y1,x2,y2], geometry\n"
     "  - confidencePairs: [[label, score], ...]\n\n"
-    "See: https://kitware.github.io/dive/DataFormats/";
+    "See: https://kitware.github.io/dive/DataFormats/" )
 
-  read_object_track_set_dive();
   virtual ~read_object_track_set_dive();
 
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   virtual void open( std::string const& filename );
@@ -58,8 +43,10 @@ public:
   virtual bool read_set( kwiver::vital::object_track_set_sptr& set );
 
 private:
+  void initialize() override;
+
   class priv;
-  std::unique_ptr< priv > d;
+  KWIVER_UNIQUE_PTR( priv, d );
 };
 
 } // end namespace

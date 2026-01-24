@@ -230,14 +230,6 @@ public:
 
 // ===================================================================================
 read_detected_object_set_viame_csv
-::read_detected_object_set_viame_csv()
-{
-  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
-  attach_logger( "viame.core.read_detected_object_set_viame_csv" );
-}
-
-
-read_detected_object_set_viame_csv
 ::~read_detected_object_set_viame_csv()
 {
   if( d->m_error_writer )
@@ -262,6 +254,9 @@ void
 read_detected_object_set_viame_csv
 ::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_detected_object_set_viame_csv" );
+
   if( !c_warning_file.empty() )
   {
     d->m_error_writer.reset( new std::ofstream( c_warning_file.c_str(), std::ios::app ) );

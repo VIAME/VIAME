@@ -67,8 +67,8 @@ bool is_dive_json_format( std::string const& content )
 class read_object_track_set_auto::priv
 {
 public:
-  priv( read_object_track_set_auto* parent )
-    : m_parent( parent )
+  priv( read_object_track_set_auto& parent )
+    : m_parent( &parent )
     , m_detected_format( "" )
   { }
 
@@ -82,9 +82,6 @@ public:
 
   // The underlying reader we delegate to
   kwiver::vital::algo::read_object_track_set_sptr m_reader;
-
-  // Configuration to pass to underlying readers
-  kwiver::vital::config_block_sptr m_config;
 };
 
 
@@ -164,48 +161,18 @@ read_object_track_set_auto::priv
 
 // ===================================================================================
 read_object_track_set_auto
-::read_object_track_set_auto()
-  : d( new read_object_track_set_auto::priv( this ) )
-{
-  attach_logger( "viame.core.read_object_track_set_auto" );
-}
-
-
-read_object_track_set_auto
 ::~read_object_track_set_auto()
 {
 }
 
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-read_object_track_set_auto
-::get_configuration() const
-{
-  auto config = kwiver::vital::algo::read_object_track_set::get_configuration();
-
-  // Add configuration options that may be needed by underlying readers
-
-  // VIAME CSV options
-  config->set_value( "viame_csv:delimiter", ",",
-    "Delimiter character for CSV parsing" );
-  config->set_value( "viame_csv:batch_load", "false",
-    "Load all tracks at once (true) or stream frame-by-frame (false)" );
-
-  // DIVE options
-  config->set_value( "dive:batch_load", "true",
-    "Load all tracks at once (true) or stream frame-by-frame (false)" );
-
-  return config;
-}
-
-
-// -----------------------------------------------------------------------------------
 void
 read_object_track_set_auto
-::set_configuration( kwiver::vital::config_block_sptr config )
+::initialize()
 {
-  d->m_config = config;
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_object_track_set_auto" );
 }
 
 
@@ -234,48 +201,11 @@ read_object_track_set_auto
   // Create the appropriate reader
   if( d->m_detected_format == "dive" )
   {
-    auto dive_reader = std::make_shared< read_object_track_set_dive >();
-
-    // Configure DIVE reader if we have config
-    if( d->m_config )
-    {
-      auto dive_config = dive_reader->get_configuration();
-
-      if( d->m_config->has_value( "dive:batch_load" ) )
-      {
-        dive_config->set_value( "batch_load",
-          d->m_config->get_value< std::string >( "dive:batch_load" ) );
-      }
-
-      dive_reader->set_configuration( dive_config );
-    }
-
-    d->m_reader = dive_reader;
+    d->m_reader = std::make_shared< read_object_track_set_dive >();
   }
   else if( d->m_detected_format == "viame_csv" )
   {
-    auto csv_reader = std::make_shared< read_object_track_set_viame_csv >();
-
-    // Configure VIAME CSV reader if we have config
-    if( d->m_config )
-    {
-      auto csv_config = csv_reader->get_configuration();
-
-      if( d->m_config->has_value( "viame_csv:delimiter" ) )
-      {
-        csv_config->set_value( "delimiter",
-          d->m_config->get_value< std::string >( "viame_csv:delimiter" ) );
-      }
-      if( d->m_config->has_value( "viame_csv:batch_load" ) )
-      {
-        csv_config->set_value( "batch_load",
-          d->m_config->get_value< std::string >( "viame_csv:batch_load" ) );
-      }
-
-      csv_reader->set_configuration( csv_config );
-    }
-
-    d->m_reader = csv_reader;
+    d->m_reader = std::make_shared< read_object_track_set_viame_csv >();
   }
   else
   {

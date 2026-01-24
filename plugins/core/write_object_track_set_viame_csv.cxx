@@ -309,21 +309,32 @@ write_object_track_set_viame_csv
         y_min = std::min( y_min, contour[j].y );
         y_max = std::max( y_max, contour[j].y );
       }
-      std::vector< cv::Point > simp_contour;
+      std::vector< kwiver::vital::point_2i > simp_contour;
       if( c_mask_to_poly_tol >= 0 )
       {
         double tol = c_mask_to_poly_tol * std::min( x_max - x_min + 1,
                                                     y_max - y_min + 1 );
-        cv::approxPolyDP( contour, simp_contour, tol, /*closed:*/ true );
+        std::vector< cv::Point > approx;
+        cv::approxPolyDP( contour, approx, tol, /*closed:*/ true );
+        for( auto const& p : approx )
+        {
+          simp_contour.emplace_back( p.x, p.y );
+        }
       }
       else
       {
-        simp_contour = simplify_polygon( contour, c_mask_to_poly_points );
+        std::vector< kwiver::vital::point_2i > kwiver_contour;
+        kwiver_contour.reserve( contour.size() );
+        for( auto const& p : contour )
+        {
+          kwiver_contour.emplace_back( p.x, p.y );
+        }
+        simp_contour = simplify_polygon( kwiver_contour, c_mask_to_poly_points );
       }
       stream << ( hierarchy[i][3] < 0 ? c_delimiter  + "(poly)" : c_delimiter  + "(hole)" );
-      for( auto&& p : simp_contour )
+      for( auto const& p : simp_contour )
       {
-        stream << " " << p.x + ref_x << " " << p.y + ref_y;
+        stream << " " << p[ 0 ] + ref_x << " " << p[ 1 ] + ref_y;
       }
     }
   }

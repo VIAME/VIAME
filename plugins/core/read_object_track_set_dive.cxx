@@ -26,10 +26,9 @@ namespace viame {
 class read_object_track_set_dive::priv
 {
 public:
-  priv( read_object_track_set_dive* parent )
-    : m_parent( parent )
+  priv( read_object_track_set_dive& parent )
+    : m_parent( &parent )
     , m_first( true )
-    , m_batch_load( true )
   { }
 
   ~priv() { }
@@ -38,7 +37,6 @@ public:
 
   read_object_track_set_dive* m_parent;
   bool m_first;
-  bool m_batch_load;
 
   std::string m_filename;
 
@@ -55,14 +53,6 @@ public:
 
 // ===================================================================================
 read_object_track_set_dive
-::read_object_track_set_dive()
-  : d( new read_object_track_set_dive::priv( this ) )
-{
-  attach_logger( "viame.core.read_object_track_set_dive" );
-}
-
-
-read_object_track_set_dive
 ::~read_object_track_set_dive()
 {
 }
@@ -71,9 +61,10 @@ read_object_track_set_dive
 // -----------------------------------------------------------------------------------
 void
 read_object_track_set_dive
-::set_configuration( kwiver::vital::config_block_sptr config )
+::initialize()
 {
-  d->m_batch_load = config->get_value< bool >( "batch_load", d->m_batch_load );
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_object_track_set_dive" );
 }
 
 
@@ -113,7 +104,7 @@ read_object_track_set_dive
     d->m_first = false;
   }
 
-  if( d->m_batch_load )
+  if( true )
   {
     // Return all tracks in one set
     if( d->m_all_tracks.empty() )
@@ -225,7 +216,7 @@ read_object_track_set_dive::priv
         track->append( state );
 
         // Index track by frame for streaming mode
-        if( !m_batch_load )
+        if( false )
         {
           m_tracks_by_frame[ frame ].push_back( track );
         }

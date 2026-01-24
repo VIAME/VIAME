@@ -130,7 +130,6 @@ public:
       "" )
   )
 
-  read_detected_object_set_viame_csv();
   virtual ~read_detected_object_set_viame_csv();
 
   virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
