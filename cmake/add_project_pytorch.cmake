@@ -247,20 +247,24 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
       # Use pip wheel for pyproject.toml-based packages
       # This avoids creating build directories in source tree
+      # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} -m pip wheel
           --no-build-isolation
           --no-deps
+          --no-cache-dir
           --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
           ${LIBRARY_LOCATION}
       )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       # Use pip wheel instead of setup.py bdist_wheel to avoid Windows cleanup
       # errors ("no such file or directory" when removing bdist temp directory)
+      # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} -m pip wheel
           --no-build-isolation
           --no-deps
+          --no-cache-dir
           --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
           ${LIBRARY_LOCATION}
       )
