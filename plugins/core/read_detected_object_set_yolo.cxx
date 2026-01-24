@@ -23,11 +23,6 @@
 #include <iostream>
 #include <algorithm>
 
-#ifdef VIAME_ENABLE_OPENCV
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#endif
-
 
 namespace viame {
 
@@ -139,6 +134,9 @@ public:
   int m_image_height;
   double m_default_confidence;
 
+  // Image reader for dimension auto-detection
+  kwiver::vital::algo::image_io_sptr m_image_reader;
+
   // Class names loaded from file
   std::vector< std::string > m_class_names;
 
@@ -187,6 +185,10 @@ read_detected_object_set_yolo
   config->set_value( "default_confidence", d->m_default_confidence,
     "Default confidence score to use when not specified in label file." );
 
+  // Nested image_io algorithm for reading images to get dimensions
+  kwiver::vital::algo::image_io::get_nested_algo_configuration(
+    "image_reader", config, d->m_image_reader );
+
   return config;
 }
 
@@ -204,6 +206,10 @@ read_detected_object_set_yolo
     config->get_value< int >( "image_height", d->m_image_height );
   d->m_default_confidence =
     config->get_value< double >( "default_confidence", d->m_default_confidence );
+
+  // Configure nested image_io algorithm
+  kwiver::vital::algo::image_io::set_nested_algo_configuration(
+    "image_reader", config, d->m_image_reader );
 
   // Load class names if file specified
   if( !d->m_classes_file.empty() )
@@ -387,23 +393,7 @@ read_detected_object_set_yolo::priv
     return false;
   }
 
-#ifdef VIAME_ENABLE_OPENCV
-  // Use OpenCV to get image dimensions
-  cv::Mat img = cv::imread( image_path, cv::IMREAD_UNCHANGED );
-  if( img.empty() )
-  {
-    LOG_WARN( m_parent->logger(), "OpenCV could not read image: " << image_path );
-    return false;
-  }
-
-  m_image_width = img.cols;
-  m_image_height = img.rows;
-
-  LOG_INFO( m_parent->logger(), "Auto-detected image dimensions: "
-            << m_image_width << "x" << m_image_height << " from " << image_path );
-  return true;
-#else
-  // Try to read dimensions from image header
+  // First try to read dimensions from image header (fast, no external dependencies)
   int width = 0, height = 0;
   if( get_image_dimensions_from_header( image_path, width, height ) )
   {
@@ -415,12 +405,34 @@ read_detected_object_set_yolo::priv
     return true;
   }
 
+  // Fall back to using the configured image_io algorithm
+  if( m_image_reader )
+  {
+    try
+    {
+      auto img_container = m_image_reader->load( image_path );
+      if( img_container )
+      {
+        m_image_width = static_cast< int >( img_container->width() );
+        m_image_height = static_cast< int >( img_container->height() );
+
+        LOG_INFO( m_parent->logger(), "Auto-detected image dimensions: "
+                  << m_image_width << "x" << m_image_height << " from " << image_path );
+        return true;
+      }
+    }
+    catch( std::exception const& e )
+    {
+      LOG_WARN( m_parent->logger(), "Image reader failed for " << image_path
+                << ": " << e.what() );
+    }
+  }
+
   LOG_ERROR( m_parent->logger(),
              "Could not auto-detect image dimensions. "
              "Please specify image_width and image_height in configuration, "
-             "or enable OpenCV support." );
+             "or configure an image_reader algorithm." );
   return false;
-#endif
 }
 
 

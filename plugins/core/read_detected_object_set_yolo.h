@@ -13,6 +13,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/detected_object_set_input.h>
+#include <vital/algo/image_io.h>
 
 #include <memory>
 
