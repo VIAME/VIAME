@@ -74,12 +74,19 @@ else()
 endif()
 
 # Build environment variables for pip (used with cmake -E env)
+# For wheel installs, we only need Python-related env vars, not compiler/CUDA paths
+# Skip PATH on Windows as it has many semicolons that can cause issues with cmake -E env
 set( _pip_env_vars )
 if( ENV_VARS )
   # Convert ----separated env vars back to list
   string( REPLACE "----" ";" _env_vars_list "${ENV_VARS}" )
   # Convert <PS> path separator to platform-specific separator
   foreach( _env_var IN LISTS _env_vars_list )
+    # Skip PATH on Windows for pip install - it's not needed for installing wheels
+    # and the semicolon-separated paths cause issues with cmake -E env argument parsing
+    if( WIN32 AND _env_var MATCHES "^PATH=" )
+      continue()
+    endif()
     if( WIN32 )
       string( REPLACE "<PS>" "\\;" _env_var "${_env_var}" )
     else()

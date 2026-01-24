@@ -185,7 +185,10 @@ if( WIN32 )
 
   # Prepend our paths to existing PATH (use <PS> as placeholder for path separator)
   # $ENV{PATH} captures the PATH at configure time, which should include essential system paths
-  list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}<PS>$ENV{PATH}" )
+  # Must escape semicolons in $ENV{PATH} by converting them to <PS> placeholders,
+  # otherwise they get treated as CMake list separators and break the command
+  string( REPLACE ";" "<PS>" ESCAPED_ENV_PATH "$ENV{PATH}" )
+  list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}<PS>${ESCAPED_ENV_PATH}" )
 endif()
 
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
