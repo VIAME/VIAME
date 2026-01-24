@@ -19,10 +19,14 @@
 #include "empty_detector.h"
 #include "full_frame_detector.h"
 #include "merge_detections_suppress_in_regions.h"
+#include "read_detected_object_set_auto.h"
+#include "read_detected_object_set_cvat.h"
+#include "read_detected_object_set_dive.h"
 #include "read_detected_object_set_fishnet.h"
 #include "read_detected_object_set_habcam.h"
 #include "read_detected_object_set_oceaneyes.h"
 #include "read_detected_object_set_viame_csv.h"
+#include "read_detected_object_set_yolo.h"
 #include "read_object_track_set_viame_csv.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
@@ -71,10 +75,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< auto_detect_transform_io >( vpm );
   register_algorithm< convert_head_tail_points >( vpm );
   register_algorithm< empty_detector >( vpm );
+  register_algorithm< read_detected_object_set_auto >( vpm );
+  register_algorithm< read_detected_object_set_cvat >( vpm );
+  register_algorithm< read_detected_object_set_dive >( vpm );
   register_algorithm< read_detected_object_set_fishnet >( vpm );
   register_algorithm< read_detected_object_set_habcam >( vpm );
   register_algorithm< read_detected_object_set_oceaneyes >( vpm );
   register_algorithm< read_detected_object_set_viame_csv >( vpm );
+  register_algorithm< read_detected_object_set_yolo >( vpm );
   register_algorithm< read_object_track_set_viame_csv >( vpm );
   register_algorithm< write_detected_object_set_viame_csv >( vpm );
   register_algorithm< write_disparity_maps >( vpm );
