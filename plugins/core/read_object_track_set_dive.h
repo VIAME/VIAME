@@ -32,7 +32,11 @@ public:
     "  - Each track: id, begin, end, confidencePairs, features\n"
     "  - Each feature: frame, bounds [x1,y1,x2,y2], geometry\n"
     "  - confidencePairs: [[label, score], ...]\n\n"
-    "See: https://kitware.github.io/dive/DataFormats/" )
+    "See: https://kitware.github.io/dive/DataFormats/",
+    PARAM_DEFAULT(
+      batch_load, bool,
+      "Load all tracks at once (true) or stream frame-by-frame (false).",
+      true ) )
 
   virtual ~read_object_track_set_dive();
 

@@ -104,7 +104,7 @@ read_object_track_set_dive
     d->m_first = false;
   }
 
-  if( true )
+  if( c_batch_load )
   {
     // Return all tracks in one set
     if( d->m_all_tracks.empty() )
@@ -216,7 +216,7 @@ read_object_track_set_dive::priv
         track->append( state );
 
         // Index track by frame for streaming mode
-        if( false )
+        if( !m_parent->c_batch_load )
         {
           m_tracks_by_frame[ frame ].push_back( track );
         }
