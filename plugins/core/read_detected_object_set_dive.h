@@ -4,7 +4,7 @@
 
 /**
  * \file
- * \brief Interface for read_detected_object_set_dive
+ * \brief Interface for read_detected_object_set_dive and shared DIVE parsing
  */
 
 #ifndef VIAME_CORE_READ_DETECTED_OBJECT_SET_DIVE_H
@@ -13,10 +13,93 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/detected_object_set_input.h>
+#include <vital/types/detected_object.h>
+#include <vital/types/detected_object_type.h>
+#include <vital/types/bounding_box.h>
+#include <vital/logger/logger.h>
 
 #include <memory>
+#include <vector>
+#include <map>
+#include <string>
 
 namespace viame {
+
+// -----------------------------------------------------------------------------------
+// DIVE JSON data structures (shared between detection and track readers)
+// -----------------------------------------------------------------------------------
+
+/// \brief A single feature (detection) within a DIVE track
+struct VIAME_CORE_EXPORT dive_feature
+{
+  int frame = 0;
+  std::vector< double > bounds;  // [x1, y1, x2, y2]
+  bool keyframe = false;
+  bool interpolate = false;
+  std::vector< double > head;
+  std::vector< double > tail;
+  double fishLength = 0.0;
+  std::map< std::string, std::string > attributes;
+};
+
+/// \brief A track in DIVE format containing multiple features
+struct VIAME_CORE_EXPORT dive_track
+{
+  int id = 0;
+  int begin = 0;
+  int end = 0;
+  std::vector< std::pair< std::string, double > > confidencePairs;
+  std::vector< dive_feature > features;
+  std::map< std::string, std::string > attributes;
+};
+
+/// \brief Top-level DIVE annotation file structure
+struct VIAME_CORE_EXPORT dive_annotation_file
+{
+  std::map< std::string, dive_track > tracks;
+  int version = 1;
+};
+
+// -----------------------------------------------------------------------------------
+// DIVE JSON parsing utilities (shared between detection and track readers)
+// -----------------------------------------------------------------------------------
+
+/// \brief Parse a DIVE JSON file
+///
+/// \param filename Path to the DIVE JSON file
+/// \param logger Logger for error/warning messages
+/// \param[out] dive_data Parsed annotation data
+/// \return true if parsing succeeded, false otherwise
+VIAME_CORE_EXPORT
+bool parse_dive_json_file( std::string const& filename,
+                           kwiver::vital::logger_handle_t logger,
+                           dive_annotation_file& dive_data );
+
+/// \brief Manual fallback parser for DIVE JSON format
+///
+/// \param content JSON content as string
+/// \param logger Logger for messages
+/// \param[out] dive_data Parsed annotation data
+/// \return true if parsing succeeded, false otherwise
+VIAME_CORE_EXPORT
+bool parse_dive_json_manual( std::string const& content,
+                             kwiver::vital::logger_handle_t logger,
+                             dive_annotation_file& dive_data );
+
+/// \brief Create a detected_object from a DIVE feature and track confidence pairs
+///
+/// \param feature The DIVE feature containing bounds
+/// \param confidence_pairs The track's confidence pairs for class labels
+/// \return A detected_object_sptr, or nullptr if feature has no valid bounds
+VIAME_CORE_EXPORT
+kwiver::vital::detected_object_sptr
+create_detected_object_from_dive(
+  dive_feature const& feature,
+  std::vector< std::pair< std::string, double > > const& confidence_pairs );
+
+// -----------------------------------------------------------------------------------
+// Detection reader class
+// -----------------------------------------------------------------------------------
 
 /// \brief Read detected object sets from DIVE JSON format.
 ///

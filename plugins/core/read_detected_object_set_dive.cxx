@@ -4,7 +4,7 @@
 
 /**
  * \file
- * \brief Implementation for read_detected_object_set_dive
+ * \brief Implementation for read_detected_object_set_dive and shared DIVE parsing
  */
 
 #include "read_detected_object_set_dive.h"
@@ -33,63 +33,405 @@
 namespace viame {
 
 // -----------------------------------------------------------------------------------
-// DIVE JSON data structures for cereal parsing
+// Internal cereal serialization structures (wrap the exported structs)
 // -----------------------------------------------------------------------------------
 
-struct dive_feature
+namespace {
+
+struct dive_feature_serial
 {
-  int frame = 0;
-  std::vector< double > bounds;  // [x1, y1, x2, y2]
-  bool keyframe = false;
-  bool interpolate = false;
-  std::vector< double > head;
-  std::vector< double > tail;
-  double fishLength = 0.0;
+  dive_feature& ref;
+
+  dive_feature_serial( dive_feature& f ) : ref( f ) {}
 
   template< class Archive >
   void serialize( Archive& ar )
   {
-    try { ar( cereal::make_nvp( "frame", frame ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "bounds", bounds ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "keyframe", keyframe ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "interpolate", interpolate ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "head", head ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "tail", tail ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "fishLength", fishLength ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "frame", ref.frame ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "bounds", ref.bounds ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "keyframe", ref.keyframe ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "interpolate", ref.interpolate ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "head", ref.head ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "tail", ref.tail ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "fishLength", ref.fishLength ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "attributes", ref.attributes ) ); } catch(...) {}
   }
 };
 
-struct dive_track
+struct dive_track_serial
 {
-  int id = 0;
-  int begin = 0;
-  int end = 0;
-  std::vector< std::pair< std::string, double > > confidencePairs;
-  std::vector< dive_feature > features;
+  dive_track& ref;
+
+  dive_track_serial( dive_track& t ) : ref( t ) {}
 
   template< class Archive >
   void serialize( Archive& ar )
   {
-    try { ar( cereal::make_nvp( "id", id ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "begin", begin ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "end", end ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "confidencePairs", confidencePairs ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "features", features ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "id", ref.id ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "begin", ref.begin ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "end", ref.end ) ); } catch(...) {}
+    try { ar( cereal::make_nvp( "confidencePairs", ref.confidencePairs ) ); } catch(...) {}
+    try
+    {
+      std::vector< dive_feature_serial > features_serial;
+      for( auto& f : ref.features )
+      {
+        features_serial.push_back( dive_feature_serial( f ) );
+      }
+      ar( cereal::make_nvp( "features", features_serial ) );
+    }
+    catch(...) {}
+    try { ar( cereal::make_nvp( "attributes", ref.attributes ) ); } catch(...) {}
   }
 };
 
-struct dive_annotation_file
+} // anonymous namespace
+
+// ===================================================================================
+// Shared DIVE parsing function implementations
+// ===================================================================================
+
+// -----------------------------------------------------------------------------------
+kwiver::vital::detected_object_sptr
+create_detected_object_from_dive(
+  dive_feature const& feature,
+  std::vector< std::pair< std::string, double > > const& confidence_pairs )
 {
-  std::map< std::string, dive_track > tracks;
-  int version = 1;
-
-  template< class Archive >
-  void serialize( Archive& ar )
+  if( feature.bounds.size() < 4 )
   {
-    try { ar( cereal::make_nvp( "tracks", tracks ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "version", version ) ); } catch(...) {}
+    return nullptr;
   }
-};
+
+  // Create bounding box from bounds [x1, y1, x2, y2]
+  kwiver::vital::bounding_box_d bbox(
+    feature.bounds[0],
+    feature.bounds[1],
+    feature.bounds[2],
+    feature.bounds[3] );
+
+  // Get primary confidence
+  double primary_confidence = 1.0;
+  if( !confidence_pairs.empty() )
+  {
+    primary_confidence = confidence_pairs[0].second;
+  }
+
+  // Create detected object type with all confidence pairs
+  auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+  for( auto const& cp : confidence_pairs )
+  {
+    dot->set_score( cp.first, cp.second );
+  }
+
+  // Create detection
+  return std::make_shared< kwiver::vital::detected_object >(
+    bbox, primary_confidence, dot );
+}
+
+
+// -----------------------------------------------------------------------------------
+bool
+parse_dive_json_manual( std::string const& content,
+                        kwiver::vital::logger_handle_t logger,
+                        dive_annotation_file& dive_data )
+{
+  dive_data.tracks.clear();
+
+  // Find "tracks" object
+  size_t tracks_pos = content.find( "\"tracks\"" );
+  if( tracks_pos == std::string::npos )
+  {
+    LOG_WARN( logger, "No 'tracks' object found in DIVE JSON" );
+    return false;
+  }
+
+  // Find each track by looking for "features" arrays
+  size_t pos = tracks_pos;
+  int track_counter = 0;
+
+  while( ( pos = content.find( "\"features\"", pos ) ) != std::string::npos )
+  {
+    dive_track track;
+    track.id = track_counter++;
+
+    // Find the array start
+    size_t array_start = content.find( '[', pos );
+    if( array_start == std::string::npos )
+    {
+      break;
+    }
+
+    // Find matching array end (handle nested arrays)
+    int bracket_count = 1;
+    size_t array_end = array_start + 1;
+    while( array_end < content.size() && bracket_count > 0 )
+    {
+      if( content[array_end] == '[' )
+      {
+        bracket_count++;
+      }
+      else if( content[array_end] == ']' )
+      {
+        bracket_count--;
+      }
+      array_end++;
+    }
+
+    // Look for track ID before this features array
+    size_t id_search_start = ( pos > 200 ) ? pos - 200 : 0;
+    std::string id_region = content.substr( id_search_start, pos - id_search_start );
+    size_t id_pos = id_region.rfind( "\"id\"" );
+    if( id_pos != std::string::npos )
+    {
+      size_t colon = id_region.find( ':', id_pos );
+      if( colon != std::string::npos )
+      {
+        size_t num_start = id_region.find_first_of( "0123456789", colon );
+        if( num_start != std::string::npos )
+        {
+          size_t num_end = id_region.find_first_not_of( "0123456789", num_start );
+          track.id = std::atoi( id_region.substr( num_start,
+                                                   num_end - num_start ).c_str() );
+        }
+      }
+    }
+
+    // Look for confidencePairs before this features array
+    size_t conf_search_start = ( pos > 500 ) ? pos - 500 : 0;
+    std::string search_region = content.substr( conf_search_start, pos - conf_search_start );
+
+    size_t conf_pos = search_region.rfind( "\"confidencePairs\"" );
+    if( conf_pos != std::string::npos )
+    {
+      // Parse confidence pairs array [[label, conf], ...]
+      size_t pairs_start = search_region.find( '[', conf_pos );
+      if( pairs_start != std::string::npos )
+      {
+        // Find the end of the outer array
+        int outer_bracket = 1;
+        size_t pairs_end = pairs_start + 1;
+        while( pairs_end < search_region.size() && outer_bracket > 0 )
+        {
+          if( search_region[pairs_end] == '[' )
+          {
+            outer_bracket++;
+          }
+          else if( search_region[pairs_end] == ']' )
+          {
+            outer_bracket--;
+          }
+          pairs_end++;
+        }
+
+        std::string pairs_str = search_region.substr( pairs_start, pairs_end - pairs_start );
+
+        // Find each inner pair [label, conf]
+        size_t pair_pos = 0;
+        while( ( pair_pos = pairs_str.find( '[', pair_pos + 1 ) ) != std::string::npos )
+        {
+          size_t pair_end = pairs_str.find( ']', pair_pos );
+          if( pair_end == std::string::npos )
+          {
+            break;
+          }
+
+          std::string pair_content = pairs_str.substr( pair_pos + 1, pair_end - pair_pos - 1 );
+
+          // Parse "label", confidence
+          size_t label_start = pair_content.find( '"' );
+          if( label_start != std::string::npos )
+          {
+            size_t label_end = pair_content.find( '"', label_start + 1 );
+            if( label_end != std::string::npos )
+            {
+              std::string label = pair_content.substr( label_start + 1,
+                                                        label_end - label_start - 1 );
+
+              size_t comma = pair_content.find( ',', label_end );
+              if( comma != std::string::npos )
+              {
+                std::string conf_str = pair_content.substr( comma + 1 );
+                size_t ns = conf_str.find_first_not_of( " \t\n\r" );
+                size_t ne = conf_str.find_last_not_of( " \t\n\r" );
+                if( ns != std::string::npos && ne != std::string::npos )
+                {
+                  conf_str = conf_str.substr( ns, ne - ns + 1 );
+                  try
+                  {
+                    double confidence = std::stod( conf_str );
+                    track.confidencePairs.push_back( std::make_pair( label, confidence ) );
+                  }
+                  catch( ... ) {}
+                }
+              }
+            }
+          }
+
+          pair_pos = pair_end;
+        }
+      }
+    }
+
+    // Parse features in this array
+    std::string features_str = content.substr( array_start, array_end - array_start );
+
+    size_t feat_pos = 0;
+    while( ( feat_pos = features_str.find( "\"frame\"", feat_pos ) ) != std::string::npos )
+    {
+      dive_feature feature;
+
+      // Parse frame number
+      size_t colon = features_str.find( ':', feat_pos );
+      if( colon == std::string::npos )
+      {
+        feat_pos++;
+        continue;
+      }
+
+      size_t num_start = features_str.find_first_of( "0123456789", colon );
+      if( num_start == std::string::npos )
+      {
+        feat_pos++;
+        continue;
+      }
+
+      size_t num_end = features_str.find_first_not_of( "0123456789", num_start );
+      feature.frame = std::atoi( features_str.substr( num_start,
+                                                       num_end - num_start ).c_str() );
+
+      // Find bounds for this feature
+      size_t bounds_pos = features_str.find( "\"bounds\"", feat_pos );
+      if( bounds_pos == std::string::npos || bounds_pos > feat_pos + 200 )
+      {
+        feat_pos = num_end;
+        continue;
+      }
+
+      size_t bounds_array_start = features_str.find( '[', bounds_pos );
+      size_t bounds_array_end = features_str.find( ']', bounds_array_start );
+
+      if( bounds_array_start != std::string::npos &&
+          bounds_array_end != std::string::npos )
+      {
+        std::string bounds_str = features_str.substr(
+          bounds_array_start + 1, bounds_array_end - bounds_array_start - 1 );
+
+        std::stringstream ss( bounds_str );
+        std::string token;
+        while( std::getline( ss, token, ',' ) )
+        {
+          size_t ts = token.find_first_not_of( " \t\n\r" );
+          size_t te = token.find_last_not_of( " \t\n\r" );
+          if( ts != std::string::npos && te != std::string::npos )
+          {
+            try
+            {
+              feature.bounds.push_back( std::stod( token.substr( ts, te - ts + 1 ) ) );
+            }
+            catch( ... ) {}
+          }
+        }
+      }
+
+      // Check for keyframe
+      size_t keyframe_pos = features_str.find( "\"keyframe\"", feat_pos );
+      if( keyframe_pos != std::string::npos && keyframe_pos < feat_pos + 300 )
+      {
+        size_t true_pos = features_str.find( "true", keyframe_pos );
+        if( true_pos != std::string::npos && true_pos < keyframe_pos + 20 )
+        {
+          feature.keyframe = true;
+        }
+      }
+
+      if( feature.bounds.size() >= 4 )
+      {
+        track.features.push_back( feature );
+      }
+
+      feat_pos = num_end;
+    }
+
+    // Update track begin/end from features
+    if( !track.features.empty() )
+    {
+      track.begin = track.features.front().frame;
+      track.end = track.features.back().frame;
+
+      for( auto const& f : track.features )
+      {
+        if( f.frame < track.begin ) track.begin = f.frame;
+        if( f.frame > track.end ) track.end = f.frame;
+      }
+
+      dive_data.tracks[ std::to_string( track.id ) ] = track;
+    }
+
+    pos = array_end;
+  }
+
+  return !dive_data.tracks.empty();
+}
+
+
+// -----------------------------------------------------------------------------------
+bool
+parse_dive_json_file( std::string const& filename,
+                      kwiver::vital::logger_handle_t logger,
+                      dive_annotation_file& dive_data )
+{
+  std::ifstream ifs( filename );
+  if( !ifs )
+  {
+    LOG_ERROR( logger, "Could not open DIVE JSON file: " << filename );
+    return false;
+  }
+
+  try
+  {
+    cereal::JSONInputArchive archive( ifs );
+
+    // We need custom deserialization since our structs don't have serialize methods
+    std::map< std::string, dive_track > tracks_map;
+
+    // Try to parse the root object
+    try
+    {
+      archive( cereal::make_nvp( "version", dive_data.version ) );
+    }
+    catch( ... ) {}
+
+    // Parse tracks - this is more complex due to cereal limitations
+    // Fall back to manual parsing for now
+    ifs.clear();
+    ifs.seekg( 0 );
+
+    std::stringstream buffer;
+    buffer << ifs.rdbuf();
+    std::string content = buffer.str();
+
+    return parse_dive_json_manual( content, logger, dive_data );
+  }
+  catch( std::exception const& e )
+  {
+    LOG_DEBUG( logger, "Cereal parsing failed: " << e.what()
+               << ", trying manual parser" );
+
+    ifs.clear();
+    ifs.seekg( 0 );
+
+    std::stringstream buffer;
+    buffer << ifs.rdbuf();
+    std::string content = buffer.str();
+
+    return parse_dive_json_manual( content, logger, dive_data );
+  }
+}
+
+
+// ===================================================================================
+// Detection reader implementation
+// ===================================================================================
 
 // -----------------------------------------------------------------------------------
 class read_detected_object_set_dive::priv
@@ -105,8 +447,6 @@ public:
   ~priv() { }
 
   void read_all();
-  void parse_json_file( std::string const& filename );
-  void parse_dive_json_manual( std::string const& filename, std::string const& content );
 
   read_detected_object_set_dive* m_parent;
   bool m_first;
@@ -252,50 +592,19 @@ read_detected_object_set_dive::priv
     size_t end = line.find_last_not_of( " \t\r\n" );
     std::string json_file = line.substr( start, end - start + 1 );
 
-    // Parse the JSON file
-    parse_json_file( json_file );
-  }
-
-  LOG_DEBUG( m_parent->logger(),
-             "Loaded detections for " << m_detection_by_frame.size()
-             << " frames from DIVE JSON" );
-}
-
-
-// -----------------------------------------------------------------------------------
-void
-read_detected_object_set_dive::priv
-::parse_json_file( std::string const& filename )
-{
-  std::ifstream ifs( filename );
-  if( !ifs )
-  {
-    LOG_ERROR( m_parent->logger(),
-               "Could not open DIVE JSON file: " << filename );
-    return;
-  }
-
-  try
-  {
-    cereal::JSONInputArchive archive( ifs );
-
+    // Parse the JSON file using shared function
     dive_annotation_file dive_data;
-    archive( cereal::make_nvp( "root", dive_data ) );
+    if( !parse_dive_json_file( json_file, m_parent->logger(), dive_data ) )
+    {
+      LOG_ERROR( m_parent->logger(),
+                 "Failed to parse DIVE JSON file: " << json_file );
+      continue;
+    }
 
     // Process each track
     for( auto const& track_pair : dive_data.tracks )
     {
       dive_track const& track = track_pair.second;
-
-      // Get the primary class label and confidence from confidencePairs
-      std::string primary_label;
-      double primary_confidence = 1.0;
-
-      if( !track.confidencePairs.empty() )
-      {
-        primary_label = track.confidencePairs[0].first;
-        primary_confidence = track.confidencePairs[0].second;
-      }
 
       // Process each feature (detection) in the track
       for( dive_feature const& feature : track.features )
@@ -308,29 +617,12 @@ read_detected_object_set_dive::priv
           m_max_frame = frame;
         }
 
-        // Skip features without bounds
-        if( feature.bounds.size() < 4 )
+        // Create detection using shared function
+        auto det = create_detected_object_from_dive( feature, track.confidencePairs );
+        if( !det )
         {
           continue;
         }
-
-        // Create bounding box from bounds [x1, y1, x2, y2]
-        kwiver::vital::bounding_box_d bbox(
-          feature.bounds[0],
-          feature.bounds[1],
-          feature.bounds[2],
-          feature.bounds[3] );
-
-        // Create detected object type with all confidence pairs
-        auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-        for( auto const& cp : track.confidencePairs )
-        {
-          dot->set_score( cp.first, cp.second );
-        }
-
-        // Create detection
-        auto det = std::make_shared< kwiver::vital::detected_object >(
-          bbox, primary_confidence, dot );
 
         // Ensure we have a detection set for this frame
         if( m_detection_by_frame.find( frame ) == m_detection_by_frame.end() )
@@ -343,229 +635,10 @@ read_detected_object_set_dive::priv
       }
     }
   }
-  catch( std::exception const& e )
-  {
-    LOG_ERROR( m_parent->logger(),
-               "Error parsing DIVE JSON file '" << filename << "': " << e.what() );
 
-    // Try alternate parsing approach for compatibility
-    ifs.clear();
-    ifs.seekg( 0 );
-
-    try
-    {
-      // Read the entire file content
-      std::stringstream buffer;
-      buffer << ifs.rdbuf();
-      std::string content = buffer.str();
-
-      // Simple JSON parsing for DIVE format
-      // Look for "tracks" object and parse track data
-      parse_dive_json_manual( filename, content );
-    }
-    catch( std::exception const& e2 )
-    {
-      LOG_ERROR( m_parent->logger(),
-                 "Fallback parsing also failed: " << e2.what() );
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------------
-// Manual JSON parsing for DIVE format as fallback
-void
-read_detected_object_set_dive::priv
-::parse_dive_json_manual( std::string const& filename, std::string const& content )
-{
-  // This is a simplified manual parser for DIVE JSON format
-  // It handles the basic structure without a full JSON library
-
-  // Find "tracks" object
-  size_t tracks_pos = content.find( "\"tracks\"" );
-  if( tracks_pos == std::string::npos )
-  {
-    LOG_WARN( m_parent->logger(), "No 'tracks' object found in DIVE JSON" );
-    return;
-  }
-
-  // Find each track by looking for patterns like "id": <number>
-  // and "features": [ ... ]
-
-  size_t pos = tracks_pos;
-  while( ( pos = content.find( "\"features\"", pos ) ) != std::string::npos )
-  {
-    // Find the array start
-    size_t array_start = content.find( '[', pos );
-    if( array_start == std::string::npos )
-    {
-      break;
-    }
-
-    // Find matching array end (handle nested arrays)
-    int bracket_count = 1;
-    size_t array_end = array_start + 1;
-    while( array_end < content.size() && bracket_count > 0 )
-    {
-      if( content[array_end] == '[' )
-      {
-        bracket_count++;
-      }
-      else if( content[array_end] == ']' )
-      {
-        bracket_count--;
-      }
-      array_end++;
-    }
-
-    // Look for confidencePairs before this features array
-    size_t conf_search_start = ( pos > 500 ) ? pos - 500 : 0;
-    std::string search_region = content.substr( conf_search_start, pos - conf_search_start );
-
-    std::string primary_label = "unknown";
-    double primary_confidence = 1.0;
-
-    size_t conf_pos = search_region.rfind( "\"confidencePairs\"" );
-    if( conf_pos != std::string::npos )
-    {
-      // Parse first confidence pair
-      size_t pair_start = search_region.find( '[', conf_pos );
-      if( pair_start != std::string::npos )
-      {
-        pair_start = search_region.find( '[', pair_start + 1 );
-        if( pair_start != std::string::npos )
-        {
-          size_t label_start = search_region.find( '"', pair_start );
-          if( label_start != std::string::npos )
-          {
-            size_t label_end = search_region.find( '"', label_start + 1 );
-            if( label_end != std::string::npos )
-            {
-              primary_label = search_region.substr( label_start + 1,
-                                                     label_end - label_start - 1 );
-            }
-
-            // Find confidence value
-            size_t comma = search_region.find( ',', label_end );
-            if( comma != std::string::npos )
-            {
-              size_t num_end = search_region.find( ']', comma );
-              if( num_end != std::string::npos )
-              {
-                std::string conf_str = search_region.substr( comma + 1,
-                                                              num_end - comma - 1 );
-                // Trim whitespace
-                size_t ns = conf_str.find_first_not_of( " \t\n\r" );
-                size_t ne = conf_str.find_last_not_of( " \t\n\r" );
-                if( ns != std::string::npos && ne != std::string::npos )
-                {
-                  conf_str = conf_str.substr( ns, ne - ns + 1 );
-                  try
-                  {
-                    primary_confidence = std::stod( conf_str );
-                  }
-                  catch( ... ) {}
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Parse features in this array
-    std::string features_str = content.substr( array_start, array_end - array_start );
-
-    // Find each feature object with "frame" and "bounds"
-    size_t feat_pos = 0;
-    while( ( feat_pos = features_str.find( "\"frame\"", feat_pos ) ) != std::string::npos )
-    {
-      // Parse frame number
-      size_t colon = features_str.find( ':', feat_pos );
-      if( colon == std::string::npos )
-      {
-        feat_pos++;
-        continue;
-      }
-
-      size_t num_start = features_str.find_first_of( "0123456789", colon );
-      if( num_start == std::string::npos )
-      {
-        feat_pos++;
-        continue;
-      }
-
-      size_t num_end = features_str.find_first_not_of( "0123456789", num_start );
-      int frame = std::atoi( features_str.substr( num_start,
-                                                   num_end - num_start ).c_str() );
-
-      // Update max frame
-      if( frame > m_max_frame )
-      {
-        m_max_frame = frame;
-      }
-
-      // Find bounds for this feature
-      size_t bounds_pos = features_str.find( "\"bounds\"", feat_pos );
-      if( bounds_pos == std::string::npos || bounds_pos > feat_pos + 200 )
-      {
-        feat_pos = num_end;
-        continue;
-      }
-
-      size_t bounds_array_start = features_str.find( '[', bounds_pos );
-      size_t bounds_array_end = features_str.find( ']', bounds_array_start );
-
-      if( bounds_array_start != std::string::npos &&
-          bounds_array_end != std::string::npos )
-      {
-        std::string bounds_str = features_str.substr(
-          bounds_array_start + 1, bounds_array_end - bounds_array_start - 1 );
-
-        // Parse four numbers
-        std::vector< double > bounds;
-        std::stringstream ss( bounds_str );
-        std::string token;
-        while( std::getline( ss, token, ',' ) )
-        {
-          // Trim
-          size_t ts = token.find_first_not_of( " \t\n\r" );
-          size_t te = token.find_last_not_of( " \t\n\r" );
-          if( ts != std::string::npos && te != std::string::npos )
-          {
-            try
-            {
-              bounds.push_back( std::stod( token.substr( ts, te - ts + 1 ) ) );
-            }
-            catch( ... ) {}
-          }
-        }
-
-        if( bounds.size() >= 4 )
-        {
-          kwiver::vital::bounding_box_d bbox(
-            bounds[0], bounds[1], bounds[2], bounds[3] );
-
-          auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-          dot->set_score( primary_label, primary_confidence );
-
-          auto det = std::make_shared< kwiver::vital::detected_object >(
-            bbox, primary_confidence, dot );
-
-          if( m_detection_by_frame.find( frame ) == m_detection_by_frame.end() )
-          {
-            m_detection_by_frame[ frame ] =
-              std::make_shared< kwiver::vital::detected_object_set >();
-          }
-
-          m_detection_by_frame[ frame ]->add( det );
-        }
-      }
-
-      feat_pos = num_end;
-    }
-
-    pos = array_end;
-  }
+  LOG_DEBUG( m_parent->logger(),
+             "Loaded detections for " << m_detection_by_frame.size()
+             << " frames from DIVE JSON" );
 }
 
 } // end namespace viame

@@ -27,6 +27,8 @@
 #include "read_detected_object_set_oceaneyes.h"
 #include "read_detected_object_set_viame_csv.h"
 #include "read_detected_object_set_yolo.h"
+#include "read_object_track_set_auto.h"
+#include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
@@ -83,6 +85,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< read_detected_object_set_oceaneyes >( vpm );
   register_algorithm< read_detected_object_set_viame_csv >( vpm );
   register_algorithm< read_detected_object_set_yolo >( vpm );
+  register_algorithm< read_object_track_set_auto >( vpm );
+  register_algorithm< read_object_track_set_dive >( vpm );
   register_algorithm< read_object_track_set_viame_csv >( vpm );
   register_algorithm< write_detected_object_set_viame_csv >( vpm );
   register_algorithm< write_disparity_maps >( vpm );

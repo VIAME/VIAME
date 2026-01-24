@@ -23,6 +23,8 @@ set( plugin_headers
   read_detected_object_set_cvat.h
   read_detected_object_set_dive.h
   read_detected_object_set_fishnet.h
+  read_object_track_set_auto.h
+  read_object_track_set_dive.h
   read_detected_object_set_habcam.h
   read_detected_object_set_oceaneyes.h
   read_detected_object_set_viame_csv.h
@@ -64,6 +66,8 @@ set( plugin_sources
   read_detected_object_set_cvat.cxx
   read_detected_object_set_dive.cxx
   read_detected_object_set_fishnet.cxx
+  read_object_track_set_auto.cxx
+  read_object_track_set_dive.cxx
   read_detected_object_set_habcam.cxx
   read_detected_object_set_oceaneyes.cxx
   read_detected_object_set_viame_csv.cxx
