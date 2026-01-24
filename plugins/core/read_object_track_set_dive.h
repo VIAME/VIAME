@@ -36,7 +36,7 @@ public:
     PARAM_DEFAULT(
       batch_load, bool,
       "Load all tracks at once (true) or stream frame-by-frame (false).",
-      true ) )
+      false ) )
 
   virtual ~read_object_track_set_dive();
 
