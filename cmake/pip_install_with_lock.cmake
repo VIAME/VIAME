@@ -19,7 +19,13 @@ cmake_minimum_required( VERSION 3.16 )
 # Build the pip install arguments
 if( WHEEL_DIR )
   # Mode 1: Install wheels from directory (locally built wheels)
-  file( GLOB _all_wheels LIST_DIRECTORIES FALSE ${WHEEL_DIR}/*.whl )
+  file( GLOB _all_wheels LIST_DIRECTORIES FALSE "${WHEEL_DIR}/*.whl" )
+
+  # Check if any wheels were found
+  list( LENGTH _all_wheels _wheel_count )
+  if( _wheel_count EQUAL 0 )
+    message( FATAL_ERROR "No wheel files found in WHEEL_DIR: ${WHEEL_DIR}" )
+  endif()
 
   # When multiple wheels exist (e.g., platform-specific and pure-python),
   # prefer platform-specific wheels (cpXX-cpXX-platform) over py3-none-any

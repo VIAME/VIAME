@@ -183,7 +183,9 @@ if( WIN32 )
     endif()
   endif()
 
-  list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}" )
+  # Prepend our paths to existing PATH (use <PS> as placeholder for path separator)
+  # $ENV{PATH} captures the PATH at configure time, which should include essential system paths
+  list( APPEND PYTORCH_ENV_VARS "PATH=${TORCH_DLL_PATH}<PS>$ENV{PATH}" )
 endif()
 
 foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
@@ -250,10 +252,15 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
           ${LIBRARY_LOCATION}
       )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
+      # Use pip wheel instead of setup.py bdist_wheel to avoid Windows cleanup
+      # errors ("no such file or directory" when removing bdist temp directory)
       set( LIBRARY_PIP_BUILD_CMD
-        ${Python_EXECUTABLE} setup.py
-          build --build-base=${LIBRARY_PIP_BUILD_DIR}
-          bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+        ${Python_EXECUTABLE} -m pip wheel
+          --no-build-isolation
+          --no-deps
+          --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
+          ${LIBRARY_LOCATION}
+      )
     else()
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} setup.py
