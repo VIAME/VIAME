@@ -34,9 +34,9 @@ include(${CMAKE_CURRENT_LIST_DIR}/build_common_functions.cmake)
 include_cmake_preset(build_cmake_base.cmake)
 
 # Windows-specific build paths
-add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl5")
-add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv5")
-add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm5")
+add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl3")
+add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv3")
+add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm3")
 
 # Base settings - everything off initially
 add_option("VIAME_FIXUP_BUNDLE" "ON")
