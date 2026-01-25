@@ -745,9 +745,11 @@ class NetHarnTrainer( TrainDetector ):
         self.proc = subprocess.Popen( cmd )
         self.proc.wait()
 
-        self.save_final_model()
+        output = self.get_output_map()
 
         print( "\nModel training complete!\n" )
+
+        return output
 
     def interupt_handler( self ):
         self.proc.send_signal( signal.SIGINT )
@@ -758,11 +760,19 @@ class NetHarnTrainer( TrainDetector ):
             if timeout > 5:
                 self.proc.kill()
                 break
-        self.save_final_model()
         sys.exit( 0 )
 
-    def save_final_model( self ):
-        # Copy model file to final directory
+    def get_output_map( self ):
+        """
+        Build and return output map containing template replacements and file copies.
+
+        Returns a dict where:
+        - Keys containing '[-' and '-]' are template replacements
+        - Other keys are file copies (key=output filename, value=source path)
+        """
+        output = {}
+
+        # Determine output model name
         if self._mode == "frame_classifier" or self._mode == "detection_refiner":
             output_model_name = "trained_classifier.zip"
         else:
@@ -789,49 +799,35 @@ class NetHarnTrainer( TrainDetector ):
 
         if not os.path.exists( final_model ):
             print( "\nNo model found, training may have failed\n" )
-            return
+            return output
 
-        # Ensure output directory exists
-        if not os.path.exists( self._output_directory ):
-            os.mkdir( self._output_directory )
+        # Template replacements (lowercase keys, will be converted to [-KEY-] format)
+        output["model_file"] = output_model_name
+        output["window_option"] = self._resize_option
 
-        output_model = os.path.join( self._output_directory,
-          output_model_name )
+        # File copies (key=output filename, value=source path)
+        output[output_model_name] = final_model
 
-        copyfile( final_model, output_model )
+        print( "\nModel found at: " + final_model )
 
-        # Output completion text
-        print( "\nWrote finalized model to " + output_model )
-
+        # Handle evaluation plots if enabled
         if self._output_plots:
             eval_folder = os.path.join( self._train_directory,
                "fit", "nice", self._identifier, "eval" )
-            eval_output = os.path.join( self._output_directory,
-               "model_evaluation" )
-            if os.path.exists( eval_output ):
-                shutil.rmtree( eval_output )
-            os.mkdir( eval_output )
             if os.path.exists( eval_folder ):
-                recurse_copy( eval_folder, eval_output )
-
-        # Copy pipeline file if template is specified
-        if len( self._pipeline_template ) > 0:
-            fin = open( self._pipeline_template )
-            fout = open( os.path.join( self._output_directory, "detector.pipe" ), 'w' )
-            all_lines = []
-            for s in list( fin ):
-                all_lines.append( s )
-            for i, line in enumerate( all_lines ):
-                line = line.replace( "[-MODEL-FILE-]", output_model_name )
-                all_lines[i] = line.replace( "[-WINDOW-OPTION-]", self._resize_option )
-            for s in all_lines:
-                fout.write( s )
-            fout.close()
-            fin.close()
+                # Walk through eval folder and add all files
+                for root, dirs, files in os.walk( eval_folder ):
+                    for file in files:
+                        src_path = os.path.join( root, file )
+                        rel_path = os.path.relpath( src_path, eval_folder )
+                        output_name = os.path.join( "model_evaluation", rel_path )
+                        output[output_name] = src_path
 
         print( "\nThe " + self._train_directory + " directory can now be deleted, " \
                "unless you want to review training metrics or generated plots in " \
                "there first." )
+
+        return output
 
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory

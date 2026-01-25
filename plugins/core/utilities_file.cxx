@@ -5,6 +5,7 @@
 #include "utilities_file.h"
 
 #include <fstream>
+#include <map>
 #include <sstream>
 #include <iostream>
 #include <cctype>
@@ -458,6 +459,79 @@ double get_file_frame_rate( const std::string& file )
   }
 
   return std::stof( number );
+}
+
+// =============================================================================
+// Template processing utilities
+// =============================================================================
+
+bool replace_keywords_in_template_file(
+    const std::string& input_file,
+    const std::string& output_file,
+    const std::map< std::string, std::string >& replacements )
+{
+  std::ifstream fin( input_file );
+  if( !fin )
+  {
+    std::cerr << "Unable to open template file: " << input_file << std::endl;
+    return false;
+  }
+
+  std::stringstream buffer;
+  buffer << fin.rdbuf();
+  fin.close();
+
+  std::string content = buffer.str();
+
+  for( const auto& pair : replacements )
+  {
+    const std::string& keyword = pair.first;
+    const std::string& value = pair.second;
+
+    size_t pos = 0;
+    while( ( pos = content.find( keyword, pos ) ) != std::string::npos )
+    {
+      content.replace( pos, keyword.length(), value );
+      pos += value.length();
+    }
+  }
+
+  std::ofstream fout( output_file );
+  if( !fout )
+  {
+    std::cerr << "Unable to write output file: " << output_file << std::endl;
+    return false;
+  }
+
+  fout << content;
+  fout.close();
+
+  return true;
+}
+
+bool copy_file( const std::string& source, const std::string& destination )
+{
+  std::ifstream fin( source, std::ios::binary );
+  if( !fin )
+  {
+    std::cerr << "Unable to open source file: " << source << std::endl;
+    return false;
+  }
+
+  std::ofstream fout( destination, std::ios::binary );
+  if( !fout )
+  {
+    std::cerr << "Unable to create destination file: " << destination << std::endl;
+    fin.close();
+    return false;
+  }
+
+  fout << fin.rdbuf();
+
+  fin.close();
+  fout.close();
+
+  return true;
 }
 
 } // end namespace viame

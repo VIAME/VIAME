@@ -388,11 +388,11 @@ windowed_trainer
     filtered_test_names, filtered_test_truth );
 }
 
-void
+std::map<std::string, std::string>
 windowed_trainer
 ::update_model()
 {
-  d->m_trainer->update_model();
+  return d->m_trainer->update_model();
 }
 
 // -----------------------------------------------------------------------------
