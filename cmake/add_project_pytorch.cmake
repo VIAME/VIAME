@@ -274,8 +274,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${Python_EXECUTABLE} setup.py
           build --build-base=${LIBRARY_PIP_BUILD_DIR}
           build_ext
-            --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-            --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
+            --include-dirs=${VIAME_INSTALL_PREFIX}/include
+            --library-dirs=${VIAME_INSTALL_PREFIX}/lib
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     endif()
     # Wheel install is handled by the build script (custom_build_python_dep.cmake)
@@ -332,8 +332,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${Python_EXECUTABLE} setup.py
           build --build-base=${LIBRARY_PIP_BUILD_DIR}
           build_ext
-            --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-            --library-dirs="${VIAME_INSTALL_PREFIX}/lib\;${VIAME_INSTALL_PREFIX}/bin"
+            --include-dirs=${VIAME_INSTALL_PREFIX}/include
+            --library-dirs=${VIAME_INSTALL_PREFIX}/lib\;${VIAME_INSTALL_PREFIX}/bin
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     endif()
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -381,6 +381,16 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   # Convert lists to ----separated strings for passing through ExternalProject_Add
   set( PYTORCH_ENV_VARS_WITH_BUILD_DIR ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
+
+  # Set SAM2_BUILD_CUDA based on whether CUDA is enabled
+  if( "${LIB}" STREQUAL "sam2" )
+    if( VIAME_ENABLE_CUDA )
+      list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "SAM2_BUILD_CUDA=1" )
+    else()
+      list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "SAM2_BUILD_CUDA=0" )
+    endif()
+  endif()
+
   string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS_WITH_BUILD_DIR}" )
   string( REPLACE ";" "----" LIBRARY_PIP_BUILD_CMD_STR "${LIBRARY_PIP_BUILD_CMD}" )
 
