@@ -325,6 +325,17 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
     endif()
   elseif( "${LIB}" STREQUAL "pyav" )
+    # On Windows, FFmpeg puts .lib files in bin/ instead of lib/
+    # Need to include both directories in library search path
+    if( WIN32 )
+      set( LIBRARY_PIP_BUILD_CMD
+        ${Python_EXECUTABLE} setup.py
+          build --build-base=${LIBRARY_PIP_BUILD_DIR}
+          build_ext
+            --include-dirs="${VIAME_INSTALL_PREFIX}/include"
+            --library-dirs="${VIAME_INSTALL_PREFIX}/lib\;${VIAME_INSTALL_PREFIX}/bin"
+          bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+    endif()
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/pyav
       ${VIAME_PACKAGES_DIR}/python-utils/pyav )
