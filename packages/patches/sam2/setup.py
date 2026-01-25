@@ -89,6 +89,7 @@ def get_extensions():
 
     try:
         from torch.utils.cpp_extension import CUDAExtension
+        import platform
 
         srcs = ["sam2/csrc/connected_components.cu"]
         compile_args = {
@@ -101,13 +102,46 @@ def get_extensions():
             ],
         }
 
+        # VIAME patch: Fix 'std' ambiguous symbol error on Windows
+        # PyTorch's compiled_autograd.h has problematic if-constexpr code that causes
+        # MSVC to report ambiguous 'std' due to tree_views.h reopening the namespace.
+        # PyTorch has a guard: #if defined(_WIN32) && defined(USE_CUDA) that skips
+        # the problematic code, but USE_CUDA isn't defined by default in extensions.
+        # Defining USE_CUDA triggers PyTorch's Windows workaround.
+        # See: https://github.com/pytorch/pytorch/issues/166123
+        if platform.system() == "Windows":
+            compile_args["cxx"].extend(["/permissive-", "/Zc:twoPhase-"])
+            compile_args["nvcc"].extend([
+                "-DUSE_CUDA=1",  # Trigger PyTorch's Windows guard in compiled_autograd.h
+                "-Xcompiler", "/permissive-",
+                "-Xcompiler", "/Zc:twoPhase-"
+            ])
+
         # VIAME patch: Support NVCC_FLAGS environment variable to pass additional
         # flags to nvcc (e.g., -allow-unsupported-compiler for newer VS versions)
         nvcc_flags_env = os.getenv("NVCC_FLAGS", "")
         if nvcc_flags_env:
             compile_args["nvcc"].extend(nvcc_flags_env.split())
 
-        ext_modules = [CUDAExtension("sam2._C", srcs, extra_compile_args=compile_args)]
+        # VIAME patch: Add library directories for finding python3xx.lib on Windows
+        # The Python library may be in a non-standard location (e.g., VIAME install dir)
+        import sys
+        library_dirs = []
+        if platform.system() == "Windows":
+            # Add Python's lib directory
+            python_lib_dir = os.path.join(sys.prefix, "lib")
+            if os.path.isdir(python_lib_dir):
+                library_dirs.append(python_lib_dir)
+            # Also check parent's lib (for cases where python is in bin/)
+            parent_lib_dir = os.path.join(os.path.dirname(sys.prefix), "lib")
+            if os.path.isdir(parent_lib_dir) and parent_lib_dir != python_lib_dir:
+                library_dirs.append(parent_lib_dir)
+
+        ext_modules = [CUDAExtension(
+            "sam2._C", srcs,
+            extra_compile_args=compile_args,
+            library_dirs=library_dirs if library_dirs else None
+        )]
     except Exception as e:
         if BUILD_ALLOW_ERRORS:
             print(CUDA_ERROR_MSG.format(e))

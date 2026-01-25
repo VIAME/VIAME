@@ -386,6 +386,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( "${LIB}" STREQUAL "sam2" )
     if( VIAME_ENABLE_CUDA )
       list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "SAM2_BUILD_CUDA=1" )
+      # On Windows, set CL environment variable to fix 'std' ambiguous symbol error
+      # in PyTorch headers (compiled_autograd.h, tree_views.h) when compiling CUDA extensions
+      # See: https://github.com/pytorch/pytorch/issues/166123
+      if( WIN32 )
+        list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "CL=/permissive-" )
+      endif()
     else()
       list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "SAM2_BUILD_CUDA=0" )
     endif()
