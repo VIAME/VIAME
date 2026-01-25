@@ -267,6 +267,38 @@ bool replace_keywords_in_template_file(
 VIAME_CORE_EXPORT
 bool copy_file( const std::string& source, const std::string& destination );
 
+/// Replace keywords in a template and return the result as a string
+///
+/// \param input_file Path to template file
+/// \param replacements Map of keyword->value pairs to replace
+/// \param[out] result Output string with replacements applied
+/// \returns true on success, false if input file cannot be read
+VIAME_CORE_EXPORT
+bool replace_keywords_in_template_to_string(
+    const std::string& input_file,
+    const std::map< std::string, std::string >& replacements,
+    std::string& result );
+
+// =============================================================================
+// Zip file utilities
+// =============================================================================
+
+/// Create a zip file from a list of files
+///
+/// Each entry in files_to_add maps the filename inside the zip to the source path.
+/// Entries where the source path is empty are treated as string content to be
+/// written directly (the key is used as the filename, value as content).
+///
+/// \param zip_path Path for the output zip file
+/// \param files_to_add Map of zip entry name -> source file path or content
+/// \param string_contents Map of zip entry name -> string content (for non-file data)
+/// \returns true on success, false on error
+VIAME_CORE_EXPORT
+bool create_zip_file(
+    const std::string& zip_path,
+    const std::map< std::string, std::string >& files_to_add,
+    const std::map< std::string, std::string >& string_contents = {} );
+
 } // end namespace viame
 
 #endif /* VIAME_CORE_UTILITIES_FILE_H */

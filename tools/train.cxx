@@ -122,6 +122,9 @@ static kv::config_block_sptr default_config()
     "Optional file for storing possible data errors and warning." );
   config->set_value( "output_directory", "category_models",
     "Directory to store trained model files and generated pipelines." );
+  config->set_value( "output_file", "",
+    "If specified, create a zip file containing the model files and pipeline "
+    "instead of writing to output_directory. Takes precedence over output_directory." );
   config->set_value( "pipeline_template", "",
     "Optional template file for generating output pipeline. Keywords in the "
     "template will be replaced with values from the trainer." );
@@ -232,9 +235,11 @@ static bool validate_trainer_output_keys(
 // Process the output map returned by a trainer's update_model() method.
 // - If the value is an existing file path, it's a file copy (key=output filename)
 // - Otherwise, it's a template replacement (key becomes [-KEY-] in template)
+// - If output_file is specified, creates a zip archive instead of writing to directory
 static void process_trainer_output(
     const std::map< std::string, std::string >& output_map,
     const std::string& output_directory,
+    const std::string& output_file,
     const std::string& pipeline_template,
     const std::string& output_pipeline_name,
     const std::string& algorithm_type = "",
@@ -254,12 +259,6 @@ static void process_trainer_output(
                 << algorithm_type << "'" << std::endl;
       return;
     }
-  }
-
-  // Create output directory if needed
-  if( !output_directory.empty() )
-  {
-    create_folder( output_directory );
   }
 
   // Separate template replacements from file copies based on whether value is a file
@@ -294,6 +293,60 @@ static void process_trainer_output(
       template_key += "-]";
       template_replacements[ template_key ] = value;
     }
+  }
+
+  // If output_file is specified, create a zip archive
+  if( !output_file.empty() )
+  {
+    std::map< std::string, std::string > zip_files;
+    std::map< std::string, std::string > zip_string_contents;
+
+    // Add all model files to be included in zip
+    for( const auto& pair : file_copies )
+    {
+      const std::string& dest_filename = pair.first;
+      const std::string& source_path = pair.second;
+      zip_files[ dest_filename ] = source_path;
+    }
+
+    // Generate pipeline content if template is configured
+    if( !pipeline_template.empty() && does_file_exist( pipeline_template ) )
+    {
+      std::string pipeline_content;
+      if( replace_keywords_in_template_to_string(
+            pipeline_template, template_replacements, pipeline_content ) )
+      {
+        zip_string_contents[ output_pipeline_name ] = pipeline_content;
+      }
+      else
+      {
+        std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
+      }
+    }
+
+    // Create the zip file
+    if( create_zip_file( output_file, zip_files, zip_string_contents ) )
+    {
+      std::cout << "Created output zip file: " << output_file << std::endl;
+      std::cout << "  - Contains " << zip_files.size() << " model file(s)" << std::endl;
+      if( !zip_string_contents.empty() )
+      {
+        std::cout << "  - Contains generated pipeline: " << output_pipeline_name << std::endl;
+      }
+    }
+    else
+    {
+      std::cerr << "Error: failed to create zip file: " << output_file << std::endl;
+    }
+
+    return;
+  }
+
+  // Otherwise, use output_directory (existing behavior)
+  // Create output directory if needed
+  if( !output_directory.empty() )
+  {
+    create_folder( output_directory );
   }
 
   // Copy model files to output directory
@@ -390,6 +443,8 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "seconds" )
     ( "init-weights", "Optional input seed weights over-ride",
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
+    ( "output-file", "Output zip file for model and pipeline (overrides output-dir)",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ;
 }
 
@@ -436,6 +491,7 @@ train_applet
   std::string opt_max_frame_count = cmd_args[ "max-frame-count" ].as< std::string >();
   std::string opt_timeout = cmd_args[ "timeout" ].as< std::string >();
   std::string opt_init_weights = cmd_args[ "init-weights" ].as< std::string >();
+  std::string opt_output_file = cmd_args[ "output-file" ].as< std::string >();
 
   // List option
   if( opt_list )
@@ -812,10 +868,18 @@ train_applet
     config->get_value< std::string >( "data_warning_file" );
   std::string output_directory =
     config->get_value< std::string >( "output_directory" );
+  std::string output_file =
+    config->get_value< std::string >( "output_file" );
   std::string pipeline_template =
     config->get_value< std::string >( "pipeline_template" );
   std::string output_pipeline_name =
     config->get_value< std::string >( "output_pipeline_name" );
+
+  // Command line override for output_file
+  if( !opt_output_file.empty() )
+  {
+    output_file = opt_output_file;
+  }
 
   if( convert_to_full_frame && !kv::algo::image_io::
         check_nested_algo_configuration( "image_reader", config ) )
@@ -1884,7 +1948,7 @@ train_applet
       std::map< std::string, std::string > trainer_output =
         detector_trainer->update_model();
 
-      process_trainer_output( trainer_output, output_directory,
+      process_trainer_output( trainer_output, output_directory, output_file,
         pipeline_template, output_pipeline_name, detector_type, true );
     }
     catch( const std::exception& e )
@@ -2089,7 +2153,7 @@ train_applet
         std::map< std::string, std::string > trainer_output =
           tracker_trainer->update_model();
 
-        process_trainer_output( trainer_output, output_directory,
+        process_trainer_output( trainer_output, output_directory, output_file,
           pipeline_template, output_pipeline_name, current_tracker, false );
       }
       catch( const std::exception& e )
