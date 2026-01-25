@@ -16,6 +16,7 @@
 #include <vital/algo/train_detector.h>
 #include <vital/algo/train_tracker.h>
 #include <vital/algo/detected_object_set_input.h>
+#include <vital/algo/image_object_detector.h>
 #include <vital/algo/read_object_track_set.h>
 #include <vital/algo/image_io.h>
 #include <vital/types/image_container.h>
@@ -142,6 +143,92 @@ static kv::config_block_sptr default_config()
 }
 
 // =======================================================================================
+// Validate that trainer output keys match the inference algorithm's config.
+// Returns true if all keys are valid, false otherwise.
+static bool validate_trainer_output_keys(
+    const std::map< std::string, std::string >& output_map,
+    const std::string& algorithm_type,
+    bool is_detector )
+{
+  if( output_map.empty() || algorithm_type.empty() )
+  {
+    return true;
+  }
+
+  // Try to get the inference algorithm's default configuration
+  kv::config_block_sptr algo_config;
+
+  try
+  {
+    if( is_detector )
+    {
+      kv::algo::image_object_detector_sptr detector;
+
+      kv::config_block_sptr temp_config = kv::config_block::empty_config();
+      temp_config->set_value( "detector:type", algorithm_type );
+      kv::algo::image_object_detector::set_nested_algo_configuration(
+        "detector", temp_config, detector );
+
+      if( detector )
+      {
+        algo_config = kv::config_block::empty_config();
+        kv::algo::image_object_detector::get_nested_algo_configuration(
+          "detector", algo_config, detector );
+      }
+    }
+    else
+    {
+      // For trackers, validation is less strict since tracker configs vary more
+      return true;
+    }
+  }
+  catch( ... )
+  {
+    // If we can't instantiate the algorithm, skip validation
+    std::cerr << "Warning: Could not validate output keys against algorithm '"
+              << algorithm_type << "'" << std::endl;
+    return true;
+  }
+
+  if( !algo_config )
+  {
+    return true;
+  }
+
+  // Check each non-file key against the algorithm config
+  bool all_valid = true;
+  for( const auto& pair : output_map )
+  {
+    const std::string& key = pair.first;
+    const std::string& value = pair.second;
+
+    // Skip if value is an existing file (it's a file copy, not a config key)
+    if( !value.empty() && does_file_exist( value ) )
+    {
+      continue;
+    }
+
+    // 'eval' is a special key that doesn't need to be in the inference config
+    if( key == "eval" )
+    {
+      continue;
+    }
+
+    // Check if the key exists in the algorithm's config
+    std::string full_key = "detector:" + algorithm_type + ":" + key;
+    if( !algo_config->has_value( full_key ) )
+    {
+      std::cerr << "Error: Trainer returned key '" << key
+                << "' which is not a valid config key for algorithm '"
+                << algorithm_type << "'" << std::endl;
+      all_valid = false;
+    }
+  }
+
+  return all_valid;
+}
+
+// =======================================================================================
 // Process the output map returned by a trainer's update_model() method.
 // - If the value is an existing file path, it's a file copy (key=output filename)
 // - Otherwise, it's a template replacement (key becomes [-KEY-] in template)
@@ -149,11 +236,24 @@ static void process_trainer_output(
     const std::map< std::string, std::string >& output_map,
     const std::string& output_directory,
     const std::string& pipeline_template,
-    const std::string& output_pipeline_name )
+    const std::string& output_pipeline_name,
+    const std::string& algorithm_type = "",
+    bool is_detector = true )
 {
   if( output_map.empty() )
   {
     return;
+  }
+
+  // Validate output keys against the inference algorithm's config
+  if( !algorithm_type.empty() )
+  {
+    if( !validate_trainer_output_keys( output_map, algorithm_type, is_detector ) )
+    {
+      std::cerr << "Error: Trainer output contains invalid keys for algorithm '"
+                << algorithm_type << "'" << std::endl;
+      return;
+    }
   }
 
   // Create output directory if needed
@@ -1769,6 +1869,10 @@ train_applet
     std::cout << "Beginning Training Process" << std::endl;
     std::string error;
 
+    // Get the detector type for validation
+    std::string detector_type = model_config->get_value< std::string >(
+      "detector_trainer:type", "" );
+
     try
     {
       detector_trainer->add_data_from_disk( model_labels,
@@ -1778,7 +1882,7 @@ train_applet
         detector_trainer->update_model();
 
       process_trainer_output( trainer_output, output_directory,
-        pipeline_template, output_pipeline_name );
+        pipeline_template, output_pipeline_name, detector_type, true );
     }
     catch( const std::exception& e )
     {
@@ -1983,7 +2087,7 @@ train_applet
           tracker_trainer->update_model();
 
         process_trainer_output( trainer_output, output_directory,
-          pipeline_template, output_pipeline_name );
+          pipeline_template, output_pipeline_name, current_tracker, false );
       }
       catch( const std::exception& e )
       {

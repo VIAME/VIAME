@@ -592,9 +592,8 @@ class UltralyticsTrainer(TrainDetector):
                     print("[UltralyticsTrainer] No checkpoint found")
                     return output
 
-            # Template replacements (lowercase keys, will be converted to [-KEY-] format)
-            output["model_file"] = output_model_name
-            output["window_option"] = "original"
+            # Config keys matching ultralytics_detector inference config
+            output["weight"] = output_model_name
 
             # File copies (key=output filename, value=source path)
             output[output_model_name] = str(final_ckpt)

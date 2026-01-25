@@ -801,8 +801,8 @@ class NetHarnTrainer( TrainDetector ):
             print( "\nNo model found, training may have failed\n" )
             return output
 
-        # Template replacements (lowercase keys, will be converted to [-KEY-] format)
-        output["model_file"] = output_model_name
+        # Config keys matching netharn_detector inference config
+        output["deployed"] = output_model_name
         output["window_option"] = self._resize_option
 
         # File copies (key=output filename, value=source path)

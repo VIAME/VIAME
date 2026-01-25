@@ -534,10 +534,10 @@ darknet_trainer
   std::string output_model = d->m_output_model_name + ".weights";
   std::string output_labels = d->m_output_model_name + ".lbl";
 
-  // Template replacements (lowercase keys, will be converted to [-KEY-] format)
-  output["network_config"] = output_cfg;
-  output["network_weights"] = output_model;
-  output["network_classes"] = output_labels;
+  // Config keys matching darknet_detector inference config
+  output["net_config"] = output_cfg;
+  output["weight_file"] = output_model;
+  output["class_names"] = output_labels;
 
   // File copies (key=output filename, value=source path)
   output[output_cfg] = input_cfg;
