@@ -336,6 +336,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PATCHES_DIR}/mmcv
         ${VIAME_PACKAGES_DIR}/pytorch-libs/mmcv )
     endif()
+  elseif( "${LIB}" STREQUAL "sam2" )
+    if( WIN32 )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/sam2
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/sam2 )
+    endif()
   elseif( "${LIB}" STREQUAL "mmdetection" )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmcv )
   elseif( "${LIB}" STREQUAL "mmdeploy" )
