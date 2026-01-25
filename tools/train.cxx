@@ -120,8 +120,9 @@ static kv::config_block_sptr default_config()
     "Convert input detections to full frame labels even if they're not." );
   config->set_value( "data_warning_file", "",
     "Optional file for storing possible data errors and warning." );
-  config->set_value( "output_directory", "category_models",
-    "Directory to store trained model files and generated pipelines." );
+  config->set_value( "output_directory", "",
+    "Directory to store trained model files and generated pipelines. "
+    "If empty and output_file is not set, files are written to the current directory." );
   config->set_value( "output_file", "",
     "If specified, create a zip file containing the model files and pipeline "
     "instead of writing to output_directory. Takes precedence over output_directory." );
