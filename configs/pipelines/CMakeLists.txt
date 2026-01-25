@@ -127,6 +127,7 @@ endif()
 set( CORE_PIPELINE_FILES
   classify_detections_svm.pipe
   common_default_initializer.pipe
+  common_train_detector.conf
   common_default_input.pipe
   common_default_input_with_downsampler.pipe
   common_fish_detector.pipe
