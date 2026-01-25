@@ -1981,7 +1981,7 @@ train_detector_svm
   if( !bfs::is_directory( label_folder ) )
   {
     LOG_ERROR( logger(), "Label folder does not exist: " << label_folder );
-    return;
+    return output;
   }
 
   // Find all label files in input folder
@@ -2016,7 +2016,7 @@ train_detector_svm
   if( label_files.empty() )
   {
     LOG_ERROR( logger(), "No label files found in: " << label_folder );
-    return;
+    return output;
   }
 
   LOG_INFO( logger(), "Found " << label_files.size() << " label files" );

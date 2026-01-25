@@ -1802,6 +1802,9 @@ train_applet
   // Run training algorithm(s) - loop through all configs/detectors for multi-model training
   for( unsigned model_idx = 0; model_idx < model_count; ++model_idx )
   {
+    // Use model-specific config for multi-model training, otherwise use main config
+    kv::config_block_sptr current_config = config;
+
     if( multi_model_training )
     {
       std::cout << std::endl << "========================================" << std::endl;
@@ -1809,22 +1812,22 @@ train_applet
       std::cout << "========================================" << std::endl;
 
       // Reconfigure for this model
-      kv::config_block_sptr model_config = default_config();
+      current_config = default_config();
 
       if( !training_configs.empty() )
       {
-        std::string current_config = training_configs[ model_idx ];
-        std::cout << "Using config: " << current_config << std::endl;
+        std::string model_config_file = training_configs[ model_idx ];
+        std::cout << "Using config: " << model_config_file << std::endl;
 
         try
         {
-          model_config->merge_config( kv::read_config_file( current_config ) );
+          current_config->merge_config( kv::read_config_file( model_config_file ) );
         }
         catch( const std::exception& e )
         {
           std::cerr << "Received exception: " << e.what() << std::endl
                     << "Unable to load configuration file: "
-                    << current_config << std::endl;
+                    << model_config_file << std::endl;
           continue;
         }
       }
@@ -1832,7 +1835,7 @@ train_applet
       {
         std::string current_detector = training_detectors[ model_idx ];
         std::cout << "Using detector type: " << current_detector << std::endl;
-        model_config->set_value( "detector_trainer:type", current_detector );
+        current_config->set_value( "detector_trainer:type", current_detector );
       }
 
       // Apply command line settings override
@@ -1847,19 +1850,19 @@ train_applet
             setting.substr( 0, split_pos );
           kv::config_block_value_t setting_value =
             setting.substr( split_pos + 1 );
-          model_config->set_value( setting_key, setting_value );
+          current_config->set_value( setting_key, setting_value );
         }
       }
 
       // Reinitialize detector trainer for this model
       detector_trainer.reset();
       kv::algo::train_detector::set_nested_algo_configuration
-        ( "detector_trainer", model_config, detector_trainer );
+        ( "detector_trainer", current_config, detector_trainer );
       kv::algo::train_detector::get_nested_algo_configuration
-        ( "detector_trainer", model_config, detector_trainer );
+        ( "detector_trainer", current_config, detector_trainer );
 
       if( !kv::algo::train_detector::
-            check_nested_algo_configuration( "detector_trainer", model_config ) )
+            check_nested_algo_configuration( "detector_trainer", current_config ) )
       {
         std::cout << "Configuration not valid for model " << ( model_idx + 1 ) << std::endl;
         continue;
@@ -1870,7 +1873,7 @@ train_applet
     std::string error;
 
     // Get the detector type for validation
-    std::string detector_type = model_config->get_value< std::string >(
+    std::string detector_type = current_config->get_value< std::string >(
       "detector_trainer:type", "" );
 
     try
