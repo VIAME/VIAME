@@ -4,7 +4,7 @@ HABCAM, https://viame.kitware.com/girder/api/v1/file/685eecb7a2df48d3c1ae8bfb/do
 SEFSC-SEAMAP, https://viame.kitware.com/api/v1/item/68118c2394d3f293fb910916/download, 170 species fish detector and trackers for Gulf of Mexico, fae8fbaa5696204f3f4178aab7c2a5f8, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 SWFSC-PENGHEAD, https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download, Penguin headcam classification, 7c0a2e38c391a1f5d6e42cf62c710e65, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 ARCTIC-SEAL, https://viame.kitware.com/api/v1/file/67a4dd1715780f826149c3ff/download, Arctic seal YOLO models (TF removed), d99596cbc3f19366dc0c4aebc7e5874e, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
-MOTION, https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download, Generic moving object detectors, eff47c8693b936514cc98674a2c0c3b7, "PYTORCH, ALL-PLATFORMS, PYTORCH-NETHARN"
+MOTION, https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download, Generic moving object detectors, eff47c8693b936514cc98674a2c0c3b7, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 EM-TUNA, https://viame.kitware.com/api/v1/item/627b326cc4da86e2cd3abb5b/download, On-board deck camera for tuna box and head/tail detection, 41d6824c8aea054a13cc0932429755c2, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 MOUSS-DEEP7, https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/download, MOUSS deep7 fish detection in hawaii, 87b9f9bf5088dbce46eb73e03f1597e2, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 AERIAL-PENGUIN, https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download, Aerial penguin detection from fixed wings/drones, c07264b548bc9879507157a5bcf222a6, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
