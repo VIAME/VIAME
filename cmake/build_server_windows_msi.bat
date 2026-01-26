@@ -96,7 +96,7 @@ IF %START_STAGE% EQU 1 (
     IF EXIST C:\tmp\vm5 rmdir /s /q C:\tmp\vm5
 
     git config --system core.longpaths true
-    git submodule update --init --recursive
+    git submodule update --init
 ) ELSE (
     ECHO Resuming from stage %START_STAGE%, skipping initialization...
     REM Restore install directory from previous stage if resuming

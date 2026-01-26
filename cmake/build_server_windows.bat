@@ -77,7 +77,7 @@ IF "%1"=="true" (
 )
 
 git config --system core.longpaths true
-git submodule update --init --recursive
+git submodule update --init
 
 REM Generate CTest dashboard file
 CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
