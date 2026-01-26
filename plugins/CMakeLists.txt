@@ -1,6 +1,7 @@
 
 ###
-# add all plugin subdirectories below
+# Add all plugin subdirectories below
+##
 
 set( viame_plugin_subdir           viame )
 set( viame_plugin_process_subdir   ${viame_plugin_subdir}/processes )
@@ -51,4 +52,15 @@ endif()
 
 if( VIAME_ENABLE_SVM )
   add_subdirectory( svm )
+endif()
+
+###
+# Add all code that's a part of the simplified python API here
+##
+
+if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_KWIVER )
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/types.py
+    .
+    types )
 endif()

@@ -309,11 +309,6 @@ if( VIAME_ENABLE_PYTHON )
   kwiver_create_python_init( core )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/types.py
-    .
-    types )
-
-  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     core
     __init__ )
