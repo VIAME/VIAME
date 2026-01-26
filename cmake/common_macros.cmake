@@ -335,7 +335,7 @@ endfunction()
 # Parse the addons CSV file and declare options for each entry
 # Also populates VIAME_ADDON_ENTRIES with the parsed data for later use
 # Options are declared as OFF by default and marked as advanced
-function( ParseAndDeclareAddonOptions _csv_file )
+function( ParseModelDownloadOptions _csv_file )
   if( NOT EXISTS "${_csv_file}" )
     message( FATAL_ERROR "Addon CSV file not found: ${_csv_file}" )
   endif()
@@ -465,3 +465,13 @@ function( ProcessAllAddonModels )
     DownloadAndInstallAddonModels( "${_name}" )
   endforeach()
 endfunction()
+
+# Disable all VIAME_DOWNLOAD_MODELS-* options by setting them to OFF
+macro( DisableAllModelDownloads )
+  get_cmake_property( _all_vars VARIABLES )
+  foreach( _var IN LISTS _all_vars )
+    if( _var MATCHES "^VIAME_DOWNLOAD_MODELS-" )
+      set( ${_var} OFF CACHE BOOL "Forced off" FORCE )
+    endif()
+  endforeach()
+endmacro()

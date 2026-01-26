@@ -4,7 +4,7 @@
 if( VIAME_DOWNLOAD_MODELS )
 
   # Default fish detection model
-  if( VIAME_DOWNLOAD_MODELS-FISH )
+  if( VIAME_DOWNLOAD_MODELS-DEFAULT-FISH )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/660a2e5aaa5c8de3874c4160/download

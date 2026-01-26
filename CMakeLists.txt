@@ -47,6 +47,12 @@ list( INSERT CMAKE_MODULE_PATH 0
       "${KWIVER_CMAKE_DIR}" )
 
 ###
+# Helper macros used across all cmakelists files in this project
+##
+include( common_macros )
+include( old_version_checks )
+
+###
 # Add other common paths usable throughout all CMakeLists files
 ##
 set( VIAME_SOURCE_DIR               "${CMAKE_SOURCE_DIR}" )
@@ -138,42 +144,23 @@ endif()
 option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
 option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
 
+####
+# This section generates misc VIAME_DOWNLOAD_MODEL-[NAME] advanced flags
+##
 if( VIAME_DOWNLOAD_MODELS )
-  option( VIAME_DOWNLOAD_MODELS-GENERIC     "Download generic proposer models"   ON )
-  option( VIAME_DOWNLOAD_MODELS-FISH        "Download default fish models"       ON )
-  option( VIAME_DOWNLOAD_MODELS-MOTION      "Download motion detection models"   OFF )
-  option( VIAME_DOWNLOAD_MODELS-HABCAM      "Download habcam detection models"   OFF )
-  option( VIAME_DOWNLOAD_MODELS-MOUSS       "Download mouss detection models"    OFF )
-  option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"     OFF )
-  option( VIAME_DOWNLOAD_MODELS-IFREMER     "Download ifremer detection models"  OFF )
-  option( VIAME_DOWNLOAD_MODELS-SEA-LION    "Download sea lion detection models" OFF )
-  option( VIAME_DOWNLOAD_MODELS-CONVNEXT    "Download convnext low-shot models"  OFF )
-  option( VIAME_DOWNLOAD_MODELS-POOLCAR     "Download poolcar low-shot models"   OFF )
-  option( VIAME_DOWNLOAD_MODELS-UW-CLFR     "Download UW fish classifier models" OFF )
+  # Parse addon model pack options from CSV file
+  # Options are declared here but downloads/installs happen in configs/add-ons
+  ParseModelDownloadOptions( ${VIAME_CMAKE_DIR}/download_viame_addons.csv )
 
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-GENERIC )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-FISH )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOTION )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOUSS )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+  # Declares other models not contained in the above csv
+  option( VIAME_DOWNLOAD_MODELS-IFREMER   "Download ifremer detection models"  OFF )
+  option( VIAME_DOWNLOAD_MODELS-UW-CLFR   "Download UW fish classifier models" OFF )
+
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-IFREMER )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-SEA-LION )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-CONVNEXT )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-POOLCAR )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-UW-CLFR )
 else()
-  set( VIAME_DOWNLOAD_MODELS-GENERIC     OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-FISH        OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-MOTION      OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-HABCAM      OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-MOUSS       OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-IFREMER     OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-SEA-LION    OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-CONVNEXT    OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-POOLCAR     OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-UW-CLFR     OFF CACHE BOOL "Forced off" FORCE )
+  # Force all flags to OFF in the event that the root flag is set
+  DisableAllModelDownloads()
 endif()
 
 ###
@@ -358,12 +345,6 @@ mark_as_advanced( VIAME_ENABLE_TESTS )
 
 option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python"              ON )
 mark_as_advanced( VIAME_BUILD_CHECKS )
-
-###
-# Helper macros used across all cmakelists files in this project
-##
-include( common_macros )
-include( old_version_checks )
 
 ###
 # Add logic and error checking relating to enable flags
