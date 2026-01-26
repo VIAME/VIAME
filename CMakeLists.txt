@@ -154,10 +154,10 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # Declares other models not contained in the above csv
   option( VIAME_DOWNLOAD_MODELS-IFREMER   "Download ifremer detection models"  OFF )
-  option( VIAME_DOWNLOAD_MODELS-UW-CLFR   "Download UW fish classifier models" OFF )
+  option( VIAME_DOWNLOAD_MODELS-UW-FISH   "Download UW fish classifier models" OFF )
 
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-IFREMER )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-UW-CLFR )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-UW-FISH )
 else()
   # Force all flags to OFF in the event that the root flag is set
   DisableAllModelDownloads()
