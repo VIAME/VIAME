@@ -94,13 +94,30 @@ REM ----------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
 
-DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"
+DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*" 2>NUL
 
 CALL %~dp0build_common_functions.bat :CopyCuda12Dlls "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
-COPY "%CUDA_ROOT%\extras\CUPTI\lib64\cupti64_2025.1.0.dll" %VIAME_INSTALL_DIR%\bin
+
+ECHO.
+ECHO Copying CUPTI DLL...
+CALL %~dp0build_common_functions.bat :CopyDllWithStatus "%CUDA_ROOT%\extras\CUPTI\lib64\cupti64_2025.1.0.dll" "%VIAME_INSTALL_DIR%\bin"
 
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
+IF ERRORLEVEL 1 (
+    ECHO.
+    ECHO ========================================
+    ECHO ERROR: Failed to create zip package
+    ECHO ========================================
+    EXIT /B 1
+)
+
+ECHO.
+ECHO ========================================
+ECHO Build Completed Successfully
+ECHO ========================================
+ECHO Output: %VIAME_BUILD_DIR%\%OUTPUT_FILE%
+ECHO.

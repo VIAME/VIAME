@@ -139,12 +139,18 @@ REM   %4 = ZLIB_ROOT
 REM   %5 = ZLIB_BUILD_DIR (optional - if provided, copies zlib1.dll from build)
 REM ==============================================================================
 :CopySystemDlls
-COPY "%WINDIR%\System32\msvcr100.dll" "%~2" 2>NUL
-COPY "%WINDIR%\System32\vcruntime140_1.dll" "%~2" 2>NUL
-COPY "%~3\vcomp140.dll" "%~2" 2>NUL
-COPY "%WINDIR%\SysWOW64\msvcr120.dll" "%~2" 2>NUL
-COPY "%~4\dll_x64\zlibwapi.dll" "%~2" 2>NUL
-IF NOT "%~5"=="" COPY "%~5\Release\zlib1.dll" "%~2" 2>NUL
+ECHO.
+ECHO ========================================
+ECHO Copying System DLLs
+ECHO ========================================
+ECHO.
+CALL :CopyDllWithStatus "%WINDIR%\System32\msvcr100.dll" "%~2"
+CALL :CopyDllWithStatus "%WINDIR%\System32\vcruntime140_1.dll" "%~2"
+CALL :CopyDllWithStatus "%~3\vcomp140.dll" "%~2"
+CALL :CopyDllWithStatus "%WINDIR%\SysWOW64\msvcr120.dll" "%~2"
+CALL :CopyDllWithStatus "%~4\dll_x64\zlibwapi.dll" "%~2"
+IF NOT "%~5"=="" CALL :CopyDllWithStatus "%~5\Release\zlib1.dll" "%~2"
+ECHO.
 GOTO :EOF
 
 REM ==============================================================================
@@ -155,23 +161,49 @@ REM   %2 = CUDA root directory
 REM   %3 = Install bin directory
 REM ==============================================================================
 :CopyCuda12Dlls
-COPY "%~2\bin\cublas64_12.dll" "%~3" 2>NUL
-COPY "%~2\bin\cublasLt64_12.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudart64_12.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudnn_adv64_9.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudnn_cnn64_9.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudnn_engines_precompiled64_9.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudnn_engines_runtime_compiled64_9.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudnn_graph64_9.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudnn_heuristic64_9.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudnn_ops64_9.dll" "%~3" 2>NUL
-COPY "%~2\bin\cudnn64_9.dll" "%~3" 2>NUL
-COPY "%~2\bin\cufft64_11.dll" "%~3" 2>NUL
-COPY "%~2\bin\cufftw64_11.dll" "%~3" 2>NUL
-COPY "%~2\bin\curand64_10.dll" "%~3" 2>NUL
-COPY "%~2\bin\cusolver64_11.dll" "%~3" 2>NUL
-COPY "%~2\bin\cusolverMg64_11.dll" "%~3" 2>NUL
-COPY "%~2\bin\cusparse64_12.dll" "%~3" 2>NUL
+ECHO.
+ECHO ========================================
+ECHO Copying CUDA 12.x and cuDNN 9.x DLLs
+ECHO ========================================
+ECHO.
+CALL :CopyDllWithStatus "%~2\bin\cublas64_12.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cublasLt64_12.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudart64_12.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudnn_adv64_9.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudnn_cnn64_9.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudnn_engines_precompiled64_9.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudnn_engines_runtime_compiled64_9.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudnn_graph64_9.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudnn_heuristic64_9.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudnn_ops64_9.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cudnn64_9.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cufft64_11.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cufftw64_11.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\curand64_10.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cusolver64_11.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cusolverMg64_11.dll" "%~3"
+CALL :CopyDllWithStatus "%~2\bin\cusparse64_12.dll" "%~3"
+ECHO.
+GOTO :EOF
+
+REM ==============================================================================
+REM CopyDllWithStatus
+REM Copy a single DLL and print status message
+REM Arguments:
+REM   %2 = Source DLL path
+REM   %3 = Destination directory
+REM ==============================================================================
+:CopyDllWithStatus
+IF EXIST "%~2" (
+    COPY "%~2" "%~3" >NUL 2>&1
+    IF ERRORLEVEL 1 (
+        ECHO [FAILED] %~nx2 - copy failed
+    ) ELSE (
+        ECHO [OK] %~nx2
+    )
+) ELSE (
+    ECHO [MISSING] %~nx2 - source not found: %~2
+)
 GOTO :EOF
 
 REM ==============================================================================
@@ -184,9 +216,77 @@ REM   %4 = Output zip filename
 REM   %5 = 7-Zip root directory
 REM ==============================================================================
 :CreateZipPackage
+SETLOCAL EnableDelayedExpansion
+ECHO.
+ECHO ========================================
+ECHO Creating Zip Package
+ECHO ========================================
+ECHO.
+ECHO Output file: %~4
+ECHO.
+
+REM Check if install directory exists
+IF NOT EXIST "%~2" (
+    ECHO [ERROR] Install directory not found: %~2
+    ENDLOCAL
+    EXIT /B 1
+)
+
+REM Check if 7-Zip exists
+IF NOT EXIST "%~5\7z.exe" (
+    ECHO [ERROR] 7-Zip not found at: %~5\7z.exe
+    ENDLOCAL
+    EXIT /B 1
+)
+
+REM Remove existing zip if present
+IF EXIST "%~3\%~4" (
+    ECHO Removing existing zip file...
+    DEL "%~3\%~4"
+)
+
+REM Check if VIAME folder already exists (from a previous failed run)
+IF EXIST "%~3\VIAME" (
+    ECHO [WARNING] VIAME folder already exists, removing...
+    RMDIR /S /Q "%~3\VIAME"
+)
+
+ECHO Renaming install directory to VIAME...
 MOVE "%~2" "%~3\VIAME"
-"%~5\7z.exe" a "%~3\%~4" "%~3\VIAME"
+IF ERRORLEVEL 1 (
+    ECHO [ERROR] Failed to rename install directory to VIAME
+    ENDLOCAL
+    EXIT /B 1
+)
+ECHO [OK] Renamed install to VIAME
+
+ECHO Creating zip archive (this may take a while)...
+"%~5\7z.exe" a -tzip "%~3\%~4" "%~3\VIAME"
+SET "ZIP_RESULT=!ERRORLEVEL!"
+IF !ZIP_RESULT! NEQ 0 (
+    ECHO [ERROR] 7-Zip failed with error code !ZIP_RESULT!
+    ECHO Restoring install directory...
+    MOVE "%~3\VIAME" "%~2"
+    ENDLOCAL
+    EXIT /B !ZIP_RESULT!
+)
+ECHO [OK] Zip archive created
+
+ECHO Restoring install directory name...
 MOVE "%~3\VIAME" "%~2"
+IF ERRORLEVEL 1 (
+    ECHO [WARNING] Failed to restore install directory name
+    ECHO           The install directory is now at: %~3\VIAME
+)
+
+ECHO.
+ECHO ========================================
+ECHO Zip Package Created Successfully
+ECHO ========================================
+ECHO Location: %~3\%~4
+ECHO.
+
+ENDLOCAL
 GOTO :EOF
 
 REM ==============================================================================
@@ -201,3 +301,4 @@ IF %ERRORLEVEL% NEQ 0 (
     EXIT /B %ERRORLEVEL%
 )
 GOTO :EOF
+
