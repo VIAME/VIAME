@@ -392,7 +392,21 @@ std::map<std::string, std::string>
 windowed_trainer
 ::update_model()
 {
-  return d->m_trainer->update_model();
+  std::map<std::string, std::string> output = d->m_trainer->update_model();
+
+  // Add windowed process information for nested inference pipelines
+  output["type"] = "viame.core.windowed_detector";
+  output["mode"] = rescale_option_converter().to_string( d->m_settings.mode );
+  output["scale"] = std::to_string( d->m_settings.scale );
+  output["chip_width"] = std::to_string( d->m_settings.chip_width );
+  output["chip_height"] = std::to_string( d->m_settings.chip_height );
+  output["chip_step_width"] = std::to_string( d->m_settings.chip_step_width );
+  output["chip_step_height"] = std::to_string( d->m_settings.chip_step_height );
+  output["chip_adaptive_thresh"] = std::to_string( d->m_settings.chip_adaptive_thresh );
+  output["original_to_chip_size"] = d->m_settings.original_to_chip_size ? "true" : "false";
+  output["black_pad"] = d->m_settings.black_pad ? "true" : "false";
+
+  return output;
 }
 
 // -----------------------------------------------------------------------------
