@@ -347,31 +347,6 @@ if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   )
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM2 )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_sam2_segmenter.conf
-    interactive_segmenter_default.conf
-    interactive_segmenter_sam2.conf
-    utility_add_head_tail_keypoints_default.pipe
-    utility_add_head_tail_keypoints_sam2.pipe
-    utility_add_segmentations_default.pipe
-    utility_add_segmentations_sam2.pipe
-    utility_add_segmentations_sam2_no_replace.pipe
-    utility_track_selections_sam2.pipe
-  )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-SAM3 )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_sam3_segmenter.conf
-    interactive_segmenter_sam3.conf
-    utility_add_segmentations_sam3.pipe
-    utility_add_segmentations_sam3_no_replace.pipe
-    utility_text_query_default.pipe
-    utility_text_query_sam3.pipe
-    utility_track_selections_sam3.pipe
-  )
-endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
