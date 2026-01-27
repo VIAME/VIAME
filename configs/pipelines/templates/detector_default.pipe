@@ -1,8 +1,15 @@
 # =============================================================================
-# Title: YOLO Detector
+# Title: Default Detector Template
 #
-# Description: Runs object detection pipeline on input imagery. Outputs
-# results to computed_detections.csv. Uses YOLO-based detection.
+# Description: Runs object detection pipeline on input imagery from disk
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
 # =============================================================================
 
 process input
@@ -66,24 +73,7 @@ connect from downsampler.output_1
 
 process detector1
   :: image_object_detector
-  :detector:type                               darknet
-
-  block detector:darknet
-    # Network config, weights, and names
-    relativepath net_config  =                 [-NETWORK-CONFIG-]
-    relativepath weight_file =                 [-NETWORK-WEIGHTS-]
-    relativepath class_names =                 [-NETWORK-CLASSES-]
-
-    # Detector parameters
-    :thresh                                    0.010
-    :gpu_index                                 0
-
-    # Image scaling parameters
-    :resize_option                             maintain_ar
-    :scale                                     1.0
-    :chip_step                                 520
-    :chip_edge_filter                          5
-  endblock
+  [-DETECTOR-IMPL-]
 
 connect from detector_input.image
         to   detector1.image
