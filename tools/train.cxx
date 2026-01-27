@@ -170,14 +170,14 @@ static bool validate_trainer_output_keys(
 
       kv::config_block_sptr temp_config = kv::config_block::empty_config();
       temp_config->set_value( "detector:type", algorithm_type );
-      kv::algo::image_object_detector::set_nested_algo_configuration(
-        "detector", temp_config, detector );
+      kv::set_nested_algo_configuration< kv::algo::image_object_detector >
+        ( "detector", temp_config, detector );
 
       if( detector )
       {
         algo_config = kv::config_block::empty_config();
-        kv::algo::image_object_detector::get_nested_algo_configuration(
-          "detector", algo_config, detector );
+        kv::get_nested_algo_configuration< kv::algo::image_object_detector >
+          ( "detector", algo_config, detector );
       }
     }
     else
