@@ -394,18 +394,18 @@ windowed_trainer
 {
   std::map<std::string, std::string> output = d->m_trainer->update_model();
 
-  const std::string t = "core_windowed";
+  const std::string algo = "windowed";
 
-  output["type"] = t;
-  output[t + ":mode"] = rescale_option_converter().to_string( d->m_settings.mode );
-  output[t + ":scale"] = std::to_string( d->m_settings.scale );
-  output[t + ":chip_width"] = std::to_string( d->m_settings.chip_width );
-  output[t + ":chip_height"] = std::to_string( d->m_settings.chip_height );
-  output[t + ":chip_step_width"] = std::to_string( d->m_settings.chip_step_width );
-  output[t + ":chip_step_height"] = std::to_string( d->m_settings.chip_step_height );
-  output[t + ":chip_adaptive_thresh"] = std::to_string( d->m_settings.chip_adaptive_thresh );
-  output[t + ":original_to_chip_size"] = d->m_settings.original_to_chip_size ? "true" : "false";
-  output[t + ":black_pad"] = d->m_settings.black_pad ? "true" : "false";
+  output["type"] = algo;
+  output[algo + ":mode"] = rescale_option_converter().to_string( d->m_settings.mode );
+  output[algo + ":scale"] = std::to_string( d->m_settings.scale );
+  output[algo + ":chip_width"] = std::to_string( d->m_settings.chip_width );
+  output[algo + ":chip_height"] = std::to_string( d->m_settings.chip_height );
+  output[algo + ":chip_step_width"] = std::to_string( d->m_settings.chip_step_width );
+  output[algo + ":chip_step_height"] = std::to_string( d->m_settings.chip_step_height );
+  output[algo + ":chip_adaptive_thresh"] = std::to_string( d->m_settings.chip_adaptive_thresh );
+  output[algo + ":original_to_chip_size"] = d->m_settings.original_to_chip_size ? "true" : "false";
+  output[algo + ":black_pad"] = d->m_settings.black_pad ? "true" : "false";
 
   return output;
 }

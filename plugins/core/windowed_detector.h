@@ -27,7 +27,7 @@ class VIAME_CORE_EXPORT windowed_detector
 {
 public:
 
-  PLUGIN_INFO( "core_windowed",
+  PLUGIN_INFO( "windowed",
                "Window some other arbitrary detector across the image (no OpenCV)" )
 
   windowed_detector();

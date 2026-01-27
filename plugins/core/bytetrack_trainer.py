@@ -397,16 +397,16 @@ class ByteTrackTrainer( TrainTracker ):
             dict: Map where file paths are file copies, other values are template replacements
         """
         output = {}
-        t = "bytetrack"
+        algo = "bytetrack"
 
-        output["type"] = t
+        output["type"] = algo
 
         # Config keys matching bytetrack inference config
-        output[t + ":high_thresh"] = f"{params['high_thresh']:.3f}"
-        output[t + ":low_thresh"] = f"{params['low_thresh']:.3f}"
-        output[t + ":match_thresh"] = f"{params['match_thresh']:.3f}"
-        output[t + ":track_buffer"] = str( params['track_buffer'] )
-        output[t + ":new_track_thresh"] = f"{params['new_track_thresh']:.3f}"
+        output[algo + ":high_thresh"] = f"{params['high_thresh']:.3f}"
+        output[algo + ":low_thresh"] = f"{params['low_thresh']:.3f}"
+        output[algo + ":match_thresh"] = f"{params['match_thresh']:.3f}"
+        output[algo + ":track_buffer"] = str( params['track_buffer'] )
+        output[algo + ":new_track_thresh"] = f"{params['new_track_thresh']:.3f}"
 
         # File copies
         output["bytetrack_params.json"] = params_file

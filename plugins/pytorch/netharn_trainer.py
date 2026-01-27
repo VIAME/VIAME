@@ -801,13 +801,13 @@ class NetHarnTrainer( TrainDetector ):
             print( "\nNo model found, training may have failed\n" )
             return output
 
-        t = "netharn"
+        algo = "netharn"
 
-        output["type"] = t
+        output["type"] = algo
 
         # Config keys matching netharn_detector inference config
-        output[t + ":deployed"] = output_model_name
-        output[t + ":window_option"] = self._resize_option
+        output[algo + ":deployed"] = output_model_name
+        output[algo + ":window_option"] = self._resize_option
 
         # File copies (key=output filename, value=source path)
         output[output_model_name] = final_model

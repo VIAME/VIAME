@@ -26,7 +26,7 @@ class VIAME_CORE_EXPORT windowed_refiner
 {
 public:
 
-  PLUGIN_INFO( "core_windowed",
+  PLUGIN_INFO( "windowed",
                "Window some other arbitrary refiner across the image (no OpenCV)" )
 
   windowed_refiner();
