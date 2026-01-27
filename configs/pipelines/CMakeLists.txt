@@ -144,11 +144,11 @@ set( CORE_PIPELINE_FILES
   convert_habcam_to_viame_csv.pipe
   convert_kw18_to_viame_csv.pipe
   convert_oceaneyes_to_viame_csv.pipe
-  convert_to_onnx.pipe
+  convert_model_to_onnx.pipe
   convert_viame_csv_to_coco_json.pipe
   convert_viame_csv_to_kw18.pipe
   database_apply_svm_models.pipe
-  detector_camtrawl.pipe
+  detector_gmm_motion.pipe
   detector_project_folder.pipe
   detector_project_folder_left.pipe
   detector_simple_hough.pipe
@@ -246,17 +246,6 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 # Darknet specific configs
-if( VIAME_ENABLE_DARKNET )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_darknet_yolo_default.conf
-    train_detector_darknet_yolo_640.conf
-    train_detector_darknet_yolo_640.grid_only.conf
-    train_detector_darknet_yolo_640.no_grid.conf
-    train_detector_darknet_yolo_704.habcam.conf
-    train_detector_darknet_yolo_704.kw18.conf
-    train_detector_darknet_yolo_full_res.no_grid.conf
-  )
-endif()
 
 # Configs used exclusively for VIEW
 if( VIAME_ENABLE_VIVIA )
@@ -395,7 +384,6 @@ if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_tracker_botsort.conf
     train_tracker_deepsort.conf
-    train_tracker_srnn.conf
   )
 endif()
 
@@ -455,9 +443,6 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     frame_classifier_project_folder.pipe
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
-    train_detector_darknet_yolo_704.habcam.conf
-    train_detector_darknet_yolo_704.kw18.conf
-    train_detector_darknet_yolo_full_res.no_grid.conf
     train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn.habcam.conf
     train_detector_netharn_cfrnn_special.conf
