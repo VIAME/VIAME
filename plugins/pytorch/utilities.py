@@ -17,6 +17,12 @@ This module provides:
 import contextlib
 import os
 import shutil
+import warnings
+
+# Suppress common third-party warnings
+warnings.filterwarnings("ignore", message="The value of the smallest subnormal")
+warnings.filterwarnings("ignore", module="scriptconfig.smartcast")
+warnings.filterwarnings("ignore", message="Importing from timm.models.layers is deprecated")
 
 import numpy as np
 
