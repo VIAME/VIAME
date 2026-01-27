@@ -108,25 +108,3 @@ foreach( binary_file ${VIAME_BLACKLISTED_BINARIES} )
     file( REMOVE ${VIAME_INSTALL_PREFIX}/bin/${binary_file}.exe )
   endif()
 endforeach()
-
-# Directories not needed for desktop distribution
-set( VIAME_BLACKLISTED_DIRECTORIES
-  sbin
-  qml
-  include
-  mkspecs
-  share
-  etc
-  doc
-  )
-
-foreach( dir ${VIAME_BLACKLISTED_DIRECTORIES} )
-  if( EXISTS ${VIAME_INSTALL_PREFIX}/${dir} )
-    file( REMOVE_RECURSE ${VIAME_INSTALL_PREFIX}/${dir} )
-  endif()
-endforeach()
-
-# Copy LICENSE.txt to install root
-if( EXISTS ${CMAKE_SOURCE_DIR}/LICENSE.txt )
-  file( COPY ${CMAKE_SOURCE_DIR}/LICENSE.txt DESTINATION ${VIAME_INSTALL_PREFIX} )
-endif()
