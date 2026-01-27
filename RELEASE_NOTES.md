@@ -20,7 +20,7 @@ v0.22.0 - 1/29/2025
 -Add CMake 4 and MSVC 2026 build support
 
 
--Add SAM2/3 support for rapid segmentation and initial text querie support
+-Prelim SAM2/3 support for rapid segmentation and text query support
 
 
 
