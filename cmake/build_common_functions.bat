@@ -125,7 +125,7 @@ REM ============================================================================
     ECHO ctest_start^(${CTEST_BUILD_MODEL}^)
     ECHO ctest_configure^(BUILD ${CTEST_BINARY_DIRECTORY} SOURCE ${CTEST_SOURCE_DIRECTORY} OPTIONS "${OPTIONS}"^)
     ECHO ctest_build^(^)
-    ECHO ctest_submit^(^)
+    ECHO # ctest_submit skipped - no CDash server configured
 ) > %~4\cmake\%~3
 GOTO :EOF
 
