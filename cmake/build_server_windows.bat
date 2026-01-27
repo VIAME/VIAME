@@ -49,7 +49,7 @@ SET "PATH=%APPDATA%\npm;%NODEJS_ROOT%;%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 SET "VDIST_VER_STR=%MSVS_TOOLSET:.=%"
-SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC\%MSVS_REDIST_VER%\%MSVS_ARCH%\Microsoft.VC%MSVS_TOOLSET%.OpenMP"
+SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC\%MSVS_REDIST_VER%\%MSVS_ARCH%\Microsoft.VC%VDIST_VER_STR%.OpenMP"
 
 REM -------------------------------------------------------------------------------------------------------
 REM Check Build Dependencies
