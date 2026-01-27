@@ -133,8 +133,6 @@ set( CORE_PIPELINE_FILES
   common_fish_detector.pipe
   common_fish_detector_with_filter.pipe
   common_foundation_stereo.pipe
-  common_generic_detector.pipe
-  common_generic_detector_with_filter.pipe
   common_image_stabilizer.pipe
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
@@ -156,11 +154,9 @@ set( CORE_PIPELINE_FILES
   database_apply_svm_models.pipe
   detector_camtrawl.pipe
   detector_default_fish.pipe
-  detector_generic_proposals.pipe
   detector_project_folder.pipe
   detector_project_folder_left.pipe
   detector_simple_hough.pipe
-  detector_svm_models.pipe
   display_annotations.pipe
   filter_debayer.pipe
   filter_debayer_and_enhance.pipe
@@ -176,8 +172,6 @@ set( CORE_PIPELINE_FILES
   filter_tracks_only.pipe
   frame_classifier_project_folder.pipe
   frame_classifier_svm.pipe
-  index_default.pipe
-  index_default.svm.pipe
   index_default.trk.pipe
   index_existing.pipe
   index_fish.svm.pipe
@@ -188,15 +182,12 @@ set( CORE_PIPELINE_FILES
   measurement_fully_auto_gmm_motion.pipe
   measurement_from_annotations.pipe
   query_from_track.pipe
-  query_image_exemplar.pipe
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
   sql_init_table.sql
   tracker_default_fish.pipe
-  tracker_generic_proposals.pipe
   tracker_project_folder.pipe
   tracker_stabilized_iou.pipe
-  tracker_svm_models.pipe
   train_aug_add_color_freq.pipe
   train_aug_add_double_motion.pipe
   train_aug_add_motion.pipe
@@ -240,7 +231,6 @@ if( VIAME_ENABLE_CUDA )
     common_default_descriptor.pipe
     common_default_tracker.pipe
     common_fish_detector.pipe
-    common_generic_detector.pipe
     common_stereo_fish_detector.pipe
     common_stereo_fish_detector_with_filter.pipe
     measurement_detect_fish_only.pipe
@@ -303,8 +293,6 @@ if( VIAME_ENABLE_VIVIA )
     embedded_single_stream/local_deep_detector.pipe
     embedded_single_stream/local_deep_detector_with_def_tracker.pipe
     embedded_single_stream/local_deep_detector_with_stab_tracker.pipe
-    embedded_single_stream/local_svm_detector.pipe
-    embedded_single_stream/local_svm_detector_with_def_tracker.pipe
     embedded_single_stream/local_svm_frame_classifier.pipe
   )
 
@@ -336,7 +324,6 @@ if( VIAME_ENABLE_SVM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     query_and_iqr.pipe
     train_detector_svm_over_fish_detections.conf
-    train_detector_svm_over_generic_detections.conf
     train_frame_classifier_libsvm_svm.conf
   )
 endif()
@@ -515,11 +502,9 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     detector_project_folder.pipe
     detector_project_folder_left.pipe
     detector_simple_hough.pipe
-    detector_svm_models.pipe
     frame_classifier_project_folder.pipe
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
-    tracker_svm_models.pipe
     train_detector_darknet_yolo_704.habcam.conf
     train_detector_darknet_yolo_704.kw18.conf
     train_detector_darknet_yolo_full_res.no_grid.conf
