@@ -1943,17 +1943,19 @@ train_detector_svm
 
 // -----------------------------------------------------------------------------
 /// Train all SVM models
-void
+std::map<std::string, std::string>
 train_detector_svm
 ::update_model()
 {
+  std::map<std::string, std::string> output;
+
   // Load descriptor index
   d_->load_descriptor_index();
 
   if( d_->m_descriptor_index.empty() )
   {
     LOG_ERROR( logger(), "No descriptors loaded from index" );
-    return;
+    return output;
   }
 
   // Initialize LSH index if configured
@@ -1979,7 +1981,7 @@ train_detector_svm
   if( !fs::is_directory( label_folder ) )
   {
     LOG_ERROR( logger(), "Label folder does not exist: " << label_folder );
-    return;
+    return output;
   }
 
   // Find all label files in input folder
@@ -2014,7 +2016,7 @@ train_detector_svm
   if( label_files.empty() )
   {
     LOG_ERROR( logger(), "No label files found in: " << label_folder );
-    return;
+    return output;
   }
 
   LOG_INFO( logger(), "Found " << label_files.size() << " label files" );
@@ -2059,9 +2061,17 @@ train_detector_svm
     std::string output_file = d_->output_directory + "/" + category + ".svm";
 
     d_->train_svm_model( category, positive_uids, negative_uids, output_file );
+
+    // Add to output map (filename -> source path for copying)
+    std::string output_filename = category + ".svm";
+    output[output_filename] = output_file;
   }
 
+  output["type"] = "svm_refiner";
+
   LOG_INFO( logger(), "SVM training complete" );
+
+  return output;
 }
 
 } // end namespace viame

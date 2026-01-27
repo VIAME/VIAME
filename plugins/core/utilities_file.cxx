@@ -5,9 +5,17 @@
 #include "utilities_file.h"
 
 #include <fstream>
+#include <map>
 #include <sstream>
 #include <iostream>
 #include <cctype>
+#include <cstring>
+#include <ctime>
+#include <vector>
+
+#ifdef VIAME_ENABLE_ZLIB
+#include <zlib.h>
+#endif
 
 #if WIN32 || ( __cplusplus >= 201703L && __has_include(<filesystem>) )
   #include <filesystem>
@@ -458,6 +466,406 @@ double get_file_frame_rate( const std::string& file )
   }
 
   return std::stof( number );
+}
+
+// =============================================================================
+// Template processing utilities
+// =============================================================================
+
+bool replace_keywords_in_template_file(
+    const std::string& input_file,
+    const std::string& output_file,
+    const std::map< std::string, std::string >& replacements )
+{
+  std::ifstream fin( input_file );
+  if( !fin )
+  {
+    std::cerr << "Unable to open template file: " << input_file << std::endl;
+    return false;
+  }
+
+  std::stringstream buffer;
+  buffer << fin.rdbuf();
+  fin.close();
+
+  std::string content = buffer.str();
+
+  for( const auto& pair : replacements )
+  {
+    const std::string& keyword = pair.first;
+    const std::string& value = pair.second;
+
+    size_t pos = 0;
+    while( ( pos = content.find( keyword, pos ) ) != std::string::npos )
+    {
+      content.replace( pos, keyword.length(), value );
+      pos += value.length();
+    }
+  }
+
+  std::ofstream fout( output_file );
+  if( !fout )
+  {
+    std::cerr << "Unable to write output file: " << output_file << std::endl;
+    return false;
+  }
+
+  fout << content;
+  fout.close();
+
+  return true;
+}
+
+bool copy_file( const std::string& source, const std::string& destination )
+{
+  std::ifstream fin( source, std::ios::binary );
+  if( !fin )
+  {
+    std::cerr << "Unable to open source file: " << source << std::endl;
+    return false;
+  }
+
+  std::ofstream fout( destination, std::ios::binary );
+  if( !fout )
+  {
+    std::cerr << "Unable to create destination file: " << destination << std::endl;
+    fin.close();
+    return false;
+  }
+
+  fout << fin.rdbuf();
+
+  fin.close();
+  fout.close();
+
+  return true;
+}
+
+bool replace_keywords_in_template_to_string(
+    const std::string& input_file,
+    const std::map< std::string, std::string >& replacements,
+    std::string& result )
+{
+  std::ifstream fin( input_file );
+  if( !fin )
+  {
+    std::cerr << "Unable to open template file: " << input_file << std::endl;
+    return false;
+  }
+
+  std::stringstream buffer;
+  buffer << fin.rdbuf();
+  fin.close();
+
+  result = buffer.str();
+
+  for( const auto& pair : replacements )
+  {
+    const std::string& keyword = pair.first;
+    const std::string& value = pair.second;
+
+    size_t pos = 0;
+    while( ( pos = result.find( keyword, pos ) ) != std::string::npos )
+    {
+      result.replace( pos, keyword.length(), value );
+      pos += value.length();
+    }
+  }
+
+  return true;
+}
+
+// =============================================================================
+// Zip file utilities
+// =============================================================================
+
+#ifdef VIAME_ENABLE_ZLIB
+
+namespace {
+
+// Helper to write little-endian values
+void write_le16( std::ostream& out, uint16_t val )
+{
+  out.put( static_cast< char >( val & 0xFF ) );
+  out.put( static_cast< char >( ( val >> 8 ) & 0xFF ) );
+}
+
+void write_le32( std::ostream& out, uint32_t val )
+{
+  out.put( static_cast< char >( val & 0xFF ) );
+  out.put( static_cast< char >( ( val >> 8 ) & 0xFF ) );
+  out.put( static_cast< char >( ( val >> 16 ) & 0xFF ) );
+  out.put( static_cast< char >( ( val >> 24 ) & 0xFF ) );
+}
+
+// Convert time_t to DOS date/time format
+void time_to_dos( time_t t, uint16_t& dos_date, uint16_t& dos_time )
+{
+  struct tm* lt = localtime( &t );
+  if( !lt )
+  {
+    dos_date = 0;
+    dos_time = 0;
+    return;
+  }
+
+  dos_time = static_cast< uint16_t >(
+    ( lt->tm_sec / 2 ) |
+    ( lt->tm_min << 5 ) |
+    ( lt->tm_hour << 11 ) );
+
+  dos_date = static_cast< uint16_t >(
+    lt->tm_mday |
+    ( ( lt->tm_mon + 1 ) << 5 ) |
+    ( ( lt->tm_year - 80 ) << 9 ) );
+}
+
+// Compress data using zlib deflate
+bool compress_data( const std::vector< char >& input,
+                    std::vector< char >& output,
+                    uint32_t& crc )
+{
+  // Calculate CRC32 of uncompressed data
+  crc = crc32( 0L, Z_NULL, 0 );
+  crc = crc32( crc,
+               reinterpret_cast< const Bytef* >( input.data() ),
+               static_cast< uInt >( input.size() ) );
+
+  // Compress using deflate (raw deflate, not zlib or gzip wrapper)
+  z_stream strm;
+  std::memset( &strm, 0, sizeof( strm ) );
+
+  // Use raw deflate (-MAX_WBITS) for ZIP format
+  if( deflateInit2( &strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
+                    -MAX_WBITS, 8, Z_DEFAULT_STRATEGY ) != Z_OK )
+  {
+    return false;
+  }
+
+  // Allocate output buffer (worst case: slightly larger than input)
+  output.resize( deflateBound( &strm, static_cast< uLong >( input.size() ) ) );
+
+  strm.next_in = reinterpret_cast< Bytef* >(
+    const_cast< char* >( input.data() ) );
+  strm.avail_in = static_cast< uInt >( input.size() );
+  strm.next_out = reinterpret_cast< Bytef* >( output.data() );
+  strm.avail_out = static_cast< uInt >( output.size() );
+
+  int ret = deflate( &strm, Z_FINISH );
+  deflateEnd( &strm );
+
+  if( ret != Z_STREAM_END )
+  {
+    return false;
+  }
+
+  output.resize( strm.total_out );
+  return true;
+}
+
+struct ZipEntry
+{
+  std::string name;
+  uint32_t crc;
+  uint32_t compressed_size;
+  uint32_t uncompressed_size;
+  uint16_t dos_time;
+  uint16_t dos_date;
+  uint32_t local_header_offset;
+};
+
+} // anonymous namespace
+
+#endif // VIAME_ENABLE_ZLIB
+
+bool create_zip_file(
+    const std::string& zip_path,
+    const std::map< std::string, std::string >& files_to_add,
+    const std::map< std::string, std::string >& string_contents )
+{
+#ifdef VIAME_ENABLE_ZLIB
+  std::ofstream zip_out( zip_path, std::ios::binary );
+  if( !zip_out )
+  {
+    std::cerr << "Unable to create zip file: " << zip_path << std::endl;
+    return false;
+  }
+
+  std::vector< ZipEntry > entries;
+  time_t now = time( nullptr );
+  uint16_t dos_date, dos_time;
+  time_to_dos( now, dos_date, dos_time );
+
+  // Write local file headers and data for file entries
+  for( const auto& pair : files_to_add )
+  {
+    const std::string& entry_name = pair.first;
+    const std::string& source_path = pair.second;
+
+    // Read source file
+    std::ifstream fin( source_path, std::ios::binary | std::ios::ate );
+    if( !fin )
+    {
+      std::cerr << "Warning: Unable to read file for zip: " << source_path << std::endl;
+      continue;
+    }
+
+    std::streamsize file_size = fin.tellg();
+    fin.seekg( 0, std::ios::beg );
+
+    std::vector< char > file_data( static_cast< size_t >( file_size ) );
+    if( !fin.read( file_data.data(), file_size ) )
+    {
+      std::cerr << "Warning: Unable to read file data: " << source_path << std::endl;
+      continue;
+    }
+    fin.close();
+
+    // Compress the data
+    std::vector< char > compressed_data;
+    uint32_t crc;
+    if( !compress_data( file_data, compressed_data, crc ) )
+    {
+      std::cerr << "Warning: Unable to compress file: " << source_path << std::endl;
+      continue;
+    }
+
+    ZipEntry entry;
+    entry.name = entry_name;
+    entry.crc = crc;
+    entry.compressed_size = static_cast< uint32_t >( compressed_data.size() );
+    entry.uncompressed_size = static_cast< uint32_t >( file_data.size() );
+    entry.dos_time = dos_time;
+    entry.dos_date = dos_date;
+    entry.local_header_offset = static_cast< uint32_t >( zip_out.tellp() );
+
+    // Write local file header
+    write_le32( zip_out, 0x04034b50 );  // Local file header signature
+    write_le16( zip_out, 20 );           // Version needed to extract (2.0)
+    write_le16( zip_out, 0 );            // General purpose bit flag
+    write_le16( zip_out, 8 );            // Compression method (deflate)
+    write_le16( zip_out, entry.dos_time );
+    write_le16( zip_out, entry.dos_date );
+    write_le32( zip_out, entry.crc );
+    write_le32( zip_out, entry.compressed_size );
+    write_le32( zip_out, entry.uncompressed_size );
+    write_le16( zip_out, static_cast< uint16_t >( entry_name.size() ) );
+    write_le16( zip_out, 0 );            // Extra field length
+
+    // Write file name
+    zip_out.write( entry_name.c_str(), entry_name.size() );
+
+    // Write compressed data
+    zip_out.write( compressed_data.data(),
+                   static_cast< std::streamsize >( compressed_data.size() ) );
+
+    entries.push_back( entry );
+  }
+
+  // Write local file headers and data for string content entries
+  for( const auto& pair : string_contents )
+  {
+    const std::string& entry_name = pair.first;
+    const std::string& content = pair.second;
+
+    std::vector< char > file_data( content.begin(), content.end() );
+
+    // Compress the data
+    std::vector< char > compressed_data;
+    uint32_t crc;
+    if( !compress_data( file_data, compressed_data, crc ) )
+    {
+      std::cerr << "Warning: Unable to compress content for: " << entry_name << std::endl;
+      continue;
+    }
+
+    ZipEntry entry;
+    entry.name = entry_name;
+    entry.crc = crc;
+    entry.compressed_size = static_cast< uint32_t >( compressed_data.size() );
+    entry.uncompressed_size = static_cast< uint32_t >( file_data.size() );
+    entry.dos_time = dos_time;
+    entry.dos_date = dos_date;
+    entry.local_header_offset = static_cast< uint32_t >( zip_out.tellp() );
+
+    // Write local file header
+    write_le32( zip_out, 0x04034b50 );  // Local file header signature
+    write_le16( zip_out, 20 );           // Version needed to extract (2.0)
+    write_le16( zip_out, 0 );            // General purpose bit flag
+    write_le16( zip_out, 8 );            // Compression method (deflate)
+    write_le16( zip_out, entry.dos_time );
+    write_le16( zip_out, entry.dos_date );
+    write_le32( zip_out, entry.crc );
+    write_le32( zip_out, entry.compressed_size );
+    write_le32( zip_out, entry.uncompressed_size );
+    write_le16( zip_out, static_cast< uint16_t >( entry_name.size() ) );
+    write_le16( zip_out, 0 );            // Extra field length
+
+    // Write file name
+    zip_out.write( entry_name.c_str(), entry_name.size() );
+
+    // Write compressed data
+    zip_out.write( compressed_data.data(),
+                   static_cast< std::streamsize >( compressed_data.size() ) );
+
+    entries.push_back( entry );
+  }
+
+  // Record start of central directory
+  uint32_t central_dir_offset = static_cast< uint32_t >( zip_out.tellp() );
+
+  // Write central directory
+  for( const auto& entry : entries )
+  {
+    write_le32( zip_out, 0x02014b50 );  // Central file header signature
+    write_le16( zip_out, 20 );           // Version made by (2.0)
+    write_le16( zip_out, 20 );           // Version needed to extract (2.0)
+    write_le16( zip_out, 0 );            // General purpose bit flag
+    write_le16( zip_out, 8 );            // Compression method (deflate)
+    write_le16( zip_out, entry.dos_time );
+    write_le16( zip_out, entry.dos_date );
+    write_le32( zip_out, entry.crc );
+    write_le32( zip_out, entry.compressed_size );
+    write_le32( zip_out, entry.uncompressed_size );
+    write_le16( zip_out, static_cast< uint16_t >( entry.name.size() ) );
+    write_le16( zip_out, 0 );            // Extra field length
+    write_le16( zip_out, 0 );            // File comment length
+    write_le16( zip_out, 0 );            // Disk number start
+    write_le16( zip_out, 0 );            // Internal file attributes
+    write_le32( zip_out, 0 );            // External file attributes
+    write_le32( zip_out, entry.local_header_offset );
+
+    // Write file name
+    zip_out.write( entry.name.c_str(), entry.name.size() );
+  }
+
+  // Calculate central directory size
+  uint32_t central_dir_size = static_cast< uint32_t >( zip_out.tellp() ) - central_dir_offset;
+
+  // Write end of central directory record
+  write_le32( zip_out, 0x06054b50 );  // End of central dir signature
+  write_le16( zip_out, 0 );           // Number of this disk
+  write_le16( zip_out, 0 );           // Disk where central dir starts
+  write_le16( zip_out, static_cast< uint16_t >( entries.size() ) );
+  write_le16( zip_out, static_cast< uint16_t >( entries.size() ) );
+  write_le32( zip_out, central_dir_size );
+  write_le32( zip_out, central_dir_offset );
+  write_le16( zip_out, 0 );           // Comment length
+
+  zip_out.close();
+
+  if( !zip_out )
+  {
+    std::cerr << "Error writing zip file: " << zip_path << std::endl;
+    return false;
+  }
+
+  return true;
+
+#else
+  std::cerr << "Zip file creation requires ZLIB support" << std::endl;
+  return false;
+#endif
 }
 
 } // end namespace viame

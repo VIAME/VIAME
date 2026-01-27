@@ -26,10 +26,10 @@ SET "NODEJS_ROOT=C:\Program Files\nodejs"
 SET "NVIDIA_ROOT=C:\Program Files (x86)\NVIDIA Corporation"
 SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
 
-SET "MSVS_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools"
+SET "MSVS_ROOT=C:\Program Files\Microsoft Visual Studio\18\Community"
 SET "MSVS_ARCH=x64"
-SET "MSVS_TOOLSET=14.4"
-SET "MSVS_REDIST_VER=14.40.33807"
+SET "MSVS_TOOLSET=14.5"
+SET "MSVS_REDIST_VER=14.50.35710"
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
 SET "WIN64_ROOT=%WIN_ROOT%\SysWOW64"
@@ -49,7 +49,7 @@ SET "PATH=%APPDATA%\npm;%NODEJS_ROOT%;%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 SET "VDIST_VER_STR=%MSVS_TOOLSET:.=%"
-SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC\%MSVS_REDIST_VER%\%MSVS_ARCH%\Microsoft.VC%MSVS_TOOLSET%.OpenMP"
+SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC\%MSVS_REDIST_VER%\%MSVS_ARCH%\Microsoft.VC%VDIST_VER_STR%.OpenMP"
 
 REM -------------------------------------------------------------------------------------------------------
 REM Check Build Dependencies
@@ -77,7 +77,7 @@ IF "%1"=="true" (
 )
 
 git config --system core.longpaths true
-git submodule update --init --recursive
+git submodule update --init
 
 REM Generate CTest dashboard file
 CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
@@ -94,13 +94,30 @@ REM ----------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
 
-DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"
+DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*" 2>NUL
 
 CALL %~dp0build_common_functions.bat :CopyCuda12Dlls "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
-COPY "%CUDA_ROOT%\extras\CUPTI\lib64\cupti64_2025.1.0.dll" %VIAME_INSTALL_DIR%\bin
+
+ECHO.
+ECHO Copying CUPTI DLL...
+CALL %~dp0build_common_functions.bat :CopyDllWithStatus "%CUDA_ROOT%\extras\CUPTI\lib64\cupti64_2025.1.0.dll" "%VIAME_INSTALL_DIR%\bin"
 
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
+IF ERRORLEVEL 1 (
+    ECHO.
+    ECHO ========================================
+    ECHO ERROR: Failed to create zip package
+    ECHO ========================================
+    EXIT /B 1
+)
+
+ECHO.
+ECHO ========================================
+ECHO Build Completed Successfully
+ECHO ========================================
+ECHO Output: %VIAME_BUILD_DIR%\%OUTPUT_FILE%
+ECHO.

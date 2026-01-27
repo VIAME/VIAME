@@ -4,7 +4,7 @@
 if( VIAME_DOWNLOAD_MODELS )
 
   # Default fish detection model
-  if( VIAME_DOWNLOAD_MODELS-FISH )
+  if( VIAME_DOWNLOAD_MODELS-DEFAULT-FISH )
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/660a2e5aaa5c8de3874c4160/download
@@ -125,20 +125,15 @@ endif()
 # All config files manually-included by default or based on options
 ##
 set( CORE_PIPELINE_FILES
-  classify_detections_svm.pipe
   common_default_initializer.pipe
+  common_train_detector.conf
   common_default_input.pipe
   common_default_input_with_downsampler.pipe
-  common_fish_detector.pipe
-  common_fish_detector_with_filter.pipe
   common_foundation_stereo.pipe
-  common_generic_detector.pipe
-  common_generic_detector_with_filter.pipe
   common_image_stabilizer.pipe
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
   common_stabilized_iou_tracker.pipe
-  common_stereo_fish_tracker.pipe
   common_stereo_input.pipe
   common_stereo_input_with_downsampler.pipe
   common_stereo_input_with_tracks.pipe
@@ -149,17 +144,14 @@ set( CORE_PIPELINE_FILES
   convert_habcam_to_viame_csv.pipe
   convert_kw18_to_viame_csv.pipe
   convert_oceaneyes_to_viame_csv.pipe
-  convert_to_onnx.pipe
+  convert_model_to_onnx.pipe
   convert_viame_csv_to_coco_json.pipe
   convert_viame_csv_to_kw18.pipe
   database_apply_svm_models.pipe
-  detector_camtrawl.pipe
-  detector_default_fish.pipe
-  detector_generic_proposals.pipe
+  detector_gmm_motion.pipe
   detector_project_folder.pipe
   detector_project_folder_left.pipe
   detector_simple_hough.pipe
-  detector_svm_models.pipe
   display_annotations.pipe
   filter_debayer.pipe
   filter_debayer_and_enhance.pipe
@@ -175,11 +167,8 @@ set( CORE_PIPELINE_FILES
   filter_tracks_only.pipe
   frame_classifier_project_folder.pipe
   frame_classifier_svm.pipe
-  index_default.pipe
-  index_default.svm.pipe
   index_default.trk.pipe
   index_existing.pipe
-  index_fish.svm.pipe
   index_frame.pipe
   index_frame.svm.pipe
   index_frame.svm.annot_only.pipe
@@ -187,15 +176,10 @@ set( CORE_PIPELINE_FILES
   measurement_fully_auto_gmm_motion.pipe
   measurement_from_annotations.pipe
   query_from_track.pipe
-  query_image_exemplar.pipe
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
   sql_init_table.sql
-  tracker_default_fish.pipe
-  tracker_generic_proposals.pipe
   tracker_project_folder.pipe
-  tracker_stabilized_iou.pipe
-  tracker_svm_models.pipe
   train_aug_add_color_freq.pipe
   train_aug_add_double_motion.pipe
   train_aug_add_motion.pipe
@@ -238,14 +222,7 @@ if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_default_descriptor.pipe
     common_default_tracker.pipe
-    common_fish_detector.pipe
-    common_generic_detector.pipe
-    common_stereo_fish_detector.pipe
-    common_stereo_fish_detector_with_filter.pipe
-    measurement_detect_fish_only.pipe
-    measurement_track_fish_only.pipe
     query_augment_image.pipe
-    tracker_fish.sfd.pipe
   )
 else()
   install( FILES common_default_descriptor.cpu.pipe
@@ -257,9 +234,6 @@ else()
   install( FILES query_augment_image.cpu.pipe
     DESTINATION configs/pipelines
     RENAME query_augment_image.pipe )
-  install( FILES tracker_fish.sfd.cpu.pipe
-    DESTINATION configs/pipelines
-    RENAME tracker_fish.sfd.pipe )
 endif()
 
 # Pytorch specific configs
@@ -272,17 +246,6 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 # Darknet specific configs
-if( VIAME_ENABLE_DARKNET )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_darknet_yolo_default.conf
-    train_detector_darknet_yolo_640.conf
-    train_detector_darknet_yolo_640.grid_only.conf
-    train_detector_darknet_yolo_640.no_grid.conf
-    train_detector_darknet_yolo_704.habcam.conf
-    train_detector_darknet_yolo_704.kw18.conf
-    train_detector_darknet_yolo_full_res.no_grid.conf
-  )
-endif()
 
 # Configs used exclusively for VIEW
 if( VIAME_ENABLE_VIVIA )
@@ -290,20 +253,15 @@ if( VIAME_ENABLE_VIVIA )
     embedded_single_stream/filter_debayer.pipe
     embedded_single_stream/filter_debayer_and_enhance.pipe
     embedded_single_stream/filter_enhance.pipe
-    embedded_single_stream/fish_detector_without_motion.pipe
-    embedded_single_stream/fish_tracker.pipe
     embedded_single_stream/generate_empty_frame_lbls_0001fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_1000fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_auto.pipe
     embedded_single_stream/generic_proposal_detector.pipe
-    embedded_single_stream/generic_proposal_tracker.pipe
     embedded_single_stream/local_deep_detector.pipe
     embedded_single_stream/local_deep_detector_with_def_tracker.pipe
     embedded_single_stream/local_deep_detector_with_stab_tracker.pipe
-    embedded_single_stream/local_svm_detector.pipe
-    embedded_single_stream/local_svm_detector_with_def_tracker.pipe
     embedded_single_stream/local_svm_frame_classifier.pipe
   )
 
@@ -334,8 +292,6 @@ endif()
 if( VIAME_ENABLE_SVM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     query_and_iqr.pipe
-    train_detector_svm_over_fish_detections.conf
-    train_detector_svm_over_generic_detections.conf
     train_frame_classifier_libsvm_svm.conf
   )
 endif()
@@ -347,7 +303,6 @@ if( VIAME_ENABLE_OPENCV )
     measurement_calibrate_cameras_fast.pipe
     measurement_compute_rectified_disparity.pipe
     measurement_detect_calibration_target.pipe
-    measurement_track_fish_in_3d_from_rect_disp.pipe
     register_multimodal_unsync_ocv.pipe
     register_using_homographies.pipe
     tracker_calibration_target.pipe
@@ -375,38 +330,11 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    detector_remax_convnext_novelty_detection.pipe
-    detector_remax_dino_novelty_detection.pipe
-    train_detector_convnext_remax.conf
     train_detector_detectron2_frcnn.conf
     train_detector_dino_remax.conf
   )
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SAM2 )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_sam2_segmenter.conf
-    interactive_sam2_segmenter.conf
-    utility_add_head_tail_keypoints_default.pipe
-    utility_add_head_tail_keypoints_sam2.pipe
-    utility_add_segmentations_default.pipe
-    utility_add_segmentations_sam2.pipe
-    utility_add_segmentations_sam2_no_replace.pipe
-    utility_track_selections_sam2.pipe
-  )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-SAM3 )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_sam3_segmenter.conf
-    interactive_sam3_segmenter.conf
-    utility_add_segmentations_sam3.pipe
-    utility_add_segmentations_sam3_no_replace.pipe
-    utility_text_query_default.pipe
-    utility_text_query_sam3.pipe
-    utility_track_selections_sam3.pipe
-  )
-endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
@@ -456,7 +384,6 @@ if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_tracker_botsort.conf
     train_tracker_deepsort.conf
-    train_tracker_srnn.conf
   )
 endif()
 
@@ -509,19 +436,13 @@ endif()
 ##
 if( VIAME_ENABLE_WEB_EXCLUDES )
   set( VIAME_WEB_FILES_TO_IGNORE
-    classify_detections_svm.pipe
     database_apply_svm_models.pipe
     detector_project_folder.pipe
     detector_project_folder_left.pipe
     detector_simple_hough.pipe
-    detector_svm_models.pipe
     frame_classifier_project_folder.pipe
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
-    tracker_svm_models.pipe
-    train_detector_darknet_yolo_704.habcam.conf
-    train_detector_darknet_yolo_704.kw18.conf
-    train_detector_darknet_yolo_full_res.no_grid.conf
     train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn.habcam.conf
     train_detector_netharn_cfrnn_special.conf

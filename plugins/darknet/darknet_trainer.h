@@ -10,6 +10,9 @@
 #include <vital/algo/train_detector.h>
 #include "viame_algorithm_plugin_interface.h"
 
+#include <map>
+#include <string>
+
 namespace viame {
 
 class VIAME_DARKNET_EXPORT darknet_trainer :
@@ -43,7 +46,7 @@ public:
     std::vector< kwiver::vital::image_container_sptr > test_images,
     std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth );
 
-  virtual void update_model();
+  virtual std::map<std::string, std::string> update_model() override;
 
 private:
   class priv;

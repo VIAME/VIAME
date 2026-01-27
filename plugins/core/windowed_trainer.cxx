@@ -244,11 +244,26 @@ windowed_trainer
     filtered_test_names, filtered_test_truth );
 }
 
-void
+std::map<std::string, std::string>
 windowed_trainer
 ::update_model()
 {
-  m_trainer->update_model();
+  std::map<std::string, std::string> output = m_trainer->update_model();
+
+  const std::string algo = "windowed";
+
+  output["type"] = algo;
+  output[algo + ":mode"] = rescale_option_converter().to_string( m_settings.mode );
+  output[algo + ":scale"] = std::to_string( m_settings.scale );
+  output[algo + ":chip_width"] = std::to_string( m_settings.chip_width );
+  output[algo + ":chip_height"] = std::to_string( m_settings.chip_height );
+  output[algo + ":chip_step_width"] = std::to_string( m_settings.chip_step_width );
+  output[algo + ":chip_step_height"] = std::to_string( m_settings.chip_step_height );
+  output[algo + ":chip_adaptive_thresh"] = std::to_string( m_settings.chip_adaptive_thresh );
+  output[algo + ":original_to_chip_size"] = m_settings.original_to_chip_size ? "true" : "false";
+  output[algo + ":black_pad"] = m_settings.black_pad ? "true" : "false";
+
+  return output;
 }
 
 // -----------------------------------------------------------------------------

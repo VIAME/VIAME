@@ -15,8 +15,8 @@ from PIL import Image as PILImage
 import numpy as np
 import math
 import delayed_image
-from viame.pytorch.utilities import vital_config_update, vital_to_kwimage_box
-from viame.pytorch.sam3_utilities import (
+from viame.pytorch.utilities import (
+    vital_config_update, vital_to_kwimage_box,
     mask_to_polygon, box_from_mask, image_to_rgb_numpy, get_autocast_context
 )
 from viame.core.segmentation_utils import (

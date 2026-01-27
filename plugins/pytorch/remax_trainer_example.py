@@ -311,6 +311,8 @@ class ReMaxMMDetTrainer( TrainDetector ):
 
         self.save_final_model()
 
+        return {"type": "example_trainer"}
+
     def save_final_model( self ):
         output_model_name = "remax.pkl"
         output_model = os.path.join( self._output_directory,

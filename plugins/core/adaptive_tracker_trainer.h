@@ -10,6 +10,9 @@
 #include <vital/algo/train_tracker.h>
 #include <vital/plugin_management/pluggable_macro_magic.h>
 
+#include <map>
+#include <string>
+
 namespace viame {
 
 // -----------------------------------------------------------------------------
@@ -120,7 +123,7 @@ public:
     std::vector< kwiver::vital::image_container_sptr > test_images,
     std::vector< kwiver::vital::object_track_set_sptr > test_groundtruth ) override;
 
-  virtual void update_model() override;
+  virtual std::map<std::string, std::string> update_model() override;
 
 private:
   void initialize() override;

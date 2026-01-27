@@ -15,7 +15,9 @@
 #include <vital/algo/train_detector.h>
 #include "viame_algorithm_plugin_interface.h"
 
+#include <map>
 #include <memory>
+#include <string>
 
 namespace viame {
 
@@ -61,7 +63,7 @@ public:
       = std::vector< kv::detected_object_set_sptr >() );
 
   /// Train all SVM models
-  virtual void update_model();
+  virtual std::map<std::string, std::string> update_model() override;
 
 private:
 

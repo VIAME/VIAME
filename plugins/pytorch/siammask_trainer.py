@@ -270,6 +270,8 @@ class SiamMaskTrainer( TrainTracker ):
 
         print( "\nSiamMask training complete!\n" )
 
+        return {"type": "siammask"}
+
     def _interrupt_handler( self ):
         self.proc.send_signal( signal.SIGINT )
         timeout = 0

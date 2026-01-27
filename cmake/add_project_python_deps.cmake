@@ -108,6 +108,8 @@ endif()
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "six" "scriptconfig" "parse" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "kwarray" "kwimage" "kwplot" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "astunparse" "pyflakes" "pygtrie" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx-algo-common-subtree" )
 endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR

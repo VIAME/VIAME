@@ -301,6 +301,8 @@ class MMDetTrainer( TrainDetector ):
 
         print( "\nModel training complete!\n" )
 
+        return {"type": "mmdet"}
+
     def internal_update( self ):
         self.load_network()
 

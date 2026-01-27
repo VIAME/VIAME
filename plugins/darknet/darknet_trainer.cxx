@@ -426,10 +426,12 @@ darknet_trainer
 
 
 // -----------------------------------------------------------------------------
-void
+std::map<std::string, std::string>
 darknet_trainer
 ::update_model()
 {
+  std::map<std::string, std::string> output;
+
   if( !d->m_skip_format )
   {
     int nclasses, nfilters;
@@ -446,7 +448,7 @@ darknet_trainer
     if( nclasses == 0 )
     {
       LOG_ERROR( logger(), "You have specified no object categories. What are you doing?" );
-      return;
+      return output;
     }
 
     nfilters = d->filter_count( nclasses );
@@ -507,19 +509,53 @@ darknet_trainer
 
   LOG_INFO( d->m_logger,  "Running " << full_cmd );
 
-  d->save_model_files( false );
-
   if( system( full_cmd.c_str() ) != 0 )
   {
     LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
   }
 
-  if( d->m_output_directory == d->m_train_directory )
+  // Build output map with model files and template replacements
+  std::string input_labels =
+    d->m_train_directory + div + d->m_output_model_name + ".lbl";
+  std::string input_cfg =
+    d->m_train_directory + div + d->m_output_model_name + "_test.cfg";
+
+  std::string possible_model1 =
+    d->m_train_directory + div + "models" + div +
+    d->m_output_model_name + "_final.weights";
+  std::string possible_model2 =
+    d->m_train_directory + div + "models" + div +
+    d->m_output_model_name + ".backup";
+
+  std::string input_model;
+  if( kwiversys::SystemTools::FileExists( possible_model1 ) )
   {
-    return;
+    input_model = possible_model1;
+  }
+  else
+  {
+    input_model = possible_model2;
   }
 
-  d->save_model_files( true );
+  std::string output_cfg = d->m_output_model_name + ".cfg";
+  std::string output_model = d->m_output_model_name + ".weights";
+  std::string output_labels = d->m_output_model_name + ".lbl";
+
+  const std::string algo = "darknet";
+
+  output["type"] = algo;
+
+  // Config keys matching darknet_detector inference config
+  output[algo + ":net_config"] = output_cfg;
+  output[algo + ":weight_file"] = output_model;
+  output[algo + ":class_names"] = output_labels;
+
+  // File copies (key=output filename, value=source path)
+  output[output_cfg] = input_cfg;
+  output[output_model] = input_model;
+  output[output_labels] = input_labels;
+
+  return output;
 }
 
 

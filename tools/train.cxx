@@ -16,6 +16,7 @@
 #include <vital/algo/train_detector.h>
 #include <vital/algo/train_tracker.h>
 #include <vital/algo/detected_object_set_input.h>
+#include <vital/algo/image_object_detector.h>
 #include <vital/algo/read_object_track_set.h>
 #include <vital/algo/image_io.h>
 #include <vital/types/image_container.h>
@@ -119,6 +120,17 @@ static kv::config_block_sptr default_config()
     "Convert input detections to full frame labels even if they're not." );
   config->set_value( "data_warning_file", "",
     "Optional file for storing possible data errors and warning." );
+  config->set_value( "output_directory", "",
+    "Directory to store trained model files and generated pipelines. "
+    "If empty and output_file is not set, files are written to the current directory." );
+  config->set_value( "output_file", "",
+    "If specified, create a zip file containing the model files and pipeline "
+    "instead of writing to output_directory. Takes precedence over output_directory." );
+  config->set_value( "pipeline_template", "",
+    "Optional template file for generating output pipeline. Keywords in the "
+    "template will be replaced with values from the trainer." );
+  config->set_value( "output_pipeline_name", "detector.pipe",
+    "Name for the generated output pipeline file." );
 
   kv::get_nested_algo_configuration< kv::algo::detected_object_set_input >
     ( "groundtruth_reader", config, kv::algo::detected_object_set_input_sptr() );
@@ -132,6 +144,248 @@ static kv::config_block_sptr default_config()
     ( "track_reader", config, kv::algo::read_object_track_set_sptr() );
 
   return config;
+}
+
+// =======================================================================================
+// Validate that trainer output keys match the inference algorithm's config.
+// Returns true if all keys are valid, false otherwise.
+static bool validate_trainer_output_keys(
+    const std::map< std::string, std::string >& output_map,
+    const std::string& algorithm_type,
+    bool is_detector )
+{
+  if( output_map.empty() || algorithm_type.empty() )
+  {
+    return true;
+  }
+
+  // Try to get the inference algorithm's default configuration
+  kv::config_block_sptr algo_config;
+
+  try
+  {
+    if( is_detector )
+    {
+      kv::algo::image_object_detector_sptr detector;
+
+      kv::config_block_sptr temp_config = kv::config_block::empty_config();
+      temp_config->set_value( "detector:type", algorithm_type );
+      kv::algo::image_object_detector::set_nested_algo_configuration(
+        "detector", temp_config, detector );
+
+      if( detector )
+      {
+        algo_config = kv::config_block::empty_config();
+        kv::algo::image_object_detector::get_nested_algo_configuration(
+          "detector", algo_config, detector );
+      }
+    }
+    else
+    {
+      // For trackers, validation is less strict since tracker configs vary more
+      return true;
+    }
+  }
+  catch( ... )
+  {
+    // If we can't instantiate the algorithm, skip validation
+    std::cerr << "Warning: Could not validate output keys against algorithm '"
+              << algorithm_type << "'" << std::endl;
+    return true;
+  }
+
+  if( !algo_config )
+  {
+    return true;
+  }
+
+  // Check each non-file key against the algorithm config
+  bool all_valid = true;
+  for( const auto& pair : output_map )
+  {
+    const std::string& key = pair.first;
+    const std::string& value = pair.second;
+
+    // Skip if value is an existing file (it's a file copy, not a config key)
+    if( !value.empty() && does_file_exist( value ) )
+    {
+      continue;
+    }
+
+    // 'eval' is a special key that doesn't need to be in the inference config
+    if( key == "eval" )
+    {
+      continue;
+    }
+
+    // Check if the key exists in the algorithm's config
+    std::string full_key = "detector:" + algorithm_type + ":" + key;
+    if( !algo_config->has_value( full_key ) )
+    {
+      std::cerr << "Error: Trainer returned key '" << key
+                << "' which is not a valid config key for algorithm '"
+                << algorithm_type << "'" << std::endl;
+      all_valid = false;
+    }
+  }
+
+  return all_valid;
+}
+
+// =======================================================================================
+// Process the output map returned by a trainer's update_model() method.
+// - If the value is an existing file path, it's a file copy (key=output filename)
+// - Otherwise, it's a template replacement (key becomes [-KEY-] in template)
+// - If output_file is specified, creates a zip archive instead of writing to directory
+static void process_trainer_output(
+    const std::map< std::string, std::string >& output_map,
+    const std::string& output_directory,
+    const std::string& output_file,
+    const std::string& pipeline_template,
+    const std::string& output_pipeline_name,
+    const std::string& algorithm_type = "",
+    bool is_detector = true )
+{
+  if( output_map.empty() )
+  {
+    return;
+  }
+
+  // Validate output keys against the inference algorithm's config
+  if( !algorithm_type.empty() )
+  {
+    if( !validate_trainer_output_keys( output_map, algorithm_type, is_detector ) )
+    {
+      std::cerr << "Error: Trainer output contains invalid keys for algorithm '"
+                << algorithm_type << "'" << std::endl;
+      return;
+    }
+  }
+
+  // Separate template replacements from file copies based on whether value is a file
+  std::map< std::string, std::string > template_replacements;
+  std::map< std::string, std::string > file_copies;
+
+  for( const auto& pair : output_map )
+  {
+    const std::string& key = pair.first;
+    const std::string& value = pair.second;
+
+    // If value is an existing file, treat as file copy
+    if( !value.empty() && does_file_exist( value ) )
+    {
+      file_copies[ key ] = value;
+    }
+    else
+    {
+      // Build template key: convert lowercase key to [-KEY-] format
+      std::string template_key = "[-";
+      for( char c : key )
+      {
+        if( c == '_' )
+        {
+          template_key += '-';
+        }
+        else
+        {
+          template_key += std::toupper( static_cast< unsigned char >( c ) );
+        }
+      }
+      template_key += "-]";
+      template_replacements[ template_key ] = value;
+    }
+  }
+
+  // If output_file is specified, create a zip archive
+  if( !output_file.empty() )
+  {
+    std::map< std::string, std::string > zip_files;
+    std::map< std::string, std::string > zip_string_contents;
+
+    // Add all model files to be included in zip
+    for( const auto& pair : file_copies )
+    {
+      const std::string& dest_filename = pair.first;
+      const std::string& source_path = pair.second;
+      zip_files[ dest_filename ] = source_path;
+    }
+
+    // Generate pipeline content if template is configured
+    if( !pipeline_template.empty() && does_file_exist( pipeline_template ) )
+    {
+      std::string pipeline_content;
+      if( replace_keywords_in_template_to_string(
+            pipeline_template, template_replacements, pipeline_content ) )
+      {
+        zip_string_contents[ output_pipeline_name ] = pipeline_content;
+      }
+      else
+      {
+        std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
+      }
+    }
+
+    // Create the zip file
+    if( create_zip_file( output_file, zip_files, zip_string_contents ) )
+    {
+      std::cout << "Created output zip file: " << output_file << std::endl;
+      std::cout << "  - Contains " << zip_files.size() << " model file(s)" << std::endl;
+      if( !zip_string_contents.empty() )
+      {
+        std::cout << "  - Contains generated pipeline: " << output_pipeline_name << std::endl;
+      }
+    }
+    else
+    {
+      std::cerr << "Error: failed to create zip file: " << output_file << std::endl;
+    }
+
+    return;
+  }
+
+  // Otherwise, use output_directory (existing behavior)
+  // Create output directory if needed
+  if( !output_directory.empty() )
+  {
+    create_folder( output_directory );
+  }
+
+  // Copy model files to output directory
+  for( const auto& pair : file_copies )
+  {
+    const std::string& dest_filename = pair.first;
+    const std::string& source_path = pair.second;
+
+    std::string dest_path = output_directory.empty() ?
+      dest_filename : append_path( output_directory, dest_filename );
+
+    if( copy_file( source_path, dest_path ) )
+    {
+      std::cout << "Copied model file: " << dest_filename << std::endl;
+    }
+    else
+    {
+      std::cerr << "Warning: failed to copy " << source_path
+                << " to " << dest_path << std::endl;
+    }
+  }
+
+  // Generate pipeline from template if configured
+  if( !pipeline_template.empty() && does_file_exist( pipeline_template ) )
+  {
+    std::string output_pipeline = output_directory.empty() ?
+      output_pipeline_name : append_path( output_directory, output_pipeline_name );
+
+    if( replace_keywords_in_template_file(
+          pipeline_template, output_pipeline, template_replacements ) )
+    {
+      std::cout << "Generated pipeline: " << output_pipeline << std::endl;
+    }
+    else
+    {
+      std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
+    }
+  }
 }
 
 // =======================================================================================
@@ -190,6 +444,8 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "seconds" )
     ( "init-weights", "Optional input seed weights over-ride",
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
+    ( "output-file", "Output zip file for model and pipeline (overrides output-dir)",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ;
 }
 
@@ -236,6 +492,7 @@ train_applet
   std::string opt_max_frame_count = cmd_args[ "max-frame-count" ].as< std::string >();
   std::string opt_timeout = cmd_args[ "timeout" ].as< std::string >();
   std::string opt_init_weights = cmd_args[ "init-weights" ].as< std::string >();
+  std::string opt_output_file = cmd_args[ "output-file" ].as< std::string >();
 
   // List option
   if( opt_list )
@@ -608,6 +865,20 @@ train_applet
     config->get_value< bool >( "convert_to_full_frame" );
   std::string data_warning_file =
     config->get_value< std::string >( "data_warning_file" );
+  std::string output_directory =
+    config->get_value< std::string >( "output_directory" );
+  std::string output_file =
+    config->get_value< std::string >( "output_file" );
+  std::string pipeline_template =
+    config->get_value< std::string >( "pipeline_template" );
+  std::string output_pipeline_name =
+    config->get_value< std::string >( "output_pipeline_name" );
+
+  // Command line override for output_file
+  if( !opt_output_file.empty() )
+  {
+    output_file = opt_output_file;
+  }
 
   if( convert_to_full_frame && !kv::check_nested_algo_configuration< kv::algo::image_io >( "image_reader", config ) )
   {
@@ -1593,6 +1864,9 @@ train_applet
   // Run training algorithm(s) - loop through all configs/detectors for multi-model training
   for( unsigned model_idx = 0; model_idx < model_count; ++model_idx )
   {
+    // Use model-specific config for multi-model training, otherwise use main config
+    kv::config_block_sptr current_config = config;
+
     if( multi_model_training )
     {
       std::cout << std::endl << "========================================" << std::endl;
@@ -1600,22 +1874,22 @@ train_applet
       std::cout << "========================================" << std::endl;
 
       // Reconfigure for this model
-      kv::config_block_sptr model_config = default_config();
+      current_config = default_config();
 
       if( !training_configs.empty() )
       {
-        std::string current_config = training_configs[ model_idx ];
-        std::cout << "Using config: " << current_config << std::endl;
+        std::string model_config_file = training_configs[ model_idx ];
+        std::cout << "Using config: " << model_config_file << std::endl;
 
         try
         {
-          model_config->merge_config( kv::read_config_file( current_config ) );
+          current_config->merge_config( kv::read_config_file( model_config_file ) );
         }
         catch( const std::exception& e )
         {
           std::cerr << "Received exception: " << e.what() << std::endl
                     << "Unable to load configuration file: "
-                    << current_config << std::endl;
+                    << model_config_file << std::endl;
           continue;
         }
       }
@@ -1623,7 +1897,7 @@ train_applet
       {
         std::string current_detector = training_detectors[ model_idx ];
         std::cout << "Using detector type: " << current_detector << std::endl;
-        model_config->set_value( "detector_trainer:type", current_detector );
+        current_config->set_value( "detector_trainer:type", current_detector );
       }
 
       // Apply command line settings override
@@ -1638,18 +1912,18 @@ train_applet
             setting.substr( 0, split_pos );
           kv::config_block_value_t setting_value =
             setting.substr( split_pos + 1 );
-          model_config->set_value( setting_key, setting_value );
+          current_config->set_value( setting_key, setting_value );
         }
       }
 
       // Reinitialize detector trainer for this model
       detector_trainer.reset();
       kv::set_nested_algo_configuration< kv::algo::train_detector >
-        ( "detector_trainer", model_config, detector_trainer );
+        ( "detector_trainer", current_config, detector_trainer );
       kv::get_nested_algo_configuration< kv::algo::train_detector >
-        ( "detector_trainer", model_config, detector_trainer );
+        ( "detector_trainer", current_config, detector_trainer );
 
-      if( !kv::check_nested_algo_configuration< kv::algo::train_detector >( "detector_trainer", model_config ) )
+      if( !kv::check_nested_algo_configuration< kv::algo::train_detector >( "detector_trainer", current_config ) )
       {
         std::cout << "Configuration not valid for model " << ( model_idx + 1 ) << std::endl;
         continue;
@@ -1659,12 +1933,20 @@ train_applet
     std::cout << "Beginning Training Process" << std::endl;
     std::string error;
 
+    // Get the detector type for validation
+    std::string detector_type = current_config->get_value< std::string >(
+      "detector_trainer:type", "" );
+
     try
     {
       detector_trainer->add_data_from_disk( model_labels,
         train_image_fn, train_gt, validation_image_fn, validation_gt );
 
-      detector_trainer->update_model();
+      std::map< std::string, std::string > trainer_output =
+        detector_trainer->update_model();
+
+      process_trainer_output( trainer_output, output_directory, output_file,
+        pipeline_template, output_pipeline_name, detector_type, true );
     }
     catch( const std::exception& e )
     {
@@ -1864,7 +2146,11 @@ train_applet
         tracker_trainer->add_data_from_disk( model_labels,
           train_image_fn, train_tracks, validation_image_fn, validation_tracks );
 
-        tracker_trainer->update_model();
+        std::map< std::string, std::string > trainer_output =
+          tracker_trainer->update_model();
+
+        process_trainer_output( trainer_output, output_directory, output_file,
+          pipeline_template, output_pipeline_name, current_tracker, false );
       }
       catch( const std::exception& e )
       {

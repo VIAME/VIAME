@@ -407,13 +407,17 @@ class UltralyticsTrainer(TrainDetector):
         return yaml_path
 
     def update_model(self):
-        """Train the Ultralytics YOLO model."""
+        """Train the Ultralytics YOLO model.
+
+        Returns:
+            dict: Map of template replacements and file copies
+        """
         import torch
         from ultralytics import YOLO
 
         if self._data_yaml_path is None:
             print("[UltralyticsTrainer] Error: No training data. Call add_data_from_disk first.")
-            return
+            return {}
 
         print("[UltralyticsTrainer] Starting Ultralytics YOLO training")
 
@@ -421,7 +425,7 @@ class UltralyticsTrainer(TrainDetector):
         self._label_mapper.patch_ultralytics()
 
         try:
-            self._run_training()
+            return self._run_training()
         finally:
             # Restore original Ultralytics behavior
             self._label_mapper.restore_ultralytics()
@@ -554,19 +558,19 @@ class UltralyticsTrainer(TrainDetector):
 
             self._interrupted = handler.interrupted
 
-        self._save_final_model(project_dir / run_name)
+        output = self._get_output_map(project_dir / run_name)
         print("\n[UltralyticsTrainer] Model training complete!\n")
+        return output
 
-    def _save_final_model(self, train_output_dir):
-        """Copy the best model to the output directory and generate pipeline file."""
-        import shutil
+    def _get_output_map(self, train_output_dir):
+        """Build output map with template replacements and file copies.
 
-        if not self._pipeline_template:
-            return
-
+        Returns:
+            dict: Map where keys with '[-' and '-]' are template replacements,
+                  other keys are file copies (key=output filename, value=source path)
+        """
+        output = {}
         output_model_name = "trained_ultralytics_checkpoint.pt"
-        output_dpath = ub.Path(self._output_directory)
-        output_model = output_dpath / output_model_name
 
         if train_output_dir:
             train_output_dir = ub.Path(train_output_dir)
@@ -586,24 +590,21 @@ class UltralyticsTrainer(TrainDetector):
                     final_ckpt = pt_files[-1]
                 else:
                     print("[UltralyticsTrainer] No checkpoint found")
-                    return
+                    return output
 
-            shutil.copy2(final_ckpt, output_model)
-            print(f"[UltralyticsTrainer] Copied {final_ckpt.name} to {output_model}")
+            algo = "ultralytics"
 
-        # Generate pipeline file
-        pipeline_template = ub.Path(self._pipeline_template)
-        if pipeline_template.exists():
-            with open(pipeline_template, 'r') as fin:
-                content = fin.read()
+            output["type"] = algo
 
-            content = content.replace("[-MODEL-FILE-]", output_model_name)
-            content = content.replace("[-WINDOW-OPTION-]", "original")
+            # Config keys matching ultralytics_detector inference config
+            output[algo + ":weight"] = output_model_name
 
-            with open(output_dpath / "detector.pipe", 'w') as fout:
-                fout.write(content)
+            # File copies (key=output filename, value=source path)
+            output[output_model_name] = str(final_ckpt)
 
-        print(f"\n[UltralyticsTrainer] Wrote finalized model to {output_model}")
+            print(f"[UltralyticsTrainer] Model found at {final_ckpt}")
+
+        return output
 
 
 def __vital_algorithm_register__():

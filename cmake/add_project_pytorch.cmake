@@ -111,6 +111,7 @@ if( VIAME_ENABLE_CUDA )
   list( APPEND PYTORCH_ENV_VARS "TORCH_CUDA_ARCH_LIST=${CUDA_ARCHITECTURES}" )
   list( APPEND PYTORCH_ENV_VARS "TORCH_NVCC_FLAGS=-Xfatbin -compress-all" )
   list( APPEND PYTORCH_ENV_VARS "NVCC_FLAGS=-allow-unsupported-compiler" )
+  list( APPEND PYTORCH_ENV_VARS "MMCV_CUDA_ARGS=-allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "NO_CAFFE2_OPS=1" )
 else()
   list( APPEND PYTORCH_ENV_VARS "USE_CUDA=0" )
@@ -247,20 +248,24 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
       # Use pip wheel for pyproject.toml-based packages
       # This avoids creating build directories in source tree
+      # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} -m pip wheel
           --no-build-isolation
           --no-deps
+          --no-cache-dir
           --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
           ${LIBRARY_LOCATION}
       )
     elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       # Use pip wheel instead of setup.py bdist_wheel to avoid Windows cleanup
       # errors ("no such file or directory" when removing bdist temp directory)
+      # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} -m pip wheel
           --no-build-isolation
           --no-deps
+          --no-cache-dir
           --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
           ${LIBRARY_LOCATION}
       )
@@ -269,8 +274,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${Python_EXECUTABLE} setup.py
           build --build-base=${LIBRARY_PIP_BUILD_DIR}
           build_ext
-            --include-dirs="${VIAME_INSTALL_PREFIX}/include"
-            --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
+            --include-dirs=${VIAME_INSTALL_PREFIX}/include
+            --library-dirs=${VIAME_INSTALL_PREFIX}/lib
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     endif()
     # Wheel install is handled by the build script (custom_build_python_dep.cmake)
@@ -320,6 +325,20 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
     endif()
   elseif( "${LIB}" STREQUAL "pyav" )
+    # On Windows, FFmpeg puts .lib files in bin/ instead of lib/
+    # Need to include both directories in library search path
+    # Use separate --library-dirs flags to avoid semicolon escaping issues
+    # with the ---- list separator mechanism used by ExternalProject_Add
+    if( WIN32 )
+      set( LIBRARY_PIP_BUILD_CMD
+        ${Python_EXECUTABLE} setup.py
+          build --build-base=${LIBRARY_PIP_BUILD_DIR}
+          build_ext
+            --include-dirs=${VIAME_INSTALL_PREFIX}/include
+            --library-dirs=${VIAME_INSTALL_PREFIX}/lib
+            --library-dirs=${VIAME_INSTALL_PREFIX}/bin
+          bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+    endif()
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/pyav
       ${VIAME_PACKAGES_DIR}/python-utils/pyav )
@@ -330,6 +349,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${VIAME_PATCHES_DIR}/mmcv
         ${VIAME_PACKAGES_DIR}/pytorch-libs/mmcv )
+    endif()
+  elseif( "${LIB}" STREQUAL "sam2" )
+    if( WIN32 )
+      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${VIAME_PATCHES_DIR}/sam2
+        ${VIAME_PACKAGES_DIR}/pytorch-libs/sam2 )
     endif()
   elseif( "${LIB}" STREQUAL "mmdetection" )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmcv )
@@ -359,6 +384,22 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   # Convert lists to ----separated strings for passing through ExternalProject_Add
   set( PYTORCH_ENV_VARS_WITH_BUILD_DIR ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
+
+  # Set SAM2_BUILD_CUDA based on whether CUDA is enabled
+  if( "${LIB}" STREQUAL "sam2" )
+    if( VIAME_ENABLE_CUDA )
+      list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "SAM2_BUILD_CUDA=1" )
+      # On Windows, set CL environment variable to fix 'std' ambiguous symbol error
+      # in PyTorch headers (compiled_autograd.h, tree_views.h) when compiling CUDA extensions
+      # See: https://github.com/pytorch/pytorch/issues/166123
+      if( WIN32 )
+        list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "CL=/permissive-" )
+      endif()
+    else()
+      list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "SAM2_BUILD_CUDA=0" )
+    endif()
+  endif()
+
   string( REPLACE ";" "----" PYTORCH_ENV_VARS_STR "${PYTORCH_ENV_VARS_WITH_BUILD_DIR}" )
   string( REPLACE ";" "----" LIBRARY_PIP_BUILD_CMD_STR "${LIBRARY_PIP_BUILD_CMD}" )
 

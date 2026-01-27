@@ -1,0 +1,34 @@
+# =============================================================================
+# Title: Common - Default Tracker
+#
+# Description: Current incumbent is a modified version of "Tracking the
+# Untrackable" implemented in pytorch, trained on assorted fish data. Uses
+# model: rnn_ml_aim.pt.
+# =============================================================================
+
+process tracker
+  :: track_objects
+  :track_objects:type                          srnn
+
+block track_objects:srnn
+  :siamese_model_input_size                    224
+  :detection_select_threshold                  0.001
+  :similarity_threshold                        0.200
+  :terminate_track_threshold                   10
+  :add_features_to_detections                  False
+  :IOU_tracker_flag                            True
+  :IOU_accept_threshold                        0.500
+  :IOU_reject_threshold                        0.100
+  :track_search_threshold                      2
+  :gpu_list                                    0
+
+  relativepath siamese_model_path =            models/siamese_model.pt
+  :siamese_batch_size                          64
+
+  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
+  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
+  :targetRNN_normalized_models                 True
+  :targetRNN_batch_size                        128
+endblock
+
+# -- end of file --

@@ -1246,10 +1246,12 @@ adaptive_detector_trainer
 
 
 // -----------------------------------------------------------------------------
-void
+std::map<std::string, std::string>
 adaptive_detector_trainer
 ::update_model()
 {
+  std::map<std::string, std::string> combined_output;
+
   if( d->m_trainers.empty() )
   {
     throw std::runtime_error( "No trainers configured." );
@@ -1290,12 +1292,20 @@ adaptive_detector_trainer
         d->m_test_image_names, d->m_test_groundtruth );
     }
 
-    tc->trainer->update_model();
+    std::map<std::string, std::string> trainer_output = tc->trainer->update_model();
+
+    // Merge output from this trainer into combined output
+    for( const auto& pair : trainer_output )
+    {
+      combined_output[pair.first] = pair.second;
+    }
 
     LOG_INFO( d->m_logger, "Completed training for: " << tc->name );
   }
 
   LOG_INFO( d->m_logger, "All selected trainers completed." );
+
+  return combined_output;
 }
 
 } // end namespace viame

@@ -266,6 +266,8 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
         print( "\nModel training complete!\n" )
 
+        return {"type": "mit_yolo"}
+
     def interupt_handler( self ):
         self.proc.send_signal( signal.SIGINT )
         timeout = 0

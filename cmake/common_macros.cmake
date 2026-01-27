@@ -272,3 +272,232 @@ function( BuildOnHashChangeOnly _project_name _source_dir )
     ALWAYS 1
     )
 endfunction()
+
+# Parse a CSV line handling quoted fields (fields can contain commas inside quotes)
+# Returns the parsed fields in the variable named by _result
+function( ParseCSVLine _line _result )
+  set( _fields )
+  set( _current_field "" )
+  set( _in_quotes FALSE )
+  string( LENGTH "${_line}" _len )
+
+  math( EXPR _last_idx "${_len} - 1" )
+
+  foreach( _i RANGE 0 ${_last_idx} )
+    string( SUBSTRING "${_line}" ${_i} 1 _char )
+
+    if( _char STREQUAL "\"" )
+      if( _in_quotes )
+        set( _in_quotes FALSE )
+      else()
+        set( _in_quotes TRUE )
+      endif()
+    elseif( _char STREQUAL "," AND NOT _in_quotes )
+      # End of field - trim whitespace
+      string( STRIP "${_current_field}" _current_field )
+      list( APPEND _fields "${_current_field}" )
+      set( _current_field "" )
+    else()
+      string( APPEND _current_field "${_char}" )
+    endif()
+  endforeach()
+
+  # Don't forget the last field
+  string( STRIP "${_current_field}" _current_field )
+  list( APPEND _fields "${_current_field}" )
+
+  set( ${_result} "${_fields}" PARENT_SCOPE )
+endfunction()
+
+# Check if the platform matches the current system
+# Returns TRUE/FALSE in _result
+function( CheckAddonPlatform _platform _result )
+  if( "${_platform}" STREQUAL "ALL-PLATFORMS" )
+    set( ${_result} TRUE PARENT_SCOPE )
+  elseif( "${_platform}" STREQUAL "LINUX-ONLY" )
+    if( UNIX AND NOT APPLE )
+      set( ${_result} TRUE PARENT_SCOPE )
+    else()
+      set( ${_result} FALSE PARENT_SCOPE )
+    endif()
+  elseif( "${_platform}" STREQUAL "WINDOWS-ONLY" )
+    if( WIN32 )
+      set( ${_result} TRUE PARENT_SCOPE )
+    else()
+      set( ${_result} FALSE PARENT_SCOPE )
+    endif()
+  else()
+    message( WARNING "Unknown platform specifier: ${_platform}, defaulting to ALL-PLATFORMS" )
+    set( ${_result} TRUE PARENT_SCOPE )
+  endif()
+endfunction()
+
+# Parse the addons CSV file and declare options for each entry
+# Also populates VIAME_ADDON_ENTRIES with the parsed data for later use
+# Options are declared as OFF by default and marked as advanced
+function( ParseModelDownloadOptions _csv_file )
+  if( NOT EXISTS "${_csv_file}" )
+    message( FATAL_ERROR "Addon CSV file not found: ${_csv_file}" )
+  endif()
+
+  file( STRINGS "${_csv_file}" _lines )
+
+  set( _addon_names )
+  set( _addon_count 0 )
+
+  foreach( _line IN LISTS _lines )
+    # Skip empty lines
+    string( STRIP "${_line}" _line_stripped )
+    if( "${_line_stripped}" STREQUAL "" )
+      continue()
+    endif()
+
+    ParseCSVLine( "${_line}" _fields )
+
+    list( LENGTH _fields _num_fields )
+    if( _num_fields LESS 6 )
+      message( WARNING "Skipping malformed CSV line (expected 6 fields, got ${_num_fields}): ${_line}" )
+      continue()
+    endif()
+
+    list( GET _fields 0 _name )
+    list( GET _fields 1 _url )
+    list( GET _fields 2 _description )
+    list( GET _fields 3 _md5 )
+    list( GET _fields 4 _platform )
+    list( GET _fields 5 _enable_flags )
+
+    # Check if this platform applies
+    CheckAddonPlatform( "${_platform}" _platform_matches )
+
+    if( _platform_matches )
+      # Declare the option (GENERIC is ON by default, others OFF)
+      if( "${_name}" STREQUAL "GENERIC" )
+        option( VIAME_DOWNLOAD_MODELS-${_name} "${_description}" ON )
+      else()
+        option( VIAME_DOWNLOAD_MODELS-${_name} "${_description}" OFF )
+      endif()
+
+      # Mark as advanced
+      mark_as_advanced( VIAME_DOWNLOAD_MODELS-${_name} )
+
+      # Store the addon data for later use
+      set( VIAME_ADDON_${_name}_URL "${_url}" CACHE INTERNAL "" )
+      set( VIAME_ADDON_${_name}_MD5 "${_md5}" CACHE INTERNAL "" )
+      set( VIAME_ADDON_${_name}_ENABLE_FLAGS "${_enable_flags}" CACHE INTERNAL "" )
+
+      list( APPEND _addon_names "${_name}" )
+      math( EXPR _addon_count "${_addon_count} + 1" )
+    endif()
+  endforeach()
+
+  set( VIAME_ADDON_NAMES "${_addon_names}" CACHE INTERNAL "List of addon names from CSV" )
+  message( STATUS "Parsed ${_addon_count} addon model pack options from CSV" )
+endfunction()
+
+# Auto-detect addon folders not declared in the CSV and create options for them
+# This allows adding new addon folders without modifying the CSV or CMakeLists.txt
+function( ModelDownloadOptionsFromFolders _addons_dir )
+  if( NOT IS_DIRECTORY "${_addons_dir}" )
+    return()
+  endif()
+
+  file( GLOB _addon_subdirs RELATIVE "${_addons_dir}" "${_addons_dir}/*" )
+  foreach( _subdir IN LISTS _addon_subdirs )
+    if( IS_DIRECTORY "${_addons_dir}/${_subdir}" )
+      string( TOUPPER "${_subdir}" _addon_name )
+      list( FIND VIAME_ADDON_NAMES "${_addon_name}" _found_idx )
+      if( _found_idx EQUAL -1 )
+        option( VIAME_DOWNLOAD_MODELS-${_addon_name} "Download ${_subdir} models" OFF )
+        mark_as_advanced( VIAME_DOWNLOAD_MODELS-${_addon_name} )
+        list( APPEND VIAME_ADDON_NAMES "${_addon_name}" )
+      endif()
+    endif()
+  endforeach()
+  set( VIAME_ADDON_NAMES "${VIAME_ADDON_NAMES}" CACHE INTERNAL "List of addon names" )
+endfunction()
+
+# Check that all required enable flags are set for enabled addons
+# Call this after all options have been configured
+function( ValidateAddonDependencies )
+  foreach( _name IN LISTS VIAME_ADDON_NAMES )
+    if( VIAME_DOWNLOAD_MODELS-${_name} )
+      set( _enable_flags "${VIAME_ADDON_${_name}_ENABLE_FLAGS}" )
+
+      # Parse the comma-separated enable flags
+      string( REPLACE "," ";" _flag_list "${_enable_flags}" )
+
+      foreach( _flag IN LISTS _flag_list )
+        string( STRIP "${_flag}" _flag )
+        if( NOT "${_flag}" STREQUAL "" )
+          if( NOT VIAME_ENABLE_${_flag} )
+            message( FATAL_ERROR
+              "VIAME_DOWNLOAD_MODELS-${_name} requires VIAME_ENABLE_${_flag} to be enabled" )
+          endif()
+        endif()
+      endforeach()
+    endif()
+  endforeach()
+endfunction()
+
+# Download an addon package to the downloads folder, extract it to a temp location,
+# and install only the 'models' and 'transforms' directories
+function( DownloadAndInstallAddonModels _name )
+  if( NOT VIAME_DOWNLOAD_MODELS-${_name} )
+    return()
+  endif()
+
+  set( _url "${VIAME_ADDON_${_name}_URL}" )
+  set( _md5 "${VIAME_ADDON_${_name}_MD5}" )
+  set( _dl_file "${VIAME_DOWNLOAD_DIR}/VIAME-${_name}-Models.zip" )
+  set( _extract_dir "${CMAKE_BINARY_DIR}/addon-extract/${_name}" )
+
+  # Download the file
+  DownloadFile( "${_url}" "${_dl_file}" "${_md5}" )
+
+  # Extract to temporary location
+  message( STATUS "Extracting addon ${_name} to ${_extract_dir}" )
+  file( MAKE_DIRECTORY "${_extract_dir}" )
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -E tar xzf "${_dl_file}"
+    WORKING_DIRECTORY "${_extract_dir}" )
+
+  # Find and install models directory if it exists
+  file( GLOB _models_dirs "${_extract_dir}/*/models" "${_extract_dir}/models" )
+  foreach( _models_dir IN LISTS _models_dirs )
+    if( IS_DIRECTORY "${_models_dir}" )
+      message( STATUS "Installing models from ${_models_dir}" )
+      install( DIRECTORY "${_models_dir}/"
+               DESTINATION configs/pipelines/models )
+    endif()
+  endforeach()
+
+  # Find and install transforms directory if it exists
+  file( GLOB _transforms_dirs "${_extract_dir}/*/transforms" "${_extract_dir}/transforms" )
+  foreach( _transforms_dir IN LISTS _transforms_dirs )
+    if( IS_DIRECTORY "${_transforms_dir}" )
+      message( STATUS "Installing transforms from ${_transforms_dir}" )
+      install( DIRECTORY "${_transforms_dir}/"
+               DESTINATION configs/pipelines/transforms )
+    endif()
+  endforeach()
+endfunction()
+
+# Process all enabled addons - validates dependencies and downloads/installs models
+function( ProcessAllAddonModels )
+  ValidateAddonDependencies()
+
+  foreach( _name IN LISTS VIAME_ADDON_NAMES )
+    DownloadAndInstallAddonModels( "${_name}" )
+  endforeach()
+endfunction()
+
+# Disable all VIAME_DOWNLOAD_MODELS-* options by setting them to OFF
+macro( DisableAllModelDownloads )
+  get_cmake_property( _all_vars VARIABLES )
+  foreach( _var IN LISTS _all_vars )
+    if( _var MATCHES "^VIAME_DOWNLOAD_MODELS-" )
+      set( ${_var} OFF CACHE BOOL "Forced off" FORCE )
+    endif()
+  endforeach()
+endmacro()

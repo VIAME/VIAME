@@ -647,11 +647,26 @@ windowed_trainer
     filtered_test_names, filtered_test_truth );
 }
 
-void
+std::map<std::string, std::string>
 windowed_trainer
 ::update_model()
 {
-  c_trainer->update_model();
+  std::map<std::string, std::string> output = c_trainer->update_model();
+
+  const std::string algo = "ocv_windowed";
+
+  output["type"] = algo;
+  output[algo + ":mode"] = c_mode;
+  output[algo + ":scale"] = std::to_string( c_scale );
+  output[algo + ":chip_width"] = std::to_string( c_chip_width );
+  output[algo + ":chip_height"] = std::to_string( c_chip_height );
+  output[algo + ":chip_step_width"] = std::to_string( c_chip_step_width );
+  output[algo + ":chip_step_height"] = std::to_string( c_chip_step_height );
+  output[algo + ":chip_adaptive_thresh"] = std::to_string( c_chip_adaptive_thresh );
+  output[algo + ":original_to_chip_size"] = c_original_to_chip_size ? "true" : "false";
+  output[algo + ":black_pad"] = c_black_pad ? "true" : "false";
+
+  return output;
 }
 
 // -----------------------------------------------------------------------------

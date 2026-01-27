@@ -12,13 +12,20 @@ from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CppExtensio
 modules = []
 
 if torch.cuda.is_available():
+    nvcc_flags = ['-O2']
+    # Support NVCC_FLAGS environment variable to pass additional flags to nvcc
+    # (e.g., -allow-unsupported-compiler for newer VS versions)
+    nvcc_flags_env = os.getenv("NVCC_FLAGS", "")
+    if nvcc_flags_env:
+        nvcc_flags.extend(nvcc_flags_env.split())
+
     modules.append(
         CUDAExtension(
             'roi_align.roi_align_cuda',
             ['roi_align/src/roi_align_cuda.cpp',
              'roi_align/src/roi_align_kernel.cu'],
             extra_compile_args={'cxx': ['-g'],
-                                'nvcc': ['-O2']}
+                                'nvcc': nvcc_flags}
         )
     )
 

@@ -7,6 +7,7 @@
 
 #include "viame_core_export.h"
 
+#include <map>
 #include <string>
 #include <vector>
 #include <unordered_set>
@@ -238,6 +239,65 @@ bool file_contains_string( const std::string& file, const std::string& key );
 /// \returns Frame rate if found, -1.0 otherwise
 VIAME_CORE_EXPORT
 double get_file_frame_rate( const std::string& file );
+
+// =============================================================================
+// Template processing utilities
+// =============================================================================
+
+/// Replace keywords in a template file
+///
+/// Reads the input file, replaces all occurrences of each keyword with its
+/// corresponding value, and writes the result to the output file.
+///
+/// \param input_file Path to template file
+/// \param output_file Path to write result
+/// \param replacements Map of keyword->value pairs to replace
+/// \returns true on success, false if input file cannot be read or output cannot be written
+VIAME_CORE_EXPORT
+bool replace_keywords_in_template_file(
+    const std::string& input_file,
+    const std::string& output_file,
+    const std::map< std::string, std::string >& replacements );
+
+/// Copy a file from source to destination
+///
+/// \param source Path to source file
+/// \param destination Path to destination file
+/// \returns true on success, false if source cannot be read or destination cannot be written
+VIAME_CORE_EXPORT
+bool copy_file( const std::string& source, const std::string& destination );
+
+/// Replace keywords in a template and return the result as a string
+///
+/// \param input_file Path to template file
+/// \param replacements Map of keyword->value pairs to replace
+/// \param[out] result Output string with replacements applied
+/// \returns true on success, false if input file cannot be read
+VIAME_CORE_EXPORT
+bool replace_keywords_in_template_to_string(
+    const std::string& input_file,
+    const std::map< std::string, std::string >& replacements,
+    std::string& result );
+
+// =============================================================================
+// Zip file utilities
+// =============================================================================
+
+/// Create a zip file from a list of files
+///
+/// Each entry in files_to_add maps the filename inside the zip to the source path.
+/// Entries where the source path is empty are treated as string content to be
+/// written directly (the key is used as the filename, value as content).
+///
+/// \param zip_path Path for the output zip file
+/// \param files_to_add Map of zip entry name -> source file path or content
+/// \param string_contents Map of zip entry name -> string content (for non-file data)
+/// \returns true on success, false on error
+VIAME_CORE_EXPORT
+bool create_zip_file(
+    const std::string& zip_path,
+    const std::map< std::string, std::string >& files_to_add,
+    const std::map< std::string, std::string >& string_contents = {} );
 
 } // end namespace viame
 

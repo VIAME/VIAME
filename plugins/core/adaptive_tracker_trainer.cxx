@@ -1295,10 +1295,12 @@ adaptive_tracker_trainer
 
 
 // -----------------------------------------------------------------------------
-void
+std::map<std::string, std::string>
 adaptive_tracker_trainer
 ::update_model()
 {
+  std::map<std::string, std::string> combined_output;
+
   LOG_INFO( d->m_logger, "Selecting tracker trainers to run..." );
 
   // Write statistics file if configured
@@ -1313,7 +1315,7 @@ adaptive_tracker_trainer
   if( selected.empty() )
   {
     LOG_WARN( d->m_logger, "No tracker trainers qualified based on data statistics!" );
-    return;
+    return combined_output;
   }
 
   LOG_INFO( d->m_logger, "Running " << selected.size() << " tracker trainer(s)..." );
@@ -1350,7 +1352,13 @@ adaptive_tracker_trainer
       }
 
       // Run training
-      tc.trainer->update_model();
+      std::map<std::string, std::string> trainer_output = tc.trainer->update_model();
+
+      // Merge output from this trainer into combined output
+      for( const auto& pair : trainer_output )
+      {
+        combined_output[pair.first] = pair.second;
+      }
 
       LOG_INFO( d->m_logger, "Completed tracker trainer: " << tc.name );
     }
@@ -1361,6 +1369,8 @@ adaptive_tracker_trainer
   }
 
   LOG_INFO( d->m_logger, "Adaptive tracker training complete." );
+
+  return combined_output;
 }
 
 } // end namespace viame
