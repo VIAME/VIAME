@@ -449,6 +449,12 @@ function( DownloadAndInstallAddonModels _name )
 
   set( _url "${VIAME_ADDON_${_name}_URL}" )
   set( _md5 "${VIAME_ADDON_${_name}_MD5}" )
+
+  # Folder-only addons have no URL/MD5 - skip download
+  if( "${_url}" STREQUAL "" OR "${_md5}" STREQUAL "" )
+    return()
+  endif()
+
   set( _dl_file "${VIAME_DOWNLOAD_DIR}/VIAME-${_name}-Models.zip" )
   set( _extract_dir "${CMAKE_BINARY_DIR}/addon-extract/${_name}" )
 
