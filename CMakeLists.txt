@@ -152,12 +152,8 @@ if( VIAME_DOWNLOAD_MODELS )
   # Options are declared here but downloads/installs happen in configs/add-ons
   ParseModelDownloadOptions( ${VIAME_CMAKE_DIR}/download_viame_addons.csv )
 
-  # Declares other models not contained in the above csv
-  option( VIAME_DOWNLOAD_MODELS-IFREMER   "Download ifremer detection models"  OFF )
-  option( VIAME_DOWNLOAD_MODELS-UW-FISH   "Download UW fish classifier models" OFF )
-
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-IFREMER )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-UW-FISH )
+  # Auto-detect addon folders not in the CSV and declare options for them
+  ModelDownloadOptionsFromFolders( "${CMAKE_SOURCE_DIR}/configs/add-ons" )
 else()
   # Force all flags to OFF in the event that the root flag is set
   DisableAllModelDownloads()

@@ -371,8 +371,12 @@ function( ParseModelDownloadOptions _csv_file )
     CheckAddonPlatform( "${_platform}" _platform_matches )
 
     if( _platform_matches )
-      # Declare the option as OFF by default
-      option( VIAME_DOWNLOAD_MODELS-${_name} "${_description}" OFF )
+      # Declare the option (GENERIC is ON by default, others OFF)
+      if( "${_name}" STREQUAL "GENERIC" )
+        option( VIAME_DOWNLOAD_MODELS-${_name} "${_description}" ON )
+      else()
+        option( VIAME_DOWNLOAD_MODELS-${_name} "${_description}" OFF )
+      endif()
 
       # Mark as advanced
       mark_as_advanced( VIAME_DOWNLOAD_MODELS-${_name} )
@@ -389,6 +393,28 @@ function( ParseModelDownloadOptions _csv_file )
 
   set( VIAME_ADDON_NAMES "${_addon_names}" CACHE INTERNAL "List of addon names from CSV" )
   message( STATUS "Parsed ${_addon_count} addon model pack options from CSV" )
+endfunction()
+
+# Auto-detect addon folders not declared in the CSV and create options for them
+# This allows adding new addon folders without modifying the CSV or CMakeLists.txt
+function( ModelDownloadOptionsFromFolders _addons_dir )
+  if( NOT IS_DIRECTORY "${_addons_dir}" )
+    return()
+  endif()
+
+  file( GLOB _addon_subdirs RELATIVE "${_addons_dir}" "${_addons_dir}/*" )
+  foreach( _subdir IN LISTS _addon_subdirs )
+    if( IS_DIRECTORY "${_addons_dir}/${_subdir}" )
+      string( TOUPPER "${_subdir}" _addon_name )
+      list( FIND VIAME_ADDON_NAMES "${_addon_name}" _found_idx )
+      if( _found_idx EQUAL -1 )
+        option( VIAME_DOWNLOAD_MODELS-${_addon_name} "Download ${_subdir} models" OFF )
+        mark_as_advanced( VIAME_DOWNLOAD_MODELS-${_addon_name} )
+        list( APPEND VIAME_ADDON_NAMES "${_addon_name}" )
+      endif()
+    endif()
+  endforeach()
+  set( VIAME_ADDON_NAMES "${VIAME_ADDON_NAMES}" CACHE INTERNAL "List of addon names" )
 endfunction()
 
 # Check that all required enable flags are set for enabled addons
