@@ -2067,6 +2067,8 @@ train_detector_svm
     output[output_filename] = output_file;
   }
 
+  output["type"] = "svm_refiner";
+
   LOG_INFO( logger(), "SVM training complete" );
 
   return output;

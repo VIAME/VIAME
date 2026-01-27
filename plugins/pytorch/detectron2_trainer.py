@@ -529,7 +529,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
         training_path = ub.Path(self._training_file)
         if not training_path.exists():
             print("[Detectron2Trainer] Error: No training data found")
-            return
+            return {"type": "detectron2"}
 
         # Import detectron2, preferring geowatch_tpl if available
         try:
@@ -615,6 +615,8 @@ class Detectron2Trainer(KWCocoTrainDetector):
         self.save_final_model(cfg, thing_classes)
 
         print("\n[Detectron2Trainer] Model training complete!\n")
+
+        return {"type": "detectron2"}
 
     def save_final_model(self, cfg=None, class_names=None):
         """

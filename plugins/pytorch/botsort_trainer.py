@@ -416,6 +416,8 @@ class BoTSORTTrainer(TrainTracker):
 
         print("\nBoT-SORT training complete!\n")
 
+        return {"type": "botsort"}
+
     def _train_reid_model(self, reid_dir):
         """Train Re-ID model using PyTorch."""
         try:

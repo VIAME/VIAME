@@ -373,6 +373,8 @@ class RFDETRTrainer(KWCocoTrainDetector):
 
         print("\n[RFDETRTrainer] Model training complete!\n")
 
+        return {"type": "rf_detr"}
+
     def save_final_model(self, model=None, output_dir=None):
         import shutil
 

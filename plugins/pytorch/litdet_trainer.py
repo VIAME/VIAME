@@ -732,6 +732,8 @@ class LitDetTrainer(KWCocoTrainDetector):
 
         print("\n[LitDetTrainer] Model training complete!\n")
 
+        return {"type": "litdet"}
+
     def save_final_model(self, output_dir=None):
         import shutil
 

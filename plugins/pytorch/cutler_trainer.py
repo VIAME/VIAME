@@ -439,7 +439,8 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
 
         gc.collect()  # Make sure all object have ben deallocated if not used
         torch.cuda.empty_cache()
-        return
+
+        return {"type": "mmdet_convnext"}
 
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):

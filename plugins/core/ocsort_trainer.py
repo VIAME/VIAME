@@ -370,13 +370,16 @@ class OCSORTTrainer(TrainTracker):
             dict: Map where file paths are file copies, other values are template replacements
         """
         output = {}
+        t = "ocsort"
 
-        # Template replacements (lowercase keys, will be converted to [-KEY-] format)
+        output["type"] = t
+
+        # Config keys matching ocsort inference config
         for key, value in params.items():
             if isinstance(value, float):
-                output[key] = f"{value:.3f}"
+                output[t + ":" + key] = f"{value:.3f}"
             else:
-                output[key] = str(value)
+                output[t + ":" + key] = str(value)
 
         # File copies
         output["ocsort_params.json"] = params_file

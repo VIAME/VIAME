@@ -314,6 +314,8 @@ class SRNNTrainer( TrainTracker ):
 
         print( "\nSRNN training complete!\n" )
 
+        return {"type": "srnn"}
+
     def _interrupt_handler( self ):
         self.proc.send_signal( signal.SIGINT )
         timeout = 0

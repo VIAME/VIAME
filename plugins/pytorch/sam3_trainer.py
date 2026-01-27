@@ -851,6 +851,8 @@ process refiner
 
         print("\nSAM3 training complete!\n")
 
+        return {"type": "sam3"}
+
 
 class SAM3TrackerTrainer(SAM3Trainer):
     """
@@ -905,6 +907,11 @@ class SAM3TrackerTrainer(SAM3Trainer):
         # Convert tracks to detections for base class processing
         self._train_detections = self._tracks_to_detections(train_tracks)
         self._test_detections = self._tracks_to_detections(test_tracks)
+
+    def update_model(self):
+        """Main training entry point."""
+        super().update_model()
+        return {"type": "sam3_tracker"}
 
     def _tracks_to_detections(self, track_sets):
         """Convert track sets to detection sets for standard processing."""

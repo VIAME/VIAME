@@ -532,9 +532,12 @@ class DeepSORTTrainer(TrainTracker):
 
         if best_model.exists():
             output_model_name = "deepsort_reid.pth"
+            t = "deepsort"
+
+            output["type"] = t
 
             # Config keys matching deepsort_tracker inference config
-            output["model_path"] = output_model_name
+            output[t + ":model_path"] = output_model_name
 
             # File copies (key=output filename, value=source path)
             output[output_model_name] = str(best_model)
