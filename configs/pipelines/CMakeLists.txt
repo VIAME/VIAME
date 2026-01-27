@@ -125,7 +125,6 @@ endif()
 # All config files manually-included by default or based on options
 ##
 set( CORE_PIPELINE_FILES
-  classify_detections_svm.pipe
   common_default_initializer.pipe
   common_train_detector.conf
   common_default_input.pipe
@@ -135,7 +134,6 @@ set( CORE_PIPELINE_FILES
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
   common_stabilized_iou_tracker.pipe
-  common_stereo_fish_tracker.pipe
   common_stereo_input.pipe
   common_stereo_input_with_downsampler.pipe
   common_stereo_input_with_tracks.pipe
@@ -224,10 +222,6 @@ if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_default_descriptor.pipe
     common_default_tracker.pipe
-    common_stereo_fish_detector.pipe
-    common_stereo_fish_detector_with_filter.pipe
-    measurement_detect_fish_only.pipe
-    measurement_track_fish_only.pipe
     query_augment_image.pipe
   )
 else()
@@ -321,7 +315,6 @@ if( VIAME_ENABLE_OPENCV )
     measurement_calibrate_cameras_fast.pipe
     measurement_compute_rectified_disparity.pipe
     measurement_detect_calibration_target.pipe
-    measurement_track_fish_in_3d_from_rect_disp.pipe
     register_multimodal_unsync_ocv.pipe
     register_using_homographies.pipe
     tracker_calibration_target.pipe
@@ -349,9 +342,6 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    detector_remax_convnext_novelty_detection.pipe
-    detector_remax_dino_novelty_detection.pipe
-    train_detector_convnext_remax.conf
     train_detector_detectron2_frcnn.conf
     train_detector_dino_remax.conf
   )
@@ -483,7 +473,6 @@ endif()
 ##
 if( VIAME_ENABLE_WEB_EXCLUDES )
   set( VIAME_WEB_FILES_TO_IGNORE
-    classify_detections_svm.pipe
     database_apply_svm_models.pipe
     detector_project_folder.pipe
     detector_project_folder_left.pipe
