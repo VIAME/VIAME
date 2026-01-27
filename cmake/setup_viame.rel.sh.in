@@ -29,7 +29,10 @@ export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/applets:$KWIVER_PLUGIN_PATH
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
 
 # Paths for the GUIs
-export QT_PLUGIN_PATH=$this_dir/lib/qt4/plugins
+export QT_PLUGIN_PATH=$this_dir/lib/qt5/plugins
+export QT_QPA_FONTDIR=/usr/share/fonts
+export QT_AUTO_SCREEN_SCALE_FACTOR=0
+export QT_FONT_DPI=96
 export VG_PLUGIN_PATH=$this_dir
 export VIDTK_MODULE_PATH=$this_dir/lib/modules
 
