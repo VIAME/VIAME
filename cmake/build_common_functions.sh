@@ -586,6 +586,8 @@ copy_system_runtime_libraries() {
     "libva.so.1"
     "libssl.so.10"
     "libreadline.so.6"
+    "libreadline.so.7"
+    "libreadline.so.8"
     "libdc1394.so.22"
     "libcrypto.so.10"
     "libpcre.so.1"
@@ -742,6 +744,45 @@ fix_libsvm_symlink() {
     cp "$install_dir/lib/libsvm.so.2" "$install_dir/lib/libsvm.so"
     echo "Fixed libsvm symlink"
   fi
+}
+
+# Prepare Linux desktop install by removing unneeded directories and adding LICENSE
+# Arguments:
+#   $1 = install directory (default: install)
+#   $2 = source directory containing LICENSE.txt (default: ..)
+prepare_linux_desktop_install() {
+  local install_dir="${1:-install}"
+  local source_dir="${2:-..}"
+
+  echo "Preparing Linux desktop install..."
+
+  # Remove directories not needed for desktop distribution
+  local dirs_to_remove=(
+    "sbin"
+    "qml"
+    "include"
+    "mkspecs"
+    "share"
+    "etc"
+    "doc"
+  )
+
+  for dir in "${dirs_to_remove[@]}"; do
+    if [ -d "$install_dir/$dir" ]; then
+      rm -rf "$install_dir/$dir"
+      echo "  Removed $dir"
+    fi
+  done
+
+  # Copy LICENSE.txt to install root
+  if [ -f "$source_dir/LICENSE.txt" ]; then
+    cp "$source_dir/LICENSE.txt" "$install_dir/"
+    echo "  Copied LICENSE.txt to install root"
+  else
+    echo "  Warning: LICENSE.txt not found at $source_dir/LICENSE.txt"
+  fi
+
+  echo "Linux desktop install preparation complete"
 }
 
 # Create tarball of install directory

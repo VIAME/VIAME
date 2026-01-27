@@ -64,6 +64,7 @@ run_build_and_setup_libraries "$CUDA_DIRECTORY" > build_log.txt 2>&1
 
 # Verify build success and create tarball
 if verify_build_success build_log.txt; then
+  prepare_linux_desktop_install install "$VIAME_SOURCE_DIR"
   create_install_tarball "$VIAME_VERSION" "Linux-64Bit"
 else
   exit 1

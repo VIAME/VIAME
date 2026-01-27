@@ -41,7 +41,7 @@ run_build build_log.txt
 
 # Verify build success
 if verify_build_success build_log.txt; then
-  # Make tarball of install
+  prepare_linux_desktop_install install /viame
   create_install_tarball "$VIAME_VERSION" "Ubuntu-64Bit"
 else
   exit 1
