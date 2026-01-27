@@ -5,6 +5,8 @@
 #include "windowed_trainer.h"
 #include "windowed_utils.h"
 
+#include <plugins/core/utilities_file.h>
+
 #include <vital/util/cpu_timer.h>
 #include <vital/algo/image_io.h>
 
@@ -399,10 +401,30 @@ std::map<std::string, std::string>
 windowed_trainer
 ::update_model()
 {
-  std::map<std::string, std::string> output = d->m_trainer->update_model();
+  std::map<std::string, std::string> nested_output = d->m_trainer->update_model();
 
   const std::string algo = "ocv_windowed";
+  const std::string nested_prefix = algo + ":detector:";
 
+  std::map<std::string, std::string> output;
+
+  // Re-key nested trainer output so config entries land under
+  // the correct .pipe path (e.g. ocv_windowed:detector:netharn:deployed).
+  // File copy entries (value is an existing file) keep their original
+  // key since that key is the destination filename, not a config path.
+  for( const auto& pair : nested_output )
+  {
+    if( !pair.second.empty() && does_file_exist( pair.second ) )
+    {
+      output[ pair.first ] = pair.second;
+    }
+    else
+    {
+      output[ nested_prefix + pair.first ] = pair.second;
+    }
+  }
+
+  // Add ocv_windowed trainer's own config entries
   output["type"] = algo;
   output[algo + ":mode"] = rescale_option_converter().to_string( d->m_settings.mode );
   output[algo + ":scale"] = std::to_string( d->m_settings.scale );

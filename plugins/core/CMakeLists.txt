@@ -16,6 +16,7 @@ set( plugin_headers
   evaluate_models.h
   filename_to_timestamp.h
   full_frame_detector.h
+  manipulate_pipelines.h
   measurement_utilities.h
   merge_detections_suppress_in_regions.h
   pair_stereo_detections.h
@@ -60,6 +61,7 @@ set( plugin_sources
   evaluate_models.cxx
   filename_to_timestamp.cxx
   full_frame_detector.cxx
+  manipulate_pipelines.cxx
   measurement_utilities.cxx
   merge_detections_suppress_in_regions.cxx
   pair_stereo_detections.cxx
