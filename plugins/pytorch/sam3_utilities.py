@@ -17,7 +17,6 @@ sam3_refiner, sam3_segmenter, and sam3_text_query, including:
 - Inference context helpers
 """
 
-import contextlib
 import os
 import sys
 import threading
@@ -25,6 +24,16 @@ from typing import Optional, Tuple, Any
 
 import scriptconfig as scfg
 import numpy as np
+
+# Import shared utilities from the base utilities module
+# These are re-exported here for backward compatibility with sam3_* modules
+from viame.pytorch.utilities import (
+    mask_to_polygon,
+    box_from_mask,
+    image_to_rgb_numpy,
+    get_autocast_context,
+    parse_bool,
+)
 
 
 # =============================================================================
@@ -801,50 +810,6 @@ class SAM3ModelManager:
         return [np.ones((image_np.shape[0], image_np.shape[1]), dtype=bool)] * len(boxes)
 
 
-def mask_to_polygon(mask, simplification=0.01):
-    """
-    Convert a binary mask to a KWIVER Polygon.
-
-    Args:
-        mask: Binary mask as numpy array
-        simplification: Douglas-Peucker simplification epsilon (relative to perimeter)
-
-    Returns:
-        kwiver.vital.types.Polygon or None if conversion fails
-    """
-    import cv2
-    from kwiver.vital.types import Polygon
-
-    contours, _ = cv2.findContours(
-        mask.astype(np.uint8),
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
-
-    if len(contours) == 0:
-        return None
-
-    contour = max(contours, key=cv2.contourArea)
-
-    if simplification > 0:
-        perimeter = cv2.arcLength(contour, True)
-        epsilon = simplification * perimeter
-        contour = cv2.approxPolyDP(contour, epsilon, True)
-
-    if len(contour) < 3:
-        return None
-
-    points = contour.squeeze()
-    if len(points.shape) == 1:
-        return None
-
-    polygon = Polygon()
-    for point in points:
-        polygon.push_back((float(point[0]), float(point[1])))
-
-    return polygon
-
-
 def mask_to_points(mask, num_points):
     """
     Extract representative points from a mask.
@@ -888,30 +853,6 @@ def mask_to_points(mask, num_points):
     return points[:num_points]
 
 
-def box_from_mask(mask):
-    """
-    Get bounding box from mask.
-
-    Args:
-        mask: Binary mask as numpy array
-
-    Returns:
-        kwiver.vital.types.BoundingBoxD or None if mask is empty
-    """
-    from kwiver.vital.types import BoundingBoxD
-
-    rows = np.any(mask, axis=1)
-    cols = np.any(mask, axis=0)
-
-    if not np.any(rows) or not np.any(cols):
-        return None
-
-    y1, y2 = np.where(rows)[0][[0, -1]]
-    x1, x2 = np.where(cols)[0][[0, -1]]
-
-    return BoundingBoxD(float(x1), float(y1), float(x2), float(y2))
-
-
 def compute_iou(box1, box2):
     """
     Compute IoU between two boxes [x1, y1, x2, y2].
@@ -939,91 +880,3 @@ def compute_iou(box1, box2):
         return 0.0
 
     return inter_area / union_area
-
-
-def image_to_rgb_numpy(image_container):
-    """
-    Convert a KWIVER image container to RGB numpy array.
-
-    Args:
-        image_container: kwiver.vital.types.ImageContainer
-
-    Returns:
-        numpy array in RGB format, uint8
-    """
-    img_np = image_container.image().asarray().astype('uint8')
-
-    # Handle grayscale
-    if len(img_np.shape) == 2:
-        img_np = np.stack((img_np,) * 3, axis=-1)
-    elif img_np.shape[2] == 1:
-        img_np = np.stack((img_np[:, :, 0],) * 3, axis=-1)
-    elif img_np.shape[2] == 4:
-        img_np = img_np[:, :, :3]
-
-    # Convert BGR to RGB
-    if img_np.shape[2] == 3:
-        img_np = img_np[:, :, ::-1].copy()
-
-    return img_np
-
-
-def get_autocast_context(device):
-    """
-    Get the appropriate autocast context for the given device.
-
-    For CUDA devices, returns a torch.autocast context with bfloat16 dtype.
-    For other devices (CPU, etc.), returns a null context.
-
-    Args:
-        device: torch device or device string (e.g., 'cuda', 'cpu', torch.device('cuda:0'))
-
-    Returns:
-        Context manager for use with `with` statement
-
-    Example:
-        >>> with get_autocast_context(model.device):
-        ...     output = model(input)
-    """
-    import torch
-
-    # Handle both string and torch.device inputs
-    if hasattr(device, 'type'):
-        device_type = device.type
-    else:
-        device_type = str(device).split(':')[0]
-
-    if device_type == 'cuda':
-        return torch.autocast(device_type, dtype=torch.bfloat16)
-    else:
-        return contextlib.nullcontext()
-
-
-def parse_bool(value):
-    """
-    Parse a value as a boolean.
-
-    Handles string values from KWIVER config files like 'True', 'true', '1',
-    as well as actual boolean and integer values.
-
-    Args:
-        value: Value to parse (str, bool, int)
-
-    Returns:
-        bool: Parsed boolean value
-
-    Example:
-        >>> parse_bool('True')
-        True
-        >>> parse_bool('false')
-        False
-        >>> parse_bool(1)
-        True
-    """
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, int):
-        return value != 0
-    if isinstance(value, str):
-        return value.lower() in ('true', '1', 'yes', 'on')
-    return bool(value)
