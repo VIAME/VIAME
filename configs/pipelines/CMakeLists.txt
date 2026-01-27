@@ -270,7 +270,6 @@ if( VIAME_ENABLE_VIVIA )
     embedded_single_stream/generate_empty_frame_lbls_1000fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_auto.pipe
     embedded_single_stream/generic_proposal_detector.pipe
-    embedded_single_stream/generic_proposal_tracker.pipe
     embedded_single_stream/local_deep_detector.pipe
     embedded_single_stream/local_deep_detector_with_def_tracker.pipe
     embedded_single_stream/local_deep_detector_with_stab_tracker.pipe

@@ -1,20 +1,39 @@
 # =============================================================================
-# Title: Uses the track_objects process with ByteTrack algorithm which works well on CPU
+# Title: Common - Default Tracker (CPU)
 #
-# Description: Uses the track_objects process with ByteTrack algorithm which
-# works well on CPU as it doesn't require deep feature extraction.
+# Description: Default multi-object tracker using ByteTrack algorithm. ByteTrack
+# is a simple and effective tracker that associates detections using IoU-based
+# matching with a two-stage association strategy for high and low confidence
+# detections. This version is optimized for CPU as it does not require deep
+# feature extraction.
 # =============================================================================
 
 process tracker
   :: track_objects
-  :track_objects:type                  bytetrack
+  :track_objects:type                          bytetrack
 
 block track_objects:bytetrack
-  :high_thresh                         0.6
-  :low_thresh                          0.1
-  :match_thresh                        0.8
-  :track_buffer                        30
-  :new_track_thresh                    0.6
+
+  # Detection confidence threshold for first association stage
+  # Detections above this threshold are matched first with high priority
+  :high_thresh                                 0.6
+
+  # Detection confidence threshold for second association stage
+  # Detections between low_thresh and high_thresh are matched in second stage
+  :low_thresh                                  0.1
+
+  # IoU threshold for matching detections to existing tracks
+  # Higher values require more overlap for association
+  :match_thresh                                0.8
+
+  # Number of frames to keep lost tracks before removal
+  # Tracks not matched for this many frames are terminated
+  :track_buffer                                30
+
+  # Minimum confidence threshold to initialize a new track
+  # Only detections above this threshold can start new tracks
+  :new_track_thresh                            0.6
+
 endblock
 
 # -- end of file --
