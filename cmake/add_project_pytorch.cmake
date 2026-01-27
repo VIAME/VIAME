@@ -218,9 +218,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( PIP_CMD "${PIP_CMD} --no-cache-dir" )
     endif()
     set( PIP_CMD "${PIP_CMD} ${TORCH_DEPS_STR}" )
-    if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
-      set( PIP_CMD "${PIP_CMD} --no-deps" )
-    endif()
+    set( PIP_CMD "${PIP_CMD} --no-deps" )
     string( REPLACE " " ";" PIP_CMD "${PIP_CMD}" )
     set( LIBRARY_PIP_INSTALL_CMD ${Python_EXECUTABLE} -m ${PIP_CMD} )
   elseif( VIAME_PYTHON_SYMLINK )
@@ -368,8 +366,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/rf-detr
       ${VIAME_PACKAGES_DIR}/pytorch-libs/rf-detr )
-  elseif( "${LIB}" STREQUAL "detectron2" OR
-          "${LIB}" STREQUAL "sam3" )
+  elseif( "${LIB}" STREQUAL "detectron2" )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
+  elseif( "${LIB}" STREQUAL "sam3" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/sam3
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/sam3 )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "foundation-stereo" )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
