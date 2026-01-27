@@ -3,8 +3,10 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "manipulate_pipelines.h"
+#include "utilities_file.h"
 
 #include <algorithm>
+#include <fstream>
 #include <sstream>
 #include <vector>
 
@@ -208,6 +210,44 @@ std::string format_output_as_pipe_blocks(
   }
 
   return out.str();
+}
+
+// =============================================================================
+std::string generate_detector_impl_replacement(
+    const std::map< std::string, std::string >& output_map,
+    const std::string& pipeline_template )
+{
+  if( pipeline_template.empty() || !does_file_exist( pipeline_template )
+      || !file_contains_string( pipeline_template, "[-DETECTOR-IMPL-]" ) )
+  {
+    return "";
+  }
+
+  // Separate config entries from file copies
+  std::map< std::string, std::string > config_entries;
+  std::set< std::string > copied_filenames;
+
+  for( const auto& pair : output_map )
+  {
+    if( !pair.second.empty() && does_file_exist( pair.second ) )
+    {
+      copied_filenames.insert( pair.first );
+    }
+    else
+    {
+      config_entries[ pair.first ] = pair.second;
+    }
+  }
+
+  // Read template and detect indent
+  std::ifstream tfile( pipeline_template );
+  std::string tcontent( ( std::istreambuf_iterator< char >( tfile ) ),
+                          std::istreambuf_iterator< char >() );
+  tfile.close();
+
+  std::string indent = detect_marker_indent( tcontent, "[-DETECTOR-IMPL-]" );
+
+  return format_output_as_pipe_blocks( config_entries, copied_filenames, indent );
 }
 
 } // end namespace viame

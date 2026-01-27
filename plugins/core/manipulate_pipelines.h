@@ -35,6 +35,18 @@ std::string format_output_as_pipe_blocks(
     const std::set< std::string >& copied_filenames,
     const std::string& base_indent );
 
+/// Generate the [-DETECTOR-IMPL-] replacement string from a trainer
+/// output map and a pipeline template file.
+///
+/// Reads the template, separates config entries from file copies,
+/// detects the marker indent, and formats the output as .pipe blocks.
+/// Returns empty string if the template doesn't exist or doesn't
+/// contain [-DETECTOR-IMPL-].
+VIAME_CORE_EXPORT
+std::string generate_detector_impl_replacement(
+    const std::map< std::string, std::string >& output_map,
+    const std::string& pipeline_template );
+
 } // end namespace viame
 
 #endif /* VIAME_CORE_MANIPULATE_PIPELINES_H */

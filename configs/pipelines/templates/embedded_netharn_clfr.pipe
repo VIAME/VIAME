@@ -21,7 +21,7 @@ process classifier1
 
   block detector:netharn_classifier
     :mode                                      frame_classifier
-    relativepath deployed =                    [-MODEL-FILE-]
+    relativepath deployed =                    [-DEPLOYED-]
   endblock
 
 connect from detector_input.image

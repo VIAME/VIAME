@@ -27,6 +27,7 @@
 
 #include <plugins/core/utilities_file.h>
 #include <plugins/core/utilities_training.h>
+#include <plugins/core/manipulate_pipelines.h>
 
 #include <vector>
 #include <unordered_set>
@@ -278,9 +279,18 @@ static void process_trainer_output(
     }
     else
     {
-      // Build template key: convert lowercase key to [-KEY-] format
+      // Strip group prefix (everything up to and including the last ':')
+      // so that "netharn:deployed" becomes "deployed", producing [-DEPLOYED-]
+      std::string param_name = key;
+      std::size_t last_colon = key.rfind( ':' );
+      if( last_colon != std::string::npos )
+      {
+        param_name = key.substr( last_colon + 1 );
+      }
+
+      // Build template key: convert lowercase param to [-PARAM-] format
       std::string template_key = "[-";
-      for( char c : key )
+      for( char c : param_name )
       {
         if( c == '_' )
         {
@@ -294,6 +304,15 @@ static void process_trainer_output(
       template_key += "-]";
       template_replacements[ template_key ] = value;
     }
+  }
+
+  // Build [-DETECTOR-IMPL-] replacement from full trainer output
+  std::string impl = generate_detector_impl_replacement(
+      output_map, pipeline_template );
+
+  if( !impl.empty() )
+  {
+    template_replacements[ "[-DETECTOR-IMPL-]" ] = impl;
   }
 
   // If output_file is specified, create a zip archive

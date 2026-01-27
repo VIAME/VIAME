@@ -67,7 +67,7 @@ process classifier
   :refiner:type                                netharn
 
   block refiner:netharn
-    relativepath deployed =                    [-MODEL-FILE-]
+    relativepath deployed =                    [-DEPLOYED-]
 
     :batch_size                                auto
     :area_pivot                                0
