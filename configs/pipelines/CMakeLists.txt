@@ -130,8 +130,6 @@ set( CORE_PIPELINE_FILES
   common_train_detector.conf
   common_default_input.pipe
   common_default_input_with_downsampler.pipe
-  common_fish_detector.pipe
-  common_fish_detector_with_filter.pipe
   common_foundation_stereo.pipe
   common_image_stabilizer.pipe
   common_no_load_input.pipe
@@ -153,7 +151,6 @@ set( CORE_PIPELINE_FILES
   convert_viame_csv_to_kw18.pipe
   database_apply_svm_models.pipe
   detector_camtrawl.pipe
-  detector_default_fish.pipe
   detector_project_folder.pipe
   detector_project_folder_left.pipe
   detector_simple_hough.pipe
@@ -174,7 +171,6 @@ set( CORE_PIPELINE_FILES
   frame_classifier_svm.pipe
   index_default.trk.pipe
   index_existing.pipe
-  index_fish.svm.pipe
   index_frame.pipe
   index_frame.svm.pipe
   index_frame.svm.annot_only.pipe
@@ -185,9 +181,7 @@ set( CORE_PIPELINE_FILES
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
   sql_init_table.sql
-  tracker_default_fish.pipe
   tracker_project_folder.pipe
-  tracker_stabilized_iou.pipe
   train_aug_add_color_freq.pipe
   train_aug_add_double_motion.pipe
   train_aug_add_motion.pipe
@@ -230,13 +224,11 @@ if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_default_descriptor.pipe
     common_default_tracker.pipe
-    common_fish_detector.pipe
     common_stereo_fish_detector.pipe
     common_stereo_fish_detector_with_filter.pipe
     measurement_detect_fish_only.pipe
     measurement_track_fish_only.pipe
     query_augment_image.pipe
-    tracker_fish.sfd.pipe
   )
 else()
   install( FILES common_default_descriptor.cpu.pipe
@@ -248,9 +240,6 @@ else()
   install( FILES query_augment_image.cpu.pipe
     DESTINATION configs/pipelines
     RENAME query_augment_image.pipe )
-  install( FILES tracker_fish.sfd.cpu.pipe
-    DESTINATION configs/pipelines
-    RENAME tracker_fish.sfd.pipe )
 endif()
 
 # Pytorch specific configs
@@ -281,8 +270,6 @@ if( VIAME_ENABLE_VIVIA )
     embedded_single_stream/filter_debayer.pipe
     embedded_single_stream/filter_debayer_and_enhance.pipe
     embedded_single_stream/filter_enhance.pipe
-    embedded_single_stream/fish_detector_without_motion.pipe
-    embedded_single_stream/fish_tracker.pipe
     embedded_single_stream/generate_empty_frame_lbls_0001fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
     embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe
@@ -323,7 +310,6 @@ endif()
 if( VIAME_ENABLE_SVM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     query_and_iqr.pipe
-    train_detector_svm_over_fish_detections.conf
     train_frame_classifier_libsvm_svm.conf
   )
 endif()
