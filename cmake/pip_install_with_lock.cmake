@@ -78,6 +78,7 @@ endif()
 # Skip PATH and other semicolon-containing env vars on Windows as they cause issues
 # with cmake -E env argument parsing
 set( _pip_env_vars )
+set( _has_pythonuserbase FALSE )
 if( ENV_VARS )
   # Convert ----separated env vars back to list
   string( REPLACE "----" ";" _env_vars_list "${ENV_VARS}" )
@@ -98,45 +99,42 @@ if( ENV_VARS )
     if( NOT WIN32 )
       string( REPLACE "<PS>" ":" _env_var "${_env_var}" )
     endif()
+    # Track if PYTHONUSERBASE was provided
+    if( _env_var MATCHES "^PYTHONUSERBASE=" )
+      set( _has_pythonuserbase TRUE )
+    endif()
     list( APPEND _pip_env_vars "${_env_var}" )
   endforeach()
 endif()
 
+# CRITICAL: Ensure PYTHONUSERBASE is always set to prevent packages from being
+# installed to ~/.local. If not provided in ENV_VARS, inherit from the parent
+# process environment.
+if( NOT _has_pythonuserbase )
+  set( _inherited_userbase "$ENV{PYTHONUSERBASE}" )
+  if( _inherited_userbase )
+    list( APPEND _pip_env_vars "PYTHONUSERBASE=${_inherited_userbase}" )
+  endif()
+endif()
+
 if( UNIX )
   # Use flock on Unix to serialize pip installs (5 minute timeout)
-  if( _pip_env_vars )
-    # Use cmake -E env to set environment variables (e.g., PYTHONUSERBASE)
-    if( _working_dir )
-      execute_process(
-        COMMAND flock --timeout 300 ${_lock_file}
-          ${CMAKE_COMMAND} -E env ${_pip_env_vars}
-          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
-        RESULT_VARIABLE _result
-        WORKING_DIRECTORY ${_working_dir}
-      )
-    else()
-      execute_process(
-        COMMAND flock --timeout 300 ${_lock_file}
-          ${CMAKE_COMMAND} -E env ${_pip_env_vars}
-          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
-        RESULT_VARIABLE _result
-      )
-    endif()
+  # Always use cmake -E env to ensure PYTHONUSERBASE is properly propagated
+  if( _working_dir )
+    execute_process(
+      COMMAND flock --timeout 300 ${_lock_file}
+        ${CMAKE_COMMAND} -E env ${_pip_env_vars}
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
+      RESULT_VARIABLE _result
+      WORKING_DIRECTORY ${_working_dir}
+    )
   else()
-    if( _working_dir )
-      execute_process(
-        COMMAND flock --timeout 300 ${_lock_file}
-          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
-        RESULT_VARIABLE _result
-        WORKING_DIRECTORY ${_working_dir}
-      )
-    else()
-      execute_process(
-        COMMAND flock --timeout 300 ${_lock_file}
-          ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
-        RESULT_VARIABLE _result
-      )
-    endif()
+    execute_process(
+      COMMAND flock --timeout 300 ${_lock_file}
+        ${CMAKE_COMMAND} -E env ${_pip_env_vars}
+        ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args}
+      RESULT_VARIABLE _result
+    )
   endif()
 else()
   # On Windows, add retries for race conditions
@@ -144,13 +142,9 @@ else()
   set( _retry_count 0 )
   set( _result 1 )
 
-  # Build the pip command with optional env vars
-  if( _pip_env_vars )
-    set( _pip_cmd ${CMAKE_COMMAND} -E env ${_pip_env_vars}
-      ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args} )
-  else()
-    set( _pip_cmd ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args} )
-  endif()
+  # Build the pip command - always use cmake -E env to ensure PYTHONUSERBASE is propagated
+  set( _pip_cmd ${CMAKE_COMMAND} -E env ${_pip_env_vars}
+    ${Python_EXECUTABLE} -m pip install --no-build-isolation --user ${_cache_flag} ${_force_flag} ${_pip_args} )
 
   while( _result AND _retry_count LESS _max_retries )
     if( _working_dir )

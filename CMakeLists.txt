@@ -35,6 +35,10 @@ if( POLICY CMP0144 )
   cmake_policy( SET CMP0144 NEW )
 endif()
 
+if( POLICY CMP0135 )
+  cmake_policy( SET CMP0135 NEW )
+endif()
+
 if( POLICY CMP0146 )
   cmake_policy( SET CMP0146 OLD )
 endif()

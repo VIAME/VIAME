@@ -161,7 +161,7 @@ process detector1
 
     block detector:netharn
       :input_string                            rgb|disparity
-      relativepath deployed =                  [-MODEL-FILE-]
+      relativepath deployed =                  [-DEPLOYED-]
     endblock
   endblock
 

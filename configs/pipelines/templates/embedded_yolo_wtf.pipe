@@ -85,9 +85,9 @@ process detector1
 
   block detector:darknet
     # Network config, weights, and names
-    relativepath net_config  =                 [-NETWORK-CONFIG-]
-    relativepath weight_file =                 [-NETWORK-WEIGHTS-]
-    relativepath class_names =                 [-NETWORK-CLASSES-]
+    relativepath net_config  =                 [-NET-CONFIG-]
+    relativepath weight_file =                 [-WEIGHT-FILE-]
+    relativepath class_names =                 [-CLASS-NAMES-]
 
     # Detector parameters
     :thresh                                    0.010

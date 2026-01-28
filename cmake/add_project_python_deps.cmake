@@ -73,7 +73,7 @@ if( VIAME_ENABLE_PYTORCH-MMDET )
 endif()
 
 # For measurement scripts
-if( VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-SAM3 )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tqdm" "scipy" )
 endif()
 
@@ -125,7 +125,7 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
   endif()
 
   if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn>=0.13.2" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "seaborn>=0.13.2" "py-cpuinfo" )
   endif()
 endif()
 
@@ -208,6 +208,10 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
     VIAME_ENABLE_PYTORCH-SAM3 OR
     VIAME_ENABLE_PYTORCH-STEREO )
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "timm" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-RF-DETR )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" )
 endif()
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------

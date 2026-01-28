@@ -35,8 +35,9 @@ classifiers = [
 ]
 keywords = ["machine-learning", "deep-learning", "vision", "ML", "DL", "AI", "DETR", "RF-DETR", "Roboflow"]
 
-# Note: roboflow removed from dependencies to avoid opencv-python-headless conflict
-# with opencv-python. Use pip install rfdetr[roboflow] if roboflow integration is needed.
+# Note: roboflow, supervision, and rf100vl removed from core dependencies to avoid
+# opencv-python-headless being installed from PyPI. OpenCV is built from source in fletch.
+# supervision -> opencv-python-headless, rf100vl -> roboflow -> opencv-python-headless.
 dependencies = [
     "cython",
     "pycocotools",
@@ -56,15 +57,17 @@ dependencies = [
     "pylabel",
     "polygraphy",
     "open_clip_torch",
-    "rf100vl",
     "pydantic",
-    "supervision",
     "matplotlib"
 ]
 
 [project.optional-dependencies]
 roboflow = [
     "roboflow"
+]
+cv-deps = [
+    "supervision",
+    "rf100vl"
 ]
 onnxexport = [
     "onnx",

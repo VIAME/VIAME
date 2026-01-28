@@ -62,11 +62,14 @@ if( VIAME_ENABLE_TENSORFLOW-MODELS )
           --include-dirs="${VIAME_INSTALL_PREFIX}/include"
           --library-dirs="${VIAME_INSTALL_PREFIX}/lib"
         bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+    # Convert env vars to ----separated string for pip_install_with_lock.cmake
+    string( REPLACE ";" "----" TENSORFLOW_ENV_VARS_STR "${TENSORFLOW_ENV_VARS}" )
     set( LIBRARY_PIP_INSTALL_CMD
       ${CMAKE_COMMAND}
         -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
         -DPython_EXECUTABLE=${Python_EXECUTABLE}
         -DWHEEL_DIR=${LIBRARY_PIP_BUILD_DIR}
+        -DENV_VARS:STRING=${TENSORFLOW_ENV_VARS_STR}
         -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
   endif()
 

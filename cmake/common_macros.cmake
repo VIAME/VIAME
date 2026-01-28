@@ -440,15 +440,44 @@ function( ValidateAddonDependencies )
   endforeach()
 endfunction()
 
+# Compare .pipe files between an extracted archive and a local addon folder.
+# If any pipe file exists in both locations with different content, append
+# a warning string to the VIAME_PIPE_WARNINGS global property.
+function( CompareAddonPipeFiles _name _content_root _addon_dir )
+  file( GLOB_RECURSE _archive_pipes
+        RELATIVE "${_content_root}" "${_content_root}/*.pipe" )
+
+  foreach( _pipe IN LISTS _archive_pipes )
+    set( _local_pipe "${_addon_dir}/${_pipe}" )
+    set( _archive_pipe "${_content_root}/${_pipe}" )
+
+    if( EXISTS "${_local_pipe}" )
+      file( MD5 "${_local_pipe}" _local_md5 )
+      file( MD5 "${_archive_pipe}" _archive_md5 )
+
+      if( NOT "${_local_md5}" STREQUAL "${_archive_md5}" )
+        set_property( GLOBAL APPEND PROPERTY VIAME_PIPE_WARNINGS
+          "Addon ${_name}: pipe file '${_pipe}' differs between source and download" )
+      endif()
+    endif()
+  endforeach()
+endfunction()
+
 # Download an addon package to the downloads folder, extract it to a temp location,
-# and install only the 'models' and 'transforms' directories
-function( DownloadAndInstallAddonModels _name )
+# and install models/transforms or full content depending on whether a local folder exists
+function( DownloadAndInstallAddonModels _name _addons_src_dir )
   if( NOT VIAME_DOWNLOAD_MODELS-${_name} )
     return()
   endif()
 
   set( _url "${VIAME_ADDON_${_name}_URL}" )
   set( _md5 "${VIAME_ADDON_${_name}_MD5}" )
+
+  # Folder-only addons have no URL/MD5 - skip download
+  if( "${_url}" STREQUAL "" OR "${_md5}" STREQUAL "" )
+    return()
+  endif()
+
   set( _dl_file "${VIAME_DOWNLOAD_DIR}/VIAME-${_name}-Models.zip" )
   set( _extract_dir "${CMAKE_BINARY_DIR}/addon-extract/${_name}" )
 
@@ -462,33 +491,49 @@ function( DownloadAndInstallAddonModels _name )
     COMMAND ${CMAKE_COMMAND} -E tar xzf "${_dl_file}"
     WORKING_DIRECTORY "${_extract_dir}" )
 
-  # Find and install models directory if it exists
-  file( GLOB _models_dirs "${_extract_dir}/*/models" "${_extract_dir}/models" )
-  foreach( _models_dir IN LISTS _models_dirs )
-    if( IS_DIRECTORY "${_models_dir}" )
-      message( STATUS "Installing models from ${_models_dir}" )
-      install( DIRECTORY "${_models_dir}/"
+  # Determine content root (handle wrapper directory vs flat layout)
+  file( GLOB _extract_entries "${_extract_dir}/*" )
+  list( LENGTH _extract_entries _num_entries )
+  if( _num_entries EQUAL 1 AND IS_DIRECTORY "${_extract_entries}" )
+    set( _content_root "${_extract_entries}" )
+  else()
+    set( _content_root "${_extract_dir}" )
+  endif()
+
+  # Check for local addon folder
+  string( TOLOWER "${_name}" _addon_dir_name )
+  set( _addon_dir "${_addons_src_dir}/${_addon_dir_name}" )
+
+  if( IS_DIRECTORY "${_addon_dir}" )
+    # BOTH scenario: only install models/ and transforms/ from the archive
+    if( IS_DIRECTORY "${_content_root}/models" )
+      message( STATUS "Installing models from ${_content_root}/models" )
+      install( DIRECTORY "${_content_root}/models/"
                DESTINATION configs/pipelines/models )
     endif()
-  endforeach()
 
-  # Find and install transforms directory if it exists
-  file( GLOB _transforms_dirs "${_extract_dir}/*/transforms" "${_extract_dir}/transforms" )
-  foreach( _transforms_dir IN LISTS _transforms_dirs )
-    if( IS_DIRECTORY "${_transforms_dir}" )
-      message( STATUS "Installing transforms from ${_transforms_dir}" )
-      install( DIRECTORY "${_transforms_dir}/"
+    if( IS_DIRECTORY "${_content_root}/transforms" )
+      message( STATUS "Installing transforms from ${_content_root}/transforms" )
+      install( DIRECTORY "${_content_root}/transforms/"
                DESTINATION configs/pipelines/transforms )
     endif()
-  endforeach()
+
+    # Compare pipe files between archive and local folder
+    CompareAddonPipeFiles( "${_name}" "${_content_root}" "${_addon_dir}" )
+  else()
+    # DOWNLOAD-ONLY scenario: install the full extracted content
+    message( STATUS "Installing full addon content from ${_content_root}" )
+    install( DIRECTORY "${_content_root}/"
+             DESTINATION configs/pipelines )
+  endif()
 endfunction()
 
 # Process all enabled addons - validates dependencies and downloads/installs models
-function( ProcessAllAddonModels )
+function( ProcessAllAddonModels _addons_src_dir )
   ValidateAddonDependencies()
 
   foreach( _name IN LISTS VIAME_ADDON_NAMES )
-    DownloadAndInstallAddonModels( "${_name}" )
+    DownloadAndInstallAddonModels( "${_name}" "${_addons_src_dir}" )
   endforeach()
 endfunction()
 

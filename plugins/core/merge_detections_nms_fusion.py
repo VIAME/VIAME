@@ -19,7 +19,9 @@ import csv
 import pdb
 import ast
 
-from map_boxes import *
+import contextlib, io
+with contextlib.redirect_stdout(io.StringIO()):
+    from map_boxes import *
 from ensemble_boxes import *
 
 ##############################################################################

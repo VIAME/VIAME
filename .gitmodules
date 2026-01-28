@@ -92,3 +92,4 @@
 [submodule "packages/pytorch-libs/sam3"]
 	path = packages/pytorch-libs/sam3
 	url = https://github.com/facebookresearch/sam3.git
+	ignore = dirty

@@ -23,6 +23,9 @@ import warnings
 warnings.filterwarnings("ignore", message="The value of the smallest subnormal")
 warnings.filterwarnings("ignore", module="scriptconfig.smartcast")
 warnings.filterwarnings("ignore", message="Importing from timm.models.layers is deprecated")
+warnings.filterwarnings("ignore", message="Distutils was imported before Setuptools")
+warnings.filterwarnings("ignore", message="Setuptools is replacing distutils")
+warnings.filterwarnings("ignore", message="TripleDES has been moved")
 
 import numpy as np
 

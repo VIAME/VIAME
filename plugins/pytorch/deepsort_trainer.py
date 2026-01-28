@@ -543,11 +543,10 @@ class DeepSORTTrainer(TrainTracker):
             output[output_model_name] = str(best_model)
 
             print(f"Model found at {best_model}")
-
-        return output
-                print(f"Generated config: {config_path}")
         else:
             print("Warning: No best model found")
+
+        return output
 
 
 def __vital_algorithm_register__():

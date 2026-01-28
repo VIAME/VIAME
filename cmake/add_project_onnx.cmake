@@ -3,19 +3,22 @@ set( ONNXRUNTIME_PYTHON onnxruntime )
 set( ONNXRUNTIME_VERSION 1.12.1 )
 set( ONNXRUNTIME_DOWNLOAD_DIR ${VIAME_PACKAGES_DIR}/downloads )
 
+# Convert env vars to ----separated string for pip_install_with_lock.cmake
+string( REPLACE ";" "----" ONNX_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
+
 set( ONNXRUNTIME_PIP_INSTALL_CMD
   ${CMAKE_COMMAND}
     -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
     -DPython_EXECUTABLE=${Python_EXECUTABLE}
     -DWHEEL_DIR=${ONNXRUNTIME_DOWNLOAD_DIR}
+    -DENV_VARS:STRING=${ONNX_ENV_STR}
     -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
 
 set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download
   --no-deps onnxruntime==${ONNXRUNTIME_VERSION} -d "${ONNXRUNTIME_DOWNLOAD_DIR}" )
 
-# Convert install command and env vars to ----separated strings for the wrapper script
+# Convert install command to ----separated string for the wrapper script
 string( REPLACE ";" "----" ONNX_INSTALL_CMD_STR "${ONNXRUNTIME_PIP_INSTALL_CMD}" )
-string( REPLACE ";" "----" ONNX_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
 
 set( ONNXRUNTIME_PYTHON_INSTALL
   ${CMAKE_COMMAND}

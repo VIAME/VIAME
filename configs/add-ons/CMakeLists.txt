@@ -3,7 +3,7 @@
 ValidateAddonDependencies()
 
 # Process downloads and install models/transforms for all enabled addons
-ProcessAllAddonModels()
+ProcessAllAddonModels( "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 # Install pipeline files from addon subdirectories if they exist
 # For each enabled VIAME_DOWNLOAD_MODELS-NAME, check if configs/add-ons/name exists
@@ -18,3 +18,13 @@ foreach( _addon_name IN LISTS VIAME_ADDON_NAMES )
     endif()
   endif()
 endforeach()
+
+# Emit pipe-file comparison warnings at the end of the add-ons install phase
+get_property( _pipe_warnings GLOBAL PROPERTY VIAME_PIPE_WARNINGS )
+if( _pipe_warnings )
+  set( _warning_code "" )
+  foreach( _warn IN LISTS _pipe_warnings )
+    string( APPEND _warning_code "message( WARNING \"${_warn}\" )\n" )
+  endforeach()
+  install( CODE "${_warning_code}" )
+endif()

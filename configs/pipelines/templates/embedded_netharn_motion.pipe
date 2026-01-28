@@ -100,7 +100,7 @@ process detector1
     :chip_adaptive_thresh                      1600000
 
     block detector:netharn
-      relativepath deployed =                  [-MODEL-FILE-]
+      relativepath deployed =                  [-DEPLOYED-]
     endblock
   endblock
 
